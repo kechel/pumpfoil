@@ -4,12 +4,14 @@ import SwiftUI
 struct RootView: View {
     @EnvironmentObject var session: SessionStore
     @AppStorage("themeMode") private var themeMode = "auto"   // "auto" | "light" | "dark"
+    @AppStorage("foil_fontscale") private var schriftStufe = "100"   // "100" | "120" | "150" (Einstellungen › Darstellung)
     @Environment(\.scenePhase) private var scenePhase
     @State private var showSplash = true
     @State private var wasBackground = false
     var body: some View {
         content
             .preferredColorScheme(preferredScheme)
+            .schriftStufe(schriftStufe)
             .ageGate(session: session)   // Declared Age Range (iOS 26+) -> social_allowed ans Backend
             .task { await session.bootstrap() }
             // Liegengebliebene Aufnahme des HANDY-Recorders beim App-Start weiterschicken.
@@ -252,6 +254,20 @@ struct MainTabView: View {
         case 4: return Loc.t("nav.spots", lang)
         case 5: return Loc.t("nav.chat", lang)
         default: return Loc.t("nav.settings", lang)
+        }
+    }
+}
+
+extension View {
+    /// Schriftgroesse der App wie im Web (100 / 120 / 150 %, web lib/fontscale.ts). Das Web skaliert die Root-Schrift;
+    /// hier die naechsten Dynamic-Type-Stufen (Fliesstext 17 pt -> 21 pt = 124 %, -> 23 pt = 135 %) als UNTERGRENZE —
+    /// wer am System schon groesser eingestellt hat, behaelt das. 100 % = genau die System-Einstellung. Schriften mit fester
+    /// Punktgroesse (Kacheln, Teilen-Bilder) wachsen nicht mit.
+    @ViewBuilder func schriftStufe(_ stufe: String) -> some View {
+        switch stufe {
+        case "120": self.dynamicTypeSize(DynamicTypeSize.xxLarge...DynamicTypeSize.accessibility5)
+        case "150": self.dynamicTypeSize(DynamicTypeSize.xxxLarge...DynamicTypeSize.accessibility5)
+        default: self
         }
     }
 }

@@ -80,6 +80,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} Wind-Sessions, meist bei {a}–{b} km/h",
             "spot.windNote" to "Woher der Wind bei den Wing-, Kite- und Parawing-Sessions an diesem Spot kam (Modellwind).",
             "tab.noData" to "Hier gibt es noch keine Daten.",
+            "fontscale.label" to "Schriftgröße",
+            "fontscale.hint" to "Für bessere Lesbarkeit alles größer darstellen.",
+            "sd.avgHrTotal" to "Ø Puls gesamt",
         ),
         "gsw" to mapOf(
             "tab.overview" to "Übersicht",
@@ -153,6 +156,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} Wind-Sessions, meischtens bi {a}–{b} km/h",
             "spot.windNote" to "Vo wo dä Wind bi de Wing-, Kite- und Parawing-Sessions a däm Spot cho isch (Modällwind).",
             "tab.noData" to "Do häts no kei Date.",
+            "fontscale.label" to "Schriftgrössi",
+            "fontscale.hint" to "Für besseri Läsbarkeit alles grösser darstelle.",
+            "sd.avgHrTotal" to "Ø Puls total",
         ),
         "de-AT" to mapOf(
             "tab.overview" to "Übersicht",
@@ -226,6 +232,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} Wind-Sessions, meist bei {a}–{b} km/h",
             "spot.windNote" to "Woher der Wind bei den Wing-, Kite- und Parawing-Sessions an diesem Spot kam (Modellwind).",
             "tab.noData" to "Hier gibt es noch keine Daten.",
+            "fontscale.label" to "Schriftgröße",
+            "fontscale.hint" to "Für bessere Lesbarkeit alles größer darstellen.",
+            "sd.avgHrTotal" to "Ø Puls gesamt",
         ),
         "en" to mapOf(
             "tab.overview" to "Overview",
@@ -299,6 +308,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} wind sessions, mostly at {a}–{b} km/h",
             "spot.windNote" to "Where the wind came from during wing, kite and parawing sessions at this spot (model wind).",
             "tab.noData" to "No data here yet.",
+            "fontscale.label" to "Font size",
+            "fontscale.hint" to "Make everything larger for better readability.",
+            "sd.avgHrTotal" to "Ø heart rate overall",
         ),
         "fr" to mapOf(
             "tab.overview" to "Aperçu",
@@ -372,6 +384,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} sessions au vent, surtout à {a}–{b} km/h",
             "spot.windNote" to "D'où venait le vent pendant les sessions wing, kite et parawing sur ce spot (vent modélisé).",
             "tab.noData" to "Pas encore de données ici.",
+            "fontscale.label" to "Taille du texte",
+            "fontscale.hint" to "Tout agrandir pour une meilleure lisibilité.",
+            "sd.avgHrTotal" to "Ø fréq. card. totale",
         ),
         "it" to mapOf(
             "tab.overview" to "Panoramica",
@@ -445,6 +460,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} sessioni col vento, perlopiù a {a}–{b} km/h",
             "spot.windNote" to "Da dove veniva il vento nelle sessioni wing, kite e parawing in questo spot (vento del modello).",
             "tab.noData" to "Ancora nessun dato qui.",
+            "fontscale.label" to "Dimensione del testo",
+            "fontscale.hint" to "Ingrandisci tutto per una migliore leggibilità.",
+            "sd.avgHrTotal" to "Ø battito totale",
         ),
         "es" to mapOf(
             "tab.overview" to "Resumen",
@@ -518,6 +536,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} sesiones con viento, sobre todo a {a}–{b} km/h",
             "spot.windNote" to "De dónde venía el viento en las sesiones de wing, kite y parawing en este spot (viento del modelo).",
             "tab.noData" to "Todavía no hay datos aquí.",
+            "fontscale.label" to "Tamaño del texto",
+            "fontscale.hint" to "Agranda todo para una mejor legibilidad.",
+            "sd.avgHrTotal" to "Ø pulso total",
         ),
         "fi" to mapOf(
             "tab.overview" to "Yleiskatsaus",
@@ -591,6 +612,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} tuulisessiota, yleensä {a}–{b} km/h",
             "spot.windNote" to "Mistä tuuli tuli wing-, kite- ja parawing-sessioissa tällä spotilla (mallituuli).",
             "tab.noData" to "Täällä ei ole vielä tietoja.",
+            "fontscale.label" to "Tekstin koko",
+            "fontscale.hint" to "Suurenna kaikki paremman luettavuuden vuoksi.",
+            "sd.avgHrTotal" to "Ø syke yhteensä",
         ),
         "nl" to mapOf(
             "tab.overview" to "Overzicht",
@@ -664,6 +688,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} windsessies, meestal bij {a}–{b} km/h",
             "spot.windNote" to "Waar de wind vandaan kwam bij wing-, kite- en parawingsessies op deze spot (modelwind).",
             "tab.noData" to "Hier zijn nog geen gegevens.",
+            "fontscale.label" to "Lettergrootte",
+            "fontscale.hint" to "Alles groter weergeven voor betere leesbaarheid.",
+            "sd.avgHrTotal" to "Ø hartslag totaal",
         ),
         "cs" to mapOf(
             "tab.overview" to "Přehled",
@@ -737,6 +764,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} větrných session, většinou při {a}–{b} km/h",
             "spot.windNote" to "Odkud foukal vítr při wing, kite a parawing session na tomto spotu (modelový vítr).",
             "tab.noData" to "Zatím tu nejsou žádná data.",
+            "fontscale.label" to "Velikost písma",
+            "fontscale.hint" to "Pro lepší čitelnost zvětšit vše.",
+            "sd.avgHrTotal" to "Ø tep celkem",
         ),
         "pl" to mapOf(
             "tab.overview" to "Przegląd",
@@ -810,6 +840,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} sesji z wiatrem, głównie przy {a}–{b} km/h",
             "spot.windNote" to "Skąd wiał wiatr podczas sesji wing, kite i parawing na tym spocie (wiatr z modelu).",
             "tab.noData" to "Nie ma tu jeszcze danych.",
+            "fontscale.label" to "Wielkość czcionki",
+            "fontscale.hint" to "Powiększ wszystko dla lepszej czytelności.",
+            "sd.avgHrTotal" to "Ø tętno ogółem",
         ),
         "pt" to mapOf(
             "tab.overview" to "Visão geral",
@@ -883,6 +916,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} sessões com vento, geralmente a {a}–{b} km/h",
             "spot.windNote" to "De onde vinha o vento nas sessões de wing, kite e parawing neste spot (vento do modelo).",
             "tab.noData" to "Ainda não há dados aqui.",
+            "fontscale.label" to "Tamanho da fonte",
+            "fontscale.hint" to "Aumente tudo para melhor leitura.",
+            "sd.avgHrTotal" to "FC Ø total",
         ),
         "pt-PT" to mapOf(
             "tab.overview" to "Visão geral",
@@ -956,6 +992,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} sessões com vento, sobretudo a {a}–{b} km/h",
             "spot.windNote" to "De onde vinha o vento nas sessões de wing, kite e parawing neste spot (vento do modelo).",
             "tab.noData" to "Ainda não há dados aqui.",
+            "fontscale.label" to "Tamanho da fonte",
+            "fontscale.hint" to "Aumente tudo para melhor leitura.",
+            "sd.avgHrTotal" to "FC Ø total",
         ),
         "ja" to mapOf(
             "tab.overview" to "概要",
@@ -1029,6 +1068,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "風のセッション{n}回、主に {a}–{b} km/h",
             "spot.windNote" to "このスポットでのウイング・カイト・パラウイングのセッション中の風向き（モデル風）。",
             "tab.noData" to "まだデータがありません。",
+            "fontscale.label" to "文字サイズ",
+            "fontscale.hint" to "読みやすさのためすべてを大きくします。",
+            "sd.avgHrTotal" to "Ø 心拍数（全体）",
         ),
         "zh" to mapOf(
             "tab.overview" to "概览",
@@ -1102,6 +1144,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} 次风力项目，多在 {a}–{b} km/h",
             "spot.windNote" to "此处 wing、kite 和 parawing 项目时的风向（模型风）。",
             "tab.noData" to "这里还没有数据。",
+            "fontscale.label" to "字体大小",
+            "fontscale.hint" to "整体放大，提升可读性。",
+            "sd.avgHrTotal" to "Ø 心率（全程）",
         ),
         "ru" to mapOf(
             "tab.overview" to "Обзор",
@@ -1175,6 +1220,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} ветровых сессий, обычно при {a}–{b} км/ч",
             "spot.windNote" to "Откуда дул ветер во время сессий вингфойла, кайта и паравинга на этом споте (модель ветра).",
             "tab.noData" to "Здесь пока нет данных.",
+            "fontscale.label" to "Размер шрифта",
+            "fontscale.hint" to "Увеличить всё для лучшей читаемости.",
+            "sd.avgHrTotal" to "Ø пульс за всю сессию",
         ),
         "id" to mapOf(
             "tab.overview" to "Ringkasan",
@@ -1248,6 +1296,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} sesi angin, umumnya pada {a}–{b} km/h",
             "spot.windNote" to "Dari mana angin datang saat sesi wing, kite, dan parawing di spot ini (angin model).",
             "tab.noData" to "Belum ada data di sini.",
+            "fontscale.label" to "Ukuran font",
+            "fontscale.hint" to "Perbesar semuanya agar lebih mudah dibaca.",
+            "sd.avgHrTotal" to "Ø detak jantung keseluruhan",
         ),
         "nb" to mapOf(
             "tab.overview" to "Oversikt",
@@ -1321,6 +1372,9 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "spot.windText" to "{n} vindøkter, oftest ved {a}–{b} km/t",
             "spot.windNote" to "Hvor vinden kom fra under wing-, kite- og parawing-økter på denne spoten (modellvind).",
             "tab.noData" to "Ingen data her ennå.",
+            "fontscale.label" to "Skriftstørrelse",
+            "fontscale.hint" to "Gjør alt større så det blir lettere å lese.",
+            "sd.avgHrTotal" to "Ø puls totalt",
         ),
     )
 }

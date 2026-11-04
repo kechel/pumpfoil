@@ -1772,7 +1772,7 @@ struct SessionDetailView: View {
         // Ø Puls auf dem Foil als Hauptzahl, der Gesamtwert (mit Pausen am Ufer) klein darunter — wie die PWA
         // (01.11.2026). Ohne Laeufe gibt es keinen Foil-Wert, dann wie bisher der Gesamtwert.
         if let hf = m?.avg_hr_foil, hf > 0 {
-            let gesamt: String? = m?.avg_hr.map { Loc.t("sd.avgHrGesamt", lang).replacingOccurrences(of: "{n}", with: String(format: "%.0f", $0)) }
+            let gesamt: String? = m?.avg_hr.map { Loc.t("sd.avgHrTotal", lang) + " " + String(format: "%.0f", $0) }   // sd.avgHrGesamt gibt es im Web nicht mehr (04.11.2026)
             out.append(StatItem(Loc.t("sd.avgHrFoil", lang), String(format: "%.0f", hf), sub: gesamt))
         } else if let v = m?.avg_hr, v > 0 { out.append(StatItem(Loc.t("sd.avgHr", lang), String(format: "%.0f", v))) }
         if let v = m?.max_hr, v > 0 { out.append(StatItem(Loc.t("sd.maxHr", lang), String(format: "%.0f", v))) }

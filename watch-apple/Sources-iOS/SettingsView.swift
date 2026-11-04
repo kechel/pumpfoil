@@ -6,6 +6,7 @@ import SwiftUI
 // Bewusst Standard-Bindings + .onChange(of:) (kein derived Binding) — release-robust.
 struct SettingsView: View {
     @AppStorage("themeMode") private var themeMode = "auto"
+    @AppStorage("foil_fontscale") private var schriftStufe = "100"
     @AppStorage("appLang") private var lang = "de"
     // Anzeige-Einheit der Pump-Kadenz (hz|ppm): lokal sofort wirksam, danach ans Profil
     // (synct zu Web/anderen Geräten). Reine Darstellung — siehe PumpUnit.swift.
@@ -304,7 +305,7 @@ struct SettingsView: View {
     }
 
     // Aktivitätstyp der Garmin-Aufnahme (Surfen | Open Water). Nur bei verknüpfter Garmin-Uhr.
-    private var designSection: some View {
+    @ViewBuilder private var designSection: some View {
         Section(Loc.t("settings.design", lang)) {
             Picker(Loc.t("settings.design", lang), selection: $themeMode) {
                 Text(Loc.t("settings.auto", lang)).tag("auto")
@@ -312,6 +313,22 @@ struct SettingsView: View {
                 Text(Loc.t("settings.dark", lang)).tag("dark")
             }
             .pickerStyle(.segmented)
+        }
+        schriftSection
+    }
+
+    // Schriftgroesse (Barrierefreiheit) wie web FontScaleSelect: 100 / 120 / 150 %. Wirkt sofort ueber Dynamic Type
+    // (RootView `schriftStufe`), nur auf diesem Geraet gemerkt (Web: localStorage `foil_fontscale`).
+    private var schriftSection: some View {
+        Section {
+            Picker(Loc.t("fontscale.label", lang), selection: $schriftStufe) {
+                ForEach(["100", "120", "150"], id: \.self) { o in Text(o + " %").tag(o) }
+            }
+            .pickerStyle(.segmented)
+        } header: {
+            Text(Loc.t("fontscale.label", lang))
+        } footer: {
+            Text(Loc.t("fontscale.hint", lang))
         }
     }
 

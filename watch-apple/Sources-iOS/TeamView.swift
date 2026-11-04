@@ -5,8 +5,8 @@ import SwiftUI
 //    Team-Chat, Austreten.
 //  * Angemeldete ohne Mitgliedschaft: freigegebener Auftritt, Beitreten (wenn zugelassen), Bestenlisten nur bei
 //    oeffentlichem Team.
-// Die Regeln setzt der Server (server/app/teams.py); hier wird nur gezeigt, was er liefert. Verwaltung und
-// Einstellungen bleiben im Web: Leitung/Moderatoren bekommen einen Link „Verwaltung" in den Browser.
+// Die Regeln setzt der Server (server/app/teams.py); hier wird nur gezeigt, was er liefert. Leitung/Moderatoren kommen
+// ueber das Zahnrad und „N neue Anfragen" in die native Verwaltung (TeamVerwaltung.swift, seit 04.11.2026; vorher Browser).
 
 let TEAM_ZEITRAEUME: [(String, String)] = [
     ("today", "period.today"), ("10d", "period.10d"), ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all"),
@@ -27,6 +27,7 @@ struct TeamView: View {
     @State private var busy = false
     @State private var meldung: String?
     @State private var austretenFragen = false
+    @Environment(\.dismiss) private var dismiss
 
     private var feedbackPfad: String { "/teams/" + slug }
 
@@ -37,6 +38,8 @@ struct TeamView: View {
             .feedbackToolbar(feedbackPfad)
             .task { if kopf == nil { await laden() } }
             .refreshable { await laden() }
+            // Zurueck aus der Verwaltung: Kopf, Anfragen und Mitglieder neu holen.
+            .onAppear { if kopf != nil { Task { await laden() } } }
             .onChange(of: period) { _ in Task { await periodeLaden() } }
             .sheet(isPresented: $dialog) { beitrittSheet }
             .alert(austretenFrage, isPresented: $austretenFragen) { austretenKnoepfe }
@@ -63,7 +66,7 @@ struct TeamView: View {
     private func oberteil(_ k: TeamInfo) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             if let u = Api.mediaURL(k.banner_url) { TeamBanner(url: u, fokus: k.banner_fokus).padding(.top, 8) }
-            TeamKopf(k: k, lang: lang)
+            TeamKopf(k: k, lang: lang, geloescht: { teamGeloescht() })
             if let m = meldung { meldungsBox(m) }
             beitrittBereich(k)
             eventsObenBereich(k)
@@ -254,6 +257,13 @@ struct TeamView: View {
         stat = await s
     }
 
+    /// Team in der Verwaltung geloescht: die Seite gibt es nicht mehr.
+    private func teamGeloescht() {
+        kopf = nil
+        fehlt = true
+        dismiss()
+    }
+
     private func beitreten() async {
         busy = true
         defer { busy = false }
@@ -292,10 +302,11 @@ func teamEventVorOben(_ a: TeamEvent, _ b: TeamEvent) -> Bool {
 
 // MARK: - Bausteine der Teamseite
 
-/// Kopf: Wappen, Name, Mitglieder · oeffentlich · Sportarten, offene Anfragen, Team-Chat, Verwaltung (Web).
+/// Kopf: Wappen, Name mit Herkunft und Zahnrad, Mitglieder · oeffentlich · Sportarten, offene Anfragen, Team-Chat.
 private struct TeamKopf: View {
     let k: TeamInfo
     let lang: String
+    let geloescht: () -> Void
 
     private var tf: TeamFarbe { TeamFarbe(k.farbe) }
     private var infoZeile: String {
@@ -310,17 +321,30 @@ private struct TeamKopf: View {
         return teamText(n == 1 ? "team.anfragenEins" : "team.anfragenViele", lang, ["n": String(n)])
     }
     private var chatTitel: String { teamText("team.chatTitel", lang, ["name": k.name]) }
-    private var verwaltenURL: URL? { Api.teamWebURL("/teams/" + k.slug + "/verwalten") }
+
+    private var verwaltung: some View { TeamVerwaltungView(slug: k.slug, onGeloescht: geloescht) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top, spacing: 12) {
                 TeamWappen(name: k.name, logo: k.logo_url, farbe: k.farbe, size: 64)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(k.name).font(.title2.weight(.bold)).foregroundStyle(tf.akzent)
+                    HStack(spacing: 6) {
+                        Text(k.name).font(.title2.weight(.bold)).foregroundStyle(tf.akzent)
+                        TeamHerkunftMarke(land: k.land, gross: true)
+                    }
                     Text(infoZeile).font(.subheadline).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 0)
+                // Zahnrad fuer Leitung/Moderatoren (wie im Web) — in die Verwaltung.
+                if k.istVerwalter {
+                    NavigationLink { verwaltung } label: {
+                        Image(systemName: "gearshape").font(.title3).foregroundStyle(.secondary)
+                            .padding(8)
+                            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.secondary.opacity(0.4), lineWidth: 1))
+                    }
+                    .accessibilityLabel(Loc.t("team.tab.verwalten", lang))
+                }
             }
             knopfZeile
             if let b = k.beschreibung, !b.isEmpty { Text(b).font(.subheadline) }
@@ -330,8 +354,8 @@ private struct TeamKopf: View {
 
     private var knopfZeile: some View {
         FoilerFliessReihe(abstand: 8) {
-            if (k.anfragen_offen ?? 0) > 0, let u = verwaltenURL {
-                Link(destination: u) {
+            if (k.anfragen_offen ?? 0) > 0 {
+                NavigationLink { verwaltung } label: {
                     Text(anfragenText).font(.subheadline.weight(.semibold))
                         .foregroundStyle(Color(red: 0x02 / 255, green: 0x06 / 255, blue: 0x17 / 255))
                         .padding(.horizontal, 10).padding(.vertical, 5)
@@ -343,14 +367,11 @@ private struct TeamKopf: View {
                     teamUmrissKnopf(Loc.t("team.chat", lang), "bubble.left.and.bubble.right", tf.akzent)
                 }
             }
-            if k.istVerwalter, let u = verwaltenURL {
-                Link(destination: u) { teamUmrissKnopf(Loc.t("team.tab.verwalten", lang), "arrow.up.right.square", tf.akzent) }
-            }
         }
     }
 }
 
-/// Knopf mit Rahmen und Symbol (Team-Chat, Verwaltung im Browser).
+/// Knopf mit Rahmen und Symbol (Team-Chat, Teilen).
 func teamUmrissKnopf(_ titel: String, _ symbol: String, _ akzent: Color) -> some View {
     Label {
         Text(titel).foregroundStyle(Color.primary)

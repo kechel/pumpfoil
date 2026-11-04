@@ -6,11 +6,14 @@ WEB = ROOT / "web/src/i18n/locales"
 IOS = ROOT / "watch-apple/Sources-iOS"
 LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb"]
 DATEIEN = ["TeamModels.swift", "TeamsApi.swift", "TeamFarben.swift", "TeamEventKachel.swift", "TeamKennzahlen.swift",
-           "TeamView.swift", "TeamEventView.swift", "TeamsListen.swift"]
+           "TeamView.swift", "TeamEventView.swift", "TeamsListen.swift",
+           # Team-Verwaltung nativ, Teilen-Bild, Teams in den Einstellungen (App-Port, 04.11.2026)
+           "TeamVerwaltung.swift", "TeamGrunddaten.swift", "TeamEventsVerwalten.swift", "TeamGruenden.swift",
+           "TeamBestenlisten.swift", "EinstellungenView.swift"]
 # fw.* = die kurzen Uhr-Texte unter den Werten (Layout-Vorschau, 01.11.2026) — vorher zeigte iOS dort die langen
 # Feldnamen, die ueberlappten und vom Web abwichen.
 PRAEFIXE = ["team.event.status.", "team.err.", "team.rolle.", "team.k.", "team.adresseTeilen.", "fw."]
-EXTRA = ["sd.avgHrFoil", "sd.avgHrGesamt", "leader.totalDistance", "leader.totalTime"]
+EXTRA = ["sd.avgHrFoil", "leader.totalDistance", "leader.totalTime"]
 
 def lies(code):
     s = io.open(WEB / f"{code}.ts", encoding="utf-8").read()

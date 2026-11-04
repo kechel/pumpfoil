@@ -12,6 +12,8 @@ struct HomeView: View {
     // Programmatische Navigation fuer die Rekord-Kacheln (LazyVGrid) — s. CommunityView.
     @State private var navPath = NavigationPath()
     @State private var homeTab: String = ReiterSpeicher.von("home", "uebersicht")   // App-Port Phase 3 (Reiter)
+    // Zweite Reiterzeile unter Home › Stats (wie web PersonalHome `StatsBereich`): Verlauf · Kennzahlen · Lage des Bretts.
+    @State private var statsTab: String = ReiterSpeicher.von("homestats", "verlauf")
     // Home › Spots (Phase 4): alle Spots mit eigenen Sessions (nil = laedt noch).
     @State private var meineSpots: [MeinSpot]? = nil
     // Home › Profil (Phase 5): Vorschau der eigenen Foiler-Seite als Freunde | Alle, Standard Alle (wie im Web).
@@ -128,7 +130,7 @@ struct HomeView: View {
 
     private var homeReiterleiste: some View {
         Reiterleiste(reiter: homeReiter, aktiv: Binding(get: { homeTab }, set: { homeTab = $0; ReiterSpeicher.setze("home", $0) }),
-                     unter: homeTab == "spots" || homeTab == "uhren")
+                     unter: homeTab == "spots" || homeTab == "uhren" || homeTab == "stats")
     }
 
     private var homeStack: some View {
@@ -217,25 +219,40 @@ struct HomeView: View {
         if !sportRek.isEmpty { SportRekordeZeilenView(zeilen: sportRek, titel: Loc.t("phome.sportRec", lang), lang: lang) }
     }
 
+    // Home › Stats wie im Web (StatsBereich in web/src/pages/PersonalHome.tsx, 04.11.2026): zweite Reiterzeile mit genau
+    // dessen Reitern. Der Verlauf steht eingebettet hier (vorher ein Link auf die eigene Seite); Jahresbilanz,
+    // Start-Erfolgsquote, Carves sowie Wenden & Halsen untereinander unter „Kennzahlen"; die Lage des Bretts erklaert sich
+    // selbst, wenn es keine Brett-Aufnahmen gibt.
+    private var statsReiter: [ReiterDef] {
+        [ReiterDef(id: "verlauf", label: Loc.t("nav.history", lang)),
+         ReiterDef(id: "kennzahlen", label: Loc.t("tab.insights", lang)),
+         ReiterDef(id: "brett", label: Loc.t("home.boardAttitude", lang))]
+    }
+
     @ViewBuilder private var homeStats: some View {
-        // Verlauf: eigene Seite (der Knopf unten ist mit Phase 2 weg), hier der Weg dorthin.
-        NavigationLink { VerlaufView() } label: {
-            HStack {
-                Image(systemName: "chart.xyaxis.line").foregroundStyle(Color.accentColor)
-                Text(Loc.t("nav.history", lang)).font(.subheadline.weight(.semibold))
-                Spacer()
-                Text("→").foregroundStyle(Color.accentColor)
-            }
-            .padding(14)
-            .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+        Reiterleiste(reiter: statsReiter, aktiv: Binding(get: { statsTab }, set: { statsTab = $0; ReiterSpeicher.setze("homestats", $0) }),
+                     stufe: 2)
+        switch statsTab {
+        case "kennzahlen": statsKennzahlen
+        case "brett": BrettLageStartseite(lang: lang, erklaerungWennLeer: true)
+        default: VerlaufView(eingebettet: true)
         }
-        .buttonStyle(.plain)
+    }
+
+    private var hatKennzahlen: Bool {
+        if let b = bilanz, !b.jahre.isEmpty { return true }
+        if startSuccess != nil { return true }
+        if let cs = carveStats, carveStatsHasAny(cs) { return true }
+        if let mv = manVerlauf, mv.monate.contains(where: { $0.wende + $0.halse > 0 }) { return true }
+        return false
+    }
+
+    @ViewBuilder private var statsKennzahlen: some View {
+        if let b = bilanz, !b.jahre.isEmpty { bilanzSection(b) }
         if let ss = startSuccess { startSuccessSection(ss) }
         if let cs = carveStats, carveStatsHasAny(cs) { carveStatsSection(cs) }
-        if let b = bilanz, !b.jahre.isEmpty { bilanzSection(b) }
         if let mv = manVerlauf, mv.monate.contains(where: { $0.wende + $0.halse > 0 }) { manoeverSection(mv) }
-        // Lage des Bretts je Lauflaenge — nur mit Aufnahmen vom Handy am Brett.
-        BrettLageStartseite(lang: lang)
+        if !hatKennzahlen { Text(Loc.t("tab.noData", lang)).font(.subheadline).foregroundStyle(.secondary) }
     }
 
     @ViewBuilder private var updateBannerIfAny: some View {

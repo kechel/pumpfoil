@@ -373,44 +373,10 @@ struct SessionsView: View {
         guard !urls.isEmpty else { return }
         importLaeuft = true
         Task {
-            var fehler = 0
-            var uebersprungen = 0
-            var grund = ""
-            var letzte: Int?
-            for (i, u) in urls.enumerated() {
-                if urls.count > 1 { importFortschritt = "\(i + 1)/\(urls.count)" }
-                let zugriff = u.startAccessingSecurityScopedResource()
-                do {
-                    let daten = try Data(contentsOf: u)
-                    let r = try await Api.uploadFit(data: daten, filename: u.lastPathComponent)
-                    if let s = r.skipped, !s.isEmpty {
-                        uebersprungen += 1
-                        if grund.isEmpty, let d = r.detail, !d.isEmpty { grund = d }
-                    } else if let id = r.id {
-                        letzte = id
-                    }
-                } catch {
-                    fehler += 1
-                }
-                if zugriff { u.stopAccessingSecurityScopedResource() }
-            }
+            let (text, letzte) = await dateienImportieren(urls, lang: lang) { importFortschritt = $0 }
             importFortschritt = ""
             importLaeuft = false
             importierteId = letzte
-            var text: String?
-            if fehler > 0 {
-                text = Loc.t("sessions.uploadFail", lang)
-                    .replacingOccurrences(of: "{fail}", with: "\(fehler)")
-                    .replacingOccurrences(of: "{total}", with: "\(urls.count)")
-            } else if uebersprungen > 0 {
-                // Bei genau EINER Datei den Grund im Klartext zeigen — sonst raetselt man, warum
-                // nichts passiert ist.
-                text = (urls.count == 1 && !grund.isEmpty)
-                    ? Loc.t("sessions.uploadSkippedOne", lang).replacingOccurrences(of: "{reason}", with: grund)
-                    : Loc.t("sessions.uploadSkipped", lang)
-                        .replacingOccurrences(of: "{skipped}", with: "\(uebersprungen)")
-                        .replacingOccurrences(of: "{total}", with: "\(urls.count)")
-            }
             await load()
             if let text {
                 importMeldung = text
@@ -1559,3 +1525,46 @@ private struct HeuteNeu: View {
     }
 }
 
+
+/// Dateien (FIT/TCX/GPX, auch ZIP/gepackt) nacheinander hochladen — von „Meine Sessions" und der Import-Kachel in
+/// Einstellungen › Uebersicht (04.11.2026). Ergebnis: der Satz fuer die Meldung (nil = alles gut) und die id der zuletzt
+/// angelegten Session. Uebersprungen ist KEIN Fehler: der Garmin-Gesamtexport enthaelt Aktivitaeten und
+/// Tagesaufzeichnungen gemischt (am Dateinamen nicht unterscheidbar) — wer den Ordner hochlaedt, soll „12 importiert,
+/// 87 uebersprungen" lesen und nicht „87 fehlgeschlagen".
+func dateienImportieren(_ urls: [URL], lang: String, fortschritt: (String) -> Void) async -> (String?, Int?) {
+    var fehler = 0
+    var uebersprungen = 0
+    var grund = ""
+    var letzte: Int?
+    for (i, u) in urls.enumerated() {
+        if urls.count > 1 { fortschritt("\(i + 1)/\(urls.count)") }
+        let zugriff = u.startAccessingSecurityScopedResource()
+        do {
+            let daten = try Data(contentsOf: u)
+            let r = try await Api.uploadFit(data: daten, filename: u.lastPathComponent)
+            if let s = r.skipped, !s.isEmpty {
+                uebersprungen += 1
+                if grund.isEmpty, let d = r.detail, !d.isEmpty { grund = d }
+            } else if let id = r.id {
+                letzte = id
+            }
+        } catch {
+            fehler += 1
+        }
+        if zugriff { u.stopAccessingSecurityScopedResource() }
+    }
+    var text: String?
+    if fehler > 0 {
+        text = Loc.t("sessions.uploadFail", lang)
+            .replacingOccurrences(of: "{fail}", with: "\(fehler)")
+            .replacingOccurrences(of: "{total}", with: "\(urls.count)")
+    } else if uebersprungen > 0 {
+        // Bei genau EINER Datei den Grund im Klartext zeigen — sonst raetselt man, warum nichts passiert ist.
+        text = (urls.count == 1 && !grund.isEmpty)
+            ? Loc.t("sessions.uploadSkippedOne", lang).replacingOccurrences(of: "{reason}", with: grund)
+            : Loc.t("sessions.uploadSkipped", lang)
+                .replacingOccurrences(of: "{skipped}", with: "\(uebersprungen)")
+                .replacingOccurrences(of: "{total}", with: "\(urls.count)")
+    }
+    return (text, letzte)
+}

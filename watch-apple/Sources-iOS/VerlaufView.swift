@@ -4,6 +4,9 @@ import CoreLocation
 
 // Verlauf: Trend-Charts je Kennzahl (kumuliert / 7-Tage- / 30-Tage-Fenster) — spiegelt web + Android.
 struct VerlaufView: View {
+    /// Als Reiter unter Home › Stats (App-Port, 04.11.2026): ohne eigenen NavigationStack, ohne Kopfleiste und ohne
+    /// eigenes ScrollView — die Home-Seite scrollt schon.
+    var eingebettet: Bool = false
     @AppStorage("appLang") private var lang = "de"
     // Beobachtet die Anzeige-Einheit der Pump-Kadenz -> Umschalten wirkt sofort (PumpUnit.swift).
     @AppStorage(PumpUnit.storeKey) private var pumpUnit = "hz"
@@ -33,6 +36,31 @@ struct VerlaufView: View {
     // Inhalt in typisierte Teile zerlegt: Ladezustände, Chip-Zeile und zwei Karten-Listen standen
     // als EIN ViewBuilder-Ausdruck da (samt String-Verkettung im Zwischentitel).
     var body: some View {
+        if eingebettet {
+            eingebettetInhalt
+                .task { if items.isEmpty { await load() } }
+        } else {
+            eigeneSeite
+        }
+    }
+
+    @ViewBuilder private var eingebettetInhalt: some View {
+        if loading && items.isEmpty {
+            ProgressView().frame(maxWidth: .infinity).padding()
+        } else if let error {
+            Text(error).foregroundStyle(.secondary)
+        } else if data.count < 2 {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(Loc.t("verlauf.empty", lang)).foregroundStyle(.secondary).padding(.vertical)
+                modeChips
+                SportErfolgView(punkte: sportVerlauf, mode: mode, lang: lang)
+            }
+        } else {
+            VStack(alignment: .leading, spacing: 10) { chartsInhalt }
+        }
+    }
+
+    private var eigeneSeite: some View {
         NavigationStack {
             Group {
                 if loading && items.isEmpty {
@@ -63,21 +91,23 @@ struct VerlaufView: View {
 
     private var chartsScroll: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 10) {
-                modeChips
-                bestCharts
-                Text(aggTitle)
-                    .font(.title3).fontWeight(.semibold).padding(.top, 6)
-                sumCharts
-                // Trainingskurve: eigene Abfrage (hr-progress), deshalb eigene Karte mit
-                // eigenem Ladezustand — sie haengt nicht am Zeitraum der uebrigen Diagramme.
-                SportErfolgView(punkte: sportVerlauf, mode: mode, lang: lang)
-                HrProgressCardView(lang: lang, daten: hrDaten)
-                SpotProgressionView(lang: lang)
-            }
-            .padding(.horizontal, 12)
-            .padding(.bottom, 16)
+            LazyVStack(alignment: .leading, spacing: 10) { chartsInhalt }
+                .padding(.horizontal, 12)
+                .padding(.bottom, 16)
         }
+    }
+
+    @ViewBuilder private var chartsInhalt: some View {
+        modeChips
+        bestCharts
+        Text(aggTitle)
+            .font(.title3).fontWeight(.semibold).padding(.top, 6)
+        sumCharts
+        // Trainingskurve: eigene Abfrage (hr-progress), deshalb eigene Karte mit
+        // eigenem Ladezustand — sie haengt nicht am Zeitraum der uebrigen Diagramme.
+        SportErfolgView(punkte: sportVerlauf, mode: mode, lang: lang)
+        HrProgressCardView(lang: lang, daten: hrDaten)
+        SpotProgressionView(lang: lang)
     }
 
     private var modeChips: some View {

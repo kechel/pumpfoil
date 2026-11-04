@@ -15,6 +15,12 @@ struct TeamsZielView: View {
         case .alleEvents: EventsAlleView()
         case .team(let slug): TeamView(slug: slug)
         case .event(let slug, let id): TeamEventView(slug: slug, eventId: id)
+        // „Team gruenden" aus der Community: die Seite /teams des Webs (eigene Teams, Suche, Gruenden).
+        case .gruenden:
+            EinstellungenTeamView(lang: Api.uiLang)
+                .navigationTitle(Loc.t("team.meine", Api.uiLang))
+                .navigationBarTitleDisplayMode(.inline)
+                .feedbackToolbar("/teams")
         }
     }
 }
@@ -49,12 +55,11 @@ struct TeamEventsAbschnitt: View {
         .listRowSeparator(.hidden)
     }
 
+    // „Alle Teams" steht seit 04.11.2026 unter den aktivsten Teams (AktivsteTeamsAbschnitt), wie im Web.
     private var linkZeile: some View {
         HStack(spacing: 16) {
             Spacer()
             Button { pfad.append(TeamsZiel.alleEvents) } label: { linkText("team.alleEvents") }
-                .buttonStyle(.borderless)
-            Button { pfad.append(TeamsZiel.alleTeams) } label: { linkText("team.alle") }
                 .buttonStyle(.borderless)
         }
     }
@@ -65,6 +70,75 @@ struct TeamEventsAbschnitt: View {
 
     func laden() async {
         events = (try? await Api.teamsEventsAktuell()) ?? []
+    }
+}
+
+// MARK: - Aktivste Teams
+
+/// „Aktivste Teams" der Community (web Home.tsx `AktivsteTeams`): die 10 Teams mit den meisten Sessions ihrer
+/// Mitglieder in 30 Tagen; ohne solche Teams entfaellt der Abschnitt. Darunter immer „Alle Teams" und „Team gruenden".
+struct AktivsteTeamsAbschnitt: View {
+    let lang: String
+    @Binding var pfad: NavigationPath
+    @State private var teams: [TeamListenEintrag]?
+
+    private var top: [TeamListenEintrag] {
+        Array((teams ?? []).filter { ($0.sessions_30d ?? 0) > 0 }
+            .sorted { ($0.sessions_30d ?? 0) > ($1.sessions_30d ?? 0) }.prefix(10))
+    }
+
+    var body: some View {
+        Group {
+            if !top.isEmpty {
+                Section {
+                    ForEach(top) { tm in
+                        NavigationLink(value: TeamsZiel.team(tm.slug)) { zeile(tm) }
+                    }
+                } header: {
+                    Text(Loc.t("team.aktivste", lang)).font(.headline)
+                }
+            }
+            Section {
+                HStack(spacing: 16) {
+                    Spacer()
+                    Button { pfad.append(TeamsZiel.alleTeams) } label: { linkText("team.alle") }
+                        .buttonStyle(.borderless)
+                    Button { pfad.append(TeamsZiel.gruenden) } label: { linkText("team.gruenden") }
+                        .buttonStyle(.borderless)
+                }
+            }
+        }
+        .task { if teams == nil { teams = (try? await Api.teamsListe()) ?? [] } }
+    }
+
+    private func linkText(_ key: String) -> some View {
+        Text(Loc.t(key, lang) + " →").font(.subheadline).foregroundStyle(Color.accentColor)
+    }
+
+    private func unterzeile(_ tm: TeamListenEintrag) -> String {
+        let n: String = teamText("team.mitgliederAnzahl", lang, ["n": String(tm.mitglieder_anzahl)])
+        let sp: String = teamSportartenText(tm.sportarten, lang)
+        return sp.isEmpty ? n : n + " · " + sp
+    }
+
+    private func zeile(_ tm: TeamListenEintrag) -> some View {
+        let tf = TeamFarbe(tm.farbe)
+        return HStack(spacing: 10) {
+            TeamWappen(name: tm.name, logo: tm.logo_url, farbe: tm.farbe, size: 40)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 5) {
+                    Text(tm.name).font(.subheadline.weight(.semibold)).foregroundStyle(tf.akzent).lineLimit(1)
+                    TeamHerkunftMarke(land: tm.land)
+                }
+                Text(unterzeile(tm)).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+            }
+            Spacer(minLength: 4)
+            VStack(alignment: .trailing, spacing: 0) {
+                Text(String(tm.sessions_30d ?? 0)).font(.headline.monospacedDigit()).foregroundStyle(tf.akzent)
+                Text(Loc.t("team.sessions30", lang)).font(.caption2).foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 2)
     }
 }
 
@@ -327,7 +401,10 @@ struct HomeTeamsListe: View {
             HStack(spacing: 10) {
                 TeamWappen(name: tm.name, logo: tm.logo_url, farbe: tm.farbe, size: 40)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(tm.name).font(.subheadline.weight(.semibold)).foregroundStyle(TeamFarbe(tm.farbe).akzent).lineLimit(1)
+                    HStack(spacing: 5) {
+                        Text(tm.name).font(.subheadline.weight(.semibold)).foregroundStyle(TeamFarbe(tm.farbe).akzent).lineLimit(1)
+                        TeamHerkunftMarke(land: tm.land)
+                    }
                     Text(Loc.t("team.rolle." + tm.rolle, lang)).font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 4)

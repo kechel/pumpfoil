@@ -199,6 +199,8 @@ struct SpotSessionsView: View {
         } else {
             Text(Loc.t("common.loading", lang)).font(.caption).foregroundStyle(.secondary)
         }
+        // Windfenster unter dem Wetter, nur an echten Spots (wie web Sessions.tsx SpotBereich, 04.11.2026).
+        if let sid = echteId { SpotWindfensterSection(spotId: sid, lang: lang) }
     }
 
     // `?? vorgegebeneSpotId`: die id des Einstiegs gilt SOFORT. Vorher wurde sie erst im Task uebernommen — nach dem
@@ -288,5 +290,97 @@ struct SpotSessionsView: View {
                                                   accelOnly: only && !showAll)
             error = nil
         } catch { self.error = error.localizedDescription }
+    }
+}
+
+// MARK: - Windfenster
+
+/// Antwort von GET /api/community/spot/{id}/windfenster (web api.spotWindfenster).
+struct SpotWindfenster: Decodable {
+    struct Sektor: Decodable {
+        let richtung: Double
+        let sessions: Int
+        let kmh: Double?
+    }
+    let sessions: Int
+    let fahrer: Int?
+    let kmh_p25: Double?
+    let kmh_p75: Double?
+    let sektoren: [Sektor]
+}
+
+extension Api {
+    static func spotWindfenster(_ spotId: Int) async throws -> SpotWindfenster {
+        try await request("/api/community/spot/\(spotId)/windfenster", method: "GET", body: nil, auth: true)
+    }
+}
+
+/// Windfenster des Spots (web components/SpotWindfenster.tsx, Stand-Buch: windfenster): aus welcher Richtung der Wind bei
+/// den Wing-/Kite-/Parawing-Sessions hier kam — 8 Sektoren, Laenge = Zahl der Sessions, Norden oben, der Keil zeigt in die
+/// Richtung, AUS der der Wind kommt. Erst ab drei Sessions mit Winddaten, darunter waere es Zufall.
+struct SpotWindfensterSection: View {
+    let spotId: Int
+    let lang: String
+    @State private var d: SpotWindfenster?
+
+    var body: some View {
+        Group {
+            if let w = d, w.sessions >= 3 {
+                Section {
+                    HStack(spacing: 14) {
+                        SpotWindRose(sektoren: w.sektoren).frame(width: 112, height: 112)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(Loc.t("spot.windTitle", lang)).font(.headline)
+                            if let a = w.kmh_p25, let b = w.kmh_p75 {
+                                Text(teamText("spot.windText", lang, ["n": String(w.sessions), "a": String(Int(a.rounded())),
+                                                                       "b": String(Int(b.rounded()))]))
+                                    .font(.subheadline)
+                            }
+                            Text(Loc.t("spot.windNote", lang)).font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+        }
+        .task(id: spotId) { d = try? await Api.spotWindfenster(spotId) }
+    }
+}
+
+/// Die Rose: zwei Kreise, je Sektor ein Keil von 40 Grad, Laenge relativ zum staerksten Sektor (Koordinaten wie im
+/// Web: viewBox 100, Radius 46, innen 6).
+struct SpotWindRose: View {
+    let sektoren: [SpotWindfenster.Sektor]
+
+    var body: some View {
+        GeometryReader { geo in
+            let k: CGFloat = min(geo.size.width, geo.size.height) / 100
+            let maxN: Int = max(sektoren.map { $0.sessions }.max() ?? 1, 1)
+            ZStack {
+                Circle().stroke(Color.secondary.opacity(0.5), lineWidth: 0.8 * k).frame(width: 92 * k, height: 92 * k)
+                Circle().stroke(Color.secondary.opacity(0.3), lineWidth: 0.6 * k).frame(width: 46 * k, height: 46 * k)
+                ForEach(Array(sektoren.filter { $0.sessions > 0 }.enumerated()), id: \.offset) { _, s in
+                    keil(s.richtung, CGFloat(s.sessions) / CGFloat(maxN), k)
+                        .fill(Color.accentColor.opacity(0.7))
+                    keil(s.richtung, CGFloat(s.sessions) / CGFloat(maxN), k)
+                        .stroke(Color.accentColor, lineWidth: 0.6 * k)
+                }
+                Text("N").font(.system(size: 8 * k)).foregroundStyle(.secondary).position(x: 50 * k, y: 6 * k)
+            }
+            .frame(width: 100 * k, height: 100 * k)
+        }
+    }
+
+    private func keil(_ richtung: Double, _ anteil: CGFloat, _ k: CGFloat) -> Path {
+        let r: CGFloat = (6 + 40 * anteil) * k
+        let m = CGPoint(x: 50 * k, y: 50 * k)
+        // Kompass (0 = Norden oben, im Uhrzeigersinn) -> SwiftUI-Winkel (0 = rechts, im Uhrzeigersinn auf dem Bildschirm)
+        let a1 = Angle.degrees(richtung - 20 - 90)
+        let a2 = Angle.degrees(richtung + 20 - 90)
+        var p = Path()
+        p.move(to: m)
+        p.addArc(center: m, radius: r, startAngle: a1, endAngle: a2, clockwise: false)
+        p.closeSubpath()
+        return p
     }
 }

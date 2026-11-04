@@ -742,7 +742,11 @@ struct LageKurvenView: View {
 /// erkannt" statt Strich, Takt in der Profil-Einheit, kein Gieren (die Route ist frei gewaehlt).
 struct BrettLageStartseite: View {
     let lang: String
+    /// Home › Stats › Lage des Bretts (04.11.2026, wie web `BrettErklaerung`): ohne Brett-Aufnahmen erklaeren, was das
+    /// ist und wie man es bekommt — die wenigsten haben welche.
+    var erklaerungWennLeer: Bool = false
     @State private var daten: BoardAttitudeStats? = nil
+    @State private var geladen = false
 
     var body: some View {
         Group {
@@ -755,11 +759,13 @@ struct BrettLageStartseite: View {
                         ForEach(d.je_foil) { f in jeFoil(f) }
                     }
                 }
+            } else if erklaerungWennLeer && geladen {
+                BrettErklaerung(lang: lang)
             } else {
                 Color.clear.frame(height: 0)
             }
         }
-        .task { daten = try? await Api.boardAttitudeStats() }
+        .task { daten = try? await Api.boardAttitudeStats(); geladen = true }
     }
 
     private var kopf: some View {
@@ -839,5 +845,29 @@ struct BrettKlassenTabelle: View {
             .foregroundStyle(text == nil ? Color.secondary : (betont ? Color.accentColor : Color.primary))
             .monospacedDigit()
             .frame(maxWidth: .infinity, alignment: .trailing)
+    }
+}
+
+/// Was die Lage des Bretts ist, wie man sie bekommt und was sie zeigt — fuer alle ohne Brett-Aufnahme
+/// (web PersonalHome.tsx `BrettErklaerung`).
+struct BrettErklaerung: View {
+    let lang: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(Loc.t("brett.erkl.titel", lang)).font(.headline)
+            Text(Loc.t("brett.erkl.was", lang)).font(.subheadline)
+            Text(Loc.t("brett.erkl.wie", lang)).font(.subheadline)
+            Text(Loc.t("brett.erkl.bringt", lang)).font(.subheadline)
+            Text(Loc.t("brett.erkl.daten", lang)).font(.subheadline)
+            if let u = URL(string: Api.baseURL + "/nerd-analysen-4") {
+                Link(destination: u) {
+                    Text(Loc.t("brett.erkl.mehr", lang) + " →").font(.subheadline).foregroundStyle(Color.accentColor)
+                }
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
     }
 }

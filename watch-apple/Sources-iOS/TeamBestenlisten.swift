@@ -4,8 +4,8 @@ import UIKit
 // Team-Bestenlisten (App-Port Phase 8, docs/UX-IA.md, 04.11.2026) — ganz oben unter Community › Teams & Events, wie
 // `TeamBestenlisten` in web/src/pages/Home.tsx: je Kennzahl die Summe der besten 3/5/10 Fahrer eines Teams, damit ein
 // grosses Team nicht allein durch seine Groesse gewinnt. Gerechnet am Server fuer alle Teams gleich, hier nur sortiert.
-// Teilen als Bild wie web/src/lib/bestenlisteBild.ts (quadratisch 1080, Navy-Grund, Werte in Marken-Cyan, Wappen je
-// Zeile, das eigene Team hinterlegt und hinter Platz 10 darunter).
+// Teilen als Bild wie web/src/lib/bestenlisteBild.ts (quadratisch 1080, hell oder dunkel waehlbar wie beim Teilen einer
+// Session, Werte in der Akzentfarbe, Wappen und Flagge je Zeile, das eigene Team hinterlegt und hinter Platz 10 darunter).
 
 /// Antwort von GET /api/teams/liste/vergleich?period=&top=
 struct TeamVergleich: Decodable {
@@ -195,6 +195,7 @@ struct TeamBestenlistenSection: View {
 
     // MARK: - Bild
 
+    /// Daten zusammenstellen, Logos laden, dann die Vorschau mit Hell/Dunkel-Wahl zeigen (wie web BestenlisteBildDialog).
     private func bildBauen() {
         baut = true
         let alle: [TeamVergleichZeile] = zeilen
@@ -216,32 +217,23 @@ struct TeamBestenlistenSection: View {
             eigene = bildZeile(i + 1, alle[i], a)
         }
         let ende: TeamBildZeile? = eigene
+        let sprache: String = lang
         Task { @MainActor in
-            let logos: [String: UIImage] = await TeamBildLogos.laden(bz + (ende.map { [$0] } ?? []))
-            let inhalt = TeamBestenlisteBild(titel: titel, unterzeile: unter, zeilen: bz, eigene: ende, logos: logos)
-                .environment(\.colorScheme, .dark)
-            let r = ImageRenderer(content: inhalt)
-            r.scale = 1
-            if let img = r.uiImage { teilenBlatt(img) }
+            let alleZeilen: [TeamBildZeile] = bz + (ende.map { [$0] } ?? [])
+            let logos: [String: UIImage] = await TeamBildLogos.laden(alleZeilen)
+            var flaggen: [String: UIImage] = [:]
+            for z in alleZeilen {
+                if let l = z.land, flaggen[l] == nil, let b = TeamFlaggenBild.bild(l) { flaggen[l] = b }
+            }
+            let daten = TeamBildDaten(titel: titel, unterzeile: unter, zeilen: bz, eigene: ende, logos: logos, flaggen: flaggen)
+            TeamBildDialog.zeigen(daten, lang: sprache)
             baut = false
         }
     }
 
-    /// Teilen-Blatt direkt ueber UIKit: ein `.sheet` an einer Listen-Section raeumt SwiftUI beim naechsten Neuzeichnen
-    /// der Liste wieder ab (dieselbe Falle wie beim Social-Feed, s. CommunityView).
-    private func teilenBlatt(_ img: UIImage) {
-        let fenster: UIWindow? = UIApplication.shared.connectedScenes
-            .compactMap { ($0 as? UIWindowScene)?.keyWindow }.first
-        guard var oben: UIViewController = fenster?.rootViewController else { return }
-        while let p = oben.presentedViewController { oben = p }
-        let vc = UIActivityViewController(activityItems: [img], applicationActivities: nil)
-        vc.popoverPresentationController?.sourceView = oben.view
-        oben.present(vc, animated: true)
-    }
-
     private func bildZeile(_ rang: Int, _ z: TeamVergleichZeile, _ a: String) -> TeamBildZeile {
         TeamBildZeile(rang: rang, name: z.name, wert: teamVergleichWert(z.wert(a), a), ich: meine.contains(z.slug),
-                      logo: z.logo_url, farbe: z.farbe)
+                      logo: z.logo_url, farbe: z.farbe, land: z.land)
     }
 }
 
@@ -254,7 +246,18 @@ struct TeamBildZeile: Identifiable {
     let ich: Bool
     let logo: String?
     let farbe: String?
+    var land: String? = nil
     var id: Int { rang }
+}
+
+/// Alles, was das Bild braucht — Logos und Flaggen schon geladen (ImageRenderer zeichnet sofort).
+struct TeamBildDaten {
+    let titel: String
+    let unterzeile: String
+    let zeilen: [TeamBildZeile]
+    let eigene: TeamBildZeile?
+    let logos: [String: UIImage]
+    let flaggen: [String: UIImage]
 }
 
 /// Logos vorab laden: ImageRenderer zeichnet sofort, ein NetzBild kaeme zu spaet (dann stuenden nur Initialen da).
@@ -270,73 +273,207 @@ enum TeamBildLogos {
     }
 }
 
-/// Das Teilen-Bild: Navy-Grund, Ueberschrift + Unterzeile, bis zu 10 Zeilen (Rang, Wappen, Name, Wert), das eigene Team
-/// hinterlegt, unten Motto und Wortmarke. Feste Farben wie die Session-Karte (sharecard.py), unabhaengig vom Geraet.
-struct TeamBestenlisteBild: View {
-    let titel: String
-    let unterzeile: String
-    let zeilen: [TeamBildZeile]
-    let eigene: TeamBildZeile?
-    let logos: [String: UIImage]
+/// Feste Farben je Fassung wie web bestenlisteBild.ts (DUNKEL/HELL = sharecard.py), unabhaengig vom Geraet.
+struct TeamBildFarben {
+    let grund: Color, flaeche: Color, linie: Color, akzent: Color, text: Color, sek: Color, leise: Color
 
-    private let grund = Color(red: 0x02 / 255, green: 0x06 / 255, blue: 0x17 / 255)
-    private let flaeche = Color(red: 0x0c / 255, green: 0x14 / 255, blue: 0x26 / 255)
-    private let cyan = Color(red: 0x22 / 255, green: 0xd3 / 255, blue: 0xee / 255)
-    private let sek = Color(red: 0xcb / 255, green: 0xd5 / 255, blue: 0xe1 / 255)
-    private let leise = Color(red: 0x94 / 255, green: 0xa3 / 255, blue: 0xb8 / 255)
+    private static func c(_ hex: UInt32) -> Color {
+        Color(red: Double((hex >> 16) & 0xff) / 255, green: Double((hex >> 8) & 0xff) / 255, blue: Double(hex & 0xff) / 255)
+    }
+
+    static let dunkel = TeamBildFarben(grund: c(0x020617), flaeche: c(0x0c1426), linie: c(0x1e293b), akzent: c(0x22d3ee),
+                                       text: c(0xffffff), sek: c(0xcbd5e1), leise: c(0x94a3b8))
+    static let hell = TeamBildFarben(grund: c(0xf8fafc), flaeche: c(0xe0f2fe), linie: c(0xe2e8f0), akzent: c(0x0e7490),
+                                     text: c(0x0f172a), sek: c(0x475569), leise: c(0x64748b))
+}
+
+/// Vorschau + Hell/Dunkel + Teilen (web BestenlisteBildDialog). Als UIKit-Blatt gezeigt: ein `.sheet` an einer
+/// Listen-Section raeumt SwiftUI beim naechsten Neuzeichnen der Liste wieder ab (dieselbe Falle wie beim Social-Feed,
+/// s. CommunityView). Die Wahl Hell/Dunkel merkt sich das Geraet (wie der Browser im Web, `foil_bild_hell`).
+struct TeamBildDialog: View {
+    let daten: TeamBildDaten
+    let lang: String
+    let schliessen: () -> Void
+    let teilen: (UIImage) -> Void
+    @AppStorage("foil_bild_hell") private var hell = false
+    @State private var bild: UIImage?
+
+    @MainActor static func zeigen(_ daten: TeamBildDaten, lang: String) {
+        let fenster: UIWindow? = UIApplication.shared.connectedScenes
+            .compactMap { ($0 as? UIWindowScene)?.keyWindow }.first
+        guard var oben: UIViewController = fenster?.rootViewController else { return }
+        while let p = oben.presentedViewController { oben = p }
+        let host = UIHostingController(rootView: AnyView(EmptyView()))
+        let dialog = TeamBildDialog(daten: daten, lang: lang, schliessen: { [weak host] in host?.dismiss(animated: true) },
+                                    teilen: { [weak host] img in
+            guard let h = host else { return }
+            let vc = UIActivityViewController(activityItems: [img], applicationActivities: nil)
+            vc.popoverPresentationController?.sourceView = h.view
+            h.present(vc, animated: true)
+        })
+        host.rootView = AnyView(dialog)
+        oben.present(host, animated: true)
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(titel).font(.system(size: 58, weight: .bold)).foregroundStyle(cyan).lineLimit(1)
-            Text(unterzeile).font(.system(size: 30, weight: .bold)).foregroundStyle(sek).lineLimit(1)
-                .padding(.top, 8)
-            VStack(spacing: 10) {
-                ForEach(zeilen) { z in zeile(z) }
-                if let e = eigene {
-                    Text("⋮").font(.system(size: 40, weight: .bold)).foregroundStyle(leise)
-                        .frame(maxWidth: .infinity, alignment: .leading).padding(.leading, 30)
-                    zeile(e)
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 14) {
+                    vorschau
+                    Picker("", selection: $hell) {
+                        Text(Loc.t("share.shade.dark", lang)).tag(false)
+                        Text(Loc.t("share.shade.light", lang)).tag(true)
+                    }
+                    .pickerStyle(.segmented)
+                    Button { if let b = bild { teilen(b) } } label: {
+                        Label(Loc.t("team.teilen", lang), systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(bild == nil)
                 }
+                .padding()
             }
-            .padding(.top, 40)
-            Spacer(minLength: 0)
-            HStack(alignment: .bottom) {
-                Text("Have fun, keep pumping!").font(.system(size: 26)).foregroundStyle(leise)
-                Spacer()
-                Image("WordmarkH").renderingMode(.template).resizable().scaledToFit()
-                    .frame(height: 56).foregroundStyle(Color.white)
+            .navigationTitle(Loc.t("team.bild.titel", lang))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button(Loc.t("common.cancel", lang)) { schliessen() } }
             }
         }
-        .padding(90)
+        .task(id: hell) { await zeichnen() }
+    }
+
+    @ViewBuilder private var vorschau: some View {
+        if let b = bild {
+            Image(uiImage: b).resizable().scaledToFit()
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.4), lineWidth: 1))
+        } else {
+            ProgressView().frame(maxWidth: .infinity, minHeight: 300)
+        }
+    }
+
+    @MainActor private func zeichnen() {
+        let inhalt = TeamBestenlisteBild(daten: daten, hell: hell)
+            .environment(\.colorScheme, hell ? .light : .dark)
+        let r = ImageRenderer(content: inhalt)
+        r.scale = 1
+        bild = r.uiImage
+    }
+}
+
+/// Das Teilen-Bild wie web zeichneBestenliste: Kopf (Ueberschrift + Unterzeile in Akzentfarbe), bis zu 10 Zeilen
+/// (Rang, Wappen, Flagge 4:3 mit feinem Rand — der Platz bleibt auch ohne Flagge frei, damit die Namen buendig stehen —,
+/// Name, Wert), die Hoehe gleichmaessig verteilt, das eigene Team hinterlegt, unten Motto und Schriftzug.
+struct TeamBestenlisteBild: View {
+    let daten: TeamBildDaten
+    let hell: Bool
+
+    private var f: TeamBildFarben { hell ? .hell : .dunkel }
+    private let rand: CGFloat = 90
+    private let oben: CGFloat = 215
+    private let unten: CGFloat = 930
+    private var liste: [TeamBildZeile] { Array(daten.zeilen.prefix(10)) }
+    private var mitEigener: Bool { daten.eigene != nil && !liste.isEmpty }
+    /// Zeilenhoehe: verfuegbare Hoehe gleichmaessig, hoechstens 110 px (Web: n + 1,4 fuer die eigene Zeile).
+    private var zh: CGFloat {
+        let n: CGFloat = CGFloat(max(liste.count, 1)) + (mitEigener ? 1.4 : 0)
+        return min(110, ((unten - oben) / n).rounded(.down))
+    }
+    private var gross: CGFloat { (zh * 0.5).rounded() }
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            f.grund
+            kopf.offset(x: rand, y: 60)
+            zeilenBlock.offset(x: rand, y: oben)
+            fuss.offset(x: rand, y: 990)
+        }
         .frame(width: 1080, height: 1080, alignment: .topLeading)
-        .background(grund)
+    }
+
+    private var kopf: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(daten.titel).font(.system(size: 58, weight: .bold)).foregroundStyle(f.akzent).lineLimit(1)
+            Text(daten.unterzeile).font(.system(size: 30, weight: .bold)).foregroundStyle(f.akzent).lineLimit(1)
+        }
+        .frame(width: 900, alignment: .leading)
+    }
+
+    private var zeilenBlock: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(liste.enumerated()), id: \.offset) { i, z in
+                zeile(z)
+                    .overlay(alignment: .top) {
+                        if i > 0 { Rectangle().fill(f.linie).frame(height: 2) }
+                    }
+            }
+            if mitEigener, let e = daten.eigene {
+                Text("⋮").font(.system(size: gross, weight: .bold)).foregroundStyle(f.leise)
+                    .frame(width: 60, height: (zh * 0.4).rounded())
+                zeile(TeamBildZeile(rang: e.rang, name: e.name, wert: e.wert, ich: true, logo: e.logo, farbe: e.farbe, land: e.land))
+            }
+        }
+        .frame(width: 900, alignment: .leading)
     }
 
     private func zeile(_ z: TeamBildZeile) -> some View {
-        HStack(spacing: 20) {
-            Text(String(z.rang)).font(.system(size: 40, weight: .heavy)).foregroundStyle(z.rang == 1 ? cyan : sek)
-                .frame(width: 60, alignment: .trailing)
+        let fh: CGFloat = (gross * 0.8).rounded()
+        let fw: CGFloat = (fh * 4 / 3).rounded()
+        return HStack(spacing: 0) {
+            Text(String(z.rang)).font(.system(size: gross, weight: .heavy))
+                .foregroundStyle(z.rang <= 3 ? f.akzent : f.leise)
+                .frame(width: 50, alignment: .trailing)
+            Spacer().frame(width: 24)
             wappen(z)
-            Text(z.name).font(.system(size: 37, weight: z.rang == 1 || z.ich ? .bold : .medium))
-                .foregroundStyle(Color.white).lineLimit(1)
-            Spacer(minLength: 20)
-            Text(z.wert).font(.system(size: 40, weight: .bold)).foregroundStyle(cyan).lineLimit(1)
+            Spacer().frame(width: 16)
+            flagge(z.land, fw, fh)
+            Spacer().frame(width: 16)
+            Text(z.name).font(.system(size: (gross * 0.92).rounded(), weight: z.rang == 1 || z.ich ? .bold : .medium))
+                .foregroundStyle(f.text).lineLimit(1)
+            Spacer(minLength: 30)
+            Text(z.wert).font(.system(size: gross, weight: .bold)).foregroundStyle(f.akzent).lineLimit(1)
+                .fixedSize()
         }
-        .padding(.horizontal, 16).frame(height: 62)
-        .background(RoundedRectangle(cornerRadius: 14).fill(z.ich ? flaeche : Color.clear))
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(z.ich ? cyan : Color.clear, lineWidth: 2))
+        .frame(width: 900, height: zh)
+        .background(
+            RoundedRectangle(cornerRadius: 16).fill(z.ich ? f.flaeche : Color.clear)
+                .padding(.horizontal, -24).padding(.vertical, 4)
+        )
     }
 
     @ViewBuilder private func wappen(_ z: TeamBildZeile) -> some View {
-        if let l = z.logo, let b = logos[l] {
+        let ws: CGFloat = (gross * 1.25).rounded()
+        if let l = z.logo, let b = daten.logos[l] {
             Image(uiImage: b).resizable().scaledToFit()
-                .frame(width: 50, height: 50)
+                .frame(width: ws, height: ws)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
         } else {
             let tf = TeamFarbe(z.farbe)
-            Text(teamInitialen(z.name)).font(.system(size: 19, weight: .bold)).foregroundStyle(tf.aufFlaeche)
-                .frame(width: 50, height: 50)
+            Text(teamInitialen(z.name)).font(.system(size: (ws * 0.38).rounded(), weight: .bold)).foregroundStyle(tf.aufFlaeche)
+                .frame(width: ws, height: ws)
                 .background(tf.flaeche, in: RoundedRectangle(cornerRadius: 10))
         }
+    }
+
+    @ViewBuilder private func flagge(_ land: String?, _ fw: CGFloat, _ fh: CGFloat) -> some View {
+        if let l = land, let b = daten.flaggen[l] {
+            Image(uiImage: b).resizable().scaledToFill()
+                .frame(width: fw, height: fh)
+                .clipped()
+                .overlay(Rectangle().stroke(f.linie, lineWidth: 2))
+        } else {
+            Color.clear.frame(width: fw, height: fh)
+        }
+    }
+
+    private var fuss: some View {
+        HStack(alignment: .bottom) {
+            Text("Have fun, keep pumping!").font(.system(size: 26)).foregroundStyle(f.leise)
+                .padding(.bottom, 10)
+            Spacer()
+            Image("WordmarkH").renderingMode(.template).resizable().scaledToFit()
+                .frame(height: 54).foregroundStyle(hell ? f.text : Color.white)
+        }
+        .frame(width: 900, height: 54)
     }
 }

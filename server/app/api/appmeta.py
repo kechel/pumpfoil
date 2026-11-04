@@ -1053,6 +1053,11 @@ NAECHSTES: list[dict] = [
          "The community has tabs for records and leaderboards, media, and teams and events, with team leaderboards that rank teams by the totals of their best 3, 5 or 10 riders and can be shared as an image.",
          "You can search all teams in the settings, and on Home if you are not in a team yet.",
          "Sessions, spots and the spot page use the same tabs as the website, and spot search and routes moved from the community to Spots.",
+         "You can found a team in the app and manage it there: requests, roles, invite links, approval, crest, team picture, colours, joining, visibility, leaderboards, team spots and deleting.",
+         "Team leaders and moderators can create, edit and delete events in the app, with templates, leaderboards, totals, spots and an event picture.",
+         "The team leaderboard image can be shared in a dark or light version, with each team's crest and flag and your own team highlighted.",
+         "Stats on Home has tabs for your history, key figures and board attitude, like the website.",
+         "The settings overview has a tile to import a session file, and the weather on a spot shows its wind window.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.59",
      "items": [
@@ -1077,6 +1082,12 @@ NAECHSTES: list[dict] = [
          "The community has tabs for records and leaderboards, media, and teams and events, with team leaderboards that rank teams by the totals of their best 3, 5 or 10 riders and can be shared as an image.",
          "You can search all teams in the settings, and on Home if you are not in a team yet.",
          "Sessions, spots and the spot page use the same tabs as the website, and spot search and routes moved from the community to Spots.",
+         "You can found a team in the app and manage it there: requests, roles, invite links, approval, crest, team picture, colours, joining, visibility, leaderboards, team spots and deleting.",
+         "Team leaders and moderators can create, edit and delete events in the app, with templates, leaderboards, totals, spots and an event picture.",
+         "The team leaderboard image can be shared in a dark or light version, with each team's crest and flag and your own team highlighted.",
+         "Stats on Home has tabs for your history, key figures and board attitude, like the website.",
+         "The settings overview has a tile to import a session file, and the weather on a spot shows its wind window.",
+         "The most active teams are listed under Teams & Events, and the text size can be set under Display.",
      ]},
     # Android 1.1.46 / Wear 1.2.46 am 28.10. eingereicht (ersetzt 1.1.45) -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.56 am 24.10. eingereicht -> IN_REVIEW.

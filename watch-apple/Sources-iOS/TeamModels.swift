@@ -25,6 +25,7 @@ struct TeamKurz: Codable, Identifiable {
     let status: String
     let anfragen: Int
     var freigabe: String? = nil
+    var land: String? = nil
 }
 
 /// Eintrag der Seite „Alle Teams" (`GET /api/teams/liste`).
@@ -39,6 +40,9 @@ struct TeamListenEintrag: Codable, Identifiable {
     let mitglieder_anzahl: Int
     let anmeldungen_zulassen: Bool
     let bestenlisten_oeffentlich: Bool
+    var land: String? = nil
+    /// Sessions der Mitglieder in 30 Tagen („Aktivste Teams", Server seit 02.11.2026)
+    var sessions_30d: Int? = nil
 }
 
 /// Teamseite (`GET /api/teams/{slug}`).
@@ -64,8 +68,21 @@ struct TeamInfo: Codable {
     var chat_scope: String? = nil           // nur fuer aktive Mitglieder
     var anfragen_offen: Int? = nil          // offene Beitrittsanfragen, nur Leitung/Moderatoren > 0
     var spots: [TeamSpotKurz]? = nil
+    var land: String? = nil                 // ISO-Code oder "k:<kontinent>" (Herkunft, 03.11.2026)
+    var mitglieder_sichtbar: String? = nil  // mitglieder | angemeldete
+    // nur fuer die Leitung (Verwaltung, 04.11.2026):
+    var freigabe: String? = nil             // keine | wartet | frei | abgelehnt
+    var freigabe_notiz: String? = nil
+    var auftritt_geaendert: Bool? = nil
+    var frei: TeamFreierAuftritt? = nil     // der freigegebene Auftritt; nil = noch nie freigegeben
 
     var istVerwalter: Bool { meine_rolle == "leiter" || meine_rolle == "moderator" }
+}
+
+/// Freigegebener Auftritt (nur gebraucht, um zu wissen, OB es einen gibt).
+struct TeamFreierAuftritt: Codable {
+    var name: String? = nil
+    var slug: String? = nil
 }
 
 /// Eine Zeile einer Bestenliste. Gastform: nur Rang, Name, Initialen, Wert.
@@ -131,11 +148,23 @@ struct TeamMitglied: Codable, Identifiable {
     let avatar_url: String?
     let rolle: String
     let seit: String?
+    /// nur bei Anfragen, fuer Leitung/Moderatoren: Sessions je Sportart und je Spot
+    var profil: TeamAnfrageProfil? = nil
     var id: Int { user_id }
+}
+
+struct TeamAnfrageProfil: Codable {
+    struct SportN: Codable { let sport: String; let n: Int }
+    struct SpotN: Codable { let name: String; let n: Int }
+    let sessions: Int
+    let sportarten: [SportN]
+    let spots: [SpotN]
 }
 
 struct TeamMitgliederAntwort: Codable {
     let mitglieder: [TeamMitglied]
+    /// offene Beitrittsanfragen, nur fuer Leitung/Moderatoren
+    var anfragen: [TeamMitglied]? = nil
 }
 
 /// Ein Event mit Bestenlisten (`GET /api/teams/{slug}/events[/{id}]`, Server teams.event_out).
@@ -158,6 +187,9 @@ struct TeamEvent: Codable, Identifiable {
     /// Werte koennen theoretisch null sein — dann zaehlt 0, statt das ganze Event nicht zu dekodieren.
     var summen: [String: Double?]? = nil
     var summen_sportart: String? = nil
+    var summen_accel_only: Bool? = nil
+    var vorlage: String? = nil
+    var spot_ids: [Int]? = nil
 
     func summe(_ key: String) -> Double {
         guard let w = summen?[key], let v = w else { return 0 }
@@ -220,4 +252,5 @@ enum TeamsZiel: Hashable {
     case alleEvents
     case team(String)
     case event(String, Int)
+    case gruenden
 }

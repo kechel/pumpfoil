@@ -48,6 +48,14 @@ Foils und Setup als zwei lange Seiten. Teams und Events gibt es in beiden Apps s
 
 Jede Phase fuer sich auslieferbar; Jan testet Android im Emulator, iOS in Xcode. Stand hier nachziehen.
 
+**Nachtrag 04.11.2026 spaet (Jan: „volle Funktionalitaet auch nativ"):** in beiden Apps gebaut — Teams gruenden und
+verwalten (TeamVerwaltung.kt; iOS TeamVerwaltung/TeamGrunddaten/TeamEventsVerwalten/TeamGruenden/TeamVerwaltungApi.swift),
+Events anlegen/aendern/loeschen mit Eventbild, Teilen-Bild hell/dunkel mit Flaggen (Emoji-Flaggen: SVG laesst sich ohne
+Zusatzbibliothek nicht zeichnen), Home › Stats mit zweiter Reiterzeile Verlauf | Kennzahlen | Lage des Bretts (Verlauf
+eingebettet), Windfenster im Wetter-Reiter, Import-Kachel; iOS zusaetzlich Aktivste Teams, Schriftgroesse (Dynamic Type als
+Untergrenze), QR-Code fuer Einladungslinks. Android ohne QR-Code. Risiko iOS: Home › Team ohne Team — ein Neuladen kann die
+gerade geoeffnete Verwaltung nach dem Gruenden zuklappen.
+
 **Stand 04.11.2026 abends:** alle Phasen gebaut, auf keinem Geraet gesehen. Zuerst pruefen: Android Spots › Karte
 (osmdroid bleibt auf anderen Reitern mit Hoehe 0 im Baum — Kacheln nach Reiterwechsel? faengt sie Beruehrungen ab?),
 iOS Home › Spots (eingebettete Spot-Seite im ScrollView), Reiterleiste als List-Zeile, doppelte Kopfleisten bei

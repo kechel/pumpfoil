@@ -42,6 +42,7 @@ SCHLUESSEL = [
     "brett.erkl.titel", "brett.erkl.was", "brett.erkl.wie", "brett.erkl.bringt", "brett.erkl.daten", "brett.erkl.mehr",
     "region.earth", "region.eu", "region.af", "region.as", "region.na", "region.sa", "region.oc",
     "profile.landNone", "team.herkunft", "share.errImage", "spot.windTitle", "spot.windText", "spot.windNote", "tab.noData",
+    "fontscale.label", "fontscale.hint", "sd.avgHrTotal",
 ]
 
 

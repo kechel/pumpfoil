@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 // Einstellungen mit Reitern (App-Port Phase 6, docs/UX-IA.md, 04.11.2026), wie web/src/pages/Settings.tsx:
 // Uebersicht · Uhren · Freunde · Team · Ausruestung · Ich · Fahren · Privatsphaere · Darstellung · Konto.
@@ -69,6 +70,14 @@ struct EinstellungenUebersicht: View {
     // „Meine Foils & Sportarten" (Jan, 21.10.2026, wie im Web): Standard vorn und hervorgehoben.
     @State private var meineSportarten: [ProfilEintrag] = []
     @State private var meineFoils: [ProfilEintrag] = []
+    // Import-Kachel (wie web Settings › Uebersicht „Aktivitaet importieren", 04.11.2026) — derselbe Datei-Import wie in
+    // „Meine Sessions" (dateienImportieren in SessionsView.swift).
+    @State private var importWaehler = false
+    @State private var importLaeuft = false
+    @State private var importFortschritt = ""
+    @State private var importMeldung: String?
+    @State private var importierteId: Int?
+    @State private var oeffneImport = false
 
     var body: some View {
         List {
@@ -79,6 +88,20 @@ struct EinstellungenUebersicht: View {
         }
         .listStyle(.insetGrouped)
         .task { await laden() }
+        .fileImporter(isPresented: $importWaehler, allowedContentTypes: [.data], allowsMultipleSelection: true) { ergebnis in
+            if case .success(let urls) = ergebnis { importiere(urls) }
+        }
+        .alert(Loc.t("import.title", lang), isPresented: importMeldungAktiv) {
+            Button(Loc.t("common.close", lang)) {
+                importMeldung = nil
+                if importierteId != nil { oeffneImport = true }
+            }
+        } message: {
+            Text(importMeldung ?? "")
+        }
+        .navigationDestination(isPresented: $oeffneImport) {
+            if let id = importierteId { SessionDetailView(id: id) }
+        }
         // Sprache wirkt sofort (appLang) und geht ans Profil (synct zu Web/Uhr), wie bisher in SettingsView.
         .onChange(of: appLang) { l in Task { try? await Api.updateLanguage(l) } }
     }
@@ -99,6 +122,42 @@ struct EinstellungenUebersicht: View {
             if session.profile?.social_allowed != false { freundeKachel }
             kachel("team", symbol: "flag", titel: Loc.t("team.profilKnopf", lang), unter: Loc.t("team.profilHinweis", lang), zahl: teamAnfragen)
             ausruestungKachel
+            importKachel
+        }
+    }
+
+    private var importMeldungAktiv: Binding<Bool> {
+        Binding(get: { importMeldung != nil }, set: { if !$0 { importMeldung = nil } })
+    }
+
+    private var importKachel: some View {
+        Button { importWaehler = true } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "square.and.arrow.down").font(.title3).foregroundStyle(Color.accentColor).frame(width: 28)
+                Text(Loc.t("import.title", lang)).foregroundStyle(.primary)
+                Spacer(minLength: 4)
+                if importLaeuft {
+                    if !importFortschritt.isEmpty { Text(importFortschritt).font(.caption).foregroundStyle(.secondary) }
+                    ProgressView()
+                } else {
+                    Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(importLaeuft)
+    }
+
+    private func importiere(_ urls: [URL]) {
+        guard !urls.isEmpty else { return }
+        importLaeuft = true
+        Task {
+            let (text, letzte) = await dateienImportieren(urls, lang: lang) { importFortschritt = $0 }
+            importFortschritt = ""
+            importLaeuft = false
+            importierteId = letzte
+            if let text { importMeldung = text } else if letzte != nil { oeffneImport = true }
         }
     }
 
@@ -266,7 +325,7 @@ struct UhrenKontenView: View {
 // MARK: - Team
 
 /// Einstellungen › Team (wie web Teams.tsx eingebettet): eigene Teams (aktiv und angefragt), die Teamsuche und darunter
-/// der Weg zum Gruenden. Gegruendet und verwaltet wird im Web (wie bisher: Verwaltung bleibt im Browser).
+/// das Gruenden — seit 04.11.2026 nativ (TeamGruenden.swift), verwaltet wird in TeamVerwaltung.swift.
 struct EinstellungenTeamView: View {
     let lang: String
     @State private var teams: [TeamKurz]? = nil
@@ -302,7 +361,10 @@ struct EinstellungenTeamView: View {
     }
 
     private func rolleText(_ tm: TeamKurz) -> String {
-        Loc.t(tm.status == "angefragt" ? "team.join.wartet" : "team.rolle." + tm.rolle, lang)
+        let r: String = Loc.t(tm.status == "angefragt" ? "team.join.wartet" : "team.rolle." + tm.rolle, lang)
+        // Freigabe-Stand fuer die Leitung (wie web Teams.tsx), solange der Auftritt nicht frei ist.
+        guard let f = tm.freigabe, f != "frei" else { return r }
+        return r + " · " + teamFreigabeText(f, lang)
     }
 
     private func zeile(_ tm: TeamKurz) -> some View {
@@ -310,7 +372,10 @@ struct EinstellungenTeamView: View {
             HStack(spacing: 10) {
                 TeamWappen(name: tm.name, logo: tm.logo_url, farbe: tm.farbe, size: 40)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(tm.name).font(.subheadline.weight(.semibold)).foregroundStyle(TeamFarbe(tm.farbe).akzent).lineLimit(1)
+                    HStack(spacing: 5) {
+                        Text(tm.name).font(.subheadline.weight(.semibold)).foregroundStyle(TeamFarbe(tm.farbe).akzent).lineLimit(1)
+                        TeamHerkunftMarke(land: tm.land)
+                    }
                     Text(rolleText(tm)).font(.caption).foregroundStyle(.secondary)
                     let sp: String = teamSportartenText(tm.sportarten, lang)
                     if !sp.isEmpty { Text(sp).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
@@ -332,26 +397,6 @@ struct EinstellungenTeamView: View {
             }
             NavigationLink { EventsAlleView() } label: {
                 Text(Loc.t("team.alleEvents", lang) + " →").font(.subheadline).foregroundStyle(Color.accentColor)
-            }
-        }
-    }
-}
-
-/// „Team gruenden": in der App nur der Weg ins Web (Anlegen samt Adresse und Einstellungen gibt es dort).
-struct TeamGruendenKarte: View {
-    let lang: String
-
-    var body: some View {
-        if let url = Api.teamWebURL("/teams") {
-            Link(destination: url) {
-                HStack {
-                    Image(systemName: "plus.circle").foregroundStyle(Color.accentColor)
-                    Text(Loc.t("team.gruenden", lang)).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
-                    Spacer()
-                    Image(systemName: "arrow.up.right.square").font(.caption).foregroundStyle(.secondary)
-                }
-                .padding(14)
-                .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
             }
         }
     }

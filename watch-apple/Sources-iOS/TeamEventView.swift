@@ -4,7 +4,8 @@ import SwiftUI
 // Bild (eigenes, sonst das Teambild wenn `teambild_zeigen`), Titel + Status, Zeitraum fett, Beschreibung fett mit
 // Absaetzen; vor dem Start ein grosser Countdown, waehrenddessen „Endet in"; „Event gesamt" ueber den Bestenlisten;
 // Teilen-Zeile bei oeffentlichem Team; Box „Event-Regeln". Beitreten fuer Angemeldete ohne Mitgliedschaft mit dem
-// Kleingedruckten (TeamBeitrittSheet). Bearbeiten bleibt im Web.
+// Kleingedruckten (TeamBeitrittSheet). Leitung/Moderatoren bearbeiten das Event ueber das Zahnrad oben
+// (TeamEventsVerwalten.swift, seit 04.11.2026 nativ; vorher im Web).
 
 struct TeamEventView: View {
     let slug: String
@@ -16,6 +17,8 @@ struct TeamEventView: View {
     @State private var dialog = false
     @State private var busy = false
     @State private var meldung: String?
+    @State private var editor: TeamEventEntwurf?
+    @Environment(\.dismiss) private var dismiss
 
     private var feedbackPfad: String { "/teams/" + slug + "/events/" + String(eventId) }
 
@@ -27,6 +30,26 @@ struct TeamEventView: View {
             .task { if ev == nil { await laden() } }
             .refreshable { await laden() }
             .sheet(isPresented: $dialog) { beitrittSheet }
+            .toolbar { zahnrad }
+            .sheet(item: $editor) { e in editorSheet(e) }
+    }
+
+    // Zahnrad fuer Leitung/Moderatoren: derselbe Editor wie in der Verwaltung, fuer genau dieses Event.
+    @ToolbarContentBuilder private var zahnrad: some ToolbarContent {
+        if team?.istVerwalter == true, let e = ev {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { editor = TeamEventEntwurf.aus(e) } label: { Image(systemName: "gearshape") }
+                    .accessibilityLabel(Loc.t("team.event.bearbeiten", lang))
+            }
+        }
+    }
+
+    private func editorSheet(_ e: TeamEventEntwurf) -> some View {
+        TeamEventEditor(slug: slug, farbe: team?.farbe, entwurf: e, auswahl: nil, lang: lang, fertig: { gespeichert in
+            editor = nil
+            if gespeichert { meldung = Loc.t("team.gespeichert", lang) }
+            Task { await laden() }
+        }, geloescht: { dismiss() })
     }
 
     @ViewBuilder private var inhalt: some View {

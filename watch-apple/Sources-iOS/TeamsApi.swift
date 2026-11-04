@@ -1,8 +1,9 @@
 import Foundation
 
 // Teams & Events (Native-Port Stufe 4, 01.11.2026): Aufrufe zu server/app/api/teams.py, wie
-// web/src/lib/api.ts (`teamsMine` … `teamEinladungAnnehmen`). Nur Lesen, Beitreten, Austreten und
-// Einladungen — Verwaltung/Einstellungen bleiben im Web („im Browser oeffnen").
+// web/src/lib/api.ts (`teamsMine` … `teamEinladungAnnehmen`). Lesen, Beitreten, Austreten und
+// Einladungen; die Verwaltung (Gruenden, Einstellungen, Mitglieder, Events, Bilder) steht seit 04.11.2026 in
+// TeamVerwaltungApi.swift.
 extension Api {
     private static func teamPfad(_ slug: String) -> String {
         "/api/teams/" + (slug.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? slug)

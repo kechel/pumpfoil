@@ -182,10 +182,13 @@ struct CommunityView: View {
         layoutsSection
     }
 
-    // Teams & Events: oben die Team-Bestenlisten (Jan, 03.11.2026), darunter laufende & kommende Events.
+    // Teams & Events: oben die Team-Bestenlisten (Jan, 03.11.2026), darunter laufende & kommende Events, dann die
+    // aktivsten Teams.
     @ViewBuilder private var teamsTab: some View {
         TeamBestenlistenSection(lang: lang)
         TeamEventsAbschnitt(lang: lang, pfad: $navPath)
+        // Aktivste Teams + „Alle Teams" / „Team gruenden" (wie web Home.tsx, 04.11.2026).
+        AktivsteTeamsAbschnitt(lang: lang, pfad: $navPath)
     }
 
     private var zeitChips: some View {

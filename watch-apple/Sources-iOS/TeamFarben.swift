@@ -71,6 +71,11 @@ private let TEAM_FARBEN: [String: TeamFarbWerte] = {
     return d
 }()
 
+/// Alle Farbschluessel in der Reihenfolge der Auswahl (je Farbton hell, Mitte, dunkel) wie web TEAM_FARBEN —
+/// fuer die Farbwahl in der Team-Verwaltung (04.11.2026).
+let TEAM_FARB_SCHLUESSEL: [String] = ["cyan", "blau", "indigo", "violett", "pink", "rot", "orange", "amber", "gelb",
+                                      "limette", "gruen", "petrol"].flatMap { [$0 + "-hell", $0, $0 + "-dunkel"] }
+
 private func uiFarbe(_ hex: UInt32) -> UIColor {
     UIColor(red: CGFloat((hex >> 16) & 0xff) / 255, green: CGFloat((hex >> 8) & 0xff) / 255,
             blue: CGFloat(hex & 0xff) / 255, alpha: 1)
@@ -194,5 +199,84 @@ private struct TeamBannerBild: View {
             .alignmentGuide(.top) { d in (d.height - rahmen.height) * fokus.y }
             .frame(width: rahmen.width, height: rahmen.height, alignment: .topLeading)
             .clipped()
+    }
+}
+
+// MARK: - Herkunft (Flagge)
+
+/// Flagge eines Landes (ISO 3166-1 alpha-2) als Emoji aus den Regional-Indicator-Zeichen. Das Web nimmt SVGs
+/// (/flags/<code>.svg, flag-icons) — Emoji-Flaggen hat es nur wegen Windows verworfen, wo nur zwei Buchstaben
+/// erscheinen; iOS zeichnet sie zuverlaessig, und UIImage kann kein SVG. nil fuer Kontinente ("k:…") und Unsinn.
+func teamFlaggenEmoji(_ land: String?) -> String? {
+    guard let l = land, l.count == 2, !l.hasPrefix("k:") else { return nil }
+    var s = ""
+    for u in l.uppercased().unicodeScalars {
+        guard u.value >= 65 && u.value <= 90, let r = Unicode.Scalar(0x1F1E6 + u.value - 65) else { return nil }
+        s.unicodeScalars.append(r)
+    }
+    return s
+}
+
+/// Die Flagge als Bild, auf den sichtbaren Teil zugeschnitten (das Emoji hat oben und unten leeren Rand) — damit
+/// sie im Teilen-Bild wie im Web in einem 4:3-Kaestchen mit feinem Rand stehen kann. Zwischengespeichert je Code.
+enum TeamFlaggenBild {
+    private static var cache: [String: UIImage] = [:]
+
+    static func bild(_ land: String?) -> UIImage? {
+        guard let e = teamFlaggenEmoji(land), let code = land?.uppercased() else { return nil }
+        if let b = cache[code] { return b }
+        let seite: CGFloat = 160
+        let fmt = UIGraphicsImageRendererFormat.default()
+        fmt.scale = 1
+        fmt.opaque = false
+        let roh = UIGraphicsImageRenderer(size: CGSize(width: seite, height: seite), format: fmt).image { _ in
+            let attr: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: seite * 0.8)]
+            let ns = e as NSString
+            let g = ns.size(withAttributes: attr)
+            ns.draw(at: CGPoint(x: (seite - g.width) / 2, y: (seite - g.height) / 2), withAttributes: attr)
+        }
+        guard let cg = roh.cgImage, let rahmen = sichtbarerRahmen(cg), let teil = cg.cropping(to: rahmen) else { return nil }
+        let b = UIImage(cgImage: teil)
+        cache[code] = b
+        return b
+    }
+
+    /// Kleinstes Rechteck um alle nicht durchsichtigen Pixel.
+    private static func sichtbarerRahmen(_ cg: CGImage) -> CGRect? {
+        let w = cg.width, h = cg.height
+        var px = [UInt8](repeating: 0, count: w * h * 4)
+        guard let ctx = CGContext(data: &px, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                                  space: CGColorSpaceCreateDeviceRGB(),
+                                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+        ctx.draw(cg, in: CGRect(x: 0, y: 0, width: w, height: h))
+        var x0 = w, y0 = h, x1 = -1, y1 = -1
+        for y in 0..<h {
+            for x in 0..<w where px[(y * w + x) * 4 + 3] > 24 {
+                if x < x0 { x0 = x }
+                if x > x1 { x1 = x }
+                if y < y0 { y0 = y }
+                if y > y1 { y1 = y }
+            }
+        }
+        guard x1 >= x0, y1 >= y0 else { return nil }
+        return CGRect(x: x0, y: y0, width: x1 - x0 + 1, height: y1 - y0 + 1)
+    }
+}
+
+/// Herkunft eines Teams neben dem Namen (web TeamHerkunft.tsx): Land als Flagge, Kontinent/Erde als Kuerzel.
+struct TeamHerkunftMarke: View {
+    let land: String?
+    var gross: Bool = false
+
+    var body: some View {
+        if let e = teamFlaggenEmoji(land) {
+            Text(e).font(.system(size: gross ? 18 : 13))
+        } else if let l = land, l.hasPrefix("k:") {
+            HStack(spacing: 3) {
+                Image(systemName: "globe").font(.system(size: gross ? 13 : 10)).foregroundStyle(Color.accentColor)
+                Text(String(l.dropFirst(2)).uppercased()).font(.system(size: gross ? 12 : 10, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 }
