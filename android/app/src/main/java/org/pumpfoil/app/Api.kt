@@ -532,6 +532,17 @@ object Api {
         )
     }
 
+    /** Freunde mit ihrer letzten Session, je Freund genau eine, zuletzt aktive zuerst, hoechstens 10 (Web api.friendsLatest). */
+    suspend fun friendsLatest(): List<CommunityItem> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(CommunityItem.serializer()), http("GET", "/api/community/friends-latest", null, auth = true))
+    }
+
+    /** Die letzten Sessions der Teammitglieder (Home › Team, Web api.teamLatest); `team` = "alle" oder eine Team-ID. */
+    suspend fun teamLatest(team: String): List<CommunityItem> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(CommunityItem.serializer()),
+            http("GET", "/api/community/team-latest?team=" + java.net.URLEncoder.encode(team, "UTF-8"), null, auth = true))
+    }
+
     // Tages-Gruppierung (Community/Spot): ein Nutzer+Tag = eine Gruppe (server-seitig).
     suspend fun communitySessionsGrouped(spot: String? = null, limit: Int = 20, offset: Int = 0,
                                          accelOnly: Boolean = true, sport: String? = null,

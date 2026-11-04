@@ -314,6 +314,8 @@ struct HomeTeamsListe: View {
                 }
                 .padding(6)
                 .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+                // Die letzten Sessions der Teammitglieder (PWA TeamLetzteMitWahl).
+                TeamLetzteAbschnitt(teams: t, lang: lang)
             }
             NavigationLink { TeamsAlleView() } label: {
                 Text(Loc.t("team.alle", lang) + " →").font(.subheadline)

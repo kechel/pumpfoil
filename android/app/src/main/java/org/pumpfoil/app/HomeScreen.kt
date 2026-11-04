@@ -59,6 +59,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -466,6 +467,8 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
             }
             // „Neue Kommentare & Likes" (Web NeuBeiMir) zwischen den eigenen Sessions und dem Community-Link.
             if (social) NeuBeiMir(onOpenSession = { onOpen(it, null) }, onOpenKommentare = onOpenKommentare)
+            // Freunde mit ihrer letzten Session (Web PersonalHome FreundeLetzte), darunter der Community-Link.
+            if (social) FreundeLetzte(onOpenSession = { onOpen(it, null) })
             // Community-Link (wie PWA) — unter 13 (kein social) ausgeblendet.
             if (social) {
                 TextButton(onClick = onOpenCommunity, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
@@ -599,6 +602,8 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
                             }
                         }
                     }
+                    // Die letzten Sessions der Teammitglieder unter der Teamliste (Web PersonalHome TeamLetzteMitWahl).
+                    TeamLetzte(meineTeams, onOpenSession = { onOpen(it, null) })
                 }
                 Spacer(Modifier.height(6.dp))
                 TextButton(onClick = onOpenTeams, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
@@ -696,6 +701,54 @@ private fun kachelListe(st: OverallStats): List<RecTile> {
  * den eigenen Sessions, hoechstens 5 aus 14 Tagen (Server), Likes je Session zusammengefasst. Leer -> gar nicht da.
  * Profilbild -> Profil, der Rest der Zeile -> Session bzw. bei Kommentaren gleich der Kommentar-Faden (Web #kommentare).
  */
+/** Die letzten Sessions der eigenen Teams (Web PersonalHome `TeamLetzteMitWahl`, Jan 02.11.2026): Standard alle Teams
+ *  zusammen, ab zwei Teams eingrenzbar (Web TeamWahl, wie Sessions › Team). Je Mitglied hoechstens drei (Server). */
+@Composable
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+private fun TeamLetzte(teams: List<TeamKurz>, onOpenSession: (Int) -> Unit) {
+    var wahl by remember { mutableStateOf("alle") }
+    var liste by remember { mutableStateOf<List<CommunityItem>?>(null) }
+    LaunchedEffect(wahl) { liste = null; liste = try { Api.teamLatest(wahl) } catch (_: Exception) { emptyList() } }
+    Spacer(Modifier.height(16.dp))
+    Text(I18n.t("phome.latest").uppercase(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Spacer(Modifier.height(6.dp))
+    if (teams.size > 1) {
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FilterChip(selected = wahl == "alle", onClick = { wahl = "alle" }, label = { Text(I18n.t("team.alleMeine")) },
+                colors = cyanChipColors())
+            teams.forEach { tm ->
+                FilterChip(selected = wahl == tm.id.toString(), onClick = { wahl = tm.id.toString() },
+                    leadingIcon = { TeamWappen(tm.name, tm.logoUrl, tm.farbe, 16.dp) },
+                    label = { Text(tm.name, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 160.dp)) },
+                    colors = cyanChipColors())
+            }
+        }
+    }
+    val l = liste
+    when {
+        l == null -> CircularProgressIndicator(Modifier.padding(12.dp).size(24.dp))
+        l.isEmpty() -> Text("—", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        else -> l.forEach { c -> CommunityItemRow(c, Modifier.padding(vertical = ListenAnsicht.abstand)) { onOpenSession(c.id) } }
+    }
+}
+
+/** Freunde mit ihrer letzten Session als Session-Kachel (Web PersonalHome `FreundeLetzte`, Jan 02.11.2026): je Freund genau
+ *  eine, zuletzt aktive zuerst, hoechstens 10 (Server). Ohne Freunde gar nicht da. */
+@Composable
+private fun FreundeLetzte(onOpenSession: (Int) -> Unit) {
+    var liste by remember { mutableStateOf<List<CommunityItem>?>(null) }
+    LaunchedEffect(Unit) { liste = try { Api.friendsLatest() } catch (_: Exception) { emptyList() } }
+    val l = liste
+    if (l.isNullOrEmpty()) return
+    Spacer(Modifier.height(16.dp))
+    Text(I18n.t("friends.title").uppercase(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Spacer(Modifier.height(6.dp))
+    l.forEach { c -> CommunityItemRow(c, Modifier.padding(vertical = ListenAnsicht.abstand)) { onOpenSession(c.id) } }
+    Spacer(Modifier.height(10.dp))
+}
+
 @Composable
 private fun NeuBeiMir(onOpenSession: (Int) -> Unit, onOpenKommentare: (Int) -> Unit) {
     var liste by remember { mutableStateOf<List<Api.Aktivitaet>?>(null) }

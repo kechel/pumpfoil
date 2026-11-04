@@ -211,6 +211,8 @@ struct HomeView: View {
         latestSection
         // Neue Kommentare & Likes an den eigenen Sessions (PWA NeuBeiMir, 03.11.2026) — direkt unter den letzten Sessions.
         NeuBeiMirAbschnitt(lang: lang, neuLadenTick: sync.tick)
+        // Freunde mit ihrer letzten Session (PWA FreundeLetzte), darunter der Community-Link.
+        FreundeLetzteAbschnitt(lang: lang, neuLadenTick: sync.tick)
         // Wetter am Homespot direkt unter den letzten Sessions (Jan, 25.09.2026).
         if let sw = weather { HomeWeatherCard(sw: sw, lang: lang) }
     }
