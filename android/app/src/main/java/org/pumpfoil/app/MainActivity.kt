@@ -88,6 +88,7 @@ class MainActivity : ComponentActivity() {
         WatchSync.pushPairing(applicationContext)   // eingeloggt -> Wear-Uhr (Data Layer) verknüpfen
         OAuthRuecksprung.verarbeite(applicationContext, intent?.data)   // Kaltstart aus dem Browser
         KontoRuecksprung.verarbeite(applicationContext, intent?.data)
+        TeamEinladungLink.verarbeite(intent?.data)   // Team-Einladungslink (TeamEinladung.kt)
         setContent { PumpfoilTheme { App() } }
     }
 
@@ -98,6 +99,7 @@ class MainActivity : ComponentActivity() {
         setIntent(intent)
         OAuthRuecksprung.verarbeite(applicationContext, intent.data)
         KontoRuecksprung.verarbeite(applicationContext, intent.data)
+        TeamEinladungLink.verarbeite(intent.data)
     }
 }
 
@@ -186,7 +188,7 @@ fun App() {
     }
 }
 
-private val TOP_LEVEL = setOf("home", "community", "sessions", "verlauf", "spots", "chat", "profile")
+private val TOP_LEVEL = setOf("home", "community", "sessions", "spots", "chat", "profile")
 
 @Composable
 fun MainScaffold(onLogout: () -> Unit) {
@@ -214,6 +216,14 @@ fun MainScaffold(onLogout: () -> Unit) {
     var gewaehltesFoil by remember { mutableStateOf<FoilStat?>(null) }
     val backEntry by nav.currentBackStackEntryAsState()
     val route = backEntry?.destination?.route
+    // Wartender Team-Einladungslink (TeamEinladung.kt): erst hier, also nach der Anmeldung, oeffnen und dann vergessen.
+    val einladung by TeamEinladungLink.offen.collectAsState()
+    androidx.compose.runtime.LaunchedEffect(einladung) {
+        val e = einladung ?: return@LaunchedEffect
+        TeamEinladungLink.offen.value = null
+        val (sl, teil) = e.split("/", limit = 2).let { it[0] to it.getOrElse(1) { "" } }
+        nav.navigate("teameinladung/${Uri.encode(sl)}/${Uri.encode(teil)}")
+    }
     val ctx = androidx.compose.ui.platform.LocalContext.current
     // Social-Freigabe (UGC/Feed/Chat) — für unter 13 gesperrt (Apple-Vorgabe); Server erzwingt es.
     var social by remember { mutableStateOf(true) }
@@ -305,24 +315,22 @@ fun MainScaffold(onLogout: () -> Unit) {
         androidx.compose.runtime.CompositionLocalProvider(LocalOpenFoiler provides { uid: Int -> nav.navigate("foiler/$uid") }) {
         androidx.compose.runtime.CompositionLocalProvider(LocalFeedbackUrl provides feedbackUrl(backEntry)) {
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
-            composable("home") { HomeScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onOpenChat = { nav.switchTab("chat") }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }, onOpenChatRoom = { sc, lb -> nav.navigate("chatroom/${Uri.encode(sc)}?label=${Uri.encode(lb)}") }, onRecord = { nav.navigate("record") }, onOpenSortedOut = { SessionsWunsch.setzeFilter("other"); nav.switchTab("sessions") }, onOnboarding = { nav.navigate("onboarding") }, social = social,
+            composable("home") { HomeScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }, onRecord = { nav.navigate("record") }, onOpenSortedOut = { SessionsWunsch.setzeFilter("other"); nav.switchTab("sessions") }, onOnboarding = { nav.navigate("onboarding") }, social = social,
                                                 onOpenSpot = { s -> nav.navigate("spot/${Uri.encode(s)}") },
                                                 onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") },
-                                                onOpenVerlauf = { nav.navigate("verlauf") },
                                                 onOpenTeams = { nav.navigate("teams") },
                                                 onGarminPair = { nav.navigate("garminpair") }, onGuide = { nav.navigate("guide") },
                                                 onAlarm = { nav.navigate("alarm") }, onDataFields = { nav.navigate("datafields") },
                                                 // Zahnrad der Profil-Vorschau -> Einstellungen › Privatsphaere; „Team gruenden" -> Einstellungen › Team.
                                                 onPrivacy = { nav.zuEinstellungen("privat") },
-                                                onTeamGruenden = { nav.zuEinstellungen("team") },
+                                                onOpenKommentare = { sid -> nav.navigate("kommentare/$sid?inhaber=true") },
                                                 onTeamGegruendet = { sl -> nav.navigate("teamverwalten/${Uri.encode(sl)}?grund=true") }) }
-            composable("sessions") { SessionsScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onCompare = { nav.navigate("compare") }, onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") }) }
+            composable("sessions") { SessionsScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onCompare = { nav.navigate("compare") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onFoilStats = { nav.navigate("foilstats") }, onWatchStats = { nav.navigate("watchstats") }, onLayouts = { nav.navigate("layoutgallery") },
                 onOpenRoute = { s, id -> nav.navigate("spot/${Uri.encode(s)}?route=$id") },
                 onOpenEvent = { sl, id -> nav.navigate("teamevent/${Uri.encode(sl)}/$id") },
                 onAlleEvents = { nav.navigate("events") }, onAlleTeams = { nav.navigate("teams") },
                 onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") }) }
-            composable("verlauf") { VerlaufScreen(onOpen = { id -> nav.navigate("session/$id") }) }
             // Marker/Treffer auf der Spot-Karte reichen die dort gewaehlte Sportart mit (wie die PWA).
             composable("spots") { SpotsScreen(onOpenSpot = { nav.navigate("spot/${Uri.encode(it)}") }, onOpenSession = { id -> nav.navigate("session/$id") },
                                               onOpenSpotSport = { s, sp -> nav.navigate("spot/${Uri.encode(s)}?sport=${Uri.encode(sp)}") },
@@ -363,17 +371,11 @@ fun MainScaffold(onLogout: () -> Unit) {
                 ProfileScreen(
                     onLogout = onLogout,
                     onFoilCalc = { nav.navigate("foilcalc") },
-                    onFoils = { nav.navigate("foils") },
                     onFoilStats = { nav.navigate("foilstats") },
-                    onWatch = { nav.navigate("watch") },
-                    onSettings = { nav.navigate("settings") },
                     onCompare = { nav.navigate("compare") },
-                    onAccounts = { nav.navigate("accounts") },
                     onImprint = { nav.navigate("impressum") },
                     onOnboarding = { nav.navigate("onboarding") },
                     onChangelog = { nav.navigate("changelog") },
-                    onFriends = { nav.navigate("friends") },
-                    onTeams = { nav.navigate("meineteams") },
                     onGarminPair = { nav.navigate("garminpair") }, onGuide = { nav.navigate("guide") },
                     onAlarm = { nav.navigate("alarm") }, onDataFields = { nav.navigate("datafields") },
                     onOpenFoiler = { uid -> nav.navigate("foiler/$uid") },
@@ -384,19 +386,7 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onOpenSession = { sid -> nav.navigate("session/$sid") },
                 )
             }
-            composable("watch") {
-                WatchScreen(
-                    onBack = { nav.popBackStack() },
-                    onGarminPair = { nav.navigate("garminpair") },
-                    onGuide = { nav.navigate("guide") },
-                    onAlarm = { nav.navigate("alarm") },
-                    onDataFields = { nav.navigate("datafields") },
-                )
-            }
             composable("foilcalc") { FoilCalculatorScreen(onBack = { nav.popBackStack() }) }
-            // Foils und Setup sind seit 04.11.2026 Reiter der Ausruestung (AusruestungScreen.kt); die alten Routen fuehren dorthin.
-            composable("foils") { AusruestungScreen("foils", onBack = { nav.popBackStack() }) }
-            composable("setup") { AusruestungScreen("stabs", onBack = { nav.popBackStack() }) }
             composable("foilstats") {
                 FoilStatsScreen(
                     onBack = { nav.popBackStack() },
@@ -415,7 +405,6 @@ fun MainScaffold(onLogout: () -> Unit) {
             }
             composable("watchstats") { WatchStatsScreen(onBack = { nav.popBackStack() }, onFoilStats = { nav.navigate("foilstats") }) }
             composable("alarm") { AlarmScreen(onBack = { nav.popBackStack() }) }
-            composable("settings") { SettingsScreen(onBack = { nav.popBackStack() }) }
             // Einrichtungs-Assistent (portiert aus der PWA). Erreichbar ueber das Profil und
             // ueber die Weiche fuer neue Konten (s. `onboardingDue`).
             composable("onboarding") { OnboardingScreen(onFertig = { nav.popBackStack() }) }
@@ -428,14 +417,8 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("compare") { CompareScreen(onBack = { nav.popBackStack() }, onOpen = { id -> nav.navigate("session/$id") }) }
             composable("garminpair") { GarminPairScreen(onBack = { nav.popBackStack() }) }
             composable("guide") { GuideScreen(onBack = { nav.popBackStack() }) }
-            composable("accounts") { LinkedAccountsScreen(onBack = { nav.popBackStack() }) }
             composable("impressum") { ImpressumScreen(onBack = { nav.popBackStack() }) }
             composable("changelog") { ChangelogScreen(onBack = { nav.popBackStack() }) }
-            composable("friends") {
-                FreundeScreen(onBack = { nav.popBackStack() },
-                    onOpenFoiler = { uid -> nav.navigate("foiler/$uid") },
-                    onOpenSpot = { s -> nav.navigate("spot/${Uri.encode(s)}") })
-            }
             composable(
                 "session/{id}?v={v}",
                 arguments = listOf(
@@ -452,7 +435,18 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") },
                     onSpotSessions = { s -> nav.navigate("spot/${Uri.encode(s)}") },
                     social = social,
+                    onKommentare = { sid, inhaber -> nav.navigate("kommentare/$sid?inhaber=$inhaber") },
+                    onKommentareEinschalten = { nav.zuEinstellungen("privat") },
                 )
+            }
+            // Kommentare einer Session (Chat-Raum session:<id>, ChatScreen.kt SessionKommentareRaum).
+            composable(
+                "kommentare/{id}?inhaber={inhaber}",
+                arguments = listOf(navArgument("id") { type = NavType.IntType },
+                    navArgument("inhaber") { type = NavType.BoolType; defaultValue = false }),
+            ) { entry ->
+                SessionKommentareRaum(sessionId = entry.arguments?.getInt("id") ?: 0,
+                    inhaber = entry.arguments?.getBoolean("inhaber") ?: false, onBack = { nav.popBackStack() })
             }
             composable(
                 "labeling/{id}",
@@ -527,6 +521,18 @@ fun MainScaffold(onLogout: () -> Unit) {
                         else nav.navigate("team/${Uri.encode(s)}")
                     },
                     onOpenSession = { sid -> nav.navigate("session/$sid") },
+                )
+            }
+            // Einladungslink eines Teams (TeamEinladung.kt); danach ersetzt die Teamseite die Einladung.
+            composable(
+                "teameinladung/{slug}/{teil}",
+                arguments = listOf(navArgument("slug") { type = NavType.StringType }, navArgument("teil") { type = NavType.StringType }),
+            ) { entry ->
+                TeamEinladungScreen(
+                    slug = entry.arguments?.getString("slug").orEmpty(),
+                    teil = entry.arguments?.getString("teil").orEmpty(),
+                    onBack = { nav.popBackStack() },
+                    onOpenTeam = { sl -> nav.popBackStack(); nav.navigate("team/${Uri.encode(sl)}") },
                 )
             }
             composable("meineteams") {

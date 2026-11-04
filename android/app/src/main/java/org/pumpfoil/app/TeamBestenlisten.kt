@@ -144,15 +144,22 @@ fun TeamBestenlisten(onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier
             else -> {
                 zeilen.forEachIndexed { i, z ->
                     val f = teamFarbe(z.farbe)
-                    Card(Modifier.fillMaxWidth().padding(bottom = 6.dp).clip(RoundedCornerShape(12.dp)).clickable { onOpenTeam(z.slug) }) {
+                    // Das eigene Team hervorgehoben wie im Teilen-Bild (Rahmen in Teamfarbe).
+                    val eigenes = z.slug in meine
+                    Card(Modifier.fillMaxWidth().padding(bottom = 6.dp).clip(RoundedCornerShape(12.dp)).clickable { onOpenTeam(z.slug) },
+                        border = if (eigenes) androidx.compose.foundation.BorderStroke(2.dp, f.akzent) else null,
+                        colors = if (eigenes) androidx.compose.material3.CardDefaults.cardColors(containerColor = f.leicht) else androidx.compose.material3.CardDefaults.cardColors()) {
                         Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text("${i + 1}", Modifier.width(26.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(Modifier.width(6.dp))
                             TeamWappen(z.name, z.logoUrl, z.farbe, 40.dp)
                             Spacer(Modifier.width(10.dp))
-                            Text(z.name, color = f.akzent, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f))
+                            Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                                Text(z.name, color = f.akzent, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f, fill = false))
+                                Spacer(Modifier.width(6.dp)); TeamHerkunftZeichen(z.land)
+                            }
                             Spacer(Modifier.width(8.dp))
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(vergleichWert(art, z.wert(art)), color = f.akzent, fontWeight = FontWeight.Bold,
@@ -169,7 +176,10 @@ fun TeamBestenlisten(onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier
                         I18n.t(VERGLEICH_ZEITRAUM.firstOrNull { it.first == period }?.second ?: "period.all"),
                         java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT, java.util.Locale.forLanguageTag(I18n.lang))
                             .format(java.util.Date())).joinToString(" · ")
-                    val bildZeilen = zeilen.mapIndexed { i, z -> BildZeile(i + 1, z, vergleichWert(art, z.wert(art)), z.slug in meine) }
+                    val bildZeilen = zeilen.mapIndexed { i, z ->
+                        BildZeile(i + 1, z.name, vergleichWert(art, z.wert(art)), z.slug in meine, land = z.land,
+                            wappen = true, logoUrl = z.logoUrl, farbe = z.farbe)
+                    }
                     bild = TeamBildDaten(titel, unter, bildZeilen, "pumpfoil-teams-$art.png")
                 }) {
                     Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -182,9 +192,11 @@ fun TeamBestenlisten(onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier
     bild?.let { TeamBildDialog(it, onClose = { bild = null }) }
 }
 
-private class BildZeile(val rang: Int, val z: TeamVergleichZeile, val wert: String, val ich: Boolean)
+/** Eine Zeile des Bildes (Web lib/bestenlisteBild.ts BildZeile): Teams mit Wappen, Fahrer ohne (nur Flagge + Name). */
+internal class BildZeile(val rang: Int, val name: String, val wert: String, val ich: Boolean, val land: String? = null,
+                         val wappen: Boolean = false, val logoUrl: String? = null, val farbe: String? = null)
 
-private class TeamBildDaten(val titel: String, val unter: String, val zeilen: List<BildZeile>, val datei: String)
+internal class TeamBildDaten(val titel: String, val unter: String, val zeilen: List<BildZeile>, val datei: String)
 
 // Dieselben Farben wie web/src/lib/bestenlisteBild.ts (DUNKEL/HELL, wie die Session-Karte sharecard.py), je Fassung.
 private class BildFarben(val grund: Int, val flaeche: Int, val linie: Int, val akzent: Int, val text: Int, val leise: Int)
@@ -260,25 +272,27 @@ private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, 
         p.color = F.akzent; g.drawText(z.wert, B - X, mitteText(mitte), p)
         val wb = p.measureText(z.wert)
         var nx = X + 74
+        if (z.wappen) {
         val ws = Math.round(gross * 1.25f).toFloat(); val wy = mitte - ws / 2
         val rect = android.graphics.RectF(nx, wy, nx + ws, wy + ws)
-        val logo = Api.mediaUrl(z.z.logoUrl)?.let { logos[it] }
+        val logo = Api.mediaUrl(z.logoUrl)?.let { logos[it] }
         g.save()
         g.clipPath(android.graphics.Path().apply { addRoundRect(rect, 10f, 10f, android.graphics.Path.Direction.CW) })
         if (logo != null) {
             val k = minOf(ws / logo.width, ws / logo.height); val bw = logo.width * k; val bh = logo.height * k
             g.drawBitmap(logo, null, android.graphics.RectF(nx + (ws - bw) / 2, wy + (ws - bh) / 2, nx + (ws + bw) / 2, wy + (ws + bh) / 2), p)
         } else {
-            val f = if (hell) teamFarbeHell(z.z.farbe) else teamFarbeDunkel(z.z.farbe)
+            val f = if (hell) teamFarbeHell(z.farbe) else teamFarbeDunkel(z.farbe)
             p.color = f.flaeche.toArgb(); g.drawRect(rect, p)
             p.color = f.aufFlaeche.toArgb(); schrift(Math.round(ws * 0.38f).toFloat(), true); p.textAlign = android.graphics.Paint.Align.CENTER
-            g.drawText(teamInitialen(z.z.name), nx + ws / 2, mitteText(mitte), p)
+            g.drawText(teamInitialen(z.name), nx + ws / 2, mitteText(mitte), p)
         }
         g.restore()
         nx += ws + 16
+        }
         // Flagge 4:3 vor dem Namen, mit feinem Rand (weisse Flaggen verschwaenden sonst auf hellem Grund).
         val fh = Math.round(gross * 0.8f).toFloat(); val fw = Math.round(fh * 4 / 3).toFloat()
-        z.z.land?.let { flaggen[it.uppercase()] }?.let { fl ->
+        z.land?.let { flaggen[it.uppercase()] }?.let { fl ->
             val ziel = android.graphics.RectF(nx, mitte - fh / 2, nx + fw, mitte + fh / 2)
             // Auf 4:3 zuschneiden (cover), falls das Emoji ein anderes Seitenverhaeltnis hat.
             val k = maxOf(fw / fl.width, fh / fl.height)
@@ -292,7 +306,7 @@ private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, 
         nx += fw + 16
         schrift(Math.round(gross * 0.92f).toFloat(), z.rang == 1 || hinterlegt)
         p.textAlign = android.graphics.Paint.Align.LEFT; p.color = F.text
-        g.drawText(kuerzen(z.z.name, B - X - wb - 30 - nx), nx, mitteText(mitte), p)
+        g.drawText(kuerzen(z.name, B - X - wb - 30 - nx), nx, mitteText(mitte), p)
     }
     zeilen.forEachIndexed { i, z ->
         if (i > 0) { p.color = F.linie; g.drawRect(X, oben + i * zh, B - X, oben + i * zh + 2, p) }
@@ -323,7 +337,7 @@ private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, 
  */
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
-private fun TeamBildDialog(d: TeamBildDaten, onClose: () -> Unit) {
+internal fun TeamBildDialog(d: TeamBildDaten, onClose: () -> Unit) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val prefs = remember { ctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE) }
@@ -337,14 +351,14 @@ private fun TeamBildDialog(d: TeamBildDaten, onClose: () -> Unit) {
     LaunchedEffect(d) {
         val loader = coil.ImageLoader(ctx)
         val m = mutableMapOf<String, android.graphics.Bitmap>()
-        d.zeilen.mapNotNull { Api.mediaUrl(it.z.logoUrl) }.distinct().forEach { url ->
+        d.zeilen.mapNotNull { Api.mediaUrl(it.logoUrl) }.distinct().forEach { url ->
             runCatching {
                 val r = loader.execute(coil.request.ImageRequest.Builder(ctx).data(url).allowHardware(false).build())
                 ((r as? coil.request.SuccessResult)?.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap?.let { m[url] = it }
             }
         }
         flaggen = withContext(Dispatchers.Default) {
-            d.zeilen.mapNotNull { it.z.land?.uppercase() }.distinct().mapNotNull { c -> flaggeBild(c)?.let { c to it } }.toMap()
+            d.zeilen.mapNotNull { it.land?.uppercase() }.distinct().mapNotNull { c -> flaggeBild(c)?.let { c to it } }.toMap()
         }
         logos = m
     }
@@ -462,7 +476,11 @@ fun AktivsteTeams(onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier) {
                     TeamWappen(tm.name, tm.logoUrl, tm.farbe, 40.dp)
                     Spacer(Modifier.width(10.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(tm.name, color = f.akzent, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(tm.name, color = f.akzent, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false))
+                            Spacer(Modifier.width(6.dp)); TeamHerkunftZeichen(tm.land)
+                        }
                         Text(I18n.t("team.mitgliederAnzahl").replace("{n}", tm.mitgliederAnzahl.toString()) +
                                 (if (tm.sportarten.isNotEmpty()) " · " + sportartenText(tm.sportarten) else ""),
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,

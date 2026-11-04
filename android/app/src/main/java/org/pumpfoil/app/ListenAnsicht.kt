@@ -169,6 +169,7 @@ internal fun SessionZeile(
     likeCount: Int,
     modifier: Modifier = Modifier,
     abzeichen: (@Composable () -> Unit)? = null,
+    kommentare: Int = 0,
     onClick: () -> Unit,
 ) {
     val inCompare = CompareStore.refs.collectAsState().value.contains(CompareRef(sessionId))
@@ -186,6 +187,7 @@ internal fun SessionZeile(
                     Kennzahlen(kennzahlen, Modifier.weight(1f, fill = false))
                 }
                 abzeichen?.let { Spacer(Modifier.width(6.dp)); it() }
+                KommentarZahl(kommentare)
                 LikeToggle(sessionId, liked, likeCount)
                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))

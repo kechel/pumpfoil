@@ -27,6 +27,7 @@ struct SettingsView: View {
     @State private var nRecord = true
     @State private var nChat = true
     @State private var nFriend = true
+    @State private var nComment = true
     @State private var saved = false
     @State private var pwCur = ""
     @State private var pwNew = ""
@@ -76,6 +77,7 @@ struct SettingsView: View {
         .onChange(of: nRecord) { _ in saved = false }
         .onChange(of: nChat) { _ in saved = false }
         .onChange(of: nFriend) { _ in saved = false }
+        .onChange(of: nComment) { _ in saved = false }
         .onChange(of: lang) { l in Task { try? await Api.updateLanguage(l) } }
         .onChange(of: sensitivity) { v in if sensReady { changeSensitivity(v) } }
         .onChange(of: pumpUnit) { v in Task { _ = try? await Api.updatePumpUnit(v) } }
@@ -388,6 +390,7 @@ struct SettingsView: View {
             Toggle(Loc.t("settings.nRecord", lang), isOn: $nRecord)
             Toggle(Loc.t("settings.nChat", lang), isOn: $nChat)
             Toggle(Loc.t("notif.typeFriend", lang), isOn: $nFriend)
+            Toggle(Loc.t("notif.typeComment", lang), isOn: $nComment)
         }
     }
 
@@ -527,6 +530,7 @@ struct SettingsView: View {
             nRecord = (np["record"] as? Bool) ?? true
             nChat = (np["chat"] as? Bool) ?? true
             nFriend = (np["friend"] as? Bool) ?? true
+            nComment = (np["comment"] as? Bool) ?? true
         }
         spots = (try? await Api.spots())?.all ?? []
         if let prof = try? await Api.getProfile() { sensitivity = prof.foil_sensitivity ?? "normal" }
@@ -560,7 +564,7 @@ struct SettingsView: View {
                 "stance": stance,
                 // "chat" MUSS mit: notify_prefs wird als Ganzes ersetzt, ein Speichern von hier
                 // hat die im Web gesetzte Chat-Einstellung also stillschweigend geloescht.
-                "notify_prefs": ["like": nLike, "analyzed": nAnalyzed, "record": nRecord, "chat": nChat, "friend": nFriend],
+                "notify_prefs": ["like": nLike, "analyzed": nAnalyzed, "record": nRecord, "chat": nChat, "friend": nFriend, "comment": nComment],
             ])
             saved = true
         }

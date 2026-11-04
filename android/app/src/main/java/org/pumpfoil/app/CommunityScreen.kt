@@ -23,6 +23,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Surfing
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -92,7 +94,21 @@ internal fun bandLabel(b: FoilBand): String = when {
 private fun fmtBand(v: Double?): String =
     if (v == null) "" else if (v == v.toLong().toDouble()) v.toLong().toString() else v.toString()
 
-private val PERIODS = listOf("today" to "period.today", "10d" to "period.10d", "30d" to "period.30d", "365d" to "period.365d", "all" to "period.all")
+/** Bestenlisten in der Reihenfolge des Webs (Home.tsx LEADER_KINDS): zuerst die Laufdauer, dann die Summen, zuletzt der
+ *  weiteste Lauf. Bei Wind/Paddeln vorn die ganze Fahrt und keine Pumps/Laeufe, bei Motor keine Pumps. */
+private fun leaderArten(sport: String): List<Pair<String, String>> {
+    val wind = Sportarten.windArtig(sport)
+    val motor = Sportarten.motor(sport)
+    return listOf(
+        "ride_total" to "rec.sessionTotal", "run_time" to "rec.longestRun", "distance" to "leader.totalDistance",
+        "time" to "leader.totalTime", "runs" to "leader.mostRuns", "pumps" to "leader.mostPumps",
+        "sessions" to "leader.mostSessions", "spots" to "leader.mostSpots", "run_distance" to "rec.farthestRun",
+    ).filter { (id, _) ->
+        !((wind && (id == "pumps" || id == "runs")) || (motor && id == "pumps") || (id == "ride_total" && !wind))
+    }
+}
+
+private val PERIODS = listOf("today" to "period.today", "yesterday" to "period.yesterday", "10d" to "period.10d", "30d" to "period.30d", "365d" to "period.365d", "all" to "period.all")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -116,6 +132,9 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var period by remember { mutableStateOf("10d") }
+    // Ohne eigene Wahl „Heute", sobald heute alle 10 Plaetze der Bestenliste besetzt sind (Web Home.tsx autoPeriod,
+    // 02.11.2026), sonst 10 Tage. Wer selbst einen Zeitraum antippt, behaelt ihn.
+    var periodGewaehlt by remember { mutableStateOf(false) }
     var accelWahl by remember { mutableStateOf(true) }
     // Ansicht „Freunde" (Jan, 15.10.2026): die ganze Seite nur ueber mich + meine Freunde — alles,
     // was accel/alle aendert, filtert dann auf Freunde. Die Statistikzeile oben bleibt global.
@@ -137,12 +156,17 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     var bands by remember { mutableStateOf<List<FoilBand>>(emptyList()) }
     var bandKey by remember { mutableStateOf("all") }
     val band = bands.firstOrNull { it.key == bandKey }
-    var lbMetric by remember { mutableStateOf("sessions") }
-    // Ausgeblendete Kennzahl gewaehlt (z. B. Pumps, dann Wingfoil)? -> zurueck auf Sessions.
+    // Standard wie im Web: die laengste Laufdauer (weltweit DIE Kennzahl, Web LEADER_KINDS).
+    var lbMetric by remember { mutableStateOf("run_time") }
+    // Ausgeblendete Kennzahl gewaehlt (z. B. Pumps, dann Wingfoil)? -> auf die erste sichtbare (Web arten[0]).
     LaunchedEffect(sportart) {
-        val wind = Sportarten.windArtig(sportart)
-        val motor = Sportarten.motor(sportart)
-        if ((wind && lbMetric in setOf("pumps", "runs")) || (motor && lbMetric == "pumps")) lbMetric = "sessions"
+        val sichtbar = leaderArten(sportart)
+        if (sichtbar.none { it.first == lbMetric }) lbMetric = sichtbar.first().first
+    }
+    LaunchedEffect(sportart) {
+        if (periodGewaehlt) return@LaunchedEffect
+        val heute = try { Api.leaders("today", accelOnly, "all", false, sport = sportart) } catch (_: Exception) { null }
+        if (!periodGewaehlt && heute != null && heute.sessions.size >= 10) period = "today"
     }
     val scope = rememberCoroutineScope()
     // Der Social-Feed haelt seinen Zustand eine Schicht hoeher als seine Sektion: der Player ist
@@ -229,7 +253,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 PERIODS.forEach { (id, key) ->
-                                    FilterChip(selected = period == id, onClick = { period = id }, label = { Text(I18n.t(key)) }, colors = cyanChipColors())
+                                    FilterChip(selected = period == id, onClick = { period = id; periodGewaehlt = true }, label = { Text(I18n.t(key)) }, colors = cyanChipColors())
                                 }
                             }
                             Row(
@@ -298,72 +322,19 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                         I18n.t(PERIODS.firstOrNull { it.first == period }?.second ?: "period.all") +
                                         (band?.takeIf { it.art != "alle" }?.let { " · ${bandLabel(it)}" } ?: "")
                                 )
-                                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    listOf(
-                                        "sessions" to "leader.mostSessions", "runs" to "leader.mostRuns",
-                                        "pumps" to "leader.mostPumps", "spots" to "leader.mostSpots",
-                                        // On-Foil-Strecke/-Zeit (01.11.2026, wie das Web): bester Einzellauf und Summe im
-                                        // Zeitraum; zaehlen auch GPS-only-Fahrten
-                                        "run_distance" to "rec.farthestRun", "run_time" to "rec.longestRun",
-                                        "distance" to "leader.totalDistance", "time" to "leader.totalTime",
-                                    ).filter { (id, _) ->
-                                        // Wind: keine Pumps/Laeufe, Motor: keine Pumps (wie das Web)
-                                        !((Sportarten.windArtig(sportart) && (id == "pumps" || id == "runs")) ||
-                                          (Sportarten.motor(sportart) && id == "pumps"))
-                                    }.forEach { (id, key) ->
-                                        FilterChip(selected = lbMetric == id, onClick = { lbMetric = id }, label = { Text(I18n.t(key)) }, colors = cyanChipColors())
-                                    }
-                                }
-                                val list = when (lbMetric) { "runs" -> lb.runs; "pumps" -> lb.pumps; "spots" -> lb.spots
-                                    "distance" -> lb.distance; "time" -> lb.time; "run_distance" -> lb.runDistance
-                                    "run_time" -> lb.runTime; else -> lb.sessions }
-                                Card(Modifier.fillMaxWidth().padding(12.dp)) {
-                                    Column(Modifier.padding(8.dp)) {
-                                        val zeile: @Composable (LeaderEntry, Int, Boolean) -> Unit = { e, platz, ich ->
-                                            val v = when (lbMetric) { "runs" -> "${e.runs}"; "pumps" -> "${e.pumps}"; "spots" -> "${e.spots}"
-                                                "distance" -> String.format(java.util.Locale.ROOT, "%.1f", e.distanceM / 1000)
-                                                "time" -> leaderDauer(e.timeS)
-                                                "run_distance" -> String.format(java.util.Locale.ROOT, "%.2f", e.runDistanceM / 1000)
-                                                "run_time" -> leaderDauer(e.runTimeS); else -> "${e.sessions}" }
-                                            val unit = when (lbMetric) { "runs" -> I18n.t("unit.runs"); "pumps" -> I18n.t("unit.pumps")
-                                                "spots" -> I18n.t("unit.spots"); "distance", "run_distance" -> "km"
-                                                "time" -> if (e.timeS >= 3600) "h" else "min"; "run_time" -> if (e.runTimeS >= 3600) "h" else "min"
-                                                else -> I18n.t("unit.sessions") }
-                                            // Einzellauf-Listen: Tippen oeffnet die Session (01.11.2026, wie das Web)
-                                            val sid = e.sessionId
-                                            Row(Modifier.fillMaxWidth().then(if (sid != null) Modifier.clickable { onOpen(sid) } else Modifier)
-                                                .then(if (ich) Modifier.border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), RoundedCornerShape(8.dp)).padding(horizontal = 4.dp) else Modifier)
-                                                .padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
-                                                Text("$platz", Modifier.widthIn(min = 20.dp).padding(end = 4.dp), style = MaterialTheme.typography.titleSmall,
-                                                    color = MaterialTheme.colorScheme.primary)
-                                                Api.mediaUrl(e.avatarUrl)?.let { av ->
-                                                    ProfilbildRahmen(e.userId, 28.dp) {
-                                                        AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
-                                                            modifier = Modifier.size(28.dp).clip(CircleShape))
-                                                    }
-                                                    Spacer(Modifier.width(8.dp))
-                                                }
-                                                Text(e.name ?: "—", Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                                Text(v, fontWeight = FontWeight.SemiBold)
-                                                Spacer(Modifier.width(4.dp))
-                                                Text(unit, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                            }
-                                        }
-                                        // Alle 10 wie im Web: die eigene Zeile darunter (Olek, 01.11.2026) gibt der Server nur,
-                                        // wenn man nicht unter den ersten 10 steht — bei take(5) fehlten sonst die Plaetze 6 bis 10.
-                                        list.take(10).forEachIndexed { i, e -> zeile(e, i + 1, false) }
-                                        lb.me[lbMetric]?.let { ich ->
-                                            ich.rank?.let { r ->
-                                                Text("⋮", Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                                zeile(ich, r, true)
-                                            }
-                                        }
-                                        if (list.isEmpty()) Text(I18n.t("records.empty"), style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    }
-                                }
+                                BestenlistenBlock(lb, sportart, lbMetric, { lbMetric = it }, onOpen,
+                                    unterzeile = listOfNotNull(I18n.t("cls.sport.$sportart"),
+                                        I18n.t(PERIODS.firstOrNull { it.first == period }?.second ?: "period.all"),
+                                        band?.takeIf { it.art != "alle" }?.let { bandLabel(it) }),
+                                    // Link: die Web-Adresse traegt Zeitraum, Liste, Sportart und Foil-Band (Home.tsx ?period=&lb=&sport=&band=).
+                                    linkUrl = {
+                                        val q = buildList {
+                                            add("period=$period"); add("lb=$lbMetric")
+                                            if (sportart != "pumpfoil") add("sport=${android.net.Uri.encode(sportart)}")
+                                            if (bandKey != "all") add("band=${android.net.Uri.encode(bandKey)}")
+                                        }.joinToString("&")
+                                        teamWebUrl("/community?$q")
+                                    })
                             }
                         }
 
@@ -748,4 +719,100 @@ private const val ROUTEN_KM_MAX = 50f
 private fun leaderDauer(s: Double): String {
     val t = s.toLong(); val h = t / 3600; val m = (t % 3600) / 60
     return if (h > 0) "%d:%02d".format(h, m) else "%d:%02d".format(m, t % 60)
+}
+
+/**
+ * Bestenlisten (Web Home.tsx `Leaderboards`): Kennzahl als Chips, darunter die ersten 10 mit Flagge, die eigene Stelle
+ * unter Platz 10, und „Als Bild teilen" (TeamBildDialog) sowie — wenn `linkUrl` — „Teilen" als Link. Gebraucht in der
+ * Community und auf der Spot-Seite (Web 0fc2eba8). `unterzeile` = Sportart, Zeitraum … fuers Bild (Datum kommt dazu).
+ */
+@Composable
+internal fun BestenlistenBlock(lb: Leaders, sportart: String, lbMetric: String, onMetric: (String) -> Unit, onOpen: (Int) -> Unit,
+                               unterzeile: List<String>, linkUrl: (() -> String)? = null) {
+    var lbBild by remember { mutableStateOf<TeamBildDaten?>(null) }
+    Column(Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            leaderArten(sportart).forEach { (id, key) ->
+                FilterChip(selected = lbMetric == id, onClick = { onMetric(id) }, label = { Text(I18n.t(key)) }, colors = cyanChipColors())
+            }
+        }
+        val list = when (lbMetric) { "runs" -> lb.runs; "pumps" -> lb.pumps; "spots" -> lb.spots
+            "distance" -> lb.distance; "time" -> lb.time; "run_distance" -> lb.runDistance
+            "run_time" -> lb.runTime; "ride_total" -> lb.rideTotal; else -> lb.sessions }
+        fun leaderWert(e: LeaderEntry): String = when (lbMetric) { "runs" -> "${e.runs}"; "pumps" -> "${e.pumps}"; "spots" -> "${e.spots}"
+            "distance" -> String.format(java.util.Locale.ROOT, "%.1f", e.distanceM / 1000)
+            "ride_total" -> String.format(java.util.Locale.ROOT, "%.1f", e.rideTotalM / 1000)
+            "time" -> leaderDauer(e.timeS)
+            "run_distance" -> String.format(java.util.Locale.ROOT, "%.2f", e.runDistanceM / 1000)
+            "run_time" -> leaderDauer(e.runTimeS); else -> "${e.sessions}" }
+        fun leaderEinheit(e: LeaderEntry): String = when (lbMetric) { "runs" -> I18n.t("unit.runs"); "pumps" -> I18n.t("unit.pumps")
+            "spots" -> I18n.t("unit.spots"); "distance", "run_distance", "ride_total" -> "km"
+            "time" -> if (e.timeS >= 3600) "h" else "min"; "run_time" -> if (e.runTimeS >= 3600) "h" else "min"
+            else -> I18n.t("unit.sessions") }
+        Card(Modifier.fillMaxWidth().padding(12.dp)) {
+            Column(Modifier.padding(8.dp)) {
+                val zeile: @Composable (LeaderEntry, Int, Boolean) -> Unit = { e, platz, ich ->
+                    val v = leaderWert(e)
+                    val unit = leaderEinheit(e)
+                    // Einzellauf-Listen: Tippen oeffnet die Session (01.11.2026, wie das Web)
+                    val sid = e.sessionId
+                    Row(Modifier.fillMaxWidth().then(if (sid != null) Modifier.clickable { onOpen(sid) } else Modifier)
+                        .then(if (ich) Modifier.border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), RoundedCornerShape(8.dp)).padding(horizontal = 4.dp) else Modifier)
+                        .padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text("$platz", Modifier.widthIn(min = 20.dp).padding(end = 4.dp), style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.primary)
+                        Api.mediaUrl(e.avatarUrl)?.let { av ->
+                            ProfilbildRahmen(e.userId, 28.dp) {
+                                AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
+                                    modifier = Modifier.size(28.dp).clip(CircleShape))
+                            }
+                            Spacer(Modifier.width(8.dp))
+                        }
+                        LandFlagge(e.land)   // nach dem Profilbild, Platz bleibt auch ohne Land (Web Flagge)
+                        Spacer(Modifier.width(6.dp))
+                        Text(e.name ?: "—", Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(v, fontWeight = FontWeight.SemiBold)
+                        Spacer(Modifier.width(4.dp))
+                        Text(unit, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                // Alle 10 wie im Web: die eigene Zeile darunter (Olek, 01.11.2026) gibt der Server nur,
+                // wenn man nicht unter den ersten 10 steht — bei take(5) fehlten sonst die Plaetze 6 bis 10.
+                list.take(10).forEachIndexed { i, e -> zeile(e, i + 1, false) }
+                lb.me[lbMetric]?.let { ich ->
+                    ich.rank?.let { r ->
+                        Text("⋮", Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        zeile(ich, r, true)
+                    }
+                }
+                if (list.isEmpty()) Text(I18n.t("records.empty"), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        // Teilen: als Bild (Web BestenlisteBildDialog, derselbe Dialog wie bei den Team-Bestenlisten) und als Link.
+        if (list.isNotEmpty()) Row(Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            val ctxTeilen = androidx.compose.ui.platform.LocalContext.current
+            TextButton(onClick = {
+                val art = leaderArten(sportart).firstOrNull { it.first == lbMetric }?.second ?: "leader.mostSessions"
+                val unter = (unterzeile + java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT,
+                    java.util.Locale.forLanguageTag(I18n.lang)).format(java.util.Date())).joinToString(" · ")
+                val zeilen = list.take(10).mapIndexed { i, e -> BildZeile(i + 1, e.name ?: "—", "${leaderWert(e)} ${leaderEinheit(e)}", false, land = e.land) } +
+                    listOfNotNull(lb.me[lbMetric]?.let { ich -> ich.rank?.let { r ->
+                        BildZeile(r, ich.name ?: "—", "${leaderWert(ich)} ${leaderEinheit(ich)}", true, land = ich.land) } })
+                lbBild = TeamBildDaten(I18n.t(art), unter, zeilen, "pumpfoil-$lbMetric.png")
+            }) {
+                Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(I18n.t("team.bild.titel"))
+            }
+            if (linkUrl != null) TextButton(onClick = { teilenUrl(ctxTeilen, linkUrl(), I18n.t("community.leaderboard")) }) {
+                Icon(Icons.Filled.Link, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(I18n.t("team.teilen"))
+            }
+        }
+    }
+    lbBild?.let { TeamBildDialog(it, onClose = { lbBild = null }) }
 }

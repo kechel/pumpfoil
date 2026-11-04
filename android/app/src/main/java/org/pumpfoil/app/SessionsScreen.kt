@@ -20,6 +20,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -95,32 +98,17 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 
 // FRIENDS (Jan, 15.10.2026): meine + die meiner Freunde in EINER Liste (wie die PWA).
-private enum class Scope { MINE, SPOT, ALL, FRIENDS }
+// TEAM (Web Sessions.tsx, 02.11.2026): Sessions der Mitglieder der eigenen Teams, letzte 30 Tage.
+private enum class Scope { MINE, ALL, FRIENDS, TEAM }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onSpotChat: (String) -> Unit = {}) {
+fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
     var scope by remember { mutableStateOf(Scope.MINE) }
-    var homespot by remember { mutableStateOf("") }
-    var spot by remember { mutableStateOf("") }          // aktiver Spot (für SPOT-Scope)
-    // Name -> spot_id (fuer die Spot-Beschreibungen; die Spot-Auswahl selbst bleibt namensbasiert).
-    var spotIds by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
-    var spotOrte by remember { mutableStateOf<Map<String, Pair<Double, Double>>>(emptyMap()) }
-    // Zustand der Spot-Panels ausserhalb der LazyColumn (s. SpotPanelZustand)
-    val heatZustaende = remember { mutableMapOf<Int, SpotPanelZustand>() }
-    // Sportarten des gewaehlten Spots fuer die Filter-Knoepfe (28.10.2026, s. SpotSportKnoepfe) und daraus
-    // die Sportart von Rekorden und Heatmap (Filter, bei „Alle" Pumpfoil bzw. die erste des Spots).
-    var spotSports by remember { mutableStateOf<List<String>>(emptyList()) }
-    LaunchedEffect(scope, spot) {
-        spotSports = emptyList()
-        if (scope == Scope.SPOT && spot.isNotBlank()) {
-            spotSports = try { Api.communitySports(spot).map { it.sport } } catch (_: Exception) { emptyList() }
-        }
-    }
-    val ctx = androidx.compose.ui.platform.LocalContext.current
-    // Name -> zweite Zeile (Gewaesser bzw. Steg/Ortslage), wie im Web hinter dem Spot-Namen.
-    var spotLabels by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-    var spots by remember { mutableStateOf<List<String>>(emptyList()) }   // alle Spot-Namen (Dropdown)
+    // Eigene aktive Teams fuer den Reiter „Team" (nur wenn es welche gibt) und die Team-Auswahl („alle" = alle zusammen).
+    var meineTeams by remember { mutableStateOf<List<TeamKurz>>(emptyList()) }
+    var teamWahl by remember { mutableStateOf("alle") }
+    LaunchedEffect(Unit) { meineTeams = try { Api.teamsMine().filter { it.status == "aktiv" } } catch (_: Exception) { emptyList() } }
     var own by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
     var groups by remember { mutableStateOf<List<CommunityGroup>>(emptyList()) }   // Community/Spot: Tages-Gruppen
     var suggestions by remember { mutableStateOf<List<MergeSuggestion>>(emptyList()) }
@@ -134,8 +122,6 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     // aus — Brett-Sessions sollen alle erscheinen.
     var brett by rememberSaveable { mutableStateOf(false) }
     val accelOnly = accel.value && !brett
-    // Spot ohne eine einzige Session mit Beschleunigungsdaten: nur EINMAL je Spot nachfragen.
-    var accelAutoSpot by remember { mutableStateOf<String?>(null) }
     // pump | other (nur eigene). Startwert kann von aussen kommen (Startseiten-Hinweis
     // "aussortiert" -> Tabwechsel, s. SessionsWunsch).
     var filter by remember { mutableStateOf(SessionsWunsch.abholen() ?: "pump") }
@@ -144,7 +130,6 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     // anders als auf der Community-Seite (dort Pumpfoil) — die Liste ist die Uebersicht (Jan).
     // Gilt fuer Meine/Homespot/Alle/Spot gleichermassen und bleibt beim Wechsel stehen.
     var sport by remember { mutableStateOf("all") }
-    val rekordSport = rekordSportFuer(sport, spotSports)
     var sports by remember { mutableStateOf<List<SportRuns>>(emptyList()) }
     // EIN EIGENER Scrollzustand JE LISTE — nicht einer fuer alle mit einem Ruecksprung.
     //
@@ -160,36 +145,16 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     // Zustand, und ein frischer Zustand steht bei 0 — es gibt gar nichts, was zurueckspringen
     // muesste. Die Rueckkehr aus einer Session aendert keinen der vier Schluessel, dort bleibt die
     // Position also erhalten.
-    val listenStand = remember(scope, spot, filter, month, sport) {
+    val listenStand = remember(scope, filter, month, sport) {
         androidx.compose.foundation.lazy.LazyListState()
     }
     var months by remember { mutableStateOf<List<MonthCount>>(emptyList()) }
-    var weather by remember { mutableStateOf<SpotWeather?>(null) }
     var incoming by remember { mutableStateOf<List<Transfer>>(emptyList()) }
     var xferTick by remember { mutableStateOf(0) }
     val tick by WatchSync.tick.collectAsState()
 
     LaunchedEffect(Unit) {
-        // `homespot_effective`: bei leerem Profilwert leitet der Server ihn aus der letzten
-        // Session ab (s. settings.py). Ohne das fehlte der Knopf „Homespot" allen, die ihn
-        // nie gesetzt haben — 555 von 572 Konten.
-        homespot = try {
-            val st = Api.settings()
-            (st["homespot_effective"] ?: st["homespot"])?.jsonPrimitive?.contentOrNull ?: ""
-        } catch (_: Exception) { "" }
-        spots = try { Api.spots(accelOnly = false).all } catch (_: Exception) { emptyList() }
         sports = try { Api.communitySports() } catch (_: Exception) { emptyList() }
-        // Einmal die Karte holen, nur fuer die Zuordnung Name -> spot_id. Billig (ein Aufruf) und
-        // die Alternative waere ein neuer Endpunkt fuer denselben Zusammenhang.
-        try {
-            val karte = Api.spotMap(accelOnly = false)
-            spotIds = karte.mapNotNull { m -> m.spotId?.let { m.spot to it } }.toMap()
-            spotOrte = karte.filter { it.lat != 0.0 || it.lon != 0.0 }.associate { it.spot to (it.lat to it.lon) }
-            spotLabels = karte.mapNotNull { m ->
-                m.water?.takeIf { it.isNotBlank() && !it.equals(m.spot, ignoreCase = true) }
-                    ?.let { m.spot to it }
-            }.toMap()
-        } catch (_: Exception) { /* offline -> ohne Zusatz, die Ansicht funktioniert trotzdem */ }
     }
     LaunchedEffect(tick) {
         suggestions = try { Api.mergeSuggestions() } catch (_: Exception) { emptyList() }
@@ -202,33 +167,6 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     LaunchedEffect(filter, sport) {
         months = try { Api.sessionMonths(filter, sport) } catch (_: Exception) { emptyList() }
     }
-    // Spot-Wetter im Spot-Scope (wie PWA).
-    LaunchedEffect(spot) {
-        weather = if (spot.isNotBlank()) try { Api.spotWeather(spot) } catch (_: Exception) { null } else null
-    }
-    // Spot gewechselt oder verlassen: eine vorherige Automatik („Spot ohne Accel-Sessions")
-    // verwerfen -> es gilt wieder der Default aus der eigenen Uhr. Nichts wird gemerkt.
-    LaunchedEffect(spot) { accel.resetAuto() }
-
-    // Verbirgt der Filter „nur präzise" an einem Spot mehr als er zeigt, EINMAL mit
-    // accel_only=false nachfragen und auf „alle" umschalten. setAuto = gilt nicht als
-    // Nutzer-Wahl; wer selbst umgeschaltet hat, behält seine Wahl.
-    //
-    // Frueher griff das NUR bei einer komplett leeren Liste, und genau daran ist am 29.08. ein
-    // Nutzer haengen geblieben: die Spot-Karte sagte „Meerkerk · 14“, nach dem Klick standen dort
-    // seine eigenen drei. Die anderen elf sind ohne verwertbare Beschleunigungsdaten aufgenommen
-    // (detection = gps_only) — die Karte zaehlt mit accel_only=false, die Liste filterte mit true.
-    // Die Liste war also nicht leer, nur kuerzer als das Etikett versprach; auf 0 zu pruefen reicht
-    // nicht. Verglichen wird jetzt die erste Seite gegen „alle“.
-    suspend fun maybeShowAll(rows: List<CommunityGroup>) {
-        if (spot.isBlank() || !accelOnly || accel.userChose || accelAutoSpot == spot) return
-        accelAutoSpot = spot
-        val probe = try {
-            Api.communitySessionsGrouped(spot, accelOnly = false, sport = sport)
-        } catch (_: Exception) { emptyList() }
-        if (probe.size > rows.size) accel.setAuto(false)   // löst über accelOnly ein Neuladen aus
-    }
-
     var ladeGeneration by remember { mutableStateOf(0) }
     // GENERATION je Abruf: kommt die Antwort eines ALTEN Abrufs spaeter an als die des neuen
     // (schneller Spot-Wechsel, ON_RESUME-Nachladen parallel), darf sie die Liste nicht mehr
@@ -247,17 +185,12 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                 // (wie die PWA seit 2026-07-31) — ohne das griff der Endpunkt-Default „pumpfoil"
                 // und eFoil/Wake/… fehlten. Die Karte kennzeichnet, was kein Pumpfoilen ist. Seit
                 // 27.09.2026 laesst sich die Liste auf eine Sportart einschraenken (Sportart-Auswahl).
-                Scope.ALL, Scope.FRIENDS -> {
+                Scope.ALL, Scope.FRIENDS, Scope.TEAM -> {
                     val r = Api.communitySessionsGrouped(null, accelOnly = accelOnly, sport = sport, board = brett,
-                                                         freunde = scope == Scope.FRIENDS)
+                                                         freunde = scope == Scope.FRIENDS,
+                                                         team = if (scope == Scope.TEAM) teamWahl else null)
                     if (meine != ladeGeneration) return
                     groups = r
-                }
-                Scope.SPOT -> {
-                    val r = if (spot.isNotBlank()) Api.communitySessionsGrouped(spot, accelOnly = accelOnly, sport = sport, board = brett) else emptyList()
-                    if (meine != ladeGeneration) return
-                    groups = r
-                    maybeShowAll(groups)
                 }
             }
             error = null
@@ -267,18 +200,17 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
     // Filterwechsel: die ALTE Liste sofort weg, nicht erst, wenn die neue da ist (PWA 8f9cc725) —
     // sonst liest man Sessions eines anderen Spots unter der neuen Ueberschrift. Nicht bei `tick`
     // (Nachladen derselben Liste), dort bleibt sie stehen, bis die frische kommt.
-    LaunchedEffect(scope, spot, accelOnly, filter, month, sport, brett) { groups = emptyList(); own = emptyList() }
-    LaunchedEffect(scope, spot, tick, accelOnly, filter, month, sport, brett) { load() }
+    LaunchedEffect(scope, teamWahl, accelOnly, filter, month, sport, brett) { groups = emptyList(); own = emptyList() }
+    LaunchedEffect(scope, teamWahl, tick, accelOnly, filter, month, sport, brett) { load() }
     // Denselben Filter merken: „älter/neuer" im Detail navigiert damit innerhalb GENAU dieser
     // Liste statt immer durch die eigenen Sessions (Jan, 17.09.2026) — samt Sportart.
-    LaunchedEffect(scope, spot, accelOnly, filter, month, sport) {
+    LaunchedEffect(scope, accelOnly, filter, month, sport) {
         NachbarFilter.merken(when (scope) {
             Scope.MINE -> NachbarFilter(scope = "mine", sport = sport, accelOnly = accelOnly,
                                         filter = filter, month = month.ifBlank { null })
             Scope.ALL -> NachbarFilter(scope = "all", sport = sport, accelOnly = accelOnly)
             Scope.FRIENDS -> NachbarFilter(scope = "friends", sport = sport, accelOnly = accelOnly)
-            Scope.SPOT -> NachbarFilter(scope = "all", spot = spot.ifBlank { null },
-                                        sport = sport, accelOnly = accelOnly)
+            Scope.TEAM -> NachbarFilter(scope = "all", sport = sport, accelOnly = accelOnly)   // „aelter/neuer" kennt keine Team-Liste
         })
     }
     // Laeuft eine eigene Aufnahme noch (status recording/live), die Liste alle 4 s nachladen —
@@ -310,18 +242,9 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                 Scope.MINE -> "${I18n.t("nav.sessions")} · ${I18n.t("sessions.mine")}"
                 Scope.ALL -> "${I18n.t("nav.sessions")} · ${I18n.t("sessions.all")}"
                 Scope.FRIENDS -> "${I18n.t("nav.sessions")} · ${I18n.t("friends.title")}"
-                // Zusatz mit in den Titel (wie im Web): „Berlin 3" allein sagt nicht, welcher
-                // der drei Berliner Spots gemeint ist.
-                Scope.SPOT -> "${I18n.t("nav.sessions")} · 📍${spot}" +
-                    (spotLabels[spot]?.let { " · $it" } ?: "")
+                Scope.TEAM -> "${I18n.t("nav.sessions")} · ${I18n.t("tab.team")}"
             }
             PumpfoilTopBar(title) {
-                // Spot-Chat, wenn ein Spot gefiltert ist (scope "spot:<name>", wie PWA/iOS).
-                if (scope == Scope.SPOT && spot.isNotBlank()) {
-                    IconButton(onClick = { onSpotChat(spot) }) {
-                        Icon(Icons.Filled.Forum, contentDescription = I18n.t("nav.chat"))   // erbt Navy der Kopfleiste
-                    }
-                }
                 SyncIndicator()
             }
         },
@@ -332,17 +255,31 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
             // seit 14.10.2026 neben dem Seitentitel. Hier sitzt der Titel in der TopBar, und neben
             // ihm ist auf dem Handy kein Platz; also die erste Zeile darunter, ueber volle Breite,
             // damit er umbrechen darf statt die Knoepfe zu verdraengen.
-            HeuteNeu(mine = scope == Scope.MINE, spot = if (scope == Scope.SPOT) spot else null,
-                     spotId = if (scope == Scope.SPOT) spotIds[spot] else null,
+            if (scope != Scope.TEAM) HeuteNeu(mine = scope == Scope.MINE, spot = null, spotId = null,
                      accelOnly = accelOnly, sport = sport, board = brett, freunde = scope == Scope.FRIENDS)
             // Live-Upload-Karte ganz oben (Parität zur PWA); NICHT in Community.
             UploadProgressCard(onOpen = { onOpen(it, null) }, modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
             // Meine | Freunde | Alle als Reiter wie ueberall (Web Sessions.tsx, App-Port Phase 9, 04.11.2026). Der Homespot-Knopf
             // ist raus — der Homespot ist jetzt ein Reiter auf Home (Home › Spots), wie im Web.
-            Reiterleiste(listOf(ReiterDef("mine", I18n.t("sessions.mine")), ReiterDef("friends", I18n.t("friends.title")),
+            Reiterleiste(listOfNotNull(ReiterDef("mine", I18n.t("sessions.mine")), ReiterDef("friends", I18n.t("friends.title")),
+                                if (meineTeams.isNotEmpty()) ReiterDef("team", I18n.t("tab.team")) else null,
                                 ReiterDef("all", I18n.t("sessions.all"))),
-                when (scope) { Scope.MINE -> "mine"; Scope.FRIENDS -> "friends"; Scope.ALL -> "all"; Scope.SPOT -> "" },
-                { id -> spot = ""; scope = when (id) { "friends" -> Scope.FRIENDS; "all" -> Scope.ALL; else -> Scope.MINE } })
+                when (scope) { Scope.MINE -> "mine"; Scope.FRIENDS -> "friends"; Scope.ALL -> "all"; Scope.TEAM -> "team" },
+                { id -> scope = when (id) { "friends" -> Scope.FRIENDS; "all" -> Scope.ALL; "team" -> Scope.TEAM; else -> Scope.MINE } })
+            // Team-Auswahl (Web TeamWahl): erst ab zwei Teams; „alle" = alle eigenen Teams zusammen.
+            if (scope == Scope.TEAM && meineTeams.size > 1) {
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FilterChip(selected = teamWahl == "alle", onClick = { teamWahl = "alle" },
+                        label = { Text(I18n.t("team.alleMeine")) }, colors = cyanChipColors())
+                    meineTeams.forEach { tm ->
+                        FilterChip(selected = teamWahl == tm.id.toString(), onClick = { teamWahl = tm.id.toString() },
+                            leadingIcon = { TeamWappen(tm.name, tm.logoUrl, tm.farbe, 16.dp) },
+                            label = { Text(tm.name, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                modifier = Modifier.widthIn(max = 160.dp)) }, colors = cyanChipColors())
+                    }
+                }
+            }
             // Scope-Umschalter + Accel/alle-Umschalter in EINER umbrechenden Zeile.
             //
             // Vorher: die Scope-Chips lagen in einem waagerecht scrollbaren Row mit `weight(1f)`,
@@ -368,9 +305,8 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                 // „alls sports und ansicht kompakt/normal mit in die zeile drueber") — sie fuellen die
                 // Zeile von accel/all/POB auf, statt eine eigene zu kosten; reicht der Platz nicht, brechen
                 // sie um. Das Spot-Auswahlfeld ist raus (Spots ueber Spot-Karte, Homespot, Session-Link).
-                // Sportart nicht in der Spot-Ansicht: dort filtern die Knoepfe darunter (SpotSportKnoepfe). Der Monat
-                // zaehlt je Sportart anders -> beim Wechsel zuruecksetzen (wie PWA).
-                if (scope != Scope.SPOT) SportDropdown(sports, sport, Modifier.widthIn(max = 150.dp).align(Alignment.CenterVertically)) { sel -> sport = sel; month = "" }
+                // Der Monat zaehlt je Sportart anders -> beim Wechsel zuruecksetzen (wie PWA).
+                SportDropdown(sports, sport, Modifier.widthIn(max = 150.dp).align(Alignment.CenterVertically)) { sel -> sport = sel; month = "" }
                 // Import nur in „Meine": er erzeugt immer eine EIGENE Session (Jan, 18.09.2026).
                 if (scope == Scope.MINE) {
                     ImportFileButton({ neueId ->
@@ -380,11 +316,6 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                 // Kacheln / eine Zeile je Session (ListenAnsicht.kt) — gilt fuer Meine, Alle und den Spot.
                 ListenAnsichtUmschalter(Modifier.align(Alignment.CenterVertically))
             }
-            }
-            // Spot-Ansicht: Sportart-Knoepfe als Filter der Seite, fest ueber der Liste (Jan, 28.10.2026).
-            if (scope == Scope.SPOT) {
-                SpotSportKnoepfe(spotSports, sport, { sport = it; month = "" },
-                    Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp))
             }
             // Sportart-Filter + Monat (nur eigene, scrollbar) — wie PWA.
             if (scope == Scope.MINE) {
@@ -461,30 +392,6 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                                     }
                                 }
                             }
-                            if (scope == Scope.SPOT) {
-                                if (spot.isNotBlank()) {
-                                    rekordSport?.let { rs -> item { SpotRecordsSection(spot, accelOnly, rs) { id -> onOpen(id, null) } } }
-                                }
-                                // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
-                                val sidH = spotIds[spot]; val ortH = spotOrte[spot]
-                                if (sidH != null && ortH != null) item(key = "heatmap-$sidH") {
-                                    // Sportart wie der Rekord-Kasten darueber (Jan, 28.10.2026); ohne Rekorde „alle".
-                                    SpotHeatmapPanel(heatZustaende.getOrPut(sidH) { SpotPanelZustand(ctx, sidH) }, ortH.first, ortH.second,
-                                                     rekordSport ?: "all")
-                                }
-                                weather?.let { sw ->
-                                    item {
-                                        Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
-                                            WeatherCard(sw, titelKey = "spot.weatherTitle")
-                                        }
-                                    }
-                                }
-                                // ACHTUNG: `spot` ist hier der NAME (die Auswahl arbeitet
-                                // namensbasiert), die Beschreibungen haengen aber an der spot_id —
-                                // deshalb ueber die Karte aufloesen. Ohne Spot-Zeile (Altbestand,
-                                // nur place_name) gibt es nichts anzuzeigen.
-                                spotIds[spot]?.let { sid -> item { SpotNotesSection(sid) } }
-                            }
                             if (scope == Scope.MINE && incoming.isNotEmpty()) {
                                 items(incoming, key = { "xfer-${it.id}" }) { tr ->
                                     IncomingTransferCard(
@@ -521,6 +428,11 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                                     } else {
                                         GroupCard(g, pad) { id -> onOpen(id, null) }
                                     }
+                                }
+                                // Team: nur die letzten 30 Tage (Web team.feed30).
+                                if (scope == Scope.TEAM) item {
+                                    Text(I18n.t("team.feed30"), Modifier.padding(16.dp), style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         }
@@ -590,7 +502,7 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, avatarUserId: I
             name = null, spot = s.placeName,
             sportLabel = s.sportClass?.takeIf { it.isNotBlank() && it != "pumpfoil" }?.let { I18n.t(classLabelKey(it, null)) },
             kennzahlen = if (a != null) sessionStatsTeile(a, m, s.sportProfil) else emptyList(),
-            liked = s.liked, likeCount = s.likeCount, modifier = modifier,
+            liked = s.liked, likeCount = s.likeCount, modifier = modifier, kommentare = s.commentCount,
             abzeichen = if (s.neuBewerten == true || s.transferTo != null || s.status != "analyzed") {
                 {
                     Text(if (s.neuBewerten == true) I18n.t("rate.recheckTile") else if (s.transferTo != null) I18n.t("transfer.badge") else statusLabel(s.status),
@@ -615,6 +527,7 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, avatarUserId: I
                     // wie im Web hat das eigene Bild weder Punkt noch Link.
                     AvatarCircle(name = s.ownerName, avatarUrl = s.ownerAvatarUrl, size = 40.dp, userId = avatarUserId)
                     LikeToggle(s.id, s.liked, s.likeCount)
+                    KommentarZahl(s.commentCount)
                 }
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
@@ -737,6 +650,18 @@ internal fun LikeToggle(sessionId: Int, liked0: Boolean, count0: Int) {
             contentDescription = I18n.t(if (liked) "row.unlike" else "row.like"),
             tint = c, modifier = Modifier.size(18.dp))
         if (count > 0) Text(" $count", style = MaterialTheme.typography.labelSmall, color = c)
+    }
+}
+
+/** Kommentar-Zahl auf Karten und Zeilen (Web SessionCard/SessionRow, 02.11.2026): Sprechblase + Zahl, nur wenn > 0. */
+@Composable
+internal fun KommentarZahl(n: Int) {
+    if (n <= 0) return
+    val c = MaterialTheme.colorScheme.onSurfaceVariant
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+        .semantics(mergeDescendants = true) { contentDescription = "${I18n.t("comments.title")}: $n" }) {
+        Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = c, modifier = Modifier.size(16.dp))
+        Text(" $n", style = MaterialTheme.typography.labelSmall, color = c)
     }
 }
 
@@ -1002,7 +927,7 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
             name = c.name, spot = c.spot,
             sportLabel = c.sportClass?.takeIf { it.isNotBlank() && it != "pumpfoil" }?.let { I18n.t("cls.sport.$it") },
             kennzahlen = communityStatsTeile(c),
-            liked = c.liked, likeCount = c.likeCount, modifier = modifier, onClick = onClick,
+            liked = c.liked, likeCount = c.likeCount, modifier = modifier, onClick = onClick, kommentare = c.commentCount,
         )
         return
     }
@@ -1017,6 +942,7 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {   // Like unter dem Avatar (wie PWA)
                     AvatarCircle(name = c.name, avatarUrl = c.avatarUrl, size = 40.dp, userId = c.userId)
                     LikeToggle(c.id, c.liked, c.likeCount)
+                    KommentarZahl(c.commentCount)
                 }
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {

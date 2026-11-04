@@ -277,6 +277,8 @@ private fun SprachKarte(ctx: Context) {
                     )
                 }
             }
+            // Nationalitaet direkt unter der Sprache (Web LandKarte, 03.11.2026).
+            LandKarteAssistent(lang)
         }
     }
 }

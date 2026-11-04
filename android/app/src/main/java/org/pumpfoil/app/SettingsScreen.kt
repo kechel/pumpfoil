@@ -82,6 +82,7 @@ class EinstellungenStand(private val ctx: android.content.Context, private val s
     var nRecord by mutableStateOf(true)
     var nChat by mutableStateOf(true)
     var nFriend by mutableStateOf(true)
+    var nComment by mutableStateOf(true)   // Kommentare zu meinen Sessions (Web 6fc0a4f8)
     var theme by mutableStateOf(ThemeState.mode)
     var lang by mutableStateOf(I18n.lang)
     var pwCur by mutableStateOf("")
@@ -117,6 +118,7 @@ class EinstellungenStand(private val ctx: android.content.Context, private val s
                 nRecord = np["record"]?.jsonPrimitive?.booleanOrNull ?: true
                 nChat = np["chat"]?.jsonPrimitive?.booleanOrNull ?: true
                 nFriend = np["friend"]?.jsonPrimitive?.booleanOrNull ?: true
+                nComment = np["comment"]?.jsonPrimitive?.booleanOrNull ?: true
             }
         } catch (_: Exception) {}
         try {
@@ -145,7 +147,7 @@ class EinstellungenStand(private val ctx: android.content.Context, private val s
                         // "chat" MUSS mit: notify_prefs wird als Ganzes ersetzt, ein Speichern
                         // von hier hat die im Web gesetzte Chat-Einstellung also still geloescht.
                         put("like", nLike); put("analyzed", nAnalyzed); put("record", nRecord)
-                        put("chat", nChat); put("friend", nFriend)
+                        put("chat", nChat); put("friend", nFriend); put("comment", nComment)
                     })
                 })
                 saved = true
@@ -162,35 +164,6 @@ fun rememberEinstellungenStand(): EinstellungenStand {
     val z = remember { EinstellungenStand(ctx, scope) }
     LaunchedEffect(Unit) { z.laden() }
     return z
-}
-
-/** Alte Einzelseite (Route "settings"): alle Gruppen untereinander. Die Einstellungen selbst haben jetzt Reiter (ProfileScreen). */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SettingsScreen(onBack: () -> Unit) {
-    val z = rememberEinstellungenStand()
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(I18n.t("settings.title")) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back")) } },
-                actions = { FeedbackKnopf() },
-            )
-        },
-        snackbarHost = { SnackbarHost(z.snackHost) },
-    ) { pad ->
-        if (!z.loaded) {
-            Box(Modifier.padding(pad).fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
-            return@Scaffold
-        }
-        Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-            listOf("sprache", "ich", "fahren", "privat", "darstellung", "konto").forEach { teil ->
-                EinstellungenTeil(z, teil, mitSpeichern = false)
-            }
-            Spacer(Modifier.height(24.dp))
-            SpeichernZeile(z)
-        }
-    }
 }
 
 /**
@@ -384,6 +357,8 @@ fun EinstellungenTeil(z: EinstellungenStand, teil: String, mitSpeichern: Boolean
                     Spacer(Modifier.height(12.dp))
                     OnlinePunktKarte(onSaved = { flashSaved() })
                     Spacer(Modifier.height(12.dp))
+                    KommentareKarte(onSaved = { flashSaved() })
+                    Spacer(Modifier.height(12.dp))
                     GeteilteAufnahmenKarte()
                     Spacer(Modifier.height(16.dp))
                 }
@@ -403,6 +378,7 @@ fun EinstellungenTeil(z: EinstellungenStand, teil: String, mitSpeichern: Boolean
                     ToggleRow(I18n.t("settings.nRecord"), nRecord) { nRecord = it; saved = false }
                     ToggleRow(I18n.t("settings.nChat"), nChat) { nChat = it; saved = false }
                     ToggleRow(I18n.t("notif.typeFriend"), nFriend) { nFriend = it; saved = false }
+                    ToggleRow(I18n.t("notif.typeComment"), nComment) { nComment = it; saved = false }
                     Spacer(Modifier.height(20.dp))
                     if (mitSpeichern) SpeichernZeile(z)
                 }

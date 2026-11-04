@@ -51,6 +51,8 @@ fun ImportFileButton(onImported: (Int?) -> Unit, modifier: Modifier = Modifier,
     var fortschritt by remember { mutableStateOf("") }
     var meldung by remember { mutableStateOf<String?>(null) }
     var zuletzt by remember { mutableStateOf<Int?>(null) }
+    // Rueckfrage „andere Datei zu vorhandener Fahrt — ersetzen?" (Web UploadFitButton): ID der vorhandenen Session + Antwort.
+    var ersetzenFrage by remember { mutableStateOf<Pair<Int, kotlinx.coroutines.CompletableDeferred<Boolean>>?>(null) }
 
     // "*/*": .fit und .gpx haben auf Android oft gar keinen registrierten MIME-Typ, eine engere
     // Liste versteckt genau die Dateien, die importiert werden sollen. Der Server prueft ohnehin.
@@ -76,10 +78,27 @@ fun ImportFileButton(onImported: (Int?) -> Unit, modifier: Modifier = Modifier,
                     val bytes = withContext(Dispatchers.IO) {
                         ctx.contentResolver.openInputStream(uri)?.use { it.readBytes() }
                     } ?: throw RuntimeException("leer")
-                    val r = Api.uploadFit(bytes, dateiname(ctx, uri))
+                    // Nur bei EINER Datei nachfragen, ob eine geaenderte Datei die vorhandene Fahrt ersetzen soll — bei einem
+                    // ganzen Ordner waeren das Dutzende Dialoge; dort bleibt es beim Ueberspringen (wie Web).
+                    val einzeln = uris.size == 1
+                    var r: FitUpload = Api.uploadFit(bytes, dateiname(ctx, uri), rueckfrage = einzeln)
+                    val vorhanden = r.existingId
+                    if (einzeln && r.skipped == "exists_different" && vorhanden != null) {
+                        val antwort = kotlinx.coroutines.CompletableDeferred<Boolean>()
+                        ersetzenFrage = vorhanden to antwort
+                        if (antwort.await()) {
+                            r = Api.uploadFit(bytes, dateiname(ctx, uri), rueckfrage = true, ersetzen = vorhanden)
+                        } else {
+                            // Abgelehnt: zur vorhandenen Fahrt (dort kann man zuschneiden), nichts geaendert.
+                            fortschritt = ""; busy = false
+                            onImported(vorhanden)
+                            return@launch
+                        }
+                    }
                     if (r.skipped != null) {
                         uebersprungen++
-                        if (grund.isEmpty() && !r.detail.isNullOrBlank()) grund = r.detail
+                        val d = r.detail
+                        if (grund.isEmpty() && !d.isNullOrBlank()) grund = d
                     } else if (r.sessionId != null) {
                         letzte = r.sessionId
                     }
@@ -130,6 +149,18 @@ fun ImportFileButton(onImported: (Int?) -> Unit, modifier: Modifier = Modifier,
         Text(if (busy) fortschritt.ifEmpty { "…" } else "FIT")
     }
 
+    ersetzenFrage?.let { (id, antwort) ->
+        AlertDialog(
+            onDismissRequest = { ersetzenFrage = null; antwort.complete(false) },
+            title = { Text(I18n.t("import.title")) },
+            text = { Text(I18n.t("sessions.uploadReplaceAsk").replace("{id}", id.toString()).replace("{trim}", I18n.t("sd.trim")),
+                style = MaterialTheme.typography.bodyMedium) },
+            // Web fragt mit dem Browser-confirm (OK/Abbrechen); hier „Loeschen", weil die Frage „Alte Session loeschen …?" lautet.
+            confirmButton = { TextButton(onClick = { ersetzenFrage = null; antwort.complete(true) }) {
+                Text(I18n.t("common.delete"), color = MaterialTheme.colorScheme.error) } },
+            dismissButton = { TextButton(onClick = { ersetzenFrage = null; antwort.complete(false) }) { Text(I18n.t("common.cancel")) } },
+        )
+    }
     if (meldung != null) {
         AlertDialog(
             onDismissRequest = { meldung = null; onImported(zuletzt) },

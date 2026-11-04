@@ -48,7 +48,7 @@ import kotlinx.serialization.json.jsonPrimitive
 //
 // Zeitfenster wie bei den Community-Rekorden. accelOnly bleibt false (wie im Web), sonst
 // verschwinden GPS-only-Spots aus dem Vergleich.
-private val PERIODEN = listOf("today" to "period.today", "10d" to "period.10d",
+private val PERIODEN = listOf("today" to "period.today", "yesterday" to "period.yesterday", "10d" to "period.10d",
     "30d" to "period.30d", "365d" to "period.365d", "all" to "period.all")
 
 private class Kennzahl(

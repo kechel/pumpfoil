@@ -84,7 +84,7 @@ import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onWatch: () -> Unit = {}, onSettings: () -> Unit = {}, onCompare: () -> Unit = {}, onAccounts: () -> Unit = {}, onImprint: () -> Unit = {}, onOnboarding: () -> Unit = {}, onChangelog: () -> Unit = {}, onFriends: () -> Unit = {}, onTeams: () -> Unit = {},
+fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoilStats: () -> Unit = {}, onCompare: () -> Unit = {}, onImprint: () -> Unit = {}, onOnboarding: () -> Unit = {}, onChangelog: () -> Unit = {},
                   // Eingebettete Teile (App-Port Phase 6, 04.11.2026): Uhren, Freunde, Team brauchen ihre Wege nach draussen.
                   onGarminPair: () -> Unit = {}, onGuide: () -> Unit = {}, onAlarm: () -> Unit = {}, onDataFields: () -> Unit = {},
                   onOpenFoiler: (Int) -> Unit = {}, onOpenSpot: (String) -> Unit = {}, onOpenTeam: (String) -> Unit = {},
@@ -354,6 +354,8 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
                     }
                 }
                 Spacer(Modifier.height(20.dp))
+                // Nationalitaet direkt unter dem Namen (Web Settings.tsx, 02.11.2026).
+                LandKarteProfil(onSaved = { z.flashSaved() })
                 EinstellungenTeil(z, "ich")
             }
             "fahren" -> {

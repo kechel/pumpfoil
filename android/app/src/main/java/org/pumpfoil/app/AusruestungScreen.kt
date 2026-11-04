@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
  * Ausruestung (App-Port Phase 7, 04.11.2026; Web Foils.tsx `Ausruestung` + Setup.tsx): frueher zwei lange Seiten
  * „Meine Foils & Sportarten" und „Detailliertes Setup", jetzt EINE Ansicht mit Reitern Foils · Stabilizer · Boards ·
  * Mast & Shim · Sportarten. Die Teile sind die alten Bildschirme mit `teil` (FoilsScreen, SetupScreen), damit es keine
- * zweite Kopie der Logik gibt. Erreichbar als Reiter in den Einstellungen und ueber die alten Routen "foils"/"setup".
+ * zweite Kopie der Logik gibt. Erreichbar als Reiter in den Einstellungen.
  */
 
 private val AUSRUESTUNG_IDS = listOf("foils", "stabs", "boards", "mast", "sport")
@@ -51,21 +51,5 @@ fun AusruestungInhalt(modifier: Modifier = Modifier, stufe: Int = 1) {
                 }
             }
         }
-    }
-}
-
-/** Eigene Seite (alte Routen "foils" -> Reiter Foils, "setup" -> Stabilizer). */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AusruestungScreen(start: String, onBack: () -> Unit) {
-    remember(start) { if (start in AUSRUESTUNG_IDS) ReiterSpeicher.von("ausruestung", "foils").value = start; start }
-    Scaffold(topBar = {
-        TopAppBar(
-            title = { Text(I18n.t("gear.title")) },
-            navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back")) } },
-            actions = { FeedbackKnopf() },
-        )
-    }) { pad ->
-        AusruestungInhalt(Modifier.padding(pad).fillMaxSize())
     }
 }

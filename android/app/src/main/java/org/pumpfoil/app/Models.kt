@@ -177,6 +177,7 @@ data class SessionSummary(
     @SerialName("owner_name") val ownerName: String? = null,
     @SerialName("owner_avatar_url") val ownerAvatarUrl: String? = null,
     @SerialName("like_count") val likeCount: Int = 0,
+    @SerialName("comment_count") val commentCount: Int = 0,   // sichtbare Kommentare (Web 6fc0a4f8, 02.11.2026)
     val liked: Boolean = false,
     @SerialName("thumb_url") val thumbUrl: String? = null,
     @SerialName("photo_count") val photoCount: Int = 0,
@@ -239,6 +240,7 @@ data class CommunityItem(
     @SerialName("photo_count") val photoCount: Int = 0,             // Fotos der Session (Zaehler-Badge)
     @SerialName("youtube_url") val youtubeUrl: String? = null,      // verlinktes Video → Vorschau-Thumb
     @SerialName("like_count") val likeCount: Int = 0,
+    @SerialName("comment_count") val commentCount: Int = 0,   // sichtbare Kommentare (Web 6fc0a4f8, 02.11.2026)
     val liked: Boolean = false,
     @SerialName("device_label") val deviceLabel: String? = null,   // Uhr-Bezeichnung der Aufnahme
     val placement: String? = null,   // "board" = Handy war am Brett -> Abzeichen hervorgehoben
@@ -498,10 +500,14 @@ data class LeaderEntry(
     @SerialName("distance_m") val distanceM: Double = 0.0, @SerialName("time_s") val timeS: Double = 0.0,
     // bester einzelner Lauf (Server additiv seit 01.11.2026)
     @SerialName("run_distance_m") val runDistanceM: Double = 0.0, @SerialName("run_time_s") val runTimeS: Double = 0.0,
+    // ganze Fahrt (Wind/Paddeln, Server additiv seit 02.11.2026)
+    @SerialName("ride_total_m") val rideTotalM: Double = 0.0,
     // nur bei Einzellauf-Listen: Session des besten Laufs (Tippen oeffnet sie)
     @SerialName("session_id") val sessionId: Int? = null,
     // nur in `me`: die eigene Stelle, wenn sie nicht unter den ersten 10 ist (Server additiv seit 01.11.2026)
     val rank: Int? = null,
+    // Nationalitaet (ISO-Code), nur wer sie im Profil eingestellt hat (Server additiv seit 02.11.2026)
+    val land: String? = null,
 )
 
 @Serializable
@@ -514,6 +520,7 @@ data class Leaders(
     val time: List<LeaderEntry> = emptyList(),
     @SerialName("run_distance") val runDistance: List<LeaderEntry> = emptyList(),
     @SerialName("run_time") val runTime: List<LeaderEntry> = emptyList(),
+    @SerialName("ride_total") val rideTotal: List<LeaderEntry> = emptyList(),
     // eigene Zeile unter Platz 10 je Liste; null, wenn man schon drinsteht oder keinen Wert hat
     val me: Map<String, LeaderEntry?> = emptyMap(),
 )
@@ -1211,6 +1218,8 @@ data class SessionDetail(
     // oeffentlichen Teilen-Payload leert der Server das Feld (die Profilseite verlangt Anmeldung).
     @SerialName("owner_id") val ownerId: Int? = null,
     @SerialName("like_count") val likeCount: Int = 0,
+    @SerialName("comment_count") val commentCount: Int = 0,   // sichtbare Kommentare (Web 6fc0a4f8, 02.11.2026)
+    @SerialName("comments_off") val commentsOff: Boolean = false,   // Inhaber hat Kommentare abgeschaltet
     val liked: Boolean = false,
     val owned: Boolean = false,
     @SerialName("youtube_url") val youtubeUrl: String? = null,

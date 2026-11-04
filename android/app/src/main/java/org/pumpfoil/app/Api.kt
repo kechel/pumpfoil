@@ -29,7 +29,7 @@ import java.net.URL
  * Ergebnis eines Datei-Imports: entweder eine angelegte Session (`sessionId`) oder ein Grund,
  * warum die Datei uebersprungen wurde (`skipped` + `detail` im Klartext vom Server).
  */
-data class FitUpload(val sessionId: Int?, val skipped: String?, val detail: String?)
+data class FitUpload(val sessionId: Int?, val skipped: String?, val detail: String?, val existingId: Int? = null)
 
 // REST-Client zur Pumpfoil-API (JWT Bearer). Spiegelt web/src/lib/api.ts.
 object Api {
@@ -455,10 +455,13 @@ object Api {
      *
      * readTimeout absichtlich hoch: der Server parst die Datei und wertet sie gleich mit aus.
      */
-    suspend fun uploadFit(bytes: ByteArray, filename: String): FitUpload =
+    // rueckfrage: Server meldet „andere Datei zu vorhandener Fahrt" (skipped exists_different + existing_id) statt sie still
+    // zu ignorieren; ersetzen: diese Session-ID loeschen und die Datei neu anlegen (Web api.ts uploadFit, 01.11.2026).
+    suspend fun uploadFit(bytes: ByteArray, filename: String, rueckfrage: Boolean = false, ersetzen: Int? = null): FitUpload =
         withContext(Dispatchers.IO) {
             val boundary = "----pumpfoil${System.nanoTime()}"
-            val conn = (URL(BASE + "/api/sessions/upload-fit").openConnection() as HttpURLConnection).apply {
+            val qs = listOfNotNull(if (rueckfrage) "rueckfrage=1" else null, ersetzen?.let { "ersetzen=$it" }).joinToString("&")
+            val conn = (URL(BASE + "/api/sessions/upload-fit" + (if (qs.isNotEmpty()) "?$qs" else "")).openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
                 doOutput = true
                 setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
@@ -482,6 +485,7 @@ object Api {
                 sessionId = o["id"]?.jsonPrimitive?.intOrNull,
                 skipped = o["skipped"]?.jsonPrimitive?.contentOrNull,
                 detail = o["detail"]?.jsonPrimitive?.contentOrNull,
+                existingId = o["existing_id"]?.jsonPrimitive?.intOrNull,
             )
         }
 
@@ -531,10 +535,13 @@ object Api {
     // Tages-Gruppierung (Community/Spot): ein Nutzer+Tag = eine Gruppe (server-seitig).
     suspend fun communitySessionsGrouped(spot: String? = null, limit: Int = 20, offset: Int = 0,
                                          accelOnly: Boolean = true, sport: String? = null,
-                                         board: Boolean = false, freunde: Boolean = false): List<CommunityGroup> = withContext(Dispatchers.IO) {
+                                         board: Boolean = false, freunde: Boolean = false,
+                                         team: String? = null): List<CommunityGroup> = withContext(Dispatchers.IO) {
         val sp = if (!spot.isNullOrBlank()) "&spot=" + java.net.URLEncoder.encode(spot, "UTF-8") else ""
         val qs = "?limit=$limit&offset=$offset&accel_only=$accelOnly$sp" + (if (sport != null) "&sport=$sport" else "") +
-            (if (board) "&board=true" else "") + (if (freunde) "&friends=1" else "")
+            (if (board) "&board=true" else "") + (if (freunde) "&friends=1" else "") +
+            // Sessions › Team (Web 02.11.2026): „alle" oder Team-ID, letzte 30 Tage, nur fuer Mitglieder
+            (if (team != null) "&team=" + java.net.URLEncoder.encode(team, "UTF-8") else "")
         json.decodeFromString(
             ListSerializer(CommunityGroup.serializer()),
             http("GET", "/api/community/sessions-grouped$qs", null, auth = true),
@@ -1038,9 +1045,11 @@ object Api {
     }
 
     suspend fun leaders(period: String = "all", accelOnly: Boolean = true, foilBand: String = "all", freunde: Boolean = false,
-                        sport: String = "pumpfoil"): Leaders = withContext(Dispatchers.IO) {
+                        sport: String = "pumpfoil", spot: String? = null): Leaders = withContext(Dispatchers.IO) {
+        // spot: dieselben Bestenlisten nur an einem Spot (Spot-Seite, Web 0fc2eba8)
         json.decodeFromString(Leaders.serializer(), http("GET", "/api/community/leaders?period=$period&accel_only=$accelOnly&foil_band=$foilBand" +
-            "&sport=" + java.net.URLEncoder.encode(sport, "UTF-8") + (if (freunde) "&friends=1" else ""), null, auth = true))
+            "&sport=" + java.net.URLEncoder.encode(sport, "UTF-8") + (if (freunde) "&friends=1" else "") +
+            (spot?.let { "&spot=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: ""), null, auth = true))
     }
 
     suspend fun latestPhotos(limit: Int = 8, freunde: Boolean = false): List<MediaItem> = withContext(Dispatchers.IO) {
@@ -1461,6 +1470,30 @@ object Api {
 
     suspend fun toggleLike(id: Int): LikeState = withContext(Dispatchers.IO) {
         json.decodeFromString(LikeState.serializer(), http("POST", "/api/community/sessions/$id/like", null, auth = true))
+    }
+
+    // „Neu bei deinen Sessions" (Web PersonalHome NeuBeiMir, 03.11.2026): letzte Kommentare/Likes anderer, max. 5 aus 14 Tagen.
+    @kotlinx.serialization.Serializable
+    data class AktivitaetNutzer(val id: Int = 0, val name: String = "", val avatar_url: String? = null)
+    @kotlinx.serialization.Serializable
+    data class Aktivitaet(
+        val typ: String = "", val at: String = "", val session_id: Int = 0, val started_at: String? = null,
+        val spot: String? = null, val user: AktivitaetNutzer = AktivitaetNutzer(),
+        val anzahl: Int? = null, val message_id: Int? = null, val text: String? = null,
+    )
+
+    suspend fun myActivity(): List<Aktivitaet> = withContext(Dispatchers.IO) {
+        json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(Aktivitaet.serializer()),
+            http("GET", "/api/community/my-activity", null, auth = true))
+    }
+
+    // Wer die eigene Session geliked hat (Server liefert nur dem Inhaber; web api.ts sessionLikers).
+    @kotlinx.serialization.Serializable
+    data class Liker(val user_id: Int, val name: String? = null, val avatar_url: String? = null, val am: String? = null)
+
+    suspend fun sessionLikers(id: Int): List<Liker> = withContext(Dispatchers.IO) {
+        json.decodeFromString(kotlinx.serialization.builtins.ListSerializer(Liker.serializer()),
+            http("GET", "/api/community/sessions/$id/likes", null, auth = true))
     }
 
     // --- Spot-Beschreibungen (je Nutzer ein Textblock + Fotos pro Spot) ---

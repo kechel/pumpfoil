@@ -197,7 +197,7 @@ fun TeamEventScreen(
                             Spacer(Modifier.height(12.dp))
                         }
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            e.tafeln.forEach { TeamTafelKarte(it, f, onOpenSession, ohneFilter = true) }
+                            e.tafeln.forEach { TeamTafelKarte(it, f, onOpenSession, ohneFilter = true, sportZeigen = e.tafeln.map { x -> x.sportart }.distinct().size > 1) }
                         }
                     }
 

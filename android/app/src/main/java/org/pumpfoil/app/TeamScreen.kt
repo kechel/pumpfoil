@@ -66,7 +66,7 @@ import kotlinx.coroutines.launch
  * 04.11.2026 nativ (TeamVerwaltung.kt), vorher oeffnete sie im Browser.
  */
 
-internal val TEAM_ZEITRAEUME = listOf("today" to "period.today", "10d" to "period.10d", "30d" to "period.30d",
+internal val TEAM_ZEITRAEUME = listOf("today" to "period.today", "yesterday" to "period.yesterday", "10d" to "period.10d", "30d" to "period.30d",
     "365d" to "period.365d", "all" to "period.all")
 
 /** Zeitraum-Chip in Teamfarbe (gewaehlt: Flaeche + passende Schrift). */
@@ -164,7 +164,11 @@ fun TeamScreen(
                         TeamWappen(k.name, k.logoUrl, k.farbe, 64.dp)
                         Spacer(Modifier.width(14.dp))
                         Column(Modifier.weight(1f)) {
-                            Text(k.name, color = f.akzent, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                            Row(verticalAlignment = Alignment.CenterVertically) {   // Name + Herkunft (Web TeamHerkunft)
+                                Text(k.name, color = f.akzent, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f, fill = false))
+                                Spacer(Modifier.width(8.dp)); TeamHerkunftZeichen(k.land, gross = true)
+                            }
                             Text(
                                 listOfNotNull(
                                     I18n.t("team.mitgliederAnzahl").replace("{n}", k.mitgliederAnzahl.toString()),
@@ -199,7 +203,22 @@ fun TeamScreen(
                             }
                         }
                     }
-                    Box(Modifier.padding(vertical = 12.dp).fillMaxWidth().height(2.dp).background(f.akzent))
+                    Box(Modifier.padding(top = 12.dp).fillMaxWidth().height(2.dp).background(f.akzent))
+
+                    // Reiter direkt unter dem Kopf wie im Web (Team.tsx, Jan 02.11.2026): Rekorde | Events | Logbuch | Mitglieder |
+                    // Teilen | Regeln. Mitglieder nur, wenn man sie sehen darf, Teilen nur fuer aktive Mitglieder.
+                    val teamReiter = listOfNotNull(
+                        ReiterDef("rekorde", I18n.t("side.records")),
+                        ReiterDef("events", I18n.t("tab.events")),
+                        ReiterDef("logbuch", I18n.t("tab.logbook")),
+                        if (mitglieder != null) ReiterDef("mitglieder", I18n.t("team.mitglieder")) else null,
+                        if (k.meinStatus == "aktiv") ReiterDef("teilen", I18n.t("team.teilen")) else null,
+                        ReiterDef("regeln", I18n.t("tab.rules")),
+                    )
+                    var tteil by rememberReiter("team", teamReiter.map { it.id }, "rekorde")
+                    Reiterleiste(teamReiter, tteil, { tteil = it }, modifier = Modifier.padding(bottom = 12.dp))
+
+                    if (tteil == "regeln") TeamRegelnInhalt()
 
                     meldung?.let {
                         Card(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
@@ -217,14 +236,25 @@ fun TeamScreen(
                         }
                     }
 
-                    // Oben: laufende, kommende und bis eine Woche nach dem Ende auch beendete Events; aeltere unten mit
+                    // Oben: laufende, kommende und bis eine Woche nach dem Ende auch beendete Events; aeltere darunter mit
                     // derselben Kachel (Jan, 01.11.2026). Reihenfolge oben: laeuft, kommend (naechstes zuerst), dann vorbei.
                     val (oben, unten) = remember(events) { eventsAufteilen(events.orEmpty()) }
-                    oben.forEach { e ->
-                        EventKachel(e, k.farbe, onClick = { onOpenEvent(k.slug, e.id) }, Modifier.padding(bottom = 10.dp))
+                    if (tteil == "events") {
+                        if (oben.isEmpty() && unten.isEmpty()) Text(I18n.t("team.event.keineAktuellen"),
+                            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        oben.forEach { e ->
+                            EventKachel(e, k.farbe, onClick = { onOpenEvent(k.slug, e.id) }, Modifier.padding(bottom = 10.dp))
+                        }
+                        if (unten.isNotEmpty()) {
+                            Text(I18n.t("team.event.vergangen"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
+                            unten.forEach { e ->
+                                EventKachel(e, k.farbe, onClick = { onOpenEvent(k.slug, e.id) }, Modifier.padding(bottom = 10.dp))
+                            }
+                        }
                     }
 
-                    if (k.darfBestenlisten) {
+                    if (tteil == "rekorde" && k.darfBestenlisten) {
                         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 4.dp),
                             horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             TEAM_ZEITRAEUME.forEach { (id, key) ->
@@ -250,25 +280,21 @@ fun TeamScreen(
                             tl.isEmpty() -> Text(I18n.t("team.keineTafeln"), style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                             else -> Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                tl.forEach { TeamTafelKarte(it, f, onOpenSession) }
+                                val sportZeigen = tl.map { it.sportart }.distinct().size > 1
+                                tl.forEach { TeamTafelKarte(it, f, onOpenSession, sportZeigen = sportZeigen) }
                             }
                         }
-                    } else if (k.meinStatus != "angefragt") {
+                    }
+                    if (tteil != "events" && tteil != "regeln" && !k.darfBestenlisten && k.meinStatus != "angefragt") {
                         Text(I18n.t("team.nurFuerMitglieder"), style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
 
-                    mitglieder?.takeIf { it.isNotEmpty() }?.let { ml -> MitgliederKarte(ml, f) }
+                    if (tteil == "mitglieder") mitglieder?.takeIf { it.isNotEmpty() }?.let { ml -> MitgliederKarte(ml, f) }
 
-                    if (unten.isNotEmpty()) {
-                        Text(I18n.t("team.event.vergangen"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
-                        unten.forEach { e ->
-                            EventKachel(e, k.farbe, onClick = { onOpenEvent(k.slug, e.id) }, Modifier.padding(bottom = 10.dp))
-                        }
-                    }
+                    if (tteil == "logbuch" && k.darfBestenlisten) logbuch?.let { LogbuchKarte(it, onOpenSession) }
 
-                    logbuch?.let { LogbuchKarte(it, onOpenSession) }
+                    if (tteil == "teilen" && k.meinStatus == "aktiv") TeamAdresseKarte(k, f)
 
                     if (k.meinStatus == "aktiv" && k.meineRolle != "leiter") {
                         TextButton(onClick = { austretenFrage = true }, modifier = Modifier.padding(top = 12.dp)) {
@@ -276,13 +302,10 @@ fun TeamScreen(
                         }
                     }
                     // „Auch nur GPS" einmal unten statt an jeder Bestenliste (Jan, 01.11.2026).
-                    tafeln?.takeIf { l -> l.any { !it.accelOnly } }?.let { l ->
+                    if (tteil == "rekorde") tafeln?.takeIf { l -> l.any { !it.accelOnly } }?.let { l ->
                         Text(I18n.t(if (l.all { !it.accelOnly }) "team.tafel.gpsAlle" else "team.tafel.gpsEinige"),
                             style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 16.dp))
-                    }
-                    TextButton(onClick = { runCatching { uri.openUri(teamWebUrl("/teams/regeln")) } }, modifier = Modifier.padding(top = 8.dp)) {
-                        Text(I18n.t("team.regeln.link") + " ↗")
                     }
                     Spacer(Modifier.height(24.dp))
                 }
@@ -395,6 +418,61 @@ private fun LogbuchKarte(eintraege: List<TeamLogbuchEintrag>, onOpenSession: (In
                     Text(text, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                 }
             }
+        }
+    }
+}
+
+/** Team-Regeln nativ (Web pages/TeamRegeln.tsx, eingebettet als Reiter „Regeln"): Einleitung, dann je Abschnitt Titel + Punkte
+ *  (die Punkte stehen in EINEM Text je Abschnitt, getrennt durch Zeilenumbrueche). */
+private val REGEL_ABSCHNITTE = listOf("was", "rollen", "beitreten", "oeffentlich", "bestenlisten", "statistik", "logbuch",
+    "events", "chat", "loeschen", "konto", "haftung")
+
+@Composable
+private fun TeamRegelnInhalt() {
+    Text(I18n.t("team.regeln.intro"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(bottom = 12.dp))
+    REGEL_ABSCHNITTE.forEach { a ->
+        Card(Modifier.fillMaxWidth().padding(bottom = 10.dp)) {
+            Column(Modifier.padding(12.dp)) {
+                Text(I18n.t("team.regeln.$a.titel"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(bottom = 6.dp))
+                I18n.t("team.regeln.$a.text").split("\n").filter { it.isNotBlank() }.forEach { z ->
+                    Row(Modifier.padding(bottom = 4.dp)) {
+                        Text("•", Modifier.width(14.dp), style = MaterialTheme.typography.bodyMedium)
+                        Text(z, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Volle Teamadresse zum Teilen (Web TeamAdresse): Adresse, Kopieren, Teilen, darunter was Gaeste dort gerade sehen. */
+@Composable
+private fun TeamAdresseKarte(k: TeamInfo, f: TeamFarbe) {
+    val ctx = LocalContext.current
+    val url = teamWebUrl("/teams/${k.slug}")
+    var kopiert by remember { mutableStateOf(false) }
+    val zustand = if (k.bestenlistenOeffentlich) "oeffentlich" else if (k.oeffentlich) "wartet" else "intern"
+    LaunchedEffect(kopiert) { if (kopiert) { kotlinx.coroutines.delay(2000); kopiert = false } }
+    Card(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+        Column(Modifier.padding(12.dp)) {
+            Text(I18n.t("team.adresseTeilen.titel"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            androidx.compose.foundation.text.selection.SelectionContainer {
+                Text(url, style = MaterialTheme.typography.bodyMedium, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                    modifier = Modifier.padding(vertical = 8.dp))
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TeamKnopf(I18n.t(if (kopiert) "team.kopiert" else "team.kopieren"), f, onClick = {
+                    val cm = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    cm.setPrimaryClip(android.content.ClipData.newPlainText(k.name, url))
+                    kopiert = true
+                })
+                OutlinedButton(onClick = { teilenUrl(ctx, url, k.name) }) { Text(I18n.t("team.teilen")) }
+            }
+            Text(I18n.t("team.adresseTeilen.$zustand"), style = MaterialTheme.typography.bodyMedium,
+                color = if (zustand == "oeffentlich") MaterialTheme.colorScheme.onSurfaceVariant else androidx.compose.ui.graphics.Color(0xFFD97706),
+                modifier = Modifier.padding(top = 8.dp))
         }
     }
 }

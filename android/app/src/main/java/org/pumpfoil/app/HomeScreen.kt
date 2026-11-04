@@ -34,6 +34,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Close
@@ -90,9 +92,9 @@ private object RatingClock { val startMs = android.os.SystemClock.elapsedRealtim
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, onRecord: () -> Unit = {}, onOpenSortedOut: () -> Unit = {}, onOnboarding: () -> Unit = {}, social: Boolean = true, onOpenSpot: (String) -> Unit = {}, onOpenTeam: (String) -> Unit = {}, onOpenVerlauf: () -> Unit = {}, onOpenTeams: () -> Unit = {},
+fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onRecord: () -> Unit = {}, onOpenSortedOut: () -> Unit = {}, onOnboarding: () -> Unit = {}, social: Boolean = true, onOpenSpot: (String) -> Unit = {}, onOpenTeam: (String) -> Unit = {}, onOpenTeams: () -> Unit = {},
                onGarminPair: () -> Unit = {}, onGuide: () -> Unit = {}, onAlarm: () -> Unit = {}, onDataFields: () -> Unit = {},
-               onPrivacy: () -> Unit = {}, onTeamGruenden: () -> Unit = {}, onTeamGegruendet: (String) -> Unit = {}) {
+               onPrivacy: () -> Unit = {}, onOpenKommentare: (Int) -> Unit = {}, onTeamGegruendet: (String) -> Unit = {}) {
     var profile by remember { mutableStateOf<Profile?>(null) }
     var homespotLink by remember { mutableStateOf<String?>(null) }
     // Home › Spots (04.11.2026): Homespot als Nummer (homespot_effective_id) und alle Spots mit eigenen Sessions.
@@ -117,7 +119,6 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
     var sportart by remember { mutableStateOf<String?>(null) }
     var latest by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
     var weather by remember { mutableStateOf<SpotWeather?>(null) }
-    var rooms by remember { mutableStateOf<List<ChatRoom>>(emptyList()) }
     var startSuccess by remember { mutableStateOf<StartSuccess?>(null) }
     var carveStats by remember { mutableStateOf<CarveStats?>(null) }
     var bilanz by remember { mutableStateOf<Jahresbilanz?>(null) }
@@ -214,7 +215,6 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
             onOnboarding()
         }
         latest = try { Api.sessions().take(3) } catch (_: Exception) { emptyList() }
-        rooms = try { Api.chatRooms().filter { it.kind != "dm" } } catch (_: Exception) { emptyList() }   // DMs laufen im Chat-Tab
         community = try { Api.communityStats() } catch (_: Exception) { community }
         startSuccess = try { Api.startSuccess() } catch (_: Exception) { startSuccess }
         carveStats = try { Api.carveStats() } catch (_: Exception) { carveStats }
@@ -464,6 +464,8 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                 WeatherCard(sw)
                 Spacer(Modifier.height(10.dp))
             }
+            // „Neue Kommentare & Likes" (Web NeuBeiMir) zwischen den eigenen Sessions und dem Community-Link.
+            if (social) NeuBeiMir(onOpenSession = { onOpen(it, null) }, onOpenKommentare = onOpenKommentare)
             // Community-Link (wie PWA) — unter 13 (kein social) ausgeblendet.
             if (social) {
                 TextButton(onClick = onOpenCommunity, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
@@ -581,8 +583,11 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                                     TeamWappen(tm.name, tm.logoUrl, tm.farbe, 40.dp)
                                     Spacer(Modifier.width(10.dp))
                                     Column(Modifier.weight(1f)) {
-                                        Text(tm.name, color = f.akzent, style = MaterialTheme.typography.titleSmall,
-                                            maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Row(verticalAlignment = Alignment.CenterVertically) {   // Name + Herkunft (Web TeamHerkunft)
+                                            Text(tm.name, color = f.akzent, style = MaterialTheme.typography.titleSmall,
+                                                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                                            Spacer(Modifier.width(6.dp)); TeamHerkunftZeichen(tm.land)
+                                        }
                                         Text(I18n.t("team.rolle.${tm.rolle}"), style = MaterialTheme.typography.labelMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
@@ -686,8 +691,69 @@ private fun kachelListe(st: OverallStats): List<RecTile> {
     )
 }
 
+/**
+ * „Neu bei deinen Sessions" (Web PersonalHome NeuBeiMir, Olek/Jan 03.11.2026): die letzten Kommentare und Likes anderer an
+ * den eigenen Sessions, hoechstens 5 aus 14 Tagen (Server), Likes je Session zusammengefasst. Leer -> gar nicht da.
+ * Profilbild -> Profil, der Rest der Zeile -> Session bzw. bei Kommentaren gleich der Kommentar-Faden (Web #kommentare).
+ */
+@Composable
+private fun NeuBeiMir(onOpenSession: (Int) -> Unit, onOpenKommentare: (Int) -> Unit) {
+    var liste by remember { mutableStateOf<List<Api.Aktivitaet>?>(null) }
+    LaunchedEffect(Unit) { liste = try { Api.myActivity() } catch (_: Exception) { emptyList() } }
+    val l = liste
+    if (l.isNullOrEmpty()) return
+    val wannFmt = remember { java.time.format.DateTimeFormatter.ofPattern("dd.MM. HH:mm") }
+    fun wann(iso: String) = runCatching {
+        java.time.OffsetDateTime.parse(iso).atZoneSameInstant(java.time.ZoneId.systemDefault()).format(wannFmt)
+    }.getOrElse { runCatching { java.time.LocalDateTime.parse(iso.take(19)).atZone(java.time.ZoneOffset.UTC)
+        .withZoneSameInstant(java.time.ZoneId.systemDefault()).format(wannFmt) }.getOrDefault("") }
+    Spacer(Modifier.height(10.dp))
+    Text(I18n.t("act.title").uppercase(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Spacer(Modifier.height(6.dp))
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        l.forEach { e ->
+            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                .clickable { if (e.typ == "comment") onOpenKommentare(e.session_id) else onOpenSession(e.session_id) }
+                .padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.Top) {
+                AvatarCircle(name = e.user.name, avatarUrl = e.user.avatar_url, size = 32.dp, userId = e.user.id)
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.Top) {
+                        if (e.typ == "comment") Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 2.dp).size(16.dp))
+                        else Icon(Icons.Filled.Favorite, contentDescription = null, tint = Color(0xFFF43F5E),
+                            modifier = Modifier.padding(top = 2.dp).size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        val was = if (e.typ == "comment") I18n.t("act.comment")
+                            else if ((e.anzahl ?: 1) > 1) I18n.t("act.likeMany").replace("{n}", ((e.anzahl ?: 1) - 1).toString())
+                            else I18n.t("act.like")
+                        Text(androidx.compose.ui.text.buildAnnotatedString {
+                            pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.SemiBold)); append(e.user.name); pop()
+                            append(" "); append(was)
+                        }, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                        Text(wann(e.at), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 6.dp, top = 2.dp))
+                    }
+                    if (e.typ == "comment" && !e.text.isNullOrBlank()) Text(e.text, style = MaterialTheme.typography.bodyMedium,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, maxLines = 2,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, modifier = Modifier.padding(top = 2.dp))
+                    val session = listOfNotNull(
+                        e.started_at?.let { shortDateFull(it) }?.let { I18n.t("act.session").replace("{d}", it) }, e.spot,
+                    ).joinToString(" · ")
+                    if (session.isNotEmpty()) Text(session, style = MaterialTheme.typography.labelSmall, maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
+                }
+            }
+        }
+    }
+    Spacer(Modifier.height(6.dp))
+}
+
 private val HOME_STAT_WINDOWS = listOf(
-    "today" to "period.today", "10d" to "period.10d", "30d" to "period.30d", "365d" to "period.365d", "all" to "period.all")
+    "today" to "period.today", "yesterday" to "period.yesterday", "10d" to "period.10d", "30d" to "period.30d", "365d" to "period.365d", "all" to "period.all")
 
 // Vorgabefenster der Startseite und die Kette, auf die zurueckgefallen wird, solange der
 // Nutzer nicht selbst gewaehlt hat: 10 Tage -> 30 Tage -> 1 Jahr -> Allzeit (PWA 30.08.).

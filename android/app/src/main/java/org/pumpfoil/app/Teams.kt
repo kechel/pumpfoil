@@ -161,6 +161,7 @@ data class TeamZeile(
     @SerialName("session_id") val sessionId: Int? = null,
     @SerialName("started_at") val startedAt: String? = null,
     val spot: String? = null,
+    val land: String? = null,   // Nationalitaet, nur wenn im Profil eingestellt (Server additiv seit 02.11.2026)
 )
 
 /** Eine Bestenliste samt Zeilen (Team und Event). */
@@ -749,14 +750,25 @@ fun TeamKnopf(text: String, farbe: TeamFarbe, onClick: () -> Unit, enabled: Bool
  * nur Initialen und kein Link. `ohneFilter`: die Filterzeile weglassen (Event-Seite).
  */
 @Composable
-fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit, ohneFilter: Boolean = false) {
+fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit, ohneFilter: Boolean = false,
+                   /** Sportart als Marke neben der Ueberschrift, wenn die Listen verschiedene Sportarten haben (Web 831f6406). */
+                   sportZeigen: Boolean = false) {
     val oeffneFoiler = LocalOpenFoiler.current
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
-            Text(kennzahlLabel(tf.kennzahl), color = farbe.akzent, style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(kennzahlLabel(tf.kennzahl), color = farbe.akzent, style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f, fill = false))
+                if (sportZeigen) {
+                    Spacer(Modifier.width(8.dp))
+                    Text(I18n.t("cls.sport.${tf.sportart}"), style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.clip(RoundedCornerShape(50)).background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(horizontal = 8.dp, vertical = 2.dp))
+                }
+            }
             val filter = listOfNotNull(
-                if (tf.sportart != "pumpfoil") I18n.t("cls.sport.${tf.sportart}") else null,
+                if (tf.sportart != "pumpfoil" && !sportZeigen) I18n.t("cls.sport.${tf.sportart}") else null,
                 if (tf.nurTeamspots) I18n.t("team.tafel.nurTeamspots") else null,
                 if (tf.nurBrett) I18n.t("team.tafel.nurBrett") else null,
             ).joinToString(" · ")
@@ -785,7 +797,9 @@ fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit
                             Text(z.initialen, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
                         }
                     }
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(6.dp))
+                    LandFlagge(z.land)   // nach dem Profilbild, Platz bleibt auch ohne Land (Web Flagge)
+                    Spacer(Modifier.width(6.dp))
                     Column(Modifier.weight(1f)) {
                         Text(z.name ?: "—", style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis,
                             modifier = if (uid != null && oeffneFoiler != null) Modifier.clickable { oeffneFoiler(uid) } else Modifier)

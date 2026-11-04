@@ -111,6 +111,14 @@ fun ChatRoomByScope(scope: String, label: String, onBack: () -> Unit) {
     key(room.scope) { ChatRoomView(room, onBack = onBack, onOpen = { room = it }) }
 }
 
+// Kommentare unter einer Session (Web 6fc0a4f8, 02.11.2026): derselbe Chat im Raum `session:<id>`, ohne Abo/Verlassen;
+// der Inhaber darf dort fremde Kommentare loeschen (Server prueft es, app/kommentare.py).
+@Composable
+fun SessionKommentareRaum(sessionId: Int, inhaber: Boolean, onBack: () -> Unit) {
+    val room = remember(sessionId) { ChatRoom(scope = "session:$sessionId", label = I18n.t("comments.title")) }
+    ChatRoomView(room, onBack = onBack, onOpen = {}, kommentare = true, inhaber = inhaber)
+}
+
 // 1:1-Chat mit einer Person von aussen oeffnen (Profilseite, Knopf „Nachricht", Web b89044e2).
 // Ueber die User-ID statt ueber den Scope: /api/chat/dm liefert Name, Profilbild und die ID des
 // Gegenuebers mit — ohne `other` fehlten im Raum Blockieren und die Lesebestaetigung.
@@ -331,7 +339,8 @@ private fun SpotRow(s: SpotChat, joined: Boolean, subscribed: Boolean, onClick: 
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) -> Unit) {
+private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) -> Unit,
+                         kommentare: Boolean = false, inhaber: Boolean = false) {
     var msgs by remember { mutableStateOf<List<ChatMsg>>(emptyList()) }
     var input by remember { mutableStateOf("") }
     var sending by remember { mutableStateOf(false) }
@@ -516,6 +525,8 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
     // Admin → Aus-/Einblenden + Nutzer stummschalten.
     actionMsg?.let { m ->
         val editable = m.mine && withinEditWindow(m.createdAt)
+        // Kommentare: der Inhaber der Session loescht auch fremde (Web kannLoeschen); bearbeiten nur eigene.
+        val loeschbar = editable || (kommentare && inhaber && !m.mine)
         AlertDialog(
             onDismissRequest = { actionMsg = null },
             title = { if (m.text.isNotBlank()) Text(m.text, maxLines = 2) },
@@ -533,6 +544,8 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
                             editAnhaenge = m.photos.map { p -> ChatAnhang(key = "p${p.id}", url = p.thumbUrl ?: p.url, id = p.id) }
                             editMsg = m; actionMsg = null
                         }) { Text(I18n.t("chat.edit")) }
+                    }
+                    if (loeschbar) {
                         TextButton(onClick = {
                             val id = m.id; actionMsg = null
                             scope.launch { try { Api.chatDelete(id); load() } catch (e: Exception) { error = e.message } }
@@ -638,7 +651,8 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
                                 tint = if (blocked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
-                    // Abonnieren (Push) + Verlassen — wie Web-Chat.
+                    // Abonnieren (Push) + Verlassen — wie Web-Chat; nicht bei Kommentaren.
+                    if (!kommentare) {
                     IconButton(onClick = { scope.launch { push = runCatching { Api.chatSubscribe(room.scope, !push) }.getOrDefault(push) } }) {
                         Icon(
                             if (push) Icons.Filled.Notifications else Icons.Filled.NotificationsOff,
@@ -648,6 +662,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
                     }
                     IconButton(onClick = { confirmLeave = true }) {
                         Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = I18n.t("chat.leave"))
+                    }
                     }
                     FeedbackKnopf()   // ganz rechts, wie auf den Haupt-Tabs
                 },
@@ -708,7 +723,7 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
                 OutlinedTextField(
                     value = input, onValueChange = { input = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("${I18n.t("chat.placeholder")}…") }, maxLines = 3,
+                    placeholder = { Text(if (kommentare) I18n.t("comments.placeholder") else "${I18n.t("chat.placeholder")}…") }, maxLines = 3,
                 )
                 IconButton(onClick = { showDict = true }) {
                     Icon(Icons.Filled.Mic, contentDescription = I18n.t("dict.button"), tint = MaterialTheme.colorScheme.primary)
@@ -723,6 +738,9 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
         LazyColumn(state = listState, modifier = Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
             if (blocked) item { Text(I18n.t("dm.blockedNote"), Modifier.padding(vertical = 6.dp), color = MaterialTheme.colorScheme.error) }
             error?.let { e -> item { Text(e, color = MaterialTheme.colorScheme.error) } }
+            if (kommentare && msgs.isEmpty() && error == null) item {
+                Text(I18n.t("comments.empty"), Modifier.padding(vertical = 10.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             items(msgs) { m ->
                 val editable = m.mine && withinEditWindow(m.createdAt)
                 // Long-Press-Menü sinnvoll? Antworten geht auf jede sichtbare Nachricht.

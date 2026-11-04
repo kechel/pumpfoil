@@ -121,7 +121,11 @@ fun TeamsAlleScreen(onBack: () -> Unit, onOpenTeam: (String) -> Unit, onGruenden
                                 TeamWappen(tm.name, tm.logoUrl, tm.farbe, 40.dp)
                                 Spacer(Modifier.width(12.dp))
                                 Column(Modifier.weight(1f)) {
-                                    Text(tm.name, color = f.akzent, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Row(verticalAlignment = Alignment.CenterVertically) {   // Name + Herkunft (Web TeamHerkunft)
+                                        Text(tm.name, color = f.akzent, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.weight(1f, fill = false))
+                                        Spacer(Modifier.width(6.dp)); TeamHerkunftZeichen(tm.land)
+                                    }
                                     Text(
                                         I18n.t("team.mitgliederAnzahl").replace("{n}", tm.mitgliederAnzahl.toString()) +
                                             (if (tm.sportarten.isNotEmpty()) " · " + sportartenText(tm.sportarten) else ""),
@@ -219,8 +223,11 @@ fun MeineTeamsScreen(onBack: () -> Unit, onOpenTeam: (String) -> Unit, onAlleTea
                             TeamWappen(m.name, m.logoUrl, m.farbe, 40.dp)
                             Spacer(Modifier.width(12.dp))
                             Column(Modifier.weight(1f)) {
-                                Text(m.name, color = teamFarbe(m.farbe).akzent, fontWeight = FontWeight.SemiBold,
-                                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(m.name, color = teamFarbe(m.farbe).akzent, fontWeight = FontWeight.SemiBold,
+                                        maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                                    Spacer(Modifier.width(6.dp)); TeamHerkunftZeichen(m.land)
+                                }
                                 Text(if (m.status == "angefragt") I18n.t("team.join.wartet") else I18n.t("team.rolle.${m.rolle}"),
                                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 if (m.sportarten.isNotEmpty()) Text(sportartenText(m.sportarten), style = MaterialTheme.typography.bodySmall,
@@ -252,34 +259,6 @@ private fun HinweisText(text: String) {
 }
 
 /**
- * Eigene Teams als kleine Links auf der Startseite (Web PersonalHome, neben dem Homespot): Wappen, Name in Teamfarbe,
- * offene Anfragen (nur Leitung/Moderatoren > 0) als Zahl daneben. Der Link fuehrt immer auf die Teamseite.
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun MeineTeamsLinks(teams: List<TeamKurz>, onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier) {
-    if (teams.isEmpty()) return
-    FlowRow(modifier, horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        teams.forEach { tm ->
-            val f = teamFarbe(tm.farbe)
-            Row(verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { onOpenTeam(tm.slug) }.padding(vertical = 4.dp, horizontal = 2.dp)) {
-                TeamWappen(tm.name, tm.logoUrl, tm.farbe, 18.dp)
-                Spacer(Modifier.width(4.dp))
-                Text(tm.name, color = f.akzent, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.widthIn(max = 160.dp))
-                if (tm.anfragen > 0) {
-                    Spacer(Modifier.width(4.dp))
-                    Text(tm.anfragen.toString(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.primary).padding(horizontal = 6.dp))
-                }
-            }
-        }
-    }
-}
-
-/**
  * Teamsuche (Web Teams.tsx `TeamSuche`, 04.11.2026): alle freigegebenen Teams, Treffer erst mit Suchtext, nach Mitgliedern
  * sortiert. Vergleich mit `passtZu` (Suche.kt: klein, ohne Akzente, Bindestriche und Leerzeichen, jedes Wort muss vorkommen).
  * Steht in Einstellungen › Team ueber „Team gruenden" und auf Home › Team, solange man in keinem Team ist.
@@ -306,7 +285,11 @@ fun TeamSuche(onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier) {
                         TeamWappen(x.name, x.logoUrl, x.farbe, 36.dp)
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
-                            Text(x.name, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(x.name, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f, fill = false))
+                                Spacer(Modifier.width(6.dp)); TeamHerkunftZeichen(x.land)
+                            }
                             Text(I18n.t("team.mitgliederAnzahl").replace("{n}", x.mitgliederAnzahl.toString()) +
                                     (if (x.sportarten.isNotEmpty()) " · " + sportartenText(x.sportarten) else ""),
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -341,8 +324,11 @@ fun MeineTeamsInhalt(onOpenTeam: (String) -> Unit, onAlleTeams: () -> Unit, onTe
                         TeamWappen(m.name, m.logoUrl, m.farbe, 40.dp)
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
-                            Text(m.name, color = teamFarbe(m.farbe).akzent, fontWeight = FontWeight.SemiBold,
-                                maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(m.name, color = teamFarbe(m.farbe).akzent, fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                                Spacer(Modifier.width(6.dp)); TeamHerkunftZeichen(m.land)
+                            }
                             Text(if (m.status == "angefragt") I18n.t("team.join.wartet") else I18n.t("team.rolle.${m.rolle}"),
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }

@@ -57,6 +57,8 @@ import androidx.compose.material.icons.filled.Report
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.Surface
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -138,7 +140,9 @@ private val SkyOnDark = Color(0xFF7DD3FC)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}, onOpenSession: (Int) -> Unit = {}, onSpotChat: (String) -> Unit = {}, onSpotSessions: (String) -> Unit = {}, dataVersion: Long? = null, social: Boolean = true) {
+fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}, onOpenSession: (Int) -> Unit = {}, onSpotChat: (String) -> Unit = {}, onSpotSessions: (String) -> Unit = {}, dataVersion: Long? = null, social: Boolean = true,
+                        // Kommentare (Web 6fc0a4f8): Faden oeffnen (id, Inhaber?) bzw. Einstellungen › Privatsphaere zum Einschalten.
+                        onKommentare: (Int, Boolean) -> Unit = { _, _ -> }, onKommentareEinschalten: () -> Unit = {}) {
     var session by remember { mutableStateOf<SessionDetail?>(null) }
     var neighbors by remember(id) { mutableStateOf<Neighbors?>(null) }
     var loading by remember { mutableStateOf(true) }
@@ -453,6 +457,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                 error != null -> Text(error!!, color = MaterialTheme.colorScheme.error)
                 s != null -> DetailContent(s, neighbors = neighbors, onOpenSession = onOpenSession, onReload = { reloadTick++ },
                     social = social,
+                    onKommentare = { onKommentare(s.id, s.owned) }, onKommentareEinschalten = onKommentareEinschalten,
                     canTrim = (s.owned && durSec > 1f),
                     onTrim = {
                         // Regler auf den gespeicherten Zuschnitt setzen (wie die PWA), sonst volle Dauer.
@@ -471,7 +476,8 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
 @Composable
 private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpenSession: (Int) -> Unit = {}, onReload: () -> Unit = {},
                           canTrim: Boolean = false, onTrim: () -> Unit = {}, onDelete: () -> Unit = {},
-                          onRunSelected: (Int?) -> Unit = {}, social: Boolean = true) {
+                          onRunSelected: (Int?) -> Unit = {}, social: Boolean = true,
+                          onKommentare: () -> Unit = {}, onKommentareEinschalten: () -> Unit = {}) {
     val scope = rememberCoroutineScope()
     var liked by remember(s.id) { mutableStateOf(s.liked) }
     var likeCount by remember(s.id) { mutableStateOf(s.likeCount) }
@@ -678,6 +684,22 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     tint = if (liked) Color(0xFFF43F5E) else MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.width(6.dp))
                 Text("$likeCount")
+            }
+            // Nur der Inhaber sieht, wer geliked hat (web SessionDetail.tsx WerHatGeliked); laedt erst beim Oeffnen.
+            if (s.owned && likeCount > 0) WerHatGeliked(s.id, likeCount)
+            // Kommentar-Zahl neben dem Herz (Web SocialBar): Tipp oeffnet den Faden (im Web: Sprung zum Abschnitt unten).
+            if (social && !s.commentsOff) {
+                Spacer(Modifier.width(6.dp))
+                FilledTonalButton(onClick = onKommentare,
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        contentColor = MaterialTheme.colorScheme.primary,
+                    ),
+                ) {
+                    Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = I18n.t("comments.title"))
+                    Spacer(Modifier.width(6.dp))
+                    Text("${s.commentCount}")
+                }
             }
         }
         // Ort, Gewaesser, Zeit, Uhr und Bildtext gehoeren zusammen und stehen deshalb in einem
@@ -1176,8 +1198,11 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 // Ø Puls auf dem Foil als Hauptzahl, der Gesamtwert (mit Pausen am Ufer) klein darunter (wie Web,
                 // 01.11.2026). Ohne Laeufe gibt es keinen Foil-Wert, dann wie bisher der Gesamtwert.
                 val hrFoil = m?.avgHrFoil?.takeIf { it > 0 }
+                // Tippen schaltet auf den Gesamtwert und zurueck (Web PulsStat, nicht gemerkt).
+                val hrGesamt = m?.avgHr?.takeIf { it > 0 }
                 if (hrFoil != null) add(StatItem(I18n.t("sd.avgHrFoil"), "$hrFoil",
-                    sub = m.avgHr?.takeIf { it > 0 }?.let { I18n.t("sd.avgHrGesamt").replace("{n}", it.toString()) }))
+                    sub = hrGesamt?.let { I18n.t("sd.avgHrGesamt").replace("{n}", it.toString()) },
+                    umschalt = hrGesamt?.let { StatItem(I18n.t("sd.avgHrTotal"), "$it") }))
                 else (m?.avgHr)?.let { if (it > 0) add(StatItem(I18n.t("sd.avgHr"), "$it")) }
                 (m?.maxHr)?.let { if (it > 0) add(StatItem(I18n.t("sd.maxHr"), "$it")) }
                 longestRunIdx?.let { add(StatItem(I18n.t("home.longestRun"), mmssD(segList[it].durationS), it)) }
@@ -1217,6 +1242,9 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             // Lage je Lauf — nur am Brett, eigene kleine Tabelle unter der grossen (wie PWA).
             LageJeLaufTabelle(s, selectedRun) { selectedRun = if (selectedRun == it) null else it }
         }
+
+        // Kommentare direkt nach den Auswertungen; Melden, Einstellungen und Werkzeuge darunter (Web, Jan 03.11.2026).
+        if (social) SessionKommentareAbschnitt(s, onKommentare, onKommentareEinschalten)
 
         // Melden ganz unten, UNTER den Lauf-Statistiken (Jan, 29.07.): erst die Session ansehen,
         // dann urteilen — oben stand es im Weg. Nur bei FREMDEN Sessions; bei eigenen sitzen an
@@ -2223,7 +2251,10 @@ private data class StatItem(val label: String, val value: String, val runIdx: In
                             /** Erklaertext hinter einem (i) — z. B. was als Startversuch zaehlt. */
                             val info: String? = null,
                             /** Kleine Zeile unter der Beschriftung — z. B. „gesamt 142" beim Foil-Puls. */
-                            val sub: String? = null)
+                            val sub: String? = null,
+                            /** Tippen schaltet auf diese Kachel um und zurueck (Puls: Ø auf dem Foil <-> Ø gesamt, Web PulsStat);
+                             *  nicht gemerkt. */
+                            val umschalt: StatItem? = null)
 
 // Fahrten (Wind): eine Zeile je Fahrt — Dauer, Gesamtstrecke, davon auf dem Foil, Laeufe (wie Web).
 /** Eine Spalte der Sportart-Tabellen: Sortierwert (null = nicht sortierbar) und Zelltext je Zeile. */
@@ -2443,10 +2474,13 @@ private fun StatGrid(stats: List<StatItem>, selected: Int? = null, onSelect: (In
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         stats.chunked(2).forEach { rowItems ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                rowItems.forEach { st ->
+                rowItems.forEach { st0 ->
+                    var umgeschaltet by remember(st0.label, st0.value) { mutableStateOf(false) }
+                    val st = if (umgeschaltet) st0.umschalt ?: st0 else st0
                     val sel = st.runIdx != null && st.runIdx == selected
                     val mod = Modifier.weight(1f).then(
-                        if (st.runIdx != null) Modifier.clickable { onSelect(st.runIdx) } else Modifier
+                        if (st0.umschalt != null) Modifier.clickable { umgeschaltet = !umgeschaltet }
+                        else if (st.runIdx != null) Modifier.clickable { onSelect(st.runIdx) } else Modifier
                     )
                     val colors = if (sel) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                                  else CardDefaults.cardColors()
@@ -3056,4 +3090,87 @@ private fun MergeLinkHinweis(sessionId: Int) {
         }
     }
     Spacer(Modifier.height(8.dp))
+}
+
+/** Kleiner Knopf neben dem Herz: Liste der Liker (Name -> Profil), wie WerHatGeliked im Web. */
+@Composable
+private fun WerHatGeliked(sessionId: Int, anzahl: Int) {
+    var offen by remember { mutableStateOf(false) }
+    var liste by remember(sessionId) { mutableStateOf<List<Api.Liker>?>(null) }
+    val oeffneFoiler = LocalOpenFoiler.current
+    LaunchedEffect(offen, sessionId, anzahl) {
+        if (offen) liste = try { Api.sessionLikers(sessionId) } catch (_: Exception) { emptyList() }
+    }
+    TextButton(onClick = { offen = true }) { Text(I18n.t("sd.whoLiked"), style = MaterialTheme.typography.labelMedium) }
+    if (offen) AlertDialog(
+        onDismissRequest = { offen = false },
+        confirmButton = { TextButton(onClick = { offen = false }) { Text(I18n.t("common.close")) } },
+        title = { Text(I18n.t("sd.whoLiked")) },
+        text = {
+            val l = liste
+            when {
+                l == null -> Text(I18n.t("common.loading"))
+                l.isEmpty() -> Text("—")
+                else -> Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState())) {
+                    l.forEach { e ->
+                        Row(Modifier.fillMaxWidth().clickable(enabled = oeffneFoiler != null) { offen = false; oeffneFoiler?.invoke(e.user_id) }
+                            .padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                            AvatarCircle(name = e.name ?: "—", avatarUrl = e.avatar_url, size = 28.dp, userId = e.user_id, link = false)
+                            Spacer(Modifier.width(10.dp))
+                            Text(e.name ?: "—", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        }
+                    }
+                }
+            }
+        },
+    )
+}
+
+/**
+ * Kommentare unter einer Session (Web SessionKommentare, 02.11.2026; Regeln in server/app/kommentare.py). Der Faden selbst
+ * ist der Chat im Raum `session:<id>` (ChatScreen.kt SessionKommentareRaum) auf eigener Seite — hier die Ueberschrift, die
+ * letzten drei Kommentare und das Feld, das den Faden oeffnet. Abgeschaltet sieht nur der Inhaber einen Hinweis.
+ */
+@Composable
+private fun SessionKommentareAbschnitt(s: SessionDetail, onOeffnen: () -> Unit, onEinschalten: () -> Unit) {
+    if (s.commentsOff) {
+        if (!s.owned) return
+        Column(Modifier.padding(top = 16.dp)) {
+            Text(I18n.t("comments.offOwner"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            TextButton(onClick = onEinschalten, contentPadding = PaddingValues(0.dp)) { Text(I18n.t("comments.offLink")) }
+        }
+        return
+    }
+    var letzte by remember(s.id) { mutableStateOf<List<ChatMsg>?>(null) }
+    LaunchedEffect(s.id) { letzte = try { Api.chatLatest("session:${s.id}", limit = 3) } catch (_: Exception) { emptyList() } }
+    Card(Modifier.fillMaxWidth().padding(top = 16.dp).clickable(onClick = onOeffnen)) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(I18n.t("comments.title"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                if (s.commentCount > 0) Text("  ${s.commentCount}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            val l = letzte
+            if (l != null && l.isEmpty()) Text(I18n.t("comments.empty"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            l.orEmpty().filter { !it.hidden }.forEach { m ->
+                Row(verticalAlignment = Alignment.Top) {
+                    AvatarCircle(name = m.name ?: "—", avatarUrl = m.avatarUrl, size = 28.dp, userId = if (m.mine) null else m.userId)
+                    Spacer(Modifier.width(8.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(m.name ?: "—", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                        Text(m.text.ifBlank { if (m.photos.isNotEmpty()) I18n.t("chat.quotePhoto") else "" },
+                            style = MaterialTheme.typography.bodyMedium, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                    }
+                }
+            }
+            // Sieht aus wie das Eingabefeld des Web-Abschnitts; der Tipp oeffnet den Faden mit Tastatur, Antworten und Likes.
+            Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.fillMaxWidth()) {
+                Text(I18n.t("comments.placeholder"), Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
 }

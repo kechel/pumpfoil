@@ -197,6 +197,36 @@ fun OnlinePunktKarte(onSaved: () -> Unit) {
     }
 }
 
+/** Kommentare unter den eigenen Sessions an/aus (Web KommentareCard, 02.11.2026). Aus = fuer alle ausgeblendet. */
+@Composable
+fun KommentareKarte(onSaved: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var an by remember { mutableStateOf<Boolean?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        an = try { Api.settings()["comments_off"]?.jsonPrimitive?.booleanOrNull != true } catch (_: Exception) { true }
+    }
+    val wert = an ?: return
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp)) {
+            Text(I18n.t("comments.title"), style = MaterialTheme.typography.titleMedium)
+            Text(I18n.t("comments.settingHint"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp, bottom = 6.dp))
+            Haken(I18n.t("comments.settingSwitch"), wert, aktiv = !busy) { neu ->
+                busy = true
+                scope.launch {
+                    try {
+                        Api.saveSettings(kotlinx.serialization.json.buildJsonObject { put("comments_off", !neu) })
+                        an = neu
+                        onSaved()
+                    } catch (_: Exception) {}
+                    busy = false
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun GeteilteAufnahmenKarte(onOpenSession: ((Int) -> Unit)? = null) {
     val scope = rememberCoroutineScope()

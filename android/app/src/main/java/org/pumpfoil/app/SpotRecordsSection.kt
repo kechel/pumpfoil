@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -88,21 +89,38 @@ fun SpotRecordsSection(spot: String, accelOnly: Boolean, sport: String, onOpen: 
     Column(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
         Text(titel, style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 4.dp))
-        key(sport) { SpotRecordsSport(d, sport, onOpen) }
+        key(sport) { SpotRecordsSport(d, sport, onOpen, spot, accelOnly) }
     }
 }
 
 @Composable
-private fun SpotRecordsSport(daten: Map<String, PeriodRecords>, sport: String, onOpen: (Int) -> Unit) {
+private fun SpotRecordsSport(daten: Map<String, PeriodRecords>, sport: String, onOpen: (Int) -> Unit, spot: String, accelOnly: Boolean) {
     val fenster = listOf("10d", "30d", "365d", "all")
     // Erstes Fenster mit Rekord; die eigene Wahl gilt, bis die Sportart wechselt (key am Aufrufer).
     var wahl by remember { mutableStateOf(fenster.firstOrNull { hatRekorde(daten[it]) } ?: "all") }
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(bottom = 6.dp)) {
-        fenster.forEach { f ->
+    // Waehlbar sind alle Zeitraeume wie im Web (PERIODS, mit Heute/Gestern); der Startwert bleibt das erste belegte Fenster.
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.padding(bottom = 6.dp).then(Modifier.horizontalScroll(androidx.compose.foundation.rememberScrollState()))) {
+        listOf("today", "yesterday", "10d", "30d", "365d", "all").forEach { f ->
             FilterChip(selected = wahl == f, onClick = { wahl = f }, label = { Text(I18n.t("period.$f")) })
         }
     }
     RecordGrid(daten[wahl], showSpot = false, onOpen = onOpen, sport = sport, nurBelegt = true)
+    // Darunter dieselben Bestenlisten wie in der Community, nur an diesem Spot (Web 0fc2eba8, Jan 02.11.2026);
+    // Zeitraum wie die Kacheln darueber.
+    var lb by remember { mutableStateOf<Leaders?>(null) }
+    LaunchedEffect(wahl, accelOnly, sport, spot) {
+        lb = try { Api.leaders(wahl, accelOnly, "all", sport = sport, spot = spot) } catch (_: Exception) { lb }
+    }
+    var metrik by remember { mutableStateOf("run_time") }
+    lb?.let { l ->
+        val leer = l.sessions.isEmpty() && l.runs.isEmpty() && l.spots.isEmpty()
+        Text(I18n.t("community.leaderboard") + " · " + I18n.t("period.$wahl"), style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 16.dp, bottom = 4.dp))
+        if (leer) Text("—", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        else BestenlistenBlock(l, sport, metrik, { metrik = it }, onOpen,
+            unterzeile = listOf(spot, I18n.t("cls.sport.$sport"), I18n.t("period.$wahl")))
+    }
 }
 
 /** Steht in diesem Zeitfenster überhaupt ein Rekord? (mindestens eine Kennzahl mit Session) */
