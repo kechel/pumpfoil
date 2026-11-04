@@ -17,6 +17,23 @@ SCHLUESSEL = [
     "tab.overview", "tab.team", "tab.stats", "tab.insights",
     # Phase 2: Leiste unten — „Einstellungen" statt „Profil" (Zahnrad)
     "nav.settings",
+    # Phase 4: Home › Spots
+    "nav.spots", "mySpots.title", "mySpots.empty", "mySpots.last", "mySpots.since", "mySpots.sports", "mySpots.all",
+    "team.stat.sessions", "team.stat.zeit", "team.stat.strecke", "team.stat.laeufe", "team.stat.pumps",
+    "foiler.homespot", "sessions.title", "spots.heatmap", "tab.weather", "tab.descriptions", "tab.spotPage",
+    # Phase 5: Home › Profil
+    "nav.profile", "phome.profileHint", "phome.asFriends", "phome.asAll", "phome.previewHidden", "ptab.privacy",
+    # Phase 6: Einstellungen-Reiter
+    "ptab.watches", "friends.title", "ptab.me", "ptab.riding", "ptab.display", "ptab.account",
+    "team.finden", "team.findenPlatzhalter", "team.gruenden", "friends.termsTitle",
+    # Phase 7: Ausruestung
+    "gear.title", "gear.mastShim", "gear.searchHint", "gear.noHits", "setup.stabTitle", "setup.boardTitle",
+    # Phase 8: Community-Reiter, Team-Bestenlisten
+    "tab.rankings", "tab.media", "land.teamsTitle", "team.vergleich.titel", "team.vergleich.hinweis",
+    "team.vergleich.top", "team.vergleich.ausFahrern", "team.vergleich.leer", "team.bild.titel", "team.aktivste",
+    "team.alle",
+    # Phase 9: Spots-Reiter
+    "tab.map", "tab.list", "tab.routes",
 ]
 
 
