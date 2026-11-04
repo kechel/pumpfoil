@@ -17,6 +17,12 @@ const FELDTEXTE: string[] = ['kmh3s', 'kmhAvg', 'kmhMax', 'bpmAvg', 'bpmMax', 't
   'runTime', 'runDist', 'lastRunTime', 'lastRunDist', 'lastRunAvg', 'lastRunMax', 'runs', 'lastRunMaxHr',
   'allRunsDist', 'allRunsTime'];
 
+interface Zeile {   // eine Zeile der Einstellungen (s. zeile())
+  begriff: ResourceStr;
+  wert: string;
+  was: string;
+}
+
 const HALTEN_MS: number = 2000;
 // Knoepfe der Aufnahme-Seiten (Pause/Fortsetzen, Verwerfen, STOPP). Vorher 200 x 56 wie auf der Startseite: mit
 // „Paused", Zeit/Strecke und Infozeile wurde die Spalte hoeher als das runde Display, oben und unten fehlte etwas
@@ -603,11 +609,13 @@ struct Index {
   }
 
   // Wie lite pages/auswahl: Begriff grau oben, Wert weiss darunter (lange Foil-Namen zweizeilig).
+  // EIN Objekt statt drei Einzelwerte: einzeln uebergebene Werte liest ein @Builder nur beim ersten Aufbau, ein
+  // umgeschalteter Wert (Auto-Start, Touch-Sperre, Layouts …) erschien deshalb nicht (Jan im Emulator, 04.11.2026).
   @Builder
-  zeile(begriff: ResourceStr, wert: string, was: string) {
+  zeile(z: Zeile) {
     Column() {
-      Text(begriff).fontSize(15).fontColor('#94a3b8').textAlign(TextAlign.Center)
-      Text(wert).fontSize(20).fontColor('#ffffff').textAlign(TextAlign.Center).maxLines(2)
+      Text(z.begriff).fontSize(15).fontColor('#94a3b8').textAlign(TextAlign.Center)
+      Text(z.wert).fontSize(20).fontColor('#ffffff').textAlign(TextAlign.Center).maxLines(2)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
     .width('78%')
@@ -615,7 +623,7 @@ struct Index {
     .margin({ top: 6 })
     .borderRadius(14)
     .backgroundColor('#1e293b')
-    .onClick(() => this.aendern(was))
+    .onClick(() => this.aendern(z.was))
   }
 
   // Eigene Scroll-Flaeche: sie nimmt das senkrechte Wischen selbst (das Blaettern der Stack-Geste
@@ -625,16 +633,16 @@ struct Index {
     Scroll(this.scroller) {
       Column() {
         if (this.zSport !== '') {
-          this.zeile($r('app.string.sportClass'), this.zSport, 'sport')
+          this.zeile({ begriff: $r('app.string.sportClass'), wert: this.zSport, was: 'sport' })
         }
-        this.zeile($r('app.string.alarm'), this.zAlarm, 'alarm')
-        this.zeile($r('app.string.thresholds'), this.zQuelle, 'quelle')
-        this.zeile('Foil', this.zFoil, 'foil')
-        this.zeile($r('app.string.layoutsShort'), this.zLayouts, 'layouts')
-        this.zeile($r('app.string.lock'), this.zSperre, 'sperre')
-        this.zeile($r('app.string.autoStart'), this.zStart, 'start')
-        this.zeile('pumpfoil.org', this.zDirekt, 'direkt')
-        this.zeile($r('app.string.privacyTitle'), 'pumpfoil.org/impressum', 'datenschutz')
+        this.zeile({ begriff: $r('app.string.alarm'), wert: this.zAlarm, was: 'alarm' })
+        this.zeile({ begriff: $r('app.string.thresholds'), wert: this.zQuelle, was: 'quelle' })
+        this.zeile({ begriff: 'Foil', wert: this.zFoil, was: 'foil' })
+        this.zeile({ begriff: $r('app.string.layoutsShort'), wert: this.zLayouts, was: 'layouts' })
+        this.zeile({ begriff: $r('app.string.lock'), wert: this.zSperre, was: 'sperre' })
+        this.zeile({ begriff: $r('app.string.autoStart'), wert: this.zStart, was: 'start' })
+        this.zeile({ begriff: 'pumpfoil.org', wert: this.zDirekt, was: 'direkt' })
+        this.zeile({ begriff: $r('app.string.privacyTitle'), wert: 'pumpfoil.org/impressum', was: 'datenschutz' })
       }
       .width('100%')
       .padding({ top: 70, bottom: 90 })
