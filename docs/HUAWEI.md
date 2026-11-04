@@ -44,6 +44,12 @@ decompress", die Lite-JS-App laeuft) [FORUM, mit Geraetebeleg]:
   HarmonyOS NEXT fuehrt das FA-Modell als abgekuendigt, und das genannte Projekt baut fuer Watch 4/5/
   Ultimate ausschliesslich ArkTS. Ein Test mit unserer `wearable/`-App auf einer Watch 5 klaert es.
 - Bekommt die Watch 4 ihr Update auf 5/6, faellt sie vermutlich von `wearable/` auf die ArkTS-Linie.
+  **Recherche 04.11.2026:** danach sieht es nicht aus. Die globale Watch 4 Pro bekam im Mai 2026 noch ein
+  Stabilitaets-Update, aber auf **HarmonyOS 4.3.0.617** — ein HarmonyOS 5 fuer sie ist nirgends angekuendigt
+  (huaweicentral.com). Die Watch 3 / 3 Pro (Juni 2021) steht laut letzter Meldung (Juni 2024) noch auf HarmonyOS 3.
+  Watch 4 / 4 Pro kamen im Mai 2023 (Europa Juni 2023), die Space Edition (gleiche Technik) im Mai 2024, Nachfolger
+  Watch 5 im Fruehjahr 2025. Folge: Watch 3/4 bleiben auf `wearable/`; die Watch-5-App (ab API 12 = HarmonyOS 5)
+  laeuft dort nicht. Stueckzahlen je Modell nennt niemand (IDC 2025: Huawei 25,5 Mio. Smartwatches gesamt).
 - **Watch Ultimate [UNKLAR]:** Huaweis eigener Forenartikel „Wearable Device Types" fuehrt sie unter Lite,
   das Home-Assistant-Projekt unter ArkTS. Erst ein Geraet entscheidet; bis dahin in keiner Liste versprechen.
 - **ArkTS-Seite (Recorder.ets):** Erfolgscode `P2pResultCode.COMMUNICATION_SUCCESS = 207` [DOK, SDK-Typen API 24].
