@@ -596,9 +596,8 @@ _APP_META: dict[str, dict[str, str]] = {
         "latest": "1.0.3",  # FREIGEGEBEN 2026-11-04 (Jans Meldung, AppGallery-Mail: Einreichung 02.11. 20:03:25 approved
         # and released). Erste Huawei-Fassung im Store. Davor 1.0.2 abgelehnt 22.10./28.10., 1.0.3 abgelehnt 02.11.
         "min_supported": "",
-        # appgallery.huawei.com/app/C6917618548983879423 (App ID im ueblichen Schema) zeigte bei Jan NICHTS (04.11.) —
-        # Uhren-Apps haben dort offenbar keine Web-Seite. Erst eintragen, wenn ein Link nachweislich die App zeigt.
-        "store_url": "",
+        # Ueber den Paketnamen (von Jan im Browser bestaetigt 04.11.); die Form /app/C<App-ID> zeigte NICHTS.
+        "store_url": "https://appgallery.huawei.com/app/detail?id=org.pumpfoil.huawei",
     },
     "huawei-gt": {          # watch-huawei/lite: Watch GT / Fit / D (LiteOS), braucht Wear Engine
         "latest": "",

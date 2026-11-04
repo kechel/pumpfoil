@@ -23,7 +23,7 @@ const ROWS: { name: string; sub?: string; subKey?: string; gps: Cap; hr: Cap; pu
   // Seit 04.11.2026 zwei Zeilen: die Watch 5 ist in der AppGallery (laedt selbst hoch), GT/Fit/D wartet auf die
   // Wear-Engine-Freigabe. Watch 3/4 nicht mehr aufgefuehrt — wird nicht eingereicht (docs/HUAWEI.md, Recherche 04.11.).
   { name: "Huawei Watch 5", sub: "HarmonyOS 5/6 · AppGallery", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nHuaweiW5",
-    weg: "AppGallery → „Pumpfoil\"" },   // wie bei Zepp. Kein Link: die AppGallery-Webseite zeigt Uhren-Apps nicht (04.11.)
+    weg: "AppGallery → „Pumpfoil\"", wegUrl: "https://appgallery.huawei.com/app/detail?id=org.pumpfoil.huawei" },   // wie bei Zepp; Link = appmeta store_url (ueber den Paketnamen, /app/C<id> geht nicht)
   { name: "Huawei", sub: "Lite Wearable (GT 3–7, Fit 2–5, D2)", gps: "yes", hr: "yes", pump: "partial", status: "planned", noteKey: "watches.nHuawei" },
   { name: "Polar", sub: "Vantage, Grit X …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nPolar",
     account: { logo: "/polar-logo.jpg", alt: "Polar", labelKey: "watches.linkAccount" } },
