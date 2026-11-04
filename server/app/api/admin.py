@@ -1031,6 +1031,31 @@ def _news_dict(row: "models.NewsBanner") -> dict:
             "updated_at": row.updated_at.isoformat() if row.updated_at else None}
 
 
+@router.get("/promo")
+def promo_liste(_a: models.User = Depends(current_admin)) -> list[dict]:
+    """Was unter `pumpfoil.org/promo/<datei>` oeffentlich liegt (server/media/promo/, Route in main.py), damit Jan
+    die Links im Admin-Bereich findet statt zu fragen (04.11.2026). Nur Name, Groesse, Zeit, bei Bildern die Masse."""
+    from ..config import get_settings
+    from ..main import PROMO_TYPEN
+    ordner = get_settings().media_dir / "promo"
+    aus = []
+    for f in sorted(ordner.iterdir()) if ordner.is_dir() else []:
+        if not f.is_file() or f.name.startswith(".") or f.suffix.lower() not in PROMO_TYPEN:
+            continue
+        st = f.stat()
+        e = {"name": f.name, "bytes": st.st_size, "geaendert": datetime.fromtimestamp(st.st_mtime, timezone.utc).isoformat(),
+             "typ": PROMO_TYPEN[f.suffix.lower()], "breite": None, "hoehe": None}
+        if e["typ"].startswith("image/") and f.suffix.lower() != ".svg":
+            try:
+                from PIL import Image
+                with Image.open(f) as im:
+                    e["breite"], e["hoehe"] = im.size
+            except Exception:   # noqa: BLE001 - Liste darf an einem kaputten Bild nicht scheitern
+                pass
+        aus.append(e)
+    return aus
+
+
 @router.get("/news")
 def news_get(_a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
     return _news_dict(_news_row(db))

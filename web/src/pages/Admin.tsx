@@ -11,7 +11,7 @@ import { useT, useNumberFormat, LANGS } from "../i18n";
 import { DATA_QUALITY, SPORTS, sortiereSports } from "../lib/sportClass";
 import { demoGewuenscht, demoSetzen, demoAnzahl, demoBeobachten } from "../lib/demoNames";
 
-type Tab = "overview" | "classify" | "sportregel" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "teams" | "audit" | "feedback" | "bewertungen" | "supporter" | "news" | "blocks" | "social" | "system";
+type Tab = "overview" | "classify" | "sportregel" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "teams" | "audit" | "feedback" | "bewertungen" | "supporter" | "news" | "promo" | "blocks" | "social" | "system";
 const TABS: [Tab, string][] = [
   ["overview", "adm.tab.overview"],
   ["classify", "adm.tab.classify"],
@@ -30,6 +30,7 @@ const TABS: [Tab, string][] = [
   ["bewertungen", "adm.tab.bewertungen"],
   ["supporter", "adm.tab.supporter"],
   ["news", "adm.tab.news"],
+  ["promo", "adm.tab.promo"],
   ["social", "adm.tab.social"],
   ["blocks", "adm.tab.blocks"],
   ["audit", "adm.tab.audit"],
@@ -96,6 +97,7 @@ export default function Admin() {
       {tab === "bewertungen" && <BewertungenTab />}
       {tab === "supporter" && <SupporterTab />}
       {tab === "news" && <NewsTab />}
+      {tab === "promo" && <PromoTab />}
       {tab === "system" && <SystemTab />}
       {tab === "social" && <SocialTab />}
       {tab === "blocks" && <BlocksTab />}
@@ -1108,6 +1110,62 @@ function SystemTab() {
 //     (Abschnitt „unbekannt"). Ein Text, den man nicht sieht, kann man nicht zurueckziehen.
 // Beschriftungen bewusst deutsch/unuebersetzt — wie der Demo-Modus oben; diese Ansicht sieht
 // nur der Betreiber.
+
+// Oeffentliche Werbe-Grafiken unter pumpfoil.org/promo/ (Endcards usw., server/media/promo/) plus App-Icon und
+// Store-Links — zum Kopieren fuer Foren und Chats, damit Jan nicht nach den Adressen fragen muss (04.11.2026).
+// Absolute Adressen mit pumpfoil.org, auch wenn die Seite woanders laeuft: genau die werden geteilt.
+const PROMO_BASIS = "https://pumpfoil.org";
+const PROMO_FEST: { name: string; pfad: string }[] = [
+  { name: "App-Icon 512", pfad: "/icon-512.png" },
+  { name: "App-Icon 192", pfad: "/icon-192.png" },
+  { name: "App-Icon 180 (Apple)", pfad: "/apple-touch-icon.png" },
+  { name: "Logo Anmeldeseiten 512", pfad: "/oauth-logo-512.png" },
+];
+function PromoTab() {
+  const t = useT();
+  const [liste, setListe] = useState<Awaited<ReturnType<typeof api.adminPromo>> | null>(null);
+  const [kopiert, setKopiert] = useState("");
+  useEffect(() => { api.adminPromo().then(setListe).catch(() => setListe([])); }, []);
+  if (!liste) return <Spinner />;
+  const kopieren = (url: string) => {
+    navigator.clipboard?.writeText(url).then(() => { setKopiert(url); setTimeout(() => setKopiert(""), 1500); }).catch(() => {});
+  };
+  const zeile = (titel: string, pfad: string, info: string, bild: boolean) => {
+    const url = PROMO_BASIS + pfad;
+    return (
+      <li key={pfad} className="flex items-center gap-3 border-b border-slate-800 py-2 last:border-0">
+        {bild ? <img src={pfad} alt="" loading="lazy" className="h-14 w-14 shrink-0 rounded-md border border-slate-800 object-contain" />
+          : <div className="h-14 w-14 shrink-0" />}
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-sm font-medium">{titel}</div>
+          <a href={url} target="_blank" rel="noopener noreferrer" className="block truncate text-xs text-brand-400 underline hover:text-brand-600 dark:hover:text-brand-300">{url}</a>
+          {info && <div className="text-xs text-slate-500">{info}</div>}
+        </div>
+        <button type="button" onClick={() => kopieren(url)} className="shrink-0 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100 hover:border-brand-500">
+          {kopiert === url ? t("adm.promo.copied") : t("adm.promo.copy")}
+        </button>
+      </li>
+    );
+  };
+  return (
+    <div className="space-y-4">
+      <Card className="p-4">
+        <h3 className="mb-1 font-semibold">{t("adm.promo.title")}</h3>
+        <p className="mb-3 text-sm text-slate-400">{t("adm.promo.hint")}</p>
+        <ul>
+          {liste.map((f) => zeile(f.name, "/promo/" + f.name,
+            [f.breite && f.hoehe ? `${f.breite}×${f.hoehe}` : "", `${Math.round(f.bytes / 1024)} KB`, f.geaendert.slice(0, 10)].filter(Boolean).join(" · "),
+            f.typ.startsWith("image/")))}
+          {liste.length === 0 && <li className="py-2 text-sm text-slate-500">–</li>}
+        </ul>
+      </Card>
+      <Card className="p-4">
+        <h3 className="mb-3 font-semibold">{t("adm.promo.icons")}</h3>
+        <ul>{PROMO_FEST.map((f) => zeile(f.name, f.pfad, "", true))}</ul>
+      </Card>
+    </div>
+  );
+}
 
 function NewsTab() {
   const t = useT();

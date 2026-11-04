@@ -2054,6 +2054,7 @@ export const api = {
     verlauf: { tag: string; db: number; data: number; media: number; projekt: number }[];
   }>("/api/admin/health/speicher"),
   adminNewsGet: () => req<NewsBanner>("/api/admin/news"),
+  adminPromo: () => req<{ name: string; bytes: number; geaendert: string; typ: string; breite: number | null; hoehe: number | null }[]>("/api/admin/promo"),
   adminNewsSet: (p: Partial<NewsBanner>) => req<NewsBanner>("/api/admin/news", { method: "PUT", body: JSON.stringify(p) }),
   adminSpots: () => req<{ id: number; name: string | null; name_source: string | null; water: string | null; lat: number | null; lon: number | null; sessions: number }[]>("/api/admin/spots"),
   adminMergeSpots: (into: number, from: number[]) => req<{ ok: boolean; into: number; merged: number }>("/api/admin/spots/merge", { method: "POST", body: JSON.stringify({ into, from }) }),
