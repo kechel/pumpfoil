@@ -10,7 +10,7 @@ import { useSearchParams } from "react-router-dom";
  * - Der Reiter steht in der Adresse (`?tab=`). Ein Link geht vor allem Gemerkten.
  * - Ein Wechsel ERSETZT den Verlaufseintrag: „Zurueck" fuehrt zur vorigen Seite, nicht durch die Reiter.
  * - Mit `merken` wird die Wahl fuer einen neuen Start im Browser gemerkt (nur Komfort; ohne Speicher gilt `start`).
- * - `param`: eigener Name, wenn Reiter in Reitern stehen (Homespot in Home: `stab`).
+ * - `param`: eigener Name, wenn Reiter in Reitern stehen (Spots in Home: `stab`).
  */
 export type ReiterDef = { id: string; label: string };
 
@@ -35,12 +35,10 @@ export function useReiter(bereich: string, ids: string[], start: string,
 }
 
 /**
- * `unter`: der aktive Reiter hat eine zweite Reiterzeile — er wird dann in derselben Farbe hinterlegt wie die Zeile
- * darunter, damit man sieht, was zusammengehoert (Jan, 02.11.2026). `stufe={2}` ist diese zweite Zeile selbst:
- * gleiche Schriftgroesse, als Flaeche direkt unter der ersten. Ueberall identisch.
+ * Waagrecht wischbare Leiste: Pfeile am Rand, Mausrad rollt waagrecht, der gewaehlte Eintrag (`aria-selected`) rollt ins
+ * Bild. Gemeinsam fuer die Reiterleisten und die Spotzeile auf Home › Spots.
  */
-export function Reiterleiste({ reiter, aktiv, onWahl, className = "", unter = false, stufe = 1 }:
-  { reiter: ReiterDef[]; aktiv: string; onWahl: (id: string) => void; className?: string; unter?: boolean; stufe?: 1 | 2 }) {
+export function useWischleiste(aktiv: string, anzahl: number) {
   const leiste = useRef<HTMLDivElement>(null);
   const [rand, setRand] = useState({ links: false, rechts: false });
   // Der gewaehlte Reiter rollt ins Bild, auch wenn die Leiste gewischt werden muss (lange Sprachen, schmale Handys).
@@ -69,7 +67,7 @@ export function Reiterleiste({ reiter, aktiv, onWahl, className = "", unter = fa
     const ro = new ResizeObserver(pruefen);
     ro.observe(el);
     return () => { el.removeEventListener("scroll", pruefen); el.removeEventListener("wheel", rad); ro.disconnect(); };
-  }, [reiter.length]);
+  }, [anzahl]);
   const rollen = (richtung: 1 | -1) => leiste.current?.scrollBy({ left: richtung * leiste.current.clientWidth * 0.7, behavior: "smooth" });
   const pfeil = (richtung: 1 | -1) => (
     <button type="button" aria-hidden tabIndex={-1} onClick={() => rollen(richtung)}
@@ -78,6 +76,17 @@ export function Reiterleiste({ reiter, aktiv, onWahl, className = "", unter = fa
       <ChevronIcon className={`h-4 w-4 ${richtung === 1 ? "" : "rotate-180"}`} />
     </button>
   );
+  return { leiste, rand, pfeil };
+}
+
+/**
+ * `unter`: der aktive Reiter hat eine zweite Reiterzeile — er wird dann in derselben Farbe hinterlegt wie die Zeile
+ * darunter, damit man sieht, was zusammengehoert (Jan, 02.11.2026). `stufe={2}` ist diese zweite Zeile selbst:
+ * gleiche Schriftgroesse, als Flaeche direkt unter der ersten. Ueberall identisch.
+ */
+export function Reiterleiste({ reiter, aktiv, onWahl, className = "", unter = false, stufe = 1 }:
+  { reiter: ReiterDef[]; aktiv: string; onWahl: (id: string) => void; className?: string; unter?: boolean; stufe?: 1 | 2 }) {
+  const { leiste, rand, pfeil } = useWischleiste(aktiv, reiter.length);
   if (stufe === 2) {
     return (
       <div className={`relative -mt-4 mb-6 ${className}`}>

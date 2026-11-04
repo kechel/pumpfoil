@@ -5,7 +5,7 @@ import { useWiederAufwachen } from "../lib/useWiederAufwachen";
 import { useEffect, useRef, useState } from "react";
 import { fmtDate } from "../lib/time";
 import { foilLabel } from "../lib/foilLabel";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { api, Aktivitaet, CommunitySession, FoilStatsGroup, MeinSpot, OverallStats, Profile, SessionSummary, TeamKurz } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import { TeamHerkunft } from "../components/TeamHerkunft";
@@ -18,7 +18,7 @@ import { useKompakteListe } from "../lib/kompakteListe";
 import { CommunityList, EigeneAbzeichen, SessionStats, SpotBereich, renderCommunitySession } from "./Sessions";
 import History from "./History";
 import LinkedAccounts from "./LinkedAccounts";
-import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
+import { Reiterleiste, useReiter, useWischleiste, type ReiterDef } from "../components/Reiter";
 import { TeamWahl, useTeamWahl } from "../components/TeamWahl";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
@@ -308,6 +308,9 @@ export default function PersonalHome() {
   const [latestFehler, setLatestFehler] = useState(false);
   const [homespot, setHomespot] = useState("");
   const [homespotId, setHomespotId] = useState<number | null>(null);
+  // Alle Spots mit eigenen Sessions, fuer den Reiter „Spots" (Spotzeile + Kacheln unter „Alle").
+  const [meineSpots, setMeineSpots] = useState<MeinSpot[] | null>(null);
+  useEffect(() => { api.mySpotsStats().then(setMeineSpots).catch(() => setMeineSpots([])); }, []);
   const [meineTeams, setMeineTeams] = useState<TeamKurz[]>([]);
   useEffect(() => { api.teamsMine().then((l) => setMeineTeams(l.filter((x) => x.status === "aktiv"))).catch(() => {}); }, []);
   // Rekorde: nur aus Sessions mit Accel (präzise) oder aus allen (inkl. GPS-only).
@@ -434,7 +437,8 @@ export default function PersonalHome() {
     { id: "uebersicht", label: t("tab.overview") },
     { id: "rekorde", label: t("side.records") },
     { id: "team", label: t("tab.team") },
-    ...(homespotId != null ? [{ id: "homespot", label: t("foiler.homespot") }] : []),
+    // „Spots" statt „Homespot" (Jan, 04.11.2026): darunter alle eigenen Spots, der Homespot vorgewaehlt.
+    ...(homespotId != null || (meineSpots?.length ?? 0) > 0 ? [{ id: "spots", label: t("nav.spots") }] : []),
     // „Stats" statt „Verlauf" (Jan, 02.11.2026), darin eine zweite Reiterzeile fuer die einzelnen Auswertungen.
     { id: "stats", label: t("tab.stats") },
     // Uhr & Konten (Jan, 02.11.2026): die eigenen Uhren und verknuepften Konten, sonst die beiden Einstiege.
@@ -458,7 +462,7 @@ export default function PersonalHome() {
         <FreundePumpen />
       </div>
 
-      <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} unter={tab === "stats" || tab === "homespot"} />
+      <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} unter={tab === "stats" || tab === "spots"} />
 
       {tab === "uebersicht" && <>
         <FreundesAnfragen />
@@ -620,15 +624,7 @@ export default function PersonalHome() {
 
       {tab === "team" && <MeineTeams teams={meineTeams} />}
 
-      {/* Kopf (Spotname + Link) UNTER der zweiten Reiterzeile, sonst risse er die Zeile vom Reiter darueber ab. */}
-      {tab === "homespot" && homespotId != null && <HomespotBereich spotId={homespotId} kopf={
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <LocationIcon className="h-5 w-5 shrink-0 text-brand-400" />
-          <h3 className="min-w-0 truncate text-lg font-semibold">{homespot}</h3>
-          <Link to={`/sessions?spot=${homespotId}`} className="ml-auto whitespace-nowrap text-xs text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">
-            {t("tab.spotPage")} →
-          </Link>
-        </div>} />}
+      {tab === "spots" && <SpotsBereich homespotId={homespotId} homespotName={homespot} liste={meineSpots} />}
 
       {tab === "stats" && <StatsBereich />}
 
@@ -722,10 +718,62 @@ function MeineTeams({ teams }: { teams: TeamKurz[] }) {
   );
 }
 
-/** Reiter „Homespot": DERSELBE Inhalt wie die Spot-Seite (SpotBereich, samt Session-Liste) — nur die Kopfzeile ist
- * eine andere (Jan, 02.11.2026). Sportart wie dort: Pumpfoil, wenn es am Spot welche gibt, sonst die erste. */
-function HomespotBereich({ spotId, kopf }: { spotId: number; kopf?: React.ReactNode }) {
+/** Reiter „Spots" (Jan, 04.11.2026): zweite Zeile = die eigenen Spots (Homespot zuerst, dann zuletzt besuchte), wischbar
+ * wie die Reiter, „Alle (n)" rechts immer sichtbar. Ein Spot -> darunter seine Reiter (Rekorde, Sessions, …); „Alle" -> die
+ * Kacheln. Spot in der Adresse (`?spot=<id>|alle`), der Unterreiter (`stab`) bleibt beim Spotwechsel stehen. */
+function SpotsBereich({ homespotId, homespotName, liste }: { homespotId: number | null; homespotName: string; liste: MeinSpot[] | null }) {
   const t = useT();
+  const [sp, setSp] = useSearchParams();
+  const pillen: { id: number; name: string }[] = [];
+  if (homespotId != null) pillen.push({ id: homespotId, name: liste?.find((x) => x.spot_id === homespotId)?.name ?? homespotName });
+  for (const x of liste ?? []) if (x.spot_id !== homespotId) pillen.push({ id: x.spot_id, name: x.name ?? "—" });
+  const roh = sp.get("spot");
+  const wahl = roh === "alle" || pillen.some((p) => String(p.id) === roh) ? roh! : (pillen.length ? String(pillen[0].id) : "alle");
+  const waehlen = (id: string) => setSp((alt) => { const n = new URLSearchParams(alt); n.set("spot", id); return n; }, { replace: true });
+  const { leiste, rand, pfeil } = useWischleiste(wahl, pillen.length);
+  if (!liste) return <Spinner />;
+  const gewaehlt = pillen.find((p) => String(p.id) === wahl);
+  return <>
+    <div className="-mt-4 mb-4 flex items-center gap-1 rounded-b-xl bg-slate-800/70 p-1.5">
+      <div className="relative min-w-0 flex-1">
+        <div ref={leiste} role="tablist" className="flex gap-1 overflow-x-auto [scrollbar-width:none]">
+          {pillen.map((p) => {
+            const an = String(p.id) === wahl;
+            const Symbol = p.id === homespotId ? HomeIcon : LocationIcon;
+            return (
+              <button key={p.id} role="tab" aria-selected={an} onClick={() => waehlen(String(p.id))}
+                className={`flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-3 py-1.5 text-sm ${
+                  an ? "bg-slate-950 font-semibold text-slate-100 shadow-sm" : "text-slate-300 hover:text-slate-100"}`}>
+                <Symbol className="h-4 w-4 shrink-0 text-brand-400" />{p.name}
+              </button>
+            );
+          })}
+        </div>
+        {rand.links && pfeil(-1)}
+        {rand.rechts && pfeil(1)}
+      </div>
+      <button role="tab" aria-selected={wahl === "alle"} onClick={() => waehlen("alle")}
+        className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm ${
+          wahl === "alle" ? "bg-slate-950 font-semibold text-slate-100 shadow-sm" : "text-slate-300 hover:text-slate-100"}`}>
+        {t("mySpots.all", { n: liste.length })}
+      </button>
+    </div>
+    {gewaehlt
+      ? <SpotAnsicht key={gewaehlt.id} spotId={gewaehlt.id} kopf={
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <LocationIcon className="h-5 w-5 shrink-0 text-brand-400" />
+            <h3 className="min-w-0 truncate text-lg font-semibold">{gewaehlt.name}</h3>
+            <Link to={`/sessions?spot=${gewaehlt.id}`} className="ml-auto whitespace-nowrap text-xs text-brand-600 hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200">
+              {t("tab.spotPage")} →
+            </Link>
+          </div>} />
+      : <MeineSpots liste={liste} homespotId={homespotId} onWahl={(id) => waehlen(String(id))} />}
+  </>;
+}
+
+/** Ein Spot unter „Spots": DERSELBE Inhalt wie die Spot-Seite (SpotBereich, samt Session-Liste) — nur die Kopfzeile ist
+ * eine andere (Jan, 02.11.2026). Sportart wie dort: Pumpfoil, wenn es am Spot welche gibt, sonst die erste. */
+function SpotAnsicht({ spotId, kopf }: { spotId: number; kopf?: React.ReactNode }) {
   const [sports, setSports] = useState<string[] | null>(null);
   useEffect(() => {
     let aktuell = true;
@@ -734,18 +782,15 @@ function HomespotBereich({ spotId, kopf }: { spotId: number; kopf?: React.ReactN
   }, [spotId]);
   if (!sports) return <Spinner />;
   const sport = sports.includes("pumpfoil") ? "pumpfoil" : (sports[0] ?? null);
-  return <SpotBereich spot={String(spotId)} sport={sport} accelOnly={false} param="stab" stufe={2} kopf={kopf}
-    sessions={<CommunityList name="" spot={String(spotId)} accelOnly={false} sport="all" />}
-    extra={{ id: "meine", label: t("mySpots.title"), inhalt: <MeineSpots homespotId={spotId} /> }} />;
+  // Kopf (Spotname + Link) UNTER der Reiterzeile, sonst risse er die Zeile von der Spotzeile darueber ab.
+  return <SpotBereich spot={String(spotId)} sport={sport} accelOnly={false} param="stab" kopf={kopf}
+    sessions={<CommunityList name="" spot={String(spotId)} accelOnly={false} sport="all" />} />;
 }
 
 /** „Meine Spots" (Jan, 03.11.2026): alle Spots mit eigenen Sessions, zuletzt besuchte zuerst, mit Sessions, letztem
  * Besuch, On-Foil-Zeit/-Strecke, Laeufen und Pumps. Gezaehlt am Server wie die Spot-Liste des Verlaufs (my-spots). */
-function MeineSpots({ homespotId }: { homespotId: number }) {
+function MeineSpots({ liste, homespotId, onWahl }: { liste: MeinSpot[]; homespotId: number | null; onWahl: (id: number) => void }) {
   const t = useT();
-  const [liste, setListe] = useState<MeinSpot[] | null>(null);
-  useEffect(() => { api.mySpotsStats().then(setListe).catch(() => setListe([])); }, []);
-  if (!liste) return <Spinner />;
   if (!liste.length) return <p className="text-sm text-slate-400">{t("mySpots.empty")}</p>;
   const km = (m: number) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(m < 100000 ? 1 : 0)} km`);
   const zeit = (sek: number) => (sek < 3600 ? `${Math.round(sek / 60)} min` : `${(sek / 3600).toFixed(1)} h`);
@@ -765,8 +810,9 @@ function MeineSpots({ homespotId }: { homespotId: number }) {
         const sportText = sp.sports.some((x) => x !== standardSportart())
           ? sortiereSports(sp.sports, t).map((x) => t(`cls.sport.${x}`)).join(", ") : null;
         return (
-          <Link key={sp.spot_id} to={`/sessions?spot=${sp.spot_id}`}
-            className={`flex flex-col rounded-2xl border bg-slate-900/60 p-3 hover:border-slate-600 ${sp.spot_id === homespotId ? "border-brand-500" : "border-slate-800"}`}>
+          // Klick waehlt den Spot in der Spotzeile (04.11.2026), statt auf die Spot-Seite zu springen.
+          <button key={sp.spot_id} type="button" onClick={() => onWahl(sp.spot_id)}
+            className={`flex flex-col rounded-2xl text-left border bg-slate-900/60 p-3 hover:border-slate-600 ${sp.spot_id === homespotId ? "border-brand-500" : "border-slate-800"}`}>
             <div className="flex min-w-0 items-center gap-1.5">
               <LocationIcon className="h-4 w-4 shrink-0 text-brand-400" />
               <span className="min-w-0 truncate font-semibold">{sp.name ?? "—"}</span>
@@ -792,7 +838,7 @@ function MeineSpots({ homespotId }: { homespotId: number }) {
                 </div>
               )}
             </div>
-          </Link>
+          </button>
         );
       })}
     </div>

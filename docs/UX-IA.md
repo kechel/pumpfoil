@@ -12,7 +12,7 @@ Home                          (nur meine Sachen)
 ├─ Uebersicht                 letzte Session, Upload/Uhren-Status, Hinweise, Freunde (je Zeile: Profil | letzte Session)
 ├─ Rekorde                    meine Rekorde je Zeitraum (mit/ohne Foil zusammengefasst)
 ├─ Team                       meine Teams (ersetzt die Links im Kopf)
-├─ Homespot                   ersetzt den Homespot-Abschnitt/-Link
+├─ Spots                      alle eigenen Spots als zweite Zeile (Homespot vorgewaehlt, „Alle" = Kacheln), darunter Spot-Reiter (04.11.2026)
 └─ Stats                      zweite Reiterzeile: Verlauf | Kennzahlen (Jahresbilanz, Start-Erfolgsquote, Carves, Wenden & Halsen) | Lage des Bretts
 
 Community
@@ -34,7 +34,7 @@ Spots
 Profil                        Reiter unter der Sprache: Ich | Fahren & Auswertung | Privatsphaere | Darstellung & Hinweise | Konto
 Team-Seite                    Reiter unter dem Kopf: Rekorde | Events | Logbuch
 
-Spot-Seite                    kein eigener Knopf; erreichbar ueber Homespot, Session -> Spot, Karte/Suche
+Spot-Seite                    kein eigener Knopf; erreichbar ueber Home › Spots, Session -> Spot, Karte/Suche
 ├─ Rekorde                    Kacheln + darunter dieselben Bestenlisten wie in der Community, nur an diesem Spot
 ├─ Sessions
 ├─ Heatmap

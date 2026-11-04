@@ -2706,6 +2706,7 @@ const gsw: Record<string, string> = {
   "mySpots.last": "zletscht {d}",
   "mySpots.since": "sit {d}",
   "mySpots.sports": "Sportarte",
+  "mySpots.all": "Alli ({n})",
   "team.vergleich.titel": "Team-Bestelischte",
   "team.vergleich.hinweis": "Pro Team zellt d Summe vo sine beschte {n} Fahrer. Pumpfoil, au Läuf ohni Bewegigsdate; nur Teams mit öffentliche Bestelischte.",
   "team.vergleich.top": "Beschti {n}",

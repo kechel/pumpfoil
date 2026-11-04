@@ -2821,6 +2821,7 @@ const pt: Record<string, string> = {
   "mySpots.last": "última {d}",
   "mySpots.since": "desde {d}",
   "mySpots.sports": "Esportes",
+  "mySpots.all": "Todos ({n})",
   "team.vergleich.titel": "Rankings de equipes",
   "team.vergleich.hinweis": "Cada equipe soma seus {n} melhores riders. Pumpfoil, inclusive voltas sem dados de movimento; só equipes com rankings públicos.",
   "team.vergleich.top": "Melhores {n}",

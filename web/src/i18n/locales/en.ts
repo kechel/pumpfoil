@@ -2920,6 +2920,7 @@ const en: Record<string, string> = {
   "mySpots.last": "last {d}",
   "mySpots.since": "since {d}",
   "mySpots.sports": "Sports",
+  "mySpots.all": "All ({n})",
   "team.vergleich.titel": "Team leaderboards",
   "team.vergleich.hinweis": "Each team counts the sum of its best {n} riders. Pumpfoil, including runs without motion data; only teams with public leaderboards.",
   "team.vergleich.top": "Best {n}",

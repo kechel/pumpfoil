@@ -2874,6 +2874,7 @@ const cs: Record<string, string> = {
   "mySpots.last": "naposledy {d}",
   "mySpots.since": "od {d}",
   "mySpots.sports": "Sporty",
+  "mySpots.all": "Vše ({n})",
   "team.vergleich.titel": "Žebříčky týmů",
   "team.vergleich.hinweis": "Každý tým počítá součet svých {n} nejlepších jezdců. Pumpfoil, i jízdy bez pohybových dat; jen týmy s veřejnými žebříčky.",
   "team.vergleich.top": "Nejlepších {n}",

@@ -2704,6 +2704,7 @@ const it: Record<string, string> = {
   "mySpots.last": "ultima {d}",
   "mySpots.since": "dal {d}",
   "mySpots.sports": "Sport",
+  "mySpots.all": "Tutti ({n})",
   "team.vergleich.titel": "Classifiche delle squadre",
   "team.vergleich.hinweis": "Ogni squadra conta la somma dei suoi {n} migliori rider. Pumpfoil, anche uscite senza dati di movimento; solo squadre con classifiche pubbliche.",
   "team.vergleich.top": "Migliori {n}",
