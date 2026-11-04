@@ -96,6 +96,20 @@ Dazu vom Handy:
 Bildunterschriften in der Excel kurz auf Englisch, z. B. „3 – watch sends the recording to the phone app (3 of 12
 parts)". Was aus dem Simulator stammt, wie beim ersten Mal als „simulator" kennzeichnen.
 
+## Bildunterschriften (fertig, 04.11. mit Jans Simulator-Bildern)
+
+| Bild | Unterschrift (Englisch, so in die Excel) |
+|---|---|
+| 1 | 1 – Start screen of the watch app (simulator) |
+| 2 | 2 – Recording: data page with heart rate and speed (simulator) |
+| 2b | 2b – Recording: summary of the last run (simulator) |
+| 3 | 3 – After the session: the watch sends the recording to the phone app, progress bar and part counter (simulator) |
+| 4 | 4 – All data delivered to the phone app (Wear Engine code 207 for every part) (simulator) |
+| 5 | 5 – Phone app not running: the watch keeps all data and asks the user to open the app on the phone (simulator) |
+| 6 | 6 – Watch settings: alarm, thresholds, foil, data pages (simulator) |
+| 7 | 7 – Phone app: linking the HUAWEI watch (Wear Engine authorisation, basic device information only) |
+| 8 | 8 – Result: the uploaded session in the user's account |
+
 ## Was offen bleibt (nicht in den Antrag)
 
 - **Bewegungssensor:** Ob GT/Fit Fremd-Apps überhaupt Beschleunigungsdaten geben, ist offen (docs/HUAWEI.md:
