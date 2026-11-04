@@ -1020,6 +1020,12 @@ IN_REVIEW: list[dict] = [
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
     # Garmin 1.0.99 am 03.11. eingereicht -> IN_REVIEW.
+    # Huawei Watch 5 1.0.4 (04.11.2026, gebumpt auf Jans Wort): Hinweise aus dem AppGallery-Pruefbericht zu 1.0.3
+    # (2ca89ace). Jan im DevEco-Emulator: Datenseiten gleiten. Pause-Seiten noch anzusehen.
+    {"name": "Huawei Watch 5", "version": "1.0.4",
+     "items": [
+         "Pages slide in when you change them, and the pause screens fit the round display.",
+     ]},
     # 01.11.2026 (Jan: „im changelog fehlt noch das ganze coming next fuer android und ios seit dem letzten release"):
     # alles, was seit dem Build von Android 1.1.46 (fdd2b189, liegt im Review) bzw. iOS 1.1.58 (live) in die Apps kam —
     # Teams/Events (2eba784b, c31591cc), Puls auf dem Foil, Konten-Rueckweg (1b62edb5), Security-Reviews (94ce6809),
