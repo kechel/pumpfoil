@@ -895,6 +895,15 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 04.11.2026 (Jans Meldung, AppGallery „Under pre-review"; Paket arkts-default-signed.app 1.0.4 (1000004),
+    # 0,11 MB, hochgeladen 10:40:21, Laender wie zuletzt). Aus c4638ba9: Hinweise des Pruefberichts zu 1.0.3 (Seiten
+    # gleiten, Pause-Seiten passen ins runde Display, „Paused" ersetzt den obersten Text), dazu Einstellungen zeigen den
+    # neuen Wert sofort, Auto-Start nur vom Startbildschirm. Jan im Emulator: Gleiten, Einstellungen, Sessions #19894–19904.
+    {"name": "Huawei Watch 5", "version": "1.0.4",
+     "eingereicht": "2026-11-04",
+     "items": [
+         "Pages slide in when you change them, and the pause screens fit the round display.",
+     ]},
     # Garmin 1.0.99 am 03.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt im Changelog mit garmin 1.0.99.
     # iPhone + Apple Watch 1.1.58 am 29.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 771/772/789/790/794/795/796 tragen ios 1.1.58, vier neue am 29.10.
     # EINGEREICHT 28.10.2026 spaet abends (Jans Meldung, Play Console „Schnelle Vorabpruefungen … noch maximal 14
@@ -1020,12 +1029,7 @@ IN_REVIEW: list[dict] = [
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
     # Garmin 1.0.99 am 03.11. eingereicht -> IN_REVIEW.
-    # Huawei Watch 5 1.0.4 (04.11.2026, gebumpt auf Jans Wort): Hinweise aus dem AppGallery-Pruefbericht zu 1.0.3
-    # (2ca89ace). Jan im DevEco-Emulator: Datenseiten gleiten. Pause-Seiten noch anzusehen.
-    {"name": "Huawei Watch 5", "version": "1.0.4",
-     "items": [
-         "Pages slide in when you change them, and the pause screens fit the round display.",
-     ]},
+    # Huawei Watch 5 1.0.4 am 04.11. eingereicht -> IN_REVIEW.
     # 01.11.2026 (Jan: „im changelog fehlt noch das ganze coming next fuer android und ios seit dem letzten release"):
     # alles, was seit dem Build von Android 1.1.46 (fdd2b189, liegt im Review) bzw. iOS 1.1.58 (live) in die Apps kam —
     # Teams/Events (2eba784b, c31591cc), Puls auf dem Foil, Konten-Rueckweg (1b62edb5), Security-Reviews (94ce6809),
