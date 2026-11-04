@@ -79,6 +79,10 @@ export default defineConfig({
           // unter pumpfoil.org an, solange der Proxy dort noch umleitet.
           /^\/api/, /^\/media/, /^\/demo/, /^\/promo/, /^\/landing-vorschau/, /-oauth(\?|$)/,
           /^\/sitemap\.xml$/, /^\/robots\.txt$/, /^\/\.well-known/,
+          // Bilder und Clips per Direktlink (04.11.2026): /icon-512.png, /guide/… usw. liegen NICHT im Precache
+          // (globPatterns ohne png/webp). Wer die PWA im Browser hatte und so einen Link oeffnete, bekam sonst die
+          // App-Shell und die 404-Seite des Routers statt des Bildes — derselbe Fall wie /promo oben.
+          /\.(png|jpe?g|webp|gif|ico|mp4|webm)$/i,
           // Unser eigener MCP-Zugang (25.09.2026). `/mcp` und die vier OAuth-Endpunkte gehoeren
           // dem Server.
           //
