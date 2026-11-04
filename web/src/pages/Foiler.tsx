@@ -10,7 +10,7 @@
 // Welche Bloecke erscheinen, entscheidet der SERVER anhand der Schalter des Nutzers. Diese Seite
 // prueft nichts nachtraeglich: fehlt ein Feld, wird es nicht gezeigt.
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { api, OverallStats } from "../lib/api";
 import { Card, Avatar } from "../components/ui";
@@ -67,8 +67,9 @@ const setupLabels = (s: { setup?: { stab?: { brand: string; model: string; size:
 });
 
 /** `userId` + `eingebettet`: die eigene Profilseite als Reiter „Profil" in Home (Jan, 04.11.2026) — ohne Zurueck-Pfeil
- * und ohne Sprung nach oben. */
-export default function Foiler({ userId, eingebettet = false }: { userId?: number; eingebettet?: boolean } = {}) {
+ * und ohne Sprung nach oben. `als`: Vorschau, so wie Freunde bzw. alle anderen die Seite sehen. */
+export default function Foiler({ userId, eingebettet = false, als }:
+  { userId?: number; eingebettet?: boolean; als?: "freunde" | "alle" } = {}) {
   const params = useParams();
   const id = userId != null ? String(userId) : params.id;
   const { t, lang } = useI18n();
@@ -105,17 +106,22 @@ export default function Foiler({ userId, eingebettet = false }: { userId?: numbe
 
   // Erst die Seite ohne die Rekord-Titel, dann die Titel hinterher (03.11.2026): die Titel rechnen alle Community-
   // Rekorde durch und hielten sonst die ganze Seite eine halbe Sekunde auf.
-  const laden = (uid: number) =>
-    api.foilerProfil(uid, false).then((x) => {
+  // Zaehler gegen ueberholte Antworten: beim schnellen Umschalten der Vorschau kaeme sonst die alte zuletzt an.
+  const abruf = useRef(0);
+  const laden = (uid: number) => {
+    const nr = ++abruf.current;
+    return api.foilerProfil(uid, false, als).then((x) => {
+      if (nr !== abruf.current) return;
       setD(x);
-      if (x.zeigt.titles) {
-        api.foilerTitel(uid).then((ti) => setD((alt) => (alt && alt.id === uid ? { ...alt, ...ti } : alt))).catch(() => {});
+      if (x.zeigt.titles && !x.vorschau_ausgeblendet) {
+        api.foilerTitel(uid, als).then((ti) => setD((alt) => (alt && alt.id === uid ? { ...alt, ...ti } : alt))).catch(() => {});
       }
-    }).catch(() => setFehler(true));
+    }).catch(() => { if (nr === abruf.current) setFehler(true); });
+  };
   useEffect(() => {
     setD(null); setFehler(false); setGezeigt(24); setGalerie(null); setVideo(null);
     laden(Number(id));
-  }, [id]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id, als]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   if (fehler) {
     return (
@@ -125,6 +131,7 @@ export default function Foiler({ userId, eingebettet = false }: { userId?: numbe
     );
   }
   if (!d) return <div className="text-sm text-slate-400">{t("common.loading")}</div>;
+  if (d.vorschau_ausgeblendet) return <Card className="p-4 text-sm text-amber-700 dark:text-amber-300">{t("phome.previewHidden")}</Card>;
 
   const medien = d.medien ?? [];
   // Die Galerie zeigt nur Fotos. Die Reihenfolge ist dieselbe wie im Karussell, damit das

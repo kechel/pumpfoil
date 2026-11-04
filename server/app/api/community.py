@@ -2469,8 +2469,11 @@ def schutzgebiete(w: float = Query(...), s: float = Query(...), e: float = Query
     return im_ausschnitt(w, s, e, n)
 
 
-def _foiler_sicht(db: Session, user: models.User, user_id: int):
-    """Wer darf welche Teile der Foiler-Seite sehen — gemeinsam fuer die Seite und ihre Titel (Regeln s. foiler_profil)."""
+def _foiler_sicht(db: Session, user: models.User, user_id: int, als: str | None = None):
+    """Wer darf welche Teile der Foiler-Seite sehen — gemeinsam fuer die Seite und ihre Titel (Regeln s. foiler_profil).
+
+    `als` (nur auf der EIGENEN Seite, Vorschau in Home › Profil, 04.11.2026): "freunde" = so wie Freunde sie sehen,
+    "alle" = so wie alle anderen. Fuer fremde Seiten wird es ignoriert — sonst koennte man sich Freundesrechte erbitten."""
     from .settings import DEFAULTS, PUBLIC_PROFILE_KEYS
     from ..freunde import ist_freund
     u = db.get(models.User, user_id)
@@ -2485,6 +2488,8 @@ def _foiler_sicht(db: Session, user: models.User, user_id: int):
     # FREUNDE sehen die GANZE Seite (Jan, 15.10.2026): jeden Abschnitt, auch eine ganz abgeschaltete
     # Seite. So steht es im Bestaetigungsdialog, einen Schalter dafuer gibt es bewusst nicht.
     freund = ist_freund(db, user.id, u.id)
+    if u.id == user.id and als == "freunde":
+        freund = True
     if freund:
         sicht = {k: True for k in ("enabled",) + PUBLIC_PROFILE_KEYS}
     # Der Nutzer selbst darf seine Seite immer sehen — sonst kann er nicht pruefen, was andere
@@ -2653,16 +2658,20 @@ def _foiler_titel(db: Session, user: models.User, u: models.User) -> dict:
 
 
 @router.get("/foiler/{user_id}/titel")
-def foiler_titel(user_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+def foiler_titel(user_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db),
+                 als: str | None = Query(None, pattern="^(freunde|alle)$")) -> dict:
     """Nur die Rekord-Titel der Foiler-Seite (03.11.2026) — das Web laedt die Seite mit `titel=false` und holt sie
     hiernach, damit die Seite nicht auf den teuren Teil wartet. Dieselben Sichtbarkeitsregeln wie die Seite."""
-    u, _einst, sicht, _freund = _foiler_sicht(db, user, user_id)
+    u, _einst, sicht, _freund = _foiler_sicht(db, user, user_id, als)
+    if u.id == user.id and als == "alle" and not sicht.get("enabled"):
+        return {}
     return _foiler_titel(db, user, u) if sicht.get("titles") else {}
 
 
 @router.get("/foiler/{user_id}")
 def foiler_profil(user_id: int, user: models.User = Depends(current_user),
-                  db: Session = Depends(get_db), titel: bool = Query(True)) -> dict:
+                  db: Session = Depends(get_db), titel: bool = Query(True),
+                  als: str | None = Query(None, pattern="^(freunde|alle)$")) -> dict:
     """Oeffentliche Foiler-Seite EINES Nutzers — nur was er selbst freigegeben hat.
 
     Anmeldung noetig, wie im ganzen Community-Bereich: die Seite ist fuer andere FOILER
@@ -2689,7 +2698,9 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
     from .sessions import compute_overall_stats
 
     from ..freunde import beziehung
-    u, einst, sicht, freund = _foiler_sicht(db, user, user_id)
+    u, einst, sicht, freund = _foiler_sicht(db, user, user_id, als)
+    # Vorschau „alle" auf der eigenen Seite: ohne die Rechte, die nur der Besitzer hat (Gewicht).
+    vorschau_alle = u.id == user.id and als == "alle"
 
     raus: dict = {
         "id": u.id,
@@ -2703,6 +2714,10 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
         # Darf hier ueberhaupt eine Anfrage gestellt werden? (Altersgrenze, Sperre, Testkonto)
         "freundschaft_moeglich": _freundschaft_moeglich(db, user, u),
     }
+    if vorschau_alle and not sicht.get("enabled"):
+        # Andere bekommen hier ein 404 — die Vorschau sagt das, statt eine Seite zu zeigen, die es fuer sie nicht gibt.
+        raus["vorschau_ausgeblendet"] = True
+        return raus
     # Supporter-Badge oeffentlich auf der Profilseite, mit Text fuer genau diese Stufe (Jan, 23.10.2026).
     from .. import supporter as _sup
     _st = _sup.uebersicht(db, [u.id]).get(u.id) or {}
@@ -2712,7 +2727,7 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
     from ..teams import abzeichen as _abz
     raus["team_abzeichen"] = _abz(db, u.id)
     # Gewicht nur fuer Freunde (und einen selbst), auch wenn „Gewicht verbergen" an ist.
-    if freund or u.id == user.id:
+    if freund or (u.id == user.id and not vorschau_alle):
         try:
             kg = float(einst.get("weight_kg") or 0)
         except (TypeError, ValueError):

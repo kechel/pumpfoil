@@ -25,7 +25,7 @@ import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
 import { StartHelp } from "../components/StartHelp";
 import { UploadProgressCard, UhrenLiveStatus } from "../components/UploadProgressCard";
-import { CommunityIcon, FoilIcon, SendIcon, HomeIcon, LocationIcon, SparklesIcon, WatchIcon } from "../components/Icons";
+import { CommunityIcon, FoilIcon, SendIcon, SettingsIcon, HomeIcon, LocationIcon, SparklesIcon, WatchIcon } from "../components/Icons";
 import { geraeteText } from "../lib/deviceLabel";
 import { FreundePumpen } from "../components/FreundePumpen";
 import { FreundesAnfragen } from "../components/Freundschaft";
@@ -449,6 +449,7 @@ export default function PersonalHome() {
   ];
   const [tab, setTab] = useReiter("home", reiter.map((r) => r.id), "uebersicht");
   const [foilWahl, setFoilWahl] = useState<string>("alle");
+  const [profilAls, setProfilAls] = useState<"freunde" | "alle">("alle");
   const foilGruppe = byFoil.find((g) => String(g.foil_id ?? "keins") === foilWahl);
 
   return (
@@ -634,7 +635,27 @@ export default function PersonalHome() {
       {/* Uhren und Konten in einer Ansicht mit eigenen Reitern, dieselbe wie /konten (02.11.2026). */}
       {tab === "uhr" && <LinkedAccounts eingebettet />}
 
-      {tab === "profil" && profile?.id && <Foiler userId={profile.id} eingebettet />}
+      {/* Hinweis oben, damit klar ist, dass das die OEFFENTLICHE Seite ist und nicht die Einstellungen; das Zahnrad fuehrt
+          zur Privatsphaere, wo man festlegt, was andere sehen (Jan, 04.11.2026). */}
+      {tab === "profil" && profile?.id && <>
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl bg-slate-800/70 px-3 py-2 text-sm text-slate-300">
+          <span className="min-w-0 flex-1">{t("phome.profileHint")}</span>
+          {/* Vorschau (Jan, 04.11.2026): nur Freunde | Alle — „nur ich" waere dasselbe wie Freunde, die sehen alles. */}
+          <div className="flex shrink-0 gap-1 rounded-lg bg-slate-900/60 p-0.5">
+            {(["freunde", "alle"] as const).map((a) => (
+              <button key={a} type="button" onClick={() => setProfilAls(a)}
+                className={`rounded-md px-2.5 py-1 text-xs ${profilAls === a ? "bg-slate-950 font-semibold text-slate-100 shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
+                {t(a === "freunde" ? "phome.asFriends" : "phome.asAll")}
+              </button>
+            ))}
+          </div>
+          <Link to="/einstellungen?tab=privat" aria-label={t("ptab.privacy")} title={t("ptab.privacy")}
+                className="shrink-0 rounded-lg p-1 text-brand-600 hover:bg-slate-900 dark:text-brand-300">
+            <SettingsIcon className="h-5 w-5" />
+          </Link>
+        </div>
+        <Foiler userId={profile.id} eingebettet als={profilAls} />
+      </>}
     </div>
   );
 }
