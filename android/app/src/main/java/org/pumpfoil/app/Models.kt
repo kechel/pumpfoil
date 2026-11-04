@@ -1574,6 +1574,8 @@ data class FoilerProfil(
     val freundschaft: String? = null,
     @SerialName("freundschaft_moeglich") val freundschaftMoeglich: Boolean = false,
     @SerialName("gewicht_kg") val gewichtKg: Double? = null,
+    // Vorschau „Alle" auf der eigenen, abgeschalteten Seite (04.11.2026): dann kommt kein Inhalt, nur dieser Merker.
+    @SerialName("vorschau_ausgeblendet") val vorschauAusgeblendet: Boolean = false,
 )
 
 @Serializable

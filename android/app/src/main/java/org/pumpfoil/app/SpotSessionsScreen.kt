@@ -7,8 +7,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.key
+import androidx.compose.ui.unit.Dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -25,18 +28,64 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 
 // Sessions eines Spots (Tippen auf einen Pin/Eintrag in den Spots) — reiche Karten wie der Feed.
+// Seit dem App-Port (docs/UX-IA.md, Phase 9, 04.11.2026) mit Reitern wie die Spot-Seite im Web: Rekorde · Sessions ·
+// Heatmap · Wetter · Beschreibungen. Der Inhalt steckt in `SpotReiterBereich`, den Home › Spots mitbenutzt.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, onSpotChat: (String) -> Unit = {}, social: Boolean = true,
                        sport0: String = "all", routeId: Int? = null) {
+    // Zweite Zeile zum Spot (Gewaesser bzw. Steg/Ortslage) — meldet der Bereich, sobald er die Karte kennt.
+    var spotLabel by remember(spot) { mutableStateOf<String?>(null) }
+    var laedt by remember { mutableStateOf(false) }
+    var neuLaden by remember(spot) { mutableStateOf(0) }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("📍 $spot" + (spotLabel?.let { " · $it" } ?: ""), maxLines = 1) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back"))
+                    }
+                },
+                actions = {
+                    // Spot-Chat (scope "spot:<name>", wie PWA/iOS) — bei Age-Gate (social=false) aus.
+                    if (social) IconButton(onClick = { onSpotChat(spot) }) {
+                        Icon(Icons.Filled.Forum, contentDescription = I18n.t("nav.chat"), tint = MaterialTheme.colorScheme.primary)
+                    }
+                    FeedbackKnopf()   // ganz rechts, wie auf den Haupt-Tabs
+                },
+            )
+        },
+    ) { pad ->
+        Box(Modifier.padding(pad)) {
+            Refreshable(refreshing = laedt, onRefresh = { neuLaden++ }) {
+                Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 4.dp)) {
+                    SpotReiterBereich(spot, onOpen, sport0 = sport0, routeId = routeId, rand = 12.dp, neuLaden = neuLaden,
+                        onLaden = { laedt = it }, onLabel = { spotLabel = it })
+                    Spacer(Modifier.height(16.dp))
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Inhalt eines Spots mit seinen Reitern (Web `SpotBereich` in Sessions.tsx): Spot-Seite und Home › Spots zeigen DENSELBEN
+ * Inhalt, nur die Kopfzeile ist eine andere (`kopf`, steht UNTER der Reiterzeile wie im Web). Kein LazyColumn, damit er
+ * in eine scrollende Seite passt (Home); die Sessions der ersten Seite (hoechstens 50) stehen als einfache Liste darin.
+ *
+ * `rand` = seitlicher Abstand der Bloecke, die keinen eigenen haben (Spot-Seite 12 dp, auf Home hat die Seite ihn schon).
+ */
+@Composable
+fun SpotReiterBereich(spot: String, onOpen: (Int) -> Unit, sport0: String = "all", routeId: Int? = null,
+                      rand: Dp = 0.dp, kopf: (@Composable () -> Unit)? = null, neuLaden: Int = 0,
+                      onLaden: (Boolean) -> Unit = {}, onLabel: (String?) -> Unit = {}) {
     // Sportart-Filter (27.09.2026, wie `/sessions?spot=…&sport=…` in der PWA): kommt von der
     // Spot-Karte mit, damit Etikett (Zahl am Marker) und Klickziel dieselbe Menge meinen; hier
     // wieder umstellbar, „Alle Sportarten" bleibt immer waehlbar. Default „all".
@@ -57,26 +106,30 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
     // es null und der Abschnitt entfaellt.
     var spotId by remember(spot) { mutableStateOf<Int?>(null) }
     var weather by remember(spot) { mutableStateOf<SpotWeather?>(null) }
-    // Zweite Zeile zum Spot (Gewaesser bzw. Steg/Ortslage) — dieselbe Abfrage, ein Feld mehr.
-    var spotLabel by remember(spot) { mutableStateOf<String?>(null) }
+    var wetterGeladen by remember(spot) { mutableStateOf(false) }
     // Lage des Spots fuer „Heatmap & Routen" (SpotHeatmapPanel)
     var spotOrt by remember(spot) { mutableStateOf<Pair<Double, Double>?>(null) }
+    // Bis die Karte da ist, steht noch nicht fest, ob es Heatmap und Beschreibungen gibt — so lange bleibt ein gemerkter
+    // Reiter (etwa beim Spotwechsel auf Home) stehen, statt auf „Rekorde" zurueckzufallen.
+    var karteGeladen by remember(spot) { mutableStateOf(false) }
     // Sportart von Rekorden und Heatmap (28.10.2026): Filter, bei „Alle" Pumpfoil bzw. die erste des Spots.
     val rekordSport = rekordSportFuer(sport, spotSports)
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val heatZustand = remember(spotId) { spotId?.let { SpotPanelZustand(ctx, it) } }
     LaunchedEffect(spot) {
         weather = try { Api.spotWeather(spot) } catch (_: Exception) { null }
+        wetterGeladen = true
         try {
             val m = Api.spotMap(accelOnly = false).firstOrNull { it.spot == spot }
             spotId = m?.spotId
             spotOrt = m?.let { it.lat to it.lon }?.takeIf { it.first != 0.0 || it.second != 0.0 }
-            spotLabel = m?.water?.takeIf { it.isNotBlank() && !it.equals(spot, ignoreCase = true) }
+            onLabel(m?.water?.takeIf { it.isNotBlank() && !it.equals(spot, ignoreCase = true) })
         } catch (_: Exception) { /* offline -> Titel ohne Zusatz */ }
+        karteGeladen = true
     }
 
     suspend fun load() {
-        loading = true
+        loading = true; onLaden(true)
         try {
             // Default wie die PWA (useAccelDefault): seit 31.08. IMMER „alle", auch wenn der
             // Nutzer selbst Accel-Läufe hat — s. AccelDefault.kt.
@@ -102,80 +155,82 @@ fun SpotSessionsScreen(spot: String, onBack: () -> Unit, onOpen: (Int) -> Unit, 
                                                accelOnly = only && !showAll))
             error = null
         } catch (e: Exception) { error = e.message }
-        loading = false
+        loading = false; onLaden(false)
     }
     // Sportart-Wechsel: die alte Liste sofort weg, nicht erst, wenn die neue da ist.
     LaunchedEffect(spot, sport) { items = emptyList(); load() }
+    // Ziehen zum Aktualisieren auf der Spot-Seite (zaehlt dort hoch).
+    LaunchedEffect(neuLaden) { if (neuLaden > 0) load() }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("📍 $spot" + (spotLabel?.let { " · $it" } ?: ""), maxLines = 1) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back"))
-                    }
-                },
-                actions = {
-                    // Spot-Chat (scope "spot:<name>", wie PWA/iOS) — bei Age-Gate (social=false) aus.
-                    if (social) IconButton(onClick = { onSpotChat(spot) }) {
-                        Icon(Icons.Filled.Forum, contentDescription = I18n.t("nav.chat"), tint = MaterialTheme.colorScheme.primary)
-                    }
-                    FeedbackKnopf()   // ganz rechts, wie auf den Haupt-Tabs
-                },
-            )
-        },
-    ) { pad ->
-        val scope = rememberCoroutineScope()
-        Column(Modifier.padding(pad)) {
-            // Filter der Seite fest oben, die Liste darunter scrollt (Jan, 28.10.2026).
-            SpotSportKnoepfe(spotSports, sport, { sport = it }, Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp))
-            Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
-                if (loading && items.isEmpty()) {
-                    CircularProgressIndicator(Modifier.align(Alignment.Center))
-                } else {
-                    LazyColumn(Modifier.fillMaxSize()) {
-                        error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
-                        // Reihenfolge wie in der PWA: Rekorde, Wetter, Beschreibungen, dann die
-                        // Sessions (Jan, 07.09.: hier fehlten Rekorde UND Wetter ganz).
-                        //
-                        // ACHTUNG, DOPPELUNG: dasselbe zeigt `SessionsScreen` im Spot-Modus. Die
-                        // PWA hat nur EINE Ansicht — ein Klick auf der Spot-Karte fuehrt dort zu
-                        // `/sessions?spot=…`. Die beiden Android-Bildschirme sind auseinander-
-                        // gelaufen; angeglichen sind sie jetzt, zusammengelegt gehoeren sie
-                        // trotzdem (s. docs/TODO.md).
-                        rekordSport?.let { rs -> item { SpotRecordsSection(spot, accelOnly = false, sport = rs, onOpen = onOpen) } }
-                        // Heatmap & Routen zwischen Rekorden und Wetter (wie die PWA)
-                        val sid0 = spotId; val ort = spotOrt
-                        if (sid0 != null && ort != null) item(key = "heatmap-$sid0") {
-                            // Sportart wie der Rekord-Kasten darueber (Jan, 28.10.2026); ohne Rekorde „alle".
-                            SpotHeatmapPanel(heatZustand ?: SpotPanelZustand(ctx, sid0), ort.first, ort.second,
-                                             rekordSport ?: "all", routeId)
-                        }
-                        weather?.let { sw ->
-                            item { Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) { WeatherCard(sw, titelKey = "spot.weatherTitle") } }
-                        }
-                        spotId?.let { sid -> item { SpotNotesSection(sid) } }
-                        // „Anderen Namen vorschlagen" — nur wer hier selbst gefahren ist.
-                        spotId?.let { sid -> item { SpotNamensVorschlag(sid, spot) } }
-                        // Sportart (nur wenn es etwas zu waehlen gibt) und rechts der Umschalter
-                        // Kacheln / Zeilen (ListenAnsicht.kt) — eine Werkzeugzeile wie im Web.
-                        item {
-                            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp),
-                                verticalAlignment = Alignment.CenterVertically) {
-                                // Kein Sportart-Dropdown mehr: die Knoepfe im Rekord-Kasten filtern die Seite (Jan, 28.10.2026).
-                                Spacer(Modifier.weight(1f))
-                                ListenAnsichtUmschalter()
-                            }
-                        }
-                        if (items.isEmpty() && !loading && error == null) {
-                            item { Text(I18n.t("sessions.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                        }
-                        items(items) { c ->
-                            CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = ListenAnsicht.abstand)) { onOpen(c.id) }
-                        }
-                    }
+    // Reiter wie im Web (Rekorde · Sessions · Heatmap · Wetter · Beschreibungen). Heatmap und Beschreibungen haengen an
+    // der spot_id — ohne Spot-Zeile (Altbestand) fehlen sie, wie im Web bei einem Spot ohne Nummer.
+    val echt = spotId != null
+    val reiter = listOfNotNull(
+        ReiterDef("rekorde", I18n.t("side.records")),
+        ReiterDef("sessions", I18n.t("sessions.title")),
+        if (echt && spotOrt != null) ReiterDef("heatmap", I18n.t("spots.heatmap")) else null,
+        ReiterDef("wetter", I18n.t("tab.weather")),
+        if (echt) ReiterDef("beschreibungen", I18n.t("tab.descriptions")) else null,
+    )
+    var tab by rememberReiter("spot", if (karteGeladen) reiter.map { it.id }
+                                      else listOf("rekorde", "sessions", "heatmap", "wetter", "beschreibungen"), "rekorde")
+    // Gemerkte Route aus der Liste der Routen: direkt die Heatmap mit dieser Route oeffnen.
+    var routeErledigt by remember(spot) { mutableStateOf(false) }
+    LaunchedEffect(routeId, spotId, spotOrt) {
+        if (routeId != null && !routeErledigt && spotId != null && spotOrt != null) { tab = "heatmap"; routeErledigt = true }
+    }
+
+    Column(Modifier.fillMaxWidth()) {
+        Reiterleiste(reiter, tab, { tab = it })
+        kopf?.invoke()
+        Spacer(Modifier.height(4.dp))
+        // Sportart-Knoepfe = Filter fuer Rekorde, Sessions und Heatmap (Jan, 28.10.2026); bei Wetter und
+        // Beschreibungen haetten sie keine Wirkung und fallen weg.
+        if (tab in setOf("rekorde", "sessions", "heatmap")) {
+            SpotSportKnoepfe(spotSports, sport, { sport = it }, Modifier.fillMaxWidth().padding(horizontal = rand, vertical = 4.dp))
+        }
+        when (tab) {
+            "rekorde" -> {
+                val rs = rekordSport
+                if (rs != null) SpotRecordsSection(spot, accelOnly = false, sport = rs, onOpen = onOpen)
+                else Text(I18n.t("records.empty"), Modifier.padding(horizontal = rand, vertical = 8.dp),
+                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            "sessions" -> {
+                // Rechts der Umschalter Kacheln / Zeilen (ListenAnsicht.kt) — eine Werkzeugzeile wie im Web.
+                Row(Modifier.fillMaxWidth().padding(horizontal = rand, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(Modifier.weight(1f))
+                    ListenAnsichtUmschalter()
                 }
+                error?.let { e -> Text(e, Modifier.padding(horizontal = rand, vertical = 8.dp), color = MaterialTheme.colorScheme.error) }
+                if (loading && items.isEmpty()) {
+                    Box(Modifier.fillMaxWidth().padding(24.dp)) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
+                } else if (items.isEmpty() && error == null) {
+                    Text(I18n.t("sessions.empty"), Modifier.padding(horizontal = rand, vertical = 8.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                items.forEach { c ->
+                    CommunityItemRow(c, Modifier.padding(horizontal = rand, vertical = ListenAnsicht.abstand)) { onOpen(c.id) }
+                }
+            }
+            "heatmap" -> {
+                val sid0 = spotId; val ort = spotOrt
+                if (sid0 != null && ort != null) key("heatmap-$sid0") {
+                    // Sportart wie der Rekord-Kasten (Jan, 28.10.2026); ohne Rekorde „alle".
+                    SpotHeatmapPanel(heatZustand ?: SpotPanelZustand(ctx, sid0), ort.first, ort.second,
+                                     rekordSport ?: "all", routeId)
+                }
+            }
+            "wetter" -> {
+                val sw = weather
+                if (sw != null) Box(Modifier.padding(horizontal = rand, vertical = 4.dp)) { WeatherCard(sw, titelKey = "spot.weatherTitle") }
+                else if (!wetterGeladen) Box(Modifier.fillMaxWidth().padding(24.dp)) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
+                else Text("—", Modifier.padding(horizontal = rand, vertical = 8.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            "beschreibungen" -> spotId?.let { sid ->
+                SpotNotesSection(sid)
+                // „Anderen Namen vorschlagen" — nur wer hier selbst gefahren ist.
+                SpotNamensVorschlag(sid, spot)
             }
         }
     }

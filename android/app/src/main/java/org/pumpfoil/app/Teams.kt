@@ -108,6 +108,8 @@ data class TeamListenEintrag(
     val farbe: String? = null,
     val sportarten: List<String> = emptyList(),
     @SerialName("mitglieder_anzahl") val mitgliederAnzahl: Int = 0,
+    // Sessions der Mitglieder in 30 Tagen (fuer „Die aktivsten Teams", Community › Teams & Events)
+    @SerialName("sessions_30d") val sessions30d: Int = 0,
 )
 
 /** GET /api/teams/{slug} (server teams._team_out). Leitungs-Felder (Freigabe …) braucht die App nicht. */
@@ -339,6 +341,12 @@ fun teamFarbe(farbe: String?): TeamFarbe {
     val f = TEAM_FARBEN[farbe ?: "cyan"] ?: TEAM_FARBEN.getValue("cyan")
     return if (teamDunkel()) TeamFarbe(Color(f.dunkel), Color(f.dunkelFlaeche ?: f.dunkel), Color(f.dunkelAuf ?: 0xFF020617))
     else TeamFarbe(Color(f.hell), Color(f.hellFlaeche ?: f.hell), Color(f.hellAuf ?: 0xFFFFFFFF))
+}
+
+/** Teamfarbe der DUNKLEN Fassung, ohne Compose — fuer gezeichnete Bilder (Team-Bestenliste als Bild, immer dunkel). */
+internal fun teamFarbeDunkel(farbe: String?): TeamFarbe {
+    val f = TEAM_FARBEN[farbe ?: "cyan"] ?: TEAM_FARBEN.getValue("cyan")
+    return TeamFarbe(Color(f.dunkel), Color(f.dunkelFlaeche ?: f.dunkel), Color(f.dunkelAuf ?: 0xFF020617))
 }
 
 // ---------------------------------------------------------------------------- Kennzahlen ----

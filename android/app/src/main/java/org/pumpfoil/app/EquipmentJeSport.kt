@@ -42,8 +42,10 @@ import kotlinx.serialization.json.putJsonObject
 // Standard (Stern). Der Server setzt ihn beim Anlegen und beim Umstellen der Sportart ein, aber nur
 // fuer Felder, die niemand von Hand gewaehlt hat (server/app/equipment_sport.py).
 private val FELDER = listOf("foil_id", "board_id", "stab_id", "mast_len_cm")
-// Nur Sportarten MIT Foil (Server-Liste, Sportarten.kt, 25.10.2026) — ohne Foil gibt es keine Foil-Ausruestung.
-private val SPORTARTEN: List<String> get() = sortiereSports(Sportarten.ids().filter { it != "other" && Sportarten.foil(it) })
+// Alle Sportarten (Server-Liste, Sportarten.kt). Bei Sportarten OHNE Foil (`foil: false`) gibt es nur das Board
+// (App-Port Phase 7, 04.11.2026, wie das Web) — Foil, Stab und Mast fallen dort weg.
+private val SPORTARTEN: List<String> get() = sortiereSports(Sportarten.ids().filter { it != "other" })
+private fun felderFuer(sp: String): List<String> = if (Sportarten.foil(sp)) FELDER else listOf("board_id")
 
 @Composable
 fun EquipmentJeSportKarte(stabs: List<StabBrief>?, boards: List<BoardBrief>, myStabs: List<Int>, myMasts: List<Int>) {
@@ -87,7 +89,7 @@ fun EquipmentJeSportKarte(stabs: List<StabBrief>?, boards: List<BoardBrief>, myS
                     Text(I18n.t("cls.sport.$sp"), fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
                     IconButton(onClick = { speichern(je - sp) }) { Icon(Icons.Filled.Close, contentDescription = null) }
                 }
-                FELDER.forEach { f ->
+                felderFuer(sp).forEach { f ->
                     val (titel, opts) = when (f) {
                         "foil_id" -> I18n.t("setup.colFoil") to myFoils.map { it to (foilNamen[it] ?: "#$it") }
                         "board_id" -> I18n.t("setup.colBoard") to boards.map { it.id to it.name }

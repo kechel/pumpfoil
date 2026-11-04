@@ -309,16 +309,23 @@ fun MainScaffold(onLogout: () -> Unit) {
                                                 onOpenSpot = { s -> nav.navigate("spot/${Uri.encode(s)}") },
                                                 onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") },
                                                 onOpenVerlauf = { nav.navigate("verlauf") },
-                                                onOpenTeams = { nav.navigate("teams") }) }
+                                                onOpenTeams = { nav.navigate("teams") },
+                                                onGarminPair = { nav.navigate("garminpair") }, onGuide = { nav.navigate("guide") },
+                                                onAlarm = { nav.navigate("alarm") }, onDataFields = { nav.navigate("datafields") },
+                                                // Zahnrad der Profil-Vorschau -> Einstellungen › Privatsphaere; „Team gruenden" -> Einstellungen › Team.
+                                                onPrivacy = { nav.zuEinstellungen("privat") },
+                                                onTeamGruenden = { nav.zuEinstellungen("team") }) }
             composable("sessions") { SessionsScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onCompare = { nav.navigate("compare") }, onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onFoilStats = { nav.navigate("foilstats") }, onWatchStats = { nav.navigate("watchstats") }, onLayouts = { nav.navigate("layoutgallery") },
                 onOpenRoute = { s, id -> nav.navigate("spot/${Uri.encode(s)}?route=$id") },
                 onOpenEvent = { sl, id -> nav.navigate("teamevent/${Uri.encode(sl)}/$id") },
-                onAlleEvents = { nav.navigate("events") }, onAlleTeams = { nav.navigate("teams") }) }
+                onAlleEvents = { nav.navigate("events") }, onAlleTeams = { nav.navigate("teams") },
+                onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") }) }
             composable("verlauf") { VerlaufScreen(onOpen = { id -> nav.navigate("session/$id") }) }
             // Marker/Treffer auf der Spot-Karte reichen die dort gewaehlte Sportart mit (wie die PWA).
             composable("spots") { SpotsScreen(onOpenSpot = { nav.navigate("spot/${Uri.encode(it)}") }, onOpenSession = { id -> nav.navigate("session/$id") },
-                                              onOpenSpotSport = { s, sp -> nav.navigate("spot/${Uri.encode(s)}?sport=${Uri.encode(sp)}") }) }
+                                              onOpenSpotSport = { s, sp -> nav.navigate("spot/${Uri.encode(s)}?sport=${Uri.encode(sp)}") },
+                                              onOpenRoute = { s, id -> nav.navigate("spot/${Uri.encode(s)}?route=$id") }) }
             composable(
                 "spot/{name}?sport={sport}&route={route}",
                 arguments = listOf(navArgument("name") { type = NavType.StringType },
@@ -366,6 +373,12 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onChangelog = { nav.navigate("changelog") },
                     onFriends = { nav.navigate("friends") },
                     onTeams = { nav.navigate("meineteams") },
+                    onGarminPair = { nav.navigate("garminpair") }, onGuide = { nav.navigate("guide") },
+                    onAlarm = { nav.navigate("alarm") }, onDataFields = { nav.navigate("datafields") },
+                    onOpenFoiler = { uid -> nav.navigate("foiler/$uid") },
+                    onOpenSpot = { s -> nav.navigate("spot/${Uri.encode(s)}") },
+                    onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") },
+                    onAlleTeams = { nav.navigate("teams") },
                 )
             }
             composable("watch") {
@@ -378,8 +391,9 @@ fun MainScaffold(onLogout: () -> Unit) {
                 )
             }
             composable("foilcalc") { FoilCalculatorScreen(onBack = { nav.popBackStack() }) }
-            composable("foils") { FoilsScreen(onBack = { nav.popBackStack() }, onSetup = { nav.navigate("setup") }) }
-            composable("setup") { SetupScreen(onBack = { nav.popBackStack() }) }
+            // Foils und Setup sind seit 04.11.2026 Reiter der Ausruestung (AusruestungScreen.kt); die alten Routen fuehren dorthin.
+            composable("foils") { AusruestungScreen("foils", onBack = { nav.popBackStack() }) }
+            composable("setup") { AusruestungScreen("stabs", onBack = { nav.popBackStack() }) }
             composable("foilstats") {
                 FoilStatsScreen(
                     onBack = { nav.popBackStack() },
@@ -454,7 +468,8 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onOpenSession = { sid -> nav.navigate("session/$sid") },
                     onOpenSpot = { s -> nav.navigate("spot/${Uri.encode(s)}") },
                     onChat = { uid -> nav.navigate("dm/$uid") },
-                    onSettings = { nav.navigate("settings") },
+                    // „Profilseite ist abgeschaltet" -> dort schaltet man sie wieder an: Einstellungen › Privatsphaere.
+                    onSettings = { nav.zuEinstellungen("privat") },
                     social = social,
                 )
             }
@@ -519,6 +534,12 @@ private fun NavController.switchTab(route: String) {
         launchSingleTop = true
         restoreState = false
     }
+}
+
+// Einstellungen (Route "profile") auf einem bestimmten Reiter oeffnen — wie im Web `/einstellungen?tab=…`.
+private fun NavController.zuEinstellungen(reiter: String) {
+    ReiterSpeicher.von("einstellungen", "uebersicht").value = reiter
+    switchTab("profile")
 }
 
 // Eigene Bottom-Nav: Markierung umschließt Icon UND Label, enger Icon<->Label-Abstand.

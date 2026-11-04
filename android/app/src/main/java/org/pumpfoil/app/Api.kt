@@ -556,6 +556,11 @@ object Api {
         json.decodeFromString(ListSerializer(HistoryPoint.serializer()), http("GET", "/api/sessions/history", null, auth = true))
     }
 
+    /** Alle Spots mit eigenen Sessions samt Zahlen (Home › Spots, „Alle"-Kacheln, 04.11.2026). */
+    suspend fun mySpotsStats(): List<MeinSpot> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(MeinSpot.serializer()), http("GET", "/api/sessions/my-spots-stats", null, auth = true))
+    }
+
     suspend fun mySpots(): List<SpotCount> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(SpotCount.serializer()), http("GET", "/api/sessions/my-spots", null, auth = true))
     }
@@ -1145,8 +1150,10 @@ object Api {
         json.decodeFromString(SportRekordeAntwort.serializer(), http("GET", "/api/sessions/sport-rekorde?period=$period", null, auth = true))
     }
 
-    suspend fun foilerProfil(userId: Int): FoilerProfil = withContext(Dispatchers.IO) {
-        json.decodeFromString(FoilerProfil.serializer(), http("GET", "/api/community/foiler/$userId", null, auth = true))
+    // `als` nur auf der EIGENEN Seite (Home › Profil, 04.11.2026): "freunde" | "alle" = Vorschau, wie andere sie sehen.
+    suspend fun foilerProfil(userId: Int, als: String? = null): FoilerProfil = withContext(Dispatchers.IO) {
+        json.decodeFromString(FoilerProfil.serializer(),
+            http("GET", "/api/community/foiler/$userId" + (als?.let { "?als=$it" } ?: ""), null, auth = true))
     }
 
     // Freunde (15.10.2026, PWA Friends.tsx). Regeln und was eine Freundschaft freigibt: server
@@ -1676,6 +1683,10 @@ object Api {
     /** Alle freigegebenen Teams (Seite „Alle Teams"). */
     suspend fun teamsListe(): List<TeamListenEintrag> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(TeamListenEintrag.serializer()), http("GET", "/api/teams/liste", null, auth = true))
+    }
+    /** Team-Bestenlisten (Community › Teams & Events, 04.11.2026): je Team die Summe der besten `top` Fahrer. */
+    suspend fun teamsVergleich(period: String, top: Int): TeamVergleich = withContext(Dispatchers.IO) {
+        json.decodeFromString(TeamVergleich.serializer(), http("GET", "/api/teams/liste/vergleich?period=$period&top=$top", null, auth = true))
     }
     /** Laufende und in den naechsten Tagen beginnende Events (Community-Abschnitt). */
     suspend fun teamsEventsAktuell(): List<TeamEventKurz> = withContext(Dispatchers.IO) {

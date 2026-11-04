@@ -1047,6 +1047,12 @@ NAECHSTES: list[dict] = [
          "When adding a custom screen, the picker only offers screens that fit the chosen state.",
          "Sessions of sports without a foil, such as kitesurfing or kite mountainboarding, no longer show on-foil distance, on-foil time or pumps in the session list and on the session page.",
          "The app is organised like the website: the bar at the bottom has Home, Community, Sessions, Spots, Chat and a gear for the settings, and Home has tabs for overview, records, team and stats, which leads to your history.",
+         "Home has more tabs, like the website: your spots with a tile for each spot, your watches and accounts, and your own profile page as others see it, with a preview for friends and for everyone.",
+         "The settings are organised in tabs (overview, watches, friends, team, equipment, me, riding, privacy, display, account), and the tiles on the overview open the matching tab.",
+         "Equipment has tabs for foils, stabilizers, boards, mast and shim, and sports; foils and stabilizers are found by searching instead of a long catalog, and sports without a foil only offer a board.",
+         "The community has tabs for records and leaderboards, media, and teams and events, with team leaderboards that rank teams by the totals of their best 3, 5 or 10 riders and can be shared as an image.",
+         "You can search all teams in the settings, and on Home if you are not in a team yet.",
+         "Sessions, spots and the spot page use the same tabs as the website, and spot search and routes moved from the community to Spots.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.59",
      "items": [
@@ -1065,6 +1071,12 @@ NAECHSTES: list[dict] = [
          "Custom screens can be added again for while riding and between runs, not only for the paused state; the picker only offers screens that fit.",
          "Sessions of sports without a foil, such as kitesurfing or kite mountainboarding, no longer show on-foil distance, on-foil time or pumps in the session list and on the session page.",
          "The app is organised like the website: the bar at the bottom has Home, Community, Sessions, Spots, Chat and a gear for the settings, and Home has tabs for overview, records, team and stats, which leads to your history.",
+         "Home has more tabs, like the website: your spots with a tile for each spot, your watches and accounts, and your own profile page as others see it, with a preview for friends and for everyone.",
+         "The settings are organised in tabs (overview, watches, friends, team, equipment, me, riding, privacy, display, account), and the tiles on the overview open the matching tab.",
+         "Equipment has tabs for foils, stabilizers, boards, mast and shim, and sports; foils and stabilizers are found by searching instead of a long catalog, and sports without a foil only offer a board.",
+         "The community has tabs for records and leaderboards, media, and teams and events, with team leaderboards that rank teams by the totals of their best 3, 5 or 10 riders and can be shared as an image.",
+         "You can search all teams in the settings, and on Home if you are not in a team yet.",
+         "Sessions, spots and the spot page use the same tabs as the website, and spot search and routes moved from the community to Spots.",
      ]},
     # Android 1.1.46 / Wear 1.2.46 am 28.10. eingereicht (ersetzt 1.1.45) -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.56 am 24.10. eingereicht -> IN_REVIEW.

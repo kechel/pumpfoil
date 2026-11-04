@@ -66,10 +66,15 @@ fun WatchScreen(
     onGuide: () -> Unit = {},
     onAlarm: () -> Unit = {},
     onDataFields: () -> Unit = {},
+    eingebettet: Boolean = false,   // als Reiter (Home › Uhren, Einstellungen › Uhren): ohne Titelzeile, die Seite scrollt
 ) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackHost = remember { SnackbarHostState() }
+    val inhalt: @Composable () -> Unit = {
+        WatchInhalt(ctx, onGarminPair, onGuide, onAlarm, onDataFields)
+    }
+    if (eingebettet) { Column { inhalt() }; return }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -83,47 +88,55 @@ fun WatchScreen(
         snackbarHost = { SnackbarHost(snackHost) },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-            WatchCard(ctx)
-            HuaweiKarte()
-            SuuntoKarte()
-            Spacer(Modifier.height(8.dp))
-            // Die vier Verweise auf die anderen Seiten stehen VOR der Uhren-Liste (Jan, 02.09.):
-            // wer viele Uhren gepairt hat, musste vorher an allen vorbeiscrollen, um zur
-            // Anleitung, zum Alarm oder zu den Datenfeldern zu kommen.
-            // Die Anleitung bleibt dabei die erste: wer hier landet und die Uhr noch nicht
-            // eingerichtet hat, braucht zuerst den Weg dorthin — nicht den Code-Bildschirm.
-            ListItem(
-                modifier = Modifier.clickable { onGuide() },
-                headlineContent = { Text(I18n.t("guide.howto")) },
-                leadingContent = { Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            ListItem(
-                modifier = Modifier.clickable { onGarminPair() },
-                headlineContent = { Text(I18n.t("garmin.title")) },
-                supportingContent = { Text(I18n.t("garmin.sub")) },
-                leadingContent = { Icon(Icons.Filled.Watch, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            ListItem(
-                modifier = Modifier.clickable { onAlarm() },
-                headlineContent = { Text(I18n.t("profile.alarm")) },
-                supportingContent = { Text(I18n.t("profile.alarmSub")) },
-                leadingContent = { Icon(Icons.Filled.Vibration, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            ListItem(
-                modifier = Modifier.clickable { onDataFields() },
-                headlineContent = { Text(I18n.t("profile.datafields")) },
-                supportingContent = { Text(I18n.t("profile.datafieldsSub")) },
-                leadingContent = { Icon(Icons.Filled.Dashboard, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            Spacer(Modifier.height(8.dp))
-            // Rueckmeldung „gespeichert" steht seit 28.09.2026 direkt unter dem jeweiligen Regler
-            // (wie die PWA), nicht mehr als Snackbar am unteren Rand.
-            PairedDevicesCard()
+            inhalt()
         }
+    }
+}
+
+@Composable
+private fun WatchInhalt(ctx: android.content.Context, onGarminPair: () -> Unit, onGuide: () -> Unit,
+                        onAlarm: () -> Unit, onDataFields: () -> Unit) {
+    Column {
+        WatchCard(ctx)
+        HuaweiKarte()
+        SuuntoKarte()
+        Spacer(Modifier.height(8.dp))
+        // Die vier Verweise auf die anderen Seiten stehen VOR der Uhren-Liste (Jan, 02.09.):
+        // wer viele Uhren gepairt hat, musste vorher an allen vorbeiscrollen, um zur
+        // Anleitung, zum Alarm oder zu den Datenfeldern zu kommen.
+        // Die Anleitung bleibt dabei die erste: wer hier landet und die Uhr noch nicht
+        // eingerichtet hat, braucht zuerst den Weg dorthin — nicht den Code-Bildschirm.
+        ListItem(
+            modifier = Modifier.clickable { onGuide() },
+            headlineContent = { Text(I18n.t("guide.howto")) },
+            leadingContent = { Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+            trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+        )
+        ListItem(
+            modifier = Modifier.clickable { onGarminPair() },
+            headlineContent = { Text(I18n.t("garmin.title")) },
+            supportingContent = { Text(I18n.t("garmin.sub")) },
+            leadingContent = { Icon(Icons.Filled.Watch, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+            trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+        )
+        ListItem(
+            modifier = Modifier.clickable { onAlarm() },
+            headlineContent = { Text(I18n.t("profile.alarm")) },
+            supportingContent = { Text(I18n.t("profile.alarmSub")) },
+            leadingContent = { Icon(Icons.Filled.Vibration, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+            trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+        )
+        ListItem(
+            modifier = Modifier.clickable { onDataFields() },
+            headlineContent = { Text(I18n.t("profile.datafields")) },
+            supportingContent = { Text(I18n.t("profile.datafieldsSub")) },
+            leadingContent = { Icon(Icons.Filled.Dashboard, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+            trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+        )
+        Spacer(Modifier.height(8.dp))
+        // Rueckmeldung „gespeichert" steht seit 28.09.2026 direkt unter dem jeweiligen Regler
+        // (wie die PWA), nicht mehr als Snackbar am unteren Rand.
+        PairedDevicesCard()
     }
 }
 
@@ -654,4 +667,22 @@ private fun sparUhrText(d: PairedDevice): String {
     return I18n.t("account.gpsSparenUhr")
         .replace("{kb}", kb.toString()).replace("{modus}", modusText)
         .replace("{ohne}", ohne.toString()).replace("{von}", (ohne * 2).toString()).replace("{bis}", (ohne * 3).toString())
+}
+
+/**
+ * Uhren und verknuepfte Konten in EINER Ansicht (Web LinkedAccounts.tsx `eingebettet`, 02.11.2026): Home › Uhren und
+ * Einstellungen › Uhren. Die Reiter Uhr | Konten als zweite Zeile direkt unter der Hauptzeile; die Konten (Polar, COROS,
+ * Suunto …) stehen in der App untereinander auf EINER Seite statt je Anbieter ein Reiter wie im Web.
+ */
+@Composable
+fun UhrenKontenBereich(onGarminPair: () -> Unit, onGuide: () -> Unit, onAlarm: () -> Unit, onDataFields: () -> Unit) {
+    val reiter = listOf(ReiterDef("uhr", I18n.t("nav.watch")), ReiterDef("konten", I18n.t("accounts.title")))
+    var tab by rememberReiter("konten", reiter.map { it.id }, "uhr")
+    Column {
+        Reiterleiste(reiter, tab, { tab = it }, stufe = 2)
+        Spacer(Modifier.height(10.dp))
+        if (tab == "uhr") WatchScreen(onBack = {}, onGarminPair = onGarminPair, onGuide = onGuide, onAlarm = onAlarm,
+                                      onDataFields = onDataFields, eingebettet = true)
+        else LinkedAccountsScreen(onBack = {}, eingebettet = true)
+    }
 }

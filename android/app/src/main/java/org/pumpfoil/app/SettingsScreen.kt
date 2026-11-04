@@ -57,43 +57,44 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SettingsScreen(onBack: () -> Unit) {
-    val ctx = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var loaded by remember { mutableStateOf(false) }
-    var saved by remember { mutableStateOf(false) }
+/**
+ * Zustand der Einstellungen — EINMAL geladen und von allen Reitern geteilt (App-Port Phase 6, 04.11.2026): wer im Reiter
+ * „Ich" das Gewicht aendert und nach „Fahren" wechselt, verliert die Eingabe nicht. Gespeichert wird wie bisher ueber
+ * „Speichern" (Gewicht, Zonen, Homespot, Benachrichtigungen); alles andere speichert sich sofort selbst.
+ */
+class EinstellungenStand(private val ctx: android.content.Context, private val scope: kotlinx.coroutines.CoroutineScope) {
+    var loaded by mutableStateOf(false)
+    var saved by mutableStateOf(false)
 
-    var weight by remember { mutableStateOf("0") }
+    var weight by mutableStateOf("0")
     // Puls-Zonen: sechs steigende Grenzen (Z1-unten … Z5-oben). Der Server liefert nie leer —
     // ohne eigene Einstellung kommt ein Vorschlag aus dem hoechsten je gemessenen Puls.
-    var zonen by remember { mutableStateOf(listOf(95, 114, 133, 152, 171, 190)) }
-    var zonenVorschlag by remember { mutableStateOf(true) }
-    var homespot by remember { mutableStateOf("") }
-    var wrist by remember { mutableStateOf("") }
-    var stance by remember { mutableStateOf("") }
-    var spots by remember { mutableStateOf<List<String>>(emptyList()) }
-    val snackHost = remember { SnackbarHostState() }
+    var zonen by mutableStateOf(listOf(95, 114, 133, 152, 171, 190))
+    var zonenVorschlag by mutableStateOf(true)
+    var homespot by mutableStateOf("")
+    var wrist by mutableStateOf("")
+    var stance by mutableStateOf("")
+    var spots by mutableStateOf<List<String>>(emptyList())
+    val snackHost = SnackbarHostState()
     fun flashSaved() { scope.launch { snackHost.showSnackbar(I18n.t("common.saved")) } }
-    var nLike by remember { mutableStateOf(true) }
-    var nAnalyzed by remember { mutableStateOf(true) }
-    var nRecord by remember { mutableStateOf(true) }
-    var nChat by remember { mutableStateOf(true) }
-    var nFriend by remember { mutableStateOf(true) }
-    var theme by remember { mutableStateOf(ThemeState.mode) }
-    var lang by remember { mutableStateOf(I18n.lang) }
-    var pwCur by remember { mutableStateOf("") }
-    var pwNew by remember { mutableStateOf("") }
-    var pwMsg by remember { mutableStateOf<Pair<Boolean, String>?>(null) }   // (ok, text)
-    var pwBusy by remember { mutableStateOf(false) }
-    var spZonen by remember { mutableStateOf(listOf(8, 12, 16, 20, 24, 28)) }
-    var spZonenVorschlag by remember { mutableStateOf(true) }
-    var sensitivity by remember { mutableStateOf("normal") }
-    var pumpUnit by remember { mutableStateOf(PumpUnit.unit) }
-    var reanalysis by remember { mutableStateOf<ReanalysisProgress?>(null) }
+    var nLike by mutableStateOf(true)
+    var nAnalyzed by mutableStateOf(true)
+    var nRecord by mutableStateOf(true)
+    var nChat by mutableStateOf(true)
+    var nFriend by mutableStateOf(true)
+    var theme by mutableStateOf(ThemeState.mode)
+    var lang by mutableStateOf(I18n.lang)
+    var pwCur by mutableStateOf("")
+    var pwNew by mutableStateOf("")
+    var pwMsg by mutableStateOf<Pair<Boolean, String>?>(null)   // (ok, text)
+    var pwBusy by mutableStateOf(false)
+    var spZonen by mutableStateOf(listOf(8, 12, 16, 20, 24, 28))
+    var spZonenVorschlag by mutableStateOf(true)
+    var sensitivity by mutableStateOf("normal")
+    var pumpUnit by mutableStateOf(PumpUnit.unit)
+    var reanalysis by mutableStateOf<ReanalysisProgress?>(null)
 
-    LaunchedEffect(Unit) {
+    suspend fun laden() {
         try {
             val s = Api.settings()
             weight = (s["weight_kg"]?.jsonPrimitive?.intOrNull ?: 0).toString()
@@ -152,7 +153,22 @@ fun SettingsScreen(onBack: () -> Unit) {
             } catch (_: Exception) {}
         }
     }
+}
 
+@Composable
+fun rememberEinstellungenStand(): EinstellungenStand {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val z = remember { EinstellungenStand(ctx, scope) }
+    LaunchedEffect(Unit) { z.laden() }
+    return z
+}
+
+/** Alte Einzelseite (Route "settings"): alle Gruppen untereinander. Die Einstellungen selbst haben jetzt Reiter (ProfileScreen). */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(onBack: () -> Unit) {
+    val z = rememberEinstellungenStand()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -161,258 +177,290 @@ fun SettingsScreen(onBack: () -> Unit) {
                 actions = { FeedbackKnopf() },
             )
         },
-        snackbarHost = { SnackbarHost(snackHost) },
+        snackbarHost = { SnackbarHost(z.snackHost) },
     ) { pad ->
-        if (!loaded) {
+        if (!z.loaded) {
             Box(Modifier.padding(pad).fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
             return@Scaffold
         }
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-            // Sprache GANZ OBEN (Vorgabe Jan, 13.09.2026, wie in der PWA): wer die Seite in
-            // einer Sprache vor sich hat, die er nicht liest, muss hier als Erstes fuendig
-            // werden statt an sechs Bloecken vorbeizuscrollen. Wirkt sofort lokal und geht ans
-            // Profil, synct also zu Web und Uhr.
-            Text(I18n.t("settings.language"), style = MaterialTheme.typography.labelLarge)
-            Spacer(Modifier.height(4.dp))
-            Dropdown(
-                options = I18n.LANGS.map { it to (I18n.langName(it)) },
-                selected = lang,
-                onSelect = { l -> lang = l; I18n.set(ctx, l); scope.launch { try { Api.updateLanguage(l) } catch (_: Exception) {} } },
-            )
-            Spacer(Modifier.height(16.dp))
-
-            // Gewicht.
-            Text("${I18n.t("settings.weight")} (kg)", style = MaterialTheme.typography.labelLarge)
-            OutlinedTextField(
-                value = weight, onValueChange = { weight = it.filter { c -> c.isDigit() }.take(3); saved = false },
-                singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.width(120.dp),
-            )
-            Spacer(Modifier.height(16.dp))
-
-            // Handgelenk + Stance (10.10.2026, docs/GROUND-TRUTH.md §4): zusammen = Uhr an der
-            // vorderen oder hinteren Hand. Privat, aendert nichts; speichert sofort wie im Web.
-            Text(I18n.t("rider.ridingTitle"), style = MaterialTheme.typography.labelLarge)
-            Text(I18n.t("rider.ridingHint"), style = MaterialTheme.typography.bodySmall)
-            Spacer(Modifier.height(8.dp))
-            Text(I18n.t("rider.wrist"), style = MaterialTheme.typography.bodyMedium)
-            Dropdown(
-                options = listOf("" to I18n.t("rider.notSet"), "left" to I18n.t("rider.wristLeft"), "right" to I18n.t("rider.wristRight")),
-                selected = wrist,
-                onSelect = { v -> wrist = v; scope.launch { try { Api.saveSettings(buildJsonObject { put("watch_wrist", v) }); flashSaved() } catch (_: Exception) {} } },
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(I18n.t("rider.stance"), style = MaterialTheme.typography.bodyMedium)
-            Dropdown(
-                options = listOf("" to I18n.t("rider.notSet"), "regular" to I18n.t("rider.stanceRegular"), "goofy" to I18n.t("rider.stanceGoofy")),
-                selected = stance,
-                onSelect = { v -> stance = v; scope.launch { try { Api.saveSettings(buildJsonObject { put("stance", v) }); flashSaved() } catch (_: Exception) {} } },
-            )
-            if (wrist.isNotEmpty() && stance.isNotEmpty()) {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    I18n.t(if ((wrist == "left") == (stance == "regular")) "rider.handFront" else "rider.handBack"),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+            listOf("sprache", "ich", "fahren", "privat", "darstellung", "konto").forEach { teil ->
+                EinstellungenTeil(z, teil, mitSpeichern = false)
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(24.dp))
+            SpeichernZeile(z)
+        }
+    }
+}
 
-            // Zonen — EIN Block, zweimal benutzt: Puls und Geschwindigkeit funktionieren
-            // identisch (sechs Grenzen = fuenf Zonen). Sie sind die einzige Quelle fuer alle
-            // Plattformen (nur Garmin und Zepp koennen Zonen selbst lesen, Wear OS und watchOS
-            // haben keine API dafuer) und faerben BEIDES: die Zahl auf der Uhr und die
-            // Wert-Grafiken. Doku: docs/COLOR-ZONES.md.
-            ZonenBlock(
-                praefix = "hrz", einheit = "bpm", min = 60, max = 240,
-                werte = zonen, vorschlag = zonenVorschlag,
-                onChange = { w, i -> zonen = zonenRepariert(w, i, 60, 240); zonenVorschlag = false; saved = false },
-                onReset = {
-                    scope.launch {
-                        try {
-                            Api.saveSettings(buildJsonObject { put("hr_zones", kotlinx.serialization.json.JsonNull) })
-                            // saveSettings gibt nichts zurueck -> den neuen Vorschlag frisch holen.
-                            val r = Api.settings()
-                            (r["hr_zones"] as? kotlinx.serialization.json.JsonArray)
-                                ?.mapNotNull { it.jsonPrimitive.intOrNull }
-                                ?.takeIf { it.size == 6 }?.let { zonen = it }
-                            zonenVorschlag = true
-                            flashSaved()
-                        } catch (_: Exception) {}
-                    }
-                },
-            )
-            Spacer(Modifier.height(16.dp))
-            ZonenBlock(
-                praefix = "spz", einheit = "km/h", min = 1, max = 80,
-                werte = spZonen, vorschlag = spZonenVorschlag,
-                onChange = { w, i -> spZonen = zonenRepariert(w, i, 1, 80); spZonenVorschlag = false; saved = false },
-                onReset = {
-                    scope.launch {
-                        try {
-                            Api.saveSettings(buildJsonObject { put("speed_zones", kotlinx.serialization.json.JsonNull) })
-                            val r = Api.settings()
-                            (r["speed_zones"] as? kotlinx.serialization.json.JsonArray)
-                                ?.mapNotNull { it.jsonPrimitive.intOrNull }
-                                ?.takeIf { it.size == 6 }?.let { spZonen = it }
-                            spZonenVorschlag = true
-                            flashSaved()
-                        } catch (_: Exception) {}
-                    }
-                },
-            )
-            Spacer(Modifier.height(16.dp))
-
-            // Homespot.
-            Text(I18n.t("settings.homespot"), style = MaterialTheme.typography.labelLarge)
-            Spacer(Modifier.height(4.dp))
-            Dropdown(
-                options = listOf("" to I18n.t("settings.auto")) + spots.map { it to it },
-                selected = homespot, onSelect = { homespot = it; saved = false },
-            )
-            Spacer(Modifier.height(16.dp))
-
-            // Was sehen andere von mir — oeffentliche Foiler-Seite und „Ort verbergen" direkt
-            // untereinander, wie in der PWA (Jan, 25.09.2026: „das wuerde unter den block mit
-            // Public profile page passen"). Beide speichern sofort, nicht ueber „Speichern".
-            OeffentlicheSeiteKarte(onSaved = { flashSaved() })
-            Spacer(Modifier.height(12.dp))
-            OrtVerbergenKarte(onSaved = { flashSaved() })
-            Spacer(Modifier.height(12.dp))
-            AktivAufKarteKarte(onSaved = { flashSaved() })
-            Spacer(Modifier.height(12.dp))
-            OnlinePunktKarte(onSaved = { flashSaved() })
-            Spacer(Modifier.height(12.dp))
-            GeteilteAufnahmenKarte()
-            Spacer(Modifier.height(16.dp))
-
-
-            // Theme (lokal, sofort wirksam).
-            Text(I18n.t("settings.design"), style = MaterialTheme.typography.labelLarge)
-            Spacer(Modifier.height(4.dp))
-            Dropdown(
-                options = listOf("auto" to I18n.t("settings.auto"), "light" to I18n.t("settings.light"), "dark" to I18n.t("settings.dark")),
-                selected = theme, onSelect = { theme = it; ThemeState.set(ctx, it) },
-            )
-            Spacer(Modifier.height(16.dp))
-
-            // Pump-Kadenz als Hz oder als Pumps pro Minute (reine Anzeige, wirkt sofort überall).
-            Text(I18n.t("pumpunit.label"), style = MaterialTheme.typography.labelLarge)
-            Text(I18n.t("pumpunit.hint"), style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
-            Dropdown(
-                options = listOf(
-                    "hz" to I18n.t("pumpunit.hz"),
-                    "ppm" to I18n.t("pumpunit.ppm"),
-                ),
-                selected = pumpUnit,
-                onSelect = onSelect@{ v ->
-                    if (v == pumpUnit) return@onSelect
-                    pumpUnit = v
-                    PumpUnit.set(ctx, v)   // lokal sofort, danach ans Profil (synct zu Web/anderen Geräten)
-                    scope.launch { try { Api.updatePumpUnit(v) } catch (_: Exception) {} }
-                },
-            )
-            Spacer(Modifier.height(16.dp))
-
-            // Persönliche Erkennungs-Empfindlichkeit (nur eigene Ansicht; Server reanalysiert eigene Sessions).
-            Text(I18n.t("foilsens.label"), style = MaterialTheme.typography.labelLarge)
-            Text(I18n.t("foilsens.hint"), style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
-            Dropdown(
-                options = listOf(
-                    "normal" to I18n.t("foilsens.normal"),
-                    "light" to I18n.t("foilsens.light"),
-                    "attempts" to I18n.t("foilsens.attempts"),
-                ),
-                selected = sensitivity,
-                onSelect = onSelect@{ v ->
-                    if (v == sensitivity) return@onSelect
-                    sensitivity = v
-                    scope.launch {
-                        try { Api.updateFoilSensitivity(v) } catch (_: Exception) {}
-                        if (v == "normal") { reanalysis = null; return@launch }
-                        reanalysis = ReanalysisProgress(running = true, done = 0, total = 0)
-                        // Fortschritt pollen bis fertig (gecachte Stufen sind sofort durch).
-                        repeat(120) {
-                            kotlinx.coroutines.delay(1000)
-                            val p = try { Api.reanalysisProgress() } catch (_: Exception) { null }
-                            reanalysis = p
-                            if (p == null || !p.running) return@launch
+/**
+ * Eine Gruppe der Einstellungen — gegliedert wie die Reiter im Web (Settings.tsx): „sprache" (steht in der Uebersicht),
+ * „ich", „fahren", „privat", „darstellung", „konto". `mitSpeichern`: der Knopf „Speichern" unter den Gruppen, die
+ * Felder dafuer haben.
+ */
+@Composable
+fun EinstellungenTeil(z: EinstellungenStand, teil: String, mitSpeichern: Boolean = true) {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    if (!z.loaded) {
+        Box(Modifier.fillMaxWidth().padding(24.dp)) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
+        return
+    }
+    fun flashSaved() = z.flashSaved()
+    with(z) {
+        Column {
+            when (teil) {
+                "sprache" -> {
+                    Text(I18n.t("settings.language"), style = MaterialTheme.typography.labelLarge)
+                    Spacer(Modifier.height(4.dp))
+                    Dropdown(
+                        options = I18n.LANGS.map { it to (I18n.langName(it)) },
+                        selected = lang,
+                        onSelect = { l -> lang = l; I18n.set(ctx, l); scope.launch { try { Api.updateLanguage(l) } catch (_: Exception) {} } },
+                    )
+                    Spacer(Modifier.height(16.dp))
+                }
+                "ich" -> {
+                    // Eigener Kanal direkt bei „wer bin ich hier" (Web: unter dem Anzeigenamen).
+                    SocialKanalBlock()
+                    Spacer(Modifier.height(20.dp))
+                    // Gewicht.
+                    Text("${I18n.t("settings.weight")} (kg)", style = MaterialTheme.typography.labelLarge)
+                    OutlinedTextField(
+                        value = weight, onValueChange = { weight = it.filter { c -> c.isDigit() }.take(3); saved = false },
+                        singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.width(120.dp),
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    // Homespot.
+                    Text(I18n.t("settings.homespot"), style = MaterialTheme.typography.labelLarge)
+                    Spacer(Modifier.height(4.dp))
+                    Dropdown(
+                        options = listOf("" to I18n.t("settings.auto")) + spots.map { it to it },
+                        selected = homespot, onSelect = { homespot = it; saved = false },
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    if (mitSpeichern) SpeichernZeile(z)
+                }
+                "fahren" -> {
+                    // Reihenfolge wie im Web (Jan, 02.11.2026): Erkennungs-Empfindlichkeit, Pump-Kadenz, Hand, Zonen.
+                    // Persönliche Erkennungs-Empfindlichkeit (nur eigene Ansicht; Server reanalysiert eigene Sessions).
+                    Text(I18n.t("foilsens.label"), style = MaterialTheme.typography.labelLarge)
+                    Text(I18n.t("foilsens.hint"), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
+                    Dropdown(
+                        options = listOf(
+                            "normal" to I18n.t("foilsens.normal"),
+                            "light" to I18n.t("foilsens.light"),
+                            "attempts" to I18n.t("foilsens.attempts"),
+                        ),
+                        selected = sensitivity,
+                        onSelect = onSelect@{ v ->
+                            if (v == sensitivity) return@onSelect
+                            sensitivity = v
+                            scope.launch {
+                                try { Api.updateFoilSensitivity(v) } catch (_: Exception) {}
+                                if (v == "normal") { reanalysis = null; return@launch }
+                                reanalysis = ReanalysisProgress(running = true, done = 0, total = 0)
+                                // Fortschritt pollen bis fertig (gecachte Stufen sind sofort durch).
+                                repeat(120) {
+                                    kotlinx.coroutines.delay(1000)
+                                    val p = try { Api.reanalysisProgress() } catch (_: Exception) { null }
+                                    reanalysis = p
+                                    if (p == null || !p.running) return@launch
+                                }
+                            }
+                        },
+                    )
+                    reanalysis?.takeIf { it.running }?.let { p ->
+                        Text("${p.done}/${if (p.total > 0) p.total else "…"} · ${I18n.t("foilsens.reanalyzing")}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                        if (p.total > 0) {
+                            LinearProgressIndicator(progress = { p.done.toFloat() / p.total },
+                                modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
                         }
                     }
-                },
-            )
-            reanalysis?.takeIf { it.running }?.let { p ->
-                Text("${p.done}/${if (p.total > 0) p.total else "…"} · ${I18n.t("foilsens.reanalyzing")}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
-                if (p.total > 0) {
-                    LinearProgressIndicator(progress = { p.done.toFloat() / p.total },
-                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
+                    Spacer(Modifier.height(16.dp))
+                    // Pump-Kadenz als Hz oder als Pumps pro Minute (reine Anzeige, wirkt sofort überall).
+                    Text(I18n.t("pumpunit.label"), style = MaterialTheme.typography.labelLarge)
+                    Text(I18n.t("pumpunit.hint"), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
+                    Dropdown(
+                        options = listOf(
+                            "hz" to I18n.t("pumpunit.hz"),
+                            "ppm" to I18n.t("pumpunit.ppm"),
+                        ),
+                        selected = pumpUnit,
+                        onSelect = onSelect@{ v ->
+                            if (v == pumpUnit) return@onSelect
+                            pumpUnit = v
+                            PumpUnit.set(ctx, v)   // lokal sofort, danach ans Profil (synct zu Web/anderen Geräten)
+                            scope.launch { try { Api.updatePumpUnit(v) } catch (_: Exception) {} }
+                        },
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    // Handgelenk + Stance (10.10.2026, docs/GROUND-TRUTH.md §4): zusammen = Uhr an der
+                    // vorderen oder hinteren Hand. Privat, aendert nichts; speichert sofort wie im Web.
+                    Text(I18n.t("rider.ridingTitle"), style = MaterialTheme.typography.labelLarge)
+                    Text(I18n.t("rider.ridingHint"), style = MaterialTheme.typography.bodySmall)
+                    Spacer(Modifier.height(8.dp))
+                    Text(I18n.t("rider.wrist"), style = MaterialTheme.typography.bodyMedium)
+                    Dropdown(
+                        options = listOf("" to I18n.t("rider.notSet"), "left" to I18n.t("rider.wristLeft"), "right" to I18n.t("rider.wristRight")),
+                        selected = wrist,
+                        onSelect = { v -> wrist = v; scope.launch { try { Api.saveSettings(buildJsonObject { put("watch_wrist", v) }); flashSaved() } catch (_: Exception) {} } },
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(I18n.t("rider.stance"), style = MaterialTheme.typography.bodyMedium)
+                    Dropdown(
+                        options = listOf("" to I18n.t("rider.notSet"), "regular" to I18n.t("rider.stanceRegular"), "goofy" to I18n.t("rider.stanceGoofy")),
+                        selected = stance,
+                        onSelect = { v -> stance = v; scope.launch { try { Api.saveSettings(buildJsonObject { put("stance", v) }); flashSaved() } catch (_: Exception) {} } },
+                    )
+                    if (wrist.isNotEmpty() && stance.isNotEmpty()) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            I18n.t(if ((wrist == "left") == (stance == "regular")) "rider.handFront" else "rider.handBack"),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    // Zonen — EIN Block, zweimal benutzt: Puls und Geschwindigkeit funktionieren
+                    // identisch (sechs Grenzen = fuenf Zonen). Sie sind die einzige Quelle fuer alle
+                    // Plattformen (nur Garmin und Zepp koennen Zonen selbst lesen, Wear OS und watchOS
+                    // haben keine API dafuer) und faerben BEIDES: die Zahl auf der Uhr und die
+                    // Wert-Grafiken. Doku: docs/COLOR-ZONES.md.
+                    ZonenBlock(
+                        praefix = "hrz", einheit = "bpm", min = 60, max = 240,
+                        werte = zonen, vorschlag = zonenVorschlag,
+                        onChange = { w, i -> zonen = zonenRepariert(w, i, 60, 240); zonenVorschlag = false; saved = false },
+                        onReset = {
+                            scope.launch {
+                                try {
+                                    Api.saveSettings(buildJsonObject { put("hr_zones", kotlinx.serialization.json.JsonNull) })
+                                    // saveSettings gibt nichts zurueck -> den neuen Vorschlag frisch holen.
+                                    val r = Api.settings()
+                                    (r["hr_zones"] as? kotlinx.serialization.json.JsonArray)
+                                        ?.mapNotNull { it.jsonPrimitive.intOrNull }
+                                        ?.takeIf { it.size == 6 }?.let { zonen = it }
+                                    zonenVorschlag = true
+                                    flashSaved()
+                                } catch (_: Exception) {}
+                            }
+                        },
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    ZonenBlock(
+                        praefix = "spz", einheit = "km/h", min = 1, max = 80,
+                        werte = spZonen, vorschlag = spZonenVorschlag,
+                        onChange = { w, i -> spZonen = zonenRepariert(w, i, 1, 80); spZonenVorschlag = false; saved = false },
+                        onReset = {
+                            scope.launch {
+                                try {
+                                    Api.saveSettings(buildJsonObject { put("speed_zones", kotlinx.serialization.json.JsonNull) })
+                                    val r = Api.settings()
+                                    (r["speed_zones"] as? kotlinx.serialization.json.JsonArray)
+                                        ?.mapNotNull { it.jsonPrimitive.intOrNull }
+                                        ?.takeIf { it.size == 6 }?.let { spZonen = it }
+                                    spZonenVorschlag = true
+                                    flashSaved()
+                                } catch (_: Exception) {}
+                            }
+                        },
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    if (mitSpeichern) SpeichernZeile(z)
+                }
+                "privat" -> {
+                    // Was sehen andere von mir — oeffentliche Foiler-Seite und „Ort verbergen" direkt
+                    // untereinander, wie in der PWA (Jan, 25.09.2026: „das wuerde unter den block mit
+                    // Public profile page passen"). Beide speichern sofort, nicht ueber „Speichern".
+                    OeffentlicheSeiteKarte(onSaved = { flashSaved() })
+                    Spacer(Modifier.height(12.dp))
+                    OrtVerbergenKarte(onSaved = { flashSaved() })
+                    Spacer(Modifier.height(12.dp))
+                    AktivAufKarteKarte(onSaved = { flashSaved() })
+                    Spacer(Modifier.height(12.dp))
+                    OnlinePunktKarte(onSaved = { flashSaved() })
+                    Spacer(Modifier.height(12.dp))
+                    GeteilteAufnahmenKarte()
+                    Spacer(Modifier.height(16.dp))
+                }
+                "darstellung" -> {
+                    // Theme (lokal, sofort wirksam).
+                    Text(I18n.t("settings.design"), style = MaterialTheme.typography.labelLarge)
+                    Spacer(Modifier.height(4.dp))
+                    Dropdown(
+                        options = listOf("auto" to I18n.t("settings.auto"), "light" to I18n.t("settings.light"), "dark" to I18n.t("settings.dark")),
+                        selected = theme, onSelect = { theme = it; ThemeState.set(ctx, it) },
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    // Push-Benachrichtigungen.
+                    Text(I18n.t("settings.notifications"), style = MaterialTheme.typography.labelLarge)
+                    ToggleRow(I18n.t("settings.nLikes"), nLike) { nLike = it; saved = false }
+                    ToggleRow(I18n.t("settings.nAnalyzed"), nAnalyzed) { nAnalyzed = it; saved = false }
+                    ToggleRow(I18n.t("settings.nRecord"), nRecord) { nRecord = it; saved = false }
+                    ToggleRow(I18n.t("settings.nChat"), nChat) { nChat = it; saved = false }
+                    ToggleRow(I18n.t("notif.typeFriend"), nFriend) { nFriend = it; saved = false }
+                    Spacer(Modifier.height(20.dp))
+                    if (mitSpeichern) SpeichernZeile(z)
+                }
+                "konto" -> {
+                    // Passwort ändern (wie PWA-Settings).
+                    Text(I18n.t("profile.changePw"), style = MaterialTheme.typography.labelLarge)
+                    Text(I18n.t("profile.changePwHint"), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
+                    OutlinedTextField(
+                        value = pwCur, onValueChange = { pwCur = it; pwMsg = null },
+                        singleLine = true, label = { Text(I18n.t("profile.curPw")) },
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = pwNew, onValueChange = { pwNew = it; pwMsg = null },
+                        singleLine = true, label = { Text(I18n.t("profile.newPw")) },
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            pwMsg = null
+                            if (pwNew.length < 8) { pwMsg = false to I18n.t("profile.pwMin"); return@Button }
+                            pwBusy = true
+                            scope.launch {
+                                try {
+                                    Api.changePassword(pwCur, pwNew)
+                                    pwMsg = true to I18n.t("profile.pwChanged"); pwCur = ""; pwNew = ""
+                                } catch (e: Exception) {
+                                    pwMsg = false to (if ((e.message ?: "").contains("400")) I18n.t("profile.pwWrong") else I18n.t("profile.error"))
+                                }
+                                pwBusy = false
+                            }
+                        },
+                        enabled = !pwBusy && pwCur.isNotBlank() && pwNew.isNotBlank(),
+                    ) { Text(I18n.t("profile.changePw")) }
+                    pwMsg?.let { (ok, text) ->
+                        Text(text, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 6.dp),
+                            color = if (ok) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
+                    }
+                    Spacer(Modifier.height(16.dp))
                 }
             }
-            Spacer(Modifier.height(16.dp))
-
-            // Push-Benachrichtigungen.
-            Text(I18n.t("settings.notifications"), style = MaterialTheme.typography.labelLarge)
-            ToggleRow(I18n.t("settings.nLikes"), nLike) { nLike = it; saved = false }
-            ToggleRow(I18n.t("settings.nAnalyzed"), nAnalyzed) { nAnalyzed = it; saved = false }
-            ToggleRow(I18n.t("settings.nRecord"), nRecord) { nRecord = it; saved = false }
-            ToggleRow(I18n.t("settings.nChat"), nChat) { nChat = it; saved = false }
-            ToggleRow(I18n.t("notif.typeFriend"), nFriend) { nFriend = it; saved = false }
-            Spacer(Modifier.height(20.dp))
-
-            // Passwort ändern (wie PWA-Settings).
-            Text(I18n.t("profile.changePw"), style = MaterialTheme.typography.labelLarge)
-            Text(I18n.t("profile.changePwHint"), style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
-            OutlinedTextField(
-                value = pwCur, onValueChange = { pwCur = it; pwMsg = null },
-                singleLine = true, label = { Text(I18n.t("profile.curPw")) },
-                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
-                value = pwNew, onValueChange = { pwNew = it; pwMsg = null },
-                singleLine = true, label = { Text(I18n.t("profile.newPw")) },
-                visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = {
-                    pwMsg = null
-                    if (pwNew.length < 8) { pwMsg = false to I18n.t("profile.pwMin"); return@Button }
-                    pwBusy = true
-                    scope.launch {
-                        try {
-                            Api.changePassword(pwCur, pwNew)
-                            pwMsg = true to I18n.t("profile.pwChanged"); pwCur = ""; pwNew = ""
-                        } catch (e: Exception) {
-                            pwMsg = false to (if ((e.message ?: "").contains("400")) I18n.t("profile.pwWrong") else I18n.t("profile.error"))
-                        }
-                        pwBusy = false
-                    }
-                },
-                enabled = !pwBusy && pwCur.isNotBlank() && pwNew.isNotBlank(),
-            ) { Text(I18n.t("profile.changePw")) }
-            pwMsg?.let { (ok, text) ->
-                Text(text, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 6.dp),
-                    color = if (ok) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
-            }
-
-            Spacer(Modifier.height(24.dp))
-            SocialKanalBlock()
-
-            Spacer(Modifier.height(24.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Button(onClick = { save() }) { Text(I18n.t("common.save")) }
-                if (saved) { Spacer(Modifier.width(12.dp)); Text(I18n.t("common.saved"), color = MaterialTheme.colorScheme.primary) }
-            }
         }
+    }
+}
+
+/** Knopf „Speichern" fuer die Felder, die nicht sofort speichern (Gewicht, Zonen, Homespot, Benachrichtigungen). */
+@Composable
+fun SpeichernZeile(z: EinstellungenStand) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)) {
+        Button(onClick = { z.save() }) { Text(I18n.t("common.save")) }
+        if (z.saved) { Spacer(Modifier.width(12.dp)); Text(I18n.t("common.saved"), color = MaterialTheme.colorScheme.primary) }
     }
 }
 

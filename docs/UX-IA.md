@@ -38,15 +38,24 @@ Foils und Setup als zwei lange Seiten. Teams und Events gibt es in beiden Apps s
 | 0 | Bausteine | Reiterleiste wie im Web (wischbar, zweite Zeile als Flaeche), Zustand je Bereich | ✅ `Reiter.kt`, Texte `I18nPort.kt` (scripts/gen-i18n-port.py) | ✅ `Reiter.swift`, `LocPort.swift` (beide neu -> xcodegen) |
 | 1 | Ohne Foil | On-Foil-Zahlen in Karte/Detail ausblenden (klein, sofort sichtbar) | ✅ 04.11. | ✅ 04.11. (parse) |
 | 2 | Leiste unten | Home · Community · Sessions · Spots · Chat · Zahnrad; Verlauf -> Home › Stats; Profil -> Einstellungen | ✅ 04.11. | ✅ 04.11. (parse) |
-| 3 | Home-Reiter | Uebersicht · Rekorde · Team · Spots · Stats · Uhren · Profil (vorhandene Abschnitte umhaengen) | 🟡 04.11.: Uebersicht · Rekorde · Team · Stats (Stats -> Verlauf-Seite); Spots/Uhren/Profil mit Phase 4–6 | 🟡 04.11. wie Android (parse) |
-| 4 | Home › Spots | Spotzeile + Alle-Kacheln, Spot-Reiter aus der Spot-Seite wiederverwenden | ☐ | ☐ |
-| 5 | Home › Profil | Foiler-Seite eingebettet + Vorschau Freunde/Alle | ☐ | ☐ |
-| 6 | Einstellungen | 10 Reiter, Kacheln = Reiter, Freunde/Team(+Suche)/Uhren eingebettet | ☐ | ☐ |
-| 7 | Ausruestung | Reiter, Suche statt Katalog, Board-only ohne Foil | ☐ | ☐ |
-| 8 | Community | Reiter Rekorde & Bestenliste · Medien · Teams & Events; Team-Bestenlisten + Teilen-Bild | ☐ | ☐ |
-| 9 | Rest | Sessions-Reiter Meine/Freunde/Alle und Spots-Reiter Karte/Liste/Routen pruefen, Spot-Seite-Reiter | ☐ | ☐ |
+| 3 | Home-Reiter | Uebersicht · Rekorde · Team · Spots · Stats · Uhren · Profil (vorhandene Abschnitte umhaengen) | ✅ 04.11. (compileDebugKotlin) | ✅ 04.11. (nur parse; neue Dateien -> xcodegen) |
+| 4 | Home › Spots | Spotzeile + Alle-Kacheln, Spot-Reiter aus der Spot-Seite wiederverwenden | ✅ 04.11. (compileDebugKotlin) | ✅ 04.11. (nur parse; neue Dateien -> xcodegen) |
+| 5 | Home › Profil | Foiler-Seite eingebettet + Vorschau Freunde/Alle | ✅ 04.11. (compileDebugKotlin) | ✅ 04.11. (nur parse; neue Dateien -> xcodegen) |
+| 6 | Einstellungen | 10 Reiter, Kacheln = Reiter, Freunde/Team(+Suche)/Uhren eingebettet | ✅ 04.11. (compileDebugKotlin) | ✅ 04.11. (nur parse; neue Dateien -> xcodegen) |
+| 7 | Ausruestung | Reiter, Suche statt Katalog, Board-only ohne Foil | ✅ 04.11. (compileDebugKotlin) | ✅ 04.11. (nur parse; neue Dateien -> xcodegen) |
+| 8 | Community | Reiter Rekorde & Bestenliste · Medien · Teams & Events; Team-Bestenlisten + Teilen-Bild | ✅ 04.11. (compileDebugKotlin) | ✅ 04.11. (nur parse; neue Dateien -> xcodegen) |
+| 9 | Rest | Sessions-Reiter Meine/Freunde/Alle und Spots-Reiter Karte/Liste/Routen pruefen, Spot-Seite-Reiter | ✅ 04.11. (compileDebugKotlin) | ✅ 04.11. (nur parse; neue Dateien -> xcodegen) |
 
 Jede Phase fuer sich auslieferbar; Jan testet Android im Emulator, iOS in Xcode. Stand hier nachziehen.
+
+**Stand 04.11.2026 abends:** alle Phasen gebaut, auf keinem Geraet gesehen. Zuerst pruefen: Android Spots › Karte
+(osmdroid bleibt auf anderen Reitern mit Hoehe 0 im Baum — Kacheln nach Reiterwechsel? faengt sie Beruehrungen ab?),
+iOS Home › Spots (eingebettete Spot-Seite im ScrollView), Reiterleiste als List-Zeile, doppelte Kopfleisten bei
+eingebetteten Ansichten, beide Teilen-Bilder. **Offen/abweichend:** Teilen-Bild nur dunkel, ohne Flaggen; Home › Stats
+ohne zweite Reiterzeile (verlinkt die Verlauf-Seite); Konten auf Android untereinander statt Reiter je Anbieter;
+Foiler-Vorschau holt Titel im selben Abruf; Homespot-Chip in Sessions entfaellt (wie Web); iOS ohne „Aktivste Teams"
+(Modell ohne `sessions_30d`), ohne Windfenster im Wetter-Reiter, ohne Import-Kachel und Schriftgroesse; Team gruenden
+oeffnet auf iOS das Web; nicht mehr benutzt, aber noch da: `MeineTeamsSection`, `FreundeZeile` (iOS), `Scope.SPOT` (Android).
 
 ## Stand 02.11.2026 — Reiter je Bereich (entschieden, Web zuerst)
 

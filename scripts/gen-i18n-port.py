@@ -36,6 +36,8 @@ SCHLUESSEL = [
     "tab.map", "tab.list", "tab.routes",
     # Nachtrag aus dem iOS-Port (fehlten in den App-Tabellen)
     "team.keineTeams", "tab.watchAccounts", "team.profilKnopf", "team.profilHinweis", "period.yesterday",
+    # Nachtrag aus dem Android-Port
+    "tab.noRecords", "setup.stabSearch", "foils.hint", "profile.avatar", "profile.dataTitle", "profile.calculator",
 ]
 
 

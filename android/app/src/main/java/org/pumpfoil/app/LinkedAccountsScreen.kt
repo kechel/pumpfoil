@@ -91,7 +91,7 @@ private val PROVIDERS = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LinkedAccountsScreen(onBack: () -> Unit) {
+fun LinkedAccountsScreen(onBack: () -> Unit, eingebettet: Boolean = false) {   // eingebettet: Reiter ohne Titelzeile
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val status = remember { mutableStateMapOf<String, Api.IntegrationStatus>() }
@@ -119,7 +119,118 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
         onDispose { owner.lifecycle.removeObserver(obs) }
     }
 
-    Scaffold(
+    val inhalt: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit = {
+        Text(I18n.t("accounts.sub"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box(Modifier.padding(top = 12.dp))
+        PROVIDERS.forEach { p ->
+            val st = status[p.id]
+            if (st != null && !st.available && !st.linked) {
+                // Nicht konfiguriert -> als "bald verfügbar" grau anzeigen.
+                ProviderCard(p.label, sub = I18n.t("accounts.notAvailable"), logo = p.logo) {}
+            } else if (st != null) {
+                ProviderCard(
+                    title = p.label,
+                    logo = p.logo,
+                    sub = when {
+                        st.linked && st.expired -> I18n.t("settings.coros.expiredHint")
+                        st.linked && p.id == "coros" -> I18n.t("accounts.corosNote")
+                        st.linked && p.id == "polar" -> I18n.t("accounts.polarNote")
+                        st.linked -> I18n.t("accounts.connected")
+                        else -> I18n.t("accounts.sub")
+                    },
+                    connected = st.linked && !st.expired,
+                ) {
+                    // COROS hat die Erneuerung abgelehnt (19.10.2026, wie im Web): ehrlich sagen und
+                    // neu verbinden lassen statt „Verbunden“. Neu verbinden ersetzt die Tokens am Link.
+                    if (st.linked && st.expired) {
+                        Text(I18n.t("settings.coros.expired"), style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(bottom = 8.dp))
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (!st.linked || st.expired) {
+                            Button(
+                                enabled = busy == null,
+                                onClick = {
+                                    busy = p.id
+                                    scope.launch {
+                                        try {
+                                            val url = Api.integrationAuthorizeUrl(p.pfad)
+                                            ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                                        } catch (_: Exception) {}
+                                        busy = null
+                                    }
+                                },
+                            ) { Text(I18n.t(if (st.expired) "settings.coros.reconnect" else "accounts.connect")) }
+                        } else {
+                            if (p.canSync) {
+                                Button(
+                                    enabled = busy == null,
+                                    // Der Import läuft serverseitig im Hintergrund weiter,
+                                    // nachdem `POST /sync` zurückkam (sonst Proxy-Timeout).
+                                    // Der Aufruf stößt also nur an; danach wird der Stand
+                                    // abgefragt, bis er fertig ist.
+                                    onClick = {
+                                        busy = p.id
+                                        stand = Api.SyncStand(laeuft = true)
+                                        scope.launch {
+                                            syncMsg = try {
+                                                Api.integrationSync(p.pfad)
+                                                var letzter: Api.SyncStand? = null
+                                                while (true) {
+                                                    val st2 = Api.syncProgress(p.pfad)
+                                                    letzter = st2
+                                                    if (!st2.laeuft) break
+                                                    stand = st2
+                                                    delay(1500)
+                                                }
+                                                ergebnisText(letzter)
+                                            } catch (_: Exception) {
+                                                I18n.t("accounts.importError")
+                                            }
+                                            stand = null
+                                            fertigZaehler += 1
+                                            refresh(); busy = null
+                                        }
+                                    },
+                                ) { Text(I18n.t("accounts.import")) }
+                            }
+                            OutlinedButton(
+                                enabled = busy == null,
+                                onClick = {
+                                    busy = p.id
+                                    scope.launch { try { Api.integrationUnlink(p.pfad) } catch (_: Exception) {}; refresh(); busy = null }
+                                },
+                            ) { Text(I18n.t("accounts.disconnect")) }
+                        }
+                    }
+                    stand?.let { fort -> if (busy == p.id && fort.laeuft) Fortschritt(fort) }
+                    // Nur COROS: welchen Modus man auf der Uhr wählt, und was der Export
+                    // NICHT liefert. Pumpfoil gibt es auf keiner COROS-Uhr als Sportart.
+                    // Suunto: welchen Modus man waehlt (Web seit 17.10.2026) — die Sportart bestimmen wir selbst.
+                    if (p.id == "suunto") {
+                        Text(I18n.t("settings.suunto.activity"), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 8.dp))
+                    }
+                    if (p.id == "coros" && st.linked) {
+                        Text(I18n.t("accounts.coros.best"), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 8.dp))
+                        Text(I18n.t("accounts.coros.limit"), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 4.dp))
+                    }
+                    if (st.linked) SportAuswahl(p.pfad, p.id, fertigZaehler)
+                }
+            }
+        }
+        XiaomiHinweis()
+        // KI-Zugang (MCP) — wie die PWA ganz unten bei den verknuepften Konten.
+        McpKarte()
+    }
+    if (eingebettet) Column { inhalt() }
+    else Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(I18n.t("accounts.title")) },
@@ -131,114 +242,7 @@ fun LinkedAccountsScreen(onBack: () -> Unit) {
         },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-            Text(I18n.t("accounts.sub"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Box(Modifier.padding(top = 12.dp))
-            PROVIDERS.forEach { p ->
-                val st = status[p.id]
-                if (st != null && !st.available && !st.linked) {
-                    // Nicht konfiguriert -> als "bald verfügbar" grau anzeigen.
-                    ProviderCard(p.label, sub = I18n.t("accounts.notAvailable"), logo = p.logo) {}
-                } else if (st != null) {
-                    ProviderCard(
-                        title = p.label,
-                        logo = p.logo,
-                        sub = when {
-                            st.linked && st.expired -> I18n.t("settings.coros.expiredHint")
-                            st.linked && p.id == "coros" -> I18n.t("accounts.corosNote")
-                            st.linked && p.id == "polar" -> I18n.t("accounts.polarNote")
-                            st.linked -> I18n.t("accounts.connected")
-                            else -> I18n.t("accounts.sub")
-                        },
-                        connected = st.linked && !st.expired,
-                    ) {
-                        // COROS hat die Erneuerung abgelehnt (19.10.2026, wie im Web): ehrlich sagen und
-                        // neu verbinden lassen statt „Verbunden“. Neu verbinden ersetzt die Tokens am Link.
-                        if (st.linked && st.expired) {
-                            Text(I18n.t("settings.coros.expired"), style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.padding(bottom = 8.dp))
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            if (!st.linked || st.expired) {
-                                Button(
-                                    enabled = busy == null,
-                                    onClick = {
-                                        busy = p.id
-                                        scope.launch {
-                                            try {
-                                                val url = Api.integrationAuthorizeUrl(p.pfad)
-                                                ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                                            } catch (_: Exception) {}
-                                            busy = null
-                                        }
-                                    },
-                                ) { Text(I18n.t(if (st.expired) "settings.coros.reconnect" else "accounts.connect")) }
-                            } else {
-                                if (p.canSync) {
-                                    Button(
-                                        enabled = busy == null,
-                                        // Der Import läuft serverseitig im Hintergrund weiter,
-                                        // nachdem `POST /sync` zurückkam (sonst Proxy-Timeout).
-                                        // Der Aufruf stößt also nur an; danach wird der Stand
-                                        // abgefragt, bis er fertig ist.
-                                        onClick = {
-                                            busy = p.id
-                                            stand = Api.SyncStand(laeuft = true)
-                                            scope.launch {
-                                                syncMsg = try {
-                                                    Api.integrationSync(p.pfad)
-                                                    var letzter: Api.SyncStand? = null
-                                                    while (true) {
-                                                        val st2 = Api.syncProgress(p.pfad)
-                                                        letzter = st2
-                                                        if (!st2.laeuft) break
-                                                        stand = st2
-                                                        delay(1500)
-                                                    }
-                                                    ergebnisText(letzter)
-                                                } catch (_: Exception) {
-                                                    I18n.t("accounts.importError")
-                                                }
-                                                stand = null
-                                                fertigZaehler += 1
-                                                refresh(); busy = null
-                                            }
-                                        },
-                                    ) { Text(I18n.t("accounts.import")) }
-                                }
-                                OutlinedButton(
-                                    enabled = busy == null,
-                                    onClick = {
-                                        busy = p.id
-                                        scope.launch { try { Api.integrationUnlink(p.pfad) } catch (_: Exception) {}; refresh(); busy = null }
-                                    },
-                                ) { Text(I18n.t("accounts.disconnect")) }
-                            }
-                        }
-                        stand?.let { fort -> if (busy == p.id && fort.laeuft) Fortschritt(fort) }
-                        // Nur COROS: welchen Modus man auf der Uhr wählt, und was der Export
-                        // NICHT liefert. Pumpfoil gibt es auf keiner COROS-Uhr als Sportart.
-                        // Suunto: welchen Modus man waehlt (Web seit 17.10.2026) — die Sportart bestimmen wir selbst.
-                        if (p.id == "suunto") {
-                            Text(I18n.t("settings.suunto.activity"), style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(top = 8.dp))
-                        }
-                        if (p.id == "coros" && st.linked) {
-                            Text(I18n.t("accounts.coros.best"), style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(top = 8.dp))
-                            Text(I18n.t("accounts.coros.limit"), style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(top = 4.dp))
-                        }
-                        if (st.linked) SportAuswahl(p.pfad, p.id, fertigZaehler)
-                    }
-                }
-            }
-            XiaomiHinweis()
-            // KI-Zugang (MCP) — wie die PWA ganz unten bei den verknuepften Konten.
-            McpKarte()
+            inhalt()
         }
     }
 

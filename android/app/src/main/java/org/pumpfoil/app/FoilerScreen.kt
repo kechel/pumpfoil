@@ -2,6 +2,7 @@ package org.pumpfoil.app
 
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.MonitorWeight
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material.icons.filled.Waves
@@ -49,6 +51,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
@@ -141,6 +144,53 @@ fun FoilerScreen(
     }
 }
 
+/**
+ * Home › Profil (Web PersonalHome.tsx, Jan 04.11.2026): die EIGENE Profilseite, so wie andere sie sehen. Oben ein Hinweis,
+ * dass das die oeffentliche Seite ist und nicht die Einstellungen, der Umschalter Freunde | Alle (Vorschau; „nur ich"
+ * waere dasselbe wie Freunde) und das Zahnrad zu Einstellungen › Privatsphaere. Was „Alle" sehen, entscheidet der Server
+ * (`als`); ist die Seite fuer alle abgeschaltet, kommt nur `vorschau_ausgeblendet`.
+ */
+@Composable
+fun ProfilVorschau(userId: Int, onOpenSession: (Int) -> Unit, onOpenSpot: (String) -> Unit, onPrivacy: () -> Unit) {
+    var als by remember { mutableStateOf("alle") }
+    var d by remember(userId, als) { mutableStateOf<FoilerProfil?>(null) }
+    var fehler by remember(userId, als) { mutableStateOf(false) }
+    LaunchedEffect(userId, als) {
+        try { d = Api.foilerProfil(userId, als) } catch (_: Exception) { fehler = true }
+    }
+    val farben = MaterialTheme.colorScheme
+    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(farben.surfaceVariant)
+            .padding(horizontal = 12.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(I18n.t("phome.profileHint"), style = MaterialTheme.typography.bodyMedium, color = farben.onSurfaceVariant,
+            modifier = Modifier.weight(1f))
+        Spacer(Modifier.width(8.dp))
+        Row(Modifier.clip(RoundedCornerShape(8.dp)).background(farben.background.copy(alpha = 0.6f)).padding(2.dp)) {
+            listOf("freunde" to "phome.asFriends", "alle" to "phome.asAll").forEach { (a, k) ->
+                val an = als == a
+                Text(I18n.t(k), style = MaterialTheme.typography.labelMedium,
+                    fontWeight = if (an) FontWeight.SemiBold else FontWeight.Normal,
+                    color = if (an) farben.onBackground else farben.onSurfaceVariant,
+                    modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(if (an) farben.background else androidx.compose.ui.graphics.Color.Transparent)
+                        .clickable { als = a }.padding(horizontal = 10.dp, vertical = 4.dp))
+            }
+        }
+        IconButton(onClick = onPrivacy) {
+            Icon(Icons.Filled.Settings, contentDescription = I18n.t("ptab.privacy"), tint = farben.primary)
+        }
+    }
+    Spacer(Modifier.height(12.dp))
+    val p = d
+    when {
+        fehler -> Text(I18n.t("foiler.notFound"), color = farben.onSurfaceVariant)
+        p == null -> Box(Modifier.fillMaxWidth().padding(24.dp)) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
+        p.vorschauAusgeblendet -> Text(I18n.t("phome.previewHidden"), style = MaterialTheme.typography.bodyMedium, color = farben.onSurfaceVariant)
+        // Profilbilder auf der eigenen Seite fuehren nicht noch einmal hierher.
+        else -> CompositionLocalProvider(LocalOpenFoiler provides null) {
+            FoilerInhalt(p, onOpenSession, onOpenSpot, onPrivacy, scroll = false)
+        }
+    }
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun FoilerInhalt(
@@ -149,9 +199,10 @@ private fun FoilerInhalt(
     onOpenSpot: (String) -> Unit,
     onSettings: () -> Unit,
     freundKnopf: (@Composable () -> Unit)? = null,
+    scroll: Boolean = true,   // false = eingebettet in eine Seite, die selbst scrollt (Home › Profil)
 ) {
     val uri = LocalUriHandler.current
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
+    Column(if (scroll) Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp) else Modifier.fillMaxWidth()) {
         // Nur der Besitzer sieht diesen Hinweis — sonst waere „ist abgeschaltet" selbst eine
         // Auskunft ueber ein fremdes Konto. Der Server liefert `aus` deshalb auch nur ihm.
         if (d.ich && d.aus) {

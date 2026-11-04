@@ -74,7 +74,10 @@ private fun fmtShimValue(v: Double): String {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SetupScreen(onBack: () -> Unit) {
+fun SetupScreen(onBack: () -> Unit,
+                // Ausruestung (App-Port Phase 7, 04.11.2026, wie Setup.tsx `teil`): "stabs" | "boards" | "mast" | "jeSport";
+                // "alle" = die alte lange Seite.
+                teil: String = "alle", eingebettet: Boolean = false) {
     val scope = rememberCoroutineScope()
     var stabs by remember { mutableStateOf<List<StabBrief>?>(null) }
     var brands by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -203,6 +206,342 @@ fun SetupScreen(onBack: () -> Unit) {
         )
     }
 
+    val inhalt: @Composable (androidx.compose.foundation.layout.PaddingValues) -> Unit = inhalt@{ pad ->
+        val list = stabs
+        if (list == null) {
+            Box(Modifier.padding(pad).fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
+            return@inhalt
+        }
+        val filtered = list.filter { s ->
+            (brand.isEmpty() || s.brand == brand) &&
+                (query.isBlank() || gearMatches("${s.brand} ${s.model} ${s.size} ${s.aliases ?: ""}", query))
+        }
+        val mineList = filtered.filter { it.id in myStabs }.sortedByDescending { it.id == stabId }
+        val restList = filtered.filter { it.id !in myStabs }
+        // Katalog nur ueber die Suche (Jan, 04.11.2026, wie Setup.tsx): ohne Suchbegriff/Marke stehen nur die eigenen da.
+        val sucht = query.isNotBlank() || brand.isNotEmpty()
+        val alle = teil == "alle"
+
+        LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
+            if (alle) {
+                item {
+                    Text(I18n.t("setup.hint"), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
+                }
+            }
+            if (alle || teil == "jeSport") {
+                // --- Ausruestung je Sportart (19.10.2026) ---
+                item { EquipmentJeSportKarte(stabs, boards, myStabs, myMasts) }
+            }
+            if (alle || teil == "stabs") {
+                // --- Stabilizer (Katalog wie bei den Foils) ---
+                item { SectionTitle(I18n.t("setup.stabTitle")) }
+                item {
+                    OutlinedTextField(value = query, onValueChange = { query = it },
+                        label = { Text(I18n.t("setup.stabSearch")) }, singleLine = true,
+                        modifier = Modifier.fillMaxWidth())
+                    if (brands.isNotEmpty()) {
+                        Row(Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilterChip(selected = brand.isEmpty(), onClick = { brand = "" },
+                                label = { Text(I18n.t("sessions.all")) })
+                            brands.forEach { b ->
+                                FilterChip(selected = brand == b, onClick = { brand = b }, label = { Text(b) })
+                            }
+                        }
+                    }
+                }
+                if (mineList.isNotEmpty()) {
+                    item { SubTitle(I18n.t("setup.myStabs")) }
+                    items(mineList, key = { "ms${it.id}" }) { st ->
+                        StabRow(
+                            st = st, isMine = true, isDefault = stabId == st.id,
+                            onDefault = {
+                                save(buildJsonObject {
+                                    put("my_stabs", buildJsonArray { (if (st.id in myStabs) myStabs else myStabs + st.id).forEach { add(it) } })
+                                    if (stabId == st.id) put("stab_id", JsonNull) else put("stab_id", st.id)
+                                })
+                            },
+                            onToggleMine = {
+                                save(buildJsonObject {
+                                    put("my_stabs", buildJsonArray { myStabs.filter { it != st.id }.forEach { add(it) } })
+                                    if (stabId == st.id) put("stab_id", JsonNull)
+                                })
+                            },
+                            onDelete = if (st.isOwn) ({ delStabId = st.id }) else null,
+                        )
+                    }
+                }
+            }
+            if (alle || teil == "mast") {
+                // --- Mastlängen (reine Werte, 30–130 cm) ---
+                if (alle) item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
+                item { SectionTitle(I18n.t("setup.mastTitle")) }
+                item {
+                    ValueSection(
+                        desc = I18n.t("setup.mastDesc"),
+                        values = myMasts.map { it to "$it cm" },
+                        defaultValue = mastLen,
+                        placeholder = I18n.t("setup.mastPlaceholder"),
+                        input = newMast, onInput = { newMast = it },
+                        onAdd = {
+                            val v = newMast.replace(",", ".").toDoubleOrNull()?.let { Math.round(it).toInt() }
+                            if (v != null && v in 30..130) {
+                                newMast = ""
+                                save(buildJsonObject { put("my_masts", buildJsonArray { (myMasts + v).forEach { add(it) } }) })
+                            }
+                        },
+                        onPick = { v ->
+                            save(buildJsonObject { if (mastLen == v) put("mast_len_cm", JsonNull) else put("mast_len_cm", v) })
+                        },
+                        onRemove = { v ->
+                            save(buildJsonObject {
+                                put("my_masts", buildJsonArray { myMasts.filter { it != v }.forEach { add(it) } })
+                                if (mastLen == v) put("mast_len_cm", JsonNull)
+                            })
+                        },
+                    )
+                }
+                // --- Shim (Anstellwinkel, −5…+5°) ---
+                item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
+                item { SectionTitle(I18n.t("setup.shimTitle")) }
+                item {
+                    ValueSection(
+                        desc = I18n.t("setup.shimDesc"),
+                        values = myShims.map { it to fmtShimValue(it) },
+                        defaultValue = shimDeg,
+                        placeholder = I18n.t("setup.shimPlaceholder"),
+                        input = newShim, onInput = { newShim = it },
+                        onAdd = {
+                            val v = newShim.replace(",", ".").toDoubleOrNull()
+                            if (v != null && v >= -5.0 && v <= 5.0) {
+                                newShim = ""
+                                save(buildJsonObject { put("my_shims", buildJsonArray { (myShims + v).forEach { add(it) } }) })
+                            }
+                        },
+                        onPick = { v ->
+                            save(buildJsonObject { if (shimDeg == v) put("shim_deg", JsonNull) else put("shim_deg", v) })
+                        },
+                        onRemove = { v ->
+                            save(buildJsonObject {
+                                put("my_shims", buildJsonArray { myShims.filter { it != v }.forEach { add(it) } })
+                                if (shimDeg == v) put("shim_deg", JsonNull)
+                            })
+                        },
+                    )
+                }
+            }
+            if (alle || teil == "boards") {
+                // --- Boards (eigene Einträge) ---
+                if (alle) item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
+                item { SectionTitle(I18n.t("setup.boardTitle")) }
+                item {
+                    Text(I18n.t("setup.boardDesc"), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                if (boards.isEmpty()) {
+                    item {
+                        Text(I18n.t("setup.emptyList"), style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 6.dp))
+                    }
+                }
+                items(boards, key = { "b${it.id}" }) { b ->
+                    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = {
+                            save(buildJsonObject { if (boardId == b.id) put("board_id", JsonNull) else put("board_id", b.id) })
+                        }) {
+                            Icon(
+                                if (boardId == b.id) Icons.Filled.Star else Icons.Filled.StarBorder,
+                                contentDescription = I18n.t("setup.setDefault"),
+                                tint = if (boardId == b.id) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Column(Modifier.weight(1f)) {
+                            Text(b.name, fontWeight = if (boardId == b.id) FontWeight.SemiBold else FontWeight.Normal)
+                            val specs = listOfNotNull(
+                                b.volumeL?.let { "${fmtNum(it)} l" },
+                                b.lengthCm?.let { "${fmtNum(it)} cm" },
+                            ).joinToString(" · ")
+                            Text(specs.ifBlank { I18n.t("setup.noSpecs") }, style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        IconButton(onClick = {
+                            ebName = b.name; ebVol = b.volumeL?.let { fmtNum(it) } ?: ""; ebLen = b.lengthCm?.let { fmtNum(it) } ?: ""
+                            editBoard = b
+                        }) {
+                            Icon(Icons.Filled.Edit, contentDescription = I18n.t("setup.boardEdit"),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        IconButton(onClick = { delBoardId = b.id }) {
+                            Icon(Icons.Filled.Delete, contentDescription = I18n.t("common.deleteLower"),
+                                tint = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                }
+                item {
+                    Column(Modifier.padding(vertical = 8.dp)) {
+                        OutlinedTextField(value = nbName, onValueChange = { nbName = it }, singleLine = true,
+                            label = { Text(I18n.t("setup.boardNamePlaceholder")) }, modifier = Modifier.fillMaxWidth())
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            OutlinedTextField(value = nbVol, onValueChange = { nbVol = it }, singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                label = { Text(I18n.t("setup.boardVolPlaceholder")) }, modifier = Modifier.weight(1f))
+                            OutlinedTextField(value = nbLen, onValueChange = { nbLen = it }, singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                label = { Text(I18n.t("setup.boardLenPlaceholder")) }, modifier = Modifier.weight(1f))
+                            TextButton(onClick = {
+                                val n = nbName.trim()
+                                if (n.isNotEmpty()) {
+                                    scope.launch {
+                                        try {
+                                            val created = Api.boardCreate(
+                                                n,
+                                                nbVol.trim().replace(",", ".").toDoubleOrNull(),
+                                                nbLen.trim().replace(",", ".").toDoubleOrNull(),
+                                            )
+                                            boards = boards + created
+                                            nbName = ""; nbVol = ""; nbLen = ""
+                                        } catch (_: Exception) {}
+                                    }
+                                }
+                            }) { Text(I18n.t("foils.add")) }
+                        }
+                    }
+                }
+            }
+            if (alle) {
+                // Der Katalog steht ZULETZT: er hat hunderte Einträge, und alles Bedienbare
+                // (meine Stabs, Mastlängen, Shims, Boards) wäre darunter praktisch unerreichbar.
+                // Am Emulator getestet — in der PWA fällt das auf dem breiten Bildschirm nicht auf.
+                item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
+                item { SubTitle(if (mineList.isEmpty()) I18n.t("foils.catalog") else I18n.t("foils.more")) }
+                items(restList, key = { "rs${it.id}" }) { st ->
+                    StabRow(
+                        st = st, isMine = false, isDefault = false,
+                        onDefault = {
+                            save(buildJsonObject {
+                                put("my_stabs", buildJsonArray { (myStabs + st.id).forEach { add(it) } })
+                                put("stab_id", st.id)
+                            })
+                        },
+                        onToggleMine = {
+                            save(buildJsonObject { put("my_stabs", buildJsonArray { (myStabs + st.id).forEach { add(it) } }) })
+                        },
+                        onDelete = if (st.isOwn) ({ delStabId = st.id }) else null,
+                    )
+                }
+                // „Stabilizer fehlt?" -> Feedback mit vorbelegtem Text (wie PWA, unter der Stab-Liste).
+                item { MissingHint(I18n.t("setup.missingStab")) }
+                // Eigenen Stab anlegen, wenn er im Katalog fehlt (privat, nur für dieses Konto).
+                item {
+                    Column(Modifier.padding(vertical = 8.dp)) {
+                        Text(I18n.t("setup.stabAddHint"), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.height(4.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            OutlinedTextField(value = nsBrand, onValueChange = { nsBrand = it }, singleLine = true,
+                                label = { Text(I18n.t("setup.stabBrandPlaceholder")) }, modifier = Modifier.weight(1f))
+                            OutlinedTextField(value = nsModel, onValueChange = { nsModel = it }, singleLine = true,
+                                label = { Text(I18n.t("setup.stabModelPlaceholder")) }, modifier = Modifier.weight(1f))
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            OutlinedTextField(value = nsSize, onValueChange = { nsSize = it }, singleLine = true,
+                                label = { Text(I18n.t("setup.stabSizePlaceholder")) }, modifier = Modifier.weight(1f))
+                            TextButton(onClick = {
+                                val b = nsBrand.trim(); val m = nsModel.trim()
+                                if (b.isNotEmpty() && m.isNotEmpty()) {
+                                    scope.launch {
+                                        try {
+                                            val created = Api.stabCreate(b, m, nsSize.trim())
+                                            stabs = (stabs ?: emptyList()).let { l -> if (l.any { it.id == created.id }) l else l + created }
+                                            if (created.brand !in brands) brands = (brands + created.brand).sorted()
+                                            nsBrand = ""; nsModel = ""; nsSize = ""; stabErr = ""
+                                            save(buildJsonObject {
+                                                put("my_stabs", buildJsonArray { (if (created.id in myStabs) myStabs else myStabs + created.id).forEach { add(it) } })
+                                            })
+                                        } catch (_: Exception) { stabErr = I18n.t("setup.stabAddErr") }
+                                    }
+                                }
+                            }) { Text(I18n.t("foils.add")) }
+                        }
+                        if (stabErr.isNotEmpty()) Text(stabErr, color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            } else if (teil == "stabs") {
+                if (sucht) {
+                    // Katalog-Treffer, darunter erst „Stab selbst anlegen" (Jan, 04.11.2026: erst suchen, dann anlegen).
+                    // Der Katalog steht ZULETZT: er hat hunderte Einträge, und alles Bedienbare
+                    // (meine Stabs, Mastlängen, Shims, Boards) wäre darunter praktisch unerreichbar.
+                    // Am Emulator getestet — in der PWA fällt das auf dem breiten Bildschirm nicht auf.
+                    item { SubTitle(if (mineList.isEmpty()) I18n.t("foils.catalog") else I18n.t("foils.more")) }
+                    items(restList, key = { "rs${it.id}" }) { st ->
+                        StabRow(
+                            st = st, isMine = false, isDefault = false,
+                            onDefault = {
+                                save(buildJsonObject {
+                                    put("my_stabs", buildJsonArray { (myStabs + st.id).forEach { add(it) } })
+                                    put("stab_id", st.id)
+                                })
+                            },
+                            onToggleMine = {
+                                save(buildJsonObject { put("my_stabs", buildJsonArray { (myStabs + st.id).forEach { add(it) } }) })
+                            },
+                            onDelete = if (st.isOwn) ({ delStabId = st.id }) else null,
+                        )
+                    }
+                    if (restList.isEmpty()) item {
+                        Text(I18n.t("gear.noHits"), style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 6.dp))
+                    }
+                    // Eigenen Stab anlegen, wenn er im Katalog fehlt (privat, nur für dieses Konto).
+                    item {
+                        Column(Modifier.padding(vertical = 8.dp)) {
+                            Text(I18n.t("setup.stabAddHint"), style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(Modifier.height(4.dp))
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                OutlinedTextField(value = nsBrand, onValueChange = { nsBrand = it }, singleLine = true,
+                                    label = { Text(I18n.t("setup.stabBrandPlaceholder")) }, modifier = Modifier.weight(1f))
+                                OutlinedTextField(value = nsModel, onValueChange = { nsModel = it }, singleLine = true,
+                                    label = { Text(I18n.t("setup.stabModelPlaceholder")) }, modifier = Modifier.weight(1f))
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                OutlinedTextField(value = nsSize, onValueChange = { nsSize = it }, singleLine = true,
+                                    label = { Text(I18n.t("setup.stabSizePlaceholder")) }, modifier = Modifier.weight(1f))
+                                TextButton(onClick = {
+                                    val b = nsBrand.trim(); val m = nsModel.trim()
+                                    if (b.isNotEmpty() && m.isNotEmpty()) {
+                                        scope.launch {
+                                            try {
+                                                val created = Api.stabCreate(b, m, nsSize.trim())
+                                                stabs = (stabs ?: emptyList()).let { l -> if (l.any { it.id == created.id }) l else l + created }
+                                                if (created.brand !in brands) brands = (brands + created.brand).sorted()
+                                                nsBrand = ""; nsModel = ""; nsSize = ""; stabErr = ""
+                                                save(buildJsonObject {
+                                                    put("my_stabs", buildJsonArray { (if (created.id in myStabs) myStabs else myStabs + created.id).forEach { add(it) } })
+                                                })
+                                            } catch (_: Exception) { stabErr = I18n.t("setup.stabAddErr") }
+                                        }
+                                    }
+                                }) { Text(I18n.t("foils.add")) }
+                            }
+                            if (stabErr.isNotEmpty()) Text(stabErr, color = MaterialTheme.colorScheme.error)
+                        }
+                    }
+                    // „Stabilizer fehlt?" -> Feedback mit vorbelegtem Text (wie PWA, unter der Stab-Liste).
+                    item { MissingHint(I18n.t("setup.missingStab")) }
+                } else {
+                    item {
+                        Text(I18n.t("gear.searchHint"), style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
+                    }
+                }
+            }
+
+            item { Spacer(Modifier.height(24.dp)) }
+        }
+    }
+    if (eingebettet) { inhalt(androidx.compose.foundation.layout.PaddingValues(0.dp)); return }
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(I18n.t("setup.title")) },
@@ -211,261 +550,7 @@ fun SetupScreen(onBack: () -> Unit) {
             },
             actions = { FeedbackKnopf() },
         )
-    }) { pad ->
-        val list = stabs
-        if (list == null) {
-            Box(Modifier.padding(pad).fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
-            return@Scaffold
-        }
-        val filtered = list.filter { s ->
-            (brand.isEmpty() || s.brand == brand) &&
-                (query.isBlank() || gearMatches("${s.brand} ${s.model} ${s.size} ${s.aliases ?: ""}", query))
-        }
-        val mineList = filtered.filter { it.id in myStabs }.sortedByDescending { it.id == stabId }
-        val restList = filtered.filter { it.id !in myStabs }
-
-        LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
-            item {
-                Text(I18n.t("setup.hint"), style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
-            }
-
-            // --- Ausruestung je Sportart (19.10.2026) ---
-            item { EquipmentJeSportKarte(stabs, boards, myStabs, myMasts) }
-
-            // --- Stabilizer (Katalog wie bei den Foils) ---
-            item { SectionTitle(I18n.t("setup.stabTitle")) }
-            item {
-                OutlinedTextField(value = query, onValueChange = { query = it },
-                    label = { Text(I18n.t("foils.search")) }, singleLine = true,
-                    modifier = Modifier.fillMaxWidth())
-                if (brands.isNotEmpty()) {
-                    Row(Modifier.horizontalScroll(rememberScrollState()).padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(selected = brand.isEmpty(), onClick = { brand = "" },
-                            label = { Text(I18n.t("sessions.all")) })
-                        brands.forEach { b ->
-                            FilterChip(selected = brand == b, onClick = { brand = b }, label = { Text(b) })
-                        }
-                    }
-                }
-            }
-            if (mineList.isNotEmpty()) {
-                item { SubTitle(I18n.t("setup.myStabs")) }
-                items(mineList, key = { "ms${it.id}" }) { st ->
-                    StabRow(
-                        st = st, isMine = true, isDefault = stabId == st.id,
-                        onDefault = {
-                            save(buildJsonObject {
-                                put("my_stabs", buildJsonArray { (if (st.id in myStabs) myStabs else myStabs + st.id).forEach { add(it) } })
-                                if (stabId == st.id) put("stab_id", JsonNull) else put("stab_id", st.id)
-                            })
-                        },
-                        onToggleMine = {
-                            save(buildJsonObject {
-                                put("my_stabs", buildJsonArray { myStabs.filter { it != st.id }.forEach { add(it) } })
-                                if (stabId == st.id) put("stab_id", JsonNull)
-                            })
-                        },
-                        onDelete = if (st.isOwn) ({ delStabId = st.id }) else null,
-                    )
-                }
-            }
-            // --- Mastlängen (reine Werte, 30–130 cm) ---
-            item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
-            item { SectionTitle(I18n.t("setup.mastTitle")) }
-            item {
-                ValueSection(
-                    desc = I18n.t("setup.mastDesc"),
-                    values = myMasts.map { it to "$it cm" },
-                    defaultValue = mastLen,
-                    placeholder = I18n.t("setup.mastPlaceholder"),
-                    input = newMast, onInput = { newMast = it },
-                    onAdd = {
-                        val v = newMast.replace(",", ".").toDoubleOrNull()?.let { Math.round(it).toInt() }
-                        if (v != null && v in 30..130) {
-                            newMast = ""
-                            save(buildJsonObject { put("my_masts", buildJsonArray { (myMasts + v).forEach { add(it) } }) })
-                        }
-                    },
-                    onPick = { v ->
-                        save(buildJsonObject { if (mastLen == v) put("mast_len_cm", JsonNull) else put("mast_len_cm", v) })
-                    },
-                    onRemove = { v ->
-                        save(buildJsonObject {
-                            put("my_masts", buildJsonArray { myMasts.filter { it != v }.forEach { add(it) } })
-                            if (mastLen == v) put("mast_len_cm", JsonNull)
-                        })
-                    },
-                )
-            }
-
-            // --- Shim (Anstellwinkel, −5…+5°) ---
-            item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
-            item { SectionTitle(I18n.t("setup.shimTitle")) }
-            item {
-                ValueSection(
-                    desc = I18n.t("setup.shimDesc"),
-                    values = myShims.map { it to fmtShimValue(it) },
-                    defaultValue = shimDeg,
-                    placeholder = I18n.t("setup.shimPlaceholder"),
-                    input = newShim, onInput = { newShim = it },
-                    onAdd = {
-                        val v = newShim.replace(",", ".").toDoubleOrNull()
-                        if (v != null && v >= -5.0 && v <= 5.0) {
-                            newShim = ""
-                            save(buildJsonObject { put("my_shims", buildJsonArray { (myShims + v).forEach { add(it) } }) })
-                        }
-                    },
-                    onPick = { v ->
-                        save(buildJsonObject { if (shimDeg == v) put("shim_deg", JsonNull) else put("shim_deg", v) })
-                    },
-                    onRemove = { v ->
-                        save(buildJsonObject {
-                            put("my_shims", buildJsonArray { myShims.filter { it != v }.forEach { add(it) } })
-                            if (shimDeg == v) put("shim_deg", JsonNull)
-                        })
-                    },
-                )
-            }
-
-            // --- Boards (eigene Einträge) ---
-            item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
-            item { SectionTitle(I18n.t("setup.boardTitle")) }
-            item {
-                Text(I18n.t("setup.boardDesc"), style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            if (boards.isEmpty()) {
-                item {
-                    Text(I18n.t("setup.emptyList"), style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 6.dp))
-                }
-            }
-            items(boards, key = { "b${it.id}" }) { b ->
-                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = {
-                        save(buildJsonObject { if (boardId == b.id) put("board_id", JsonNull) else put("board_id", b.id) })
-                    }) {
-                        Icon(
-                            if (boardId == b.id) Icons.Filled.Star else Icons.Filled.StarBorder,
-                            contentDescription = I18n.t("setup.setDefault"),
-                            tint = if (boardId == b.id) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Column(Modifier.weight(1f)) {
-                        Text(b.name, fontWeight = if (boardId == b.id) FontWeight.SemiBold else FontWeight.Normal)
-                        val specs = listOfNotNull(
-                            b.volumeL?.let { "${fmtNum(it)} l" },
-                            b.lengthCm?.let { "${fmtNum(it)} cm" },
-                        ).joinToString(" · ")
-                        Text(specs.ifBlank { I18n.t("setup.noSpecs") }, style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    IconButton(onClick = {
-                        ebName = b.name; ebVol = b.volumeL?.let { fmtNum(it) } ?: ""; ebLen = b.lengthCm?.let { fmtNum(it) } ?: ""
-                        editBoard = b
-                    }) {
-                        Icon(Icons.Filled.Edit, contentDescription = I18n.t("setup.boardEdit"),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    IconButton(onClick = { delBoardId = b.id }) {
-                        Icon(Icons.Filled.Delete, contentDescription = I18n.t("common.deleteLower"),
-                            tint = MaterialTheme.colorScheme.error)
-                    }
-                }
-            }
-            item {
-                Column(Modifier.padding(vertical = 8.dp)) {
-                    OutlinedTextField(value = nbName, onValueChange = { nbName = it }, singleLine = true,
-                        label = { Text(I18n.t("setup.boardNamePlaceholder")) }, modifier = Modifier.fillMaxWidth())
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        OutlinedTextField(value = nbVol, onValueChange = { nbVol = it }, singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            label = { Text(I18n.t("setup.boardVolPlaceholder")) }, modifier = Modifier.weight(1f))
-                        OutlinedTextField(value = nbLen, onValueChange = { nbLen = it }, singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            label = { Text(I18n.t("setup.boardLenPlaceholder")) }, modifier = Modifier.weight(1f))
-                        TextButton(onClick = {
-                            val n = nbName.trim()
-                            if (n.isNotEmpty()) {
-                                scope.launch {
-                                    try {
-                                        val created = Api.boardCreate(
-                                            n,
-                                            nbVol.trim().replace(",", ".").toDoubleOrNull(),
-                                            nbLen.trim().replace(",", ".").toDoubleOrNull(),
-                                        )
-                                        boards = boards + created
-                                        nbName = ""; nbVol = ""; nbLen = ""
-                                    } catch (_: Exception) {}
-                                }
-                            }
-                        }) { Text(I18n.t("foils.add")) }
-                    }
-                }
-            }
-            // Der Katalog steht ZULETZT: er hat hunderte Einträge, und alles Bedienbare
-            // (meine Stabs, Mastlängen, Shims, Boards) wäre darunter praktisch unerreichbar.
-            // Am Emulator getestet — in der PWA fällt das auf dem breiten Bildschirm nicht auf.
-            item { HorizontalDivider(Modifier.padding(vertical = 8.dp)) }
-            item { SubTitle(if (mineList.isEmpty()) I18n.t("foils.catalog") else I18n.t("foils.more")) }
-            items(restList, key = { "rs${it.id}" }) { st ->
-                StabRow(
-                    st = st, isMine = false, isDefault = false,
-                    onDefault = {
-                        save(buildJsonObject {
-                            put("my_stabs", buildJsonArray { (myStabs + st.id).forEach { add(it) } })
-                            put("stab_id", st.id)
-                        })
-                    },
-                    onToggleMine = {
-                        save(buildJsonObject { put("my_stabs", buildJsonArray { (myStabs + st.id).forEach { add(it) } }) })
-                    },
-                    onDelete = if (st.isOwn) ({ delStabId = st.id }) else null,
-                )
-            }
-            // „Stabilizer fehlt?" -> Feedback mit vorbelegtem Text (wie PWA, unter der Stab-Liste).
-            item { MissingHint(I18n.t("setup.missingStab")) }
-            // Eigenen Stab anlegen, wenn er im Katalog fehlt (privat, nur für dieses Konto).
-            item {
-                Column(Modifier.padding(vertical = 8.dp)) {
-                    Text(I18n.t("setup.stabAddHint"), style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.height(4.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        OutlinedTextField(value = nsBrand, onValueChange = { nsBrand = it }, singleLine = true,
-                            label = { Text(I18n.t("setup.stabBrandPlaceholder")) }, modifier = Modifier.weight(1f))
-                        OutlinedTextField(value = nsModel, onValueChange = { nsModel = it }, singleLine = true,
-                            label = { Text(I18n.t("setup.stabModelPlaceholder")) }, modifier = Modifier.weight(1f))
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        OutlinedTextField(value = nsSize, onValueChange = { nsSize = it }, singleLine = true,
-                            label = { Text(I18n.t("setup.stabSizePlaceholder")) }, modifier = Modifier.weight(1f))
-                        TextButton(onClick = {
-                            val b = nsBrand.trim(); val m = nsModel.trim()
-                            if (b.isNotEmpty() && m.isNotEmpty()) {
-                                scope.launch {
-                                    try {
-                                        val created = Api.stabCreate(b, m, nsSize.trim())
-                                        stabs = (stabs ?: emptyList()).let { l -> if (l.any { it.id == created.id }) l else l + created }
-                                        if (created.brand !in brands) brands = (brands + created.brand).sorted()
-                                        nsBrand = ""; nsModel = ""; nsSize = ""; stabErr = ""
-                                        save(buildJsonObject {
-                                            put("my_stabs", buildJsonArray { (if (created.id in myStabs) myStabs else myStabs + created.id).forEach { add(it) } })
-                                        })
-                                    } catch (_: Exception) { stabErr = I18n.t("setup.stabAddErr") }
-                                }
-                            }
-                        }) { Text(I18n.t("foils.add")) }
-                    }
-                    if (stabErr.isNotEmpty()) Text(stabErr, color = MaterialTheme.colorScheme.error)
-                }
-            }
-
-            item { Spacer(Modifier.height(24.dp)) }
-        }
-    }
+    }) { pad -> inhalt(pad) }
 }
 
 private fun fmtNum(v: Double): String = if (v == v.toLong().toDouble()) "${v.toLong()}" else "$v"

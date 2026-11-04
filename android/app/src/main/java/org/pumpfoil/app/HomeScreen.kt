@@ -83,15 +83,21 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.intOrNull
 
 // Prozessweiter App-Start (Uptime): Rating erst nach >2 min in der App (siehe unten).
 private object RatingClock { val startMs = android.os.SystemClock.elapsedRealtime() }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, onRecord: () -> Unit = {}, onOpenSortedOut: () -> Unit = {}, onOnboarding: () -> Unit = {}, social: Boolean = true, onOpenSpot: (String) -> Unit = {}, onOpenTeam: (String) -> Unit = {}, onOpenVerlauf: () -> Unit = {}, onOpenTeams: () -> Unit = {}) {
+fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, onRecord: () -> Unit = {}, onOpenSortedOut: () -> Unit = {}, onOnboarding: () -> Unit = {}, social: Boolean = true, onOpenSpot: (String) -> Unit = {}, onOpenTeam: (String) -> Unit = {}, onOpenVerlauf: () -> Unit = {}, onOpenTeams: () -> Unit = {},
+               onGarminPair: () -> Unit = {}, onGuide: () -> Unit = {}, onAlarm: () -> Unit = {}, onDataFields: () -> Unit = {},
+               onPrivacy: () -> Unit = {}, onTeamGruenden: () -> Unit = {}) {
     var profile by remember { mutableStateOf<Profile?>(null) }
     var homespotLink by remember { mutableStateOf<String?>(null) }
+    // Home › Spots (04.11.2026): Homespot als Nummer (homespot_effective_id) und alle Spots mit eigenen Sessions.
+    var homespotId by remember { mutableStateOf<Int?>(null) }
+    var meineSpots by remember { mutableStateOf<List<MeinSpot>?>(null) }
     // Eigene Teams als kleine Links bei „Letzte Sessions" (01.11.2026, wie PersonalHome im Web: nur aktive Mitgliedschaften)
     var meineTeams by remember { mutableStateOf<List<TeamKurz>>(emptyList()) }
     var stats by remember { mutableStateOf<OverallStats?>(null) }
@@ -220,6 +226,10 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
         // Link auf den Homespot in der Zeile „Letzte Sessions" (Jan, 16.10.2026): wie die PWA mit
         // homespot_effective — ohne Profilwert der Spot der letzten Session.
         homespotLink = einst?.get("homespot_effective")?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() } ?: hs
+        homespotId = einst?.get("homespot_effective_id")?.jsonPrimitive?.intOrNull
+        // Standard-Sportart fuer „weicht ab" in den Spot-Kacheln (SportClass.kt: setzen die Seiten, die die Einstellungen laden).
+        einst?.get("default_sport_class")?.jsonPrimitive?.contentOrNull?.takeIf { it.isNotBlank() }?.let { standardSport = it }
+        meineSpots = try { Api.mySpotsStats() } catch (_: Exception) { meineSpots ?: emptyList() }
         weather = if (!hs.isNullOrBlank()) try { Api.spotWeather(hs) } catch (_: Exception) { null } else null
         meineTeams = try { Api.teamsMine().filter { it.status == "aktiv" } } catch (_: Exception) { meineTeams }
         loading = false
@@ -329,14 +339,20 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
             if (social) FreundesAnfragenKarte()
             Spacer(Modifier.height(6.dp))
 
-            // Reiter wie im Web (docs/UX-IA.md, App-Port Phase 3, 04.11.2026): Uebersicht · Rekorde · Team · Stats.
-            // Spots, Uhren und Profil kommen mit den naechsten Phasen dazu.
-            val homeReiter = listOf(
+            // Reiter wie im Web (docs/UX-IA.md, App-Port Phase 3–5, 04.11.2026):
+            // Uebersicht · Rekorde · Team · Spots · Stats · Uhren · Profil.
+            // „Spots" nur mit Homespot oder eigenen Spots, „Profil" nur mit bekannter eigener ID (wie PersonalHome.tsx).
+            val homeReiter = listOfNotNull(
                 ReiterDef("uebersicht", I18n.t("tab.overview")), ReiterDef("rekorde", I18n.t("side.records")),
-                ReiterDef("team", I18n.t("tab.team")), ReiterDef("stats", I18n.t("tab.stats")))
+                ReiterDef("team", I18n.t("tab.team")),
+                if (homespotId != null || !meineSpots.isNullOrEmpty()) ReiterDef("spots", I18n.t("nav.spots")) else null,
+                ReiterDef("stats", I18n.t("tab.stats")),
+                ReiterDef("uhren", I18n.t("ptab.watches")),
+                if ((profile?.id ?: 0) > 0) ReiterDef("profil", I18n.t("nav.profile")) else null)
             var tab by rememberReiter("home", homeReiter.map { it.id }, "uebersicht")
-            Reiterleiste(homeReiter, tab, { tab = it })
-            Spacer(Modifier.height(10.dp))
+            // Spots und Uhren haben eine zweite Zeile darunter -> den aktiven Reiter in ihrer Farbe hinterlegen.
+            Reiterleiste(homeReiter, tab, { tab = it }, unter = tab == "spots" || tab == "uhren")
+            Spacer(Modifier.height(if (tab == "spots" || tab == "uhren") 0.dp else 10.dp))
 
             if (tab == "uebersicht") {
 
@@ -530,11 +546,31 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
             }
             }   // rekorde
 
+            if (tab == "spots") {
+                HomeSpotsBereich(homespotId, homespotLink, meineSpots, onOpen = { onOpen(it, null) }, onOpenSpot = onOpenSpot)
+            }   // spots
+
+            if (tab == "uhren") {
+                UhrenKontenBereich(onGarminPair, onGuide, onAlarm, onDataFields)
+            }   // uhren
+
+            if (tab == "profil") {
+                profile?.id?.takeIf { it > 0 }?.let { uid ->
+                    ProfilVorschau(uid, onOpenSession = { onOpen(it, null) }, onOpenSpot = onOpenSpot, onPrivacy = onPrivacy)
+                }
+            }   // profil
+
             if (tab == "team") {
-                // Eigene Teams (Web: Home › Team). Ohne Team der Weg zu allen Teams; die Teamsuche kommt mit Phase 6.
+                // Eigene Teams (Web: Home › Team). Ohne eigenes Team gleich die Teamsuche, darunter der Weg zum Gruenden
+                // (Web: Einstellungen › Team).
                 if (meineTeams.isEmpty()) {
                     Text(I18n.t("team.keineTeams"), style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.height(10.dp))
+                    TeamSuche(onOpenTeam)
+                    TextButton(onClick = onTeamGruenden, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+                        Text("${I18n.t("team.gruenden")} →", style = MaterialTheme.typography.bodyMedium)
+                    }
                 } else {
                     Card(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(6.dp)) {

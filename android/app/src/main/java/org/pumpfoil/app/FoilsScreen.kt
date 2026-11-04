@@ -61,7 +61,10 @@ import kotlin.math.roundToInt
 // Standard (Stern). Persistiert via PUT /api/settings (my_foils, foil_id).
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {}) {
+fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {},
+                // Ausruestung (App-Port Phase 7, 04.11.2026): "foils" = nur der Foil-Teil (Katalog nur ueber die Suche),
+                // "sport" = Standard-Sportart, Sportarten an der Uhr und Ausruestung je Sportart; "alle" = die alte Seite.
+                teil: String = "alle", eingebettet: Boolean = false) {
     var foils by remember { mutableStateOf<List<Foil>?>(null) }
     var brands by remember { mutableStateOf<List<String>>(emptyList()) }
     var brand by remember { mutableStateOf("") }
@@ -74,6 +77,11 @@ fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {}) {
     // Sportarten an der Uhr (19.10.2026): Standard immer dabei, die uebrigen hier anwaehlen.
     var mySports by remember { mutableStateOf<List<String>>(emptyList()) }
     val scope = rememberCoroutineScope()
+    // Nur fuer den Teil „Sportarten": die Ausruestung je Sportart braucht Stabs, Boards und Mastlaengen.
+    var stabs by remember { mutableStateOf<List<StabBrief>?>(null) }
+    var boards by remember { mutableStateOf<List<BoardBrief>>(emptyList()) }
+    var myStabs by remember { mutableStateOf<List<Int>>(emptyList()) }
+    var myMasts by remember { mutableStateOf<List<Int>>(emptyList()) }
 
     LaunchedEffect(Unit) {
         try {
@@ -85,6 +93,12 @@ fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {}) {
             defSport = s["default_sport_class"]?.jsonPrimitive?.contentOrNull ?: "pumpfoil"
             standardSport = defSport
             mySports = s["my_sports"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull } ?: emptyList()
+            if (teil == "sport") {
+                myStabs = s["my_stabs"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull } ?: emptyList()
+                myMasts = s["my_masts"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull } ?: emptyList()
+                stabs = try { Api.stabs() } catch (_: Exception) { emptyList() }
+                boards = try { Api.boards() } catch (_: Exception) { emptyList() }
+            }
         } catch (_: Exception) { foils = emptyList() }
     }
 
@@ -100,17 +114,11 @@ fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {}) {
         }
     }
 
-    Scaffold(topBar = {
-        TopAppBar(
-            title = { Text(I18n.t("profile.foils")) },
-            navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back")) } },
-            actions = { FeedbackKnopf() },
-        )
-    }) { pad ->
+    val inhalt: @Composable (androidx.compose.foundation.layout.PaddingValues) -> Unit = inhalt@{ pad ->
         val list = foils
         if (list == null) {
             Box(Modifier.padding(pad).fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
-            return@Scaffold
+            return@inhalt
         }
         val filtered = list.filter { f ->
             (brand.isEmpty() || f.brand == brand) &&
@@ -118,16 +126,21 @@ fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {}) {
         }
         val mineList = filtered.filter { mine.contains(it.id) }.sortedByDescending { it.id == def }
         val restList = filtered.filter { !mine.contains(it.id) }
+        // Katalog nur ueber die Suche (Jan, 04.11.2026, wie Foils.tsx): ohne Suchbegriff/Marke stehen nur die eigenen da.
+        val sucht = query.isNotBlank() || brand.isNotEmpty()
 
         LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
-            // Standard-Sportart oben, vor der Foil-Suche: sie gilt fuer die naechste Aufnahme und
-            // gehoert damit zur Ausruestungs-Vorbereitung (wie in der PWA).
-            item {
-                // Wie in der PWA (Foils.tsx:100): von hier geht es ins detaillierte Setup.
-                TextButton(onClick = onSetup, modifier = Modifier.padding(top = 8.dp)) {
-                    Text("${I18n.t("foils.toSetup")} \u2192")
+            if (teil == "alle") {
+                item {
+                    // Wie in der PWA (Foils.tsx:100): von hier geht es ins detaillierte Setup.
+                    TextButton(onClick = onSetup, modifier = Modifier.padding(top = 8.dp)) {
+                        Text("${I18n.t("foils.toSetup")} \u2192")
+                    }
                 }
             }
+            // Standard-Sportart und Sportarten an der Uhr: gelten fuer die naechste Aufnahme und gehoeren damit zur
+            // Ausruestungs-Vorbereitung (wie in der PWA). Im neuen Aufbau ein eigener Reiter „Sportarten".
+            if (teil == "alle" || teil == "sport") {
             item {
                 Column(Modifier.padding(top = 8.dp)) {
                     Text(I18n.t("foils.defaultSport"), style = MaterialTheme.typography.labelMedium,
@@ -178,6 +191,13 @@ fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {}) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
                 }
             }
+            }
+            if (teil == "sport") {
+                // Ausruestung je Sportart (19.10.2026) — bei Sportarten ohne Foil nur das Board (EquipmentJeSport.kt).
+                item { EquipmentJeSportKarte(stabs, boards, myStabs, myMasts) }
+                item { Spacer(Modifier.height(24.dp)) }
+                return@LazyColumn
+            }
             item {
                 OutlinedTextField(value = query, onValueChange = { query = it },
                     label = { Text(I18n.t("foils.search")) }, singleLine = true,
@@ -198,16 +218,36 @@ fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {}) {
                         onSetDefault = { persist(if (mine.contains(f.id)) mine else mine + f.id, if (def == f.id) null else f.id) })
                 }
             }
-            item { sectionHeader(if (mineList.isEmpty()) I18n.t("foils.all") else I18n.t("foils.more")) }
-            items(restList, key = { "r${it.id}" }) { f ->
-                foilRow(f, isMine = false, isDefault = false,
-                    onToggleMine = { persist(mine + f.id, def) },
-                    onSetDefault = { persist(mine + f.id, f.id) })
+            if (teil == "alle" || sucht) {
+                item { sectionHeader(if (mineList.isEmpty()) I18n.t("foils.all") else I18n.t("foils.more")) }
+                items(restList, key = { "r${it.id}" }) { f ->
+                    foilRow(f, isMine = false, isDefault = false,
+                        onToggleMine = { persist(mine + f.id, def) },
+                        onSetDefault = { persist(mine + f.id, f.id) })
+                }
+                if (restList.isEmpty()) item {
+                    Text(I18n.t("gear.noHits"), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 6.dp))
+                }
+                // „Marke/Größe fehlt?" -> Feedback mit vorbelegtem Text (wie PWA, unter der Liste).
+                item { MissingHint(I18n.t("foils.missingFoil")) }
+            } else {
+                item {
+                    Text(I18n.t("gear.searchHint"), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp))
+                }
             }
-            // „Marke/Größe fehlt?" -> Feedback mit vorbelegtem Text (wie PWA, unter der Liste).
-            item { MissingHint(I18n.t("foils.missingFoil")) }
+            item { Spacer(Modifier.height(24.dp)) }
         }
     }
+    if (eingebettet) { inhalt(androidx.compose.foundation.layout.PaddingValues(0.dp)); return }
+    Scaffold(topBar = {
+        TopAppBar(
+            title = { Text(I18n.t("profile.foils")) },
+            navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back")) } },
+            actions = { FeedbackKnopf() },
+        )
+    }) { pad -> inhalt(pad) }
 }
 
 @Composable

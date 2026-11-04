@@ -52,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberUpdatedState
@@ -71,7 +72,14 @@ import org.osmdroid.views.overlay.Marker
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit = {},
-                onOpenSpotSport: (String, String) -> Unit = { s, _ -> onOpenSpot(s) }) {
+                onOpenSpotSport: (String, String) -> Unit = { s, _ -> onOpenSpot(s) },
+                onOpenRoute: (String, Int) -> Unit = { _, _ -> }) {
+    // Reiter wie im Web (Spots.tsx, docs/UX-IA.md App-Port Phase 9, 04.11.2026): Karte · Liste · Spot-Rekorde · Routen.
+    // Liste und Routen standen vorher als Abschnitte auf der Community-Seite, der Spot-Vergleich unter der Karte.
+    val reiter = listOf(ReiterDef("karte", I18n.t("tab.map")), ReiterDef("liste", I18n.t("tab.list")),
+                        ReiterDef("rekorde", I18n.t("spotcmp.title")), ReiterDef("routen", I18n.t("tab.routes")))
+    var tab by rememberReiter("spots", reiter.map { it.id }, "karte")
+    var listeSuche by remember { mutableStateOf("") }
     var items by remember { mutableStateOf<List<SpotMapItem>>(emptyList()) }
     // Sportart (Nutzerwunsch 27.09.2026: „where others are wake-thiefing"). Default „all" wie
     // bisher; „Alle Sportarten" bleibt immer waehlbar (Jan). Geht an den Server: die Zahl je Spot
@@ -209,6 +217,9 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
         val scope = rememberCoroutineScope()
         Box(Modifier.padding(pad)) {
           Column(Modifier.fillMaxSize()) {
+            Reiterleiste(reiter, tab, { tab = it })
+            val karteAn = tab == "karte"
+            if (karteAn) {
             // Filterzeile ueber dem Suchfeld. In der PWA steht sie rechts neben der Ueberschrift;
             // hier sitzt der Titel in der TopBar, also bekommt sie eine eigene Zeile — Sportart und
             // „mit Beschreibung" nebeneinander (Jan, 28.09.2026), umbrechend, falls es nicht passt.
@@ -274,6 +285,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                 },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             )
+            }   // karteAn: Filter + Suche
             // Die Karte steht FEST oben und scrollt nicht mit.
             //
             // Nicht aus Geschmack, sondern weil osmdroid es erzwingt (Jan, 02.09.): als
@@ -307,10 +319,22 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
             SpotsMap(
                 // In der Heatmap-Ansicht keine Pins (sie lagen sonst ueber den Zellen).
                 karte, if (heatAnsicht) emptyList() else sichtbar, oeffneSpot, startSpot, aktivEinzeln, aktivGegend,
-                Modifier.fillMaxWidth().height(220.dp).clipToBounds(),
+                // Auf den anderen Reitern bleibt die Karte IM BAUM (osmdroid raeumt sonst beim Abhaengen seinen
+                // Kachel-Anbieter ab, s. oben): voll ausgemessen, aber mit Hoehe 0 eingehaengt und abgeschnitten.
+                // Das Abschneiden steht VOR dem Ausmessen, damit es die eingehaengte Hoehe (0) nimmt, nicht die gemessene.
+                Modifier.fillMaxWidth().clipToBounds().layout { m, c ->
+                    val h = 220.dp.roundToPx()
+                    val p = m.measure(c.copy(minHeight = h, maxHeight = h))
+                    layout(p.width, if (karteAn) h else 0) { p.place(0, 0) }
+                },
             )
             // Sportart folgt dem Filter oben (seit 16.10. kennt die Heatmap alle Sportarten mit Laeufen)
             HeatmapLaden(karte, heat, heatArt, sport) { heatSessions = it }
+            if (!karteAn) {
+                SpotsReiterInhalt(tab, items, sports, sport, { sport = it }, listeSuche, { listeSuche = it }, oeffneSpot,
+                                  onOpenSession, onOpenSpot, onOpenRoute)
+                return@Column
+            }
             if (heat != null && heatSessions != null) {
                 Text("${I18n.t(if (heatArt == "start") "spots.heatHintStart" else "spots.heatHint")} · $heatSessions ${I18n.t("side.sessions")}",
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -335,10 +359,7 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                                  color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
-                    if (items.isNotEmpty() && ohneSuche) {
-                        // Spot-Vergleich direkt unter der Karte — dieselbe Stelle wie in der PWA.
-                        item { SpotCompareSection(onOpenSession = onOpenSession, onOpenSpot = onOpenSpot) }
-                    }
+                    // Der Spot-Vergleich stand hier unter der Karte; seit 04.11.2026 eigener Reiter „Spot-Rekorde" (wie das Web).
                     // „Spots entstehen automatisch" — dritter Nutzer in Folge suchte in der PWA
                     // einen Knopf zum Anlegen, den es bewusst nicht gibt. Steht dort ueber der
                     // Karte; hier unten, weil oben schon Filter und Suchfeld sitzen.
@@ -608,4 +629,53 @@ private fun zeichnePins(map: MapView, items: List<SpotMapItem>, onOpenSpot: (Str
 private fun sichern(map: MapView) {
     val c = map.mapCenter
     SpotsKarte.merken(c.latitude, c.longitude, map.zoomLevelDouble)
+}
+
+
+/**
+ * Die Reiter neben der Karte (Web Spots.tsx): „Liste" = alle Spots zum Durchsuchen, meistbefahrene zuerst (hoechstens 200),
+ * mit derselben Sportart wie die Karte; „Spot-Rekorde" = der Spot-Vergleich; „Routen" = alle gemerkten Routen.
+ */
+@Composable
+private fun SpotsReiterInhalt(tab: String, items: List<SpotMapItem>, sports: List<SportRuns>, sport: String, onSport: (String) -> Unit,
+                              suche: String, onSuche: (String) -> Unit, oeffneSpot: (String) -> Unit,
+                              onOpenSession: (Int) -> Unit, onOpenSpot: (String) -> Unit, onOpenRoute: (String, Int) -> Unit) {
+    LazyColumn(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        when (tab) {
+            "liste" -> {
+                item {
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        OutlinedTextField(value = suche, onValueChange = onSuche, singleLine = true,
+                            placeholder = { Text(I18n.t("home.spotSearch")) },
+                            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                            modifier = Modifier.weight(1f))
+                        if (sports.size > 1 || sport != "all") {
+                            Spacer(Modifier.width(8.dp))
+                            SportDropdown(sports, sport, Modifier.width(140.dp)) { onSport(it) }
+                        }
+                    }
+                }
+                val liste = items.filter { it.spotId != null && (suche.isBlank() || passtZu(suche, it.spot, it.water)) }
+                    .sortedByDescending { it.sessions }.take(200)
+                if (liste.isEmpty()) item {
+                    Text(I18n.t("spots.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                items(liste) { s ->
+                    ListItem(
+                        modifier = Modifier.clickable { oeffneSpot(s.spot) },
+                        headlineContent = { Text(s.spot) },
+                        supportingContent = {
+                            val w = s.water?.takeIf { it.isNotBlank() && it != s.spot }
+                            Text(listOfNotNull(w, "${s.sessions} ${I18n.t("side.sessions")}").joinToString(" · "))
+                        },
+                        leadingContent = { Icon(Icons.Filled.Place, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                    )
+                    HorizontalDivider()
+                }
+            }
+            "rekorde" -> item { SpotCompareSection(onOpenSession = onOpenSession, onOpenSpot = onOpenSpot) }
+            "routen" -> item { RoutenAbschnitt(onOpenRoute) }
+        }
+        item { Spacer(Modifier.height(24.dp)) }
+    }
 }

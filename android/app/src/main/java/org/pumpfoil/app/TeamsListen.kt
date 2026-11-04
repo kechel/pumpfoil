@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -278,5 +279,91 @@ fun MeineTeamsLinks(teams: List<TeamKurz>, onOpenTeam: (String) -> Unit, modifie
                 }
             }
         }
+    }
+}
+
+/**
+ * Teamsuche (Web Teams.tsx `TeamSuche`, 04.11.2026): alle freigegebenen Teams, Treffer erst mit Suchtext, nach Mitgliedern
+ * sortiert. Vergleich mit `passtZu` (Suche.kt: klein, ohne Akzente, Bindestriche und Leerzeichen, jedes Wort muss vorkommen).
+ * Steht in Einstellungen › Team ueber „Team gruenden" und auf Home › Team, solange man in keinem Team ist.
+ */
+@Composable
+fun TeamSuche(onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier) {
+    var q by remember { mutableStateOf("") }
+    var alle by remember { mutableStateOf<List<TeamListenEintrag>?>(null) }
+    LaunchedEffect(Unit) { alle = try { Api.teamsListe() } catch (_: Exception) { emptyList() } }
+    val treffer = if (q.isBlank()) emptyList()
+                  else alle.orEmpty().filter { passtZu(q, it.name, it.slug) }.sortedByDescending { it.mitgliederAnzahl }
+    Card(modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+        Column(Modifier.padding(12.dp)) {
+            Text(I18n.t("team.finden"), fontWeight = FontWeight.SemiBold)
+            OutlinedTextField(value = q, onValueChange = { q = it }, singleLine = true,
+                placeholder = { Text(I18n.t("team.findenPlatzhalter")) },
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp))
+            if (q.isNotBlank() && alle != null) {
+                if (treffer.isEmpty()) Text(I18n.t("gear.noHits"), style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
+                treffer.forEach { x ->
+                    Row(Modifier.fillMaxWidth().padding(top = 6.dp).clip(RoundedCornerShape(10.dp)).clickable { onOpenTeam(x.slug) }
+                            .padding(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        TeamWappen(x.name, x.logoUrl, x.farbe, 36.dp)
+                        Spacer(Modifier.width(10.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(x.name, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(I18n.t("team.mitgliederAnzahl").replace("{n}", x.mitgliederAnzahl.toString()) +
+                                    (if (x.sportarten.isNotEmpty()) " · " + sportartenText(x.sportarten) else ""),
+                                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                        Text("›", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Einstellungen › Team (Web Settings.tsx, Reiter „Team" = Teams.tsx eingebettet): eigene Teams mit Rolle bzw. „Anfrage
+ * laeuft", darunter die Teamsuche und erst dann „Team gruenden" (bleibt im Web). Ohne LazyColumn, die Seite scrollt.
+ */
+@Composable
+fun MeineTeamsInhalt(onOpenTeam: (String) -> Unit, onAlleTeams: () -> Unit) {
+    var meine by remember { mutableStateOf<List<TeamKurz>?>(null) }
+    val uri = LocalUriHandler.current
+    LaunchedEffect(Unit) { meine = try { Api.teamsMine() } catch (_: Exception) { emptyList() } }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        val l = meine
+        when {
+            l == null -> Box(Modifier.fillMaxWidth().padding(24.dp)) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
+            l.isEmpty() -> Text(I18n.t("team.keineTeams"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            else -> l.forEach { m ->
+                Card(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable { onOpenTeam(m.slug) }) {
+                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        TeamWappen(m.name, m.logoUrl, m.farbe, 40.dp)
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(m.name, color = teamFarbe(m.farbe).akzent, fontWeight = FontWeight.SemiBold,
+                                maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(if (m.status == "angefragt") I18n.t("team.join.wartet") else I18n.t("team.rolle.${m.rolle}"),
+                                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        if (m.anfragen > 0) {
+                            Text(m.anfragen.toString(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.primary).padding(horizontal = 7.dp, vertical = 1.dp))
+                        }
+                    }
+                }
+            }
+        }
+        Spacer(Modifier.height(4.dp))
+        TeamSuche(onOpenTeam)
+        TextButton(onClick = onAlleTeams) { Text(I18n.t("team.alle") + " →") }
+        TextButton(onClick = { runCatching { uri.openUri(teamWebUrl("/teams")) } }) { Text(I18n.t("team.gruenden") + " ↗") }
+        Text(I18n.t("team.gruendenHinweis"), style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 12.dp))
+        TextButton(onClick = { runCatching { uri.openUri(teamWebUrl("/teams/regeln")) } }) { Text(I18n.t("team.regeln.link") + " ↗") }
     }
 }

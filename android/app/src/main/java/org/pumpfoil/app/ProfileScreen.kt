@@ -83,7 +83,11 @@ import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onWatch: () -> Unit = {}, onSettings: () -> Unit = {}, onCompare: () -> Unit = {}, onAccounts: () -> Unit = {}, onImprint: () -> Unit = {}, onOnboarding: () -> Unit = {}, onChangelog: () -> Unit = {}, onFriends: () -> Unit = {}, onTeams: () -> Unit = {}) {
+fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: () -> Unit = {}, onFoilStats: () -> Unit = {}, onWatch: () -> Unit = {}, onSettings: () -> Unit = {}, onCompare: () -> Unit = {}, onAccounts: () -> Unit = {}, onImprint: () -> Unit = {}, onOnboarding: () -> Unit = {}, onChangelog: () -> Unit = {}, onFriends: () -> Unit = {}, onTeams: () -> Unit = {},
+                  // Eingebettete Teile (App-Port Phase 6, 04.11.2026): Uhren, Freunde, Team brauchen ihre Wege nach draussen.
+                  onGarminPair: () -> Unit = {}, onGuide: () -> Unit = {}, onAlarm: () -> Unit = {}, onDataFields: () -> Unit = {},
+                  onOpenFoiler: (Int) -> Unit = {}, onOpenSpot: (String) -> Unit = {}, onOpenTeam: (String) -> Unit = {},
+                  onAlleTeams: () -> Unit = {}) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var profile by remember { mutableStateOf<Profile?>(null) }
@@ -144,305 +148,339 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
             dismissButton = { TextButton(onClick = { editing = false }) { Text(I18n.t("common.cancel")) } },
         )
     }
-    Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.settings")) { SyncIndicator() } }) { pad ->
-        Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                val avatar = Api.mediaUrl(profile?.avatarUrl)
-                val pickAvatar = { avatarPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
-                if (avatar != null) {
-                    AsyncImage(
-                        model = avatar,
-                        contentDescription = I18n.t("a11y.avatarChange"),
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(56.dp).clip(CircleShape).clickable { pickAvatar() },
-                    )
-                } else {
-                    Icon(
-                        Icons.Filled.AccountCircle, contentDescription = I18n.t("a11y.avatarAdd"),
-                        modifier = Modifier.size(56.dp).clip(CircleShape).clickable { pickAvatar() },
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Spacer(Modifier.width(14.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(profile?.displayName ?: "—", style = MaterialTheme.typography.titleLarge)
-                    profile?.email?.let {
-                        Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-                IconButton(onClick = { draftName = profile?.displayName ?: ""; editing = true }) {
-                    Icon(Icons.Filled.Edit, contentDescription = I18n.t("a11y.nameChange"))
-                }
-            }
-            Spacer(Modifier.height(20.dp))
-            // „Record on Phone" — ganz oben (über der Uhr; passt vom Layout besser). Hängt NUR
-            // am lokalen Toggle, NICHT mehr an profile.beta (Server-Flag wird für echte private
-            // Betas frei, siehe docs/TODO). Toggle steuert den Aufnahme-Button auf der Startseite.
-            run {
-                val pctx = LocalContext.current
-                var phoneRec by remember {
-                    mutableStateOf(pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
-                        .getBoolean("phone_rec_enabled", false))
-                }
+    // Einstellungen mit Reitern wie im Web (Settings.tsx, docs/UX-IA.md App-Port Phase 6): Uebersicht · Uhren · Freunde ·
+    // Team · Ausruestung · Ich · Fahren · Privatsphaere · Darstellung · Konto. Die Kacheln der Uebersicht schalten auf
+    // den jeweiligen Reiter (keine eigenen Seiten). Freunde gibt es unter 13 nicht (Server: 403), wie bisher.
+    val z = rememberEinstellungenStand()
+    val reiter = listOfNotNull(
+        ReiterDef("uebersicht", I18n.t("tab.overview")),
+        ReiterDef("konten", I18n.t("ptab.watches")),
+        if (profile?.socialAllowed != false) ReiterDef("freunde", I18n.t("friends.title")) else null,
+        ReiterDef("team", I18n.t("tab.team")),
+        ReiterDef("ausruestung", I18n.t("gear.title")),
+        ReiterDef("ich", I18n.t("ptab.me")),
+        ReiterDef("fahren", I18n.t("ptab.riding")),
+        ReiterDef("privat", I18n.t("ptab.privacy")),
+        ReiterDef("darstellung", I18n.t("ptab.display")),
+        ReiterDef("konto", I18n.t("ptab.account")),
+    )
+    var tab by rememberReiter("einstellungen", reiter.map { it.id }, "uebersicht")
+    Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.settings")) { SyncIndicator() } },
+             snackbarHost = { androidx.compose.material3.SnackbarHost(z.snackHost) }) { pad ->
+      Column(Modifier.padding(pad).fillMaxSize()) {
+        // Uhren und Ausruestung haben eine zweite Reiterzeile -> aktiven Reiter in deren Farbe hinterlegen.
+        Reiterleiste(reiter, tab, { tab = it }, unter = tab == "konten" || tab == "ausruestung")
+        if (tab == "ausruestung") {
+            // Die Teile der Ausruestung scrollen selbst (Listen mit dem Katalog) — deshalb ausserhalb der scrollenden Spalte.
+            AusruestungInhalt(Modifier.fillMaxWidth().weight(1f), stufe = 2)
+            return@Column
+        }
+        androidx.compose.runtime.key(tab) {
+        Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState())
+                   .padding(horizontal = 16.dp, vertical = if (tab == "konten") 0.dp else 16.dp)) {
+          when (tab) {
+            "uebersicht" -> {
+                // Sprache GANZ OBEN, noch vor den Kacheln (Web, Jan 02.11.2026).
+                EinstellungenTeil(z, "sprache")
+                // Uhr und verknuepfte Konten als EIN Eintrag zum Reiter „Uhren" (Web: eine Kachel, 02.11.2026).
                 ListItem(
-                    headlineContent = { Text(I18n.t("profile.phoneRec")) },
-                    supportingContent = {
-                        Column {
-                            Text(I18n.t("profile.phoneRecSub"))
-                            if (phoneRec) Text(I18n.t("rec.waterproof"),
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.error)
+                    modifier = Modifier.clickable { tab = "konten" },
+                    headlineContent = { Text(I18n.t("tab.watchAccounts")) },
+                    supportingContent = { Text(I18n.t("watch.sectionSub")) },
+                    leadingContent = { Icon(Icons.Filled.Watch, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+                )
+                // Freunde verwalten (Jan, 15.10.2026: „zwischen verknuepfte Konten und meine foils und ein
+                // 'neu' Badge mit dran"). Die Zahl zaehlt offene Anfragen an mich. Unter 13 gibt es
+                // keine Freunde (Server: 403) — dann faellt der Eintrag weg, wie Chat und Community.
+                var anfragen by remember { mutableStateOf(0) }
+                LaunchedEffect(Unit) { anfragen = try { Api.friendsCount() } catch (_: Exception) { 0 } }
+                if (profile?.socialAllowed != false) ListItem(
+                    modifier = Modifier.clickable { tab = "freunde" },
+                    headlineContent = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(I18n.t("friends.manage"))
+                            Spacer(Modifier.width(8.dp))
+                            NeuBadge()
+                            if (anfragen > 0) {
+                                Spacer(Modifier.width(6.dp))
+                                Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary) {
+                                    Text("$anfragen", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 1.dp))
+                                }
+                            }
                         }
                     },
-                    trailingContent = {
-                        Switch(checked = phoneRec, onCheckedChange = {
-                            phoneRec = it
-                            pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
-                                .edit().putBoolean("phone_rec_enabled", it).apply()
-                        })
-                    },
+                    supportingContent = { Text(I18n.t("friends.profileHint")) },
+                    leadingContent = { Icon(Icons.Filled.Groups, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
                 )
-                // Live-Upload waehrend der Aufnahme (Recorder.liveLoop), Standard an.
-                if (phoneRec) {
-                    var live by remember {
+                // Teams (01.11.2026, wie der Knopf „Team" auf der Profilseite im Web): eigene Teams, Alle Teams, Gruenden.
+                // Offene Beitrittsanfragen (nur Leitung/Moderatoren) als Zahl wie bei den Freunden.
+                var teamAnfragen by remember { mutableStateOf(0) }
+                LaunchedEffect(Unit) { teamAnfragen = try { Api.teamsMine().sumOf { it.anfragen } } catch (_: Exception) { 0 } }
+                ListItem(
+                    modifier = Modifier.clickable { tab = "team" },
+                    headlineContent = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(I18n.t("team.meine"))
+                            if (teamAnfragen > 0) {
+                                Spacer(Modifier.width(8.dp))
+                                Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary) {
+                                    Text("$teamAnfragen", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 1.dp))
+                                }
+                            }
+                        }
+                    },
+                    supportingContent = { Text(I18n.t("team.profilHinweis")) },
+                    leadingContent = { Icon(Icons.Filled.Flag, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+                )
+                ListItem(
+                    modifier = Modifier.clickable { tab = "ausruestung" },
+                    headlineContent = { Text(I18n.t("gear.title")) },
+                    supportingContent = {
+                        if (meineSportarten.isEmpty() && meineFoils.isEmpty()) Text(I18n.t("profile.foilsSub"))
+                        else Column {
+                            val hervor = MaterialTheme.colorScheme.primary
+                            listOf(meineSportarten, meineFoils).filter { it.isNotEmpty() }.forEach { zeile ->
+                                Text(buildAnnotatedString {
+                                    zeile.forEachIndexed { i, (txt, std) ->
+                                        if (i > 0) append(" · ")
+                                        if (std) withStyle(SpanStyle(color = hervor)) { append(txt) } else append(txt)
+                                    }
+                                })
+                            }
+                        }
+                    },
+                    leadingContent = { FoilIcon(tint = MaterialTheme.colorScheme.primary) },
+                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+                )
+                ListItem(
+                    modifier = Modifier.clickable { onFoilCalc() },
+                    headlineContent = { Text(I18n.t("profile.calc")) },
+                    supportingContent = { Text(I18n.t("profile.calcSub")) },
+                    leadingContent = { Icon(Icons.Filled.Calculate, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+                )
+                ListItem(
+                    modifier = Modifier.clickable { onFoilStats() },
+                    headlineContent = { Text(I18n.t("profile.stats")) },
+                    supportingContent = { Text(I18n.t("profile.statsSub")) },
+                    leadingContent = { Icon(Icons.Filled.QueryStats, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+                )
+                ListItem(
+                    modifier = Modifier.clickable { onCompare() },
+                    headlineContent = { Text(I18n.t("profile.compare")) },
+                    supportingContent = { Text(I18n.t("profile.compareSub")) },
+                    leadingContent = { Icon(Icons.AutoMirrored.Filled.CompareArrows, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+                )
+                // Changelog nativ (12.10.2026, Nutzer-Meldung) — wie der Menuepunkt im Web.
+                ListItem(
+                    modifier = Modifier.clickable { onChangelog() },
+                    headlineContent = { Text(I18n.t("nav.changelog")) },
+                    leadingContent = { Icon(Icons.Filled.NewReleases, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+                )
+                ListItem(
+                    modifier = Modifier.clickable { onImprint() },
+                    headlineContent = { Text(I18n.t("nav.imprint")) },
+                    leadingContent = { Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+                )
+                // Social-Kanäle (wie im Web-Menü): öffnen im Browser/der jeweiligen App.
+                run {
+                    val ctxSocial = LocalContext.current
+                    fun open(url: String) {
+                        try { ctxSocial.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } catch (_: Exception) {}
+                    }
+                    Row(Modifier.padding(start = 16.dp, top = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        TextButton(onClick = { open("https://www.youtube.com/@pumpfoil-org") }) { Text("YouTube") }
+                        TextButton(onClick = { open("https://www.instagram.com/pumpfoil_org/") }) { Text("Instagram") }
+                        TextButton(onClick = { open("https://www.tiktok.com/@pumpfoil.org") }) { Text("TikTok") }
+                    }
+                }
+            }
+            "konten" -> UhrenKontenBereich(onGarminPair, onGuide, onAlarm, onDataFields)
+            "freunde" -> FreundeScreen(onBack = {}, onOpenFoiler = onOpenFoiler, onOpenSpot = onOpenSpot, eingebettet = true)
+            "team" -> MeineTeamsInhalt(onOpenTeam, onAlleTeams)
+            "ich" -> {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val avatar = Api.mediaUrl(profile?.avatarUrl)
+                    val pickAvatar = { avatarPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
+                    if (avatar != null) {
+                        AsyncImage(
+                            model = avatar,
+                            contentDescription = I18n.t("a11y.avatarChange"),
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(56.dp).clip(CircleShape).clickable { pickAvatar() },
+                        )
+                    } else {
+                        Icon(
+                            Icons.Filled.AccountCircle, contentDescription = I18n.t("a11y.avatarAdd"),
+                            modifier = Modifier.size(56.dp).clip(CircleShape).clickable { pickAvatar() },
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Spacer(Modifier.width(14.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(profile?.displayName ?: "—", style = MaterialTheme.typography.titleLarge)
+                        profile?.email?.let {
+                            Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    IconButton(onClick = { draftName = profile?.displayName ?: ""; editing = true }) {
+                        Icon(Icons.Filled.Edit, contentDescription = I18n.t("a11y.nameChange"))
+                    }
+                }
+                Spacer(Modifier.height(20.dp))
+                EinstellungenTeil(z, "ich")
+            }
+            "fahren" -> {
+                EinstellungenTeil(z, "fahren")
+                Spacer(Modifier.height(12.dp))
+                // „Record on Phone" — ganz oben (über der Uhr; passt vom Layout besser). Hängt NUR
+                // am lokalen Toggle, NICHT mehr an profile.beta (Server-Flag wird für echte private
+                // Betas frei, siehe docs/TODO). Toggle steuert den Aufnahme-Button auf der Startseite.
+                run {
+                    val pctx = LocalContext.current
+                    var phoneRec by remember {
                         mutableStateOf(pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
-                            .getBoolean("phone_live_upload", true))
+                            .getBoolean("phone_rec_enabled", false))
                     }
                     ListItem(
-                        headlineContent = { Text(I18n.t("profile.phoneLive")) },   // ohne Erklaertext (Jan, 18.10.2026)
+                        headlineContent = { Text(I18n.t("profile.phoneRec")) },
+                        supportingContent = {
+                            Column {
+                                Text(I18n.t("profile.phoneRecSub"))
+                                if (phoneRec) Text(I18n.t("rec.waterproof"),
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.error)
+                            }
+                        },
                         trailingContent = {
-                            Switch(checked = live, onCheckedChange = {
-                                live = it
+                            Switch(checked = phoneRec, onCheckedChange = {
+                                phoneRec = it
                                 pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
-                                    .edit().putBoolean("phone_live_upload", it).apply()
+                                    .edit().putBoolean("phone_rec_enabled", it).apply()
                             })
                         },
                     )
+                    // Live-Upload waehrend der Aufnahme (Recorder.liveLoop), Standard an.
+                    if (phoneRec) {
+                        var live by remember {
+                            mutableStateOf(pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
+                                .getBoolean("phone_live_upload", true))
+                        }
+                        ListItem(
+                            headlineContent = { Text(I18n.t("profile.phoneLive")) },   // ohne Erklaertext (Jan, 18.10.2026)
+                            trailingContent = {
+                                Switch(checked = live, onCheckedChange = {
+                                    live = it
+                                    pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
+                                        .edit().putBoolean("phone_live_upload", it).apply()
+                                })
+                            },
+                        )
+                    }
                 }
             }
-            // Übersicht wie die PWA: nur EIN „Uhr"-Eintrag (koppeln/Alarm/Datenseiten dahinter)
-            // + darunter „Verknüpfte Konten". Kein Wear-Status/Garmin direkt in der Übersicht.
-            ListItem(
-                modifier = Modifier.clickable { onWatch() },
-                headlineContent = { Text(I18n.t("nav.watch")) },
-                supportingContent = { Text(I18n.t("watch.sectionSub")) },
-                leadingContent = { Icon(Icons.Filled.Watch, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            ListItem(
-                modifier = Modifier.clickable { onAccounts() },
-                headlineContent = { Text(I18n.t("accounts.title")) },
-                supportingContent = { Text(I18n.t("accounts.sub")) },
-                leadingContent = { Icon(Icons.Filled.Link, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            // Freunde verwalten (Jan, 15.10.2026: „zwischen verknuepfte Konten und meine foils und ein
-            // 'neu' Badge mit dran"). Die Zahl zaehlt offene Anfragen an mich. Unter 13 gibt es
-            // keine Freunde (Server: 403) — dann faellt der Eintrag weg, wie Chat und Community.
-            var anfragen by remember { mutableStateOf(0) }
-            LaunchedEffect(Unit) { anfragen = try { Api.friendsCount() } catch (_: Exception) { 0 } }
-            if (profile?.socialAllowed != false) ListItem(
-                modifier = Modifier.clickable { onFriends() },
-                headlineContent = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(I18n.t("friends.manage"))
-                        Spacer(Modifier.width(8.dp))
-                        NeuBadge()
-                        if (anfragen > 0) {
-                            Spacer(Modifier.width(6.dp))
-                            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary) {
-                                Text("$anfragen", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 1.dp))
-                            }
+            "privat" -> EinstellungenTeil(z, "privat")
+            "darstellung" -> EinstellungenTeil(z, "darstellung")
+            "konto" -> {
+                EinstellungenTeil(z, "konto")
+                // Einrichtungs-Assistent: fuer ALLE und jederzeit, nicht nur fuer neue Konten
+                // (die erreicht zusaetzlich die Weiche beim ersten Login).
+                ListItem(
+                    modifier = Modifier.clickable { onOnboarding() },
+                    headlineContent = { Text(I18n.t("onb.startTitle")) },
+                    supportingContent = { Text(I18n.t("onb.startSub")) },
+                    leadingContent = { Icon(Icons.Filled.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                    trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+                )
+                // DEBUG: Age-Gate erzwingen (nur Debug-Build) — verifiziert Feed/Chat-Sperre.
+                if (BuildConfig.DEBUG) {
+                    Spacer(Modifier.height(20.dp))
+                    Text("DEBUG · Age-Gate", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                    Text("social_allowed = ${profile?.socialAllowed}", style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { scope.launch { profile = try { Api.setAgeRange(false, "under13") } catch (_: Exception) { profile } } }) {
+                            Text("Gate AN (<13)")
+                        }
+                        OutlinedButton(onClick = { scope.launch { profile = try { Api.setAgeRange(true, "18+") } catch (_: Exception) { profile } } }) {
+                            Text("AUS (18+)")
                         }
                     }
-                },
-                supportingContent = { Text(I18n.t("friends.profileHint")) },
-                leadingContent = { Icon(Icons.Filled.Groups, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            // Teams (01.11.2026, wie der Knopf „Team" auf der Profilseite im Web): eigene Teams, Alle Teams, Gruenden.
-            // Offene Beitrittsanfragen (nur Leitung/Moderatoren) als Zahl wie bei den Freunden.
-            var teamAnfragen by remember { mutableStateOf(0) }
-            LaunchedEffect(Unit) { teamAnfragen = try { Api.teamsMine().sumOf { it.anfragen } } catch (_: Exception) { 0 } }
-            ListItem(
-                modifier = Modifier.clickable { onTeams() },
-                headlineContent = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(I18n.t("team.meine"))
-                        if (teamAnfragen > 0) {
-                            Spacer(Modifier.width(8.dp))
-                            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary) {
-                                Text("$teamAnfragen", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 1.dp))
-                            }
-                        }
-                    }
-                },
-                supportingContent = { Text(I18n.t("team.profilHinweis")) },
-                leadingContent = { Icon(Icons.Filled.Flag, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            ListItem(
-                modifier = Modifier.clickable { onFoils() },
-                headlineContent = { Text(I18n.t("profile.foilsSports")) },
-                supportingContent = {
-                    if (meineSportarten.isEmpty() && meineFoils.isEmpty()) Text(I18n.t("profile.foilsSub"))
-                    else Column {
-                        val hervor = MaterialTheme.colorScheme.primary
-                        listOf(meineSportarten, meineFoils).filter { it.isNotEmpty() }.forEach { zeile ->
-                            Text(buildAnnotatedString {
-                                zeile.forEachIndexed { i, (txt, std) ->
-                                    if (i > 0) append(" · ")
-                                    if (std) withStyle(SpanStyle(color = hervor)) { append(txt) } else append(txt)
+                    Text(I18n.t("profile.restartHint"),
+                        style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Spacer(Modifier.height(24.dp))
+                Button(
+                    onClick = { Api.logout(ctx); onLogout() },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                ) {
+                    Text(I18n.t("profile.logout"))
+                }
+                // Datenauskunft (DSGVO-Gegenstueck zur Loeschung, wie in der PWA unter Einstellungen):
+                // JSON in den Cache schreiben und ans System-Teilen-Blatt geben — Android hat keinen
+                // Browser-Download. Derselbe Weg wie der GPX/FIT-Export der Session-Ansicht.
+                Spacer(Modifier.height(8.dp))
+                TextButton(
+                    enabled = !exportBusy,
+                    onClick = {
+                        exportBusy = true
+                        scope.launch {
+                            try {
+                                val dir = java.io.File(ctx.cacheDir, "shared").apply { mkdirs() }
+                                val f = java.io.File(dir, "pumpfoil-export.json")
+                                // In die Datei STREAMEN, nicht in den Speicher: der Export ist bei
+                                // vielen Sessions dreistellig MB gross (s. Api.exportMyDataToFile).
+                                Api.exportMyDataToFile(f)
+                                val uri = androidx.core.content.FileProvider.getUriForFile(
+                                    ctx, "${ctx.packageName}.fileprovider", f)
+                                val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                    type = "application/json"
+                                    putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                 }
-                            })
+                                ctx.startActivity(android.content.Intent.createChooser(
+                                    send, I18n.t("profile.exportData")))
+                            } catch (_: Exception) {
+                            } finally { exportBusy = false }
                         }
-                    }
-                },
-                leadingContent = { FoilIcon(tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            ListItem(
-                modifier = Modifier.clickable { onFoilCalc() },
-                headlineContent = { Text(I18n.t("profile.calc")) },
-                supportingContent = { Text(I18n.t("profile.calcSub")) },
-                leadingContent = { Icon(Icons.Filled.Calculate, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            ListItem(
-                modifier = Modifier.clickable { onFoilStats() },
-                headlineContent = { Text(I18n.t("profile.stats")) },
-                supportingContent = { Text(I18n.t("profile.statsSub")) },
-                leadingContent = { Icon(Icons.Filled.QueryStats, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            ListItem(
-                modifier = Modifier.clickable { onCompare() },
-                headlineContent = { Text(I18n.t("profile.compare")) },
-                supportingContent = { Text(I18n.t("profile.compareSub")) },
-                leadingContent = { Icon(Icons.AutoMirrored.Filled.CompareArrows, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            ListItem(
-                modifier = Modifier.clickable { onSettings() },
-                headlineContent = { Text(I18n.t("settings.title")) },
-                supportingContent = {
-                    Text("${I18n.t("settings.weight")}, ${I18n.t("settings.homespot")}, ${I18n.t("settings.design")}, ${I18n.t("settings.notifications")}")
-                },
-                leadingContent = { Icon(Icons.Filled.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            // Einrichtungs-Assistent: fuer ALLE und jederzeit, nicht nur fuer neue Konten
-            // (die erreicht zusaetzlich die Weiche beim ersten Login).
-            ListItem(
-                modifier = Modifier.clickable { onOnboarding() },
-                headlineContent = { Text(I18n.t("onb.startTitle")) },
-                supportingContent = { Text(I18n.t("onb.startSub")) },
-                leadingContent = { Icon(Icons.Filled.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            // Changelog nativ (12.10.2026, Nutzer-Meldung) — wie der Menuepunkt im Web.
-            ListItem(
-                modifier = Modifier.clickable { onChangelog() },
-                headlineContent = { Text(I18n.t("nav.changelog")) },
-                leadingContent = { Icon(Icons.Filled.NewReleases, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            ListItem(
-                modifier = Modifier.clickable { onImprint() },
-                headlineContent = { Text(I18n.t("nav.imprint")) },
-                leadingContent = { Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-            )
-            // Social-Kanäle (wie im Web-Menü): öffnen im Browser/der jeweiligen App.
-            run {
-                val ctxSocial = LocalContext.current
-                fun open(url: String) {
-                    try { ctxSocial.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) } catch (_: Exception) {}
+                    },
+                ) { Text(I18n.t("profile.exportData")) }
+                // Konto-Löschung (Google-Play-Pflicht, analog Apple 5.1.1(v)): DSGVO-Delete + Logout.
+                Spacer(Modifier.height(8.dp))
+                TextButton(onClick = { confirmingDelete = true }) {
+                    Text(I18n.t("profile.deleteAccount"), color = MaterialTheme.colorScheme.error)
                 }
-                Row(Modifier.padding(start = 16.dp, top = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    TextButton(onClick = { open("https://www.youtube.com/@pumpfoil-org") }) { Text("YouTube") }
-                    TextButton(onClick = { open("https://www.instagram.com/pumpfoil_org/") }) { Text("Instagram") }
-                    TextButton(onClick = { open("https://www.tiktok.com/@pumpfoil.org") }) { Text("TikTok") }
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    "Pumpfoil v${BuildConfig.VERSION_NAME}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                // Nur Debug: App-Rating-Dialog neu triggerbar machen (Test-Flags löschen).
+                if (BuildConfig.DEBUG) {
+                    TextButton(onClick = {
+                        ctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE).edit()
+                            .remove("rating_done").remove("rating_snooze").remove("rating_min_count").remove("rating_fb_count").apply()
+                    }) { Text("↻ Rating-Test zurücksetzen") }
                 }
             }
-            // DEBUG: Age-Gate erzwingen (nur Debug-Build) — verifiziert Feed/Chat-Sperre.
-            if (BuildConfig.DEBUG) {
-                Spacer(Modifier.height(20.dp))
-                Text("DEBUG · Age-Gate", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-                Text("social_allowed = ${profile?.socialAllowed}", style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { scope.launch { profile = try { Api.setAgeRange(false, "under13") } catch (_: Exception) { profile } } }) {
-                        Text("Gate AN (<13)")
-                    }
-                    OutlinedButton(onClick = { scope.launch { profile = try { Api.setAgeRange(true, "18+") } catch (_: Exception) { profile } } }) {
-                        Text("AUS (18+)")
-                    }
-                }
-                Text(I18n.t("profile.restartHint"),
-                    style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Spacer(Modifier.height(24.dp))
-            Button(
-                onClick = { Api.logout(ctx); onLogout() },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-            ) {
-                Text(I18n.t("profile.logout"))
-            }
-            // Datenauskunft (DSGVO-Gegenstueck zur Loeschung, wie in der PWA unter Einstellungen):
-            // JSON in den Cache schreiben und ans System-Teilen-Blatt geben — Android hat keinen
-            // Browser-Download. Derselbe Weg wie der GPX/FIT-Export der Session-Ansicht.
-            Spacer(Modifier.height(8.dp))
-            TextButton(
-                enabled = !exportBusy,
-                onClick = {
-                    exportBusy = true
-                    scope.launch {
-                        try {
-                            val dir = java.io.File(ctx.cacheDir, "shared").apply { mkdirs() }
-                            val f = java.io.File(dir, "pumpfoil-export.json")
-                            // In die Datei STREAMEN, nicht in den Speicher: der Export ist bei
-                            // vielen Sessions dreistellig MB gross (s. Api.exportMyDataToFile).
-                            Api.exportMyDataToFile(f)
-                            val uri = androidx.core.content.FileProvider.getUriForFile(
-                                ctx, "${ctx.packageName}.fileprovider", f)
-                            val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                                type = "application/json"
-                                putExtra(android.content.Intent.EXTRA_STREAM, uri)
-                                addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                            }
-                            ctx.startActivity(android.content.Intent.createChooser(
-                                send, I18n.t("profile.exportData")))
-                        } catch (_: Exception) {
-                        } finally { exportBusy = false }
-                    }
-                },
-            ) { Text(I18n.t("profile.exportData")) }
-            // Konto-Löschung (Google-Play-Pflicht, analog Apple 5.1.1(v)): DSGVO-Delete + Logout.
-            Spacer(Modifier.height(8.dp))
-            TextButton(onClick = { confirmingDelete = true }) {
-                Text(I18n.t("profile.deleteAccount"), color = MaterialTheme.colorScheme.error)
-            }
-            Spacer(Modifier.height(16.dp))
-            Text(
-                "Pumpfoil v${BuildConfig.VERSION_NAME}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            // Nur Debug: App-Rating-Dialog neu triggerbar machen (Test-Flags löschen).
-            if (BuildConfig.DEBUG) {
-                TextButton(onClick = {
-                    ctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE).edit()
-                        .remove("rating_done").remove("rating_snooze").remove("rating_min_count").remove("rating_fb_count").apply()
-                }) { Text("↻ Rating-Test zurücksetzen") }
-            }
+          }
             // Platz, damit der letzte Button nicht hinter der Mobile-Bottom-Nav klebt.
             Spacer(Modifier.height(96.dp))
         }
+        }
+      }
     }
 
     if (confirmingDelete) {

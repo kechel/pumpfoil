@@ -98,7 +98,13 @@ private val PERIODS = listOf("today" to "period.today", "10d" to "period.10d", "
 @Composable
 fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatchStats: () -> Unit = {}, onLayouts: () -> Unit = {},
                     onOpenRoute: (String, Int) -> Unit = { _, _ -> },
-                    onOpenEvent: (String, Int) -> Unit = { _, _ -> }, onAlleEvents: () -> Unit = {}, onAlleTeams: () -> Unit = {}) {
+                    onOpenEvent: (String, Int) -> Unit = { _, _ -> }, onAlleEvents: () -> Unit = {}, onAlleTeams: () -> Unit = {},
+                    onOpenTeam: (String) -> Unit = {}) {
+    // Reiter wie im Web (Home.tsx CommunitySection, docs/UX-IA.md App-Port Phase 8, 04.11.2026): Rekorde & Bestenliste ·
+    // Medien · Teams & Events. Spots und Routen stehen jetzt unter der Hauptnavigation „Spots" (Reiter Liste / Routen).
+    val reiter = listOf(ReiterDef("bestenliste", I18n.t("tab.rankings")), ReiterDef("medien", I18n.t("tab.media")),
+                        ReiterDef("teams", I18n.t("land.teamsTitle")))
+    var tab by rememberReiter("community", reiter.map { it.id }, "bestenliste")
     var records by remember { mutableStateOf<Map<String, PeriodRecords>?>(null) }
     var leaders by remember { mutableStateOf<Leaders?>(null) }
     var media by remember { mutableStateOf<List<MediaItem>>(emptyList()) }
@@ -107,10 +113,6 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     // Uhr-Layouts aus der Community (wie im Web: die fuenf meistgenutzten, Link zur Galerie)
     var layouts by remember { mutableStateOf<List<WatchLayoutBrief>>(emptyList()) }
     LaunchedEffect(Unit) { layouts = try { Api.communityLayouts().take(5) } catch (_: Exception) { emptyList() } }
-    var spots by remember { mutableStateOf<SpotsList?>(null) }
-    val spotShown = remember { mutableStateListOf<String>() }
-    val spotRecs = remember { mutableStateMapOf<String, PeriodRecords>() }
-    var spotQuery by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var period by remember { mutableStateOf("10d") }
@@ -148,19 +150,13 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     // (s. SocialFeedZustand in SocialFeed.kt).
     val feed = rememberSocialFeed()
 
-    // Basis (accel-abhängig): Rekorde je Zeitraum, Spots (Liste immer vollständig), Stats, Medien.
+    // Basis (accel-abhängig): Rekorde je Zeitraum, Stats, Medien.
     suspend fun loadBase() {
         loading = true
         try {
             records = Api.communityRecords(accelOnly, bandKey, sport = sportart, freunde = freunde); error = null
             cstats = try { Api.communityStats() } catch (_: Exception) { cstats }
             media = try { Api.latestPhotos(freunde = freunde) } catch (_: Exception) { emptyList() }
-            val sp = try { Api.spots(accelOnly = false, freunde = freunde) } catch (_: Exception) { null }
-            if (sp != null) {
-                spots = sp
-                spotShown.clear(); spotShown.addAll(sp.mine)
-                spotRecs.clear()
-            }
         } catch (e: Exception) { error = e.message }
         loading = false
     }
@@ -187,15 +183,6 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     LaunchedEffect(period, accelOnly, bandKey, freunde, sportart) {
         leaders = try { Api.leaders(period, accelOnly, bandKey, freunde, sport = sportart) } catch (_: Exception) { leaders }
         topLiked = try { Api.topLiked(period, freunde = freunde) } catch (_: Exception) { topLiked }
-    }
-    // Rekorde je gezeigtem Spot (Zeitraum + accel).
-    LaunchedEffect(spotShown.toList(), period, accelOnly, freunde) {
-        spotShown.forEach { sp ->
-            val key = "$accelOnly:$freunde:$period:$sp"
-            if (key !in spotRecs) {
-                try { spotRecs[key] = Api.spotRecords(sp, period, accelOnly, freunde) } catch (_: Exception) {}
-            }
-        }
     }
 
     Scaffold(
@@ -232,8 +219,10 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                             }
                         }
 
-                        // Zeitraum-Filter + Accel/alle-Umschalter (wie PWA).
-                        item {
+                        item { Reiterleiste(reiter, tab, { tab = it }, Modifier.padding(bottom = 4.dp)) }
+
+                        // Zeitraum-Filter + Accel/alle-Umschalter (wie PWA) — fuer die Bestenliste und „Best bewertet" (Medien).
+                        if (tab != "teams") item {
                             Row(
                                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 2.dp),
                                 horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -282,7 +271,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                         }
 
                         // Sportart (19.10.2026, wie das Web): nur zeigen, wenn es mehr als eine gibt.
-                        if (sportListe.size > 1) item {
+                        if (tab == "bestenliste" && sportListe.size > 1) item {
                             Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
                                 OutlinedButton(onClick = { sportMenue = true }) {
                                     Text(I18n.t("cls.sport.$sportart") + " ▾")
@@ -296,10 +285,10 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                             }
                         }
                         // Community-Rekorde (mit Nutzer/Spot), klickbar -> Session.
-                        item { RecordGrid(records?.get(period), showSpot = true, onOpen = onOpen, modifier = Modifier.padding(horizontal = 12.dp), sport = sportart) }
+                        if (tab == "bestenliste") item { RecordGrid(records?.get(period), showSpot = true, onOpen = onOpen, modifier = Modifier.padding(horizontal = 12.dp), sport = sportart) }
 
                         // Bestenliste (Rangliste je Metrik) — unter den Rekorden, ueber Feed und Medien (Jan, 02.11.2026, wie die PWA).
-                        leaders?.let { lb ->
+                        if (tab == "bestenliste") leaders?.let { lb ->
                             item {
                                 // Das gewaehlte Band gehoert in die Ueberschrift: sonst steht
                                 // hier eine Bestenliste ueber einen Teil der Flotte, ohne dass
@@ -378,13 +367,8 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                             }
                         }
 
-                        // Community-Social-Feed — bewusst UEBER "Neueste Medien" (Jan, 31.08.,
-                        // dieselbe Reihenfolge wie in der PWA). Laedt sich selbst; ist nichts
-                        // freigegeben oder der Nutzer unter 13, zeichnet er gar nichts.
-                        item { SocialFeedSection(feed, Modifier.padding(top = 8.dp)) }
-
                         // Neueste Medien (Fotos + YouTube), Tippen -> Session.
-                        if (media.isNotEmpty()) {
+                        if (tab == "medien" && media.isNotEmpty()) {
                             item {
                                 SectionHeader(I18n.t("community.latestMedia"))
                                 LazyRow(Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -405,18 +389,26 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                         }
 
                         // Best bewertet (meiste Likes).
-                        if (topLiked.isNotEmpty()) {
+                        if (tab == "medien" && topLiked.isNotEmpty()) {
                             item { SectionHeader("${I18n.t("community.topRated")} · ${I18n.t(PERIODS.firstOrNull { it.first == period }?.second ?: "period.all")}") }
                             items(topLiked) { c -> CommunityItemRow(c, Modifier.padding(horizontal = 12.dp, vertical = ListenAnsicht.abstand)) { onOpen(c.id) } }
                         }
 
-                        // Laufende & kommende Team-Events (01.11.2026, Web Home.tsx TeamsSection): unter „Best bewertet",
-                        // ueber den Uhr-Layouts — dieselbe Stelle wie im Web. Keine Teamliste hier, die hat ihre eigene Seite.
-                        item { CommunityEventsAbschnitt(onOpenEvent, onAlleEvents, onAlleTeams) }
+                        // Community-Social-Feed unter „Best bewertet", ueber den Uhr-Layouts (Web Home.tsx, Reiter Medien).
+                        // Laedt sich selbst; ist nichts freigegeben oder der Nutzer unter 13, zeichnet er gar nichts.
+                        if (tab == "medien") item { SocialFeedSection(feed, Modifier.padding(top = 8.dp)) }
+
+                        // Teams & Events (Web TeamsSection): ganz oben die Team-Bestenlisten (Jan, 03.11.2026), dann laufende &
+                        // kommende Events, die aktivsten Teams. Keine Teamliste hier, die hat ihre eigene Seite.
+                        if (tab == "teams") {
+                            item { TeamBestenlisten(onOpenTeam, Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) }
+                            item { CommunityEventsAbschnitt(onOpenEvent, onAlleEvents, onAlleTeams) }
+                            item { AktivsteTeams(onOpenTeam, Modifier.padding(horizontal = 12.dp, vertical = 12.dp)) }
+                        }
 
                         // Uhr-Layouts der Community — im Web unter „Best bewertet" (Home.tsx LayoutTeaser),
                         // in den Apps fehlte der Abschnitt; die Galerie war nur ueber Profil -> Datenfelder zu finden.
-                        if (layouts.isNotEmpty()) {
+                        if (tab == "medien" && layouts.isNotEmpty()) {
                             item {
                                 Row(Modifier.fillMaxWidth().padding(start = 12.dp, end = 4.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Text(I18n.t("home.layouts"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
@@ -450,41 +442,8 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                             }
                         }
 
-                        // Spots: eigene Spots + Suche, je Spot ein Rekord-Grid.
-                        item {
-                            SectionHeader(I18n.t("home.spots"))
-                            OutlinedTextField(
-                                value = spotQuery, onValueChange = { spotQuery = it },
-                                label = { Text(I18n.t("home.spotSearch")) }, singleLine = true,
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
-                            )
-                            val matches = spotQuery.trim().takeIf { it.isNotBlank() }?.let { q ->
-                                spots?.all?.filter { passtZu(q, it) && it !in spotShown }?.take(6) ?: emptyList()
-                            } ?: emptyList()
-                            matches.forEach { m ->
-                                Text("📍 $m", Modifier.fillMaxWidth().clickable { if (m !in spotShown) spotShown.add(0, m); spotQuery = "" }
-                                    .padding(horizontal = 16.dp, vertical = 8.dp), color = MaterialTheme.colorScheme.primary)
-                            }
-                            if (spotShown.isEmpty()) {
-                                Text(I18n.t("home.noSpots"), Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
-                        items(spotShown.toList()) { sp ->
-                            Column(Modifier.padding(top = 4.dp)) {
-                                Row(Modifier.padding(horizontal = 12.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Text("📍 $sp", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
-                                    if (spots?.mine?.contains(sp) != true) {
-                                        Spacer(Modifier.width(8.dp))
-                                        Text(I18n.t("home.remove"), Modifier.clickable { spotShown.remove(sp) },
-                                            style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    }
-                                }
-                                RecordGrid(spotRecs["$accelOnly:$freunde:$period:$sp"], showSpot = false, onOpen = onOpen, modifier = Modifier.padding(horizontal = 12.dp))
-                            }
-                        }
-                        // Alle gemerkten Routen, ganz unten unter den Spots (Jan, 16.10.2026)
-                        item { RoutenAbschnitt(onOpenRoute) }
+                        // Spots (Suche + Rekorde je Spot) und die gemerkten Routen stehen seit dem Port unter Spots › Liste
+                        // bzw. Spots › Routen (wie im Web, 02.11.2026).
                     }
                 }
             }
@@ -743,7 +702,7 @@ fun SportRekordeZeilen(zeilen: List<SportRekordeZeile>, titel: String, onOpen: (
  */
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-private fun RoutenAbschnitt(onOpenRoute: (String, Int) -> Unit) {
+internal fun RoutenAbschnitt(onOpenRoute: (String, Int) -> Unit) {
     var routen by remember { mutableStateOf<List<GemerkteRoute>?>(null) }
     var minKm by remember { mutableStateOf(0f) }
     var maxKm by remember { mutableStateOf(ROUTEN_KM_MAX) }

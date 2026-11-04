@@ -337,6 +337,12 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                      accelOnly = accelOnly, sport = sport, board = brett, freunde = scope == Scope.FRIENDS)
             // Live-Upload-Karte ganz oben (Parität zur PWA); NICHT in Community.
             UploadProgressCard(onOpen = { onOpen(it, null) }, modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
+            // Meine | Freunde | Alle als Reiter wie ueberall (Web Sessions.tsx, App-Port Phase 9, 04.11.2026). Der Homespot-Knopf
+            // ist raus — der Homespot ist jetzt ein Reiter auf Home (Home › Spots), wie im Web.
+            Reiterleiste(listOf(ReiterDef("mine", I18n.t("sessions.mine")), ReiterDef("friends", I18n.t("friends.title")),
+                                ReiterDef("all", I18n.t("sessions.all"))),
+                when (scope) { Scope.MINE -> "mine"; Scope.FRIENDS -> "friends"; Scope.ALL -> "all"; Scope.SPOT -> "" },
+                { id -> spot = ""; scope = when (id) { "friends" -> Scope.FRIENDS; "all" -> Scope.ALL; else -> Scope.MINE } })
             // Scope-Umschalter + Accel/alle-Umschalter in EINER umbrechenden Zeile.
             //
             // Vorher: die Scope-Chips lagen in einem waagerecht scrollbaren Row mit `weight(1f)`,
@@ -357,20 +363,6 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}, onS
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                FilterChip(selected = scope == Scope.MINE, onClick = { spot = ""; scope = Scope.MINE }, label = { Text(I18n.t("sessions.mine")) }, colors = cyanChipColors())
-                if (homespot.isNotBlank()) {
-                    FilterChip(
-                        selected = scope == Scope.SPOT && spot == homespot,
-                        onClick = { spot = homespot; scope = Scope.SPOT },
-                        // Ein langer Spotname darf die Zeile nicht sprengen: eine Zeile, am Ende
-                        // gekuerzt. Der ganze Name steht ohnehin in der Ueberschrift darueber.
-                        label = { Text("📍$homespot", maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                        colors = cyanChipColors(),
-                        modifier = Modifier.weight(1f, fill = false),
-                    )
-                }
-                FilterChip(selected = scope == Scope.ALL && spot.isBlank(), onClick = { spot = ""; scope = Scope.ALL }, label = { Text(I18n.t("sessions.all")) }, colors = cyanChipColors())
-                FilterChip(selected = scope == Scope.FRIENDS, onClick = { spot = ""; scope = Scope.FRIENDS }, label = { Text(I18n.t("friends.title")) }, colors = cyanChipColors())
                 AccelSeg(accelOnly, brett = brett, onBrett = { brett = true }) { brett = false; accel.set(it) }
                 // Sportart, Import und Kacheln/Zeilen haengen hinten an dieselbe FlowRow (Jan, 28.10.2026:
                 // „alls sports und ansicht kompakt/normal mit in die zeile drueber") — sie fuellen die

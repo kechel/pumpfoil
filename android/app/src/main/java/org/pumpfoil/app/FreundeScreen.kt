@@ -164,7 +164,8 @@ fun FreundschaftKnopf(userId: Int, name: String, status: String?, onChange: (Str
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FreundeScreen(onBack: () -> Unit, onOpenFoiler: (Int) -> Unit, onOpenSpot: (String) -> Unit) {
+fun FreundeScreen(onBack: () -> Unit, onOpenFoiler: (Int) -> Unit, onOpenSpot: (String) -> Unit,
+                  eingebettet: Boolean = false) {   // eingebettet: Reiter in den Einstellungen, ohne Titelzeile
     var d by remember { mutableStateOf<FreundeListe?>(null) }
     var offen by remember { mutableStateOf<Triple<FreundArt, Int, String>?>(null) }
     var busy by remember { mutableStateOf(false) }
@@ -180,7 +181,90 @@ fun FreundeScreen(onBack: () -> Unit, onOpenFoiler: (Int) -> Unit, onOpenSpot: (
         }
     }
 
-    Scaffold(topBar = {
+    // „Was Freunde sehen" steht UNTER den Listen (Web Friends.tsx, 04.11.2026): wer hier ist, will zuerst seine Freunde sehen.
+    val bedingungen: @Composable () -> Unit = {
+        Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(14.dp)) {
+                Text(I18n.t("friends.termsTitle"), fontWeight = FontWeight.SemiBold)
+                Text(I18n.t("friends.terms"), style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 4.dp))
+                Text(I18n.t("friends.howTo"), style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
+            }
+        }
+    }
+    val inhalt: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit = inhalt@{
+        val l = d
+        if (l == null) {
+            CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
+            return@inhalt
+        }
+        if (l.aktiv.isNotEmpty()) {
+            Abschnitt(I18n.t("friends.pumpingNowTitle")) {
+                l.aktiv.forEach { f ->
+                    FreundZeile(f, onOpenFoiler, unter = {
+                        val g = gruen()
+                        if (f.spot != null) {
+                            Row(verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.clickable { onOpenSpot(f.spot) }) {
+                                Icon(Icons.Filled.Place, contentDescription = null, tint = g, modifier = Modifier.size(14.dp))
+                                Spacer(Modifier.width(3.dp))
+                                Text(f.spot, color = g, style = MaterialTheme.typography.bodyMedium)
+                            }
+                        } else {
+                            Text(I18n.t("friends.pumpingNow"), color = g, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    })
+                }
+            }
+        }
+        if (l.eingehend.isNotEmpty()) {
+            Abschnitt(I18n.t("friends.incoming")) {
+                l.eingehend.forEach { f ->
+                    FreundZeile(f, onOpenFoiler, unterText = f.am?.let { langDatum(it) }) {
+                        // Ablehnen direkt und still (Jan, 16.10.2026) — der andere erfaehrt es nicht.
+                        OutlinedButton(onClick = { ausfuehren { Api.friendDecline(f.userId) } }, enabled = !busy) {
+                            Text(I18n.t("friends.decline"), maxLines = 1)
+                        }
+                        Spacer(Modifier.width(6.dp))
+                        Button(onClick = { offen = Triple(FreundArt.ANNEHMEN, f.userId, f.name ?: "—") }) {
+                            Text(I18n.t("friends.accept"))
+                        }
+                    }
+                }
+                Text(I18n.t("friends.declineSilent"), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+            }
+        }
+        Abschnitt(I18n.t("friends.list") + if (l.freunde.isNotEmpty()) " (${l.freunde.size})" else "") {
+            if (l.freunde.isEmpty()) {
+                Text(I18n.t("friends.none"), style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            l.freunde.forEach { f ->
+                FreundZeile(f, onOpenFoiler,
+                    unterText = f.seit?.let { I18n.t("friends.since").replace("{date}", langDatum(it)) }) {
+                    OutlinedButton(onClick = { offen = Triple(FreundArt.BEENDEN, f.userId, f.name ?: "—") }) {
+                        Text(I18n.t("friends.remove"), maxLines = 1)
+                    }
+                }
+            }
+        }
+        if (l.ausgehend.isNotEmpty()) {
+            Abschnitt(I18n.t("friends.outgoing")) {
+                l.ausgehend.forEach { f ->
+                    FreundZeile(f, onOpenFoiler, unterText = f.am?.let { langDatum(it) }) {
+                        OutlinedButton(onClick = { offen = Triple(FreundArt.ZURUECKZIEHEN, f.userId, f.name ?: "—") }) {
+                            Text(I18n.t("friends.withdraw"), maxLines = 1)
+                        }
+                    }
+                }
+            }
+        }
+        bedingungen()
+    }
+    if (eingebettet) Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { inhalt() }
+    else Scaffold(topBar = {
         TopAppBar(
             title = { Text(I18n.t("friends.title")) },
             navigationIcon = {
@@ -193,82 +277,7 @@ fun FreundeScreen(onBack: () -> Unit, onOpenFoiler: (Int) -> Unit, onOpenSpot: (
     }) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
                verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(14.dp)) {
-                    Text(I18n.t("friends.termsTitle"), fontWeight = FontWeight.SemiBold)
-                    Text(I18n.t("friends.terms"), style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = 4.dp))
-                    Text(I18n.t("friends.howTo"), style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
-                }
-            }
-            val l = d
-            if (l == null) {
-                CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
-                return@Column
-            }
-            if (l.aktiv.isNotEmpty()) {
-                Abschnitt(I18n.t("friends.pumpingNowTitle")) {
-                    l.aktiv.forEach { f ->
-                        FreundZeile(f, onOpenFoiler, unter = {
-                            val g = gruen()
-                            if (f.spot != null) {
-                                Row(verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.clickable { onOpenSpot(f.spot) }) {
-                                    Icon(Icons.Filled.Place, contentDescription = null, tint = g, modifier = Modifier.size(14.dp))
-                                    Spacer(Modifier.width(3.dp))
-                                    Text(f.spot, color = g, style = MaterialTheme.typography.bodyMedium)
-                                }
-                            } else {
-                                Text(I18n.t("friends.pumpingNow"), color = g, style = MaterialTheme.typography.bodyMedium)
-                            }
-                        })
-                    }
-                }
-            }
-            if (l.eingehend.isNotEmpty()) {
-                Abschnitt(I18n.t("friends.incoming")) {
-                    l.eingehend.forEach { f ->
-                        FreundZeile(f, onOpenFoiler, unterText = f.am?.let { langDatum(it) }) {
-                            // Ablehnen direkt und still (Jan, 16.10.2026) — der andere erfaehrt es nicht.
-                            OutlinedButton(onClick = { ausfuehren { Api.friendDecline(f.userId) } }, enabled = !busy) {
-                                Text(I18n.t("friends.decline"), maxLines = 1)
-                            }
-                            Spacer(Modifier.width(6.dp))
-                            Button(onClick = { offen = Triple(FreundArt.ANNEHMEN, f.userId, f.name ?: "—") }) {
-                                Text(I18n.t("friends.accept"))
-                            }
-                        }
-                    }
-                    Text(I18n.t("friends.declineSilent"), style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
-                }
-            }
-            Abschnitt(I18n.t("friends.list") + if (l.freunde.isNotEmpty()) " (${l.freunde.size})" else "") {
-                if (l.freunde.isEmpty()) {
-                    Text(I18n.t("friends.none"), style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                l.freunde.forEach { f ->
-                    FreundZeile(f, onOpenFoiler,
-                        unterText = f.seit?.let { I18n.t("friends.since").replace("{date}", langDatum(it)) }) {
-                        OutlinedButton(onClick = { offen = Triple(FreundArt.BEENDEN, f.userId, f.name ?: "—") }) {
-                            Text(I18n.t("friends.remove"), maxLines = 1)
-                        }
-                    }
-                }
-            }
-            if (l.ausgehend.isNotEmpty()) {
-                Abschnitt(I18n.t("friends.outgoing")) {
-                    l.ausgehend.forEach { f ->
-                        FreundZeile(f, onOpenFoiler, unterText = f.am?.let { langDatum(it) }) {
-                            OutlinedButton(onClick = { offen = Triple(FreundArt.ZURUECKZIEHEN, f.userId, f.name ?: "—") }) {
-                                Text(I18n.t("friends.withdraw"), maxLines = 1)
-                            }
-                        }
-                    }
-                }
-            }
+            inhalt()
         }
     }
     offen?.let { (art, id, name) ->
