@@ -4,6 +4,8 @@ import SwiftUI
 // die Uhr-Recorder laden das über /api/devices/config.
 struct AlarmView: View {
     @AppStorage("appLang") private var lang = "de"
+    /// Als Reiter in Uhr › Einstellungen › Alarm (wie web Account.tsx, 04.11.2026): ohne eigene Kopfleiste.
+    var eingebettet: Bool = false
     private var patterns: [(String, String)] {
         [("short1", Loc.t("alarm.patShort1", lang)), ("short2", Loc.t("alarm.patShort2", lang)),
          ("long2", Loc.t("alarm.patLong2", lang)), ("lsl", Loc.t("alarm.patLsl", lang))]
@@ -40,7 +42,7 @@ struct AlarmView: View {
             enabledSections
             saveSection
         }
-        .brandToolbar(Loc.t("alarm.title", lang))
+        .brandToolbarWenn(!eingebettet, Loc.t("alarm.title", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
         .onChange(of: enabled) { _ in saved = false }

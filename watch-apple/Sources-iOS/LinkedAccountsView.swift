@@ -15,6 +15,9 @@ struct LinkedAccountsView: View {
     @AppStorage("appLang") private var lang = "de"
     /// Als Reiter in Home › Uhren / Einstellungen › Uhren (App-Port, 04.11.2026): ohne eigene Kopfleiste.
     var eingebettet: Bool = false
+    /// Nur EIN Anbieter (Reiter in Uhr & Konten wie web LinkedAccounts.tsx, 04.11.2026): "polar" | "coros" | "suunto" |
+    /// "xiaomi" | "mcp". nil = alle untereinander wie bisher.
+    var nur: String? = nil
 
     // `id` ist der Anzeige-/Zustandsschlüssel, `apiPath` der Pfad beim Server — die beiden
     // unterscheiden sich nur bei COROS (s. Kommentar oben).
@@ -43,10 +46,17 @@ struct LinkedAccountsView: View {
     // erschiene ein beim Import NEU entdeckter Modus erst nach einem Neustart der App.
     @State private var fertigZaehler = 0
 
+    /// Die Anbieter dieser Ansicht — bei `nur` hoechstens einer (Xiaomi und MCP sind keine `Provider`).
+    private var sichtbar: [Provider] { providers.filter { nur == nil || $0.id == nur } }
+    private func zeigt(_ id: String) -> Bool { nur == nil || nur == id }
+
     var body: some View {
         List {
-            Section { Text(Loc.t("accounts.sub", lang)).font(.footnote).foregroundStyle(.secondary) }
-            ForEach(providers, id: \.id) { p in
+            // Der Hinweis ueber den Konten-Karten (web `linked.hint`, gleicher Sinn) — nicht beim KI-Zugang.
+            if nur != "mcp" {
+                Section { Text(Loc.t("accounts.sub", lang)).font(.footnote).foregroundStyle(.secondary) }
+            }
+            ForEach(sichtbar, id: \.id) { p in
                 if let st = status[p.id] {
                     if !st.available && !st.linked {
                         row(p.label, sub: Loc.t("accounts.notAvailable", lang), connected: false, logo: p.logo) { EmptyView() }
@@ -103,9 +113,9 @@ struct LinkedAccountsView: View {
                     }
                 }
             }
-            XiaomiHinweis(lang: lang)
-            // KI-Zugang (MCP) — wie die PWA ganz unten bei den verknuepften Konten.
-            McpSection(lang: lang)
+            if zeigt("xiaomi") { XiaomiHinweis(lang: lang) }
+            // KI-Zugang (MCP) — wie die PWA ganz unten bei den verknuepften Konten bzw. als eigener Reiter.
+            if zeigt("mcp") { McpSection(lang: lang) }
         }
         .brandToolbarWenn(!eingebettet, Loc.t("accounts.title", lang))
         .navigationBarTitleDisplayMode(.inline)
@@ -133,7 +143,7 @@ struct LinkedAccountsView: View {
     }
 
     private func refresh() async {
-        for p in providers { status[p.id] = try? await Api.integrationStatus(p.pfad) }
+        for p in sichtbar { status[p.id] = try? await Api.integrationStatus(p.pfad) }
     }
     private func connect(_ p: Provider) {
         busy = p.id

@@ -302,25 +302,36 @@ struct EinstellungenUebersicht: View {
 
 // MARK: - Uhren & Konten
 
-/// Uhren und verknuepfte Konten in EINER Ansicht mit zweiter Reiterzeile (wie /konten im Web, 02.11.2026) — fuer
-/// Home › Uhren und Einstellungen › Uhren. Die beiden vorhandenen Seiten, ohne eigene Kopfleiste.
+/// Uhren und verknuepfte Konten in EINER Ansicht mit zweiter Reiterzeile Uhr | Polar | COROS | Suunto | Xiaomi | MCP
+/// (wie /konten im Web, web LinkedAccounts.tsx; je Anbieter ein Reiter seit 04.11.2026) — fuer Home › Uhren und
+/// Einstellungen › Uhren. „Uhr" hat darunter die dritte Zeile (`UhrReiterView`), die Anbieter je ihre Karte aus
+/// `LinkedAccountsView`. Strava fehlt (zurueckgestellt, die App hatte nie eine Karte dafuer).
 struct UhrenKontenView: View {
     @AppStorage("appLang") private var lang = "de"
     @State private var wahl: String = ReiterSpeicher.von("uhren", "uhr")
 
     private var reiter: [ReiterDef] {
-        [ReiterDef(id: "uhr", label: Loc.t("nav.watch", lang)), ReiterDef(id: "konten", label: Loc.t("accounts.title", lang))]
+        [ReiterDef(id: "uhr", label: Loc.t("nav.watch", lang)),
+         ReiterDef(id: "polar", label: "Polar"),
+         ReiterDef(id: "coros", label: "COROS"),
+         ReiterDef(id: "suunto", label: "Suunto"),
+         ReiterDef(id: "xiaomi", label: "Xiaomi"),
+         ReiterDef(id: "mcp", label: "MCP")]
     }
+
+    /// Unbekannter Wert (z. B. "konten" aus der alten Aufteilung) -> „Uhr".
+    private var aktiv: String { reiter.contains(where: { $0.id == wahl }) ? wahl : "uhr" }
 
     var body: some View {
         VStack(spacing: 0) {
-            Reiterleiste(reiter: reiter, aktiv: Binding(get: { wahl }, set: { wahl = $0; ReiterSpeicher.setze("uhren", $0) }),
+            Reiterleiste(reiter: reiter, aktiv: Binding(get: { aktiv }, set: { wahl = $0; ReiterSpeicher.setze("uhren", $0) }),
                          stufe: 2)
                 .padding(.horizontal).padding(.top, 8)
-            if wahl == "konten" {
-                LinkedAccountsView(eingebettet: true)
+            if aktiv == "uhr" {
+                UhrReiterView()
             } else {
-                WatchView(eingebettet: true)
+                // `.id`: je Anbieter eine frische Ansicht (eigener Stand, eigenes Laden).
+                LinkedAccountsView(eingebettet: true, nur: aktiv).id(aktiv)
             }
         }
     }

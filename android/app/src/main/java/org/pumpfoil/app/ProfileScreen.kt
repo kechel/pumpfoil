@@ -86,7 +86,7 @@ import coil.compose.AsyncImage
 @Composable
 fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoilStats: () -> Unit = {}, onCompare: () -> Unit = {}, onImprint: () -> Unit = {}, onOnboarding: () -> Unit = {}, onChangelog: () -> Unit = {},
                   // Eingebettete Teile (App-Port Phase 6, 04.11.2026): Uhren, Freunde, Team brauchen ihre Wege nach draussen.
-                  onGarminPair: () -> Unit = {}, onGuide: () -> Unit = {}, onAlarm: () -> Unit = {}, onDataFields: () -> Unit = {},
+                  onLayoutGallery: () -> Unit = {},
                   onOpenFoiler: (Int) -> Unit = {}, onOpenSpot: (String) -> Unit = {}, onOpenTeam: (String) -> Unit = {},
                   onAlleTeams: () -> Unit = {}, onTeamGegruendet: (String) -> Unit = {}, onOpenSession: (Int) -> Unit = {}) {
     val ctx = LocalContext.current
@@ -318,7 +318,7 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoilStats
                     }
                 }
             }
-            "konten" -> UhrenKontenBereich(onGarminPair, onGuide, onAlarm, onDataFields)
+            "konten" -> UhrenKontenBereich(onLayoutGallery)
             "freunde" -> FreundeScreen(onBack = {}, onOpenFoiler = onOpenFoiler, onOpenSpot = onOpenSpot, eingebettet = true)
             "team" -> MeineTeamsInhalt(onOpenTeam, onAlleTeams, onTeamGegruendet)
             "ich" -> {

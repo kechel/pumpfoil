@@ -1,7 +1,9 @@
 import SwiftUI
 
-// Uhren-Bereich (wie die PWA /account „Uhr"): Apple-Watch-Status + Garmin/Wear-Kopplung +
-// On-Foil-Alarm + Datenseiten gebündelt. Die Profil-Übersicht zeigt nur EINEN „Uhr"-Eintrag.
+// Uhren-Bereich wie die PWA (web Account.tsx, Reiter „Uhr" in Uhr & Konten): `UhrReiterView` mit den Reitern
+// Anleitung | Einstellungen | Meine Uhr(en). `WatchView` ist „Meine Uhr(en)": Uhr verbinden (Code eingeben/erzeugen),
+// Apple-Watch-Status, HUAWEI, Suunto, darunter die verbundenen Uhren mit ihren Einstellungen je Uhr.
+// Anleitung, Datenseiten und Alarm waren bis 04.11.2026 Verweise in dieser Liste; jetzt sind es Reiter.
 struct WatchView: View {
     @EnvironmentObject var sync: SyncManager
     @AppStorage("appLang") private var lang = "de"
@@ -64,14 +66,13 @@ struct WatchView: View {
     // eigenem Binding) und stand mit >500 ms im Build-Log. Reihenfolge/Inhalte unveraendert.
     var body: some View {
         List {
+            // Uhr verbinden zuerst (web: ClaimFromWatch vor PairedDevices).
+            GarminPairView(eingebettet: true)
             appleWatchSection
             // HUAWEI-Uhr (Beta, 07.10.2026) — erscheint nur mit eingebautem Wear-Engine-SDK.
             HuaweiKarte()
             // Suunto-Uhr (Beta, 17.10.2026) — nur mit verknuepftem Suunto-Konto oder eingeschaltetem Empfang.
             SuuntoKarte()
-            // Die Verweise auf die anderen Seiten VOR der Uhren-Liste (Jan, 02.09., Android
-            // genauso): wer viele Uhren gepairt hat, scrollte vorher an allen vorbei.
-            navSection
             devicesSection
         }
         .brandToolbarWenn(!eingebettet, Loc.t("nav.watch", lang))
@@ -366,28 +367,6 @@ struct WatchView: View {
         }
     }
 
-    private var navSection: some View {
-        Section {
-            // Anleitung GANZ OBEN: wer die Uhr noch nicht eingerichtet hat, braucht zuerst
-            // den Weg dorthin — nicht den Code-Bildschirm.
-            navRow("guide.howto", "questionmark.circle") { GuideView() }
-            navRow("onb.watch.title", "link.circle") { GarminPairView() }
-            navRow("profile.alarm", "waveform.path") { AlarmView() }
-            navRow("profile.datafields", "square.grid.2x2") { DataFieldsView() }
-        }
-    }
-
-    // NavigationLink + Label als typisierter Helfer: derselbe Ausdruck stand dreimal im
-    // ViewBuilder und kostete den Checker jedes Mal die volle Auflösung von Label/Image/Color.
-    private func navRow<D: View>(_ key: String, _ symbol: String,
-                                @ViewBuilder destination: () -> D) -> some View {
-        NavigationLink {
-            destination()
-        } label: {
-            Label { Text(Loc.t(key, lang)) } icon: { Image(systemName: symbol).foregroundStyle(Color.accentColor) }
-        }
-    }
-
     // MARK: - Werte/Ablauflogik vorab typisiert
 
     private func deviceTitle(_ d: PairedDevice) -> String {
@@ -449,6 +428,79 @@ struct WatchView: View {
                 }
             }
             Button(Loc.t("common.cancel", lang), role: .cancel) { frage = nil }
+        }
+    }
+}
+
+// MARK: - Reiter des Uhr-Bereichs
+
+/// Uhr & Konten › Uhr: dritte Reiterzeile Anleitung | Einstellungen | Meine Uhr(en), wie web Account.tsx (eingebettet).
+/// Startreiter wie im Web: wer schon eine (nicht widerrufene) Uhr verbunden hat, kommt nicht wegen der Anleitung, sondern
+/// zum Einstellen — also „Einstellungen". Selbst gewaehlt gilt fuer die App-Sitzung (`ReiterSpeicher`) und springt nie um.
+struct UhrReiterView: View {
+    @AppStorage("appLang") private var lang = "de"
+    /// "" = noch nichts selbst gewaehlt, dann gilt `start`.
+    @State private var wahl: String = ReiterSpeicher.von("uhrteil", "")
+    @State private var start = "guide"
+
+    private var reiter: [ReiterDef] {
+        [ReiterDef(id: "guide", label: Loc.t("account.tabGuide", lang)),
+         ReiterDef(id: "views", label: Loc.t("tab.watchSettings", lang)),
+         ReiterDef(id: "connect", label: Loc.t("account.tabConnect", lang))]
+    }
+
+    private var aktiv: String { wahl.isEmpty ? start : wahl }
+
+    private var bindung: Binding<String> {
+        Binding(get: { aktiv }, set: { wahl = $0; ReiterSpeicher.setze("uhrteil", $0) })
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Reiterleiste(reiter: reiter, aktiv: bindung)
+                .padding(.horizontal)
+            inhalt
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .task { await startWaehlen() }
+    }
+
+    // Je Reiter eine eigene, volle Liste/Form unter den Reiterzeilen.
+    @ViewBuilder private var inhalt: some View {
+        switch aktiv {
+        case "views": UhrEinstellungenReiter()
+        case "connect": WatchView(eingebettet: true)
+        default: GuideView(eingebettet: true)
+        }
+    }
+
+    private func startWaehlen() async {
+        guard wahl.isEmpty, let ds = try? await Api.myDevices() else { return }
+        if ds.contains(where: { $0.revoked_at == nil }) { start = "views" }
+    }
+}
+
+/// Uhr › Einstellungen: vierte Reiterzeile Datenseiten | Alarm (web EinstellungenReiter; dort zusaetzlich die
+/// Community-/eigenen Layouts — in der App erreicht man die Community-Layouts aus den Datenseiten heraus).
+/// Einstellungen je Uhr (Aufnahmemodus, Wassersperre …) bleiben bei den Uhren unter „Meine Uhr(en)".
+struct UhrEinstellungenReiter: View {
+    @AppStorage("appLang") private var lang = "de"
+    @State private var wahl: String = ReiterSpeicher.von("uhreinst", "seiten")
+
+    private var reiter: [ReiterDef] {
+        [ReiterDef(id: "seiten", label: Loc.t("account.tabFaces", lang)),
+         ReiterDef(id: "alarm", label: Loc.t("account.tabAlarm", lang))]
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Reiterleiste(reiter: reiter, aktiv: Binding(get: { wahl }, set: { wahl = $0; ReiterSpeicher.setze("uhreinst", $0) }))
+                .padding(.horizontal)
+            if wahl == "alarm" {
+                AlarmView(eingebettet: true)
+            } else {
+                DataFieldsView(eingebettet: true)
+            }
         }
     }
 }

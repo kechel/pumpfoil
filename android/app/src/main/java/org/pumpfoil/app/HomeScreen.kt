@@ -94,7 +94,7 @@ private object RatingClock { val startMs = android.os.SystemClock.elapsedRealtim
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onRecord: () -> Unit = {}, onOpenSortedOut: () -> Unit = {}, onOnboarding: () -> Unit = {}, social: Boolean = true, onOpenSpot: (String) -> Unit = {}, onOpenTeam: (String) -> Unit = {}, onOpenTeams: () -> Unit = {},
-               onGarminPair: () -> Unit = {}, onGuide: () -> Unit = {}, onAlarm: () -> Unit = {}, onDataFields: () -> Unit = {},
+               onLayoutGallery: () -> Unit = {},
                onPrivacy: () -> Unit = {}, onOpenKommentare: (Int) -> Unit = {}, onTeamGegruendet: (String) -> Unit = {}) {
     var profile by remember { mutableStateOf<Profile?>(null) }
     var homespotLink by remember { mutableStateOf<String?>(null) }
@@ -557,7 +557,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
             }   // spots
 
             if (tab == "uhren") {
-                UhrenKontenBereich(onGarminPair, onGuide, onAlarm, onDataFields)
+                UhrenKontenBereich(onLayoutGallery)
             }   // uhren
 
             if (tab == "profil") {

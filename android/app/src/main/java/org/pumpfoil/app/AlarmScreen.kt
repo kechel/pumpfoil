@@ -3,6 +3,7 @@ package org.pumpfoil.app
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -60,7 +61,7 @@ private fun patterns() = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlarmScreen(onBack: () -> Unit) {
+fun AlarmScreen(onBack: () -> Unit, eingebettet: Boolean = false) {   // eingebettet: Reiter unter Uhr › Einstellungen
     val scope = rememberCoroutineScope()
     var loaded by remember { mutableStateOf(false) }
     var saved by remember { mutableStateOf(false) }
@@ -132,6 +133,118 @@ fun AlarmScreen(onBack: () -> Unit) {
         }
     }
 
+    // Inhalt ohne Titelzeile und eigenes Scrollen — eingebettet im Uhr-Bereich (WatchScreen.kt) scrollt die umgebende Seite.
+    val inhalt: @Composable ColumnScope.() -> Unit = {
+        Text(
+            I18n.t("alarm.desc"),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(16.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Switch(checked = enabled, onCheckedChange = { enabled = it; mark() })
+            Spacer(Modifier.width(10.dp))
+            Text(I18n.t("alarm.enable"))
+        }
+        if (enabled) {
+            Spacer(Modifier.height(16.dp))
+            // Vorwahl auf der Uhr.
+            Text(I18n.t("alarm.defaultSource"), style = MaterialTheme.typography.labelLarge)
+            Spacer(Modifier.height(4.dp))
+            Dropdown(
+                options = listOf("foil" to I18n.t("alarm.defaultFoil"), "fixed" to I18n.t("alarm.defaultFixed")),
+                selected = def, onSelect = { def = it; mark() },
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                I18n.t("alarm.defaultHelp"),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(16.dp))
+            // Max-Speed.
+            ThresholdCard(
+                title = I18n.t("alarm.overTitle"), fieldLabel = I18n.t("alarm.maxSpeed"),
+                value = high, onValue = { high = it; mark() },
+                pattern = patHigh, onPattern = { patHigh = it; mark() },
+            )
+            Spacer(Modifier.height(12.dp))
+            // Min-Speed.
+            ThresholdCard(
+                title = I18n.t("alarm.underTitle"), fieldLabel = I18n.t("alarm.minSpeed"),
+                value = low, onValue = { low = it; mark() },
+                pattern = patLow, onPattern = { patLow = it; mark() },
+            )
+            Spacer(Modifier.height(12.dp))
+            // Puls — dritte Schwelle, unabhaengig von den beiden Speed-Grenzen.
+            ThresholdCard(
+                title = I18n.t("alarm.hrTitle"), fieldLabel = I18n.t("alarm.maxHr"),
+                value = hrHigh, onValue = { hrHigh = it; mark() },
+                pattern = patHr, onPattern = { patHr = it; mark() },
+                unit = "bpm", maxLen = 3, hint = I18n.t("alarm.hrHint"),
+            )
+            Spacer(Modifier.height(12.dp))
+            // Auslösen-Modus.
+            Text(I18n.t("alarm.mode"), style = MaterialTheme.typography.labelLarge)
+            Spacer(Modifier.height(4.dp))
+            Dropdown(
+                options = listOf(
+                    "once" to I18n.t("alarm.modeOnce"),
+                    "continuous" to I18n.t("alarm.modeContinuous"),
+                ),
+                selected = repeat, onSelect = { repeat = it; mark() },
+            )
+            // Wiederholabstand nur bei „dauerhaft" — sonst hat er keine Bedeutung.
+            if (repeat == "continuous") {
+                Spacer(Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = repeatS,
+                        onValueChange = { repeatS = it.filter { c -> c.isDigit() }.take(2); mark() },
+                        label = { Text(I18n.t("alarm.repeatEvery")) }, singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.width(120.dp),
+                    )
+                    Text("s")
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+            // Marken waehrend eines Laufs: Strecke und Zeit. Keine Grenzwerte, die man
+            // ueber- oder unterschreitet, sondern Punkte, die man ERREICHT — deshalb je ein
+            // eigener Modus und KEIN Wiederholabstand aus `alarm_repeat_s`.
+            MarkCard(
+                title = I18n.t("alarm.distTitle"), unit = "m", maxLen = 4,
+                mode = distMode, onMode = { distMode = it; mark() },
+                value = distM, onValue = { distM = it; mark() },
+                pattern = patDist, onPattern = { patDist = it; mark() },
+            )
+            Spacer(Modifier.height(12.dp))
+            MarkCard(
+                title = I18n.t("alarm.timeTitle"), unit = "s", maxLen = 4,
+                mode = timeMode, onMode = { timeMode = it; mark() },
+                value = timeS, onValue = { timeS = it; mark() },
+                pattern = patTime, onPattern = { patTime = it; mark() },
+                hint = I18n.t("alarm.markHint"),
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(I18n.t("alarm.zeroHint"),
+                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Spacer(Modifier.height(24.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Button(onClick = { save() }) { Text(I18n.t("common.save")) }
+            if (saved) {
+                Spacer(Modifier.width(12.dp))
+                Text(I18n.t("common.saved"), color = MaterialTheme.colorScheme.primary)
+            }
+        }
+    }
+    if (eingebettet) {
+        if (!loaded) Box(Modifier.fillMaxWidth().height(160.dp)) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
+        else Column { inhalt() }
+        return
+    }
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(I18n.t("alarm.title")) },
@@ -144,110 +257,7 @@ fun AlarmScreen(onBack: () -> Unit) {
             return@Scaffold
         }
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-            Text(
-                I18n.t("alarm.desc"),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.height(16.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Switch(checked = enabled, onCheckedChange = { enabled = it; mark() })
-                Spacer(Modifier.width(10.dp))
-                Text(I18n.t("alarm.enable"))
-            }
-            if (enabled) {
-                Spacer(Modifier.height(16.dp))
-                // Vorwahl auf der Uhr.
-                Text(I18n.t("alarm.defaultSource"), style = MaterialTheme.typography.labelLarge)
-                Spacer(Modifier.height(4.dp))
-                Dropdown(
-                    options = listOf("foil" to I18n.t("alarm.defaultFoil"), "fixed" to I18n.t("alarm.defaultFixed")),
-                    selected = def, onSelect = { def = it; mark() },
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    I18n.t("alarm.defaultHelp"),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(16.dp))
-                // Max-Speed.
-                ThresholdCard(
-                    title = I18n.t("alarm.overTitle"), fieldLabel = I18n.t("alarm.maxSpeed"),
-                    value = high, onValue = { high = it; mark() },
-                    pattern = patHigh, onPattern = { patHigh = it; mark() },
-                )
-                Spacer(Modifier.height(12.dp))
-                // Min-Speed.
-                ThresholdCard(
-                    title = I18n.t("alarm.underTitle"), fieldLabel = I18n.t("alarm.minSpeed"),
-                    value = low, onValue = { low = it; mark() },
-                    pattern = patLow, onPattern = { patLow = it; mark() },
-                )
-                Spacer(Modifier.height(12.dp))
-                // Puls — dritte Schwelle, unabhaengig von den beiden Speed-Grenzen.
-                ThresholdCard(
-                    title = I18n.t("alarm.hrTitle"), fieldLabel = I18n.t("alarm.maxHr"),
-                    value = hrHigh, onValue = { hrHigh = it; mark() },
-                    pattern = patHr, onPattern = { patHr = it; mark() },
-                    unit = "bpm", maxLen = 3, hint = I18n.t("alarm.hrHint"),
-                )
-                Spacer(Modifier.height(12.dp))
-                // Auslösen-Modus.
-                Text(I18n.t("alarm.mode"), style = MaterialTheme.typography.labelLarge)
-                Spacer(Modifier.height(4.dp))
-                Dropdown(
-                    options = listOf(
-                        "once" to I18n.t("alarm.modeOnce"),
-                        "continuous" to I18n.t("alarm.modeContinuous"),
-                    ),
-                    selected = repeat, onSelect = { repeat = it; mark() },
-                )
-                // Wiederholabstand nur bei „dauerhaft" — sonst hat er keine Bedeutung.
-                if (repeat == "continuous") {
-                    Spacer(Modifier.height(8.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = repeatS,
-                            onValueChange = { repeatS = it.filter { c -> c.isDigit() }.take(2); mark() },
-                            label = { Text(I18n.t("alarm.repeatEvery")) }, singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.width(120.dp),
-                        )
-                        Text("s")
-                    }
-                }
-                Spacer(Modifier.height(12.dp))
-                // Marken waehrend eines Laufs: Strecke und Zeit. Keine Grenzwerte, die man
-                // ueber- oder unterschreitet, sondern Punkte, die man ERREICHT — deshalb je ein
-                // eigener Modus und KEIN Wiederholabstand aus `alarm_repeat_s`.
-                MarkCard(
-                    title = I18n.t("alarm.distTitle"), unit = "m", maxLen = 4,
-                    mode = distMode, onMode = { distMode = it; mark() },
-                    value = distM, onValue = { distM = it; mark() },
-                    pattern = patDist, onPattern = { patDist = it; mark() },
-                )
-                Spacer(Modifier.height(12.dp))
-                MarkCard(
-                    title = I18n.t("alarm.timeTitle"), unit = "s", maxLen = 4,
-                    mode = timeMode, onMode = { timeMode = it; mark() },
-                    value = timeS, onValue = { timeS = it; mark() },
-                    pattern = patTime, onPattern = { patTime = it; mark() },
-                    hint = I18n.t("alarm.markHint"),
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(I18n.t("alarm.zeroHint"),
-                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Spacer(Modifier.height(24.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Button(onClick = { save() }) { Text(I18n.t("common.save")) }
-                if (saved) {
-                    Spacer(Modifier.width(12.dp))
-                    Text(I18n.t("common.saved"), color = MaterialTheme.colorScheme.primary)
-                }
-            }
+            inhalt()
         }
     }
 }

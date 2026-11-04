@@ -15,6 +15,8 @@ import SwiftUI
 // GarminPairView).
 struct GuideView: View {
     @AppStorage("appLang") private var lang = "de"
+    /// Als Reiter in Uhr › Anleitung (wie web Account.tsx, 04.11.2026): ohne eigene Kopfleiste.
+    var eingebettet: Bool = false
 
     var body: some View {
         Form {
@@ -22,7 +24,7 @@ struct GuideView: View {
             pairSection
             syncSection
         }
-        .brandToolbar(Loc.t("guide.howto", lang))
+        .brandToolbarWenn(!eingebettet, Loc.t("guide.howto", lang))
         .navigationBarTitleDisplayMode(.inline)
     }
 

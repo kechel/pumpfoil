@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -46,7 +47,7 @@ const val CONNECT_IQ_URL = "https://apps.garmin.com/apps/9a2a753e-b52f-4587-aee4
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GarminPairScreen(onBack: () -> Unit) {
+fun GarminPairScreen(onBack: () -> Unit, eingebettet: Boolean = false) {   // eingebettet: Reiter „Meine Uhr(en)" ohne Titelzeile, die Seite scrollt
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var code by remember { mutableStateOf("") }
@@ -57,6 +58,104 @@ fun GarminPairScreen(onBack: () -> Unit) {
     var genCode by remember { mutableStateOf<String?>(null) }
     var genMsg by remember { mutableStateOf<String?>(null) }
 
+    // Inhalt ohne Titelzeile und eigenes Scrollen — eingebettet im Uhr-Bereich (WatchScreen.kt) scrollt die umgebende Seite.
+    val inhalt: @Composable ColumnScope.() -> Unit = {
+        // SCHRITT 0 — der hier fehlte. Beide Karten unten setzen voraus, dass die App schon
+        // auf der Uhr liegt („Pumpfoil auf der Uhr oeffnen"). Wie sie dorthin kommt, stand
+        // nirgends: bei Garmin kommt sie NICHT aus dem Play Store, sondern aus dem Connect IQ
+        // Store ueber die Garmin-Connect-App. Genau daran ist ein Nutzer haengengeblieben
+        // („je n'arrive pas a installer l'application sur ma garmin", 27.08., aus der
+        // Android-App heraus geschrieben). Die Web-App erklaert das laengst — die App nicht.
+        Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp)) {
+                Text(I18n.t("garmin.installTitle"), style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(4.dp))
+                Text(I18n.t("garmin.installHelp"), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(12.dp))
+                OutlinedButton(onClick = {
+                    ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(CONNECT_IQ_URL)))
+                }) { Text(I18n.t("garmin.installBtn")) }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Reverse: Code von der Uhr eingeben.
+        Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp)) {
+                Text(I18n.t("garmin.claimTitle"), style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(4.dp))
+                Text(I18n.t("garmin.claimHelp"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = code,
+                    onValueChange = { code = it.uppercase() },
+                    singleLine = true,
+                    label = { Text(I18n.t("garmin.codePlaceholder")) },
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
+                )
+                Spacer(Modifier.height(12.dp))
+                Button(
+                    enabled = !claimBusy && code.trim().length >= 4,
+                    onClick = {
+                        scope.launch {
+                            claimBusy = true; claimMsg = null; warteId = null
+                            try {
+                                val r = Api.pairClaim(code)
+                                // Erst „verbunden", wenn die Uhr das Token abgeholt hat (PairWarten).
+                                if (!r.already && r.deviceId != null) warteId = r.deviceId
+                                else claimMsg = I18n.t(if (r.already) "account.claimAlready" else "garmin.claimOk")
+                                code = ""
+                            }
+                            catch (e: Exception) { claimMsg = e.message ?: "?" }
+                            finally { claimBusy = false }
+                        }
+                    },
+                ) { Text(if (claimBusy) "…" else I18n.t("garmin.claimBtn")) }
+                warteId?.let { id ->
+                    Spacer(Modifier.height(8.dp))
+                    PairWarten(id)
+                }
+                claimMsg?.let {
+                    Spacer(Modifier.height(8.dp))
+                    Text(it, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Forward: Code erzeugen -> in Garmin-Connect-App eintragen.
+        Card(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(16.dp)) {
+                Text(I18n.t("garmin.genTitle"), style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(4.dp))
+                Text(I18n.t("garmin.genHelp"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(12.dp))
+                Button(
+                    enabled = !genBusy,
+                    onClick = {
+                        scope.launch {
+                            genBusy = true; genMsg = null
+                            try { genCode = Api.generatePairingCode().code }
+                            catch (e: Exception) { genMsg = e.message ?: "?" }
+                            finally { genBusy = false }
+                        }
+                    },
+                ) { Text(if (genBusy) "…" else I18n.t("garmin.genBtn")) }
+                genCode?.let {
+                    Spacer(Modifier.height(12.dp))
+                    Text(it, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+                }
+                genMsg?.let {
+                    Spacer(Modifier.height(8.dp))
+                    Text(it, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+    }
+    if (eingebettet) { Column { inhalt() }; return }
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(I18n.t("onb.watch.title")) },
@@ -65,100 +164,7 @@ fun GarminPairScreen(onBack: () -> Unit) {
         )
     }) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-            // SCHRITT 0 — der hier fehlte. Beide Karten unten setzen voraus, dass die App schon
-            // auf der Uhr liegt („Pumpfoil auf der Uhr oeffnen"). Wie sie dorthin kommt, stand
-            // nirgends: bei Garmin kommt sie NICHT aus dem Play Store, sondern aus dem Connect IQ
-            // Store ueber die Garmin-Connect-App. Genau daran ist ein Nutzer haengengeblieben
-            // („je n'arrive pas a installer l'application sur ma garmin", 27.08., aus der
-            // Android-App heraus geschrieben). Die Web-App erklaert das laengst — die App nicht.
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp)) {
-                    Text(I18n.t("garmin.installTitle"), style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(4.dp))
-                    Text(I18n.t("garmin.installHelp"), style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.height(12.dp))
-                    OutlinedButton(onClick = {
-                        ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(CONNECT_IQ_URL)))
-                    }) { Text(I18n.t("garmin.installBtn")) }
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // Reverse: Code von der Uhr eingeben.
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp)) {
-                    Text(I18n.t("garmin.claimTitle"), style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(4.dp))
-                    Text(I18n.t("garmin.claimHelp"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.height(12.dp))
-                    OutlinedTextField(
-                        value = code,
-                        onValueChange = { code = it.uppercase() },
-                        singleLine = true,
-                        label = { Text(I18n.t("garmin.codePlaceholder")) },
-                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Button(
-                        enabled = !claimBusy && code.trim().length >= 4,
-                        onClick = {
-                            scope.launch {
-                                claimBusy = true; claimMsg = null; warteId = null
-                                try {
-                                    val r = Api.pairClaim(code)
-                                    // Erst „verbunden", wenn die Uhr das Token abgeholt hat (PairWarten).
-                                    if (!r.already && r.deviceId != null) warteId = r.deviceId
-                                    else claimMsg = I18n.t(if (r.already) "account.claimAlready" else "garmin.claimOk")
-                                    code = ""
-                                }
-                                catch (e: Exception) { claimMsg = e.message ?: "?" }
-                                finally { claimBusy = false }
-                            }
-                        },
-                    ) { Text(if (claimBusy) "…" else I18n.t("garmin.claimBtn")) }
-                    warteId?.let { id ->
-                        Spacer(Modifier.height(8.dp))
-                        PairWarten(id)
-                    }
-                    claimMsg?.let {
-                        Spacer(Modifier.height(8.dp))
-                        Text(it, style = MaterialTheme.typography.bodySmall)
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // Forward: Code erzeugen -> in Garmin-Connect-App eintragen.
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp)) {
-                    Text(I18n.t("garmin.genTitle"), style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(4.dp))
-                    Text(I18n.t("garmin.genHelp"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.height(12.dp))
-                    Button(
-                        enabled = !genBusy,
-                        onClick = {
-                            scope.launch {
-                                genBusy = true; genMsg = null
-                                try { genCode = Api.generatePairingCode().code }
-                                catch (e: Exception) { genMsg = e.message ?: "?" }
-                                finally { genBusy = false }
-                            }
-                        },
-                    ) { Text(if (genBusy) "…" else I18n.t("garmin.genBtn")) }
-                    genCode?.let {
-                        Spacer(Modifier.height(12.dp))
-                        Text(it, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
-                    }
-                    genMsg?.let {
-                        Spacer(Modifier.height(8.dp))
-                        Text(it, style = MaterialTheme.typography.bodySmall)
-                    }
-                }
-            }
+            inhalt()
         }
     }
 }

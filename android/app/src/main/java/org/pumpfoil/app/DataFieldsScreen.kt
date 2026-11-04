@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -110,7 +111,7 @@ private fun pagesJson(pages: List<WatchPage>) = buildJsonArray {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
+fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}, eingebettet: Boolean = false) {   // eingebettet: Reiter unter Uhr › Einstellungen
     val scope = rememberCoroutineScope()
     var loaded by remember { mutableStateOf(false) }
     var saved by remember { mutableStateOf(false) }
@@ -186,6 +187,124 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
         }
     }
 
+    // Inhalt ohne Titelzeile und eigenes Scrollen — eingebettet im Uhr-Bereich (WatchScreen.kt) scrollt die umgebende Seite.
+    val inhalt: @Composable ColumnScope.() -> Unit = {
+        Text(I18n.t("datafields.intro"),
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // Was die kleinen Uhren davon zeigen — nur, wenn so eine verbunden ist.
+        val klassik = kleineUhren.filter { it.second == "klassik" }.map { it.first }.distinct().joinToString(", ")
+        val lite = kleineUhren.filter { it.second == "lite" }.map { it.first }.distinct().joinToString(", ")
+        if (klassik.isNotEmpty() || lite.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            Card(Modifier.fillMaxWidth(), colors = androidx.compose.material3.CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer)) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    if (klassik.isNotEmpty()) Text(I18n.t("account.viewsKlassikHint").replace("{names}", klassik),
+                        style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                    if (lite.isNotEmpty()) Text(I18n.t("account.viewsLiteHint").replace("{names}", lite),
+                        style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                }
+            }
+        }
+
+        // Die Einstellungen stehen VOR den eigenen Screens (Jan, 02.09., wie auf der
+        // Uhren-Seite): die Seiten-Sätze sind lang, wer nur einen Schalter umlegen wollte,
+        // musste vorher an allen vorbeiscrollen.
+        // Reihenfolge der Schalter wie in der PWA (Account.tsx), damit man sich zwischen
+        // Web und App nicht umorientieren muss.
+        SwitchRow(I18n.t("account.colorByValue"), "", colorByValue) {
+            colorByValue = it; saved = false
+        }
+        SwitchRow(I18n.t("account.autoStart"), "", autoStartWatch) {
+            autoStartWatch = it; saved = false
+        }
+        // Aktivitätstyp der Garmin-Aufnahme. Alle DREI Werte wie im Web — „Pumpfoil" fehlte
+        // hier bisher, obwohl es seit dem 20.07. der Standard ist.
+        if (hasGarmin) {
+            Spacer(Modifier.height(8.dp))
+            Text(I18n.t("account.activityType"), style = MaterialTheme.typography.titleSmall)
+            Text(I18n.t("account.activityTypeHint"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
+            Dropdown(
+                options = listOf(
+                    "pumpfoil" to I18n.t("account.activityPumpfoil"),
+                    "surfing" to I18n.t("account.activitySurfing"),
+                    "openwater" to I18n.t("account.activityOpenWater"),
+                ),
+                selected = activityType,
+                onSelect = { v -> activityType = v; saved = false },
+            )
+        }
+
+        // Beenden/Verwerfen auf der Uhr: zwei gleichrangige Wege -> Auswahl statt Schalter.
+        Spacer(Modifier.height(8.dp))
+        Text(I18n.t("account.stopMode"), style = MaterialTheme.typography.titleSmall)
+        listOf("hold" to "account.stopModeHold", "press" to "account.stopModePress").forEach { (wert, key) ->
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().clickable { stopMode = wert; saved = false }) {
+                RadioButton(selected = stopMode == wert, onClick = { stopMode = wert; saved = false })
+                Text(I18n.t(key), style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+        Text(I18n.t("account.stopModeHint"), style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 12.dp, bottom = 8.dp))
+
+        SwitchRow(I18n.t("account.browseAll"), I18n.t("account.browseAllHint"), browseAll) {
+            browseAll = it; saved = false
+        }
+        SwitchRow(I18n.t("account.layoutsEnabled"), I18n.t("account.layoutsEnabledHint"), layoutsEnabled) {
+            layoutsEnabled = it; saved = false
+        }
+
+        Spacer(Modifier.height(20.dp))
+
+        // Eigene Screens lassen sich hier EINFUEGEN und ansehen, aber nicht bauen. Entscheidung
+        // Jan (17.08.): der Editor ist bewusst Web-only ("das macht man eh nur am pc"), also
+        // sagen wir hier klar, wo er ist, statt den Nutzer suchen zu lassen.
+        Spacer(Modifier.height(8.dp))
+        Text(I18n.t("datafields.editorInBrowser"),
+            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+        // Einstieg in die Community-Galerie — ANSEHEN und KOPIEREN geht nativ, nur Gestalten
+        // nicht. In der PWA steht der Link an derselben Stelle (ViewsEditor).
+        Spacer(Modifier.height(8.dp))
+        OutlinedButton(onClick = onGallery) { Text(I18n.t("lay.toCommunity")) }
+        Spacer(Modifier.height(12.dp))
+
+        // Je Seiten-Satz nur Layouts dieses Zustands (02.11.2026, wie die PWA): ein Layout der falschen Kategorie
+        // verwirft der Server beim Speichern stillschweigend — die eingefuegte Seite war danach weg.
+        PageSetEditor(
+            title = null, pages = onFoil, layouts = layouts.filter { it.category == "on_foil" }, max = 8,
+            onChange = { onFoil = it; saved = false },
+        )
+        Spacer(Modifier.height(16.dp))
+        SectionCard(I18n.t("account.offFoilTitle"), I18n.t("account.offFoilDesc")) {
+            PageSetEditor(
+                title = null, pages = offFoil, layouts = layouts.filter { it.category == "off_foil" }, max = 8,
+                onChange = { offFoil = it; saved = false },
+            )
+        }
+        Spacer(Modifier.height(12.dp))
+        SectionCard(I18n.t("account.pauseTitle"), I18n.t("account.pauseDesc")) {
+            PageSetEditor(
+                title = null, pages = pause, layouts = layouts.filter { it.category == "pause" }, max = 8,
+                onChange = { pause = it; saved = false },
+            )
+        }
+
+        Spacer(Modifier.height(20.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Button(onClick = { save() }) { Text(I18n.t("common.save")) }
+            if (saved) { Spacer(Modifier.width(12.dp)); Text(I18n.t("common.saved"), color = MaterialTheme.colorScheme.primary) }
+        }
+        Spacer(Modifier.height(24.dp))
+    }
+    if (eingebettet) {
+        if (!loaded) Box(Modifier.fillMaxWidth().height(160.dp)) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
+        else Column { inhalt() }
+        return
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -200,116 +319,7 @@ fun DataFieldsScreen(onBack: () -> Unit, onGallery: () -> Unit = {}) {
             return@Scaffold
         }
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-            Text(I18n.t("datafields.intro"),
-                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            // Was die kleinen Uhren davon zeigen — nur, wenn so eine verbunden ist.
-            val klassik = kleineUhren.filter { it.second == "klassik" }.map { it.first }.distinct().joinToString(", ")
-            val lite = kleineUhren.filter { it.second == "lite" }.map { it.first }.distinct().joinToString(", ")
-            if (klassik.isNotEmpty() || lite.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
-                Card(Modifier.fillMaxWidth(), colors = androidx.compose.material3.CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer)) {
-                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        if (klassik.isNotEmpty()) Text(I18n.t("account.viewsKlassikHint").replace("{names}", klassik),
-                            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onTertiaryContainer)
-                        if (lite.isNotEmpty()) Text(I18n.t("account.viewsLiteHint").replace("{names}", lite),
-                            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onTertiaryContainer)
-                    }
-                }
-            }
-
-            // Die Einstellungen stehen VOR den eigenen Screens (Jan, 02.09., wie auf der
-            // Uhren-Seite): die Seiten-Sätze sind lang, wer nur einen Schalter umlegen wollte,
-            // musste vorher an allen vorbeiscrollen.
-            // Reihenfolge der Schalter wie in der PWA (Account.tsx), damit man sich zwischen
-            // Web und App nicht umorientieren muss.
-            SwitchRow(I18n.t("account.colorByValue"), "", colorByValue) {
-                colorByValue = it; saved = false
-            }
-            SwitchRow(I18n.t("account.autoStart"), "", autoStartWatch) {
-                autoStartWatch = it; saved = false
-            }
-            // Aktivitätstyp der Garmin-Aufnahme. Alle DREI Werte wie im Web — „Pumpfoil" fehlte
-            // hier bisher, obwohl es seit dem 20.07. der Standard ist.
-            if (hasGarmin) {
-                Spacer(Modifier.height(8.dp))
-                Text(I18n.t("account.activityType"), style = MaterialTheme.typography.titleSmall)
-                Text(I18n.t("account.activityTypeHint"), style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
-                Dropdown(
-                    options = listOf(
-                        "pumpfoil" to I18n.t("account.activityPumpfoil"),
-                        "surfing" to I18n.t("account.activitySurfing"),
-                        "openwater" to I18n.t("account.activityOpenWater"),
-                    ),
-                    selected = activityType,
-                    onSelect = { v -> activityType = v; saved = false },
-                )
-            }
-
-            // Beenden/Verwerfen auf der Uhr: zwei gleichrangige Wege -> Auswahl statt Schalter.
-            Spacer(Modifier.height(8.dp))
-            Text(I18n.t("account.stopMode"), style = MaterialTheme.typography.titleSmall)
-            listOf("hold" to "account.stopModeHold", "press" to "account.stopModePress").forEach { (wert, key) ->
-                Row(verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable { stopMode = wert; saved = false }) {
-                    RadioButton(selected = stopMode == wert, onClick = { stopMode = wert; saved = false })
-                    Text(I18n.t(key), style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-            Text(I18n.t("account.stopModeHint"), style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 12.dp, bottom = 8.dp))
-
-            SwitchRow(I18n.t("account.browseAll"), I18n.t("account.browseAllHint"), browseAll) {
-                browseAll = it; saved = false
-            }
-            SwitchRow(I18n.t("account.layoutsEnabled"), I18n.t("account.layoutsEnabledHint"), layoutsEnabled) {
-                layoutsEnabled = it; saved = false
-            }
-
-            Spacer(Modifier.height(20.dp))
-
-            // Eigene Screens lassen sich hier EINFUEGEN und ansehen, aber nicht bauen. Entscheidung
-            // Jan (17.08.): der Editor ist bewusst Web-only ("das macht man eh nur am pc"), also
-            // sagen wir hier klar, wo er ist, statt den Nutzer suchen zu lassen.
-            Spacer(Modifier.height(8.dp))
-            Text(I18n.t("datafields.editorInBrowser"),
-                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
-            // Einstieg in die Community-Galerie — ANSEHEN und KOPIEREN geht nativ, nur Gestalten
-            // nicht. In der PWA steht der Link an derselben Stelle (ViewsEditor).
-            Spacer(Modifier.height(8.dp))
-            OutlinedButton(onClick = onGallery) { Text(I18n.t("lay.toCommunity")) }
-            Spacer(Modifier.height(12.dp))
-
-            // Je Seiten-Satz nur Layouts dieses Zustands (02.11.2026, wie die PWA): ein Layout der falschen Kategorie
-            // verwirft der Server beim Speichern stillschweigend — die eingefuegte Seite war danach weg.
-            PageSetEditor(
-                title = null, pages = onFoil, layouts = layouts.filter { it.category == "on_foil" }, max = 8,
-                onChange = { onFoil = it; saved = false },
-            )
-            Spacer(Modifier.height(16.dp))
-            SectionCard(I18n.t("account.offFoilTitle"), I18n.t("account.offFoilDesc")) {
-                PageSetEditor(
-                    title = null, pages = offFoil, layouts = layouts.filter { it.category == "off_foil" }, max = 8,
-                    onChange = { offFoil = it; saved = false },
-                )
-            }
-            Spacer(Modifier.height(12.dp))
-            SectionCard(I18n.t("account.pauseTitle"), I18n.t("account.pauseDesc")) {
-                PageSetEditor(
-                    title = null, pages = pause, layouts = layouts.filter { it.category == "pause" }, max = 8,
-                    onChange = { pause = it; saved = false },
-                )
-            }
-
-            Spacer(Modifier.height(20.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Button(onClick = { save() }) { Text(I18n.t("common.save")) }
-                if (saved) { Spacer(Modifier.width(12.dp)); Text(I18n.t("common.saved"), color = MaterialTheme.colorScheme.primary) }
-            }
-            Spacer(Modifier.height(24.dp))
+            inhalt()
         }
     }
 }

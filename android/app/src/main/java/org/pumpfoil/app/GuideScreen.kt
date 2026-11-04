@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GuideScreen(onBack: () -> Unit) {
-    val ctx = LocalContext.current
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(I18n.t("guide.howto")) },
@@ -52,37 +51,45 @@ fun GuideScreen(onBack: () -> Unit) {
     }) { pad ->
         Column(
             Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)
-        ) {
-            Abschnitt(I18n.t("guide.garminSub")) {
-                Absatz(I18n.t("guide.g.storeLead"))
-                OutlinedButton(onClick = {
-                    ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(CONNECT_IQ_URL)))
-                }) { Text(I18n.t("guide.g.storeCta")) }
-                Spacer(Modifier.height(12.dp))
-                Schritt(I18n.t("guide.g.s2Title"), I18n.t("guide.g.s2"))
-                Schritt(I18n.t("guide.g.s3Title"), I18n.t("guide.g.s3"))
-                Schritt(I18n.t("guide.g.s5Title"), I18n.t("guide.g.s5"))
-                Schritt(I18n.t("guide.g.s6Title"), I18n.t("guide.g.s6"))
-            }
+        ) { GuideInhalt() }
+    }
+}
 
-            Spacer(Modifier.height(16.dp))
+/** Der Text der Anleitung ohne Titelzeile und ohne eigenes Scrollen — auch als Reiter „Anleitung" im Uhr-Bereich
+ * (UhrBereich in WatchScreen.kt), dort scrollt die umgebende Seite. */
+@Composable
+fun GuideInhalt() {
+    val ctx = LocalContext.current
+    Column {
+        Abschnitt(I18n.t("guide.garminSub")) {
+            Absatz(I18n.t("guide.g.storeLead"))
+            OutlinedButton(onClick = {
+                ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(CONNECT_IQ_URL)))
+            }) { Text(I18n.t("guide.g.storeCta")) }
+            Spacer(Modifier.height(12.dp))
+            Schritt(I18n.t("guide.g.s2Title"), I18n.t("guide.g.s2"))
+            Schritt(I18n.t("guide.g.s3Title"), I18n.t("guide.g.s3"))
+            Schritt(I18n.t("guide.g.s5Title"), I18n.t("guide.g.s5"))
+            Schritt(I18n.t("guide.g.s6Title"), I18n.t("guide.g.s6"))
+        }
 
-            Abschnitt(I18n.t("guide.pair.title")) {
-                Absatz(I18n.t("guide.pair.intro"))
-                Schritt(I18n.t("guide.pair.autoTitle"), I18n.t("guide.pair.auto"))
-                Schritt(I18n.t("guide.pair.codeTitle"), I18n.t("guide.pair.code"))
-                Schritt(I18n.t("guide.pair.relinkTitle"), I18n.t("guide.pair.relink"))
-                Absatz(I18n.t("guide.pair.note"))
-            }
+        Spacer(Modifier.height(16.dp))
 
-            Spacer(Modifier.height(16.dp))
+        Abschnitt(I18n.t("guide.pair.title")) {
+            Absatz(I18n.t("guide.pair.intro"))
+            Schritt(I18n.t("guide.pair.autoTitle"), I18n.t("guide.pair.auto"))
+            Schritt(I18n.t("guide.pair.codeTitle"), I18n.t("guide.pair.code"))
+            Schritt(I18n.t("guide.pair.relinkTitle"), I18n.t("guide.pair.relink"))
+            Absatz(I18n.t("guide.pair.note"))
+        }
 
-            Abschnitt(I18n.t("guide.sync.title")) {
-                Schritt(I18n.t("guide.sync.nowTitle"), I18n.t("guide.sync.now"))
-                Schritt(I18n.t("guide.sync.retryTitle"), I18n.t("guide.sync.retry"))
-                Schritt(I18n.t("guide.sync.laterTitle"), I18n.t("guide.sync.later"))
-                Absatz(I18n.t("guide.sync.note"))
-            }
+        Spacer(Modifier.height(16.dp))
+
+        Abschnitt(I18n.t("guide.sync.title")) {
+            Schritt(I18n.t("guide.sync.nowTitle"), I18n.t("guide.sync.now"))
+            Schritt(I18n.t("guide.sync.retryTitle"), I18n.t("guide.sync.retry"))
+            Schritt(I18n.t("guide.sync.laterTitle"), I18n.t("guide.sync.later"))
+            Absatz(I18n.t("guide.sync.note"))
         }
     }
 }

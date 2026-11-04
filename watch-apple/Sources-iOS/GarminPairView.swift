@@ -16,19 +16,28 @@ struct GarminPairView: View {
     @State private var genBusy = false
     @State private var genCode: String?
     @State private var genMsg: String?
+    /// In Uhr › Meine Uhr(en) (wie web Account.tsx, 04.11.2026): nur die Abschnitte, ohne eigene Form und Kopfleiste —
+    /// sie stehen dort in der Liste von `WatchView` vor Apple Watch, HUAWEI, Suunto und den verbundenen Uhren.
+    var eingebettet: Bool = false
 
     // Ein Abschnitt = eine eigene, explizit typisierte Property, die Netz-Aufrufe stecken in
     // Methoden statt in Button-Closures: Swifts Type-Checker loest einen ViewBuilder als EINEN
     // Ausdruck auf, und dieser Body war ~51 Zeilen mit zwei Task-Closures und zwei Ternaries
     // darin. Reihenfolge, Texte und Verhalten sind unveraendert.
     var body: some View {
-        Form {
-            installSection
-            claimSection
-            genSection
+        if eingebettet {
+            abschnitte
+        } else {
+            Form { abschnitte }
+                .brandToolbar(Loc.t("onb.watch.title", lang))
+                .navigationBarTitleDisplayMode(.inline)
         }
-        .brandToolbar(Loc.t("onb.watch.title", lang))
-        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    @ViewBuilder private var abschnitte: some View {
+        installSection
+        claimSection
+        genSection
     }
 
     // SCHRITT 0 — der hier fehlte. Beide Abschnitte darunter setzen voraus, dass die App schon

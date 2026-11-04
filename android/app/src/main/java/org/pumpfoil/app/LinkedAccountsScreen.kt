@@ -91,7 +91,9 @@ private val PROVIDERS = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LinkedAccountsScreen(onBack: () -> Unit, eingebettet: Boolean = false) {   // eingebettet: Reiter ohne Titelzeile
+fun LinkedAccountsScreen(onBack: () -> Unit, eingebettet: Boolean = false, nur: String? = null) {   // eingebettet: Reiter ohne Titelzeile
+    // `nur`: ein Anbieter je Reiter wie im Web (polar | coros | suunto | xiaomi | mcp, UhrenKontenBereich); null = alle untereinander.
+    val anbieter = PROVIDERS.filter { nur == null || it.id == nur }
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val status = remember { mutableStateMapOf<String, Api.IntegrationStatus>() }
@@ -104,7 +106,7 @@ fun LinkedAccountsScreen(onBack: () -> Unit, eingebettet: Boolean = false) {   /
     var fertigZaehler by remember { mutableStateOf(0) }
 
     suspend fun refresh() {
-        for (p in PROVIDERS) {
+        for (p in anbieter) {
             status[p.id] = try { Api.integrationStatus(p.pfad) } catch (_: Exception) { Api.IntegrationStatus() }
         }
     }
@@ -120,9 +122,12 @@ fun LinkedAccountsScreen(onBack: () -> Unit, eingebettet: Boolean = false) {   /
     }
 
     val inhalt: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit = {
-        Text(I18n.t("accounts.sub"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Box(Modifier.padding(top = 12.dp))
-        PROVIDERS.forEach { p ->
+        // Hinweis ueber den Konten (Web: linked.hint, nicht beim MCP-Reiter).
+        if (nur != "mcp") {
+            Text(I18n.t("accounts.sub"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Box(Modifier.padding(top = 12.dp))
+        }
+        anbieter.forEach { p ->
             val st = status[p.id]
             if (st != null && !st.available && !st.linked) {
                 // Nicht konfiguriert -> als "bald verfügbar" grau anzeigen.
@@ -225,9 +230,9 @@ fun LinkedAccountsScreen(onBack: () -> Unit, eingebettet: Boolean = false) {   /
                 }
             }
         }
-        XiaomiHinweis()
-        // KI-Zugang (MCP) — wie die PWA ganz unten bei den verknuepften Konten.
-        McpKarte()
+        if (nur == null || nur == "xiaomi") XiaomiHinweis()
+        // KI-Zugang (MCP) — wie die PWA ganz unten bei den verknuepften Konten bzw. als eigener Reiter.
+        if (nur == null || nur == "mcp") McpKarte()
     }
     if (eingebettet) Column { inhalt() }
     else Scaffold(

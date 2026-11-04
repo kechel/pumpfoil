@@ -55,6 +55,8 @@ func watchPagesPayload(_ pages: [WatchPage]) -> [Any] {
 
 struct DataFieldsView: View {
     @AppStorage("appLang") private var lang = "de"
+    /// Als Reiter in Uhr › Einstellungen › Datenseiten (wie web Account.tsx, 04.11.2026): ohne eigene Kopfleiste.
+    var eingebettet: Bool = false
     @State private var onFoil: [WatchPage] = [.classic([1, 2, 0])]
     @State private var offFoil: [WatchPage] = [.classic([12, 17, 16])]
     @State private var pause: [WatchPage] = [.classic([12, 20, 2])]
@@ -119,7 +121,7 @@ struct DataFieldsView: View {
             default: layoutAuswahl(pages: $onFoil, kategorie: "on_foil")
             }
         }
-        .brandToolbar(Loc.t("profile.datafields", lang))
+        .brandToolbarWenn(!eingebettet, Loc.t("profile.datafields", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await load() }
     }

@@ -1,6 +1,5 @@
 package org.pumpfoil.app
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,10 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.HelpOutline
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Dashboard
-import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -30,13 +25,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -56,25 +48,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
-// Uhren-Bereich (wie die PWA /account „Uhr"): Wear-OS-Status + Garmin/Wear-Kopplung +
-// On-Foil-Alarm + Datenseiten gebündelt. Die Profil-Übersicht zeigt nur EINEN „Uhr"-Eintrag.
+// Uhr-Seite als eigener Bildschirm (Titelzeile + Scrollen) um denselben Inhalt wie der Reiter „Uhr" in Uhren & Konten.
+// Derzeit ohne eigene Route; die App zeigt den Bereich eingebettet (UhrenKontenBereich).
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WatchScreen(
     onBack: () -> Unit,
-    onGarminPair: () -> Unit = {},
-    onGuide: () -> Unit = {},
-    onAlarm: () -> Unit = {},
-    onDataFields: () -> Unit = {},
-    eingebettet: Boolean = false,   // als Reiter (Home › Uhren, Einstellungen › Uhren): ohne Titelzeile, die Seite scrollt
+    onGallery: () -> Unit = {},
+    eingebettet: Boolean = false,   // als Reiter: ohne Titelzeile, die umgebende Seite scrollt
 ) {
-    val ctx = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val snackHost = remember { SnackbarHostState() }
-    val inhalt: @Composable () -> Unit = {
-        WatchInhalt(ctx, onGarminPair, onGuide, onAlarm, onDataFields)
-    }
-    if (eingebettet) { Column { inhalt() }; return }
+    if (eingebettet) { UhrBereich(onGallery); return }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -85,58 +68,77 @@ fun WatchScreen(
                 actions = { FeedbackKnopf() },
             )
         },
-        snackbarHost = { SnackbarHost(snackHost) },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
-            inhalt()
+            UhrBereich(onGallery)
         }
     }
 }
 
+/** Ob die Start-Wahl des Uhr-Reiters schon feststeht — fuer die Dauer der App-Sitzung, wie ReiterSpeicher. Gesetzt,
+ * sobald der Nutzer selbst einen Reiter waehlt oder die Geraete-Abfrage einmal durch ist; danach springt nichts mehr um. */
+private object UhrStartWahl { var fest = false }
+
+/**
+ * Reiter „Uhr" wie im Web (Account.tsx, 02.11.2026): Anleitung | Einstellungen | Meine Uhr(en). Die drei Teile waren
+ * vorher eigene Seiten hinter Listeneintraegen; jetzt stehen sie hier, die Seiten (Routen guide/datafields/alarm/
+ * garminpair) gibt es weiter einzeln. Ohne eigenes Scrollen — die umgebende Seite scrollt.
+ */
 @Composable
-private fun WatchInhalt(ctx: android.content.Context, onGarminPair: () -> Unit, onGuide: () -> Unit,
-                        onAlarm: () -> Unit, onDataFields: () -> Unit) {
+private fun UhrBereich(onGallery: () -> Unit) {
+    val ctx = LocalContext.current
+    val reiter = listOf(
+        ReiterDef("anleitung", I18n.t("account.tabGuide")),
+        ReiterDef("einstellungen", I18n.t("tab.watchSettings")),
+        ReiterDef("uhren", I18n.t("account.tabConnect")),
+    )
+    var tab by rememberReiter("uhr", reiter.map { it.id }, "anleitung")
+    // Wer schon eine Uhr verbunden hat, kommt nicht wegen der Anleitung, sondern um sie einzustellen (Web: Startreiter
+    // „Einstellungen", sobald ein nicht widerrufenes Geraet existiert). Ein selbst gewaehlter Reiter bleibt.
+    LaunchedEffect(Unit) {
+        if (UhrStartWahl.fest) return@LaunchedEffect
+        val geraete = try { Api.myDevices() } catch (_: Exception) { return@LaunchedEffect }
+        if (UhrStartWahl.fest) return@LaunchedEffect
+        if (geraete.any { it.revokedAt == null } && tab == "anleitung") tab = "einstellungen"
+        UhrStartWahl.fest = true
+    }
     Column {
-        WatchCard(ctx)
-        HuaweiKarte()
-        SuuntoKarte()
-        Spacer(Modifier.height(8.dp))
-        // Die vier Verweise auf die anderen Seiten stehen VOR der Uhren-Liste (Jan, 02.09.):
-        // wer viele Uhren gepairt hat, musste vorher an allen vorbeiscrollen, um zur
-        // Anleitung, zum Alarm oder zu den Datenfeldern zu kommen.
-        // Die Anleitung bleibt dabei die erste: wer hier landet und die Uhr noch nicht
-        // eingerichtet hat, braucht zuerst den Weg dorthin — nicht den Code-Bildschirm.
-        ListItem(
-            modifier = Modifier.clickable { onGuide() },
-            headlineContent = { Text(I18n.t("guide.howto")) },
-            leadingContent = { Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-            trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-        )
-        ListItem(
-            modifier = Modifier.clickable { onGarminPair() },
-            headlineContent = { Text(I18n.t("onb.watch.title")) },
-            supportingContent = { Text(I18n.t("garmin.sub")) },
-            leadingContent = { Icon(Icons.Filled.Watch, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-            trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-        )
-        ListItem(
-            modifier = Modifier.clickable { onAlarm() },
-            headlineContent = { Text(I18n.t("profile.alarm")) },
-            supportingContent = { Text(I18n.t("profile.alarmSub")) },
-            leadingContent = { Icon(Icons.Filled.Vibration, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-            trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-        )
-        ListItem(
-            modifier = Modifier.clickable { onDataFields() },
-            headlineContent = { Text(I18n.t("profile.datafields")) },
-            supportingContent = { Text(I18n.t("profile.datafieldsSub")) },
-            leadingContent = { Icon(Icons.Filled.Dashboard, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-            trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
-        )
-        Spacer(Modifier.height(8.dp))
-        // Rueckmeldung „gespeichert" steht seit 28.09.2026 direkt unter dem jeweiligen Regler
-        // (wie die PWA), nicht mehr als Snackbar am unteren Rand.
-        PairedDevicesCard()
+        Reiterleiste(reiter, tab, { UhrStartWahl.fest = true; tab = it })
+        Spacer(Modifier.height(12.dp))
+        when (tab) {
+            "anleitung" -> GuideInhalt()
+            "einstellungen" -> UhrEinstellungen(onGallery)
+            "uhren" -> {
+                // Verbinden (Code eingeben/erzeugen), dann die Uhren je Plattform, zuletzt die Liste der verbundenen Uhren.
+                // Rueckmeldung „gespeichert" steht seit 28.09.2026 direkt unter dem jeweiligen Regler (wie die PWA).
+                GarminPairScreen(onBack = {}, eingebettet = true)
+                Spacer(Modifier.height(8.dp))
+                WatchCard(ctx)
+                HuaweiKarte()
+                SuuntoKarte()
+                Spacer(Modifier.height(8.dp))
+                PairedDevicesCard()
+            }
+        }
+    }
+}
+
+/** Uhr › Einstellungen mit eigener Reiterzeile Datenseiten | On-Foil-Alarm (Web: EinstellungenReiter; dort stehen noch
+ * die Layout-Galerien als Reiter, die App erreicht die Galerie ueber den Knopf in den Datenseiten). */
+@Composable
+private fun UhrEinstellungen(onGallery: () -> Unit) {
+    val reiter = listOf(
+        ReiterDef("seiten", I18n.t("account.tabFaces")),
+        ReiterDef("alarm", I18n.t("account.tabAlarm")),
+    )
+    var tab by rememberReiter("uhreinst", reiter.map { it.id }, "seiten")
+    Column {
+        Reiterleiste(reiter, tab, { tab = it })
+        Spacer(Modifier.height(12.dp))
+        when (tab) {
+            "seiten" -> DataFieldsScreen(onBack = {}, onGallery = onGallery, eingebettet = true)
+            "alarm" -> AlarmScreen(onBack = {}, eingebettet = true)
+        }
     }
 }
 
@@ -671,18 +673,26 @@ private fun sparUhrText(d: PairedDevice): String {
 
 /**
  * Uhren und verknuepfte Konten in EINER Ansicht (Web LinkedAccounts.tsx `eingebettet`, 02.11.2026): Home › Uhren und
- * Einstellungen › Uhren. Die Reiter Uhr | Konten als zweite Zeile direkt unter der Hauptzeile; die Konten (Polar, COROS,
- * Suunto …) stehen in der App untereinander auf EINER Seite statt je Anbieter ein Reiter wie im Web.
+ * Einstellungen › Uhren. Zweite Zeile direkt unter der Hauptzeile: Uhr | Polar | COROS | Suunto | Xiaomi | MCP — je Anbieter
+ * ein Reiter wie im Web (Strava zeigt die App nicht, es ist zurueckgestellt).
  */
 @Composable
-fun UhrenKontenBereich(onGarminPair: () -> Unit, onGuide: () -> Unit, onAlarm: () -> Unit, onDataFields: () -> Unit) {
-    val reiter = listOf(ReiterDef("uhr", I18n.t("nav.watch")), ReiterDef("konten", I18n.t("accounts.title")))
+fun UhrenKontenBereich(onGallery: () -> Unit) {
+    val reiter = listOf(
+        ReiterDef("uhr", I18n.t("nav.watch")),
+        ReiterDef("polar", "Polar"),
+        ReiterDef("coros", "COROS"),
+        ReiterDef("suunto", "Suunto"),
+        ReiterDef("xiaomi", "Xiaomi"),
+        ReiterDef("mcp", "MCP"),
+    )
     var tab by rememberReiter("konten", reiter.map { it.id }, "uhr")
     Column {
         Reiterleiste(reiter, tab, { tab = it }, stufe = 2)
         Spacer(Modifier.height(10.dp))
-        if (tab == "uhr") WatchScreen(onBack = {}, onGarminPair = onGarminPair, onGuide = onGuide, onAlarm = onAlarm,
-                                      onDataFields = onDataFields, eingebettet = true)
-        else LinkedAccountsScreen(onBack = {}, eingebettet = true)
+        if (tab == "uhr") UhrBereich(onGallery)
+        // key: je Anbieter eine eigene Instanz, damit Stand und Lade-Effekte beim Reiterwechsel neu anlaufen.
+        else androidx.compose.runtime.key(tab) { LinkedAccountsScreen(onBack = {}, eingebettet = true, nur = tab) }
+        Spacer(Modifier.height(16.dp))
     }
 }
