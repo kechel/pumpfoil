@@ -519,7 +519,7 @@ enum HuaweiTexte {
         }
     }
     private static let de: [String: String] = [
-        "huawei.title": "HUAWEI-Uhr (Beta)",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (Beta)",
         "huawei.body": "Die Pumpfoil-App auf deiner HUAWEI-Uhr schickt ihre Aufnahmen über dieses iPhone. Lass Pumpfoil nach der Session offen, bis die Uhr „Alles übertragen“ zeigt.",
         "huawei.connect": "HUAWEI-Uhr verbinden",
         "huawei.disconnect": "Trennen",
@@ -535,7 +535,7 @@ enum HuaweiTexte {
         "huawei.errOther": "Etwas ist schiefgegangen: {f}",
     ]
     private static let gsw: [String: String] = [
-        "huawei.title": "HUAWEI-Uhr (Beta)",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (Beta)",
         "huawei.body": "D Pumpfoil-App uf dinere HUAWEI-Uhr schickt iri Ufnahme über das iPhone. Lass Pumpfoil nach de Session offe, bis d Uhr „Alles übertreit“ aazeigt.",
         "huawei.connect": "HUAWEI-Uhr verbinde",
         "huawei.disconnect": "Trenne",
@@ -551,7 +551,7 @@ enum HuaweiTexte {
         "huawei.errOther": "Öppis isch schiefgange: {f}",
     ]
     private static let deAT: [String: String] = [
-        "huawei.title": "HUAWEI-Uhr (Beta)",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (Beta)",
         "huawei.body": "Die Pumpfoil-App auf deiner HUAWEI-Uhr schickt ihre Aufnahmen über dieses iPhone. Lass Pumpfoil nach der Session offen, bis die Uhr „Alles drüben“ anzeigt.",
         "huawei.connect": "HUAWEI-Uhr verbinden",
         "huawei.disconnect": "Trennen",
@@ -567,7 +567,7 @@ enum HuaweiTexte {
         "huawei.errOther": "Da ist was schiefgegangen: {f}",
     ]
     private static let en: [String: String] = [
-        "huawei.title": "HUAWEI watch (beta)",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (beta)",
         "huawei.body": "The Pumpfoil app on your HUAWEI watch sends its recordings through this iPhone. After a session, keep Pumpfoil open until the watch shows “All sent”.",
         "huawei.connect": "Connect HUAWEI watch",
         "huawei.disconnect": "Disconnect",
@@ -583,7 +583,7 @@ enum HuaweiTexte {
         "huawei.errOther": "Something went wrong: {f}",
     ]
     private static let fr: [String: String] = [
-        "huawei.title": "Montre HUAWEI (bêta)",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (bêta)",
         "huawei.body": "L’app Pumpfoil de ta montre HUAWEI envoie ses enregistrements via cet iPhone. Après une session, garde Pumpfoil ouvert jusqu’à ce que la montre affiche « Tout envoyé ».",
         "huawei.connect": "Connecter la montre HUAWEI",
         "huawei.disconnect": "Déconnecter",
@@ -599,7 +599,7 @@ enum HuaweiTexte {
         "huawei.errOther": "Un problème est survenu : {f}",
     ]
     private static let it: [String: String] = [
-        "huawei.title": "Orologio HUAWEI (beta)",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (beta)",
         "huawei.body": "L’app Pumpfoil sul tuo orologio HUAWEI invia le registrazioni tramite questo iPhone. Dopo una sessione tieni aperto Pumpfoil finché l’orologio mostra « Tutto inviato ».",
         "huawei.connect": "Collega orologio HUAWEI",
         "huawei.disconnect": "Scollega",
@@ -615,7 +615,7 @@ enum HuaweiTexte {
         "huawei.errOther": "Qualcosa è andato storto: {f}",
     ]
     private static let es: [String: String] = [
-        "huawei.title": "Reloj HUAWEI (beta)",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (beta)",
         "huawei.body": "La app Pumpfoil de tu reloj HUAWEI envía sus grabaciones a través de este iPhone. Tras una sesión, deja Pumpfoil abierto hasta que el reloj muestre «Todo enviado».",
         "huawei.connect": "Conectar reloj HUAWEI",
         "huawei.disconnect": "Desconectar",
@@ -631,7 +631,7 @@ enum HuaweiTexte {
         "huawei.errOther": "Algo salió mal: {f}",
     ]
     private static let fi: [String: String] = [
-        "huawei.title": "HUAWEI-kello (beta)",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (beta)",
         "huawei.body": "HUAWEI-kellosi Pumpfoil-sovellus lähettää tallenteensa tämän iPhonen kautta. Pidä Pumpfoil auki session jälkeen, kunnes kello näyttää ”Kaikki lähetetty”.",
         "huawei.connect": "Yhdistä HUAWEI-kello",
         "huawei.disconnect": "Katkaise yhteys",
@@ -647,7 +647,7 @@ enum HuaweiTexte {
         "huawei.errOther": "Jokin meni pieleen: {f}",
     ]
     private static let nl: [String: String] = [
-        "huawei.title": "HUAWEI-horloge (bèta)",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (bèta)",
         "huawei.body": "De Pumpfoil-app op je HUAWEI-horloge stuurt zijn opnames via deze iPhone. Laat Pumpfoil na een sessie open tot het horloge „Alles verzonden” toont.",
         "huawei.connect": "HUAWEI-horloge koppelen",
         "huawei.disconnect": "Ontkoppelen",
@@ -663,7 +663,7 @@ enum HuaweiTexte {
         "huawei.errOther": "Er ging iets mis: {f}",
     ]
     private static let cs: [String: String] = [
-        "huawei.title": "Hodinky HUAWEI (beta)",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (beta)",
         "huawei.body": "Aplikace Pumpfoil v hodinkách HUAWEI posílá záznamy přes tento iPhone. Po session nech Pumpfoil otevřený, dokud hodinky neukážou „Vše odesláno“.",
         "huawei.connect": "Připojit hodinky HUAWEI",
         "huawei.disconnect": "Odpojit",
@@ -679,7 +679,7 @@ enum HuaweiTexte {
         "huawei.errOther": "Něco se pokazilo: {f}",
     ]
     private static let pl: [String: String] = [
-        "huawei.title": "Zegarek HUAWEI (beta)",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (beta)",
         "huawei.body": "Aplikacja Pumpfoil na zegarku HUAWEI wysyła nagrania przez tego iPhone’a. Po sesji zostaw Pumpfoil otwarty, aż zegarek pokaże „Wszystko wysłane”.",
         "huawei.connect": "Połącz zegarek HUAWEI",
         "huawei.disconnect": "Rozłącz",
@@ -695,7 +695,7 @@ enum HuaweiTexte {
         "huawei.errOther": "Coś poszło nie tak: {f}",
     ]
     private static let pt: [String: String] = [
-        "huawei.title": "Relógio HUAWEI (beta)",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (beta)",
         "huawei.body": "O app Pumpfoil no seu relógio HUAWEI envia as gravações por este iPhone. Depois de uma sessão, deixe o Pumpfoil aberto até o relógio mostrar “Tudo enviado”.",
         "huawei.connect": "Conectar relógio HUAWEI",
         "huawei.disconnect": "Desconectar",
@@ -711,7 +711,7 @@ enum HuaweiTexte {
         "huawei.errOther": "Algo deu errado: {f}",
     ]
     private static let ptPT: [String: String] = [
-        "huawei.title": "Relógio HUAWEI (beta)",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (beta)",
         "huawei.body": "A app Pumpfoil no teu relógio HUAWEI envia as gravações através deste iPhone. Depois de uma sessão, mantém o Pumpfoil aberto até o relógio mostrar «Tudo enviado».",
         "huawei.connect": "Ligar relógio HUAWEI",
         "huawei.disconnect": "Desligar",
@@ -727,7 +727,7 @@ enum HuaweiTexte {
         "huawei.errOther": "Algo correu mal: {f}",
     ]
     private static let ja: [String: String] = [
-        "huawei.title": "HUAWEIウォッチ（ベータ）",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D（ベータ）",
         "huawei.body": "HUAWEIウォッチのPumpfoilアプリは、このiPhone経由で記録を送信します。セッション後は、ウォッチに「すべて送信済み」と表示されるまでPumpfoilを開いたままにしてください。",
         "huawei.connect": "HUAWEIウォッチを接続",
         "huawei.disconnect": "接続解除",
@@ -743,7 +743,7 @@ enum HuaweiTexte {
         "huawei.errOther": "問題が発生しました: {f}",
     ]
     private static let zh: [String: String] = [
-        "huawei.title": "HUAWEI 手表（测试版）",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D（测试版）",
         "huawei.body": "HUAWEI 手表上的 Pumpfoil 应用通过这部 iPhone 发送记录。训练结束后，请保持 Pumpfoil 打开，直到手表显示“全部已发送”。",
         "huawei.connect": "连接 HUAWEI 手表",
         "huawei.disconnect": "断开连接",
@@ -759,7 +759,7 @@ enum HuaweiTexte {
         "huawei.errOther": "出错了：{f}",
     ]
     private static let ru: [String: String] = [
-        "huawei.title": "Часы HUAWEI (бета)",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (бета)",
         "huawei.body": "Приложение Pumpfoil на часах HUAWEI отправляет записи через этот iPhone. После сессии держи Pumpfoil открытым, пока часы не покажут «Всё отправлено».",
         "huawei.connect": "Подключить часы HUAWEI",
         "huawei.disconnect": "Отключить",
@@ -775,7 +775,7 @@ enum HuaweiTexte {
         "huawei.errOther": "Что-то пошло не так: {f}",
     ]
     private static let id: [String: String] = [
-        "huawei.title": "Jam HUAWEI (beta)",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (beta)",
         "huawei.body": "Aplikasi Pumpfoil di jam HUAWEI-mu mengirim rekamannya lewat iPhone ini. Setelah sesi, biarkan Pumpfoil terbuka sampai jam menampilkan “Semua terkirim”.",
         "huawei.connect": "Hubungkan jam HUAWEI",
         "huawei.disconnect": "Putuskan",
@@ -791,7 +791,7 @@ enum HuaweiTexte {
         "huawei.errOther": "Terjadi kesalahan: {f}",
     ]
     private static let nb: [String: String] = [
-        "huawei.title": "HUAWEI-klokke (beta)",
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (beta)",
         "huawei.body": "Pumpfoil-appen på HUAWEI-klokken sender opptakene via denne iPhonen. Etter en økt: la Pumpfoil være åpen til klokken viser «Alt sendt».",
         "huawei.connect": "Koble til HUAWEI-klokke",
         "huawei.disconnect": "Koble fra",
