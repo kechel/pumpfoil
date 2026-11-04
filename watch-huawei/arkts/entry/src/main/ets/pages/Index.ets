@@ -191,7 +191,8 @@ struct Index {
     if (r.taktSeiten()) {
       this.seite = 2;   // Lauf begonnen/beendet -> erste Datenseite (wie Zepp)
     }
-    if (r.leerlauf()) {   // Auto-Start (Profil), wie Zepp
+    // Auto-Start (Profil), wie Zepp — nur vom Startbildschirm aus, nicht aus Einstellungen, Datenschutz oder Koppeln.
+    if (r.leerlauf(this.zeigeAuswahl || this.zeigeDatenschutz || this.zeigeKoppeln)) {
       this.seite = 2;
       this.zeigeFertig = false;
       if (r.sperreAn()) {

@@ -741,8 +741,13 @@ export class Recorder {
     this.verworfen = Date.now();
   }
 
-  /** Einmal je Sekunde im Bereit-Zustand: Auto-Start wie Zepp; GPS laeuft dafuer nur, wenn das Profil es will. */
-  leerlauf(): boolean {
+  /**
+   * Einmal je Sekunde im Bereit-Zustand: Auto-Start wie Zepp; GPS laeuft dafuer nur, wenn das Profil es will.
+   * `gehemmt`: eine andere Ansicht als der Startbildschirm ist offen (Einstellungen, Datenschutz, Koppeln) — dann startet
+   * nichts, und die Zaehlung beginnt nach dem Zurueckkehren von vorn (Jan, 04.11.2026: in den Einstellungen sprang die
+   * Uhr bei Bewegung ploetzlich in die Aufnahme).
+   */
+  leerlauf(gehemmt: boolean = false): boolean {
     if (this.modus !== 'bereit') {
       return false;
     }
@@ -780,6 +785,13 @@ export class Recorder {
       } catch (e) {
         this.fehler('gps', 'GPS Auto-Start ' + (e as BusinessError).code);
       }
+    }
+    if (gehemmt) {
+      this.autoLos = false;
+      if (this.auto !== null) {
+        this.auto = new K.AutoStart();
+      }
+      return false;
     }
     if (!this.autoLos) {
       return false;
