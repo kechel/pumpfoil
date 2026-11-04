@@ -416,6 +416,7 @@ function teilSenden() {
           else { R.plan.erledigt(o.d); planSichern(); file.delete({ uri: o.uri }); }
           offenDatei = null;
           R.schlange.ok();
+          setTimeout(senden, 0);   // naechste Datei gleich, nicht erst im 3-s-Takt
         } else {
           teilSenden();   // gleich weiter, solange es laeuft
         }
