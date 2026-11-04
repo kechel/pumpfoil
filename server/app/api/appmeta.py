@@ -1046,6 +1046,7 @@ NAECHSTES: list[dict] = [
          "The leaderboards show the full top 10, and if you are not in it, your own place and value appear below.",
          "When adding a custom screen, the picker only offers screens that fit the chosen state.",
          "Sessions of sports without a foil, such as kitesurfing or kite mountainboarding, no longer show on-foil distance, on-foil time or pumps in the session list and on the session page.",
+         "The app is organised like the website: the bar at the bottom has Home, Community, Sessions, Spots, Chat and a gear for the settings, and Home has tabs for overview, records, team and stats, which leads to your history.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.59",
      "items": [

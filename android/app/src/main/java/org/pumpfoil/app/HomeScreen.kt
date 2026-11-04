@@ -37,6 +37,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material.icons.outlined.MailOutline
 import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.Forum
@@ -88,7 +89,7 @@ private object RatingClock { val startMs = android.os.SystemClock.elapsedRealtim
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, onRecord: () -> Unit = {}, onOpenSortedOut: () -> Unit = {}, onOnboarding: () -> Unit = {}, social: Boolean = true, onOpenSpot: (String) -> Unit = {}, onOpenTeam: (String) -> Unit = {}) {
+fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onOpenChatRoom: (String, String) -> Unit = { _, _ -> }, onRecord: () -> Unit = {}, onOpenSortedOut: () -> Unit = {}, onOnboarding: () -> Unit = {}, social: Boolean = true, onOpenSpot: (String) -> Unit = {}, onOpenTeam: (String) -> Unit = {}, onOpenVerlauf: () -> Unit = {}, onOpenTeams: () -> Unit = {}) {
     var profile by remember { mutableStateOf<Profile?>(null) }
     var homespotLink by remember { mutableStateOf<String?>(null) }
     // Eigene Teams als kleine Links bei „Letzte Sessions" (01.11.2026, wie PersonalHome im Web: nur aktive Mitgliedschaften)
@@ -326,7 +327,18 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
             // Handy kein Platz. Unter 13 gibt es keine Freunde.
             if (social) FreundePumpenZeile(onOpenSpot)
             if (social) FreundesAnfragenKarte()
+            Spacer(Modifier.height(6.dp))
+
+            // Reiter wie im Web (docs/UX-IA.md, App-Port Phase 3, 04.11.2026): Uebersicht · Rekorde · Team · Stats.
+            // Spots, Uhren und Profil kommen mit den naechsten Phasen dazu.
+            val homeReiter = listOf(
+                ReiterDef("uebersicht", I18n.t("tab.overview")), ReiterDef("rekorde", I18n.t("side.records")),
+                ReiterDef("team", I18n.t("tab.team")), ReiterDef("stats", I18n.t("tab.stats")))
+            var tab by rememberReiter("home", homeReiter.map { it.id }, "uebersicht")
+            Reiterleiste(homeReiter, tab, { tab = it })
             Spacer(Modifier.height(10.dp))
+
+            if (tab == "uebersicht") {
 
             // Hinweis auf eingehende Session-Übertragungen (Details/Annehmen in „Meine Sessions").
             if (incomingXfer > 0) {
@@ -414,8 +426,6 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                     Text("${I18n.t("phome.allMine")} →", style = MaterialTheme.typography.labelMedium)
                 }
             }
-            // Teams neben dem Homespot (Web PersonalHome): auf dem Handy eine eigene Zeile, die Kopfzeile ist schon voll.
-            MeineTeamsLinks(meineTeams, onOpenTeam)
             Spacer(Modifier.height(8.dp))
             if (latest.isEmpty()) {
                 Card(Modifier.fillMaxWidth()) {
@@ -437,7 +447,17 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                 WeatherCard(sw)
                 Spacer(Modifier.height(10.dp))
             }
+            // Community-Link (wie PWA) — unter 13 (kein social) ausgeblendet.
+            if (social) {
+                TextButton(onClick = onOpenCommunity, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+                    Icon(Icons.Filled.Groups, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("${I18n.t("home.community")} →", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+            }   // uebersicht
 
+            if (tab == "rekorde") {
             stats?.let { st ->
                 // Rekorde-Kopf + Accel/alle-Umschalter (zuerst, wie PWA).
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -503,6 +523,58 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                 }
             }
 
+            // Eigene Bestwerte je Sportart (20.10.2026), eine Zeile je Sportart.
+            if (sportRek.isNotEmpty()) {
+                Spacer(Modifier.height(10.dp))
+                SportRekordeZeilen(sportRek, I18n.t("phome.sportRec")) { onOpen(it, null) }
+            }
+            }   // rekorde
+
+            if (tab == "team") {
+                // Eigene Teams (Web: Home › Team). Ohne Team der Weg zu allen Teams; die Teamsuche kommt mit Phase 6.
+                if (meineTeams.isEmpty()) {
+                    Text(I18n.t("team.keineTeams"), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    Card(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(6.dp)) {
+                            meineTeams.forEach { tm ->
+                                val f = teamFarbe(tm.farbe)
+                                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable { onOpenTeam(tm.slug) }.padding(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically) {
+                                    TeamWappen(tm.name, tm.logoUrl, tm.farbe, 40.dp)
+                                    Spacer(Modifier.width(10.dp))
+                                    Column(Modifier.weight(1f)) {
+                                        Text(tm.name, color = f.akzent, style = MaterialTheme.typography.titleSmall,
+                                            maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        Text(I18n.t("team.rolle.${tm.rolle}"), style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    if (tm.anfragen > 0) Text(tm.anfragen.toString(), style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.clip(androidx.compose.foundation.shape.CircleShape)
+                                            .background(MaterialTheme.colorScheme.primary).padding(horizontal = 7.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(6.dp))
+                TextButton(onClick = onOpenTeams, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+                    Text("${I18n.t("team.alle")} →", style = MaterialTheme.typography.bodyMedium)
+                }
+            }   // team
+
+            if (tab == "stats") {
+            // Verlauf: auf dem Handy eine eigene Seite (der Knopf unten faellt mit Phase 2 weg), hier der Weg dorthin.
+            Card(Modifier.fillMaxWidth().clickable { onOpenVerlauf() }) {
+                Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.ShowChart, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(10.dp))
+                    Text(I18n.t("nav.history"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                    Text("→", color = MaterialTheme.colorScheme.primary)
+                }
+            }
             // Persönliche Home-Stats (wie PWA): Start-Erfolgsquote + Carve-Zähler je Zeitfenster.
             // („Meine Chats" wurde entfernt — läuft im Chat-Tab, wie in der PWA.)
             startSuccess?.let { ss ->
@@ -515,11 +587,6 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
                     CarveStatsSection(cs)
                 }
             }
-            // Eigene Bestwerte je Sportart (20.10.2026), eine Zeile je Sportart.
-            if (sportRek.isNotEmpty()) {
-                Spacer(Modifier.height(10.dp))
-                SportRekordeZeilen(sportRek, I18n.t("phome.sportRec")) { onOpen(it, null) }
-            }
             bilanz?.takeIf { it.jahre.isNotEmpty() }?.let { b ->
                 Spacer(Modifier.height(10.dp))
                 JahresbilanzSection(b)
@@ -530,16 +597,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenChat: () -> Unit = {}, onOpen
             }
             // Lage des Bretts je Lauflaenge — nur, wenn es Aufnahmen mit dem Handy am Brett gibt.
             BrettLageStartseite()
-
-            // Community-Link (wie PWA) — unter 13 (kein social) ausgeblendet.
-            if (social) {
-                Spacer(Modifier.height(10.dp))
-                TextButton(onClick = onOpenCommunity, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
-                    Icon(Icons.Filled.Groups, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("${I18n.t("home.community")} →", style = MaterialTheme.typography.bodyMedium)
-                }
-            }
+            }   // stats
             Spacer(Modifier.height(8.dp))
         }
     }

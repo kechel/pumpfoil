@@ -26,6 +26,10 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.ShowChart
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -303,7 +307,9 @@ fun MainScaffold(onLogout: () -> Unit) {
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
             composable("home") { HomeScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onOpenChat = { nav.switchTab("chat") }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }, onOpenChatRoom = { sc, lb -> nav.navigate("chatroom/${Uri.encode(sc)}?label=${Uri.encode(lb)}") }, onRecord = { nav.navigate("record") }, onOpenSortedOut = { SessionsWunsch.setzeFilter("other"); nav.switchTab("sessions") }, onOnboarding = { nav.navigate("onboarding") }, social = social,
                                                 onOpenSpot = { s -> nav.navigate("spot/${Uri.encode(s)}") },
-                                                onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") }) }
+                                                onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") },
+                                                onOpenVerlauf = { nav.navigate("verlauf") },
+                                                onOpenTeams = { nav.navigate("teams") }) }
             composable("sessions") { SessionsScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onCompare = { nav.navigate("compare") }, onSpotChat = { s -> nav.navigate("chatroom/${Uri.encode("spot:" + s)}?label=${Uri.encode(s)}") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onFoilStats = { nav.navigate("foilstats") }, onWatchStats = { nav.navigate("watchstats") }, onLayouts = { nav.navigate("layoutgallery") },
                 onOpenRoute = { s, id -> nav.navigate("spot/${Uri.encode(s)}?route=$id") },
@@ -518,19 +524,20 @@ private fun NavController.switchTab(route: String) {
 // Eigene Bottom-Nav: Markierung umschließt Icon UND Label, enger Icon<->Label-Abstand.
 @Composable
 private fun PumpfoilBottomBar(route: String?, social: Boolean = true, onSelect: (String) -> Unit) {
-    data class Tab(val route: String, val label: String, val icon: ImageVector)
+    // Wie im Web (docs/UX-IA.md, App-Port Phase 2, 04.11.2026): Home · Community · Sessions · Spots · Chat · Zahnrad.
+    // „Verlauf" ist ein Teil von Home › Stats, die Einstellungen (Route "profile") nur als Zahnrad ohne Text.
+    data class Tab(val route: String, val label: String, val icon: ImageVector, val nurIcon: Boolean = false)
     val tabs = listOfNotNull(
         Tab("home", I18n.t("nav.home"), Icons.Filled.Home),
-        Tab("community", "Foilers", Icons.Filled.Groups),   // Ansehen ok auch <13 (nur Chat/Schreiben aus)
+        Tab("community", I18n.t("home.community"), Icons.Filled.Groups),   // Ansehen ok auch <13 (nur Chat/Schreiben aus)
         Tab("sessions", I18n.t("nav.sessions"), Icons.AutoMirrored.Filled.List),
-        Tab("verlauf", I18n.t("nav.history"), Icons.Filled.ShowChart),
         Tab("spots", I18n.t("nav.spots"), Icons.Filled.Place),
         if (social) Tab("chat", I18n.t("nav.chat"), Icons.Filled.Forum) else null,   // unter 13: nur Chat aus
-        Tab("profile", I18n.t("nav.profile"), Icons.Filled.Person),
+        Tab("profile", I18n.t("nav.settings"), Icons.Filled.Settings, nurIcon = true),
     )
     Surface(tonalElevation = 3.dp, color = MaterialTheme.colorScheme.surface) {
         Row(
-            Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 4.dp, vertical = 6.dp),
+            Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 4.dp, vertical = 6.dp).height(IntrinsicSize.Min),
         ) {
             tabs.forEach { t ->
                 val sel = route == t.route
@@ -540,16 +547,21 @@ private fun PumpfoilBottomBar(route: String?, social: Boolean = true, onSelect: 
                 val c = if (sel) MaterialTheme.colorScheme.primary
                         else if (dunkel) Color(0xFFCBD5E1) else Color(0xFF475569)
                 Column(
-                    Modifier.weight(1f)
+                    Modifier.weight(1f).fillMaxHeight()
                         .clip(RoundedCornerShape(14.dp))
                         .clickable { onSelect(t.route) }
                         .then(if (sel) Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)) else Modifier)
                         .padding(vertical = 5.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
                 ) {
-                    Icon(t.icon, contentDescription = null, tint = c, modifier = Modifier.size(22.dp))
-                    Spacer(Modifier.height(1.dp))
-                    Text(t.label, color = c, maxLines = 1, softWrap = false, fontSize = 10.sp)
+                    if (t.nurIcon) {
+                        Icon(t.icon, contentDescription = t.label, tint = c, modifier = Modifier.size(26.dp))
+                    } else {
+                        Icon(t.icon, contentDescription = null, tint = c, modifier = Modifier.size(22.dp))
+                        Spacer(Modifier.height(1.dp))
+                        Text(t.label, color = c, maxLines = 1, softWrap = false, fontSize = 10.sp)
+                    }
                 }
             }
         }

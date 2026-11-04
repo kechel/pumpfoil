@@ -4960,6 +4960,8 @@ static let nlOverlay: [String: String] = {
         if key.hasPrefix("onb."), let v = LocOnb.t(key, lang) { return v }
         // Teams & Events (01.11.2026): eigene, aus den Web-Sprachdateien erzeugte Tabelle in LocTeams.swift.
         if key.hasPrefix("team.") || key.hasPrefix("sd.avgHr") || key.hasPrefix("leader.total") || key.hasPrefix("fw."), let v = LocTeam.t(key, lang) { return v }
+        // App-Port ab 04.11.2026 (LocPort.swift, aus den Web-Sprachdateien erzeugt).
+        if let v = LocPort.t(key, lang) { return v }
         if let row = neuTexte[key], let v = row[lang] ?? row["en"] { return v }
         if let row = neuTexte2[key], let v = row[lang] ?? row["en"] { return v }
         if let row = neuTexte3[key], let v = row[lang] ?? row["en"] { return v }

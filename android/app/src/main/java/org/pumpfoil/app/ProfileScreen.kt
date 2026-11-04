@@ -144,7 +144,7 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoils: ()
             dismissButton = { TextButton(onClick = { editing = false }) { Text(I18n.t("common.cancel")) } },
         )
     }
-    Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.profile")) { SyncIndicator() } }) { pad ->
+    Scaffold(topBar = { PumpfoilTopBar(I18n.t("nav.settings")) { SyncIndicator() } }) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 val avatar = Api.mediaUrl(profile?.avatarUrl)
