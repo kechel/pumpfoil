@@ -906,6 +906,59 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 05.11.2026 (Jans Meldung, Play Console „Schnelle Vorabpruefungen … noch maximal 14 Minuten",
+    # Produktion 62 (1.1.47), Produktion (Wear OS) 1058 (1.2.47), verwaltete Veroeffentlichung). Inhalt: alles seit 1.1.46
+    # (Teams/Events, Reiter wie die PWA, Kommentare, Nationalitaet, Rangliste nach Oleks Entwurf mit Region, Profil mit
+    # Flagge + Teams, Handy-Recorder-Schalter in der Uebersicht, GPS-/Energiespar-Warnung). Emulator-Laeufe am 05.11.
+    {"name": "Android phone + Wear OS", "version": "1.1.47 / 1.2.47",
+     "eingereicht": "2026-11-05",
+     "items": [
+         "Teams come to the app: team pages with their picture, crest, leaderboards, team totals and logbook, and your teams in your profile.",
+         "Event pages with countdown, live leaderboards and totals for all participants, the current events on the Community tab, and lists of all teams and all events.",
+         "The average heart rate of a session counts only your time on the foil, with the average over the whole recording shown beneath it.",
+         "Linking Polar, Suunto or COROS from the app now brings you straight back to the app when you are done.",
+         "The changelog shows our security reviews, folded away like on the website.",
+         "The pump counter pulses for the first 100,000 pumps after each million, like on the website.",
+         "The community leaderboard adds farthest run, longest run, total on-foil distance and total on-foil time, and a tap on a run entry opens that session.",
+         "The leaderboards show the full top 10, and if you are not in it, your own place and value appear below.",
+         "When adding a custom screen, the picker only offers screens that fit the chosen state.",
+         "Sessions of sports without a foil, such as kitesurfing or kite mountainboarding, no longer show on-foil distance, on-foil time or pumps in the session list and on the session page.",
+         "The app is organised like the website: the bar at the bottom has Home, Community, Sessions, Spots, Chat and a gear for the settings, and Home has tabs for overview, records, team and stats, which leads to your history.",
+         "Home has more tabs, like the website: your spots with a tile for each spot, your watches and accounts, and your own profile page as others see it, with a preview for friends and for everyone.",
+         "The settings are organised in tabs (overview, watches, friends, team, equipment, me, riding, privacy, display, account), and the tiles on the overview open the matching tab.",
+         "Equipment has tabs for foils, stabilizers, boards, mast and shim, and sports; foils and stabilizers are found by searching instead of a long catalog, and sports without a foil only offer a board.",
+         "The community has tabs for records and leaderboards, media, and teams and events, with team leaderboards that rank teams by the totals of their best 3, 5 or 10 riders and can be shared as an image.",
+         "You can search all teams in the settings, and on Home if you are not in a team yet.",
+         "Sessions, spots and the spot page use the same tabs as the website, and spot search and routes moved from the community to Spots.",
+         "You can found a team in the app and manage it there: requests, roles, invite links, approval, crest, team picture, colours, joining, visibility, leaderboards, team spots and deleting.",
+         "Team leaders and moderators can create, edit and delete events in the app, with templates, leaderboards, totals, spots and an event picture.",
+         "The team leaderboard image can be shared in a dark or light version, with each team's crest and flag and your own team highlighted.",
+         "Stats on Home has tabs for your history, key figures and board attitude, like the website.",
+         "The settings overview has a tile to import a session file, and the weather on a spot shows its wind window.",
+         "You can comment on sessions, with replies and likes; the number of comments shows on the session cards, and owners can switch comments off.",
+         "Home shows new comments and likes on your sessions, and as the owner of a session you can see who liked it.",
+         "Yesterday can be picked wherever there is a period to choose.",
+         "You can set your nationality, and it appears as a flag next to your name in the leaderboards.",
+         "The community leaderboard uses the same order as the website, starts on today when many have ridden, and can be shared as an image.",
+         "The spot page shows the leaderboards for that spot under its records.",
+         "Team pages have tabs for records, events, logbook, members, sharing and rules, and Sessions has a team tab for the last 30 days.",
+         "Team invite links open in the app.",
+         "Uploading a different file for a ride you already have asks whether to replace it.",
+         "Tapping the heart rate tile switches between the average on the foil and over the whole recording.",
+         "The media tab shows the 30 newest photos and videos, and board attitude on Home shows the same tables as the website.",
+         "Home shows the latest session of each of your friends and the latest sessions of your team members, and the media tab adds the most commented sessions.",
+         # 05.11.2026: GPS-Ausfall bei dunklem Display (Samsung, Energiesparen), android GpsSparen.kt
+         "The phone recorder warns you when battery saver is on, because many phones then switch GPS off while the screen is dark, and it tells you during a recording when GPS has been missing for a while.",
+         # 04.11. abends (51401ee6, 7fe14aca, a346911b, f83d0d3d) und 05.11.2026 (Nachzug fuer das Release am selben Tag).
+         "The watch area is organised like the website: tabs for watch, Polar, COROS, Suunto, Xiaomi and MCP, and under watch the guide with a tab per platform, the settings and your watches.",
+         "The phone recorder reports its position at the first good GPS fix, so you show up as pumping right now even with live upload switched off.",
+         "The leaderboard tab shows one row with the period and sport for everything, then the leaderboard of the members, the team leaderboards and the records; the filters are menus and the app remembers them.",
+         "Team leaderboards compare only the sport you pick, so teams of foil scooter riders or mixed teams are ranked fairly.",
+         "The leaderboards can be filtered by region, by the nationality of the riders and the origin of the teams, with flags and continent outlines in the menu.",
+         "Profile pages show the rider's flag next to the name and the teams they belong to at the top.",
+         "Watch stats has two tabs, foiling per watch and how well the watches record, and the text size can be set under Display.",
+         "The switch for the phone recorder is now on the settings overview right under the language, where new users look for it first.",
+     ]},
     # iPhone + Apple Watch 1.1.59 am 05.11. FREIGEGEBEN -> raus (s. _APP_META); 39 Punkte tragen ios 1.1.59, Ereignis 05.11.
     # EINGEREICHT 04.11.2026 (Jans Meldung, AppGallery „Under pre-review"; Paket arkts-default-signed.app 1.0.4 (1000004),
     # 0,11 MB, hochgeladen 10:40:21, Laender wie zuletzt). Aus c4638ba9: Hinweise des Pruefberichts zu 1.0.3 (Seiten
@@ -1037,58 +1090,7 @@ IN_REVIEW: list[dict] = [
 NAECHSTES: list[dict] = [
     # Garmin 1.0.99 am 03.11. eingereicht -> IN_REVIEW.
     # Huawei Watch 5 1.0.4 am 04.11. eingereicht -> IN_REVIEW.
-    # 01.11.2026 (Jan: „im changelog fehlt noch das ganze coming next fuer android und ios seit dem letzten release"):
-    # alles, was seit dem Build von Android 1.1.46 (fdd2b189, liegt im Review) bzw. iOS 1.1.58 (live) in die Apps kam —
-    # Teams/Events (2eba784b, c31591cc), Puls auf dem Foil, Konten-Rueckweg (1b62edb5), Security-Reviews (94ce6809),
-    # Pump-Puls (e1a54d7d), Haftungshinweis + Einzahl. Nicht gebumpt (Memory versionen-erst-bei-release).
-    {"name": "Android phone + Wear OS", "version": "1.1.47 / 1.2.47",
-     "items": [
-         "Teams come to the app: team pages with their picture, crest, leaderboards, team totals and logbook, and your teams in your profile.",
-         "Event pages with countdown, live leaderboards and totals for all participants, the current events on the Community tab, and lists of all teams and all events.",
-         "The average heart rate of a session counts only your time on the foil, with the average over the whole recording shown beneath it.",
-         "Linking Polar, Suunto or COROS from the app now brings you straight back to the app when you are done.",
-         "The changelog shows our security reviews, folded away like on the website.",
-         "The pump counter pulses for the first 100,000 pumps after each million, like on the website.",
-         "The community leaderboard adds farthest run, longest run, total on-foil distance and total on-foil time, and a tap on a run entry opens that session.",
-         "The leaderboards show the full top 10, and if you are not in it, your own place and value appear below.",
-         "When adding a custom screen, the picker only offers screens that fit the chosen state.",
-         "Sessions of sports without a foil, such as kitesurfing or kite mountainboarding, no longer show on-foil distance, on-foil time or pumps in the session list and on the session page.",
-         "The app is organised like the website: the bar at the bottom has Home, Community, Sessions, Spots, Chat and a gear for the settings, and Home has tabs for overview, records, team and stats, which leads to your history.",
-         "Home has more tabs, like the website: your spots with a tile for each spot, your watches and accounts, and your own profile page as others see it, with a preview for friends and for everyone.",
-         "The settings are organised in tabs (overview, watches, friends, team, equipment, me, riding, privacy, display, account), and the tiles on the overview open the matching tab.",
-         "Equipment has tabs for foils, stabilizers, boards, mast and shim, and sports; foils and stabilizers are found by searching instead of a long catalog, and sports without a foil only offer a board.",
-         "The community has tabs for records and leaderboards, media, and teams and events, with team leaderboards that rank teams by the totals of their best 3, 5 or 10 riders and can be shared as an image.",
-         "You can search all teams in the settings, and on Home if you are not in a team yet.",
-         "Sessions, spots and the spot page use the same tabs as the website, and spot search and routes moved from the community to Spots.",
-         "You can found a team in the app and manage it there: requests, roles, invite links, approval, crest, team picture, colours, joining, visibility, leaderboards, team spots and deleting.",
-         "Team leaders and moderators can create, edit and delete events in the app, with templates, leaderboards, totals, spots and an event picture.",
-         "The team leaderboard image can be shared in a dark or light version, with each team's crest and flag and your own team highlighted.",
-         "Stats on Home has tabs for your history, key figures and board attitude, like the website.",
-         "The settings overview has a tile to import a session file, and the weather on a spot shows its wind window.",
-         "You can comment on sessions, with replies and likes; the number of comments shows on the session cards, and owners can switch comments off.",
-         "Home shows new comments and likes on your sessions, and as the owner of a session you can see who liked it.",
-         "Yesterday can be picked wherever there is a period to choose.",
-         "You can set your nationality, and it appears as a flag next to your name in the leaderboards.",
-         "The community leaderboard uses the same order as the website, starts on today when many have ridden, and can be shared as an image.",
-         "The spot page shows the leaderboards for that spot under its records.",
-         "Team pages have tabs for records, events, logbook, members, sharing and rules, and Sessions has a team tab for the last 30 days.",
-         "Team invite links open in the app.",
-         "Uploading a different file for a ride you already have asks whether to replace it.",
-         "Tapping the heart rate tile switches between the average on the foil and over the whole recording.",
-         "The media tab shows the 30 newest photos and videos, and board attitude on Home shows the same tables as the website.",
-         "Home shows the latest session of each of your friends and the latest sessions of your team members, and the media tab adds the most commented sessions.",
-         # 05.11.2026: GPS-Ausfall bei dunklem Display (Samsung, Energiesparen), android GpsSparen.kt
-         "The phone recorder warns you when battery saver is on, because many phones then switch GPS off while the screen is dark, and it tells you during a recording when GPS has been missing for a while.",
-         # 04.11. abends (51401ee6, 7fe14aca, a346911b, f83d0d3d) und 05.11.2026 (Nachzug fuer das Release am selben Tag).
-         "The watch area is organised like the website: tabs for watch, Polar, COROS, Suunto, Xiaomi and MCP, and under watch the guide with a tab per platform, the settings and your watches.",
-         "The phone recorder reports its position at the first good GPS fix, so you show up as pumping right now even with live upload switched off.",
-         "The leaderboard tab shows one row with the period and sport for everything, then the leaderboard of the members, the team leaderboards and the records; the filters are menus and the app remembers them.",
-         "Team leaderboards compare only the sport you pick, so teams of foil scooter riders or mixed teams are ranked fairly.",
-         "The leaderboards can be filtered by region, by the nationality of the riders and the origin of the teams, with flags and continent outlines in the menu.",
-         "Profile pages show the rider's flag next to the name and the teams they belong to at the top.",
-         "Watch stats has two tabs, foiling per watch and how well the watches record, and the text size can be set under Display.",
-         "The switch for the phone recorder is now on the settings overview right under the language, where new users look for it first.",
-     ]},
+    # Android 1.1.47 / Wear 1.2.47 am 05.11. eingereicht -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.59 am 04.11. EINGEREICHT -> IN_REVIEW.
     # Android 1.1.46 / Wear 1.2.46 am 28.10. eingereicht (ersetzt 1.1.45) -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.56 am 24.10. eingereicht -> IN_REVIEW.
