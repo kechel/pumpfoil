@@ -1084,6 +1084,7 @@ NAECHSTES: list[dict] = [
          "The phone recorder reports its position at the first good GPS fix, so you show up as pumping right now even with live upload switched off.",
          "The leaderboard tab shows one row with the period and sport for everything, then the leaderboard of the members, the team leaderboards and the records; the filters are menus and the app remembers them.",
          "Team leaderboards compare only the sport you pick, so teams of foil scooter riders or mixed teams are ranked fairly.",
+         "The leaderboards can be filtered by region, by the nationality of the riders and the origin of the teams, with flags and continent outlines in the menu.",
          "Profile pages show the rider's flag next to the name and the teams they belong to at the top.",
          "Watch stats has two tabs, foiling per watch and how well the watches record, and the text size can be set under Display.",
      ]},

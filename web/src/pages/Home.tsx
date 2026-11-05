@@ -476,6 +476,44 @@ export function bandInfo(b: FoilBand, t: (k: string, p?: Record<string, string>)
   return grenzen ? t("cr.bandRange", { grenzen }) : null;
 }
 
+/** Regionsauswahl mit Flagge bzw. Kontinent-Umriss vor dem Namen (Jan, 05.11.2026: „in dem dropdown bitte die flagge /
+ *  regionsskizze mit anzeigen") — ein <select> kann keine Bilder, deshalb eine kleine Klappliste. Global mit dem
+ *  Erd-Umriss. Schliesst bei Auswahl, Klick daneben und Escape. */
+function RegionAuswahl({ keys, wert, onWahl, name, titel }: { keys: string[]; wert: string; onWahl: (k: string) => void;
+                         name: (k: string) => string; titel: string }) {
+  const [offen, setOffen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!offen) return;
+    const zu = (e: MouseEvent) => { if (box.current && !box.current.contains(e.target as Node)) setOffen(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setOffen(false); };
+    document.addEventListener("mousedown", zu);
+    document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("mousedown", zu); document.removeEventListener("keydown", esc); };
+  }, [offen]);
+  const zeichen = (k: string) => <TeamHerkunft land={k === "all" ? "k:earth" : k} kuerzel={false} />;
+  return (
+    <div ref={box} className="relative">
+      <button type="button" onClick={() => setOffen((o) => !o)} title={titel} aria-haspopup="listbox" aria-expanded={offen}
+        className="flex max-w-[14rem] items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm font-medium text-slate-100">
+        {zeichen(wert)}<span className="truncate">{name(wert)}</span><span aria-hidden className="text-xs text-slate-400">▾</span>
+      </button>
+      {offen && (
+        <ul role="listbox" className="absolute right-0 z-30 mt-1 max-h-72 min-w-full overflow-auto rounded-lg border border-slate-700 bg-slate-900 py-1 shadow-lg">
+          {keys.map((k) => (
+            <li key={k} role="option" aria-selected={k === wert}>
+              <button type="button" onClick={() => { onWahl(k); setOffen(false); }}
+                className={`flex w-full items-center gap-2 whitespace-nowrap px-3 py-1.5 text-left text-sm hover:bg-slate-800 ${k === wert ? "font-semibold text-brand-600 dark:text-brand-300" : "text-slate-100"}`}>
+                {zeichen(k)}{name(k)}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 /** Auswahlfeld der Ranglisten-Seite (Oleks Entwurf, 05.11.2026): etwas groesser als die Filter sonst und gleich breit in
  *  einer Reihe wie im Entwurf; wird es zu eng (Handy), bricht die Reihe um statt die Felder unlesbar zu quetschen. */
 const AUSWAHL = "min-w-[8rem] flex-1 basis-0 truncate rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm font-medium text-slate-100";
@@ -787,10 +825,7 @@ function CommunitySection() {
   const regionKeys = ["all", ...(regionen?.regionen ?? []).map((x) => x.key)];
   if (!regionKeys.includes(region)) regionKeys.push(region);
   const regionAuswahl = regionKeys.length > 1 && (
-    <select value={region} onChange={(e) => setRegion(e.target.value)} title={t("region.basis")}
-      className="max-w-[12rem] truncate rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm font-medium text-slate-100">
-      {regionKeys.map((k) => <option key={k} value={k}>{regionName(k)}</option>)}
-    </select>
+    <RegionAuswahl keys={regionKeys} wert={region} onWahl={setRegion} name={regionName} titel={t("region.basis")} />
   );
   const sportAuswahl = (sportListe.length > 1) && (
     <select value={sport} onChange={(e) => setSport(e.target.value)}

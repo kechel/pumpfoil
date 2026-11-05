@@ -34,6 +34,8 @@ SCHLUESSEL = [
     "team.alle",
     # 05.11.2026: Rangliste nach Oleks Entwurf (Ueberschriften „Bestenlisten – Mitglieder/Teams"), Uhren-Statistik-Reiter
     "home.leaderboards", "watchStats.sectionFoiling",
+    # 05.11.2026: Region-Filter der Rangliste (Nationalitaet)
+    "region.global", "region.basis", "region.ohneLand",
     # Phase 9: Spots-Reiter
     "tab.map", "tab.list", "tab.routes",
     # Nachtrag aus dem iOS-Port (fehlten in den App-Tabellen)

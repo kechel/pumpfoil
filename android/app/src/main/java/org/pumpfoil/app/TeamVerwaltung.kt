@@ -151,7 +151,7 @@ internal fun flaggeEmoji(land: String?): String? {
 
 /** Herkunft neben dem Namen (Web TeamHerkunft): Flagge, bei Kontinent/Erde ein Erd-Zeichen mit Kuerzel. */
 @Composable
-internal fun TeamHerkunftZeichen(land: String?, gross: Boolean = false) {
+internal fun TeamHerkunftZeichen(land: String?, gross: Boolean = false, kuerzel: Boolean = true) {
     val l = land?.takeIf { it.isNotBlank() } ?: return
     if (!l.startsWith("k:")) {
         flaggeEmoji(l)?.let { Text(it, style = if (gross) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyMedium) }
@@ -167,9 +167,12 @@ internal fun TeamHerkunftZeichen(land: String?, gross: Boolean = false) {
             Icon(Icons.Filled.Public, contentDescription = herkunftName(l), tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(if (gross) 18.dp else 14.dp))
         }
-        Spacer(Modifier.width(3.dp))
-        Text(l.drop(2).uppercase(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // Ohne Kuerzel, wo der Name ohnehin dabeisteht (Regionsauswahl der Rangliste, 05.11.2026).
+        if (kuerzel) {
+            Spacer(Modifier.width(3.dp))
+            Text(l.drop(2).uppercase(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
 

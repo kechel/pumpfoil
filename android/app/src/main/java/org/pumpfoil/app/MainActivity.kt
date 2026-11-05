@@ -330,7 +330,8 @@ fun MainScaffold(onLogout: () -> Unit) {
                 onOpenRoute = { s, id -> nav.navigate("spot/${Uri.encode(s)}?route=$id") },
                 onOpenEvent = { sl, id -> nav.navigate("teamevent/${Uri.encode(sl)}/$id") },
                 onAlleEvents = { nav.navigate("events") }, onAlleTeams = { nav.navigate("teams") },
-                onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") }) }
+                onOpenTeam = { sl -> nav.navigate("team/${Uri.encode(sl)}") },
+                onProfilLand = { nav.zuEinstellungen("ich") }) }
             // Marker/Treffer auf der Spot-Karte reichen die dort gewaehlte Sportart mit (wie die PWA).
             composable("spots") { SpotsScreen(onOpenSpot = { nav.navigate("spot/${Uri.encode(it)}") }, onOpenSession = { id -> nav.navigate("session/$id") },
                                               onOpenSpotSport = { s, sp -> nav.navigate("spot/${Uri.encode(s)}?sport=${Uri.encode(sp)}") },

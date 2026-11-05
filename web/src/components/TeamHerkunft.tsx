@@ -13,7 +13,8 @@ export function herkunftName(land: string, lang: string, t: TFunc): string {
   return land.startsWith("k:") ? t(`region.${land.slice(2)}`) : landName(land, lang);
 }
 
-export function TeamHerkunft({ land, gross = false }: { land?: string | null; gross?: boolean }) {
+// `kuerzel={false}`: nur der Umriss, ohne „EU" daneben — wo der Name ohnehin dabeisteht (Regionsauswahl, 05.11.2026).
+export function TeamHerkunft({ land, gross = false, kuerzel = true }: { land?: string | null; gross?: boolean; kuerzel?: boolean }) {
   const { lang, t } = useI18n();
   if (!land) return null;
   const name = herkunftName(land, lang, t);
@@ -32,7 +33,7 @@ export function TeamHerkunft({ land, gross = false }: { land?: string | null; gr
         className={`${box} shrink-0 rounded-[2px] border border-slate-700 bg-slate-900 text-brand-400`}>
         <path d={pfad} fill="currentColor" />
       </svg>
-      <span className={`${gross ? "text-xs" : "text-[10px]"} font-semibold uppercase leading-none tracking-wide text-slate-400`}>{k}</span>
+      {kuerzel && <span className={`${gross ? "text-xs" : "text-[10px]"} font-semibold uppercase leading-none tracking-wide text-slate-400`}>{k}</span>}
     </span>
   );
 }

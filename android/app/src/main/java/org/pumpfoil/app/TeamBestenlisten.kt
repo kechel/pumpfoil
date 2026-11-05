@@ -105,7 +105,8 @@ private fun vergleichWert(art: String, v: Double): String = when (art) {
  * Community › Teams & Events; teilen als Bild mit Wappen je Zeile und dem eigenen Team hervorgehoben.
  */
 @Composable
-fun TeamBestenlisten(period: String, sport: String, titel: String, onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier) {
+fun TeamBestenlisten(period: String, sport: String, titel: String, onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier,
+                     region: String = "all") {
     // Seit 05.11.2026 (Oleks Entwurf, Web Home.tsx) unter der Bestenliste der Mitglieder: Zeitraum und Sportart kommen von
     // oben, Kennzahl und „Beste N" als Auswahlfelder, gemerkt wie im Web (foil_team_art / foil_team_top).
     val ctx = androidx.compose.ui.platform.LocalContext.current
@@ -117,7 +118,7 @@ fun TeamBestenlisten(period: String, sport: String, titel: String, onOpenTeam: (
     var meine by remember { mutableStateOf<Set<String>>(emptySet()) }
     var bild by remember { mutableStateOf<TeamBildDaten?>(null) }
     LaunchedEffect(Unit) { meine = try { Api.teamsMine().filter { it.status == "aktiv" }.map { it.slug }.toSet() } catch (_: Exception) { emptySet() } }
-    LaunchedEffect(period, top, sport) { d = try { Api.teamsVergleich(period, top, sport) } catch (_: Exception) { d } }
+    LaunchedEffect(period, top, sport, region) { d = try { Api.teamsVergleich(period, top, sport, region) } catch (_: Exception) { d } }
     val zeilen = d?.teams.orEmpty().filter { it.wert(art) > 0 }
         .sortedWith(compareByDescending<TeamVergleichZeile> { it.wert(art) }.thenBy { it.name.lowercase() })
 

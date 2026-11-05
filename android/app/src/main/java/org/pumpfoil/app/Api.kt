@@ -931,6 +931,8 @@ object Api {
         // Sportart der Rekorde; null = Serverdefault „pumpfoil" (Community-Seite, Foil-Detail).
         sport: String? = null,
         freunde: Boolean = false,
+        // Region nach Nationalitaet (05.11.2026, server app/regionen.py): "all" | "k:eu" … | "PL".
+        region: String = "all",
     ): Map<String, PeriodRecords> = withContext(Dispatchers.IO) {
         json.decodeFromString(
             MapSerializer(String.serializer(), PeriodRecords.serializer()),
@@ -939,8 +941,19 @@ object Api {
             if (!spot.isNullOrBlank()) append("&spot=" + java.net.URLEncoder.encode(spot, "UTF-8"))
             if (!sport.isNullOrBlank()) append("&sport=" + java.net.URLEncoder.encode(sport, "UTF-8"))
             if (freunde) append("&friends=1")
+            if (region != "all") append("&region=" + java.net.URLEncoder.encode(region, "UTF-8"))
         }, null, auth = true),
         )
+    }
+
+    @kotlinx.serialization.Serializable
+    data class RegionWahl(val key: String = "", val fahrer: Int = 0, val teams: Int = 0)
+    @kotlinx.serialization.Serializable
+    data class Regionen(val regionen: List<RegionWahl> = emptyList(), val ich: String? = null)
+    /** Waehlbare Regionen der Rangliste (ab 3 Fahrern bzw. 2 Teams) und die eigene Nationalitaet. */
+    suspend fun communityRegionen(period: String, sport: String): Regionen = withContext(Dispatchers.IO) {
+        json.decodeFromString(Regionen.serializer(), http("GET",
+            "/api/community/regionen?period=$period&sport=" + java.net.URLEncoder.encode(sport, "UTF-8"), null, auth = true))
     }
 
     /** Die Foil-Baender fuer die Auswahl „vergleichbare Foils" — mit Session- und Fahrerzahl. */
@@ -1056,11 +1069,12 @@ object Api {
     }
 
     suspend fun leaders(period: String = "all", accelOnly: Boolean = true, foilBand: String = "all", freunde: Boolean = false,
-                        sport: String = "pumpfoil", spot: String? = null): Leaders = withContext(Dispatchers.IO) {
+                        sport: String = "pumpfoil", spot: String? = null, region: String = "all"): Leaders = withContext(Dispatchers.IO) {
         // spot: dieselben Bestenlisten nur an einem Spot (Spot-Seite, Web 0fc2eba8)
         json.decodeFromString(Leaders.serializer(), http("GET", "/api/community/leaders?period=$period&accel_only=$accelOnly&foil_band=$foilBand" +
             "&sport=" + java.net.URLEncoder.encode(sport, "UTF-8") + (if (freunde) "&friends=1" else "") +
-            (spot?.let { "&spot=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: ""), null, auth = true))
+            (spot?.let { "&spot=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: "") +
+            (if (region != "all") "&region=" + java.net.URLEncoder.encode(region, "UTF-8") else ""), null, auth = true))
     }
 
     suspend fun latestPhotos(limit: Int = 8, freunde: Boolean = false): List<MediaItem> = withContext(Dispatchers.IO) {
@@ -1740,9 +1754,10 @@ object Api {
     }
     /** Team-Bestenlisten (Community › Teams & Events, 04.11.2026): je Team die Summe der besten `top` Fahrer. */
     // `sport` seit 05.11.2026: es wird immer nur dieselbe Sportart verglichen (Web Home.tsx, server api/teams.py vergleich).
-    suspend fun teamsVergleich(period: String, top: Int, sport: String = "pumpfoil"): TeamVergleich = withContext(Dispatchers.IO) {
+    suspend fun teamsVergleich(period: String, top: Int, sport: String = "pumpfoil", region: String = "all"): TeamVergleich = withContext(Dispatchers.IO) {
         json.decodeFromString(TeamVergleich.serializer(), http("GET",
-            "/api/teams/liste/vergleich?period=$period&top=$top&sport=${android.net.Uri.encode(sport)}", null, auth = true))
+            "/api/teams/liste/vergleich?period=$period&top=$top&sport=${android.net.Uri.encode(sport)}" +
+                (if (region != "all") "&region=${android.net.Uri.encode(region)}" else ""), null, auth = true))
     }
     /** Laufende und in den naechsten Tagen beginnende Events (Community-Abschnitt). */
     suspend fun teamsEventsAktuell(): List<TeamEventKurz> = withContext(Dispatchers.IO) {

@@ -22,6 +22,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Surfing
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Link
@@ -115,7 +116,7 @@ private val PERIODS = listOf("today" to "period.today", "yesterday" to "period.y
 fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatchStats: () -> Unit = {}, onLayouts: () -> Unit = {},
                     onOpenRoute: (String, Int) -> Unit = { _, _ -> },
                     onOpenEvent: (String, Int) -> Unit = { _, _ -> }, onAlleEvents: () -> Unit = {}, onAlleTeams: () -> Unit = {},
-                    onOpenTeam: (String) -> Unit = {}) {
+                    onOpenTeam: (String) -> Unit = {}, onProfilLand: () -> Unit = {}) {
     // Reiter wie im Web (Home.tsx CommunitySection, docs/UX-IA.md App-Port Phase 8, 04.11.2026): Rekorde & Bestenliste ·
     // Medien · Teams & Events. Spots und Routen stehen jetzt unter der Hauptnavigation „Spots" (Reiter Liste / Routen).
     val reiter = listOf(ReiterDef("bestenliste", I18n.t("tab.rankings")), ReiterDef("medien", I18n.t("tab.media")),
@@ -164,6 +165,9 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     val band = bands.firstOrNull { it.key == bandKey }
     // Standard wie im Web: die laengste Laufdauer (weltweit DIE Kennzahl, Web LEADER_KINDS).
     var lbMetric by remember { mutableStateOf(prefs.getString("foil_leader_wahl", null) ?: "run_time") }
+    // Region nach Nationalitaet (Web 05.11.2026, server app/regionen.py), gemerkt wie im Web (foil_komm_region).
+    var region by remember { mutableStateOf(prefs.getString("foil_komm_region", null) ?: "all") }
+    var regionen by remember { mutableStateOf<Api.Regionen?>(null) }
     // Ausgeblendete Kennzahl gewaehlt (z. B. Pumps, dann Wingfoil)? -> auf die erste sichtbare (Web arten[0]).
     LaunchedEffect(sportart) {
         val sichtbar = leaderArten(sportart)
@@ -184,13 +188,13 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     suspend fun loadBase() {
         loading = true
         try {
-            records = Api.communityRecords(accelOnly, bandKey, sport = sportart, freunde = freunde); error = null
+            records = Api.communityRecords(accelOnly, bandKey, sport = sportart, freunde = freunde, region = region); error = null
             cstats = try { Api.communityStats() } catch (_: Exception) { cstats }
             media = try { Api.latestPhotos(limit = 30, freunde = freunde) } catch (_: Exception) { emptyList() }
         } catch (e: Exception) { error = e.message }
         loading = false
     }
-    LaunchedEffect(accelOnly, bandKey, freunde, sportart) { loadBase() }
+    LaunchedEffect(accelOnly, bandKey, freunde, sportart, region) { loadBase() }
     LaunchedEffect(accelOnly, freunde) {
         bands = try { Api.foilBands(accelOnly, freunde) } catch (_: Exception) { emptyList() }
         // Zurueck auf „Alle Foils", wenn das gewaehlte Band durch den Wechsel zu duenn wurde —
@@ -210,8 +214,9 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
         onDispose { mediaOwner.lifecycle.removeObserver(obs) }
     }
     // Zeitraum- + accel-abhängig: Bestenliste, Best bewertet.
-    LaunchedEffect(period, accelOnly, bandKey, freunde, sportart) {
-        leaders = try { Api.leaders(period, accelOnly, bandKey, freunde, sport = sportart) } catch (_: Exception) { leaders }
+    LaunchedEffect(period, sportart) { regionen = try { Api.communityRegionen(period, sportart) } catch (_: Exception) { regionen } }
+    LaunchedEffect(period, accelOnly, bandKey, freunde, sportart, region) {
+        leaders = try { Api.leaders(period, accelOnly, bandKey, freunde, sport = sportart, region = region) } catch (_: Exception) { leaders }
         topLiked = try { Api.topLiked(period, freunde = freunde) } catch (_: Exception) { topLiked }
         topKommentiert = try { Api.topCommented(period, freunde = freunde) } catch (_: Exception) { topKommentiert }
     }
@@ -270,10 +275,30 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                         // Sportart: gilt fuer beide Bestenlisten und die Kacheln (Jan: „es soll halt jeweils immer nur die gleiche
                         // sportart verglichen werden"). Die gewaehlte und Pumpfoil stehen immer zur Wahl.
                         val sportWahl = (sportListe + listOf("pumpfoil", sportart)).distinct()
-                        if (tab == "bestenliste" && sportWahl.size > 1) item {
-                            Dropdown(sportWahl.map { it to I18n.t("cls.sport.$it") }, sportart,
-                                { sportart = it; merken("foil_komm_sport", it) },
-                                Modifier.padding(horizontal = 12.dp, vertical = 4.dp).fillMaxWidth())
+                        // Region: Global, Kontinente und Laender mit genug Fahrern/Teams; die gewaehlte steht immer zur Wahl.
+                        val regionWahl = (listOf("all") + regionen?.regionen.orEmpty().map { it.key } + region).distinct()
+                        fun regionName(k: String) = when {
+                            k == "all" -> I18n.t("region.global")
+                            k.startsWith("k:") -> I18n.t("region.${k.removePrefix("k:")}")
+                            else -> landName(k)
+                        }
+                        if (tab == "bestenliste" && (sportWahl.size > 1 || regionWahl.size > 1)) item {
+                            Row(Modifier.padding(horizontal = 12.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                if (regionWahl.size > 1) RegionDropdown(regionWahl, region, ::regionName,
+                                    { region = it; merken("foil_komm_region", it) }, Modifier.weight(1f))
+                                if (sportWahl.size > 1) Dropdown(sportWahl.map { it to I18n.t("cls.sport.$it") }, sportart,
+                                    { sportart = it; merken("foil_komm_sport", it) }, Modifier.weight(1f))
+                            }
+                            // Grundlage der Region, und wer keine Nationalitaet hat, warum er fehlt (Tippen -> Einstellung).
+                            if (region != "all") {
+                                Text(I18n.t("region.basis"), style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 12.dp))
+                                if (regionen != null && regionen?.ich == null) {
+                                    Text(I18n.t("region.ohneLand") + " " + I18n.t("profile.land") + " →", style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.tertiary,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp).clickable { onProfilLand() })
+                                }
+                            }
                         }
 
                         if (tab == "bestenliste") item {
@@ -308,7 +333,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                         // Team-Bestenlisten: seit 05.11.2026 hier statt im Reiter Teams & Events (Oleks Entwurf).
                         if (tab == "bestenliste") item {
                             TeamBestenlisten(period, sportart, "${I18n.t("home.leaderboards")} – ${I18n.t("team.community")}", onOpenTeam,
-                                Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
+                                Modifier.padding(horizontal = 12.dp, vertical = 8.dp), region = region)
                         }
                         // Rekord-Kacheln (mit Nutzer/Spot), klickbar -> Session; das gewaehlte Band gehoert in die Ueberschrift.
                         if (tab == "bestenliste") item {
@@ -450,6 +475,26 @@ internal fun AccelSeg(accelOnly: Boolean, brett: Boolean = false, onBrett: (() -
         if (onBrett != null) {
             Spacer(Modifier.width(4.dp))
             seg(brett, "POB") { onBrett() }
+        }
+    }
+}
+
+/** Regionsauswahl mit Flagge bzw. Kontinent-Umriss vor dem Namen (Jan, 05.11.2026), Global mit dem Erd-Umriss. */
+@Composable
+private fun RegionDropdown(keys: List<String>, selected: String, name: (String) -> String, onSelect: (String) -> Unit,
+                           modifier: Modifier = Modifier) {
+    var open by remember { mutableStateOf(false) }
+    val zeichen: @Composable (String) -> Unit = { k -> TeamHerkunftZeichen(if (k == "all") "k:earth" else k, kuerzel = false) }
+    Box(modifier) {
+        OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) {
+            zeichen(selected); Spacer(Modifier.width(6.dp))
+            Text(name(selected), Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            keys.forEach { k ->
+                DropdownMenuItem(leadingIcon = { zeichen(k) }, text = { Text(name(k)) }, onClick = { onSelect(k); open = false })
+            }
         }
     }
 }
