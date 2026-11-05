@@ -357,6 +357,10 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     except Exception as exc:  # noqa: BLE001
         storage.quarantaene_ablegen(r.content, quelle="garmin", user_id=user.id, grund=f"{type(exc).__name__}: {exc}")
         return "fit kaputt"
+    # Wie viel kommt ueber Garmin wirklich an? Groesse und Beschleunigung im Protokoll (Frage 05.11.2026: liefert die
+    # API die Originaldatei mit den Sensor-Daten unserer Connect-IQ-App?).
+    log.info("garmin: Datei %s (user %s): %d KB, GPS %d, Accel %d Werte", eintrag.get("summaryId"), user.id,
+             len(r.content) // 1024, len(parsed.get("gps_samples") or []), len(parsed.get("accel_bytes") or b"") // 6)
     grund = importsports.konto_import_grund(parsed)
     if grund:
         return grund
