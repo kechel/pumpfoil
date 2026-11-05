@@ -159,7 +159,7 @@ function GarminCard() {
         <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-200">Beta</span>
       </h3>
       <p className="mb-3 text-sm text-slate-300">{t("settings.garmin.hint")}</p>
-      <GarminBeidesHinweis zu="code" />
+      <GarminBeidesHinweis zu="code" wann="nichtBeide" />
       <div className="mb-3 flex items-center gap-3">
         <img src="/garmin-connect-app.png" alt="Garmin Connect" className="h-11 w-11 rounded-xl shadow-sm" />
         {st.linked && (

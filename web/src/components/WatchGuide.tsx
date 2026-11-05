@@ -111,7 +111,7 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
           <p className="mb-2 text-sm text-slate-200">{t("guide.g.storeLead")}</p>
           <ConnectIqButton />
         </div>
-        <div className="mt-3"><GarminBeidesHinweis zu="gc" /></div>
+        <div className="mt-3"><GarminBeidesHinweis zu="gc" wann="immer" /></div>
         <p className="mt-4 text-xs font-medium text-slate-400">{t("guide.g.manualLead")}</p>
         <ol className="mt-2 space-y-3 text-sm text-slate-200">
           <li>

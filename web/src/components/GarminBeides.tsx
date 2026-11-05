@@ -12,16 +12,29 @@ export const UHR_CODE_SEITE = "/?tab=uhr&ktab=uhr&utab=guide&plattform=garmin";
 
 const linkCls = "font-semibold text-brand-700 hover:underline dark:text-brand-300";
 
-/** Zwei Zeilen fuer Anleitung, Garmin-Karte und „Meine Uhren". `zu` = wohin der Knopf fuehrt (keiner = kein Knopf).
- *  `nurMitGarminUhr`: nur zeigen, wenn eine Garmin gekoppelt ist („Meine Uhren" sehen auch Apple-/Wear-Nutzer). */
-export function GarminBeidesHinweis({ zu, nurMitGarminUhr = false }: { zu?: "gc" | "code"; nurMitGarminUhr?: boolean }) {
-  const t = useT();
-  const [garmin, setGarmin] = useState(!nurMitGarminUhr);
+/** Beides verbunden? Garmin-Uhr gekoppelt + Garmin Connect verknuepft. null = noch unbekannt. */
+function useGarminStand(): { uhr: boolean; gc: boolean; da: boolean } | null {
+  const [stand, setStand] = useState<{ uhr: boolean; gc: boolean; da: boolean } | null>(null);
   useEffect(() => {
-    if (!nurMitGarminUhr) return;
-    api.myDevices().then((g) => setGarmin(g.some((d) => d.platform === "garmin" && !d.revoked_at))).catch(() => {});
-  }, [nurMitGarminUhr]);
-  if (!garmin) return null;
+    Promise.all([api.garminStatus(), api.myDevices()])
+      .then(([st, geraete]) => setStand({ uhr: geraete.some((d) => d.platform === "garmin" && !d.revoked_at),
+                                          gc: st.linked, da: st.available }))
+      .catch(() => {});
+  }, []);
+  return stand;
+}
+
+/** Zwei Zeilen fuer Anleitung, Garmin-Karte und „Meine Uhren". `zu` = wohin der Knopf fuehrt (keiner = kein Knopf).
+ *  `wann` (Jan, 05.11.2026): „immer" in der Garmin-Anleitung, „nichtBeide" auf der Garmin-Connect-Karte, sonst
+ *  „genauEins" — nur wer eines von beiden schon hat, bekommt den Hinweis aufs andere. */
+export function GarminBeidesHinweis({ zu, wann = "genauEins" }: { zu?: "gc" | "code"; wann?: "immer" | "nichtBeide" | "genauEins" }) {
+  const t = useT();
+  const stand = useGarminStand();
+  if (wann !== "immer") {
+    if (!stand) return null;
+    if (stand.uhr && stand.gc) return null;
+    if (wann === "genauEins" && !stand.uhr && !stand.gc) return null;
+  }
   return (
     <div className="mb-3 rounded-xl border border-brand-500/30 bg-brand-500/10 px-3 py-2 text-sm text-slate-200">
       <b>{t("garmin.beides.titel")}:</b> {t("garmin.beides.text")}
@@ -40,18 +53,9 @@ const WEG_KEY = "foil_garmin_beides";
  *  je Fall. Wer keines von beiden hat, faehrt keine Garmin — dem sagen wir nichts. */
 export function GarminBeidesBanner() {
   const t = useT();
-  const [fehlt, setFehlt] = useState<"gc" | "code" | null>(null);
+  const stand = useGarminStand();
   const [weg, setWeg] = useState<string | null>(() => { try { return localStorage.getItem(WEG_KEY); } catch { return null; } });
-  useEffect(() => {
-    Promise.all([api.garminStatus(), api.myDevices()])
-      .then(([st, geraete]) => {
-        if (!st.available) return;
-        const uhr = geraete.some((d) => d.platform === "garmin" && !d.revoked_at);
-        if (uhr && !st.linked) setFehlt("gc");
-        else if (st.linked && !uhr) setFehlt("code");
-      })
-      .catch(() => {});
-  }, []);
+  const fehlt = !stand || !stand.da ? null : stand.uhr && !stand.gc ? "gc" : stand.gc && !stand.uhr ? "code" : null;
   if (!fehlt || weg === fehlt) return null;
   const zu = () => { try { localStorage.setItem(WEG_KEY, fehlt); } catch { /* privates Fenster */ } setWeg(fehlt); };
   return (

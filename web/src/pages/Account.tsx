@@ -82,7 +82,7 @@ export default function Account({ eingebettet = false, stufe = 1 }: { eingebette
 
       {tab === "connect" && (
       <>
-      <GarminBeidesHinweis zu="gc" nurMitGarminUhr />
+      <GarminBeidesHinweis zu="gc" />
       <ClaimFromWatch />
       {FORWARD_PAIRING_SICHTBAR && <GenerateCode />}
       <PairedDevices onDownload={() => setTab("app")} />
