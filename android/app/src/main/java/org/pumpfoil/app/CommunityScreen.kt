@@ -302,16 +302,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                 BestenlistenBlock(lb, sportart, lbMetric, { lbMetric = it }, onOpen, kennzahlKnoepfe = false,
                                     unterzeile = listOfNotNull(I18n.t("cls.sport.$sportart"),
                                         I18n.t(PERIODS.firstOrNull { it.first == period }?.second ?: "period.all"),
-                                        band?.takeIf { it.art != "alle" }?.let { bandLabel(it) }),
-                                    // Link: die Web-Adresse traegt Zeitraum, Liste, Sportart und Foil-Band (Home.tsx ?period=&lb=&sport=&band=).
-                                    linkUrl = {
-                                        val q = buildList {
-                                            add("period=$period"); add("lb=$lbMetric")
-                                            if (sportart != "pumpfoil") add("sport=${android.net.Uri.encode(sportart)}")
-                                            if (bandKey != "all") add("band=${android.net.Uri.encode(bandKey)}")
-                                        }.joinToString("&")
-                                        teamWebUrl("/community?$q")
-                                    })
+                                        band?.takeIf { it.art != "alle" }?.let { bandLabel(it) }))
                             }
                         }
                         // Team-Bestenlisten: seit 05.11.2026 hier statt im Reiter Teams & Events (Oleks Entwurf).
@@ -714,12 +705,12 @@ private fun leaderDauer(s: Double): String {
 
 /**
  * Bestenlisten (Web Home.tsx `Leaderboards`): Kennzahl als Chips, darunter die ersten 10 mit Flagge, die eigene Stelle
- * unter Platz 10, und „Als Bild teilen" (TeamBildDialog) sowie — wenn `linkUrl` — „Teilen" als Link. Gebraucht in der
+ * unter Platz 10, und „Als Bild teilen" (TeamBildDialog; den Link-Knopf gibt es seit 05.11.2026 nicht mehr). Gebraucht in der
  * Community und auf der Spot-Seite (Web 0fc2eba8). `unterzeile` = Sportart, Zeitraum … fuers Bild (Datum kommt dazu).
  */
 @Composable
 internal fun BestenlistenBlock(lb: Leaders, sportart: String, lbMetric: String, onMetric: (String) -> Unit, onOpen: (Int) -> Unit,
-                               unterzeile: List<String>, linkUrl: (() -> String)? = null, kennzahlKnoepfe: Boolean = true) {
+                               unterzeile: List<String>, kennzahlKnoepfe: Boolean = true) {
     var lbBild by remember { mutableStateOf<TeamBildDaten?>(null) }
     Column(Modifier.fillMaxWidth()) {
         // Ohne Knoepfe (Community-Rangliste seit 05.11.2026): die Kennzahl waehlt ein Auswahlfeld darueber.
@@ -752,15 +743,12 @@ internal fun BestenlistenBlock(lb: Leaders, sportart: String, lbMetric: String, 
                     Row(Modifier.fillMaxWidth().then(if (sid != null) Modifier.clickable { onOpen(sid) } else Modifier)
                         .then(if (ich) Modifier.border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), RoundedCornerShape(8.dp)).padding(horizontal = 4.dp) else Modifier)
                         .padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text("$platz", Modifier.widthIn(min = 20.dp).padding(end = 4.dp), style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.primary)
-                        Api.mediaUrl(e.avatarUrl)?.let { av ->
-                            ProfilbildRahmen(e.userId, 28.dp) {
-                                AsyncImage(model = av, contentDescription = null, contentScale = ContentScale.Crop,
-                                    modifier = Modifier.size(28.dp).clip(CircleShape))
-                            }
-                            Spacer(Modifier.width(8.dp))
-                        }
+                        // Feste Spalten (05.11.2026, Jan: „ausrichtung noch fixen"): Platz, Profilbild (ohne Bild die
+                        // Initiale wie im Web), Flagge — sonst rueckten Namen mit Bild um dessen Breite nach rechts.
+                        Text("$platz", Modifier.width(26.dp), style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.primary, maxLines = 1)
+                        AvatarCircle(e.name, e.avatarUrl, 28.dp, userId = e.userId)
+                        Spacer(Modifier.width(8.dp))
                         LandFlagge(e.land)   // nach dem Profilbild, Platz bleibt auch ohne Land (Web Flagge)
                         Spacer(Modifier.width(6.dp))
                         Text(e.name ?: "—", Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -798,11 +786,6 @@ internal fun BestenlistenBlock(lb: Leaders, sportart: String, lbMetric: String, 
                 Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(I18n.t("team.bild.titel"))
-            }
-            if (linkUrl != null) TextButton(onClick = { teilenUrl(ctxTeilen, linkUrl(), I18n.t("community.leaderboard")) }) {
-                Icon(Icons.Filled.Link, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(I18n.t("team.teilen"))
             }
         }
     }

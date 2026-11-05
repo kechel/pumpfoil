@@ -419,29 +419,16 @@ struct CommunityView: View {
         }
     }
 
-    /// Teilen der Bestenliste: als Link (zeigt im Web genau diese Liste, Parameter wie web Home.tsx) und als Bild
-    /// (derselbe Dialog wie bei den Team-Bestenlisten, Vorschlag eines Team-Kapitaens 02.11.2026).
+    /// Teilen der Bestenliste nur als Bild (derselbe Dialog wie bei den Team-Bestenlisten, Vorschlag eines
+    /// Team-Kapitaens 02.11.2026). Der Link ist am 05.11.2026 raus (Jan: „sharen als link bei leaderboards ueberall
+    /// raus, nur das bild") — /community ist nur fuer Angemeldete, nach aussen teilt man das Bild.
     private func teilenZeile(_ lb: Leaders) -> some View {
         HStack(spacing: 16) {
-            if let u = bestenlisteURL {
-                ShareLink(item: u) {
-                    Label(Loc.t("team.teilen", lang), systemImage: "link").font(.subheadline)
-                }
-                .buttonStyle(.borderless)
-            }
             Button { bildBauen(lb) } label: {
                 Label(Loc.t("team.bild.titel", lang), systemImage: "square.and.arrow.up").font(.subheadline)
             }
             .buttonStyle(.borderless)
         }
-    }
-
-    private var bestenlisteURL: URL? {
-        var teile: [String] = ["period=" + period, "lb=" + lbMetric]
-        if sportart != "pumpfoil" { teile.append("sport=" + sportart) }
-        if bandKey != "all" { teile.append("band=" + bandKey) }
-        let q: String = teile.joined(separator: "&").addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        return URL(string: Api.baseURL + "/community?" + q)
     }
 
     /// Wie web BestenlisteBildDialog: Titel = die Liste, darunter Sportart · Zeitraum · Foil-Band · Datum.
