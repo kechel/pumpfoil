@@ -1107,6 +1107,9 @@ function TeamBestenlisten({ period, sport, region, titel }: { period: string; sp
 // Wischen statt Pfeil-Knöpfe: eine Scroll-Snap-Reihe. Auf dem Handy ist EINE Karte volle Breite
 // (`w-full`), also wischt man genau von Layout zu Layout; ab sm liegen sie nebeneinander. Das
 // braucht keine Karussell-Bibliothek und funktioniert mit Touch, Trackpad und Tastatur.
+// Ziel ist dieselbe Galerie wie im eigenen Bereich, mit allen Reitern aufgeklappt: Home › Uhr & Konten › Uhr ›
+// Einstellungen › Community-Layouts (Jan, 05.11.2026: vorher eine eigene Ansicht unter /layouts/community).
+const GALERIE_IM_PROFIL = "/?tab=uhr&ktab=uhr&utab=views&ltab=community";
 function LayoutTeaser() {
   const t = useT();
   const [rows, setRows] = useState<WatchLayout[] | null>(null);
@@ -1121,14 +1124,14 @@ function LayoutTeaser() {
       <div className="mb-1.5 flex items-center gap-2">
         <WatchIcon className="h-5 w-5 text-brand-400" />
         <h3 className="text-lg font-bold">{t("home.layouts")}</h3>
-        <Link to="/layouts/community" className="ml-auto text-sm text-brand-700 hover:underline dark:text-brand-300">
+        <Link to={GALERIE_IM_PROFIL} className="ml-auto text-sm text-brand-700 hover:underline dark:text-brand-300">
           {t("home.layoutsAll")} →
         </Link>
       </div>
       <p className="mb-2 text-sm text-slate-300">{t("home.layoutsHint")}</p>
       <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2">
         {rows.map((l) => (
-          <Link key={l.id} to="/layouts/community"
+          <Link key={l.id} to={GALERIE_IM_PROFIL}
             className="w-full shrink-0 snap-center sm:w-56">
             <Card className="flex h-full flex-col items-center gap-2 p-3 hover:border-slate-600">
               <LayoutPreview layout={l} w={l.authored_w || 240} h={l.authored_h || 240}
