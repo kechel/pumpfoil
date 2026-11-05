@@ -1,7 +1,7 @@
 import { CheckIcon } from "./Icons";
 import { useT } from "../i18n";
 import { ConnectIqButton } from "./ConnectIqButton";
-import { AppStoreBadge, PlayBadge, ZeppAppBadges } from "./StoreBadge";
+import { APPGALLERY_URL, AppGalleryBadge, AppStoreBadge, PlayBadge, ZeppAppBadges } from "./StoreBadge";
 
 // Daten-Matrix: welche Uhr liefert welche Daten. Wiederverwendbar (öffentliche
 // /uhren-Seite + Login-Bereich /account).
@@ -66,6 +66,8 @@ export function WatchMatrix() {
   const statusCell = (r: (typeof ROWS)[number]) =>
     r.zepp ? (
       <ZeppAppBadges />
+    ) : r.wegUrl === APPGALLERY_URL ? (
+      <AppGalleryBadge />
     ) : r.store ? (
       r.store === "ciq" ? <ConnectIqButton height="h-10" />
         : r.store === "appstore" ? <AppStoreBadge height="h-10" />

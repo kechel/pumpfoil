@@ -27,6 +27,24 @@ export function PlayBadge({ height, className }: { height?: string; className?: 
     alt="Jetzt bei Google Play" height={height} className={className} />;
 }
 
+// HUAWEI WATCH 5 (AppGallery seit 04.11.2026). Huawei-Badge haben wir keins; Jan, 05.11.2026: „so wie fuer die
+// anderen" -> das AppGallery-Logo (aus seinem Screenshot der AppGallery-Seite, public/badges/appgallery.png) als
+// weisses Kaertchen wie Polar/Suunto, darunter der Weg wie bei Zepp. Link ueber den Paketnamen (die Form
+// /app/C<id> zeigt nichts, s. appmeta store_url).
+export const APPGALLERY_URL = "https://appgallery.huawei.com/app/detail?id=org.pumpfoil.huawei";
+
+export function AppGalleryBadge({ className = "" }: { className?: string }) {
+  return (
+    <a href={APPGALLERY_URL} target="_blank" rel="noopener noreferrer" aria-label="Pumpfoil in der Huawei AppGallery"
+      className={`inline-flex flex-col items-center gap-1.5 ${className}`}>
+      <span className="inline-block rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 shadow-sm hover:border-brand-400">
+        <img src="/badges/appgallery.png" alt="AppGallery" className="h-8 w-auto" />
+      </span>
+      <span className="text-xs text-slate-400">AppGallery → „Pumpfoil"</span>
+    </a>
+  );
+}
+
 // Amazfit/Zepp: es gibt KEINEN öffentlichen Web-Store für einzelne Zepp-OS-Apps — man installiert
 // zuerst die Zepp-Begleit-App (iOS/Android) und findet unsere App dann darin. Daher hier die
 // Store-Badges der ZEPP-APP + Label. In der App: Profil → Amazfit → App Store → „Pumpfoil".

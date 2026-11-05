@@ -13,7 +13,7 @@ import { useSeo, warumPfad, seitenPfad, SPRACH_SEITEN } from "../lib/seo";
 import { InstallPwa } from "../components/InstallPwa";
 import { WatchMatrix } from "../components/WatchMatrix";
 import { ConnectIqButton } from "../components/ConnectIqButton";
-import { AppStoreBadge, PlayBadge, ZeppAppBadges } from "../components/StoreBadge";
+import { AppGalleryBadge, AppStoreBadge, PlayBadge, ZeppAppBadges } from "../components/StoreBadge";
 import { PromoVideos } from "../components/PromoVideos";
 import { ShortModal } from "../components/ShortModal";
 import { ThemeToggle } from "../components/ThemeToggle";
@@ -361,12 +361,16 @@ export default function Landing() {
                 badge={<ZeppAppBadges />} />
               {/* HUAWEI (10.10.2026, Jan: „NEU (Beta) kennzeichnen und hervorheben"). Bilder aus Jans
                   DevEco-Emulator (Watch 5, ArkTS) mit den Standard-Layouts der Community, auf das runde
-                  Display zugeschnitten. Noch nicht installierbar (Wear-Engine-Freigabe steht aus) —
-                  deshalb „kommt bald" statt eines Store-Knopfs. */}
-              <WatchCarousel rounded="rounded-full" caption="Huawei" sub="Watch GT · Fit · Watch 3/4/5"
+                  Display zugeschnitten. Seit 04.11.2026 ist die Watch 5 in der AppGallery (Jan 05.11.: „die
+                  public startseite kann huawei jetzt auch anpreisen und verlinken"); GT/Fit warten auf Huaweis
+                  Wear-Engine-Freigabe, Watch 3/4 wird nicht eingereicht (docs/HUAWEI.md). */}
+              <WatchCarousel rounded="rounded-full" caption="Huawei" sub="Watch 5"
                 images={[1, 2, 3, 4, 5, 6, 7].map((n) => `/watch-huawei-v3-${n}.webp`)}
                 plakette={t("land.huaweiNew")}
-                badge={<span className="mt-2 inline-block rounded-lg border border-brand-500/50 px-3 py-2 text-sm font-semibold text-brand-600 dark:text-brand-300">{t("land.huaweiSoon")}</span>} />
+                badge={<div className="mt-2 inline-flex flex-col items-center gap-1.5">
+                  <AppGalleryBadge />
+                  <span className="text-xs text-slate-400">Watch GT · Fit: {t("land.huaweiSoon")}</span>
+                </div>} />
             </div>
           </section>
         </div>
