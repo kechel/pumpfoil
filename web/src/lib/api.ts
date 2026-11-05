@@ -1160,6 +1160,8 @@ export const api = {
     vorschau_ausgeblendet?: boolean;   // nur mit als=alle: die Seite ist fuer andere abgeschaltet
     supporter?: { stufe: number; tage_jahr: number };   // Supporter-Badge (23.10.2026)
     team_abzeichen?: TeamAbzeichen[];   // Event-Abzeichen, Plaetze 1–3 (Teams Stufe 3)
+    land?: string | null;               // Nationalitaet (ISO-Code), 05.11.2026
+    teams?: { slug: string; name: string; logo_url: string | null; farbe: string | null; land: string | null }[];   // nur freigegebene
     id: number; name: string | null; avatar_url: string | null;
     ich: boolean; aus: boolean;
     // Aus Sicht des Betrachters (Freunde, 15.10.2026) + Gewicht nur fuer Freunde und einen selbst.

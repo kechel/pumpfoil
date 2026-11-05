@@ -2888,7 +2888,7 @@ const cs: Record<string, string> = {
   "tab.events": "Akce",
   "tab.logbook": "Deník",
   "profile.land": "Národnost",
-  "profile.landHint": "Nepovinné. Když ji vyplníš, tvoje vlajka se zobrazí v žebříčcích a jejich obrázcích ke sdílení.",
+  "profile.landHint": "Nepovinné. Když ji vyplníš, tvoje vlajka se zobrazí v žebříčcích, jejich obrázcích ke sdílení a na tvé profilové stránce.",
   "profile.landNone": "Neuvedeno",
   "team.aktivste": "Nejaktivnější týmy",
   "team.sessions30": "vyjížděk za 30 dní",

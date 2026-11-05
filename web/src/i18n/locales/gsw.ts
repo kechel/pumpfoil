@@ -2720,7 +2720,7 @@ const gsw: Record<string, string> = {
   "tab.events": "Events",
   "tab.logbook": "Logbuech",
   "profile.land": "Nationalität",
-  "profile.landHint": "Freiwillig. Wer sie aagit, überchunnt sini Flagge i de Bestelischte und ihre Bilder zum Teile.",
+  "profile.landHint": "Freiwillig. Wer sie aagit, überchunnt sini Flagge i de Bestelischte, ihre Bilder zum Teile und uf de Profilsiite.",
   "profile.landNone": "Kei Aagab",
   "team.aktivste": "Aktivschti Teams",
   "team.sessions30": "Sessions i 30 Täg",

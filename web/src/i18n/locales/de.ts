@@ -2994,7 +2994,7 @@ const de: Record<string, string> = {
   "tab.events": "Events",
   "tab.logbook": "Logbuch",
   "profile.land": "Nationalität",
-  "profile.landHint": "Freiwillig. Wer sie angibt, bekommt seine Flagge in den Bestenlisten und ihren Bildern zum Teilen.",
+  "profile.landHint": "Freiwillig. Wer sie angibt, bekommt seine Flagge in den Bestenlisten, ihren Bildern zum Teilen und auf der Profilseite.",
   "profile.landNone": "Keine Angabe",
   "team.aktivste": "Aktivste Teams",
   "team.sessions30": "Sessions in 30 Tagen",

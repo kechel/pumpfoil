@@ -2835,7 +2835,7 @@ const pt: Record<string, string> = {
   "tab.events": "Eventos",
   "tab.logbook": "Diário",
   "profile.land": "Nacionalidade",
-  "profile.landHint": "Opcional. Se você informar, sua bandeira aparece nas classificações e nas imagens para compartilhar.",
+  "profile.landHint": "Opcional. Se você informar, sua bandeira aparece nas classificações, nas imagens para compartilhar e na sua página de perfil.",
   "profile.landNone": "Não informada",
   "team.aktivste": "Equipes mais ativas",
   "team.sessions30": "sessões em 30 dias",

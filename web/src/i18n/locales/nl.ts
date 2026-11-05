@@ -2889,7 +2889,7 @@ const nl: Record<string, string> = {
   "tab.events": "Evenementen",
   "tab.logbook": "Logboek",
   "profile.land": "Nationaliteit",
-  "profile.landHint": "Optioneel. Als je die invult, staat je vlag in de ranglijsten en hun deelafbeeldingen.",
+  "profile.landHint": "Optioneel. Als je die invult, staat je vlag in de ranglijsten, hun deelafbeeldingen en op je profielpagina.",
   "profile.landNone": "Niet opgegeven",
   "team.aktivste": "Actiefste teams",
   "team.sessions30": "sessies in 30 dagen",

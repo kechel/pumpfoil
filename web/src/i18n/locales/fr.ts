@@ -2718,7 +2718,7 @@ const fr: Record<string, string> = {
   "tab.events": "Événements",
   "tab.logbook": "Journal",
   "profile.land": "Nationalité",
-  "profile.landHint": "Facultatif. Si tu l'indiques, ton drapeau apparaît dans les classements et leurs images à partager.",
+  "profile.landHint": "Facultatif. Si tu l'indiques, ton drapeau apparaît dans les classements, leurs images à partager et sur ta page de profil.",
   "profile.landNone": "Non précisée",
   "team.aktivste": "Équipes les plus actives",
   "team.sessions30": "sessions en 30 jours",

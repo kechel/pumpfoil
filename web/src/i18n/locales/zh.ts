@@ -2832,7 +2832,7 @@ const zh: Record<string, string> = {
   "tab.events": "活动",
   "tab.logbook": "日志",
   "profile.land": "国籍",
-  "profile.landHint": "可选。设置后，你的国旗会显示在排行榜及其分享图片中。",
+  "profile.landHint": "可选。设置后，你的国旗会显示在排行榜、其分享图片以及你的个人主页上。",
   "profile.landNone": "未填写",
   "team.aktivste": "最活跃的团队",
   "team.sessions30": "30天内的次数",

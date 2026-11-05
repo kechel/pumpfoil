@@ -2870,7 +2870,7 @@ const fi: Record<string, string> = {
   "tab.events": "Tapahtumat",
   "tab.logbook": "Lokikirja",
   "profile.land": "Kansallisuus",
-  "profile.landHint": "Vapaaehtoinen. Jos asetat sen, lippusi näkyy tulostauluissa ja niiden jaettavissa kuvissa.",
+  "profile.landHint": "Vapaaehtoinen. Jos asetat sen, lippusi näkyy tulostauluissa, niiden jaettavissa kuvissa ja profiilisivullasi.",
   "profile.landNone": "Ei ilmoitettu",
   "team.aktivste": "Aktiivisimmat tiimit",
   "team.sessions30": "sessiota 30 päivässä",

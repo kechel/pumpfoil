@@ -1600,6 +1600,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - ✅ 03.11. Team-Herkunft: Land, Kontinent oder Erde (`teams.land`, „k:eu" … „k:earth"), in den Team-Einstellungen,
     ohne Freigabe; neben dem Team-Namen als Flagge bzw. Kontinent-Umriss + Kuerzel (web/src/lib/kontinente.ts aus Natural
     Earth, scripts/kontinente-erzeugen.py). Nationalitaet im Einrichtungs-Assistenten. **Offen:** Apps.
+  - ✅ 05.11. Rangliste nach seinem Entwurf (Bild im 1:1-Chat 05.11.): oben EINE Zeile Zeitraum + Sportart fuer alles,
+    links Bestenliste Mitglieder, rechts Teams (aus dem Teams-Reiter hierher), darunter die Rekord-Kacheln; Filter als
+    Auswahlfelder; Team-Bestenlisten je Sportart (`/api/teams/liste/vergleich?sport=`); Browser merkt alle Filter ausser
+    dem Zeitraum. Profilseite /foiler/<id>: Flagge neben dem Namen (Hovertext = Land), Zeile „Teams" ganz oben
+    (nur freigegebene Teams; Felder `land`/`teams` in GET /api/community/foiler/<id>). **Offen:** Apps — mit dem
+    grossen Port (Jan 05.11.: „ios/android wie immer spaeter nachziehen"). Die Apps ersetzen `{sport}` im Team-Hinweis
+    schon durch „Pumpfoil" und rufen die Team-Liste noch ohne `sport` auf. Region-Gruppierung: als Naechstes im Web.
   - Abzeichen/Erfolge als Kacheln auf Home (Tagessiege, Allzeit-Rekorde, Community) — Plan in docs/TEAMS.md. Dazu
     gehoert auch sein Zaehler „freigeschaltete Sportarten" (Jan 02.11.: Kategorie Abzeichen, erstmal nicht).
   - Schnellster km bzw. Tempo (min/km), auch seine „schnellste Minute" — s. „Schnellste 100 m / 200 m / 500 m / 1 km" oben.

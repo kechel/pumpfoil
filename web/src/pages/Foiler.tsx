@@ -15,6 +15,9 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { api, OverallStats } from "../lib/api";
 import { Card, Avatar } from "../components/ui";
 import { SupporterBadge } from "../components/SupporterBadge";
+import { Flagge } from "../components/Flagge";
+import TeamWappen from "../components/TeamWappen";
+import { teamFarbStil } from "../lib/teamFarben";
 import { ScrollToTop } from "../components/ScrollToTop";
 import { SessionCard } from "../components/SessionCard";
 import { openDmOverlay } from "../components/DmWidget";
@@ -182,7 +185,11 @@ export default function Foiler({ userId, eingebettet = false, als }:
         {!eingebettet && <ZurueckPfeil fallback={zurueckZu?.zurueck ?? "/community"} />}
         <Avatar name={d.name} url={d.avatar_url} seed={d.id} userId={d.id} size={56} />
         <div className="min-w-0">
-          <h1 className="truncate text-xl font-bold">{d.name ?? "—"}</h1>
+          {/* Nationalitaet nur als Flagge, der Name des Landes als Hovertext (Jan, 05.11.2026). */}
+          <h1 className="flex items-center gap-2 text-xl font-bold">
+            <span className="truncate">{d.name ?? "—"}</span>
+            {d.land && <Flagge land={d.land} />}
+          </h1>
           {d.seit && (
             <p className="text-sm text-slate-400">
               {t("foiler.since", { date: datum(d.seit, null, { day: "2-digit", month: "long", year: "numeric" }) })}
@@ -220,6 +227,21 @@ export default function Foiler({ userId, eingebettet = false, als }:
           Kante, egal wie lang das Label ist (Jan, 08.09.2026). Die Label-Spalte waechst mit dem
           laengsten Label mit (max-content), deshalb funktioniert das auch in 17 Sprachen. */}
       <div className="mb-5 grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1.5 text-sm">
+        {/* Teams ganz oben (Jan, 05.11.2026); die Nationalitaet steht als Flagge neben dem Namen. */}
+        {!!d.teams?.length && (
+          <>
+            <span className="flex items-center gap-1.5 text-slate-400"><CommunityIcon className="h-4 w-4" />{t("team.community")}:</span>
+            <span className="flex flex-wrap gap-x-3 gap-y-1">
+              {d.teams.map((tm) => (
+                <Link key={tm.slug} to={`/teams/${tm.slug}`} style={teamFarbStil(tm.farbe)}
+                  className="team-farbe inline-flex items-center gap-1.5 font-semibold hover:underline">
+                  <TeamWappen name={tm.name} logo={tm.logo_url} farbe={tm.farbe} size={20} />
+                  <span className="team-akzent">{tm.name}</span>
+                </Link>
+              ))}
+            </span>
+          </>
+        )}
         {d.homespot && (
           <>
             <span className="flex items-center gap-1.5 text-slate-400"><LocationIcon className="h-4 w-4" />{t("foiler.homespot")}:</span>

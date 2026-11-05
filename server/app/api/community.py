@@ -2726,6 +2726,15 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
     # Event-Abzeichen (Teams Stufe 3, docs/TEAMS.md): Plaetze 1–3, nur aus freigegebenen Teams.
     from ..teams import abzeichen as _abz
     raus["team_abzeichen"] = _abz(db, u.id)
+    # Nationalitaet und Teams oben auf der Profilseite (Jan, 05.11.2026). Das Land steht ohnehin neben dem Namen in
+    # jeder Bestenliste (_laender), hier also nichts Neues. Teams nur mit freigegebenem Auftritt und deren freigegebener
+    # Name, wie bei den Abzeichen — ein internes Team wuerde sonst ueber die Foiler-Seite bekannt.
+    raus["land"] = _laender(db, {u.id}).get(u.id)
+    from .. import teams as _T
+    raus["teams"] = [{k: a[k] for k in ("slug", "name", "logo_url", "farbe", "land")}
+                     for t in db.query(models.Team).filter(models.Team.id.in_(_T.mitglieder_team_ids(db, u.id)))
+                                .order_by(models.Team.frei_name).all()
+                     if _T.oeffentlich_sichtbar(t) for a in [_T.auftritt(t, False)]]
     # Gewicht nur fuer Freunde (und einen selbst), auch wenn „Gewicht verbergen" an ist.
     if freund or (u.id == user.id and not vorschau_alle):
         try:

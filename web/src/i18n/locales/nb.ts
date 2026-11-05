@@ -2806,7 +2806,7 @@ const nb: Record<string, string> = {
   "tab.events": "Arrangementer",
   "tab.logbook": "Loggbok",
   "profile.land": "Nasjonalitet",
-  "profile.landHint": "Valgfritt. Hvis du fyller det inn, vises flagget ditt i topplistene og bildene som kan deles.",
+  "profile.landHint": "Valgfritt. Hvis du fyller det inn, vises flagget ditt i topplistene, bildene som kan deles og på profilsiden din.",
   "profile.landNone": "Ikke oppgitt",
   "team.aktivste": "Mest aktive lag",
   "team.sessions30": "økter på 30 dager",

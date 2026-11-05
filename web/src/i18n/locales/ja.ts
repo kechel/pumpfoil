@@ -2831,7 +2831,7 @@ const ja: Record<string, string> = {
   "tab.events": "イベント",
   "tab.logbook": "ログ",
   "profile.land": "国籍",
-  "profile.landHint": "任意。設定すると、ランキングと共有用画像にあなたの国旗が表示されます。",
+  "profile.landHint": "任意。設定すると、ランキングと共有用画像、プロフィールページにあなたの国旗が表示されます。",
   "profile.landNone": "未設定",
   "team.aktivste": "最もアクティブなチーム",
   "team.sessions30": "30日間のセッション",

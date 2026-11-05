@@ -2940,7 +2940,7 @@ const en: Record<string, string> = {
   "tab.events": "Events",
   "tab.logbook": "Logbook",
   "profile.land": "Nationality",
-  "profile.landHint": "Optional. If you set it, your flag appears in the leaderboards and their share images.",
+  "profile.landHint": "Optional. If you set it, your flag appears in the leaderboards, their share images and on your profile page.",
   "profile.landNone": "Not specified",
   "team.aktivste": "Most active teams",
   "team.sessions30": "sessions in 30 days",

@@ -2835,7 +2835,7 @@ const id: Record<string, string> = {
   "tab.events": "Acara",
   "tab.logbook": "Log",
   "profile.land": "Kewarganegaraan",
-  "profile.landHint": "Opsional. Jika diisi, benderamu muncul di papan peringkat dan gambar untuk dibagikan.",
+  "profile.landHint": "Opsional. Jika diisi, benderamu muncul di papan peringkat, gambar untuk dibagikan, dan halaman profilmu.",
   "profile.landNone": "Tidak diisi",
   "team.aktivste": "Tim paling aktif",
   "team.sessions30": "sesi dalam 30 hari",

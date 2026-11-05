@@ -2814,7 +2814,7 @@ const pl: Record<string, string> = {
   "tab.events": "Wydarzenia",
   "tab.logbook": "Dziennik",
   "profile.land": "Narodowość",
-  "profile.landHint": "Opcjonalnie. Jeśli ją podasz, twoja flaga pojawi się w rankingach i ich obrazach do udostępnienia.",
+  "profile.landHint": "Opcjonalnie. Jeśli ją podasz, twoja flaga pojawi się w rankingach, ich obrazach do udostępnienia i na twojej stronie profilu.",
   "profile.landNone": "Nie podano",
   "team.aktivste": "Najaktywniejsze drużyny",
   "team.sessions30": "sesji w 30 dni",
