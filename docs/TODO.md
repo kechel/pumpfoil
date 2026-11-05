@@ -1530,7 +1530,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
      Garmin Connect ein Ersatzweg fuer Aufnahmen unserer Connect-IQ-App, deren direkter Upload ausfaellt. Mein
      „Nebenbefund" (Export mit Sensor-Daten wird abgelehnt) war FALSCH — die abgelehnte Test-Datei hatte dieselbe
      Startzeit wie die erste im selben Konto (Duplikat).
-     Partner Verification: zweiter Nutzer mit Daten (u4) damit vorhanden.
+     ✅ **Partner Verification 05.11. komplett gruen** (Jans Meldung): 3 Endpunkte, alle Domaenen mit Daten in 24 h,
+     2 Nutzer mit Daten (Jan u2 + Testkonto u4), 0 HTTP-Fehler.
   4. Refresh-Token laeuft nach 3 Monaten ab — wer so lange nichts aufzeichnet, verliert die Verbindung; spaeter in
      kontensync.py einen Erneuerungs-Lauf ergaenzen.
 
