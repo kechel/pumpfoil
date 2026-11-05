@@ -30,6 +30,15 @@ from ..clockmap import gesamt_pause_ms, pausen as _pausen, segmente_mit_uhrzeit
 from ..naming import geraete_label, ist_gattung, owner_label
 
 
+def import_geraet(session_uuid: str | None, device_model: str | None) -> str | None:
+    """Geraet einer IMPORTIERTEN Session fuer das Uhr-Abzeichen. Bisher nur Garmin Connect (05.11.2026): Garmins
+    Markenvorgaben verlangen an jeder Anzeige solcher Daten „Garmin [Geraet]"; der Name kommt im Push und steht in
+    `device_model` (app/api/garmin.py). Andere Importe haben kein Abzeichen."""
+    if session_uuid and session_uuid.startswith("garmin-") and device_model:
+        return device_model
+    return None
+
+
 def _geraet_name(label: str | None, platform: str | None, part_number: str | None) -> str | None:
     """Uhr-Bezeichnung einer Aufnahme. Steht beim Geraet nur die Gattung („Garmin"), weil es sich zuletzt meldete,
     bevor `build-all.sh` seine Part-Number kannte (neue Modelle, 03.11.2026), kommt der Name frisch aus der
@@ -1180,6 +1189,9 @@ def list_sessions(
             lbl = dmap.get(s.device_id) if s.device_id else None
             if lbl:
                 o.device_label = lbl.split("/")[0].strip()
+    for o, s in zip(outs, rows):
+        if not getattr(o, "device_label", None) and import_geraet(s.session_uuid, s.device_model):
+            o.device_label = s.device_model
     # Rueckfrage an der eigenen Bewertung (api/bewertung.py) -> Hinweis in der Liste, im Batch.
     ids = [s.id for s in rows]
     if ids:
@@ -1330,7 +1342,7 @@ def list_in_progress(
             "started_at": s.started_at,
             "tz": tz_name(s.place_lat, s.place_lon),
             "status": s.status,
-            "device_label": lbl.split("/")[0].strip() if lbl else None,
+            "device_label": lbl.split("/")[0].strip() if lbl else import_geraet(s.session_uuid, s.device_model),
             # Handy-Recorder mit Live-Upload: die Karte sagt dann „nimmt auf" statt „Upload haengt"
             "placement": s.placement,
             # ALLE Kanaele, auch Gyro: `expected_chunks` kommt vom Client und zaehlt einen
@@ -2723,6 +2735,8 @@ def get_session(
         # Fürs Badge nur den ersten (repräsentativen) Teil vor dem "/".
         lbl = _geraet_name(dev.label, dev.platform, dev.part_number) if dev else None
         out.device_label = lbl.split("/")[0].strip() if lbl else None
+    elif import_geraet(s.session_uuid, s.device_model):
+        out.device_label = s.device_model
     out.device_model = s.device_model  # Aufnahme-Gerät (Modell + OS) — nur zur Fehlersuche
     out.app_version = s.app_version    # App-Version DIESER Aufnahme (Fehlersuche, s. models.py)
     # Kreisel vorhanden? Ein gezielter Treffer, kein Zählen — die Oberfläche will nur wissen, ob
@@ -2820,6 +2834,8 @@ def public_shared_session(token: str, request: Request, db: Session = Depends(ge
         dev = db.get(models.DeviceToken, s.device_id)
         lbl = _geraet_name(dev.label, dev.platform, dev.part_number) if dev else None
         out.device_label = lbl.split("/")[0].strip() if lbl else None
+    elif import_geraet(s.session_uuid, s.device_model):
+        out.device_label = s.device_model
     out.device_model = s.device_model
     out.app_version = s.app_version
     if out.ended_at is None and s.started_at is not None:

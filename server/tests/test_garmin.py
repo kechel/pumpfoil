@@ -219,3 +219,12 @@ def test_ohne_freigabe_nur_fuer_admins(client, garmin, monkeypatch):
     _, kopf = _konto(client)
     assert client.get("/api/integrations/garmin/status", headers=kopf).json()["available"] is False
     assert client.get("/api/integrations/garmin/connect", headers=kopf).status_code == 404
+
+
+def test_geraet_name():
+    from app.api.garmin import geraet_name
+    from app.api.sessions import import_geraet
+    assert geraet_name("fenix 8") == "Garmin fenix 8" and geraet_name("Garmin Forerunner 965") == "Garmin Forerunner 965"
+    assert geraet_name(None) == "Garmin"
+    assert import_geraet("garmin-abc", "Garmin fenix 8") == "Garmin fenix 8"
+    assert import_geraet("coros-abc", "COROS Apex") is None and import_geraet("garmin-x", None) is None

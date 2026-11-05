@@ -1488,6 +1488,12 @@ def spot_records(
     return tmp[period]
 
 
+def import_geraet(session_uuid, device_model):
+    """Wie sessions.import_geraet (dort die Begruendung); hier verzoegert importiert, sessions importiert community."""
+    from .sessions import import_geraet as _f
+    return _f(session_uuid, device_model)
+
+
 def _laender(db: Session, uids: set[int]) -> dict[int, str]:
     """Nationalitaet (ISO-Code aus den Einstellungen) je Nutzer — nur gesetzte."""
     if not uids:
@@ -2998,6 +3004,8 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                 lbl = geraete.get(r.device_id) if r.device_id else None
                 if lbl:
                     o.device_label = unquote(lbl.split("/")[0].strip())
+                elif import_geraet(r.session_uuid, r.device_model):
+                    o.device_label = r.device_model   # Garmin Connect: „Garmin [Geraet]" (Markenvorgabe)
                 f = foils.get(r.foil_id) if r.foil_id else None
                 if f:
                     o.foil = {"id": f.id, "brand": f.brand, "model": f.model, "size": f.size,
@@ -3178,6 +3186,11 @@ def _attach_social(db: Session, user: models.User, briefs: list[dict]) -> list[d
                 .filter(models.DeviceToken.id.in_(dids)).all()) if dids else {}
     from .. import kommentare
     kanz = kommentare.anzahl(db, ids, user)
+    # Garmin-Importe: „Garmin [Geraet]" als Abzeichen (Markenvorgabe, sessions.import_geraet), in einem Abruf.
+    ohne = [b["session_id"] for b in briefs if not b.get("device_id")]
+    importgeraet = {i: import_geraet(u, m) for i, u, m in
+                    db.query(S.id, S.session_uuid, S.device_model)
+                    .filter(S.id.in_(ohne), S.session_uuid.like("garmin-%")).all()} if ohne else {}
     for b in briefs:
         sid = b["session_id"]
         b["like_count"] = int(likes.get(sid, 0))
@@ -3187,7 +3200,7 @@ def _attach_social(db: Session, user: models.User, briefs: list[dict]) -> list[d
         b["thumb_url"] = thumb.get(sid)
         b["foil"] = fmap.get(b.get("foil_id"))
         lbl = dmap.get(b.get("device_id"))
-        b["device_label"] = lbl.split("/")[0].strip() if lbl else None
+        b["device_label"] = lbl.split("/")[0].strip() if lbl else importgeraet.get(sid)
     return briefs
 
 

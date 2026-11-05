@@ -333,7 +333,21 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     if _eigene_aufnahme(db, user.id, start, ende):
         return "eigene aufnahme"
     s = import_parsed_session(db, user, r.content, parsed, src_label="garmin-import", uuid_prefix="garmin-")
-    return "importiert" if s is not None else "schon da"
+    if s is None:
+        return "schon da"
+    # „Garmin [Geraet]" fuer das Uhr-Abzeichen (Markenvorgabe; sessions.import_geraet zeigt es an).
+    if s.session_uuid.startswith("garmin-") and not s.device_model:
+        s.device_model = geraet_name(eintrag.get("deviceName"))
+        db.commit()
+    return "importiert"
+
+
+def geraet_name(device_name) -> str:
+    """„fenix 8" -> „Garmin fenix 8"; schon mit Garmin davor bleibt es; ohne Angabe nur „Garmin"."""
+    n = " ".join(str(device_name or "").split())[:70]
+    if not n:
+        return "Garmin"
+    return n if n.lower().startswith("garmin") else f"Garmin {n}"
 
 
 def _activity_files_verarbeiten(eintraege: list[dict]) -> None:
