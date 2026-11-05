@@ -1153,6 +1153,14 @@ NAECHSTES: list[dict] = [
          "These watches have no internet of their own and send your sessions through the Pumpfoil phone app, which needs a separate approval from Huawei; we applied for it on 4 November 2026.",
      ]},
     # Garmin Connect stand hier bis zur Freigabe fuer alle am 05.11.2026 (jetzt live, Changelog-Ereignis).
+    # 05.11.2026 (Jan: „update schonmal das changelog fuer garmin coming next"): 1.0.100 gebaut (.iq aus 290f4478),
+    # Datenwege mit Garmin-Verknuepfung + Pausen-Fix. Beim Einreichen -> IN_REVIEW.
+    {"name": "Garmin", "version": "1.0.100",
+     "items": [
+         "With Garmin Connect linked, every recording from the Pumpfoil watch app also arrives complete via Garmin, even if the direct upload gets stuck.",
+         "Watches with little memory keep recording with Garmin Connect linked, even when their storage is full.",
+         "While paused, the watch shows the pause screen again instead of 'Searching GPS', so Resume is easy to find.",
+     ]},
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
      "items": [
