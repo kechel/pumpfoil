@@ -254,6 +254,7 @@ module Uploader {
             // -> lokal entkoppeln, damit die Uhr neu gekoppelt werden kann. Die gepufferten
             // Sessions bleiben im Storage und gehen nach erneutem Pairing raus.
             Config.setString("deviceToken", "");
+            Wege.vergessen();   // entkoppelt: wieder Standardverhalten, kein „eigener Weg aus" vom alten Konto
         } else if (responseCode == 403) {
             _lastError = :auth;
         } else {

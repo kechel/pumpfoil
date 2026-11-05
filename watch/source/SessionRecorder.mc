@@ -865,6 +865,7 @@ class SessionRecorder {
     // werden. Gepufferte Sessions bleiben erhalten und gehen nach erneutem Pairing raus.
     function unpair() {
         Config.setString("deviceToken", "");
+        Wege.vergessen();
         pairCode = "";
         pairStatus = "";
         _claimToken = "";

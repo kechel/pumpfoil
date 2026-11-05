@@ -23,6 +23,13 @@ module Wege {
         _roh = null;
     }
 
+    // Beim Entkoppeln: Schalter des alten Kontos vergessen (sonst puffert eine ungekoppelte Uhr nie wieder).
+    function vergessen() {
+        var schluessel = ["w_gc", "w_rohAuf", "w_fitAccel"];
+        for (var i = 0; i < schluessel.size(); i++) { try { Storage.deleteValue(schluessel[i]); } catch (e) { } }
+        _roh = null;
+    }
+
     function rohAuf() {
         if (_roh == null) {
             var v = Storage.getValue("w_rohAuf");
