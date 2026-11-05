@@ -1142,7 +1142,8 @@ NAECHSTES: list[dict] = [
     # Bruecken Android/iOS, Server), nie auf Hardware gelaufen — erst Test auf Race/Vertical, dann Einreichung.
     # 05.11.2026 (Jan): Text nachgezogen — die Watch 5 ist seit 04.11. im Store, der Wear-Engine-Antrag fuer GT/Fit/D
     # ist am 04.11. eingereicht (docs/TODO.md Protokoll).
-    {"name": "Huawei Watch GT / Fit / D", "version": "later",
+    # Version wie auf der Uhr (watch-huawei/lite konfig.js APP_VERSION, Jan 05.11.: „statt later auch die aktuelle versionsnummer").
+    {"name": "Huawei Watch GT / Fit / D", "version": "1.0.4",
      "spaeter": "waiting for Huawei's approval",
      "items": [
          "These watches have no internet of their own and send your sessions through the Pumpfoil phone app, which needs a separate approval from Huawei; we applied for it on 4 November 2026.",
