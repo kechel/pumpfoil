@@ -1149,10 +1149,10 @@ NAECHSTES: list[dict] = [
          "These watches have no internet of their own and send your sessions through the Pumpfoil phone app, which needs a separate approval from Huawei; we applied for it on 4 November 2026.",
      ]},
     # 05.11.2026 (Jan: „garmin connect developer api als eigener punkt unter coming next"): Antrag am 05.11. gestellt.
-    {"name": "Garmin Connect", "version": "applied",
-     "spaeter": "waiting for Garmin's approval",
+    # Am selben Tag FREIGEGEBEN (Garmin-Mail „Your application has been approved", 05.11.2026) — jetzt in Arbeit.
+    {"name": "Garmin Connect", "version": "approved",
      "items": [
-         "Link your Garmin Connect account and the sessions you record with Garmin's own water sports profiles are imported automatically, like with Polar, Suunto and COROS; we applied to Garmin for access on 5 November 2026.",
+         "Link your Garmin Connect account and the sessions you record with Garmin's own water sports profiles are imported automatically, like with Polar, Suunto and COROS; Garmin approved our access on 5 November 2026.",
      ]},
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
