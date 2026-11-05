@@ -427,3 +427,22 @@ def test_eigene_aufnahme_ohne_gps_bekommt_die_datei(client, garmin, monkeypatch,
          "startTimeInSeconds": int(start.timestamp()),
          "callbackURL": "https://apis.garmin.com/wellness-api/rest/activityFile?id=7"}]})
     assert (tmp_path / suuid / "garmin-connect-t1-file.fit").read_bytes() == b"TANZ-FIT"
+
+
+def test_zaehlt_als_je_profil(client, garmin, monkeypatch):
+    # Die Auswahl „zaehlt als" auf der Garmin-Karte muss gespeichert und beim Import benutzt werden (05.11.2026).
+    uid, kopf = _konto(client)
+    gid = _link(uid)
+    r = client.put("/api/settings", headers=kopf, json={"garmin_sport_je_modus": {"OTHER": "wingfoil", "X": "quatsch"}})
+    assert r.status_code == 200
+    assert client.get("/api/settings", headers=kopf).json()["garmin_sport_je_modus"] == {"OTHER": "wingfoil"}
+    monkeypatch.setattr(garmin.httpx, "get", lambda u, **k: _Antwort(content=b"FIT"))
+    import app.fitimport as fi
+    import app.api.sessions as sess
+    aufrufe = []
+    monkeypatch.setattr(fi, "parse_fit_bytes", lambda b: _parsed(datetime(2026, 11, 1, 10, 0, tzinfo=timezone.utc)))
+    monkeypatch.setattr(sess, "import_parsed_session", lambda *a, **k: aufrufe.append(k) or object())
+    client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [
+        {"userId": gid, "summaryId": "z1", "fileType": "FIT", "activityType": "OTHER",
+         "callbackURL": "https://apis.garmin.com/wellness-api/rest/activityFile?id=3"}]})
+    assert aufrufe and aufrufe[0]["sport_override"] == "wingfoil"

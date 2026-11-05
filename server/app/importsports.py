@@ -126,7 +126,7 @@ def setzen(db: Session, user_id: int, provider: str, wahl: dict[str, bool]) -> i
 # Jan: „bei polar und coros nutzen die ja einfach andere Aktivitaeten, da geht die Vorauswahl
 # genauso nicht wie bei suunto"). Pumpfoil gibt es auf keiner Uhr als Modus; wer wingfoilt, nimmt
 # irgendeinen. Der Nutzer sagt je Modus, was er dort faehrt. Leer = Standard-Sportart wie bisher.
-ZUORDNUNG_ANBIETER = ("suunto", "polar", "coros")
+ZUORDNUNG_ANBIETER = ("suunto", "polar", "coros", "garmin")   # Garmin seit 05.11.2026
 
 
 def zuordnung_schluessel(provider: str) -> str:

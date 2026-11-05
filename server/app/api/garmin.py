@@ -409,8 +409,11 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     grund = importsports.konto_import_grund(parsed)
     if grund:
         return grund
+    # „zaehlt als" je Profil (Garmin-Karte) wie bei Polar/Suunto/COROS — vorher speicherte der Server die Wahl nicht
+    # und der Import fragte sie nicht ab (05.11.2026).
     s = import_parsed_session(db, user, r.content, parsed, src_label="garmin-import", uuid_prefix="garmin-",
-                              filename="garmin.fit")   # Originaldatei als original.fit (sonst .bin)
+                              filename="garmin.fit",   # Originaldatei als original.fit (sonst .bin)
+                              sport_override=importsports.sport_fuer_modus(user, "garmin", profil))
     if s is None:
         return "schon da"
     # „Garmin [Geraet]" fuer das Uhr-Abzeichen (Markenvorgabe; sessions.import_geraet zeigt es an).
