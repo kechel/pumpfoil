@@ -337,7 +337,10 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.99",   # LIVE 2026-11-03: am Tag der Einreichung freigegeben (Jans Meldung ~16:20, echte fenix 7X Pro
+        "latest": "1.0.100",   # LIVE 2026-11-05: am Tag der Einreichung freigegeben (Jans Meldung ~19:00, aus dem Store installiert,
+        # Testsession #20208 meldet v=1.0.100, Store-Seite zeigt 1.0.100). Inhalt: Garmin-Connect-Datenwege, Pausen-Fix. .iq aus
+        # 290f4478, 222 Varianten.
+        # ALT: "latest": "1.0.99",   # LIVE 2026-11-03: am Tag der Einreichung freigegeben (Jans Meldung ~16:20, echte fenix 7X Pro
         # Token 1577 meldet v=1.0.99, Testsession #19851; Store-Seite zeigte um 16:22 noch 1.0.98). Inhalt: Enduro 4, MARQ (Gen 3),
         # Approach S72 43/47 mm neu, erster Build mit SDK 9.3.0. .iq aus 38bcd559, 222 Varianten.
         # ALT: "latest": "1.0.98",   # LIVE 2026-10-27: am Tag der Einreichung freigegeben (Jans Meldung, aus dem Store installiert,
@@ -1153,14 +1156,7 @@ NAECHSTES: list[dict] = [
          "These watches have no internet of their own and send your sessions through the Pumpfoil phone app, which needs a separate approval from Huawei; we applied for it on 4 November 2026.",
      ]},
     # Garmin Connect stand hier bis zur Freigabe fuer alle am 05.11.2026 (jetzt live, Changelog-Ereignis).
-    # 05.11.2026 (Jan: „update schonmal das changelog fuer garmin coming next"): 1.0.100 gebaut (.iq aus 290f4478),
-    # Datenwege mit Garmin-Verknuepfung + Pausen-Fix. Beim Einreichen -> IN_REVIEW.
-    {"name": "Garmin", "version": "1.0.100",
-     "items": [
-         "With Garmin Connect linked, every recording from the Pumpfoil watch app also arrives complete via Garmin, even if the direct upload gets stuck.",
-         "Watches with little memory keep recording with Garmin Connect linked, even when their storage is full.",
-         "While paused, the watch shows the pause screen again instead of 'Searching GPS', so Resume is easy to find.",
-     ]},
+    # Garmin 1.0.100 am 05.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkte im Changelog mit garmin 1.0.100.
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
      "items": [
