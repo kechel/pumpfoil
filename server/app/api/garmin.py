@@ -496,6 +496,36 @@ async def push_permissions(request: Request, db: Session = Depends(get_db)) -> d
     return {"ok": True}
 
 
+def nutzerinhalte_uebertragen(db: Session, von: models.Session, nach: models.Session) -> None:
+    """Alles, was Menschen an der Garmin-Session gemacht haben, kommt an die eigene (Jan, 05.11.2026: „das darf eigentlich
+    nie passieren, sowas muss immer uebertragen oder verknuepft gemeinsam angezeigt werden"). Die Garmin-Session ist ab
+    dem Push sichtbar, bis unser Upload fertig ist — in der Zeit kann kommentiert, geliked, ein Foto angehaengt werden.
+    Fotos/Videos mit Herkunft wie beim Zusammenfuehren (merge.py). Doppelte Likes/Stimmen desselben Nutzers bleiben an
+    der alten Zeile (gleiche Aussage, eine Unique-Grenze je Session)."""
+    from ..merge import sync_video_mirror
+    for M in (models.SessionPhoto, models.SessionVideo):
+        db.query(M).filter_by(session_id=von.id).update(
+            {M.session_id: nach.id, M.merged_from_session_id: von.id}, synchronize_session=False)
+    for M, schluessel in ((models.SessionLike, ("user_id",)), (models.SessionVote, ("user_id", "kind")),
+                          (models.SessionBewertung, ("user_id",)), (models.SessionFlag, ("user_id",))):
+        for row in db.query(M).filter_by(session_id=von.id).all():
+            gleich = db.query(M).filter_by(session_id=nach.id, **{k: getattr(row, k) for k in schluessel}).first()
+            if gleich is None:
+                row.session_id = nach.id
+    # Kommentare (Chat-Raum „session:<id>") samt Lesestand.
+    alt_raum, neu_raum = f"session:{von.id}", f"session:{nach.id}"
+    db.query(models.ChatMessage).filter_by(scope=alt_raum).update({models.ChatMessage.scope: neu_raum},
+                                                                   synchronize_session=False)
+    for st in db.query(models.ChatRoomState).filter_by(scope=alt_raum).all():
+        if db.query(models.ChatRoomState).filter_by(user_id=st.user_id, scope=neu_raum).first() is None:
+            st.scope = neu_raum
+    # Bildunterschrift: nie ueberschreiben, sondern anhaengen.
+    if von.caption and von.caption != nach.caption:
+        nach.caption = f"{nach.caption}\n\n{von.caption}" if nach.caption else von.caption
+    db.flush()
+    sync_video_mirror(db, nach)
+
+
 def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
     """Andere Reihenfolge: Garmin war schneller, jetzt schliesst unsere App die Aufnahme ab. Garmin-Importe desselben
     Nutzers zur selben Zeit werden mit ihr verknuepft: ihre Originaldatei kommt (als Kopie) an unsere Session, die
@@ -518,7 +548,10 @@ def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
             datei_anhaengen(eigene, originale[0].read_bytes(),
                             {"summaryId": g.session_uuid, "deviceName": g.device_model,
                              "von_session": g.id, "von_uuid": g.session_uuid})
+            nutzerinhalte_uebertragen(db, g, eigene)
             g.deleted = True
+            g.merged_into = eigene.id      # alte Links leiten weiter (sessions.get_session)
+            g.share_token = None
             n += 1
             log.info("garmin: Import #%s mit eigener Aufnahme #%s verknuepft (user %s)", g.id, eigene.id, eigene.user_id)
         if n:

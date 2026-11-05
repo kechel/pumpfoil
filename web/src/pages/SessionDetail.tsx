@@ -882,7 +882,15 @@ export default function SessionDetail() {
     const pg = searchParams.get("pumpgleit") === "1";
     const p = isPublic ? api.publicSession(token!) : v3 ? api.sessionV3(Number(id), v3)
       : pg ? api.sessionPumpgleit(Number(id)) : api.session(Number(id));
-    p.then(setSession).catch((e) => setError(String(e)));
+    p.then((sess) => {
+      // Verknuepft/zusammengefuehrt: der Server leitet die alte Adresse auf die neue Session weiter (05.11.2026) —
+      // dann auch die Adresszeile umstellen, sonst holen Nebenabfragen (Nachbarn, Kurven …) die alte ID.
+      if (!isPublic && sess.id && sess.id !== Number(id)) {
+        nav(`/sessions/${sess.id}${window.location.search}`, { replace: true });
+        return;
+      }
+      setSession(sess);
+    }).catch((e) => setError(String(e)));
   }, [id, token, isPublic, searchParams.get("v3"), searchParams.get("pumpgleit")]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   // Jede Änderung an der Ansicht merken — sie gilt dann auch für die nächste Session.

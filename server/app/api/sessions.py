@@ -2642,6 +2642,12 @@ def get_session(
     v3_name = v3 if (v3 and user.is_admin) else None
     # `?pumpgleit=1` (nur Admin): Pumps/Gleitphasen nach pg-1 ueberlagert, nichts gespeichert, s. pumpgleit_vorschau.py.
     pg_neu = pumpgleit == "1" and user.is_admin
+    # Zusammengefuehrt/verknuepft (merge.py, garmin.nach_eigener_aufnahme): alte Links (Benachrichtigungen, geteilte
+    # Adressen, Feed-Cache) fuehren auf die Session, in der sie jetzt steckt (05.11.2026). fetch folgt dem 307 selbst.
+    _alt = db.get(models.Session, session_id)
+    if _alt is not None and _alt.deleted and _alt.merged_into and not user.is_admin:
+        _q = f"?{request.url.query}" if request.url.query else ""
+        raise HTTPException(status.HTTP_307_TEMPORARY_REDIRECT, headers={"Location": f"/api/sessions/{_alt.merged_into}{_q}"})
     # Admin darf alles sehen (auch gelöschte) — sonst kann er Wiederherstellung nicht beurteilen.
     if user.is_admin:
         s = db.get(models.Session, session_id)

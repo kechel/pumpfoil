@@ -205,11 +205,26 @@ def test_garmin_zuerst_dann_eigene_aufnahme(client, garmin, monkeypatch, tmp_pat
     (tmp_path / guuid).mkdir(parents=True)
     (tmp_path / guuid / "original.fit").write_bytes(b"VON-GARMIN")
     sid, suuid = _eigene_session(uid, start + timedelta(minutes=2))
+    # In der Zwischenzeit haben Leute an der Garmin-Session etwas gemacht — das muss mitkommen (Jan, 05.11.2026).
+    db = SessionLocal()
+    try:
+        db.add(models.SessionLike(user_id=uid, session_id=gid_s))
+        db.add(models.SessionPhoto(session_id=gid_s, user_id=uid, url="/media/x.webp"))
+        db.add(models.ChatMessage(scope=f"session:{gid_s}", user_id=uid, text="Starke Runde!"))
+        db.get(models.Session, gid_s).caption = "Abendrunde"
+        db.commit()
+    finally:
+        db.close()
     db = SessionLocal()
     try:
         eigene = db.get(models.Session, sid)
         assert garmin.nach_eigener_aufnahme(db, eigene) == 1
-        assert db.get(models.Session, gid_s).deleted is True    # ausgeblendet …
+        g = db.get(models.Session, gid_s)
+        assert g.deleted is True and g.merged_into == sid       # ausgeblendet, zeigt auf die eigene …
+        assert db.query(models.SessionLike).filter_by(session_id=sid).count() == 1
+        assert db.query(models.SessionPhoto).filter_by(session_id=sid).one().merged_from_session_id == gid_s
+        assert db.query(models.ChatMessage).filter_by(scope=f"session:{sid}").one().text == "Starke Runde!"
+        assert db.get(models.Session, sid).caption == "Abendrunde"
     finally:
         db.close()
     assert (tmp_path / guuid / "original.fit").read_bytes() == b"VON-GARMIN"   # … ihr Ordner unangetastet
@@ -446,3 +461,22 @@ def test_zaehlt_als_je_profil(client, garmin, monkeypatch):
         {"userId": gid, "summaryId": "z1", "fileType": "FIT", "activityType": "OTHER",
          "callbackURL": "https://apis.garmin.com/wellness-api/rest/activityFile?id=3"}]})
     assert aufrufe and aufrufe[0]["sport_override"] == "wingfoil"
+
+
+def test_alte_adresse_leitet_weiter(client, garmin):
+    # Benachrichtigungen und geteilte Links auf die Garmin-Session fuehren nach dem Verknuepfen zur eigenen.
+    from app import models
+    from app.db import SessionLocal
+    uid, kopf = _konto(client)
+    start = datetime(2026, 11, 3, 9, 0, tzinfo=timezone.utc)
+    sid, _u = _eigene_session(uid, start)
+    db = SessionLocal()
+    try:
+        g = models.Session(session_uuid="garmin-" + secrets.token_hex(8), user_id=uid, started_at=start,
+                           status="analyzed", deleted=True, merged_into=sid)
+        db.add(g); db.commit()
+        gid_s = g.id
+    finally:
+        db.close()
+    r = client.get(f"/api/sessions/{gid_s}", headers=kopf, follow_redirects=False)
+    assert r.status_code == 307 and r.headers["location"] == f"/api/sessions/{sid}"
