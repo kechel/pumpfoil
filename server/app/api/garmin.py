@@ -163,13 +163,15 @@ def gueltiges_token(link: models.GarminLink, db: Session) -> str:
 @router.get("/status")
 def status_(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     link = db.query(models.GarminLink).filter_by(user_id=user.id).first()
-    rechte = (link.permissions or "").split(",") if link and link.permissions else []
+    # None = unbekannt (Abfrage beim Verbinden kam leer, s. unten) -> nicht warnen; "" = Garmin hat ausdruecklich
+    # KEINE Freigabe gemeldet (Teilen in Garmin Connect ausgeschaltet, Push vom 05.11. 13:22) -> warnen.
+    rechte = None if link is None or link.permissions is None else [r for r in link.permissions.split(",") if r]
     return {
         "available": fuer_nutzer_sichtbar(user),
         "linked": link is not None,
         "last_sync_at": link.last_sync_at.isoformat() if link and link.last_sync_at else None,
         # Hat der Nutzer in Garmin Connect das Teilen von Aktivitaeten ausgeschaltet, kommt nichts mehr an.
-        "activity_export": (not rechte) or "ACTIVITY_EXPORT" in rechte,
+        "activity_export": rechte is None or "ACTIVITY_EXPORT" in rechte,
     }
 
 
@@ -443,7 +445,8 @@ async def push_permissions(request: Request, db: Session = Depends(get_db)) -> d
         gid = str(e.get("userId") or "")
         link = db.query(models.GarminLink).filter_by(garmin_user_id=gid).first() if gid else None
         if link is not None:
-            link.permissions = ",".join(str(x) for x in (e.get("permissions") or []))[:300] or None
+            # Leere Liste ausdruecklich als "" speichern (keine Freigabe), nicht als None (unbekannt).
+            link.permissions = ",".join(str(x) for x in (e.get("permissions") or []))[:300]
     db.commit()
     return {"ok": True}
 

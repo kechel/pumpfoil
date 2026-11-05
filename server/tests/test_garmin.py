@@ -243,6 +243,9 @@ def test_deregistrierung_und_freigaben(client, garmin):
     client.post("/api/integrations/garmin/push/permissions",
                 json={"userPermissionsChange": [{"userId": gid, "permissions": ["WORKOUT_IMPORT"]}]})
     assert _link_von(uid).permissions == "WORKOUT_IMPORT"
+    client.post("/api/integrations/garmin/push/permissions",
+                json={"userPermissionsChange": [{"userId": gid, "permissions": []}]})
+    assert _link_von(uid).permissions == ""           # ausdruecklich keine Freigabe, nicht „unbekannt"
     client.post("/api/integrations/garmin/push/deregistrations", json={"deregistrations": [{"userId": gid}]})
     assert _link_von(uid) is None
 
