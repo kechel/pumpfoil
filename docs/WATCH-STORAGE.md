@@ -123,3 +123,18 @@ noch für einen Lauf" unterscheiden.
 | Puffervolumen | `watch/source/Uploader.mc` (`pendingKb`, `pendingKbCached` — 30-s-Cache) |
 | Anzeige | `watch/source/RecordView.mc` (`_drawStorageWarn`, Startscreen-Statuszeile) |
 | Texte | `Strings.mc` / `StringsLite.mc`: `err.storageSoon`, `start.bufferMin` |
+
+## Zwei Datenwege, getrennt schaltbar (05.11.2026)
+
+- **Voller Puffer startet trotzdem.** Bis 1.0.99 nahm die App bei vollem Object Store gar nicht erst auf — damit
+  schrieb die Uhr auch keine FIT-Datei. Eine nie gekoppelte Uhr (ihre Sessions bleiben fuer ein spaeteres Koppeln
+  liegen) nahm so nach ein paar Fahrten nichts mehr auf. Jetzt laeuft die Aufnahme weiter: die FIT-Datei landet in
+  Garmins Aktivitaetsspeicher und damit in Garmin Connect, auch ohne jede Verknuepfung mit uns (dann bleibt der
+  FIT-Import als Weg); unsere Roh-Bloecke scheitern still.
+- **Schalter vom Server** (`GET /api/devices/config`, nur Garmin, Regel in `devices._datenwege`, Uhr-Seite `Wege.mc`):
+  `rohAuf` (eigene Roh-Bloecke -> direkter Upload), `fitAccel` (SensorLogger schreibt die Beschleunigung in die FIT),
+  `gc` (Garmin Connect verknuepft). Speicherarme Uhren mit Garmin-Verknuepfung: eigener Weg aus, FIT-Accel an.
+  Global abschaltbar in `server/.env`: `UHR_WEG_ROH=0`, `UHR_WEG_FIT=0`, `UHR_LOWMEM_GC_NUR_FIT=0`. Fehlen die Schalter
+  (alter Server, nie gekoppelt), gilt das bisherige Verhalten.
+- **Vor der Einreichung pruefen:** langer Lauf auf einer 96-KB-Uhr (Instinct 2) mit `fitAccel` — kostet der
+  SensorLogger dort Heap? (Spitze 89/92 KB gemessen.) Und eine Aufnahme bei absichtlich vollem Puffer.

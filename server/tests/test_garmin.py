@@ -480,3 +480,29 @@ def test_alte_adresse_leitet_weiter(client, garmin):
         db.close()
     r = client.get(f"/api/sessions/{gid_s}", headers=kopf, follow_redirects=False)
     assert r.status_code == 307 and r.headers["location"] == f"/api/sessions/{sid}"
+
+
+def test_datenwege_der_uhr(client, garmin, monkeypatch):
+    # Zwei Wege getrennt schaltbar (05.11.2026): speicherarme Uhr + Garmin Connect -> eigener Roh-Weg aus, FIT-Accel an.
+    from app.api import devices
+    from app.db import SessionLocal
+    from app import models
+    uid, _ = _konto(client)
+    db = SessionLocal()
+    try:
+        dev = models.DeviceToken(user_id=uid, label="instinct", token=secrets.token_hex(16), platform="garmin")
+        db.add(dev); db.commit()
+        ohne = devices._datenwege(db, dev, memtot=92, minimal=1)
+        assert ohne == {"gc": False, "rohAuf": True, "fitAccel": False}           # wie bisher
+        assert devices._datenwege(db, dev, memtot=763, minimal=None)["fitAccel"] is True
+        _link(uid)
+        mit = devices._datenwege(db, dev, memtot=92, minimal=1)
+        assert mit == {"gc": True, "rohAuf": False, "fitAccel": True}
+        assert devices._datenwege(db, dev, memtot=763, minimal=None) == {"gc": True, "rohAuf": True, "fitAccel": True}
+        monkeypatch.setenv("UHR_LOWMEM_GC_NUR_FIT", "0")
+        assert devices._datenwege(db, dev, memtot=92, minimal=1) == {"gc": True, "rohAuf": True, "fitAccel": False}
+        monkeypatch.setenv("UHR_WEG_FIT", "0")
+        monkeypatch.setenv("UHR_WEG_ROH", "0")
+        assert devices._datenwege(db, dev, memtot=763, minimal=None) == {"gc": True, "rohAuf": False, "fitAccel": False}
+    finally:
+        db.close()

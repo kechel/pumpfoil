@@ -1024,6 +1024,7 @@ class SessionRecorder {
             v = data["activityType"];
             if (v instanceof Lang.String) { activityType = v; _store("activity_type", v); }
             _applyStorageBudget(data);
+            Wege.merken(data);
             if (crashPending) {
                 crashPending = false;
                 try { Storage.deleteValue("crash_pend"); } catch (e4) { }
@@ -1205,6 +1206,7 @@ class SessionRecorder {
             // Wert-Skalen der Layout-Grafiken (nur (:layouts)-Builds; in LITE/ENG ein No-Op).
             _applyScales(data);
             _applyStorageBudget(data);
+            Wege.merken(data);
             // Dynamische Layouts (nur (:layouts)-Builds; in LITE/ENG ist das ein No-Op).
             _layoutsFromConfig(data);
             // Canary-Meldung ist beim Server angekommen (wir sind im Erfolgspfad) -> erledigt.
@@ -1361,7 +1363,7 @@ class SessionRecorder {
         _gZ = [[], [], 0, 0, 0, 0, (gsp instanceof Lang.Boolean) && gsp, false, [], 0, {}, 0, 0, 0];
         _registerSession();
         _saveState(false);
-        if (storageFull) { return; }
+        // Auch bei vollem Object-Store aufnehmen (05.11.2026), s. Vollfassung unten.
         runMark(PHASE_RECORD);
         _foiling = false; _enterStreak = 0; _exitStreak = 0; _runCount = 0;
         _runEndedMs = -100000;
@@ -1381,6 +1383,13 @@ class SessionRecorder {
             if (owSub != null) { sessOpts[:subSport] = owSub; }
         } else {
             if (Activity has :SPORT_SURFING) { sessOpts[:sport] = Activity.SPORT_SURFING; }
+        }
+        // Beschleunigung nur in die FIT, wenn der Server es schaltet (Garmin-Verknuepfung, Wege.mc) — der Lite-Build
+        // selbst puffert weiter keinen Accel.
+        _sensorLogger = null;
+        if (Wege.fitAccel(false) && Toybox has :SensorLogging) {
+            try { _sensorLogger = new SensorLogging.SensorLogger({:accelerometer => {:enabled => true}}); } catch (e) { _sensorLogger = null; }
+            if (_sensorLogger != null) { sessOpts[:sensorLogger] = _sensorLogger; }
         }
         _fitSession = null;
         try {
@@ -1448,8 +1457,11 @@ class SessionRecorder {
         _syncTickCounter = 0;
         _registerSession();
         _saveState(false);
-        // Object-Store voll? -> gar nicht erst starten (kein Crash), UI zeigt Hinweis.
-        if (storageFull) { return; }
+        // Object-Store voll: TROTZDEM aufnehmen (05.11.2026). Frueher hiess es hier „gar nicht erst starten (kein
+        // Crash)" — dann schrieb die Uhr auch keine FIT-Datei, und eine nie gekoppelte Uhr (Puffer nach ein paar Fahrten
+        // voll) nahm gar nichts mehr auf, auch nichts fuer Garmin Connect. Die FIT-Session liegt in Garmins eigenem
+        // Aktivitaetsspeicher und kommt ueber die Garmin-Verknuepfung vollstaendig an; unsere Roh-Chunks scheitern
+        // still in `_store` (seit 1.0.92 faengt jeder Schreibzugriff StorageFullException ab), die UI zeigt den Hinweis.
         _armCanary();
         runMark(PHASE_RECORD);
         // Lauferkennung zurücksetzen.
@@ -1469,7 +1481,9 @@ class SessionRecorder {
         var gpsOnly = recordMode.equals("gps") || _isLowMem();
         _accelHz = recordMode.equals("lite") ? ACCEL_HZ_LITE : ACCEL_HZ;
         var logger = null;
-        if (!gpsOnly && Toybox has :SensorLogging) {
+        // Beschleunigung in die FIT: bisher nur ohne gpsOnly; jetzt entscheidet der Server (Wege.fitAccel), Standard
+        // wie bisher. Speicherarme Uhren mit Garmin-Verknuepfung bekommen sie so ueber Garmin Connect (05.11.2026).
+        if (Wege.fitAccel(!gpsOnly) && Toybox has :SensorLogging) {
             try {
                 logger = new SensorLogging.SensorLogger({:accelerometer => {:enabled => true}});
             } catch (e) {
@@ -1687,6 +1701,8 @@ class SessionRecorder {
     // eine Exception -> wir fangen sie ab (kein „IQ!"-Crash), merken storageFull und melden
     // es der UI. So gehen schlimmstenfalls die jüngsten Sekunden verloren statt der App.
     hidden function _store(key, value) {
+        // Eigener Roh-Weg vom Server abgeschaltet (Wege.mc): so tun, als waere geschrieben — die Aufnahme laeuft weiter.
+        if (!Wege.rohAuf() && Wege.istRohSchluessel(key)) { return true; }
         try {
             Storage.setValue(key, value);
             return true;

@@ -679,6 +679,8 @@ def device_config(
         "layoutsOn": layouts_on,
         **layout_block,
         **_suunto_standard(device, p, settings),
+        # Zwei Datenwege der Garmin-App, getrennt schaltbar (Jan, 05.11.2026), s. `_datenwege`.
+        **(_datenwege(db, device, memtot, minimal) if is_garmin else {}),
     }
     # Sportart-Wahl an der Uhr (19.10.2026, Stand-Buch: sport_auf_uhr): NUR fuer Uhren, die mit
     # `sp=1` fragen — ausgelieferte Apps (Garmin mit wenig Speicher!) bekommen kein Byte mehr.
@@ -695,7 +697,43 @@ def device_config(
 # auf Uhren mit ~7 KB Luft, die genau auf dem Startbildschirm abstuerzten. Die Auswertung oben laeuft
 # trotzdem ganz (Version, Part-Number, Absturz-/Speichermeldung werden gespeichert).
 MINIMAL_KEYS = ("autoStart", "gpsSparen", "gnssMode", "stopMode", "activityType",
-                "storageBudgetKb", "latestVersion")
+                "storageBudgetKb", "latestVersion", "gc", "rohAuf", "fitAccel")
+
+
+# --- Datenwege der Garmin-App (Jan, 05.11.2026) ----------------------------------------------------------------
+# Weg 1 „roh": unsere eigenen Roh-Bloecke im Object Store der Uhr -> direkter Upload (frueh sichtbar, schon waehrend der
+#   Fahrt). Weg 2 „fit": der SensorLogger schreibt die Beschleunigung in die FIT-Datei, die ueber Garmin Connect kommt
+#   (bis 100 Hz). Mit Garmin-Verknuepfung ist Weg 2 vollstaendig — auf speicherarmen Uhren (Puffer 160-430 KB, nach ein
+#   paar Fahrten voll) schalten wir dann Weg 1 ab und Weg 2 ein (dort lief der SensorLogger bisher gar nicht).
+# Global ueber server/.env schaltbar, spaeter auch je Nutzer denkbar — die Uhr befolgt nur `rohAuf`/`fitAccel`/`gc`.
+#   UHR_WEG_ROH=0          eigene Roh-Aufzeichnung ueberall aus
+#   UHR_WEG_FIT=0          SensorLogger (Beschleunigung in der FIT) ueberall aus
+#   UHR_LOWMEM_GC_NUR_FIT=0  speicherarme Uhren mit Garmin-Verknuepfung behalten Weg 1 und bekommen Weg 2 nicht dazu
+# Speicherarm wie auf der Uhr (`_isLowMem`: totalMemory <= 100000 Byte) bzw. der Minimal-Recorder (min=1).
+LOWMEM_KB = 97
+
+
+def _schalter(name: str, standard: bool = True) -> bool:
+    w = os.environ.get(name)
+    return standard if w is None or w.strip() == "" else w.strip() not in ("0", "false", "aus", "no")
+
+
+def garmin_connect_aktiv(db: Session, user_id: int) -> bool:
+    """Garmin Connect verknuepft und das Teilen von Aktivitaeten nicht ausdruecklich aus ("" = keine Freigabe)."""
+    link = db.query(models.GarminLink).filter_by(user_id=user_id).first()
+    return link is not None and link.permissions != "" and (link.permissions is None or "ACTIVITY_EXPORT" in link.permissions)
+
+
+def _datenwege(db: Session, device: models.DeviceToken, memtot: int | None, minimal: int | None) -> dict:
+    gc = garmin_connect_aktiv(db, device.user_id)
+    lowmem = minimal == 1 or (memtot is not None and memtot <= LOWMEM_KB)
+    nur_fit = gc and lowmem and _schalter("UHR_LOWMEM_GC_NUR_FIT")
+    return {
+        "gc": gc,
+        "rohAuf": _schalter("UHR_WEG_ROH") and not nur_fit,
+        # Ohne Verknuepfung wie bisher: SensorLogger nur auf Uhren mit genug Speicher.
+        "fitAccel": _schalter("UHR_WEG_FIT") and (not lowmem or nur_fit),
+    }
 
 
 @router.get("/config-kompakt", response_class=PlainTextResponse)
