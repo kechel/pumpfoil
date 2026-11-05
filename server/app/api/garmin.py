@@ -56,20 +56,10 @@ API = "https://apis.garmin.com"
 # Nur von hier wird geladen (Download-Adressen aus Push-Nachrichten).
 DOWNLOAD_HOST = "apis.garmin.com"
 
-# Profile, die automatisch importiert werden: Wassersport und Kiteboarding (Garmin-Namen ohne „_V2"/„_WS"). Der Nutzer
-# kann jedes je Modus abwaehlen (importsports, Anbieter „garmin").
-WASSERSPORT = frozenset({
-    "SURFING", "KITEBOARDING", "WINDSURFING", "STAND_UP_PADDLEBOARDING", "WAKEBOARDING", "WATERSKIING",
-    "PADDLING", "KAYAKING", "ROWING", "SAILING", "BOATING", "WATER_SPORTS", "OPEN_WATER_SWIMMING",
-})
-# Garmin kennt kein Snowkite- oder Landkite-Profil (Jan, 05.11.2026: „die sollten auch zur auswahl stehen wenigstens").
-# Wer dafuer nicht Kiteboarding nimmt, nimmt ein Schnee-Profil oder „Andere". Diese stehen zur Auswahl, sind aber AUS,
-# bis der Nutzer sie einschaltet — sonst wuerde jeder Skitag eine Session. Die erste Aktivitaet eines solchen Profils
-# wird nur vorgemerkt (dann steht es in der Auswahl), nicht geladen.
-NUR_AUF_WUNSCH = frozenset({
-    "BACKCOUNTRY_SKIING", "BACKCOUNTRY_SNOWBOARDING", "SNOWBOARDING", "RESORT_SKIING", "RESORT_SKIING_SNOWBOARDING",
-    "OTHER",
-})
+# Profile: JEDES kommt, bis der Nutzer es abwaehlt (Jan, 05.11.2026: „lass uns alles speichern was kommt bis der user
+# aktiv etwas abgewaehlt hat … wer weiss als was die user alles ihre sessions tracken") — wie bei Polar, Suunto und
+# COROS (importsports). Vorher waren nur Wassersport-Profile an; dabei meldet Garmin sogar Aufnahmen unserer eigenen
+# Connect-IQ-App als OTHER. Die festen Grenzen fuer Kontoverknuepfungen bleiben (ohne GPS und vor 2026 keine Session).
 
 # Erneuern, wenn das Access-Token in weniger als dieser Zeit ablaeuft (Garmin raet zu Spielraum).
 REFRESH_VORLAUF = timedelta(minutes=15)
@@ -379,13 +369,10 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     if user is None:
         return "kein nutzer"
     # Die Profil-Auswahl entscheidet nur, ob aus Garmin eine NEUE Session wird. Gehoert die Aktivitaet zu einer eigenen
-    # Aufnahme, kommt die Datei immer dazu (05.11.2026: Garmin meldet Aufnahmen unserer Connect-IQ-App als OTHER, das
-    # ist standardmaessig aus — die Datei der ersten echten Testfahrt wurde deshalb gar nicht erst geladen).
+    # Aufnahme, kommt die Datei immer dazu, auch bei abgewaehltem Profil (05.11.2026: die Datei der ersten echten
+    # Testfahrt wurde wegen der Auswahl gar nicht erst geladen).
     grund = None
-    if profil not in WASSERSPORT and profil not in NUR_AUF_WUNSCH:
-        grund = "kein passendes profil"
-    elif not importsports.merken(db, user.id, "garmin", profil, label=profil.replace("_", " ").title(),
-                                 standard=profil in WASSERSPORT).importieren:
+    if not importsports.merken(db, user.id, "garmin", profil, label=profil.replace("_", " ").title()).importieren:
         grund = "abgewaehlt"
     eigene_vorab = _eigene_zum_eintrag(db, user.id, eintrag) if grund else None
     if grund and eigene_vorab is None:

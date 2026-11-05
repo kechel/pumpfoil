@@ -144,8 +144,8 @@ def test_push_filtert_und_importiert(client, garmin, monkeypatch):
     ]}
     r = client.post("/api/integrations/garmin/push/activity-files", json=body)
     assert r.status_code == 200
-    assert geladen == [ok]                          # nur Wassersport, nur apis.garmin.com, nur bekannte Nutzer
-    assert len(importiert) == 1 and importiert[0]["uuid_prefix"] == "garmin-"
+    assert geladen == [ok, ok]                      # jedes Profil, aber nur apis.garmin.com und nur bekannte Nutzer
+    assert len(importiert) == 2 and importiert[0]["uuid_prefix"] == "garmin-"
     assert _link_von(uid).last_sync_at is not None
 
 
@@ -324,27 +324,39 @@ def test_taeglicher_lauf_erneuert_nur_kurz_vor_ablauf(client, garmin, monkeypatc
         db.close()
 
 
-def test_schnee_profile_nur_auf_wunsch(client, garmin, monkeypatch):
+def test_jedes_profil_kommt_bis_es_abgewaehlt_ist(client, garmin, monkeypatch):
+    # Jan, 05.11.2026: „alles speichern was kommt bis der user aktiv etwas abgewaehlt hat".
     uid, kopf = _konto(client)
     gid = _link(uid)
     geladen = []
     monkeypatch.setattr(garmin.httpx, "get", lambda u, **k: geladen.append(u) or _Antwort(content=b"FIT"))
+    import app.fitimport as fi
+    import app.api.sessions as sess
+    monkeypatch.setattr(fi, "parse_fit_bytes", lambda b: _parsed(datetime(2026, 11, 1, 10, 0, tzinfo=timezone.utc)))
+    monkeypatch.setattr(sess, "import_parsed_session", lambda *a, **k: object())
     eintrag = {"userId": gid, "summaryId": "s1", "fileType": "FIT", "activityType": "BACKCOUNTRY_SKIING",
                "callbackURL": "https://apis.garmin.com/wellness-api/rest/activityFile?id=9"}
     client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [eintrag]})
-    assert geladen == []                                       # erst nur vorgemerkt, nicht geladen
+    assert len(geladen) == 1                                   # ungewoehnliches Profil kommt trotzdem
     sports = client.get("/api/integrations/garmin/sports", headers=kopf).json()["sports"]
-    ski = next(x for x in sports if x["sport_key"] == "BACKCOUNTRY_SKIING")
-    assert ski["importieren"] is False                         # steht zur Auswahl, ist aber aus
+    assert next(x for x in sports if x["sport_key"] == "BACKCOUNTRY_SKIING")["importieren"] is True
+    client.put("/api/integrations/garmin/sports", headers=kopf, json={"BACKCOUNTRY_SKIING": False})
+    client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [{**eintrag, "summaryId": "s2"}]})
+    assert len(geladen) == 1                                   # nach dem Abwaehlen nicht mehr
 
 
 def test_eigene_aufnahme_bekommt_datei_auch_bei_abgewaehltem_profil(client, garmin, monkeypatch, tmp_path):
-    # 05.11.2026: Garmin meldet Aufnahmen unserer Connect-IQ-App als OTHER (standardmaessig aus) — die Datei muss
-    # trotzdem an die eigene Aufnahme, nur eine neue Session darf daraus nicht werden.
+    # 05.11.2026: Garmin meldet Aufnahmen unserer Connect-IQ-App als OTHER. Auch wenn das abgewaehlt ist, muss die Datei
+    # an die eigene Aufnahme, nur eine neue Session darf daraus nicht werden.
     uid, _ = _konto(client)
     gid = _link(uid)
     start = datetime(2026, 11, 3, 15, 26, 9, tzinfo=timezone.utc)
     sid, suuid = _eigene_session(uid, start, minuten=17)
+    from app import importsports
+    from app.db import SessionLocal
+    db = SessionLocal()
+    importsports.merken(db, uid, "garmin", "OTHER", standard=False)   # vom Nutzer abgewaehlt
+    db.close()
     from app import storage
     monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(parents=True, exist_ok=True) or tmp_path / u)
     geladen, importiert = [], []
