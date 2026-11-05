@@ -1362,6 +1362,7 @@ class SessionRecorder {
         _gpsBuf = [];
         var gsp = Storage.getValue("gps_sparen");
         _gZ = [[], [], 0, 0, 0, 0, (gsp instanceof Lang.Boolean) && gsp, false, [], 0, {}, 0, 0, 0];
+        Wege.beiStart();
         _registerSession();
         _saveState(false);
         // Auch bei vollem Object-Store aufnehmen (05.11.2026), s. Vollfassung unten.
@@ -1427,6 +1428,7 @@ class SessionRecorder {
             try { _fitSession.stop(); _fitSession.save(); } catch (e) {}
             _fitSession = null;
         }
+        Wege.beiStop();
     }
 
     (:full) function start() {
@@ -1456,6 +1458,7 @@ class SessionRecorder {
         // _hasGpsFix NICHT zurücksetzen: GPS läuft seit App-Start vorgewärmt weiter. Ob er noch
         // FRISCH ist, sagt hasGpsFix() (s. gpsPoor) — sonst „GPS suchen" mitten in der Aufnahme.
         _syncTickCounter = 0;
+        Wege.beiStart();
         _registerSession();
         _saveState(false);
         // Object-Store voll: TROTZDEM aufnehmen (05.11.2026). Frueher hiess es hier „gar nicht erst starten (kein
@@ -1596,6 +1599,7 @@ class SessionRecorder {
         // könnte fehlschlagen/abstürzen -> Risiko für die gerade aufgenommene Session.
         // Daten liegen sicher in Storage; hochgeladen wird erst beim nächsten App-Start
         // bzw. manuell über Einstellungen -> Upload/Sync.
+        Wege.beiStop();
     }
 
     // Aufnahme VERWERFEN (Phase-2-Halten, 6 s): stoppen OHNE zu speichern/hochladen und
@@ -1617,6 +1621,7 @@ class SessionRecorder {
             _fitSession = null;
         }
         stopped = false;   // kein „Gespeichert"-Screen -> zurück zum Start-Screen
+        Wege.beiStop();
     }
 
     function isPaused() { return _paused; }

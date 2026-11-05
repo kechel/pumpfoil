@@ -11,6 +11,7 @@ using Toybox.Lang;
 // Eigenes Modul statt neuer Felder in SessionRecorder: dort steht der 128-KB-Build an der Grenze von 253 Membern.
 module Wege {
     var _roh = null;   // Cache, weil `istRohSchluessel` bei jedem Schreibzugriff gefragt wird
+    var _laeuft = false;   // waehrend einer Aufnahme bleibt `rohAuf` fest (s. beiStart)
 
     function merken(data) {
         var schluessel = ["gc", "rohAuf", "fitAccel"];
@@ -20,14 +21,19 @@ module Wege {
                 try { Storage.setValue("w_" + k, data[k]); } catch (e) { }
             }
         }
-        _roh = null;
+        if (!_laeuft) { _roh = null; }   // neuer Wert gilt ab der naechsten Aufnahme
     }
+
+    // `rohAuf` fuer die ganze Aufnahme festhalten: ein Konfigurationsabruf mitten in der Fahrt darf den Weg nicht
+    // umschalten — sonst halbe Sessions (an -> aus) oder Bloecke ohne Session im Flash (aus -> an).
+    function beiStart() { _roh = null; rohAuf(); _laeuft = true; }
+    function beiStop() { _laeuft = false; _roh = null; }
 
     // Beim Entkoppeln: Schalter des alten Kontos vergessen (sonst puffert eine ungekoppelte Uhr nie wieder).
     function vergessen() {
         var schluessel = ["w_gc", "w_rohAuf", "w_fitAccel"];
         for (var i = 0; i < schluessel.size(); i++) { try { Storage.deleteValue(schluessel[i]); } catch (e) { } }
-        _roh = null;
+        if (!_laeuft) { _roh = null; }
     }
 
     function rohAuf() {
