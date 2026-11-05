@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { GarminBeidesHinweis } from "../components/GarminBeides";
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { Reiterleiste, useReiter } from "../components/Reiter";
 import { Link, useSearchParams } from "react-router-dom";
@@ -81,6 +82,7 @@ export default function Account({ eingebettet = false, stufe = 1 }: { eingebette
 
       {tab === "connect" && (
       <>
+      <GarminBeidesHinweis zu="gc" nurMitGarminUhr />
       <ClaimFromWatch />
       {FORWARD_PAIRING_SICHTBAR && <GenerateCode />}
       <PairedDevices onDownload={() => setTab("app")} />

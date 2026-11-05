@@ -24,6 +24,7 @@ import { Reiterleiste, useReiter, useWischleiste, type ReiterDef } from "../comp
 import { TeamWahl, useTeamWahl } from "../components/TeamWahl";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
+import { GarminBeidesBanner } from "../components/GarminBeides";
 import { StartHelp } from "../components/StartHelp";
 import { UploadProgressCard, UhrenLiveStatus } from "../components/UploadProgressCard";
 import { CommunityIcon, FoilIcon, SendIcon, SettingsIcon, HomeIcon, LocationIcon, SparklesIcon, WatchIcon } from "../components/Icons";
@@ -456,6 +457,7 @@ export default function PersonalHome() {
   return (
     <div className="w-full">
       <WelcomeBanner />
+      <GarminBeidesBanner />
       {/* flex-wrap: auf dem Handy rutscht der NEU-Hinweis unter die Begruessung, statt sie auf
           null Breite zu quetschen (Jan, 05.10.2026). */}
       <div className="mb-3 flex flex-wrap items-center gap-2">

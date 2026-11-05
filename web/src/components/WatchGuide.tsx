@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
 import { Reiterleiste, useReiter } from "./Reiter";
+import { GarminBeidesHinweis } from "./GarminBeides";
 import { WatchMatrix } from "./WatchMatrix";
 import { Card } from "./ui";
 import { useT } from "../i18n";
@@ -80,9 +80,6 @@ const huaweiShots = [
   { src: "/guide/huawei/upload.webp", cap: "guide.cap.aUpload" },
 ];
 
-// Garmin-Connect-Karte im eigenen Bereich (Home › Uhr & Konten › Garmin Connect).
-export const GARMIN_CONNECT_SEITE = "/?tab=uhr&ktab=garmin";
-
 export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => void; onOpenConnect?: () => void }) {
   const t = useT();
   // Hinter den Plattformen die Kompatibilitaetsliste (Jan, 02.11.2026; vorher ein Reiter eine Ebene hoeher).
@@ -114,18 +111,7 @@ export function WatchGuide({ onOpenApp, onOpenConnect }: { onOpenApp?: () => voi
           <p className="mb-2 text-sm text-slate-200">{t("guide.g.storeLead")}</p>
           <ConnectIqButton />
         </div>
-        {/* Beides verbinden (Jan, 05.11.2026): Garmin Connect bringt die vollstaendige Aufnahme (100 Hz, auch wenn der
-            direkte Upload haengt), nur die Kopplung per Code bringt Einstellungen, Foils, Layouts usw. auf die Uhr. */}
-        <div className="mt-3 rounded-xl border border-slate-700 p-3 text-sm text-slate-200">
-          <p className="mb-1.5 font-semibold">{t("guide.g.beidesTitel")}</p>
-          <ul className="list-disc space-y-1 pl-5">
-            <li><b>{t("guide.g.beides1Titel")}</b> {t("guide.g.beides1")}</li>
-            <li><b>{t("guide.g.beides2Titel")}</b> {t("guide.g.beides2")}</li>
-          </ul>
-          <Link to={GARMIN_CONNECT_SEITE} className="mt-2 inline-block font-semibold text-brand-700 hover:underline dark:text-brand-300">
-            {t("guide.g.beidesLink")} →
-          </Link>
-        </div>
+        <div className="mt-3"><GarminBeidesHinweis zu="gc" /></div>
         <p className="mt-4 text-xs font-medium text-slate-400">{t("guide.g.manualLead")}</p>
         <ol className="mt-2 space-y-3 text-sm text-slate-200">
           <li>
