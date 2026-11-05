@@ -122,8 +122,10 @@ class RecordView extends WatchUi.View {
             return;
         }
 
-        // Beim Start erst „GPS wird gesucht", dann die Ansichten (sobald Fix da ist).
-        if (!_rec.hasGpsFix()) {
+        // Beim Start erst „GPS wird gesucht", dann die Ansichten (sobald Fix da ist). NICHT in der Pause: dort ist GPS
+        // absichtlich aus, und nach 60 s ohne Position verdeckte dieser Bildschirm die ganze Pausen-Ansicht — man sah
+        // nur noch „GPS wird gesucht" und fand nicht zum Fortsetzen (Jan, 05.11.2026; seit da8cbf18 vom 25.10.).
+        if (!_rec.hasGpsFix() && !_rec.isPaused()) {
             _drawGpsSearch(dc);
             return;
         }
