@@ -906,6 +906,22 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 05.11.2026 13:00 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.60 (70),
+    # Kennung 315275cf-5e6f-4a23-bd3c-9c4fe92b4d41). Code auf der VM nur swiftc -parse, Typcheck in Jans Xcode.
+    {"name": "iPhone + Apple Watch", "version": "1.1.60",
+     "eingereicht": "2026-11-05",
+     "items": [
+         "The watch area is organised like the website: tabs for watch, Polar, COROS, Suunto, Xiaomi and MCP, and under watch the guide with a tab per platform, the settings and your watches.",
+         "The phone recorder reports its position at the first good GPS fix, so you show up as pumping right now even with live upload switched off.",
+         "The leaderboard tab shows one row with the period, region and sport for everything, then the leaderboard of the members, the team leaderboards and the records; the filters are menus and the app remembers them.",
+         "The leaderboards can be filtered by region, by the nationality of the riders and the origin of the teams, with flags in the menu.",
+         "Team leaderboards compare only the sport you pick, so teams of foil scooter riders or mixed teams are ranked fairly.",
+         "Leaderboards are shared as an image only, and their rows line up with a placeholder where a rider has no profile picture.",
+         "Profile pages show the rider's flag next to the name and the teams they belong to at the top.",
+         "Watch stats has two tabs, foiling per watch and how well the watches record.",
+         "The switch for the phone recorder is now on the settings overview right under the language, where new users look for it first.",
+         "The Huawei card in your watches is called Huawei Watch GT / Fit / D, because the Watch 5 uploads by itself and does not need it.",
+     ]},
     # EINGEREICHT 05.11.2026 (Jans Meldung, Play Console „Schnelle Vorabpruefungen … noch maximal 14 Minuten",
     # Produktion 62 (1.1.47), Produktion (Wear OS) 1058 (1.2.47), verwaltete Veroeffentlichung). Inhalt: alles seit 1.1.46
     # (Teams/Events, Reiter wie die PWA, Kommentare, Nationalitaet, Rangliste nach Oleks Entwurf mit Region, Profil mit
@@ -1091,21 +1107,7 @@ NAECHSTES: list[dict] = [
     # Garmin 1.0.99 am 03.11. eingereicht -> IN_REVIEW.
     # Huawei Watch 5 1.0.4 am 04.11. eingereicht -> IN_REVIEW.
     # Android 1.1.47 / Wear 1.2.47 am 05.11. eingereicht -> IN_REVIEW.
-    # 05.11.2026 (Jan: „ja ios alles nachziehen bitte"): alles seit dem Build von 1.1.59 (Uhren-Bereich 51401ee6/7fe14aca,
-    # Positionsmeldung a346911b, Huawei-Karte 2c742742) und vom 05.11. Code nur swiftc -parse; Typcheck in Jans Xcode.
-    {"name": "iPhone + Apple Watch", "version": "1.1.60",
-     "items": [
-         "The watch area is organised like the website: tabs for watch, Polar, COROS, Suunto, Xiaomi and MCP, and under watch the guide with a tab per platform, the settings and your watches.",
-         "The phone recorder reports its position at the first good GPS fix, so you show up as pumping right now even with live upload switched off.",
-         "The leaderboard tab shows one row with the period, region and sport for everything, then the leaderboard of the members, the team leaderboards and the records; the filters are menus and the app remembers them.",
-         "The leaderboards can be filtered by region, by the nationality of the riders and the origin of the teams, with flags in the menu.",
-         "Team leaderboards compare only the sport you pick, so teams of foil scooter riders or mixed teams are ranked fairly.",
-         "Leaderboards are shared as an image only, and their rows line up with a placeholder where a rider has no profile picture.",
-         "Profile pages show the rider's flag next to the name and the teams they belong to at the top.",
-         "Watch stats has two tabs, foiling per watch and how well the watches record.",
-         "The switch for the phone recorder is now on the settings overview right under the language, where new users look for it first.",
-         "The Huawei card in your watches is called Huawei Watch GT / Fit / D, because the Watch 5 uploads by itself and does not need it.",
-     ]},
+    # iPhone + Apple Watch 1.1.60 am 05.11. eingereicht -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.59 am 04.11. EINGEREICHT -> IN_REVIEW.
     # Android 1.1.46 / Wear 1.2.46 am 28.10. eingereicht (ersetzt 1.1.45) -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.56 am 24.10. eingereicht -> IN_REVIEW.
