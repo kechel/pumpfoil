@@ -500,10 +500,12 @@ def test_datenwege_der_uhr(client, garmin, monkeypatch):
         assert mit == {"gc": True, "rohGps": False, "rohAccel": False, "fitAccel": True}
         assert devices._datenwege(db, dev, memtot=763, minimal=None) == {"gc": True, "rohGps": True, "rohAccel": True,
                                                                           "fitAccel": True}
-        monkeypatch.setenv("UHR_DUENN_NUTZER", f"999999,{uid}")              # Test nur fuer dieses Konto
-        assert devices._datenwege(db, dev, memtot=763, minimal=None)["rohGps"] is False
-        monkeypatch.setenv("UHR_DUENN_NUTZER", "999999")
+        monkeypatch.setenv("UHR_WEGE_NUTZER", '{"%d": {"rohGps": false}, "999999": {"rohAccel": false}}' % uid)
+        w = devices._datenwege(db, dev, memtot=763, minimal=None)      # nur dieses Konto, nur dieser Schalter
+        assert w["rohGps"] is False and w["rohAccel"] is True and w["fitAccel"] is True
+        monkeypatch.setenv("UHR_WEGE_NUTZER", "kaputt")
         assert devices._datenwege(db, dev, memtot=763, minimal=None)["rohGps"] is True
+        monkeypatch.delenv("UHR_WEGE_NUTZER")
         monkeypatch.setenv("UHR_LOWMEM_GC_NUR_FIT", "0")
         assert devices._datenwege(db, dev, memtot=92, minimal=1) == {"gc": True, "rohGps": True, "rohAccel": True,
                                                                       "fitAccel": False}

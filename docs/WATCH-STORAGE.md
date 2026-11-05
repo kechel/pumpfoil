@@ -138,7 +138,8 @@ beim alten Verhalten. Mit Verknuepfung (`GET /api/devices/config`, Regel `device
 - Speicherarme Uhren (<= 97 KB bzw. Minimal-Recorder) mit Verknuepfung: `rohGps`/`rohAccel` aus, `fitAccel` an.
   Die Roh-Schalter gelten fest fuer eine ganze Aufnahme; beim Entkoppeln vergisst die Uhr sie.
 - Global abschaltbar in `server/.env`: `UHR_WEG_ROH_GPS=0`, `UHR_WEG_ROH_ACCEL=0`, `UHR_WEG_FIT=0`,
-  `UHR_LOWMEM_GC_NUR_FIT=0` (speicherarme Uhren behalten dann das alte Verhalten).
+  `UHR_LOWMEM_GC_NUR_FIT=0` (speicherarme Uhren behalten dann das alte Verhalten). Tests NUR je Konto:
+  `UHR_WEGE_NUTZER={"2": {"rohGps": false, "rohAccel": false}}` (je Schalter, nicht genannte folgen der Regel).
 - **Vor der Einreichung pruefen:** langer Lauf auf einer 96-KB-Uhr (Instinct 2) mit Verknuepfung — kostet der
   SensorLogger dort Heap? (Spitze 89/92 KB gemessen.) Kommt die FIT mit Beschleunigung an, geht die duenne Session
   darin auf? Und eine Aufnahme bei absichtlich vollem Puffer.
