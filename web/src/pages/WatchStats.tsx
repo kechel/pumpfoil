@@ -5,7 +5,8 @@ import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { usePumpFmt } from "../lib/pumpRate";
 import { Card, Spinner } from "../components/ui";
-import { ChevronIcon, WatchIcon, FoilIcon } from "../components/Icons";
+import { WatchIcon, FoilIcon } from "../components/Icons";
+import { Reiterleiste, useReiter } from "../components/Reiter";
 import { useSort, SortHead } from "../components/SortableTable";
 import { useT } from "../i18n";
 
@@ -62,8 +63,7 @@ function Uhrenqualitaet({ d, suche }: { d: Qualitaet; suche: string }) {
     .sort((a, b) => b.sessions - a.sessions);
 
   return (
-    <section id="wie-gut" className="mt-10 scroll-mt-24">
-      <h3 className="mb-1 text-lg font-bold">{t("watchQuality.title")}</h3>
+    <section id="wie-gut">
       <p className="mb-2 text-sm text-slate-400">
         {t("watchQuality.lead", { sessions: String(d.sessions ?? 0), hours: String(d.stunden ?? 0),
                                   date: d.stand })}
@@ -151,14 +151,15 @@ export default function WatchStats() {
   useEffect(() => { api.watchStats().then(setRows).catch(() => setRows([])); }, []);
   useEffect(() => { api.watchQuality().then(setQualitaet).catch(() => setQualitaet(null)); }, []);
 
-  // Weicher Sprung statt Sprung mit Ruck; der href bleibt stehen, damit Mittelklick und
-  // Tastatur weiter funktionieren.
-  const zurQualitaet = (e: React.MouseEvent) => {
-    const ziel = document.getElementById("wie-gut");
-    if (!ziel) return;
-    e.preventDefault();
-    ziel.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+  // Die beiden Abschnitte als Reiter (Jan, 05.11.2026: „mach mal in watch stats die beiden abschnitte auch in tabs");
+  // bis dahin untereinander mit einem Sprunglink nach unten. Der zweite Reiter nur, wenn es Qualitaets-Zahlen gibt.
+  const mitQualitaet = !!qualitaet?.modelle?.length;
+  const reiter = [
+    { id: "foiling", label: t("watchStats.sectionFoiling") },
+    ...(mitQualitaet ? [{ id: "qualitaet", label: t("watchQuality.title") }] : []),
+  ];
+  const [tab, setTab] = useReiter("watchstats", ["foiling", "qualitaet"], "foiling", { merken: true });
+  const aktiv = tab === "qualitaet" && mitQualitaet ? "qualitaet" : "foiling";
 
   return (
     <div className="w-full">
@@ -171,30 +172,20 @@ export default function WatchStats() {
       </div>
       <p className="mb-3 text-sm text-slate-300">{t("watchStats.hint")}</p>
 
-      {/* Suche links, Sprunglink rechts. EIN Suchfeld fuer beide Tabellen (Jan, 20.09.): sie
-          zeigen dieselben Uhren aus zwei Blickwinkeln. Auf dem Handy bricht die Zeile um, der
-          Link rutscht unter das Feld. */}
+      {/* Reiter, darunter EIN Suchfeld fuer beide Tabellen (Jan, 20.09.): sie zeigen dieselben Uhren aus zwei
+          Blickwinkeln, die Suche bleibt beim Reiterwechsel stehen. */}
+      <Reiterleiste reiter={reiter} aktiv={aktiv} onWahl={setTab} />
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <input
           type="search" value={suche} onChange={(e) => setSuche(e.target.value)}
           placeholder={t("watchStats.search")} aria-label={t("watchStats.search")}
           className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 sm:w-64"
         />
-        {qualitaet?.modelle?.length ? (
-          <a href="#wie-gut" onClick={zurQualitaet}
-            className="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:underline dark:text-brand-300 sm:ml-auto">
-            <ChevronIcon className="h-4 w-4 rotate-90" />
-            {t("watchStats.scrollTo")} {t("watchQuality.title")}
-          </a>
-        ) : null}
       </div>
 
-      {/* Zwei Abschnitte, zwei Ueberschriften (Jan, 20.09.: „watch stats sind beide abschnitte,
-          oben foiling per watch unten rekording per watch"). Die Seitenueberschrift bleibt die
-          Klammer darueber. */}
-      <h3 className="mb-2 text-lg font-bold">{t("watchStats.sectionFoiling")}</h3>
-
-      {!rows ? (
+      {/* Zwei Abschnitte (Jan, 20.09.: „foiling per watch" und „rekording per watch"), seit 05.11.2026 als Reiter;
+          die Reiter tragen die Ueberschriften. */}
+      {aktiv === "qualitaet" ? <Uhrenqualitaet d={qualitaet} suche={suche} /> : !rows ? (
         <Spinner />
       ) : rows.length === 0 ? (
         <Card className="p-8 text-center text-slate-300">{t("watchStats.none")}</Card>
@@ -232,8 +223,6 @@ export default function WatchStats() {
           </table>
         </div>
       )}
-
-      <Uhrenqualitaet d={qualitaet} suche={suche} />
     </div>
   );
 }
