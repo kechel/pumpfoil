@@ -106,6 +106,13 @@ const CACHE_SCHWELLE_MS = 400;
 
 const MIN_BAND_FAHRER = 3;
 
+// Filter der Rangliste merkt sich der Browser (Jan, 05.11.2026: „ja browser soll sich alle merken bitte"). Nur Komfort:
+// ohne Speicher (privates Fenster) gelten die Voreinstellungen. Eine Wahl in der Adresse geht immer vor, damit ein
+// geteilter Link genau seine Ansicht zeigt. Den Zeitraum bewusst NICHT, sonst greift die Automatik „Heute, sobald heute
+// zehn Plaetze belegt sind" nie mehr.
+const gemerkt = (k: string) => { try { return localStorage.getItem(k); } catch { return null; } };
+const merken = (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* egal */ } };
+
 // „Heute" zuerst, dann „Gestern" (Jan, 03.11.2026: „ueberall bitte zuerst Heute"; am 02.11. stand Gestern vorn);
 // der Server begrenzt „Gestern" auch nach oben.
 export const PERIODS: [string, string][] = [
@@ -650,8 +657,8 @@ function CommunitySection() {
   const [sp, setSp] = useSearchParams();
   const setzeParam = (k: string, v: string, standard: string) =>
     setSp((alt) => { const n = new URLSearchParams(alt); v === standard ? n.delete(k) : n.set(k, v); return n; }, { replace: true });
-  const sport = sp.get("sport") || "pumpfoil";
-  const setSport = (v: string) => setzeParam("sport", v, "pumpfoil");
+  const sport = sp.get("sport") || gemerkt("foil_komm_sport") || "pumpfoil";
+  const setSport = (v: string) => { merken("foil_komm_sport", v); setzeParam("sport", v, "pumpfoil"); };
   const [sports, setSports] = useState<{ sport: string; runs: number }[]>([]);
   // Ohne Wahl in der Adresse: „Heute", sobald heute alle 10 Plaetze der Bestenliste besetzt sind (Vorschlag eines
   // Team-Kapitaens, 02.11.2026 — „wenn heute mit heute uebereinstimmt, wirkt die Seite gepflegt"), sonst 10 Tage.
@@ -660,12 +667,16 @@ function CommunitySection() {
   const setPeriod = (v: string) => setSp((alt) => { const n = new URLSearchParams(alt); n.set("period", v); return n; }, { replace: true });
   // nur Accel (präzise) vs. auch GPS-only (mit erkanntem On-Foil). Default smart:
   // accel, wenn der Nutzer Accel-Daten hat, sonst alle.
-  const [accelWahl, setAccelOnly] = useAccelDefault();
+  // accel/alle/Freunde gemerkt als eines von drei Woertern; ohne Merker entscheidet useAccelDefault wie bisher.
+  const genauGemerkt = gemerkt("foil_komm_genau");
+  const [accelWahl, setAccelOnlyRoh] = useAccelDefault(true, genauGemerkt === "accel" ? true : genauGemerkt === "alle" ? false : undefined);
   // Dritte Taste „Freunde" (Jan, 15.10.2026): die GANZE Seite nur ueber mich + meine Freunde —
   // Rekorde, Medien, Ranglisten, Spots. Wie „alle" (auch GPS-only), nur eingegrenzt; der Filter
   // sitzt im Server (`_community`), hier wird er nur beim RENDERN eingeschaltet, damit auch die
   // Effekte der Kinder (die vor denen dieser Komponente laufen) ihn schon sehen.
-  const [freunde, setFreunde] = useState(false);
+  const [freunde, setFreundeRoh] = useState(genauGemerkt === "freunde");
+  const setFreunde = (v: boolean) => { if (v) merken("foil_komm_genau", "freunde"); setFreundeRoh(v); };
+  const setAccelOnly = (v: boolean) => { merken("foil_komm_genau", v ? "accel" : "alle"); setAccelOnlyRoh(v); };
   const accelOnly = accelWahl && !freunde;
   setFreundeAnsicht(freunde);
   useEffect(() => () => setFreundeAnsicht(false), []);
@@ -680,8 +691,8 @@ function CommunitySection() {
   // Die Bänder samt Session- und Fahrerzahl kommen vom Server (s. /api/community/foil-bands),
   // damit hier keine Grenzen fest verdrahtet sind und die Oberfläche dünne Gruppen ausblenden kann.
   const [bands, setBands] = useState<FoilBand[]>([]);
-  const bandKey = sp.get("band") || "all";
-  const setBandKey = (v: string) => setzeParam("band", v, "all");
+  const bandKey = sp.get("band") || gemerkt("foil_komm_band") || "all";
+  const setBandKey = (v: string) => { merken("foil_komm_band", v); setzeParam("band", v, "all"); };
   const band = bands.find((b) => b.key === bandKey);
   // Alles, was den Inhalt der Rekorde aendert — wechselt eines davon, sind die gemerkten
   // Zeitraeume wertlos. Die Sportart gehoert ausdruecklich dazu (Jan, 16.09.2026).
@@ -758,10 +769,14 @@ function CommunitySection() {
   // (Jan: „nur die mit mind. einem lauf all time"). Steht seit 05.11.2026 oben neben dem Zeitraum und gilt fuer beide
   // Bestenlisten und die Kacheln (Jan: „es soll halt jeweils immer nur die gleiche sportart verglichen werden").
   // NICHT fuer „Neueste Medien", „Am besten bewertet" und die Uhr-Layouts: die kommen absichtlich immer aus allen Sportarten.
-  const sportAuswahl = sports.length > 1 && (
+  // Die gewaehlte Sportart steht immer zur Wahl, auch wenn die Liste sie nicht enthaelt: mit gemerktem „Freunde" kommt
+  // die Liste nur aus deren Laeufen, und sonst saesse man auf einer Sportart fest, ohne das Feld zu sehen (05.11.2026).
+  // Pumpfoil (die Voreinstellung) ebenso, damit man zurueckkommt.
+  const sportListe = [...sports, ...[...new Set(["pumpfoil", sport])].filter((x) => !sports.some((y) => y.sport === x)).map((x) => ({ sport: x, runs: 0 }))];
+  const sportAuswahl = (sportListe.length > 1) && (
     <select value={sport} onChange={(e) => setSport(e.target.value)}
       className="ml-auto max-w-[14rem] truncate rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm font-medium text-slate-100">
-      {sortiereNachSport(sports, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
+      {sortiereNachSport(sportListe, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
     </select>
   );
   // Filter, die nur fuer die Mitglieder-Bestenliste und die Kacheln gelten (Oleks Entwurf, 05.11.2026): dieselben wie
@@ -912,8 +927,12 @@ const VERGLEICH_ARTEN: [TeamVergleichKennzahl, string][] = [
 // (`period`, eine Zeile fuer die ganze Seite), Kennzahl und „Beste N" als Auswahlfelder, Zeilen wie bei den Mitgliedern.
 function TeamBestenlisten({ period, sport, titel }: { period: string; sport: string; titel: string }) {
   const t = useT();
-  const [top, setTop] = useState(5);
-  const [art, setArt] = useState<TeamVergleichKennzahl>("pumps");
+  // Kennzahl und „Beste N" merkt sich der Browser wie die Filter der Mitglieder (05.11.2026).
+  const [top, setTopRoh] = useState(() => { const n = Number(gemerkt("foil_team_top")); return [3, 5, 10].includes(n) ? n : 5; });
+  const [art, setArtRoh] = useState<TeamVergleichKennzahl>(() => {
+    const a = gemerkt("foil_team_art"); return VERGLEICH_ARTEN.some(([k]) => k === a) ? a as TeamVergleichKennzahl : "pumps"; });
+  const setTop = (n: number) => { merken("foil_team_top", String(n)); setTopRoh(n); };
+  const setArt = (a: TeamVergleichKennzahl) => { merken("foil_team_art", a); setArtRoh(a); };
   const [d, setD] = useState<TeamVergleich | null>(null);
   const [bild, setBild] = useState(false);
   // Eigene Teams fuer die Hervorhebung im Bild (04.11.2026).
