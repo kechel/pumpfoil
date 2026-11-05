@@ -49,9 +49,11 @@ object Ingest {
     suspend fun analyze(uuid: String): Unit = withContext(Dispatchers.IO) {
         post("/api/ingest/session/$uuid/analyze", "{}"); Unit
     }
-    suspend fun complete(uuid: String, endedAt: String, totalChunks: Int): Unit = withContext(Dispatchers.IO) {
-        post("/api/ingest/session/$uuid/complete",
-            JSONObject().put("ended_at", endedAt).put("total_chunks", totalChunks).toString()); Unit
+    /** `messweg`: Diagnose des Handy-Recorders (GPS-Luecken, Energiesparen), s. GpsSparen. */
+    suspend fun complete(uuid: String, endedAt: String, totalChunks: Int, messweg: JSONObject? = null): Unit = withContext(Dispatchers.IO) {
+        val body = JSONObject().put("ended_at", endedAt).put("total_chunks", totalChunks)
+        if (messweg != null) body.put("messweg", messweg)
+        post("/api/ingest/session/$uuid/complete", body.toString()); Unit
     }
 
     /** GET mit Geraete-Token (Suunto-Bruecke: /devices/config?p=suunto nach dem Minten). */

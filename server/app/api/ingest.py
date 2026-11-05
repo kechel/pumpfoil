@@ -648,8 +648,14 @@ def complete_session(
         s.hr_source = body.hr_source[:16]
     if body.messweg:
         # Nur bekannte, kleine Felder — die Uhr schickt hier Diagnose, keinen Freitext.
-        mw = {k: body.messweg[k] for k in ("gps", "gps_neu", "gps_wechsel", "accel", "puls_neu", "puls_ende", "wach")
+        # gps_aus_s / gps_aus_max_s / gps_spar: Handy-Recorder ab 1.1.47 (GPS-Luecken in Sekunden, Ortungsmodus
+        # des Energiesparens; -1 fehlt = Energiesparen aus) — Befund 04.11.2026, android GpsSparen.kt.
+        mw = {k: body.messweg[k] for k in ("gps", "gps_neu", "gps_wechsel", "accel", "puls_neu", "puls_ende", "wach",
+                                           "gps_aus_s", "gps_aus_max_s", "gps_spar")
               if k in body.messweg}
+        for k in ("gps_aus_s", "gps_aus_max_s", "gps_spar"):
+            if k in mw and not (isinstance(mw[k], int) and not isinstance(mw[k], bool) and -1 <= mw[k] <= 86400):
+                del mw[k]
         if isinstance(mw.get("gps_wechsel"), str):
             mw["gps_wechsel"] = mw["gps_wechsel"][:60]
         if isinstance(mw.get("puls_ende"), str):

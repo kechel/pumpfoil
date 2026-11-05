@@ -111,10 +111,14 @@ fun RecordScreen(onBack: () -> Unit) {
     var gpsReady by remember { mutableStateOf(false) }
     // „GPS bereit" nur mit frischem Fix (10 s) — blieb sonst stehen, wenn keine Positionen mehr kamen (25.10.2026).
     var gpsReadyMs by remember { mutableStateOf(0L) }
+    // Energiesparen an? (s. GpsSparen) Sekuendlich nachsehen — wer es in den Einstellungen abschaltet und
+    // zurueckkommt, soll die Warnung sofort verschwinden sehen.
+    var sparen by remember { mutableStateOf(GpsSparen.an(ctx)) }
     LaunchedEffect(Unit) {
         while (true) {
             kotlinx.coroutines.delay(1000)
             if (gpsReady && android.os.SystemClock.elapsedRealtime() - gpsReadyMs > 10_000) gpsReady = false
+            sparen = GpsSparen.an(ctx)
         }
     }
 
@@ -236,6 +240,10 @@ fun RecordScreen(onBack: () -> Unit) {
                     Text(I18n.t("rec.gpsHint"),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (sparen) {
+                        Spacer(Modifier.height(16.dp))
+                        SparenWarnung(onOeffnen = { GpsSparen.einstellungenOeffnen(ctx) })
+                    }
                     Spacer(Modifier.height(16.dp))
                     // Autostart-Schalter (wie Uhr): losfahren startet die Aufnahme automatisch.
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -377,6 +385,25 @@ fun RecordScreen(onBack: () -> Unit) {
     }
 }
 
+/** Deutlich, nicht klein (Hinweise nie winzig): ohne GPS fehlen sonst alle Laeufe. */
+@Composable
+private fun SparenWarnung(onOeffnen: () -> Unit) {
+    Card(
+        Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+    ) {
+        Column(Modifier.padding(14.dp)) {
+            Text(I18n.t("rec.sparenTitel"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onErrorContainer)
+            Spacer(Modifier.height(4.dp))
+            Text(I18n.t("rec.sparenText"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer)
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(onClick = onOeffnen) { Text(I18n.t("rec.sparenKnopf")) }
+        }
+    }
+}
+
 @Composable
 private fun RecordingBody(st: Recorder.State) {
     // GPS WEG (Garmin-Fall Roman, 25.10.2026, hier nachgezogen): der Zustand aendert sich nur, wenn
@@ -392,6 +419,12 @@ private fun RecordingBody(st: Recorder.State) {
         Spacer(Modifier.height(6.dp))
         Text(I18n.t("rec.gpsSearch"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.error)
+        // Laenger als 30 s still: meist schaltet das Handy das GPS bei dunklem Display ab (GpsSparen).
+        if (Recorder.gpsStilleMs() > 30_000) {
+            Spacer(Modifier.height(4.dp))
+            Text(I18n.t("rec.gpsAus"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error)
+        }
     }
     Spacer(Modifier.height(6.dp))
     val mmss = { s: Long -> "%d:%02d".format(s / 60, s % 60) }

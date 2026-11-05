@@ -28,6 +28,29 @@ class RecorderService : Service(), SensorEventListener {
     private lateinit var sensors: SensorManager
     private lateinit var locMgr: LocationManager
     private var wakeLock: PowerManager.WakeLock? = null
+    // GPS-Waechter (04.11.2026, s. GpsSparen): kommt laenger kein Fix, sagt es die Benachrichtigung, und
+    // die Ortung wird einmal je Luecke neu angefordert (hilft, falls nur die Anmeldung verloren ging).
+    private val waechter = android.os.Handler(android.os.Looper.getMainLooper())
+    private var gpsWarnung = false
+    private var neuAngefordert = false
+    private val waechterTakt = object : Runnable {
+        override fun run() {
+            val still = Recorder.gpsStilleMs()
+            val weg = still > GPS_WARN_MS
+            if (weg != gpsWarnung) {
+                gpsWarnung = weg
+                try { (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(1, notification()) }
+                catch (_: Exception) {}
+            }
+            if (!weg) neuAngefordert = false
+            else if (!neuAngefordert && still > GPS_NEU_MS) {
+                neuAngefordert = true
+                try { locMgr.removeUpdates(locListener) } catch (_: Exception) {}
+                startLocation()
+            }
+            waechter.postDelayed(this, 5_000)
+        }
+    }
 
     private val locListener = LocationListener { loc: Location ->
         Recorder.addGps(
@@ -52,6 +75,9 @@ class RecorderService : Service(), SensorEventListener {
         Recorder.start(applicationContext)
         registerSensors()
         startLocation()
+        gpsWarnung = false; neuAngefordert = false
+        waechter.removeCallbacks(waechterTakt)
+        waechter.postDelayed(waechterTakt, 5_000)
         return START_STICKY
     }
 
@@ -113,6 +139,7 @@ class RecorderService : Service(), SensorEventListener {
     }
 
     private fun stopEverything() {
+        waechter.removeCallbacks(waechterTakt)
         try { sensors.unregisterListener(this) } catch (_: Exception) {}
         try { locMgr.removeUpdates(locListener) } catch (_: Exception) {}
         try { if (wakeLock?.isHeld == true) wakeLock?.release() } catch (_: Exception) {}
@@ -146,7 +173,7 @@ class RecorderService : Service(), SensorEventListener {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         return Notification.Builder(this, ch)
             .setContentTitle("Pumpfoil")
-            .setContentText(I18n.t("rec.recording"))
+            .setContentText(I18n.t(if (gpsWarnung) "rec.gpsAusNotif" else "rec.recording"))
             .setSmallIcon(android.R.drawable.ic_media_play)
             .setOngoing(true)
             .setContentIntent(zurueck)
@@ -155,6 +182,8 @@ class RecorderService : Service(), SensorEventListener {
 
     companion object {
         const val ACTION_STOP = "org.pumpfoil.app.STOP_RECORDING"
+        private const val GPS_WARN_MS = 30_000L   // so lange ohne Fix -> Hinweis (Start-Fix braucht oft 10-20 s)
+        private const val GPS_NEU_MS = 60_000L    // so lange ohne Fix -> Ortung einmal neu anfordern
         fun start(ctx: Context) = ContextCompat.startForegroundService(ctx, Intent(ctx, RecorderService::class.java))
         fun stop(ctx: Context) = ctx.startService(
             Intent(ctx, RecorderService::class.java).setAction(ACTION_STOP))

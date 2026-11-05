@@ -222,6 +222,12 @@ object Recorder {
     private val gps = ArrayList<DoubleArray>(256)
     private var prevLat = Double.NaN
     private var posGemeldet = false
+    // GPS-Stille (04.11.2026, s. GpsSparen): Zeitpunkt des letzten Fixes (elapsedRealtime, beim Start = Start)
+    // und die Luecken ueber GPS_LUECKE_MS. Geht beim Abschluss als `messweg` an den Server.
+    @Volatile private var gpsLetzteRt = 0L
+    private var gpsAusSumMs = 0L
+    private var gpsAusMaxMs = 0L
+    private var gpsSparmodus = -1
     private var prevLon = Double.NaN
     private var prevT = 0L
     private var distM = 0.0
@@ -266,6 +272,8 @@ object Recorder {
         synchronized(lock) { accel.clear(); gyro.clear(); mag.clear(); gps.clear(); spWin.clear() }
         prevLat = Double.NaN; prevLon = Double.NaN
         posGemeldet = false
+        gpsLetzteRt = android.os.SystemClock.elapsedRealtime(); gpsAusSumMs = 0L; gpsAusMaxMs = 0L
+        gpsSparmodus = GpsSparen.modus(ctx)
         distM = 0.0; maxMps = 0.0
         val meta = JSONObject()
             .put("session_uuid", uuid)
@@ -378,8 +386,11 @@ object Recorder {
             _state.value = _state.value.copy(recording = false, status = "saving")
             try {
                 flushAll()
+                gpsLueckeZaehlen(android.os.SystemClock.elapsedRealtime())   // Stille bis zum Stopp zaehlt mit
+                val messweg = JSONObject().put("gps_aus_s", gpsAusSumMs / 1000).put("gps_aus_max_s", gpsAusMaxMs / 1000)
+                if (gpsSparmodus >= 0) messweg.put("gps_spar", gpsSparmodus)
                 RecStore.writeComplete(ctx, uuid, JSONObject()
-                    .put("ended_at", nowIso()).put("total_chunks", chunkIndex))
+                    .put("ended_at", nowIso()).put("total_chunks", chunkIndex).put("messweg", messweg))
             } catch (e: Exception) { android.util.Log.e("Recorder", "stop/flush", e) }
             _state.value = _state.value.copy(
                 status = "saved", pendingCount = RecStore.pendingCount(ctx))
@@ -488,7 +499,8 @@ object Recorder {
             }.awaitAll()
         }
         val comp = RecStore.readJson(java.io.File(dir, "complete.json"))
-        Ingest.complete(sid, comp?.optString("ended_at") ?: nowIso(), comp?.optInt("total_chunks") ?: chunkIndex)
+        Ingest.complete(sid, comp?.optString("ended_at") ?: nowIso(), comp?.optInt("total_chunks") ?: chunkIndex,
+            comp?.optJSONObject("messweg"))
         RecStore.delete(ctx, sid)
     }
 
@@ -535,11 +547,23 @@ object Recorder {
     // Positions-Zittern. Nur wenn das Geraet keine Geschwindigkeit liefert (negativ = unbekannt),
     // faellt es auf eine Mindest-Verschiebung zurueck. Idee aus @elmanu13s Zepp-PR, dort ueber ein
     // 5-s-Netto-Fenster geloest, weil Zepp weder Genauigkeit noch Doppler liefert.
+    // Ab hier gilt eine Pause zwischen zwei Fixes als GPS-Luecke (1 Hz angefordert; kurze Aussetzer unter Wasser sind normal).
+    private const val GPS_LUECKE_MS = 10_000L
     private const val STAND_MPS = 0.5       // darunter gilt: wir stehen (1,8 km/h)
     private const val STAND_SCHRITT_M = 1.5 // Rueckfall ohne Doppler: Mindest-Verschiebung je Fix
 
+    /** Wie lange schon kein GPS-Fix kam (0, wenn nicht aufgenommen wird) — fuer den Waechter im Dienst. */
+    fun gpsStilleMs(): Long = if (running) android.os.SystemClock.elapsedRealtime() - gpsLetzteRt else 0L
+
+    private fun gpsLueckeZaehlen(jetztRt: Long) {
+        val d = jetztRt - gpsLetzteRt
+        if (d > GPS_LUECKE_MS) { gpsAusSumMs += d; if (d > gpsAusMaxMs) gpsAusMaxMs = d }
+    }
+
     fun addGps(lat: Double, lon: Double, speedMps: Double, accuracyM: Double) {
         if (!running) return
+        val rt = android.os.SystemClock.elapsedRealtime()
+        gpsLueckeZaehlen(rt); gpsLetzteRt = rt
         if (!posGemeldet && accuracyM <= 50.0) { posGemeldet = true; positionMelden(lat, lon) }
         val tMs = elapsedMs()
         val sp = maxOf(0.0, speedMps)

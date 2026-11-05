@@ -40,6 +40,24 @@ def test_complete_speichert_den_messweg(client):
     assert mw["wach"] is True
 
 
+def test_handy_meldet_gps_luecken_und_energiesparen(client):
+    """Handy-Recorder 1.1.47 (04.11.2026): GPS-Luecken in Sekunden + Ortungsmodus des Energiesparens."""
+    from app import models
+    from app.db import SessionLocal
+    _, dev = _geraet(client, "messweg-handy@b.de")
+    uuid = "messweg-uuid-handy"
+    client.post("/api/ingest/session", headers=dev, json={"session_uuid": uuid, "started_at": "2026-11-04T13:00:00Z"})
+    r = client.post(f"/api/ingest/session/{uuid}/complete", headers=dev, json={
+        "total_chunks": 0, "messweg": {"gps_aus_s": 2525, "gps_aus_max_s": "viel", "gps_spar": 1}})
+    assert r.status_code == 200, r.text
+    db = SessionLocal()
+    try:
+        mw = json.loads(db.query(models.Session).filter_by(session_uuid=uuid).one().messweg_json)
+    finally:
+        db.close()
+    assert mw == {"gps_aus_s": 2525, "gps_spar": 1}   # kein Text, wo eine Zahl stehen muss
+
+
 def test_ohne_messweg_bleibt_das_feld_leer(client):
     from app import models
     from app.db import SessionLocal

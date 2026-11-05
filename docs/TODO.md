@@ -1394,6 +1394,7 @@ kann mit der Store-Version normal aufnehmen (siehe den Meldungs-Befund oben in d
 
 | Gemeldet | Ziel | Version | Ergebnis |
 |---|---|---|---|
+| 2026-11-05 | iOS + Apple Watch (App Store) | 1.1.59 (69) | 🟢 **FREIGEGEBEN** (Jans Meldung, Apple-Mail „eligible for distribution“, Übermittlung cf8fd14e-4ab7-4c60-9401-3393e0dc4ca9). `_APP_META` ios/apple → 1.1.59, IN_REVIEW-Eintrag raus, 39 Punkte im Changelog mit ios 1.1.59 + Ereignis 05.11. |
 | 2026-11-04 16:16 | iOS + Apple Watch (App Store) | 1.1.59 (69) | 🟡 **EINGEREICHT** (Jans Meldung; App Store Connect „Warten auf Prüfung“, Übermittlung cf8fd14e-4ab7-4c60-9401-3393e0dc4ca9). Builds **67 und 68 verbraucht** (hochgeladen, aus der Prüfung zurückgezogen: Dunkel/Hell-Texte, dann Freunde/Team-Sessions/Meist kommentiert). Inhalt: App-Port auf den Web-Stand (Reiter, Einstellungen, Ausrüstung, Community), Teams/Events nativ, Kommentare, Likes, Nationalität, Lage des Bretts, Kontinent-Umrisse. Apple Watch: Wassersperre (edbd65ca). → `IN_REVIEW`. |
 | 2026-11-03 16:00 | Garmin (Connect IQ Store) | 1.0.99 | 🟢 **LIVE** am selben Tag (Jans Meldung ~16:20: verfuegbar, echte fenix 7X Pro Token 1577 meldet v=1.0.99, Testsession #19851 ~10 s, 1 Accel-Block, `exact_chunks`; Store-Seite zeigte um 16:22 noch 1.0.98). `appmeta.garmin` → 1.0.99, IN_REVIEW raus, Changelog-Punkt + Ereignis, `build-all.sh`, Uhrbilder der vier neuen aus Jans Simulator-Bildern. Vorher 🟡 **EINGEREICHT** (Jans Meldung: „emulator test erfolgreich und hochgeladen, ich release“; Enduro 4 im Simulator geprueft). `.iq` aus 38bcd559, 222 Varianten, `-r -w`, SDK 9.3.0, `/home/jan/release-staging/garmin-1.0.99/` (sha1 `0eb63e55d1d062932cafb096f7811b5f8117a9f6`). Inhalt: Enduro 4, MARQ (Gen 3), Approach S72 43/47 mm neu (Nutzermail: Enduro 4 nicht installierbar); sonst keine Aenderung seit 1.0.98. Erster Build mit SDK 9.3.0 (Vergleich 129 Geraete: Warnungen gleich). |
 | 2026-10-26 16:09 | iOS + Apple Watch (App Store) | 1.1.57 (65) | 🟢 **FREIGEGEBEN 26.10.** (Apple-Mail „eligible for distribution“, Jans Meldung) → `_APP_META` ios/apple 1.1.57, IN_REVIEW raus, Changelog 751/752/754/757/759/765 +web/ios/apple, 774/775 neu, Ereignis 776. Vorher 🟡 **EINGEREICHT** (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung“, Übermittlungskennung `daa3f3a9-93d2-4c10-bd04-17bf11de32cc`). Welcher Commit gebaut wurde, ist nicht gemeldet (letzter iOS-Commit davor 0c5a3697, 15:48). Inhalt: Sportarten ohne Foil (Wind, SUP) samt Ansichten, Sortierung, Heatmap Allzeit, Gründe für aussortierte Läufe, GPS-weg-Hinweis, Foil-Teile ausgeblendet, Handy-Recorder mit Foil-Strecke/Uhrseiten/Laufliste. Vorher von Jan im Simulator getestet (#19086). → IN_REVIEW, Ereignis 767. |
@@ -1504,6 +1505,17 @@ Status „Warten auf Pruefung" ist, kostet ein Zurueckziehen nichts — nach der
 kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
+
+- **🔲 05.11. — Handy-Recorder: GPS faellt bei dunklem Display aus (Samsung).** Befund (nur DB gelesen): u993 (Samsung A70,
+  Android 11) am 04.11. in Sarbsko, drei Sessions mit 56/21/44 min, GPS jeweils 80-120 s nach dem Start weg und erst kurz vor dem
+  Stopp wieder da (19915, 19921, 19924); Accel/Kreisel/Magnet und Live-Upload liefen durch, also nur das GPS. Daneben u949
+  (Xiaomi, Android 15) lueckenlos. Dasselbe Muster bei u217 und u919 (beide S24 Ultra), 60-Tage-Suche ueber alle
+  Handy-Aufnahmen > 10 min. **Vermutung, nicht belegt:** Energiesparmodus (Ortung bei dunklem Display gedrosselt).
+  Gebaut fuer Android 1.1.47 (android `GpsSparen.kt`): Warnkarte im Recorder bei aktivem Energiesparen mit Knopf zu den
+  Einstellungen, Waechter im Dienst (30 s ohne Fix -> Benachrichtigung + Hinweis auf dem Bildschirm, 60 s -> Ortung einmal neu
+  anfordern), `messweg` beim Abschluss mit `gps_aus_s`/`gps_aus_max_s`/`gps_spar`. **Nach dem Release pruefen:** `messweg_json`
+  der Samsung-Sessions lesen — steht `gps_spar` drin, ist die Vermutung belegt; fehlt es trotz Luecken, liegt es woanders
+  (Samsung-App-Schlaf, Hersteller-Regel). Offen: ob die Session-Seite „GPS fehlte“ zeigen soll (Daten dafuer liegen dann vor).
 
 - **🔲 02.11. — Port des Web-Umbaus vom 01./02.11. nach iOS und Android (Jan: ERST nach dem Feedback des Team-Kapitaens
   zur Web-Fassung, Nachricht ging am 02.11. raus).** Server-Endpunkte stehen alle schon; es ist reine App-Arbeit (Compose /
