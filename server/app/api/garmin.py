@@ -402,10 +402,11 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
         eigene = _eigene_aufnahme(db, user.id, start, max(ende, start + timedelta(seconds=60)))
     if eigene is None:
         eigene = _eigene_zum_eintrag(db, user.id, eintrag)
-    if eigene is not None and storage.duenn(eigene.session_uuid) and not importsports.konto_import_grund(parsed):
-        # Die Uhr hat eigene Bloecke absichtlich weggelassen (Datenwege): die Garmin-Datei ist hier die vollstaendige
-        # Aufnahme. Sie wird die Session, unsere duenne Aufnahme liefert Sportart, Foil und Ausruestung und zeigt danach
-        # auf sie (Jan, 05.11.2026: „wenigstens die sportart und foil … damit das gematcht werden kann").
+    if eigene is not None and not importsports.konto_import_grund(parsed) and (
+            storage.duenn(eigene.session_uuid) or garmin_besser(eigene, parsed)):
+        # Garmins Datei ist die bessere Aufnahme: entweder hat die Uhr eigene Bloecke absichtlich weggelassen
+        # (Datenwege, duenn) oder Garmins Beschleunigung hat die hoehere Rate. Sie wird die Session, unsere liefert
+        # Sportart, Foil, Ausruestung und Geraet und zeigt danach auf sie (Jan, 05.11.2026).
         g = import_parsed_session(db, user, r.content, parsed, src_label="garmin-import", uuid_prefix="garmin-",
                                   filename="garmin.fit", sport_override=eigene.sport_class, ausser_id=eigene.id)
         if g is None or g.id == eigene.id:
@@ -414,7 +415,7 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
         if g.session_uuid.startswith("garmin-") and not g.device_model:
             g.device_model = geraet_name(eintrag.get("deviceName"))
         in_garmin_session_aufgehen(db, eigene, g)
-        return f"duenne eigene aufnahme #{eigene.id} -> garmin-session #{g.id}"
+        return f"eigene aufnahme #{eigene.id} -> garmin-session #{g.id} (bessere daten)"
     if eigene is not None:
         # Dieselbe Fahrt: keine zweite Session, aber die Garmin-Datei vollstaendig an unsere haengen.
         datei_anhaengen(eigene, r.content, _beschreibung(eintrag))
@@ -611,7 +612,42 @@ def eingang_abholen(eigene: models.Session) -> int:
 
 
 # Was die eigene (duenne) Aufnahme an die Garmin-Session weitergibt: das, was am Handgelenk gewaehlt wurde.
-UEBERNEHMEN = ("sport_class", "sport_source", "foil_id", "stab_id", "board_id", "mast_len_cm", "shim_deg", "placement")
+UEBERNEHMEN = ("sport_class", "sport_source", "foil_id", "stab_id", "board_id", "mast_len_cm", "shim_deg", "placement",
+               "device_id", "app_version")   # Geraet: die Fahrt zaehlt weiter fuer „Foilen je Uhr"
+
+# Die bessere Beschleunigung gewinnt (Jan, 05.11.2026: „kann das nicht einfach immer in die datei schauen und jedesmal
+# die bessere rate nutzen?" · „wer mehr hat gewinnt"). Gemessen wird die Rate ueber die Wanduhr-Dauer der Aufnahme
+# (Werte / Sekunden, Pausen und absichtliche Luecken eingeschlossen) — bei beiden gleich gerechnet, also vergleichbar.
+# Wer ausduennt („Speicher sparen", „nur GPS") hat damit weniger und verliert. Garmin muss klar vorn liegen, sonst
+# bleibt unsere Aufnahme (sie war zuerst da und traegt die Live-Daten).
+RATE_VORSPRUNG = 1.2
+
+
+def rate_eigene(s: models.Session) -> float:
+    from .. import storage
+    if s.started_at is None or s.ended_at is None:
+        return 0.0
+    dauer = (_aware(s.ended_at) - _aware(s.started_at)).total_seconds()
+    if dauer <= 0:
+        return 0.0
+    try:
+        return storage.load_accel(s.session_uuid).shape[0] / dauer
+    except Exception:  # noqa: BLE001
+        return 0.0
+
+
+def rate_garmin(parsed: dict) -> float:
+    n = len(parsed.get("accel_bytes") or b"") // 6
+    dauer = (parsed.get("dauer_ms") or 0) / 1000
+    return n / dauer if dauer > 0 else 0.0
+
+
+def garmin_besser(eigene: models.Session, parsed: dict) -> bool:
+    rg, re_ = rate_garmin(parsed), rate_eigene(eigene)
+    besser = rg > 0 and rg > re_ * RATE_VORSPRUNG
+    log.info("garmin: Accel-Rate eigene #%s %.1f Hz, Garmin %.1f Hz -> %s", eigene.id, re_, rg,
+             "Garmin" if besser else "eigene")
+    return besser
 
 
 def in_garmin_session_aufgehen(db: Session, eigene: models.Session, g: models.Session) -> None:
@@ -636,6 +672,15 @@ def in_garmin_session_aufgehen(db: Session, eigene: models.Session, g: models.Se
     log.info("garmin: duenne Aufnahme #%s geht in Garmin-Session #%s auf (user %s)", eigene.id, g.id, eigene.user_id)
 
 
+def _garmin_datei_besser(eigene: models.Session, pfad) -> bool:
+    from ..fitimport import parse_fit_bytes
+    try:
+        return garmin_besser(eigene, parse_fit_bytes(pfad.read_bytes()))
+    except Exception as exc:  # noqa: BLE001 — im Zweifel bleibt unsere Aufnahme
+        log.warning("garmin: Rate der Garmin-Datei %s nicht lesbar: %s", pfad, exc)
+        return False
+
+
 def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
     """Andere Reihenfolge: Garmin war schneller, jetzt schliesst unsere App die Aufnahme ab. Garmin-Importe desselben
     Nutzers zur selben Zeit werden mit ihr verknuepft: ihre Originaldatei kommt (als Kopie) an unsere Session, die
@@ -655,12 +700,13 @@ def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
         for g in db.query(S).filter(S.user_id == eigene.user_id, S.deleted.isnot(True),
                                     S.session_uuid.like("garmin-%"), S.started_at < ende,
                                     S.ended_at > eigene.started_at).all():
-            if storage.duenn(eigene.session_uuid):
-                # Unsere Aufnahme ist absichtlich duenn: die Garmin-Session bleibt die Fahrt, unsere geht darin auf.
-                in_garmin_session_aufgehen(db, eigene, g)
-                return 1
             d = storage.session_dir(g.session_uuid)
             originale = sorted(d.glob("original.*")) if d.exists() else []
+            # Garmins Session hat die bessere Aufnahme (duenn bei uns oder hoehere Accel-Rate): sie bleibt die Fahrt,
+            # unsere geht darin auf.
+            if storage.duenn(eigene.session_uuid) or (originale and _garmin_datei_besser(eigene, originale[0])):
+                in_garmin_session_aufgehen(db, eigene, g)
+                return 1
             if not originale:
                 continue
             datei_anhaengen(eigene, originale[0].read_bytes(),

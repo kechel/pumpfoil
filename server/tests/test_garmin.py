@@ -639,3 +639,49 @@ def test_garmin_ohne_gps_zuerst_wird_geparkt(client, garmin, monkeypatch, tmp_pa
         db.close()
     assert (tmp_path / suuid / "garmin-connect-p1-file.fit").read_bytes() == b"OHNE-GPS"
     assert '"angehaengt_an"' in (tmp_path / "eingang" / str(uid) / "p1-file.json").read_text()
+
+
+def test_hoehere_accel_rate_gewinnt(client, garmin, monkeypatch, tmp_path):
+    # Jan, 05.11.2026: „wer mehr hat gewinnt" — Garmin mit 100 Hz gegen unsere 25 Hz -> Garmin wird die Session;
+    # Garmin mit weniger -> unsere bleibt, Garmins Datei wird nur angehaengt.
+    from app import models, storage
+    from app.db import SessionLocal
+    import app.fitimport as fi
+    import app.api.sessions as sess
+    import app.analysis as an
+    uid, _ = _konto(client)
+    gid = _link(uid)
+    monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
+    monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(parents=True, exist_ok=True) or tmp_path / u)
+    monkeypatch.setattr(an, "run_analysis", lambda db, s: None)
+    monkeypatch.setattr(garmin, "rate_eigene", lambda s: 25.0)
+    monkeypatch.setattr(garmin.httpx, "get", lambda u, **k: _Antwort(content=b"FIT"))
+    erzeugt = []
+
+    def _import(db, user, raw, parsed, **k):
+        g = models.Session(session_uuid="garmin-" + secrets.token_hex(6), user_id=user.id, started_at=parsed["started_at"],
+                           ended_at=parsed["started_at"] + timedelta(minutes=10), status="analyzed")
+        db.add(g); db.commit(); erzeugt.append(g.id)
+        return g
+    monkeypatch.setattr(sess, "import_parsed_session", _import)
+    url = "https://apis.garmin.com/wellness-api/rest/activityFile?id=11"
+    for minute, hz, garmin_gewinnt in ((0, 100, True), (30, 10, False)):
+        start = datetime(2026, 11, 5, 8, minute, tzinfo=timezone.utc)
+        sid, suuid = _eigene_session(uid, start, minuten=10)
+        n = int(hz * 600)
+        monkeypatch.setattr(fi, "parse_fit_bytes", lambda b, start=start, n=n: {
+            **_parsed(start), "accel_bytes": b"\0" * (6 * n), "dauer_ms": 600_000})
+        client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [
+            {"userId": gid, "summaryId": f"r{minute}", "fileType": "FIT", "activityType": "OTHER",
+             "startTimeInSeconds": int(start.timestamp()), "callbackURL": url}]})
+        db = SessionLocal()
+        try:
+            eigene = db.get(models.Session, sid)
+            if garmin_gewinnt:
+                g = db.get(models.Session, eigene.merged_into)
+                assert eigene.deleted and g.session_uuid.startswith("garmin-") and g.device_id == eigene.device_id
+            else:
+                assert not eigene.deleted and (tmp_path / suuid / f"garmin-connect-r{minute}.fit").exists()
+        finally:
+            db.close()
+    assert len(erzeugt) == 1

@@ -1511,14 +1511,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-- **🔲 05.11. — Garmin Connect: bessere Beschleunigung als Datenquelle waehlen (Jan: „wer mehr hat gewinnt", „warts ab").**
-  Heute wertet die Auswertung bei verknuepften Uhren UNSERE Bloecke aus (25 Hz, bei Speicher sparen/„nur GPS" weniger
-  oder keine); Garmins FIT (oft 100 Hz, SensorLogger laeuft mit Verknuepfung auch bei „nur GPS") liegt nur daneben.
-  Nur duenne Sessions (96-KB-Uhren) nehmen schon Garmins Datei. Regel spaeter: hoehere GEMESSENE Accel-Rate gewinnt
-  (keine = 0 Hz), umgesetzt wie bei der duennen Session (`garmin.in_garmin_session_aufgehen`). **Erst abwarten**, welche
-  Raten die Uhren ueber Garmin wirklich liefern (Log-Zeile „garmin: Datei … Accel N Werte"), dann bauen und an echten
-  Fahrten mit beiden Dateien vergleichen (Laeufe, Pumps, Takt) — pg-1 arbeitet mit der echten Rate und ist auf 25 Hz
-  geeicht; Pumpzahlen/Rekorde koennten sich verschieben. Analyse-Pipeline -> Jans OK vor dem Einschalten.
+- **🟢 05.11. — Garmin Connect: die hoehere Accel-Rate wird die Session (Jan: „wer mehr hat gewinnt").** Beim Zusammenfuehren
+  (beide Reihenfolgen) Rate = Accel-Werte / Wanduhr-Dauer, bei beiden gleich gerechnet; Garmin gewinnt ab 1,2-facher Rate
+  (`garmin.garmin_besser`, Log „Accel-Rate eigene … Garmin …"). Ohne GPS in Garmins Datei (Tanz/Halle) bleibt es beim
+  Anhaengen. Nachgerechnet an 6 echten Paaren vom 05.11.: Garmin 38-104 Hz gegen eigene 10-28 Hz -> immer Garmin. Gilt nur fuer
+  neue Fahrten, nichts rueckwirkend. **Offen:** pg-1 ist auf 25 Hz geeicht und rechnet mit der echten Rate — bei der naechsten
+  echten Pumpfoil-Fahrt Pumps/Takt aus beiden Dateien vergleichen.
 
 - **🔲 05.11. — Garmin Connect: Verknuepfung + Push-Import gebaut (server/app/api/garmin.py), nur fuer Admins sichtbar.**
   Starter Access am 05.11. beantragt und freigegeben (Antragsteller Jan Kechel), App „Pumpfoil" im Developer Portal,
