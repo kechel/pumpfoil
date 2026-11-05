@@ -361,3 +361,23 @@ def test_eigene_aufnahme_bekommt_datei_auch_bei_abgewaehltem_profil(client, garm
     assert importiert == []
     assert (tmp_path / suuid / "garmin-connect-88-file.fit").read_bytes() == b"CIQ-FIT"
     assert not (tmp_path / suuid / "garmin-connect-99-file.fit").exists()
+
+
+def test_naechster_start_gewinnt(client, garmin):
+    # 05.11.2026: eine 7-s-Aufnahme ohne eingetragenes Ende galt als „laeuft noch" und bekam die Datei der Fahrt danach.
+    from app.db import SessionLocal
+    from app import models
+    uid, _ = _konto(client)
+    t0 = datetime(2026, 11, 5, 13, 38, 9, tzinfo=timezone.utc)
+    kurz, _u1 = _eigene_session(uid, t0, minuten=0)
+    lang, _u2 = _eigene_session(uid, t0 + timedelta(seconds=18), minuten=2)
+    db = SessionLocal()
+    try:
+        db.get(models.Session, kurz).ended_at = None
+        db.commit()
+        treffer = garmin._eigene_aufnahme(db, uid, t0 + timedelta(seconds=19), t0 + timedelta(seconds=109))
+        assert treffer.id == lang
+        treffer = garmin._eigene_aufnahme(db, uid, t0 + timedelta(seconds=1), t0 + timedelta(seconds=8))
+        assert treffer.id == kurz
+    finally:
+        db.close()
