@@ -1516,14 +1516,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Download nur von apis.garmin.com, keine Doppelten zu eigenen Aufnahmen (Session mit device_id zur selben Zeit),
   Trennen + Konto loeschen melden bei Garmin ab. Web-Karte „Garmin Connect" unter Uhr & Konten. Doku vertraulich in
   ~/garmin-doku (nicht ins Repo). **Offen, bevor es fuer alle freigeschaltet wird (`GARMIN_OEFFENTLICH=1`):**
-  1. Garmins Markenvorgaben: an jeder Anzeige importierter Daten „Garmin [Geraet]" (Session-Seite, Karten, Listen,
-     Teilen-Bilder, Exporte), bei Abgeleitetem (Rekorde, Bestenlisten) ein Hinweis auf Garmin-Daten. Geraetename kommt
-     im Push (`deviceName`) und steht in der FIT-Datei.
+  1. ✅ 05.11. Quellenangabe (Jan: „klein drunter, so wie bei den Wetterdaten", und alle Quellen als Werbung): Zeile
+     „Daten von: …" unter Rekorden, Bestenlisten, Team-Vergleich und Spot-Rekorden sowie in den Teilen-Bildern
+     (`community.quellen`, Web/Android/iOS). Session-Seite und Teilen-Karte zeigen „Garmin [Geraet]" nur bei
+     Garmin-Connect-Importen (`sessions.import_geraet`), nicht bei Aufnahmen unserer Connect-IQ-App.
   2. ✅ 05.11. Push-Adressen eingetragen (Jan), mit Jans Konto getestet: Test-FIT ueber Garmin Connect importiert ->
      Push 13:16:01, Session #20129 13:16:03 mit Abzeichen „Garmin" (Uhr-Abzeichen traegt „Garmin [Geraet]",
      sessions.import_geraet). Dieselbe Fahrt aus eigener App + Garmin wird verknuepft, beide Dateien bleiben.
      Noch nicht echt gesehen: Verknuepfen mit einer eigenen Aufnahme (beide Reihenfolgen nur im Test).
-  3. Apps: Garmin-Karte unter Uhr & Konten (Android/iOS), Rueckweg ueber pumpfoil://konten wie Polar.
+  3. ✅ 05.11. Apps: Garmin-Karte + Garmin-Reiter unter Uhr & Konten, Rueckweg ueber pumpfoil://konten wie Polar —
+     Android a7f278a1, iOS e080195c (xcodegen noetig). Kommt mit den naechsten App-Releases; Schnee-Profile und
+     „Andere" stehen zur Auswahl, sind aber standardmaessig aus.
   5. ✅ **05.11. geklaert: die API liefert die Originaldatei samt Beschleunigung.** Jan lud unseren FIT-Export von
      #19661 (mit Sensor-Daten) ins zweite Garmin-Testkonto: Push mit 641 KB, GPS 1723, Accel 44.000 Werte, Session
      #20133 mit Modell-Erkennung, 5 Laeufe wie das Original (621 statt 644 m, Export ist zugeschnitten), 25 Hz. Damit ist
@@ -1532,8 +1535,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
      Startzeit wie die erste im selben Konto (Duplikat).
      ✅ **Partner Verification 05.11. komplett gruen** (Jans Meldung): 3 Endpunkte, alle Domaenen mit Daten in 24 h,
      2 Nutzer mit Daten (Jan u2 + Testkonto u4), 0 HTTP-Fehler.
-  4. Refresh-Token laeuft nach 3 Monaten ab — wer so lange nichts aufzeichnet, verliert die Verbindung; spaeter in
-     kontensync.py einen Erneuerungs-Lauf ergaenzen.
+  4. ✅ 05.11. Refresh-Token (3 Monate): der taegliche Lauf in kontensync.py erneuert, wenn weniger als 30 Tage uebrig.
+  6. Danach: `GARMIN_OEFFENTLICH=1` in server/.env + Neustart, sobald Jan es sagt (Starter Access: bis 1000 Nutzer).
+     Idee fuer spaeter: Courses-API (Freefoil-Routen auf die Uhr).
 
 - **🔲 05.11. — Handy-Recorder: GPS faellt bei dunklem Display aus (Samsung).** Befund (nur DB gelesen): u993 (Samsung A70,
   Android 11) am 04.11. in Sarbsko, drei Sessions mit 56/21/44 min, GPS jeweils 80-120 s nach dem Start weg und erst kurz vor dem
