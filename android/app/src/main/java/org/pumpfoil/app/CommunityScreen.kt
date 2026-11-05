@@ -214,7 +214,8 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
         onDispose { mediaOwner.lifecycle.removeObserver(obs) }
     }
     // Zeitraum- + accel-abhängig: Bestenliste, Best bewertet.
-    LaunchedEffect(period, sportart) { regionen = try { Api.communityRegionen(period, sportart) } catch (_: Exception) { regionen } }
+    // Die Auswahl rechnet der Server immer ueber Allzeit (05.11.2026) — ein Zeitraumwechsel laedt sie nicht neu.
+    LaunchedEffect(sportart) { regionen = try { Api.communityRegionen("all", sportart) } catch (_: Exception) { regionen } }
     LaunchedEffect(period, accelOnly, bandKey, freunde, sportart, region) {
         leaders = try { Api.leaders(period, accelOnly, bandKey, freunde, sport = sportart, region = region) } catch (_: Exception) { leaders }
         topLiked = try { Api.topLiked(period, freunde = freunde) } catch (_: Exception) { topLiked }
@@ -276,7 +277,14 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                         // sportart verglichen werden"). Die gewaehlte und Pumpfoil stehen immer zur Wahl.
                         val sportWahl = (sportListe + listOf("pumpfoil", sportart)).distinct()
                         // Region: Global, Kontinente und Laender mit genug Fahrern/Teams; die gewaehlte steht immer zur Wahl.
-                        val regionWahl = (listOf("all") + regionen?.regionen.orEmpty().map { it.key } + region).distinct()
+                        // Global, Kontinente (fest vom Server), das eigene Land (immer), dann die uebrigen Laender alphabetisch nach
+                        // dem Namen in der App-Sprache (Jan, 05.11.2026).
+                        val ichLand = regionen?.ich?.takeIf { it.isNotBlank() }
+                        val regionWahl = (listOf("all") + regionen?.regionen.orEmpty().map { it.key } + region + listOfNotNull(ichLand)).distinct().let { l ->
+                            val koll = java.text.Collator.getInstance(java.util.Locale.forLanguageTag(if (I18n.lang == "gsw") "de-CH" else I18n.lang))
+                            l.filter { it == "all" || it.startsWith("k:") } + listOfNotNull(ichLand) +
+                                l.filter { it != "all" && !it.startsWith("k:") && it != ichLand }.sortedWith { a, b -> koll.compare(landName(a), landName(b)) }
+                        }
                         fun regionName(k: String) = when {
                             k == "all" -> I18n.t("region.global")
                             k.startsWith("k:") -> I18n.t("region.${k.removePrefix("k:")}")

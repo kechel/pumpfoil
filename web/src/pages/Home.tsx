@@ -737,7 +737,8 @@ function CommunitySection() {
   const region = sp.get("region") || gemerkt("foil_komm_region") || "all";
   const setRegion = (v: string) => { merken("foil_komm_region", v); setzeParam("region", v, "all"); };
   const [regionen, setRegionen] = useState<{ regionen: { key: string; fahrer: number; teams: number }[]; ich: string | null } | null>(null);
-  useEffect(() => { api.communityRegionen(period, sport).then(setRegionen).catch(() => {}); }, [period, sport]);
+  // Die Auswahl rechnet der Server immer ueber Allzeit (05.11.2026) — ein Zeitraumwechsel laedt sie nicht neu.
+  useEffect(() => { api.communityRegionen("all", sport).then(setRegionen).catch(() => {}); }, [sport]);
   const band = bands.find((b) => b.key === bandKey);
   // Alles, was den Inhalt der Rekorde aendert — wechselt eines davon, sind die gemerkten
   // Zeitraeume wertlos. Die Sportart gehoert ausdruecklich dazu (Jan, 16.09.2026).
@@ -822,8 +823,14 @@ function CommunitySection() {
   // immer zur Wahl, sonst kaeme man nach einem Zeitraumwechsel nicht zurueck.
   const { lang } = useI18n();
   const regionName = (k: string) => (k === "all" ? t("region.global") : k.startsWith("k:") ? t(`region.${k.slice(2)}`) : landName(k, lang));
-  const regionKeys = ["all", ...(regionen?.regionen ?? []).map((x) => x.key)];
-  if (!regionKeys.includes(region)) regionKeys.push(region);
+  // Reihenfolge: Global, Kontinente (fest, vom Server), das eigene Land (immer, auch ohne Session im Zeitraum), dann die
+  // uebrigen Laender alphabetisch nach dem Namen in der eingestellten Sprache (Jan, 05.11.2026 — vorher nach ISO-Kuerzel,
+  // dann stand „Oesterreich" vor „Deutschland").
+  const ichLand = regionen?.ich || null;
+  const roh = Array.from(new Set(["all", ...(regionen?.regionen ?? []).map((x) => x.key), region, ...(ichLand ? [ichLand] : [])]));
+  const kontinentKeys = roh.filter((k) => k === "all" || k.startsWith("k:"));
+  const regionKeys = [...kontinentKeys, ...(ichLand ? [ichLand] : []),
+    ...roh.filter((k) => !kontinentKeys.includes(k) && k !== ichLand).sort((a, b) => landName(a, lang).localeCompare(landName(b, lang), lang))];
   const regionAuswahl = regionKeys.length > 1 && (
     <RegionAuswahl keys={regionKeys} wert={region} onWahl={setRegion} name={regionName} titel={t("region.basis")} />
   );

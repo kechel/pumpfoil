@@ -1016,7 +1016,9 @@ def community_regionen(period: str = "10d", sport: str = "pumpfoil",
     Hinweis „gib deine Nationalitaet an")."""
     from collections import Counter
     from .. import teams as T
-    period = period if period in PERIODS else "10d"
+    # Immer Allzeit (Jan, 05.11.2026: „warum nicht immer allzeit im laenderfilter?"): sonst verschwand ein Land aus der
+    # Auswahl, sobald dort im gewaehlten Zeitraum niemand gefahren war. `period` bleibt als Parameter fuer alte Clients.
+    period = "all"
     q = _community(db.query(S.user_id), user.id, False, sport).distinct()
     cut = _cutoff(period)
     if cut is not None:
