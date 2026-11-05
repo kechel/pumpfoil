@@ -40,7 +40,7 @@ def test_mit_period_kommt_nur_dieser_zeitraum(client):
     community._rec_cache.clear()
     d = _rekorde(client, auth, period="10d")
     assert list(d) == ["10d"]
-    assert set(d["10d"]) == set(community.METRICS)
+    assert set(d["10d"]) - {"quellen"} == set(community.METRICS)   # quellen: Quellenzeile (05.11.2026)
 
 
 def test_einzelner_zeitraum_ist_inhaltlich_derselbe(client):

@@ -704,6 +704,8 @@ PRUEFER = {
     "Huawei Watch 3 / 4": "Huawei AppGallery",
     # SuuntoPlus-App (watch-suunto/, docs/SUUNTO.md), seit 17.10.2026 unter coming next.
     "Suunto": "the SuuntoPlus store",
+    # Kontoverknuepfung, keine Store-App (05.11.2026).
+    "Garmin Connect": "Garmin",
 }
 
 
@@ -1154,7 +1156,7 @@ NAECHSTES: list[dict] = [
     # Am selben Tag FREIGEGEBEN (Garmin-Mail „Your application has been approved", 05.11.2026) — jetzt in Arbeit.
     {"name": "Garmin Connect", "version": "approved",
      "items": [
-         "Link your Garmin Connect account and the sessions you record with Garmin's own water sports profiles are imported automatically, like with Polar, Suunto and COROS; Garmin approved our access on 5 November 2026.",
+         "Link your Garmin Connect account and the sessions you record on your Garmin are imported automatically, like with Polar, Suunto and COROS; Garmin approved our access on 5 November 2026.",
      ]},
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
@@ -1270,11 +1272,6 @@ IDEEN: list[str] = [
     "Sort a recording into the right sport from the data itself. If your profile says wing "
     "foiling but a session is clearly pumpfoil, it should be filed as pumpfoil without you "
     "having to say so.",
-    # Der Antragsweg ins Garmin Connect Developer Program ist seit Monaten zu (17.08. geprueft,
-    # Memory `garmin-connect-integration-deferred`). Der Satz sagt das, ohne zu jammern: es
-    # liegt nicht an uns, und es aendert sich, wenn Garmin es aendert.
-    "Bring rides in straight from Garmin Connect. Garmin has its developer programme closed "
-    "at the moment, so this one is not in our hands — it goes in the day it opens again.",
     "Numbers that only a phone on the board can give: how far the board pitched and rolled "
     "through a run, split by how long the run lasted — half a minute, a minute, five minutes, "
     "longer.",

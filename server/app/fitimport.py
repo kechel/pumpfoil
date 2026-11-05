@@ -271,7 +271,33 @@ def accel_from_messages(accel_msgs: list[dict]) -> tuple[bytes, int]:
     return inter.tobytes(), hz
 
 
-def _ernten(fit) -> tuple[list, list, str, object, Exception | None]:
+# Drehrate: FIT liefert calibrated_gyro_* in Grad/s, unser int16-Format hat 1024 Schritte je rad/s
+# (storage.save_gyro_chunk, docs/data-format.md).
+GYRO_SCALE = 1024.0
+_DEG_S_TO_INT16 = np.pi / 180.0 * GYRO_SCALE
+
+
+def gyro_from_messages(gyro_msgs: list[dict]) -> bytes:
+    """gyroscope_data-Dicts -> int16-LE-Bytes interleaved x,y,z (05.11.2026: die Tanz-App schreibt Gyro per SensorLogger
+    in die FIT, Garmin Connect liefert es mit 100 Hz). Gleicher Takt wie der Accel aus demselben SensorLogger."""
+    xs, ys, zs = [], [], []
+    for m in gyro_msgs:
+        gx, gy, gz = m.get("calibrated_gyro_x"), m.get("calibrated_gyro_y"), m.get("calibrated_gyro_z")
+        if gx is None or gy is None or gz is None:
+            continue
+        if not isinstance(gx, (list, tuple)):
+            gx, gy, gz = [gx], [gy], [gz]
+        n = min(len(gx), len(gy), len(gz))
+        xs.extend(gx[:n]); ys.extend(gy[:n]); zs.extend(gz[:n])
+    if not xs:
+        return b""
+    arr = np.empty((len(xs), 3), dtype=np.float64)
+    arr[:, 0] = xs; arr[:, 1] = ys; arr[:, 2] = zs
+    arr = np.nan_to_num(arr) * _DEG_S_TO_INT16
+    return np.clip(arr, -32768, 32767).astype("<i2").reshape(-1).tobytes()
+
+
+def _ernten(fit) -> tuple[list, list, list, str, object, Exception | None]:
     """Nachrichten einsammeln — und behalten, was gelesen wurde, wenn der Strom mittendrin abreisst.
 
     Warum das wichtig ist: eine FIT-Datei wird von vorn nach hinten gelesen, die Trackpunkte
@@ -280,7 +306,7 @@ def _ernten(fit) -> tuple[list, list, str, object, Exception | None]:
     Ende der Datei hat auch den Anfang weggeworfen. Das trifft genau die Faelle, die am ehesten
     vorkommen: leerer Akku mitten in der Session, abgebrochener Sync, Muell hinter dem Dateiende.
     """
-    records, accel_msgs = [], []
+    records, accel_msgs, gyro_msgs = [], [], []
     sport = "pumpfoil"
     # Dateiart aus `file_id.type` mitnehmen. Ohne die kann man einem Nutzer nicht sagen, WARUM
     # eine formal gültige FIT-Datei nichts hergibt: eine Tagesaufzeichnung (Schritte/Stress,
@@ -303,6 +329,8 @@ def _ernten(fit) -> tuple[list, list, str, object, Exception | None]:
             records.append({d.name: d.value for d in msg})
         elif msg.name == "accelerometer_data":
             accel_msgs.append({d.name: d.value for d in msg})
+        elif msg.name == "gyroscope_data":
+            gyro_msgs.append({d.name: d.value for d in msg})
         elif msg.name in ("sport", "session"):
             # `sport`-Nachricht ODER die Sportart in der `session`-Nachricht. Letztere war
             # bis 05.09.2026 uebersehen — und genau dort steht sie bei SUUNTO: deren Dateien
@@ -324,7 +352,7 @@ def _ernten(fit) -> tuple[list, list, str, object, Exception | None]:
                 sport = str(sub)
             elif sp:
                 sport = str(sp)
-    return records, accel_msgs, sport, fit_type, abbruch
+    return records, accel_msgs, gyro_msgs, sport, fit_type, abbruch
 
 
 def parse_fit_bytes(data: bytes) -> dict:
@@ -348,7 +376,7 @@ def parse_fit_bytes(data: bytes) -> dict:
         except Exception as exc:          # Kopf unlesbar -> gar keine FIT-Datei
             letzter = exc
             continue
-        records, accel_msgs, sport, fit_type, abbruch = _ernten(fit)
+        records, accel_msgs, gyro_msgs, sport, fit_type, abbruch = _ernten(fit)
         if abbruch is None or records or accel_msgs:
             break
         letzter = abbruch
@@ -374,6 +402,7 @@ def parse_fit_bytes(data: bytes) -> dict:
 
     gps_samples = gps_from_records(records, t0)
     accel_bytes, accel_hz = accel_from_messages(accel_msgs)
+    gyro_bytes = gyro_from_messages(gyro_msgs)
     # foil_status (Developer-Feld anderer Apps) parallel zu gps_samples — NUR als
     # optionale Ground-Truth fürs Training, falls vorhanden. Gleiche Filterung wie gps.
     foil_status = [
@@ -391,6 +420,7 @@ def parse_fit_bytes(data: bytes) -> dict:
         "gps_samples": gps_samples,
         "accel_bytes": accel_bytes,
         "accel_hz": accel_hz,
+        "gyro_bytes": gyro_bytes,
         "started_at": t0,
         # Dauer aus den Record-Zeitstempeln: traegt eine Session OHNE GPS-Punkte (Suunto-Workout
         # ohne Fix, 21.10.2026), deren Ende sonst aus dem letzten GPS-Punkt kaeme.

@@ -54,3 +54,14 @@ def test_accel_from_messages_scales_to_int16():
 def test_accel_empty():
     raw, hz = accel_from_messages([])
     assert raw == b"" and hz == 0
+
+
+def test_gyro_aus_fit():
+    # gyroscope_data (SensorLogger, Grad/s) -> int16 mit 1024 je rad/s, gleiche Form wie die Uhren-Uploads.
+    import numpy as np
+    from app.fitimport import gyro_from_messages
+    roh = gyro_from_messages([{"calibrated_gyro_x": (57.29578, 0.0), "calibrated_gyro_y": (0.0, -57.29578),
+                               "calibrated_gyro_z": (0.0, 0.0)}])
+    g = np.frombuffer(roh, dtype="<i2").reshape(-1, 3)
+    assert g.tolist() == [[1024, 0, 0], [0, -1024, 0]]
+    assert gyro_from_messages([]) == b""

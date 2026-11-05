@@ -1,6 +1,7 @@
 """Sessions auflisten/anzeigen + Rohdaten + Labels (für Web-Auswertung)."""
 from __future__ import annotations
 
+import base64
 import gzip
 import io
 import json
@@ -916,6 +917,9 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
             storage.save_accel_raw(session_uuid, i, roh, t0_ms=t0_ms)
     elif accel_bytes:
         storage.save_accel_raw(session_uuid, 0, accel_bytes)
+    if parsed.get("gyro_bytes"):
+        # Drehrate aus der FIT (gyroscope_data, 05.11.2026) — eigener Kanal wie bei den Uhren-Uploads.
+        storage.save_gyro_chunk(session_uuid, 0, base64.b64encode(parsed["gyro_bytes"]).decode())
     # Originaldatei unveraendert danebenlegen: ohne sie liesse sich eine importierte Session nach
     # einem Backup-Ruecklauf nicht wiederherstellen (Jan, 07.08.). Kostet ein paar hundert kB und
     # wandert ueber data/ automatisch in die Backup-Kette.
