@@ -19,6 +19,7 @@ export type BildDaten = {
   zeilen: BildZeile[];      // hoechstens 10
   eigene?: BildZeile | null; // eigene Zeile unter Platz 10
   leer: string;             // Text, wenn es keine Zeilen gibt
+  quelle?: string | null;   // „Daten von: Garmin · …" klein ueber dem Fuss (Garmins Vorgabe: in jedem Bild sichtbar)
   akzent?: string;          // Teamfarbe fuer die dunkle Fassung; sonst Marken-Cyan
   akzentHell?: string;      // Teamfarbe fuer die helle Fassung
   logo?: HTMLImageElement | null;   // Teamwappen links neben der Ueberschrift
@@ -144,6 +145,11 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
   }
   g.fillStyle = F.leise; g.font = `400 26px ${SCHRIFT}`; g.textAlign = "left";
   g.fillText("Have fun, keep pumping!", X, BILD_H - X + 38);
+  // Quellen zwischen Liste (endet bei BILD_H - 150) und Fuss, klein wie unter der Liste auf der Seite.
+  if (d.quelle) {
+    g.font = `400 20px ${SCHRIFT}`;
+    g.fillText(kuerzen(g, d.quelle, BILD_B - 2 * X), X, BILD_H - X - 22);
+  }
 }
 
 /** Bild als Datei — SYNCHRON in der Klick-Geste (toDataURL statt toBlob), sonst lehnt iOS das Teilen ab. */

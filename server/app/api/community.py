@@ -16,7 +16,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
-from sqlalchemy import Float, Integer, and_, cast, false, func, literal, not_, or_, true
+from sqlalchemy import Float, Integer, and_, case, cast, false, func, literal, not_, or_, true
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, joinedload
 
@@ -1280,6 +1280,10 @@ def community_records(accel_only: bool = True, sport: str = "pumpfoil", foil_ban
                                 cache=cache, foil_band=foil_band) for m in METRICS + tuple(extra)}
            for p in zeitraeume}
     _sport_rekorde_dazu(db, out, sport, spot, _user.id, accel_only, foil_band)
+    # Quellen klein unter den Kacheln (s. quellen): aus welchen Geraeten/Diensten die gezeigten Rekorde stammen.
+    for p, rek in out.items():
+        if isinstance(rek, dict):
+            rek["quellen"] = quellen(db, session_ids=[v.get("session_id") for v in rek.values() if isinstance(v, dict)])
 
     if not versteckt:
         with _rec_lock:
@@ -1488,6 +1492,49 @@ def spot_records(
     return tmp[period]
 
 
+# Quellen einer Anzeige (Jan, 05.11.2026): klein unter Rekorden und Bestenlisten „Daten von Garmin · Apple Watch · …",
+# wie die Quelle unter den Wetterdaten. Erfuellt Garmins Markenvorgabe fuer abgeleitete Daten (Garmin muss genannt sein,
+# wenn Garmin-Daten drinstecken) und zeigt nebenbei, womit alles aufgezeichnet wird. Codes, die Oberflaeche uebersetzt
+# nur „phone" und „file"; die Reihenfolge ist fest.
+QUELLEN_REIHENFOLGE = ("garmin", "apple", "wear", "amazfit", "huawei", "polar", "suunto", "coros", "phone", "file")
+_PLATTFORM_QUELLE = {"garmin": "garmin", "apple": "apple", "wear": "wear", "zepp": "amazfit", "huawei": "huawei",
+                     "ios": "phone"}
+_PRAEFIX_QUELLE = {"garmin": "garmin", "polar": "polar", "suunto": "suunto", "coros": "coros",
+                   "fit": "file", "imp": "file", "gpx": "file", "tcx": "file"}
+
+
+def quellen(db: Session, session_ids=None, user_ids=None, viewer_id=None, accel_only: bool = False,
+            sport: str = "pumpfoil", cut=None, spot: str | None = None, foil_band: str = "all") -> list[str]:
+    """Woher die Daten einer Anzeige stammen. `session_ids`: genau diese Sessions (Rekord-Kacheln). `user_ids`: diese
+    Fahrer mit denselben Filtern wie die Bestenliste (welche ihrer Sessions zaehlen dort mit?)."""
+    D = models.DeviceToken
+    praefix = case((S.session_uuid.op("~")("^[a-z]+-"), func.split_part(S.session_uuid, "-", 1)), else_="")
+    if session_ids is not None:
+        ids = [i for i in session_ids if i]
+        if not ids:
+            return []
+        q = db.query(D.platform, D.label, praefix).select_from(S).outerjoin(D, D.id == S.device_id).filter(S.id.in_(ids))
+    else:
+        if not user_ids:
+            return []
+        q = _community(db.query(D.platform, D.label, praefix), viewer_id, accel_only, sport).outerjoin(
+            D, D.id == S.device_id).filter(S.user_id.in_(list(user_ids)))
+        q = _band_filter(db, q, foil_band, viewer_id)
+        if cut is not None:
+            q = _ab(q, cut, S.started_at)
+        if spot:
+            q = q.filter(_spot_cond(spot, db))
+    gefunden: set[str] = set()
+    for plattform, label, pf in q.distinct().all():
+        if plattform in _PLATTFORM_QUELLE:
+            gefunden.add(_PLATTFORM_QUELLE[plattform])
+        elif plattform is None and label and "phone" in label.lower():
+            gefunden.add("phone")                     # Android-Handy-Recorder: Geraet ohne Plattform, Label „Phone"
+        elif pf in _PRAEFIX_QUELLE:
+            gefunden.add(_PRAEFIX_QUELLE[pf])
+    return [k for k in QUELLEN_REIHENFOLGE if k in gefunden]
+
+
 def import_geraet(session_uuid, device_model):
     """Wie sessions.import_geraet (dort die Begruendung); hier verzoegert importiert, sessions importiert community."""
     from .sessions import import_geraet as _f
@@ -1588,6 +1635,8 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
             for x in liste:
                 if x:
                     x["land"] = laender.get(x["user_id"])
+    out["quellen"] = quellen(db, user_ids=uids, viewer_id=_user.id, accel_only=accel_only, sport=sport,
+                             cut=cut, spot=spot, foil_band=foil_band)
     return out
 
 

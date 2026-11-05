@@ -28,6 +28,9 @@ ANBIETER: tuple[tuple[str, str, str], ...] = (
     ("Polar", "PolarLink", "app.api.polar"),
     ("Suunto", "SuuntoLink", "app.api.suunto"),
     ("COROS", "CorosMcpLink", "app.api.coros_mcp"),
+    # Garmin holt nichts (Aktivitaeten kommen per Push), haelt aber die Verbindung am Leben: das Refresh-Token laeuft
+    # nach drei Monaten ab (app/api/garmin.py sync).
+    ("Garmin", "GarminLink", "app.api.garmin"),
 )
 
 # Stunden seit dem letzten Sync, ab denen erneut geholt wird. 20 statt 24, damit ein taeglicher

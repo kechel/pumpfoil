@@ -15,6 +15,7 @@ import { usePumpFmt } from "../lib/pumpRate";
 // Rekord-Kacheln und Zeitfenster kommen aus der Community-Seite — eine Quelle, damit
 // die Spot-Rekorde nicht anders aussehen als dieselben Rekorde eine Seite weiter.
 import { Leaderboards, RecordGrid, PERIODS } from "./Home";
+import { Quellen } from "../components/Quellen";
 import { ListenAnsicht } from "../components/ListenAnsicht";
 import { useKompakteListe, ZEILEN_RASTER } from "../lib/kompakteListe";
 import { fmtDate } from "../lib/time";
@@ -1579,6 +1580,7 @@ function SpotRecordsSport({ sport, data, spot, accelOnly }: { sport: string; dat
       {/* Kacheln wie vorher (Jan, 02.11.2026: die Tabelle war ein Missverstaendnis — gemeint sind ZUSAETZLICHE
           Bestenlisten je Kennzahl, s. docs/TODO.md). */}
       <RecordGrid rec={data[period]} sport={sport} nurBelegt />
+      <Quellen quellen={(data[period] as { quellen?: string[] } | undefined)?.quellen} />
       {/* Darunter dieselben Bestenlisten wie in der Community, nur an diesem Spot (Jan, 02.11.2026). Zeitraum wie die
           Kacheln darueber. */}
       <div className="mt-6">

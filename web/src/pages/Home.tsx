@@ -13,6 +13,7 @@ import BestenlisteBildDialog from "../components/BestenlisteBildDialog";
 import TeamListenKachel from "../components/TeamListenKachel";
 import TeamWappen, { teamInitialen } from "../components/TeamWappen";
 import { TeamHerkunft } from "../components/TeamHerkunft";
+import { Quellen, quellenText } from "../components/Quellen";
 import { TEAM_FARBEN, teamFarbStil } from "../lib/teamFarben";
 import { initialenAus } from "../lib/bestenlisteBild";
 import { SessionRow } from "../components/SessionRow";
@@ -299,7 +300,7 @@ const dauerText = (s: number) => {
 // On-Foil-Strecke und -Zeit (Jan, 01.11.2026): zaehlen auch GPS-only-Fahrten, die bei den Pumps nie auftauchen. Je
 // zweimal, die zweite Reihe des Rasters: weitester/laengster EINZELNER Lauf (Beschriftung wie bei den Rekorden) und
 // die Summe im Zeitraum. Einheit fest („km", „h" bzw. „min" — international lesbar).
-const LEADER_KINDS: { key: Exclude<keyof Leaders, "me">; labelKey: string; field: keyof LeaderRow; unitKey?: string;
+const LEADER_KINDS: { key: Exclude<keyof Leaders, "me" | "quellen">; labelKey: string; field: keyof LeaderRow; unitKey?: string;
                       unit?: (v: number) => string; fmt?: (v: number) => string }[] = [
   // Reihenfolge nach dem Vorschlag eines Team-Kapitaens (02.11.2026): zuerst die Laufdauer — weltweit DIE Kennzahl —,
   // dann die Summen, zuletzt der weiteste Lauf (fast dieselbe Reihung wie die Dauer). Bei Wind/Paddeln vorne die ganze Fahrt.
@@ -579,6 +580,7 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
           zeilen: (data[k.key] ?? []).slice(0, 10).map((r, i) => zeile(r, i + 1)),
           eigene: eigene && eigene.rank != null ? zeile(eigene, eigene.rank) : null,
           leer: "—",
+          quelle: quellenText(data.quellen, t),
         }} />
     );
   };
@@ -594,6 +596,7 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
       {!data ? null : empty ? <p className="text-xs text-slate-400">—</p> : (
         <LeaderList rows={data[k.key] ?? []} field={k.field} unit={k.unit ?? t(k.unitKey ?? "")} fmt={k.fmt} me={data.me?.[k.key]} />
       )}
+      {data && !empty && <Quellen quellen={data.quellen} />}
       {data && !empty && (data[k.key] ?? []).length > 0 && (
         <button onClick={() => setBild(true)}
           className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-brand-600 hover:bg-slate-700 dark:text-brand-300">
@@ -632,6 +635,7 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
             </div>
             <div className="max-w-xl">
               <LeaderList rows={data[k.key] ?? []} field={k.field} unit={k.unit ?? t(k.unitKey ?? "")} fmt={k.fmt} me={data.me?.[k.key]} />
+              <Quellen quellen={data.quellen} />
               {(data[k.key] ?? []).length > 0 && (
                 <button onClick={() => setBild(true)}
                   className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-brand-600 hover:bg-slate-700 dark:text-brand-300">
@@ -921,6 +925,7 @@ function CommunitySection() {
           <p className="mb-3 text-sm text-slate-400">{bandInfo(band, t)}</p>
         )}
         <RecordGrid rec={data?.[period as keyof CommunityRecords]} showSpot sport={sport} />
+        <Quellen quellen={(data?.[period as keyof CommunityRecords] as { quellen?: string[] } | undefined)?.quellen} />
       </>}
       {tab === "medien" && <>
         <LatestMedia key={`m${freunde}`} />
@@ -1065,6 +1070,7 @@ function TeamBestenlisten({ period, sport, region, titel }: { period: string; sp
         </div>
       )}
       <p className="mt-2 text-xs text-slate-400">{t("team.vergleich.hinweis", { n: String(top), sport: t(`cls.sport.${sport}`) })}</p>
+      <Quellen quellen={d?.quellen} />
       {/* Als Bild teilen wie die Bestenliste der Fahrer (Jan, 03.11.2026). Flaggen nur fuer Laender; Kontinent/Erde
           („k:…") haben kein Flaggenbild und bleiben im Bild ohne Zeichen. */}
       {!!zeilen.length && (
@@ -1084,6 +1090,7 @@ function TeamBestenlisten({ period, sport, region, titel }: { period: string; sp
             zeilen: zeilen.slice(0, 10).map((z, i) => bildZeile(z, i)),
             eigene: (() => { const i = zeilen.findIndex((z, j) => j >= 10 && meine.has(z.slug)); return i >= 0 ? bildZeile(zeilen[i], i) : null; })(),
             leer: "—",
+            quelle: quellenText(d?.quellen, t),
           }} />
       )}
     </div>

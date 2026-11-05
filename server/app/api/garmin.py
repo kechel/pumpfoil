@@ -175,6 +175,8 @@ def status_(user: models.User = Depends(current_user), db: Session = Depends(get
         "last_sync_at": link.last_sync_at.isoformat() if link and link.last_sync_at else None,
         # Hat der Nutzer in Garmin Connect das Teilen von Aktivitaeten ausgeschaltet, kommt nichts mehr an.
         "activity_export": rechte is None or "ACTIVITY_EXPORT" in rechte,
+        # Refresh-Token abgelaufen (drei Monate ohne Erneuerung): neu verbinden noetig.
+        "expired": bool(link and link.refresh_expires_at and _aware(link.refresh_expires_at) < _jetzt()),
     }
 
 
@@ -490,6 +492,25 @@ def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
         log.warning("garmin: Verknuepfen nach Aufnahme #%s fehlgeschlagen: %s", eigene.id, exc)
         return 0
     return n
+
+
+# Erneuern, sobald das Refresh-Token in weniger als dieser Zeit ablaeuft. Jede Erneuerung bringt ein neues Refresh-Token
+# mit wieder drei Monaten — so verliert auch niemand die Verbindung, der lange nichts aufzeichnet.
+REFRESH_ERNEUERN_VOR = timedelta(days=30)
+
+
+def sync(user: models.User, db: Session) -> str:
+    """Fuer den taeglichen Lauf (app/kontensync.py): nichts holen, nur die Verbindung erneuern, wenn noetig."""
+    link = db.query(models.GarminLink).filter_by(user_id=user.id).first()
+    if link is None:
+        return "kein link"
+    ablauf = _aware(link.refresh_expires_at)
+    if ablauf is not None and ablauf - _jetzt() > REFRESH_ERNEUERN_VOR:
+        return "ok"
+    tok = _token_anfrage({"grant_type": "refresh_token", "refresh_token": link.refresh_token})
+    _tokens_uebernehmen(link, tok)
+    db.commit()
+    return "erneuert"
 
 
 # --- Trennen --------------------------------------------------------------------------------------------------------

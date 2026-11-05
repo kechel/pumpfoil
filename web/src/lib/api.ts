@@ -728,6 +728,8 @@ export interface LeaderRow {
   land?: string | null;   // Nationalitaet (ISO-Code), nur wenn selbst eingestellt (02.11.2026)
 }
 export interface Leaders {
+  // Quellen der gezeigten Daten (server community.quellen), klein unter der Liste.
+  quellen?: string[];
   sessions: LeaderRow[];
   runs: LeaderRow[];
   spots: LeaderRow[];
@@ -2249,7 +2251,7 @@ export interface TeamKurz extends TeamAuftritt { id: number; rolle: TeamRolle; s
 export type TeamVergleichKennzahl = "pumps" | "distance_m" | "time_s" | "sessions" | "runs";
 export type TeamVergleichZeile = Pick<TeamAuftritt, "name" | "slug" | "logo_url" | "farbe" | "land"> & { mitglieder: number; aktive: number }
   & Record<TeamVergleichKennzahl | `${TeamVergleichKennzahl}_fahrer`, number>;
-export interface TeamVergleich { period: string; top: number; teams: TeamVergleichZeile[] }
+export interface TeamVergleich { period: string; top: number; teams: TeamVergleichZeile[]; quellen?: string[] }
 /** Community-Seite: laufende und bald beginnende Events (ohne Bestenlisten) */
 export interface TeamEventKurz {
   id: number; titel: string; beschreibung: string | null; start: string; ende: string; zeitzone: string | null;

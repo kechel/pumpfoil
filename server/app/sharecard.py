@@ -309,6 +309,11 @@ def render_share_png(session, ar, water_rings, *, color="cyan", stats=None,
     sub = f"{session.place_name} · {date_str}" if (title and session.place_name) else date_str
     if hl is not None:                       # Einzel-Lauf: im Untertitel ausweisen
         sub = _L("share.run", lang).replace("{n}", str(hl + 1)) + f" · {sub}"
+    # Garmin-Connect-Import: „Garmin [Geraet]" direkt unter der Ueberschrift (Garmins Markenvorgabe: in jedem Bild).
+    from .api.sessions import import_geraet
+    _garmin = import_geraet(getattr(session, "session_uuid", None), getattr(session, "device_model", None))
+    if _garmin:
+        sub = f"{sub} · {_garmin}"
     d.text((px(90), px(64)), head, font=_font(px(58), lang=lang), fill=(*prim, 255))
     # Untertitel (Ort · Datum): im gewaehlten Blau (prim) + fett — die kleine Schrift war
     # in der Sekundaerfarbe (hellgrau) auf hellem Hintergrund/Foto schlecht lesbar.

@@ -258,7 +258,15 @@ def vergleich(period: str = "30d", top: int = 5, sport: str = "pumpfoil", region
     from .. import regionen
     region = regionen.pruefen(region)
     teams = [z for z in T.vergleich(db, period, top, sport) if regionen.passt(z.get("land"), region)]
-    return {"period": period, "top": top, "sport": sport, "region": region, "teams": teams}
+    # Quellen klein unter der Liste (community.quellen): womit die Mitglieder der gezeigten Teams im Zeitraum fuhren.
+    from .community import _cutoff, quellen
+    mitglieder = {u for z in teams for u in T.mitglieder_ids(db, z["team_id"])} if teams and "team_id" in teams[0] else set()
+    if not mitglieder and teams:
+        slugs = {z["slug"] for z in teams}
+        for t in db.query(models.Team).filter(models.Team.frei_slug.in_(slugs)).all():
+            mitglieder |= set(T.mitglieder_ids(db, t.id))
+    q = quellen(db, user_ids=mitglieder, sport=sport, cut=_cutoff(period)) if mitglieder else []
+    return {"period": period, "top": top, "sport": sport, "region": region, "teams": teams, "quellen": q}
 
 
 @router.get("/liste/events")
