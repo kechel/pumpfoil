@@ -3446,38 +3446,60 @@ const SKIZZE_FARBE_AUS = "#94a3b8";   // abgeschnitten
  * Sessions an, archiviert das Original und wertet die Teile im Hintergrund aus (server/app/split.py).
  * Die Trennung laesst sich in jedem Teil wieder aufheben.
  */
+// Farben der Teile in der Skizze: Teil 1 Markenfarbe, Teil 2 wie bisher, danach weitere gut unterscheidbare.
+const SPLIT_FARBEN = [SKIZZE_FARBE_A, SKIZZE_FARBE_B, "#a3e635", "#f472b6", "#818cf8", "#fb7185", "#34d399", "#fbbf24"];
+
 function SplitPanel({ session, onDone }: { session: SessionSummary; onDone: (ids: number[]) => void }) {
   const t = useT();
   // Achse wie beim Zuschneiden: Session-ms (aktive Zeit), Laenge vom Server (s. TrimPanel).
   const totalSec = Math.round((session.duration_ms ?? 0) / 1000);
   const MIN = 60;                       // jeder Teil mindestens 1 min (server/app/split.py MIN_TEIL_MS)
   const moeglich = totalSec > 2 * MIN;
-  const [cut, setCut] = useState(Math.round(totalSec / 2));
+  // MEHRERE Trennstellen (Feedback PumpingCarbon 05.11.2026: „Pumpfoil -> Wingfoil -> Pumpfoil -> Wingfoil -> Pumpfoil …
+  // kann nur 1x trennen"). Sortiert gehalten; jeder Teil mindestens MIN.
+  const [cuts, setCuts] = useState<number[]>([Math.round(totalSec / 2)]);
   const startMs = new Date(session.started_at).getTime();
   const clock = (sec: number) =>
     fmtTime(new Date(startMs + wanduhrMs(session.pause_windows, sec * 1000)).toISOString(), session.tz,
             { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const eigen = session.sport_class ?? "pumpfoil";
-  const [sp1, setSp1] = useState(eigen);
-  const [sp2, setSp2] = useState(eigen);
+  const [sports, setSports] = useState<string[]>([eigen, eigen]);
   const [busy, setBusy] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
-  const wahl = (v: string, set: (s: string) => void, farbe: string, n: number) => (
-    <label className="flex items-center gap-2 text-sm text-slate-200">
-      <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: farbe }} />
-      {t("split.part", { n })}
-      <select value={v} onChange={(e) => set(e.target.value)} disabled={busy}
-        className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm">
-        {sortiereSports(SPORTS, t).map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
-      </select>
-    </label>
-  );
+  const grenzen = [0, ...cuts, totalSec];
+  const farbe = (i: number) => SPLIT_FARBEN[i % SPLIT_FARBEN.length];
+  const teilBei = (sec: number) => { let i = 0; while (i < cuts.length && sec >= cuts[i]) i++; return i; };
+
+  // Eine Stelle verschieben: zwischen den Nachbarn, je Teil mindestens MIN.
+  const setzeCut = (i: number, v: number) => setCuts((alt) => {
+    const lo = (i === 0 ? 0 : alt[i - 1]) + MIN, hi = (i === alt.length - 1 ? totalSec : alt[i + 1]) - MIN;
+    const n = [...alt]; n[i] = Math.min(Math.max(v, lo), hi); return n;
+  });
+  // Neue Stelle in die Mitte des laengsten Teils (nur wenn der fuer zwei Teile reicht); seine Sportart wird kopiert.
+  const dazu = () => {
+    let best = -1, laenge = 0;
+    for (let i = 0; i < grenzen.length - 1; i++) {
+      const l = grenzen[i + 1] - grenzen[i];
+      if (l > laenge) { laenge = l; best = i; }
+    }
+    if (best < 0 || laenge < 2 * MIN) return;
+    const mitte = Math.round((grenzen[best] + grenzen[best + 1]) / 2);
+    setCuts((alt) => [...alt, mitte].sort((x, y) => x - y));
+    setSports((alt) => [...alt.slice(0, best + 1), alt[best], ...alt.slice(best + 1)]);
+  };
+  // Stelle i entfernen: Teil i und i+1 werden einer (Sportart des vorderen bleibt).
+  const weg = (i: number) => {
+    setCuts((alt) => alt.filter((_, k) => k !== i));
+    setSports((alt) => alt.filter((_, k) => k !== i + 1));
+  };
+  const kannDazu = grenzen.some((g, i) => i < grenzen.length - 1 && grenzen[i + 1] - g >= 2 * MIN) && cuts.length < 20;
+
   async function trennen() {
-    if (!confirm(t("split.confirm", { at: clock(cut) }))) return;
+    if (!confirm(t("split.confirm", { at: cuts.map(clock).join(", ") }))) return;
     setBusy(true); setFehler(null);
     try {
       // Sportart je Teil setzt der Server beim Trennen mit — so laeuft je Teil nur EINE Auswertung.
-      const r = await api.splitSession(session.id, cut * 1000, [sp1, sp2]);
+      const r = await api.splitSession(session.id, cuts.map((c) => c * 1000), sports);
       onDone(r.ids);
     } catch (e) {
       setFehler(t("split.fail", { err: String((e as any)?.message ?? e) }));
@@ -3490,23 +3512,51 @@ function SplitPanel({ session, onDone }: { session: SessionSummary; onDone: (ids
       {!moeglich ? (
         <p className="text-sm text-amber-700 dark:text-amber-300">{t("split.tooShort")}</p>
       ) : (<>
-        <label className="block text-sm text-slate-200">
-          {t("split.at")} <span className="tabular-nums text-slate-100">{fmtMMSS(cut)}</span>
-          <span className="ml-2 tabular-nums text-slate-300">{clock(cut)}</span>
-          <input type="range" min={MIN} max={totalSec - MIN} value={cut} disabled={busy}
-            onChange={(e) => setCut(Number(e.target.value))} className="mt-1 w-full accent-brand-500" />
-        </label>
+        {cuts.map((c, i) => (
+          <div key={i} className="text-sm text-slate-200">
+            <div className="flex items-center gap-2">
+              <span>{t("split.at")}</span>
+              <span className="tabular-nums text-slate-100">{fmtMMSS(c)}</span>
+              <span className="tabular-nums text-slate-300">{clock(c)}</span>
+              {cuts.length > 1 && (
+                <button type="button" disabled={busy} onClick={() => weg(i)}
+                  className="ml-auto rounded-lg px-2 py-0.5 text-xs text-slate-300 hover:bg-slate-800" title={t("split.removeCut")}>
+                  {t("split.removeCut")}
+                </button>
+              )}
+            </div>
+            <input type="range" min={MIN} max={totalSec - MIN} value={c} disabled={busy}
+              onChange={(e) => setzeCut(i, Number(e.target.value))} className="mt-1 w-full accent-brand-500" />
+          </div>
+        ))}
         <ZeitSkizze sessionId={session.id}
-          farbe={(tt) => (tt < cut * 1000 ? SKIZZE_FARBE_A : SKIZZE_FARBE_B)}
-          marken={[{ tMs: cut * 1000, farbe: "#f8fafc" }]} />
+          farbe={(tt) => farbe(teilBei(tt / 1000))}
+          marken={cuts.map((c) => ({ tMs: c * 1000, farbe: "#f8fafc" }))} />
         <div className="flex flex-wrap gap-4">
-          {wahl(sp1, setSp1, SKIZZE_FARBE_A, 1)}
-          {wahl(sp2, setSp2, SKIZZE_FARBE_B, 2)}
+          {sports.map((v, i) => (
+            <label key={i} className="flex items-center gap-2 text-sm text-slate-200">
+              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: farbe(i) }} />
+              {t("split.part", { n: i + 1 })}
+              <select value={v} disabled={busy}
+                onChange={(e) => setSports((alt) => alt.map((x, k) => (k === i ? e.target.value : x)))}
+                className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm">
+                {sortiereSports(SPORTS, t).map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
+              </select>
+            </label>
+          ))}
         </div>
-        <button disabled={busy} onClick={trennen}
-          className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
-          {busy ? t("split.busy") : t("split.do")}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          {kannDazu && (
+            <button type="button" disabled={busy} onClick={dazu}
+              className="rounded-xl bg-slate-800 px-4 py-2 text-sm text-slate-200 hover:bg-slate-700 disabled:opacity-50">
+              + {t("split.addCut")}
+            </button>
+          )}
+          <button disabled={busy} onClick={trennen}
+            className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50">
+            {busy ? t("split.busy") : t("split.do")}
+          </button>
+        </div>
         {fehler && <p className="text-sm text-red-700 dark:text-red-400">{fehler}</p>}
       </>)}
     </Card>

@@ -2526,12 +2526,14 @@ def split_session_endpoint(
     session_id: int, body: dict, background_tasks: BackgroundTasks,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> dict:
-    """Eigene Session an `t_ms` (Session-ms) in zwei Sessions teilen (Nutzerwunsch 25.10.2026: Wingfoilen
-    und Pumpfoilen in einer Aufnahme). Original wird archiviert, s. app/split.py."""
+    """Eigene Session an `t_ms` (Session-ms) in zwei Sessions teilen bzw. an `cuts` in mehrere (Nutzerwunsch
+    25.10.2026: Wingfoilen und Pumpfoilen in einer Aufnahme). Original wird archiviert, s. app/split.py."""
     from .. import split
     s = _owned(db, user, session_id)
+    # `t_ms` = eine Stelle, `cuts` = mehrere (n+1 Teile, 05.11.2026); hoechstens 20 Stellen.
     try:
-        t_ms = int(body.get("t_ms"))
+        roh = body.get("cuts")
+        t_ms = [int(x) for x in roh][:20] if isinstance(roh, list) and roh else int(body.get("t_ms"))
     except (TypeError, ValueError):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "t_ms fehlt")
     geteilt = bool(s.share_token)
@@ -2549,7 +2551,7 @@ def unsplit_session_endpoint(
     session_id: int,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> dict:
-    """Teilung aufheben: Original zurueck, beide Teile weg."""
+    """Teilung aufheben: Original zurueck, alle Teile weg."""
     from .. import split
     s = _owned(db, user, session_id)
     try:

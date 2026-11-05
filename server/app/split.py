@@ -138,15 +138,19 @@ def _ende_ms(s: models.Session) -> int:
     return int(storage.gps_last_ms(s.session_uuid) or 0)
 
 
-def kann_teilen(s: models.Session, t_ms: int, merged_count: int = 0) -> tuple[bool, str]:
+def kann_teilen(s: models.Session, t_ms, merged_count: int = 0) -> tuple[bool, str]:
+    """`t_ms` = eine Trennstelle oder eine Liste davon (Session-ms)."""
     if s.deleted:
         return False, "Session ist geloescht"
     if (s.status or "") != "analyzed":
         return False, "Session ist noch nicht fertig hochgeladen/ausgewertet"
     if merged_count:
         return False, "Zusammengefuehrte Session: bitte erst die Zusammenfuehrung aufloesen"
-    ende = _ende_ms(s)
-    if t_ms < MIN_TEIL_MS or t_ms > ende - MIN_TEIL_MS:
+    schnitte = sorted(int(x) for x in (t_ms if isinstance(t_ms, (list, tuple)) else [t_ms]))
+    if not schnitte:
+        return False, "Keine Trennstelle"
+    grenzen = [0, *schnitte, _ende_ms(s)]
+    if any(b - a < MIN_TEIL_MS for a, b in zip(grenzen, grenzen[1:])):
         return False, "Jeder Teil muss mindestens eine Minute lang sein"
     return True, ""
 
@@ -166,22 +170,24 @@ def _sport_setzen(ns: models.Session, user, neu: str | None) -> None:
         ns.trim_start_ms = ns.trim_end_ms = ns.trim_auto = None
 
 
-def split_session(db: DbSession, s: models.Session, t_ms: int,
+def split_session(db: DbSession, s: models.Session, t_ms,
                   sports: list[str | None] | None = None) -> list[models.Session]:
-    """`s` an Session-ms `t_ms` in zwei neue Sessions teilen. -> [erster Teil, zweiter Teil].
-    `sports` = Sportart je Teil (None = wie das Original)."""
+    """`s` an Session-ms `t_ms` teilen — eine Stelle (zwei Teile) oder eine Liste von Stellen (n+1 Teile, Feedback
+    PumpingCarbon 05.11.2026: „Pumpfoil -> Wingfoil -> Pumpfoil -> Wingfoil -> Pumpfoil … nur 1x trennen").
+    -> Teile in zeitlicher Reihenfolge. `sports` = Sportart je Teil (None = wie das Original)."""
     # Zeile sperren: ein zweiter Klick waehrend der (langen) Reanalyse wartet und scheitert dann
     # an `deleted` statt eine zweite Kopie zu bauen (s. merge._schon_zusammengefuehrt).
     db.query(models.Session).filter_by(id=s.id).with_for_update().populate_existing().one()
     merged = db.query(models.Session).filter(models.Session.merged_into == s.id).count()
-    ok, why = kann_teilen(s, int(t_ms), merged)
+    ok, why = kann_teilen(s, t_ms, merged)
     if not ok:
         raise ValueError(why)
-    t_ms = int(t_ms)
-    # Der zweite Teil laeuft bis zum Ende ALLER Spuren (Accel/Kreisel reichen oft ueber den letzten GPS-Punkt).
+    schnitte = sorted(int(x) for x in (t_ms if isinstance(t_ms, (list, tuple)) else [t_ms]))
+    # Der letzte Teil laeuft bis zum Ende ALLER Spuren (Accel/Kreisel reichen oft ueber den letzten GPS-Punkt).
     ende = 10 ** 12
+    grenzen = [0, *schnitte, ende]
     teile = []
-    for lo, hi in ((0, t_ms), (t_ms, ende)):
+    for lo, hi in zip(grenzen, grenzen[1:]):
         uuid = "split-" + _uuid.uuid4().hex
         _rohdaten_schreiben(s, uuid, lo, hi)
         start = s.started_at + timedelta(milliseconds=clockmap.wanduhr_ms(clockmap.pausen(s), lo)) \

@@ -1982,8 +1982,10 @@ export const api = {
   unmergeSession: (id: number) =>
     req<{ ids: number[] }>(`/api/sessions/${id}/unmerge`, { method: "POST" }),
   // Session an einer Stelle (Session-ms) in zwei Sessions trennen; die Teile werden im Hintergrund ausgewertet.
-  splitSession: (id: number, tMs: number, sports?: (string | null)[]) =>
-    req<{ ids: number[]; geteilter_link: boolean }>(`/api/sessions/${id}/split`, { method: "POST", body: JSON.stringify({ t_ms: tMs, sports }) }),
+  // Eine Stelle oder mehrere (`cuts`, n+1 Teile, 05.11.2026).
+  splitSession: (id: number, tMs: number | number[], sports?: (string | null)[]) =>
+    req<{ ids: number[]; geteilter_link: boolean }>(`/api/sessions/${id}/split`, { method: "POST",
+      body: JSON.stringify(Array.isArray(tMs) ? { cuts: tMs, sports } : { t_ms: tMs, sports }) }),
   unsplitSession: (id: number) =>
     req<{ id: number }>(`/api/sessions/${id}/unsplit`, { method: "POST" }),
   // Ganze Spur ohne Zuschnitt, ausgeduennt (nur Besitzer) — fuer die Skizze beim Zuschneiden/Trennen.

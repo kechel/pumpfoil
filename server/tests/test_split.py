@@ -150,3 +150,29 @@ def test_api_nur_eigene(client, ohne_analyse):
     d = client.get(f"/api/sessions/{ids[1]}", headers=hdr(auth)).json()
     assert d["split_from"] == sid and d["split_teile"] == ids and d["status"] == "complete"
     assert client.post(f"/api/sessions/{ids[1]}/unsplit", headers=hdr(auth)).json() == {"id": sid}
+
+
+def test_mehrere_trennstellen(client, ohne_analyse):
+    # Feedback PumpingCarbon 05.11.2026: Pumpfoil -> Wingfoil -> Pumpfoil -> Wingfoil -> Pumpfoil in EINEM Schritt.
+    from app.db import SessionLocal
+    from app import models, storage
+    uid, _ = _nutzer(client, "split-n")
+    db = SessionLocal()
+    try:
+        s = _aufnahme(db, uid, minuten=20)
+        sp = ["pumpfoil", "wingfoil", "pumpfoil", "wingfoil", "pumpfoil"]
+        teile = split.split_session(db, s, [720_000, 240_000, 480_000, 960_000], sp)   # unsortiert uebergeben
+        assert len(teile) == 5 and [t.sport_class for t in teile] == sp
+        assert [len(storage.load_gps(t.session_uuid, roh=True)) for t in teile] == [240, 240, 240, 240, 240]
+        assert [t.started_at for t in teile] == [START + timedelta(minutes=m) for m in (0, 4, 8, 12, 16)]
+        assert all(t.split_from == s.id for t in teile)
+        # zu kurzer Mittelteil
+        s2 = _aufnahme(db, uid, minuten=10)
+        with pytest.raises(ValueError):
+            split.split_session(db, s2, [240_000, 270_000])
+        # Aufheben holt das Original zurueck und raeumt alle fuenf Teile weg
+        orig = split.unsplit_session(db, teile[2])
+        assert orig.id == s.id and not orig.deleted
+        assert db.query(models.Session).filter(models.Session.split_from == s.id).count() == 0
+    finally:
+        db.close()
