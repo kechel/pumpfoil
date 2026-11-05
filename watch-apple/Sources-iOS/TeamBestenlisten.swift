@@ -56,9 +56,12 @@ struct TeamVergleichZeile: Decodable, Identifiable {
 }
 
 extension Api {
-    static func teamsVergleich(period: String, top: Int) async throws -> TeamVergleich {
+    // `sport` und `region` seit 05.11.2026: es wird immer dieselbe Sportart verglichen, Teams nach ihrer Herkunft.
+    static func teamsVergleich(period: String, top: Int, sport: String = "pumpfoil", region: String = "all") async throws -> TeamVergleich {
         let p: String = period.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? period
-        return try await request("/api/teams/liste/vergleich?period=\(p)&top=\(top)", method: "GET", body: nil, auth: true)
+        let s: String = sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport
+        return try await request("/api/teams/liste/vergleich?period=\(p)&top=\(top)&sport=\(s)" + regionParam(region),
+                                 method: "GET", body: nil, auth: true)
     }
 }
 
@@ -85,11 +88,16 @@ func teamVergleichWert(_ v: Double, _ art: String) -> String {
 
 /// Abschnitt fuer die Community-Liste. Je Team eine eigene Listenzeile mit GENAU einem Link (s. CommunityView); die
 /// Knopfzeilen mit `.borderless`, sonst loest ein Tipp alle Knoepfe einer Zeile aus.
+// Seit 05.11.2026 (Oleks Entwurf, web Home.tsx) unter der Bestenliste der Mitglieder: Zeitraum, Sportart und Region
+// kommen von oben, Kennzahl und „Beste N" als Menues, gemerkt wie im Web (foil_team_art / foil_team_top).
 struct TeamBestenlistenSection: View {
     let lang: String
-    @State private var period = "30d"
-    @State private var top = 5
-    @State private var art = "pumps"
+    let period: String
+    let sport: String
+    let region: String
+    let titel: String
+    @AppStorage("foil_team_top") private var top = 5
+    @AppStorage("foil_team_art") private var art = "pumps"
     @State private var d: TeamVergleich? = nil
     // Eigene (aktive) Teams fuer die Hervorhebung im Bild.
     @State private var meine: Set<String> = []
@@ -105,15 +113,13 @@ struct TeamBestenlistenSection: View {
 
     var body: some View {
         Section {
-            Text(Loc.t("team.vergleich.hinweis", lang).replacingOccurrences(of: "{n}", with: String(top)).replacingOccurrences(of: "{sport}", with: "Pumpfoil"))
-                .font(.subheadline).foregroundStyle(.secondary)
-            zeitZeile
-            artZeile
+            auswahlZeile
             liste
+            Text(hinweis).font(.footnote).foregroundStyle(.secondary)
         } header: {
-            Text(Loc.t("team.vergleich.titel", lang)).font(.headline)
+            Text(titel).font(.headline)
         }
-        .task(id: "\(period)|\(top)") { await laden() }
+        .task(id: "\(period)|\(top)|\(sport)|\(region)") { await laden() }
         .task { await meineLaden() }
     }
 
@@ -136,34 +142,25 @@ struct TeamBestenlistenSection: View {
         }
     }
 
-    private var zeitZeile: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
-                ForEach(VERGLEICH_ZEITEN, id: \.0) { k, lk in knopf(Loc.t(lk, lang), period == k) { period = k } }
-                Spacer(minLength: 10)
+    private var hinweis: String {
+        Loc.t("team.vergleich.hinweis", lang).replacingOccurrences(of: "{n}", with: String(top))
+            .replacingOccurrences(of: "{sport}", with: Loc.t("cls.sport." + sport, lang))
+    }
+
+    private var auswahlZeile: some View {
+        HStack(spacing: 8) {
+            Picker(Loc.t("team.vergleich.titel", lang), selection: $art) {
+                ForEach(VERGLEICH_ARTEN, id: \.0) { k, lk in Text(Loc.t(lk, lang)).tag(k) }
+            }
+            .pickerStyle(.menu)
+            Spacer(minLength: 4)
+            Picker(Loc.t("team.vergleich.titel", lang), selection: $top) {
                 ForEach([3, 5, 10], id: \.self) { n in
-                    knopf(Loc.t("team.vergleich.top", lang).replacingOccurrences(of: "{n}", with: String(n)), top == n) { top = n }
+                    Text(Loc.t("team.vergleich.top", lang).replacingOccurrences(of: "{n}", with: String(n))).tag(n)
                 }
             }
+            .pickerStyle(.menu)
         }
-    }
-
-    private var artZeile: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
-                ForEach(VERGLEICH_ARTEN, id: \.0) { k, lk in knopf(Loc.t(lk, lang), art == k) { art = k } }
-            }
-        }
-    }
-
-    private func knopf(_ text: String, _ an: Bool, _ aktion: @escaping () -> Void) -> some View {
-        Button(action: aktion) {
-            Text(text).font(.caption).fontWeight(an ? .semibold : .regular)
-                .padding(.horizontal, 10).padding(.vertical, 5)
-                .foregroundStyle(an ? Color.black : Color.primary)
-                .background(Capsule().fill(an ? Color.accentColor : Color(.tertiarySystemBackground)))
-        }
-        .buttonStyle(.borderless)
     }
 
     private func zeile(_ rang: Int, _ z: TeamVergleichZeile) -> some View {
@@ -193,8 +190,8 @@ struct TeamBestenlistenSection: View {
     // MARK: - Laden
 
     private func laden() async {
-        let p: String = period, n: Int = top
-        if let neu = try? await Api.teamsVergleich(period: p, top: n), p == period, n == top { d = neu }
+        let p: String = period, n: Int = top, sp: String = sport, r: String = region
+        if let neu = try? await Api.teamsVergleich(period: p, top: n, sport: sp, region: r), p == period, n == top, sp == sport, r == region { d = neu }
         else if d == nil { d = TeamVergleich(teams: []) }
     }
 
@@ -215,7 +212,7 @@ struct TeamBestenlistenSection: View {
         df.locale = Locale(identifier: lang == "gsw" ? "de-CH" : lang)
         df.dateStyle = .medium
         df.timeStyle = .none
-        let unter: String = [Loc.t("team.vergleich.titel", lang),
+        let unter: String = [Loc.t("team.vergleich.titel", lang), Loc.t("cls.sport." + sport, lang),
                              Loc.t("team.vergleich.top", lang).replacingOccurrences(of: "{n}", with: String(top)),
                              Loc.t(VERGLEICH_ZEITEN.first { $0.0 == period }?.1 ?? "period.all", lang),
                              df.string(from: Date())].joined(separator: " · ")

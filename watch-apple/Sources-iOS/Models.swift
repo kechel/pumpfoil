@@ -1003,6 +1003,15 @@ struct CommunityGroup: Codable, Identifiable {
 // Oeffentliche Foiler-Seite EINES Nutzers (GET /api/community/foiler/{id}, PWA Foiler.tsx).
 // Welche Bloecke da sind, entscheidet der SERVER anhand der Schalter des Nutzers — fehlt ein Feld,
 // wird es nicht gezeigt. Darum ist hier fast alles optional.
+/// Team auf der Profilseite (05.11.2026): nur freigegebene, mit dem freigegebenen Namen.
+struct FoilerTeam: Decodable {
+    let slug: String
+    let name: String
+    let logo_url: String?
+    let farbe: String?
+    let land: String?
+}
+
 struct FoilerSupporter: Decodable {
     let stufe: Int
     let tage_jahr: Int?
@@ -1019,6 +1028,8 @@ struct FoilerProfil: Decodable {
     let homespot: String?
     let homespot_id: Int?
     let uhren: [String]?
+    let land: String?             // Nationalitaet (ISO-Code), 05.11.2026
+    let teams: [FoilerTeam]?      // Teams mit freigegebenem Auftritt, 05.11.2026
     let supporter: FoilerSupporter?   // Supporter-Badge (23.10.2026), nur wenn gerade sichtbar
     let kanal: String?            // freigegebener YouTube-Kanal
     let foils: [FoilerFoil]?

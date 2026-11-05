@@ -1618,7 +1618,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     GET /api/community/regionen (ab 1 Fahrer bzw. 1 Team, Jan 05.11.), Land -> Kontinent aus Natural Earth
     (scripts/land-kontinent-erzeugen.py, Zypern unter Europa). Nur 11 von 322 aktiven Fahrern haben eine Nationalitaet —
     Hinweis mit Link zur Einstellung. Auswahl mit Flagge bzw. Kontinent-Umriss (Jan). **Android: ✅ 05.11. fuer 1.1.47**
-    (Emulator: Polen filtert Mitglieder, Teams, Kacheln). **Offen:** iOS.
+    (Emulator: Polen filtert Mitglieder, Teams, Kacheln). **iOS: ✅ 05.11. nachgezogen** fuer 1.1.60 (Rangliste mit Region,
+    Team-Sportart, gemerkte Filter, buendige Zeilen, Profil Flagge + Teams, Uhren-Statistik-Reiter), nur swiftc -parse.
   - Abzeichen/Erfolge als Kacheln auf Home (Tagessiege, Allzeit-Rekorde, Community) — Plan in docs/TEAMS.md. Dazu
     gehoert auch sein Zaehler „freigeschaltete Sportarten" (Jan 02.11.: Kategorie Abzeichen, erstmal nicht).
   - Schnellster km bzw. Tempo (min/km), auch seine „schnellste Minute" — s. „Schnellste 100 m / 200 m / 500 m / 1 km" oben.

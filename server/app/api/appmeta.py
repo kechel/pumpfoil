@@ -1091,6 +1091,21 @@ NAECHSTES: list[dict] = [
     # Garmin 1.0.99 am 03.11. eingereicht -> IN_REVIEW.
     # Huawei Watch 5 1.0.4 am 04.11. eingereicht -> IN_REVIEW.
     # Android 1.1.47 / Wear 1.2.47 am 05.11. eingereicht -> IN_REVIEW.
+    # 05.11.2026 (Jan: „ja ios alles nachziehen bitte"): alles seit dem Build von 1.1.59 (Uhren-Bereich 51401ee6/7fe14aca,
+    # Positionsmeldung a346911b, Huawei-Karte 2c742742) und vom 05.11. Code nur swiftc -parse; Typcheck in Jans Xcode.
+    {"name": "iPhone + Apple Watch", "version": "1.1.60",
+     "items": [
+         "The watch area is organised like the website: tabs for watch, Polar, COROS, Suunto, Xiaomi and MCP, and under watch the guide with a tab per platform, the settings and your watches.",
+         "The phone recorder reports its position at the first good GPS fix, so you show up as pumping right now even with live upload switched off.",
+         "The leaderboard tab shows one row with the period, region and sport for everything, then the leaderboard of the members, the team leaderboards and the records; the filters are menus and the app remembers them.",
+         "The leaderboards can be filtered by region, by the nationality of the riders and the origin of the teams, with flags in the menu.",
+         "Team leaderboards compare only the sport you pick, so teams of foil scooter riders or mixed teams are ranked fairly.",
+         "Leaderboards are shared as an image only, and their rows line up with a placeholder where a rider has no profile picture.",
+         "Profile pages show the rider's flag next to the name and the teams they belong to at the top.",
+         "Watch stats has two tabs, foiling per watch and how well the watches record.",
+         "The switch for the phone recorder is now on the settings overview right under the language, where new users look for it first.",
+         "The Huawei card in your watches is called Huawei Watch GT / Fit / D, because the Watch 5 uploads by itself and does not need it.",
+     ]},
     # iPhone + Apple Watch 1.1.59 am 04.11. EINGEREICHT -> IN_REVIEW.
     # Android 1.1.46 / Wear 1.2.46 am 28.10. eingereicht (ersetzt 1.1.45) -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.56 am 24.10. eingereicht -> IN_REVIEW.
@@ -1125,10 +1140,18 @@ NAECHSTES: list[dict] = [
     # watch-huawei/lite bzw. watch-huawei/wearable, im Simulator geprueft, nie auf Hardware.
     # 17.10.2026 (Jan: „suunto darf dann auch unter coming next"): SuuntoPlus-App gebaut (watch-suunto/,
     # Bruecken Android/iOS, Server), nie auf Hardware gelaufen — erst Test auf Race/Vertical, dann Einreichung.
+    # 05.11.2026 (Jan): Text nachgezogen — die Watch 5 ist seit 04.11. im Store, der Wear-Engine-Antrag fuer GT/Fit/D
+    # ist am 04.11. eingereicht (docs/TODO.md Protokoll).
     {"name": "Huawei Watch GT / Fit / D", "version": "later",
-     "spaeter": "comes after the Watch 5",
+     "spaeter": "waiting for Huawei's approval",
      "items": [
-         "These watches have no internet of their own and send your sessions through the Pumpfoil phone app, which needs a separate approval from Huawei that we will apply for once the Watch 5 is out.",
+         "These watches have no internet of their own and send your sessions through the Pumpfoil phone app, which needs a separate approval from Huawei; we applied for it on 4 November 2026.",
+     ]},
+    # 05.11.2026 (Jan: „garmin connect developer api als eigener punkt unter coming next"): Antrag am 05.11. gestellt.
+    {"name": "Garmin Connect", "version": "applied",
+     "spaeter": "waiting for Garmin's approval",
+     "items": [
+         "Link your Garmin Connect account and the sessions you record with Garmin's own water sports profiles are imported automatically, like with Polar, Suunto and COROS; we applied to Garmin for access on 5 November 2026.",
      ]},
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",

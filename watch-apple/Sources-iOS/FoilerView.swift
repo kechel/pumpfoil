@@ -195,7 +195,11 @@ struct FoilerView: View {
 
     private func kopfText(_ d: FoilerProfil) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(d.name ?? "—").font(.title2.bold()).lineLimit(1)
+            // Nationalitaet nur als Flagge neben dem Namen (Jan, 05.11.2026: „nur die flagge mit hovertext").
+            HStack(spacing: 6) {
+                Text(d.name ?? "—").font(.title2.bold()).lineLimit(1)
+                if let l = d.land, !l.isEmpty { LandFlagge(land: l) }
+            }
             if let s = seitText(d) {
                 Text(s).font(.subheadline).foregroundStyle(.secondary)
             }
@@ -245,18 +249,36 @@ struct FoilerView: View {
         let hs: Bool = !(d.homespot ?? "").isEmpty
         let uhr: Bool = !(d.uhren ?? []).isEmpty
         let foil: Bool = !(d.foils ?? []).isEmpty
-        return hs || uhr || foil || d.kanal != nil || d.gewicht_kg != nil || d.supporter != nil
+        let teams: Bool = !(d.teams ?? []).isEmpty
+        return hs || uhr || foil || teams || d.kanal != nil || d.gewicht_kg != nil || d.supporter != nil
     }
 
     @ViewBuilder private func angaben(_ d: FoilerProfil) -> some View {
         if hatAngaben(d) {
             Section {
+                teamsZeilen(d)
                 homespotZeile(d)
                 gewichtZeile(d)
                 uhrZeile(d)
                 foilZeile(d)
                 supporterZeile(d)
                 kanalZeile(d)
+            }
+        }
+    }
+
+    // Teams ganz oben (Jan, 05.11.2026), je Team eine Zeile mit Wappen; fuehrt auf die Teamseite. Direktes Ziel statt
+    // Wert-Link, weil die Profilseite aus mehreren Stapeln geoeffnet wird.
+    @ViewBuilder private func teamsZeilen(_ d: FoilerProfil) -> some View {
+        ForEach(d.teams ?? [], id: \.slug) { tm in
+            NavigationLink(destination: TeamsZielView(ziel: .team(tm.slug))) {
+                HStack(spacing: 8) {
+                    Image(systemName: "person.3").foregroundStyle(.secondary).frame(width: 22)
+                    Text(Loc.t("team.community", lang)).foregroundStyle(.secondary)
+                    Spacer(minLength: 8)
+                    TeamWappen(name: tm.name, logo: tm.logo_url, farbe: tm.farbe, size: 20)
+                    Text(tm.name).fontWeight(.semibold).foregroundStyle(TeamFarbe(tm.farbe).akzent).lineLimit(1)
+                }
             }
         }
     }

@@ -34,20 +34,27 @@ struct CommunityView: View {
     // Die Baender samt Session-/Fahrerzahl kommen vom Server, damit hier keine Grenzen fest
     // verdrahtet sind (s. FOIL_BANDS in server/app/api/community.py).
     @State private var bands: [FoilBand] = []
-    @State private var bandKey = "all"
-    @State private var accelWahl = true
+    // Filter der Rangliste merkt sich die App (web 05.11.2026: „browser soll sich alle merken"), Schluessel wie im Web;
+    // den Zeitraum bewusst nicht (sonst greift die Heute/10-Tage-Automatik nie mehr).
+    @AppStorage("foil_komm_band") private var bandKey = "all"
+    // accel / alle / Freunde als EIN gemerkter Wert (vorher drei Chips, seit 05.11.2026 ein Menue wie im Web).
+    @AppStorage("foil_komm_genau") private var genau = "accel"
+    private var accelWahl: Bool { genau != "alle" }
     // Ansicht „Freunde" (Jan, 15.10.2026): die ganze Seite nur ueber mich + meine Freunde — alles,
     // was accel/alle aendert, filtert dann auf Freunde. Die Statistikzeile oben bleibt global.
     // Ein reiner Filter, er gibt nichts frei (server app/freunde.py). Freunde zaehlen wie „alle".
-    @State private var freunde = false
+    private var freunde: Bool { genau == "freunde" }
     private var accelOnly: Bool { accelWahl && !freunde }
     // Standard wie im Web: die laengste Laufdauer (Vorschlag eines Team-Kapitaens, 02.11.2026).
-    @State private var lbMetric = "run_time"
+    @AppStorage("foil_leader_wahl") private var lbMetric = "run_time"
     // Zeitraum selbst gewaehlt? Sonst „Heute", sobald heute alle 10 Plaetze besetzt sind (web Home.tsx, 02.11.2026).
     @State private var periodeGewaehlt = false
     // Sportart wie im Web (19.10.2026): Rekorde und Bestenliste je Sportart; Standard Pumpfoil.
-    @State private var sportart = "pumpfoil"
+    @AppStorage("foil_komm_sport") private var sportart = "pumpfoil"
     @State private var sportListe: [String] = ["pumpfoil"]
+    // Region nach Nationalitaet (web 05.11.2026, server app/regionen.py): "all" | "k:eu" … | "PL".
+    @AppStorage("foil_komm_region") private var region = "all"
+    @State private var regionen: Api.Regionen?
     private var istWind: Bool { Sportarten.windArtig(sportart) }   // Gruppe aus der Server-Liste (25.10.2026)
     private var istMotor: Bool { Sportarten.motor(sportart) }
 
@@ -116,8 +123,8 @@ struct CommunityView: View {
             .task { await heuteVorwaehlen() }
             // „Neueste Medien" bei jedem Betreten auffrischen (gelöschte Fotos sofort weg, wie PWA).
             .onAppear { Task { await refreshMedia() } }
-            .onChange(of: accelWahl) { _ in Task { await reloadAll() } }
-            .onChange(of: freunde) { _ in Task { await reloadAll() } }
+            .onChange(of: genau) { _ in Task { await reloadAll() } }
+            .onChange(of: region) { _ in Task { await reloadBand() } }
             .onChange(of: period) { _ in Task { await reloadPeriod() } }
             // Foil-Band gewechselt -> Rekorde UND Bestenlisten neu holen. Fehlte bis 01.09.
             // (Jans Befund im Simulator): die Auswahl aenderte nur die Beschriftung, weil ein
@@ -130,7 +137,9 @@ struct CommunityView: View {
                 if !lbMetrics.contains(where: { $0.0 == lbMetric }) { lbMetric = lbMetrics.first?.0 ?? "sessions" }
                 Task { await reloadBand() }
                 Task { await heuteVorwaehlen() }
+                Task { await regionenLaden() }
             }
+            .task { await regionenLaden() }
             .task { sportListe = sortiereSports(((try? await Api.communitySports()) ?? []).map { $0.sport }.filter { !$0.isEmpty }, lang: lang)
                     if sportListe.isEmpty { sportListe = ["pumpfoil"] } }
         }
@@ -142,10 +151,15 @@ struct CommunityView: View {
     }
 
     // Rekorde und Bestenliste in EINER Ansicht (Jan, 02.11.2026: die Kacheln passen gut ueber die Bestenlisten).
+    // Rangliste nach Oleks Entwurf (web Home.tsx, 05.11.2026): oben EINE Zeile fuer alles (Zeitraum, Region, Sportart),
+    // darunter die Bestenliste der Mitglieder mit ihren eigenen Menues (Kennzahl, accel/alle/Freunde, Foil), dann die
+    // der Teams (Kennzahl, Beste N), zuletzt die Rekord-Kacheln.
     @ViewBuilder private var bestenlisteTab: some View {
-        periodSection
-        recordsSection
+        filterSection
         leaderboardSection
+        TeamBestenlistenSection(lang: lang, period: period, sport: sportart, region: region,
+                                titel: Loc.t("home.leaderboards", lang) + " – " + Loc.t("team.community", lang))
+        recordsSection
     }
 
     // Medien: neueste Fotos/Videos, Best bewertet (mit derselben Zeitwahl), Social-Feed, Uhr-Layouts — wie im Web.
@@ -161,8 +175,8 @@ struct CommunityView: View {
 
     // Teams & Events: oben die Team-Bestenlisten (Jan, 03.11.2026), darunter laufende & kommende Events, dann die
     // aktivsten Teams.
+    // Die Team-Bestenlisten stehen seit 05.11.2026 im Reiter Rekorde & Bestenliste (Oleks Entwurf).
     @ViewBuilder private var teamsTab: some View {
-        TeamBestenlistenSection(lang: lang)
         TeamEventsAbschnitt(lang: lang, pfad: $navPath)
         // Aktivste Teams + „Alle Teams" / „Team gruenden" (wie web Home.tsx, 04.11.2026).
         AktivsteTeamsAbschnitt(lang: lang, pfad: $navPath)
@@ -190,8 +204,7 @@ struct CommunityView: View {
 
     @ViewBuilder private var recordsSection: some View {
         if records != nil {
-            Section {
-                if sportListe.count > 1 { sportPicker }
+            Section(Loc.t("side.records", lang) + bandSuffix) {
                 recordGrid(records?[period], showSpot: true)
             }
         }
@@ -199,7 +212,10 @@ struct CommunityView: View {
 
     private var sportPicker: some View {
         Picker(Loc.t("sport.choose", lang), selection: $sportart) {
-            ForEach(sportListe, id: \.self) { sp in Text(Loc.t("cls.sport.\(sp)", lang)).tag(sp) }
+            // Die gewaehlte Sportart steht immer zur Wahl (gemerkt, auch wenn die Liste sie gerade nicht enthaelt).
+            ForEach(sportListe.contains(sportart) ? sportListe : sportListe + [sportart], id: \.self) { sp in
+                Text(Loc.t("cls.sport.\(sp)", lang)).tag(sp)
+            }
         }
     }
 
@@ -306,19 +322,6 @@ struct CommunityView: View {
         }
     }
 
-    @ViewBuilder private func leaderAvatar(_ e: LeaderEntry, link: Bool = true) -> some View {
-        if let url = Api.mediaURL(e.avatar_url) {
-            NetzBild(url: url) { stand in
-                    switch stand {
-                    case .da(let img): img.resizable().scaledToFill()
-                    default: Image(systemName: "person.crop.circle.fill").resizable().scaledToFit().foregroundStyle(.secondary)
-                    }
-                }
-            .frame(width: 28, height: 28).clipShape(Circle())
-            .profilbild(userId: e.user_id, size: 28, link: link)
-        }
-    }
-
     /// Ab wie vielen FAHRERN ein Foil-Band angeboten wird. Ein „Rekord" aus zwei Fahrern ist
     /// keiner, sondern eine persoenliche Bestleistung mit Etikett. Gleiche Schwelle wie in der PWA.
     private var minBandFahrer: Int { 3 }
@@ -348,32 +351,86 @@ struct CommunityView: View {
     }
 
     // In typisierte Teil-Views zerlegt (Type-Checker-Hänger beim Archivieren) — [[ios-swift-typecheck-hang]].
-    @ViewBuilder private var periodSection: some View {
+    // Oben: Zeitraum, darunter Region und Sportart; bei gewaehlter Region die Grundlage und, wer selbst keine
+    // Nationalitaet hat, warum er fehlt.
+    @ViewBuilder private var filterSection: some View {
         Section {
             zeitChips
-            HStack {
-                // Foil-Band. Reihenfolge kommt vom Server (Nuetzlichstes oben). Die Sessionzahl
-                // steht dabei, weil jede Auswahl ausser „Alle Foils" den Topf verkleinert: 36 %
-                // der Sessions haben gar kein Foil hinterlegt und fallen dann heraus.
-                if sichtbareBands.count > 1 {
-                    Menu {
-                        ForEach(sichtbareBands) { b in
-                            Button {
-                                bandKey = b.key
-                            } label: {
-                                Text(bandLabel(b) + (b.art == "alle" ? "" : " (\(b.sessions))"))
-                            }
-                        }
-                    } label: {
-                        Text(band.map { bandLabel($0) } ?? Loc.t("cr.foilAll", lang))
-                            .font(.caption).lineLimit(1)
-                    }
-                }
-                Spacer()
-                chip("accel", accelWahl && !freunde) { freunde = false; accelWahl = true }   // kurz wie PWA + Android (13.10.2026)
-                chip(Loc.t("side.all", lang), !accelWahl && !freunde) { freunde = false; accelWahl = false }
-                chip(Loc.t("friends.title", lang), freunde) { freunde = true }
+            HStack(spacing: 8) {
+                if regionKeys.count > 1 { regionMenu }
+                Spacer(minLength: 4)
+                if sportListe.count > 1 || sportart != "pumpfoil" { sportPicker }
             }
+            if region != "all" { regionHinweis }
+        }
+    }
+
+    // Global, Kontinente (fest vom Server), eigenes Land (immer), dann die uebrigen Laender alphabetisch in der App-Sprache.
+    private var regionKeys: [String] {
+        let ich: String? = regionen?.ich
+        var roh: [String] = ["all"] + (regionen?.regionen ?? []).map { $0.key } + [region]
+        if let ich { roh.append(ich) }
+        var gesehen = Set<String>()
+        let alle: [String] = roh.filter { gesehen.insert($0).inserted }
+        let kont: [String] = alle.filter { $0 == "all" || $0.hasPrefix("k:") }
+        let rest: [String] = alle.filter { !kont.contains($0) && $0 != ich }
+            .sorted { Laender.name($0, lang).localizedCompare(Laender.name($1, lang)) == .orderedAscending }
+        return kont + (ich.map { [$0] } ?? []) + rest
+    }
+
+    /// Ein natives Menue kann nur Text: Laender mit Flaggen-Emoji, Kontinente und Global mit dem Globus (Jan, 05.11.2026:
+    /// „in dem dropdown bitte die flagge / regionsskizze mit anzeigen").
+    private func regionText(_ k: String) -> String {
+        switch k {
+        case "all": return "🌐 " + Loc.t("region.global", lang)
+        case "k:na", "k:sa": return "🌎 " + Loc.t("region." + String(k.dropFirst(2)), lang)
+        case "k:as", "k:oc": return "🌏 " + Loc.t("region." + String(k.dropFirst(2)), lang)
+        default:
+            if k.hasPrefix("k:") { return "🌍 " + Loc.t("region." + String(k.dropFirst(2)), lang) }
+            return (teamFlaggenEmoji(k).map { $0 + " " } ?? "") + Laender.name(k, lang)
+        }
+    }
+
+    private var regionMenu: some View {
+        Picker(Loc.t("region.basis", lang), selection: $region) {
+            ForEach(regionKeys, id: \.self) { k in Text(regionText(k)).tag(k) }
+        }
+        .pickerStyle(.menu)
+    }
+
+    @ViewBuilder private var regionHinweis: some View {
+        Text(Loc.t("region.basis", lang)).font(.footnote).foregroundStyle(.secondary)
+        if let r = regionen, r.ich == nil {
+            Text(Loc.t("region.ohneLand", lang) + " " + Loc.t("profile.land", lang) + " → " + Loc.t("ptab.me", lang))
+                .font(.footnote).foregroundStyle(.orange)
+        }
+    }
+
+    // Filter nur fuer die Mitglieder (und die Kacheln): Kennzahl, accel/alle/Freunde, Foil-Band.
+    private var mitgliederMenues: some View {
+        HStack(spacing: 8) {
+            Picker(Loc.t("community.leaderboard", lang), selection: $lbMetric) {
+                ForEach(lbMetrics, id: \.0) { id, label in Text(label).tag(id) }
+            }
+            .pickerStyle(.menu)
+            Spacer(minLength: 4)
+            Picker("accel", selection: $genau) {
+                Text(Loc.t("side.onlyAccel", lang).capitalized).tag("accel")
+                Text(Loc.t("side.all", lang).capitalized).tag("alle")
+                Text(Loc.t("friends.title", lang)).tag("freunde")
+            }
+            .pickerStyle(.menu)
+        }
+    }
+
+    // Foil-Band. Reihenfolge kommt vom Server (Nuetzlichstes oben); die Sessionzahl steht dabei, weil jede Auswahl
+    // ausser „Alle Foils" den Topf verkleinert.
+    @ViewBuilder private var bandMenue: some View {
+        if sichtbareBands.count > 1 {
+            Picker(Loc.t("cr.foilAll", lang), selection: $bandKey) {
+                ForEach(sichtbareBands) { b in Text(bandLabel(b) + (b.art == "alle" ? "" : " (\(b.sessions))")).tag(b.key) }
+            }
+            .pickerStyle(.menu)
         }
     }
 
@@ -393,15 +450,11 @@ struct CommunityView: View {
     }
 
     @ViewBuilder private var leaderboardSection: some View {
-        if let lb = leaders, !(lb.sessions ?? []).isEmpty || !(lb.runs ?? []).isEmpty || !(lb.spots ?? []).isEmpty {
-            // Das gewaehlte Band gehoert in die Ueberschrift: sonst steht hier eine Bestenliste
-            // ueber einen Teil der Flotte, ohne dass man es sieht.
-            Section("\(Loc.t("community.leaderboard", lang)) · \(periodLabel)\(bandSuffix)") {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) {
-                        ForEach(lbMetrics, id: \.0) { id, label in chip(label, lbMetric == id) { lbMetric = id } }
-                    }
-                }
+        // Kopf und Menues bleiben auch bei leerer Liste stehen — man soll die Filter zurueckstellen koennen.
+        Section(Loc.t("home.leaderboards", lang) + " – " + Loc.t("team.mitglieder", lang)) {
+            mitgliederMenues
+            bandMenue
+            if let lb = leaders {
                 // Alle 10 wie im Web: die eigene Zeile darunter (Olek, 01.11.2026) gibt der Server nur, wenn man nicht
                 // unter den ersten 10 steht — bei prefix(5) fehlten sonst die Plaetze 6 bis 10.
                 let list = Array(lbList(lb).prefix(10))
@@ -461,8 +514,9 @@ struct CommunityView: View {
 
     @ViewBuilder private func leaderRow(_ platz: Int, _ e: LeaderEntry, avatarLink: Bool = true, ich: Bool = false) -> some View {
         HStack(spacing: 8) {
-            Text("\(platz)").font(.subheadline).bold().foregroundStyle(Color.accentColor).frame(minWidth: 20)
-            leaderAvatar(e, link: avatarLink)
+            // Feste Spalten (05.11.2026, Jan: „ausrichtung noch fixen"): Platz, Profilbild (ohne Bild die Initiale), Flagge.
+            Text("\(platz)").font(.subheadline).bold().foregroundStyle(Color.accentColor).frame(width: 26, alignment: .leading)
+            AvatarView(name: e.name, url: Api.mediaURL(e.avatar_url), size: 28, userId: e.user_id, link: avatarLink)
             LandFlagge(land: e.land)   // nach dem Profilbild, Platz bleibt auch ohne Land (web Flagge)
             Text(e.name ?? "—").lineLimit(1)
             Spacer()
@@ -571,7 +625,8 @@ struct CommunityView: View {
     private func loadBase() async {
         loading = true; defer { loading = false }
         do {
-            records = try await Api.communityRecords(accelOnly: accelOnly, foilBand: bandKey, sport: sportart, freunde: freunde); error = nil
+            records = try await Api.communityRecords(accelOnly: accelOnly, foilBand: bandKey, sport: sportart, freunde: freunde,
+                                                     region: region); error = nil
             let bs = (try? await Api.foilBands(accelOnly: accelOnly, freunde: freunde)) ?? []
             bands = bs
             // Zurueck auf „Alle Foils", wenn das gewaehlte Band durch den Wechsel zu duenn wurde —
@@ -587,12 +642,20 @@ struct CommunityView: View {
     /// Nur die bandabhaengigen Teile: Rekorde + Bestenlisten. Spots und Best-bewertet haengen
     /// bewusst NICHT am Band (dort ist der Spot der Vergleich, nicht das Foil).
     private func reloadBand() async {
-        records = (try? await Api.communityRecords(accelOnly: accelOnly, foilBand: bandKey, sport: sportart, freunde: freunde)) ?? records
-        leaders = try? await Api.leaders(period: period, accelOnly: accelOnly, foilBand: bandKey, freunde: freunde, sport: sportart)
+        records = (try? await Api.communityRecords(accelOnly: accelOnly, foilBand: bandKey, sport: sportart, freunde: freunde,
+                                                   region: region)) ?? records
+        leaders = try? await Api.leaders(period: period, accelOnly: accelOnly, foilBand: bandKey, freunde: freunde, sport: sportart,
+                                         region: region)
+    }
+
+    /// Waehlbare Regionen (Server rechnet immer ueber Allzeit) — nur bei Start und Sportwechsel.
+    private func regionenLaden() async {
+        if let r = try? await Api.communityRegionen(sport: sportart) { regionen = r }
     }
 
     private func loadPeriod() async {
-        leaders = try? await Api.leaders(period: period, accelOnly: accelOnly, foilBand: bandKey, freunde: freunde, sport: sportart)
+        leaders = try? await Api.leaders(period: period, accelOnly: accelOnly, foilBand: bandKey, freunde: freunde, sport: sportart,
+                                         region: region)
         topLiked = (try? await Api.topLiked(period: period, freunde: freunde)) ?? []
         topKommentiert = (try? await Api.topCommented(period: period, freunde: freunde)) ?? []
     }

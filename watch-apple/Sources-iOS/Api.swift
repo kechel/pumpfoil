@@ -667,8 +667,10 @@ enum Api {
     /// `sport`: nil = Endpunkt-Default (pumpfoil), wie bisher. Die Spot-Rekorde fragen seit dem
     /// 29.09.2026 je Sportart einzeln (PWA a9725cb9), s. SpotRecordsView.
     static func communityRecords(accelOnly: Bool = true, foilBand: String = "all",
-                                 spot: String? = nil, sport: String? = nil, freunde: Bool = false) async throws -> [String: PeriodRecords] {
+                                 spot: String? = nil, sport: String? = nil, freunde: Bool = false,
+                                 region: String = "all") async throws -> [String: PeriodRecords] {
         var pfad = "/api/community/records?accel_only=\(accelOnly)&foil_band=\(foilBand)\(freunde ? "&friends=1" : "")"
+        pfad += regionParam(region)
         if let sport, !sport.isEmpty { pfad += "&sport=\(sport)" }
         if let spot, !spot.isEmpty {
             let s = spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot
@@ -707,9 +709,10 @@ enum Api {
 
     /// `spot`: Bestenlisten nur an diesem Spot (Spot-Seite, Server seit 02.11.2026).
     static func leaders(period: String = "all", accelOnly: Bool = true, foilBand: String = "all", freunde: Bool = false,
-                        sport: String = "pumpfoil", spot: String? = nil) async throws -> Leaders {
+                        sport: String = "pumpfoil", spot: String? = nil, region: String = "all") async throws -> Leaders {
         var pfad: String = "/api/community/leaders?period=\(period)&accel_only=\(accelOnly)&foil_band=\(foilBand)&sport=\(sport)"
         if freunde { pfad += "&friends=1" }
+        pfad += regionParam(region)
         if let s = spot, !s.isEmpty {
             // Spotnamen koennen „&" oder „+" enthalten — die duerfen im Wert nicht roh stehen.
             var erlaubt: CharacterSet = .urlQueryAllowed
@@ -717,6 +720,22 @@ enum Api {
             pfad += "&spot=" + (s.addingPercentEncoding(withAllowedCharacters: erlaubt) ?? s)
         }
         return try await request(pfad, method: "GET", body: nil, auth: true)
+    }
+
+    /// Region nach Nationalitaet (05.11.2026, server app/regionen.py): "all" | "k:eu" … | "PL". Leer bei "all".
+    static func regionParam(_ region: String) -> String {
+        guard region != "all", !region.isEmpty else { return "" }
+        var erlaubt: CharacterSet = .urlQueryAllowed
+        erlaubt.remove(charactersIn: "&+=?#:")
+        return "&region=" + (region.addingPercentEncoding(withAllowedCharacters: erlaubt) ?? region)
+    }
+
+    struct RegionWahl: Decodable { let key: String; let fahrer: Int; let teams: Int }
+    struct Regionen: Decodable { let regionen: [RegionWahl]; let ich: String? }
+    /// Waehlbare Regionen der Rangliste (Server rechnet immer ueber Allzeit) und die eigene Nationalitaet.
+    static func communityRegionen(sport: String) async throws -> Regionen {
+        let s: String = sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport
+        return try await request("/api/community/regionen?period=all&sport=\(s)", method: "GET", body: nil, auth: true)
     }
 
     static func latestPhotos(limit: Int = 8, freunde: Bool = false) async throws -> [MediaItem] {

@@ -13,7 +13,9 @@ struct WatchStatsView: View {
     @State private var sortAsc = false
     // Welche Haelfte: 0 = Nutzung (was wird womit gefahren), 1 = Aufnahmequalitaet. Vorher standen
     // beide untereinander, die Qualitaet erst nach ~70 Modellen — Jan fand sie nicht (07.10.2026).
-    @State private var teil = 0
+    // Seit 05.11.2026 als Reiter mit den Ueberschriften des Webs (WatchStats.tsx), gemerkt wie die anderen Reiter.
+    @State private var reiterWahl: String = ReiterSpeicher.von("watchstats", "foiling")
+    private var teil: Int { reiterWahl == "qualitaet" ? 1 : 0 }
 
     private var sorted: [WatchStat] {
         if sortKey == "name" {
@@ -111,13 +113,11 @@ struct WatchStatsView: View {
     // Umschalter oben — nur, wenn es Qualitaets-Zahlen gibt (sonst gaebe es nur eine Haelfte).
     @ViewBuilder private var teilWahl: some View {
         if let q = quali, !q.modelle.isEmpty {
-            Section {
-                Picker("", selection: $teil) {
-                    Text(Loc.t("watchStats.tabUsage", lang)).tag(0)
-                    Text(Loc.t("watchStats.tabQuality", lang)).tag(1)
-                }
-                .pickerStyle(.segmented)
-            }
+            Reiterleiste(reiter: [ReiterDef(id: "foiling", label: Loc.t("watchStats.sectionFoiling", lang)),
+                                  ReiterDef(id: "qualitaet", label: Loc.t("watchQuality.title", lang))],
+                         aktiv: Binding(get: { reiterWahl }, set: { reiterWahl = $0; ReiterSpeicher.setze("watchstats", $0) }))
+                .listRowInsets(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
+                .listRowSeparator(.hidden)
         }
     }
 

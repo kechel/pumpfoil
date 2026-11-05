@@ -36,6 +36,7 @@ SCHLUESSEL = [
     "home.leaderboards", "watchStats.sectionFoiling",
     # 05.11.2026: Region-Filter der Rangliste (Nationalitaet)
     "region.global", "region.basis", "region.ohneLand",
+    "team.community",
     # Phase 9: Spots-Reiter
     "tab.map", "tab.list", "tab.routes",
     # Nachtrag aus dem iOS-Port (fehlten in den App-Tabellen)
