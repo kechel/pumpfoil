@@ -1455,6 +1455,8 @@ enum Api {
         let available: Bool; let linked: Bool; let last_sync_at: String?
         /// COROS (19.10.2026): Erneuerung abgelehnt -> „Verbindung abgelaufen“ + Neu verbinden. Aeltere Server: fehlt.
         let expired: Bool?
+        /// Garmin (05.11.2026): Teilen in Garmin Connect ausgeschaltet -> false. Andere Anbieter: fehlt.
+        var activity_export: Bool? = nil
     }
     private struct ConnectResp: Decodable { let authorize_url: String }
 

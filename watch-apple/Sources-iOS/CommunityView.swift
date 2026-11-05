@@ -206,6 +206,7 @@ struct CommunityView: View {
         if records != nil {
             Section(Loc.t("side.records", lang) + bandSuffix) {
                 recordGrid(records?[period], showSpot: true)
+                QuellenZeile(quellen: records?[period]?.quellen, lang: lang)
             }
         }
     }
@@ -466,6 +467,7 @@ struct CommunityView: View {
                         Text("⋮").frame(maxWidth: .infinity).foregroundStyle(.secondary)
                         leaderTap(r, ich, ich: true)
                     }
+                    QuellenZeile(quellen: lb.quellen, lang: lang)
                     teilenZeile(lb)
                 }
             }

@@ -11,6 +11,7 @@ import UIKit
 struct TeamVergleich: Decodable {
     var period: String? = nil
     var top: Int? = nil
+    var quellen: [String]? = nil   // Quellen der gezeigten Daten (server community.quellen), 05.11.2026
     let teams: [TeamVergleichZeile]
 }
 
@@ -116,6 +117,7 @@ struct TeamBestenlistenSection: View {
             auswahlZeile
             liste
             Text(hinweis).font(.footnote).foregroundStyle(.secondary)
+            QuellenZeile(quellen: d?.quellen, lang: lang)
         } header: {
             Text(titel).font(.headline)
         }
@@ -232,7 +234,8 @@ struct TeamBestenlistenSection: View {
             for z in alleZeilen {
                 if let l = z.land, flaggen[l] == nil, let b = TeamFlaggenBild.bild(l) { flaggen[l] = b }
             }
-            let daten = TeamBildDaten(titel: titel, unterzeile: unter, zeilen: bz, eigene: ende, logos: logos, flaggen: flaggen)
+            let daten = TeamBildDaten(titel: titel, unterzeile: unter, zeilen: bz, eigene: ende, logos: logos, flaggen: flaggen,
+                                      quelle: quellenText(d?.quellen, lang: lang))
             TeamBildDialog.zeigen(daten, lang: sprache)
             baut = false
         }
@@ -265,6 +268,8 @@ struct TeamBildDaten {
     let eigene: TeamBildZeile?
     let logos: [String: UIImage]
     let flaggen: [String: UIImage]
+    /// „Daten von: Garmin · …" klein ueber dem Fuss (Garmins Vorgabe: in jedem Bild, 05.11.2026).
+    var quelle: String? = nil
 }
 
 /// Logos vorab laden: ImageRenderer zeichnet sofort, ein NetzBild kaeme zu spaet (dann stuenden nur Initialen da).
@@ -394,6 +399,10 @@ struct TeamBestenlisteBild: View {
             kopf.offset(x: rand, y: 60)
             zeilenBlock.offset(x: rand, y: oben)
             fuss.offset(x: rand, y: 990)
+            if let q = daten.quelle {
+                Text(q).font(.system(size: 20)).foregroundStyle(f.leise).lineLimit(1)
+                    .frame(width: 900, alignment: .leading).offset(x: rand, y: 945)
+            }
         }
         .frame(width: 1080, height: 1080, alignment: .topLeading)
     }

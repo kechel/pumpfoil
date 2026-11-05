@@ -88,7 +88,7 @@ enum Bestenliste {
                 if let l = z.land, flaggen[l] == nil, let b = TeamFlaggenBild.bild(l) { flaggen[l] = b }
             }
             let daten = TeamBildDaten(titel: titel, unterzeile: unterzeile, zeilen: zeilen, eigene: eigene,
-                                      logos: [:], flaggen: flaggen)
+                                      logos: [:], flaggen: flaggen, quelle: quellenText(lb.quellen, lang: lang))
             TeamBildDialog.zeigen(daten, lang: lang)
         }
     }

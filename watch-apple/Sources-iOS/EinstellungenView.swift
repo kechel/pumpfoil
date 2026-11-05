@@ -312,10 +312,13 @@ struct EinstellungenUebersicht: View {
 struct UhrenKontenView: View {
     @AppStorage("appLang") private var lang = "de"
     @State private var wahl: String = ReiterSpeicher.von("uhren", "uhr")
+    // Garmin Connect nur, wenn der Server es diesem Konto anbietet (vor der Freigabe nur Admins/Tester, 05.11.2026).
+    @State private var garmin = false
 
     private var reiter: [ReiterDef] {
-        [ReiterDef(id: "uhr", label: Loc.t("nav.watch", lang)),
-         ReiterDef(id: "polar", label: "Polar"),
+        var r: [ReiterDef] = [ReiterDef(id: "uhr", label: Loc.t("nav.watch", lang))]
+        if garmin { r.append(ReiterDef(id: "garmin", label: "Garmin Connect")) }
+        return r + [ReiterDef(id: "polar", label: "Polar"),
          ReiterDef(id: "coros", label: "COROS"),
          ReiterDef(id: "suunto", label: "Suunto"),
          ReiterDef(id: "xiaomi", label: "Xiaomi"),
@@ -337,6 +340,7 @@ struct UhrenKontenView: View {
                 LinkedAccountsView(eingebettet: true, nur: aktiv).id(aktiv)
             }
         }
+        .task { garmin = (try? await Api.integrationStatus("garmin"))?.available ?? false }
     }
 }
 

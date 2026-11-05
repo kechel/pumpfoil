@@ -388,6 +388,7 @@ struct CommunityRecordEntry: Codable {
 }
 
 struct PeriodRecords: Codable {
+    var quellen: [String]? = nil   // Quellen der gezeigten Rekorde (server community.quellen), 05.11.2026
     let distance: CommunityRecordEntry?
     let duration: CommunityRecordEntry?
     let speed: CommunityRecordEntry?
@@ -601,6 +602,7 @@ struct LeaderEntry: Codable, Identifiable {
     var id: String { (name ?? "") + (avatar_url ?? "") }
 }
 struct Leaders: Codable {
+    var quellen: [String]? = nil   // Quellen der gezeigten Daten (server community.quellen), 05.11.2026
     let sessions: [LeaderEntry]?; let runs: [LeaderEntry]?; let spots: [LeaderEntry]?; let pumps: [LeaderEntry]?
     var distance: [LeaderEntry]? = nil; var time: [LeaderEntry]? = nil
     var run_distance: [LeaderEntry]? = nil; var run_time: [LeaderEntry]? = nil

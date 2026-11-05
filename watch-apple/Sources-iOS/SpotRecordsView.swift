@@ -399,6 +399,7 @@ struct SpotRecordsKasten: View {
                     }
                 }
             }
+            QuellenZeile(quellen: alle[fensterWahl]?.quellen, lang: lang)
         } header: { Text(titel) }
         .task(id: ladeStand) { ersteFensterWahl() }
     }

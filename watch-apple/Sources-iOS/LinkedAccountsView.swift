@@ -30,6 +30,9 @@ struct LinkedAccountsView: View {
         var pfad: String { apiPath ?? id }
     }
     private let providers = [
+        // Garmin Connect (05.11.2026, server api/garmin.py): Aktivitaeten kommen per Push, kein Import-Knopf. Garmins
+        // Markenvorgabe: beim Verknuepfen der volle Name „Garmin Connect" mit dem App-Symbol.
+        Provider(id: "garmin", label: "Garmin Connect™", canSync: false, logo: "GarminConnectApp"),
         Provider(id: "polar", label: "Polar", canSync: true, logo: "PolarLogo"),
         Provider(id: "coros", label: "COROS", canSync: true, apiPath: "coros/mcp"),
         Provider(id: "suunto", label: "Suunto", canSync: true, logo: "SuuntoLogo"),
@@ -57,7 +60,7 @@ struct LinkedAccountsView: View {
                 Section { Text(Loc.t("accounts.sub", lang)).font(.footnote).foregroundStyle(.secondary) }
             }
             ForEach(sichtbar, id: \.id) { p in
-                if let st = status[p.id] {
+                if let st = status[p.id], !(p.id == "garmin" && !st.available && !st.linked) {
                     if !st.available && !st.linked {
                         row(p.label, sub: Loc.t("accounts.notAvailable", lang), connected: false, logo: p.logo) { EmptyView() }
                     } else {
@@ -66,8 +69,8 @@ struct LinkedAccountsView: View {
                             sub: abgelaufen ? Loc.t("settings.coros.expiredHint", lang)
                                : st.linked ? Loc.t(p.id == "coros" ? "accounts.corosNote"
                                                     : (p.id == "polar" ? "accounts.polarNote"
-                                                       : "accounts.connected"), lang)
-                                           : Loc.t("accounts.sub", lang),
+                                                       : (p.id == "garmin" ? "settings.garmin.connected" : "accounts.connected")), lang)
+                                           : Loc.t(p.id == "garmin" ? "settings.garmin.hint" : "accounts.sub", lang),
                             connected: st.linked && !abgelaufen, logo: p.logo) {
                             // COROS hat die Erneuerung abgelehnt (19.10.2026, wie im Web): ehrlich sagen und
                             // neu verbinden lassen statt „Verbunden“. Neu verbinden ersetzt die Tokens am Link.
@@ -98,6 +101,7 @@ struct LinkedAccountsView: View {
                                 .font(.caption).foregroundStyle(.secondary)
                                 .padding(.top, 6)
                         }
+                        if p.id == "garmin" { GarminHinweise(lang: lang, keinExport: st.linked && st.activity_export == false) }
                         if p.id == "coros" && st.linked {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(Loc.t("accounts.coros.best", lang))
@@ -246,6 +250,24 @@ struct LinkedAccountsView: View {
 /// Partner offen, und eine App auf der Uhr laesst Xiaomi nicht zu). Der Umweg ist aber offiziell:
 /// Xiaomi und Suunto haben ihre Apps 2024 miteinander verbunden, weltweit ausser China. Deshalb
 /// steht hier eine Anleitung und keine Xiaomi-Verknuepfung — Spiegel der PWA (`db914137`).
+/// Garmin Connect: Hinweis bei ausgeschaltetem Teilen und die vier Punkte wie im Web (LinkedAccounts.tsx GarminCard).
+private struct GarminHinweise: View {
+    let lang: String
+    let keinExport: Bool
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            if keinExport {
+                Text(Loc.t("settings.garmin.noExport", lang)).font(.subheadline.weight(.semibold)).foregroundStyle(.orange)
+            }
+            ForEach(Array(["settings.garmin.help1", "settings.garmin.help2", "settings.garmin.help3",
+                           "settings.garmin.help4"].enumerated()), id: \.offset) { i, k in
+                Text("\(i + 1). " + Loc.t(k, lang)).font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .padding(.top, 6)
+    }
+}
+
 private struct XiaomiHinweis: View {
     let lang: String
     var body: some View {
@@ -502,7 +524,7 @@ enum KontoVerbinden {
     private static var sitzung: ASWebAuthenticationSession?
     private static let anker = AuthAnker()
     private static let pfade = ["polar": "polar", "suunto": "suunto", "strava": "strava",
-                                "coros": "coros", "coros-mcp": "coros/mcp"]
+                                "coros": "coros", "coros-mcp": "coros/mcp", "garmin": "garmin"]
     private static let texte: [String: [String: String]] = [
         "ok": ["de": "Konto verbunden ✓", "gsw": "Konto verbunde ✓", "de-AT": "Konto verbunden ✓", "en": "Account connected ✓", "fr": "Compte connecté ✓", "it": "Account collegato ✓", "es": "Cuenta conectada ✓", "fi": "Tili yhdistetty ✓", "nl": "Account gekoppeld ✓", "cs": "Účet propojen ✓", "pl": "Konto połączone ✓", "pt": "Conta conectada ✓", "pt-PT": "Conta ligada ✓", "ja": "アカウントを連携しました ✓", "zh": "账户已关联 ✓", "ru": "Аккаунт подключён ✓", "id": "Akun terhubung ✓", "nb": "Konto koblet til ✓"],
         "abgebrochen": ["de": "Verbinden abgebrochen.", "gsw": "Verbinde abbroche.", "de-AT": "Verbinden abgebrochen.", "en": "Connecting cancelled.", "fr": "Connexion annulée.", "it": "Collegamento annullato.", "es": "Conexión cancelada.", "fi": "Yhdistäminen peruttu.", "nl": "Koppelen geannuleerd.", "cs": "Propojení zrušeno.", "pl": "Łączenie anulowane.", "pt": "Conexão cancelada.", "pt-PT": "Ligação cancelada.", "ja": "連携をキャンセルしました。", "zh": "已取消关联。", "ru": "Подключение отменено.", "id": "Penghubungan dibatalkan.", "nb": "Tilkobling avbrutt."],
