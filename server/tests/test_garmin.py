@@ -685,3 +685,27 @@ def test_hoehere_accel_rate_gewinnt(client, garmin, monkeypatch, tmp_path):
         finally:
             db.close()
     assert len(erzeugt) == 1
+
+
+def test_zweite_uhr_mit_garmin_profil_wird_eigene_session(client, garmin, monkeypatch, tmp_path):
+    # Olek, 05.11.2026: zwei Uhren gleichzeitig — Uhr A mit unserer App, Uhr B mit Garmins Profil „Foil".
+    # Die Aktivitaet von Uhr B darf NICHT an die Session von Uhr A, sie wird eine eigene Session.
+    from app import storage
+    uid, _ = _konto(client)
+    gid = _link(uid)
+    monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
+    monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(parents=True, exist_ok=True) or tmp_path / u)
+    start = datetime(2026, 11, 6, 9, 0, tzinfo=timezone.utc)
+    sid, suuid = _eigene_session(uid, start, minuten=60)
+    monkeypatch.setattr(garmin.httpx, "get", lambda u, **k: _Antwort(content=b"FIT-B"))
+    import app.fitimport as fi
+    import app.api.sessions as sess
+    monkeypatch.setattr(fi, "parse_fit_bytes", lambda b: _parsed(start + timedelta(seconds=5)))
+    importiert = []
+    monkeypatch.setattr(sess, "import_parsed_session", lambda *a, **k: importiert.append(1) or object())
+    client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [
+        {"userId": gid, "summaryId": "b1", "fileType": "FIT", "activityType": "OTHER", "activityName": "Foil",
+         "startTimeInSeconds": int(start.timestamp()) + 5,
+         "callbackURL": "https://apis.garmin.com/wellness-api/rest/activityFile?id=12"}]})
+    assert importiert == [1]                                              # eigene Session fuer Uhr B
+    assert not (tmp_path / suuid / "garmin-connect-b1.fit").exists()     # nichts an Uhr A gehaengt

@@ -374,7 +374,7 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     grund = None
     if not importsports.merken(db, user.id, "garmin", profil, label=profil.replace("_", " ").title()).importieren:
         grund = "abgewaehlt"
-    eigene_vorab = _eigene_zum_eintrag(db, user.id, eintrag) if grund else None
+    eigene_vorab = _eigene_zum_eintrag(db, user.id, eintrag) if grund and koennte_unsere_sein(eintrag) else None
     if grund and eigene_vorab is None:
         return grund
     r = httpx.get(url, headers={"Authorization": f"Bearer {gueltiges_token(link, db)}"}, timeout=60)
@@ -395,12 +395,14 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     # Erst die eigene Aufnahme suchen, dann die Grenzen fuer neue Sessions pruefen: Aufnahmen ohne GPS (Tanz, Halle)
     # bekommen ihre Garmin-Datei sonst nie (05.11.2026).
     eigene = None
-    if parsed.get("started_at") is not None:
+    if not koennte_unsere_sein(eintrag):
+        pass   # Garmin-Profil-Aufnahme einer anderen Uhr: wird eine eigene Session, nie Anhang einer unserer
+    elif parsed.get("started_at") is not None:
         start = _aware(parsed["started_at"])
         samples = parsed.get("gps_samples") or []
         ende = start + timedelta(milliseconds=int(samples[-1][0] if samples else parsed.get("dauer_ms") or 0))
         eigene = _eigene_aufnahme(db, user.id, start, max(ende, start + timedelta(seconds=60)))
-    if eigene is None:
+    if eigene is None and koennte_unsere_sein(eintrag):
         eigene = _eigene_zum_eintrag(db, user.id, eintrag)
     if eigene is not None and not importsports.konto_import_grund(parsed) and (
             storage.duenn(eigene.session_uuid) or garmin_besser(eigene, parsed)):
@@ -439,11 +441,34 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
                               sport_override=importsports.sport_fuer_modus(user, "garmin", profil))
     if s is None:
         return "schon da"
+    _push_merken(s, eintrag)
     # „Garmin [Geraet]" fuer das Uhr-Abzeichen (Markenvorgabe; sessions.import_geraet zeigt es an).
     if s.session_uuid.startswith("garmin-") and not s.device_model:
         s.device_model = geraet_name(eintrag.get("deviceName"))
         db.commit()
     return "importiert"
+
+
+def _push_merken(s: models.Session, eintrag: dict) -> None:
+    """Push-Angaben (Profil, Profilname, Geraet) neben die Garmin-Session legen — die andere Reihenfolge
+    (nach_eigener_aufnahme) braucht den Profilnamen. Neue Datei, nie ueberschreiben."""
+    import json as _json
+    from .. import storage
+    try:
+        d = storage.session_dir(s.session_uuid)
+        if d.exists() and not (d / "garmin-push.json").exists():
+            (d / "garmin-push.json").write_text(_json.dumps(_beschreibung(eintrag), default=str, indent=2))
+    except OSError as exc:
+        log.warning("garmin: Push-Angaben fuer #%s nicht gespeichert: %s", s.id, exc)
+
+
+def _push_gelesen(s: models.Session) -> dict:
+    import json as _json
+    from .. import storage
+    try:
+        return _json.loads((storage.session_dir(s.session_uuid) / "garmin-push.json").read_text())
+    except (OSError, ValueError):
+        return {}
 
 
 def geraet_name(device_name) -> str:
@@ -558,6 +583,15 @@ EINGANG = "garmin-eingang"
 
 def aus_unserer_app(eintrag: dict) -> bool:
     return str(eintrag.get("activityName") or "").strip().lower() in UNSERE_NAMEN
+
+
+def koennte_unsere_sein(eintrag: dict) -> bool:
+    """Darf diese Garmin-Aktivitaet einer eigenen Aufnahme zugeordnet werden? Nur wenn sie aus unserer App stammt
+    (Profilname „Pumpfoil"/„Dance") — eine Uhr zeichnet nie zwei Aktivitaeten gleichzeitig auf, eine Garmin-Profil-
+    Aufnahme zur selben Zeit kommt also von einer ANDEREN Uhr (Olek, 05.11.2026: zwei Uhren gleichzeitig, eine mit
+    unserer App, eine mit Garmins Profil „Foil"). Ohne Namen (unbekannt) wie bisher: zuordnen erlaubt."""
+    name = str(eintrag.get("activityName") or "").strip()
+    return not name or name.lower() in UNSERE_NAMEN
 
 
 def _eingang_dir(user_id: int):
@@ -700,6 +734,8 @@ def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
         for g in db.query(S).filter(S.user_id == eigene.user_id, S.deleted.isnot(True),
                                     S.session_uuid.like("garmin-%"), S.started_at < ende,
                                     S.ended_at > eigene.started_at).all():
+            if not koennte_unsere_sein(_push_gelesen(g)):
+                continue   # Garmin-Profil-Aufnahme einer anderen Uhr (s. koennte_unsere_sein) — bleibt eigene Session
             d = storage.session_dir(g.session_uuid)
             originale = sorted(d.glob("original.*")) if d.exists() else []
             # Garmins Session hat die bessere Aufnahme (duenn bei uns oder hoehere Accel-Rate): sie bleibt die Fahrt,
