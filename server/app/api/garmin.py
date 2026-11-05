@@ -368,30 +368,30 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     user = db.get(models.User, link.user_id)
     if user is None:
         return "kein nutzer"
-    # Die Profil-Auswahl entscheidet nur, ob aus Garmin eine NEUE Session wird. Gehoert die Aktivitaet zu einer eigenen
-    # Aufnahme, kommt die Datei immer dazu, auch bei abgewaehltem Profil (05.11.2026: die Datei der ersten echten
-    # Testfahrt wurde wegen der Auswahl gar nicht erst geladen).
-    grund = None
-    if not importsports.merken(db, user.id, "garmin", profil, label=profil.replace("_", " ").title()).importieren:
-        grund = "abgewaehlt"
-    eigene_vorab = _eigene_zum_eintrag(db, user.id, eintrag) if grund and koennte_unsere_sein(eintrag) else None
-    if grund and eigene_vorab is None:
-        return grund
+    # Immer erst laden: welches Profil wirklich lief, steht nur in der Datei (Profilname, Jan 05.11.2026), und ob sie zu
+    # einer eigenen Aufnahme gehoert, entscheidet sich auch erst mit ihren Zeiten.
     r = httpx.get(url, headers={"Authorization": f"Bearer {gueltiges_token(link, db)}"}, timeout=60)
     if r.status_code != 200 or not r.content:
         return f"download {r.status_code}"
-    if eigene_vorab is not None and not storage.duenn(eigene_vorab.session_uuid):
-        datei_anhaengen(eigene_vorab, r.content, _beschreibung(eintrag))
-        return f"an eigene aufnahme #{eigene_vorab.id} angehaengt ({len(r.content) // 1024} KB, {grund})"
     try:
         parsed = parse_fit_bytes(r.content)
     except Exception as exc:  # noqa: BLE001
+        # Nicht lesbar: gehoert sie zu einer eigenen Aufnahme (Startzeit aus dem Push), trotzdem anhaengen — nichts
+        # verlieren. Sonst wie bei allen Importen in die Quarantaene.
+        eigene = _eigene_zum_eintrag(db, user.id, eintrag) if koennte_unsere_sein(eintrag) else None
+        if eigene is not None:
+            datei_anhaengen(eigene, r.content, _beschreibung(eintrag))
+            return f"an eigene aufnahme #{eigene.id} angehaengt (datei nicht lesbar)"
         storage.quarantaene_ablegen(r.content, quelle="garmin", user_id=user.id, grund=f"{type(exc).__name__}: {exc}")
         return "fit kaputt"
     # Wie viel kommt ueber Garmin wirklich an? Groesse und Beschleunigung im Protokoll (Frage 05.11.2026: liefert die
     # API die Originaldatei mit den Sensor-Daten unserer Connect-IQ-App?).
-    log.info("garmin: Datei %s (user %s): %d KB, GPS %d, Accel %d Werte", eintrag.get("summaryId"), user.id,
-             len(r.content) // 1024, len(parsed.get("gps_samples") or []), len(parsed.get("accel_bytes") or b"") // 6)
+    log.info("garmin: Datei %s (user %s): %d KB, GPS %d, Accel %d Werte, Profil %s", eintrag.get("summaryId"), user.id,
+             len(r.content) // 1024, len(parsed.get("gps_samples") or []), len(parsed.get("accel_bytes") or b"") // 6,
+             parsed.get("sport_name") or profil)
+    # Der Profilname aus der Datei ist der verlaesslichere Hinweis auf unsere App als der Push (dort kann ein Titel stehen).
+    if parsed.get("sport_name"):
+        eintrag = {**eintrag, "activityName": parsed["sport_name"]}
     # Erst die eigene Aufnahme suchen, dann die Grenzen fuer neue Sessions pruefen: Aufnahmen ohne GPS (Tanz, Halle)
     # bekommen ihre Garmin-Datei sonst nie (05.11.2026).
     eigene = None
@@ -422,8 +422,12 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
         # Dieselbe Fahrt: keine zweite Session, aber die Garmin-Datei vollstaendig an unsere haengen.
         datei_anhaengen(eigene, r.content, _beschreibung(eintrag))
         return f"an eigene aufnahme #{eigene.id} angehaengt"
-    if grund == "abgewaehlt":
-        return grund   # (nur erreichbar ueber eine duenne eigene Aufnahme ohne passende Garmin-Datei)
+    # Ab hier wird es ggf. eine NEUE Session — jetzt entscheidet die Auswahl auf der Garmin-Karte, je Profil UND
+    # Profilname („Andere: Foil", „Andere: Snowkite" … Jan, 05.11.2026). Neue Namen erben die Wahl ihres Profils.
+    modus, label = modus_schluessel(profil, parsed.get("sport_name"))
+    standard = importsports.erlaubt(db, user.id, "garmin", profil) if modus != profil else True
+    if not importsports.merken(db, user.id, "garmin", modus, label=label, standard=standard).importieren:
+        return "abgewaehlt"
     grund = importsports.konto_import_grund(parsed)
     if grund:
         if aus_unserer_app(eintrag) and parsed.get("started_at") is not None:
@@ -438,7 +442,8 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     # und der Import fragte sie nicht ab (05.11.2026).
     s = import_parsed_session(db, user, r.content, parsed, src_label="garmin-import", uuid_prefix="garmin-",
                               filename="garmin.fit",   # Originaldatei als original.fit (sonst .bin)
-                              sport_override=importsports.sport_fuer_modus(user, "garmin", profil))
+                              sport_override=(importsports.sport_fuer_modus(user, "garmin", modus)
+                                              or importsports.sport_fuer_modus(user, "garmin", profil)))
     if s is None:
         return "schon da"
     _push_merken(s, eintrag)
@@ -447,6 +452,17 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
         s.device_model = geraet_name(eintrag.get("deviceName"))
         db.commit()
     return "importiert"
+
+
+def modus_schluessel(profil: str, name: str | None) -> tuple[str, str]:
+    """Schluessel + Anzeige fuer die Auswahl „zaehlt als": das Garmin-Profil, bei eigenen Profilen mit Namen
+    („OTHER:Foil" -> „Foil (Other)"). Eigene Profile laufen fast immer unter „Andere"/generic, koennen aber auch
+    auf einem anderen Profil aufsetzen — deshalb immer mit Profil davor."""
+    basis = profil.replace("_", " ").title()
+    n = " ".join(str(name or "").split())[:40]
+    if not n or n.upper().replace(" ", "_") == profil or n.lower() in UNSERE_NAMEN:
+        return profil, basis
+    return f"{profil}:{n}", f"{n} ({basis})"
 
 
 def _push_merken(s: models.Session, eintrag: dict) -> None:

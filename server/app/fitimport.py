@@ -297,7 +297,7 @@ def gyro_from_messages(gyro_msgs: list[dict]) -> bytes:
     return np.clip(arr, -32768, 32767).astype("<i2").reshape(-1).tobytes()
 
 
-def _ernten(fit) -> tuple[list, list, list, str, object, Exception | None]:
+def _ernten(fit, profil: dict | None = None) -> tuple[list, list, list, str, object, Exception | None]:
     """Nachrichten einsammeln — und behalten, was gelesen wurde, wenn der Strom mittendrin abreisst.
 
     Warum das wichtig ist: eine FIT-Datei wird von vorn nach hinten gelesen, die Trackpunkte
@@ -341,6 +341,10 @@ def _ernten(fit) -> tuple[list, list, list, str, object, Exception | None]:
             if msg.name == "session" and sport != "pumpfoil":
                 continue
             vals = {d.name: d.value for d in msg}
+            # Name des Aktivitaetsprofils auf der Uhr („Foil", „Snowkite", „Pumpfoil" …) — bei eigenen Profilen die
+            # einzige Angabe, was gefahren wurde; die Sportart ist dort meist nur `generic` (Jan, 05.11.2026).
+            if msg.name == "sport" and profil is not None and vals.get("name"):
+                profil["name"] = str(vals.get("name")).strip()[:40]
             sp = vals.get("sport")
             sub = vals.get("sub_sport")
             # 'generic' ist nichtssagend -> dann das aussagekräftigere sub_sport nehmen
@@ -376,7 +380,8 @@ def parse_fit_bytes(data: bytes) -> dict:
         except Exception as exc:          # Kopf unlesbar -> gar keine FIT-Datei
             letzter = exc
             continue
-        records, accel_msgs, gyro_msgs, sport, fit_type, abbruch = _ernten(fit)
+        profil: dict = {}
+        records, accel_msgs, gyro_msgs, sport, fit_type, abbruch = _ernten(fit, profil)
         if abbruch is None or records or accel_msgs:
             break
         letzter = abbruch
@@ -426,6 +431,7 @@ def parse_fit_bytes(data: bytes) -> dict:
         # ohne Fix, 21.10.2026), deren Ende sonst aus dem letzten GPS-Punkt kaeme.
         "dauer_ms": int((max(times) - t0).total_seconds() * 1000),
         "sport": sport,
+        "sport_name": profil.get("name"),
         "foil_status": foil_status,
         # Gesetzt, wenn die Datei nur bis zu einer Stelle lesbar war (abgebrochene Aufzeichnung,
         # falsche Pruefsumme, Muell hinter dem Ende). Der Import laeuft trotzdem — hiermit kann

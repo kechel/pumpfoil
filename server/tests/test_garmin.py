@@ -348,16 +348,17 @@ def test_jedes_profil_kommt_bis_es_abgewaehlt_ist(client, garmin, monkeypatch):
     import app.fitimport as fi
     import app.api.sessions as sess
     monkeypatch.setattr(fi, "parse_fit_bytes", lambda b: _parsed(datetime(2026, 11, 1, 10, 0, tzinfo=timezone.utc)))
-    monkeypatch.setattr(sess, "import_parsed_session", lambda *a, **k: object())
+    importiert = []
+    monkeypatch.setattr(sess, "import_parsed_session", lambda *a, **k: importiert.append(1) or object())
     eintrag = {"userId": gid, "summaryId": "s1", "fileType": "FIT", "activityType": "BACKCOUNTRY_SKIING",
                "callbackURL": "https://apis.garmin.com/wellness-api/rest/activityFile?id=9"}
     client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [eintrag]})
-    assert len(geladen) == 1                                   # ungewoehnliches Profil kommt trotzdem
+    assert len(importiert) == 1                                # ungewoehnliches Profil kommt trotzdem
     sports = client.get("/api/integrations/garmin/sports", headers=kopf).json()["sports"]
     assert next(x for x in sports if x["sport_key"] == "BACKCOUNTRY_SKIING")["importieren"] is True
     client.put("/api/integrations/garmin/sports", headers=kopf, json={"BACKCOUNTRY_SKIING": False})
     client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [{**eintrag, "summaryId": "s2"}]})
-    assert len(geladen) == 1                                   # nach dem Abwaehlen nicht mehr
+    assert len(importiert) == 1                                # nach dem Abwaehlen keine neue Session mehr
 
 
 def test_eigene_aufnahme_bekommt_datei_auch_bei_abgewaehltem_profil(client, garmin, monkeypatch, tmp_path):
@@ -384,8 +385,7 @@ def test_eigene_aufnahme_bekommt_datei_auch_bei_abgewaehltem_profil(client, garm
          "startTimeInSeconds": int(start.timestamp()), "callbackURL": url},
         {"userId": gid, "summaryId": "99-file", "fileType": "FIT", "activityType": "OTHER",
          "startTimeInSeconds": int((start + timedelta(hours=5)).timestamp()), "callbackURL": url}]})
-    assert geladen == [url]                                    # nur die zur eigenen Aufnahme geladen
-    assert importiert == []
+    assert importiert == []                                    # abgewaehlt: keine neue Session
     assert (tmp_path / suuid / "garmin-connect-88-file.fit").read_bytes() == b"CIQ-FIT"
     assert not (tmp_path / suuid / "garmin-connect-99-file.fit").exists()
 
@@ -709,3 +709,27 @@ def test_zweite_uhr_mit_garmin_profil_wird_eigene_session(client, garmin, monkey
          "callbackURL": "https://apis.garmin.com/wellness-api/rest/activityFile?id=12"}]})
     assert importiert == [1]                                              # eigene Session fuer Uhr B
     assert not (tmp_path / suuid / "garmin-connect-b1.fit").exists()     # nichts an Uhr A gehaengt
+
+
+
+def test_profilname_wird_eigene_auswahlzeile(client, garmin, monkeypatch):
+    # Jan, 05.11.2026: eigene Profile („Foil", „Snowkite" …) laufen unter „Andere" — der Profilname ist die Info.
+    uid, kopf = _konto(client)
+    gid = _link(uid)
+    monkeypatch.setattr(garmin.httpx, "get", lambda u, **k: _Antwort(content=b"FIT"))
+    import app.fitimport as fi
+    import app.api.sessions as sess
+    aufrufe = []
+    monkeypatch.setattr(sess, "import_parsed_session", lambda *a, **k: aufrufe.append(k) or object())
+    client.put("/api/settings", headers=kopf, json={"garmin_sport_je_modus": {"OTHER:Snowkite": "snowkite"}})
+    for i, name in enumerate(("Foil", "Snowkite")):
+        monkeypatch.setattr(fi, "parse_fit_bytes", lambda b, name=name, i=i: {
+            **_parsed(datetime(2026, 11, 1, 10 + i, 0, tzinfo=timezone.utc)), "sport_name": name})
+        client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [
+            {"userId": gid, "summaryId": f"n{i}", "fileType": "FIT", "activityType": "OTHER",
+             "callbackURL": "https://apis.garmin.com/wellness-api/rest/activityFile?id=13"}]})
+    sports = {x["sport_key"]: x["label"] for x in client.get("/api/integrations/garmin/sports", headers=kopf).json()["sports"]}
+    assert sports.get("OTHER:Foil") == "Foil (Other)" and "OTHER:Snowkite" in sports
+    assert aufrufe[1]["sport_override"] == ("snowkite" if "snowkite" in __import__("app.api.sessions", fromlist=["SPORTS"]).SPORTS else None)
+    assert garmin.modus_schluessel("SURFING", "Surfing") == ("SURFING", "Surfing")
+    assert garmin.modus_schluessel("OTHER", "Pumpfoil") == ("OTHER", "Other")
