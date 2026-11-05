@@ -423,6 +423,13 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
         return grund   # (nur erreichbar ueber eine duenne eigene Aufnahme ohne passende Garmin-Datei)
     grund = importsports.konto_import_grund(parsed)
     if grund:
+        if aus_unserer_app(eintrag) and parsed.get("started_at") is not None:
+            # Unsere eigene Aufnahme kommt noch (Uhr nicht gekoppelt, kein Handy in der Naehe …): parken und beim
+            # Abschluss anhaengen (nach_eigener_aufnahme). 05.11.2026: eine 8-s-Aufnahme ohne GPS-Fix kam zuerst ueber
+            # Garmin, wurde verworfen — und fehlte, als unsere Aufnahme sechs Minuten spaeter kam.
+            eingang_parken(user.id, r.content, _beschreibung(eintrag), _aware(parsed["started_at"]),
+                           int(parsed.get("dauer_ms") or 0))
+            return f"{grund}, geparkt bis zur eigenen aufnahme"
         return grund
     # „zaehlt als" je Profil (Garmin-Karte) wie bei Polar/Suunto/COROS — vorher speicherte der Server die Wahl nicht
     # und der Import fragte sie nicht ab (05.11.2026).
@@ -541,6 +548,68 @@ def nutzerinhalte_uebertragen(db: Session, von: models.Session, nach: models.Ses
     sync_video_mirror(db, nach)
 
 
+# --- Garmin-Eingang: Dateien unserer App, die (noch) keine Session werden ------------------------------------------
+# Nur fuer Aktivitaeten, die erkennbar aus unseren Uhr-Apps stammen (Name „Pumpfoil"/„Dance", so legen sie die
+# FIT-Session an). Fremde Aktivitaeten ohne GPS (Yoga, Kraft …) verwerfen wir weiter, wie in der Datenschutzerklaerung.
+UNSERE_NAMEN = ("pumpfoil", "dance")
+EINGANG = "garmin-eingang"
+
+
+def aus_unserer_app(eintrag: dict) -> bool:
+    return str(eintrag.get("activityName") or "").strip().lower() in UNSERE_NAMEN
+
+
+def _eingang_dir(user_id: int):
+    from ..config import get_settings
+    return get_settings().data_dir / EINGANG / str(int(user_id))
+
+
+def eingang_parken(user_id: int, roh: bytes, beschreibung: dict, start: datetime, dauer_ms: int) -> None:
+    import json as _json
+    d = _eingang_dir(user_id)
+    try:
+        d.mkdir(parents=True, exist_ok=True)
+        name = _sicherer_name(beschreibung.get("summaryId") or beschreibung.get("activityId") or "")
+        if not (d / f"{name}.fit").exists():
+            (d / f"{name}.fit").write_bytes(roh)
+            (d / f"{name}.json").write_text(_json.dumps({**beschreibung, "start": start.isoformat(),
+                                                         "dauer_ms": dauer_ms, "geparkt": _jetzt().isoformat()},
+                                                        default=str, indent=2))
+    except OSError as exc:
+        log.warning("garmin: Parken fehlgeschlagen (user %s): %s", user_id, exc)
+
+
+def eingang_abholen(eigene: models.Session) -> int:
+    """Geparkte Garmin-Dateien, die zeitlich zu dieser eigenen Aufnahme passen, anhaengen. Die geparkte Datei bleibt
+    liegen (nichts loeschen), ihr Beipackzettel vermerkt, wohin sie ging — ein zweites Abholen ueberspringt sie."""
+    import json as _json
+    d = _eingang_dir(eigene.user_id)
+    if not d.exists() or eigene.started_at is None:
+        return 0
+    start = _aware(eigene.started_at)
+    ende = _aware(eigene.ended_at) if eigene.ended_at else start + timedelta(hours=12)
+    n = 0
+    for info_p in sorted(d.glob("*.json")):
+        try:
+            info = _json.loads(info_p.read_text())
+            if info.get("angehaengt_an"):
+                continue
+            g_start = datetime.fromisoformat(info["start"])
+            g_ende = g_start + timedelta(milliseconds=max(int(info.get("dauer_ms") or 0), 60_000))
+            if not (g_start < ende and g_ende > start) or abs((g_start - start).total_seconds()) > 120:
+                continue
+            datei_anhaengen(eigene, info_p.with_suffix(".fit").read_bytes(),
+                            {k: info.get(k) for k in ("summaryId", "activityId", "activityType", "deviceName",
+                                                      "startTimeInSeconds", "activityName")})
+            info_p.write_text(_json.dumps({**info, "angehaengt_an": eigene.id}, default=str, indent=2))
+            n += 1
+            log.info("garmin: geparkte Datei %s an eigene Aufnahme #%s (user %s)", info_p.stem, eigene.id,
+                     eigene.user_id)
+        except (OSError, ValueError, KeyError) as exc:
+            log.warning("garmin: geparkte Datei %s: %s", info_p.name, exc)
+    return n
+
+
 # Was die eigene (duenne) Aufnahme an die Garmin-Session weitergibt: das, was am Handgelenk gewaehlt wurde.
 UEBERNEHMEN = ("sport_class", "sport_source", "foil_id", "stab_id", "board_id", "mast_len_cm", "shim_deg", "placement")
 
@@ -575,6 +644,10 @@ def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
     if not eigene.device_id or eigene.started_at is None:
         return 0
     from .. import storage
+    try:
+        eingang_abholen(eigene)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("garmin: Eingang fuer #%s: %s", eigene.id, exc)
     S = models.Session
     ende = eigene.ended_at or eigene.started_at + timedelta(hours=12)
     n = 0

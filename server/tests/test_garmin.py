@@ -597,3 +597,39 @@ def test_garmin_dann_duenne_eigene(client, garmin, monkeypatch, tmp_path):
         assert db.get(models.Session, sid).merged_into == gid_s
     finally:
         db.close()
+
+
+def test_garmin_ohne_gps_zuerst_wird_geparkt(client, garmin, monkeypatch, tmp_path):
+    # 05.11.2026: 8-s-Aufnahme ohne GPS-Fix kam zuerst ueber Garmin (Uhr nicht gekoppelt) und wurde verworfen. Jetzt:
+    # Dateien unserer App parken, beim Abschluss der eigenen Aufnahme anhaengen; fremde Aktivitaeten weiter verwerfen.
+    from app import models, storage
+    from app.db import SessionLocal
+    uid, _ = _konto(client)
+    gid = _link(uid)
+    monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
+    monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(parents=True, exist_ok=True) or tmp_path / u)
+    monkeypatch.setattr(garmin, "_eingang_dir", lambda u: tmp_path / "eingang" / str(u))
+    start = datetime(2026, 11, 5, 16, 59, 22, tzinfo=timezone.utc)
+    monkeypatch.setattr(garmin.httpx, "get", lambda u, **k: _Antwort(content=b"OHNE-GPS"))
+    import app.fitimport as fi
+    monkeypatch.setattr(fi, "parse_fit_bytes", lambda b: {**_parsed(start), "gps_samples": [], "dauer_ms": 8000})
+    url = "https://apis.garmin.com/wellness-api/rest/activityFile?id=4"
+    client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [
+        {"userId": gid, "summaryId": "p1-file", "fileType": "FIT", "activityType": "SURFING", "activityName": "Pumpfoil",
+         "callbackURL": url},
+        {"userId": gid, "summaryId": "y1-file", "fileType": "FIT", "activityType": "YOGA", "activityName": "Yoga",
+         "callbackURL": url}]})
+    assert (tmp_path / "eingang" / str(uid) / "p1-file.fit").exists()
+    assert not (tmp_path / "eingang" / str(uid) / "y1-file.fit").exists()     # fremde Aktivitaet: weg
+    sid, suuid = _eigene_session(uid, start, minuten=0)
+    db = SessionLocal()
+    try:
+        s = db.get(models.Session, sid)
+        s.ended_at = start + timedelta(seconds=8)
+        db.commit()
+        garmin.nach_eigener_aufnahme(db, s)
+        garmin.nach_eigener_aufnahme(db, s)     # zweimal: nichts doppelt
+    finally:
+        db.close()
+    assert (tmp_path / suuid / "garmin-connect-p1-file.fit").read_bytes() == b"OHNE-GPS"
+    assert '"angehaengt_an"' in (tmp_path / "eingang" / str(uid) / "p1-file.json").read_text()
