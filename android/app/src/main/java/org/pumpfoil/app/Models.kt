@@ -1567,6 +1567,15 @@ data class McpStatus(val url: String = "", val verbunden: List<McpVerbindung> = 
 data class FoilerSupporter(val stufe: Int = 0, @SerialName("tage_jahr") val tageJahr: Int = 0)
 
 @Serializable
+data class FoilerTeam(
+    val slug: String = "",
+    val name: String = "",
+    @SerialName("logo_url") val logoUrl: String? = null,
+    val farbe: String? = null,
+    val land: String? = null,
+)
+
+@Serializable
 data class FoilerProfil(
     val id: Int,
     val name: String? = null,
@@ -1578,6 +1587,9 @@ data class FoilerProfil(
     val homespot: String? = null,
     @SerialName("homespot_id") val homespotId: Int? = null,
     val uhren: List<String> = emptyList(),
+    // Nationalitaet (ISO-Code) und Teams mit freigegebenem Auftritt (05.11.2026, Web Foiler.tsx).
+    val land: String? = null,
+    val teams: List<FoilerTeam> = emptyList(),
     val supporter: FoilerSupporter? = null,     // Supporter-Badge (23.10.2026), nur wenn gerade sichtbar
     val kanal: String? = null,                  // freigegebener YouTube-Kanal
     val foils: List<FoilBrief> = emptyList(),

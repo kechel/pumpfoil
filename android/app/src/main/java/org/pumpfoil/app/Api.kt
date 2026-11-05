@@ -1739,8 +1739,10 @@ object Api {
         json.decodeFromString(ListSerializer(TeamListenEintrag.serializer()), http("GET", "/api/teams/liste", null, auth = true))
     }
     /** Team-Bestenlisten (Community › Teams & Events, 04.11.2026): je Team die Summe der besten `top` Fahrer. */
-    suspend fun teamsVergleich(period: String, top: Int): TeamVergleich = withContext(Dispatchers.IO) {
-        json.decodeFromString(TeamVergleich.serializer(), http("GET", "/api/teams/liste/vergleich?period=$period&top=$top", null, auth = true))
+    // `sport` seit 05.11.2026: es wird immer nur dieselbe Sportart verglichen (Web Home.tsx, server api/teams.py vergleich).
+    suspend fun teamsVergleich(period: String, top: Int, sport: String = "pumpfoil"): TeamVergleich = withContext(Dispatchers.IO) {
+        json.decodeFromString(TeamVergleich.serializer(), http("GET",
+            "/api/teams/liste/vergleich?period=$period&top=$top&sport=${android.net.Uri.encode(sport)}", null, auth = true))
     }
     /** Laufende und in den naechsten Tagen beginnende Events (Community-Abschnitt). */
     suspend fun teamsEventsAktuell(): List<TeamEventKurz> = withContext(Dispatchers.IO) {

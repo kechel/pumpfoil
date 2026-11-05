@@ -105,37 +105,30 @@ private fun vergleichWert(art: String, v: Double): String = when (art) {
  * Community › Teams & Events; teilen als Bild mit Wappen je Zeile und dem eigenen Team hervorgehoben.
  */
 @Composable
-fun TeamBestenlisten(onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier) {
-    var period by remember { mutableStateOf("30d") }
-    var top by remember { mutableStateOf(5) }
-    var art by remember { mutableStateOf("pumps") }
+fun TeamBestenlisten(period: String, sport: String, titel: String, onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier) {
+    // Seit 05.11.2026 (Oleks Entwurf, Web Home.tsx) unter der Bestenliste der Mitglieder: Zeitraum und Sportart kommen von
+    // oben, Kennzahl und „Beste N" als Auswahlfelder, gemerkt wie im Web (foil_team_art / foil_team_top).
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val prefs = remember { ctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE) }
+    var top by remember { mutableStateOf(prefs.getString("foil_team_top", null)?.toIntOrNull()?.takeIf { it in listOf(3, 5, 10) } ?: 5) }
+    var art by remember { mutableStateOf(prefs.getString("foil_team_art", null)?.takeIf { a -> VERGLEICH_ARTEN.any { it.first == a } } ?: "pumps") }
     var d by remember { mutableStateOf<TeamVergleich?>(null) }
     // Eigene (aktive) Teams fuer die Hervorhebung im Bild.
     var meine by remember { mutableStateOf<Set<String>>(emptySet()) }
     var bild by remember { mutableStateOf<TeamBildDaten?>(null) }
     LaunchedEffect(Unit) { meine = try { Api.teamsMine().filter { it.status == "aktiv" }.map { it.slug }.toSet() } catch (_: Exception) { emptySet() } }
-    LaunchedEffect(period, top) { d = try { Api.teamsVergleich(period, top) } catch (_: Exception) { d } }
+    LaunchedEffect(period, top, sport) { d = try { Api.teamsVergleich(period, top, sport) } catch (_: Exception) { d } }
     val zeilen = d?.teams.orEmpty().filter { it.wert(art) > 0 }
         .sortedWith(compareByDescending<TeamVergleichZeile> { it.wert(art) }.thenBy { it.name.lowercase() })
 
     Column(modifier.fillMaxWidth()) {
-        Text(I18n.t("team.vergleich.titel"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        Text(I18n.t("team.vergleich.hinweis").replace("{n}", top.toString()).replace("{sport}", "Pumpfoil"), style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 4.dp))
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            VERGLEICH_ZEITRAUM.forEach { (k, lk) ->
-                FilterChip(selected = period == k, onClick = { period = k }, label = { Text(I18n.t(lk)) }, colors = cyanChipColors())
-            }
+        Text(titel, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 6.dp))
+        Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Dropdown(VERGLEICH_ARTEN.map { (k, lk) -> k to I18n.t(lk) }, art,
+                { art = it; prefs.edit().putString("foil_team_art", it).apply() }, Modifier.weight(1f))
+            Dropdown(listOf(3, 5, 10).map { it.toString() to I18n.t("team.vergleich.top").replace("{n}", it.toString()) }, top.toString(),
+                { top = it.toInt(); prefs.edit().putString("foil_team_top", it).apply() }, Modifier.weight(1f))
         }
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            listOf(3, 5, 10).forEach { n ->
-                FilterChip(selected = top == n, onClick = { top = n },
-                    label = { Text(I18n.t("team.vergleich.top").replace("{n}", n.toString())) }, colors = cyanChipColors())
-            }
-        }
-        // Kennzahl als zweite Reiterzeile (wie die Bestenliste der Fahrer).
-        Reiterleiste(VERGLEICH_ARTEN.map { (k, lk) -> ReiterDef(k, I18n.t(lk)) }, art, { art = it }, stufe = 2,
-            modifier = Modifier.padding(top = 4.dp, bottom = 8.dp))
         when {
             d == null -> Text(I18n.t("common.loading"), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -170,9 +163,13 @@ fun TeamBestenlisten(onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier
                         }
                     }
                 }
+                // Erklaerung unter der Liste wie im Web, mit der gewaehlten Sportart.
+                Text(I18n.t("team.vergleich.hinweis").replace("{n}", top.toString()).replace("{sport}", I18n.t("cls.sport.$sport")),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 2.dp))
                 TextButton(onClick = {
                     val titel = I18n.t(VERGLEICH_ARTEN.first { it.first == art }.second)
-                    val unter = listOf(I18n.t("team.vergleich.titel"), I18n.t("team.vergleich.top").replace("{n}", top.toString()),
+                    val unter = listOf(I18n.t("team.vergleich.titel"), I18n.t("cls.sport.$sport"), I18n.t("team.vergleich.top").replace("{n}", top.toString()),
                         I18n.t(VERGLEICH_ZEITRAUM.firstOrNull { it.first == period }?.second ?: "period.all"),
                         java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT, java.util.Locale.forLanguageTag(I18n.lang))
                             .format(java.util.Date())).joinToString(" · ")

@@ -81,6 +81,7 @@ class MainActivity : ComponentActivity() {
         Api.load(applicationContext)
         SessionCache.init(applicationContext)   // Detail-Disk-Cache + Eviction (>90 T)
         ThemeState.load(applicationContext)
+        ThemeState.ladeSchrift(applicationContext)
         I18n.load(applicationContext)
         Sportarten.laden(applicationContext)   // Sportarten vom Server (gemerkt + frisch), 25.10.2026
         PumpUnit.load(applicationContext)   // Pump-Kadenz als Hz oder Pumps/min (Profil-Einstellung)
@@ -312,7 +313,8 @@ fun MainScaffold(onLogout: () -> Unit) {
     ) { pad ->
         // Tipp auf ein Profilbild -> Profilseite (Online.kt, LocalOpenFoiler). Einmal hier gesetzt,
         // gilt es fuer jede Karte, Zeile und Chat-Nachricht darunter.
-        androidx.compose.runtime.CompositionLocalProvider(LocalOpenFoiler provides { uid: Int -> nav.navigate("foiler/$uid") }) {
+        androidx.compose.runtime.CompositionLocalProvider(LocalOpenFoiler provides { uid: Int -> nav.navigate("foiler/$uid") },
+            LocalOpenTeam provides { sl: String -> nav.navigate("team/${Uri.encode(sl)}") }) {
         androidx.compose.runtime.CompositionLocalProvider(LocalFeedbackUrl provides feedbackUrl(backEntry)) {
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
             composable("home") { HomeScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }, onRecord = { nav.navigate("record") }, onOpenSortedOut = { SessionsWunsch.setzeFilter("other"); nav.switchTab("sessions") }, onOnboarding = { nav.navigate("onboarding") }, social = social,

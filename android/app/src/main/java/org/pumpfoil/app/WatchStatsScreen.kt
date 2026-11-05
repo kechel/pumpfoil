@@ -48,7 +48,9 @@ fun WatchStatsScreen(onBack: () -> Unit, onFoilStats: () -> Unit = {}) {
     var sortAsc by remember { mutableStateOf(false) }
     // Welche Haelfte: 0 = Nutzung, 1 = Aufnahmequalitaet. Vorher untereinander, die Qualitaet erst
     // nach allen Modellen — Jan fand sie nicht (07.10.2026). Gleich wie iOS.
-    var teil by remember { mutableStateOf(0) }
+    // Seit 05.11.2026 als Reiter mit den Ueberschriften des Webs (WatchStats.tsx), gemerkt wie die anderen Reiter.
+    var reiterWahl by rememberReiter("watchstats", listOf("foiling", "qualitaet"), "foiling")
+    val teil = if (reiterWahl == "qualitaet") 1 else 0
 
     LaunchedEffect(Unit) {
         try { rows = Api.watchStats() } catch (e: Exception) { error = e.message; rows = emptyList() }
@@ -94,12 +96,9 @@ fun WatchStatsScreen(onBack: () -> Unit, onFoilStats: () -> Unit = {}) {
         LazyColumn(Modifier.padding(pad).fillMaxSize().padding(horizontal = 12.dp)) {
             if (hatQuali) {
                 item {
-                    Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(selected = teil == 0, onClick = { teil = 0 },
-                            label = { Text(I18n.t("watchStats.tabUsage")) }, colors = cyanChipColors())
-                        FilterChip(selected = teil == 1, onClick = { teil = 1 },
-                            label = { Text(I18n.t("watchStats.tabQuality")) }, colors = cyanChipColors())
-                    }
+                    Reiterleiste(listOf(ReiterDef("foiling", I18n.t("watchStats.sectionFoiling")),
+                                        ReiterDef("qualitaet", I18n.t("watchQuality.title"))),
+                        reiterWahl, { reiterWahl = it }, Modifier.padding(top = 8.dp))
                 }
             }
             if (teil == 0 || !hatQuali) {
@@ -132,8 +131,7 @@ fun WatchStatsScreen(onBack: () -> Unit, onFoilStats: () -> Unit = {}) {
             // das entscheiden Nutzer selbst (Jan, 05.09.); die Zahlen stehen dafuer da.
             if (teil == 1) quali?.takeIf { it.modelle.isNotEmpty() }?.let { q ->
                 item {
-                    Column(Modifier.padding(top = 18.dp, bottom = 6.dp)) {
-                        Text(I18n.t("watchQuality.title"), fontWeight = FontWeight.Bold)
+                    Column(Modifier.padding(top = 8.dp, bottom = 6.dp)) {
                         Text(
                             I18n.t("watchQuality.lead")
                                 .replace("{sessions}", q.sessions.toString())

@@ -371,6 +371,14 @@ fun EinstellungenTeil(z: EinstellungenStand, teil: String, mitSpeichern: Boolean
                         selected = theme, onSelect = { theme = it; ThemeState.set(ctx, it) },
                     )
                     Spacer(Modifier.height(16.dp))
+                    // Schriftgroesse (Barrierefreiheit) wie Web/iOS: 100 / 120 / 150 %, nur auf diesem Geraet gemerkt.
+                    Text(I18n.t("fontscale.label"), style = MaterialTheme.typography.labelLarge)
+                    Spacer(Modifier.height(4.dp))
+                    Dropdown(options = listOf("100", "120", "150").map { it to "$it %" },
+                        selected = ThemeState.schrift, onSelect = { ThemeState.setSchrift(ctx, it) })
+                    Text(I18n.t("fontscale.hint"), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
+                    Spacer(Modifier.height(16.dp))
                     // Push-Benachrichtigungen.
                     Text(I18n.t("settings.notifications"), style = MaterialTheme.typography.labelLarge)
                     ToggleRow(I18n.t("settings.nLikes"), nLike) { nLike = it; saved = false }
@@ -452,10 +460,11 @@ private fun ToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Un
 // internal statt private: die Datenfelder-Seite nutzt dieselbe Auswahl (Aktivitätstyp, seit
 // 02.09. dort). Zwei Kopien desselben Dropdowns waeren die schlechtere Wahl.
 @Composable
-internal fun Dropdown(options: List<Pair<String, String>>, selected: String, onSelect: (String) -> Unit) {
+internal fun Dropdown(options: List<Pair<String, String>>, selected: String, onSelect: (String) -> Unit,
+                      modifier: Modifier = Modifier) {
     var open by remember { mutableStateOf(false) }
     val label = options.firstOrNull { it.first == selected }?.second ?: selected.ifBlank { "—" }
-    Box {
+    Box(modifier) {
         OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) {
             Text(label, Modifier.weight(1f), maxLines = 1)
             Icon(Icons.Filled.ArrowDropDown, contentDescription = null)

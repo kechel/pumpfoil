@@ -335,22 +335,4 @@ private fun MarkCard(
     }
 }
 
-@Composable
-private fun Dropdown(
-    options: List<Pair<String, String>>, selected: String, onSelect: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var open by remember { mutableStateOf(false) }
-    val label = options.firstOrNull { it.first == selected }?.second ?: selected
-    Box(modifier) {
-        OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) {
-            Text(label, Modifier.weight(1f), maxLines = 1)
-            Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
-        }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            options.forEach { (id, lbl) ->
-                DropdownMenuItem(text = { Text(lbl) }, onClick = { onSelect(id); open = false })
-            }
-        }
-    }
-}
+// Dropdown: die gemeinsame aus SettingsScreen.kt (hier stand bis 05.11.2026 eine gleiche private Kopie).

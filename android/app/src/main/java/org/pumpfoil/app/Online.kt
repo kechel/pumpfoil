@@ -153,6 +153,9 @@ fun rememberSupporter(userId: Int?): Int {
  */
 val LocalOpenFoiler = staticCompositionLocalOf<((Int) -> Unit)?> { null }
 
+/** Weg zur Teamseite (05.11.2026, Teams auf der Profilseite) — wie LocalOpenFoiler einmal in MainActivity gesetzt. */
+val LocalOpenTeam = staticCompositionLocalOf<((String) -> Unit)?> { null }
+
 private val EMERALD_500 = Color(0xFF10B981)
 
 /**

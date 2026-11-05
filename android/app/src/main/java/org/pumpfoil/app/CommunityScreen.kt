@@ -132,19 +132,24 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     LaunchedEffect(Unit) { layouts = try { Api.communityLayouts().take(5) } catch (_: Exception) { emptyList() } }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    // Filter der Rangliste merkt sich die App (Web 05.11.2026, Jan: „ja browser soll sich alle merken bitte"), den
+    // Zeitraum bewusst nicht (sonst greift die Heute/10-Tage-Automatik nie mehr). Schluessel wie im Web.
+    val ctxPrefs = androidx.compose.ui.platform.LocalContext.current
+    val prefs = remember { ctxPrefs.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE) }
+    fun merken(k: String, v: String) = prefs.edit().putString(k, v).apply()
+    val genauGemerkt = remember { prefs.getString("foil_komm_genau", null) }
     var period by remember { mutableStateOf("10d") }
     // Ohne eigene Wahl „Heute", sobald heute alle 10 Plaetze der Bestenliste besetzt sind (Web Home.tsx autoPeriod,
     // 02.11.2026), sonst 10 Tage. Wer selbst einen Zeitraum antippt, behaelt ihn.
     var periodGewaehlt by remember { mutableStateOf(false) }
-    var accelWahl by remember { mutableStateOf(true) }
+    var accelWahl by remember { mutableStateOf(genauGemerkt != "alle") }
     // Ansicht „Freunde" (Jan, 15.10.2026): die ganze Seite nur ueber mich + meine Freunde — alles,
     // was accel/alle aendert, filtert dann auf Freunde. Die Statistikzeile oben bleibt global.
     // Ein reiner Filter, er gibt nichts frei (server app/freunde.py). Freunde zaehlen wie „alle".
-    var freunde by remember { mutableStateOf(false) }
+    var freunde by remember { mutableStateOf(genauGemerkt == "freunde") }
     // Sportart wie im Web (19.10.2026): Rekorde und Bestenliste je Sportart; Standard Pumpfoil.
-    var sportart by remember { mutableStateOf("pumpfoil") }
+    var sportart by remember { mutableStateOf(prefs.getString("foil_komm_sport", null) ?: "pumpfoil") }
     var sportListe by remember { mutableStateOf<List<String>>(listOf("pumpfoil")) }
-    var sportMenue by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         sportListe = try { sortiereSports(Api.communitySports().map { it.sport }.filter { it.isNotEmpty() }).ifEmpty { listOf("pumpfoil") } }
                      catch (_: Exception) { listOf("pumpfoil") }
@@ -155,10 +160,10 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     // Die Baender samt Session-/Fahrerzahl kommen vom Server, damit hier keine Grenzen fest
     // verdrahtet sind (s. FOIL_BANDS in server/app/api/community.py).
     var bands by remember { mutableStateOf<List<FoilBand>>(emptyList()) }
-    var bandKey by remember { mutableStateOf("all") }
+    var bandKey by remember { mutableStateOf(prefs.getString("foil_komm_band", null) ?: "all") }
     val band = bands.firstOrNull { it.key == bandKey }
     // Standard wie im Web: die laengste Laufdauer (weltweit DIE Kennzahl, Web LEADER_KINDS).
-    var lbMetric by remember { mutableStateOf("run_time") }
+    var lbMetric by remember { mutableStateOf(prefs.getString("foil_leader_wahl", null) ?: "run_time") }
     // Ausgeblendete Kennzahl gewaehlt (z. B. Pumps, dann Wingfoil)? -> auf die erste sichtbare (Web arten[0]).
     LaunchedEffect(sportart) {
         val sichtbar = leaderArten(sportart)
@@ -247,7 +252,10 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
 
                         item { Reiterleiste(reiter, tab, { tab = it }, Modifier.padding(bottom = 4.dp)) }
 
-                        // Zeitraum-Filter + Accel/alle-Umschalter (wie PWA) — fuer die Bestenliste und „Best bewertet" (Medien).
+                        // Rangliste nach Oleks Entwurf (Web Home.tsx, 05.11.2026): oben EINE Zeile fuer alles (Zeitraum, Sportart),
+                        // darunter die Bestenliste der Mitglieder mit ihren eigenen Auswahlfeldern (Kennzahl, accel/alle/Freunde,
+                        // Foil), dann die der Teams (Kennzahl, Beste N), zuletzt die Rekord-Kacheln. Auf dem Handy untereinander
+                        // wie das Web schmal. Im Reiter Medien nur der Zeitraum (Best bewertet / Meist kommentiert).
                         if (tab != "teams") item {
                             Row(
                                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 2.dp),
@@ -258,73 +266,40 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                     FilterChip(selected = period == id, onClick = { period = id; periodGewaehlt = true }, label = { Text(I18n.t(key)) }, colors = cyanChipColors())
                                 }
                             }
-                            Row(
-                                Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                // Foil-Band. Reihenfolge kommt vom Server (Nuetzlichstes oben).
-                                // Die Sessionzahl steht dabei, weil jede Auswahl ausser „Alle
-                                // Foils" den Topf verkleinert: 36 % der Sessions haben gar kein
-                                // Foil hinterlegt und fallen dann heraus.
+                        }
+                        // Sportart: gilt fuer beide Bestenlisten und die Kacheln (Jan: „es soll halt jeweils immer nur die gleiche
+                        // sportart verglichen werden"). Die gewaehlte und Pumpfoil stehen immer zur Wahl.
+                        val sportWahl = (sportListe + listOf("pumpfoil", sportart)).distinct()
+                        if (tab == "bestenliste" && sportWahl.size > 1) item {
+                            Dropdown(sportWahl.map { it to I18n.t("cls.sport.$it") }, sportart,
+                                { sportart = it; merken("foil_komm_sport", it) },
+                                Modifier.padding(horizontal = 12.dp, vertical = 4.dp).fillMaxWidth())
+                        }
+
+                        if (tab == "bestenliste") item {
+                            SectionHeader("${I18n.t("home.leaderboards")} – ${I18n.t("team.mitglieder")}")
+                            Column(Modifier.padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Dropdown(leaderArten(sportart).map { (id, k) -> id to I18n.t(k) }, lbMetric,
+                                        { lbMetric = it; merken("foil_leader_wahl", it) }, Modifier.weight(1f))
+                                    // accel/alle/Freunde als Auswahlfeld (vorher Knopfgruppe AccelSeg), wie im Web.
+                                    Dropdown(listOf("accel" to I18n.t("side.onlyAccel").replaceFirstChar { it.uppercase() },
+                                                    "alle" to I18n.t("side.all").replaceFirstChar { it.uppercase() },
+                                                    "freunde" to I18n.t("friends.title")),
+                                        if (freunde) "freunde" else if (accelWahl) "accel" else "alle",
+                                        { v -> merken("foil_komm_genau", v); if (v == "freunde") freunde = true else { freunde = false; accelWahl = v == "accel" } },
+                                        Modifier.weight(1f))
+                                }
+                                // Foil-Band. Reihenfolge vom Server (Nuetzlichstes oben); die Sessionzahl steht dabei, weil jede
+                                // Auswahl ausser „Alle Foils" den Topf verkleinert.
                                 val sichtbar = bands.filter { it.art == "alle" || it.fahrer >= MIN_BAND_FAHRER }
                                 if (sichtbar.size > 1) {
-                                    var offen by remember { mutableStateOf(false) }
-                                    Box {
-                                        TextButton(onClick = { offen = true }) {
-                                            Text(
-                                                band?.let { bandLabel(it) } ?: I18n.t("cr.foilAll"),
-                                                style = MaterialTheme.typography.bodySmall,
-                                                maxLines = 1,
-                                            )
-                                        }
-                                        DropdownMenu(expanded = offen, onDismissRequest = { offen = false }) {
-                                            sichtbar.forEach { b ->
-                                                DropdownMenuItem(
-                                                    text = {
-                                                        Text(bandLabel(b) + if (b.art == "alle") "" else " (${b.sessions})")
-                                                    },
-                                                    onClick = { bandKey = b.key; offen = false },
-                                                )
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    Spacer(Modifier.width(1.dp))
-                                }
-                                AccelSeg(accelWahl, freunde = freunde, onFreunde = { freunde = true }) { freunde = false; accelWahl = it }
-                            }
-                        }
-
-                        // Sportart (19.10.2026, wie das Web): nur zeigen, wenn es mehr als eine gibt.
-                        if (tab == "bestenliste" && sportListe.size > 1) item {
-                            Box(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
-                                OutlinedButton(onClick = { sportMenue = true }) {
-                                    Text(I18n.t("cls.sport.$sportart") + " ▾")
-                                }
-                                DropdownMenu(expanded = sportMenue, onDismissRequest = { sportMenue = false }) {
-                                    sportListe.forEach { sp ->
-                                        DropdownMenuItem(text = { Text(I18n.t("cls.sport.$sp")) },
-                                            onClick = { sportMenue = false; sportart = sp })
-                                    }
+                                    Dropdown(sichtbar.map { b -> b.key to (bandLabel(b) + if (b.art == "alle") "" else " (${b.sessions})") },
+                                        bandKey, { bandKey = it; merken("foil_komm_band", it) }, Modifier.fillMaxWidth())
                                 }
                             }
-                        }
-                        // Community-Rekorde (mit Nutzer/Spot), klickbar -> Session.
-                        if (tab == "bestenliste") item { RecordGrid(records?.get(period), showSpot = true, onOpen = onOpen, modifier = Modifier.padding(horizontal = 12.dp), sport = sportart) }
-
-                        // Bestenliste (Rangliste je Metrik) — unter den Rekorden, ueber Feed und Medien (Jan, 02.11.2026, wie die PWA).
-                        if (tab == "bestenliste") leaders?.let { lb ->
-                            item {
-                                // Das gewaehlte Band gehoert in die Ueberschrift: sonst steht
-                                // hier eine Bestenliste ueber einen Teil der Flotte, ohne dass
-                                // man es sieht.
-                                SectionHeader(
-                                    "${I18n.t("community.leaderboard")} · " +
-                                        I18n.t(PERIODS.firstOrNull { it.first == period }?.second ?: "period.all") +
-                                        (band?.takeIf { it.art != "alle" }?.let { " · ${bandLabel(it)}" } ?: "")
-                                )
-                                BestenlistenBlock(lb, sportart, lbMetric, { lbMetric = it }, onOpen,
+                            leaders?.let { lb ->
+                                BestenlistenBlock(lb, sportart, lbMetric, { lbMetric = it }, onOpen, kennzahlKnoepfe = false,
                                     unterzeile = listOfNotNull(I18n.t("cls.sport.$sportart"),
                                         I18n.t(PERIODS.firstOrNull { it.first == period }?.second ?: "period.all"),
                                         band?.takeIf { it.art != "alle" }?.let { bandLabel(it) }),
@@ -338,6 +313,16 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                         teamWebUrl("/community?$q")
                                     })
                             }
+                        }
+                        // Team-Bestenlisten: seit 05.11.2026 hier statt im Reiter Teams & Events (Oleks Entwurf).
+                        if (tab == "bestenliste") item {
+                            TeamBestenlisten(period, sportart, "${I18n.t("home.leaderboards")} – ${I18n.t("team.community")}", onOpenTeam,
+                                Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
+                        }
+                        // Rekord-Kacheln (mit Nutzer/Spot), klickbar -> Session; das gewaehlte Band gehoert in die Ueberschrift.
+                        if (tab == "bestenliste") item {
+                            SectionHeader(I18n.t("side.records") + (band?.takeIf { it.art != "alle" }?.let { " · ${bandLabel(it)}" } ?: ""))
+                            RecordGrid(records?.get(period), showSpot = true, onOpen = onOpen, modifier = Modifier.padding(horizontal = 12.dp), sport = sportart)
                         }
 
                         // Neueste Medien (Fotos + YouTube), Tippen -> Session.
@@ -379,7 +364,6 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                         // Teams & Events (Web TeamsSection): ganz oben die Team-Bestenlisten (Jan, 03.11.2026), dann laufende &
                         // kommende Events, die aktivsten Teams. Keine Teamliste hier, die hat ihre eigene Seite.
                         if (tab == "teams") {
-                            item { TeamBestenlisten(onOpenTeam, Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) }
                             item { CommunityEventsAbschnitt(onOpenEvent, onAlleEvents, onAlleTeams) }
                             item { AktivsteTeams(onOpenTeam, Modifier.padding(horizontal = 12.dp, vertical = 12.dp)) }
                         }
@@ -735,10 +719,11 @@ private fun leaderDauer(s: Double): String {
  */
 @Composable
 internal fun BestenlistenBlock(lb: Leaders, sportart: String, lbMetric: String, onMetric: (String) -> Unit, onOpen: (Int) -> Unit,
-                               unterzeile: List<String>, linkUrl: (() -> String)? = null) {
+                               unterzeile: List<String>, linkUrl: (() -> String)? = null, kennzahlKnoepfe: Boolean = true) {
     var lbBild by remember { mutableStateOf<TeamBildDaten?>(null) }
     Column(Modifier.fillMaxWidth()) {
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp),
+        // Ohne Knoepfe (Community-Rangliste seit 05.11.2026): die Kennzahl waehlt ein Auswahlfeld darueber.
+        if (kennzahlKnoepfe) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             leaderArten(sportart).forEach { (id, key) ->
                 FilterChip(selected = lbMetric == id, onClick = { onMetric(id) }, label = { Text(I18n.t(key)) }, colors = cyanChipColors())

@@ -6,6 +6,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -17,6 +20,10 @@ object ThemeState {
     private fun prefs(ctx: Context) = ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
     fun load(ctx: Context) { mode = prefs(ctx).getString("theme", "auto") ?: "auto" }
     fun set(ctx: Context, m: String) { mode = m; prefs(ctx).edit().putString("theme", m).apply() }
+    // Schriftgroesse wie im Web und in iOS (Einstellungen › Darstellung, web FontScaleSelect): "100" | "120" | "150".
+    var schrift by mutableStateOf("100")
+    fun ladeSchrift(ctx: Context) { schrift = prefs(ctx).getString("foil_fontscale", "100") ?: "100" }
+    fun setSchrift(ctx: Context, s: String) { schrift = s; prefs(ctx).edit().putString("foil_fontscale", s).apply() }
 }
 
 // Material-3-Theme mit Pumpfoil-Akzent (Cyan). Wie die PWA: auf DUNKLEM Grund das helle Cyan
@@ -88,8 +95,14 @@ fun PumpfoilTheme(content: @Composable () -> Unit) {
         "dark" -> true
         else -> isSystemInDarkTheme()
     }
-    MaterialTheme(
-        colorScheme = if (dark) DarkColors else LightColors,
-        content = content,
-    )
+    // Schriftgroesse als UNTERGRENZE wie in iOS: wer am System schon groesser eingestellt hat, behaelt das; 100 % = genau
+    // die System-Einstellung. Wirkt auf alles in sp, nicht auf feste dp-Groessen (Kacheln, Teilen-Bilder).
+    val sys = LocalDensity.current
+    val faktor = (ThemeState.schrift.toIntOrNull() ?: 100) / 100f
+    CompositionLocalProvider(LocalDensity provides Density(sys.density, maxOf(sys.fontScale, faktor))) {
+        MaterialTheme(
+            colorScheme = if (dark) DarkColors else LightColors,
+            content = content,
+        )
+    }
 }

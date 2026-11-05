@@ -221,8 +221,19 @@ private fun FoilerInhalt(
             AvatarCircle(name = d.name, avatarUrl = d.avatarUrl, size = 56.dp, userId = d.id)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Text(d.name ?: "—", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                // Nationalitaet nur als Flagge neben dem Namen (Jan, 05.11.2026: „nur die flagge mit hovertext"); statt des
+                // Hovertexts nennt ein Tippen das Land.
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(d.name ?: "—", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                    d.land?.takeIf { it.isNotBlank() }?.let { l ->
+                        val ctxFlagge = androidx.compose.ui.platform.LocalContext.current
+                        Spacer(Modifier.width(6.dp))
+                        Box(Modifier.clickable { android.widget.Toast.makeText(ctxFlagge, landName(l.uppercase()), android.widget.Toast.LENGTH_SHORT).show() }) {
+                            LandFlagge(l)
+                        }
+                    }
+                }
                 d.seit?.let { s ->
                     Text(I18n.t("foiler.since").replace("{date}", langDatum(s)),
                         style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -234,7 +245,21 @@ private fun FoilerInhalt(
 
         // Angaben: Label links, Wert rechts. Die Label-Spalte ist so breit wie das laengste Label
         // (Web: grid max-content) — hier ueber eine feste Mindestbreite angenaehert.
+        val openTeam = LocalOpenTeam.current
         val angaben = buildList<Triple<ImageVector, String, @Composable () -> Unit>> {
+            // Teams ganz oben (Jan, 05.11.2026), nur freigegebene, mit Wappen; Tippen oeffnet die Teamseite.
+            if (d.teams.isNotEmpty()) add(Triple(Icons.Filled.Groups, I18n.t("team.community")) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    d.teams.forEach { tm ->
+                        Row(Modifier.clickable(enabled = openTeam != null) { openTeam?.invoke(tm.slug) },
+                            verticalAlignment = Alignment.CenterVertically) {
+                            TeamWappen(tm.name, tm.logoUrl, tm.farbe, 20.dp)
+                            Spacer(Modifier.width(5.dp))
+                            Text(tm.name, fontWeight = FontWeight.SemiBold, color = teamFarbe(tm.farbe).akzent)
+                        }
+                    }
+                }
+            })
             d.homespot?.takeIf { it.isNotBlank() }?.let { hs ->
                 add(Triple(Icons.Filled.Place, I18n.t("foiler.homespot")) {
                     // Der Homespot fuehrt zum Spot. Die App navigiert Spots ueber den Namen.

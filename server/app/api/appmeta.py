@@ -1079,6 +1079,13 @@ NAECHSTES: list[dict] = [
          "Home shows the latest session of each of your friends and the latest sessions of your team members, and the media tab adds the most commented sessions.",
          # 05.11.2026: GPS-Ausfall bei dunklem Display (Samsung, Energiesparen), android GpsSparen.kt
          "The phone recorder warns you when battery saver is on, because many phones then switch GPS off while the screen is dark, and it tells you during a recording when GPS has been missing for a while.",
+         # 04.11. abends (51401ee6, 7fe14aca, a346911b, f83d0d3d) und 05.11.2026 (Nachzug fuer das Release am selben Tag).
+         "The watch area is organised like the website: tabs for watch, Polar, COROS, Suunto, Xiaomi and MCP, and under watch the guide with a tab per platform, the settings and your watches.",
+         "The phone recorder reports its position at the first good GPS fix, so you show up as pumping right now even with live upload switched off.",
+         "The leaderboard tab shows one row with the period and sport for everything, then the leaderboard of the members, the team leaderboards and the records; the filters are menus and the app remembers them.",
+         "Team leaderboards compare only the sport you pick, so teams of foil scooter riders or mixed teams are ranked fairly.",
+         "Profile pages show the rider's flag next to the name and the teams they belong to at the top.",
+         "Watch stats has two tabs, foiling per watch and how well the watches record, and the text size can be set under Display.",
      ]},
     # iPhone + Apple Watch 1.1.59 am 04.11. EINGEREICHT -> IN_REVIEW.
     # Android 1.1.46 / Wear 1.2.46 am 28.10. eingereicht (ersetzt 1.1.45) -> IN_REVIEW.

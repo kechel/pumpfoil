@@ -32,6 +32,8 @@ SCHLUESSEL = [
     "tab.rankings", "tab.media", "land.teamsTitle", "team.vergleich.titel", "team.vergleich.hinweis",
     "team.vergleich.top", "team.vergleich.ausFahrern", "team.vergleich.leer", "team.bild.titel", "team.aktivste",
     "team.alle",
+    # 05.11.2026: Rangliste nach Oleks Entwurf (Ueberschriften „Bestenlisten – Mitglieder/Teams"), Uhren-Statistik-Reiter
+    "home.leaderboards", "watchStats.sectionFoiling",
     # Phase 9: Spots-Reiter
     "tab.map", "tab.list", "tab.routes",
     # Nachtrag aus dem iOS-Port (fehlten in den App-Tabellen)
