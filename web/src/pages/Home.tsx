@@ -5,7 +5,7 @@ import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, 
 import EventKurzKachel from "../components/EventKurzKachel";
 import { LayoutPreview } from "../components/LayoutPreview";
 import { WatchShape } from "../lib/watchLayout";
-import { Card, Avatar, SELECT_SCHRUMPFT } from "../components/ui";
+import { Card, Avatar } from "../components/ui";
 import { Flagge } from "../components/Flagge";
 import { SocialFeed } from "../components/SocialFeed";
 import { Reiterleiste, useReiter, type ReiterDef } from "../components/Reiter";
@@ -20,7 +20,6 @@ import { Lightbox } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
 import { TrackPreview } from "../components/TrackPreview";
 import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon, WatchIcon, FlagIcon, ShareIcon } from "../components/Icons";
-import { AccelToggle } from "../components/AccelToggle";
 import { CommunityStats } from "../components/CommunityStats";
 import { useAccelDefault } from "../lib/useAccelDefault";
 import { useT } from "../i18n";
@@ -469,7 +468,15 @@ export function bandInfo(b: FoilBand, t: (k: string, p?: Record<string, string>)
   return grenzen ? t("cr.bandRange", { grenzen }) : null;
 }
 
-export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf, spot }: { period: string; accelOnly: boolean; sport?: string; band?: FoilBand; kopf?: React.ReactNode; spot?: string }) {
+/** Auswahlfeld der Ranglisten-Seite (Oleks Entwurf, 05.11.2026): etwas groesser als die Filter sonst und gleich breit in
+ *  einer Reihe wie im Entwurf; wird es zu eng (Handy), bricht die Reihe um statt die Felder unlesbar zu quetschen. */
+const AUSWAHL = "min-w-[8rem] flex-1 basis-0 truncate rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm font-medium text-slate-100";
+
+// `auswahl` (Community-Rangliste nach Oleks Entwurf, 05.11.2026): Kennzahl als Auswahlfeld statt Reitern, daneben die
+// Filter, die nur fuer die Mitglieder gelten (`filter`); der Zeitraum steht dann oben fuer die ganze Seite, darum nicht
+// mehr in der Ueberschrift. Ohne `auswahl` wie bisher (Spot-Seite).
+export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf, spot, titel, auswahl, filter }: { period: string; accelOnly: boolean; sport?: string; band?: FoilBand; kopf?: React.ReactNode; spot?: string;
+                               titel?: string; auswahl?: boolean; filter?: React.ReactNode }) {
   const t = useT();
   const [data, setData] = useState<Leaders | null>(null);
   // Nur EINE Bestenliste sichtbar, umschaltbar ueber Reiter (Jan, 01.11.2026: mit acht Listen nebeneinander war die
@@ -499,10 +506,58 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
     }).catch(() => {});
     return () => { aktiv = false; };
   }, [period, accelOnly, sport, band?.key, spot]);
-  if (!data) return null;
+  // Je Sportart (19.10.2026): bei Wind zaehlen weder Pumps noch Laeufe (viele Laeufe heisst
+  // dort eher viele Stuerze), bei Motor keine Pumps. Pumpfoil wie bisher.
+  const arten = LEADER_KINDS.filter((k) => !(
+    ((WIND_SPORTS.includes(sport) || PADDEL_SPORTS.includes(sport)) && (k.key === "pumps" || k.key === "runs"))
+    || (MOTOR_SPORTS.includes(sport) && k.key === "pumps")
+    || (k.key === "ride_total" && !(WIND_SPORTS.includes(sport) || PADDEL_SPORTS.includes(sport)))));
+  const k = arten.find((a) => a.key === wahl) ?? arten[0];
   // Leer: Ueberschrift und Filter bleiben stehen — man soll den Zeitraum hier auch wieder weiter stellen koennen.
-  const empty = data.sessions.length === 0 && data.runs.length === 0 && data.spots.length === 0;
+  const empty = !data || (data.sessions.length === 0 && data.runs.length === 0 && data.spots.length === 0);
   const periodLabelKey = PERIODS.find(([k]) => k === period)?.[1] ?? "";
+  const bildDialog = (data: Leaders) => {
+    const fmtWert = (r: LeaderRow) => {
+      const v = r[k.field] as number;
+      const u = typeof k.unit === "function" ? k.unit(v) : t(k.unitKey ?? "");
+      return `${k.fmt ? k.fmt(v) : v} ${u}`;
+    };
+    const zeile = (r: LeaderRow, rang: number) => ({ rang, name: r.name, initialen: initialenAus(r.name), wert: fmtWert(r), land: r.land });
+    const eigene = data.me?.[k.key];
+    return (
+      <BestenlisteBildDialog onClose={() => setBild(false)} titel={t("team.bild.titel")} dateiname={`pumpfoil-${k.key}.jpg`}
+        daten={{
+          titel: t(k.labelKey),
+          unterzeile: [t(`cls.sport.${sport}`), t(periodLabelKey), band && band.art !== "alle" ? bandLabel(band, t) : null,
+            new Date().toLocaleDateString(document.documentElement.lang || undefined)].filter(Boolean).join(" · "),
+          zeilen: (data[k.key] ?? []).slice(0, 10).map((r, i) => zeile(r, i + 1)),
+          eigene: eigene && eigene.rank != null ? zeile(eigene, eigene.rank) : null,
+          leer: "—",
+        }} />
+    );
+  };
+  if (auswahl) return (
+    <div className="min-w-0">
+      <h3 className="mb-2 text-lg font-bold">{titel ?? t("home.leaderboards")}</h3>
+      <div className="mb-3 flex flex-wrap items-center gap-1.5">
+        <select value={k.key} onChange={(e) => waehlen(e.target.value)} className={AUSWAHL}>
+          {arten.map((a) => <option key={a.key} value={a.key}>{t(a.labelKey)}</option>)}
+        </select>
+        {filter}
+      </div>
+      {!data ? null : empty ? <p className="text-xs text-slate-400">—</p> : (
+        <LeaderList rows={data[k.key] ?? []} field={k.field} unit={k.unit ?? t(k.unitKey ?? "")} fmt={k.fmt} me={data.me?.[k.key]} />
+      )}
+      {data && !empty && (data[k.key] ?? []).length > 0 && (
+        <button onClick={() => setBild(true)}
+          className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-brand-600 hover:bg-slate-700 dark:text-brand-300">
+          <ShareIcon className="h-4 w-4" /> {t("team.bild.titel")}
+        </button>
+      )}
+      {bild && data && bildDialog(data)}
+    </div>
+  );
+  if (!data) return null;
   return (
     <div>
       <h3 className="mb-2 text-lg font-bold">
@@ -519,11 +574,6 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
       {/* Je Sportart (19.10.2026): bei Wind zaehlen weder Pumps noch Laeufe (viele Laeufe heisst
           dort eher viele Stuerze), bei Motor keine Pumps. Pumpfoil wie bisher. */}
       {(() => {
-        const arten = LEADER_KINDS.filter((k) => !(
-          ((WIND_SPORTS.includes(sport) || PADDEL_SPORTS.includes(sport)) && (k.key === "pumps" || k.key === "runs"))
-          || (MOTOR_SPORTS.includes(sport) && k.key === "pumps")
-          || (k.key === "ride_total" && !(WIND_SPORTS.includes(sport) || PADDEL_SPORTS.includes(sport)))));
-        const k = arten.find((a) => a.key === wahl) ?? arten[0];
         return (
           <>
             <div className="mb-3 flex flex-wrap gap-1" role="tablist">
@@ -543,26 +593,7 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
                 </button>
               )}
             </div>
-            {bild && (() => {
-              const fmtWert = (r: LeaderRow) => {
-                const v = r[k.field] as number;
-                const u = typeof k.unit === "function" ? k.unit(v) : t(k.unitKey ?? "");
-                return `${k.fmt ? k.fmt(v) : v} ${u}`;
-              };
-              const zeile = (r: LeaderRow, rang: number) => ({ rang, name: r.name, initialen: initialenAus(r.name), wert: fmtWert(r), land: r.land });
-              const eigene = data.me?.[k.key];
-              return (
-                <BestenlisteBildDialog onClose={() => setBild(false)} titel={t("team.bild.titel")} dateiname={`pumpfoil-${k.key}.jpg`}
-                  daten={{
-                    titel: t(k.labelKey),
-                    unterzeile: [t(`cls.sport.${sport}`), t(periodLabelKey), band && band.art !== "alle" ? bandLabel(band, t) : null,
-                      new Date().toLocaleDateString(document.documentElement.lang || undefined)].filter(Boolean).join(" · "),
-                    zeilen: (data[k.key] ?? []).slice(0, 10).map((r, i) => zeile(r, i + 1)),
-                    eigene: eigene && eigene.rank != null ? zeile(eigene, eigene.rank) : null,
-                    leer: "—",
-                  }} />
-              );
-            })()}
+            {bild && bildDialog(data)}
           </>
         );
       })()}
@@ -711,12 +742,9 @@ function CommunitySection() {
   // teuersten Aufruf der Seite, obwohl ihre eigenen Daten in 2–10 ms da sind (nachgemessen).
   // `RecordGrid` kommt ohne Daten aus und zeichnet „–"-Kacheln derselben Groesse, die sich
   // fuellen, sobald die Rekorde eintreffen — es springt also nichts nach.
-  // Filterzeile (Zeitraum, accel/alle/Freunde, Sportart, Foil-Band) — EINMAL gebaut, zweimal gezeigt: oben ueber den
-  // Rekorden und nochmal ueber der Bestenliste (Jan, 01.11.2026). Beide haengen am selben Zustand, aendern also
-  // immer beides.
   const waehlbareBaender = bands.filter((b) => b.art === "alle" || b.fahrer >= MIN_BAND_FAHRER);
-  // Nur die Zeitknoepfe gibt es auch einzeln: im Reiter Medien ueber „Best bewertet"/„Meist kommentiert", die sich
-  // nur nach dem Zeitraum richten (Sportart, Foil und accel gelten dort nicht).
+  // Die Zeitknoepfe: in der Rangliste die eine Zeile oben fuer alles, im Reiter Medien ueber „Best bewertet"/„Meist
+  // kommentiert", die sich nur nach dem Zeitraum richten (Sportart, Foil und accel gelten dort nicht).
   const zeitKnoepfe = PERIODS.map(([k, labelKey]) => (
     <button
       key={k}
@@ -726,39 +754,37 @@ function CommunitySection() {
       {t(labelKey)}
     </button>
   ));
-  const filterZeile = (
-      <div className="mb-3 flex flex-wrap items-center gap-1">
-      {zeitKnoepfe}
-      <AccelToggle value={accelWahl} onChange={(v) => { setFreunde(false); setAccelOnly(v); }} className="ml-auto"
-                   freunde={freunde} onFreunde={() => setFreunde(true)} />
+  // Filter, die nur fuer die Mitglieder-Bestenliste und die Kacheln gelten (Oleks Entwurf, 05.11.2026): dieselben wie
+  // bisher, nur als Auswahlfelder. accel/alle/Freunde war vorher eine Knopfgruppe (AccelToggle).
+  const gross = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
+  const mitgliederFilter = (
+    <>
+      <select value={freunde ? "freunde" : accelWahl ? "accel" : "alle"} title={t("side.recordsHint")} className={AUSWAHL}
+        onChange={(e) => { const v = e.target.value; if (v === "freunde") setFreunde(true); else { setFreunde(false); setAccelOnly(v === "accel"); } }}>
+        <option value="accel">{gross(t("side.onlyAccel"))}</option>
+        <option value="alle">{gross(t("side.all"))}</option>
+        <option value="freunde">{t("friends.title")}</option>
+      </select>
       {/* Sportart-Filter: erscheint erst, wenn es überhaupt eine zweite Sportart mit Läufen gibt
-          (Jan: „nur die mit mind. einem lauf all time"). Betrifft Rekorde, Rangliste und Spots —
-          NICHT „Neueste Medien", „Am besten bewertet" und die Uhr-Layouts: die kommen absichtlich
-          immer aus allen Sportarten. */}
+          (Jan: „nur die mit mind. einem lauf all time"). NICHT fuer „Neueste Medien", „Am besten bewertet" und die
+          Uhr-Layouts: die kommen absichtlich immer aus allen Sportarten. */}
       {sports.length > 1 && (
-        <select value={sport} onChange={(e) => setSport(e.target.value)}
-          className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
+        <select value={sport} onChange={(e) => setSport(e.target.value)} className={AUSWAHL}>
           {sortiereNachSport(sports, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
         </select>
       )}
       {/* Foil-Band. Reihenfolge kommt vom Server (Nützlichstes oben). Die Sessionzahl steht
           dabei, weil jede Auswahl außer „Alle Foils" den Topf verkleinert — 36 % der Sessions
-          haben gar kein Foil hinterlegt und fallen dann heraus. */}
-      {/* Erst filtern, dann zaehlen (02.11.2026): bisher stand die Auswahl schon da, wenn es nur zu duenne Baender gab —
-          dann enthielt sie allein „Alle Foils" und sah kaputt aus. */}
+          haben gar kein Foil hinterlegt und fallen dann heraus. Erst filtern, dann zaehlen (02.11.2026): sonst stand
+          die Auswahl mit allein „Alle Foils" da und sah kaputt aus. */}
       {waehlbareBaender.length > 1 && (
-        <select value={bandKey} onChange={(e) => setBandKey(e.target.value)}
-          title={t("cr.foilAll")}
-          className={`${SELECT_SCHRUMPFT} rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100`}>
-          {waehlbareBaender
-            .map((b) => (
-              <option key={b.key} value={b.key}>
-                {bandLabel(b, t)}{b.art === "alle" ? "" : ` (${b.sessions})`}
-              </option>
-            ))}
+        <select value={bandKey} onChange={(e) => setBandKey(e.target.value)} title={t("cr.foilAll")} className={AUSWAHL}>
+          {waehlbareBaender.map((b) => (
+            <option key={b.key} value={b.key}>{bandLabel(b, t)}{b.art === "alle" ? "" : ` (${b.sessions})`}</option>
+          ))}
         </select>
       )}
-    </div>
+    </>
   );
 
   return (
@@ -781,19 +807,29 @@ function CommunitySection() {
       {/* Reiter (Plan docs/UX-IA.md, 02.11.2026). Die letzte Wahl merkt sich der Browser. Spots und Routen stehen jetzt
           unter der Hauptnavigation „Spots", die Uhr-Layouts unter Medien. */}
       <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} />
+      {/* Rangliste nach Oleks Entwurf (05.11.2026, Jan: „das uebernehmen wir genau so vom layout her"): oben EINE Zeile
+          fuer alles (Zeitraum), darunter links die Mitglieder, rechts die Teams, jede Liste mit den Filtern, die nur fuer
+          sie gelten, als Auswahlfelder; darunter die Rekord-Kacheln ueber die ganze Breite. Die Team-Listen rechnen
+          Pumpfoil mit allen Laeufen (teams.vergleich) — Sportart, accel/alle/Freunde und Foil gelten darum nur links
+          und fuer die Kacheln. Eine Gruppierung nach Region kommt spaeter. */}
       {tab === "bestenliste" && <>
-        {filterZeile}
+        <div className="mb-4 flex flex-wrap items-center gap-1">{zeitKnoepfe}</div>
+        <div className="grid gap-8 lg:grid-cols-2">
+          {/* `key` = neu laden beim Umschalten auf/von „Freunde" — ihre eigenen Abhaengigkeiten aendern sich dabei nicht immer. */}
+          <Leaderboards key={`l${freunde}`} period={period} accelOnly={accelOnly} sport={sport} band={band} auswahl
+            titel={`${t("home.leaderboards")} – ${t("team.mitglieder")}`} filter={mitgliederFilter} />
+          <TeamBestenlisten period={period} titel={`${t("home.leaderboards")} – ${t("team.community")}`} />
+        </div>
+        <h3 className="mb-2 mt-10 text-lg font-bold">
+          {t("side.records")}
+          {/* Das gewählte Foil-Band gehört in die Überschrift (Jans Vorgabe 01.09.). */}
+          {band && band.art !== "alle" && <span className="ml-2 text-sm font-normal text-brand-600 dark:text-brand-300">· {bandLabel(band, t)}</span>}
+        </h3>
         {/* Grenzen des gewaehlten Bandes im Klartext — sonst raet man, was „Wie mein Foil" heisst. */}
         {band && bandInfo(band, t) && (
           <p className="mb-3 text-sm text-slate-400">{bandInfo(band, t)}</p>
         )}
         <RecordGrid rec={data?.[period as keyof CommunityRecords]} showSpot sport={sport} />
-        {/* `key` = neu laden beim Umschalten auf/von „Freunde" — ihre eigenen Abhaengigkeiten aendern sich dabei nicht immer.
-            Die Filterzeile steht unter der Ueberschrift noch einmal (Jan, 01.11.2026): auf dem Handy liegen zwoelf Kacheln
-            dazwischen. */}
-        <div className="mt-8">
-          <Leaderboards key={`l${freunde}`} period={period} accelOnly={accelOnly} sport={sport} band={band} kopf={filterZeile} />
-        </div>
       </>}
       {tab === "medien" && <>
         <LatestMedia key={`m${freunde}`} />
@@ -817,8 +853,8 @@ function TeamsSection() {
   useEffect(() => { api.teamsEventsAktuell().then(setEvents).catch(() => setEvents([])); }, []);
   return (
     <div className="mt-6">
-      {/* Team-Bestenlisten ganz oben, ueber den Events (Jan, 03.11.2026). */}
-      <TeamBestenlisten />
+      {/* Die Team-Bestenlisten standen hier bis 05.11.2026; seit Oleks Entwurf stehen sie neben denen der Mitglieder im
+          Reiter „Rekorde & Bestenliste". */}
       <div className="mb-1.5 flex flex-wrap items-center gap-x-4 gap-y-1">
         <FlagIcon className="h-5 w-5 text-brand-400" />
         <h3 className="text-lg font-bold">{t("team.eventsAktuell")}</h3>
@@ -870,9 +906,10 @@ const VERGLEICH_ARTEN: [TeamVergleichKennzahl, string][] = [
   ["sessions", "team.stat.sessions"], ["runs", "team.stat.laeufe"],
 ];
 
-function TeamBestenlisten() {
+// Seit 05.11.2026 (Oleks Entwurf) als rechte Spalte neben der Mitglieder-Bestenliste: der Zeitraum kommt von oben
+// (`period`, eine Zeile fuer die ganze Seite), Kennzahl und „Beste N" als Auswahlfelder, Zeilen wie bei den Mitgliedern.
+function TeamBestenlisten({ period, titel }: { period: string; titel: string }) {
   const t = useT();
-  const [period, setPeriod] = useState("30d");
   const [top, setTop] = useState(5);
   const [art, setArt] = useState<TeamVergleichKennzahl>("pumps");
   const [d, setD] = useState<TeamVergleich | null>(null);
@@ -888,8 +925,11 @@ function TeamBestenlisten() {
   const km = (m: number) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(m < 100000 ? 1 : 0)} km`);
   const zeit = (sek: number) => (sek < 3600 ? `${Math.round(sek / 60)} min` : `${(sek / 3600).toFixed(1)} h`);
   const wert = (z: TeamVergleichZeile) => (art === "distance_m" ? km(z[art]) : art === "time_s" ? zeit(z[art]) : z[art].toLocaleString());
+  // Zahl und Einheit getrennt, damit die Zeile aussieht wie bei den Mitgliedern (Einheit klein dahinter).
+  const einheit = (z: TeamVergleichZeile) => (art === "distance_m" ? (z[art] < 1000 ? "m" : "km") : art === "time_s" ? (z[art] < 3600 ? "min" : "h")
+    : t(art === "pumps" ? "unit.pumps" : art === "runs" ? "unit.runs" : "unit.sessions"));
+  const zahl = (z: TeamVergleichZeile) => (art === "distance_m" || art === "time_s" ? wert(z).split(" ")[0] : wert(z));
   const zeilen = (d?.teams ?? []).filter((z) => z[art] > 0).sort((a, b) => b[art] - a[art] || a.name.localeCompare(b.name));
-  const knopf = (an: boolean) => `rounded-lg px-2.5 py-1 text-xs ${an ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`;
   const bildZeile = (z: TeamVergleichZeile, i: number) => {
     const f = TEAM_FARBEN[z.farbe || "cyan"] ?? TEAM_FARBEN.cyan;
     return {
@@ -900,44 +940,43 @@ function TeamBestenlisten() {
     };
   };
   return (
-    <div className="mb-8">
-      <h3 className="mb-1 text-lg font-bold">{t("team.vergleich.titel")}</h3>
-      <p className="mb-2 text-sm text-slate-400">{t("team.vergleich.hinweis", { n: String(top) })}</p>
-      <div className="mb-2 flex flex-wrap items-center gap-1">
-        {PERIODS.map(([k, lk]) => <button key={k} onClick={() => setPeriod(k)} className={knopf(period === k)}>{t(lk)}</button>)}
-        <span className="ml-auto flex gap-1">
-          {[3, 5, 10].map((n) => <button key={n} onClick={() => setTop(n)} className={knopf(top === n)}>{t("team.vergleich.top", { n: String(n) })}</button>)}
-        </span>
-      </div>
-      <div className="mb-3 flex flex-wrap gap-1" role="tablist">
-        {VERGLEICH_ARTEN.map(([k, lk]) => (
-          <button key={k} role="tab" aria-selected={art === k} onClick={() => setArt(k)} className={knopf(art === k)}>{t(lk)}</button>
-        ))}
+    <div className="min-w-0">
+      <h3 className="mb-2 text-lg font-bold">{titel}</h3>
+      <div className="mb-3 flex flex-wrap items-center gap-1.5">
+        <select value={art} onChange={(e) => setArt(e.target.value as TeamVergleichKennzahl)} className={AUSWAHL}>
+          {VERGLEICH_ARTEN.map(([k, lk]) => <option key={k} value={k}>{t(lk)}</option>)}
+        </select>
+        <select value={top} onChange={(e) => setTop(Number(e.target.value))} className={AUSWAHL}>
+          {[3, 5, 10].map((n) => <option key={n} value={n}>{t("team.vergleich.top", { n: String(n) })}</option>)}
+        </select>
       </div>
       {!d ? <p className="text-sm text-slate-400">{t("common.loading")}</p> : zeilen.length === 0
         ? <p className="text-sm text-slate-400">{t("team.vergleich.leer")}</p> : (
-        <div className="max-w-2xl space-y-2">
+        <div className="space-y-1.5">
           {zeilen.map((z, i) => (
+            // „aus N Fahrern" als Tooltip: in der schmalen Spalte haette die Zeile sonst zwei Zeilen.
             <Link key={z.slug} to={`/teams/${z.slug}`} style={teamFarbStil(z.farbe)}
-              className="team-farbe flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-3 hover:border-slate-700">
-              <span className="w-6 shrink-0 text-center text-lg font-bold tabular-nums text-slate-400">{i + 1}</span>
-              <TeamWappen name={z.name} logo={z.logo_url} farbe={z.farbe} size={40} />
+              title={t("team.vergleich.ausFahrern", { n: String(z[`${art}_fahrer`]) })}
+              className="team-farbe flex items-center gap-2 rounded-lg bg-slate-900 px-2.5 py-1.5 hover:underline">
+              <span className="min-w-4 shrink-0 text-center text-xs font-bold tabular-nums text-slate-400">{i + 1}</span>
+              <TeamWappen name={z.name} logo={z.logo_url} farbe={z.farbe} size={30} />
               <span className="flex min-w-0 flex-1 items-center gap-1.5">
-                <span className="team-akzent truncate font-semibold">{z.name}</span><TeamHerkunft land={z.land} />
+                <span className="team-akzent truncate text-sm">{z.name}</span><TeamHerkunft land={z.land} />
               </span>
-              <span className="shrink-0 text-right text-xs text-slate-400">
-                <span className="team-akzent block text-base font-bold tabular-nums">{wert(z)}</span>
-                {t("team.vergleich.ausFahrern", { n: String(z[`${art}_fahrer`]) })}
-              </span>
+              <span className="shrink-0 text-sm font-semibold tabular-nums text-slate-100">{zahl(z)}</span>
+              <span className="shrink-0 text-[10px] uppercase text-slate-400">{einheit(z)}</span>
             </Link>
           ))}
-          {/* Als Bild teilen wie die Bestenliste der Fahrer (Jan, 03.11.2026). Flaggen nur fuer Laender; Kontinent/Erde
-              („k:…") haben kein Flaggenbild und bleiben im Bild ohne Zeichen. */}
-          <button onClick={() => setBild(true)}
-            className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-brand-600 hover:bg-slate-700 dark:text-brand-300">
-            <ShareIcon className="h-4 w-4" /> {t("team.bild.titel")}
-          </button>
         </div>
+      )}
+      <p className="mt-2 text-xs text-slate-400">{t("team.vergleich.hinweis", { n: String(top) })}</p>
+      {/* Als Bild teilen wie die Bestenliste der Fahrer (Jan, 03.11.2026). Flaggen nur fuer Laender; Kontinent/Erde
+          („k:…") haben kein Flaggenbild und bleiben im Bild ohne Zeichen. */}
+      {!!zeilen.length && (
+        <button onClick={() => setBild(true)}
+          className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-brand-600 hover:bg-slate-700 dark:text-brand-300">
+          <ShareIcon className="h-4 w-4" /> {t("team.bild.titel")}
+        </button>
       )}
       {bild && (
         <BestenlisteBildDialog onClose={() => setBild(false)} titel={t("team.bild.titel")} dateiname={`pumpfoil-teams-${art}.jpg`}
