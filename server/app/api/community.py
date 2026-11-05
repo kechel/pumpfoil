@@ -1000,10 +1000,11 @@ def _carve_record(db: Session, cut: datetime | None, spot: str | None = None, vi
     return {**_EMPTY_REC, "value": float(int(val)), "name": name, "avatar_url": avatar, "user_id": uid}
 
 
-# Ab so vielen Fahrern bzw. Teams steht eine Region zur Wahl — wie die Foil-Baender (MIN_BAND_FAHRER im Web): eine
-# „Bestenliste Portugal" mit einem Fahrer ist keine.
-REGION_MIN_FAHRER = 3
-REGION_MIN_TEAMS = 2
+# Ab so vielen Fahrern bzw. Teams steht eine Region zur Wahl. Zuerst 3 bzw. 2 wie die Foil-Baender; Jan, 05.11.2026:
+# „ich denke 1 reicht immer" — Deutschland fehlte mit zwei Fahrern, und solange erst wenige ihre Nationalitaet angeben,
+# soll jedes Land mit jemandem darin wählbar sein.
+REGION_MIN_FAHRER = 1
+REGION_MIN_TEAMS = 1
 
 
 @router.get("/regionen")

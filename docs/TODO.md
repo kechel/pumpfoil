@@ -1614,7 +1614,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - ✅ 05.11. Region-Filter der Rangliste nach NATIONALITAET (Jan: „im wettkampfgeschehen zaehlt eher die nationalitaet,
     insbesondere weil die ja auch zu wettkampfspots fahren"): `?region=` (all | k:eu … | PL) an /api/community wie die
     Freunde-Ansicht (app/regionen.py, Middleware in app/freunde.py), Team-Bestenlisten nach `teams.land`, Auswahl aus
-    GET /api/community/regionen (ab 3 Fahrern bzw. 2 Teams), Land -> Kontinent aus Natural Earth
+    GET /api/community/regionen (ab 1 Fahrer bzw. 1 Team, Jan 05.11.), Land -> Kontinent aus Natural Earth
     (scripts/land-kontinent-erzeugen.py, Zypern unter Europa). Nur 11 von 322 aktiven Fahrern haben eine Nationalitaet —
     Hinweis mit Link zur Einstellung. Auswahl mit Flagge bzw. Kontinent-Umriss (Jan). **Android: ✅ 05.11. fuer 1.1.47**
     (Emulator: Polen filtert Mitglieder, Teams, Kacheln). **Offen:** iOS.
