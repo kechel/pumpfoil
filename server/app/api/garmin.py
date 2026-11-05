@@ -310,6 +310,10 @@ def _eigene_aufnahme(db: Session, user_id: int, start: datetime, ende: datetime)
     kandidaten = (db.query(S).filter(
         S.user_id == user_id, S.deleted.isnot(True), S.device_id.isnot(None), S.started_at < ende,
         or_(S.ended_at > start, and_(S.ended_at.is_(None), S.started_at > start - timedelta(hours=12)))).all())
+    # Ohne eingetragenes Ende (laeuft noch oder Ende nie gemeldet) nur bei fast gleichem Start — sonst koennte eine
+    # liegengebliebene offene Aufnahme die Datei einer spaeteren Fahrt bekommen, deren eigener Upload noch aussteht.
+    kandidaten = [x for x in kandidaten
+                  if x.ended_at is not None or abs((_aware(x.started_at) - start).total_seconds()) <= 120]
     # Mehrere Treffer: die mit dem naechsten Start. Am 05.11.2026 hing eine 90-s-Fahrt (Start 14:38:28) an der
     # Aufnahme davor (14:38:09, 7 s, ohne eingetragenes Ende = „laeuft noch"), weil die frueheste gewann; dieselbe
     # Aufnahme beginnt in beiden Dateien auf die Sekunde gleich.

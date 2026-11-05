@@ -381,3 +381,19 @@ def test_naechster_start_gewinnt(client, garmin):
         assert treffer.id == kurz
     finally:
         db.close()
+
+
+def test_offene_aufnahme_nur_bei_fast_gleichem_start(client, garmin):
+    from app.db import SessionLocal
+    from app import models
+    uid, _ = _konto(client)
+    t0 = datetime(2026, 11, 5, 9, 0, tzinfo=timezone.utc)
+    offen, _u = _eigene_session(uid, t0, minuten=0)
+    db = SessionLocal()
+    try:
+        db.get(models.Session, offen).ended_at = None
+        db.commit()
+        assert garmin._eigene_aufnahme(db, uid, t0 + timedelta(minutes=30), t0 + timedelta(minutes=40)) is None
+        assert garmin._eigene_aufnahme(db, uid, t0 + timedelta(seconds=2), t0 + timedelta(minutes=10)).id == offen
+    finally:
+        db.close()
