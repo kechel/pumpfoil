@@ -225,6 +225,7 @@ def _callback_ausfuehren(code: str | None = None, state: str | None = None, db: 
         link = models.GarminLink(user_id=uid, garmin_user_id=garmin_uid, access_token="", refresh_token="")
         db.add(link)
     link.garmin_user_id = garmin_uid
+    link.verbunden_am = _jetzt()
     link.permissions = ",".join(rechte)[:300] or None
     _tokens_uebernehmen(link, tok)
     db.commit()
@@ -414,11 +415,21 @@ async def push_activity_files(request: Request, hintergrund: BackgroundTasks) ->
     return {"ok": True}
 
 
+# Wer neu verbindet, beendet bei Garmin die alte Verbindung — Garmin schickt dafuer eine Abmeldung mit DERSELBEN
+# Garmin-ID. Am 05.11.2026 kam sie drei Sekunden VOR dem Speichern der neuen Verbindung; kaeme sie danach, loeschte sie
+# die frische. Abmeldungen kurz nach einem Verbinden gelten deshalb der alten Verbindung und werden uebergangen.
+FRISCH_VERBUNDEN = timedelta(minutes=5)
+
+
 @router.post("/push/deregistrations")
 async def push_deregistrations(request: Request, db: Session = Depends(get_db)) -> dict:
     for e in await _json_liste(request, "deregistrations"):
         gid = str(e.get("userId") or "")
         for link in db.query(models.GarminLink).filter_by(garmin_user_id=gid).all() if gid else []:
+            verbunden = _aware(link.verbunden_am or link.created_at)
+            if verbunden is not None and _jetzt() - verbunden < FRISCH_VERBUNDEN:
+                log.info("garmin: Abmeldung kurz nach dem Verbinden uebergangen (user %s)", link.user_id)
+                continue
             log.info("garmin: in Garmin Connect getrennt (user %s)", link.user_id)
             db.delete(link)
     db.commit()

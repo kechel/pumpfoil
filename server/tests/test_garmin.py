@@ -217,9 +217,29 @@ def test_garmin_zuerst_dann_eigene_aufnahme(client, garmin, monkeypatch, tmp_pat
     assert len(kopien) == 1 and kopien[0].read_bytes() == b"VON-GARMIN"
 
 
+def _alt_machen(uid):
+    from app import models
+    from app.db import SessionLocal
+    db = SessionLocal()
+    try:
+        l = db.query(models.GarminLink).filter_by(user_id=uid).one()
+        l.created_at = l.verbunden_am = datetime.now(timezone.utc) - timedelta(hours=1)
+        db.commit()
+    finally:
+        db.close()
+
+
+def test_abmeldung_direkt_nach_dem_verbinden_wird_uebergangen(client, garmin):
+    uid, _ = _konto(client)
+    gid = _link(uid)                      # gerade eben verbunden
+    client.post("/api/integrations/garmin/push/deregistrations", json={"deregistrations": [{"userId": gid}]})
+    assert _link_von(uid) is not None
+
+
 def test_deregistrierung_und_freigaben(client, garmin):
     uid, _ = _konto(client)
     gid = _link(uid)
+    _alt_machen(uid)
     client.post("/api/integrations/garmin/push/permissions",
                 json={"userPermissionsChange": [{"userId": gid, "permissions": ["WORKOUT_IMPORT"]}]})
     assert _link_von(uid).permissions == "WORKOUT_IMPORT"

@@ -1254,6 +1254,8 @@ class GarminLink(Base):
     # Freigaben des Nutzers in Garmin Connect (kommagetrennt, z. B. ACTIVITY_EXPORT); ohne ACTIVITY_EXPORT kommt nichts.
     permissions: Mapped[str | None] = mapped_column(String(300))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    # Zeitpunkt des letzten Verbindens (auch erneut verbunden) — fuer verspaetete Abmeldungen der alten Verbindung.
+    verbunden_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
