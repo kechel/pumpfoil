@@ -1519,7 +1519,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   1. Garmins Markenvorgaben: an jeder Anzeige importierter Daten „Garmin [Geraet]" (Session-Seite, Karten, Listen,
      Teilen-Bilder, Exporte), bei Abgeleitetem (Rekorde, Bestenlisten) ein Hinweis auf Garmin-Daten. Geraetename kommt
      im Push (`deviceName`) und steht in der FIT-Datei.
-  2. Push-Adressen in „API Tools" eintragen (Jan) und mit Jans eigenem Konto testen.
+  2. ✅ 05.11. Push-Adressen eingetragen (Jan), mit Jans Konto getestet: Test-FIT ueber Garmin Connect importiert ->
+     Push 13:16:01, Session #20129 13:16:03 mit Abzeichen „Garmin" (Uhr-Abzeichen traegt „Garmin [Geraet]",
+     sessions.import_geraet). Dieselbe Fahrt aus eigener App + Garmin wird verknuepft, beide Dateien bleiben.
+     Noch nicht echt gesehen: Verknuepfen mit einer eigenen Aufnahme (beide Reihenfolgen nur im Test).
   3. Apps: Garmin-Karte unter Uhr & Konten (Android/iOS), Rueckweg ueber pumpfoil://konten wie Polar.
   4. Refresh-Token laeuft nach 3 Monaten ab — wer so lange nichts aufzeichnet, verliert die Verbindung; spaeter in
      kontensync.py einen Erneuerungs-Lauf ergaenzen.
