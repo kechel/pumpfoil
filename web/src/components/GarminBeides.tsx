@@ -37,11 +37,16 @@ export function GarminBeidesHinweis({ zu, wann = "genauEins" }: { zu?: "gc" | "c
   }
   return (
     <div className="mb-3 rounded-xl border border-brand-500/30 bg-brand-500/10 px-3 py-2 text-sm text-slate-200">
-      <b>{t("garmin.beides.titel")}:</b> {t("garmin.beides.text")}
+      {/* Zwei Schritte statt „beides verbinden" (Jan, 05.11.2026: „1. pair your watch and 2. connect to garmin account
+          for additional data"). */}
+      <ol className="list-decimal space-y-0.5 pl-5">
+        <li>{t("garmin.beides.schritt1")}</li>
+        <li>{t("garmin.beides.schritt2")}</li>
+      </ol>
       {zu && (
-        <> <Link to={zu === "gc" ? GARMIN_CONNECT_SEITE : UHR_CODE_SEITE} className={linkCls}>
+        <Link to={zu === "gc" ? GARMIN_CONNECT_SEITE : UHR_CODE_SEITE} className={`mt-1 inline-block ${linkCls}`}>
           {t(zu === "gc" ? "garmin.beides.zuGc" : "garmin.beides.zuCode")} →
-        </Link></>
+        </Link>
       )}
     </div>
   );

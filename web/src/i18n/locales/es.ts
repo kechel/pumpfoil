@@ -1825,11 +1825,11 @@ const es: Record<string, string> = {
   "compare.colorTrack": "Por traza",
   "wx.tomorrow": "Mañana",
   "guide.g.manualLead": "O manualmente por sideload (p. ej. para builds de vista previa):",
-  "garmin.beides.titel": "Lo mejor: conectar ambos",
-  "garmin.beides.text": "Garmin Connect para datos completos, el reloj con un código para ajustes, foils y diseños.",
+  "garmin.beides.schritt1": "Empareja tu reloj con un código – para ajustes, foils y diseños en el reloj.",
+  "garmin.beides.schritt2": "Conecta tu cuenta de Garmin Connect – para datos adicionales.",
   "garmin.beides.zuGc": "Conectar Garmin Connect",
   "garmin.beides.zuCode": "Conectar reloj con código",
-  "garmin.fehltGc": "Conecta también Garmin Connect para que tus grabaciones lleguen completas.",
+  "garmin.fehltGc": "Ahora también puedes conectar tu cuenta de Garmin Connect, para obtener datos adicionales de tu reloj.",
   "garmin.fehltCode": "Conecta también tu reloj con un código para que los ajustes, foils y diseños lleguen al reloj.",
   // Kurze Feld-Labels EXAKT wie die Uhr sie zeichnet (aus watch/source/Strings.mc `f.*`
   // erzeugt) — die Layout-Vorschau muss dieselben Textbreiten zeigen wie das Gerät.
