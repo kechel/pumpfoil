@@ -712,6 +712,7 @@ MINIMAL_KEYS = ("autoStart", "gpsSparen", "gnssMode", "stopMode", "activityType"
 #   UHR_WEG_ROH_ACCEL=0    eigene Accel-Bloecke ueberall aus
 #   UHR_WEG_FIT=0          SensorLogger (Beschleunigung in der FIT) ueberall aus
 #   UHR_LOWMEM_GC_NUR_FIT=0  speicherarme Uhren mit Garmin-Verknuepfung behalten Weg 1 und bekommen Weg 2 nicht dazu
+#   UHR_DUENN_NUTZER=2,4   nur diese Konten bekommen den duennen Weg (fuer Tests auf normalen Uhren) — NIE global testen
 # Speicherarm wie auf der Uhr (`_isLowMem`: totalMemory <= 100000 Byte) bzw. der Minimal-Recorder (min=1).
 LOWMEM_KB = 97
 
@@ -739,6 +740,10 @@ def _datenwege(db: Session, device: models.DeviceToken, memtot: int | None, mini
         return {}
     lowmem = minimal == 1 or (memtot is not None and memtot <= LOWMEM_KB)
     nur_fit = gc and lowmem and _schalter("UHR_LOWMEM_GC_NUR_FIT")
+    # Tests NUR fuer einzelne Konten (Jan, 05.11.2026: „solche tests immer nur genau fuer meinen account setzen … es sind
+    # einige live am pumpen"): UHR_DUENN_NUTZER=2,4 -> diese Konten bekommen den duennen Weg, egal welche Uhr.
+    if str(device.user_id) in {x.strip() for x in os.environ.get("UHR_DUENN_NUTZER", "").split(",") if x.strip()}:
+        nur_fit = True
     return {
         "gc": gc,
         "rohGps": _schalter("UHR_WEG_ROH_GPS") and not nur_fit,
