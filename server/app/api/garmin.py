@@ -365,7 +365,8 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
                                             ("summaryId", "activityId", "activityType", "deviceName",
                                              "startTimeInSeconds", "activityName")})
         return f"an eigene aufnahme #{eigene.id} angehaengt"
-    s = import_parsed_session(db, user, r.content, parsed, src_label="garmin-import", uuid_prefix="garmin-")
+    s = import_parsed_session(db, user, r.content, parsed, src_label="garmin-import", uuid_prefix="garmin-",
+                              filename="garmin.fit")   # Originaldatei als original.fit (sonst .bin)
     if s is None:
         return "schon da"
     # „Garmin [Geraet]" fuer das Uhr-Abzeichen (Markenvorgabe; sessions.import_geraet zeigt es an).
