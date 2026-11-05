@@ -1524,12 +1524,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
      sessions.import_geraet). Dieselbe Fahrt aus eigener App + Garmin wird verknuepft, beide Dateien bleiben.
      Noch nicht echt gesehen: Verknuepfen mit einer eigenen Aufnahme (beide Reihenfolgen nur im Test).
   3. Apps: Garmin-Karte unter Uhr & Konten (Android/iOS), Rueckweg ueber pumpfoil://konten wie Polar.
-  5. **Offene Frage: liefert die API die Beschleunigung unserer Connect-IQ-App mit?** Test mit einer exportierten FIT
-     inkl. Sensor-Daten scheiterte am 05.11.: Garmin Connect lehnte den Import ab („Fehler beim Hochladen"), dieselbe
-     Datei ohne Sensor-Daten ging. Echter Test erst mit einer Aufnahme unserer App, sobald Jans Uhr wieder laeuft — das
-     Protokoll zeigt dann je Garmin-Datei KB, GPS- und Accel-Werte (garmin.py).
-     **Nebenbefund:** unser FIT-Export (Session-Seite) schreibt accelerometer_data mit hinein — Nutzer, die ihn in Garmin
-     Connect importieren, bekommen vermutlich denselben Fehler. Pruefen und ggf. einen Export ohne Sensor-Daten anbieten.
+  5. ✅ **05.11. geklaert: die API liefert die Originaldatei samt Beschleunigung.** Jan lud unseren FIT-Export von
+     #19661 (mit Sensor-Daten) ins zweite Garmin-Testkonto: Push mit 641 KB, GPS 1723, Accel 44.000 Werte, Session
+     #20133 mit Modell-Erkennung, 5 Laeufe wie das Original (621 statt 644 m, Export ist zugeschnitten), 25 Hz. Damit ist
+     Garmin Connect ein Ersatzweg fuer Aufnahmen unserer Connect-IQ-App, deren direkter Upload ausfaellt. Mein
+     „Nebenbefund" (Export mit Sensor-Daten wird abgelehnt) war FALSCH — die abgelehnte Test-Datei hatte dieselbe
+     Startzeit wie die erste im selben Konto (Duplikat).
+     Partner Verification: zweiter Nutzer mit Daten (u4) damit vorhanden.
   4. Refresh-Token laeuft nach 3 Monaten ab — wer so lange nichts aufzeichnet, verliert die Verbindung; spaeter in
      kontensync.py einen Erneuerungs-Lauf ergaenzen.
 
