@@ -336,3 +336,28 @@ def test_schnee_profile_nur_auf_wunsch(client, garmin, monkeypatch):
     sports = client.get("/api/integrations/garmin/sports", headers=kopf).json()["sports"]
     ski = next(x for x in sports if x["sport_key"] == "BACKCOUNTRY_SKIING")
     assert ski["importieren"] is False                         # steht zur Auswahl, ist aber aus
+
+
+def test_eigene_aufnahme_bekommt_datei_auch_bei_abgewaehltem_profil(client, garmin, monkeypatch, tmp_path):
+    # 05.11.2026: Garmin meldet Aufnahmen unserer Connect-IQ-App als OTHER (standardmaessig aus) — die Datei muss
+    # trotzdem an die eigene Aufnahme, nur eine neue Session darf daraus nicht werden.
+    uid, _ = _konto(client)
+    gid = _link(uid)
+    start = datetime(2026, 11, 3, 15, 26, 9, tzinfo=timezone.utc)
+    sid, suuid = _eigene_session(uid, start, minuten=17)
+    from app import storage
+    monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(parents=True, exist_ok=True) or tmp_path / u)
+    geladen, importiert = [], []
+    monkeypatch.setattr(garmin.httpx, "get", lambda u, **k: geladen.append(u) or _Antwort(content=b"CIQ-FIT"))
+    import app.api.sessions as sess
+    monkeypatch.setattr(sess, "import_parsed_session", lambda *a, **k: importiert.append(1) or object())
+    url = "https://apis.garmin.com/wellness-api/rest/activityFile?id=5"
+    client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [
+        {"userId": gid, "summaryId": "88-file", "fileType": "FIT", "activityType": "OTHER",
+         "startTimeInSeconds": int(start.timestamp()), "callbackURL": url},
+        {"userId": gid, "summaryId": "99-file", "fileType": "FIT", "activityType": "OTHER",
+         "startTimeInSeconds": int((start + timedelta(hours=5)).timestamp()), "callbackURL": url}]})
+    assert geladen == [url]                                    # nur die zur eigenen Aufnahme geladen
+    assert importiert == []
+    assert (tmp_path / suuid / "garmin-connect-88-file.fit").read_bytes() == b"CIQ-FIT"
+    assert not (tmp_path / suuid / "garmin-connect-99-file.fit").exists()

@@ -337,6 +337,24 @@ def datei_anhaengen(ziel: models.Session, roh: bytes, beschreibung: dict) -> str
     return fit.name
 
 
+def _beschreibung(eintrag: dict) -> dict:
+    return {k: eintrag.get(k) for k in ("summaryId", "activityId", "activityType", "deviceName",
+                                         "startTimeInSeconds", "durationInSeconds", "activityName")}
+
+
+def _eigene_zum_eintrag(db: Session, user_id: int, eintrag: dict) -> models.Session | None:
+    """Eigene Aufnahme zur Startzeit aus dem Push (ohne Download). Ohne Dauer zaehlt die erste Minute."""
+    try:
+        start = datetime.fromtimestamp(int(eintrag.get("startTimeInSeconds")), timezone.utc)
+    except (TypeError, ValueError):
+        return None
+    try:
+        dauer = max(int(eintrag.get("durationInSeconds") or 0), 60)
+    except (TypeError, ValueError):
+        dauer = 60
+    return _eigene_aufnahme(db, user_id, start, start + timedelta(seconds=dauer))
+
+
 def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) -> str:
     """Eine Aktivitaetsdatei laden und importieren. Gibt den Ausgang als kurzes Wort zurueck (fuers Protokoll)."""
     from .. import importsports, storage
@@ -344,8 +362,6 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     from .sessions import import_parsed_session
 
     profil = _profil(eintrag)
-    if profil not in WASSERSPORT and profil not in NUR_AUF_WUNSCH:
-        return "kein passendes profil"
     if str(eintrag.get("fileType") or "FIT").upper() != "FIT":
         return "kein fit"
     url = str(eintrag.get("callbackURL") or "")
@@ -355,13 +371,24 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     user = db.get(models.User, link.user_id)
     if user is None:
         return "kein nutzer"
-    pref = importsports.merken(db, user.id, "garmin", profil, label=profil.replace("_", " ").title(),
-                               standard=profil in WASSERSPORT)
-    if not pref.importieren:
-        return "abgewaehlt"
+    # Die Profil-Auswahl entscheidet nur, ob aus Garmin eine NEUE Session wird. Gehoert die Aktivitaet zu einer eigenen
+    # Aufnahme, kommt die Datei immer dazu (05.11.2026: Garmin meldet Aufnahmen unserer Connect-IQ-App als OTHER, das
+    # ist standardmaessig aus — die Datei der ersten echten Testfahrt wurde deshalb gar nicht erst geladen).
+    grund = None
+    if profil not in WASSERSPORT and profil not in NUR_AUF_WUNSCH:
+        grund = "kein passendes profil"
+    elif not importsports.merken(db, user.id, "garmin", profil, label=profil.replace("_", " ").title(),
+                                 standard=profil in WASSERSPORT).importieren:
+        grund = "abgewaehlt"
+    eigene_vorab = _eigene_zum_eintrag(db, user.id, eintrag) if grund else None
+    if grund and eigene_vorab is None:
+        return grund
     r = httpx.get(url, headers={"Authorization": f"Bearer {gueltiges_token(link, db)}"}, timeout=60)
     if r.status_code != 200 or not r.content:
         return f"download {r.status_code}"
+    if eigene_vorab is not None:
+        datei_anhaengen(eigene_vorab, r.content, _beschreibung(eintrag))
+        return f"an eigene aufnahme #{eigene_vorab.id} angehaengt ({len(r.content) // 1024} KB, {grund})"
     try:
         parsed = parse_fit_bytes(r.content)
     except Exception as exc:  # noqa: BLE001
@@ -380,9 +407,7 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     eigene = _eigene_aufnahme(db, user.id, start, ende)
     if eigene is not None:
         # Dieselbe Fahrt: keine zweite Session, aber die Garmin-Datei vollstaendig an unsere haengen.
-        datei_anhaengen(eigene, r.content, {k: eintrag.get(k) for k in
-                                            ("summaryId", "activityId", "activityType", "deviceName",
-                                             "startTimeInSeconds", "activityName")})
+        datei_anhaengen(eigene, r.content, _beschreibung(eintrag))
         return f"an eigene aufnahme #{eigene.id} angehaengt"
     s = import_parsed_session(db, user, r.content, parsed, src_label="garmin-import", uuid_prefix="garmin-",
                               filename="garmin.fit")   # Originaldatei als original.fit (sonst .bin)
