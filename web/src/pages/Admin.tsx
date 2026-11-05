@@ -336,6 +336,7 @@ const PLATTFORM_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = 
   ["p_apple", "Apple Watch", "#a3a3a3"],
   ["p_wear", "Wear OS", "#4ade80"],
   ["p_zepp", "Amazfit", "#fbbf24"],
+  ["p_huawei", "Huawei", "#e11d48"],
   ["p_phone", "Handy", "#c084fc"],
   // Kontoverknuepfungen und Datei-Uploads einzeln: „Konto-Import" als eine Kurve verbarg, ob
   // Suunto, Polar oder COROS einbricht — und das sind drei verschiedene Anbindungen mit drei
@@ -344,6 +345,9 @@ const PLATTFORM_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = 
   ["p_suunto", "Suunto", "#f97316"],
   ["p_polar", "Polar", "#ef4444"],
   ["p_coros", "COROS", "#14b8a6"],
+  // Garmin Connect (Push, seit 05.11.2026): nur Fahrten, die als eigene Garmin-Session ankamen — Dateien, die an einer
+  // Aufnahme unserer Garmin-App haengen oder sie ersetzen, zaehlen dort unter „Garmin" (Geraet wandert mit).
+  ["p_garmin_connect", "Garmin Connect", "#0ea5e9"],
   ["p_datei", "Datei-Upload (FIT/GPX/TCX)", "#38bdf8"],
 ];
 

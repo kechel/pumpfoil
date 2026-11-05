@@ -826,7 +826,8 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
     # meldet (devices.mint_device). Deshalb als Rueckfall das Etikett, das die App beim Minten
     # mitgibt. Ohne diesen Rueckfall zaehlten Apple und Wear systematisch zu niedrig.
     plattform = case(
-        (D.platform.in_(("garmin", "apple", "wear", "zepp")), D.platform),
+        (D.platform.in_(("garmin", "apple", "wear", "zepp", "huawei")), D.platform),
+        (func.lower(func.coalesce(D.label, "")).like("%huawei%"), literal("huawei")),
         (func.lower(func.coalesce(D.label, "")).like("%apple%"), literal("apple")),
         (func.lower(func.coalesce(D.label, "")).like("%wear%"), literal("wear")),
         (func.lower(func.coalesce(D.label, "")).like("%phone%"), literal("phone")),
@@ -868,6 +869,7 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
             (S.session_uuid.like("suunto-%"), literal("suunto")),
             (S.session_uuid.like("polar-%"), literal("polar")),
             (S.session_uuid.like("coros-%"), literal("coros")),
+            (S.session_uuid.like("garmin-%"), literal("garmin_connect")),   # Garmin-Connect-Push (05.11.2026)
             (S.session_uuid.like("fit-%"), literal("datei")),
             (S.session_uuid.like("imp-%"), literal("datei")),
             else_=literal("datei"),
@@ -910,8 +912,8 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
                 gesamt[c_] = gesamt.get(c_, 0) + n_
         return je_tag, gesamt
 
-    PLATTFORMEN = ("garmin", "apple", "wear", "zepp", "phone",
-                   "suunto", "polar", "coros", "datei")
+    PLATTFORMEN = ("garmin", "apple", "wear", "zepp", "huawei", "phone",
+                   "suunto", "polar", "coros", "garmin_connect", "datei")
     # Clients, ueber die jemand hereinschaut. "unbekannt" ist kein Fehler, sondern eine
     # App-Fassung, die die Kennung noch nicht schickt (bzw. ein Aufruf ohne sie).
     CLIENTS = ("web", "android", "ios", "unbekannt")
@@ -928,7 +930,7 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
     # Praefix der session_uuid (s. plat_serie); Datei-Uploads zaehlen nicht dazu. Datum bleibt
     # `created_at`, damit eine Nachhol-Aktion als Spitze zu sehen ist.
     importiert = and_(live, S.device_id.is_(None),
-                      or_(*(S.session_uuid.like(f"{q}-%") for q in ("suunto", "polar", "coros"))))
+                      or_(*(S.session_uuid.like(f"{q}-%") for q in ("suunto", "polar", "coros", "garmin"))))
     im = series(S.created_at, S, extra=importiert)
     ph = series(P.created_at, P)
     li = series(L.created_at, L)
