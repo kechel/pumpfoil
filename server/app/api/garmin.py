@@ -81,9 +81,12 @@ def verfuegbar() -> bool:
 
 
 def fuer_nutzer_sichtbar(user: models.User) -> bool:
-    """Bis die Kennzeichnung „Garmin [Geraet]" an importierten Sessions steht (Garmins Markenvorgaben), nur fuer
-    Admins zum Testen. `GARMIN_OEFFENTLICH=1` in server/.env gibt die Verknuepfung fuer alle frei."""
-    return verfuegbar() and (os.environ.get("GARMIN_OEFFENTLICH") == "1" or bool(user.is_admin))
+    """Vor der Freigabe fuer alle nur fuer Admins und Tester. `GARMIN_TESTER=12,34` (Nutzer-IDs) in server/.env zeigt
+    die Verknuepfung weiteren Konten — Garmins Partner Verification verlangt zwei Nutzer mit Daten (05.11.2026).
+    `GARMIN_OEFFENTLICH=1` gibt sie fuer alle frei."""
+    tester = {t.strip() for t in os.environ.get("GARMIN_TESTER", "").split(",") if t.strip()}
+    return verfuegbar() and (os.environ.get("GARMIN_OEFFENTLICH") == "1" or bool(user.is_admin)
+                             or str(user.id) in tester)
 
 
 def _redirect_uri() -> str:

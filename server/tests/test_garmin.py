@@ -292,3 +292,10 @@ def test_geraet_name():
     assert geraet_name(None) == "Garmin"
     assert import_geraet("garmin-abc", "Garmin fenix 8") == "Garmin fenix 8"
     assert import_geraet("coros-abc", "COROS Apex") is None and import_geraet("garmin-x", None) is None
+
+
+def test_tester_sehen_es_vor_der_freigabe(client, garmin, monkeypatch):
+    monkeypatch.delenv("GARMIN_OEFFENTLICH")
+    uid, kopf = _konto(client)
+    monkeypatch.setenv("GARMIN_TESTER", f"999999, {uid}")
+    assert client.get("/api/integrations/garmin/status", headers=kopf).json()["available"] is True
