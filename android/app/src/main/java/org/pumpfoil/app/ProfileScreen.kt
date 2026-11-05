@@ -182,6 +182,7 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoilStats
             "uebersicht" -> {
                 // Sprache GANZ OBEN, noch vor den Kacheln (Web, Jan 02.11.2026).
                 EinstellungenTeil(z, "sprache")
+                HandyRecorderSchalter()
                 // Uhr und verknuepfte Konten als EIN Eintrag zum Reiter „Uhren" (Web: eine Kachel, 02.11.2026).
                 ListItem(
                     modifier = Modifier.clickable { tab = "konten" },
@@ -357,55 +358,7 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoilStats
                 LandKarteProfil(onSaved = { z.flashSaved() })
                 EinstellungenTeil(z, "ich")
             }
-            "fahren" -> {
-                EinstellungenTeil(z, "fahren")
-                Spacer(Modifier.height(12.dp))
-                // „Record on Phone" — ganz oben (über der Uhr; passt vom Layout besser). Hängt NUR
-                // am lokalen Toggle, NICHT mehr an profile.beta (Server-Flag wird für echte private
-                // Betas frei, siehe docs/TODO). Toggle steuert den Aufnahme-Button auf der Startseite.
-                run {
-                    val pctx = LocalContext.current
-                    var phoneRec by remember {
-                        mutableStateOf(pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
-                            .getBoolean("phone_rec_enabled", false))
-                    }
-                    ListItem(
-                        headlineContent = { Text(I18n.t("profile.phoneRec")) },
-                        supportingContent = {
-                            Column {
-                                Text(I18n.t("profile.phoneRecSub"))
-                                if (phoneRec) Text(I18n.t("rec.waterproof"),
-                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.error)
-                            }
-                        },
-                        trailingContent = {
-                            Switch(checked = phoneRec, onCheckedChange = {
-                                phoneRec = it
-                                pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
-                                    .edit().putBoolean("phone_rec_enabled", it).apply()
-                            })
-                        },
-                    )
-                    // Live-Upload waehrend der Aufnahme (Recorder.liveLoop), Standard an.
-                    if (phoneRec) {
-                        var live by remember {
-                            mutableStateOf(pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
-                                .getBoolean("phone_live_upload", true))
-                        }
-                        ListItem(
-                            headlineContent = { Text(I18n.t("profile.phoneLive")) },   // ohne Erklaertext (Jan, 18.10.2026)
-                            trailingContent = {
-                                Switch(checked = live, onCheckedChange = {
-                                    live = it
-                                    pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
-                                        .edit().putBoolean("phone_live_upload", it).apply()
-                                })
-                            },
-                        )
-                    }
-                }
-            }
+            "fahren" -> EinstellungenTeil(z, "fahren")   // Handy-Recorder seit 05.11.2026 in der Uebersicht
             "privat" -> EinstellungenTeil(z, "privat")
             "darstellung" -> EinstellungenTeil(z, "darstellung")
             "konto" -> {
@@ -539,5 +492,52 @@ fun FoilIcon(modifier: Modifier = Modifier, tint: androidx.compose.ui.graphics.C
             strokeWidth = sw, cap = androidx.compose.ui.graphics.StrokeCap.Round)
         drawLine(tint, androidx.compose.ui.geometry.Offset(8.5f * u, 18 * u), androidx.compose.ui.geometry.Offset(15.5f * u, 18 * u),
             strokeWidth = sw, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+    }
+}
+
+/** Schalter „Handy-Recorder" (+ Live-Upload). Seit 05.11.2026 in Einstellungen › Uebersicht direkt unter der Sprache
+ *  (Jan: „das ist das erste was viele suchen die die app gerade neu installiert haben"); vorher im Reiter Fahren.
+ *  Haengt NUR am lokalen Schalter `phone_rec_enabled` und steuert den Aufnehmen-Knopf auf der Startseite. */
+@Composable
+private fun HandyRecorderSchalter() {
+    val pctx = LocalContext.current
+    var phoneRec by remember {
+        mutableStateOf(pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
+            .getBoolean("phone_rec_enabled", false))
+    }
+    ListItem(
+        headlineContent = { Text(I18n.t("profile.phoneRec")) },
+        supportingContent = {
+            Column {
+                Text(I18n.t("profile.phoneRecSub"))
+                if (phoneRec) Text(I18n.t("rec.waterproof"),
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error)
+            }
+        },
+        trailingContent = {
+            Switch(checked = phoneRec, onCheckedChange = {
+                phoneRec = it
+                pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
+                    .edit().putBoolean("phone_rec_enabled", it).apply()
+            })
+        },
+    )
+    // Live-Upload waehrend der Aufnahme (Recorder.liveLoop), Standard an.
+    if (phoneRec) {
+        var live by remember {
+            mutableStateOf(pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
+                .getBoolean("phone_live_upload", true))
+        }
+        ListItem(
+            headlineContent = { Text(I18n.t("profile.phoneLive")) },   // ohne Erklaertext (Jan, 18.10.2026)
+            trailingContent = {
+                Switch(checked = live, onCheckedChange = {
+                    live = it
+                    pctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE)
+                        .edit().putBoolean("phone_live_upload", it).apply()
+                })
+            },
+        )
     }
 }

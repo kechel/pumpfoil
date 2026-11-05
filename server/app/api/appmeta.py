@@ -1087,6 +1087,7 @@ NAECHSTES: list[dict] = [
          "The leaderboards can be filtered by region, by the nationality of the riders and the origin of the teams, with flags and continent outlines in the menu.",
          "Profile pages show the rider's flag next to the name and the teams they belong to at the top.",
          "Watch stats has two tabs, foiling per watch and how well the watches record, and the text size can be set under Display.",
+         "The switch for the phone recorder is now on the settings overview right under the language, where new users look for it first.",
      ]},
     # iPhone + Apple Watch 1.1.59 am 04.11. EINGEREICHT -> IN_REVIEW.
     # Android 1.1.46 / Wear 1.2.46 am 28.10. eingereicht (ersetzt 1.1.45) -> IN_REVIEW.

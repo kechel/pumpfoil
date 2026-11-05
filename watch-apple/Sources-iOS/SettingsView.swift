@@ -103,7 +103,7 @@ struct SettingsView: View {
         riderSection
         zonenSection
         spZonenSection
-        if teil != nil { PhoneRecSection(lang: lang) }
+        // Handy-Recorder steht seit 05.11.2026 in der Uebersicht (EinstellungenUebersicht), unter der Sprache.
     }
 
     // Was sehen andere von mir — oeffentliche Foiler-Seite und „Ort verbergen" direkt untereinander, wie in der PWA.

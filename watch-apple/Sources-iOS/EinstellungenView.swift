@@ -83,6 +83,9 @@ struct EinstellungenUebersicht: View {
     var body: some View {
         List {
             sprachSection
+            // Handy-Recorder direkt unter der Sprache, vor den Kacheln (Jan, 05.11.2026: „das ist das erste was viele
+            // suchen die die app gerade neu installiert haben"); vorher im Reiter Fahren.
+            PhoneRecSection(lang: lang)
             kachelSection
             wegeSection
             socialSection

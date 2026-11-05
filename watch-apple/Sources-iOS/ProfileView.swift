@@ -98,7 +98,7 @@ struct ProfilKopfSection: View {
 
 /// „Record on Phone" — haengt NUR am lokalen Toggle, NICHT mehr an profile.beta (Server-Flag wird fuer echte private
 /// Betas frei, siehe docs/TODO); steuert den Aufnahme-Button auf der Startseite (lokale Einstellung auf diesem Geraet).
-/// Reiter „Fahren" (im Web steht die Handy-Recorder-Karte dort).
+/// Seit 05.11.2026 in Einstellungen › Uebersicht unter der Sprache (vorher Reiter „Fahren").
 struct PhoneRecSection: View {
     let lang: String
     @AppStorage("phone_rec_enabled") private var phoneRecEnabled = false
