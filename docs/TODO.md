@@ -1607,6 +1607,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     (nur freigegebene Teams; Felder `land`/`teams` in GET /api/community/foiler/<id>). **Offen:** Apps — mit dem
     grossen Port (Jan 05.11.: „ios/android wie immer spaeter nachziehen"). Die Apps ersetzen `{sport}` im Team-Hinweis
     schon durch „Pumpfoil" und rufen die Team-Liste noch ohne `sport` auf. Region-Gruppierung: als Naechstes im Web.
+    Ebenso 05.11.: Uhren-Statistik mit zwei Reitern („Foilen je Uhr" / „Wie gut zeichnen die Uhren auf?").
   - Abzeichen/Erfolge als Kacheln auf Home (Tagessiege, Allzeit-Rekorde, Community) — Plan in docs/TEAMS.md. Dazu
     gehoert auch sein Zaehler „freigeschaltete Sportarten" (Jan 02.11.: Kategorie Abzeichen, erstmal nicht).
   - Schnellster km bzw. Tempo (min/km), auch seine „schnellste Minute" — s. „Schnellste 100 m / 200 m / 500 m / 1 km" oben.
