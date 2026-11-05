@@ -894,6 +894,8 @@ const id: Record<string, string> = {
   "calc.equipWeight": "Peralatan",
   "calc.mastDiameter": "Diameter mast",
   "calc.mastDepth": "Kedalaman mast",
+  "calc.mastImmersion": "Kedalaman celup tiang",
+  "calc.mastImmersionHint": "Seberapa dalam tiang berada di air saat meluncur – bukan panjang tiang.",
   "calc.withPump": "Sertakan inersia pump",
   "calc.pumpFreq": "Frekuensi pump",
   "calc.heaveAmp": "Amplitudo pump",

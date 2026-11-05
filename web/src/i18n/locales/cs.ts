@@ -918,6 +918,8 @@ const cs: Record<string, string> = {
   "calc.equipWeight": "Výbava",
   "calc.mastDiameter": "Průměr stěžně",
   "calc.mastDepth": "Hloubka stěžně",
+  "calc.mastImmersion": "Ponor stěžně",
+  "calc.mastImmersionHint": "Jak hluboko je stěžeň při jízdě ve vodě – ne délka stěžně.",
   "calc.withPump": "Započítat setrvačnost pumpnutí",
   "calc.pumpFreq": "Frekvence pumpnutí",
   "calc.heaveAmp": "Amplituda pumpnutí",

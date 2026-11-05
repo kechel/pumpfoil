@@ -782,6 +782,8 @@ const it: Record<string, string> = {
   "calc.equipWeight": "Attrezzatura",
   "calc.mastDiameter": "Diametro albero",
   "calc.mastDepth": "Profondità albero",
+  "calc.mastImmersion": "Profondità d'immersione dell'albero",
+  "calc.mastImmersionHint": "Quanto l'albero è in acqua mentre navighi, non la lunghezza dell'albero.",
   "calc.withPump": "Includi inerzia di pump",
   "calc.pumpFreq": "Frequenza di pump",
   "calc.heaveAmp": "Ampiezza di pump",

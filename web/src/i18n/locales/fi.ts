@@ -900,6 +900,8 @@ const fi: Record<string, string> = {
   "calc.equipWeight": "Varusteet",
   "calc.mastDiameter": "Mastin halkaisija",
   "calc.mastDepth": "Mastin syvyys",
+  "calc.mastImmersion": "Mastin upotussyvyys",
+  "calc.mastImmersionHint": "Kuinka syvällä masto on vedessä ajaessa – ei maston pituus.",
   "calc.withPump": "Laske pump-hitaus mukaan",
   "calc.pumpFreq": "Pumppaustaajuus",
   "calc.heaveAmp": "Pump-amplitudi",

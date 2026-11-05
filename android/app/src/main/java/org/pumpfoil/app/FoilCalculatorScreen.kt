@@ -155,7 +155,7 @@ fun FoilCalculatorScreen(onBack: () -> Unit = {}) {
                             }
                         }
                         Spacer(Modifier.height(8.dp))
-                        Text(I18n.t("calc.mastDepth"), style = MaterialTheme.typography.labelSmall,
+                        Text(I18n.t("calc.mastImmersion"), style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                         // Neun Stufen passen nicht in eine Zeile -> waagrecht wischbar.
                         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -164,6 +164,8 @@ fun FoilCalculatorScreen(onBack: () -> Unit = {}) {
                                     label = { Text("${(dp * 100).roundToInt()} cm") })
                             }
                         }
+                        Text(I18n.t("calc.mastImmersionHint"), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(10.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Switch(checked = withPump, onCheckedChange = { withPump = it })

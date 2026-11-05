@@ -894,6 +894,8 @@ const ru: Record<string, string> = {
   "calc.equipWeight": "Снаряжение",
   "calc.mastDiameter": "Диаметр мачты",
   "calc.mastDepth": "Глубина мачты",
+  "calc.mastImmersion": "Глубина погружения мачты",
+  "calc.mastImmersionHint": "Насколько глубоко мачта в воде во время катания – не длина мачты.",
   "calc.withPump": "Учитывать инерцию помпинга",
   "calc.pumpFreq": "Частота помпинга",
   "calc.heaveAmp": "Амплитуда помпинга",

@@ -74,9 +74,10 @@ struct FoilCalculatorView: View {
             Picker(Loc.t("calc.mastDiameter", lang), selection: $mastDiameter) {
                 Text("19 mm").tag(19.0); Text("17 mm").tag(17.0)
             }
-            Picker(Loc.t("calc.mastDepth", lang), selection: $mastDepth) {
+            Picker(Loc.t("calc.mastImmersion", lang), selection: $mastDepth) {
                 ForEach(depths, id: \.self) { d in Text("\(Int(d * 100)) cm").tag(d) }
             }
+            Text(Loc.t("calc.mastImmersionHint", lang)).font(.caption).foregroundStyle(.secondary)
             Toggle(Loc.t("calc.withPump", lang), isOn: $withPump)
             pumpSteppers
         }

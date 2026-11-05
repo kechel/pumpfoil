@@ -681,6 +681,8 @@ const deAT: Record<string, string> = {
   "calc.equipWeight": "Ausrüstung",
   "calc.mastDiameter": "Mast-Durchmesser",
   "calc.mastDepth": "Mast-Tiefe",
+  "calc.mastImmersion": "Eintauchtiefe des Masts",
+  "calc.mastImmersionHint": "Wie tief der Mast beim Fahren im Wasser steckt – nicht die Mastlänge.",
   "calc.withPump": "Pump-Trägheit einrechnen",
   "calc.pumpFreq": "Pump-Frequenz",
   "calc.heaveAmp": "Pump-Amplitude",

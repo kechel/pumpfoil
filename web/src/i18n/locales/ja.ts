@@ -894,6 +894,8 @@ const ja: Record<string, string> = {
   "calc.equipWeight": "ギア",
   "calc.mastDiameter": "マスト径",
   "calc.mastDepth": "マスト深さ",
+  "calc.mastImmersion": "マストの水中深さ",
+  "calc.mastImmersionHint": "走行中にマストが水中にある深さ（マストの長さではありません）。",
   "calc.withPump": "ポンプ慣性を含める",
   "calc.pumpFreq": "ポンプ頻度",
   "calc.heaveAmp": "ポンプ振幅",

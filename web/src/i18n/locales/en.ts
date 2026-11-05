@@ -1028,6 +1028,8 @@ const en: Record<string, string> = {
   "calc.equipWeight": "Gear",
   "calc.mastDiameter": "Mast diameter",
   "calc.mastDepth": "Mast depth",
+  "calc.mastImmersion": "Mast immersion depth",
+  "calc.mastImmersionHint": "How deep the mast is in the water while riding – not the mast length.",
   "calc.withPump": "Include pump inertia",
   "calc.pumpFreq": "Pump frequency",
   "calc.heaveAmp": "Pump amplitude",

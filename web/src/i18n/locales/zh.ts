@@ -894,6 +894,8 @@ const zh: Record<string, string> = {
   "calc.equipWeight": "装备",
   "calc.mastDiameter": "翼柱直径",
   "calc.mastDepth": "翼柱深度",
+  "calc.mastImmersion": "翼柱入水深度",
+  "calc.mastImmersionHint": "滑行时翼柱在水下的深度，而不是翼柱长度。",
   "calc.withPump": "计入泵动惯性",
   "calc.pumpFreq": "泵动频率",
   "calc.heaveAmp": "泵动幅度",

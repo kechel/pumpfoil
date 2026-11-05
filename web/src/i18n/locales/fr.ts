@@ -782,6 +782,8 @@ const fr: Record<string, string> = {
   "calc.equipWeight": "Matériel",
   "calc.mastDiameter": "Diamètre du mât",
   "calc.mastDepth": "Profondeur du mât",
+  "calc.mastImmersion": "Profondeur immergée du mât",
+  "calc.mastImmersionHint": "La partie du mât sous l'eau pendant la navigation, pas la longueur du mât.",
   "calc.withPump": "Inclure l’inertie de pump",
   "calc.pumpFreq": "Fréquence de pump",
   "calc.heaveAmp": "Amplitude de pump",

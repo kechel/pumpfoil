@@ -9,6 +9,8 @@ private val PORT_BRUECKE = mapOf("gsw" to "de", "de-AT" to "de", "pt-PT" to "pt"
 private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
     mapOf(
         "de" to mapOf(
+            "calc.mastImmersion" to "Eintauchtiefe des Masts",
+            "calc.mastImmersionHint" to "Wie tief der Mast beim Fahren im Wasser steckt – nicht die Mastlänge.",
             "tab.overview" to "Übersicht",
             "tab.team" to "Team",
             "tab.stats" to "Stats",
@@ -236,6 +238,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "Die Aufzeichnungsrate stellst du jetzt pro Uhr bei deinen verbundenen Uhren ein.",
         ),
         "gsw" to mapOf(
+            "calc.mastImmersion" to "Iitauchtüfi vom Mascht",
+            "calc.mastImmersionHint" to "Wie tüf de Mascht bim Fahre im Wasser steckt – nöd d Maschtlängi.",
             "tab.overview" to "Übersicht",
             "tab.team" to "Team",
             "tab.stats" to "Stats",
@@ -463,6 +467,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "D Ufzeichnigsrate stellsch jetz pro Uhr bi dine verbundene Uhre ii.",
         ),
         "de-AT" to mapOf(
+            "calc.mastImmersion" to "Eintauchtiefe des Masts",
+            "calc.mastImmersionHint" to "Wie tief der Mast beim Fahren im Wasser steckt – nicht die Mastlänge.",
             "tab.overview" to "Übersicht",
             "tab.team" to "Team",
             "tab.stats" to "Stats",
@@ -690,6 +696,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "Die Aufzeichnungsrate stellst du jetzt pro Uhr bei deinen verbundenen Uhren ein.",
         ),
         "en" to mapOf(
+            "calc.mastImmersion" to "Mast immersion depth",
+            "calc.mastImmersionHint" to "How deep the mast is in the water while riding – not the mast length.",
             "tab.overview" to "Overview",
             "tab.team" to "Team",
             "tab.stats" to "Stats",
@@ -917,6 +925,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "Recording rate is now set per watch, with your linked watches.",
         ),
         "fr" to mapOf(
+            "calc.mastImmersion" to "Profondeur immergée du mât",
+            "calc.mastImmersionHint" to "La partie du mât sous l'eau pendant la navigation, pas la longueur du mât.",
             "tab.overview" to "Aperçu",
             "tab.team" to "Équipe",
             "tab.stats" to "Stats",
@@ -1144,6 +1154,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "Le taux d'enregistrement se règle désormais par montre, dans tes montres liées.",
         ),
         "it" to mapOf(
+            "calc.mastImmersion" to "Profondità d'immersione dell'albero",
+            "calc.mastImmersionHint" to "Quanto l'albero è in acqua mentre navighi, non la lunghezza dell'albero.",
             "tab.overview" to "Panoramica",
             "tab.team" to "Team",
             "tab.stats" to "Statistiche",
@@ -1371,6 +1383,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "La frequenza di registrazione ora si imposta per orologio, tra i tuoi orologi collegati.",
         ),
         "es" to mapOf(
+            "calc.mastImmersion" to "Profundidad sumergida del mástil",
+            "calc.mastImmersionHint" to "Cuánto del mástil está bajo el agua al navegar, no la longitud del mástil.",
             "tab.overview" to "Resumen",
             "tab.team" to "Equipo",
             "tab.stats" to "Estadísticas",
@@ -1598,6 +1612,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "La tasa de grabación ahora se ajusta por reloj, en tus relojes vinculados.",
         ),
         "fi" to mapOf(
+            "calc.mastImmersion" to "Mastin upotussyvyys",
+            "calc.mastImmersionHint" to "Kuinka syvällä masto on vedessä ajaessa – ei maston pituus.",
             "tab.overview" to "Yleiskatsaus",
             "tab.team" to "Tiimi",
             "tab.stats" to "Tilastot",
@@ -1825,6 +1841,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "Tallennustaajuus asetetaan nyt kellokohtaisesti liitettyjen kellojesi kohdalla.",
         ),
         "nl" to mapOf(
+            "calc.mastImmersion" to "Onderdompeldiepte van de mast",
+            "calc.mastImmersionHint" to "Hoe diep de mast tijdens het varen in het water zit – niet de mastlengte.",
             "tab.overview" to "Overzicht",
             "tab.team" to "Team",
             "tab.stats" to "Statistieken",
@@ -2052,6 +2070,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "De opnamefrequentie stel je nu per horloge in bij je verbonden horloges.",
         ),
         "cs" to mapOf(
+            "calc.mastImmersion" to "Ponor stěžně",
+            "calc.mastImmersionHint" to "Jak hluboko je stěžeň při jízdě ve vodě – ne délka stěžně.",
             "tab.overview" to "Přehled",
             "tab.team" to "Tým",
             "tab.stats" to "Statistiky",
@@ -2279,6 +2299,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "Frekvenci nahrávání teď nastavuješ pro každé hodinky zvlášť u svých připojených hodinek.",
         ),
         "pl" to mapOf(
+            "calc.mastImmersion" to "Głębokość zanurzenia masztu",
+            "calc.mastImmersionHint" to "Jak głęboko maszt jest w wodzie podczas jazdy – nie długość masztu.",
             "tab.overview" to "Przegląd",
             "tab.team" to "Drużyna",
             "tab.stats" to "Statystyki",
@@ -2506,6 +2528,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "Częstotliwość nagrywania ustawia się teraz osobno dla każdego zegarka, przy Twoich połączonych zegarkach.",
         ),
         "pt" to mapOf(
+            "calc.mastImmersion" to "Profundidade submersa do mastro",
+            "calc.mastImmersionHint" to "Quanto do mastro fica dentro da água ao navegar, não o comprimento do mastro.",
             "tab.overview" to "Visão geral",
             "tab.team" to "Equipe",
             "tab.stats" to "Estatísticas",
@@ -2733,6 +2757,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "A taxa de gravação agora é definida por relógio, junto com seus relógios vinculados.",
         ),
         "pt-PT" to mapOf(
+            "calc.mastImmersion" to "Profundidade submersa do mastro",
+            "calc.mastImmersionHint" to "Quanto do mastro fica dentro de água ao navegar, não o comprimento do mastro.",
             "tab.overview" to "Visão geral",
             "tab.team" to "Equipa",
             "tab.stats" to "Estatísticas",
@@ -2960,6 +2986,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "A taxa de gravação é agora definida por relógio, junto com os teus relógios ligados.",
         ),
         "ja" to mapOf(
+            "calc.mastImmersion" to "マストの水中深さ",
+            "calc.mastImmersionHint" to "走行中にマストが水中にある深さ（マストの長さではありません）。",
             "tab.overview" to "概要",
             "tab.team" to "チーム",
             "tab.stats" to "統計",
@@ -3187,6 +3215,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "記録レートはウォッチごとに、連携したウォッチと一緒に設定するようになりました。",
         ),
         "zh" to mapOf(
+            "calc.mastImmersion" to "翼柱入水深度",
+            "calc.mastImmersionHint" to "滑行时翼柱在水下的深度，而不是翼柱长度。",
             "tab.overview" to "概览",
             "tab.team" to "团队",
             "tab.stats" to "统计",
@@ -3414,6 +3444,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "记录频率现在按每块手表设置，与你已关联的手表一起。",
         ),
         "ru" to mapOf(
+            "calc.mastImmersion" to "Глубина погружения мачты",
+            "calc.mastImmersionHint" to "Насколько глубоко мачта в воде во время катания – не длина мачты.",
             "tab.overview" to "Обзор",
             "tab.team" to "Команда",
             "tab.stats" to "Статистика",
@@ -3641,6 +3673,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "Частота записи теперь задаётся для каждых часов, в разделе связанных часов.",
         ),
         "id" to mapOf(
+            "calc.mastImmersion" to "Kedalaman celup tiang",
+            "calc.mastImmersionHint" to "Seberapa dalam tiang berada di air saat meluncur – bukan panjang tiang.",
             "tab.overview" to "Ringkasan",
             "tab.team" to "Tim",
             "tab.stats" to "Statistik",
@@ -3868,6 +3902,8 @@ private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {
             "account.recordModeMoved" to "Laju rekam sekarang diatur per jam, bersama jam yang terhubung.",
         ),
         "nb" to mapOf(
+            "calc.mastImmersion" to "Mastens dykkdybde",
+            "calc.mastImmersionHint" to "Hvor dypt masten er i vannet når du kjører – ikke mastlengden.",
             "tab.overview" to "Oversikt",
             "tab.team" to "Lag",
             "tab.stats" to "Statistikk",

@@ -901,6 +901,8 @@ const ptPT: Record<string, string> = {
   "calc.equipWeight": "Equipamento",
   "calc.mastDiameter": "Diâmetro do mastro",
   "calc.mastDepth": "Profundidade do mastro",
+  "calc.mastImmersion": "Profundidade submersa do mastro",
+  "calc.mastImmersionHint": "Quanto do mastro fica dentro de água ao navegar, não o comprimento do mastro.",
   "calc.withPump": "Incluir inércia do pump",
   "calc.pumpFreq": "Frequência de pump",
   "calc.heaveAmp": "Amplitude do pump",

@@ -918,6 +918,8 @@ const nl: Record<string, string> = {
   "calc.equipWeight": "Uitrusting",
   "calc.mastDiameter": "Mastdiameter",
   "calc.mastDepth": "Mastdiepte",
+  "calc.mastImmersion": "Onderdompeldiepte van de mast",
+  "calc.mastImmersionHint": "Hoe diep de mast tijdens het varen in het water zit – niet de mastlengte.",
   "calc.withPump": "Pomptraagheid meerekenen",
   "calc.pumpFreq": "Pompfrequentie",
   "calc.heaveAmp": "Pompamplitude",

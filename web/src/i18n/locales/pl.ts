@@ -1008,6 +1008,8 @@ const pl: Record<string, string> = {
   "calc.equipWeight": "Sprzęt",
   "calc.mastDiameter": "Średnica masztu",
   "calc.mastDepth": "Głębokość masztu",
+  "calc.mastImmersion": "Głębokość zanurzenia masztu",
+  "calc.mastImmersionHint": "Jak głęboko maszt jest w wodzie podczas jazdy – nie długość masztu.",
   "calc.withPump": "Uwzględnij bezwładność pompowania",
   "calc.pumpFreq": "Częstotliwość pomp",
   "calc.heaveAmp": "Amplituda pompowania",

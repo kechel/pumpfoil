@@ -90,12 +90,14 @@ export default function FoilCalculator() {
               <option value={17}>17 mm</option>
             </select>
           </Field>
-          <Field label={t("calc.mastDepth")}>
+          {/* „Eintauchtiefe" statt „Mast-Tiefe" (Jan, 05.11.2026): gelesen wurde es als Mastlaenge. */}
+          <Field label={t("calc.mastImmersion")}>
             <select value={mast.mastDepth_m} onChange={(e) => setMast({ ...mast, mastDepth_m: Number(e.target.value) })} className={selCls}>
               {/* Eingetauchter Teil des Masts. Bis 05.11.2026 nur bis 50 cm — zu kurz fuer lange Masten (Feedback
                   PumpingCarbon: „lassen sich nur Mastlaengen bis 50 cm auswaehlen"). */}
               {[0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((d) => <option key={d} value={d}>{Math.round(d * 100)} cm</option>)}
             </select>
+            <p className="mt-1 text-xs text-slate-400">{t("calc.mastImmersionHint")}</p>
           </Field>
         </div>
 

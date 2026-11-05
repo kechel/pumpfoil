@@ -720,6 +720,8 @@ const gsw: Record<string, string> = {
   "calc.equipWeight": "Uusrüschtig",
   "calc.mastDiameter": "Mast-Durchmässer",
   "calc.mastDepth": "Mast-Tüfi",
+  "calc.mastImmersion": "Iitauchtüfi vom Mascht",
+  "calc.mastImmersionHint": "Wie tüf de Mascht bim Fahre im Wasser steckt – nöd d Maschtlängi.",
   "calc.withPump": "Pump-Trägheit irächne",
   "calc.pumpFreq": "Pump-Frequänz",
   "calc.heaveAmp": "Pump-Amplitude",

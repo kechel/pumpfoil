@@ -782,6 +782,8 @@ const es: Record<string, string> = {
   "calc.equipWeight": "Equipo",
   "calc.mastDiameter": "Diámetro del mástil",
   "calc.mastDepth": "Profundidad del mástil",
+  "calc.mastImmersion": "Profundidad sumergida del mástil",
+  "calc.mastImmersionHint": "Cuánto del mástil está bajo el agua al navegar, no la longitud del mástil.",
   "calc.withPump": "Incluir inercia de pump",
   "calc.pumpFreq": "Frecuencia de pump",
   "calc.heaveAmp": "Amplitud de pump",

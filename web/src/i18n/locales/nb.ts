@@ -910,6 +910,8 @@ const nb: Record<string, string> = {
   "calc.equipWeight": "Utstyr",
   "calc.mastDiameter": "Mastdiameter",
   "calc.mastDepth": "Mastdybde",
+  "calc.mastImmersion": "Mastens dykkdybde",
+  "calc.mastImmersionHint": "Hvor dypt masten er i vannet når du kjører – ikke mastlengden.",
   "calc.withPump": "Ta med pumpetreghet",
   "calc.pumpFreq": "Pumpefrekvens",
   "calc.heaveAmp": "Pumpeamplitude",

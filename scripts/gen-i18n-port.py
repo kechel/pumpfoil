@@ -13,6 +13,7 @@ IOS = ROOT / "watch-apple/Sources-iOS"
 LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb"]
 
 SCHLUESSEL = [
+    "calc.mastImmersion", "calc.mastImmersionHint",
     # Phase 3: Home-Reiter
     "tab.overview", "tab.team", "tab.stats", "tab.insights",
     # Phase 2: Leiste unten — „Einstellungen" statt „Profil" (Zahnrad)
