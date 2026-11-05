@@ -2259,7 +2259,7 @@ const en: Record<string, string> = {
   "garmin.beides.text": "Garmin Connect for complete data, and the watch code for settings, foils and layouts.",
   "garmin.beides.zuGc": "Link Garmin Connect",
   "garmin.beides.zuCode": "Connect your watch with a code",
-  "garmin.fehltGc": "Also link your Garmin Connect account so your recordings arrive in full.",
+  "garmin.fehltGc": "You can now link your Garmin Connect account too, so your recordings arrive in full.",
   "garmin.fehltCode": "Also connect your watch with a code so settings, foils and layouts reach the watch.",
   "guide.g.s1Title": "1. Install the app:",
   "guide.g.s1a": "get “Pumpfoil” from the Connect IQ Store — or the .prg for your model",
