@@ -627,7 +627,9 @@ if settings.web_dist.exists():
             erstes = rest[1].lower() if len(rest) > 1 else ""
         return erstes in _PRIVAT
 
-    @app.get("/{full_path:path}")
+    # Auch HEAD (05.11.2026): Garmins Developer-Portal pruefte die Branding-Bild-Adresse (/icon-192.png) per HEAD und
+    # meldete „Invalid Branding Image", weil hier nur GET erlaubt war (405). Link-Vorschauen und Pruefdienste fragen oft so.
+    @app.api_route("/{full_path:path}", methods=["GET", "HEAD"])
     def spa(full_path: str):  # noqa: ANN202
         # resolve() + Pruefung, dass die Datei IN web/dist liegt: ohne sie las `/..%2F..%2Fserver%2F.env` jede
         # Datei des Servers (gefunden 24.10.2026, bestand seit Anfang an).
