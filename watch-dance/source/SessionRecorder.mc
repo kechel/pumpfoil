@@ -1275,7 +1275,14 @@ class SessionRecorder {
         var logger = null;
         if (!gpsOnly && Toybox has :SensorLogging) {
             try {
-                logger = new SensorLogging.SensorLogger({:accelerometer => {:enabled => true}});
+                // Gyro auch in die FIT (05.11.2026): ueber Garmin Connect kommt die FIT mit 100 Hz Accel an
+                // den Server, Gyro fehlte darin. Schlaegt das auf einer Uhr fehl, wenigstens Accel wie bisher.
+                try {
+                    logger = new SensorLogging.SensorLogger({:accelerometer => {:enabled => true},
+                                                            :gyroscope => {:enabled => true}});
+                } catch (eg) {
+                    logger = new SensorLogging.SensorLogger({:accelerometer => {:enabled => true}});
+                }
             } catch (e) {
                 logger = null;
             }
