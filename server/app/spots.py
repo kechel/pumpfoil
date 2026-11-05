@@ -880,6 +880,45 @@ def _sperre_koordinate(db, punkt) -> None:
         pass          # Sperre ist Beschleuniger, nicht Bedingung — Riegel 2 traegt allein.
 
 
+# Strecken-Vergleich fuer Starts in mehreren Spots: Spurbreite je Seite, wie viele Sessions je Spot, Mindestanteil und
+# Vorsprung, ab dem die Strecke entscheidet (sonst wie bisher der naechste Steg).
+SPUR_PUFFER_M = 40
+SPUR_SESSIONS = 30
+SPUR_MIN_ANTEIL = 0.15
+SPUR_VORSPRUNG = 2.0
+STEG_NAH_M = 150
+
+
+def _spur_m(g, lat0):
+    from shapely.geometry import LineString, Point
+    pts = _project(g.points or [g.start], lat0)
+    return (LineString(pts) if len(pts) > 1 else Point(pts[0])).buffer(SPUR_PUFFER_M)
+
+
+def spot_nach_strecke(db, spots_, g, lat0, ohne: int | None = None):
+    """Der Spot, auf dessen bisherigen Strecken die neue am meisten liegt — oder None, wenn das nicht klar ist
+    (kein Spot mit mindestens SPUR_MIN_ANTEIL, oder der Beste nicht SPUR_VORSPRUNG-mal so viel wie der Zweite)."""
+    from . import models
+    neu = _spur_m(g, lat0)
+    if neu.area <= 0:
+        return None
+    anteile = []
+    for sp in spots_:
+        q = (db.query(models.Session).filter(models.Session.spot_id == sp.id, models.Session.deleted.isnot(True)))
+        if ohne is not None:
+            q = q.filter(models.Session.id != ohne)
+        spuren = [_spur_m(x, lat0) for x in (_session_geom(db, y) for y in
+                                                q.order_by(models.Session.started_at.desc()).limit(SPUR_SESSIONS).all())
+                  if x is not None]
+        anteile.append((neu.intersection(unary_union(spuren)).area / neu.area if spuren else 0.0, sp))
+    anteile.sort(key=lambda x: -x[0])
+    bester = anteile[0]
+    zweiter = anteile[1][0] if len(anteile) > 1 else 0.0
+    if bester[0] >= SPUR_MIN_ANTEIL and bester[0] >= SPUR_VORSPRUNG * zweiter:
+        return bester[1]
+    return None
+
+
 def assign_one(db, s, erzwingen: bool = False):
     """Laufende Zuordnung einer EINZELNEN (neu analysierten) Session zu einem Spot.
     Setzt spot_id + place_name + place_water. Legt bei Bedarf einen neuen Spot an.
@@ -934,7 +973,16 @@ def assign_one(db, s, erzwingen: bool = False):
         def _steg_abstand(sp):
             p = steg_punkt(db, sp.id) or (sp.lat, sp.lon)
             return abstand_m(p[0], p[1], g.start[0], g.start[1])
-        home = min(drin, key=_steg_abstand) if drin else None
+        home = None
+        # Nur bei einem NEUEN Startplatz: wer direkt an einem bekannten Steg losfaehrt, foilt an diesem Spot, auch wenn
+        # die Fahrt hinueberreicht (Jans Regel oben; Helsinki: Start 12 m neben Etelä-Haaga, Fahrt nach Meilahti).
+        if len(drin) >= 2 and min(_steg_abstand(sp) for sp in drin) > STEG_NAH_M:
+            # Erst die STRECKE fragen, dann den Steg (05.11.2026): ein neuer Startplatz am Neckar lag naeher am Mittel
+            # der See-Starts (387 m) als am Mittel der Neckar-Starts (482 m) und landete beim Baggersee — die Strecke
+            # lag aber zu 60 % auf den bisherigen Neckar-Fahrten und nur zu 7 % auf denen am See.
+            home = spot_nach_strecke(db, drin, g, lat0, ohne=s.id)
+        if home is None:
+            home = min(drin, key=_steg_abstand) if drin else None
         if home is None:
             # Start liegt in keinem Spot -> echte Traverse: nur Gewässername, kein Spot (an Land: der Ort).
             n_, _, w = name_for(*g.start, land=land)
