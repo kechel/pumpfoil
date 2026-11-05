@@ -1735,11 +1735,13 @@ export const api = {
   // aber ein Fuenftel so gross — die Seite zeigt ohnehin immer nur einen. Ohne Angabe kommen
   // weiter alle fuenf (Spot- und Foil-Rekorde brauchen das, sie suchen sich das erste Fenster
   // mit Inhalt selbst).
+  // `region` (05.11.2026): Nationalitaet der Fahrer, "all" | "k:eu" … | "PL" (server app/regionen.py).
   communityRecords: (accelOnly = true, sport = "pumpfoil", foilBand = "all", spot?: string,
-                     fresh?: boolean, period?: string) =>
+                     fresh?: boolean, period?: string, region = "all") =>
     req<CommunityRecords>(`/api/community/records?${new URLSearchParams({
       accel_only: String(accelOnly), sport, foil_band: foilBand,
       ...(spot ? { spot } : {}), ...(period ? { period } : {}), ...(fresh ? { fresh: "1" } : {}),
+      ...(region !== "all" ? { region } : {}),
     })}`),
   /** Die Foil-Baender fuer das Dropdown — MIT Sessionzahl und Fahrerzahl je Band, damit die
    *  Oberflaeche duenne Gruppen ausblenden kann (ein Rekord aus zwei Fahrern ist keiner). */
@@ -1831,8 +1833,11 @@ export const api = {
     req<CommunitySession[]>(`/api/community/spot-sessions?spot=${encodeURIComponent(spot)}&accel_only=${accelOnly}`),
   // `fresh` geht am Service-Worker-Cache vorbei (s. communityRecords).
   // `spot`: dieselben Listen nur an einem Spot (Spot-Seite, 02.11.2026).
-  leaders: (period = "all", accelOnly = true, sport = "pumpfoil", foilBand = "all", fresh = false, spot?: string) =>
-    req<Leaders>(`/api/community/leaders?period=${period}&accel_only=${accelOnly}&sport=${sport}&foil_band=${foilBand}${spot ? `&spot=${encodeURIComponent(spot)}` : ""}${fresh ? "&fresh=1" : ""}`),
+  leaders: (period = "all", accelOnly = true, sport = "pumpfoil", foilBand = "all", fresh = false, spot?: string, region = "all") =>
+    req<Leaders>(`/api/community/leaders?period=${period}&accel_only=${accelOnly}&sport=${sport}&foil_band=${foilBand}${spot ? `&spot=${encodeURIComponent(spot)}` : ""}${fresh ? "&fresh=1" : ""}${region !== "all" ? `&region=${encodeURIComponent(region)}` : ""}`),
+  communityRegionen: (period: string, sport: string) =>
+    req<{ regionen: { key: string; fahrer: number; teams: number }[]; ich: string | null }>(
+      `/api/community/regionen?period=${period}&sport=${encodeURIComponent(sport)}`),
   communityLatestPhotos: (limit = 5) => req<CommunityPhoto[]>(`/api/community/latest-photos?limit=${limit}`),
   topLiked: (period = "all") => req<CommunitySession[]>(`/api/community/top-liked?period=${period}`),
   topCommented: (period = "all") => req<CommunitySession[]>(`/api/community/top-commented?period=${period}`),
@@ -2162,8 +2167,8 @@ export const api = {
   teamsMine: () => req<TeamKurz[]>("/api/teams/mine"),
   teamsListe: () => req<TeamListenEintrag[]>("/api/teams/liste"),
   teamsEventsAktuell: () => req<TeamEventKurz[]>("/api/teams/liste/events"),
-  teamsVergleich: (period: string, top: number, sport = "pumpfoil") =>
-    req<TeamVergleich>(`/api/teams/liste/vergleich?period=${period}&top=${top}&sport=${encodeURIComponent(sport)}`),
+  teamsVergleich: (period: string, top: number, sport = "pumpfoil", region = "all") =>
+    req<TeamVergleich>(`/api/teams/liste/vergleich?period=${period}&top=${top}&sport=${encodeURIComponent(sport)}${region !== "all" ? `&region=${encodeURIComponent(region)}` : ""}`),
   teamsEventsAlle: (offset: number, n: number) => req<TeamEventKurz[]>(`/api/teams/liste/events/alle?offset=${offset}&n=${n}`),
   teamSlug: (q: { name?: string; slug?: string; team_id?: number }) =>
     req<{ slug: string; frei: boolean; fehler: string | null }>(`/api/teams/slug?${new URLSearchParams(

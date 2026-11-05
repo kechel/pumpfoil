@@ -1069,7 +1069,7 @@ NAECHSTES: list[dict] = [
          "Home shows new comments and likes on your sessions, and as the owner of a session you can see who liked it.",
          "Yesterday can be picked wherever there is a period to choose.",
          "You can set your nationality, and it appears as a flag next to your name in the leaderboards.",
-         "The community leaderboard uses the same order as the website, starts on today when many have ridden, and can be shared as a link or an image.",
+         "The community leaderboard uses the same order as the website, starts on today when many have ridden, and can be shared as an image.",
          "The spot page shows the leaderboards for that spot under its records.",
          "Team pages have tabs for records, events, logbook, members, sharing and rules, and Sessions has a team tab for the last 30 days.",
          "Team invite links open in the app.",

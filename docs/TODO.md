@@ -1611,6 +1611,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
     Ebenso 05.11.: Uhren-Statistik mit zwei Reitern („Foilen je Uhr" / „Wie gut zeichnen die Uhren auf?").
     **Android: ✅ 05.11. nachgezogen** fuer 1.1.47 (Rangliste, Team-Sportart, gemerkte Filter, Profil Flagge + Teams,
     Uhren-Statistik-Reiter, dazu die Schriftgroesse aus iOS 1.1.59), im Emulator angesehen. **iOS: offen.**
+  - ✅ 05.11. Region-Filter der Rangliste nach NATIONALITAET (Jan: „im wettkampfgeschehen zaehlt eher die nationalitaet,
+    insbesondere weil die ja auch zu wettkampfspots fahren"): `?region=` (all | k:eu … | PL) an /api/community wie die
+    Freunde-Ansicht (app/regionen.py, Middleware in app/freunde.py), Team-Bestenlisten nach `teams.land`, Auswahl aus
+    GET /api/community/regionen (ab 3 Fahrern bzw. 2 Teams), Land -> Kontinent aus Natural Earth
+    (scripts/land-kontinent-erzeugen.py, Zypern unter Europa). Nur 11 von 322 aktiven Fahrern haben eine Nationalitaet —
+    Hinweis mit Link zur Einstellung. **Offen:** Android + iOS.
   - Abzeichen/Erfolge als Kacheln auf Home (Tagessiege, Allzeit-Rekorde, Community) — Plan in docs/TEAMS.md. Dazu
     gehoert auch sein Zaehler „freigeschaltete Sportarten" (Jan 02.11.: Kategorie Abzeichen, erstmal nicht).
   - Schnellster km bzw. Tempo (min/km), auch seine „schnellste Minute" — s. „Schnellste 100 m / 200 m / 500 m / 1 km" oben.

@@ -27,6 +27,7 @@ from ..db import get_db
 from ..media import inhalt_hash, thumb_url as _thumb
 from ..naming import geraete_label, owner_label, owner_label_sql
 from .. import ortverbergen
+from .. import regionen
 from .. import pumpgleit_anzeige as PA
 from ..freunde import freund_ids, nur_freunde
 from ..tzlookup import tz_name, tz_of
@@ -303,6 +304,10 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True,
     # Betrachter (Statistikzeile, viewer_id=None) bleibt alles wie es ist.
     if viewer_id and nur_freunde():
         q = q.filter(S.user_id.in_(freund_ids(query.session, viewer_id) | {viewer_id}))
+    # Regions-Filter (?region=, app/regionen.py): nur Fahrer dieser Nationalitaet bzw. dieses Kontinents.
+    region = regionen.aktuell()
+    if region != "all":
+        q = q.filter(S.user_id.in_(regionen.fahrer_ids(query.session, region) or {-1}))
     if not nur_foiling:
         pass          # keine Bedingung an den INHALT der Aufnahme
     elif nur_gps:
@@ -995,6 +1000,49 @@ def _carve_record(db: Session, cut: datetime | None, spot: str | None = None, vi
     return {**_EMPTY_REC, "value": float(int(val)), "name": name, "avatar_url": avatar, "user_id": uid}
 
 
+# Ab so vielen Fahrern bzw. Teams steht eine Region zur Wahl — wie die Foil-Baender (MIN_BAND_FAHRER im Web): eine
+# „Bestenliste Portugal" mit einem Fahrer ist keine.
+REGION_MIN_FAHRER = 3
+REGION_MIN_TEAMS = 2
+
+
+@router.get("/regionen")
+def community_regionen(period: str = "10d", sport: str = "pumpfoil",
+                       user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Waehlbare Regionen fuer die Rangliste (05.11.2026, app/regionen.py): Kontinente und Laender, in denen im
+    Zeitraum mindestens REGION_MIN_FAHRER Fahrer mit dieser Nationalitaet eine Session haben oder mindestens
+    REGION_MIN_TEAMS Teams dieser Herkunft in der Team-Bestenliste stehen. Dazu die eigene Nationalitaet (fuer den
+    Hinweis „gib deine Nationalitaet an")."""
+    from collections import Counter
+    from .. import teams as T
+    period = period if period in PERIODS else "10d"
+    q = _community(db.query(S.user_id), user.id, False, sport).distinct()
+    cut = _cutoff(period)
+    if cut is not None:
+        q = _ab(q, cut, S.started_at)
+    laender = regionen.laender(db)
+    fahrer: Counter = Counter()
+    for (uid,) in q.all():
+        land = laender.get(uid)
+        if land:
+            fahrer[land] += 1
+            if regionen.KONTINENT.get(land):
+                fahrer[regionen.KONTINENT[land]] += 1
+    teams: Counter = Counter()
+    for z in T.vergleich(db, period, 5, sport):
+        land = (z.get("land") or "")
+        if not land or land == "k:earth":
+            continue
+        teams[land] += 1
+        if not land.startswith("k:") and regionen.KONTINENT.get(land):
+            teams[regionen.KONTINENT[land]] += 1
+    keys = [k for k in (*regionen.KONTINENTE, *sorted(set(fahrer) | set(teams)))
+            if (k.startswith("k:") or k in regionen.KONTINENT)
+            and (fahrer[k] >= REGION_MIN_FAHRER or teams[k] >= REGION_MIN_TEAMS)]
+    return {"regionen": [{"key": k, "fahrer": fahrer[k], "teams": teams[k]} for k in dict.fromkeys(keys)],
+            "ich": laender.get(user.id)}
+
+
 @router.get("/sports")
 def community_sports(
     accel_only: bool = False, spot: str | None = None,
@@ -1210,7 +1258,7 @@ def community_records(accel_only: bool = True, sport: str = "pumpfoil", foil_ban
        und die gehen deshalb am Cache vorbei statt ihn zu vergiften.
     """
     zeitraeume = [period] if period in PERIODS else list(PERIODS)
-    key = (accel_only, sport, foil_band, spot, tuple(zeitraeume))
+    key = (accel_only, sport, foil_band, spot, tuple(zeitraeume), regionen.aktuell())
     # Versteckte Konten und die Ansicht „Freunde" (haengt am Betrachter) gehen am Cache vorbei.
     versteckt = bool(getattr(_user, "hidden", False)) or nur_freunde()
     jetzt = time.monotonic()

@@ -62,11 +62,17 @@ class FreundeFilter:
         if scope.get("type") == "http" and scope.get("path", "").startswith("/api/community"):
             qs = (scope.get("query_string") or b"").decode("latin-1")
             an = any(teil in ("friends=1", "friends=true") for teil in qs.split("&"))
+            # Regions-Filter (05.11.2026, app/regionen.py) auf demselben Weg: `?region=PL` / `?region=k%3Aeu`.
+            from urllib.parse import parse_qs
+            from . import regionen
+            region = (parse_qs(qs).get("region") or ["all"])[0]
             token = _NUR_FREUNDE.set(an)
+            token_r = regionen.setzen(region)
             try:
                 await self.app(scope, receive, send)
             finally:
                 _NUR_FREUNDE.reset(token)
+                regionen.zuruecksetzen(token_r)
             return
         await self.app(scope, receive, send)
 

@@ -22,7 +22,8 @@ import { TrackPreview } from "../components/TrackPreview";
 import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon, WatchIcon, FlagIcon, ShareIcon } from "../components/Icons";
 import { CommunityStats } from "../components/CommunityStats";
 import { useAccelDefault } from "../lib/useAccelDefault";
-import { useT } from "../i18n";
+import { useI18n, useT } from "../i18n";
+import { landName } from "../lib/laender";
 import { MOTOR_SPORTS, PADDEL_SPORTS, WIND_SPORTS, sortiereNachSport } from "../lib/sportClass";
 import { fmtLaufDauer } from "../lib/dauer";
 
@@ -482,8 +483,8 @@ const AUSWAHL = "min-w-[8rem] flex-1 basis-0 truncate rounded-lg border border-s
 // `auswahl` (Community-Rangliste nach Oleks Entwurf, 05.11.2026): Kennzahl als Auswahlfeld statt Reitern, daneben die
 // Filter, die nur fuer die Mitglieder gelten (`filter`); der Zeitraum steht dann oben fuer die ganze Seite, darum nicht
 // mehr in der Ueberschrift. Ohne `auswahl` wie bisher (Spot-Seite).
-export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf, spot, titel, auswahl, filter }: { period: string; accelOnly: boolean; sport?: string; band?: FoilBand; kopf?: React.ReactNode; spot?: string;
-                               titel?: string; auswahl?: boolean; filter?: React.ReactNode }) {
+export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf, spot, titel, auswahl, filter, region = "all" }: { period: string; accelOnly: boolean; sport?: string; band?: FoilBand; kopf?: React.ReactNode; spot?: string;
+                               titel?: string; auswahl?: boolean; filter?: React.ReactNode; region?: string }) {
   const t = useT();
   const [data, setData] = useState<Leaders | null>(null);
   // Nur EINE Bestenliste sichtbar, umschaltbar ueber Reiter (Jan, 01.11.2026: mit acht Listen nebeneinander war die
@@ -502,17 +503,17 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
     let aktiv = true;
     const bk = band?.key ?? "all";
     const begonnen = performance.now();
-    api.leaders(period, accelOnly, sport, bk, false, spot).then((d) => {
+    api.leaders(period, accelOnly, sport, bk, false, spot, region).then((d) => {
       if (!aktiv) return;
       setData(d);
       if (performance.now() - begonnen > CACHE_SCHWELLE_MS) return;   // kam vom Netz, also frisch
       const gezeigt = JSON.stringify(d);
-      return api.leaders(period, accelOnly, sport, bk, true, spot).then((frisch) => {
+      return api.leaders(period, accelOnly, sport, bk, true, spot, region).then((frisch) => {
         if (aktiv && JSON.stringify(frisch) !== gezeigt) setData(frisch);
       });
     }).catch(() => {});
     return () => { aktiv = false; };
-  }, [period, accelOnly, sport, band?.key, spot]);
+  }, [period, accelOnly, sport, band?.key, spot, region]);
   // Je Sportart (19.10.2026): bei Wind zaehlen weder Pumps noch Laeufe (viele Laeufe heisst
   // dort eher viele Stuerze), bei Motor keine Pumps. Pumpfoil wie bisher.
   const arten = LEADER_KINDS.filter((k) => !(
@@ -693,10 +694,16 @@ function CommunitySection() {
   const [bands, setBands] = useState<FoilBand[]>([]);
   const bandKey = sp.get("band") || gemerkt("foil_komm_band") || "all";
   const setBandKey = (v: string) => { merken("foil_komm_band", v); setzeParam("band", v, "all"); };
+  // Region nach Nationalitaet (05.11.2026, server app/regionen.py): gilt fuer beide Bestenlisten und die Kacheln, steht
+  // oben neben Zeitraum und Sportart, gemerkt und in der Adresse wie die anderen Filter.
+  const region = sp.get("region") || gemerkt("foil_komm_region") || "all";
+  const setRegion = (v: string) => { merken("foil_komm_region", v); setzeParam("region", v, "all"); };
+  const [regionen, setRegionen] = useState<{ regionen: { key: string; fahrer: number; teams: number }[]; ich: string | null } | null>(null);
+  useEffect(() => { api.communityRegionen(period, sport).then(setRegionen).catch(() => {}); }, [period, sport]);
   const band = bands.find((b) => b.key === bandKey);
   // Alles, was den Inhalt der Rekorde aendert — wechselt eines davon, sind die gemerkten
   // Zeitraeume wertlos. Die Sportart gehoert ausdruecklich dazu (Jan, 16.09.2026).
-  const filterKey = `${accelOnly}|${sport}|${bandKey}|${freunde}`;
+  const filterKey = `${accelOnly}|${sport}|${bandKey}|${freunde}|${region}`;
   const geholt = useRef<{ key: string; perioden: Set<string> }>({ key: "", perioden: new Set() });
 
   // Rekorde werden ZEITRAUMWEISE geholt und behalten (16.09.2026). Die Seite zeigt immer genau
@@ -723,11 +730,11 @@ function CommunitySection() {
       setData((alt) => (geholt.current.key !== meinKey ? alt : { ...(alt || {}), ...d }));
 
     const begonnen = performance.now();
-    api.communityRecords(accelOnly, sport, bandKey, undefined, false, period).then((d) => {
+    api.communityRecords(accelOnly, sport, bandKey, undefined, false, period, region).then((d) => {
       uebernehmen(d);
       if (performance.now() - begonnen > CACHE_SCHWELLE_MS) return;   // kam vom Netz, also frisch
       const gezeigt = JSON.stringify(d[period as keyof CommunityRecords]);
-      return api.communityRecords(accelOnly, sport, bandKey, undefined, true, period).then((frisch) => {
+      return api.communityRecords(accelOnly, sport, bandKey, undefined, true, period, region).then((frisch) => {
         if (JSON.stringify(frisch[period as keyof CommunityRecords]) !== gezeigt) uebernehmen(frisch);
       });
     }).catch(() => { g.perioden.delete(period); });   // gescheitert -> beim naechsten Mal erneut
@@ -773,9 +780,21 @@ function CommunitySection() {
   // die Liste nur aus deren Laeufen, und sonst saesse man auf einer Sportart fest, ohne das Feld zu sehen (05.11.2026).
   // Pumpfoil (die Voreinstellung) ebenso, damit man zurueckkommt.
   const sportListe = [...sports, ...[...new Set(["pumpfoil", sport])].filter((x) => !sports.some((y) => y.sport === x)).map((x) => ({ sport: x, runs: 0 }))];
+  // Regionen: Global, die Kontinente und Laender mit genug Fahrern bzw. Teams (Server REGION_MIN_*); die gewaehlte steht
+  // immer zur Wahl, sonst kaeme man nach einem Zeitraumwechsel nicht zurueck.
+  const { lang } = useI18n();
+  const regionName = (k: string) => (k === "all" ? t("region.global") : k.startsWith("k:") ? t(`region.${k.slice(2)}`) : landName(k, lang));
+  const regionKeys = ["all", ...(regionen?.regionen ?? []).map((x) => x.key)];
+  if (!regionKeys.includes(region)) regionKeys.push(region);
+  const regionAuswahl = regionKeys.length > 1 && (
+    <select value={region} onChange={(e) => setRegion(e.target.value)} title={t("region.basis")}
+      className="max-w-[12rem] truncate rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm font-medium text-slate-100">
+      {regionKeys.map((k) => <option key={k} value={k}>{regionName(k)}</option>)}
+    </select>
+  );
   const sportAuswahl = (sportListe.length > 1) && (
     <select value={sport} onChange={(e) => setSport(e.target.value)}
-      className="ml-auto max-w-[14rem] truncate rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm font-medium text-slate-100">
+      className="max-w-[14rem] truncate rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm font-medium text-slate-100">
       {sortiereNachSport(sportListe, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
     </select>
   );
@@ -830,12 +849,25 @@ function CommunitySection() {
           zaehlen alle Laeufe (teams.vergleich) — accel/alle/Freunde und Foil gelten darum nur links und fuer die
           Kacheln. Eine Gruppierung nach Region kommt spaeter. */}
       {tab === "bestenliste" && <>
-        <div className="mb-4 flex flex-wrap items-center gap-1">{zeitKnoepfe}{sportAuswahl}</div>
+        <div className="mb-4 flex flex-wrap items-center gap-1">
+          {zeitKnoepfe}
+          <span className="ml-auto flex flex-wrap gap-1">{regionAuswahl}{sportAuswahl}</span>
+        </div>
+        {/* Grundlage der Region und, wer keine Nationalitaet hat, warum er fehlt — mit dem Weg zur Einstellung. */}
+        {region !== "all" && (
+          <p className="-mt-2 mb-4 text-sm text-slate-400">
+            {t("region.basis")}
+            {regionen && !regionen.ich && <>
+              {" "}<span className="text-amber-700 dark:text-amber-300">{t("region.ohneLand")}</span>{" "}
+              <Link to="/einstellungen?tab=ich" className="text-brand-600 underline dark:text-brand-300">{t("profile.land")} →</Link>
+            </>}
+          </p>
+        )}
         <div className="grid gap-8 lg:grid-cols-2">
           {/* `key` = neu laden beim Umschalten auf/von „Freunde" — ihre eigenen Abhaengigkeiten aendern sich dabei nicht immer. */}
-          <Leaderboards key={`l${freunde}`} period={period} accelOnly={accelOnly} sport={sport} band={band} auswahl
+          <Leaderboards key={`l${freunde}`} period={period} accelOnly={accelOnly} sport={sport} band={band} region={region} auswahl
             titel={`${t("home.leaderboards")} – ${t("team.mitglieder")}`} filter={mitgliederFilter} />
-          <TeamBestenlisten period={period} sport={sport} titel={`${t("home.leaderboards")} – ${t("team.community")}`} />
+          <TeamBestenlisten period={period} sport={sport} region={region} titel={`${t("home.leaderboards")} – ${t("team.community")}`} />
         </div>
         <h3 className="mb-2 mt-10 text-lg font-bold">
           {t("side.records")}
@@ -925,7 +957,7 @@ const VERGLEICH_ARTEN: [TeamVergleichKennzahl, string][] = [
 
 // Seit 05.11.2026 (Oleks Entwurf) als rechte Spalte neben der Mitglieder-Bestenliste: der Zeitraum kommt von oben
 // (`period`, eine Zeile fuer die ganze Seite), Kennzahl und „Beste N" als Auswahlfelder, Zeilen wie bei den Mitgliedern.
-function TeamBestenlisten({ period, sport, titel }: { period: string; sport: string; titel: string }) {
+function TeamBestenlisten({ period, sport, region, titel }: { period: string; sport: string; region: string; titel: string }) {
   const t = useT();
   // Kennzahl und „Beste N" merkt sich der Browser wie die Filter der Mitglieder (05.11.2026).
   const [top, setTopRoh] = useState(() => { const n = Number(gemerkt("foil_team_top")); return [3, 5, 10].includes(n) ? n : 5; });
@@ -940,9 +972,9 @@ function TeamBestenlisten({ period, sport, titel }: { period: string; sport: str
   useEffect(() => { api.teamsMine().then((l) => setMeine(new Set(l.filter((x) => x.status === "aktiv").map((x) => x.slug)))).catch(() => {}); }, []);
   useEffect(() => {
     let aktiv = true;
-    api.teamsVergleich(period, top, sport).then((x) => { if (aktiv) setD(x); }).catch(() => {});
+    api.teamsVergleich(period, top, sport, region).then((x) => { if (aktiv) setD(x); }).catch(() => {});
     return () => { aktiv = false; };
-  }, [period, top, sport]);
+  }, [period, top, sport, region]);
   const km = (m: number) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(m < 100000 ? 1 : 0)} km`);
   const zeit = (sek: number) => (sek < 3600 ? `${Math.round(sek / 60)} min` : `${(sek / 3600).toFixed(1)} h`);
   const wert = (z: TeamVergleichZeile) => (art === "distance_m" ? km(z[art]) : art === "time_s" ? zeit(z[art]) : z[art].toLocaleString());

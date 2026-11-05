@@ -243,8 +243,8 @@ def _events_sichtbar(db: Session, uid: int):
 
 
 @router.get("/liste/vergleich")
-def vergleich(period: str = "30d", top: int = 5, sport: str = "pumpfoil", _u: models.User = Depends(current_user),
-              db: Session = Depends(get_db)) -> dict:
+def vergleich(period: str = "30d", top: int = 5, sport: str = "pumpfoil", region: str = "all",
+              _u: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     """Team-Bestenlisten der Community: je Kennzahl die Summe der besten 3/5/10 Fahrer eines Teams (T.vergleich).
     `sport` seit 05.11.2026 (Jan: „es wird auch teams nur fuer foilscoot oder gemischt geben, es soll halt jeweils
     immer nur die gleiche sportart verglichen werden") — dieselbe Sportart-Wahl wie die Bestenliste der Mitglieder."""
@@ -253,7 +253,12 @@ def vergleich(period: str = "30d", top: int = 5, sport: str = "pumpfoil", _u: mo
     period = period if period in PERIODS else "30d"
     top = top if top in T.VERGLEICH_TOP else 5
     sport = sport if sport in SPORTS else "pumpfoil"
-    return {"period": period, "top": top, "sport": sport, "teams": T.vergleich(db, period, top, sport)}
+    # Region (05.11.2026, app/regionen.py): Teams nach ihrer Herkunft — ein polnisches Team steht unter Polen und unter
+    # Europa, ein Team mit Herkunft „Europa" nur unter Europa, eines mit „Erde" nur in Global.
+    from .. import regionen
+    region = regionen.pruefen(region)
+    teams = [z for z in T.vergleich(db, period, top, sport) if regionen.passt(z.get("land"), region)]
+    return {"period": period, "top": top, "sport": sport, "region": region, "teams": teams}
 
 
 @router.get("/liste/events")
