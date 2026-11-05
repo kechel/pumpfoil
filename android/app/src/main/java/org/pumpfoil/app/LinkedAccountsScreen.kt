@@ -84,6 +84,9 @@ private data class Provider(
 }
 
 private val PROVIDERS = listOf(
+    // Garmin Connect (05.11.2026, server api/garmin.py): Aktivitaeten kommen per Push, kein Import-Knopf. Garmins
+    // Markenvorgabe: beim Verknuepfen der volle Name „Garmin Connect" mit dem App-Symbol.
+    Provider("garmin", "Garmin Connect™", canSync = false, logo = R.drawable.garmin_connect_app),
     Provider("polar", "Polar", canSync = true, logo = R.drawable.polar_logo),
     Provider("coros", "COROS", canSync = true, apiPath = "coros/mcp"),
     Provider("suunto", "Suunto", canSync = true, logo = R.drawable.suunto_logo),
@@ -129,6 +132,8 @@ fun LinkedAccountsScreen(onBack: () -> Unit, eingebettet: Boolean = false, nur: 
         }
         anbieter.forEach { p ->
             val st = status[p.id]
+            // Garmin ohne Freigabe (nur Admins/Tester, server garmin.fuer_nutzer_sichtbar): gar nicht zeigen.
+            if (p.id == "garmin" && st != null && !st.available && !st.linked) return@forEach
             if (st != null && !st.available && !st.linked) {
                 // Nicht konfiguriert -> als "bald verfügbar" grau anzeigen.
                 ProviderCard(p.label, sub = I18n.t("accounts.notAvailable"), logo = p.logo) {}
@@ -140,6 +145,8 @@ fun LinkedAccountsScreen(onBack: () -> Unit, eingebettet: Boolean = false, nur: 
                         st.linked && st.expired -> I18n.t("settings.coros.expiredHint")
                         st.linked && p.id == "coros" -> I18n.t("accounts.corosNote")
                         st.linked && p.id == "polar" -> I18n.t("accounts.polarNote")
+                        st.linked && p.id == "garmin" -> I18n.t("settings.garmin.connected")
+                        p.id == "garmin" -> I18n.t("settings.garmin.hint")
                         st.linked -> I18n.t("accounts.connected")
                         else -> I18n.t("accounts.sub")
                     },
@@ -217,6 +224,19 @@ fun LinkedAccountsScreen(onBack: () -> Unit, eingebettet: Boolean = false, nur: 
                         Text(I18n.t("settings.suunto.activity"), style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 8.dp))
+                    }
+                    // Garmin: Teilen in Garmin Connect ausgeschaltet -> sagen, dass nichts ankommt; darunter wie im Web.
+                    if (p.id == "garmin") {
+                        if (st.linked && !st.activity_export) {
+                            Text(I18n.t("settings.garmin.noExport"), style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.tertiary,
+                                modifier = Modifier.padding(top = 8.dp))
+                        }
+                        listOf("settings.garmin.help1", "settings.garmin.help2", "settings.garmin.help3", "settings.garmin.help4")
+                            .forEachIndexed { i, k ->
+                                Text("${i + 1}. ${I18n.t(k)}", style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = if (i == 0) 8.dp else 2.dp))
+                            }
                     }
                     if (p.id == "coros" && st.linked) {
                         Text(I18n.t("accounts.coros.best"), style = MaterialTheme.typography.bodySmall,

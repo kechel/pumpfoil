@@ -1338,7 +1338,9 @@ object Api {
     @kotlinx.serialization.Serializable
     data class IntegrationStatus(val available: Boolean = false, val linked: Boolean = false, val last_sync_at: String? = null,
                                  // COROS (19.10.2026): Erneuerung abgelehnt -> „Verbindung abgelaufen“ + Neu verbinden.
-                                 val expired: Boolean = false)
+                                 val expired: Boolean = false,
+                                 // Garmin (05.11.2026): Teilen in Garmin Connect ausgeschaltet -> false.
+                                 val activity_export: Boolean = true)
 
     @kotlinx.serialization.Serializable
     private data class ConnectResp(val authorize_url: String = "")

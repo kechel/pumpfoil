@@ -512,6 +512,8 @@ data class LeaderEntry(
 
 @Serializable
 data class Leaders(
+    // Quellen der gezeigten Daten (server community.quellen), klein unter der Liste (05.11.2026).
+    val quellen: List<String> = emptyList(),
     val sessions: List<LeaderEntry> = emptyList(),
     val runs: List<LeaderEntry> = emptyList(),
     val spots: List<LeaderEntry> = emptyList(),
@@ -771,6 +773,7 @@ data class CommunityRecordEntry(
 
 @Serializable
 data class PeriodRecords(
+    val quellen: List<String> = emptyList(),   // Quellen der gezeigten Rekorde (05.11.2026)
     val distance: CommunityRecordEntry? = null,
     val duration: CommunityRecordEntry? = null,
     val speed: CommunityRecordEntry? = null,

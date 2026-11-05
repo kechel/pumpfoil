@@ -299,3 +299,40 @@ def test_tester_sehen_es_vor_der_freigabe(client, garmin, monkeypatch):
     uid, kopf = _konto(client)
     monkeypatch.setenv("GARMIN_TESTER", f"999999, {uid}")
     assert client.get("/api/integrations/garmin/status", headers=kopf).json()["available"] is True
+
+
+def test_taeglicher_lauf_erneuert_nur_kurz_vor_ablauf(client, garmin, monkeypatch):
+    uid, _ = _konto(client)
+    _link(uid)
+    from app import models
+    from app.db import SessionLocal
+    aufrufe = []
+    monkeypatch.setattr(garmin.httpx, "post", lambda u, data=None, **k: aufrufe.append(data) or _Antwort(
+        {"access_token": "neu", "refresh_token": "ref2", "expires_in": 86400, "refresh_token_expires_in": 7775998}))
+    db = SessionLocal()
+    try:
+        link = db.query(models.GarminLink).filter_by(user_id=uid).one()
+        user = db.get(models.User, uid)
+        link.refresh_expires_at = datetime.now(timezone.utc) + timedelta(days=60)
+        db.commit()
+        assert garmin.sync(user, db) == "ok" and aufrufe == []
+        link.refresh_expires_at = datetime.now(timezone.utc) + timedelta(days=10)
+        db.commit()
+        assert garmin.sync(user, db) == "erneuert" and aufrufe[0]["grant_type"] == "refresh_token"
+        assert link.refresh_token == "ref2" and link.refresh_expires_at > datetime.now(timezone.utc) + timedelta(days=80)
+    finally:
+        db.close()
+
+
+def test_schnee_profile_nur_auf_wunsch(client, garmin, monkeypatch):
+    uid, kopf = _konto(client)
+    gid = _link(uid)
+    geladen = []
+    monkeypatch.setattr(garmin.httpx, "get", lambda u, **k: geladen.append(u) or _Antwort(content=b"FIT"))
+    eintrag = {"userId": gid, "summaryId": "s1", "fileType": "FIT", "activityType": "BACKCOUNTRY_SKIING",
+               "callbackURL": "https://apis.garmin.com/wellness-api/rest/activityFile?id=9"}
+    client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [eintrag]})
+    assert geladen == []                                       # erst nur vorgemerkt, nicht geladen
+    sports = client.get("/api/integrations/garmin/sports", headers=kopf).json()["sports"]
+    ski = next(x for x in sports if x["sport_key"] == "BACKCOUNTRY_SKIING")
+    assert ski["importieren"] is False                         # steht zur Auswahl, ist aber aus

@@ -54,15 +54,17 @@ def konto_import_grund(parsed: dict) -> str | None:
 
 def merken(db: Session, user_id: int, provider: str, sport_key: str,
            label: str | None = None, hat_gps: bool | None = None,
-           label_erzwingen: bool = False, zaehlen: bool = True) -> models.ImportSportPref:
+           label_erzwingen: bool = False, zaehlen: bool = True,
+           standard: bool = True) -> models.ImportSportPref:
     """Modus festhalten. Neu -> `importieren = True` (Jan: „default aber true, also importieren
-    bis der user etwas anderes sagt"). Bestehende Wahl wird NIE ueberschrieben."""
+    bis der user etwas anderes sagt"). Bestehende Wahl wird NIE ueberschrieben. `standard=False` fuer Modi, die nur
+    zur Auswahl stehen sollen (Garmin: Schnee-Profile und „Andere" fuers Snow-/Landkiten, 05.11.2026)."""
     key = str(sport_key)
     p = (db.query(models.ImportSportPref)
          .filter_by(user_id=user_id, provider=provider, sport_key=key).first())
     if p is None:
         p = models.ImportSportPref(user_id=user_id, provider=provider, sport_key=key,
-                                   label=label, importieren=True, hat_gps=hat_gps, gesehen=0)
+                                   label=label, importieren=standard, hat_gps=hat_gps, gesehen=0)
         db.add(p)
     if label and (label_erzwingen or not p.label):
         # `label_erzwingen` fuer Namen, die AUS DER DATEI kommen: bei Suunto und Polar kennen wir

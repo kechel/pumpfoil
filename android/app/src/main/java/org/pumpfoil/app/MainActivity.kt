@@ -145,7 +145,7 @@ object OAuthRuecksprung {
 object KontoRuecksprung {
     val fertig = MutableStateFlow(0)
     private val PFADE = mapOf("polar" to "polar", "suunto" to "suunto", "strava" to "strava",
-                              "coros" to "coros", "coros-mcp" to "coros/mcp")
+                              "coros" to "coros", "coros-mcp" to "coros/mcp", "garmin" to "garmin")
 
     fun verarbeite(ctx: android.content.Context, uri: Uri?) {
         if (uri == null || uri.scheme != "pumpfoil" || uri.host != "konten") return

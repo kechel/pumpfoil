@@ -37,6 +37,10 @@ SCHLUESSEL = [
     # 05.11.2026: Region-Filter der Rangliste (Nationalitaet)
     "region.global", "region.basis", "region.ohneLand",
     "team.community",
+    # 05.11.2026: Garmin Connect (Karte unter Uhr & Konten) und Quellenzeile unter Rekorden/Bestenlisten
+    "settings.garmin.hint", "settings.garmin.connect", "settings.garmin.connected", "settings.garmin.unlink",
+    "settings.garmin.noExport", "settings.garmin.help1", "settings.garmin.help2", "settings.garmin.help3",
+    "settings.garmin.help4", "quellen.titel", "quellen.phone", "quellen.file",
     # Phase 9: Spots-Reiter
     "tab.map", "tab.list", "tab.routes",
     # Nachtrag aus dem iOS-Port (fehlten in den App-Tabellen)

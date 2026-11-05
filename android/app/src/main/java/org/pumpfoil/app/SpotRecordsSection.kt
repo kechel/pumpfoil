@@ -106,6 +106,7 @@ private fun SpotRecordsSport(daten: Map<String, PeriodRecords>, sport: String, o
         }
     }
     RecordGrid(daten[wahl], showSpot = false, onOpen = onOpen, sport = sport, nurBelegt = true)
+    QuellenZeile(daten[wahl]?.quellen)
     // Darunter dieselben Bestenlisten wie in der Community, nur an diesem Spot (Web 0fc2eba8, Jan 02.11.2026);
     // Zeitraum wie die Kacheln darueber.
     var lb by remember { mutableStateOf<Leaders?>(null) }

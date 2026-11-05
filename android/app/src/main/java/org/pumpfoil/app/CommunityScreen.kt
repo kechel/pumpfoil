@@ -347,6 +347,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                         if (tab == "bestenliste") item {
                             SectionHeader(I18n.t("side.records") + (band?.takeIf { it.art != "alle" }?.let { " · ${bandLabel(it)}" } ?: ""))
                             RecordGrid(records?.get(period), showSpot = true, onOpen = onOpen, modifier = Modifier.padding(horizontal = 12.dp), sport = sportart)
+                            QuellenZeile(records?.get(period)?.quellen, Modifier.padding(horizontal = 12.dp))
                         }
 
                         // Neueste Medien (Fotos + YouTube), Tippen -> Session.
@@ -824,6 +825,7 @@ internal fun BestenlistenBlock(lb: Leaders, sportart: String, lbMetric: String, 
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+        QuellenZeile(lb.quellen, Modifier.padding(horizontal = 12.dp).padding(bottom = 4.dp))
         // Teilen: als Bild (Web BestenlisteBildDialog, derselbe Dialog wie bei den Team-Bestenlisten) und als Link.
         if (list.isNotEmpty()) Row(Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             val ctxTeilen = androidx.compose.ui.platform.LocalContext.current
@@ -834,7 +836,7 @@ internal fun BestenlistenBlock(lb: Leaders, sportart: String, lbMetric: String, 
                 val zeilen = list.take(10).mapIndexed { i, e -> BildZeile(i + 1, e.name ?: "—", "${leaderWert(e)} ${leaderEinheit(e)}", false, land = e.land) } +
                     listOfNotNull(lb.me[lbMetric]?.let { ich -> ich.rank?.let { r ->
                         BildZeile(r, ich.name ?: "—", "${leaderWert(ich)} ${leaderEinheit(ich)}", true, land = ich.land) } })
-                lbBild = TeamBildDaten(I18n.t(art), unter, zeilen, "pumpfoil-$lbMetric.png")
+                lbBild = TeamBildDaten(I18n.t(art), unter, zeilen, "pumpfoil-$lbMetric.png", quellenText(lb.quellen))
             }) {
                 Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))

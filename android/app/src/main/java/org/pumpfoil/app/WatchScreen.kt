@@ -695,15 +695,19 @@ private fun sparUhrText(d: PairedDevice): String {
  */
 @Composable
 fun UhrenKontenBereich() {
-    val reiter = listOf(
+    // Garmin Connect nur, wenn der Server es diesem Konto anbietet (vor der Freigabe nur Admins/Tester).
+    var garmin by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { garmin = try { Api.integrationStatus("garmin").available } catch (_: Exception) { false } }
+    val reiter = listOfNotNull(
         ReiterDef("uhr", I18n.t("nav.watch")),
+        if (garmin) ReiterDef("garmin", "Garmin Connect") else null,
         ReiterDef("polar", "Polar"),
         ReiterDef("coros", "COROS"),
         ReiterDef("suunto", "Suunto"),
         ReiterDef("xiaomi", "Xiaomi"),
         ReiterDef("mcp", "MCP"),
     )
-    var tab by rememberReiter("konten", reiter.map { it.id }, "uhr")
+    var tab by rememberReiter("konten", listOf("uhr", "garmin", "polar", "coros", "suunto", "xiaomi", "mcp"), "uhr")
     Column {
         Reiterleiste(reiter, tab, { tab = it }, stufe = 2)
         Spacer(Modifier.height(10.dp))

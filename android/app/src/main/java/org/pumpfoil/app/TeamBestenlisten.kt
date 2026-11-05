@@ -56,7 +56,8 @@ import java.io.File
 
 /** GET /api/teams/liste/vergleich (server teams.vergleich): je Team die Summe der besten `top` Fahrer je Kennzahl. */
 @Serializable
-data class TeamVergleich(val period: String = "", val top: Int = 5, val teams: List<TeamVergleichZeile> = emptyList())
+data class TeamVergleich(val period: String = "", val top: Int = 5, val teams: List<TeamVergleichZeile> = emptyList(),
+                         val quellen: List<String> = emptyList())
 
 @Serializable
 data class TeamVergleichZeile(
@@ -164,6 +165,7 @@ fun TeamBestenlisten(period: String, sport: String, titel: String, onOpenTeam: (
                         }
                     }
                 }
+                QuellenZeile(d?.quellen)
                 // Erklaerung unter der Liste wie im Web, mit der gewaehlten Sportart.
                 Text(I18n.t("team.vergleich.hinweis").replace("{n}", top.toString()).replace("{sport}", I18n.t("cls.sport.$sport")),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -178,7 +180,7 @@ fun TeamBestenlisten(period: String, sport: String, titel: String, onOpenTeam: (
                         BildZeile(i + 1, z.name, vergleichWert(art, z.wert(art)), z.slug in meine, land = z.land,
                             wappen = true, logoUrl = z.logoUrl, farbe = z.farbe)
                     }
-                    bild = TeamBildDaten(titel, unter, bildZeilen, "pumpfoil-teams-$art.png")
+                    bild = TeamBildDaten(titel, unter, bildZeilen, "pumpfoil-teams-$art.png", quellenText(d?.quellen))
                 }) {
                     Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(6.dp))
@@ -194,7 +196,8 @@ fun TeamBestenlisten(period: String, sport: String, titel: String, onOpenTeam: (
 internal class BildZeile(val rang: Int, val name: String, val wert: String, val ich: Boolean, val land: String? = null,
                          val wappen: Boolean = false, val logoUrl: String? = null, val farbe: String? = null)
 
-internal class TeamBildDaten(val titel: String, val unter: String, val zeilen: List<BildZeile>, val datei: String)
+internal class TeamBildDaten(val titel: String, val unter: String, val zeilen: List<BildZeile>, val datei: String,
+                             val quelle: String? = null)   // „Daten von: Garmin · …" ueber dem Fuss (Garmins Vorgabe)
 
 // Dieselben Farben wie web/src/lib/bestenlisteBild.ts (DUNKEL/HELL, wie die Session-Karte sharecard.py), je Fassung.
 private class BildFarben(val grund: Int, val flaeche: Int, val linie: Int, val akzent: Int, val text: Int, val leise: Int)
@@ -329,6 +332,8 @@ private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, 
     }
     p.color = F.leise; schrift(26f, false); p.textAlign = android.graphics.Paint.Align.LEFT
     g.drawText("Have fun, keep pumping!", X, B - X + 38, p)
+    // Quellen zwischen Liste und Fuss, klein wie unter der Liste in der App (Web bestenlisteBild.ts).
+    d.quelle?.let { q -> schrift(20f, false); g.drawText(q, X, B - X - 22, p) }
     return b
 }
 

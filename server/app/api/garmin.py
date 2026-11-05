@@ -56,12 +56,19 @@ API = "https://apis.garmin.com"
 # Nur von hier wird geladen (Download-Adressen aus Push-Nachrichten).
 DOWNLOAD_HOST = "apis.garmin.com"
 
-# Wassersport-Profile, die ein Foil-Training sein koennen (Garmin-Namen ohne „_V2"). Alles andere wird nicht
-# geladen — so haben wir es Garmin zugesagt. Ob ein Profil tatsaechlich importiert wird, kann der Nutzer wie bei
-# Polar/Suunto/COROS je Modus abwaehlen (importsports, Anbieter „garmin").
+# Profile, die automatisch importiert werden: Wassersport und Kiteboarding (Garmin-Namen ohne „_V2"/„_WS"). Der Nutzer
+# kann jedes je Modus abwaehlen (importsports, Anbieter „garmin").
 WASSERSPORT = frozenset({
     "SURFING", "KITEBOARDING", "WINDSURFING", "STAND_UP_PADDLEBOARDING", "WAKEBOARDING", "WATERSKIING",
     "PADDLING", "KAYAKING", "ROWING", "SAILING", "BOATING", "WATER_SPORTS", "OPEN_WATER_SWIMMING",
+})
+# Garmin kennt kein Snowkite- oder Landkite-Profil (Jan, 05.11.2026: „die sollten auch zur auswahl stehen wenigstens").
+# Wer dafuer nicht Kiteboarding nimmt, nimmt ein Schnee-Profil oder „Andere". Diese stehen zur Auswahl, sind aber AUS,
+# bis der Nutzer sie einschaltet — sonst wuerde jeder Skitag eine Session. Die erste Aktivitaet eines solchen Profils
+# wird nur vorgemerkt (dann steht es in der Auswahl), nicht geladen.
+NUR_AUF_WUNSCH = frozenset({
+    "BACKCOUNTRY_SKIING", "BACKCOUNTRY_SNOWBOARDING", "SNOWBOARDING", "RESORT_SKIING", "RESORT_SKIING_SNOWBOARDING",
+    "OTHER",
 })
 
 # Erneuern, wenn das Access-Token in weniger als dieser Zeit ablaeuft (Garmin raet zu Spielraum).
@@ -291,7 +298,7 @@ def _sicherer_download(url: str) -> bool:
 
 
 def _profil(eintrag: dict) -> str:
-    return str(eintrag.get("activityType") or "").upper().removesuffix("_V2")
+    return str(eintrag.get("activityType") or "").upper().removesuffix("_V2").removesuffix("_WS")
 
 
 def _eigene_aufnahme(db: Session, user_id: int, start: datetime, ende: datetime) -> models.Session | None:
@@ -337,8 +344,8 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     from .sessions import import_parsed_session
 
     profil = _profil(eintrag)
-    if profil not in WASSERSPORT:
-        return "kein wassersport"
+    if profil not in WASSERSPORT and profil not in NUR_AUF_WUNSCH:
+        return "kein passendes profil"
     if str(eintrag.get("fileType") or "FIT").upper() != "FIT":
         return "kein fit"
     url = str(eintrag.get("callbackURL") or "")
@@ -348,7 +355,8 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     user = db.get(models.User, link.user_id)
     if user is None:
         return "kein nutzer"
-    pref = importsports.merken(db, user.id, "garmin", profil, label=profil.replace("_", " ").title())
+    pref = importsports.merken(db, user.id, "garmin", profil, label=profil.replace("_", " ").title(),
+                               standard=profil in WASSERSPORT)
     if not pref.importieren:
         return "abgewaehlt"
     r = httpx.get(url, headers={"Authorization": f"Bearer {gueltiges_token(link, db)}"}, timeout=60)
