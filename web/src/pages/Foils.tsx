@@ -19,7 +19,9 @@ export default function Ausruestung({ eingebettet = false }: { eingebettet?: boo
     { id: "stabs", label: t("setup.stabTitle") },
     { id: "boards", label: t("setup.boardTitle") },
     { id: "mast", label: t("gear.mastShim") },
-    { id: "sport", label: t("mySpots.sports") },
+    // „Sportarten" steht in den Einstellungen eine Ebene hoeher, zwischen Team und Ausruestung (Jan, 05.11.2026);
+    // nur die eigenstaendige Seite /ausruestung behaelt den Reiter.
+    ...(eingebettet ? [] : [{ id: "sport", label: t("mySpots.sports") }]),
   ];
   const [tab, setTab] = useReiter("ausruestung", reiter.map((r) => r.id), "foils", { param: eingebettet ? "atab" : "tab" });
   return (
@@ -37,6 +39,11 @@ export default function Ausruestung({ eingebettet = false }: { eingebettet?: boo
       {tab === "sport" && <><Sportarten /><Setup teil="jeSport" /></>}
     </div>
   );
+}
+
+/** Reiter „Sportarten" in den Einstellungen: Standard-Sportart, Sportarten an der Uhr, Ausruestung je Sportart. */
+export function SportartenTeil() {
+  return <><Sportarten /><Setup teil="jeSport" /></>;
 }
 
 /** Standard-Sportart + Sportarten an der Uhr (Reiter „Sportarten"). */

@@ -25,10 +25,11 @@ const KontenTeil = lazy(() => import("./LinkedAccounts"));
 const FreundeTeil = lazy(() => import("./Friends"));
 const TeamTeil = lazy(() => import("./Teams"));
 const AusruestungTeil = lazy(() => import("./Foils"));
+const SportartenTeil = lazy(() => import("./Foils").then((m) => ({ default: m.SportartenTeil })));
 
 export default function Settings() {
   const { t } = useI18n();
-  const [ptab, setPtab] = useReiter("profil", ["uebersicht", "konten", "freunde", "team", "ausruestung", "ich", "fahren", "privat", "darstellung", "konto"], "uebersicht");
+  const [ptab, setPtab] = useReiter("profil", ["uebersicht", "konten", "freunde", "team", "sportarten", "ausruestung", "ich", "fahren", "privat", "darstellung", "konto"], "uebersicht");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -170,6 +171,8 @@ export default function Settings() {
         { id: "konten", label: t("ptab.watches") },
         { id: "freunde", label: t("friends.title") },
         { id: "team", label: t("tab.team") },
+        // Sportarten eine Ebene hoeher, vorher Unterreiter von Ausruestung (Jan, 05.11.2026).
+        { id: "sportarten", label: t("mySpots.sports") },
         { id: "ausruestung", label: t("gear.title") },
         { id: "ich", label: t("ptab.me") },
         { id: "fahren", label: t("ptab.riding") },
@@ -177,11 +180,12 @@ export default function Settings() {
         { id: "darstellung", label: t("ptab.display") },
         { id: "konto", label: t("ptab.account") },
       ]} aktiv={ptab} onWahl={setPtab} unter={ptab === "konten" || ptab === "ausruestung"} />
-      {["konten", "freunde", "team", "ausruestung"].includes(ptab) && (
+      {["konten", "freunde", "team", "sportarten", "ausruestung"].includes(ptab) && (
         <Suspense fallback={<p className="text-sm text-slate-400">{t("common.loading")}</p>}>
           {ptab === "konten" && <KontenTeil eingebettet />}
           {ptab === "freunde" && <FreundeTeil eingebettet />}
           {ptab === "team" && <TeamTeil eingebettet />}
+          {ptab === "sportarten" && <SportartenTeil />}
           {ptab === "ausruestung" && <AusruestungTeil eingebettet />}
         </Suspense>
       )}

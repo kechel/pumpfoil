@@ -1608,6 +1608,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - [ ] Team-Auswahl ueberall gleich: „Alle meine Teams" / ein Team, gemerkt (TeamWahl.tsx).
   **Zeitraeume:**
   - [ ] „Gestern" vor „Heute" in allen Zeitraum-Auswahlen (Server kennt `period=yesterday` schon), 18 Sprachen `period.yesterday`.
+  **Einstellungen (05.11., nur Web):**
+  - [ ] „Sportarten" als eigener Reiter oben zwischen Team und Ausruestung (vorher Unterreiter von Ausruestung, Foils.tsx
+        `SportartenTeil`).
   **Garmin Connect (05.11., nur Web):**
   - [ ] Hinweis „1. Uhr per Code koppeln, 2. Garmin Connect verbinden“ (components/GarminBeides.tsx, Schluessel
         `garmin.beides.*`): Garmin-Anleitung immer, Garmin-Karte solange nicht beides verbunden, „Meine Uhren“ nur wenn
