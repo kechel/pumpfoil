@@ -419,8 +419,9 @@ private fun RecordingBody(st: Recorder.State) {
         Spacer(Modifier.height(6.dp))
         Text(I18n.t("rec.gpsSearch"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.error)
-        // Laenger als 30 s still: meist schaltet das Handy das GPS bei dunklem Display ab (GpsSparen).
-        if (Recorder.gpsStilleMs() > 30_000) {
+        // Laenger als 30 s still UND Energiesparen an: dann schaltet das Handy wohl das GPS bei dunklem Display ab
+        // (GpsSparen). Ohne Energiesparen ist eine Luecke meist das Handy unter Wasser beim Zurueckschwimmen — normal.
+        if (Recorder.gpsStilleMs() > 30_000 && GpsSparen.an(LocalContext.current)) {
             Spacer(Modifier.height(4.dp))
             Text(I18n.t("rec.gpsAus"), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.error)

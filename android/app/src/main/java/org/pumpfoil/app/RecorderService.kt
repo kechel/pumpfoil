@@ -36,7 +36,9 @@ class RecorderService : Service(), SensorEventListener {
     private val waechterTakt = object : Runnable {
         override fun run() {
             val still = Recorder.gpsStilleMs()
-            val weg = still > GPS_WARN_MS
+            // Nur bei aktivem Energiesparen melden: liegt das Brett im Wasser und man schwimmt zurueck, ist das
+            // Handy UNTER Wasser und das GPS weg — das ist normal (Jan, 05.11.2026) und keinen Hinweis wert.
+            val weg = still > GPS_WARN_MS && GpsSparen.an(this@RecorderService)
             if (weg != gpsWarnung) {
                 gpsWarnung = weg
                 try { (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(1, notification()) }
