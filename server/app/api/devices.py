@@ -720,8 +720,12 @@ def _schalter(name: str, standard: bool = True) -> bool:
 
 def garmin_connect_aktiv(db: Session, user_id: int) -> bool:
     """Garmin Connect verknuepft und das Teilen von Aktivitaeten nicht ausdruecklich aus ("" = keine Freigabe)."""
-    link = db.query(models.GarminLink).filter_by(user_id=user_id).first()
-    return link is not None and link.permissions != "" and (link.permissions is None or "ACTIVITY_EXPORT" in link.permissions)
+    # Nur die Freigaben lesen — die Zugangsdaten sind verschluesselt und werden hier nicht gebraucht.
+    zeile = db.query(models.GarminLink.permissions).filter_by(user_id=user_id).first()
+    if zeile is None:
+        return False
+    perm = zeile[0]
+    return perm != "" and (perm is None or "ACTIVITY_EXPORT" in perm)
 
 
 def _datenwege(db: Session, device: models.DeviceToken, memtot: int | None, minimal: int | None) -> dict:
