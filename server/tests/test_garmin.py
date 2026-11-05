@@ -409,3 +409,21 @@ def test_offene_aufnahme_nur_bei_fast_gleichem_start(client, garmin):
         assert garmin._eigene_aufnahme(db, uid, t0 + timedelta(seconds=2), t0 + timedelta(minutes=10)).id == offen
     finally:
         db.close()
+
+
+def test_eigene_aufnahme_ohne_gps_bekommt_die_datei(client, garmin, monkeypatch, tmp_path):
+    # Tanz/Halle: die Garmin-Datei hat kein GPS, gehoert aber zu einer eigenen Aufnahme -> anhaengen, nicht verwerfen.
+    uid, _ = _konto(client)
+    gid = _link(uid)
+    start = datetime(2026, 11, 2, 18, 4, 35, tzinfo=timezone.utc)
+    sid, suuid = _eigene_session(uid, start, minuten=72)
+    from app import storage
+    monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(parents=True, exist_ok=True) or tmp_path / u)
+    monkeypatch.setattr(garmin.httpx, "get", lambda u, **k: _Antwort(content=b"TANZ-FIT"))
+    import app.fitimport as fi
+    monkeypatch.setattr(fi, "parse_fit_bytes", lambda b: {**_parsed(start), "gps_samples": []})
+    client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [
+        {"userId": gid, "summaryId": "t1-file", "fileType": "FIT", "activityType": "OTHER",
+         "startTimeInSeconds": int(start.timestamp()),
+         "callbackURL": "https://apis.garmin.com/wellness-api/rest/activityFile?id=7"}]})
+    assert (tmp_path / suuid / "garmin-connect-t1-file.fit").read_bytes() == b"TANZ-FIT"

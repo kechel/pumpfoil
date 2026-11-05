@@ -392,17 +392,23 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     # API die Originaldatei mit den Sensor-Daten unserer Connect-IQ-App?).
     log.info("garmin: Datei %s (user %s): %d KB, GPS %d, Accel %d Werte", eintrag.get("summaryId"), user.id,
              len(r.content) // 1024, len(parsed.get("gps_samples") or []), len(parsed.get("accel_bytes") or b"") // 6)
-    grund = importsports.konto_import_grund(parsed)
-    if grund:
-        return grund
-    start = _aware(parsed["started_at"])
-    samples = parsed.get("gps_samples") or []
-    ende = start + timedelta(milliseconds=int(samples[-1][0] if samples else parsed.get("dauer_ms") or 0))
-    eigene = _eigene_aufnahme(db, user.id, start, ende)
+    # Erst die eigene Aufnahme suchen, dann die Grenzen fuer neue Sessions pruefen: Aufnahmen ohne GPS (Tanz, Halle)
+    # bekommen ihre Garmin-Datei sonst nie (05.11.2026).
+    eigene = None
+    if parsed.get("started_at") is not None:
+        start = _aware(parsed["started_at"])
+        samples = parsed.get("gps_samples") or []
+        ende = start + timedelta(milliseconds=int(samples[-1][0] if samples else parsed.get("dauer_ms") or 0))
+        eigene = _eigene_aufnahme(db, user.id, start, max(ende, start + timedelta(seconds=60)))
+    if eigene is None:
+        eigene = _eigene_zum_eintrag(db, user.id, eintrag)
     if eigene is not None:
         # Dieselbe Fahrt: keine zweite Session, aber die Garmin-Datei vollstaendig an unsere haengen.
         datei_anhaengen(eigene, r.content, _beschreibung(eintrag))
         return f"an eigene aufnahme #{eigene.id} angehaengt"
+    grund = importsports.konto_import_grund(parsed)
+    if grund:
+        return grund
     s = import_parsed_session(db, user, r.content, parsed, src_label="garmin-import", uuid_prefix="garmin-",
                               filename="garmin.fit")   # Originaldatei als original.fit (sonst .bin)
     if s is None:
