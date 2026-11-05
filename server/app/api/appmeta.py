@@ -244,7 +244,10 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.44",   # LIVE 2026-10-28: Play-Mail „Your update to Pumpfoil, created on Oct 22, 2026
+        "latest": "1.1.46",   # LIVE 2026-11-05: Play-Mail „Your update to Pumpfoil, created on Oct 28, 2026
+        # at 9:59 PM GMT, is live in the store" (Jans Meldung), gut 7 Tage Pruefung. Spot-Haenger-Fix, Sportart-Knoepfe
+        # der Spot-Seite, Supporter-Abzeichen, Sportarten ohne Foil, Feedback n/2000, GPS-verloren-Hinweis.
+        # ALT: "latest": "1.1.44",   # LIVE 2026-10-28: Play-Mail „Your update to Pumpfoil, created on Oct 22, 2026
         # at 9:04 PM GMT, is live in the store" (Jans Meldung), knapp 6 Tage Pruefung. Feedback-Knopf, Sportarten
         # (Wind/SUP/Wake thief/Downwind), Rekorde je Sportart, Bewertung, Setup-Editor-Fix.
         # ALT: "latest": "1.1.43",   # LIVE 2026-10-22: Play-Mail „Your update to Pumpfoil, created on Oct 18, 2026
@@ -435,7 +438,9 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.44",   # LIVE 2026-10-28, dieselbe Play-Mail wie android (1.1.44). Uhr: Sportart-Wahl,
+        "latest": "1.2.46",   # LIVE 2026-11-05, dieselbe Play-Mail wie android (1.1.46). Uhr: Hinweis, wenn das
+        # GPS-Signal verloren ist (aus 1.2.45, die vor der Freigabe ersetzt wurde).
+        # ALT: "latest": "1.2.44",   # LIVE 2026-10-28, dieselbe Play-Mail wie android (1.1.44). Uhr: Sportart-Wahl,
         # WakeLock fuer den normalen Accel (Samsung ohne Wake-up-Variante), Pause-Erinnerung alle 10 min.
         # ALT: "latest": "1.2.43",   # LIVE 2026-10-22, dieselbe Play-Mail wie android (1.1.43). Uhr: Handy-Recorder-Zeile,
         # Puls/GPS nach Unterwasser (Waechter), Spot-Meldung beim ersten GPS-Fix.
@@ -913,14 +918,9 @@ IN_REVIEW: list[dict] = [
      ]},
     # Garmin 1.0.99 am 03.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt im Changelog mit garmin 1.0.99.
     # iPhone + Apple Watch 1.1.58 am 29.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 771/772/789/790/794/795/796 tragen ios 1.1.58, vier neue am 29.10.
-    # EINGEREICHT 28.10.2026 spaet abends (Jans Meldung, Play Console „Schnelle Vorabpruefungen … noch maximal 14
-    # Minuten", Produktion 61 (1.1.46), Produktion (Wear OS) 1057 (1.2.46)). ERSETZT die am selben Abend eingereichte,
-    # noch nicht freigegebene 1.1.45 (60/1056): Spot-Knoepfe als Filter, Heatmap nach Sportart, Spot-Auswahlfeld raus,
-    # Suchtreffer unter der Karte, kompakte Filterzeile. Jan im Emulator getestet; Spot-Seite auch von mir im Emulator.
-    # Vorher (1.1.45): Spot-Haenger-Fix (a5ba1c61, auf der VM nachgestellt), Feedback n/2000, Spot-Rekorde.
-    {"name": "Android phone + Wear OS", "version": "1.1.46 / 1.2.46",
-     "eingereicht": "2026-10-28",
-     "items": ["Profile pictures show a small wave-and-heart badge for riders who gave us feedback in the last four weeks, in cyan, green or gold depending on how often they helped this year.", "Your rating shows when we have looked into it and improved something, with our note, and asks you to check the analysis and rate it again.", "Sessions waiting for your new rating are marked in your session list.", "You can pick the new sports without a foil: kitesurfing, windsurfing, snowkiting, kite mountainboarding, kite buggy and SUP.", "Sessions of sports without a foil show rides instead of on-foil figures and count tacks and jibes, and SUP sessions show your paddle strokes on the map.", "Sport lists start with your default sport and are otherwise sorted alphabetically.", "The heatmap can show all time instead of only the last year.", "Runs that were left out because they were too fast or a car drive now say why.", "Wear OS watches and the Android phone recorder show when the GPS signal is lost and keep the time running.", "The phone recorder shows your on-foil distance, the sum of all runs, instead of the total distance, shows your watch data pages live above the map and lets you page through the runs of the current session.", "Sessions of sports without a foil, such as kitesurfing, no longer show foil, stabilizer and mast; watch and board stay.", "The session list filter that showed only valid sessions is now called \"Valid\" instead of \"Pumpfoil\".", "Your own session lists show the sport as a yellow label for sessions that are not pump foiling, like the community list.", "A spot page no longer freezes when you scroll down to its heatmap map.", "The feedback form shows how many of the 2000 characters you have used, and says so if sending fails, instead of doing nothing.", "The records on a spot page show only the records that exist, without rows of empty tiles.", "Spot records show one sport at a time with a switch between the sports that have records there, and follow the sport filter of the page.", "The heatmap on a spot page switches to the sport you pick for the records.", "On a spot page the sport buttons above the records filter the whole page (sessions, records and heatmap) and replace the sport menu there; they show only the sports ridden at that spot, and on Android they stay at the top while the page scrolls.", "The session list no longer has a spot menu; you get to a spot through the spot map and its search, your homespot tab or the spot link of a session.", "Searching for a spot shows the matches right below the map instead of at the bottom of the page.", "The session list puts the sport menu and the tiles/rows switch into the row with accel, all and POB, so the filters take one line less."]},
+    # Android 1.1.46 / Wear 1.2.46 (eingereicht 28.10., freigegeben 05.11.2026) -> LIVE; 19 Punkte hatten schon
+    # iOS/Web-Zeilen im Changelog und tragen jetzt android 1.1.46 dazu, 3 neue Punkte (GPS verloren auf Wear/Android,
+    # Handy-Recorder On-Foil-Strecke, Spot-Haenger) + Ereignis.
     # Huawei Watch 5 1.0.3 am 04.11. FREIGEGEBEN (s. _APP_META["huawei-watch5"]); die 10 Punkte stehen im Changelog mit
     # huawei-watch5 1.0.3, dazu ein Freigabe-Ereignis.
     # iPhone + Apple Watch 1.1.57 am 26.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 751/752/754/757/759/765 + 774/775 tragen ios/apple 1.1.57.
