@@ -208,6 +208,7 @@ def start_session(
             "accel_scale": body.accel_scale,
             # Nur wenn gesetzt — die meta.json aller anderen Uhren bleibt Byte fuer Byte wie bisher.
             **({"accel_luecken": True} if body.accel_luecken else {}),
+            **({"duenn": True} if body.duenn else {}),
         },
     )
     _altlasten_abschliessen(db, device, s, background)

@@ -380,7 +380,7 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     r = httpx.get(url, headers={"Authorization": f"Bearer {gueltiges_token(link, db)}"}, timeout=60)
     if r.status_code != 200 or not r.content:
         return f"download {r.status_code}"
-    if eigene_vorab is not None:
+    if eigene_vorab is not None and not storage.duenn(eigene_vorab.session_uuid):
         datei_anhaengen(eigene_vorab, r.content, _beschreibung(eintrag))
         return f"an eigene aufnahme #{eigene_vorab.id} angehaengt ({len(r.content) // 1024} KB, {grund})"
     try:
@@ -402,10 +402,25 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
         eigene = _eigene_aufnahme(db, user.id, start, max(ende, start + timedelta(seconds=60)))
     if eigene is None:
         eigene = _eigene_zum_eintrag(db, user.id, eintrag)
+    if eigene is not None and storage.duenn(eigene.session_uuid) and not importsports.konto_import_grund(parsed):
+        # Die Uhr hat eigene Bloecke absichtlich weggelassen (Datenwege): die Garmin-Datei ist hier die vollstaendige
+        # Aufnahme. Sie wird die Session, unsere duenne Aufnahme liefert Sportart, Foil und Ausruestung und zeigt danach
+        # auf sie (Jan, 05.11.2026: „wenigstens die sportart und foil … damit das gematcht werden kann").
+        g = import_parsed_session(db, user, r.content, parsed, src_label="garmin-import", uuid_prefix="garmin-",
+                                  filename="garmin.fit", sport_override=eigene.sport_class, ausser_id=eigene.id)
+        if g is None or g.id == eigene.id:
+            datei_anhaengen(eigene, r.content, _beschreibung(eintrag))
+            return f"an eigene aufnahme #{eigene.id} angehaengt (import ging nicht)"
+        if g.session_uuid.startswith("garmin-") and not g.device_model:
+            g.device_model = geraet_name(eintrag.get("deviceName"))
+        in_garmin_session_aufgehen(db, eigene, g)
+        return f"duenne eigene aufnahme #{eigene.id} -> garmin-session #{g.id}"
     if eigene is not None:
         # Dieselbe Fahrt: keine zweite Session, aber die Garmin-Datei vollstaendig an unsere haengen.
         datei_anhaengen(eigene, r.content, _beschreibung(eintrag))
         return f"an eigene aufnahme #{eigene.id} angehaengt"
+    if grund == "abgewaehlt":
+        return grund   # (nur erreichbar ueber eine duenne eigene Aufnahme ohne passende Garmin-Datei)
     grund = importsports.konto_import_grund(parsed)
     if grund:
         return grund
@@ -526,6 +541,32 @@ def nutzerinhalte_uebertragen(db: Session, von: models.Session, nach: models.Ses
     sync_video_mirror(db, nach)
 
 
+# Was die eigene (duenne) Aufnahme an die Garmin-Session weitergibt: das, was am Handgelenk gewaehlt wurde.
+UEBERNEHMEN = ("sport_class", "sport_source", "foil_id", "stab_id", "board_id", "mast_len_cm", "shim_deg", "placement")
+
+
+def in_garmin_session_aufgehen(db: Session, eigene: models.Session, g: models.Session) -> None:
+    """Duenne eigene Aufnahme (Datenwege) geht in der Garmin-Session derselben Fahrt auf: Sportart, Foil und Ausruestung
+    von der Uhr, alles Nutzergemachte, dann zeigt sie per merged_into auf die Garmin-Session und wird ausgeblendet.
+    Danach neu auswerten (Sportart und Foil bestimmen die Auswertung)."""
+    from ..analysis import run_analysis
+    for feld in UEBERNEHMEN:
+        wert = getattr(eigene, feld, None)
+        if wert is not None:
+            setattr(g, feld, wert)
+    nutzerinhalte_uebertragen(db, eigene, g)
+    eigene.deleted = True
+    eigene.merged_into = g.id
+    eigene.share_token = None
+    db.commit()
+    try:
+        run_analysis(db, g)
+    except Exception as exc:  # noqa: BLE001 — die Zuordnung steht, die Auswertung holt die Reanalyse nach
+        db.rollback()
+        log.warning("garmin: Neuauswertung #%s nach Uebernahme fehlgeschlagen: %s", g.id, exc)
+    log.info("garmin: duenne Aufnahme #%s geht in Garmin-Session #%s auf (user %s)", eigene.id, g.id, eigene.user_id)
+
+
 def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
     """Andere Reihenfolge: Garmin war schneller, jetzt schliesst unsere App die Aufnahme ab. Garmin-Importe desselben
     Nutzers zur selben Zeit werden mit ihr verknuepft: ihre Originaldatei kommt (als Kopie) an unsere Session, die
@@ -541,6 +582,10 @@ def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
         for g in db.query(S).filter(S.user_id == eigene.user_id, S.deleted.isnot(True),
                                     S.session_uuid.like("garmin-%"), S.started_at < ende,
                                     S.ended_at > eigene.started_at).all():
+            if storage.duenn(eigene.session_uuid):
+                # Unsere Aufnahme ist absichtlich duenn: die Garmin-Session bleibt die Fahrt, unsere geht darin auf.
+                in_garmin_session_aufgehen(db, eigene, g)
+                return 1
             d = storage.session_dir(g.session_uuid)
             originale = sorted(d.glob("original.*")) if d.exists() else []
             if not originale:

@@ -801,7 +801,7 @@ _WATER_SPORTS = {
 
 def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str, uuid_prefix: str,
                           filename: str | None = None, sport_override: str | None = None,
-                          von_hand: bool = False):
+                          von_hand: bool = False, ausser_id: int | None = None):
     """Geparsten Track (aus FIT/TCX/GPX) als Session anlegen: Dup-Check (Hash ODER Startzeit,
     pro Nutzer, idempotent) -> Session + Rohdaten -> analysieren. Wiederverwendet von /upload-fit
     UND vom Polar-Import. Rückgabe: Session (neu oder bestehend) oder None (bewusst gelöscht).
@@ -832,6 +832,9 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
             models.Session.user_id == user.id,
             (models.Session.content_hash == content_hash)
             | (models.Session.started_at == started_at),
+            # `ausser_id`: die duenne eigene Aufnahme derselben Fahrt (Garmin-Import, api/garmin.py) — sie startet auf
+            # die Sekunde gleich und wuerde sonst als „schon da" zaehlen.
+            *([models.Session.id != ausser_id] if ausser_id else []),
         )
         .order_by(models.Session.id)
         .all()

@@ -361,6 +361,7 @@ class SessionSyncJob {
     hidden var _idx as Lang.Number = 0;
     hidden var _pendingKind = null;      // "accel"/"gps" des gerade gesendeten Chunks
     hidden var _pauses = [];             // Pausenfenster [[session_ms, dauer_ms], …]
+    hidden var _endedAt = null;          // Wanduhr-Ende (Unix s) aus dem Zustand, s. SessionRecorder._saveState
     // Teil-Upload der noch LAUFENDEN Session (nur aus einer Pause heraus): am Ende /analyze
     // statt /complete, und NIEMALS _cleanup — die Aufnahme geht ja weiter.
     hidden var _partial as Lang.Boolean = false;
@@ -384,6 +385,7 @@ class SessionSyncJob {
             // damit der Server aus Session-ms wieder eine Uhrzeit machen kann. Alte Sessions im
             // Store haben den Key nicht -> leer, und der Server verhaelt sich wie vorher.
             _pauses = (st["pauses"] instanceof Lang.Array) ? st["pauses"] : [];
+            _endedAt = (st["ended_at"] instanceof Lang.Number) ? st["ended_at"] : null;
         }
         var sa = Storage.getValue("sa_" + uuid); _sa = (sa == null) ? 0 : sa;
         var sg = Storage.getValue("sg_" + uuid); _sg = (sg == null) ? 0 : sg;
@@ -626,7 +628,8 @@ class SessionSyncJob {
         _phase = :complete;
         _web(
             Config.baseUrl() + "/api/ingest/session/" + _uuid + "/complete",
-            { "total_chunks" => _gpsTotal, "pauses" => _pauses },
+            (_endedAt != null) ? { "total_chunks" => _gpsTotal, "pauses" => _pauses, "ended_at" => _endedAt }
+                               : { "total_chunks" => _gpsTotal, "pauses" => _pauses },
             _opts(),
             method(:onFinal)
         );

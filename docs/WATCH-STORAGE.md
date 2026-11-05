@@ -124,17 +124,21 @@ noch für einen Lauf" unterscheiden.
 | Anzeige | `watch/source/RecordView.mc` (`_drawStorageWarn`, Startscreen-Statuszeile) |
 | Texte | `Strings.mc` / `StringsLite.mc`: `err.storageSoon`, `start.bufferMin` |
 
-## Zwei Datenwege, getrennt schaltbar (05.11.2026)
+## Datenwege mit Garmin-Verknuepfung (05.11.2026)
 
-- **Voller Puffer startet trotzdem.** Bis 1.0.99 nahm die App bei vollem Object Store gar nicht erst auf — damit
-  schrieb die Uhr auch keine FIT-Datei. Eine nie gekoppelte Uhr (ihre Sessions bleiben fuer ein spaeteres Koppeln
-  liegen) nahm so nach ein paar Fahrten nichts mehr auf. Jetzt laeuft die Aufnahme weiter: die FIT-Datei landet in
-  Garmins Aktivitaetsspeicher und damit in Garmin Connect, auch ohne jede Verknuepfung mit uns (dann bleibt der
-  FIT-Import als Weg); unsere Roh-Bloecke scheitern still.
-- **Schalter vom Server** (`GET /api/devices/config`, nur Garmin, Regel in `devices._datenwege`, Uhr-Seite `Wege.mc`):
-  `rohAuf` (eigene Roh-Bloecke -> direkter Upload), `fitAccel` (SensorLogger schreibt die Beschleunigung in die FIT),
-  `gc` (Garmin Connect verknuepft). Speicherarme Uhren mit Garmin-Verknuepfung: eigener Weg aus, FIT-Accel an.
-  Global abschaltbar in `server/.env`: `UHR_WEG_ROH=0`, `UHR_WEG_FIT=0`, `UHR_LOWMEM_GC_NUR_FIT=0`. Fehlen die Schalter
-  (alter Server, nie gekoppelt), gilt das bisherige Verhalten.
-- **Vor der Einreichung pruefen:** langer Lauf auf einer 96-KB-Uhr (Instinct 2) mit `fitAccel` — kostet der
-  SensorLogger dort Heap? (Spitze 89/92 KB gemessen.) Und eine Aufnahme bei absichtlich vollem Puffer.
+**Ohne Garmin-Verknuepfung aendert sich nichts** (Jan): der Server schickt die Schalter dann gar nicht, die Uhr bleibt
+beim alten Verhalten. Mit Verknuepfung (`GET /api/devices/config`, Regel `devices._datenwege`, Uhr-Seite `Wege.mc`):
+
+- `gc: true` — die Aufnahme startet auch bei vollem Object Store (bis 1.0.99 startete sie dann gar nicht und schrieb
+  damit auch keine FIT-Datei). Die FIT liegt in Garmins Aktivitaetsspeicher und kommt ueber Garmin Connect an.
+- `rohGps` aus — die Uhr speichert nur einen GPS-Punkt alle 10 min (Ort, Spot, Zeitraum). `rohAccel` aus — keine
+  eigenen Accel-Bloecke. Meta (Sportart, Foil, Start, Ende) geht IMMER zu uns, mit `duenn` -> sobald die FIT von Garmin
+  da ist, wird sie die Session und die duenne geht darin auf (`garmin.in_garmin_session_aufgehen`, beide Reihenfolgen).
+- `fitAccel` an — der SensorLogger schreibt die Beschleunigung in die FIT, auch auf speicherarmen Uhren.
+- Speicherarme Uhren (<= 97 KB bzw. Minimal-Recorder) mit Verknuepfung: `rohGps`/`rohAccel` aus, `fitAccel` an.
+  Die Roh-Schalter gelten fest fuer eine ganze Aufnahme; beim Entkoppeln vergisst die Uhr sie.
+- Global abschaltbar in `server/.env`: `UHR_WEG_ROH_GPS=0`, `UHR_WEG_ROH_ACCEL=0`, `UHR_WEG_FIT=0`,
+  `UHR_LOWMEM_GC_NUR_FIT=0` (speicherarme Uhren behalten dann das alte Verhalten).
+- **Vor der Einreichung pruefen:** langer Lauf auf einer 96-KB-Uhr (Instinct 2) mit Verknuepfung — kostet der
+  SensorLogger dort Heap? (Spitze 89/92 KB gemessen.) Kommt die FIT mit Beschleunigung an, geht die duenne Session
+  darin auf? Und eine Aufnahme bei absichtlich vollem Puffer.

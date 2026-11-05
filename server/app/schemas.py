@@ -162,6 +162,9 @@ class SessionStartIn(BaseModel):
     # laesst dazwischen ABSICHTLICH Luecken -> Zeitachse ohne Dehnen ueber die Luecke
     # (analysis/timebase.py). Fehlt = False = Verhalten wie bisher.
     accel_luecken: bool = False
+    # Die Uhr hat eigene Bloecke absichtlich weggelassen bzw. ausgeduennt (Datenwege, devices._datenwege): die volle
+    # Aufnahme kommt als FIT ueber Garmin Connect, und die wird dann zur Datenquelle dieser Fahrt (api/garmin.py).
+    duenn: bool = False
 
 
 class SessionStartOut(BaseModel):

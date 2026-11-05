@@ -48,6 +48,16 @@ def write_meta(session_uuid: str, meta: dict) -> None:
     (d / "meta.json").write_text(json.dumps(meta, default=str, indent=2))
 
 
+def duenn(session_uuid: str) -> bool:
+    """Hat die Uhr eigene Bloecke absichtlich weggelassen (Datenwege, `duenn` in meta.json)? Dann ist die FIT von
+    Garmin Connect die bessere Quelle fuer diese Fahrt (api/garmin.py)."""
+    try:
+        meta = json.loads((session_dir(session_uuid) / "meta.json").read_text())
+    except (OSError, ValueError):
+        return False
+    return bool(isinstance(meta, dict) and meta.get("duenn"))
+
+
 def accel_luecken(session_uuid: str) -> bool:
     """Hat die Uhr ABSICHTLICH Luecken zwischen den Accel-Chunks gelassen (Speicher-Sparen)? Steht
     in meta.json, gesetzt von `/ingest/session` (`accel_luecken`) bzw. beim Zusammenfuehren. Die

@@ -697,7 +697,7 @@ def device_config(
 # auf Uhren mit ~7 KB Luft, die genau auf dem Startbildschirm abstuerzten. Die Auswertung oben laeuft
 # trotzdem ganz (Version, Part-Number, Absturz-/Speichermeldung werden gespeichert).
 MINIMAL_KEYS = ("autoStart", "gpsSparen", "gnssMode", "stopMode", "activityType",
-                "storageBudgetKb", "latestVersion", "gc", "rohAuf", "fitAccel")
+                "storageBudgetKb", "latestVersion", "gc", "rohGps", "rohAccel", "fitAccel")
 
 
 # --- Datenwege der Garmin-App (Jan, 05.11.2026) ----------------------------------------------------------------
@@ -705,8 +705,11 @@ MINIMAL_KEYS = ("autoStart", "gpsSparen", "gnssMode", "stopMode", "activityType"
 #   Fahrt). Weg 2 „fit": der SensorLogger schreibt die Beschleunigung in die FIT-Datei, die ueber Garmin Connect kommt
 #   (bis 100 Hz). Mit Garmin-Verknuepfung ist Weg 2 vollstaendig — auf speicherarmen Uhren (Puffer 160-430 KB, nach ein
 #   paar Fahrten voll) schalten wir dann Weg 1 ab und Weg 2 ein (dort lief der SensorLogger bisher gar nicht).
-# Global ueber server/.env schaltbar, spaeter auch je Nutzer denkbar — die Uhr befolgt nur `rohAuf`/`fitAccel`/`gc`.
-#   UHR_WEG_ROH=0          eigene Roh-Aufzeichnung ueberall aus
+# Global ueber server/.env schaltbar, spaeter auch je Nutzer denkbar — die Uhr befolgt nur die Schalter (Wege.mc).
+#   rohGps aus  = die Uhr speichert nur einen GPS-Punkt alle 10 min (Ort/Spot), rohAccel aus = keine eigene Accel.
+#   Meta (Sportart, Foil, Start, Ende) geht immer, mit `duenn` -> die Garmin-FIT wird Datenquelle der Fahrt.
+#   UHR_WEG_ROH_GPS=0      eigene GPS-Bloecke ueberall ausduennen
+#   UHR_WEG_ROH_ACCEL=0    eigene Accel-Bloecke ueberall aus
 #   UHR_WEG_FIT=0          SensorLogger (Beschleunigung in der FIT) ueberall aus
 #   UHR_LOWMEM_GC_NUR_FIT=0  speicherarme Uhren mit Garmin-Verknuepfung behalten Weg 1 und bekommen Weg 2 nicht dazu
 # Speicherarm wie auf der Uhr (`_isLowMem`: totalMemory <= 100000 Byte) bzw. der Minimal-Recorder (min=1).
@@ -730,11 +733,16 @@ def garmin_connect_aktiv(db: Session, user_id: int) -> bool:
 
 def _datenwege(db: Session, device: models.DeviceToken, memtot: int | None, minimal: int | None) -> dict:
     gc = garmin_connect_aktiv(db, device.user_id)
+    if not gc:
+        # Ohne Garmin-Verknuepfung aendert sich NICHTS (Jan, 05.11.2026): kein Schluessel, die Uhr bleibt beim alten
+        # Verhalten — auch kein zusaetzliches Byte fuer die Minimal-Recorder.
+        return {}
     lowmem = minimal == 1 or (memtot is not None and memtot <= LOWMEM_KB)
     nur_fit = gc and lowmem and _schalter("UHR_LOWMEM_GC_NUR_FIT")
     return {
         "gc": gc,
-        "rohAuf": _schalter("UHR_WEG_ROH") and not nur_fit,
+        "rohGps": _schalter("UHR_WEG_ROH_GPS") and not nur_fit,
+        "rohAccel": _schalter("UHR_WEG_ROH_ACCEL") and not nur_fit,
         # Ohne Verknuepfung wie bisher: SensorLogger nur auf Uhren mit genug Speicher.
         "fitAccel": _schalter("UHR_WEG_FIT") and (not lowmem or nur_fit),
     }

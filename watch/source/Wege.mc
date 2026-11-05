@@ -1,61 +1,87 @@
 using Toybox.Application.Storage;
 using Toybox.Lang;
 
-// Zwei Datenwege, getrennt vom Server schaltbar (Jan, 05.11.2026). Die Regel steht ganz auf dem Server
+// Datenwege, getrennt vom Server schaltbar (Jan, 05.11.2026). Die Regel steht ganz auf dem Server
 // (devices._datenwege), die Uhr befolgt nur die Schalter aus GET /api/devices/config:
-//   rohAuf   — unsere Roh-Bloecke (ca_/cg_/meta_/state_/sa_/sg_, Index „sessions") im Object Store -> direkter Upload.
-//              Aus = nichts davon wird geschrieben; die Aufnahme laeuft trotzdem (FIT-Datei -> Garmin Connect).
+//   rohGps   — unsere GPS-Bloecke (cg_) im Object Store -> direkter Upload.
+//   rohAccel — unsere Beschleunigungs-Bloecke (ca_).
+//              Aus = diese Bloecke werden nicht geschrieben. Die Aufnahme laeuft trotzdem (FIT-Datei -> Garmin Connect),
+//              und die Session-Meta (Sportart, Foil, Start, Ende) geht IMMER zu uns, damit der Server die FIT von Garmin
+//              spaeter dieser Session zuordnen kann.
 //   fitAccel — der SensorLogger schreibt die Beschleunigung in die FIT-Datei. Fehlt der Schalter (alter Server, nie
 //              gekoppelt), gilt die bisherige Regel: nur auf Uhren mit genug Speicher.
-//   gc       — Garmin Connect ist verknuepft (nur zur Information, z. B. fuer spaetere Hinweise).
+//   gc       — Garmin Connect ist verknuepft: nur dann startet eine Aufnahme auch bei vollem Puffer. Ohne Verknuepfung
+//              schickt der Server keinen dieser Schalter, und alles bleibt beim alten Verhalten.
 // Eigenes Modul statt neuer Felder in SessionRecorder: dort steht der 128-KB-Build an der Grenze von 253 Membern.
 module Wege {
-    var _roh = null;   // Cache, weil `istRohSchluessel` bei jedem Schreibzugriff gefragt wird
-    var _laeuft = false;   // waehrend einer Aufnahme bleibt `rohAuf` fest (s. beiStart)
+    var _gps = null;       // Cache, weil `blockiert` bei jedem Schreibzugriff gefragt wird
+    var _accel = null;
+    var _laeuft = false;   // waehrend einer Aufnahme bleiben die Roh-Schalter fest (s. beiStart)
+    var _letzterPunkt = null;   // Session-ms des zuletzt behaltenen GPS-Punkts (duenne Spur)
+    const DUENN_MS = 600000;    // GPS aus: ein Punkt alle 10 min (Jan, 05.11.2026) — Ort und Spot ohne Puffer-Last
 
     function merken(data) {
-        var schluessel = ["gc", "rohAuf", "fitAccel"];
+        var schluessel = ["gc", "rohGps", "rohAccel", "fitAccel"];
         for (var i = 0; i < schluessel.size(); i++) {
             var k = schluessel[i];
             if (data.hasKey(k) && data[k] instanceof Lang.Boolean) {
                 try { Storage.setValue("w_" + k, data[k]); } catch (e) { }
             }
         }
-        if (!_laeuft) { _roh = null; }   // neuer Wert gilt ab der naechsten Aufnahme
+        if (!_laeuft) { _gps = null; _accel = null; }   // neuer Wert gilt ab der naechsten Aufnahme
     }
-
-    // `rohAuf` fuer die ganze Aufnahme festhalten: ein Konfigurationsabruf mitten in der Fahrt darf den Weg nicht
-    // umschalten — sonst halbe Sessions (an -> aus) oder Bloecke ohne Session im Flash (aus -> an).
-    function beiStart() { _roh = null; rohAuf(); _laeuft = true; }
-    function beiStop() { _laeuft = false; _roh = null; }
 
     // Beim Entkoppeln: Schalter des alten Kontos vergessen (sonst puffert eine ungekoppelte Uhr nie wieder).
     function vergessen() {
-        var schluessel = ["w_gc", "w_rohAuf", "w_fitAccel"];
+        var schluessel = ["w_gc", "w_rohGps", "w_rohAccel", "w_fitAccel"];
         for (var i = 0; i < schluessel.size(); i++) { try { Storage.deleteValue(schluessel[i]); } catch (e) { } }
-        if (!_laeuft) { _roh = null; }
+        if (!_laeuft) { _gps = null; _accel = null; }
     }
 
-    function rohAuf() {
-        if (_roh == null) {
-            var v = Storage.getValue("w_rohAuf");
-            _roh = !(v instanceof Lang.Boolean) || v;
-        }
-        return _roh;
+    // Roh-Schalter fuer die ganze Aufnahme festhalten: ein Konfigurationsabruf mitten in der Fahrt darf den Weg nicht
+    // umschalten — sonst halbe Spuren oder Bloecke ohne Session im Flash.
+    function beiStart() {
+        _gps = null; _accel = null; _letzterPunkt = null;
+        _an("w_rohGps", false); _an("w_rohAccel", true); _laeuft = true;
     }
+    function beiStop() { _laeuft = false; _gps = null; _accel = null; }
+
+    function _an(key, accel) {
+        if (accel) {
+            if (_accel == null) { var v = Storage.getValue(key); _accel = !(v instanceof Lang.Boolean) || v; }
+            return _accel;
+        }
+        if (_gps == null) { var v = Storage.getValue(key); _gps = !(v instanceof Lang.Boolean) || v; }
+        return _gps;
+    }
+
+    // GPS-Bloecke aus: statt gar nichts eine duenne Spur (erster Punkt, dann alle 10 min), damit die Session Ort, Spot
+    // und Zeitraum hat, bis die FIT von Garmin kommt. An: jeder Punkt.
+    function gpsBehalten(p) {
+        if (_an("w_rohGps", false)) { return true; }
+        if (!(p instanceof Lang.Array) || p.size() == 0 || !(p[0] instanceof Lang.Number)) { return false; }
+        if (_letzterPunkt == null || p[0] - _letzterPunkt >= DUENN_MS) { _letzterPunkt = p[0]; return true; }
+        return false;
+    }
+
+    // In die Session-Meta (geht als /ingest/session an den Server): eigene Bloecke absichtlich weggelassen/ausgeduennt.
+    function meta(m) {
+        if (!_an("w_rohGps", false) || !_an("w_rohAccel", true)) { m["duenn"] = true; }
+    }
+
+    function gc() { return Storage.getValue("w_gc") == true; }
 
     function fitAccel(standard) {
         var v = Storage.getValue("w_fitAccel");
         return (v instanceof Lang.Boolean) ? v : standard;
     }
 
-    // Gehoert dieser Schluessel zum eigenen Roh-Weg? Nur dann blockt `rohAuf = false` den Schreibzugriff —
-    // Einstellungen, Canary und Absturzmeldungen werden weiter gespeichert.
-    function istRohSchluessel(key) {
-        if (!(key instanceof Lang.String)) { return false; }
-        if (key.equals("sessions")) { return true; }
+    // Soll dieser Schreibzugriff unterbleiben? Nur Accel-Bloecke (GPS wird stattdessen ausgeduennt, s. gpsBehalten) —
+    // Meta, Zustand, Index, Einstellungen, Canary und Absturzmeldungen werden immer gespeichert.
+    function blockiert(key) {
+        if (!(key instanceof Lang.String) || key.length() < 3) { return false; }
         var p = key.substring(0, 3);
-        return p != null && (p.equals("ca_") || p.equals("cg_") || p.equals("sa_") || p.equals("sg_")
-            || key.find("meta_") == 0 || key.find("state_") == 0);
+        if (p.equals("ca_")) { return !_an("w_rohAccel", true); }
+        return false;
     }
 }

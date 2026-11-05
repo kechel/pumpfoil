@@ -1365,7 +1365,8 @@ class SessionRecorder {
         Wege.beiStart();
         _registerSession();
         _saveState(false);
-        // Auch bei vollem Object-Store aufnehmen (05.11.2026), s. Vollfassung unten.
+        // Voller Object-Store: nur mit Garmin-Verknuepfung trotzdem aufnehmen (05.11.2026), s. Vollfassung unten.
+        if (storageFull && !Wege.gc()) { return; }
         runMark(PHASE_RECORD);
         _foiling = false; _enterStreak = 0; _exitStreak = 0; _runCount = 0;
         _runEndedMs = -100000;
@@ -1461,11 +1462,11 @@ class SessionRecorder {
         Wege.beiStart();
         _registerSession();
         _saveState(false);
-        // Object-Store voll: TROTZDEM aufnehmen (05.11.2026). Frueher hiess es hier „gar nicht erst starten (kein
-        // Crash)" — dann schrieb die Uhr auch keine FIT-Datei, und eine nie gekoppelte Uhr (Puffer nach ein paar Fahrten
-        // voll) nahm gar nichts mehr auf, auch nichts fuer Garmin Connect. Die FIT-Session liegt in Garmins eigenem
-        // Aktivitaetsspeicher und kommt ueber die Garmin-Verknuepfung vollstaendig an; unsere Roh-Chunks scheitern
-        // still in `_store` (seit 1.0.92 faengt jeder Schreibzugriff StorageFullException ab), die UI zeigt den Hinweis.
+        // Object-Store voll: ohne Garmin-Verknuepfung wie bisher gar nicht erst starten (UI zeigt den Hinweis). MIT
+        // Verknuepfung trotzdem aufnehmen (05.11.2026): die FIT-Session liegt in Garmins eigenem Aktivitaetsspeicher und
+        // kommt ueber Garmin Connect vollstaendig an; unsere Roh-Chunks scheitern still in `_store` (seit 1.0.92 faengt
+        // jeder Schreibzugriff StorageFullException ab). Jan: ohne Verknuepfung aendert sich erstmal nichts.
+        if (storageFull && !Wege.gc()) { return; }
         _armCanary();
         runMark(PHASE_RECORD);
         // Lauferkennung zurücksetzen.
@@ -1707,8 +1708,9 @@ class SessionRecorder {
     // eine Exception -> wir fangen sie ab (kein „IQ!"-Crash), merken storageFull und melden
     // es der UI. So gehen schlimmstenfalls die jüngsten Sekunden verloren statt der App.
     hidden function _store(key, value) {
-        // Eigener Roh-Weg vom Server abgeschaltet (Wege.mc): so tun, als waere geschrieben — die Aufnahme laeuft weiter.
-        if (!Wege.rohAuf() && Wege.istRohSchluessel(key)) { return true; }
+        // GPS-/Accel-Bloecke vom Server abgeschaltet (Wege.mc): so tun, als waere geschrieben — die Aufnahme laeuft
+        // weiter, Meta und Zustand werden gespeichert (Zuordnung der Garmin-FIT am Server).
+        if (Wege.blockiert(key)) { return true; }
         try {
             Storage.setValue(key, value);
             return true;
@@ -1780,6 +1782,8 @@ class SessionRecorder {
             "accel_n" => _gZ[9],
             "accel_t1" => _gZ[10],
             "completed" => completed,
+            // Wanduhr-Ende: ohne GPS-Bloecke (Datenwege aus) kann der Server es sonst nicht berechnen.
+            "ended_at" => completed ? Time.now().value() : null,
             "pauses" => _pauseListe
         });
     }
@@ -2385,6 +2389,7 @@ class SessionRecorder {
         }
     }
     hidden function _gpsBufAdd(p) {
+        if (!Wege.gpsBehalten(p)) { return; }   // GPS-Bloecke vom Server aus: nur ein Punkt alle 10 min (Wege.mc)
         _gpsBuf.add(p);
         if (_gpsBuf.size() >= _gpsChunkTarget()) { _flushGps(false); }
     }
@@ -2827,6 +2832,7 @@ class SessionRecorder {
             "foil_id" => sessionFoilId
         };
         Sport.meta(m);   // + "sport_class" (nur VOLL-Build mit Sportart-Wahl, Sport.mc)
+        Wege.meta(m);    // + "duenn", wenn eigene Bloecke absichtlich fehlen (Garmin-FIT wird Datenquelle)
         _store("meta_" + _sessionUuid, m);
     }
 

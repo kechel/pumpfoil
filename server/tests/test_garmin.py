@@ -493,16 +493,107 @@ def test_datenwege_der_uhr(client, garmin, monkeypatch):
         dev = models.DeviceToken(user_id=uid, label="instinct", token=secrets.token_hex(16), platform="garmin")
         db.add(dev); db.commit()
         ohne = devices._datenwege(db, dev, memtot=92, minimal=1)
-        assert ohne == {"gc": False, "rohAuf": True, "fitAccel": False}           # wie bisher
-        assert devices._datenwege(db, dev, memtot=763, minimal=None)["fitAccel"] is True
+        assert ohne == {}                                                    # ohne Verknuepfung: nichts Neues
+        assert devices._datenwege(db, dev, memtot=763, minimal=None) == {}
         _link(uid)
         mit = devices._datenwege(db, dev, memtot=92, minimal=1)
-        assert mit == {"gc": True, "rohAuf": False, "fitAccel": True}
-        assert devices._datenwege(db, dev, memtot=763, minimal=None) == {"gc": True, "rohAuf": True, "fitAccel": True}
+        assert mit == {"gc": True, "rohGps": False, "rohAccel": False, "fitAccel": True}
+        assert devices._datenwege(db, dev, memtot=763, minimal=None) == {"gc": True, "rohGps": True, "rohAccel": True,
+                                                                          "fitAccel": True}
         monkeypatch.setenv("UHR_LOWMEM_GC_NUR_FIT", "0")
-        assert devices._datenwege(db, dev, memtot=92, minimal=1) == {"gc": True, "rohAuf": True, "fitAccel": False}
+        assert devices._datenwege(db, dev, memtot=92, minimal=1) == {"gc": True, "rohGps": True, "rohAccel": True,
+                                                                      "fitAccel": False}
         monkeypatch.setenv("UHR_WEG_FIT", "0")
-        monkeypatch.setenv("UHR_WEG_ROH", "0")
-        assert devices._datenwege(db, dev, memtot=763, minimal=None) == {"gc": True, "rohAuf": False, "fitAccel": False}
+        monkeypatch.setenv("UHR_WEG_ROH_GPS", "0")
+        assert devices._datenwege(db, dev, memtot=763, minimal=None) == {"gc": True, "rohGps": False, "rohAccel": True,
+                                                                          "fitAccel": False}
+    finally:
+        db.close()
+
+
+def _duenne_eigene(uid, start, tmp_path, minuten=30):
+    """Eigene Aufnahme mit `duenn` in der meta.json (Datenwege aus), Sportart + Foil von der Uhr."""
+    import json
+    from app import models
+    from app.db import SessionLocal
+    sid, suuid = _eigene_session(uid, start, minuten=minuten)
+    (tmp_path / suuid).mkdir(parents=True, exist_ok=True)
+    (tmp_path / suuid / "meta.json").write_text(json.dumps({"duenn": True}))
+    db = SessionLocal()
+    try:
+        s = db.get(models.Session, sid)
+        s.sport_class = "wingfoil"
+        s.caption = "von der Uhr"
+        db.commit()
+    finally:
+        db.close()
+    return sid, suuid
+
+
+def test_duenne_eigene_dann_garmin(client, garmin, monkeypatch, tmp_path):
+    # Uhr mit Datenwegen aus: Meta kommt zuerst, die Garmin-FIT wird die Session, die eigene geht darin auf.
+    from app import models, storage
+    from app.db import SessionLocal
+    uid, _ = _konto(client)
+    gid = _link(uid)
+    monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
+    monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(parents=True, exist_ok=True) or tmp_path / u)
+    start = datetime(2026, 11, 4, 9, 0, tzinfo=timezone.utc)
+    sid, _u = _duenne_eigene(uid, start, tmp_path)
+    monkeypatch.setattr(garmin.httpx, "get", lambda u, **k: _Antwort(content=b"FIT"))
+    import app.fitimport as fi
+    import app.api.sessions as sess
+    import app.analysis as an
+    monkeypatch.setattr(fi, "parse_fit_bytes", lambda b: _parsed(start))
+    monkeypatch.setattr(an, "run_analysis", lambda db, s: None)
+    aufrufe = []
+
+    def _import(db, user, raw, parsed, **k):
+        aufrufe.append(k)
+        g = models.Session(session_uuid="garmin-" + secrets.token_hex(6), user_id=user.id, started_at=start,
+                           ended_at=start + timedelta(minutes=30), status="analyzed", sport_class=k["sport_override"])
+        db.add(g); db.commit()
+        return g
+    monkeypatch.setattr(sess, "import_parsed_session", _import)
+    client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [
+        {"userId": gid, "summaryId": "d1", "fileType": "FIT", "activityType": "OTHER",
+         "startTimeInSeconds": int(start.timestamp()),
+         "callbackURL": "https://apis.garmin.com/wellness-api/rest/activityFile?id=8"}]})
+    assert aufrufe and aufrufe[0]["ausser_id"] == sid and aufrufe[0]["sport_override"] == "wingfoil"
+    db = SessionLocal()
+    try:
+        eigene = db.get(models.Session, sid)
+        g = db.get(models.Session, eigene.merged_into)
+        assert eigene.deleted and g.session_uuid.startswith("garmin-") and not g.deleted
+        assert g.sport_class == "wingfoil" and g.caption == "von der Uhr"
+    finally:
+        db.close()
+
+
+def test_garmin_dann_duenne_eigene(client, garmin, monkeypatch, tmp_path):
+    # Andere Reihenfolge: die Garmin-Session ist schon da, die duenne eigene Aufnahme geht beim Abschluss darin auf.
+    from app import models, storage
+    from app.db import SessionLocal
+    import app.analysis as an
+    uid, _ = _konto(client)
+    monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
+    monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(parents=True, exist_ok=True) or tmp_path / u)
+    monkeypatch.setattr(an, "run_analysis", lambda db, s: None)
+    start = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
+    db = SessionLocal()
+    try:
+        g = models.Session(session_uuid="garmin-" + secrets.token_hex(6), user_id=uid, started_at=start,
+                           ended_at=start + timedelta(minutes=30), status="analyzed", sport_class="pumpfoil")
+        db.add(g); db.commit()
+        gid_s = g.id
+    finally:
+        db.close()
+    sid, _u = _duenne_eigene(uid, start + timedelta(seconds=1), tmp_path)
+    db = SessionLocal()
+    try:
+        assert garmin.nach_eigener_aufnahme(db, db.get(models.Session, sid)) == 1
+        g = db.get(models.Session, gid_s)
+        assert not g.deleted and g.sport_class == "wingfoil"
+        assert db.get(models.Session, sid).merged_into == gid_s
     finally:
         db.close()
