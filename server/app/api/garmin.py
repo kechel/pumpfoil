@@ -286,13 +286,40 @@ def _profil(eintrag: dict) -> str:
     return str(eintrag.get("activityType") or "").upper().removesuffix("_V2")
 
 
-def _eigene_aufnahme(db: Session, user_id: int, start: datetime, ende: datetime) -> bool:
-    """Gibt es zur selben Zeit schon eine Aufnahme aus unseren eigenen Apps? Dann ist die Garmin-Aktivitaet sehr
-    wahrscheinlich dieselbe Fahrt — unsere Connect-IQ-App legt in Garmin Connect ebenfalls eine Aktivitaet an.
-    Eigene Aufnahmen tragen ein Geraet (device_id), Importe nicht."""
+def _eigene_aufnahme(db: Session, user_id: int, start: datetime, ende: datetime) -> models.Session | None:
+    """Aufnahme aus unseren eigenen Apps zur selben Zeit? Dann ist die Garmin-Aktivitaet dieselbe Fahrt — unsere
+    Connect-IQ-App legt in Garmin Connect ebenfalls eine Aktivitaet an (oder das Handy lief daneben mit). Eigene
+    Aufnahmen tragen ein Geraet (device_id), Importe nicht. Eine noch laufende zaehlt, wenn sie vorher begann."""
+    from sqlalchemy import and_, or_
     S = models.Session
-    return db.query(S.id).filter(S.user_id == user_id, S.deleted.isnot(True), S.device_id.isnot(None),
-                                 S.started_at < ende, S.ended_at > start).first() is not None
+    return (db.query(S).filter(
+        S.user_id == user_id, S.deleted.isnot(True), S.device_id.isnot(None), S.started_at < ende,
+        or_(S.ended_at > start, and_(S.ended_at.is_(None), S.started_at > start - timedelta(hours=12))))
+        .order_by(S.started_at).first())
+
+
+def _sicherer_name(text: str) -> str:
+    return "".join(c for c in str(text) if c.isalnum() or c in "-_")[:60] or "aktivitaet"
+
+
+def datei_anhaengen(ziel: models.Session, roh: bytes, beschreibung: dict) -> str | None:
+    """Garmin-Datei an eine Session haengen, ohne etwas zu ueberschreiben (Jan, 05.11.2026: „die daten von uhr und
+    ueber garmin fuer die gleiche session verknuepfen … immer beide daten komplett speichern damit nichts verloren
+    gehen kann"). Je Garmin-Aktivitaet eine NEUE Datei `garmin-connect-<summaryId>.fit` plus `.json` mit der
+    Beschreibung — `server/data` ist per Hardlink mit den Sicherungen verbunden, ein Schreiben in eine vorhandene Datei
+    wuerde auch die Sicherungen aendern. Gibt den Dateinamen zurueck (None, wenn es sie schon gab)."""
+    import json as _json
+
+    from .. import storage
+    d = storage.ensure_session_dir(ziel.session_uuid)
+    name = f"garmin-connect-{_sicherer_name(beschreibung.get('summaryId') or beschreibung.get('activityId') or '')}"
+    fit, info = d / f"{name}.fit", d / f"{name}.json"
+    if fit.exists():
+        return None
+    fit.write_bytes(roh)
+    info.write_text(_json.dumps({**beschreibung, "datei": fit.name, "angehaengt": _jetzt().isoformat()},
+                                default=str, indent=2))
+    return fit.name
 
 
 def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) -> str:
@@ -330,8 +357,13 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     start = _aware(parsed["started_at"])
     samples = parsed.get("gps_samples") or []
     ende = start + timedelta(milliseconds=int(samples[-1][0] if samples else parsed.get("dauer_ms") or 0))
-    if _eigene_aufnahme(db, user.id, start, ende):
-        return "eigene aufnahme"
+    eigene = _eigene_aufnahme(db, user.id, start, ende)
+    if eigene is not None:
+        # Dieselbe Fahrt: keine zweite Session, aber die Garmin-Datei vollstaendig an unsere haengen.
+        datei_anhaengen(eigene, r.content, {k: eintrag.get(k) for k in
+                                            ("summaryId", "activityId", "activityType", "deviceName",
+                                             "startTimeInSeconds", "activityName")})
+        return f"an eigene aufnahme #{eigene.id} angehaengt"
     s = import_parsed_session(db, user, r.content, parsed, src_label="garmin-import", uuid_prefix="garmin-")
     if s is None:
         return "schon da"
@@ -402,6 +434,40 @@ async def push_permissions(request: Request, db: Session = Depends(get_db)) -> d
             link.permissions = ",".join(str(x) for x in (e.get("permissions") or []))[:300] or None
     db.commit()
     return {"ok": True}
+
+
+def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
+    """Andere Reihenfolge: Garmin war schneller, jetzt schliesst unsere App die Aufnahme ab. Garmin-Importe desselben
+    Nutzers zur selben Zeit werden mit ihr verknuepft: ihre Originaldatei kommt (als Kopie) an unsere Session, die
+    Garmin-Session wird ausgeblendet (deleted) — ihr Ordner bleibt unangetastet, es geht nichts verloren. Wirft nie.
+    Gibt die Zahl der verknuepften Garmin-Sessions zurueck."""
+    if not eigene.device_id or eigene.started_at is None:
+        return 0
+    from .. import storage
+    S = models.Session
+    ende = eigene.ended_at or eigene.started_at + timedelta(hours=12)
+    n = 0
+    try:
+        for g in db.query(S).filter(S.user_id == eigene.user_id, S.deleted.isnot(True),
+                                    S.session_uuid.like("garmin-%"), S.started_at < ende,
+                                    S.ended_at > eigene.started_at).all():
+            d = storage.session_dir(g.session_uuid)
+            originale = sorted(d.glob("original.*")) if d.exists() else []
+            if not originale:
+                continue
+            datei_anhaengen(eigene, originale[0].read_bytes(),
+                            {"summaryId": g.session_uuid, "deviceName": g.device_model,
+                             "von_session": g.id, "von_uuid": g.session_uuid})
+            g.deleted = True
+            n += 1
+            log.info("garmin: Import #%s mit eigener Aufnahme #%s verknuepft (user %s)", g.id, eigene.id, eigene.user_id)
+        if n:
+            db.commit()
+    except Exception as exc:  # noqa: BLE001 — der Abschluss einer Aufnahme darf daran nie scheitern
+        db.rollback()
+        log.warning("garmin: Verknuepfen nach Aufnahme #%s fehlgeschlagen: %s", eigene.id, exc)
+        return 0
+    return n
 
 
 # --- Trennen --------------------------------------------------------------------------------------------------------

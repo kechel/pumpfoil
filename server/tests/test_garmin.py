@@ -149,31 +149,72 @@ def test_push_filtert_und_importiert(client, garmin, monkeypatch):
     assert _link_von(uid).last_sync_at is not None
 
 
-def test_eigene_aufnahme_wird_nicht_doppelt(client, garmin, monkeypatch):
-    uid, _ = _konto(client)
-    gid = _link(uid)
+def _eigene_session(uid, start, minuten=40):
     from app import models
     from app.db import SessionLocal
-    start = datetime(2026, 11, 2, 9, 0, tzinfo=timezone.utc)
     db = SessionLocal()
     try:
         dev = models.DeviceToken(user_id=uid, label="fenix", token=secrets.token_hex(16))
         db.add(dev); db.flush()
-        db.add(models.Session(session_uuid=secrets.token_hex(16), user_id=uid, device_id=dev.id, started_at=start,
-                              ended_at=start + timedelta(minutes=40), status="analyzed"))
-        db.commit()
+        s = models.Session(session_uuid=secrets.token_hex(16), user_id=uid, device_id=dev.id, started_at=start,
+                           ended_at=start + timedelta(minutes=minuten), status="analyzed")
+        db.add(s); db.commit()
+        return s.id, s.session_uuid
     finally:
         db.close()
+
+
+def test_eigene_aufnahme_bekommt_die_garmin_datei(client, garmin, monkeypatch, tmp_path):
+    uid, _ = _konto(client)
+    gid = _link(uid)
+    start = datetime(2026, 11, 2, 9, 0, tzinfo=timezone.utc)
+    sid, suuid = _eigene_session(uid, start)
+    from app import storage
+    monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
+    monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(parents=True, exist_ok=True) or tmp_path / u)
     importiert = []
-    monkeypatch.setattr(garmin.httpx, "get", lambda u, **k: _Antwort(content=b"FIT"))
+    monkeypatch.setattr(garmin.httpx, "get", lambda u, **k: _Antwort(content=b"GARMIN-FIT"))
     import app.fitimport as fi
     import app.api.sessions as sess
     monkeypatch.setattr(fi, "parse_fit_bytes", lambda b: _parsed(start + timedelta(minutes=1)))
     monkeypatch.setattr(sess, "import_parsed_session", lambda *a, **k: importiert.append(1) or object())
     client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [
-        {"userId": gid, "summaryId": "e", "fileType": "FIT", "activityType": "SURFING",
+        {"userId": gid, "summaryId": "77-file", "fileType": "FIT", "activityType": "SURFING", "deviceName": "fenix 8",
          "callbackURL": "https://apis.garmin.com/wellness-api/rest/activityFile?id=2"}]})
-    assert importiert == []
+    assert importiert == []                                   # keine zweite Session
+    fit = tmp_path / suuid / "garmin-connect-77-file.fit"
+    assert fit.read_bytes() == b"GARMIN-FIT"                  # aber die Garmin-Datei ist vollstaendig da
+    assert (tmp_path / suuid / "garmin-connect-77-file.json").exists()
+
+
+def test_garmin_zuerst_dann_eigene_aufnahme(client, garmin, monkeypatch, tmp_path):
+    uid, _ = _konto(client)
+    from app import models, storage
+    from app.db import SessionLocal
+    monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
+    monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(parents=True, exist_ok=True) or tmp_path / u)
+    start = datetime(2026, 11, 3, 9, 0, tzinfo=timezone.utc)
+    db = SessionLocal()
+    try:
+        g = models.Session(session_uuid="garmin-" + secrets.token_hex(8), user_id=uid, started_at=start,
+                           ended_at=start + timedelta(minutes=40), status="analyzed", device_model="Garmin fenix 8")
+        db.add(g); db.commit()
+        gid_s, guuid = g.id, g.session_uuid
+    finally:
+        db.close()
+    (tmp_path / guuid).mkdir(parents=True)
+    (tmp_path / guuid / "original.fit").write_bytes(b"VON-GARMIN")
+    sid, suuid = _eigene_session(uid, start + timedelta(minutes=2))
+    db = SessionLocal()
+    try:
+        eigene = db.get(models.Session, sid)
+        assert garmin.nach_eigener_aufnahme(db, eigene) == 1
+        assert db.get(models.Session, gid_s).deleted is True    # ausgeblendet …
+    finally:
+        db.close()
+    assert (tmp_path / guuid / "original.fit").read_bytes() == b"VON-GARMIN"   # … ihr Ordner unangetastet
+    kopien = list((tmp_path / suuid).glob("garmin-connect-*.fit"))
+    assert len(kopien) == 1 and kopien[0].read_bytes() == b"VON-GARMIN"
 
 
 def test_deregistrierung_und_freigaben(client, garmin):

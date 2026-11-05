@@ -668,6 +668,10 @@ def complete_session(
                         _tanz.orte_entpacken(body.tanz_orte))
     s.status = "complete"
     db.commit()
+    # Garmin Connect (05.11.2026): kam dieselbe Fahrt schon ueber Garmin herein, mit dieser Aufnahme verknuepfen —
+    # Garmin-Datei an diese Session, die Garmin-Session ausblenden (app/api/garmin.py). Wirft nie.
+    from .garmin import nach_eigener_aufnahme
+    nach_eigener_aufnahme(db, s)
 
     # Analyse asynchron, damit der Upload-Abschluss der Uhr schnell quittiert wird.
     background.add_task(_analyze_in_background, s.id)
