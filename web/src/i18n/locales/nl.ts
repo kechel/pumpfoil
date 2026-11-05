@@ -234,6 +234,7 @@ const nl: Record<string, string> = {
   "sd.roSpeed": "Snelheid",
   "sd.roDist": "Afstand",
   "sd.roToggle": "Waarden tonen",
+  "sd.playPos": "Afspeelpositie",
   "transfer.action": "Overdragen aan …",
   "transfer.title": "Sessie overdragen",
   "transfer.desc": "Naar wie moet deze sessie gaan? Bijv. als iemand met jouw horloge heeft gevaren — bij acceptatie is de sessie van hem/haar.",

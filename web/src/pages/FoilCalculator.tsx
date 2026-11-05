@@ -92,7 +92,9 @@ export default function FoilCalculator() {
           </Field>
           <Field label={t("calc.mastDepth")}>
             <select value={mast.mastDepth_m} onChange={(e) => setMast({ ...mast, mastDepth_m: Number(e.target.value) })} className={selCls}>
-              {[0.2, 0.3, 0.4, 0.5].map((d) => <option key={d} value={d}>{d * 100} cm</option>)}
+              {/* Eingetauchter Teil des Masts. Bis 05.11.2026 nur bis 50 cm — zu kurz fuer lange Masten (Feedback
+                  PumpingCarbon: „lassen sich nur Mastlaengen bis 50 cm auswaehlen"). */}
+              {[0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((d) => <option key={d} value={d}>{Math.round(d * 100)} cm</option>)}
             </select>
           </Field>
         </div>

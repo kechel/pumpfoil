@@ -232,6 +232,7 @@ const id: Record<string, string> = {
   "sd.roSpeed": "Kecepatan",
   "sd.roDist": "Jarak",
   "sd.roToggle": "Tampilkan nilai",
+  "sd.playPos": "Posisi pemutaran",
   "transfer.action": "Transfer ke …",
   "transfer.title": "Transfer sesi",
   "transfer.desc": "Sesi ini mau dikirim ke siapa? Misalnya jika seseorang meminjam jammu — begitu mereka menerima, sesi jadi milik mereka.",

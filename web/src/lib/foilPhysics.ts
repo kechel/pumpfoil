@@ -25,7 +25,7 @@ export interface RiderParams {
 
 export interface MastParams {
   mastDiameter_mm: number; // 17 | 19
-  mastDepth_m: number;     // 0.20 | 0.30 | 0.40 | 0.50 (untergetauchte Höhe)
+  mastDepth_m: number;     // 0.20 … 1.00 (untergetauchte Höhe)
 }
 
 export interface PumpParams {

@@ -244,6 +244,7 @@ const ptPT: Record<string, string> = {
   "sd.roSpeed": "Velocidade",
   "sd.roDist": "Distância",
   "sd.roToggle": "Mostrar valores",
+  "sd.playPos": "Posição da reprodução",
   "transfer.action": "Transferir para …",
   "transfer.title": "Transferir sessão",
   "transfer.desc": "Para quem vai esta sessão? Ex.: se alguém andou com o teu relógio — assim que aceitar, ela passa a ser dessa pessoa.",

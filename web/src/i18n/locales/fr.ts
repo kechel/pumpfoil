@@ -232,6 +232,7 @@ const fr: Record<string, string> = {
   "sd.roSpeed": "Vitesse",
   "sd.roDist": "Distance",
   "sd.roToggle": "Afficher les valeurs",
+  "sd.playPos": "Position de lecture",
   "transfer.action": "Transférer à …",
   "transfer.title": "Transférer la session",
   "transfer.desc": "À qui transférer cette session ? Par ex. si quelqu'un a utilisé ta montre — une fois acceptée, elle lui appartient.",

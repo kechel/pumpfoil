@@ -255,6 +255,7 @@ const nb: Record<string, string> = {
   "sd.roSpeed": "Fart",
   "sd.roDist": "Distanse",
   "sd.roToggle": "Vis verdier",
+  "sd.playPos": "Avspillingsposisjon",
   "transfer.action": "Overfør til …",
   "transfer.title": "Overfør økt",
   "transfer.desc": "Hvem skal denne økta gå til? For eksempel hvis noen kjørte med klokka di — når de godtar, er den deres.",

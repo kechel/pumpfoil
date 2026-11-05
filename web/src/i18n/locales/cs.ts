@@ -234,6 +234,7 @@ const cs: Record<string, string> = {
   "sd.roSpeed": "Tempo",
   "sd.roDist": "Vzdálenost",
   "sd.roToggle": "Zobrazit hodnoty",
+  "sd.playPos": "Pozice přehrávání",
   "transfer.action": "Přenést na …",
   "transfer.title": "Přenést vyjížďku",
   "transfer.desc": "Komu má tato vyjížďka patřit? Např. když s tvými hodinkami jel někdo jiný — po přijetí bude vyjížďka jeho.",

@@ -711,6 +711,8 @@ export default function SessionDetail() {
   const [readout, setReadout] = useState<{ v: number; d: number; hr: number | null } | null>(null);
   const [showReadout, setShowReadout] = useState(true);   // Overlay rechts oben ein/aus
   const playheadRef = useRef(0);                      // aktuelle (Float-)Position in der Play-Timeline
+  // Abspiel-Zeitachse (ms je Listeneintrag, Luecken gedeckelt) — vom Karten-Effekt gesetzt, vom Schieberegler gelesen.
+  const spielTRef = useRef<number[]>([]);
   const posMarkerRef = useRef<L.CircleMarker | null>(null);
   const tipRef = useRef<L.Polyline | null>(null);     // bewegliche Spitze (interpoliertes Teilstück)
 
@@ -1219,6 +1221,30 @@ export default function SessionDetail() {
       setZeigerTick((n) => n + 1);
     });
   }, [playTimeline, indexZuSessionMs]);
+
+  /**
+   * Schieberegler unter der Wiedergabe (Feedback PumpingCarbon, 05.11.2026: „ein Schieberegler … dass man genau durch
+   * die Maus steuern kann, wo man sich zu welchem Zeitpunkt befunden hat"). `anteil` 0…1 auf der ABSPIEL-Zeitachse,
+   * also genau wie der Balken vorher. Laeuft die Wiedergabe, laeuft sie ab der neuen Stelle weiter; pausiert bleibt sie
+   * stehen. Gedrosselt wie das Ueberfahren der Lage-Kurven (der Karten-Effekt baut die Spur neu auf).
+   */
+  const springeAufAnteil = useCallback((anteil: number) => {
+    const spielT = spielTRef.current;
+    if (spielT.length < 2) return;
+    const dauer = spielT[spielT.length - 1] || 1;
+    const e = Math.min(Math.max(anteil, 0), 1) * dauer;
+    let lo = 0, hi = spielT.length - 1;
+    while (lo < hi) { const m = (lo + hi) >> 1; if (spielT[m] <= e) lo = m + 1; else hi = m; }
+    const k = Math.max(0, lo - 1);
+    const w = (spielT[k + 1] ?? spielT[k]) - spielT[k];
+    playheadRef.current = Math.min(k + (w > 0 ? (e - spielT[k]) / w : 0), spielT.length - 1);
+    setProgress(e / dauer);
+    const jetzt = performance.now();
+    if (jetzt - zeigerZuletzt.current < 50) return;
+    zeigerZuletzt.current = jetzt;
+    cancelAnimationFrame(zeigerRaf.current);
+    zeigerRaf.current = requestAnimationFrame(() => setZeigerTick((n) => n + 1));
+  }, []);
 
   // Wechselt die Timeline (Lauf-Auswahl/Session), Wiedergabe zurücksetzen.
   useEffect(() => {
@@ -1744,6 +1770,7 @@ export default function SessionDetail() {
     }
     const spielDauer = spielT[spielT.length - 1] || 1;
     if (Math.abs(spielDauerS - spielDauer / 1000) > 0.05) setSpielDauerS(spielDauer / 1000);
+    spielTRef.current = spielT;
     /** Abspielzeit -> Kommazahl-Index in der Liste. */
     const kopfBeiSpielzeit = (e: number): number => {
       if (e <= 0) return 0;
@@ -2702,9 +2729,11 @@ export default function SessionDetail() {
                   {t("sd.roToggle")}
                 </button>
                 <div className="flex min-w-[120px] flex-1 items-center gap-2">
-                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-700">
-                    <div className="h-full rounded-full bg-brand-400" style={{ width: `${Math.round(progress * 100)}%` }} />
-                  </div>
+                  <input type="range" min={0} max={1000} step={1} value={Math.round(progress * 1000)}
+                    onChange={(e) => springeAufAnteil(Number(e.target.value) / 1000)}
+                    onPointerUp={() => setZeigerTick((n) => n + 1)}
+                    aria-label={t("sd.playPos")} title={t("sd.playPos")}
+                    className="h-1.5 flex-1 cursor-pointer accent-brand-400" />
                   <span className="w-20 shrink-0 text-right text-[11px] tabular-nums text-slate-400">
                     {fmtMMSS(progress * spielDauerS)} / {fmtMMSS(spielDauerS)}
                   </span>

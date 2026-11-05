@@ -232,6 +232,7 @@ const zh: Record<string, string> = {
   "sd.roSpeed": "速度",
   "sd.roDist": "距离",
   "sd.roToggle": "显示数值",
+  "sd.playPos": "播放位置",
   "transfer.action": "转移给 …",
   "transfer.title": "转移记录",
   "transfer.desc": "这条记录该转给谁？例如别人用了你的手表 —— 对方接受后，记录就归他们所有。",

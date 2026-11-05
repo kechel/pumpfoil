@@ -255,6 +255,7 @@ const pl: Record<string, string> = {
   "sd.roSpeed": "Prędkość",
   "sd.roDist": "Dystans",
   "sd.roToggle": "Pokaż wartości",
+  "sd.playPos": "Pozycja odtwarzania",
   "transfer.action": "Przekaż do …",
   "transfer.title": "Przekaż sesję",
   "transfer.desc": "Do kogo ma trafić ta sesja? Np. jeśli ktoś jeździł na Twoim zegarku — po zaakceptowaniu sesja należy do tej osoby.",

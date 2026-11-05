@@ -8,7 +8,7 @@ struct FoilCalculatorView: View {
     private let speeds: [Double] = [10, 12, 14, 16, 18, 20]
     // Explizit typisiert: als Literal-Array direkt im Picker musste der Type-Checker den Element-Typ
     // erst aus dem Tag ableiten.
-    private let depths: [Double] = [0.2, 0.3, 0.4, 0.5]
+    private let depths: [Double] = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]   // bis 100 cm wie im Web (05.11.2026)
 
     @State private var foils: [Foil] = []
     @State private var brands: [String] = []

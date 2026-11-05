@@ -157,8 +157,9 @@ fun FoilCalculatorScreen(onBack: () -> Unit = {}) {
                         Spacer(Modifier.height(8.dp))
                         Text(I18n.t("calc.mastDepth"), style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf(0.2, 0.3, 0.4, 0.5).forEach { dp ->
+                        // Neun Stufen passen nicht in eine Zeile -> waagrecht wischbar.
+                        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            listOf(0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0).forEach { dp ->   // bis 100 cm wie im Web (05.11.2026)
                                 FilterChip(selected = mastDepth == dp, onClick = { mastDepth = dp },
                                     label = { Text("${(dp * 100).roundToInt()} cm") })
                             }

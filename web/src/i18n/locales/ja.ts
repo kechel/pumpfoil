@@ -232,6 +232,7 @@ const ja: Record<string, string> = {
   "sd.roSpeed": "速度",
   "sd.roDist": "距離",
   "sd.roToggle": "値を表示",
+  "sd.playPos": "再生位置",
   "transfer.action": "譲渡先 …",
   "transfer.title": "セッションを譲渡",
   "transfer.desc": "このセッションを誰に譲りますか？例えば誰かがあなたのウォッチで乗った場合 — 相手が承認すると、そのセッションは相手のものになります。",

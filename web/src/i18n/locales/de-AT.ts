@@ -233,6 +233,7 @@ const deAT: Record<string, string> = {
   "sd.roSpeed": "Tempo",
   "sd.roDist": "Strecke",
   "sd.roToggle": "Werte einblenden",
+  "sd.playPos": "Position in der Wiedergabe",
   "transfer.action": "Übertragen an …",
   "transfer.title": "Session übertragen",
   "transfer.desc": "An wen soll diese Session gehen? Z. B. wenn jemand mit deiner Uhr gefahren ist — bei Annahme gehört sie ihm/ihr.",
