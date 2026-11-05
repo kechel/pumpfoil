@@ -1,0 +1,412 @@
+"""Garmin Connect: Konto verknuepfen (OAuth 2.0 mit PKCE) und Aktivitaeten per Push importieren.
+
+Starter Access im Garmin Connect Developer Program, beantragt und freigegeben am 05.11.2026 (docs/TODO.md,
+Einreichungs-Protokoll). Zugesagt und in der Datenschutzerklaerung (Impressum, Abschnitt Garmin) beschrieben:
+nur Activity API, nur Wassersport-Aktivitaeten mit GPS ab der Verknuepfung, keine Gesundheitsdaten, kein Verkauf.
+Garmins Unterlagen sind vertraulich und liegen nicht im Repo (~/garmin-doku auf der VM).
+
+Ablauf:
+1. `GET /connect` (eingeloggt): Code-Verifier erzeugen, Challenge (S256) an Garmin. Der Verifier reist
+   VERSCHLUESSELT im signierten `state` mit (app/geheim.py) — so braucht es keine Tabelle fuer die Zwischenzeit
+   zwischen den Server-Prozessen, und wer die Weiterleitung mitliest, bekommt ihn trotzdem nicht.
+2. `GET /callback` -> wie bei Polar/COROS ueber verknuepfung.py: erst die PWA bzw. App schliesst mit ihrem Login ab.
+   Dort: Code gegen Token tauschen (nur vom Server, mit Client-Secret), Garmin-User-ID holen, Link speichern.
+3. Garmin pusht an `POST /push/activity-files` die Metadaten neuer Aktivitaeten mit einer einmal gueltigen
+   Download-Adresse. Wir antworten sofort mit 200 und laden erst danach (Hintergrundaufgabe): Garmin wartet nur
+   kurz und wiederholt sonst stuendlich.
+4. `POST /push/deregistrations` (Nutzer hat in Garmin Connect getrennt) und `POST /push/permissions` (Freigaben
+   geaendert) halten den Link aktuell.
+5. `DELETE ""` trennt: Registrierung bei Garmin loeschen, dann den Link. Dasselbe beim Loeschen des Kontos
+   (app/loeschung.py) — Garmin verlangt das fuer jeden Weg, auf dem jemand bei uns „trennen" kann.
+
+Push-Anfragen tragen keine Signatur. Geschuetzt wird deshalb ueber das, was wir daraus machen: nur bekannte
+Garmin-User-IDs, und geladen wird ausschliesslich von https://apis.garmin.com (sonst koennte jeder uns beliebige
+Adressen abrufen lassen).
+"""
+from __future__ import annotations
+
+import base64
+import hashlib
+import logging
+import os
+import secrets
+import time
+from datetime import datetime, timedelta, timezone
+from urllib.parse import urlencode, urlsplit
+
+import httpx
+import jwt as pyjwt
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
+from fastapi.responses import RedirectResponse
+from sqlalchemy.orm import Session
+
+from .. import geheim, models
+from ..config import get_settings
+from ..db import get_db
+from . import verknuepfung
+from .deps import current_user
+
+log = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/api/integrations/garmin", tags=["garmin"])
+
+AUTHORIZE_URL = "https://connect.garmin.com/oauth2Confirm"
+TOKEN_URL = "https://diauth.garmin.com/di-oauth2-service/oauth/token"
+API = "https://apis.garmin.com"
+# Nur von hier wird geladen (Download-Adressen aus Push-Nachrichten).
+DOWNLOAD_HOST = "apis.garmin.com"
+
+# Wassersport-Profile, die ein Foil-Training sein koennen (Garmin-Namen ohne „_V2"). Alles andere wird nicht
+# geladen — so haben wir es Garmin zugesagt. Ob ein Profil tatsaechlich importiert wird, kann der Nutzer wie bei
+# Polar/Suunto/COROS je Modus abwaehlen (importsports, Anbieter „garmin").
+WASSERSPORT = frozenset({
+    "SURFING", "KITEBOARDING", "WINDSURFING", "STAND_UP_PADDLEBOARDING", "WAKEBOARDING", "WATERSKIING",
+    "PADDLING", "KAYAKING", "ROWING", "SAILING", "BOATING", "WATER_SPORTS", "OPEN_WATER_SWIMMING",
+})
+
+# Erneuern, wenn das Access-Token in weniger als dieser Zeit ablaeuft (Garmin raet zu Spielraum).
+REFRESH_VORLAUF = timedelta(minutes=15)
+
+
+def _creds() -> tuple[str, str]:
+    cid = os.environ.get("GARMIN_CLIENT_ID", "")
+    secret = os.environ.get("GARMIN_CLIENT_SECRET", "")
+    if not cid or not secret:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Garmin not configured")
+    return cid, secret
+
+
+def verfuegbar() -> bool:
+    return bool(os.environ.get("GARMIN_CLIENT_ID") and os.environ.get("GARMIN_CLIENT_SECRET"))
+
+
+def fuer_nutzer_sichtbar(user: models.User) -> bool:
+    """Bis die Kennzeichnung „Garmin [Geraet]" an importierten Sessions steht (Garmins Markenvorgaben), nur fuer
+    Admins zum Testen. `GARMIN_OEFFENTLICH=1` in server/.env gibt die Verknuepfung fuer alle frei."""
+    return verfuegbar() and (os.environ.get("GARMIN_OEFFENTLICH") == "1" or bool(user.is_admin))
+
+
+def _redirect_uri() -> str:
+    return f"{get_settings().base_url}/api/integrations/garmin/callback"
+
+
+def _challenge(verifier: str) -> str:
+    return base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b"=").decode()
+
+
+def _state_for(uid: int, verifier: str) -> str:
+    s = get_settings()
+    return pyjwt.encode(
+        {"uid": uid, "scope": "garmin-link", "v": geheim.verschluesseln(verifier), "exp": int(time.time()) + 900},
+        s.jwt_secret, algorithm=s.jwt_algorithm,
+    )
+
+
+def _state_lesen(state: str) -> tuple[int, str] | None:
+    s = get_settings()
+    try:
+        p = pyjwt.decode(state, s.jwt_secret, algorithms=[s.jwt_algorithm])
+    except Exception:  # noqa: BLE001
+        return None
+    if p.get("scope") != "garmin-link":
+        return None
+    v = geheim.entschluesseln(p.get("v"))
+    return (int(p["uid"]), v) if v else None
+
+
+def _uid_from_state(state: str) -> int | None:
+    g = _state_lesen(state)
+    return g[0] if g else None
+
+
+def _jetzt() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _aware(t: datetime | None) -> datetime | None:
+    return t.replace(tzinfo=timezone.utc) if t is not None and t.tzinfo is None else t
+
+
+def _tokens_uebernehmen(link: models.GarminLink, tok: dict) -> None:
+    link.access_token = tok["access_token"]
+    if tok.get("refresh_token"):
+        link.refresh_token = tok["refresh_token"]
+    if tok.get("expires_in"):
+        link.token_expires_at = _jetzt() + timedelta(seconds=int(tok["expires_in"]))
+    if tok.get("refresh_token_expires_in"):
+        link.refresh_expires_at = _jetzt() + timedelta(seconds=int(tok["refresh_token_expires_in"]))
+
+
+def _token_anfrage(daten: dict) -> dict:
+    cid, secret = _creds()
+    r = httpx.post(TOKEN_URL, data={**daten, "client_id": cid, "client_secret": secret},
+                   headers={"Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json"},
+                   timeout=20)
+    if r.status_code != 200:
+        raise RuntimeError(f"Garmin-Token {r.status_code}: {r.text[:200]}")
+    tok = r.json()
+    if not tok.get("access_token"):
+        raise RuntimeError("Garmin-Token ohne access_token")
+    return tok
+
+
+def gueltiges_token(link: models.GarminLink, db: Session) -> str:
+    """Access-Token, bei Bedarf vorher erneuert (dabei kommt auch ein neues Refresh-Token)."""
+    ablauf = _aware(link.token_expires_at)
+    if ablauf is None or ablauf - _jetzt() < REFRESH_VORLAUF:
+        tok = _token_anfrage({"grant_type": "refresh_token", "refresh_token": link.refresh_token})
+        _tokens_uebernehmen(link, tok)
+        db.commit()
+    return link.access_token
+
+
+@router.get("/status")
+def status_(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    link = db.query(models.GarminLink).filter_by(user_id=user.id).first()
+    rechte = (link.permissions or "").split(",") if link and link.permissions else []
+    return {
+        "available": fuer_nutzer_sichtbar(user),
+        "linked": link is not None,
+        "last_sync_at": link.last_sync_at.isoformat() if link and link.last_sync_at else None,
+        # Hat der Nutzer in Garmin Connect das Teilen von Aktivitaeten ausgeschaltet, kommt nichts mehr an.
+        "activity_export": (not rechte) or "ACTIVITY_EXPORT" in rechte,
+    }
+
+
+@router.get("/connect")
+def connect(app: bool = False, user: models.User = Depends(current_user)) -> dict:
+    cid, _ = _creds()
+    if not fuer_nutzer_sichtbar(user):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Garmin not available")
+    verifier = secrets.token_urlsafe(64)[:96]
+    params = {
+        "response_type": "code",
+        "client_id": cid,
+        "code_challenge": _challenge(verifier),
+        "code_challenge_method": "S256",
+        "redirect_uri": _redirect_uri(),
+        "state": verknuepfung.mit_app(_state_for(user.id, verifier), app),
+    }
+    return {"authorize_url": f"{AUTHORIZE_URL}?{urlencode(params)}"}
+
+
+def _callback_ausfuehren(code: str | None = None, state: str | None = None, db: Session = Depends(get_db)):
+    g = _state_lesen(state or "")
+    if not code or g is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid Garmin state")
+    uid, verifier = g
+    try:
+        tok = _token_anfrage({"grant_type": "authorization_code", "code": code, "code_verifier": verifier,
+                              "redirect_uri": _redirect_uri()})
+        kopf = {"Authorization": f"Bearer {tok['access_token']}"}
+        r = httpx.get(f"{API}/partner-gateway/rest/user/id", headers=kopf, timeout=20)
+        r.raise_for_status()
+        garmin_uid = str(r.json().get("userId") or "")
+        rechte: list[str] = []
+        try:
+            p = httpx.get(f"{API}/partner-gateway/rest/user/permissions", headers=kopf, timeout=20)
+            if p.status_code == 200:
+                rechte = [str(x) for x in (p.json().get("permissions") or [])]
+        except Exception:  # noqa: BLE001 — die Freigaben sind Zusatz, die Verknuepfung haengt nicht daran
+            pass
+    except Exception as exc:  # noqa: BLE001
+        log.warning("garmin: Verknuepfen fehlgeschlagen (user %s): %s", uid, exc)
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Garmin token exchange failed") from exc
+    if not garmin_uid:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, "Garmin user id missing")
+
+    # Dieselbe Garmin-ID war an einem anderen Pumpfoil-Konto: Garmin kennt je App nur EINE Registrierung, die
+    # neue gilt. Den alten Link entfernen, sonst landeten Aktivitaeten beim falschen Konto.
+    for alt in db.query(models.GarminLink).filter(models.GarminLink.garmin_user_id == garmin_uid,
+                                                  models.GarminLink.user_id != uid).all():
+        db.delete(alt)
+    link = db.query(models.GarminLink).filter_by(user_id=uid).first()
+    if link is None:
+        link = models.GarminLink(user_id=uid, garmin_user_id=garmin_uid, access_token="", refresh_token="")
+        db.add(link)
+    link.garmin_user_id = garmin_uid
+    link.permissions = ",".join(rechte)[:300] or None
+    _tokens_uebernehmen(link, tok)
+    db.commit()
+    log.info("garmin: verknuepft (user %s)", uid)
+    return RedirectResponse(f"{get_settings().base_url}/konten?garmin=connected", status_code=303)
+
+
+@router.get("/callback")
+def callback(request: Request):
+    return verknuepfung.zur_bestaetigung("garmin", request)
+
+
+@router.post("/abschliessen")
+def abschliessen(body: verknuepfung.AbschlussIn, user: models.User = Depends(current_user),
+                 db: Session = Depends(get_db)) -> dict:
+    return verknuepfung.abschliessen(user, _uid_from_state(body.state or ""),
+                                     lambda: _callback_ausfuehren(code=body.code, state=body.state, db=db))
+
+
+verknuepfung.routen_ohne_login(router, _uid_from_state,
+                               lambda b, db: _callback_ausfuehren(code=b.code, state=b.state, db=db))
+
+
+@router.get("/sports")
+def sports_(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Die Garmin-Profile, die DIESER Nutzer uebertraegt — mit seiner Auswahl (wie Polar/Suunto/COROS)."""
+    from .. import importsports
+    return {"sports": importsports.liste(db, user.id, "garmin")}
+
+
+@router.put("/sports")
+def sports_setzen(wahl: dict[str, bool], user: models.User = Depends(current_user),
+                  db: Session = Depends(get_db)) -> dict:
+    from .. import importsports
+    n = importsports.setzen(db, user.id, "garmin", wahl)
+    return {"ok": True, "geaendert": n, "sports": importsports.liste(db, user.id, "garmin")}
+
+
+# --- Push von Garmin ------------------------------------------------------------------------------------------------
+
+async def _json_liste(request: Request, schluessel: str) -> list[dict]:
+    try:
+        body = await request.json()
+    except Exception:  # noqa: BLE001
+        return []
+    liste = body.get(schluessel) if isinstance(body, dict) else None
+    return [x for x in liste if isinstance(x, dict)] if isinstance(liste, list) else []
+
+
+def _sicherer_download(url: str) -> bool:
+    try:
+        u = urlsplit(url)
+    except ValueError:
+        return False
+    return u.scheme == "https" and u.hostname == DOWNLOAD_HOST
+
+
+def _profil(eintrag: dict) -> str:
+    return str(eintrag.get("activityType") or "").upper().removesuffix("_V2")
+
+
+def _eigene_aufnahme(db: Session, user_id: int, start: datetime, ende: datetime) -> bool:
+    """Gibt es zur selben Zeit schon eine Aufnahme aus unseren eigenen Apps? Dann ist die Garmin-Aktivitaet sehr
+    wahrscheinlich dieselbe Fahrt — unsere Connect-IQ-App legt in Garmin Connect ebenfalls eine Aktivitaet an.
+    Eigene Aufnahmen tragen ein Geraet (device_id), Importe nicht."""
+    S = models.Session
+    return db.query(S.id).filter(S.user_id == user_id, S.deleted.isnot(True), S.device_id.isnot(None),
+                                 S.started_at < ende, S.ended_at > start).first() is not None
+
+
+def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) -> str:
+    """Eine Aktivitaetsdatei laden und importieren. Gibt den Ausgang als kurzes Wort zurueck (fuers Protokoll)."""
+    from .. import importsports, storage
+    from ..fitimport import parse_fit_bytes
+    from .sessions import import_parsed_session
+
+    profil = _profil(eintrag)
+    if profil not in WASSERSPORT:
+        return "kein wassersport"
+    if str(eintrag.get("fileType") or "FIT").upper() != "FIT":
+        return "kein fit"
+    url = str(eintrag.get("callbackURL") or "")
+    if not _sicherer_download(url):
+        log.warning("garmin: Download-Adresse abgelehnt (user %s): %s", link.user_id, url[:120])
+        return "fremde adresse"
+    user = db.get(models.User, link.user_id)
+    if user is None:
+        return "kein nutzer"
+    pref = importsports.merken(db, user.id, "garmin", profil, label=profil.replace("_", " ").title())
+    if not pref.importieren:
+        return "abgewaehlt"
+    r = httpx.get(url, headers={"Authorization": f"Bearer {gueltiges_token(link, db)}"}, timeout=60)
+    if r.status_code != 200 or not r.content:
+        return f"download {r.status_code}"
+    try:
+        parsed = parse_fit_bytes(r.content)
+    except Exception as exc:  # noqa: BLE001
+        storage.quarantaene_ablegen(r.content, quelle="garmin", user_id=user.id, grund=f"{type(exc).__name__}: {exc}")
+        return "fit kaputt"
+    grund = importsports.konto_import_grund(parsed)
+    if grund:
+        return grund
+    start = _aware(parsed["started_at"])
+    samples = parsed.get("gps_samples") or []
+    ende = start + timedelta(milliseconds=int(samples[-1][0] if samples else parsed.get("dauer_ms") or 0))
+    if _eigene_aufnahme(db, user.id, start, ende):
+        return "eigene aufnahme"
+    s = import_parsed_session(db, user, r.content, parsed, src_label="garmin-import", uuid_prefix="garmin-")
+    return "importiert" if s is not None else "schon da"
+
+
+def _activity_files_verarbeiten(eintraege: list[dict]) -> None:
+    """Hintergrundaufgabe nach der 200-Antwort: eigene DB-Sitzung, ein kaputter Eintrag stoppt die anderen nicht."""
+    from ..db import SessionLocal
+
+    db = SessionLocal()
+    try:
+        for e in eintraege:
+            gid = str(e.get("userId") or "")
+            link = db.query(models.GarminLink).filter_by(garmin_user_id=gid).first() if gid else None
+            if link is None:
+                continue
+            try:
+                ausgang = aktivitaet_importieren(db, link, e)
+            except Exception as exc:  # noqa: BLE001
+                db.rollback()
+                ausgang = f"fehler {type(exc).__name__}"
+                log.warning("garmin: Import fehlgeschlagen (user %s, %s): %s", link.user_id, e.get("summaryId"), exc)
+            link.last_sync_at = _jetzt()
+            db.commit()
+            log.info("garmin: %s %s (user %s): %s", e.get("summaryId"), _profil(e), link.user_id, ausgang)
+    finally:
+        db.close()
+
+
+@router.post("/push/activity-files")
+async def push_activity_files(request: Request, hintergrund: BackgroundTasks) -> dict:
+    eintraege = await _json_liste(request, "activityFiles")
+    if eintraege:
+        hintergrund.add_task(_activity_files_verarbeiten, eintraege)
+    return {"ok": True}
+
+
+@router.post("/push/deregistrations")
+async def push_deregistrations(request: Request, db: Session = Depends(get_db)) -> dict:
+    for e in await _json_liste(request, "deregistrations"):
+        gid = str(e.get("userId") or "")
+        for link in db.query(models.GarminLink).filter_by(garmin_user_id=gid).all() if gid else []:
+            log.info("garmin: in Garmin Connect getrennt (user %s)", link.user_id)
+            db.delete(link)
+    db.commit()
+    return {"ok": True}
+
+
+@router.post("/push/permissions")
+async def push_permissions(request: Request, db: Session = Depends(get_db)) -> dict:
+    for e in await _json_liste(request, "userPermissionsChange"):
+        gid = str(e.get("userId") or "")
+        link = db.query(models.GarminLink).filter_by(garmin_user_id=gid).first() if gid else None
+        if link is not None:
+            link.permissions = ",".join(str(x) for x in (e.get("permissions") or []))[:300] or None
+    db.commit()
+    return {"ok": True}
+
+
+# --- Trennen --------------------------------------------------------------------------------------------------------
+
+def registrierung_loeschen(db: Session, link: models.GarminLink) -> None:
+    """Bei Garmin abmelden (Pflicht, wenn bei uns getrennt oder das Konto geloescht wird). Wirft nie."""
+    try:
+        token = gueltiges_token(link, db)
+        httpx.delete(f"{API}/partner-gateway/rest/user/registration",
+                     headers={"Authorization": f"Bearer {token}"}, timeout=20)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("garmin: Abmelden bei Garmin fehlgeschlagen (user %s): %s", link.user_id, exc)
+
+
+@router.delete("")
+def unlink(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    link = db.query(models.GarminLink).filter_by(user_id=user.id).first()
+    if link is not None:
+        registrierung_loeschen(db, link)
+        db.delete(link)
+        db.commit()
+    return {"ok": True}

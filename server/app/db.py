@@ -315,6 +315,7 @@ _VERSCHLUESSELT = {
     "polar_links": ("access_token",),
     "coros_mcp_links": ("access_token", "refresh_token"),
     "coros_links": ("access_token", "refresh_token"),
+    "garmin_links": ("access_token", "refresh_token"),
     "suunto_links": ("access_token", "refresh_token"),
     "strava_links": ("access_token", "refresh_token"),
 }

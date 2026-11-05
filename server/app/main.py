@@ -12,7 +12,7 @@ from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse, PlainTe
                                Response)
 from fastapi.staticfiles import StaticFiles
 
-from .api import admin, appmeta, auth, boards, chat, community, coros, coros_mcp, devices, feedback, foils, friends, health as health_api, ingest, layouts, mcp, mcp_dateien, mcp_oauth, ml, oauth, polar, push, sessions, settings as settings_api, social, spotnotes, stabs, strava, suunto, transfers
+from .api import admin, appmeta, auth, boards, chat, community, coros, coros_mcp, devices, feedback, foils, friends, garmin, health as health_api, ingest, layouts, mcp, mcp_dateien, mcp_oauth, ml, oauth, polar, push, sessions, settings as settings_api, social, spotnotes, stabs, strava, suunto, transfers
 from . import landing
 from .api.deps import require_social
 from .api import tanz as tanz_api
@@ -505,6 +505,8 @@ app.include_router(social.admin_router)
 app.include_router(oauth.router)
 app.include_router(polar.router)
 app.include_router(coros.router)
+# Garmin Connect (Starter Access, 05.11.2026): Konto verknuepfen + Aktivitaeten per Push (app/api/garmin.py).
+app.include_router(garmin.router)
 # COROS ueber den MCP-Server — der Weg ohne Partner-Vertrag (s. app/api/coros_mcp.py).
 app.include_router(coros_mcp.router)
 # Unser EIGENER MCP-Zugang: Autorisierungsserver + der MCP-Endpunkt selbst. Beide Router haben

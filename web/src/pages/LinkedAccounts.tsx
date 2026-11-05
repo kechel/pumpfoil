@@ -32,7 +32,7 @@ const GRUND_KEYS: Record<string, string> = {
 /** Uhren und verknuepfte Konten in EINER Ansicht mit Reitern Uhr | Polar | COROS | Suunto | Xiaomi | MCP (Jan, 02.11.2026) —
  * als Seite /konten (ein Knopf im Profil) und als Reiter „Uhr & Konten" auf Home (`eingebettet`: ohne Titelzeile, die
  * Reiter als zweite Zeile, eigener Adress-Parameter, weil Home `tab` schon selbst nutzt). */
-const KONTO_REITER = ["uhr", "polar", "coros", "suunto", "xiaomi", "strava", "mcp"] as const;
+const KONTO_REITER = ["uhr", "garmin", "polar", "coros", "suunto", "xiaomi", "strava", "mcp"] as const;
 export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: boolean } = {}) {
   const { t } = useI18n();
   const reiterParam = eingebettet ? "ktab" : "tab";
@@ -43,6 +43,9 @@ export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: 
   // Strava ist zurueckgestellt; der Reiter erscheint nur, wenn der Server es anbietet (wie die Karte selbst).
   const [strava, setStrava] = useState(false);
   useEffect(() => { api.stravaStatus().then((s) => setStrava(!!s.available)).catch(() => {}); }, []);
+  // Garmin Connect nur, wenn der Server eingerichtet ist (GARMIN_CLIENT_ID), wie Strava.
+  const [garmin, setGarmin] = useState(false);
+  useEffect(() => { api.garminStatus().then((s) => setGarmin(!!s.available)).catch(() => {}); }, []);
   // Ergebnis der OAuth-Verknüpfung. JEDER Dienst leitet auf /konten?<dienst>=connected|cancelled|
   // error zurück — bisher wurde aber nur `suunto` gelesen. Wer COROS verband, bekam deshalb gar
   // keine Rückmeldung, und `?coros=connected` blieb in der Adresszeile stehen: ein späterer
@@ -57,7 +60,7 @@ export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: 
     const ergebnisZeigen = (suche: string) => {
       const p = new URLSearchParams(suche);
       let s: string | null = null;
-      for (const dienst of ["suunto", "coros", "polar", "strava"]) {
+      for (const dienst of ["suunto", "coros", "polar", "strava", "garmin"]) {
         const v = p.get(dienst);
         if (v) { s = v; p.delete(dienst); setSp((alt) => { const n = new URLSearchParams(alt); n.delete(dienst); n.set(reiterParam, dienst); return n; }, { replace: true }); }
       }
@@ -72,7 +75,7 @@ export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: 
     // Adresszeile nehmen — sie gelten nur einmal und gehoeren nicht in den Verlauf.
     const anbieter = p.get("verknuepfen");
     if (anbieter) {
-      const pfad = { polar: "polar", suunto: "suunto", strava: "strava", coros: "coros", "coros-mcp": "coros/mcp" }[anbieter];
+      const pfad = { polar: "polar", suunto: "suunto", strava: "strava", coros: "coros", "coros-mcp": "coros/mcp", garmin: "garmin" }[anbieter];
       const body = { code: p.get("code"), state: p.get("state"), error: p.get("error") };
       setSp(new URLSearchParams(), { replace: true });
       if (!pfad) { setBanner("error"); return; }
@@ -103,6 +106,7 @@ export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: 
       )}
       <Reiterleiste stufe={eingebettet ? 2 : 1} unter={!eingebettet && reiter === "uhr"} aktiv={reiter} onWahl={setReiter} reiter={[
         { id: "uhr", label: t("nav.watch") },
+        ...(garmin ? [{ id: "garmin", label: "Garmin Connect" }] : []),
         { id: "polar", label: "Polar" },
         { id: "coros", label: "COROS" },
         { id: "suunto", label: "Suunto" },
@@ -122,6 +126,7 @@ export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: 
             als zweite Reiterzeile; auf Home ist die Konten-Zeile schon die zweite, dann darunter als einfache Zeile. */}
         {reiter === "uhr" && <Account eingebettet stufe={eingebettet ? 1 : 2} />}
         {reiter !== "uhr" && reiter !== "mcp" && <p className="text-sm text-slate-300">{t("linked.hint")}</p>}
+        {reiter === "garmin" && <GarminCard />}
         {reiter === "polar" && <PolarCard />}
         {reiter === "coros" && <CorosCard />}
         {reiter === "suunto" && <SuuntoCard />}
@@ -130,6 +135,57 @@ export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: 
         {reiter === "mcp" && <McpCard />}
       </div>
     </div>
+  );
+}
+
+// Garmin Connect (05.11.2026): verknuepfen per OAuth 2.0, Aktivitaeten kommen per Push (server/app/api/garmin.py).
+// Garmins Markenvorgaben: beim Verknuepfen den vollen App-Namen „Garmin Connect" mit dem App-Symbol zeigen.
+function GarminCard() {
+  const { t } = useI18n();
+  const [st, setSt] = useState<{ available: boolean; linked: boolean; last_sync_at: string | null; activity_export: boolean } | null>(null);
+  const [msg, setMsg] = useState("");
+  const load = () => api.garminStatus().then(setSt).catch(() => setSt(null));
+  useEffect(() => { load(); }, []);
+  if (!st || !st.available) return null;
+  async function connect() {
+    try { const r = await api.garminConnect(); window.location.href = r.authorize_url; } catch (e) { setMsg(String(e)); }
+  }
+  async function unlink() { await api.garminUnlink().catch(() => {}); setMsg(""); load(); }
+  return (
+    <Card className="p-5">
+      <h3 className="mb-1 flex items-center gap-2 font-semibold">
+        Garmin Connect™
+        <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-200">Beta</span>
+      </h3>
+      <p className="mb-3 text-sm text-slate-300">{t("settings.garmin.hint")}</p>
+      <div className="mb-3 flex items-center gap-3">
+        <img src="/garmin-connect-app.png" alt="Garmin Connect" className="h-11 w-11 rounded-xl shadow-sm" />
+        {st.linked && (
+          <span className="inline-flex items-center gap-1 text-sm font-medium text-success">
+            <CheckIcon className="h-4 w-4" /> {t("settings.garmin.connected")}
+          </span>
+        )}
+      </div>
+      {st.linked && !st.activity_export && (
+        <p className="mb-3 rounded-lg border border-amber-400 bg-amber-500/15 px-3 py-2 text-sm font-medium text-amber-700 dark:border-amber-500/50 dark:bg-amber-500/10 dark:text-amber-300">
+          {t("settings.garmin.noExport")}
+        </p>
+      )}
+      {!st.linked
+        ? <Button onClick={connect}>{t("settings.garmin.connect")}</Button>
+        : <Button variant="ghost" onClick={unlink}>{t("settings.garmin.unlink")}</Button>}
+      {st.linked && <SportAuswahl provider="garmin" />}
+      {msg && <p className="mt-2 text-sm text-slate-400">{msg}</p>}
+      <div className="mt-4">
+        <p className="mb-2 text-xs font-medium text-slate-400">{t("settings.coros.help")}</p>
+        <ol className="list-decimal space-y-1.5 pl-5 text-sm text-slate-300">
+          <li>{t("settings.garmin.help1")}</li>
+          <li>{t("settings.garmin.help2")}</li>
+          <li>{t("settings.garmin.help3")}</li>
+          <li>{t("settings.garmin.help4")}</li>
+        </ol>
+      </div>
+    </Card>
   );
 }
 
@@ -347,7 +403,7 @@ function useSyncFortschritt(provider: "polar" | "suunto" | "coros", anstossen: (
  * COROS-Doku), und nur solche mit Ortung — eine Hallenaufnahme wäre eine Zeile ohne Sinn.
  */
 function SportAuswahl({ provider, aktualisieren = 0 }:
-                      { provider: "polar" | "suunto" | "coros"; aktualisieren?: number }) {
+                      { provider: "polar" | "suunto" | "coros" | "garmin"; aktualisieren?: number }) {
   const { t } = useI18n();
   const [sports, setSports] = useState<ImportSport[] | null>(null);
   const [msg, setMsg] = useState("");

@@ -1237,6 +1237,26 @@ class CorosLink(Base):
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class GarminLink(Base):
+    """Verknuepfung mit dem Garmin Connect Developer Program (Starter Access, freigegeben 05.11.2026; app/api/garmin.py).
+    Garmin pusht neue Aktivitaeten an uns, `garmin_user_id` ordnet sie dem Nutzer zu. Access-Token gilt einen Tag, das
+    Refresh-Token drei Monate und wird bei jeder Erneuerung ersetzt. Ein Link pro Nutzer."""
+
+    __tablename__ = "garmin_links"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
+    garmin_user_id: Mapped[str] = mapped_column(String(64), index=True)
+    access_token: Mapped[str] = mapped_column(Verschluesselt())
+    refresh_token: Mapped[str] = mapped_column(Verschluesselt())
+    token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    refresh_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Freigaben des Nutzers in Garmin Connect (kommagetrennt, z. B. ACTIVITY_EXPORT); ohne ACTIVITY_EXPORT kommt nichts.
+    permissions: Mapped[str | None] = mapped_column(String(300))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class SuuntoLink(Base):
     """Verknüpfung eines Nutzers mit der Suunto Cloud API (OAuth2). accessToken läuft
     täglich ab (expires_in 86400) -> refresh_token. Workouts werden gezogen und je FIT

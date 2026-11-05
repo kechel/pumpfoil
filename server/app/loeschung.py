@@ -149,6 +149,11 @@ def konto_loeschen(db: Session, user: models.User) -> dict:
     # 2c) Geleitete Teams uebergeben (oder, ohne weitere Mitglieder, loeschen) — docs/TEAMS.md.
     from .teams import vor_konto_loeschen
     medien += vor_konto_loeschen(db, uid)
+    # 2d) Garmin verlangt, dass wir uns dort abmelden, wenn jemand bei uns sein Konto loescht (app/api/garmin.py).
+    #     Wirft nie — die Loeschung haengt nicht davon ab, ob Garmin gerade erreichbar ist.
+    from .api.garmin import registrierung_loeschen
+    for gl in db.query(models.GarminLink).filter_by(user_id=uid).all():
+        registrierung_loeschen(db, gl)
     db.flush()
 
     # 3) Alles Uebrige, abgeleitet statt aufgezaehlt.

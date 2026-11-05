@@ -1226,11 +1226,11 @@ export const api = {
   // Sportart-Modi eines verknuepften Kontos: welche der Nutzer tatsaechlich uebertraegt und
   // welche davon er importieren will. Fuer alle drei Anbieter derselbe Vertrag (server:
   // app/importsports.py) — deshalb ein Aufrufpaar mit dem Anbieter als Parameter.
-  importSports: (provider: "polar" | "suunto" | "coros") =>
+  importSports: (provider: "polar" | "suunto" | "coros" | "garmin") =>
     req<{ sports: ImportSport[] }>(
       provider === "coros" ? "/api/integrations/coros/mcp/sports"
                            : `/api/integrations/${provider}/sports`),
-  setImportSports: (provider: "polar" | "suunto" | "coros", wahl: Record<string, boolean>) =>
+  setImportSports: (provider: "polar" | "suunto" | "coros" | "garmin", wahl: Record<string, boolean>) =>
     req<{ ok: boolean; geaendert: number; sports: ImportSport[] }>(
       provider === "coros" ? "/api/integrations/coros/mcp/sports"
                            : `/api/integrations/${provider}/sports`,
@@ -1254,6 +1254,10 @@ export const api = {
   tanzKorrigieren: (sid: number, abschnitte: { index: number; gewaehlt: string | null }[]) =>
     req<TanzDaten>(`/api/sessions/${sid}/tanz`, { method: "PUT", body: JSON.stringify({ abschnitte }) }),
 
+  // Garmin Connect (05.11.2026, server/app/api/garmin.py): verknuepfen, Aktivitaeten kommen per Push.
+  garminStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null; activity_export: boolean }>("/api/integrations/garmin/status"),
+  garminConnect: () => req<{ authorize_url: string }>("/api/integrations/garmin/connect"),
+  garminUnlink: () => req<{ ok: boolean }>("/api/integrations/garmin", { method: "DELETE" }),
   corosStatus: () => req<{ available: boolean; linked: boolean; last_sync_at: string | null }>("/api/integrations/coros/status"),
   corosConnect: () => req<{ authorize_url: string }>("/api/integrations/coros/connect"),
   corosUnlink: () => req<{ ok: boolean }>("/api/integrations/coros", { method: "DELETE" }),

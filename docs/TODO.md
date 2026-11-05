@@ -1508,6 +1508,21 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 05.11. — Garmin Connect: Verknuepfung + Push-Import gebaut (server/app/api/garmin.py), nur fuer Admins sichtbar.**
+  Starter Access am 05.11. beantragt und freigegeben (Antragsteller Jan Kechel), App „Pumpfoil" im Developer Portal,
+  Schluessel in server/.env (GARMIN_CLIENT_ID/_SECRET). OAuth 2.0 mit PKCE (Verifier verschluesselt im state), Push an
+  `/api/integrations/garmin/push/activity-files` | `/deregistrations` | `/permissions`, nur Wassersport-Profile mit GPS,
+  Download nur von apis.garmin.com, keine Doppelten zu eigenen Aufnahmen (Session mit device_id zur selben Zeit),
+  Trennen + Konto loeschen melden bei Garmin ab. Web-Karte „Garmin Connect" unter Uhr & Konten. Doku vertraulich in
+  ~/garmin-doku (nicht ins Repo). **Offen, bevor es fuer alle freigeschaltet wird (`GARMIN_OEFFENTLICH=1`):**
+  1. Garmins Markenvorgaben: an jeder Anzeige importierter Daten „Garmin [Geraet]" (Session-Seite, Karten, Listen,
+     Teilen-Bilder, Exporte), bei Abgeleitetem (Rekorde, Bestenlisten) ein Hinweis auf Garmin-Daten. Geraetename kommt
+     im Push (`deviceName`) und steht in der FIT-Datei.
+  2. Push-Adressen in „API Tools" eintragen (Jan) und mit Jans eigenem Konto testen.
+  3. Apps: Garmin-Karte unter Uhr & Konten (Android/iOS), Rueckweg ueber pumpfoil://konten wie Polar.
+  4. Refresh-Token laeuft nach 3 Monaten ab — wer so lange nichts aufzeichnet, verliert die Verbindung; spaeter in
+     kontensync.py einen Erneuerungs-Lauf ergaenzen.
+
 - **🔲 05.11. — Handy-Recorder: GPS faellt bei dunklem Display aus (Samsung).** Befund (nur DB gelesen): u993 (Samsung A70,
   Android 11) am 04.11. in Sarbsko, drei Sessions mit 56/21/44 min, GPS jeweils 80-120 s nach dem Start weg und erst kurz vor dem
   Stopp wieder da (19915, 19921, 19924); Accel/Kreisel/Magnet und Live-Upload liefen durch, also nur das GPS. Daneben u949
