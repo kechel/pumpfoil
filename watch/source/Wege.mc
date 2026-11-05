@@ -21,6 +21,10 @@ module Wege {
     const DUENN_MS = 600000;    // GPS aus: ein Punkt alle 10 min (Jan, 05.11.2026) — Ort und Spot ohne Puffer-Last
 
     function merken(data) {
+        // Kein `gc` in der Antwort = keine Garmin-Verknuepfung (mehr): getrennt oder Teilen in Garmin Connect aus. Dann
+        // alles vergessen und zurueck zum alten Verhalten — sonst blieben „GPS nur alle 10 min" & Co. stehen, obwohl die
+        // FIT gar nicht mehr zu uns kommt.
+        if (!data.hasKey("gc")) { vergessen(); return; }
         var schluessel = ["gc", "rohGps", "rohAccel", "fitAccel"];
         for (var i = 0; i < schluessel.size(); i++) {
             var k = schluessel[i];
