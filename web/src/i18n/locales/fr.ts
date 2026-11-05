@@ -2729,7 +2729,7 @@ const fr: Record<string, string> = {
   "mySpots.sports": "Sports",
   "mySpots.all": "Tous ({n})",
   "team.vergleich.titel": "Classements des équipes",
-  "team.vergleich.hinweis": "Chaque équipe compte la somme de ses {n} meilleurs riders. Pumpfoil, y compris les sorties sans données de mouvement ; seulement les équipes aux classements publics.",
+  "team.vergleich.hinweis": "Chaque équipe compte la somme de ses {n} meilleurs riders. {sport}, y compris les sorties sans données de mouvement ; seulement les équipes aux classements publics.",
   "team.vergleich.top": "{n} meilleurs",
   "team.vergleich.ausFahrern": "sur {n} riders",
   "team.vergleich.leer": "Aucune équipe n'a encore de session sur cette période.",

@@ -754,6 +754,16 @@ function CommunitySection() {
       {t(labelKey)}
     </button>
   ));
+  // Sportart-Filter: erscheint erst, wenn es überhaupt eine zweite Sportart mit Läufen gibt
+  // (Jan: „nur die mit mind. einem lauf all time"). Steht seit 05.11.2026 oben neben dem Zeitraum und gilt fuer beide
+  // Bestenlisten und die Kacheln (Jan: „es soll halt jeweils immer nur die gleiche sportart verglichen werden").
+  // NICHT fuer „Neueste Medien", „Am besten bewertet" und die Uhr-Layouts: die kommen absichtlich immer aus allen Sportarten.
+  const sportAuswahl = sports.length > 1 && (
+    <select value={sport} onChange={(e) => setSport(e.target.value)}
+      className="ml-auto max-w-[14rem] truncate rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm font-medium text-slate-100">
+      {sortiereNachSport(sports, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
+    </select>
+  );
   // Filter, die nur fuer die Mitglieder-Bestenliste und die Kacheln gelten (Oleks Entwurf, 05.11.2026): dieselben wie
   // bisher, nur als Auswahlfelder. accel/alle/Freunde war vorher eine Knopfgruppe (AccelToggle).
   const gross = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
@@ -765,14 +775,6 @@ function CommunitySection() {
         <option value="alle">{gross(t("side.all"))}</option>
         <option value="freunde">{t("friends.title")}</option>
       </select>
-      {/* Sportart-Filter: erscheint erst, wenn es überhaupt eine zweite Sportart mit Läufen gibt
-          (Jan: „nur die mit mind. einem lauf all time"). NICHT fuer „Neueste Medien", „Am besten bewertet" und die
-          Uhr-Layouts: die kommen absichtlich immer aus allen Sportarten. */}
-      {sports.length > 1 && (
-        <select value={sport} onChange={(e) => setSport(e.target.value)} className={AUSWAHL}>
-          {sortiereNachSport(sports, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
-        </select>
-      )}
       {/* Foil-Band. Reihenfolge kommt vom Server (Nützlichstes oben). Die Sessionzahl steht
           dabei, weil jede Auswahl außer „Alle Foils" den Topf verkleinert — 36 % der Sessions
           haben gar kein Foil hinterlegt und fallen dann heraus. Erst filtern, dann zaehlen (02.11.2026): sonst stand
@@ -808,17 +810,17 @@ function CommunitySection() {
           unter der Hauptnavigation „Spots", die Uhr-Layouts unter Medien. */}
       <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} />
       {/* Rangliste nach Oleks Entwurf (05.11.2026, Jan: „das uebernehmen wir genau so vom layout her"): oben EINE Zeile
-          fuer alles (Zeitraum), darunter links die Mitglieder, rechts die Teams, jede Liste mit den Filtern, die nur fuer
-          sie gelten, als Auswahlfelder; darunter die Rekord-Kacheln ueber die ganze Breite. Die Team-Listen rechnen
-          Pumpfoil mit allen Laeufen (teams.vergleich) — Sportart, accel/alle/Freunde und Foil gelten darum nur links
-          und fuer die Kacheln. Eine Gruppierung nach Region kommt spaeter. */}
+          fuer alles (Zeitraum, Sportart), darunter links die Mitglieder, rechts die Teams, jede Liste mit den Filtern, die
+          nur fuer sie gelten, als Auswahlfelder; darunter die Rekord-Kacheln ueber die ganze Breite. Die Team-Listen
+          zaehlen alle Laeufe (teams.vergleich) — accel/alle/Freunde und Foil gelten darum nur links und fuer die
+          Kacheln. Eine Gruppierung nach Region kommt spaeter. */}
       {tab === "bestenliste" && <>
-        <div className="mb-4 flex flex-wrap items-center gap-1">{zeitKnoepfe}</div>
+        <div className="mb-4 flex flex-wrap items-center gap-1">{zeitKnoepfe}{sportAuswahl}</div>
         <div className="grid gap-8 lg:grid-cols-2">
           {/* `key` = neu laden beim Umschalten auf/von „Freunde" — ihre eigenen Abhaengigkeiten aendern sich dabei nicht immer. */}
           <Leaderboards key={`l${freunde}`} period={period} accelOnly={accelOnly} sport={sport} band={band} auswahl
             titel={`${t("home.leaderboards")} – ${t("team.mitglieder")}`} filter={mitgliederFilter} />
-          <TeamBestenlisten period={period} titel={`${t("home.leaderboards")} – ${t("team.community")}`} />
+          <TeamBestenlisten period={period} sport={sport} titel={`${t("home.leaderboards")} – ${t("team.community")}`} />
         </div>
         <h3 className="mb-2 mt-10 text-lg font-bold">
           {t("side.records")}
@@ -908,7 +910,7 @@ const VERGLEICH_ARTEN: [TeamVergleichKennzahl, string][] = [
 
 // Seit 05.11.2026 (Oleks Entwurf) als rechte Spalte neben der Mitglieder-Bestenliste: der Zeitraum kommt von oben
 // (`period`, eine Zeile fuer die ganze Seite), Kennzahl und „Beste N" als Auswahlfelder, Zeilen wie bei den Mitgliedern.
-function TeamBestenlisten({ period, titel }: { period: string; titel: string }) {
+function TeamBestenlisten({ period, sport, titel }: { period: string; sport: string; titel: string }) {
   const t = useT();
   const [top, setTop] = useState(5);
   const [art, setArt] = useState<TeamVergleichKennzahl>("pumps");
@@ -919,9 +921,9 @@ function TeamBestenlisten({ period, titel }: { period: string; titel: string }) 
   useEffect(() => { api.teamsMine().then((l) => setMeine(new Set(l.filter((x) => x.status === "aktiv").map((x) => x.slug)))).catch(() => {}); }, []);
   useEffect(() => {
     let aktiv = true;
-    api.teamsVergleich(period, top).then((x) => { if (aktiv) setD(x); }).catch(() => {});
+    api.teamsVergleich(period, top, sport).then((x) => { if (aktiv) setD(x); }).catch(() => {});
     return () => { aktiv = false; };
-  }, [period, top]);
+  }, [period, top, sport]);
   const km = (m: number) => (m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(m < 100000 ? 1 : 0)} km`);
   const zeit = (sek: number) => (sek < 3600 ? `${Math.round(sek / 60)} min` : `${(sek / 3600).toFixed(1)} h`);
   const wert = (z: TeamVergleichZeile) => (art === "distance_m" ? km(z[art]) : art === "time_s" ? zeit(z[art]) : z[art].toLocaleString());
@@ -969,7 +971,7 @@ function TeamBestenlisten({ period, titel }: { period: string; titel: string }) 
           ))}
         </div>
       )}
-      <p className="mt-2 text-xs text-slate-400">{t("team.vergleich.hinweis", { n: String(top) })}</p>
+      <p className="mt-2 text-xs text-slate-400">{t("team.vergleich.hinweis", { n: String(top), sport: t(`cls.sport.${sport}`) })}</p>
       {/* Als Bild teilen wie die Bestenliste der Fahrer (Jan, 03.11.2026). Flaggen nur fuer Laender; Kontinent/Erde
           („k:…") haben kein Flaggenbild und bleiben im Bild ohne Zeichen. */}
       {!!zeilen.length && (
@@ -982,7 +984,7 @@ function TeamBestenlisten({ period, titel }: { period: string; titel: string }) 
         <BestenlisteBildDialog onClose={() => setBild(false)} titel={t("team.bild.titel")} dateiname={`pumpfoil-teams-${art}.jpg`}
           daten={{
             titel: t(VERGLEICH_ARTEN.find(([k]) => k === art)?.[1] ?? ""),
-            unterzeile: [t("team.vergleich.titel"), t("team.vergleich.top", { n: String(top) }),
+            unterzeile: [t("team.vergleich.titel"), t(`cls.sport.${sport}`), t("team.vergleich.top", { n: String(top) }),
               t(PERIODS.find(([k]) => k === period)?.[1] ?? ""),
               new Date().toLocaleDateString(document.documentElement.lang || undefined)].join(" · "),
             // Wappen je Zeile und das eigene Team hervorgehoben; liegt es hinter Platz 10, steht es darunter (04.11.2026).

@@ -2881,7 +2881,7 @@ const fi: Record<string, string> = {
   "mySpots.sports": "Lajit",
   "mySpots.all": "Kaikki ({n})",
   "team.vergleich.titel": "Tiimien tulostaulut",
-  "team.vergleich.hinweis": "Jokaiselle tiimille lasketaan sen {n} parhaan kuskin summa. Pumpfoil, myös laskut ilman liikedataa; vain tiimit, joiden tulostaulut ovat julkisia.",
+  "team.vergleich.hinweis": "Jokaiselle tiimille lasketaan sen {n} parhaan kuskin summa. {sport}, myös laskut ilman liikedataa; vain tiimit, joiden tulostaulut ovat julkisia.",
   "team.vergleich.top": "Parhaat {n}",
   "team.vergleich.ausFahrern": "{n} kuskista",
   "team.vergleich.leer": "Millään tiimillä ei ole vielä sessiota tällä jaksolla.",

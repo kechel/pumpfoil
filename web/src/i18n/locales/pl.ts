@@ -2825,7 +2825,7 @@ const pl: Record<string, string> = {
   "mySpots.sports": "Dyscypliny",
   "mySpots.all": "Wszystkie ({n})",
   "team.vergleich.titel": "Rankingi drużyn",
-  "team.vergleich.hinweis": "Każda drużyna liczy sumę swoich {n} najlepszych riderów. Pumpfoil, także przejazdy bez danych ruchu; tylko drużyny z publicznymi rankingami.",
+  "team.vergleich.hinweis": "Każda drużyna liczy sumę swoich {n} najlepszych riderów. {sport}, także przejazdy bez danych ruchu; tylko drużyny z publicznymi rankingami.",
   "team.vergleich.top": "Najlepszych {n}",
   "team.vergleich.ausFahrern": "z {n} riderów",
   "team.vergleich.leer": "W tym okresie żadna drużyna nie ma jeszcze sesji.",

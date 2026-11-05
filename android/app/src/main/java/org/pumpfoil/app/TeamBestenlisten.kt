@@ -120,7 +120,7 @@ fun TeamBestenlisten(onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier
 
     Column(modifier.fillMaxWidth()) {
         Text(I18n.t("team.vergleich.titel"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        Text(I18n.t("team.vergleich.hinweis").replace("{n}", top.toString()), style = MaterialTheme.typography.bodySmall,
+        Text(I18n.t("team.vergleich.hinweis").replace("{n}", top.toString()).replace("{sport}", "Pumpfoil"), style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 4.dp))
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             VERGLEICH_ZEITRAUM.forEach { (k, lk) ->

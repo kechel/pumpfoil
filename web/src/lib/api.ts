@@ -2160,7 +2160,8 @@ export const api = {
   teamsMine: () => req<TeamKurz[]>("/api/teams/mine"),
   teamsListe: () => req<TeamListenEintrag[]>("/api/teams/liste"),
   teamsEventsAktuell: () => req<TeamEventKurz[]>("/api/teams/liste/events"),
-  teamsVergleich: (period: string, top: number) => req<TeamVergleich>(`/api/teams/liste/vergleich?period=${period}&top=${top}`),
+  teamsVergleich: (period: string, top: number, sport = "pumpfoil") =>
+    req<TeamVergleich>(`/api/teams/liste/vergleich?period=${period}&top=${top}&sport=${encodeURIComponent(sport)}`),
   teamsEventsAlle: (offset: number, n: number) => req<TeamEventKurz[]>(`/api/teams/liste/events/alle?offset=${offset}&n=${n}`),
   teamSlug: (q: { name?: string; slug?: string; team_id?: number }) =>
     req<{ slug: string; frei: boolean; fehler: string | null }>(`/api/teams/slug?${new URLSearchParams(

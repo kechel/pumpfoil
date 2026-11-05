@@ -105,7 +105,7 @@ struct TeamBestenlistenSection: View {
 
     var body: some View {
         Section {
-            Text(Loc.t("team.vergleich.hinweis", lang).replacingOccurrences(of: "{n}", with: String(top)))
+            Text(Loc.t("team.vergleich.hinweis", lang).replacingOccurrences(of: "{n}", with: String(top)).replacingOccurrences(of: "{sport}", with: "Pumpfoil"))
                 .font(.subheadline).foregroundStyle(.secondary)
             zeitZeile
             artZeile

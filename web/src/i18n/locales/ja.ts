@@ -2842,7 +2842,7 @@ const ja: Record<string, string> = {
   "mySpots.sports": "スポーツ",
   "mySpots.all": "すべて ({n})",
   "team.vergleich.titel": "チームランキング",
-  "team.vergleich.hinweis": "各チームの上位{n}人のライダーの合計で比べます。パンプフォイル、モーションデータのない走行も含みます。ランキングを公開しているチームのみ。",
+  "team.vergleich.hinweis": "各チームの上位{n}人のライダーの合計で比べます。{sport}、モーションデータのない走行も含みます。ランキングを公開しているチームのみ。",
   "team.vergleich.top": "上位{n}人",
   "team.vergleich.ausFahrern": "{n}人の合計",
   "team.vergleich.leer": "この期間にセッションのあるチームはまだありません。",

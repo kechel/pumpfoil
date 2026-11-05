@@ -2843,7 +2843,7 @@ const zh: Record<string, string> = {
   "mySpots.sports": "运动",
   "mySpots.all": "全部 ({n})",
   "team.vergleich.titel": "团队排行榜",
-  "team.vergleich.hinweis": "每个团队按其最佳 {n} 名骑手的总和计算。Pumpfoil，也包括没有运动数据的滑行；仅限排行榜公开的团队。",
+  "team.vergleich.hinweis": "每个团队按其最佳 {n} 名骑手的总和计算。{sport}，也包括没有运动数据的滑行；仅限排行榜公开的团队。",
   "team.vergleich.top": "前 {n} 名",
   "team.vergleich.ausFahrern": "来自 {n} 名骑手",
   "team.vergleich.leer": "此期间还没有团队有训练记录。",

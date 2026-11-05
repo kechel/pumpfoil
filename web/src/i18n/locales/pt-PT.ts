@@ -2840,7 +2840,7 @@ const ptPT: Record<string, string> = {
   "mySpots.sports": "Desportos",
   "mySpots.all": "Todos ({n})",
   "team.vergleich.titel": "Classificações de equipas",
-  "team.vergleich.hinweis": "Cada equipa soma os seus {n} melhores riders. Pumpfoil, incluindo voltas sem dados de movimento; só equipas com classificações públicas.",
+  "team.vergleich.hinweis": "Cada equipa soma os seus {n} melhores riders. {sport}, incluindo voltas sem dados de movimento; só equipas com classificações públicas.",
   "team.vergleich.top": "Melhores {n}",
   "team.vergleich.ausFahrern": "de {n} riders",
   "team.vergleich.leer": "Nenhuma equipa tem ainda uma sessão neste período.",

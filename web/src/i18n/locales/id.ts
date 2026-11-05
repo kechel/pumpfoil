@@ -2846,7 +2846,7 @@ const id: Record<string, string> = {
   "mySpots.sports": "Olahraga",
   "mySpots.all": "Semua ({n})",
   "team.vergleich.titel": "Papan peringkat tim",
-  "team.vergleich.hinweis": "Setiap tim dihitung dari jumlah {n} rider terbaiknya. Pumpfoil, termasuk run tanpa data gerak; hanya tim dengan papan peringkat publik.",
+  "team.vergleich.hinweis": "Setiap tim dihitung dari jumlah {n} rider terbaiknya. {sport}, termasuk run tanpa data gerak; hanya tim dengan papan peringkat publik.",
   "team.vergleich.top": "{n} terbaik",
   "team.vergleich.ausFahrern": "dari {n} rider",
   "team.vergleich.leer": "Belum ada tim dengan sesi pada periode ini.",

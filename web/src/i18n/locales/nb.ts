@@ -2817,7 +2817,7 @@ const nb: Record<string, string> = {
   "mySpots.sports": "Idretter",
   "mySpots.all": "Alle ({n})",
   "team.vergleich.titel": "Lagtopplister",
-  "team.vergleich.hinweis": "Hvert lag teller summen av sine {n} beste ryttere. Pumpfoil, også turer uten bevegelsesdata; bare lag med offentlige topplister.",
+  "team.vergleich.hinweis": "Hvert lag teller summen av sine {n} beste ryttere. {sport}, også turer uten bevegelsesdata; bare lag med offentlige topplister.",
   "team.vergleich.top": "Beste {n}",
   "team.vergleich.ausFahrern": "fra {n} ryttere",
   "team.vergleich.leer": "Ingen lag har en økt i denne perioden ennå.",

@@ -2899,7 +2899,7 @@ const cs: Record<string, string> = {
   "mySpots.sports": "Sporty",
   "mySpots.all": "Vše ({n})",
   "team.vergleich.titel": "Žebříčky týmů",
-  "team.vergleich.hinweis": "Každý tým počítá součet svých {n} nejlepších jezdců. Pumpfoil, i jízdy bez pohybových dat; jen týmy s veřejnými žebříčky.",
+  "team.vergleich.hinweis": "Každý tým počítá součet svých {n} nejlepších jezdců. {sport}, i jízdy bez pohybových dat; jen týmy s veřejnými žebříčky.",
   "team.vergleich.top": "Nejlepších {n}",
   "team.vergleich.ausFahrern": "z {n} jezdců",
   "team.vergleich.leer": "V tomto období zatím žádný tým nemá session.",

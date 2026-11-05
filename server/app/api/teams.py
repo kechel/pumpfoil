@@ -243,13 +243,17 @@ def _events_sichtbar(db: Session, uid: int):
 
 
 @router.get("/liste/vergleich")
-def vergleich(period: str = "30d", top: int = 5, _u: models.User = Depends(current_user),
+def vergleich(period: str = "30d", top: int = 5, sport: str = "pumpfoil", _u: models.User = Depends(current_user),
               db: Session = Depends(get_db)) -> dict:
-    """Team-Bestenlisten der Community: je Kennzahl die Summe der besten 3/5/10 Fahrer eines Teams (T.vergleich)."""
+    """Team-Bestenlisten der Community: je Kennzahl die Summe der besten 3/5/10 Fahrer eines Teams (T.vergleich).
+    `sport` seit 05.11.2026 (Jan: „es wird auch teams nur fuer foilscoot oder gemischt geben, es soll halt jeweils
+    immer nur die gleiche sportart verglichen werden") — dieselbe Sportart-Wahl wie die Bestenliste der Mitglieder."""
     from .community import PERIODS
+    from ..sportarten import SPORTS
     period = period if period in PERIODS else "30d"
     top = top if top in T.VERGLEICH_TOP else 5
-    return {"period": period, "top": top, "teams": T.vergleich(db, period, top)}
+    sport = sport if sport in SPORTS else "pumpfoil"
+    return {"period": period, "top": top, "sport": sport, "teams": T.vergleich(db, period, top, sport)}
 
 
 @router.get("/liste/events")

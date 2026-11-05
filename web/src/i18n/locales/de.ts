@@ -3005,7 +3005,7 @@ const de: Record<string, string> = {
   "mySpots.sports": "Sportarten",
   "mySpots.all": "Alle ({n})",
   "team.vergleich.titel": "Team-Bestenlisten",
-  "team.vergleich.hinweis": "Je Team zählt die Summe seiner besten {n} Fahrer. Pumpfoil, auch Läufe ohne Bewegungsdaten; nur Teams mit öffentlichen Bestenlisten.",
+  "team.vergleich.hinweis": "Je Team zählt die Summe seiner besten {n} Fahrer. {sport}, auch Läufe ohne Bewegungsdaten; nur Teams mit öffentlichen Bestenlisten.",
   "team.vergleich.top": "Beste {n}",
   "team.vergleich.ausFahrern": "aus {n} Fahrern",
   "team.vergleich.leer": "In diesem Zeitraum hat noch kein Team eine Session.",

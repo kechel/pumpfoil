@@ -14,14 +14,14 @@ def _konto(client, mail: str, name: str | None = None) -> tuple[int, dict]:
     return me["id"], kopf
 
 
-def _session(uid: int, pumps: int, tage: int = 1, dist: float = 100.0) -> int:
+def _session(uid: int, pumps: int, tage: int = 1, dist: float = 100.0, sport: str = "pumpfoil") -> int:
     from app import models
     from app.db import SessionLocal
     db = SessionLocal()
     try:
         t = datetime.now(timezone.utc) - timedelta(days=tage)
         s = models.Session(session_uuid=secrets.token_hex(16), user_id=uid, started_at=t,
-                           ended_at=t + timedelta(minutes=40), sport="pumpfoil", sport_class="pumpfoil",
+                           ended_at=t + timedelta(minutes=40), sport=sport, sport_class=sport,
                            is_pumpfoil=True, status="analyzed", data_quality="ok")
         db.add(s)
         db.commit()
@@ -765,3 +765,9 @@ def test_team_vergleich_beste_n(client):
     s5 = stand(5)
     assert s5[gross]["pumps"] == 1000 and s5[gross]["sessions"] == 4 and s5[gross]["distance_m"] == 1200.0
     assert client.get("/api/teams/liste/vergleich?top=7", headers=kb).json()["top"] == 5   # nur 3/5/10
+    # Je Sportart (05.11.2026): eine Foil-Scoot-Session zaehlt nur dort, nicht bei Pumpfoil.
+    _session(ie, 77, sport="foil_scoot")
+    assert stand(5)[klein]["pumps"] == 600
+    d = client.get("/api/teams/liste/vergleich?period=30d&top=5&sport=foil_scoot", headers=kb).json()
+    assert d["sport"] == "foil_scoot" and {x["slug"]: x["pumps"] for x in d["teams"]} == {klein: 77}
+    assert client.get("/api/teams/liste/vergleich?sport=quatsch", headers=kb).json()["sport"] == "pumpfoil"
