@@ -12,7 +12,7 @@ import { useSearchParams } from "react-router-dom";
  * - Mit `merken` wird die Wahl fuer einen neuen Start im Browser gemerkt (nur Komfort; ohne Speicher gilt `start`).
  * - `param`: eigener Name, wenn Reiter in Reitern stehen (Spots in Home: `stab`).
  */
-export type ReiterDef = { id: string; label: string };
+export type ReiterDef = { id: string; label: string; badge?: import("react").ReactNode };
 
 const SPEICHER = (bereich: string) => `foil_reiter_${bereich}`;
 
@@ -96,7 +96,7 @@ export function Reiterleiste({ reiter, aktiv, onWahl, className = "", unter = fa
             <button key={r.id} role="tab" aria-selected={r.id === aktiv} onClick={() => onWahl(r.id)}
               className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm ${
                 r.id === aktiv ? "bg-slate-950 font-semibold text-slate-100 shadow-sm" : "text-slate-300 hover:text-slate-100"}`}>
-              {r.label}
+              {r.label}{r.badge}
             </button>
           ))}
         </div>
@@ -118,7 +118,7 @@ export function Reiterleiste({ reiter, aktiv, onWahl, className = "", unter = fa
                 flaeche ? "rounded-t-xl border-b-2 border-transparent bg-slate-800/70 font-semibold text-slate-100"
                 : an ? "border-b-2 border-brand-400 font-semibold text-slate-100"
                 : "border-b-2 border-transparent text-slate-400 hover:text-slate-200"}`}>
-              {r.label}
+              {r.label}{r.badge}
             </button>
           );
         })}

@@ -1,4 +1,5 @@
 import { TechnikUebersicht } from "../components/TechnikTabelle";
+import { EventHinweise } from "../components/EventHinweis";
 import { sortiereNachSport, sortiereSports, standardSportart, classLabelKey } from "../lib/sportClass";
 import { setLastSessionsFilter } from "../lib/lastSession";
 import { useWiederAufwachen } from "../lib/useWiederAufwachen";
@@ -472,6 +473,8 @@ export default function PersonalHome() {
       <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} unter={tab === "stats" || tab === "spots"} />
 
       {tab === "uebersicht" && <>
+        {/* Laufendes oder bald beginnendes globales Event (Jan, 06.11.2026). */}
+        <EventHinweise art="global" />
         <FreundesAnfragen />
 
         {/* Live-Upload-Karte: eigene Session lädt gerade hoch (Home + Sessions, NICHT Community). */}
@@ -629,7 +632,7 @@ export default function PersonalHome() {
         </div>
       </>}
 
-      {tab === "team" && <MeineTeams teams={meineTeams} />}
+      {tab === "team" && <><EventHinweise art="team" /><MeineTeams teams={meineTeams} /></>}
 
       {tab === "spots" && <SpotsBereich homespotId={homespotId} homespotName={homespot} liste={meineSpots} />}
 
