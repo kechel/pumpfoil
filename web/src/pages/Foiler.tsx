@@ -23,7 +23,7 @@ import { SessionCard } from "../components/SessionCard";
 import { openDmOverlay } from "../components/DmWidget";
 import { ListenAnsicht } from "../components/ListenAnsicht";
 import { useKompakteListe } from "../lib/kompakteListe";
-import { PlayIcon, LocationIcon, WatchIcon, FoilIcon, CommunityIcon, ChatBubbleIcon, StarIcon } from "../components/Icons";
+import { PlayIcon, LocationIcon, WatchIcon, FoilIcon, CommunityIcon, ChatBubbleIcon, StarIcon, TeamIcon } from "../components/Icons";
 import { Lightbox, LightboxPhoto } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
 import { SessionStats } from "./Sessions";
@@ -230,7 +230,7 @@ export default function Foiler({ userId, eingebettet = false, als }:
         {/* Teams ganz oben (Jan, 05.11.2026); die Nationalitaet steht als Flagge neben dem Namen. */}
         {!!d.teams?.length && (
           <>
-            <span className="flex items-center gap-1.5 text-slate-400"><CommunityIcon className="h-4 w-4" />{t("team.community")}:</span>
+            <span className="flex items-center gap-1.5 text-slate-400"><TeamIcon className="h-4 w-4" />{t("team.community")}:</span>
             <span className="flex flex-wrap gap-x-3 gap-y-1">
               {d.teams.map((tm) => (
                 <Link key={tm.slug} to={`/teams/${tm.slug}`} style={teamFarbStil(tm.farbe)}

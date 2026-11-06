@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { api, TeamEventKurz } from "../lib/api";
 import KachelUhr from "./KachelUhr";
 import EventKurzKachel from "./EventKurzKachel";
-import { FlagIcon } from "./Icons";
+import { EventIcon, FlagIcon } from "./Icons";
 import { CloseIcon } from "./Icons";
 import { useI18n } from "../i18n";
 
@@ -49,6 +49,7 @@ export function EventHinweise({ art }: { art: "global" | "team" }) {
                 immer steht"); Team-Events direkt aufs Event. */}
             <Link to={art === "global" ? "/community?tab=teams" : `/teams/${e.team.slug}/events/${e.id}`} className="flex flex-wrap items-center gap-x-2 gap-y-1 hover:underline">
               <span className="min-w-0 flex-1">
+                <EventIcon className="mr-1.5 inline h-4 w-4 align-[-2px] text-brand-600 dark:text-brand-300" />
                 <span className="font-semibold text-brand-700 dark:text-brand-300">{e.titel}</span>
                 {art === "team" && <span className="text-slate-400"> · {e.team.name}</span>}
                 <span className="text-slate-400"> · </span>

@@ -1,6 +1,7 @@
 // Alle Team-Events als Uebersicht, endlos scrollend (Jan, 01.11.2026): erst laufende, dann kommende, dann vergangene.
 // Nur Events, die man oeffnen darf (oeffentliche, freigegebene Teams und eigene Teams) — s. api/teams.py liste_events_alle.
 // Nachladen wie in FoilDetail/Sessions: IntersectionObserver auf einen Fuehler unter der Liste, 300 px Vorlauf.
+import { EventIcon } from "../components/Icons";
 import { useEffect, useRef, useState } from "react";
 import { api, TeamEventKurz } from "../lib/api";
 import EventKurzKachel from "../components/EventKurzKachel";
@@ -43,7 +44,7 @@ export default function EventsAlle() {
 
   return (
     <div className="w-full">
-      <h2 className="mb-3 text-xl font-bold text-slate-100">{t("team.alleEvents")}</h2>
+      <h2 className="mb-3 flex items-center gap-2 text-xl font-bold text-slate-100"><EventIcon className="h-5 w-5 text-brand-400" />{t("team.alleEvents")}</h2>
       {events === null ? <p className="text-sm text-slate-400">{t("common.loading")}</p>
         : events.length === 0 ? <p className="text-sm text-slate-400">{t("team.alleEventsLeer")}</p> : (
           <div className="grid gap-3 lg:grid-cols-2">

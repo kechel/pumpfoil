@@ -21,7 +21,7 @@ import { SessionRow } from "../components/SessionRow";
 import { Lightbox } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
 import { TrackPreview } from "../components/TrackPreview";
-import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon, WatchIcon, FlagIcon, ShareIcon } from "../components/Icons";
+import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon, WatchIcon, FlagIcon, ShareIcon, TeamIcon } from "../components/Icons";
 import { CommunityStats } from "../components/CommunityStats";
 import { useAccelDefault } from "../lib/useAccelDefault";
 import { useI18n, useT } from "../i18n";
@@ -1007,7 +1007,7 @@ function AktivsteTeams() {
   if (!top.length) return null;
   return (
     <div className="mt-8">
-      <h3 className="mb-2 text-lg font-bold">{t("team.aktivste")}</h3>
+      <h3 className="mb-2 flex items-center gap-2 text-lg font-bold"><TeamIcon className="h-5 w-5 text-brand-400" />{t("team.aktivste")}</h3>
       <div className="max-w-2xl space-y-2">{top.map((tm) => <TeamListenKachel key={tm.id} tm={tm} aktivitaet />)}</div>
     </div>
   );

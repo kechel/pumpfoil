@@ -1,5 +1,6 @@
 // Alle freigegebenen Teams auf einer eigenen Seite (Jan, 01.11.2026): die Community-Seite zeigt keine Teams mehr direkt,
 // nur noch laufende und bald beginnende Events — mit vielen Teams waere die Liste dort zu lang geworden.
+import { TeamIcon } from "../components/Icons";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, TeamListenEintrag } from "../lib/api";
@@ -16,7 +17,7 @@ export default function TeamsAlle() {
   return (
     <div className="w-full">
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <h2 className="text-xl font-bold text-slate-100">{t("team.alle")}</h2>
+        <h2 className="flex items-center gap-2 text-xl font-bold text-slate-100"><TeamIcon className="h-5 w-5 text-brand-400" />{t("team.alle")}</h2>
         <Link to="/teams" className="ml-auto text-sm text-brand-700 hover:underline dark:text-brand-300">{t("team.gruenden")} →</Link>
       </div>
       <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("team.alleSuche")} type="search"

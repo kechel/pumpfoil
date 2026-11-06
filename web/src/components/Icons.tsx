@@ -279,6 +279,22 @@ export const FlagIcon = ({ className = base }: P) => (
   </svg>
 );
 
+// Events (06.11.2026, Jan: „ueberall wo wir auf events verweisen auch das event-zeichen"): die Fahne. Eigener Name, damit
+// klar bleibt, dass sie fuer Events steht — Teams haben seitdem TeamIcon.
+export const EventIcon = FlagIcon;
+
+// Teams: drei Personen (Mitte vorn), Community bleibt bei zweien.
+export const TeamIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <circle cx="12" cy="7" r="3" />
+    <path d="M6.5 20v-1.5a5.5 5.5 0 0 1 11 0V20" />
+    <circle cx="5" cy="9" r="2.2" />
+    <path d="M1.5 19v-1a3.5 3.5 0 0 1 4.2-3.4" />
+    <circle cx="19" cy="9" r="2.2" />
+    <path d="M22.5 19v-1a3.5 3.5 0 0 0-4.2-3.4" />
+  </svg>
+);
+
 export const MapIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>
     <path d="M9 4 3 6.5v13L9 17l6 2.5L21 17V4l-6 2.5L9 4Z" /><line x1="9" y1="4" x2="9" y2="17" /><line x1="15" y1="6.5" x2="15" y2="19.5" />

@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { api, clearToken, SocialChannelState } from "../lib/api";
 import { Card, Button, Avatar, NewBadge } from "../components/ui";
 import { Link } from "react-router-dom";
-import { SettingsIcon, WatchIcon, ChevronIcon, FoilIcon, CalculatorIcon, UploadIcon, CheckIcon, CommunityIcon, FlagIcon } from "../components/Icons";
+import { SettingsIcon, WatchIcon, ChevronIcon, FoilIcon, CalculatorIcon, UploadIcon, CheckIcon, CommunityIcon, TeamIcon } from "../components/Icons";
 import { useI18n, useT } from "../i18n";
 import { APP_BUILD } from "../buildInfo";
 import { fmtDate } from "../lib/time";
@@ -952,7 +952,7 @@ function TeamKarte() {
       className="mb-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/60 p-4 hover:border-slate-700 hover:bg-slate-900"
     >
       <span className="flex items-center gap-3">
-        <FlagIcon className="h-6 w-6 text-brand-400" />
+        <TeamIcon className="h-6 w-6 text-brand-400" />
         <span className="min-w-0">
           <span className="flex flex-wrap items-center gap-2 font-medium text-slate-100">
             {t("team.profilKnopf")}
