@@ -790,7 +790,7 @@ fun GlobalEventKachel(e: TeamEventKurz, onClick: () -> Unit, modifier: Modifier 
                 Text(d.monat.uppercase(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = akzent,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 Text(d.tage, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, maxLines = 1,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    color = MaterialTheme.colorScheme.onSurface, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 Text(d.wochentage, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
@@ -803,7 +803,10 @@ fun GlobalEventKachel(e: TeamEventKurz, onClick: () -> Unit, modifier: Modifier 
                     e.sportarten.forEach { SportChip(it) }
                     e.spots.forEach { SpotChip(it.name ?: "#${it.id}") }
                 }
-                Text(e.titel, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+                // Farbe ausdruecklich: sonst erbt der Titel die gedaempfte Textfarbe der Card und wirkt im Dunkeln grau (Jan, 06.11.2026);
+                // im Web steht er hell weiss bzw. dunkel fast schwarz.
+                Text(e.titel, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(top = 4.dp))
                 if (e.status == "kommend" || laeuft) {
                     val jetzt = rememberJetzt()
                     Text(I18n.t(if (laeuft) "team.event.endetIn" else "team.event.startIn") + " " +
