@@ -227,6 +227,8 @@ struct CommunityView: View {
                 Text(Loc.t("cls.sport.\(sp)", lang)).tag(sp)
             }
         }
+        .pickerStyle(.menu)
+        .labelsHidden()
     }
 
     @ToolbarContentBuilder private var communityToolbar: some ToolbarContent {
@@ -366,6 +368,8 @@ struct CommunityView: View {
     @ViewBuilder private var filterSection: some View {
         Section {
             zeitChips
+            // Eine Zeile, beide Menues ohne Label (Jan, 07.11.2026: die Labels brachen komisch um; „Global" und die
+            // Sportart sagen selbst, was sie sind).
             HStack(spacing: 8) {
                 if regionKeys.count > 1 { regionMenu }
                 Spacer(minLength: 4)
@@ -406,6 +410,7 @@ struct CommunityView: View {
             ForEach(regionKeys, id: \.self) { k in Text(regionText(k)).tag(k) }
         }
         .pickerStyle(.menu)
+        .labelsHidden()   // „Global" bzw. die Flagge sagt, was es ist (Jan, 07.11.2026); der lange Satz steht im Hinweis
     }
 
     @ViewBuilder private var regionHinweis: some View {
@@ -417,19 +422,20 @@ struct CommunityView: View {
     }
 
     // Filter nur fuer die Mitglieder (und die Kacheln): Kennzahl, accel/alle/Freunde, Foil-Band.
+    // Eine Zeile ohne Labels wie Region/Sportart (07.11.2026): die Kennzahl und „Accel/Alle/Freunde" sprechen fuer sich.
     private var mitgliederMenues: some View {
         HStack(spacing: 8) {
             Picker(Loc.t("community.leaderboard", lang), selection: $lbMetric) {
                 ForEach(lbMetrics, id: \.0) { id, label in Text(label).tag(id) }
             }
-            .pickerStyle(.menu)
+            .pickerStyle(.menu).labelsHidden()
             Spacer(minLength: 4)
             Picker("accel", selection: $genau) {
                 Text(Loc.t("side.onlyAccel", lang).capitalized).tag("accel")
                 Text(Loc.t("side.all", lang).capitalized).tag("alle")
                 Text(Loc.t("friends.title", lang)).tag("freunde")
             }
-            .pickerStyle(.menu)
+            .pickerStyle(.menu).labelsHidden()
         }
     }
 
@@ -526,7 +532,9 @@ struct CommunityView: View {
     @ViewBuilder private func leaderRow(_ platz: Int, _ e: LeaderEntry, avatarLink: Bool = true, ich: Bool = false) -> some View {
         HStack(spacing: 8) {
             // Feste Spalten (05.11.2026, Jan: „ausrichtung noch fixen"): Platz, Profilbild (ohne Bild die Initiale), Flagge.
-            Text("\(platz)").font(.subheadline).bold().foregroundStyle(Color.accentColor).frame(width: 26, alignment: .leading)
+            // Dreistellige Plaetze (eigene Zeile, 07.11.2026) brachen um: einzeilig, notfalls kleiner.
+            Text("\(platz)").font(.subheadline).bold().monospacedDigit().foregroundStyle(Color.accentColor)
+                .lineLimit(1).minimumScaleFactor(0.6).frame(width: 30, alignment: .leading)
             AvatarView(name: e.name, url: Api.mediaURL(e.avatar_url), size: 28, userId: e.user_id, link: avatarLink)
             LandFlagge(land: e.land)   // nach dem Profilbild, Platz bleibt auch ohne Land (web Flagge)
             Text(e.name ?? "—").lineLimit(1)

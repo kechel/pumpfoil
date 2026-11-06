@@ -640,7 +640,7 @@ private struct TeamWertungKarte: View {
         NavigationLink { TeamView(slug: z.slug) } label: {
             HStack(spacing: 8) {
                 Text(String(z.rang)).font(.subheadline.weight(.bold)).foregroundStyle(rangFarbe(z.rang))
-                    .frame(width: 24, alignment: .trailing)
+                    .lineLimit(1).minimumScaleFactor(0.6).frame(width: 28, alignment: .trailing)
                 TeamWappen(name: z.name, logo: z.logo_url, farbe: z.farbe, size: 24)
                 Text(z.name).font(.subheadline).lineLimit(1)
                 Spacer(minLength: 4)

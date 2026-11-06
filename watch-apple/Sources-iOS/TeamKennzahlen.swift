@@ -266,7 +266,7 @@ private struct TeamTafelZeile: View {
     var body: some View {
         HStack(spacing: 8) {
             Text("\(z.rang)").font(.subheadline.weight(.bold)).foregroundStyle(rangFarbe)
-                .frame(width: 24, alignment: .trailing)
+                .lineLimit(1).minimumScaleFactor(0.6).frame(width: 28, alignment: .trailing)
             bild
             LandFlagge(land: z.land)
             VStack(alignment: .leading, spacing: 1) {

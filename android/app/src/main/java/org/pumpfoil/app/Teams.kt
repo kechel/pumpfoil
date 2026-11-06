@@ -950,7 +950,7 @@ fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit
             tf.zeilen.forEachIndexed { i, z ->
                 if (i > 0) HorizontalDivider()
                 Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("${z.rang}", Modifier.width(24.dp), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold,
+                    Text("${z.rang}", Modifier.width(32.dp), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false,
                         color = if (z.rang <= 3) farbe.akzent else MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = androidx.compose.ui.text.style.TextAlign.End)
                     Spacer(Modifier.width(8.dp))

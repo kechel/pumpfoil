@@ -169,7 +169,7 @@ struct TeamBestenlistenSection: View {
         let tf = TeamFarbe(z.farbe)
         let aus: String = Loc.t("team.vergleich.ausFahrern", lang).replacingOccurrences(of: "{n}", with: String(z.fahrer(art)))
         return HStack(spacing: 10) {
-            Text(String(rang)).font(.headline.monospacedDigit()).foregroundStyle(.secondary).frame(minWidth: 22)
+            Text(String(rang)).font(.headline.monospacedDigit()).foregroundStyle(.secondary).lineLimit(1).frame(minWidth: 22)
             TeamWappen(name: z.name, logo: z.logo_url, farbe: z.farbe, size: 36)
             // Herkunft nach dem Namen wie web TeamHerkunft (Land als Flagge, Kontinent/Erde als Kuerzel).
             HStack(spacing: 5) {
@@ -454,7 +454,9 @@ struct TeamBestenlisteBild: View {
         return HStack(spacing: 0) {
             Text(String(z.rang)).font(.system(size: gross, weight: .heavy))
                 .foregroundStyle(z.rang <= 3 ? f.akzent : f.leise)
-                .frame(width: 50, alignment: .trailing)
+                // Dreistellig (eigene Zeile, 07.11.2026) wurde „1…“: nach links Platz wie im Web-Bild (rechtsbuendig), notfalls kleiner.
+                .lineLimit(1).minimumScaleFactor(0.6).frame(width: 74, alignment: .trailing)
+                .padding(.leading, -24)
             Spacer().frame(width: 24)
             wappen(z)
             Spacer().frame(width: 16)

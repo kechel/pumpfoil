@@ -803,8 +803,9 @@ internal fun BestenlistenBlock(lb: Leaders, sportart: String, lbMetric: String, 
                         .padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
                         // Feste Spalten (05.11.2026, Jan: „ausrichtung noch fixen"): Platz, Profilbild (ohne Bild die
                         // Initiale wie im Web), Flagge — sonst rueckten Namen mit Bild um dessen Breite nach rechts.
-                        Text("$platz", Modifier.width(26.dp), style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.primary, maxLines = 1)
+                        // 34 dp: dreistellige Plaetze der eigenen Zeile (07.11.2026) wurden abgeschnitten.
+                        Text("$platz", Modifier.width(34.dp), style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.primary, maxLines = 1, softWrap = false)
                         AvatarCircle(e.name, e.avatarUrl, 28.dp, userId = e.userId)
                         Spacer(Modifier.width(8.dp))
                         LandFlagge(e.land)   // nach dem Profilbild, Platz bleibt auch ohne Land (Web Flagge)
