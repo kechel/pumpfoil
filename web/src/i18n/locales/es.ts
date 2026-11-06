@@ -2549,6 +2549,7 @@ const es: Record<string, string> = {
   "team.tab.grunddaten": "Ajustes básicos",
   "team.gespeichert": "Guardado.",
   "team.mitgliederAnzahl": "{n} miembros",
+  "team.mitgliederAnzahl1": "1 miembro",
   "team.finden": "Buscar equipo",
   "team.findenPlatzhalter": "Buscar nombre del equipo …",
   "team.oeffentlichBadge": "Clasificaciones públicas",

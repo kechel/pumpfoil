@@ -2663,6 +2663,7 @@ const ja: Record<string, string> = {
   "team.tab.grunddaten": "基本設定",
   "team.gespeichert": "保存しました。",
   "team.mitgliederAnzahl": "メンバー {n} 人",
+  "team.mitgliederAnzahl1": "メンバー 1 人",
   "team.finden": "チームを探す",
   "team.findenPlatzhalter": "チーム名で検索 …",
   "team.oeffentlichBadge": "ランキング公開中",

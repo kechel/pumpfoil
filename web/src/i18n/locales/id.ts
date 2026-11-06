@@ -2667,6 +2667,7 @@ const id: Record<string, string> = {
   "team.tab.grunddaten": "Pengaturan dasar",
   "team.gespeichert": "Tersimpan.",
   "team.mitgliederAnzahl": "{n} anggota",
+  "team.mitgliederAnzahl1": "1 anggota",
   "team.finden": "Cari tim",
   "team.findenPlatzhalter": "Cari nama tim …",
   "team.oeffentlichBadge": "Papan peringkat publik",

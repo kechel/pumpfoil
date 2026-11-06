@@ -2646,6 +2646,7 @@ const pl: Record<string, string> = {
   "team.tab.grunddaten": "Ustawienia podstawowe",
   "team.gespeichert": "Zapisano.",
   "team.mitgliederAnzahl": "Członkowie: {n}",
+  "team.mitgliederAnzahl1": "Członkowie: 1",
   "team.finden": "Znajdź drużynę",
   "team.findenPlatzhalter": "Szukaj nazwy drużyny …",
   "team.oeffentlichBadge": "Publiczne rankingi",

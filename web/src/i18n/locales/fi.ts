@@ -2702,6 +2702,7 @@ const fi: Record<string, string> = {
   "team.tab.grunddaten": "Perusasetukset",
   "team.gespeichert": "Tallennettu.",
   "team.mitgliederAnzahl": "Jäseniä: {n}",
+  "team.mitgliederAnzahl1": "Jäseniä: 1",
   "team.finden": "Etsi tiimi",
   "team.findenPlatzhalter": "Hae tiimin nimeä …",
   "team.oeffentlichBadge": "Julkiset tulostaulukot",

@@ -2550,6 +2550,7 @@ const it: Record<string, string> = {
   "team.tab.grunddaten": "Impostazioni di base",
   "team.gespeichert": "Salvato.",
   "team.mitgliederAnzahl": "{n} membri",
+  "team.mitgliederAnzahl1": "1 membro",
   "team.finden": "Trova un team",
   "team.findenPlatzhalter": "Cerca il nome del team …",
   "team.oeffentlichBadge": "Classifiche pubbliche",

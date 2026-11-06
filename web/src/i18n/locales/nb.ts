@@ -2638,6 +2638,7 @@ const nb: Record<string, string> = {
   "team.tab.grunddaten": "Grunninnstillinger",
   "team.gespeichert": "Lagret.",
   "team.mitgliederAnzahl": "{n} medlemmer",
+  "team.mitgliederAnzahl1": "1 medlem",
   "team.finden": "Finn et lag",
   "team.findenPlatzhalter": "Søk etter lagnavn …",
   "team.oeffentlichBadge": "Offentlige topplister",

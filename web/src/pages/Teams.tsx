@@ -129,7 +129,7 @@ export function TeamSuche() {
                 <span className="min-w-0 flex-1">
                   <span className="flex min-w-0 items-center gap-1.5"><span className="truncate font-medium text-slate-100">{x.name}</span><TeamHerkunft land={x.land} /></span>
                   <span className="block truncate text-xs text-slate-400">
-                    {t("team.mitgliederAnzahl", { n: x.mitglieder_anzahl })}
+                    {t(x.mitglieder_anzahl === 1 ? "team.mitgliederAnzahl1" : "team.mitgliederAnzahl", { n: String(x.mitglieder_anzahl) })}
                     {!!x.sportarten?.length && <> · {sportartenText(x.sportarten, t)}</>}
                   </span>
                 </span>

@@ -171,7 +171,7 @@ fun TeamScreen(
                             }
                             Text(
                                 listOfNotNull(
-                                    I18n.t("team.mitgliederAnzahl").replace("{n}", k.mitgliederAnzahl.toString()),
+                                    I18n.t(if (k.mitgliederAnzahl == 1) "team.mitgliederAnzahl1" else "team.mitgliederAnzahl").replace("{n}", k.mitgliederAnzahl.toString()),
                                     if (k.bestenlistenOeffentlich) I18n.t("team.oeffentlichBadge") else null,
                                     k.sportarten.takeIf { it.isNotEmpty() }?.let { sportartenText(it) },
                                 ).joinToString(" · "),

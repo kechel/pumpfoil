@@ -16,7 +16,7 @@ export default function TeamListenKachel({ tm, aktivitaet = false }: { tm: TeamL
       <span className="min-w-0 flex-1">
         <span className="flex min-w-0 items-center gap-1.5"><span className="team-akzent truncate font-semibold">{tm.name}</span><TeamHerkunft land={tm.land} /></span>
         <span className="block truncate text-xs text-slate-400">
-          {t("team.mitgliederAnzahl", { n: String(tm.mitglieder_anzahl) })}
+          {t(tm.mitglieder_anzahl === 1 ? "team.mitgliederAnzahl1" : "team.mitgliederAnzahl", { n: String(tm.mitglieder_anzahl) })}
           {!!tm.sportarten?.length && <> · {sportartenText(tm.sportarten, t)}</>}
         </span>
       </span>

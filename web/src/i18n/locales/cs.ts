@@ -2720,6 +2720,7 @@ const cs: Record<string, string> = {
   "team.tab.grunddaten": "Základní nastavení",
   "team.gespeichert": "Uloženo.",
   "team.mitgliederAnzahl": "Členové: {n}",
+  "team.mitgliederAnzahl1": "Členové: 1",
   "team.finden": "Najít tým",
   "team.findenPlatzhalter": "Hledat název týmu …",
   "team.oeffentlichBadge": "Veřejné žebříčky",

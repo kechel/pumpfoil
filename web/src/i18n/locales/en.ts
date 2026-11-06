@@ -2770,6 +2770,7 @@ const en: Record<string, string> = {
   "team.tab.grunddaten": "Basic settings",
   "team.gespeichert": "Saved.",
   "team.mitgliederAnzahl": "{n} members",
+  "team.mitgliederAnzahl1": "1 member",
   "team.finden": "Find a team",
   "team.findenPlatzhalter": "Search team name …",
   "team.oeffentlichBadge": "Public leaderboards",

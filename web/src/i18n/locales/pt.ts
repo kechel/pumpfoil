@@ -2667,6 +2667,7 @@ const pt: Record<string, string> = {
   "team.tab.grunddaten": "Configurações básicas",
   "team.gespeichert": "Salvo.",
   "team.mitgliederAnzahl": "{n} membros",
+  "team.mitgliederAnzahl1": "1 membro",
   "team.finden": "Encontrar equipe",
   "team.findenPlatzhalter": "Buscar nome da equipe …",
   "team.oeffentlichBadge": "Rankings públicos",

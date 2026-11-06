@@ -2551,6 +2551,7 @@ const gsw: Record<string, string> = {
   "team.tab.grunddaten": "Grundiistellige",
   "team.gespeichert": "Gspicheret.",
   "team.mitgliederAnzahl": "{n} Mitglieder",
+  "team.mitgliederAnzahl1": "1 Mitglied",
   "team.finden": "Team finde",
   "team.findenPlatzhalter": "Teamname sueche …",
   "team.oeffentlichBadge": "Bestelischte öffentlich",

@@ -371,7 +371,7 @@ export default function Team() {
         </div>
         <div className="col-span-2 flex flex-wrap items-center gap-x-3 gap-y-2">
           <p className="text-sm text-slate-400">
-            {t("team.mitgliederAnzahl", { n: String(kopf.mitglieder_anzahl) })}
+            {t(kopf.mitglieder_anzahl === 1 ? "team.mitgliederAnzahl1" : "team.mitgliederAnzahl", { n: String(kopf.mitglieder_anzahl) })}
             {kopf.bestenlisten_oeffentlich && <> · {t("team.oeffentlichBadge")}</>}
             {!!kopf.sportarten?.length && <> · {sportartenText(kopf.sportarten, t)}</>}
           </p>

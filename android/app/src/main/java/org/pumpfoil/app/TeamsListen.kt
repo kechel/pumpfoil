@@ -246,7 +246,7 @@ fun TeamsAlleScreen(onBack: () -> Unit, onOpenTeam: (String) -> Unit, onGruenden
                                         Spacer(Modifier.width(6.dp)); TeamHerkunftZeichen(tm.land)
                                     }
                                     Text(
-                                        I18n.t("team.mitgliederAnzahl").replace("{n}", tm.mitgliederAnzahl.toString()) +
+                                        I18n.t(if (tm.mitgliederAnzahl == 1) "team.mitgliederAnzahl1" else "team.mitgliederAnzahl").replace("{n}", tm.mitgliederAnzahl.toString()) +
                                             (if (tm.sportarten.isNotEmpty()) " · " + sportartenText(tm.sportarten) else ""),
                                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         maxLines = 1, overflow = TextOverflow.Ellipsis,
@@ -414,7 +414,7 @@ fun TeamSuche(onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier) {
                                     modifier = Modifier.weight(1f, fill = false))
                                 Spacer(Modifier.width(6.dp)); TeamHerkunftZeichen(x.land)
                             }
-                            Text(I18n.t("team.mitgliederAnzahl").replace("{n}", x.mitgliederAnzahl.toString()) +
+                            Text(I18n.t(if (x.mitgliederAnzahl == 1) "team.mitgliederAnzahl1" else "team.mitgliederAnzahl").replace("{n}", x.mitgliederAnzahl.toString()) +
                                     (if (x.sportarten.isNotEmpty()) " · " + sportartenText(x.sportarten) else ""),
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis)
