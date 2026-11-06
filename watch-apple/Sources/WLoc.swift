@@ -1,8 +1,9 @@
 import Foundation
 
 // On-Device-Lokalisierung des watchOS-Recorders nach Profil-Sprache (vom Server via
-// /api/devices/config geliefert, in UserDefaults "appLang" gecacht). Fallback: Englisch (Jan, 06.11.2026: „das muss
-// immer englisch sein wenn das nicht ueber die config-abfrage anders ankommt" — vorher Deutsch bzw. Systemsprache).
+// /api/devices/config geliefert, in UserDefaults "appLang" gecacht). Vor dem ersten Abruf die Systemsprache der Uhr, ohne
+// passende Spalte Englisch (06.11.2026: bis dahin stand an allen Aufrufern fest "de" — ein Fahrer mit englischer Uhr sah
+// bei der Ersteinrichtung Deutsch; Jan: „wenn es eine systemsprache gibt dann natuerlich immer die benutzen").
 // Reine Einheiten (km/h, bpm, m) bleiben unlokalisiert.
 enum WLoc {
     static func t(_ key: String, _ lang: String) -> String {
@@ -23,8 +24,16 @@ enum WLoc {
         }
         guard let row = table[key] else { return key }
         if let v = row[lang] { return v }
-        // Overlay ohne den Key, leer oder unbekannt -> Englisch.
-        return row["en"] ?? key
+        if ["nl", "fi", "cs", "pt", "ja", "zh", "ru", "id", "nb", "pl"].contains(lang) { return row["en"] ?? row["de"] ?? key }
+        // Profil-Sprache kann die Uhr nicht (leer/unbekannt) -> NICHT hart Deutsch, sondern die
+        // GERÄTE-SYSTEMSPRACHE; sonst Englisch. nl/fi/cs sind seit 31.08. eigene Overlays.
+        return row[sysLang()] ?? row["en"] ?? row["de"] ?? key
+    }
+
+    // Geräte-Systemsprache auf unsere Spalten (de/en/fr/it/es); alles andere -> Englisch.
+    static func sysLang() -> String {
+        let code = String((Locale.preferredLanguages.first ?? "en").prefix(2))
+        return ["de", "en", "fr", "it", "es"].contains(code) ? code : "en"
     }
 
     private static func r(_ de: String, _ gsw: String, _ deAT: String, _ en: String, _ fr: String, _ it: String, _ es: String) -> [String: String] {
