@@ -1513,6 +1513,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **💡 06.11. Gemerkt (Jan: „erstmal nur merken"): 100-Hz/25-Hz-Paare aus Garmin Connect als Datengrundlage.** Jede
+  zusammengefuehrte Fahrt ist dieselbe Fahrt am selben Handgelenk zweimal: Garmins FIT (~100 Hz) und unsere Aufnahme
+  (25 Hz). Erste Paare 06.11.: Alex #20305/#20303 (fenix 6 Pro, 96,9/24,2 Hz, Pumps pg-1 1140/1159), Oerni #20315/#20313
+  (fenix 7 Pro, 100/25 Hz, Wingfoil). Jan: „1.000 sessions spaeter die gleiterkennung und anderes viel besser ausrichten
+  … und dann vielleicht sogar die 25hz erkennung damit auch verbessern". Voraussetzung: die ausgeblendete eigene
+  Aufnahme (merged_into) behaelt ihre Rohdaten — nie wegraeumen ausser DSGVO. NICHT geplant: Gyro zusaetzlich in die
+  FIT schreiben (Jan: „schreiben auf die uhr war immer schwierig und problematisch, ob die das alle koennen ist ein
+  bisschen riskant").
+
 - **🟡 06.11. Uhren-Sprache: Profil > Systemsprache > Englisch (Jan).** Anlass: Olek meldete, ein Fahrer sah auf der
   Apple Watch bei der Ersteinrichtung Deutsch. Regel (Jan: „profil ueberschreibt dann alles", „wenn es eine
   systemsprache gibt dann natuerlich immer die benutzen", „fallback nach systemsprache englisch"). Stand je Uhr:
