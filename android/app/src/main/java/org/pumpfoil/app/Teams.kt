@@ -803,10 +803,10 @@ fun GlobalEventKachel(e: TeamEventKurz, onClick: () -> Unit, modifier: Modifier 
                     e.sportarten.forEach { SportChip(it) }
                     e.spots.forEach { SpotChip(it.name ?: "#${it.id}") }
                 }
-                // Farbe ausdruecklich: sonst erbt der Titel die gedaempfte Textfarbe der Card und wirkt im Dunkeln grau (Jan, 06.11.2026);
-                // im Web steht er hell weiss bzw. dunkel fast schwarz.
+                // Titel in unserem Cyan wie die Titel der Team-Events (Jan, 06.11.2026: „ist das nicht eigentlich unser cyan?");
+                // ohne ausdrueckliche Farbe erbte er die gedaempfte Textfarbe der Card und wirkte im Dunkeln grau.
                 Text(e.titel, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(top = 4.dp))
+                    color = akzent, modifier = Modifier.padding(top = 4.dp))
                 if (e.status == "kommend" || laeuft) {
                     val jetzt = rememberJetzt()
                     Text(I18n.t(if (laeuft) "team.event.endetIn" else "team.event.startIn") + " " +

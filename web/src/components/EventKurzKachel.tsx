@@ -38,7 +38,7 @@ function GlobalKachel({ e }: { e: TeamEventKurz }) {
             </span>
           ))}
         </div>
-        <p className="text-lg font-bold leading-snug text-slate-100">{e.titel}</p>
+        <p className="text-lg font-bold leading-snug text-brand-700 dark:text-brand-300">{e.titel}</p>
         {(e.status === "kommend" || e.status === "laeuft") && (
           <p className="mt-0.5 text-sm"><KachelUhr ziel={e.status === "kommend" ? e.start : e.ende} text={t(e.status === "kommend" ? "team.event.startIn" : "team.event.endetIn")} lang={lang} /></p>
         )}

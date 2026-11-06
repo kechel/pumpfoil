@@ -428,7 +428,7 @@ struct GlobalEventKachel: View {
     private var rechts: some View {
         VStack(alignment: .leading, spacing: 4) {
             abzeichen
-            Text(d.titel).font(.title3.weight(.bold)).foregroundStyle(.primary)
+            Text(d.titel).font(.title3.weight(.bold)).foregroundStyle(marke.akzent)
                 .fixedSize(horizontal: false, vertical: true)
             if mitUhr { uhrZeile }
             if let z = eventErsteZeile(d.beschreibung) {
