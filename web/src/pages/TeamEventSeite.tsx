@@ -9,6 +9,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { api, FoilBand, getToken, TeamAuftritt, TeamEvent, TeamRolle, TeamTafelMitZeilen } from "../lib/api";
 import { SettingsIcon } from "../components/Icons";
 import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
+import { Card } from "../components/ui";
 import TeamWappen from "../components/TeamWappen";
 import { TeamHerkunft } from "../components/TeamHerkunft";
 import TeamBanner from "../components/TeamBanner";
@@ -97,8 +98,9 @@ function TeamWertung({ tf, n, t, eigeneSlugs, standText }: { tf: TeamTafelMitZei
   const alle = tf.teams ?? [];
   const teams = [...alle.slice(0, 10), ...alle.slice(10).filter((x) => eigeneSlugs.includes(x.slug))];
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-3">
-      <p className="text-sm font-semibold text-slate-100">{t("team.event.teams")} · {t(k.labelKey)}</p>
+    // Gleiche Karte und Ueberschrift wie die Fahrer-Liste links (Tafel), Jan 06.11.2026: „einheitlich".
+    <Card className="p-4">
+      <h3 className="team-akzent font-semibold">{t("team.event.teams")} · {t(k.labelKey)}</h3>
       <p className="text-xs text-slate-400">{n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) })}</p>
       {standText && <p className="text-xs text-slate-400">{standText}</p>}
       {teams.length === 0 && <p className="mt-2 text-sm text-slate-400">{t("team.event.keineTeams")}</p>}
@@ -113,7 +115,7 @@ function TeamWertung({ tf, n, t, eigeneSlugs, standText }: { tf: TeamTafelMitZei
           </li>
         ))}
       </ol>
-    </div>
+    </Card>
   );
 }
 
