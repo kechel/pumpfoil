@@ -352,6 +352,13 @@ def _eigene_zum_eintrag(db: Session, user_id: int, eintrag: dict) -> models.Sess
     return _eigene_aufnahme(db, user_id, start, start + timedelta(seconds=dauer))
 
 
+class _Geladen:
+    """Die geladene (oder gesicherte) Datei in der Form, die der Rest von aktivitaet_importieren erwartet (`.content`)."""
+    def __init__(self, content: bytes):
+        self.content = content
+        self.status_code = 200
+
+
 def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) -> str:
     """Eine Aktivitaetsdatei laden und importieren. Gibt den Ausgang als kurzes Wort zurueck (fuers Protokoll)."""
     from .. import importsports, storage
@@ -370,9 +377,18 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
         return "kein nutzer"
     # Immer erst laden: welches Profil wirklich lief, steht nur in der Datei (Profilname, Jan 05.11.2026), und ob sie zu
     # einer eigenen Aufnahme gehoert, entscheidet sich auch erst mit ihren Zeiten.
-    r = httpx.get(url, headers={"Authorization": f"Bearer {gueltiges_token(link, db)}"}, timeout=60)
-    if r.status_code != 200 or not r.content:
-        return f"download {r.status_code}"
+    # Schon einmal geladen (Neustart mitten in der Verarbeitung)? Dann die gesicherte Datei — die Adresse gilt nur einmal.
+    roh = _ws_datei(eintrag)
+    if roh is None:
+        r = httpx.get(url, headers={"Authorization": f"Bearer {gueltiges_token(link, db)}"}, timeout=60)
+        if r.status_code != 200 or not r.content:
+            return f"download {r.status_code}"
+        roh = r.content
+        try:
+            _ws_datei_merken(eintrag, roh)
+        except OSError as exc:
+            log.warning("garmin: Datei %s nicht gesichert: %s", eintrag.get("summaryId"), exc)
+    r = _Geladen(roh)
     try:
         parsed = parse_fit_bytes(r.content)
     except Exception as exc:  # noqa: BLE001
@@ -495,6 +511,80 @@ def geraet_name(device_name) -> str:
     return n if n.lower().startswith("garmin") else f"Garmin {n}"
 
 
+# Warteschlange auf der Platte (Jan, 06.11.2026: „ja bitte immer sichern"). Garmins Download-Adresse gilt nur EINMAL,
+# und die Verarbeitung laeuft nach der 200-Antwort im Serverprozess — ein Neustart dazwischen verlor die Aktivitaet.
+# Jetzt: der Push liegt als <schluessel>.json in data/garmin-warteschlange, BEVOR Garmin die 200 bekommt; die geladene
+# Datei als <schluessel>.fit, BEVOR sie gelesen wird. Beides verschwindet erst, wenn der Eintrag verarbeitet ist. Was
+# liegen bleibt, holt app/nach_neustart.py nach dem naechsten Start nach (ohne neuen Download, wenn die Datei da ist).
+WARTESCHLANGE = "garmin-warteschlange"
+
+
+def _ws_dir():
+    from ..config import get_settings
+    d = get_settings().data_dir / WARTESCHLANGE
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _ws_schluessel(e: dict) -> str:
+    roh = f"{e.get('userId')}-{e.get('summaryId') or e.get('callbackURL')}"
+    import hashlib
+    return hashlib.sha256(roh.encode()).hexdigest()[:24]
+
+
+def warteschlange_merken(eintraege: list[dict]) -> None:
+    import json as _json
+    import os
+    d = _ws_dir()
+    for e in eintraege:
+        p = d / f"{_ws_schluessel(e)}.json"
+        neu = p.with_name(p.name + ".neu")
+        neu.write_text(_json.dumps(e, default=str))
+        os.replace(neu, p)
+
+
+def _ws_datei_merken(e: dict, roh: bytes) -> None:
+    import os
+    p = _ws_dir() / f"{_ws_schluessel(e)}.fit"
+    neu = p.with_name(p.name + ".neu")
+    neu.write_bytes(roh)
+    os.replace(neu, p)
+
+
+def _ws_datei(e: dict) -> bytes | None:
+    p = _ws_dir() / f"{_ws_schluessel(e)}.fit"
+    try:
+        return p.read_bytes()
+    except OSError:
+        return None
+
+
+def _ws_erledigt(e: dict) -> None:
+    d = _ws_dir()
+    for endung in (".json", ".fit"):
+        try:
+            (d / f"{_ws_schluessel(e)}{endung}").unlink()
+        except FileNotFoundError:
+            pass
+
+
+def warteschlange_nachholen(vor) -> int:
+    """Eintraege, die vor `vor` (Prozessstart) abgelegt und nie fertig wurden, jetzt verarbeiten. -> Anzahl."""
+    import json as _json
+    eintraege = []
+    for p in sorted(_ws_dir().glob("*.json")):
+        try:
+            if datetime.fromtimestamp(p.stat().st_mtime, timezone.utc) >= vor:
+                continue
+            eintraege.append(_json.loads(p.read_text()))
+        except (OSError, ValueError):
+            continue
+    if eintraege:
+        log.info("garmin: %d liegengebliebene Push(es) nach dem Neustart nachholen", len(eintraege))
+        _activity_files_verarbeiten(eintraege)
+    return len(eintraege)
+
+
 def _activity_files_verarbeiten(eintraege: list[dict]) -> None:
     """Hintergrundaufgabe nach der 200-Antwort: eigene DB-Sitzung, ein kaputter Eintrag stoppt die anderen nicht."""
     from ..db import SessionLocal
@@ -505,6 +595,7 @@ def _activity_files_verarbeiten(eintraege: list[dict]) -> None:
             gid = str(e.get("userId") or "")
             link = db.query(models.GarminLink).filter_by(garmin_user_id=gid).first() if gid else None
             if link is None:
+                _ws_erledigt(e)   # Verbindung inzwischen getrennt: nichts mehr zu tun
                 continue
             try:
                 ausgang = aktivitaet_importieren(db, link, e)
@@ -514,6 +605,9 @@ def _activity_files_verarbeiten(eintraege: list[dict]) -> None:
                 log.warning("garmin: Import fehlgeschlagen (user %s, %s): %s", link.user_id, e.get("summaryId"), exc)
             link.last_sync_at = _jetzt()
             db.commit()
+            # Auch nach einem Fehler weg: ein Fehler im Import wiederholt sich beim naechsten Mal genauso (die Datei
+            # selbst liegt dann in der Quarantaene bzw. an der Session). Nur ein Neustart mittendrin laesst sie liegen.
+            _ws_erledigt(e)
             log.info("garmin: %s %s (user %s): %s", e.get("summaryId"), _profil(e), link.user_id, ausgang)
     finally:
         db.close()
@@ -523,6 +617,10 @@ def _activity_files_verarbeiten(eintraege: list[dict]) -> None:
 async def push_activity_files(request: Request, hintergrund: BackgroundTasks) -> dict:
     eintraege = await _json_liste(request, "activityFiles")
     if eintraege:
+        try:
+            warteschlange_merken(eintraege)
+        except OSError as exc:  # Platte voll o. ae.: trotzdem verarbeiten, nur ohne Absicherung
+            log.warning("garmin: Warteschlange nicht geschrieben: %s", exc)
         hintergrund.add_task(_activity_files_verarbeiten, eintraege)
     return {"ok": True}
 

@@ -106,6 +106,12 @@ def _lauf(prozess_start: datetime) -> None:
                                  ab=int(row.done or 0), fortsetzen=True)
             except Exception:
                 log.exception("Fortsetzen der Reanalyse von u%s fehlgeschlagen", row.user_id)
+        # Garmin-Pushes, deren Verarbeitung der Neustart abgebrochen hat (api/garmin.py, Warteschlange, 06.11.2026).
+        try:
+            from .api.garmin import warteschlange_nachholen
+            warteschlange_nachholen(prozess_start)
+        except Exception:
+            log.exception("Garmin-Warteschlange nach dem Neustart nicht nachgeholt")
         db.execute(text("select pg_advisory_unlock(:k)"), {"k": SPERRE})
     except Exception:
         log.exception("Nachholen nach dem Neustart fehlgeschlagen")

@@ -771,3 +771,30 @@ def test_tanz_aufnahme_geht_mit_abschnitten_in_der_garmin_session_auf(client, ga
         assert t["fenster_uhr"][0]["t_ms"] == 9000 and t["orte"][0]["t_ms"] == 1000
     finally:
         db.close()
+
+
+def test_warteschlange_uebersteht_neustart(client, garmin, monkeypatch):
+    # 06.11.2026: Garmins Download-Adresse gilt nur einmal, die Verarbeitung laeuft nach der 200 im Serverprozess. Bricht
+    # ein Neustart sie ab, holt der Start sie aus der Warteschlange nach — mit der schon geladenen Datei, ohne Download.
+    uid, _ = _konto(client)
+    gid = _link(uid)
+    start = datetime(2026, 11, 1, 10, 0, tzinfo=timezone.utc)
+    import app.fitimport as fi
+    import app.api.sessions as sess
+    monkeypatch.setattr(fi, "parse_fit_bytes", lambda b: _parsed(start))
+    importiert = []
+    monkeypatch.setattr(sess, "import_parsed_session", lambda *a, **k: importiert.append(a[2]) or object())
+    e = {"userId": gid, "summaryId": f"ws-{secrets.token_hex(3)}", "fileType": "FIT", "activityType": "SURFING",
+         "callbackURL": "https://apis.garmin.com/wellness-api/rest/activityFile?id=9&token=t"}
+    # Zustand nach dem Abbruch: Push abgelegt, Datei geladen und gesichert, Import nie fertig.
+    garmin.warteschlange_merken([e])
+    garmin._ws_datei_merken(e, b"GESICHERT")
+    monkeypatch.setattr(garmin.httpx, "get", lambda *a, **k: (_ for _ in ()).throw(AssertionError("kein Download")))
+    assert garmin.warteschlange_nachholen(datetime.now(timezone.utc) + timedelta(seconds=5)) == 1
+    assert importiert == [b"GESICHERT"]
+    assert not list(garmin._ws_dir().glob(f"{garmin._ws_schluessel(e)}.*"))
+    # Normalfall: der Push legt ab, die Verarbeitung raeumt auf.
+    monkeypatch.setattr(garmin.httpx, "get", lambda u, **k: _Antwort(content=b"FIT"))
+    e2 = {**e, "summaryId": f"ws-{secrets.token_hex(3)}"}
+    assert client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [e2]}).status_code == 200
+    assert not list(garmin._ws_dir().glob(f"{garmin._ws_schluessel(e2)}.*"))
