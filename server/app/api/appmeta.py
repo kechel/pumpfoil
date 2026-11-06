@@ -53,7 +53,12 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.60",   # FREIGEGEBEN 2026-11-06 (Jans Meldung; App Store seit 05.11. 21:36 UTC), Apple-Mail eligible for
+        "latest": "1.1.61",   # FREIGEGEBEN 2026-11-07 (Jans Meldung; US-Store seit 06.11. 20:59 UTC), Apple-Mail eligible for
+        # distribution (Submission 5f29b31b-bf11-4b4e-a0ba-21bcbcd84224, eingereicht 05.11. 23:33 PST = 06.11. 08:33, Build 71).
+        # ACHTUNG: die Mail und der App Store nennen „1.0.61" — Tippfehler im ASC-Versionseintrag; der Build ist 1.1.61 (71)
+        # (ASC-Meldung bei der Einreichung, project.yml). Die App vergleicht mit ihrer Bundle-Version, also gilt hier 1.1.61.
+        # Inhalt: Garmin Connect in der App, Garmin-Hinweise, Weiterleitung zusammengefuehrter Sessions. Changelog 945-951 + Ereignis 952.
+        # ALT: "latest": "1.1.60",   # FREIGEGEBEN 2026-11-06 (Jans Meldung; App Store seit 05.11. 21:36 UTC), Apple-Mail eligible for
         # distribution, 1.1.60 for iOS (Submission 315275cf-5e6f-4a23-bd3c-9c4fe92b4d41, eingereicht 05.11. 04:00 PST = 13:00, Build 70).
         # Inhalt: Uhr-Bereich wie die Website, Ranglisten mit Region/Nationalitaet, Profil mit Flagge + Teams. Changelog 930-939 + Ereignis 941.
         # ALT: "latest": "1.1.59",   # FREIGEGEBEN 2026-11-05 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.59 for iOS
@@ -499,7 +504,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.60",   # FREIGEGEBEN 2026-11-06 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.61",   # FREIGEGEBEN 2026-11-07 — dieselbe Einreichung wie "ios" (ein Bundle; Store nennt sie 1.0.61).
+        # ALT: "latest": "1.1.60",   # FREIGEGEBEN 2026-11-06 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.59",   # FREIGEGEBEN 2026-11-05 — dieselbe Einreichung wie "ios" (ein Bundle; Watch: Wassersperre edbd65ca).
         # ALT: "latest": "1.1.58",   # FREIGEGEBEN 2026-10-29 — dieselbe Einreichung wie "ios" (ein Bundle; Watch-Code unveraendert seit 1.1.57).
         # ALT: "latest": "1.1.57",   # FREIGEGEBEN 2026-10-26 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -918,20 +924,7 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 06.11.2026 08:33 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.61 (71),
-    # Kennung 5f29b31b-bf11-4b4e-a0ba-21bcbcd84224). Im Simulator von Jan getestet (Garmin trennen/verbinden, Hinweis,
-    # Sportarten, Ausruestung, aelter/neuer, Listen seitenweise, Spot „Load more").
-    {"name": "iPhone + Apple Watch", "version": "1.1.61",
-     "eingereicht": "2026-11-06",
-     "items": [
-         "Link your Garmin Connect account in the app under Watches, Garmin Connect, and the sessions you record on your Garmin arrive automatically.",
-         "Garmin users see two short steps: pair the watch with a code for settings, foils and layouts, and link Garmin Connect for additional data.",
-         "Records and leaderboards say which watches and accounts the numbers come from, and so does the share image.",
-         "A session that was merged with its Garmin recording opens as the merged session, even from an old link.",
-         "Sports is its own tab in the settings, between Team and Equipment.",
-         "The foil calculator asks for the mast immersion depth, up to 100 cm, not the mast length.",
-         "Session lists load 20 at a time and fetch more as you scroll, so they open faster, and older community and spot sessions can now be reached.",
-     ]},
+    # iPhone + Apple Watch 1.1.61 am 06.11. eingereicht, am 07.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 945-951 im Changelog.
     # Garmin 1.0.101 am 06.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt 940 im Changelog mit garmin 1.0.101.
     # iPhone + Apple Watch 1.1.60 am 05.11. eingereicht, am 06.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 930-939 im Changelog.
     # EINGEREICHT 05.11.2026 (Jans Meldung, Play Console „Schnelle Vorabpruefungen … noch maximal 14 Minuten",
@@ -1188,7 +1181,7 @@ NAECHSTES: list[dict] = [
          "Events of your own teams appear on Home under Team and in the community, and the Teams & Events tab shows LIVE or the number of upcoming events.",
          "Asking for a missing foil or stabilizer opens the feedback form with a template to fill in.",
      ]},
-    # iPhone + Apple Watch 1.1.61 am 06.11. eingereicht -> IN_REVIEW.
+    # iPhone + Apple Watch 1.1.61 am 07.11. freigegeben; 1.1.62 (72) ist die naechste (ASC-Versionseintrag dann wieder 1.1.x).
     # 06.11.2026: Apple Watch setzt die Pausen der vorigen Aufnahme zurueck (6352227c), nach der Einreichung von 1.1.61.
     {"name": "iPhone + Apple Watch", "version": "1.1.62",
      "items": [
