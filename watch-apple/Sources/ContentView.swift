@@ -27,7 +27,7 @@ struct ContentView: View {
 struct PairView: View {
     var onPaired: () -> Void
     var onSkip: () -> Void
-    @AppStorage("appLang") private var lang = "de"
+    @AppStorage("appLang") private var lang = "en"
     @State private var code = ""
     @State private var claimToken = ""
     @State private var busy = false
@@ -117,7 +117,7 @@ struct WatchAlarm {
 struct RecordView: View {
     var onWantPair: () -> Void = {}
     @EnvironmentObject var rec: Recorder
-    @AppStorage("appLang") private var lang = "de"
+    @AppStorage("appLang") private var lang = "en"
     // Default = sinnvolles 3-Seiten-Layout, bis die Account-Config gesynct ist.
     @State private var views: [[Int]] = [[1, 2], [6, 7], [4, 3]]
     // Eigene Layouts (F2/F3): gemischte Seiten-Saetze + Definitionen; `layoutsPref` ist dreistufig
@@ -1051,7 +1051,7 @@ struct AlarmPickerSheet: View {
     var hasLayoutPages: Bool             // false -> Hinweis "keine Seiten" wie bei Garmin
     var onPick: () -> Void
     var onCancel: () -> Void
-    @AppStorage("appLang") private var lang = "de"
+    @AppStorage("appLang") private var lang = "en"
 
     // Auch hier ein Body pro Abschnitt statt sechs Sections in EINEM Ausdruck: jede Section bringt
     // eigene header/footer-Closures mit, und im ViewBuilder multipliziert sich das (s. Kommentar an

@@ -350,7 +350,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         }
 
         fun applyConfig(c: JSONObject) {
-            if (c.has("language")) I18n.set(ctx, c.optString("language", "de"))
+            if (c.has("language")) I18n.set(ctx, c.optString("language", "en"))
             storeVersion = c.optString("latestVersion", "")
             if (c.has("phone_rec")) lesePhoneRec(c.optJSONObject("phone_rec"))
             val vs = c.optJSONArray("views")

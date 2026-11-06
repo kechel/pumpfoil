@@ -13,25 +13,20 @@ object I18n {
     // und fiel auf die Geraetesprache bzw. Englisch zurueck, obwohl Handy, Web und die
     // Garmin-Uhr sie laengst hatten.
     private val LANGS = listOf("de", "gsw", "de-AT", "en", "fr", "it", "es", "pt", "ja", "zh", "ru", "id", "nb", "pl", "nl", "fi", "cs")
-    var lang by mutableStateOf("de")
+    // Englisch, bis die Config etwas anderes sagt (Jan, 06.11.2026: „das muss immer englisch sein wenn das nicht ueber
+    // die config-abfrage anders ankommt"). Bis dahin galt vor dem ersten Abruf die Systemsprache der Uhr.
+    var lang by mutableStateOf("en")
         private set
 
     fun load(ctx: Context) {
-        lang = prefs(ctx).getString("lang", null) ?: systemLang()
+        lang = prefs(ctx).getString("lang", null) ?: "en"
     }
 
-    // Aus der (gecachten) Config gesetzt; persistiert für Offline-Start. Kann die Uhr die
-    // Profil-Sprache nicht (fi/nl/cs/leer) -> NICHT hart Deutsch, sondern die GERÄTE-SYSTEMSPRACHE.
+    // Aus der (gecachten) Config gesetzt; persistiert für Offline-Start. Kann die Uhr die Profil-Sprache nicht -> Englisch.
     fun set(ctx: Context, code: String?) {
-        val v = if (code != null && LANGS.contains(code)) code else systemLang()
+        val v = if (code != null && LANGS.contains(code)) code else "en"
         lang = v
         prefs(ctx).edit().putString("lang", v).apply()
-    }
-
-    // Geräte-Systemsprache auf unsere Spalten (de/en/fr/it/es); alles andere -> Englisch.
-    private fun systemLang(): String {
-        val sys = java.util.Locale.getDefault().language   // "de","en","fr","it","es","fi",…
-        return if (LANGS.contains(sys)) sys else "en"
     }
 
     private fun prefs(ctx: Context) = ctx.getSharedPreferences("pumpfoil", Context.MODE_PRIVATE)
@@ -52,8 +47,8 @@ object I18n {
         }
         val row = S[key] ?: return key
         val overlay = lang in setOf("nl", "fi", "cs", "pt", "ja", "zh", "ru", "id", "nb", "pl")
-        if (overlay) return row["en"] ?: row["de"] ?: key
-        return row[lang] ?: row["de"] ?: key
+        if (overlay) return row["en"] ?: key
+        return row[lang] ?: row["en"] ?: key
     }
 }
 

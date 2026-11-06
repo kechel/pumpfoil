@@ -1169,6 +1169,7 @@ NAECHSTES: list[dict] = [
     {"name": "Garmin", "version": "1.0.102",
      "items": [
          "In the pause menu, Resume is preselected, so pressing START twice continues your recording.",
+         "Until the watch has fetched your settings, it shows English instead of the watch's system language.",
      ]},
     # 06.11.2026 (Jan: „bitte version bumpen, dann teste ich das und release", vorher „den rest portieren"): Garmin Connect in
     # beiden Apps (Karte/Reiter, Quellenzeile — kam erst nach den Einreichungen von 1.1.47 und 1.1.60), Garmin-Hinweise mit zwei
@@ -1183,12 +1184,14 @@ NAECHSTES: list[dict] = [
          "Sports is its own tab in the settings, between Team and Equipment.",
          "The foil calculator asks for the mast immersion depth, up to 100 cm, not the mast length.",
          "Session lists load 20 at a time and fetch more as you scroll, so they open faster, and older community and spot sessions can now be reached.",
+         "Until the Wear OS watch has fetched your settings, it shows English instead of the watch's system language.",
      ]},
     # iPhone + Apple Watch 1.1.61 am 06.11. eingereicht -> IN_REVIEW.
     # 06.11.2026: Apple Watch setzt die Pausen der vorigen Aufnahme zurueck (6352227c), nach der Einreichung von 1.1.61.
     {"name": "iPhone + Apple Watch", "version": "1.1.62",
      "items": [
          "On the Apple Watch, a new recording no longer carries over the pauses of the previous one, which shifted it in time and could leave it empty; affected sessions have been corrected.",
+         "Until the Apple Watch has fetched your settings, it shows English instead of German.",
      ]},
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",

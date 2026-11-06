@@ -28,14 +28,14 @@ module Strings {
 
     // Sprachreihenfolge der Array-Spalten.
     // 0 de | 1 gsw | 2 de-AT | 3 en | 4 fr | 5 it | 6 es | 7 pt | 8 id | 9 ru | 10 nl | 11 fi | 12 cs | 13 nb | 14 pl
-    var _idx = 0;
+    var _idx = 3;
 
-    // Profil-Sprache setzen. Kann die Uhr die Sprache direkt -> nehmen. Sonst NICHT hart auf
-    // Deutsch, sondern auf die GERÄTE-SYSTEMSPRACHE ausweichen (Wunsch: englische Uhr =
-    // englische App). Letzter Fallback: Englisch.
+    // Profil-Sprache setzen. Kann die Uhr die Sprache direkt -> nehmen. Sonst ENGLISCH — auch vor dem ersten
+    // Konfigurationsabruf (Jan, 06.11.2026: „das muss immer englisch sein wenn das nicht ueber die config-abfrage anders
+    // ankommt"; ein Fahrer bekam bei der Ersteinrichtung Deutsch). Bis dahin galt die Systemsprache der Uhr.
     function setLang(code as Lang.String or Null) as Void {
         var i = _idxForCode(code);
-        _idx = (i >= 0) ? i : _systemIdx();
+        _idx = (i >= 0) ? i : 3;
     }
 
     // Index unserer Spalten für einen Sprachcode, -1 wenn nicht direkt unterstützt.
@@ -58,33 +58,6 @@ module Strings {
         if (code.equals("nb") || code.equals("nn") || code.equals("no")) { return 13; }
         if (code.equals("pl")) { return 14; }
         return -1;
-    }
-
-    // Geräte-Systemsprache -> unsere Spalte (nur die, die wir haben; sonst Englisch).
-    function _systemIdx() as Lang.Number {
-        // `systemLanguage` gibt es erst ab API 3.1.0. Das SDK fuehrt die Approach S62 mit Connect IQ 3.0.12;
-        // ohne Pruefung waere das ein „Symbol Not Found" — nicht fangbar, App-Absturz („IQ!") gleich beim
-        // Start, und zwar genau bei frisch installierter App (noch keine Profilsprache). Verdacht zur
-        // S62-Meldung vom 09.10.2026, nicht belegt.
-        var ds = System.getDeviceSettings();
-        if (!(ds has :systemLanguage)) { return 3; }
-        var sl = ds.systemLanguage;
-        if (sl == System.LANGUAGE_DEU) { return 0; }   // Deutsch
-        if (sl == System.LANGUAGE_ENG) { return 3; }   // Englisch
-        if (sl == System.LANGUAGE_FRE) { return 4; }   // Französisch
-        if (sl == System.LANGUAGE_ITA) { return 5; }   // Italienisch
-        if (sl == System.LANGUAGE_SPA) { return 6; }   // Spanisch
-        if (sl == System.LANGUAGE_POR) { return 7; }   // Portugiesisch
-        if (sl == System.LANGUAGE_IND) { return 8; }   // Indonesisch
-        if (sl == System.LANGUAGE_RUS) { return 9; }   // Russisch
-        if (sl == System.LANGUAGE_DUT) { return 10; }  // Niederländisch
-        if (sl == System.LANGUAGE_FIN) { return 11; }  // Finnisch
-        if (sl == System.LANGUAGE_CES) { return 12; }  // Tschechisch
-        // Norwegisch fehlte hier seit dem nb-Rollout: die Spalte war da, eine norwegische Uhr
-        // bekam aber trotzdem Englisch. Mit Polnisch zusammen nachgezogen.
-        if (sl == System.LANGUAGE_NOB) { return 13; }  // Norwegisch (Bokmål)
-        if (sl == System.LANGUAGE_POL) { return 14; }  // Polnisch
-        return 3;   // alles andere (ja/zh/…): neutraler Fallback Englisch
     }
 
     // Lokalisierten String holen. Baut genau EIN Array (den Key) + gibt die aktive Spalte

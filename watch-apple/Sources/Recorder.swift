@@ -272,7 +272,7 @@ final class Recorder: NSObject, ObservableObject {
         pauseStart = Date()
         motion.stopAccelerometerUpdates()
         location.stopUpdatingLocation()
-        status = WLoc.t("rec.paused", UserDefaults.standard.string(forKey: "appLang") ?? "de")
+        status = WLoc.t("rec.paused", UserDefaults.standard.string(forKey: "appLang") ?? "en")
         Task { await teilUpload() }
     }
 
@@ -384,7 +384,7 @@ final class Recorder: NSObject, ObservableObject {
         markDistN = 0; markTimeN = 0
         runDurationMs = 0; runDistanceM = 0; runMaxSpeedKmh = 0
         lastRunDurationMs = 0; lastRunDistanceM = 0; lastRunAvgSpeedKmh = 0; lastRunMaxSpeedKmh = 0; lastRunMaxHr = 0
-        status = WLoc.t("rec.recording", UserDefaults.standard.string(forKey: "appLang") ?? "de")
+        status = WLoc.t("rec.recording", UserDefaults.standard.string(forKey: "appLang") ?? "en")
         tick = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             guard let self else { return }
             Task { @MainActor in
@@ -520,13 +520,13 @@ final class Recorder: NSObject, ObservableObject {
         flushTask?.cancel()
         motion.stopAccelerometerUpdates()
         location.stopUpdatingLocation()
-        status = WLoc.t("rec.saving", UserDefaults.standard.string(forKey: "appLang") ?? "de")
+        status = WLoc.t("rec.saving", UserDefaults.standard.string(forKey: "appLang") ?? "en")
         await flushAll()
         pauseAbschliessen()
         var fertig: [String: Any] = ["ended_at": Date().iso8601Z, "total_chunks": chunkIndex]
         if !pauseListe.isEmpty { fertig["pauses"] = pauseListe }
         LocalStore.writeComplete(uuid, fertig)
-        status = WLoc.t("rec.saved", UserDefaults.standard.string(forKey: "appLang") ?? "de")
+        status = WLoc.t("rec.saved", UserDefaults.standard.string(forKey: "appLang") ?? "en")
         pendingCount = LocalStore.pendingCount()
         endWorkout()
         await drain()   // sofort hochladen, falls gepairt + online
@@ -668,7 +668,7 @@ final class Recorder: NSObject, ObservableObject {
         let res = try await Api.startSession(startMeta)
         let received = Set(res.received_chunks)
         uploading = true
-        status = WLoc.t("rec.uploading", UserDefaults.standard.string(forKey: "appLang") ?? "de")
+        status = WLoc.t("rec.uploading", UserDefaults.standard.string(forKey: "appLang") ?? "en")
         uploadError = ""
         uploadTotal = chunkFiles.count
         uploadSent = min(received.count, chunkFiles.count)
@@ -826,7 +826,7 @@ final class Recorder: NSObject, ObservableObject {
             b.beginCollection(withStart: now) { _, _ in }
             session = s; builder = b
         } catch {
-            status = WLoc.t("rec.workoutFail", UserDefaults.standard.string(forKey: "appLang") ?? "de") + error.localizedDescription
+            status = WLoc.t("rec.workoutFail", UserDefaults.standard.string(forKey: "appLang") ?? "en") + error.localizedDescription
         }
     }
 
