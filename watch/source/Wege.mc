@@ -10,8 +10,9 @@ using Toybox.Lang;
 //              spaeter dieser Session zuordnen kann.
 //   fitAccel — der SensorLogger schreibt die Beschleunigung in die FIT-Datei. Fehlt der Schalter (alter Server, nie
 //              gekoppelt), gilt die bisherige Regel: nur auf Uhren mit genug Speicher.
-//   gc       — Garmin Connect ist verknuepft: nur dann startet eine Aufnahme auch bei vollem Puffer. Ohne Verknuepfung
-//              schickt der Server keinen dieser Schalter, und alles bleibt beim alten Verhalten.
+//   gc       — Garmin Connect ist verknuepft. Ohne Verknuepfung schickt der Server keinen dieser Schalter, und alles bleibt
+//              beim alten Verhalten. (Bis 1.0.100 startete nur mit `gc` eine Aufnahme bei vollem Puffer; seit 1.0.101
+//              startet sie immer, s. SessionRecorder.start.)
 // Eigenes Modul statt neuer Felder in SessionRecorder: dort steht der 128-KB-Build an der Grenze von 253 Membern.
 module Wege {
     var _gps = null;       // Cache, weil `blockiert` bei jedem Schreibzugriff gefragt wird

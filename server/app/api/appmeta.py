@@ -1157,6 +1157,12 @@ NAECHSTES: list[dict] = [
      ]},
     # Garmin Connect stand hier bis zur Freigabe fuer alle am 05.11.2026 (jetzt live, Changelog-Ereignis).
     # Garmin 1.0.100 am 05.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkte im Changelog mit garmin 1.0.100.
+    # 06.11.2026 (Jan, Fall Olek: FR245 ohne Handy, Sync nur per Garmin Express -> bekommt `gc` nie): Aufnahme startet bei
+    # vollem Speicher immer, nicht nur mit Garmin-Verknuepfung.
+    {"name": "Garmin", "version": "1.0.101",
+     "items": [
+         "Recording starts even when the watch storage is full: your watch still saves the activity, and it reaches us through Garmin Connect or a file import.",
+     ]},
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
      "items": [

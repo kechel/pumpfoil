@@ -131,6 +131,8 @@ beim alten Verhalten. Mit Verknuepfung (`GET /api/devices/config`, Regel `device
 
 - `gc: true` — die Aufnahme startet auch bei vollem Object Store (bis 1.0.99 startete sie dann gar nicht und schrieb
   damit auch keine FIT-Datei). Die FIT liegt in Garmins Aktivitaetsspeicher und kommt ueber Garmin Connect an.
+  **Seit 1.0.101 startet sie bei vollem Speicher IMMER**, auch ohne `gc` (Jan, 06.11.2026): wer ohne Handy faehrt und
+  nur per Garmin Express synct, holt nie eine Konfiguration und bekaeme `gc` nie. Ohne Verknuepfung bleibt der FIT-Import.
 - `rohGps` aus — die Uhr speichert nur einen GPS-Punkt alle 10 min (Ort, Spot, Zeitraum). `rohAccel` aus — keine
   eigenen Accel-Bloecke. Meta (Sportart, Foil, Start, Ende) geht IMMER zu uns, mit `duenn` -> sobald die FIT von Garmin
   da ist, wird sie die Session und die duenne geht darin auf (`garmin.in_garmin_session_aufgehen`, beide Reihenfolgen).

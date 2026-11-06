@@ -1365,8 +1365,7 @@ class SessionRecorder {
         Wege.beiStart();
         _registerSession();
         _saveState(false);
-        // Voller Object-Store: nur mit Garmin-Verknuepfung trotzdem aufnehmen (05.11.2026), s. Vollfassung unten.
-        if (storageFull && !Wege.gc()) { return; }
+        // Voller Object-Store: trotzdem aufnehmen (1.0.101), s. Vollfassung unten.
         runMark(PHASE_RECORD);
         _foiling = false; _enterStreak = 0; _exitStreak = 0; _runCount = 0;
         _runEndedMs = -100000;
@@ -1462,11 +1461,12 @@ class SessionRecorder {
         Wege.beiStart();
         _registerSession();
         _saveState(false);
-        // Object-Store voll: ohne Garmin-Verknuepfung wie bisher gar nicht erst starten (UI zeigt den Hinweis). MIT
-        // Verknuepfung trotzdem aufnehmen (05.11.2026): die FIT-Session liegt in Garmins eigenem Aktivitaetsspeicher und
-        // kommt ueber Garmin Connect vollstaendig an; unsere Roh-Chunks scheitern still in `_store` (seit 1.0.92 faengt
-        // jeder Schreibzugriff StorageFullException ab). Jan: ohne Verknuepfung aendert sich erstmal nichts.
-        if (storageFull && !Wege.gc()) { return; }
+        // Object-Store voll: trotzdem aufnehmen, mit und ohne Garmin-Verknuepfung (1.0.101, Jan 06.11.2026). Bis 1.0.100
+        // startete die Aufnahme ohne Verknuepfung gar nicht — dann gab es auch keine FIT-Datei. Die FIT-Session liegt in
+        // Garmins eigenem Aktivitaetsspeicher: mit Verknuepfung kommt sie ueber Garmin Connect, ohne bleibt der FIT-Import.
+        // Und die Uhr bekommt `gc` nur ueber das Handy — wer ohne Handy faehrt (Sync per Garmin Express), haette nie
+        // davon profitiert. Unsere Roh-Chunks scheitern still in `_store` (StorageFullException, seit 1.0.92) — genau wie
+        // schon immer, wenn der Puffer MITTEN in einer Aufnahme vollaeuft. Der rote Hinweis bleibt stehen.
         _armCanary();
         runMark(PHASE_RECORD);
         // Lauferkennung zurücksetzen.

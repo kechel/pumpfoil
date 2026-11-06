@@ -13,7 +13,7 @@ module Config {
     // 1.0.98: Lite (96 KB) = Minimal-Recorder mit festen Seiten (27.10.2026), GPS-Fix nicht mehr klebrig.
     // 1.0.100: Garmin Connect — Datenwege vom Server (Wege.mc), Aufnahme trotz vollem Puffer mit Verknuepfung,
     //          duenne Sessions mit Meta, Accel in der FIT auch auf 96-KB-Uhren (05.11.2026).
-    const VERSION = "1.0.100";
+    const VERSION = "1.0.101";
 
     // Marken-Cyan (docs/BRAND.md, = Web brand-400 #22d3ee). Primaerer/interaktiver Akzent:
     // Pairing-Code, aktive Upload-Status-Titel, Fortschrittsbalken. Funktionale Skalen
