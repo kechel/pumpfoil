@@ -1,6 +1,6 @@
 # Wear Engine – zweiter Antrag (nur GT / Fit / D)
 
-Vorbereitet am 04.11.2026. Der erste Antrag vom 09.10. wurde am 13.10. abgelehnt (docs/TODO.md, 13.10.). Huawei
+Vorbereitet am 04.11.2026, **eingereicht am 04.11.2026 um 20:54** (Konsole: „To be reviewed“, Protokoll in docs/TODO.md). Der erste Antrag vom 09.10. wurde am 13.10. abgelehnt (docs/TODO.md, 13.10.). Huawei
 verlangte damals:
 
 1. Screenshots bzw. ein UX-Diagramm der Abläufe Uhr ↔ Handy,

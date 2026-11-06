@@ -38,7 +38,7 @@ MEMORY = HOME / ".claude/projects" / str(ROOT).replace("/", "-").replace(".", "-
 CIQ = (HOME / "connectiq-sdk").resolve()
 STUECK = 1800   # Zeichen je Treffer-Abschnitt, ungefaehr
 # Hochzaehlen, wenn sich das Zerlegen aendert: dann wird jede Datei neu gelesen (Vektoren bleiben, s. vektoren.py).
-BAU_VERSION = "2"
+BAU_VERSION = "3"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS dateien (pfad TEXT PRIMARY KEY, quelle TEXT, mtime REAL, groesse INTEGER);
@@ -196,8 +196,10 @@ def datei_stuecke(quelle: str, f: Path, art: str, gdatum: dict[str, str]) -> lis
         rel = str(f).replace(str(HOME), "~")
         datum = time.strftime("%Y-%m-%d", time.localtime(f.stat().st_mtime))
     if quelle == "memory":
+        # Das juengere von Kopf-Feld `modified` und Dateizeit: Memories werden oft ergaenzt, ohne dass `modified`
+        # nachgezogen wird — `--seit` fand sonst Neues nicht (06.11.2026, Wear-Engine-Antrag vom 04.11.).
         m = re.search(r"modified:\s*(\d{4}-\d\d-\d\d)", roh)
-        datum = m.group(1) if m else datum
+        datum = max(m.group(1), datum) if m else datum
         # Kopf: nur Name + Beschreibung behalten, die Verwaltungsfelder sind Rauschen
         k = re.match(r"---\n(.*?)\n---\n", roh, re.S)
         if k:
