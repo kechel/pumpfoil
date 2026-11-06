@@ -2816,6 +2816,7 @@ const en: Record<string, string> = {
   "team.event.global": "Global",
   "team.event.globalHaken": "Global event – everyone takes part automatically, no joining",
   "team.event.globalHinweis": "Everyone takes part automatically – you don't need to sign up anywhere.",
+  "team.event.globalOptOut": "You can opt out under Settings › Privacy.",
   "team.event.wertung": "Team ranking",
   "team.event.wertungBeste": "Sum of the best {n}",
   "team.event.wertungAlle": "Sum of all members",

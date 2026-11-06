@@ -2713,6 +2713,7 @@ const id: Record<string, string> = {
   "team.event.global": "Global",
   "team.event.globalHaken": "Event global – semua orang otomatis ikut, tanpa bergabung",
   "team.event.globalHinweis": "Semua orang otomatis ikut – kamu tidak perlu mendaftar di mana pun.",
+  "team.event.globalOptOut": "Kamu bisa keluar di Pengaturan › Privasi.",
   "team.event.wertung": "Peringkat tim",
   "team.event.wertungBeste": "Jumlah {n} terbaik",
   "team.event.wertungAlle": "Jumlah semua anggota",

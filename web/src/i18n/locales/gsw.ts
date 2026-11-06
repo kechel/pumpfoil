@@ -2597,6 +2597,7 @@ const gsw: Record<string, string> = {
   "team.event.global": "Global",
   "team.event.globalHaken": "Globals Event – alli mached automatisch mit, ohni Biitritt",
   "team.event.globalHinweis": "Alli mached automatisch mit – du muesch di niene aamälde.",
+  "team.event.globalOptOut": "Du chasch di under Iistellige › Privatsphäre abmälde.",
   "team.event.wertung": "Teamwärtig",
   "team.event.wertungBeste": "Summe vo de beschte {n}",
   "team.event.wertungAlle": "Summe vo allne Mitglieder",

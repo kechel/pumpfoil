@@ -2713,6 +2713,7 @@ const ru: Record<string, string> = {
   "team.event.global": "Глобальное",
   "team.event.globalHaken": "Глобальное событие – участвуют все автоматически, без вступления",
   "team.event.globalHinweis": "Участвуют все автоматически – нигде не нужно регистрироваться.",
+  "team.event.globalOptOut": "Отказаться можно в Настройки › Конфиденциальность.",
   "team.event.wertung": "Рейтинг команд",
   "team.event.wertungBeste": "Сумма лучших {n}",
   "team.event.wertungAlle": "Сумма всех участников",

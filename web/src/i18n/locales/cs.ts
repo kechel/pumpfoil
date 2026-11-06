@@ -2766,6 +2766,7 @@ const cs: Record<string, string> = {
   "team.event.global": "Globální",
   "team.event.globalHaken": "Globální event – účastní se automaticky všichni, bez přihlášení",
   "team.event.globalHinweis": "Účastní se automaticky všichni – nikde se nemusíš přihlašovat.",
+  "team.event.globalOptOut": "Odhlásit se můžeš v Nastavení › Soukromí.",
   "team.event.wertung": "Pořadí týmů",
   "team.event.wertungBeste": "Součet nejlepších {n}",
   "team.event.wertungAlle": "Součet všech členů",

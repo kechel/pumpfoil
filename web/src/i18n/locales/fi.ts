@@ -2748,6 +2748,7 @@ const fi: Record<string, string> = {
   "team.event.global": "Globaali",
   "team.event.globalHaken": "Globaali tapahtuma – kaikki osallistuvat automaattisesti, ilman liittymistä",
   "team.event.globalHinweis": "Kaikki osallistuvat automaattisesti – sinun ei tarvitse ilmoittautua mihinkään.",
+  "team.event.globalOptOut": "Voit jättäytyä pois kohdassa Asetukset › Yksityisyys.",
   "team.event.wertung": "Joukkuetulokset",
   "team.event.wertungBeste": "{n} parhaan summa",
   "team.event.wertungAlle": "Kaikkien jäsenten summa",

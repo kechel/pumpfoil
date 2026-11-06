@@ -2595,6 +2595,7 @@ const es: Record<string, string> = {
   "team.event.global": "Global",
   "team.event.globalHaken": "Evento global – todos participan automáticamente, sin inscribirse",
   "team.event.globalHinweis": "Todos participan automáticamente – no tienes que inscribirte en ningún sitio.",
+  "team.event.globalOptOut": "Puedes darte de baja en Ajustes › Privacidad.",
   "team.event.wertung": "Clasificación por equipos",
   "team.event.wertungBeste": "Suma de los {n} mejores",
   "team.event.wertungAlle": "Suma de todos los miembros",

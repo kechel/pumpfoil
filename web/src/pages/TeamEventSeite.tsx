@@ -293,7 +293,14 @@ export default function TeamEventSeite() {
           {ev.spots.length > 0 && <> · {ev.spots.map((s) => s.name ?? `#${s.id}`).join(", ")}</>}
         </p>
         {ev.beschreibung && <p className="mt-2 whitespace-pre-line text-sm font-semibold text-slate-200">{ev.beschreibung}</p>}
-        {ev.global && <p className="mt-2 text-sm text-slate-300">{t("team.event.globalHinweis")}</p>}
+        {ev.global && (
+          <p className="mt-2 text-sm text-slate-300">
+            {t("team.event.globalHinweis")}{" "}
+            {/* Opt-out (Jan, 06.11.2026): Einstellungen › Privatsphaere, Karte „Globale Events". */}
+            {gast ? t("team.event.globalOptOut")
+              : <Link to="/einstellungen?tab=privat" className="text-brand-600 underline dark:text-brand-300">{t("team.event.globalOptOut")}</Link>}
+          </p>
+        )}
       </div>
 
       {/* Gaeste: „Anmelden und beitreten" oben in der Kopfzeile, in Pumpfoil-Farbe — man tritt zuerst pumpfoil.org bei
