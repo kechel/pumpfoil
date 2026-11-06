@@ -542,6 +542,7 @@ const nb: Record<string, string> = {
   "sessions.uploadFail": "{fail} av {total} fil(er) feilet (ingen FIT / ingen GPS-data?).",
   "sessions.timeTo": "til",
   "sessions.listEnd": "— Slutt —",
+  "sessions.loadMore": "Last inn flere",
   "sessions.farAbbr": "dist.",
   "sessions.longAbbr": "lengst.",
   "status.analyzed": "analysert",

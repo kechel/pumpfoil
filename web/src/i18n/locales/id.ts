@@ -523,6 +523,7 @@ const id: Record<string, string> = {
   "sessions.uploadFail": "{fail} dari {total} file gagal (bukan FIT / tidak ada data GPS?).",
   "sessions.timeTo": "sampai",
   "sessions.listEnd": "— Akhir —",
+  "sessions.loadMore": "Muat lainnya",
   "sessions.farAbbr": "jauh.",
   "sessions.longAbbr": "lama.",
 

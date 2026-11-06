@@ -478,6 +478,7 @@ const deAT: Record<string, string> = {
   "sessions.uploadFail": "{fail} von {total} Datei(en) fehlgschlagn (kei FIT/kane GPS-Daten?).",
   "sessions.timeTo": "bis",
   "sessions.listEnd": "— aus —",
+  "sessions.loadMore": "Weitere laden",
   "sessions.farAbbr": "weit.",
   "sessions.longAbbr": "läng.",
 

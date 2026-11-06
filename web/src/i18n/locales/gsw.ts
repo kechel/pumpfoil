@@ -484,6 +484,7 @@ const gsw: Record<string, string> = {
   "sessions.uploadFail": "{fail} vo {total} Datei(e) fählgschlage (kei FIT/kei GPS-Date?).",
   "sessions.timeTo": "bis",
   "sessions.listEnd": "— Ändi —",
+  "sessions.loadMore": "Meh lade",
   "sessions.farAbbr": "wyt.",
   "sessions.longAbbr": "läng.",
 

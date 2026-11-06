@@ -567,6 +567,7 @@ const de: Record<string, string> = {
   "sessions.uploadFail": "{fail} von {total} Datei(en) fehlgeschlagen (kein FIT/keine GPS-Daten?).",
   "sessions.timeTo": "bis",
   "sessions.listEnd": "— Ende —",
+  "sessions.loadMore": "Weitere laden",
   "sessions.farAbbr": "weit.",
   "sessions.longAbbr": "läng.",
 

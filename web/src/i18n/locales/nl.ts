@@ -537,6 +537,7 @@ const nl: Record<string, string> = {
   "sessions.uploadFail": "{fail} van {total} bestand(en) mislukt (geen FIT/geen GPS-data?).",
   "sessions.timeTo": "tot",
   "sessions.listEnd": "— einde —",
+  "sessions.loadMore": "Meer laden",
   "sessions.farAbbr": "verst.",
   "sessions.longAbbr": "langst.",
 

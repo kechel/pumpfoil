@@ -543,6 +543,7 @@ const pl: Record<string, string> = {
   "sessions.uploadFail": "{fail} z {total} plików nie powiodło się (brak FIT / brak danych GPS?).",
   "sessions.timeTo": "do",
   "sessions.listEnd": "— Koniec —",
+  "sessions.loadMore": "Wczytaj więcej",
   "sessions.farAbbr": "najdal.",
   "sessions.longAbbr": "najdł.",
   "status.analyzed": "przeanalizowana",

@@ -168,6 +168,12 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
         months = try { Api.sessionMonths(filter, sport) } catch (_: Exception) { emptyList() }
     }
     var ladeGeneration by remember { mutableStateOf(0) }
+    // Seitenweise wie die PWA (Sessions.tsx PAGE = 20, 06.11.2026): vorher holte „Meine" die GANZE Liste (Jan: 329 Sessions,
+    // 1,4 MB) und „Alle" nur die ersten 20 Gruppen, ohne je mehr zu laden. Neu laden (Sync, Rueckkehr, laufende Aufnahme)
+    // holt so viele, wie schon da sind — sonst spraenge die Liste beim Nachladen zurueck auf die erste Seite.
+    val seite = 20
+    var hatMehr by remember { mutableStateOf(true) }
+    var mehrLaedt by remember { mutableStateOf(false) }
     // GENERATION je Abruf: kommt die Antwort eines ALTEN Abrufs spaeter an als die des neuen
     // (schneller Spot-Wechsel, ON_RESUME-Nachladen parallel), darf sie die Liste nicht mehr
     // ueberschreiben — sonst stand die alte Liste unter der neuen Ueberschrift (PWA, 24.09.2026).
@@ -177,25 +183,53 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
         try {
             when (scope) {
                 Scope.MINE -> {
-                    val r = Api.sessions(month = month.ifBlank { null }, filter = filter, accelOnly = accelOnly, sport = sport, board = brett)
+                    val n = maxOf(seite, own.size)
+                    val r = Api.sessions(month = month.ifBlank { null }, filter = filter, accelOnly = accelOnly, sport = sport, board = brett,
+                                         limit = n)
                     if (meine != ladeGeneration) return
-                    own = r
+                    own = r; hatMehr = r.size >= n
                 }
                 // sport="all" (Default der Auswahl): die Liste „was ist neu" zeigt ALLE Sportarten
                 // (wie die PWA seit 2026-07-31) — ohne das griff der Endpunkt-Default „pumpfoil"
                 // und eFoil/Wake/… fehlten. Die Karte kennzeichnet, was kein Pumpfoilen ist. Seit
                 // 27.09.2026 laesst sich die Liste auf eine Sportart einschraenken (Sportart-Auswahl).
                 Scope.ALL, Scope.FRIENDS, Scope.TEAM -> {
-                    val r = Api.communitySessionsGrouped(null, accelOnly = accelOnly, sport = sport, board = brett,
+                    val n = maxOf(seite, groups.size)
+                    val r = Api.communitySessionsGrouped(null, limit = n, accelOnly = accelOnly, sport = sport, board = brett,
                                                          freunde = scope == Scope.FRIENDS,
                                                          team = if (scope == Scope.TEAM) teamWahl else null)
                     if (meine != ladeGeneration) return
-                    groups = r
+                    groups = r; hatMehr = r.size >= n
                 }
             }
             error = null
         } catch (e: Exception) { if (meine == ladeGeneration) error = e.message }
         if (meine == ladeGeneration) loading = false
+    }
+    // Naechste Seite, sobald das Listenende sichtbar wird. Doppelte (eine neue Session verschiebt die Seiten) fallen raus.
+    suspend fun mehr() {
+        if (!hatMehr || mehrLaedt || loading) return
+        val meine = ladeGeneration
+        mehrLaedt = true
+        try {
+            if (scope == Scope.MINE) {
+                val r = Api.sessions(month = month.ifBlank { null }, filter = filter, accelOnly = accelOnly, sport = sport, board = brett,
+                                     limit = seite, offset = own.size)
+                if (meine == ladeGeneration) {
+                    val da = own.map { it.id }.toSet()
+                    own = own + r.filter { it.id !in da }; hatMehr = r.size >= seite
+                }
+            } else {
+                val r = Api.communitySessionsGrouped(null, limit = seite, offset = groups.size, accelOnly = accelOnly, sport = sport,
+                                                     board = brett, freunde = scope == Scope.FRIENDS,
+                                                     team = if (scope == Scope.TEAM) teamWahl else null)
+                if (meine == ladeGeneration) {
+                    val da = groups.map { it.userId to it.date }.toSet()
+                    groups = groups + r.filter { (it.userId to it.date) !in da }; hatMehr = r.size >= seite
+                }
+            }
+        } catch (_: Exception) { /* naechster Versuch beim naechsten Erscheinen des Listenendes */ }
+        mehrLaedt = false
     }
     // Filterwechsel: die ALTE Liste sofort weg, nicht erst, wenn die neue da ist (PWA 8f9cc725) —
     // sonst liest man Sessions eines anderen Spots unter der neuen Ueberschrift. Nicht bei `tick`
@@ -415,7 +449,8 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
                             }
                             if (scope == Scope.MINE) {
                                 items(own) { s -> SessionRow(s, Modifier.padding(horizontal = 12.dp, vertical = ListenAnsicht.abstand)) { onOpen(s.id, s.dataVersion) } }
-                                if (own.isNotEmpty()) item {
+                                if (own.isNotEmpty() && hatMehr) item { MehrLaden(own.size) { mehr() } }
+                                if (own.isNotEmpty() && !hatMehr) item {
                                     Text(I18n.t("sessions.listEnd"), Modifier.fillMaxWidth().padding(vertical = 12.dp),
                                         style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         textAlign = androidx.compose.ui.text.style.TextAlign.Center)
@@ -429,6 +464,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
                                         GroupCard(g, pad) { id -> onOpen(id, null) }
                                     }
                                 }
+                                if (groups.isNotEmpty() && hatMehr) item { MehrLaden(groups.size) { mehr() } }
                                 // Team: nur die letzten 30 Tage (Web team.feed30).
                                 if (scope == Scope.TEAM) item {
                                     Text(I18n.t("team.feed30"), Modifier.padding(16.dp), style = MaterialTheme.typography.bodySmall,
@@ -1202,4 +1238,14 @@ private fun HeuteNeu(mine: Boolean, spot: String?, spotId: Int?, accelOnly: Bool
     }
     Text(text, Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+/** Listenende einer seitenweisen Liste: wird es sichtbar (LazyColumn setzt es erst dann zusammen), kommt die naechste Seite.
+ *  `anzahl` als Schluessel: steht das Ende nach dem Nachladen noch im Bild (kurze Seite), geht es gleich weiter. */
+@Composable
+fun MehrLaden(anzahl: Int, laden: suspend () -> Unit) {
+    LaunchedEffect(anzahl) { laden() }
+    Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
+        androidx.compose.material3.CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+    }
 }

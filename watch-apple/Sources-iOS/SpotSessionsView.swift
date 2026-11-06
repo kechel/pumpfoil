@@ -33,6 +33,11 @@ struct SpotSessionsView: View {
     // Spots -> beim Verlassen/Wechseln wieder weg (NICHT gemerkt), es gilt wieder der Default.
     @State private var showAll = false
     @State private var autoTried = false
+    // Seitenweise (06.11.2026, vorher war nach 50 Schluss): weitere per Knopf, neu laden holt so viele, wie schon da sind.
+    private let spotSeite = 50
+    @State private var spotHatMehr = true
+    @State private var spotMehrLaedt = false
+    @State private var spotNurAccel = false   // Filter der geladenen Seiten (Folgeseiten genauso)
     // Beschreibungen haengen an der spot_id, hierher kommt nur der NAME (die Navigation ist
     // namensbasiert). Einmal ueber die Karte zuordnen; ohne Spot-Zeile bleibt es nil.
     @State private var spotId: Int?
@@ -220,6 +225,11 @@ struct SpotSessionsView: View {
             HStack { Spacer(); ListenAnsichtUmschalter(lang: lang) }
         }
         ForEach(items) { c in sessionZeile(c) }
+        // Knopf statt automatisch: eingebettet steckt die Liste in einer normal scrollenden Seite.
+        if items.count >= spotSeite && spotHatMehr {
+            Button(Loc.t("sessions.loadMore", lang)) { Task { await mehrSpot() } }
+                .buttonStyle(.bordered).frame(maxWidth: .infinity).disabled(spotMehrLaedt)
+        }
         if items.isEmpty && !loading && error == nil {
             Text(Loc.t("sessions.empty", lang)).foregroundStyle(.secondary)
         }
@@ -264,6 +274,15 @@ struct SpotSessionsView: View {
         Task { await load() }
     }
 
+    private func mehrSpot() async {
+        spotMehrLaedt = true; defer { spotMehrLaedt = false }
+        guard let r = try? await Api.spotSessions(spot, accelOnly: spotNurAccel, limit: spotSeite, sport: aktSport,
+                                                 offset: items.count) else { return }
+        let da = Set(items.map { $0.id })
+        items += r.filter { !da.contains($0.id) }
+        spotHatMehr = r.count >= spotSeite
+    }
+
     private func load() async {
         loading = true; defer { loading = false }
         do {
@@ -271,7 +290,9 @@ struct SpotSessionsView: View {
             // Nutzer selbst Accel-Läufe hat — s. AccelDefault.swift.
             let only = showAll ? false : await AccelDefault.preferred()
             let sp: String = aktSport
-            var rows = try await Api.spotSessions(spot, accelOnly: only, sport: sp)
+            let n = max(spotSeite, items.count)
+            var rows = try await Api.spotSessions(spot, accelOnly: only, limit: n, sport: sp)
+            var nurAccel = only
             // Frueher griff das NUR bei einer komplett leeren Liste, und genau daran ist am 29.08. ein
             // Nutzer haengen geblieben: die Spot-Karte sagte „Meerkerk · 14“, nach dem Klick standen dort
             // seine eigenen drei. Die anderen elf sind ohne verwertbare Beschleunigungsdaten aufgenommen
@@ -280,10 +301,10 @@ struct SpotSessionsView: View {
             // nicht. Verglichen wird jetzt die erste Seite gegen „alle“.
             if only, !autoTried {
                 autoTried = true
-                let all = try await Api.spotSessions(spot, accelOnly: false, sport: sp)
-                if all.count > rows.count { showAll = true; rows = all }
+                let all = try await Api.spotSessions(spot, accelOnly: false, limit: n, sport: sp)
+                if all.count > rows.count { showAll = true; rows = all; nurAccel = false }
             }
-            items = rows
+            items = rows; spotHatMehr = rows.count >= n; spotNurAccel = nurAccel
             // „Älter/neuer" im Detail soll an DIESEM Spot bleiben, über alle Fahrer — mit
             // demselben Accel-Filter, den diese Liste gerade zeigt (Jan, 17.09.2026).
             NachbarFilter.aktuell = NachbarFilter(scope: "all", spot: spot, sport: sp,

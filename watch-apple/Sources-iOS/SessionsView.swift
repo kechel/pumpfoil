@@ -26,6 +26,11 @@ struct SessionsView: View {
     @State private var loading = false
     // Zaehler je Abruf, s. `load()` — eine spaete Antwort eines alten Abrufs wird verworfen.
     @State private var ladeGeneration = 0
+    // Seitenweise wie die PWA (Sessions.tsx PAGE = 20, 06.11.2026): vorher holte „Meine" die GANZE Liste (Jan: 329 Sessions,
+    // 1,4 MB) und „Alle" nur die ersten 20 Gruppen, ohne je mehr zu laden. Neu laden holt so viele, wie schon da sind.
+    private let seite = 20
+    @State private var hatMehr = true
+    @State private var mehrLaedt = false
     @State private var error: String?
     @State private var suggestions: [MergeSuggestion] = []
     @State private var incoming: [Transfer] = []
@@ -415,7 +420,8 @@ struct SessionsView: View {
             ForEach(own) { s in
                 NavigationLink { SessionDetailView(id: s.id, dataVersion: s.data_version) } label: { SessionRow(session: s) }
             }
-            if !own.isEmpty {
+            if !own.isEmpty && hatMehr { mehrZeile(own.count) }
+            if !own.isEmpty && !hatMehr {
                 Text(Loc.t("sessions.listEnd", lang)).font(.caption2).foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
             }
@@ -427,7 +433,38 @@ struct SessionsView: View {
                     GroupCardView(group: g)
                 }
             }
+            if !groups.isEmpty && hatMehr { mehrZeile(groups.count) }
         }
+    }
+
+    /// Listenende: erscheint es (List baut Zeilen erst beim Sichtbarwerden), kommt die naechste Seite. `.task(id:)` statt
+    /// `.onAppear`: bleibt das Ende nach dem Nachladen im Bild (kurze Seite), geht es mit der neuen Anzahl gleich weiter.
+    private func mehrZeile(_ anzahl: Int) -> some View {
+        ProgressView().frame(maxWidth: .infinity)
+            .task(id: anzahl) { await mehr() }
+    }
+
+    /// Naechste Seite anhaengen; Doppelte (eine neue Session verschiebt die Seiten) fallen raus.
+    private func mehr() async {
+        guard hatMehr, !mehrLaedt, !loading else { return }
+        let meine: Int = ladeGeneration
+        mehrLaedt = true; defer { mehrLaedt = false }
+        do {
+            if scope == .mine {
+                let r = try await Api.sessions(month: month.isEmpty ? nil : month, filter: filter, accelOnly: accelOnly && !brett,
+                                               sport: sport, board: brett, limit: seite, offset: own.count)
+                guard meine == ladeGeneration else { return }
+                let da = Set(own.map { $0.id })
+                own += r.filter { !da.contains($0.id) }; hatMehr = r.count >= seite
+            } else {
+                let r = try await Api.communitySessionsGrouped(spot: scope == .spot ? spot : nil, limit: seite, offset: groups.count,
+                                                               accelOnly: accelOnly && !brett, sport: sport, board: brett,
+                                                               freunde: scope == .friends, team: scope == .team ? teamWahl : nil)
+                guard meine == ladeGeneration else { return }
+                let da = Set(groups.map { $0.id })
+                groups += r.filter { !da.contains($0.id) }; hatMehr = r.count >= seite
+            }
+        } catch { /* naechster Versuch beim naechsten Erscheinen des Listenendes */ }
     }
 
     private func listeLeeren() { own = []; groups = [] }
@@ -611,27 +648,31 @@ struct SessionsView: View {
         do {
             switch scope {
             case .mine:
+                let n = max(seite, own.count)
                 let r = try await Api.sessions(month: month.isEmpty ? nil : month, filter: filter,
-                                               accelOnly: accelOnly && !brett, sport: sport, board: brett)
+                                               accelOnly: accelOnly && !brett, sport: sport, board: brett, limit: n)
                 guard meine == ladeGeneration else { return }
-                own = r
+                own = r; hatMehr = r.count >= n
             // sport: Default "all" — diese Liste ist das „was ist neu" und soll ALLE Sportarten
             // zeigen (ohne den Parameter greift der Endpunkt-Default "pumpfoil"). Die Karte
             // kennzeichnet alles, was kein Pumpfoilen ist. Seit 27.09.2026 waehlbar (Sportart-Filter).
             case .all, .friends:
-                let r = try await Api.communitySessionsGrouped(accelOnly: accelOnly && !brett, sport: sport, board: brett,
+                let n = max(seite, groups.count)
+                let r = try await Api.communitySessionsGrouped(limit: n, accelOnly: accelOnly && !brett, sport: sport, board: brett,
                                                                freunde: scope == .friends)
                 guard meine == ladeGeneration else { return }
-                groups = r
+                groups = r; hatMehr = r.count >= n
             case .team:
-                let r = try await Api.communitySessionsGrouped(accelOnly: accelOnly && !brett, sport: sport, board: brett,
+                let n = max(seite, groups.count)
+                let r = try await Api.communitySessionsGrouped(limit: n, accelOnly: accelOnly && !brett, sport: sport, board: brett,
                                                                team: teamWahl)
                 guard meine == ladeGeneration else { return }
-                groups = r
+                groups = r; hatMehr = r.count >= n
             case .spot:
-                let r = spot.isEmpty ? [] : (try await Api.communitySessionsGrouped(spot: spot, accelOnly: accelOnly && !brett, sport: sport, board: brett))
+                let n = max(seite, groups.count)
+                let r = spot.isEmpty ? [] : (try await Api.communitySessionsGrouped(spot: spot, limit: n, accelOnly: accelOnly && !brett, sport: sport, board: brett))
                 guard meine == ladeGeneration else { return }
-                groups = r
+                groups = r; hatMehr = r.count >= n
                 await maybeShowAllForSpot()
             }
             // Denselben Filter merken: „älter/neuer" im Detail navigiert damit innerhalb GENAU

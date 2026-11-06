@@ -523,6 +523,7 @@ const ja: Record<string, string> = {
   "sessions.uploadFail": "{total} 個中 {fail} 個のファイルが失敗しました（FIT でない／GPS データなし？）。",
   "sessions.timeTo": "〜",
   "sessions.listEnd": "— 終わり —",
+  "sessions.loadMore": "さらに読み込む",
   "sessions.farAbbr": "最遠",
   "sessions.longAbbr": "最長",
 

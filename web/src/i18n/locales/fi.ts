@@ -519,6 +519,7 @@ const fi: Record<string, string> = {
   "sessions.uploadFail": "{fail}/{total} tiedostoa epäonnistui (ei FIT / ei GPS-dataa?).",
   "sessions.timeTo": "–",
   "sessions.listEnd": "— Loppu —",
+  "sessions.loadMore": "Lataa lisää",
   "sessions.farAbbr": "pisin",
   "sessions.longAbbr": "kestoin",
 

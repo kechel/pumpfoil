@@ -271,10 +271,12 @@ object Api {
     // `sport`: null/"all" = alle Sportarten (Serverdefault), sonst genau diese — wie `api.sessions`
     // in der PWA (Nutzerwunsch 27.09.2026, Filter nach Sportart).
     suspend fun sessions(month: String? = null, filter: String = "pump", accelOnly: Boolean = false,
-                         sport: String? = null, board: Boolean = false, limit: Int? = null): List<SessionSummary> = withContext(Dispatchers.IO) {
+                         sport: String? = null, board: Boolean = false, limit: Int? = null, offset: Int = 0): List<SessionSummary> = withContext(Dispatchers.IO) {
         val qs = buildString {
             append("?filter=$filter")
-            if (limit != null) append("&limit=$limit")   // Home: nur die neuesten (sonst die ganze Liste)
+            // Seitenweise (Home: die drei neuesten; Meine: 20 je Seite beim Scrollen). Ohne limit die ganze Liste.
+            if (limit != null) append("&limit=$limit")
+            if (offset > 0) append("&offset=$offset")
             if (!month.isNullOrBlank()) append("&month=$month")
             if (accelOnly) append("&accel_only=true")
             if (board) append("&board=true")   // nur Handy am Brett (POB)
@@ -562,12 +564,12 @@ object Api {
 
     // `sport` null = Serverdefault (dort "pumpfoil"); "all" = alle Sportarten.
     suspend fun spotSessions(spot: String, accelOnly: Boolean = true, limit: Int = 50,
-                             sport: String? = null): List<CommunityItem> = withContext(Dispatchers.IO) {
+                             sport: String? = null, offset: Int = 0): List<CommunityItem> = withContext(Dispatchers.IO) {
         val s = java.net.URLEncoder.encode(spot, "UTF-8")
         val sp = sport?.let { "&sport=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: ""
         json.decodeFromString(
             ListSerializer(CommunityItem.serializer()),
-            http("GET", "/api/community/spot-sessions?spot=$s&accel_only=$accelOnly&limit=$limit$sp", null, auth = true),
+            http("GET", "/api/community/spot-sessions?spot=$s&accel_only=$accelOnly&limit=$limit&offset=$offset$sp", null, auth = true),
         )
     }
 

@@ -537,6 +537,7 @@ const cs: Record<string, string> = {
   "sessions.uploadFail": "{fail} z {total} souborů selhalo (není FIT / žádná GPS data?).",
   "sessions.timeTo": "do",
   "sessions.listEnd": "— konec —",
+  "sessions.loadMore": "Načíst další",
   "sessions.farAbbr": "vzdál.",
   "sessions.longAbbr": "délka",
 

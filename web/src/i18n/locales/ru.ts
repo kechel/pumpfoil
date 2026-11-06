@@ -523,6 +523,7 @@ const ru: Record<string, string> = {
   "sessions.uploadFail": "{fail} из {total} файл(ов) не обработаны (нет FIT / нет данных GPS?).",
   "sessions.timeTo": "до",
   "sessions.listEnd": "— Конец —",
+  "sessions.loadMore": "Загрузить ещё",
   "sessions.farAbbr": "дал.",
   "sessions.longAbbr": "длит.",
 

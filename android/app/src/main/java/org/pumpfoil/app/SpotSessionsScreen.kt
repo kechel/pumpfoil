@@ -25,6 +25,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -129,6 +130,23 @@ fun SpotReiterBereich(spot: String, onOpen: (Int) -> Unit, sport0: String = "all
         karteGeladen = true
     }
 
+    // Spot-Liste seitenweise (Seite = 50 wie der Server-Standard), weitere per Knopf (s. unten). Neu laden holt so viele,
+    // wie schon da sind.
+    val spotSeite = 50
+    var spotHatMehr by remember(spot) { mutableStateOf(true) }
+    var spotMehrLaedt by remember(spot) { mutableStateOf(false) }
+    val spotScope = androidx.compose.runtime.rememberCoroutineScope()
+    var spotNurAccel by remember(spot) { mutableStateOf(false) }   // Filter der geladenen Seiten (Folgeseiten genauso)
+    suspend fun mehrSpot() {
+        spotMehrLaedt = true
+        try {
+            val r = Api.spotSessions(spot, accelOnly = spotNurAccel, sport = sport, limit = spotSeite, offset = items.size)
+            val da = items.map { it.id }.toSet()
+            items = items + r.filter { it.id !in da }; spotHatMehr = r.size >= spotSeite
+        } catch (_: Exception) {}
+        spotMehrLaedt = false
+    }
+
     suspend fun load() {
         loading = true; onLaden(true)
         try {
@@ -137,7 +155,9 @@ fun SpotReiterBereich(spot: String, onOpen: (Int) -> Unit, sport0: String = "all
             val only = if (showAll) false else AccelDefault.preferred()
             // Ohne `sport` galt der Endpunkt-Default „pumpfoil" — die Liste zeigte damit weniger,
             // als die Spot-Karte (sport=all) zaehlte. Jetzt immer die gewaehlte Sportart.
-            var rows = Api.spotSessions(spot, accelOnly = only, sport = sport)
+            val n = maxOf(spotSeite, items.size)
+            var rows = Api.spotSessions(spot, accelOnly = only, sport = sport, limit = n)
+            var nurAccel = only
             // Frueher griff das NUR bei einer komplett leeren Liste, und genau daran ist am 29.08. ein
             // Nutzer haengen geblieben: die Spot-Karte sagte „Meerkerk · 14“, nach dem Klick standen dort
             // seine eigenen drei. Die anderen elf sind ohne verwertbare Beschleunigungsdaten aufgenommen
@@ -146,10 +166,10 @@ fun SpotReiterBereich(spot: String, onOpen: (Int) -> Unit, sport0: String = "all
             // nicht. Verglichen wird jetzt die erste Seite gegen „alle“.
             if (only && !autoTried) {
                 autoTried = true
-                val all = Api.spotSessions(spot, accelOnly = false, sport = sport)
-                if (all.size > rows.size) { showAll = true; rows = all }
+                val all = Api.spotSessions(spot, accelOnly = false, sport = sport, limit = n)
+                if (all.size > rows.size) { showAll = true; rows = all; nurAccel = false }
             }
-            items = rows
+            items = rows; spotHatMehr = rows.size >= n; spotNurAccel = nurAccel
             // „Älter/neuer" im Detail soll an DIESEM Spot bleiben, über alle Fahrer — mit
             // demselben Accel-Filter, den diese Liste gerade zeigt (Jan, 17.09.2026).
             NachbarFilter.merken(NachbarFilter(scope = "all", spot = spot, sport = sport,
@@ -212,6 +232,14 @@ fun SpotReiterBereich(spot: String, onOpen: (Int) -> Unit, sport0: String = "all
                 }
                 items.forEach { c ->
                     CommunityItemRow(c, Modifier.padding(horizontal = rand, vertical = ListenAnsicht.abstand)) { onOpen(c.id) }
+                }
+                // Mehr als die erste Seite (06.11.2026, vorher war nach 50 Schluss). Knopf statt automatisch: die Liste steckt
+                // in einer normal scrollenden Seite, ein Listenende waere sofort „sichtbar" und alles kaeme auf einmal.
+                if (items.size >= spotSeite && spotHatMehr) {
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = { spotScope.launch { mehrSpot() } }, enabled = !spotMehrLaedt,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = rand, vertical = 8.dp),
+                    ) { Text(I18n.t("sessions.loadMore")) }
                 }
             }
             "heatmap" -> {

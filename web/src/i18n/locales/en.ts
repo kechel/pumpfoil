@@ -554,6 +554,7 @@ const en: Record<string, string> = {
   "sessions.uploadFail": "{fail} of {total} file(s) failed (no FIT / no GPS data?).",
   "sessions.timeTo": "to",
   "sessions.listEnd": "— End —",
+  "sessions.loadMore": "Load more",
   "sessions.farAbbr": "far.",
   "sessions.longAbbr": "long.",
 

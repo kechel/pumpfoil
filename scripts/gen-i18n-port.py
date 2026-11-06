@@ -45,6 +45,8 @@ SCHLUESSEL = [
     # 06.11.2026: Garmin „beides verbinden" (zwei Schritte, Home-Hinweis), Schliessen-Knopf
     "garmin.beides.schritt1", "garmin.beides.schritt2", "garmin.beides.zuGc", "garmin.beides.zuCode",
     "garmin.fehltGc", "garmin.fehltCode", "banner.dismiss",
+    # 06.11.2026: Nachladen in den Session-Listen (Spot-Liste mit Knopf), Listenende
+    "sessions.loadMore", "sessions.listEnd",
     # Phase 9: Spots-Reiter
     "tab.map", "tab.list", "tab.routes",
     # Nachtrag aus dem iOS-Port (fehlten in den App-Tabellen)

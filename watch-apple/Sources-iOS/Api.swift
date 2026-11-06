@@ -145,9 +145,11 @@ enum Api {
     // `sport`: "all" (Default) schraenkt nicht ein und wird gar nicht erst mitgeschickt — wie die
     // PWA (api.ts). Der Server liest es fuer eigene Sessions wie der Community-Feed (27.09.2026).
     static func sessions(month: String? = nil, filter: String = "pump", accelOnly: Bool = false,
-                         sport: String = "all", board: Bool = false, limit: Int? = nil) async throws -> [SessionSummary] {
+                         sport: String = "all", board: Bool = false, limit: Int? = nil, offset: Int = 0) async throws -> [SessionSummary] {
         var qs = "?filter=\(filter)"
-        if let limit { qs += "&limit=\(limit)" }   // Home: nur die neuesten (sonst die ganze Liste, bei Jan 1,4 MB)
+        // Seitenweise (Home: die drei neuesten; Meine: 20 je Seite beim Scrollen). Ohne limit die ganze Liste (bei Jan 1,4 MB).
+        if let limit { qs += "&limit=\(limit)" }
+        if offset > 0 { qs += "&offset=\(offset)" }
         if let month, !month.isEmpty { qs += "&month=\(month)" }
         if accelOnly { qs += "&accel_only=true" }
         if board { qs += "&board=true" }   // nur Handy am Brett (POB)
@@ -567,10 +569,10 @@ enum Api {
 
     // `sport` nil = Endpunkt-Default ("pumpfoil"), sonst genau diese Sportart bzw. "all".
     static func spotSessions(_ spot: String, accelOnly: Bool = true, limit: Int = 50,
-                             sport: String? = nil) async throws -> [CommunityItem] {
+                             sport: String? = nil, offset: Int = 0) async throws -> [CommunityItem] {
         let s = spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot
         let sp = sport.map { "&sport=\($0.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? $0)" } ?? ""
-        return try await request("/api/community/spot-sessions?spot=\(s)&accel_only=\(accelOnly)&limit=\(limit)\(sp)", method: "GET", body: nil, auth: true)
+        return try await request("/api/community/spot-sessions?spot=\(s)&accel_only=\(accelOnly)&limit=\(limit)&offset=\(offset)\(sp)", method: "GET", body: nil, auth: true)
     }
 
     // Tages-Gruppierung (Community/Spot): ein Nutzer+Tag = eine Gruppe (server-seitig).

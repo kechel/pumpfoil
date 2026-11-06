@@ -484,6 +484,7 @@ const fr: Record<string, string> = {
   "sessions.uploadFail": "{fail} sur {total} fichier(s) en échec (pas de FIT / pas de données GPS ?).",
   "sessions.timeTo": "à",
   "sessions.listEnd": "— Fin —",
+  "sessions.loadMore": "Charger plus",
   "sessions.farAbbr": "loin.",
   "sessions.longAbbr": "long.",
 

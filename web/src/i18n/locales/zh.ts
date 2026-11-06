@@ -523,6 +523,7 @@ const zh: Record<string, string> = {
   "sessions.uploadFail": "{total} 个文件中有 {fail} 个失败（无 FIT / 无 GPS 数据？）。",
   "sessions.timeTo": "至",
   "sessions.listEnd": "— 结束 —",
+  "sessions.loadMore": "加载更多",
   "sessions.farAbbr": "远",
   "sessions.longAbbr": "长",
 

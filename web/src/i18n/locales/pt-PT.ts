@@ -533,6 +533,7 @@ const ptPT: Record<string, string> = {
   "sessions.uploadFail": "{fail} de {total} ficheiro(s) falharam (sem FIT / sem dados de GPS?).",
   "sessions.timeTo": "até",
   "sessions.listEnd": "— Fim —",
+  "sessions.loadMore": "Carregar mais",
   "sessions.farAbbr": "dist.",
   "sessions.longAbbr": "dur.",
 
