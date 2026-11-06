@@ -101,8 +101,9 @@ function TeamWertung({ tf, n, t, eigeneSlugs, standText }: { tf: TeamTafelMitZei
     // Gleiche Karte und Ueberschrift wie die Fahrer-Liste links (Tafel), Jan 06.11.2026: „einheitlich".
     <Card className="p-4">
       <h3 className="team-akzent font-semibold">{t("team.event.teams")} · {t(k.labelKey)}</h3>
-      <p className="text-xs text-slate-400">{n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) })}</p>
-      {standText && <p className="text-xs text-slate-400">{standText}</p>}
+      <p className="text-xs text-slate-400">
+        {[n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }), standText].filter(Boolean).join(" · ")}
+      </p>
       {teams.length === 0 && <p className="mt-2 text-sm text-slate-400">{t("team.event.keineTeams")}</p>}
       <ol className="mt-2">
         {teams.map((x) => (
@@ -222,7 +223,8 @@ export default function TeamEventSeite() {
     if (!ev || !tf) return null;
     if (ev.status === "beendet") return t("team.event.endstand");
     if ((ev.status === "laeuft" || ev.status === "auswertung") && tf.stand) {
-      return t("team.event.standUm", { zeit: new Date(tf.stand).toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" }) });
+      // Mit Datum (Jan, 06.11.2026) — im geteilten Bild muss man sehen, von welchem Tag der Stand ist.
+      return t("team.event.standUm", { zeit: new Date(tf.stand).toLocaleString(lang, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) });
     }
     return null;
   };
