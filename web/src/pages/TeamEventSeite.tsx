@@ -285,15 +285,7 @@ export default function TeamEventSeite() {
               {ev.tafeln.map((tf, i) => <option key={i} value={i}>{t(kennzahl(tf.kennzahl).labelKey)}</option>)}
             </select>
           )}
-          {ev.global && meineTeams.length > 0 && (
-            <label className="flex flex-wrap items-center gap-2">{t("team.event.teamFilter")}
-              <select value={teamFilter} onChange={(x) => setTeamFilter(x.target.value)}
-                className="rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100">
-                <option value="">{t("team.event.alle")}</option>
-                {meineTeams.map((x) => <option key={x.slug} value={x.slug}>{x.name}</option>)}
-              </select>
-            </label>
-          )}
+          {/* „Bestenliste für" (eigenes Team) wieder raus (Jan, 06.11.2026) — Top 10 + man selbst reicht. */}
         </div>
         {(() => {
           const tf0 = ev.tafeln[Math.min(wahl, ev.tafeln.length - 1)];
