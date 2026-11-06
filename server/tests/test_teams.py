@@ -667,47 +667,104 @@ def test_event_nur_gesamtsummen(client):
     assert r["summen_accel_only"] is True and r["summen"] == {"pumps": 120}
 
 
-def test_community_aktuelle_events(client):
-    """Community-Seite: laufende und bald beginnende Events, nur aus Teams, deren Events man oeffnen darf."""
+def test_community_aktuelle_events(client, monkeypatch):
+    """Community-Seite: laufende und bald beginnende Events — seit 06.11.2026 NUR globale (aus dem offiziellen Team);
+    Team-Events stehen nur auf der Teamseite."""
     (_ia, ka), (_ib, kb), (_ic, kc) = (_konto(client, "te-a-com@t.de"), _konto(client, "te-b-com@t.de"),
                                        _konto(client, "te-c-com@t.de"))
     slug, _l = _team_mit(client, ka, kb, "Communityteam")
+    monkeypatch.setenv("TEAM_GLOBAL", slug)
+    _freigeben(client, _admin(client, "te-adm-com@t.de"), ka, slug)   # das offizielle Team ist freigegeben
     jetzt = datetime.now(timezone.utc)
     tafel = [{"kennzahl": "sum_pumps"}]
 
-    def ev(titel, start, ende):
+    def ev(titel, start, ende, glob=True):
         return client.post(f"/api/teams/{slug}/events", headers=ka, json={
-            "titel": titel, "start": (jetzt + start).isoformat(), "ende": (jetzt + ende).isoformat(), "tafeln": tafel}).json()["id"]
+            "titel": titel, "start": (jetzt + start).isoformat(), "ende": (jetzt + ende).isoformat(), "tafeln": tafel,
+            "global_event": glob}).json()["id"]
     laeuft = ev("Laeuft", timedelta(hours=-1), timedelta(days=1))
     bald = ev("Bald", timedelta(days=2), timedelta(days=3))
     ev("Spaeter", timedelta(days=5), timedelta(days=6))
     ev("Vorbei", timedelta(days=-3), timedelta(hours=-1))
-    titel = [(e["titel"], e["status"]) for e in client.get("/api/teams/liste/events", headers=kb).json() if e["team"]["slug"] == slug]
-    assert titel == [("Laeuft", "laeuft"), ("Bald", "kommend")] and {laeuft, bald}
-    # Fremde sehen Events nicht freigegebener Teams nicht
-    assert all(e["team"]["slug"] != slug for e in client.get("/api/teams/liste/events", headers=kc).json())
+    ev("Intern", timedelta(hours=-1), timedelta(days=1), glob=False)
+    for kopf in (kb, kc):   # auch Fremde: globale Events gelten fuer alle
+        liste = client.get("/api/teams/liste/events", headers=kopf).json()
+        titel = [(e["titel"], e["status"], e["global"]) for e in liste if e["team"]["slug"] == slug]
+        assert titel == [("Laeuft", "laeuft", True), ("Bald", "kommend", True)] and {laeuft, bald}
 
 
-def test_event_uebersicht_seitenweise(client):
-    """Alle Events, seitenweise: laufende, dann kommende, dann vergangene (zuletzt beendete zuerst)."""
+def test_event_uebersicht_seitenweise(client, monkeypatch):
+    """Alle Events, seitenweise: laufende, dann kommende, dann vergangene (zuletzt beendete zuerst) — nur globale."""
     (_ia, ka), (_ib, kb) = _konto(client, "te-a-ueb@t.de"), _konto(client, "te-b-ueb@t.de")
     slug, _l = _team_mit(client, ka, kb, "Uebersichtteam")
+    monkeypatch.setenv("TEAM_GLOBAL", slug)
     jetzt = datetime.now(timezone.utc)
 
-    def ev(titel, start, ende):
+    def ev(titel, start, ende, glob=True):
         client.post(f"/api/teams/{slug}/events", headers=ka, json={
             "titel": titel, "start": (jetzt + start).isoformat(), "ende": (jetzt + ende).isoformat(),
-            "tafeln": [{"kennzahl": "sum_pumps"}]})
+            "tafeln": [{"kennzahl": "sum_pumps"}], "global_event": glob})
     ev("Alt", timedelta(days=-9), timedelta(days=-8))
     ev("Spaet", timedelta(days=9), timedelta(days=10))
     ev("Neu vorbei", timedelta(days=-3), timedelta(days=-2))
     ev("Laeuft", timedelta(hours=-1), timedelta(hours=5))
     ev("Bald", timedelta(days=1), timedelta(days=2))
+    ev("Team intern", timedelta(hours=-1), timedelta(hours=5), glob=False)
 
     def titel(offset, n):
         return [e["titel"] for e in client.get(f"/api/teams/liste/events/alle?offset={offset}&n={n}", headers=kb).json()
                 if e["team"]["slug"] == slug]
     assert titel(0, 50) == ["Laeuft", "Bald", "Spaet", "Neu vorbei", "Alt"]
+
+
+def test_globales_event_alle_teamwertung_und_teamfilter(client, monkeypatch):
+    """Globales Event (06.11.2026): jeder mit passenden Sessions zaehlt, ohne Beitritt; Team-Rangliste aus den besten N
+    Mitgliedern freigegebener Teams mit oeffentlichen Bestenlisten; Filter „mein Team"; nur im offiziellen Team."""
+    adm = _admin(client, "glob-adm@t.de")
+    (io, ko) = _konto(client, "glob-off@t.de", "Offiziell Olga")
+    (ia, ka), (ib, kb), (ic, kc) = (_konto(client, "glob-a@t.de", "Gina A"), _konto(client, "glob-b@t.de", "Gabi B"),
+                                    _konto(client, "glob-c@t.de", "Gert C"))
+    offiziell = _team(client, ko, "Pumpfoil Offiziell")
+    monkeypatch.setenv("TEAM_GLOBAL", offiziell)
+    _freigeben(client, adm, ko, offiziell)
+    client.put(f"/api/teams/{offiziell}", headers=ko, json={"oeffentlich": False})   # intern reicht
+    # Ein normales Team mit A und B, freigegeben und oeffentlich; C in keinem Team.
+    slug, _l = _team_mit(client, ka, kb, "Globalteam")
+    _freigeben(client, adm, ka, slug)
+    _session(ia, 300, tage=1)
+    _session(ib, 100, tage=1)
+    _session(ic, 500, tage=1)
+    jetzt = datetime.now(timezone.utc)
+    body = {"titel": "Pump-November", "start": (jetzt - timedelta(days=2)).isoformat(),
+            "ende": (jetzt + timedelta(days=1)).isoformat(),
+            "tafeln": [{"kennzahl": "sum_pumps", "accel_only": False}], "global_event": True, "team_wertung_n": 1}
+    # Ein normales Team darf nicht global
+    assert client.post(f"/api/teams/{slug}/events", headers=ka, json=body).status_code == 403
+    ev = client.post(f"/api/teams/{offiziell}/events", headers=ko, json=body)
+    assert ev.status_code == 200, ev.text
+    eid = ev.json()["id"]
+    # C (in keinem Team, nicht Mitglied des offiziellen) sieht das Event und steht darin.
+    sicht = client.get(f"/api/teams/{offiziell}/events/{eid}", headers=kc)
+    assert sicht.status_code == 200, sicht.text
+    tf = sicht.json()["tafeln"][0]
+    unsere = {"Gert C", "Gina A", "Gabi B"}   # andere Tests legen auch Sessions im Fenster an
+    namen = [(z["name"], z["value"]) for z in tf["zeilen"] if z["name"] in unsere]
+    assert namen == [("Gert C", 500), ("Gina A", 300), ("Gabi B", 100)]
+    # Team-Rangliste: beste 1 -> 300 (nicht 400); das offizielle Team steht nicht darin.
+    assert [(x["slug"], x["value"], x["fahrer"], x["teilnehmer"]) for x in tf["teams"]] == [(slug, 300, 1, 2)]
+    # Filter „mein Team": nur A und B, Rang aus der Gesamtwertung.
+    mein = client.get(f"/api/teams/{offiziell}/events/{eid}?team={slug}", headers=ka).json()["tafeln"][0]["zeilen"]
+    raenge = {z["name"]: z["rang"] for z in tf["zeilen"]}
+    assert [(z["name"], z["rang"]) for z in mein] == [("Gina A", raenge["Gina A"]), ("Gabi B", raenge["Gabi B"])]
+    # Community: global, das offizielle Team selbst taucht nicht in „Alle Teams" auf.
+    assert any(e["id"] == eid and e["global"] for e in client.get("/api/teams/liste/events", headers=kc).json())
+    assert offiziell not in {t["slug"] for t in client.get("/api/teams/liste", headers=kc).json()}
+    # Gast-Link funktioniert, obwohl das offizielle Team nicht oeffentlich ist.
+    assert client.get(f"/api/public/teams/{offiziell}/events/{eid}").status_code == 200
+    # Ein Team-Event des offiziellen Teams (nicht global) bleibt fuer Fremde zu.
+    intern = client.post(f"/api/teams/{offiziell}/events", headers=ko,
+                         json={**body, "titel": "Intern", "global_event": False}).json()["id"]
+    assert client.get(f"/api/teams/{offiziell}/events/{intern}", headers=kc).status_code == 403
 
 
 def test_team_herkunft_land_kontinent_erde(client):

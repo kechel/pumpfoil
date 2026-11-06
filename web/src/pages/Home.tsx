@@ -953,11 +953,12 @@ function TeamsSection() {
           Reiter „Rekorde & Bestenliste". */}
       <div className="mb-1.5 flex flex-wrap items-center gap-x-4 gap-y-1">
         <FlagIcon className="h-5 w-5 text-brand-400" />
-        <h3 className="text-lg font-bold">{t("team.eventsAktuell")}</h3>
+        {/* Seit 06.11.2026 nur globale Events (jeder nimmt teil); Team-Events stehen auf der Teamseite (Jan). */}
+        <h3 className="text-lg font-bold">{t("team.eventsGlobal")}</h3>
       </div>
       {/* Keine Teams mehr direkt hier (eigene Seite /teams/liste, Jan 01.11.2026) — nur laufende und in den naechsten
           3 Tagen beginnende Events, alle (vorerst ohne Grenze). Kachel wie auf der Teamseite. */}
-      {events && events.length === 0 && <p className="text-sm text-slate-400">{t("team.event.keineAktuellen")}</p>}
+      {events && events.length === 0 && <p className="text-sm text-slate-400">{t("team.event.keineGlobalen")}</p>}
       {!!events?.length && (
         <div className="grid gap-2 sm:grid-cols-2">
           {events.map((e) => <EventKurzKachel key={`${e.team.slug}-${e.id}`} e={e} />)}

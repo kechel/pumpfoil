@@ -1633,6 +1633,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
         auf die ID der Antwort um (Android `onWeitergeleitet` -> neue Route, iOS `showSession`). **Nicht geprueft:** ob
         HttpURLConnection/URLSession beim Weiterleiten den Authorization-Kopf mitschicken (gleicher Host, sollte). Test geht NICHT
         mit Jans Konto: Admins bekommen die geloeschte Session statt der Weiterleitung (sessions.py `not user.is_admin`).
+  **Globale Events (06.11., nur Web, docs/TEAMS.md „Globale Events"):**
+  - [ ] Community-Abschnitt heisst „Globale Events" (`team.eventsGlobal`, `team.event.keineGlobalen`), Karten mit
+        Abzeichen „Global" (`global` am Event); die Liste liefert der Server schon nur noch globale.
+  - [ ] Event-Seite: kein Beitreten bei globalen, Hinweis `team.event.globalHinweis`, Team-Rangliste je Bestenliste
+        (`tafeln[].teams`), Auswahl „Bestenliste fuer" eigene Teams (`?team=<slug>`), Abzeichen auf der Profilseite.
+  - [ ] Event anlegen im offiziellen Team (`offiziell` am Team): Haken + Teamwertung (beste 3/5/10/alle).
   **Danach:** Changelog-Punkte je App bei der Einreichung, `NAECHSTES` in appmeta.py, PARITY-AUDIT nachziehen.
 
 - **🔲 02.11. (Nutzer-Feedback, Team-Kapitaen PL, 1:1-Chat mit Jan) — langer Vorschlagskatalog Community/Home/Bestenliste.**

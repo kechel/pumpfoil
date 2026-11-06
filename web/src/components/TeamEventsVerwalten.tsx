@@ -19,7 +19,7 @@ const eingabe = "w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-
 const knopf = "rounded-xl border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50";
 const auswahl = "rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100";
 
-type Entwurf = { id?: number; eingefroren?: boolean; banner_url?: string | null; banner_fokus?: string | null; ohne_dateien?: boolean; teambild_zeigen?: boolean; summen?: string[]; summen_sportart?: string; summen_accel_only?: boolean; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
+type Entwurf = { global_event?: boolean; team_wertung_n?: number | null; id?: number; eingefroren?: boolean; banner_url?: string | null; banner_fokus?: string | null; ohne_dateien?: boolean; teambild_zeigen?: boolean; summen?: string[]; summen_sportart?: string; summen_accel_only?: boolean; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
 
 function leer(): Entwurf {
   const v = EVENT_VORLAGEN[0];
@@ -27,8 +27,10 @@ function leer(): Entwurf {
   return { titel: "", beschreibung: "", start: alsEingabe(a), ende: alsEingabe(b), tafeln: [neueEventTafel()], spot_ids: [], vorlage: null };
 }
 
-export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSpots, onMeldung, nurEvent, onZu }: {
+export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSpots, onMeldung, nurEvent, onZu, offiziell = false }: {
   slug: string; farbe: string | null; sports: string[]; bands: FoilBand[]; alleSpots: { id: number; name: string }[]; onMeldung: (s: string) => void;
+  /** Offizielles Team (06.11.2026): Haken „globales Event" und Teamwertung. */
+  offiziell?: boolean;
   /** Nur das Popup fuer dieses eine Event (Zahnrad auf der Event-Seite, Jan 01.11.2026); `onZu` nach Schliessen/Speichern. */
   nurEvent?: TeamEvent; onZu?: () => void;
 }) {
@@ -59,6 +61,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
       tafeln: e.tafeln, spot_ids: e.spot_ids, vorlage: e.vorlage, ohne_dateien: !!e.ohne_dateien,
       teambild_zeigen: e.teambild_zeigen !== false, summen: e.summen ?? [],
       summen_sportart: e.summen_sportart ?? "pumpfoil", summen_accel_only: !!e.summen_accel_only,
+      global_event: offiziell && !!e.global_event, team_wertung_n: e.team_wertung_n ?? null,
     };
     setPopupFehler(null);
     (e.id ? api.teamEventAendern(slug, e.id, body) : api.teamEventAnlegen(slug, body))
@@ -66,6 +69,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
       .catch((x) => setPopupFehler(t(`team.err.${fehlerCode(x)}`)));
   };
   const bearbeiten = (ev: TeamEvent) => setE({
+    global_event: !!ev.global, team_wertung_n: ev.team_wertung_n ?? 5,
     id: ev.id, eingefroren: ev.status === "beendet", banner_url: ev.banner_url, banner_fokus: ev.banner_fokus, ohne_dateien: ev.ohne_dateien, teambild_zeigen: ev.teambild_zeigen, summen: ev.summen_auswahl ?? [], summen_sportart: ev.summen_sportart, summen_accel_only: ev.summen_accel_only, titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
     ende: alsEingabe(new Date(ev.ende)), spot_ids: ev.spot_ids, vorlage: ev.vorlage,
     tafeln: ev.tafeln.map(({ kennzahl, sportart, accel_only, nur_brett, foil_band }) => ({ kennzahl, sportart, accel_only, nur_brett, foil_band })),
@@ -107,6 +111,24 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
               <input type="checkbox" className="mt-1" checked={e.teambild_zeigen !== false} onChange={(x) => setE({ ...e, teambild_zeigen: x.target.checked })} />
               <span>{t("team.event.teambildZeigen")}</span>
             </label>
+          )}
+          {/* Globales Event (06.11.2026): nur im offiziellen Team. Jeder mit passenden Sessions nimmt teil, dazu eine
+              Team-Rangliste aus den besten N Mitgliedern jedes Teams. */}
+          {offiziell && (
+            <div className="mb-3 rounded-xl border border-brand-500/30 bg-brand-500/10 p-3">
+              <label className="flex cursor-pointer items-start gap-2 text-sm text-slate-200">
+                <input type="checkbox" className="mt-1" checked={!!e.global_event} onChange={(x) => setE({ ...e, global_event: x.target.checked })} />
+                <span className="font-semibold">{t("team.event.globalHaken")}</span>
+              </label>
+              {e.global_event && (
+                <label className="mt-2 flex flex-wrap items-center gap-2 text-sm text-slate-300">{t("team.event.wertung")}:
+                  <select value={e.team_wertung_n ?? 5} onChange={(x) => setE({ ...e, team_wertung_n: Number(x.target.value) })} className={auswahl}>
+                    {[3, 5, 10].map((n) => <option key={n} value={n}>{t("team.event.wertungBeste", { n: String(n) })}</option>)}
+                    <option value={0}>{t("team.event.wertungAlle")}</option>
+                  </select>
+                </label>
+              )}
+            </div>
           )}
           <label className="mb-1 block text-sm text-slate-300">{t("team.event.titel")}</label>
           <input value={e.titel} maxLength={80} onChange={(x) => setE({ ...e, titel: x.target.value })} className={`${eingabe} mb-3`} />

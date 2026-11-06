@@ -2192,7 +2192,8 @@ export const api = {
     req<TeamStatistik>(`/api/teams/${encodeURIComponent(slug)}/statistik?period=${period}`),
   teamLogbuch: (slug: string) => req<TeamLogbuchEintrag[]>(`/api/teams/${encodeURIComponent(slug)}/logbuch`),
   teamEvents: (slug: string) => req<TeamEvent[]>(`/api/teams/${encodeURIComponent(slug)}/events`),
-  teamEvent: (slug: string, id: number | string) => req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events/${id}`),
+  teamEvent: (slug: string, id: number | string, team?: string) =>
+    req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events/${id}${team ? `?team=${encodeURIComponent(team)}` : ""}`),
   teamEventOeffentlich: (slug: string, id: number | string) =>
     req<{ team: TeamAuftritt & { id: number; bestenlisten_oeffentlich: boolean; anmeldungen_zulassen?: boolean }; event: TeamEvent }>(`/api/public/teams/${encodeURIComponent(slug)}/events/${id}`),
   teamEventBanner: async (slug: string, id: number, file: File) =>
@@ -2259,6 +2260,8 @@ export interface TeamEventKurz {
   id: number; titel: string; beschreibung: string | null; start: string; ende: string; zeitzone: string | null;
   status: "kommend" | "laeuft" | "auswertung" | "beendet"; sportarten: string[]; spots: { id: number; name: string | null }[];
   team: { slug: string; name: string; logo_url: string | null; farbe: string | null; land?: string | null };
+  /** Globales Event (06.11.2026): jeder nimmt automatisch teil */
+  global?: boolean;
 }
 export interface TeamListenEintrag extends TeamAuftritt { id: number; mitglieder_anzahl: number; anmeldungen_zulassen: boolean; bestenlisten_oeffentlich: boolean;
   sessions_30d?: number }   // Sessions der Mitglieder in 30 Tagen (02.11.2026, „aktivste Teams")
@@ -2272,6 +2275,8 @@ export interface TeamInfo extends TeamAuftritt {
   anmeldungen_zulassen: boolean; automatisch_akzeptieren: boolean; mitglieder_sichtbar: "mitglieder" | "angemeldete";
   meine_rolle: TeamRolle | null; mein_status: "aktiv" | "angefragt" | null;
   darf_bestenlisten: boolean; darf_mitglieder: boolean;
+  /** Offizielles Team (server TEAM_GLOBAL): nur hier gibt es globale Events */
+  offiziell?: boolean;
   chat_scope?: string | null;   // nur fuer aktive Mitglieder
   anfragen_offen?: number;      // offene Beitrittsanfragen, nur fuer Leitung/Moderatoren > 0
   spots?: { id: number; name: string | null }[];
@@ -2298,7 +2303,11 @@ export interface TeamLogbuchEintrag {
   session_id: number | null; wert: number; vorher_user_id: number | null; vorher_name: string | null;
   vorher_wert: number | null; gefahren_am: string | null; erfasst_am: string | null;
 }
-export interface TeamTafelMitZeilen extends TeamTafel { zeilen: TeamZeile[] }
+/** Team-Rangliste eines globalen Events: Summe der besten N Mitglieder (`fahrer` davon gezaehlt, `teilnehmer` im Event). */
+export interface TeamWertungZeile extends Pick<TeamAuftritt, "name" | "slug" | "logo_url" | "farbe" | "land"> {
+  rang: number; value: number; fahrer: number; teilnehmer: number;
+}
+export interface TeamTafelMitZeilen extends TeamTafel { zeilen: TeamZeile[]; teams?: TeamWertungZeile[] }
 export interface TeamOeffentlich extends TeamAuftritt { id: number; mitglieder_anzahl: number; period: string; tafeln: TeamTafelMitZeilen[]; events?: TeamEvent[] }
 export type TeamEventTafel = Pick<TeamTafel, "kennzahl" | "sportart" | "accel_only" | "nur_brett" | "foil_band">;
 export interface TeamEventIn {
@@ -2307,6 +2316,8 @@ export interface TeamEventIn {
   ohne_dateien?: boolean; teambild_zeigen?: boolean; summen?: string[];
   /** nur fuer Events ohne Bestenliste */
   summen_sportart?: string; summen_accel_only?: boolean;
+  /** Globales Event (nur im offiziellen Team) und Teamwertung: beste N, 0 = alle */
+  global_event?: boolean; team_wertung_n?: number | null;
 }
 export interface TeamEvent {
   id: number; titel: string; beschreibung: string | null; start: string; ende: string; zeitzone: string | null;
@@ -2323,9 +2334,12 @@ export interface TeamEvent {
   summen_auswahl?: string[]; summen?: Partial<Record<string, number>>;
   /** Sportart/Bewegungsdaten der Summen, wenn das Event keine Bestenliste hat */
   summen_sportart?: string; summen_accel_only?: boolean;
+  /** Globales Event (06.11.2026) und Teamwertung (beste N, 0 = alle) */
+  global?: boolean; team_wertung_n?: number;
 }
 export interface TeamAbzeichen {
   rang: number; event: string; team: string; team_slug: string; farbe: string | null; kennzahl: string; wert: number; datum: string;
+  global?: boolean; event_id?: number;
 }
 export interface TeamMitglied {
   user_id: number; name: string; avatar_url: string | null; rolle: TeamRolle; seit: string | null;

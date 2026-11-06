@@ -2177,3 +2177,7 @@ class TeamEvent(Base):
     # Teilnehmer, festgehalten bei der ersten Mitgliederaenderung nach dem Ende (Jan, 01.11.2026: Austritte nach dem
     # Event duerfen die Bestenlisten nicht mehr aendern) — gilt dann statt der aktuellen Mitgliederliste.
     teilnehmer_json: Mapped[str | None] = mapped_column(Text)
+    # Globales Event (06.11.2026, teams.ist_global): jeder mit passenden Sessions zaehlt, dazu die Team-Rangliste aus den
+    # besten `team_wertung_n` Mitgliedern (NULL = teams.WERTUNG_N_STANDARD, 0 = alle). Nur im offiziellen Team setzbar.
+    global_event: Mapped[bool] = mapped_column(Boolean, default=False)
+    team_wertung_n: Mapped[int | None] = mapped_column(Integer)

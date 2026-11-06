@@ -285,8 +285,10 @@ export default function Foiler({ userId, eingebettet = false, als }:
             <span className="flex items-center gap-1.5 text-slate-400"><StarIcon className="h-4 w-4" />{t("team.abzeichen")}:</span>
             <span className="flex flex-col gap-0.5">
               {d.team_abzeichen.map((a, i) => (
-                <Link key={i} to={`/teams/${a.team_slug}`} className="font-semibold text-slate-200 hover:underline">
-                  {t(`team.platz${a.rang}`)} · {a.event} · {a.team}
+                // Globale Events (06.11.2026): „Global" statt des (offiziellen) Teams, Link aufs Event.
+                <Link key={i} to={a.global && a.event_id ? `/teams/${a.team_slug}/events/${a.event_id}` : `/teams/${a.team_slug}`}
+                  className="font-semibold text-slate-200 hover:underline">
+                  {t(`team.platz${a.rang}`)} · {a.event} · {a.global ? t("team.event.global") : a.team}
                 </Link>
               ))}
             </span>

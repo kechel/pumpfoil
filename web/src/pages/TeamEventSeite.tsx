@@ -14,7 +14,7 @@ import { TeamHerkunft } from "../components/TeamHerkunft";
 import TeamBanner from "../components/TeamBanner";
 import TeamTafelBild from "../components/TeamTafelBild";
 import { teamFarbStil } from "../lib/teamFarben";
-import { EVENT_SUMMEN, eventGemessen } from "../lib/teamKennzahlen";
+import { EVENT_SUMMEN, eventGemessen, kennzahl } from "../lib/teamKennzahlen";
 import { eventZeit, eventZeitraum, eventZeitraumGenau } from "../lib/teamEvents";
 import { BeitrittDialog, Tafel } from "./Team";
 import { fehlerCode } from "../lib/teamKennzahlen";
@@ -82,6 +82,30 @@ function EventSummen({ ev, t }: { ev: TeamEvent; t: (k: string) => string }) {
   );
 }
 
+/** Team-Rangliste eines globalen Events (06.11.2026): je Team die Summe der besten N Mitglieder. */
+function TeamWertung({ tf, n, t }: { tf: TeamTafelMitZeilen; n: number; t: (k: string, p?: Record<string, string>) => string }) {
+  const k = kennzahl(tf.kennzahl);
+  const teams = tf.teams ?? [];
+  if (!teams.length) return null;
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-3">
+      <p className="text-sm font-semibold text-slate-100">{t("team.event.teams")} · {t(k.labelKey)}</p>
+      <p className="text-xs text-slate-400">{n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) })}</p>
+      <ol className="mt-2">
+        {teams.slice(0, 20).map((x) => (
+          <li key={x.slug ?? x.name} className="flex items-center gap-2 border-t border-slate-800 py-1.5 first:border-t-0">
+            <span className={`w-6 shrink-0 text-right text-sm font-bold ${x.rang <= 3 ? "team-akzent" : "text-slate-400"}`}>{x.rang}</span>
+            <TeamWappen name={x.name} logo={x.logo_url} farbe={x.farbe} size={24} />
+            <Link to={`/teams/${x.slug}`} className="min-w-0 flex-1 truncate text-sm text-slate-100 hover:text-brand-400">{x.name}</Link>
+            <span className="text-xs text-slate-400">{x.fahrer}/{x.teilnehmer}</span>
+            <span className="text-sm font-semibold tabular-nums text-slate-100">{k.fmt(x.value)}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 function EventTeilen({ url, titel, t }: { url: string; titel: string; t: (k: string) => string }) {
   const [kopiert, setKopiert] = useState(false);
   return (
@@ -106,7 +130,11 @@ export default function TeamEventSeite() {
   const { t, lang } = useI18n();
   const gast = !getToken();
   const [team, setTeam] = useState<(TeamAuftritt & { id: number; bestenlisten_oeffentlich?: boolean; meine_rolle?: TeamRolle | null;
-    anmeldungen_zulassen?: boolean; automatisch_akzeptieren?: boolean; oeffentlich?: boolean; mein_status?: string | null }) | null>(null);
+    anmeldungen_zulassen?: boolean; automatisch_akzeptieren?: boolean; oeffentlich?: boolean; mein_status?: string | null;
+    offiziell?: boolean }) | null>(null);
+  // Globale Events (06.11.2026): Bestenliste wahlweise nur fuer eines der eigenen Teams.
+  const [meineTeams, setMeineTeams] = useState<{ slug: string; name: string }[]>([]);
+  const [teamFilter, setTeamFilter] = useState("");
   const [dialog, setDialog] = useState(false);
   // Ziel in der Gast-Kopfzeile (main.tsx GastRahmen); erst nach dem Einhaengen im DOM.
   const [kopfAktion, setKopfAktion] = useState<HTMLElement | null>(null);
@@ -129,9 +157,14 @@ export default function TeamEventSeite() {
       api.teamEventOeffentlich(slug, id).then((d) => { setTeam(d.team); setEv(d.event); }).catch(() => setFehlt(true));
     } else {
       api.team(slug).then(setTeam).catch(() => setFehlt(true));
-      api.teamEvent(slug, id).then(setEv).catch(() => setFehlt(true));
+      api.teamEvent(slug, id, teamFilter || undefined).then(setEv).catch(() => setFehlt(true));
     }
-  }, [slug, id, gast]);
+  }, [slug, id, gast, teamFilter]);
+  useEffect(() => {
+    if (gast || !ev?.global) return;
+    api.teamsMine().then((l) => setMeineTeams(l.filter((x) => x.status === "aktiv" && x.slug !== slug)
+      .map((x) => ({ slug: x.slug, name: x.name })))).catch(() => {});
+  }, [gast, ev?.global, slug]);
 
   // Zurueck von „Anmelden und beitreten" (?beitreten=1): den Beitritts-Dialog gleich oeffnen — bestaetigen muss man
   // trotzdem, wegen des Kleingedruckten. Der Parameter wird danach entfernt (kein zweites Oeffnen beim Neuladen).
@@ -153,7 +186,7 @@ export default function TeamEventSeite() {
   };
   const popupZu = () => {
     setPopup(false);
-    api.teamEvent(slug, id).then(setEv).catch(() => nav(`/teams/${slug}`, { replace: true }));   // geloescht -> zurueck zum Team
+    api.teamEvent(slug, id, teamFilter || undefined).then(setEv).catch(() => nav(`/teams/${slug}`, { replace: true }));   // geloescht -> zurueck zum Team
   };
 
   // Beitreten direkt vom Event aus (Jan, 01.11.2026) — wer ueber einen geteilten Event-Link kommt, soll nicht erst
@@ -173,11 +206,19 @@ export default function TeamEventSeite() {
   return (
     <div className="team-farbe w-full" style={teamFarbStil(team.farbe)}>
       {/* Zum Team: Wappen + Name als Link (der Zurueck-Pfeil steht in der Titelzeile darunter). */}
+      {ev.global ? (
+        <p className="mb-3 inline-flex items-center gap-2 text-sm text-slate-300">
+          <TeamWappen name={team.name} logo={team.logo_url} farbe={team.farbe} size={20} />
+          {team.name}
+          <span className="rounded-full bg-brand-500/15 px-2 py-0.5 text-xs font-semibold text-brand-700 dark:text-brand-300">{t("team.event.global")}</span>
+        </p>
+      ) : (
       <Link to={`/teams/${team.slug}`} className="mb-3 inline-flex items-center gap-2 text-sm text-slate-300 hover:text-slate-200">
         <TeamWappen name={team.name} logo={team.logo_url} farbe={team.farbe} size={20} />
         {team.name}
         <TeamHerkunft land={team.land} />
       </Link>
+      )}
       {meldung && <p className="mb-3 rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-sm text-slate-200">{meldung}</p>}
       {ev.banner_url ? <TeamBanner url={ev.banner_url} fokus={ev.banner_fokus} className="mb-4" />
         : ev.teambild_zeigen !== false && team.banner_url ? <TeamBanner url={team.banner_url} fokus={team.banner_fokus} className="mb-4" /> : null}
@@ -200,16 +241,17 @@ export default function TeamEventSeite() {
           {ev.spots.length > 0 && <> · {ev.spots.map((s) => s.name ?? `#${s.id}`).join(", ")}</>}
         </p>
         {ev.beschreibung && <p className="mt-2 whitespace-pre-line text-sm font-semibold text-slate-200">{ev.beschreibung}</p>}
+        {ev.global && <p className="mt-2 text-sm text-slate-300">{t("team.event.globalHinweis")}</p>}
       </div>
 
       {/* Gaeste: „Anmelden und beitreten" oben in der Kopfzeile, in Pumpfoil-Farbe — man tritt zuerst pumpfoil.org bei
           (Jan, 01.11.2026). Angemeldete Nicht-Mitglieder: Beitreten in Teamfarbe hier auf der Seite. */}
-      {team.anmeldungen_zulassen && gast && kopfAktion && createPortal(
+      {team.anmeldungen_zulassen && !ev.global && gast && kopfAktion && createPortal(
         <Link to={`/login?next=${encodeURIComponent(`/teams/${team.slug}/events/${ev.id}?beitreten=1`)}`}
           className="shrink-0 rounded-xl bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400 sm:px-4 sm:py-2">
           {t("team.join.anmeldenKnopf")}
         </Link>, kopfAktion)}
-      {team.anmeldungen_zulassen && !gast && !team.mein_status && (
+      {team.anmeldungen_zulassen && !ev.global && !gast && !team.mein_status && (
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <button onClick={() => setDialog(true)} className="team-knopf shrink-0 rounded-xl px-4 py-2 font-semibold">{t("team.join.knopf")}</button>
           <span className="text-sm text-slate-400">{t("team.join.eventHinweis", { name: team.name })}</span>
@@ -230,16 +272,28 @@ export default function TeamEventSeite() {
           </div>
         )}
         {(ev.summen_auswahl ?? []).length > 0 && <EventSummen ev={ev} t={t} />}
+        {ev.global && meineTeams.length > 0 && (
+          <label className="mb-3 flex flex-wrap items-center gap-2 text-sm text-slate-300">{t("team.event.teamFilter")}
+            <select value={teamFilter} onChange={(x) => setTeamFilter(x.target.value)}
+              className="rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100">
+              <option value="">{t("team.event.alle")}</option>
+              {meineTeams.map((x) => <option key={x.slug} value={x.slug}>{x.name}</option>)}
+            </select>
+          </label>
+        )}
         <div className="grid gap-3 sm:grid-cols-2">
           {ev.tafeln.map((tf, i) => (
-            <Tafel key={i} tf={tf} gast={gast} t={t} ohneFilter sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} />
+            <div key={i} className="space-y-3">
+              <Tafel tf={tf} gast={gast} t={t} ohneFilter sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} />
+              {ev.global && <TeamWertung tf={tf} n={ev.team_wertung_n ?? 5} t={t} />}
+            </div>
           ))}
         </div>
         </>
       )}
 
       {/* Teilen-Zeile unter den Bestenlisten, ueber den Regeln (Jan, 01.11.2026). */}
-      {team.bestenlisten_oeffentlich && <EventTeilen url={`${window.location.origin}/teams/${team.slug}/events/${ev.id}`} titel={ev.titel} t={t} />}
+      {(team.bestenlisten_oeffentlich || ev.global) && <EventTeilen url={`${window.location.origin}/teams/${team.slug}/events/${ev.id}`} titel={ev.titel} t={t} />}
 
       {/* Event-Regeln als kleine Box statt Link auf die ganze Regelseite (Jan, 01.11.2026): nur was fuers Event gilt. */}
       <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
@@ -253,12 +307,12 @@ export default function TeamEventSeite() {
           {t("team.regeln.events.text").split("\n").filter(Boolean).map((z, i) => <li key={i}>{z}</li>)}
         </ul>
         {/* Haftungsausschluss (Jan, 01.11.2026): Events und ihre Zusagen sind Sache der Teams, nicht von pumpfoil.org. */}
-        <p className="mt-3 border-t border-slate-800 pt-3 text-sm text-slate-400">{t("team.event.disclaimer")}</p>
+        {!ev.global && <p className="mt-3 border-t border-slate-800 pt-3 text-sm text-slate-400">{t("team.event.disclaimer")}</p>}
       </div>
 
       {popup && (
         <TeamEventsVerwalten slug={team.slug} farbe={team.farbe} sports={sports} bands={bands} alleSpots={alleSpots}
-          onMeldung={setMeldung} nurEvent={ev} onZu={popupZu} />
+          onMeldung={setMeldung} nurEvent={ev} onZu={popupZu} offiziell={!!team.offiziell} />
       )}
 
       {dialog && (

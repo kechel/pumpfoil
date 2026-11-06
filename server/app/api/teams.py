@@ -86,6 +86,8 @@ def _team_out(db: Session, t: models.Team, m: models.TeamMitglied | None) -> dic
         "meine_rolle": m.rolle if mitglied_aktiv else None,
         "mein_status": m.status if m is not None else None,
         "darf_bestenlisten": mitglied_aktiv or T.bestenlisten_oeffentlich(t),
+        # Offizielles Team (server/.env TEAM_GLOBAL): nur hier gibt es beim Event-Anlegen „global" (06.11.2026).
+        "offiziell": t.id == T.offizielles_team_id(db),
         "darf_mitglieder": mitglied_aktiv or (T.oeffentlich_sichtbar(t) and t.mitglieder_sichtbar == "angemeldete"),
         # Team-Chat nur fuer aktive Mitglieder (Zugriff prueft chat._require_access).
         "chat_scope": T.chat_scope(t.id) if mitglied_aktiv else None,
@@ -130,9 +132,12 @@ def _name_pruefen(db: Session, name: str, team_id: int | None = None) -> str:
     return name
 
 
-def _slug_pruefen(db: Session, slug: str, team_id: int | None = None) -> str:
+def _slug_pruefen(db: Session, slug: str, team_id: int | None = None, admin: bool = False) -> str:
     slug = (slug or "").strip().lower()
     fehler = T.slug_fehler(slug)
+    # Reservierte Adressen („pumpfoil", „official" …) nur fuer Admins — fuers offizielle Team (06.11.2026).
+    if fehler == "slug_reserviert" and admin:
+        fehler = None
     if fehler:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, fehler)
     if not T.slug_frei(db, slug, team_id):
@@ -161,7 +166,7 @@ def anlegen(body: NeuIn, user: models.User = Depends(current_user), db: Session 
     if geleitet >= T.MAX_TEAMS_JE_PERSON:
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "zu_viele_teams")
     name = _name_pruefen(db, body.name)
-    slug = _slug_pruefen(db, body.slug) if body.slug else T.freier_slug(db, name)
+    slug = _slug_pruefen(db, body.slug, admin=bool(user.is_admin)) if body.slug else T.freier_slug(db, name)
     t = models.Team(name=name, slug=slug, angelegt_von=user.id, farbe="cyan")
     db.add(t)
     db.flush()
@@ -195,7 +200,9 @@ def liste(_u: models.User = Depends(current_user), db: Session = Depends(get_db)
     """Community-Abschnitt: nur freigegebene Teams, in ihrer freigegebenen Fassung."""
     M = models.TeamMitglied
     zahl = dict(db.query(M.team_id, func.count(M.id)).filter(M.status == "aktiv").group_by(M.team_id).all())
-    teams = db.query(models.Team).filter(models.Team.frei_am.isnot(None), models.Team.geloescht_am.is_(None)).all()
+    offiziell = T.offizielles_team_id(db)
+    teams = [t for t in db.query(models.Team).filter(models.Team.frei_am.isnot(None), models.Team.geloescht_am.is_(None)).all()
+             if t.id != offiziell]   # das offizielle Team ist der Ort der globalen Events, kein Team zum Mitmachen
     sp = T.sportarten(db, [t.id for t in teams])
     out = [{**_kurz(t, False, db, sp[t.id]), "mitglieder_anzahl": int(zahl.get(t.id, 0)),
             "anmeldungen_zulassen": bool(t.anmeldungen_zulassen),
@@ -226,19 +233,18 @@ def _event_kurz(db: Session, e: models.TeamEvent, t: models.Team, intern: bool, 
     a = T.auftritt(t, intern)
     return {"id": e.id, "titel": e.titel, "beschreibung": e.beschreibung, "start": T._aware(e.start).isoformat(),
             "ende": T._aware(e.ende).isoformat(), "zeitzone": e.zeitzone, "status": T.event_status(e, jetzt),
-            "sportarten": sportarten, "spots": spots,
+            "sportarten": sportarten, "spots": spots, "global": T.ist_global(e),
             "team": {"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"], "land": a["land"]}}
 
 
 def _events_sichtbar(db: Session, uid: int):
-    """Events, die der Betrachter oeffnen darf: aus freigegebenen Teams mit oeffentlichen Bestenlisten
-    (T.bestenlisten_oeffentlich) oder aus eigenen Teams. Liefert (Abfrage, eigene Team-IDs)."""
+    """Events fuer die Community-Seite und „Alle Events": seit 06.11.2026 NUR globale (Jan: „team-interne events
+    interessieren niemanden ausser den team-mitgliedern") — Team-Events stehen auf der Teamseite. Liefert (Abfrage,
+    eigene Team-IDs)."""
     E, Tm = models.TeamEvent, models.Team
     eigene = set(T.mitglieder_team_ids(db, uid))
-    sichtbar = and_(Tm.oeffentlich.is_(True), Tm.frei_am.isnot(None))
     q = (db.query(E, Tm).join(Tm, Tm.id == E.team_id)
-         .filter(E.geloescht_am.is_(None), Tm.geloescht_am.is_(None),
-                 or_(sichtbar, Tm.id.in_(eigene)) if eigene else sichtbar))
+         .filter(E.geloescht_am.is_(None), Tm.geloescht_am.is_(None), E.global_event.is_(True)))
     return q, eigene
 
 
@@ -438,6 +444,9 @@ class EventIn(BaseModel):
     # Nur fuer Events ohne Bestenliste: Sportart und Bewegungsdaten der Gesamtsummen (sonst aus den Bestenlisten).
     summen_sportart: str = "pumpfoil"
     summen_accel_only: bool = False
+    # Globales Event (06.11.2026): nur im offiziellen Team; Team-Rangliste aus den besten N (0 = alle, None = Standard 5).
+    global_event: bool = False
+    team_wertung_n: int | None = Field(default=None, ge=0, le=50)
 
 
 def _event_summen(body: EventIn) -> str | None:
@@ -467,6 +476,21 @@ def _event_pruefen(db: Session, body: EventIn) -> tuple[str, str | None]:
     return json.dumps([x.model_dump() for x in body.tafeln]), (json.dumps(ids) if ids else None)
 
 
+def _global_pruefen(db: Session, t: models.Team, body: EventIn) -> None:
+    if body.global_event and t.id != T.offizielles_team_id(db):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "nur_offiziell")
+
+
+def _nur_team(db: Session, slug: str | None, user: models.User) -> list[int] | None:
+    """Filter „mein Team" an globalen Events: die Mitglieder dieses Teams — nur, wenn der Betrachter das Team sehen
+    darf wie seine Bestenlisten (Mitglied oder oeffentlich)."""
+    if not slug:
+        return None
+    t, m = _team_fuer(db, slug, user)
+    _darf_tafeln(t, m)
+    return T.mitglieder_ids(db, t.id)
+
+
 def _event(db: Session, t: models.Team, event_id: int) -> models.TeamEvent:
     e = db.get(models.TeamEvent, event_id)
     if e is None or e.team_id != t.id or e.geloescht_am is not None:
@@ -494,7 +518,8 @@ def event_anlegen(slug: str, body: EventIn, user: models.User = Depends(current_
     if offen >= T.EVENT_MAX_OFFEN:
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "zu_viele_events")
     tafeln_json, spots_json = _event_pruefen(db, body)
-    e = models.TeamEvent(team_id=t.id, titel=body.titel.strip(), beschreibung=(body.beschreibung or "").strip() or None,
+    _global_pruefen(db, t, body)
+    e = models.TeamEvent(team_id=t.id, global_event=body.global_event, team_wertung_n=body.team_wertung_n, titel=body.titel.strip(), beschreibung=(body.beschreibung or "").strip() or None,
                          start=body.start, ende=body.ende, zeitzone=body.zeitzone, tafeln_json=tafeln_json,
                          spots_json=spots_json, vorlage=body.vorlage, ohne_dateien=body.ohne_dateien,
                          teambild_zeigen=body.teambild_zeigen, summen_json=_event_summen(body),
@@ -505,14 +530,17 @@ def event_anlegen(slug: str, body: EventIn, user: models.User = Depends(current_
 
 
 @router.get("/{slug}/events/{event_id}")
-def event_einzeln(slug: str, event_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    """Ein Event direkt (Event-Seite), unabhaengig davon, wie weit es in der Liste zurueckliegt."""
+def event_einzeln(slug: str, event_id: int, team: str | None = None, user: models.User = Depends(current_user),
+                  db: Session = Depends(get_db)) -> dict:
+    """Ein Event direkt (Event-Seite), unabhaengig davon, wie weit es in der Liste zurueckliegt. Globale Events sieht
+    jeder; `team` = nur die Zeilen der Mitglieder dieses Teams (Filter „mein Team")."""
     t, m = _team_fuer(db, slug, user)
-    _darf_tafeln(t, m)
     e = _event(db, t, event_id)
+    if not T.ist_global(e):
+        _darf_tafeln(t, m)
     if T.event_einfrieren(db, e):
         db.commit()
-    return T.event_out(db, t, e)
+    return T.event_out(db, t, e, nur_team_ids=_nur_team(db, team, user) if T.ist_global(e) else None)
 
 
 class FokusIn(BaseModel):
@@ -571,6 +599,8 @@ def event_aendern(slug: str, event_id: int, body: EventIn, user: models.User = D
     if e.eingefroren_am is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "event_eingefroren")
     e.tafeln_json, e.spots_json = _event_pruefen(db, body)
+    _global_pruefen(db, t, body)
+    e.global_event, e.team_wertung_n = body.global_event, body.team_wertung_n
     e.titel, e.beschreibung = body.titel.strip(), (body.beschreibung or "").strip() or None
     e.start, e.ende, e.zeitzone, e.vorlage = body.start, body.ende, body.zeitzone, body.vorlage
     e.ohne_dateien, e.teambild_zeigen = body.ohne_dateien, body.teambild_zeigen
@@ -687,7 +717,7 @@ def einstellen(slug: str, body: EinstellungenIn, user: models.User = Depends(cur
     if body.name is not None:
         t.name = _name_pruefen(db, body.name, t.id)
     if body.slug is not None and body.slug != t.slug:
-        neu = _slug_pruefen(db, body.slug, t.id)
+        neu = _slug_pruefen(db, body.slug, t.id, admin=bool(user.is_admin))
         # Die alte Adresse bleibt gesperrt und leitet weiter — ausser sie ist die freigegebene, die
         # gilt aussen ohnehin weiter (`finde`) und wird erst bei der naechsten Freigabe gemerkt.
         if t.slug != t.frei_slug:
@@ -893,9 +923,12 @@ def oeffentliches_event(slug: str, event_id: int, response: Response, db: Sessio
     """Ein Event ohne Login (Teilen-Link, 01.11.2026): nur bei oeffentlichem, freigegebenem Team, in Gastform."""
     response.headers["X-Robots-Tag"] = "noindex, nofollow"
     t, _um = T.finde(db, slug)
-    if t is None or not T.bestenlisten_oeffentlich(t):
+    if t is None or t.geloescht_am is not None:
         raise _404()
     e = _event(db, t, event_id)
+    # Globale Events auch aus einem nicht oeffentlichen offiziellen Team (06.11.2026); sonst wie bisher.
+    if not (T.bestenlisten_oeffentlich(t) or (T.ist_global(e) and T.oeffentlich_sichtbar(t))):
+        raise _404()
     if T.event_einfrieren(db, e):
         db.commit()
     # anmeldungen_zulassen: fuer den Knopf „Anmelden und beitreten" auf der Event-Seite (01.11.2026).

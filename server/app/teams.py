@@ -379,9 +379,13 @@ def _cache_setzen(key, wert):
 DATEI_PRAEFIXE = ("fit-", "imp-")
 
 
+ALLE = "alle"   # member_ids fuer globale Events: jeder, der passende Sessions hat (06.11.2026)
+
+
 def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period: str,
-                    member_ids: list[int] | None = None, fenster: tuple[datetime, datetime] | None = None,
-                    event_spots: list[int] | None = None, ohne_dateien: bool = False) -> list[dict]:
+                    member_ids: list[int] | str | None = None, fenster: tuple[datetime, datetime] | None = None,
+                    event_spots: list[int] | None = None, ohne_dateien: bool = False,
+                    laenge: int | None = TAFEL_LAENGE) -> list[dict]:
     """Rangliste einer Tafel: je Person der beste Wert bzw. die Summe, absteigend.
 
     `ohne_dateien` (Events, 01.11.2026): keine von Hand hochgeladenen Dateien (FIT/GPX/TCX, s. DATEI_PRAEFIXE).
@@ -393,8 +397,9 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
     (`fuer_gast` streicht alles ausser Rang, Name, Initialen, Wert)."""
     from .api import community as C
 
-    ids = member_ids if member_ids is not None else mitglieder_ids(db, team.id)
-    if not ids or tf.kennzahl not in KENNZAHLEN:
+    alle = member_ids == ALLE
+    ids = [] if alle else (member_ids if member_ids is not None else mitglieder_ids(db, team.id))
+    if (not alle and not ids) or tf.kennzahl not in KENNZAHLEN:
         return []
     if event_spots:
         spot_ids, nur_spots = list(event_spots), True
@@ -403,7 +408,8 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
         spot_ids = ([s for (s,) in db.query(models.TeamSpot.spot_id).filter_by(team_id=team.id).all()]
                     if nur_spots else [])
     key = (team.id, tf.id, tf.kennzahl, tf.sportart, tf.accel_only, tf.nur_brett, tf.foil_band,
-           nur_spots, tuple(sorted(spot_ids)), period, fenster, tuple(sorted(ids)), ohne_dateien)
+           nur_spots, tuple(sorted(spot_ids)), period, fenster, ALLE if alle else tuple(sorted(ids)), ohne_dateien,
+           laenge)
     hit = _cache_holen(key)
     if hit is not None:
         return hit
@@ -413,7 +419,8 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
 
     def filtern(q):
         q = C._band_filter(db, q, tf.foil_band, 0)
-        q = q.filter(S.user_id.in_(ids))
+        if not alle:
+            q = q.filter(S.user_id.in_(ids))
         if fenster is not None:
             q = q.filter(S.started_at >= fenster[0], S.started_at < fenster[1])
         elif cut is not None:
@@ -463,7 +470,8 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
                     out.append({"user_id": uid, "name": name, "avatar_url": av,
                                 "value": round(float(val), 2)})
     out.sort(key=lambda r: (-r["value"], r.get("started_at") or "", r["user_id"]))
-    out = out[:TAFEL_LAENGE]
+    if laenge is not None:
+        out = out[:laenge]
     # Nationalitaet -> Flagge im geteilten Bild (02.11.2026); Gaeste bekommen sie nicht (fuer_gast).
     laender = C._laender(db, {r["user_id"] for r in out})
     for i, r in enumerate(out):
@@ -581,9 +589,10 @@ def vergleich(db: Session, period: str, top: int, sportart: str = "pumpfoil") ->
     hit = _cache_holen(key)
     if hit is not None:
         return hit
+    offiziell = offizielles_team_id(db)
     teams = [t for t in db.query(models.Team).filter(models.Team.frei_am.isnot(None),
                                                      models.Team.geloescht_am.is_(None)).all()
-             if bestenlisten_oeffentlich(t)]
+             if bestenlisten_oeffentlich(t) and t.id != offiziell]
     mitglieder = {t.id: mitglieder_ids(db, t.id) for t in teams}
     alle = sorted({u for ids in mitglieder.values() for u in ids})
     je_person: dict[int, dict] = {}
@@ -706,6 +715,63 @@ EVENT_VORSCHAU = timedelta(days=3)  # Community-Seite: kommende Events, die so b
 EVENT_MAX_TAFELN = 6
 ABZEICHEN_PLAETZE = 3
 
+# --- Globale Events (Jan, 06.11.2026) -------------------------------------------------------------------------------
+# „ein neues 'global events' konzept, an dem automatisch jeder teilnimmt wenn er entsprechende stats sammelt, mit
+# leaderboards, und auch einem eigenen leaderboard je team, aber ganz ohne teilnahme zusage". Gebaut als Option am
+# Team-Event: angelegt im offiziellen Team (server/.env TEAM_GLOBAL=<slug>, Leitung und Moderatoren), gewertet wird
+# JEDER mit passenden Sessions (wie die Community-Bestenlisten: ohne versteckte/gesperrte Konten), dazu je Kennzahl
+# eine Team-Rangliste (Summe der besten N Mitglieder, `team_wertung_n`, 0 = alle; Mitglied in zwei Teams zaehlt fuer
+# beide; nur Teams, die auch im Team-Vergleich stehen) und auf Wunsch die Zeilen nur eines Teams. Team-Events
+# erscheinen seitdem NICHT mehr auf der Community-Seite (Jan: „team-interne events interessieren niemanden ausser den
+# team-mitgliedern"), globale dort in einem eigenen Abschnitt. Das offizielle Team selbst taucht nirgends als Team auf.
+TEAM_GLOBAL_ENV = "TEAM_GLOBAL"
+WERTUNG_N_STANDARD = 5
+GLOBAL_ZEILEN_MAX = 5000      # so viele Zeilen je Bestenliste werden fuer Team-Wertung und Team-Filter festgehalten
+
+
+def offizielles_team_id(db: Session) -> int | None:
+    import os
+    slug = (os.environ.get(TEAM_GLOBAL_ENV) or "").strip().lower()
+    if not slug:
+        return None
+    t, _umbenannt = finde(db, slug)
+    return t.id if t is not None and t.geloescht_am is None else None
+
+
+def ist_global(e: models.TeamEvent) -> bool:
+    return bool(getattr(e, "global_event", False))
+
+
+def wertung_n(e: models.TeamEvent) -> int:
+    n = getattr(e, "team_wertung_n", None)
+    return WERTUNG_N_STANDARD if n is None else max(0, int(n))
+
+
+def team_wertung(db: Session, zeilen: list[dict], n: int, ausser_team_id: int | None) -> list[dict]:
+    """Team-Rangliste einer Bestenliste: je Team die Summe der besten `n` Werte seiner Mitglieder (0 = alle).
+    Dieselben Teams wie im Team-Vergleich (freigegeben, Bestenlisten oeffentlich), ohne das offizielle Team."""
+    if not zeilen:
+        return []
+    M, Tm = models.TeamMitglied, models.Team
+    wert = {z["user_id"]: float(z["value"]) for z in zeilen}
+    je: dict[int, list[float]] = {}
+    for tid, uid in (db.query(M.team_id, M.user_id).join(Tm, Tm.id == M.team_id)
+                     .filter(M.status == "aktiv", M.user_id.in_(list(wert)), Tm.frei_am.isnot(None),
+                             Tm.geloescht_am.is_(None), Tm.oeffentlich.is_(True)).all()):
+        if tid != ausser_team_id:
+            je.setdefault(tid, []).append(wert[uid])
+    out = []
+    for t in db.query(Tm).filter(Tm.id.in_(list(je))).all() if je else []:
+        werte = sorted(je[t.id], reverse=True)
+        beste = werte if n == 0 else werte[:n]
+        a = auftritt(t, False)
+        out.append({"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"],
+                    "land": a["land"], "value": round(sum(beste), 2), "fahrer": len(beste), "teilnehmer": len(werte)})
+    out.sort(key=lambda x: (-x["value"], (x["name"] or "").lower()))
+    for i, x in enumerate(out):
+        x["rang"] = i + 1
+    return out
+
 
 def _aware(t: datetime) -> datetime:
     return t if t.tzinfo else t.replace(tzinfo=timezone.utc)
@@ -740,7 +806,10 @@ def event_spots(e: models.TeamEvent) -> list[int]:
 
 def event_teilnehmer(db: Session, t: models.Team, e: models.TeamEvent) -> list[int]:
     """Wer im Event zaehlt: bis zum Ende die aktuellen Mitglieder, danach die beim Ende festgehaltenen
-    (`teilnehmer_json`, s. `events_teilnehmer_sichern`) — gesperrte Konten fallen trotzdem raus."""
+    (`teilnehmer_json`, s. `events_teilnehmer_sichern`) — gesperrte Konten fallen trotzdem raus.
+    Globale Events: jeder (ALLE)."""
+    if ist_global(e):
+        return ALLE
     if e.teilnehmer_json is None:
         return mitglieder_ids(db, t.id)
     ids = [int(i) for i in json.loads(e.teilnehmer_json)]
@@ -758,22 +827,42 @@ def events_teilnehmer_sichern(db: Session, team_id: int, jetzt: datetime | None 
     j = jetzt or _jetzt()
     E = models.TeamEvent
     offen = (db.query(E).filter(E.team_id == team_id, E.ende <= j, E.eingefroren_am.is_(None),
-                                E.geloescht_am.is_(None), E.teilnehmer_json.is_(None)).all())
+                                E.geloescht_am.is_(None), E.teilnehmer_json.is_(None),
+                                E.global_event.isnot(True)).all())
     if offen:
         ids = json.dumps(sorted(mitglieder_ids(db, team_id)))
         for e in offen:
             e.teilnehmer_json = ids
 
 
-def event_berechnen(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
-    """Bestenlisten des Events — eingefroren aus `ergebnis_json`, sonst live."""
+def _event_voll(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
+    """Bestenlisten des Events — eingefroren aus `ergebnis_json`, sonst live. Bei globalen Events mit ALLEN Zeilen
+    (bis GLOBAL_ZEILEN_MAX) und der Team-Rangliste je Bestenliste (`teams`); gekuerzt wird erst in `event_berechnen`."""
     if e.ergebnis_json:
         return json.loads(e.ergebnis_json)
     ids = event_teilnehmer(db, t, e)
+    glob = ist_global(e)
     fenster = (_aware(e.start), _aware(e.ende))
-    return [{**tafel_out(tf), "zeilen": tafel_berechnen(db, t, tf, "all", ids, fenster=fenster,
-                                                         event_spots=event_spots(e), ohne_dateien=bool(e.ohne_dateien))}
-            for tf in event_tafeln(e)]
+    out = []
+    for tf in event_tafeln(e):
+        zeilen = tafel_berechnen(db, t, tf, "all", ids, fenster=fenster, event_spots=event_spots(e),
+                                 ohne_dateien=bool(e.ohne_dateien), laenge=GLOBAL_ZEILEN_MAX if glob else TAFEL_LAENGE)
+        x = {**tafel_out(tf), "zeilen": zeilen}
+        if glob:
+            x["teams"] = team_wertung(db, zeilen, wertung_n(e), t.id)
+        out.append(x)
+    return out
+
+
+def event_berechnen(db: Session, t: models.Team, e: models.TeamEvent, nur_team_ids: list[int] | None = None) -> list[dict]:
+    """Bestenlisten fuer die Ausgabe: je Tafel hoechstens TAFEL_LAENGE Zeilen. `nur_team_ids` (globale Events, Filter
+    „mein Team"): nur die Zeilen dieser Personen, mit ihrem Rang in der Gesamtwertung."""
+    voll = _event_voll(db, t, e)
+    if not ist_global(e):
+        return voll
+    erlaubt = set(nur_team_ids) if nur_team_ids is not None else None
+    return [{**tf, "zeilen": [z for z in tf["zeilen"] if erlaubt is None or z["user_id"] in erlaubt][:TAFEL_LAENGE]}
+            for tf in voll]
 
 
 def event_summen_auswahl(e: models.TeamEvent) -> list[str]:
@@ -796,6 +885,7 @@ def event_summen(db: Session, t: models.Team, e: models.TeamEvent) -> dict:
     from . import pumpgleit_anzeige as PA
 
     ids = event_teilnehmer(db, t, e)
+    alle = ids == ALLE
     tf_ = event_tafeln(e)
     if tf_:
         sportart, accel_only = tf_[0].sportart, all(tf.accel_only for tf in tf_)
@@ -804,10 +894,10 @@ def event_summen(db: Session, t: models.Team, e: models.TeamEvent) -> dict:
     spots = event_spots(e)
     fenster = (_aware(e.start), _aware(e.ende))
     leer = {k: 0 for k in auswahl}
-    if not ids:
+    if not alle and not ids:
         return leer
     key = (t.id, "event_summen", e.id, sportart, accel_only, fenster, tuple(sorted(spots)), bool(e.ohne_dateien),
-           tuple(sorted(ids)))
+           ALLE if alle else tuple(sorted(ids)))
     hit = _cache_holen(key)
     if hit is None:
         S, AR = C.S, C.AR
@@ -815,7 +905,9 @@ def event_summen(db: Session, t: models.Team, e: models.TeamEvent) -> dict:
             func.count(S.id), func.coalesce(func.sum(AR.num_runs), 0), func.coalesce(func.sum(PA.col_pump_count()), 0),
             func.coalesce(func.sum(AR.foiling_distance_m), 0), func.coalesce(func.sum(AR.foiling_time_s), 0),
             func.count(func.distinct(S.spot_id)), func.count(func.distinct(S.user_id)),
-        ), None, accel_only, sportart).filter(S.user_id.in_(ids), S.started_at >= fenster[0], S.started_at < fenster[1])
+        ), None, accel_only, sportart).filter(S.started_at >= fenster[0], S.started_at < fenster[1])
+        if not alle:
+            q = q.filter(S.user_id.in_(ids))
         if e.ohne_dateien:
             q = q.filter(*[~S.session_uuid.like(f"{p}%") for p in DATEI_PRAEFIXE])
         if spots:
@@ -839,7 +931,7 @@ def event_einfrieren(db: Session, e: models.TeamEvent, jetzt: datetime | None = 
     # Frisch rechnen, nicht aus dem 2-Minuten-Cache.
     for k in [k for k in _cache if k and k[0] == t.id]:
         _cache.pop(k, None)
-    e.ergebnis_json = json.dumps(event_berechnen(db, t, e))
+    e.ergebnis_json = json.dumps(_event_voll(db, t, e))
     if event_summen_auswahl(e):
         e.summen_ergebnis_json = json.dumps(event_summen(db, t, e))
     e.eingefroren_am = j
@@ -858,8 +950,9 @@ def events_einfrieren(db: Session) -> int:
     return n
 
 
-def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = False) -> dict:
-    tafeln_ = event_berechnen(db, t, e)
+def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = False,
+              nur_team_ids: list[int] | None = None) -> dict:
+    tafeln_ = event_berechnen(db, t, e, nur_team_ids)
     if gast:
         tafeln_ = [{**tf, "zeilen": fuer_gast(tf["zeilen"])} for tf in tafeln_]
     spots = []
@@ -878,7 +971,8 @@ def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = Fal
             "summen_sportart": e.summen_sportart or "pumpfoil", "summen_accel_only": bool(e.summen_accel_only),
             # Eventbild auch fuer Gaeste, OHNE Freigabe (anders als das Teambild) — Jan, 01.11.2026: „das risiko gehe
             # ich erstmal ein". Titel und Beschreibung von Events sind ebenso ohne Freigabe oeffentlich.
-            "banner_url": e.banner_url, "banner_fokus": e.banner_fokus}
+            "banner_url": e.banner_url, "banner_fokus": e.banner_fokus,
+            "global": ist_global(e), "team_wertung_n": wertung_n(e)}
 
 
 def events_liste(db: Session, team_id: int, beendete: int = 10) -> list[models.TeamEvent]:
@@ -906,5 +1000,6 @@ def abzeichen(db: Session, uid: int) -> list[dict]:
                 if z.get("user_id") == uid:
                     out.append({"rang": z["rang"], "event": e.titel, "team": t.frei_name, "team_slug": t.frei_slug,
                                 "farbe": t.frei_farbe, "kennzahl": tf["kennzahl"], "wert": z["value"],
-                                "datum": _aware(e.ende).date().isoformat()})
+                                "datum": _aware(e.ende).date().isoformat(), "global": ist_global(e),
+                                "event_id": e.id})
     return out[:30]

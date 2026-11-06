@@ -20,6 +20,7 @@ export default function EventKurzKachel({ e }: { e: TeamEventKurz }) {
         <span className={`rounded-full px-2 py-0.5 text-xs ${e.status === "laeuft" ? "team-knopf event-puls font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
           {t(`team.event.status.${e.status}`)}
         </span>
+        {e.global && <span className="rounded-full bg-brand-500/15 px-2 py-0.5 text-xs font-semibold text-brand-700 dark:text-brand-300">{t("team.event.global")}</span>}
         {e.sportarten.map((sp) => (
           <span key={sp} className="rounded bg-amber-500/15 px-1.5 py-0.5 text-xs text-amber-700 dark:text-amber-300">{t(`cls.sport.${sp}`)}</span>
         ))}

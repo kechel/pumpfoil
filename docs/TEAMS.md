@@ -412,6 +412,27 @@ also wie viele der Sportarten man schon gefahren ist.
 4. **Native Apps:** Home-Links, Teamseite, Deep Links `/teams/…/join-…` und `…/apply-…`.
 5. **Spaeter:** Geisterrennen Top 5, neue Kennzahlen (Pipeline), Rekord-Benachrichtigungen je Team.
 
+## Globale Events (06.11.2026)
+
+Jan: „ein neues 'global events' konzept, an dem automatisch jeder teilnimmt wenn er entsprechende stats sammelt, mit
+leaderboards, und auch einem eigenen leaderboard je team, aber ganz ohne teilnahme zusage". Gebaut als Option am
+Team-Event (`team_events.global_event`, `team_wertung_n`), Rechnung in `app/teams.py` (Abschnitt „Globale Events"):
+- **Wo:** nur im offiziellen Team (`server/.env` `TEAM_GLOBAL=<slug>`, Jan legte „Pumpfoil" an). Leitung und
+  Moderatoren dieses Teams sehen beim Anlegen den Haken „Globales Event". Das Team taucht nirgends als Team auf
+  (Alle Teams, Team-Vergleich, aktivste Teams, Team-Rangliste der Events). Reservierte Adressen wie `pumpfoil` duerfen
+  nur Admins vergeben.
+- **Wer zaehlt:** jeder mit passenden Sessions im Fenster, ohne Beitritt — dieselbe Regel wie die Community-
+  Bestenlisten (versteckte/gesperrte Konten fehlen; einen eigenen Abmelde-Schalter gibt es nicht).
+- **Team-Rangliste** je Bestenliste: Summe der besten N Mitglieder (Standard 5, 0 = alle), nur freigegebene Teams
+  mit oeffentlichen Bestenlisten (wie der Team-Vergleich); Mitglied in zwei Teams zaehlt fuer beide.
+- **Filter „mein Team"** (`GET …/events/{id}?team=<slug>`): nur dessen Mitglieder, mit dem Rang der Gesamtwertung.
+- **Sichtbar:** fuer jeden Angemeldeten und als Gast-Link, auch wenn das offizielle Team nicht oeffentlich ist.
+  Eingefroren wird mit allen Zeilen (bis 5000 je Bestenliste), damit Team-Wertung und Team-Filter danach stimmen.
+- **Community:** Abschnitt „Globale Events" — seitdem stehen dort und in „Alle Events" NUR globale; Team-Events nur
+  auf der Teamseite (Jan: „team-interne events interessieren niemanden ausser den team-mitgliedern"). Karten tragen
+  „Global"; auf der Profilseite steht bei Abzeichen aus globalen Events „Global" statt des Teams.
+- **Apps:** noch nicht portiert (docs/TODO.md Port-Liste).
+
 ## Offene Punkte
 
 - Push bei Beitrittsanfrage / Event-Start — spaeter, optional.
