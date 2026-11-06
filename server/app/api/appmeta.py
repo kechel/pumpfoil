@@ -1184,6 +1184,9 @@ NAECHSTES: list[dict] = [
          "The foil calculator asks for the mast immersion depth, up to 100 cm, not the mast length.",
          "Session lists load 20 at a time and fetch more as you scroll, so they open faster, and older community and spot sessions can now be reached.",
          "Recording on the phone: if battery optimisation is on for Pumpfoil, the start screen asks you to set it to Unrestricted, because some phones otherwise turn GPS off while the screen is dark.",
+         "Global events: everyone takes part automatically, with a calendar card, a team ranking (sum of the best riders), the top 10 plus your own row, a refresh button and a share image; you can opt out under Settings, Privacy.",
+         "Events of your own teams appear on Home under Team and in the community, and the Teams & Events tab shows LIVE or the number of upcoming events.",
+         "Asking for a missing foil or stabilizer opens the feedback form with a template to fill in.",
      ]},
     # iPhone + Apple Watch 1.1.61 am 06.11. eingereicht -> IN_REVIEW.
     # 06.11.2026: Apple Watch setzt die Pausen der vorigen Aufnahme zurueck (6352227c), nach der Einreichung von 1.1.61.
@@ -1191,6 +1194,9 @@ NAECHSTES: list[dict] = [
      "items": [
          "On the Apple Watch, a new recording no longer carries over the pauses of the previous one, which shifted it in time and could leave it empty; affected sessions have been corrected.",
          "Until the Apple Watch has fetched your settings, it uses the watch's language (English if we don't have it) instead of German.",
+         "Global events: everyone takes part automatically, with a calendar card, a team ranking (sum of the best riders), the top 10 plus your own row, a refresh button and a share image; you can opt out under Settings, Privacy.",
+         "Events of your own teams appear on Home under Team and in the community, and the Teams & Events tab shows LIVE or the number of upcoming events.",
+         "Asking for a missing foil or stabilizer opens the feedback form with a template to fill in.",
      ]},
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
