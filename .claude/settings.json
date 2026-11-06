@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "(python3 \"$CLAUDE_PROJECT_DIR/scripts/atlas/bauen.py\" --leise >/dev/null 2>&1 &) ; exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -85,8 +85,11 @@ connectiq-sdk-manager-linux.zip
 server/backups/
 backups/
 
-# Claude Code lokale Session-Dateien
-.claude/
+# Claude Code lokale Session-Dateien. Ausnahme settings.json: der SessionStart-Hook baut den Projekt-Atlas
+# (scripts/atlas/bauen.py) — er soll auf jedem Rechner greifen, nicht nur auf der VM (06.11.2026). Skills bleiben lokal
+# (sie nennen Nutzer).
+.claude/*
+!.claude/settings.json
 
 # Web-Push VAPID Private Key
 vapid_private.pem

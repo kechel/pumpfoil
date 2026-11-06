@@ -168,6 +168,8 @@ def uebersicht(db, ids: list[int], ws: list[str], mehr: int) -> None:
     je_gruppe: list[list] = [[] for _ in GRUPPEN]
     for i in ids:
         r = db.execute("SELECT rowid, quelle, pfad, zeile, datum, titel, text FROM stuecke WHERE rowid = ?", (i,)).fetchone()
+        if r is None:   # waehrend der Abfrage neu gebaut
+            continue
         g = gruppe(r[1])
         if len(je_gruppe[g]) >= GRUPPEN[g][2] * mehr:
             continue
@@ -198,6 +200,28 @@ def voll(db, ids: str) -> None:
         print(text)
 
 
+# Aelter als das: vor der Abfrage still nachbauen (Volltext ~1 s; Vektoren rechnet der Lauf im Hintergrund nach).
+# Der SessionStart-Hook allein reicht nicht: in langen Sitzungen veraltet der Index, und auf Rechnern ohne Hook
+# (Jans Mac, 06.11.2026: „atlas.db fehlt") gab es gar keinen.
+NACHBAU_S = 15 * 60
+
+
+def nachbauen() -> None:
+    import subprocess
+    import time
+    bauen = Path(__file__).resolve().parent / "atlas" / "bauen.py"
+    if DB.exists() and time.time() - DB.stat().st_mtime < NACHBAU_S:
+        return
+    erst = not DB.exists()
+    if erst:
+        print("Atlas fehlt — wird gebaut (einmalig, einige Sekunden) …", file=sys.stderr)
+    # Volltext sofort, Vektoren danach im Hintergrund (die erste Vektor-Rechnung dauert Minuten).
+    subprocess.run([sys.executable, str(bauen), "--leise", "--ohne-vektoren"])
+    if VENV.exists():
+        subprocess.Popen([sys.executable, str(bauen), "--leise"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                         start_new_session=True)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0], epilog=textwrap.dedent(__doc__.split("\n", 2)[2]),
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -208,9 +232,10 @@ def main() -> None:
     ap.add_argument("--bis", help="Datum YYYY-MM-DD (Stichtag)")
     ap.add_argument("--mehr", type=int, default=1, help="Faktor fuer mehr Treffer je Gruppe")
     a = ap.parse_args()
+    nachbauen()
     if not DB.exists():
-        sys.exit(f"Kein Atlas unter {DB} — erst: python3 scripts/atlas/bauen.py")
-    db = sqlite3.connect(DB)
+        sys.exit(f"Kein Atlas unter {DB} — Bau fehlgeschlagen: python3 scripts/atlas/bauen.py")
+    db = sqlite3.connect(DB, timeout=30)
     if a.voll:
         voll(db, a.voll)
         return

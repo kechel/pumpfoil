@@ -32,7 +32,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 HOME = Path.home()
 DB = Path(os.environ.get("ATLAS_DB", HOME / "pumpfoil-atlas" / "atlas.db"))
-MEMORY = HOME / ".claude/projects/-home-jan-garmin-connect-iq/memory"
+# Claude-Code-Memories dieses Projekts: der Ordnername ist der Projektpfad mit „-" statt „/" — auf der VM
+# -home-jan-garmin-connect-iq, auf dem Mac entsprechend anders (06.11.2026, vorher fest verdrahtet).
+MEMORY = HOME / ".claude/projects" / str(ROOT).replace("/", "-").replace(".", "-") / "memory"
 CIQ = (HOME / "connectiq-sdk").resolve()
 STUECK = 1800   # Zeichen je Treffer-Abschnitt, ungefaehr
 # Hochzaehlen, wenn sich das Zerlegen aendert: dann wird jede Datei neu gelesen (Vektoren bleiben, s. vektoren.py).
@@ -414,7 +416,7 @@ def bauen(neu: bool, leise: bool, vektoren: bool = True) -> None:
         return
     if neu and DB.exists():
         DB.unlink()
-    db = sqlite3.connect(DB)
+    db = sqlite3.connect(DB, timeout=30)
     db.executescript(SCHEMA)
     t0 = time.time()
     gdatum = git_daten()
@@ -449,13 +451,20 @@ def bauen(neu: bool, leise: bool, vektoren: bool = True) -> None:
             rel = key.replace(str(HOME), "~")
         db.execute("DELETE FROM stuecke WHERE pfad = ?", (rel,))
         db.execute("DELETE FROM dateien WHERE pfad = ?", (key,))
-    # abgeleitete Verzeichnisse: billig, immer frisch
+    # abgeleitete Verzeichnisse: billig, immer frisch gerechnet — aber nur NEU GESCHRIEBEN, wenn sich etwas geaendert hat.
+    # Sonst bekaemen alle Abschnitte bei jedem Lauf neue Nummern: `kontext.py --voll <nr>` zeigte danach auf etwas
+    # anderes, und eine Abfrage waehrend eines Laufs griff ins Leere (06.11.2026).
     for quelle, fn in ABGELEITET.items():
-        db.execute("DELETE FROM stuecke WHERE quelle = ?", (quelle,))
         try:
-            einfuegen(db, fn())
+            zeilen = fn()
         except Exception as e:   # eine kaputte Quelle darf den Rest nicht verhindern
             print(f"atlas: {quelle} fehlgeschlagen: {e}", file=sys.stderr)
+            continue
+        neu = sorted((p, z, d, t, x) for _q, p, z, d, t, x in zeilen)
+        alt = sorted(db.execute("SELECT pfad, zeile, datum, titel, text FROM stuecke WHERE quelle = ?", (quelle,)))
+        if neu != [tuple(r) for r in alt]:
+            db.execute("DELETE FROM stuecke WHERE quelle = ?", (quelle,))
+            einfuegen(db, zeilen)
     db.execute("INSERT OR REPLACE INTO info VALUES ('gebaut', ?)", (time.strftime("%Y-%m-%d %H:%M"),))
     db.commit()
     n = db.execute("SELECT count(*) FROM stuecke").fetchone()[0]

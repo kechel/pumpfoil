@@ -41,7 +41,7 @@ def normiert(v: np.ndarray) -> np.ndarray:
 
 
 def main(leise: bool) -> None:
-    db = sqlite3.connect(DB)
+    db = sqlite3.connect(DB, timeout=60)
     db.execute("CREATE TABLE IF NOT EXISTS vektoren (h TEXT PRIMARY KEY, v BLOB)")
     fehlend = db.execute("""SELECT DISTINCT s.h, s.titel, s.text FROM stuecke s
                             LEFT JOIN vektoren v ON v.h = s.h WHERE v.h IS NULL""").fetchall()
