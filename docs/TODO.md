@@ -1520,7 +1520,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   … und dann vielleicht sogar die 25hz erkennung damit auch verbessern". Voraussetzung: die ausgeblendete eigene
   Aufnahme (merged_into) behaelt ihre Rohdaten — nie wegraeumen ausser DSGVO. NICHT geplant: Gyro zusaetzlich in die
   FIT schreiben (Jan: „schreiben auf die uhr war immer schwierig und problematisch, ob die das alle koennen ist ein
-  bisschen riskant").
+  bisschen riskant", „also auch vom datenvolumen her"). Zur Groesse: Accel mit 100 Hz macht Garmins FIT schon gross
+  (Oerni 06.11.: 9,9 MB fuer ~1,9 h, Alex 5,5 MB fuer ~1 h); Gyro kaeme noch einmal etwa so viel dazu — Speicher auf der
+  Uhr und Uebertragung zu Garmin Connect.
 
 - **🟡 06.11. Uhren-Sprache: Profil > Systemsprache > Englisch (Jan).** Anlass: Olek meldete, ein Fahrer sah auf der
   Apple Watch bei der Ersteinrichtung Deutsch. Regel (Jan: „profil ueberschreibt dann alles", „wenn es eine
