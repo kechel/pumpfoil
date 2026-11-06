@@ -38,7 +38,7 @@ function Uhr({ ziel, klein = false, t }: { ziel: string; klein?: boolean; t: (k:
   return (
     <div className={`flex justify-center ${klein ? "gap-2" : "mb-5 gap-3"}`}>
       {teile.map(([n, k]) => (
-        <div key={k} className={`rounded-xl border border-slate-800 bg-slate-900/60 ${klein ? "min-w-[3.5rem] px-2 py-1" : "min-w-[4.5rem] px-3 py-2"}`}>
+        <div key={k} className={`rounded-xl border border-slate-800 bg-slate-900/60 text-center ${klein ? "min-w-[3.5rem] px-2 py-1" : "min-w-[4.5rem] px-3 py-2"}`}>
           <div className={`team-akzent font-bold tabular-nums ${klein ? "text-xl" : "text-3xl sm:text-4xl"}`}>{String(n).padStart(k === "team.event.tage" ? 1 : 2, "0")}</div>
           <div className="text-xs text-slate-400">{t(n === 1 && k === "team.event.tage" ? "team.event.tag" : k)}</div>
         </div>
