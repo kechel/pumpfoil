@@ -43,7 +43,9 @@ export function EventHinweise({ art }: { art: "global" | "team" }) {
           <div key={k} className="relative rounded-2xl border border-brand-500/40 bg-brand-500/10 py-2.5 pl-4 pr-10 text-sm">
             {/* Titel in unserem dunklen Cyan (hell: brand-700, dunkel: brand-300), Abzeichen rechts und nicht fett
                 (Jan, 06.11.2026). */}
-            <Link to={`/teams/${e.team.slug}/events/${e.id}`} className="flex flex-wrap items-center gap-x-2 gap-y-1 hover:underline">
+            {/* Globale Events fuehren in die Community › Teams & Events (Jan, 06.11.2026: „dann lernt man direkt wo das
+                immer steht"); Team-Events direkt aufs Event. */}
+            <Link to={art === "global" ? "/community?tab=teams" : `/teams/${e.team.slug}/events/${e.id}`} className="flex flex-wrap items-center gap-x-2 gap-y-1 hover:underline">
               <span className="min-w-0 flex-1">
                 <span className="font-semibold text-brand-700 dark:text-brand-300">{e.titel}</span>
                 {art === "team" && <span className="text-slate-400"> · {e.team.name}</span>}
