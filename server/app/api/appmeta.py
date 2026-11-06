@@ -918,6 +918,20 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 06.11.2026 08:33 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.61 (71),
+    # Kennung 5f29b31b-bf11-4b4e-a0ba-21bcbcd84224). Im Simulator von Jan getestet (Garmin trennen/verbinden, Hinweis,
+    # Sportarten, Ausruestung, aelter/neuer, Listen seitenweise, Spot „Load more").
+    {"name": "iPhone + Apple Watch", "version": "1.1.61",
+     "eingereicht": "2026-11-06",
+     "items": [
+         "Link your Garmin Connect account in the app under Watches, Garmin Connect, and the sessions you record on your Garmin arrive automatically.",
+         "Garmin users see two short steps: pair the watch with a code for settings, foils and layouts, and link Garmin Connect for additional data.",
+         "Records and leaderboards say which watches and accounts the numbers come from, and so does the share image.",
+         "A session that was merged with its Garmin recording opens as the merged session, even from an old link.",
+         "Sports is its own tab in the settings, between Team and Equipment.",
+         "The foil calculator asks for the mast immersion depth, up to 100 cm, not the mast length.",
+         "Session lists load 20 at a time and fetch more as you scroll, so they open faster, and older community and spot sessions can now be reached.",
+     ]},
     # Garmin 1.0.101 am 06.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt 940 im Changelog mit garmin 1.0.101.
     # iPhone + Apple Watch 1.1.60 am 05.11. eingereicht, am 06.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 930-939 im Changelog.
     # EINGEREICHT 05.11.2026 (Jans Meldung, Play Console „Schnelle Vorabpruefungen … noch maximal 14 Minuten",
@@ -1165,16 +1179,7 @@ NAECHSTES: list[dict] = [
          "The foil calculator asks for the mast immersion depth, up to 100 cm, not the mast length.",
          "Session lists load 20 at a time and fetch more as you scroll, so they open faster, and older community and spot sessions can now be reached.",
      ]},
-    {"name": "iPhone + Apple Watch", "version": "1.1.61",
-     "items": [
-         "Link your Garmin Connect account in the app under Watches, Garmin Connect, and the sessions you record on your Garmin arrive automatically.",
-         "Garmin users see two short steps: pair the watch with a code for settings, foils and layouts, and link Garmin Connect for additional data.",
-         "Records and leaderboards say which watches and accounts the numbers come from, and so does the share image.",
-         "A session that was merged with its Garmin recording opens as the merged session, even from an old link.",
-         "Sports is its own tab in the settings, between Team and Equipment.",
-         "The foil calculator asks for the mast immersion depth, up to 100 cm, not the mast length.",
-         "Session lists load 20 at a time and fetch more as you scroll, so they open faster, and older community and spot sessions can now be reached.",
-     ]},
+    # iPhone + Apple Watch 1.1.61 am 06.11. eingereicht -> IN_REVIEW.
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
      "items": [
