@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -149,7 +150,7 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoilStats
         )
     }
     // Einstellungen mit Reitern wie im Web (Settings.tsx, docs/UX-IA.md App-Port Phase 6): Uebersicht · Uhren · Freunde ·
-    // Team · Ausruestung · Ich · Fahren · Privatsphaere · Darstellung · Konto. Die Kacheln der Uebersicht schalten auf
+    // Team · Sportarten · Ausruestung · Ich · Fahren · Privatsphaere · Darstellung · Konto. Die Kacheln der Uebersicht schalten auf
     // den jeweiligen Reiter (keine eigenen Seiten). Freunde gibt es unter 13 nicht (Server: 403), wie bisher.
     val z = rememberEinstellungenStand()
     val reiter = listOfNotNull(
@@ -157,6 +158,7 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoilStats
         ReiterDef("konten", I18n.t("ptab.watches")),
         if (profile?.socialAllowed != false) ReiterDef("freunde", I18n.t("friends.title")) else null,
         ReiterDef("team", I18n.t("tab.team")),
+        ReiterDef("sportarten", I18n.t("mySpots.sports")),
         ReiterDef("ausruestung", I18n.t("gear.title")),
         ReiterDef("ich", I18n.t("ptab.me")),
         ReiterDef("fahren", I18n.t("ptab.riding")),
@@ -173,6 +175,11 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoilStats
         if (tab == "ausruestung") {
             // Die Teile der Ausruestung scrollen selbst (Listen mit dem Katalog) — deshalb ausserhalb der scrollenden Spalte.
             AusruestungInhalt(Modifier.fillMaxWidth().weight(1f), stufe = 2)
+            return@Column
+        }
+        if (tab == "sportarten") {
+            // Standard-Sportart, Auswahl an der Uhr und Ausruestung je Sportart — scrollt selbst wie die Ausruestung.
+            Box(Modifier.fillMaxWidth().weight(1f)) { FoilsScreen(teil = "sport", eingebettet = true) }
             return@Column
         }
         androidx.compose.runtime.key(tab) {

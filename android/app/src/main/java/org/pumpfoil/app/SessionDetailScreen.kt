@@ -142,7 +142,10 @@ private val SkyOnDark = Color(0xFF7DD3FC)
 @Composable
 fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}, onOpenSession: (Int) -> Unit = {}, onSpotChat: (String) -> Unit = {}, onSpotSessions: (String) -> Unit = {}, dataVersion: Long? = null, social: Boolean = true,
                         // Kommentare (Web 6fc0a4f8): Faden oeffnen (id, Inhaber?) bzw. Einstellungen › Privatsphaere zum Einschalten.
-                        onKommentare: (Int, Boolean) -> Unit = { _, _ -> }, onKommentareEinschalten: () -> Unit = {}) {
+                        onKommentare: (Int, Boolean) -> Unit = { _, _ -> }, onKommentareEinschalten: () -> Unit = {},
+                        // Zusammengefuehrt (Garmin, 05.11.2026): der Server leitet die alte ID auf die neue Session weiter
+                        // (307, HttpURLConnection folgt selbst) -> auf die neue ID umsteigen, wie die PWA die Adresse umstellt.
+                        onWeitergeleitet: (Int) -> Unit = {}) {
     var session by remember { mutableStateOf<SessionDetail?>(null) }
     var neighbors by remember(id) { mutableStateOf<Neighbors?>(null) }
     var loading by remember { mutableStateOf(true) }
@@ -214,10 +217,12 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
             // Trotzdem kurz nachfragen (07.10.2026): data_version kennt nur die Session selbst, nicht
             // Profil-Standards wie das geerbte Gewicht. Mit ETag kostet das bei „unveraendert" nur ein 304.
             val (fresh, tag) = try { Api.sessionPruefen(id, SessionCache.etag(id)) } catch (_: Exception) { null to null }
+            if (fresh != null && fresh.id != id) { onWeitergeleitet(fresh.id); return@LaunchedEffect }
             if (fresh != null) { session = fresh; SessionCache.store(fresh, tag) }
         } else {
             try {
                 val (s, tag) = Api.sessionPruefen(id, null)
+                if (s != null && s.id != id) { onWeitergeleitet(s.id); return@LaunchedEffect }
                 if (s != null) { session = s; SessionCache.store(s, tag) }
                 error = null
             } catch (e: Exception) { error = e.message }

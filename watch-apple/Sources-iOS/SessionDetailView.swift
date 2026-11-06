@@ -1864,12 +1864,16 @@ struct SessionDetailView: View {
                 // Profil-Standards wie das geerbte Gewicht. Der Server antwortet bei „unveraendert" mit 304
                 // (ETag, URLCache prueft nach) — das kostet fast nichts.
                 Task {
-                    if let fresh = try? await Api.session(sid), fresh.id == sid {
-                        session = fresh; SessionCache.store(fresh)
+                    if let fresh = try? await Api.session(sid) {
+                        if fresh.id == sid { session = fresh; SessionCache.store(fresh) } else { showSession(fresh.id) }
                     }
                 }
             } else {
                 s = try await Api.session(sid)
+                // Zusammengefuehrt (Garmin, 05.11.2026): der Server leitet die alte ID per 307 auf die neue Session weiter,
+                // URLSession folgt selbst -> auf die neue ID umsteigen (wie die PWA die Adresse umstellt), sonst holen
+                // Nachbarn, Kurven, Likes die alte. `.task(id: sid)` laedt dann neu.
+                if s.id != sid { showSession(s.id); return }
                 SessionCache.store(s)
             }
             session = s

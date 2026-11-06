@@ -436,6 +436,8 @@ fun MainScaffold(onLogout: () -> Unit) {
                     social = social,
                     onKommentare = { sid, inhaber -> nav.navigate("kommentare/$sid?inhaber=$inhaber") },
                     onKommentareEinschalten = { nav.zuEinstellungen("privat") },
+                    // Alte ID einer zusammengefuehrten Session: durch die neue ersetzen (kein Zurueck auf die alte).
+                    onWeitergeleitet = { neu -> nav.navigate("session/$neu") { popUpTo("session/{id}?v={v}") { inclusive = true } } },
                 )
             }
             // Kommentare einer Session (Chat-Raum session:<id>, ChatScreen.kt SessionKommentareRaum).

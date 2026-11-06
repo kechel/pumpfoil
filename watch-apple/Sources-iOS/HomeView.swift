@@ -107,6 +107,8 @@ struct HomeView: View {
                 .onChange(of: sync.tick) { _ in Task { await load() } }
                 .onChange(of: stats?.count) { _ in maybeShowRating() }
                 .task { await ratingAfterDelay() }
+                // Garmin-Hinweis (GarminBeidesBanner): auf den Reiter Uhren schalten, darin GarminZiel den Unterreiter.
+                .onReceive(NotificationCenter.default.publisher(for: .garminZiel)) { _ in homeTab = "uhren" }
                 .onChange(of: accelOnly) { _ in ladeStats() }
                 .onChange(of: zeitraum) { _ in ladeStats() }
                 .onChange(of: sportart) { _ in ladeStats() }
@@ -140,6 +142,8 @@ struct HomeView: View {
             UhrenLiveStatus()
             updateBannerIfAny
             newsBannerIfAny
+            // Garmin: genau eines von beiden verbunden -> Hinweis aufs andere (Web PersonalHome, 05.11.2026).
+            GarminBeidesBanner()
             greetingRow
             // Reiter wie im Web (docs/UX-IA.md, App-Port Phase 3–5, 04.11.2026): Uebersicht · Rekorde · Team · Spots · Stats ·
             // Uhren · Profil. Je Reiter ein eigener Ausdruck (Type-Checker); Uhren und Profil s. `seite`.

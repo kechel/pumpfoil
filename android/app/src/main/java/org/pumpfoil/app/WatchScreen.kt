@@ -76,7 +76,7 @@ fun WatchScreen(
 
 /** Ob die Start-Wahl des Uhr-Reiters schon feststeht — fuer die Dauer der App-Sitzung, wie ReiterSpeicher. Gesetzt,
  * sobald der Nutzer selbst einen Reiter waehlt oder die Geraete-Abfrage einmal durch ist; danach springt nichts mehr um. */
-private object UhrStartWahl { var fest = false }
+internal object UhrStartWahl { var fest = false }
 
 /**
  * Reiter „Uhr" wie im Web (Account.tsx, 02.11.2026): Anleitung | Einstellungen | Meine Uhr(en). Die drei Teile waren
@@ -110,6 +110,8 @@ private fun UhrBereich() {
             "uhren" -> {
                 // Verbinden (Code eingeben/erzeugen), dann die Uhren je Plattform, zuletzt die Liste der verbundenen Uhren.
                 // Rueckmeldung „gespeichert" steht seit 28.09.2026 direkt unter dem jeweiligen Regler (wie die PWA).
+                // Wer nur eines von beiden hat (Garmin-Uhr gekoppelt ODER Garmin Connect), bekommt den Hinweis aufs andere.
+                GarminBeidesHinweis(zu = "gc")
                 GarminPairScreen(onBack = {}, eingebettet = true)
                 Spacer(Modifier.height(8.dp))
                 WatchCard(ctx)

@@ -315,6 +315,8 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
                 )
                 Spacer(Modifier.height(10.dp))
             }
+            // Garmin: genau eines von beiden verbunden -> Hinweis aufs andere (Web PersonalHome, 05.11.2026).
+            GarminBeidesBanner()
             val hello = profile?.displayName?.takeIf { it.isNotBlank() }
                 ?.let { I18n.t("phome.hello").replace("{name}", it) } ?: I18n.t("nav.home")
             // „Record on Phone"-Button rechts neben dem Gruß — hängt NUR am lokalen Toggle

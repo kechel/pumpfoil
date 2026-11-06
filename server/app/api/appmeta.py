@@ -1151,6 +1151,28 @@ NAECHSTES: list[dict] = [
     # Garmin Connect stand hier bis zur Freigabe fuer alle am 05.11.2026 (jetzt live, Changelog-Ereignis).
     # Garmin 1.0.100 am 05.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkte im Changelog mit garmin 1.0.100.
     # Garmin 1.0.101 am 06.11. eingereicht -> IN_REVIEW.
+    # 06.11.2026 (Jan: „bitte version bumpen, dann teste ich das und release", vorher „den rest portieren"): Garmin Connect in
+    # beiden Apps (Karte/Reiter, Quellenzeile — kam erst nach den Einreichungen von 1.1.47 und 1.1.60), Garmin-Hinweise mit zwei
+    # Schritten, Weiterleitung zusammengefuehrter Sessions, Sportarten als eigener Reiter, Foil-Rechner-Eintauchtiefe.
+    # Android 1.1.48 ersetzt das noch in Pruefung liegende 1.1.47.
+    {"name": "Android phone + Wear OS", "version": "1.1.48 / 1.2.48",
+     "items": [
+         "Link your Garmin Connect account in the app under Watches, Garmin Connect, and the sessions you record on your Garmin arrive automatically.",
+         "Garmin users see two short steps: pair the watch with a code for settings, foils and layouts, and link Garmin Connect for additional data.",
+         "Records and leaderboards say which watches and accounts the numbers come from, and so does the share image.",
+         "A session that was merged with its Garmin recording opens as the merged session, even from an old link.",
+         "Sports is its own tab in the settings, between Team and Equipment.",
+         "The foil calculator asks for the mast immersion depth, up to 100 cm, not the mast length.",
+     ]},
+    {"name": "iPhone + Apple Watch", "version": "1.1.61",
+     "items": [
+         "Link your Garmin Connect account in the app under Watches, Garmin Connect, and the sessions you record on your Garmin arrive automatically.",
+         "Garmin users see two short steps: pair the watch with a code for settings, foils and layouts, and link Garmin Connect for additional data.",
+         "Records and leaderboards say which watches and accounts the numbers come from, and so does the share image.",
+         "A session that was merged with its Garmin recording opens as the merged session, even from an old link.",
+         "Sports is its own tab in the settings, between Team and Equipment.",
+         "The foil calculator asks for the mast immersion depth, up to 100 cm, not the mast length.",
+     ]},
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
      "items": [

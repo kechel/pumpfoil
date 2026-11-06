@@ -22,11 +22,13 @@ import androidx.compose.ui.Modifier
 /*
  * Ausruestung (App-Port Phase 7, 04.11.2026; Web Foils.tsx `Ausruestung` + Setup.tsx): frueher zwei lange Seiten
  * „Meine Foils & Sportarten" und „Detailliertes Setup", jetzt EINE Ansicht mit Reitern Foils · Stabilizer · Boards ·
- * Mast & Shim · Sportarten. Die Teile sind die alten Bildschirme mit `teil` (FoilsScreen, SetupScreen), damit es keine
+ * Mast & Shim. Die Teile sind die alten Bildschirme mit `teil` (FoilsScreen, SetupScreen), damit es keine
  * zweite Kopie der Logik gibt. Erreichbar als Reiter in den Einstellungen.
+ * Sportarten sind seit 06.11.2026 ein eigener Reiter der Einstellungen zwischen Team und Ausruestung (Web 05.11.,
+ * Jan: „verschiebe mal 'Sports' eine ebene hoeher zwischen team und equipment") — s. ProfileScreen.
  */
 
-private val AUSRUESTUNG_IDS = listOf("foils", "stabs", "boards", "mast", "sport")
+private val AUSRUESTUNG_IDS = listOf("foils", "stabs", "boards", "mast")
 
 /** Die Reiter samt Inhalt. Fuellt den Platz, den der Aufrufer gibt (die Teile scrollen selbst). */
 @Composable
@@ -36,7 +38,6 @@ fun AusruestungInhalt(modifier: Modifier = Modifier, stufe: Int = 1) {
         ReiterDef("stabs", I18n.t("setup.stabTitle")),
         ReiterDef("boards", I18n.t("setup.boardTitle")),
         ReiterDef("mast", I18n.t("gear.mastShim")),
-        ReiterDef("sport", I18n.t("mySpots.sports")),
     )
     var tab by rememberReiter("ausruestung", AUSRUESTUNG_IDS, "foils")
     Column(modifier) {
@@ -46,7 +47,6 @@ fun AusruestungInhalt(modifier: Modifier = Modifier, stufe: Int = 1) {
             androidx.compose.runtime.key(tab) {
                 when (tab) {
                     "foils" -> FoilsScreen(teil = "foils", eingebettet = true)
-                    "sport" -> FoilsScreen(teil = "sport", eingebettet = true)
                     else -> SetupScreen(onBack = {}, teil = tab, eingebettet = true)
                 }
             }

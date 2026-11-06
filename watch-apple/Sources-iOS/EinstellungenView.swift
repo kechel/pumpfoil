@@ -24,6 +24,7 @@ struct EinstellungenView: View {
         // Unter 13 keine Freunde (Server: 403), wie Chat und Community.
         if socialOK { r.append(ReiterDef(id: "freunde", label: Loc.t("friends.title", lang))) }
         r.append(ReiterDef(id: "team", label: Loc.t("tab.team", lang)))
+        r.append(ReiterDef(id: "sportarten", label: Loc.t("mySpots.sports", lang)))
         r.append(ReiterDef(id: "ausruestung", label: Loc.t("gear.title", lang)))
         r.append(ReiterDef(id: "ich", label: Loc.t("ptab.me", lang)))
         r.append(ReiterDef(id: "fahren", label: Loc.t("ptab.riding", lang)))
@@ -49,6 +50,8 @@ struct EinstellungenView: View {
         case "konten": UhrenKontenView()
         case "freunde": FreundeView()
         case "team": EinstellungenTeamView(lang: lang)
+        // Standard-Sportart, Auswahl an der Uhr, Ausruestung je Sportart (vorher Ausruestung › Sportarten).
+        case "sportarten": SetupView(teil: "jeSport", eingebettet: true).id("sportarten")
         case "ausruestung": AusruestungView(eingebettet: true)
         case "ich", "fahren", "privat", "darstellung", "konto": SettingsView(teil: tab).id(tab)
         default: EinstellungenUebersicht(lang: lang, tab: $tab)
@@ -341,6 +344,11 @@ struct UhrenKontenView: View {
             }
         }
         .task { garmin = (try? await Api.integrationStatus("garmin"))?.available ?? false }
+        // Garmin-Hinweise (LinkedAccountsView GarminZiel): auf Garmin Connect bzw. auf „Uhr" schalten.
+        .onReceive(NotificationCenter.default.publisher(for: .garminZiel)) { n in
+            wahl = (n.object as? String) == "gc" ? "garmin" : "uhr"
+            if wahl == "garmin" { garmin = true }
+        }
     }
 }
 

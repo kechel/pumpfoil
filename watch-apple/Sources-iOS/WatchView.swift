@@ -9,6 +9,7 @@ struct WatchView: View {
     @AppStorage("appLang") private var lang = "de"
     /// Als Reiter in Home › Uhren / Einstellungen › Uhren (App-Port, 04.11.2026): ohne eigene Kopfleiste.
     var eingebettet: Bool = false
+    @State private var garminStand: GarminStand?
     @State private var devices: [PairedDevice] = []
     @State private var modes: [Int: String] = [:]     // record_mode je Uhr (id → full|lite|gps)
     // GNSS-Stufe je Uhr (id → best|l1|two|gps). NUR Garmin waehlt sie, ab Uhr 1.0.77.
@@ -66,6 +67,11 @@ struct WatchView: View {
     // eigenem Binding) und stand mit >500 ms im Build-Log. Reihenfolge/Inhalte unveraendert.
     var body: some View {
         List {
+            // Wer nur eines von beiden hat (Garmin-Uhr gekoppelt ODER Garmin Connect), bekommt den Hinweis aufs andere
+            // (Web Account.tsx, 05.11.2026). Der Stand laedt hier an der Liste — eine leere Zeile saehe man.
+            if GarminStand.zeigen(garminStand, wann: "genauEins") {
+                Section { GarminBeidesKasten(zu: "gc") }
+            }
             // Uhr verbinden zuerst (web: ClaimFromWatch vor PairedDevices).
             GarminPairView(eingebettet: true)
             appleWatchSection
@@ -78,6 +84,7 @@ struct WatchView: View {
         .brandToolbarWenn(!eingebettet, Loc.t("nav.watch", lang))
         .navigationBarTitleDisplayMode(.inline)
         .task { await loadDevices() }
+        .task { garminStand = await garminStandLaden() }
         .confirmationDialog(frageTitel, isPresented: zeigeFrage, titleVisibility: .visible) {
             frageAktionen
         } message: {
@@ -463,6 +470,10 @@ struct UhrReiterView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .task { await startWaehlen() }
+        // Garmin-Hinweis „Uhr per Code verbinden" (LinkedAccountsView GarminZiel): auf die Anleitung schalten.
+        .onReceive(NotificationCenter.default.publisher(for: .garminZiel)) { n in
+            if (n.object as? String) == "code" { wahl = "guide" }
+        }
     }
 
     // Je Reiter eine eigene, volle Liste/Form unter den Reiterzeilen.

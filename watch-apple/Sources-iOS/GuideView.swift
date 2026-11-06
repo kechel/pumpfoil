@@ -46,6 +46,9 @@ struct GuideView: View {
         }
         .brandToolbarWenn(!eingebettet, Loc.t("guide.howto", lang))
         .navigationBarTitleDisplayMode(.inline)
+        .onReceive(NotificationCenter.default.publisher(for: .garminZiel)) { n in
+            if (n.object as? String) == "code" { plattform = "garmin" }
+        }
     }
 
     @ViewBuilder private var plattformTeil: some View {
@@ -66,6 +69,8 @@ struct GuideView: View {
             Text(Loc.t("guide.garminSub", lang)).font(.callout).foregroundStyle(.secondary)
             Text(Loc.t("guide.g.storeLead", lang)).font(.footnote)
             Link(Loc.t("guide.g.storeCta", lang), destination: URL(string: GUIDE_URL_CONNECT_IQ)!)
+            // Beides verbinden (Web WatchGuide, 05.11.2026): hier immer, mit Knopf zu Garmin Connect.
+            GarminBeidesKasten(zu: "gc")
             Text(Loc.t("guide.g.manualLead", lang)).font(.footnote).foregroundStyle(.secondary)
             garminSchritt1
             schritt("guide.g.s2Title", Loc.t("guide.g.s2", lang))

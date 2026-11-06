@@ -1,8 +1,9 @@
 import SwiftUI
 
 // Ausruestung (App-Port Phase 7, docs/UX-IA.md, 04.11.2026) — frueher „Foils & Sportarten" + „Detailliertes Setup" als
-// zwei lange Seiten. Wie web/src/pages/Foils.tsx (`Ausruestung`): Reiter Foils · Stabilizer · Boards · Mast & Shim ·
-// Sportarten. Foil- und Stab-Katalog nur ueber die Suche, Ausruestung je Sportart bei Sportarten ohne Foil nur das Board
+// zwei lange Seiten. Wie web/src/pages/Foils.tsx (`Ausruestung`): Reiter Foils · Stabilizer · Boards · Mast & Shim.
+// Sportarten sind seit 06.11.2026 ein eigener Reiter der Einstellungen zwischen Team und Ausruestung (Web 05.11., Jan:
+// „verschiebe mal 'Sports' eine ebene hoeher zwischen team und equipment"). Foil- und Stab-Katalog nur ueber die Suche, Ausruestung je Sportart bei Sportarten ohne Foil nur das Board
 // (beides in FoilsView/SetupView). Eingebettet in Einstellungen › Ausruestung als zweite Reiterzeile.
 struct AusruestungView: View {
     @AppStorage("appLang") private var lang = "de"
@@ -11,15 +12,16 @@ struct AusruestungView: View {
 
     init(start: String? = nil, eingebettet: Bool = false) {
         self.eingebettet = eingebettet
-        _tab = State(initialValue: start ?? ReiterSpeicher.von("ausruestung", "foils"))
+        // Ein gemerkter Reiter „sport" (bis 1.1.60) gibt es hier nicht mehr -> Foils.
+        let gemerkt = start ?? ReiterSpeicher.von("ausruestung", "foils")
+        _tab = State(initialValue: ["foils", "stabs", "boards", "mast"].contains(gemerkt) ? gemerkt : "foils")
     }
 
     private var reiter: [ReiterDef] {
         [ReiterDef(id: "foils", label: "Foils"),
          ReiterDef(id: "stabs", label: Loc.t("setup.stabTitle", lang)),
          ReiterDef(id: "boards", label: Loc.t("setup.boardTitle", lang)),
-         ReiterDef(id: "mast", label: Loc.t("gear.mastShim", lang)),
-         ReiterDef(id: "sport", label: Loc.t("mySpots.sports", lang))]
+         ReiterDef(id: "mast", label: Loc.t("gear.mastShim", lang))]
     }
 
     private var tabBindung: Binding<String> {
@@ -42,7 +44,6 @@ struct AusruestungView: View {
         case "stabs": SetupView(teil: "stabs", eingebettet: true).id("stabs")
         case "boards": SetupView(teil: "boards", eingebettet: true).id("boards")
         case "mast": SetupView(teil: "mast", eingebettet: true).id("mast")
-        case "sport": SetupView(teil: "jeSport", eingebettet: true).id("sport")
         default: FoilsView(eingebettet: true)
         }
     }

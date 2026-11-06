@@ -72,6 +72,8 @@ struct LinkedAccountsView: View {
                                                        : (p.id == "garmin" ? "settings.garmin.connected" : "accounts.connected")), lang)
                                            : Loc.t(p.id == "garmin" ? "settings.garmin.hint" : "accounts.sub", lang),
                             connected: st.linked && !abgelaufen, logo: p.logo) {
+                            // Garmin: zwei Schritte, bis Uhr-Kopplung UND Garmin Connect stehen (Web GarminCard, 05.11.2026).
+                            if p.id == "garmin" { GarminBeidesHinweis(zu: "code", wann: "nichtBeide") }
                             // COROS hat die Erneuerung abgelehnt (19.10.2026, wie im Web): ehrlich sagen und
                             // neu verbinden lassen statt „Verbunden“. Neu verbinden ersetzt die Tokens am Link.
                             if abgelaufen {
@@ -569,5 +571,137 @@ enum KontoVerbinden {
         } catch {
             return text("fehler")
         }
+    }
+}
+
+// MARK: - Garmin: beides verbinden
+
+// Garmin: BEIDES verbinden (Web GarminBeides.tsx, 05.11.2026; App-Port 06.11.). Garmin Connect bringt die vollstaendige
+// Aufnahme, nur die Kopplung per Code bringt Einstellungen, Foils und Layouts auf die Uhr. Kurz halten (Jan: „der hinweis
+// ist viiiiiil zu lang"). Hier statt in einer eigenen Datei, damit kein xcodegen-Lauf noetig ist.
+// Die Ziele sind Reiter: Garmin Connect = Uhren › Garmin Connect, Code = Uhren › Uhr › Anleitung › Garmin. `ReiterSpeicher`
+// wird nur beim Erscheinen gelesen -> fuer schon sichtbare Reiter zusaetzlich eine Benachrichtigung (`garminZiel`).
+extension Notification.Name {
+    static let garminZiel = Notification.Name("pumpfoil.garminZiel")
+}
+
+enum GarminZiel {
+    /// zu: "gc" oder "code".
+    static func oeffnen(_ zu: String) {
+        ReiterSpeicher.setze("home", "uhren")
+        if zu == "gc" {
+            ReiterSpeicher.setze("uhren", "garmin")
+        } else {
+            ReiterSpeicher.setze("uhren", "uhr")
+            ReiterSpeicher.setze("uhrteil", "guide")
+            ReiterSpeicher.setze("uhrguide", "garmin")
+        }
+        NotificationCenter.default.post(name: .garminZiel, object: zu)
+    }
+}
+
+struct GarminStand {
+    let uhr: Bool; let gc: Bool; let da: Bool
+    /// Regel je Ort (Web GarminBeidesHinweis): "immer", "nichtBeide" oder "genauEins".
+    static func zeigen(_ s: GarminStand?, wann: String) -> Bool {
+        if wann == "immer" { return true }
+        guard let s, !(s.uhr && s.gc) else { return false }
+        return wann != "genauEins" || s.uhr || s.gc
+    }
+}
+
+func garminStandLaden() async -> GarminStand? {
+    guard let st = try? await Api.integrationStatus("garmin"), let ds = try? await Api.myDevices() else { return nil }
+    return GarminStand(uhr: ds.contains { $0.platform == "garmin" && $0.revoked_at == nil }, gc: st.linked, da: st.available)
+}
+
+private struct GarminKasten<Inhalt: View>: View {
+    @ViewBuilder let inhalt: Inhalt
+    var body: some View {
+        inhalt
+            .font(.subheadline)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 12).padding(.vertical, 8)
+            .background(Color.accentColor.opacity(0.10), in: RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.accentColor.opacity(0.30), lineWidth: 1))
+    }
+}
+
+private struct GarminZielKnopf: View {
+    let zu: String
+    let lang: String
+    var body: some View {
+        Button { GarminZiel.oeffnen(zu) } label: {
+            Text(Loc.t(zu == "gc" ? "garmin.beides.zuGc" : "garmin.beides.zuCode", lang) + " →").fontWeight(.semibold)
+        }
+        .buttonStyle(.borderless)
+    }
+}
+
+/// Zwei Schritte fuer Anleitung, Garmin-Karte und „Meine Uhr(en)". `wann`: "immer" (Garmin-Anleitung), "nichtBeide"
+/// (Garmin-Connect-Karte), sonst "genauEins" — nur wer eines von beiden schon hat, bekommt den Hinweis aufs andere.
+/// Der Kasten selbst, ohne eigenes Laden — in Listen laedt die Liste den Stand (eine leere Zeile saehe man dort).
+struct GarminBeidesKasten: View {
+    @AppStorage("appLang") private var lang = "de"
+    var zu: String? = nil
+    var body: some View {
+        GarminKasten {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("1. " + Loc.t("garmin.beides.schritt1", lang))
+                Text("2. " + Loc.t("garmin.beides.schritt2", lang))
+                if let zu { GarminZielKnopf(zu: zu, lang: lang).padding(.top, 2) }
+            }
+        }
+    }
+}
+
+/// Mit eigenem Laden, fuer Stapel (VStack/ScrollView). Leere Group laedt nicht (Memory swiftui-leere-group-laedt-nicht)
+/// -> solange nichts zu zeigen ist, ein unsichtbarer Platzhalter, an dem `.task` haengt.
+struct GarminBeidesHinweis: View {
+    var zu: String? = nil
+    var wann: String = "genauEins"
+    @State private var stand: GarminStand?
+
+    var body: some View {
+        Group {
+            if GarminStand.zeigen(stand, wann: wann) { GarminBeidesKasten(zu: zu) } else { Color.clear.frame(height: 0) }
+        }
+        .task { if wann != "immer" { stand = await garminStandLaden() } }
+    }
+}
+
+/// Home: nur wenn genau EINES von beiden verbunden ist, wegklickbar je Fall (Merker wie im Web `foil_garmin_beides`).
+struct GarminBeidesBanner: View {
+    @AppStorage("appLang") private var lang = "de"
+    @AppStorage("foil_garmin_beides") private var weg = ""
+    @State private var stand: GarminStand?
+
+    private var fehlt: String? {
+        guard let s = stand, s.da else { return nil }
+        if s.uhr && !s.gc { return "gc" }
+        if s.gc && !s.uhr { return "code" }
+        return nil
+    }
+
+    var body: some View {
+        Group {
+            if let f = fehlt, weg != f {
+                GarminKasten {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(Loc.t(f == "gc" ? "garmin.fehltGc" : "garmin.fehltCode", lang))
+                            GarminZielKnopf(zu: f, lang: lang)
+                        }
+                        Spacer(minLength: 8)
+                        Button { weg = f } label: { Image(systemName: "xmark").foregroundStyle(.secondary) }
+                            .buttonStyle(.borderless)
+                            .accessibilityLabel(Loc.t("banner.dismiss", lang))
+                    }
+                }
+            } else {
+                Color.clear.frame(height: 0)
+            }
+        }
+        .task { stand = await garminStandLaden() }
     }
 }

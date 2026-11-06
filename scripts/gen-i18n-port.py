@@ -42,6 +42,9 @@ SCHLUESSEL = [
     "settings.garmin.hint", "settings.garmin.connect", "settings.garmin.connected", "settings.garmin.unlink",
     "settings.garmin.noExport", "settings.garmin.help1", "settings.garmin.help2", "settings.garmin.help3",
     "settings.garmin.help4", "quellen.titel", "quellen.phone", "quellen.file",
+    # 06.11.2026: Garmin „beides verbinden" (zwei Schritte, Home-Hinweis), Schliessen-Knopf
+    "garmin.beides.schritt1", "garmin.beides.schritt2", "garmin.beides.zuGc", "garmin.beides.zuCode",
+    "garmin.fehltGc", "garmin.fehltCode", "banner.dismiss",
     # Phase 9: Spots-Reiter
     "tab.map", "tab.list", "tab.routes",
     # Nachtrag aus dem iOS-Port (fehlten in den App-Tabellen)

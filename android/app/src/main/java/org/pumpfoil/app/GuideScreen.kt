@@ -140,6 +140,8 @@ fun UhrAnleitung(onConnect: (() -> Unit)?) {
             "compat" -> Kompatibilitaet()
             "garmin" -> Karte("Garmin", I18n.t("guide.garminSub")) {
                 StoreKasten(I18n.t("guide.g.storeLead")) { StoreKnopf(I18n.t("guide.g.storeCta"), CONNECT_IQ_URL) }
+                // Beides verbinden (Web WatchGuide, 05.11.2026): hier immer, mit Knopf zu Garmin Connect.
+                Box(Modifier.padding(top = 12.dp)) { GarminBeidesHinweis(zu = "gc", wann = "immer") }
                 Text(I18n.t("guide.g.manualLead"), style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 12.dp, bottom = 6.dp))
                 // Schritt 1 fuehrt im Web auf den Download-Reiter (/account?tab=app) — den hat die App nicht, also dorthin im Browser.

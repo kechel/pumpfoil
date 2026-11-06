@@ -152,6 +152,8 @@ fun LinkedAccountsScreen(onBack: () -> Unit, eingebettet: Boolean = false, nur: 
                     },
                     connected = st.linked && !st.expired,
                 ) {
+                    // Garmin: zwei Schritte, bis Uhr-Kopplung UND Garmin Connect stehen (Web GarminCard, 05.11.2026).
+                    if (p.id == "garmin") GarminBeidesHinweis(zu = "code", wann = "nichtBeide")
                     // COROS hat die Erneuerung abgelehnt (19.10.2026, wie im Web): ehrlich sagen und
                     // neu verbinden lassen statt „Verbunden“. Neu verbinden ersetzt die Tokens am Link.
                     if (st.linked && st.expired) {

@@ -1609,18 +1609,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - [ ] Team-Auswahl ueberall gleich: „Alle meine Teams" / ein Team, gemerkt (TeamWahl.tsx).
   **Zeitraeume:**
   - [ ] „Gestern" vor „Heute" in allen Zeitraum-Auswahlen (Server kennt `period=yesterday` schon), 18 Sprachen `period.yesterday`.
-  **Einstellungen (05.11., nur Web):**
-  - [ ] „Sportarten" als eigener Reiter oben zwischen Team und Ausruestung (vorher Unterreiter von Ausruestung, Foils.tsx
-        `SportartenTeil`).
-  **Garmin Connect (05.11., nur Web):**
-  - [ ] Hinweis „1. Uhr per Code koppeln, 2. Garmin Connect verbinden“ (components/GarminBeides.tsx, Schluessel
+  **Einstellungen (05.11.; Apps 06.11. fuer Android 1.1.48 / iOS 1.1.61):**
+  - [x] „Sportarten" als eigener Reiter oben zwischen Team und Ausruestung (vorher Unterreiter von Ausruestung, Foils.tsx
+        `SportartenTeil`). Android ProfileScreen/AusruestungScreen, iOS EinstellungenView/AusruestungView.
+  **Garmin Connect (05.11.; Apps 06.11.: Android GarminBeides.kt, iOS am Ende von LinkedAccountsView.swift):**
+  - [x] Hinweis „1. Uhr per Code koppeln, 2. Garmin Connect verbinden“ (components/GarminBeides.tsx, Schluessel
         `garmin.beides.*`): Garmin-Anleitung immer, Garmin-Karte solange nicht beides verbunden, „Meine Uhren“ nur wenn
         genau eines verbunden ist.
-  - [ ] Startseiten-Hinweis, wenn genau eines verbunden ist (`garmin.fehltGc`/`garmin.fehltCode`, wegklickbar je Fall,
+  - [x] Startseiten-Hinweis, wenn genau eines verbunden ist (`garmin.fehltGc`/`garmin.fehltCode`, wegklickbar je Fall,
         localStorage `foil_garmin_beides`); Ziel in den Apps: Garmin-Reiter bzw. Uhr-Anleitung.
-  - [ ] Zusammengefuehrte Sessions: `GET /api/sessions/<alt>` antwortet 307 auf die neue (merged_into). Pruefen, dass
-        OkHttp/URLSession folgen (iOS: Authorization beim Weiterleiten?), und danach die neue ID verwenden — sonst holen
-        Nebenabfragen (Kurven, Startversuche, Nachbarn) die alte ID und bekommen 404 (Web: SessionDetail.tsx `nav(...)`).
+  - [x] Zusammengefuehrte Sessions: `GET /api/sessions/<alt>` antwortet 307 auf die neue (merged_into). Beide Apps steigen
+        auf die ID der Antwort um (Android `onWeitergeleitet` -> neue Route, iOS `showSession`). **Nicht geprueft:** ob
+        HttpURLConnection/URLSession beim Weiterleiten den Authorization-Kopf mitschicken (gleicher Host, sollte). Test geht NICHT
+        mit Jans Konto: Admins bekommen die geloeschte Session statt der Weiterleitung (sessions.py `not user.is_admin`).
   **Danach:** Changelog-Punkte je App bei der Einreichung, `NAECHSTES` in appmeta.py, PARITY-AUDIT nachziehen.
 
 - **🔲 02.11. (Nutzer-Feedback, Team-Kapitaen PL, 1:1-Chat mit Jan) — langer Vorschlagskatalog Community/Home/Bestenliste.**
