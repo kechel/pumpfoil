@@ -1599,6 +1599,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   anfordern), `messweg` beim Abschluss mit `gps_aus_s`/`gps_aus_max_s`/`gps_spar`. **Nach dem Release pruefen:** `messweg_json`
   der Samsung-Sessions lesen — steht `gps_spar` drin, ist die Vermutung belegt; fehlt es trotz Luecken, liegt es woanders
   (Samsung-App-Schlaf, Hersteller-Regel). Offen: ob die Session-Seite „GPS fehlte“ zeigen soll (Daten dafuer liegen dann vor).
+  **🟢 06.11. BELEGT (Livetest mit u993, App 1.1.46):** #20328 mit Energiesparen: 155 GPS-Punkte in 2013 s, Luecke 1852 s
+  bei dunklem Display, beim Einschalten sofort wieder Fix. Energiesparen aus, #20338: 1633 Punkte in 1642 s, groesste Luecke
+  1 s. Dazu fuer 1.1.48 (c228184b, 10bcf242): Hinweis „Akku: Pumpfoil auf Uneingeschraenkt“ mit Knopf zu den App-Infos, wenn
+  die Akku-Optimierung je App an ist (isIgnoringBatteryOptimizations) — im Emulator geprueft (Android 16: App-Info ->
+  Hintergrundnutzung -> Uneingeschraenkt, Hinweis verschwindet).
 
 - **🔲 02.11. — Port des Web-Umbaus vom 01./02.11. nach iOS und Android (Jan: ERST nach dem Feedback des Team-Kapitaens
   zur Web-Fassung, Nachricht ging am 02.11. raus).** Server-Endpunkte stehen alle schon; es ist reine App-Arbeit (Compose /
