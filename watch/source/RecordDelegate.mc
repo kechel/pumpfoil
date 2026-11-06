@@ -103,8 +103,10 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         var pv = new SessionActionView();
         pv.setKeys(["rec.resume", "rec.cancel", "rec.endSave"]);
         pv.setCountdown(false);
-        // KEINE Vorauswahl (wie das Stop-Menü): man MUSS bewusst wählen. Zweimal START tut
-        // deshalb nichts — START öffnet, DOWN wählt „Fortsetzen", START bestätigt.
+        // „Fortsetzen" vorausgewaehlt (Jan, 06.11.2026: „fortsetzen vorauswaehlen ist gut"). Bis 1.0.101 gab es keine
+        // Vorauswahl, man musste erst DOWN druecken — am 05.11. fand Jan im Feldtest aus der Pause nicht heraus.
+        // START, START fuehrt damit wieder zum Weiterfahren; Ende & speichern bleibt zwei Schritte entfernt.
+        pv.setSel(0);
         WatchUi.pushView(pv, new PauseActionDelegate(_rec, pv), WatchUi.SLIDE_LEFT);
     }
 

@@ -1165,6 +1165,11 @@ NAECHSTES: list[dict] = [
     # Garmin Connect stand hier bis zur Freigabe fuer alle am 05.11.2026 (jetzt live, Changelog-Ereignis).
     # Garmin 1.0.100 am 05.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkte im Changelog mit garmin 1.0.100.
     # Garmin 1.0.101 am 06.11. eingereicht -> IN_REVIEW.
+    # 06.11.2026 (Jan: „fortsetzen vorauswaehlen ist gut"): Pausen-Menue mit Vorauswahl.
+    {"name": "Garmin", "version": "1.0.102",
+     "items": [
+         "In the pause menu, Resume is preselected, so pressing START twice continues your recording.",
+     ]},
     # 06.11.2026 (Jan: „bitte version bumpen, dann teste ich das und release", vorher „den rest portieren"): Garmin Connect in
     # beiden Apps (Karte/Reiter, Quellenzeile — kam erst nach den Einreichungen von 1.1.47 und 1.1.60), Garmin-Hinweise mit zwei
     # Schritten, Weiterleitung zusammengefuehrter Sessions, Sportarten als eigener Reiter, Foil-Rechner-Eintauchtiefe.
