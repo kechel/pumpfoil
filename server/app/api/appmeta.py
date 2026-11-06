@@ -53,7 +53,10 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.59",   # FREIGEGEBEN 2026-11-05 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.59 for iOS
+        "latest": "1.1.60",   # FREIGEGEBEN 2026-11-06 (Jans Meldung; App Store seit 05.11. 21:36 UTC), Apple-Mail eligible for
+        # distribution, 1.1.60 for iOS (Submission 315275cf-5e6f-4a23-bd3c-9c4fe92b4d41, eingereicht 05.11. 04:00 PST = 13:00, Build 70).
+        # Inhalt: Uhr-Bereich wie die Website, Ranglisten mit Region/Nationalitaet, Profil mit Flagge + Teams. Changelog 930-939 + Ereignis 941.
+        # ALT: "latest": "1.1.59",   # FREIGEGEBEN 2026-11-05 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.59 for iOS
         # (Submission cf8fd14e-4ab7-4c60-9401-3393e0dc4ca9, eingereicht 04.11. 07:16 PST = 16:16, Build 69; 67/68 verbraucht).
         # Inhalt: App-Port auf den Web-Stand, Teams/Events nativ, Kommentare, Nationalitaet, Lage des Bretts; Watch: Wassersperre.
         # Changelog: 39 Punkte am 05.11. mit ios 1.1.59 + Ereignis 05.11.
@@ -337,7 +340,10 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.100",   # LIVE 2026-11-05: am Tag der Einreichung freigegeben (Jans Meldung ~19:00, aus dem Store installiert,
+        "latest": "1.0.101",   # LIVE 2026-11-06: am Tag der Einreichung freigegeben (Jans Meldung, Store-Seite „November 6, 2026",
+        # per curl latestExternalVersion 1.0.101). Inhalt: Aufnahme startet bei vollem Speicher immer. .iq aus 9bd83fd1, 222
+        # Varianten; watch/bin aus a25d6218 (133 Builds). Changelog 940 + Ereignis 942.
+        # ALT: "latest": "1.0.100",   # LIVE 2026-11-05: am Tag der Einreichung freigegeben (Jans Meldung ~19:00, aus dem Store installiert,
         # Testsession #20208 meldet v=1.0.100, Store-Seite zeigt 1.0.100). Inhalt: Garmin-Connect-Datenwege, Pausen-Fix. .iq aus
         # 290f4478, 222 Varianten.
         # ALT: "latest": "1.0.99",   # LIVE 2026-11-03: am Tag der Einreichung freigegeben (Jans Meldung ~16:20, echte fenix 7X Pro
@@ -493,7 +499,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.59",   # FREIGEGEBEN 2026-11-05 — dieselbe Einreichung wie "ios" (ein Bundle; Watch: Wassersperre edbd65ca).
+        "latest": "1.1.60",   # FREIGEGEBEN 2026-11-06 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.59",   # FREIGEGEBEN 2026-11-05 — dieselbe Einreichung wie "ios" (ein Bundle; Watch: Wassersperre edbd65ca).
         # ALT: "latest": "1.1.58",   # FREIGEGEBEN 2026-10-29 — dieselbe Einreichung wie "ios" (ein Bundle; Watch-Code unveraendert seit 1.1.57).
         # ALT: "latest": "1.1.57",   # FREIGEGEBEN 2026-10-26 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.56",   # FREIGEGEBEN 2026-10-24 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -911,30 +918,8 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 06.11.2026 ~06:52 (Jans Meldung). .iq aus 9bd83fd1, 222 Varianten. Fall Olek (FR245 ohne Handy, Sync nur
-    # per Garmin Express -> bekommt `gc` nie): Aufnahme startet bei vollem Speicher immer. Test 1.0.101-ta im Emulator
-    # (FR245 #20242, fēnix #20243) sauber; voller Speicher nicht getestet.
-    {"name": "Garmin", "version": "1.0.101",
-     "eingereicht": "2026-11-06",
-     "items": [
-         "Recording starts even when the watch storage is full: your watch still saves the activity, and it reaches us through Garmin Connect or a file import.",
-     ]},
-    # EINGEREICHT 05.11.2026 13:00 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.60 (70),
-    # Kennung 315275cf-5e6f-4a23-bd3c-9c4fe92b4d41). Code auf der VM nur swiftc -parse, Typcheck in Jans Xcode.
-    {"name": "iPhone + Apple Watch", "version": "1.1.60",
-     "eingereicht": "2026-11-05",
-     "items": [
-         "The watch area is organised like the website: tabs for watch, Polar, COROS, Suunto, Xiaomi and MCP, and under watch the guide with a tab per platform, the settings and your watches.",
-         "The phone recorder reports its position at the first good GPS fix, so you show up as pumping right now even with live upload switched off.",
-         "The leaderboard tab shows one row with the period, region and sport for everything, then the leaderboard of the members, the team leaderboards and the records; the filters are menus and the app remembers them.",
-         "The leaderboards can be filtered by region, by the nationality of the riders and the origin of the teams, with flags in the menu.",
-         "Team leaderboards compare only the sport you pick, so teams of foil scooter riders or mixed teams are ranked fairly.",
-         "Leaderboards are shared as an image only, and their rows line up with a placeholder where a rider has no profile picture.",
-         "Profile pages show the rider's flag next to the name and the teams they belong to at the top.",
-         "Watch stats has two tabs, foiling per watch and how well the watches record.",
-         "The switch for the phone recorder is now on the settings overview right under the language, where new users look for it first.",
-         "The Huawei card in your watches is called Huawei Watch GT / Fit / D, because the Watch 5 uploads by itself and does not need it.",
-     ]},
+    # Garmin 1.0.101 am 06.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt 940 im Changelog mit garmin 1.0.101.
+    # iPhone + Apple Watch 1.1.60 am 05.11. eingereicht, am 06.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 930-939 im Changelog.
     # EINGEREICHT 05.11.2026 (Jans Meldung, Play Console „Schnelle Vorabpruefungen … noch maximal 14 Minuten",
     # Produktion 62 (1.1.47), Produktion (Wear OS) 1058 (1.2.47), verwaltete Veroeffentlichung). Inhalt: alles seit 1.1.46
     # (Teams/Events, Reiter wie die PWA, Kommentare, Nationalitaet, Rangliste nach Oleks Entwurf mit Region, Profil mit
