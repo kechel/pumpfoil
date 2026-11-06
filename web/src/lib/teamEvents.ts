@@ -67,6 +67,30 @@ export function eventZeitraum(start: string, ende: string, zeitzone: string | nu
   }
 }
 
+/** Kalenderblock der Kachel globaler Events (06.11.2026): Monat, Tage („7–8"), Wochentage („Sa–So") in der Zeitzone
+ *  des Events. Ein Ende um Mitternacht gehoert zum Vortag; ueber einen Monatswechsel stehen beide Monate da. */
+export function eventTage(start: string, ende: string, zeitzone: string | null, lang: string):
+    { monat: string; tage: string; wochentage: string } {
+  const tz = zeitzone || undefined;
+  const a = new Date(start);
+  const b0 = new Date(ende);
+  const b = mitternacht(b0, zeitzone) ? new Date(b0.getTime() - 12 * 3600 * 1000) : b0;
+  try {
+    const teil = (d: Date, o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat(lang, { ...o, timeZone: tz }).format(d);
+    const ma = teil(a, { month: "short" }), mb = teil(b, { month: "short" });
+    const ta = teil(a, { day: "numeric" }), tb = teil(b, { day: "numeric" });
+    const wa = teil(a, { weekday: "short" }), wb = teil(b, { weekday: "short" });
+    const gleicherTag = ma === mb && ta === tb;
+    return {
+      monat: (ma === mb ? ma : `${ma} – ${mb}`).replace(/\.$/, ""),
+      tage: gleicherTag ? ta.replace(/\.$/, "") : `${ta.replace(/\.$/, "")}–${tb.replace(/\.$/, "")}`,
+      wochentage: gleicherTag ? wa : `${wa}–${wb}`,
+    };
+  } catch {
+    return { monat: "", tage: `${a.getDate()}–${b.getDate()}`, wochentage: "" };
+  }
+}
+
 /** Das Zeitfenster IMMER mit Uhrzeit, fuer die grosse Anzeige vor dem Start. Ein Ende um Mitternacht steht als
  *  „24:00" am Vortag — „bis So 24:00" statt „bis Mo 0:00", das wie ein Tag mehr aussah. */
 export function eventZeitraumGenau(start: string, ende: string, zeitzone: string | null, lang: string): [string, string] {

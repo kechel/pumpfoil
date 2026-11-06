@@ -46,7 +46,7 @@ export default function EventsAlle() {
       <h2 className="mb-3 text-xl font-bold text-slate-100">{t("team.alleEvents")}</h2>
       {events === null ? <p className="text-sm text-slate-400">{t("common.loading")}</p>
         : events.length === 0 ? <p className="text-sm text-slate-400">{t("team.alleEventsLeer")}</p> : (
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-3 lg:grid-cols-2">
             {events.map((e) => <EventKurzKachel key={`${e.team.slug}-${e.id}`} e={e} />)}
           </div>
         )}
