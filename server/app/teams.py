@@ -854,15 +854,22 @@ def _event_voll(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
     return out
 
 
-def event_berechnen(db: Session, t: models.Team, e: models.TeamEvent, nur_team_ids: list[int] | None = None) -> list[dict]:
+def event_berechnen(db: Session, t: models.Team, e: models.TeamEvent, nur_team_ids: list[int] | None = None,
+                    betrachter: int | None = None) -> list[dict]:
     """Bestenlisten fuer die Ausgabe: je Tafel hoechstens TAFEL_LAENGE Zeilen. `nur_team_ids` (globale Events, Filter
-    „mein Team"): nur die Zeilen dieser Personen, mit ihrem Rang in der Gesamtwertung."""
+    „mein Team"): nur die Zeilen dieser Personen, mit ihrem Rang in der Gesamtwertung. `betrachter` (globale Events):
+    seine eigene Zeile als `eigene`, auch wenn er weiter hinten steht (Anzeige Top 10 + man selbst, wie die Community)."""
     voll = _event_voll(db, t, e)
     if not ist_global(e):
         return voll
     erlaubt = set(nur_team_ids) if nur_team_ids is not None else None
-    return [{**tf, "zeilen": [z for z in tf["zeilen"] if erlaubt is None or z["user_id"] in erlaubt][:TAFEL_LAENGE]}
-            for tf in voll]
+    out = []
+    for tf in voll:
+        x = {**tf, "zeilen": [z for z in tf["zeilen"] if erlaubt is None or z["user_id"] in erlaubt][:TAFEL_LAENGE]}
+        if betrachter is not None:
+            x["eigene"] = next((z for z in tf["zeilen"] if z["user_id"] == betrachter), None)
+        out.append(x)
+    return out
 
 
 def event_summen_auswahl(e: models.TeamEvent) -> list[str]:
@@ -951,8 +958,8 @@ def events_einfrieren(db: Session) -> int:
 
 
 def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = False,
-              nur_team_ids: list[int] | None = None) -> dict:
-    tafeln_ = event_berechnen(db, t, e, nur_team_ids)
+              nur_team_ids: list[int] | None = None, betrachter: int | None = None) -> dict:
+    tafeln_ = event_berechnen(db, t, e, nur_team_ids, None if gast else betrachter)
     if gast:
         tafeln_ = [{**tf, "zeilen": fuer_gast(tf["zeilen"])} for tf in tafeln_]
     spots = []

@@ -559,7 +559,8 @@ def event_einzeln(slug: str, event_id: int, team: str | None = None, user: model
         _darf_tafeln(t, m)
     if T.event_einfrieren(db, e):
         db.commit()
-    return T.event_out(db, t, e, nur_team_ids=_nur_team(db, team, user) if T.ist_global(e) else None)
+    return T.event_out(db, t, e, nur_team_ids=_nur_team(db, team, user) if T.ist_global(e) else None,
+                       betrachter=user.id)
 
 
 class FokusIn(BaseModel):

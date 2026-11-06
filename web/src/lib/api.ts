@@ -2309,7 +2309,9 @@ export interface TeamLogbuchEintrag {
 export interface TeamWertungZeile extends Pick<TeamAuftritt, "name" | "slug" | "logo_url" | "farbe" | "land"> {
   rang: number; value: number; fahrer: number; teilnehmer: number;
 }
-export interface TeamTafelMitZeilen extends TeamTafel { zeilen: TeamZeile[]; teams?: TeamWertungZeile[] }
+export interface TeamTafelMitZeilen extends TeamTafel { zeilen: TeamZeile[]; teams?: TeamWertungZeile[];
+  /** globale Events: die eigene Zeile, auch hinter den gezeigten Plaetzen */
+  eigene?: TeamZeile | null }
 export interface TeamOeffentlich extends TeamAuftritt { id: number; mitglieder_anzahl: number; period: string; tafeln: TeamTafelMitZeilen[]; events?: TeamEvent[] }
 export type TeamEventTafel = Pick<TeamTafel, "kennzahl" | "sportart" | "accel_only" | "nur_brett" | "foil_band">;
 export interface TeamEventIn {

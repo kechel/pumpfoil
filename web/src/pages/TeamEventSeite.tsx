@@ -83,16 +83,19 @@ function EventSummen({ ev, t }: { ev: TeamEvent; t: (k: string) => string }) {
 }
 
 /** Team-Rangliste eines globalen Events (06.11.2026): je Team die Summe der besten N Mitglieder. */
-function TeamWertung({ tf, n, t }: { tf: TeamTafelMitZeilen; n: number; t: (k: string, p?: Record<string, string>) => string }) {
+function TeamWertung({ tf, n, t, eigeneSlugs }: { tf: TeamTafelMitZeilen; n: number; t: (k: string, p?: Record<string, string>) => string;
+  eigeneSlugs: string[] }) {
   const k = kennzahl(tf.kennzahl);
-  const teams = tf.teams ?? [];
+  // Top 10, dazu die eigenen Teams weiter hinten (wie die Community-Bestenliste, Jan 06.11.2026).
+  const alle = tf.teams ?? [];
+  const teams = [...alle.slice(0, 10), ...alle.slice(10).filter((x) => eigeneSlugs.includes(x.slug))];
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-3">
       <p className="text-sm font-semibold text-slate-100">{t("team.event.teams")} · {t(k.labelKey)}</p>
       <p className="text-xs text-slate-400">{n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) })}</p>
       {teams.length === 0 && <p className="mt-2 text-sm text-slate-400">{t("team.event.keineTeams")}</p>}
       <ol className="mt-2">
-        {teams.slice(0, 20).map((x) => (
+        {teams.map((x) => (
           <li key={x.slug ?? x.name} className="flex items-center gap-2 border-t border-slate-800 py-1.5 first:border-t-0">
             <span className={`w-6 shrink-0 text-right text-sm font-bold ${x.rang <= 3 ? "team-akzent" : "text-slate-400"}`}>{x.rang}</span>
             <TeamWappen name={x.name} logo={x.logo_url} farbe={x.farbe} size={24} />
@@ -293,12 +296,15 @@ export default function TeamEventSeite() {
           )}
         </div>
         {(() => {
-          const tf = ev.tafeln[Math.min(wahl, ev.tafeln.length - 1)];
-          if (!tf) return null;
+          const tf0 = ev.tafeln[Math.min(wahl, ev.tafeln.length - 1)];
+          if (!tf0) return null;
+          // Globale Events: Top 10 und die eigene Zeile darunter (wie die Community-Bestenliste, Jan 06.11.2026).
+          const tf = ev.global ? { ...tf0, zeilen: [...tf0.zeilen.slice(0, 10),
+            ...(tf0.eigene && tf0.eigene.rang > 10 && !teamFilter ? [tf0.eigene] : [])] } : tf0;
           return (
             <div className={`grid gap-3 ${ev.global ? "sm:grid-cols-2" : ""}`}>
               <Tafel tf={tf} gast={gast} t={t} ohneFilter sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} />
-              {ev.global && <TeamWertung tf={tf} n={ev.team_wertung_n ?? 5} t={t} />}
+              {ev.global && <TeamWertung tf={tf} n={ev.team_wertung_n ?? 5} t={t} eigeneSlugs={meineTeams.map((x) => x.slug)} />}
             </div>
           );
         })()}
