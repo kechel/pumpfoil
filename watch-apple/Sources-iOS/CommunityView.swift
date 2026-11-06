@@ -447,6 +447,7 @@ struct CommunityView: View {
                 ForEach(sichtbareBands) { b in Text(bandLabel(b) + (b.art == "alle" ? "" : " (\(b.sessions))")).tag(b.key) }
             }
             .pickerStyle(.menu)
+            .labelsHidden()   // Label und Wert lauteten beide „Alle Foils" (07.11.2026)
         }
     }
 
