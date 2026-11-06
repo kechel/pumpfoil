@@ -874,9 +874,12 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
             (S.session_uuid.like("imp-%"), literal("datei")),
             else_=literal("datei"),
         )
+        # Garmin Connect auch MIT Geraet: geht die eigene Aufnahme in der Garmin-Session auf, bekommt diese die Geraete-ID
+        # (garmin.UEBERNEHMEN, „Foilen je Uhr") — sie kam trotzdem ueber Garmin Connect und zaehlt hier (06.11.2026; vorher
+        # stand die Kurve nach allen Tests auf 0). Unter der Uhr-Plattform zaehlt sie zusaetzlich.
         qi = (db.query(d.label("d"), quelle.label("q"),
                        func.count(func.distinct(S.user_id)).label("n"))
-              .select_from(S).filter(live, S.device_id.is_(None)))
+              .select_from(S).filter(live, or_(S.device_id.is_(None), S.session_uuid.like("garmin-%"))))
         if cut is not None:
             qi = qi.filter(S.created_at >= cut)
         for r in qi.group_by(d, quelle).all():
