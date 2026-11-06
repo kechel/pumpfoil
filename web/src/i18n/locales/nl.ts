@@ -2423,6 +2423,8 @@ const nl: Record<string, string> = {
   "setup.mastPlaceholder": "bv. 85",
   "setup.mastTitle": "Mastlengte",
   "setup.missingStab": "Staat jouw stabilizer niet in de lijst?",
+  "foils.missingPrefill": "Graag toevoegen – foil: merk, model, maat (cm²), link naar de fabrikant: ",
+  "setup.missingStabPrefill": "Graag toevoegen – stabilizer: merk, model, maat (cm²), link naar de fabrikant: ",
   "setup.myStabs": "Mijn stabs",
   "setup.noSpecs": "maten niet gepubliceerd",
   "setup.ownStab": "eigen invoer (alleen voor jou zichtbaar)",

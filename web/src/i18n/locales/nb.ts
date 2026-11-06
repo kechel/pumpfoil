@@ -1587,6 +1587,8 @@ const nb: Record<string, string> = {
   "foils.missingFoil": "Mangler merket eller størrelsen din i listen?",
   "foils.missingCta": "Be oss legge den til",
   "setup.missingStab": "Mangler stabilisatoren din i listen?",
+  "foils.missingPrefill": "Vennligst legg til – foil: merke, modell, størrelse (cm²), lenke til produsenten: ",
+  "setup.missingStabPrefill": "Vennligst legg til – stabilisator: merke, modell, størrelse (cm²), lenke til produsenten: ",
   "foils.noSpecs": "Produsenten har ikke publisert målene ennå",
   "foils.catalog": "Katalog",
   "foils.choose": "Velg",

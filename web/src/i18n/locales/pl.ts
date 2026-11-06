@@ -1696,6 +1696,8 @@ const pl: Record<string, string> = {
   "foils.missingFoil": "Brakuje Twojej marki albo rozmiaru na liście?",
   "foils.missingCta": "Poproś nas o dodanie",
   "setup.missingStab": "Brakuje Twojego stabilizatora na liście?",
+  "foils.missingPrefill": "Proszę dodać – foil: marka, model, rozmiar (cm²), link do producenta: ",
+  "setup.missingStabPrefill": "Proszę dodać – stabilizator: marka, model, rozmiar (cm²), link do producenta: ",
   "foils.noSpecs": "Producent nie opublikował jeszcze wymiarów",
   "foils.catalog": "Katalog",
   "foils.choose": "Wybierz",

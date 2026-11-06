@@ -2422,6 +2422,8 @@ const cs: Record<string, string> = {
   "setup.mastPlaceholder": "např. 85",
   "setup.mastTitle": "Délka stožáru",
   "setup.missingStab": "Chybí tvůj stabilizátor v seznamu?",
+  "foils.missingPrefill": "Prosím doplňte – foil: značka, model, velikost (cm²), odkaz na výrobce: ",
+  "setup.missingStabPrefill": "Prosím doplňte – stabilizátor: značka, model, velikost (cm²), odkaz na výrobce: ",
   "setup.myStabs": "Moje staby",
   "setup.noSpecs": "rozměry nezveřejněny",
   "setup.ownStab": "tvůj vlastní záznam (viditelný jen tobě)",

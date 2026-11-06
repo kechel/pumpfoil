@@ -1918,6 +1918,8 @@ const de: Record<string, string> = {
   "foils.missingFoil": "Deine Marke oder Größe fehlt im Katalog?",
   "foils.missingCta": "Nachtragen lassen",
   "setup.missingStab": "Dein Stabilizer fehlt im Katalog?",
+  "foils.missingPrefill": "Bitte nachtragen – Foil: Marke, Modell, Größe (cm²), Link zum Hersteller: ",
+  "setup.missingStabPrefill": "Bitte nachtragen – Stabilizer: Marke, Modell, Größe (cm²), Link zum Hersteller: ",
   "foils.noSpecs": "Maße vom Hersteller noch nicht veröffentlicht",
   "foils.catalog": "Katalog",
   "foils.choose": "Wählen",

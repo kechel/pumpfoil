@@ -1783,6 +1783,8 @@ const en: Record<string, string> = {
   "foils.missingFoil": "Your brand or size missing from the list?",
   "foils.missingCta": "Ask us to add it",
   "setup.missingStab": "Your stabilizer missing from the list?",
+  "foils.missingPrefill": "Please add – foil: brand, model, size (cm²), link to the manufacturer: ",
+  "setup.missingStabPrefill": "Please add – stabilizer: brand, model, size (cm²), link to the manufacturer: ",
   "foils.noSpecs": "Manufacturer has not published the measurements yet",
   "foils.catalog": "Catalog",
   "foils.choose": "Choose",

@@ -2393,6 +2393,8 @@ const fi: Record<string, string> = {
   "setup.mastPlaceholder": "esim. 85",
   "setup.mastTitle": "Mastin pituus",
   "setup.missingStab": "Puuttuuko stabilisaattorisi listalta?",
+  "foils.missingPrefill": "Lisätkää – foili: merkki, malli, koko (cm²), linkki valmistajalle: ",
+  "setup.missingStabPrefill": "Lisätkää – stabilisaattori: merkki, malli, koko (cm²), linkki valmistajalle: ",
   "setup.myStabs": "Omat stabit",
   "setup.noSpecs": "mittoja ei julkaistu",
   "setup.ownStab": "oma merkintäsi (vain sinun nähtävissäsi)",

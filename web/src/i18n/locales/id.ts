@@ -2366,6 +2366,8 @@ const id: Record<string, string> = {
   "setup.mastPlaceholder": "mis. 85",
   "setup.mastTitle": "Panjang mast",
   "setup.missingStab": "Stabilizer-mu tidak ada di daftar?",
+  "foils.missingPrefill": "Mohon tambahkan – foil: merek, model, ukuran (cm²), tautan ke produsen: ",
+  "setup.missingStabPrefill": "Mohon tambahkan – stabilizer: merek, model, ukuran (cm²), tautan ke produsen: ",
   "setup.myStabs": "Stab-ku",
   "setup.noSpecs": "ukuran tidak diterbitkan",
   "setup.ownStab": "entri milikmu (hanya terlihat olehmu)",

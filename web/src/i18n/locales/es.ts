@@ -2217,6 +2217,8 @@ const es: Record<string, string> = {
   "setup.mastPlaceholder": "p. ej. 85",
   "setup.mastTitle": "Longitud de mástil",
   "setup.missingStab": "¿Falta tu estabilizador en la lista?",
+  "foils.missingPrefill": "Por favor añadid – foil: marca, modelo, tamaño (cm²), enlace al fabricante: ",
+  "setup.missingStabPrefill": "Por favor añadid – estabilizador: marca, modelo, tamaño (cm²), enlace al fabricante: ",
   "setup.myStabs": "Mis stabs",
   "setup.noSpecs": "medidas no publicadas",
   "setup.ownStab": "entrada tuya (solo visible para ti)",

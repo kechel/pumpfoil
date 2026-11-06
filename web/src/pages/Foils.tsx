@@ -213,7 +213,7 @@ function Foils() {
         <div className="space-y-2">
           {restList.map(card)}
           {restList.length === 0 && <p className="text-sm text-slate-500">{t("gear.noHits")}</p>}
-          <MissingHint what={t("foils.missingFoil")} />
+          <MissingHint what={t("foils.missingFoil")} vorlage={t("foils.missingPrefill")} />
         </div>
       ) : <p className="text-sm text-slate-400">{t("gear.searchHint")}</p>}
     </div>

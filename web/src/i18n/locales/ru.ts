@@ -2366,6 +2366,8 @@ const ru: Record<string, string> = {
   "setup.mastPlaceholder": "напр. 85",
   "setup.mastTitle": "Длина мачты",
   "setup.missingStab": "Твоего стабилизатора нет в списке?",
+  "foils.missingPrefill": "Пожалуйста, добавьте – фойл: марка, модель, размер (см²), ссылка на производителя: ",
+  "setup.missingStabPrefill": "Пожалуйста, добавьте – стабилизатор: марка, модель, размер (см²), ссылка на производителя: ",
   "setup.myStabs": "Мои стабы",
   "setup.noSpecs": "размеры не опубликованы",
   "setup.ownStab": "твоя собственная запись (видна только тебе)",

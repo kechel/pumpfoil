@@ -2363,6 +2363,8 @@ const zh: Record<string, string> = {
   "setup.mastPlaceholder": "例如 85",
   "setup.mastTitle": "桅杆长度",
   "setup.missingStab": "列表里没有你的稳定翼？",
+  "foils.missingPrefill": "请添加 – 水翼：品牌、型号、尺寸（cm²）、厂商链接：",
+  "setup.missingStabPrefill": "请添加 – 尾翼：品牌、型号、尺寸（cm²）、厂商链接：",
   "setup.myStabs": "我的稳定翼",
   "setup.noSpecs": "未公布尺寸",
   "setup.ownStab": "你自己的条目（仅你可见）",

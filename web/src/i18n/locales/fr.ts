@@ -2218,6 +2218,8 @@ const fr: Record<string, string> = {
   "setup.mastPlaceholder": "p. ex. 85",
   "setup.mastTitle": "Longueur de mât",
   "setup.missingStab": "Ton stabilisateur manque dans la liste ?",
+  "foils.missingPrefill": "Merci d'ajouter – foil : marque, modèle, taille (cm²), lien vers le fabricant : ",
+  "setup.missingStabPrefill": "Merci d'ajouter – stabilisateur : marque, modèle, taille (cm²), lien vers le fabricant : ",
   "setup.myStabs": "Mes stabs",
   "setup.noSpecs": "dimensions non publiées",
   "setup.ownStab": "ta propre entrée (visible uniquement par toi)",

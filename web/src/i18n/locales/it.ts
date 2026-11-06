@@ -2218,6 +2218,8 @@ const it: Record<string, string> = {
   "setup.mastPlaceholder": "per es. 85",
   "setup.mastTitle": "Lunghezza albero",
   "setup.missingStab": "Il tuo stabilizzatore manca nell'elenco?",
+  "foils.missingPrefill": "Per favore aggiungete – foil: marca, modello, misura (cm²), link al produttore: ",
+  "setup.missingStabPrefill": "Per favore aggiungete – stabilizzatore: marca, modello, misura (cm²), link al produttore: ",
   "setup.myStabs": "I miei stab",
   "setup.noSpecs": "misure non pubblicate",
   "setup.ownStab": "voce tua (visibile solo a te)",

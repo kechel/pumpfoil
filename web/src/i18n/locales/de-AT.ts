@@ -2220,6 +2220,8 @@ const deAT: Record<string, string> = {
   "setup.mastPlaceholder": "z. B. 85",
   "setup.mastTitle": "Mastlänge",
   "setup.missingStab": "Dein Stabilizer fehlt im Katalog?",
+  "foils.missingPrefill": "Bitte nachtragen – Foil: Marke, Modell, Größe (cm²), Link zum Hersteller: ",
+  "setup.missingStabPrefill": "Bitte nachtragen – Stabilizer: Marke, Modell, Größe (cm²), Link zum Hersteller: ",
   "setup.myStabs": "Meine Stabs",
   "setup.noSpecs": "keine Maße veröffentlicht",
   "setup.ownStab": "eigener Eintrag (nur für dich sichtbar)",

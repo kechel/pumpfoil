@@ -352,7 +352,7 @@ export default function Setup({ teil }: { teil: SetupTeil }) {
             </div>
             {stabErr && <p className="mt-2 text-sm text-red-700 dark:text-red-300">{stabErr}</p>}
           </Card>
-          <MissingHint what={t("setup.missingStab")} />
+          <MissingHint what={t("setup.missingStab")} vorlage={t("setup.missingStabPrefill")} />
         </div>
       ) : <p className="text-sm text-slate-400">{t("gear.searchHint")}</p>}
       </>}

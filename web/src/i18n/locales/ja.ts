@@ -2360,6 +2360,8 @@ const ja: Record<string, string> = {
   "setup.mastPlaceholder": "例：85",
   "setup.mastTitle": "マスト長",
   "setup.missingStab": "お使いのスタビが一覧にありませんか？",
+  "foils.missingPrefill": "追加してください – フォイル：ブランド、モデル、サイズ（cm²）、メーカーのリンク：",
+  "setup.missingStabPrefill": "追加してください – スタビライザー：ブランド、モデル、サイズ（cm²）、メーカーのリンク：",
   "setup.myStabs": "自分のスタビ",
   "setup.noSpecs": "寸法は未公表",
   "setup.ownStab": "自分で追加した項目（あなたにだけ表示）",

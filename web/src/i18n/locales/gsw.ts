@@ -2219,6 +2219,8 @@ const gsw: Record<string, string> = {
   "setup.mastPlaceholder": "z. B. 85",
   "setup.mastTitle": "Maschtlängi",
   "setup.missingStab": "Din Stabilizer fählt im Katalog?",
+  "foils.missingPrefill": "Bitte nachetrage – Foil: Marke, Modell, Grössi (cm²), Link zum Herschteller: ",
+  "setup.missingStabPrefill": "Bitte nachetrage – Stabilizer: Marke, Modell, Grössi (cm²), Link zum Herschteller: ",
   "setup.myStabs": "Mini Stabs",
   "setup.noSpecs": "kei Mass veröffentlicht",
   "setup.ownStab": "eigene Iitrag (nur für dich sichtbar)",

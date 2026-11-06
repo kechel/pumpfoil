@@ -2360,6 +2360,8 @@ const ptPT: Record<string, string> = {
   "setup.mastPlaceholder": "ex. 85",
   "setup.mastTitle": "Comprimento do mastro",
   "setup.missingStab": "O teu estabilizador não está na lista?",
+  "foils.missingPrefill": "Por favor adicionem – foil: marca, modelo, tamanho (cm²), link do fabricante: ",
+  "setup.missingStabPrefill": "Por favor adicionem – estabilizador: marca, modelo, tamanho (cm²), link do fabricante: ",
   "setup.myStabs": "Meus stabs",
   "setup.noSpecs": "medidas não publicadas",
   "setup.ownStab": "registo teu (visível só para ti)",
