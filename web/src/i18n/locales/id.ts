@@ -2702,6 +2702,7 @@ const id: Record<string, string> = {
   "team.alleEventsLeer": "Belum ada event.",
   "team.eventsAktuell": "Event berlangsung & mendatang",
   "team.eventsGlobal": "Event global",
+  "team.eventsMeineTeams": "Event tim kamu",
   "team.event.keineGlobalen": "Saat ini tidak ada event global yang berlangsung, dan tidak ada yang dimulai dalam tiga hari ke depan.",
   "team.event.global": "Global",
   "team.event.globalHaken": "Event global – semua orang otomatis ikut, tanpa bergabung",

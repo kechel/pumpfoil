@@ -2737,6 +2737,7 @@ const fi: Record<string, string> = {
   "team.alleEventsLeer": "Ei vielä tapahtumia.",
   "team.eventsAktuell": "Käynnissä olevat ja tulevat tapahtumat",
   "team.eventsGlobal": "Globaalit tapahtumat",
+  "team.eventsMeineTeams": "Joukkueidesi tapahtumat",
   "team.event.keineGlobalen": "Yhtään globaalia tapahtumaa ei ole käynnissä, eikä yksikään ala seuraavan kolmen päivän aikana.",
   "team.event.global": "Globaali",
   "team.event.globalHaken": "Globaali tapahtuma – kaikki osallistuvat automaattisesti, ilman liittymistä",

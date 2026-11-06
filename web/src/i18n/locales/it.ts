@@ -2585,6 +2585,7 @@ const it: Record<string, string> = {
   "team.alleEventsLeer": "Ancora nessun evento.",
   "team.eventsAktuell": "Eventi in corso e in arrivo",
   "team.eventsGlobal": "Eventi globali",
+  "team.eventsMeineTeams": "Eventi dei tuoi team",
   "team.event.keineGlobalen": "Al momento non c'è nessun evento globale e nessuno inizia nei prossimi tre giorni.",
   "team.event.global": "Globale",
   "team.event.globalHaken": "Evento globale – partecipano tutti automaticamente, senza iscrizione",

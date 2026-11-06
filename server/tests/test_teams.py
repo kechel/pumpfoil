@@ -828,3 +828,23 @@ def test_team_vergleich_beste_n(client):
     d = client.get("/api/teams/liste/vergleich?period=30d&top=5&sport=foil_scoot", headers=kb).json()
     assert d["sport"] == "foil_scoot" and {x["slug"]: x["pumps"] for x in d["teams"]} == {klein: 77}
     assert client.get("/api/teams/liste/vergleich?sport=quatsch", headers=kb).json()["sport"] == "pumpfoil"
+
+
+def test_events_meiner_teams(client, monkeypatch):
+    """Community unter den globalen (06.11.2026): Team-Events der eigenen Teams, nicht die fremder, keine globalen."""
+    (_ia, ka), (_ib, kb), (_ic, kc) = (_konto(client, "te-a-mei@t.de"), _konto(client, "te-b-mei@t.de"),
+                                       _konto(client, "te-c-mei@t.de"))
+    slug, _l = _team_mit(client, ka, kb, "Meineteam")
+    jetzt = datetime.now(timezone.utc)
+
+    def ev(titel, start, ende):
+        client.post(f"/api/teams/{slug}/events", headers=ka, json={
+            "titel": titel, "start": (jetzt + start).isoformat(), "ende": (jetzt + ende).isoformat(),
+            "tafeln": [{"kennzahl": "sum_pumps"}]})
+    ev("Spaeter", timedelta(days=20), timedelta(days=21))
+    ev("Laeuft", timedelta(hours=-1), timedelta(hours=5))
+    ev("Gestern vorbei", timedelta(days=-2), timedelta(days=-1))
+    ev("Lange vorbei", timedelta(days=-20), timedelta(days=-19))
+    titel = [e["titel"] for e in client.get("/api/teams/liste/events/meine", headers=kb).json()]
+    assert titel == ["Laeuft", "Spaeter", "Gestern vorbei"]
+    assert client.get("/api/teams/liste/events/meine", headers=kc).json() == []

@@ -2699,6 +2699,7 @@ const zh: Record<string, string> = {
   "team.alleEventsLeer": "暂无活动。",
   "team.eventsAktuell": "进行中和即将开始的活动",
   "team.eventsGlobal": "全球活动",
+  "team.eventsMeineTeams": "你的团队活动",
   "team.event.keineGlobalen": "目前没有正在进行的全球活动，未来三天内也没有即将开始的。",
   "team.event.global": "全球",
   "team.event.globalHaken": "全球活动 – 所有人自动参加，无需加入",

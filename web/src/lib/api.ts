@@ -2175,6 +2175,8 @@ export const api = {
   teamsMine: () => req<TeamKurz[]>("/api/teams/mine"),
   teamsListe: () => req<TeamListenEintrag[]>("/api/teams/liste"),
   teamsEventsAktuell: () => req<TeamEventKurz[]>("/api/teams/liste/events"),
+  /** Team-Events der eigenen Teams (laufend, kommend, letzte 7 Tage) — Community unter den globalen (06.11.2026). */
+  teamsEventsMeine: () => req<TeamEventKurz[]>("/api/teams/liste/events/meine"),
   teamsVergleich: (period: string, top: number, sport = "pumpfoil", region = "all") =>
     req<TeamVergleich>(`/api/teams/liste/vergleich?period=${period}&top=${top}&sport=${encodeURIComponent(sport)}${region !== "all" ? `&region=${encodeURIComponent(region)}` : ""}`),
   teamsEventsAlle: (offset: number, n: number) => req<TeamEventKurz[]>(`/api/teams/liste/events/alle?offset=${offset}&n=${n}`),

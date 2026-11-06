@@ -2755,6 +2755,7 @@ const cs: Record<string, string> = {
   "team.alleEventsLeer": "Zatím žádné akce.",
   "team.eventsAktuell": "Probíhající a nadcházející akce",
   "team.eventsGlobal": "Globální eventy",
+  "team.eventsMeineTeams": "Eventy tvých týmů",
   "team.event.keineGlobalen": "Právě neběží žádný globální event a v příštích třech dnech žádný nezačíná.",
   "team.event.global": "Globální",
   "team.event.globalHaken": "Globální event – účastní se automaticky všichni, bez přihlášení",

@@ -2698,6 +2698,7 @@ const ja: Record<string, string> = {
   "team.alleEventsLeer": "まだイベントはありません。",
   "team.eventsAktuell": "開催中・まもなく始まるイベント",
   "team.eventsGlobal": "グローバルイベント",
+  "team.eventsMeineTeams": "あなたのチームのイベント",
   "team.event.keineGlobalen": "現在開催中のグローバルイベントはなく、今後3日以内に始まるものもありません。",
   "team.event.global": "グローバル",
   "team.event.globalHaken": "グローバルイベント – 参加登録なしで全員が自動的に参加",

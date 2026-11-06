@@ -946,7 +946,9 @@ function CommunitySection() {
 function TeamsSection() {
   const t = useT();
   const [events, setEvents] = useState<TeamEventKurz[] | null>(null);
+  const [meine, setMeine] = useState<TeamEventKurz[]>([]);
   useEffect(() => { api.teamsEventsAktuell().then(setEvents).catch(() => setEvents([])); }, []);
+  useEffect(() => { api.teamsEventsMeine().then(setMeine).catch(() => setMeine([])); }, []);
   return (
     <div className="mt-6">
       {/* Die Team-Bestenlisten standen hier bis 05.11.2026; seit Oleks Entwurf stehen sie neben denen der Mitglieder im
@@ -968,6 +970,18 @@ function TeamsSection() {
       <div className="mt-3 flex flex-wrap gap-2">
         <Link to="/events" className={KNOPF_WEITER}>{t("team.alleEvents")} →</Link>
       </div>
+      {/* Events der eigenen Teams (Jan, 06.11.2026): unter den globalen, nur fuer Mitglieder, nur wenn es welche gibt. */}
+      {meine.length > 0 && (
+        <>
+          <div className="mb-1.5 mt-6 flex flex-wrap items-center gap-x-4 gap-y-1">
+            <FlagIcon className="h-5 w-5 text-brand-400" />
+            <h3 className="text-lg font-bold">{t("team.eventsMeineTeams")}</h3>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {meine.map((e) => <EventKurzKachel key={`${e.team.slug}-${e.id}`} e={e} />)}
+          </div>
+        </>
+      )}
       <AktivsteTeams />
       <div className="mt-3 flex flex-wrap gap-2">
         <Link to="/teams/liste" className={KNOPF_WEITER}>{t("team.alle")} →</Link>

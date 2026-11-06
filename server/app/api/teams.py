@@ -287,6 +287,25 @@ def liste_events(user: models.User = Depends(current_user), db: Session = Depend
     return [_event_kurz(db, e, t, t.id in eigene, jetzt) for e, t in rows]
 
 
+@router.get("/liste/events/meine")
+def liste_events_meine(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Community, unter den globalen (Jan, 06.11.2026: „das sollte zusaetzlich wieder rein unter Global events … ruhig
+    alle events"): Team-Events der eigenen Teams (aktive Mitgliedschaft) — laufende, kommende und die der letzten 7 Tage,
+    laufende zuerst, dann kommende, dann vergangene."""
+    eigene = T.mitglieder_team_ids(db, user.id)
+    if not eigene:
+        return []
+    jetzt = T._jetzt()
+    E, Tm = models.TeamEvent, models.Team
+    rows = (db.query(E, Tm).join(Tm, Tm.id == E.team_id)
+            .filter(E.team_id.in_(eigene), E.geloescht_am.is_(None), Tm.geloescht_am.is_(None),
+                    E.global_event.isnot(True), E.ende > jetzt - timedelta(days=7))
+            .order_by(E.start).limit(200).all())
+    gruppe = lambda e: 0 if T._aware(e.start) <= jetzt < T._aware(e.ende) else (1 if T._aware(e.start) > jetzt else 2)
+    rows.sort(key=lambda r: (gruppe(r[0]), T._aware(r[0].start) if gruppe(r[0]) < 2 else -T._aware(r[0].ende).timestamp()))
+    return [_event_kurz(db, e, t, True, jetzt) for e, t in rows]
+
+
 @router.get("/liste/events/alle")
 def liste_events_alle(offset: int = 0, n: int = 20, user: models.User = Depends(current_user),
                       db: Session = Depends(get_db)) -> list[dict]:

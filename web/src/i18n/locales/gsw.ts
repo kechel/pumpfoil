@@ -2586,6 +2586,7 @@ const gsw: Record<string, string> = {
   "team.alleEventsLeer": "No kei Events.",
   "team.eventsAktuell": "Laufendi & chömendi Events",
   "team.eventsGlobal": "Globali Events",
+  "team.eventsMeineTeams": "Events vo dine Teams",
   "team.event.keineGlobalen": "Grad lauft kei globals Event, und i de nöchschte drei Täg fangt au keis aa.",
   "team.event.global": "Global",
   "team.event.globalHaken": "Globals Event – alli mached automatisch mit, ohni Biitritt",

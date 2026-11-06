@@ -2587,6 +2587,7 @@ const deAT: Record<string, string> = {
   "team.alleEventsLeer": "Noch keine Events.",
   "team.eventsAktuell": "Laufende & kommende Events",
   "team.eventsGlobal": "Globale Events",
+  "team.eventsMeineTeams": "Events deiner Teams",
   "team.event.keineGlobalen": "Grad läuft ka globales Event, und in den nächsten drei Tagen fangt a kans an.",
   "team.event.global": "Global",
   "team.event.globalHaken": "Globales Event – alle nehmen automatisch teil, ohne Beitritt",

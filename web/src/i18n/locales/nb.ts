@@ -2673,6 +2673,7 @@ const nb: Record<string, string> = {
   "team.alleEventsLeer": "Ingen arrangementer ennå.",
   "team.eventsAktuell": "Pågående og kommende arrangementer",
   "team.eventsGlobal": "Globale eventer",
+  "team.eventsMeineTeams": "Eventer i lagene dine",
   "team.event.keineGlobalen": "Ingen globale eventer pågår nå, og ingen starter de neste tre dagene.",
   "team.event.global": "Global",
   "team.event.globalHaken": "Globalt event – alle deltar automatisk, uten å bli med",

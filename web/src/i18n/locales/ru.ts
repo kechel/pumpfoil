@@ -2702,6 +2702,7 @@ const ru: Record<string, string> = {
   "team.alleEventsLeer": "Пока нет событий.",
   "team.eventsAktuell": "Текущие и предстоящие события",
   "team.eventsGlobal": "Глобальные события",
+  "team.eventsMeineTeams": "События твоих команд",
   "team.event.keineGlobalen": "Сейчас нет глобальных событий, и в ближайшие три дня ни одно не начинается.",
   "team.event.global": "Глобальное",
   "team.event.globalHaken": "Глобальное событие – участвуют все автоматически, без вступления",

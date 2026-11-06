@@ -2756,6 +2756,7 @@ const nl: Record<string, string> = {
   "team.alleEventsLeer": "Nog geen events.",
   "team.eventsAktuell": "Lopende & komende events",
   "team.eventsGlobal": "Globale events",
+  "team.eventsMeineTeams": "Events van je teams",
   "team.event.keineGlobalen": "Er loopt nu geen globaal event, en er begint er ook geen in de komende drie dagen.",
   "team.event.global": "Globaal",
   "team.event.globalHaken": "Globaal event – iedereen doet automatisch mee, zonder aanmelden",

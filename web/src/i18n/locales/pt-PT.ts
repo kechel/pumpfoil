@@ -2696,6 +2696,7 @@ const ptPT: Record<string, string> = {
   "team.alleEventsLeer": "Ainda não há eventos.",
   "team.eventsAktuell": "Eventos a decorrer e próximos",
   "team.eventsGlobal": "Eventos globais",
+  "team.eventsMeineTeams": "Eventos das tuas equipas",
   "team.event.keineGlobalen": "Não está a decorrer nenhum evento global, e nenhum começa nos próximos três dias.",
   "team.event.global": "Global",
   "team.event.globalHaken": "Evento global – todos participam automaticamente, sem inscrição",
