@@ -709,6 +709,13 @@ def in_garmin_session_aufgehen(db: Session, eigene: models.Session, g: models.Se
         wert = getattr(eigene, feld, None)
         if wert is not None:
             setattr(g, feld, wert)
+    # Tanz-App (06.11.2026, #20252): `sport` ist sonst Garmins Rohwert („training"), die Tanz-Auswertung haengt aber an
+    # sport == "dance" — und die Tanz-Abschnitte der Uhr muessen mit (app/tanz.py, nur fuer Tanz-Sessions).
+    if (eigene.sport or "") == "dance":
+        from .. import tanz
+        g.sport = "dance"
+        if eigene.started_at and g.started_at:
+            tanz.umhaengen(db, eigene.id, g.id, int((eigene.started_at - g.started_at).total_seconds() * 1000))
     nutzerinhalte_uebertragen(db, eigene, g)
     eigene.deleted = True
     eigene.merged_into = g.id

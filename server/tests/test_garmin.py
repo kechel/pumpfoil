@@ -733,3 +733,41 @@ def test_profilname_wird_eigene_auswahlzeile(client, garmin, monkeypatch):
     assert aufrufe[1]["sport_override"] == ("snowkite" if "snowkite" in __import__("app.api.sessions", fromlist=["SPORTS"]).SPORTS else None)
     assert garmin.modus_schluessel("SURFING", "Surfing") == ("SURFING", "Surfing")
     assert garmin.modus_schluessel("OTHER", "Pumpfoil") == ("OTHER", "Other")
+
+
+def test_tanz_aufnahme_geht_mit_abschnitten_in_der_garmin_session_auf(client, garmin, monkeypatch):
+    # #20252 (06.11.2026): die Tanz-App-Aufnahme ging in der Garmin-Session auf (104 Hz gegen 25 Hz), aber `sport` blieb
+    # Garmins „training" und die Tanz-Abschnitte hingen an der ausgeblendeten eigenen Session.
+    from app import models, tanz
+    from app.api import garmin as g_mod
+    from app.db import SessionLocal
+    monkeypatch.setattr("app.analysis.run_analysis", lambda db, s: None)
+    uid, _kopf = _konto(client)
+    start = datetime(2026, 11, 6, 8, 9, 23, tzinfo=timezone.utc)
+    eid, _u = _eigene_session(uid, start, minuten=1)
+    db = SessionLocal()
+    try:
+        eigene = db.get(models.Session, eid)
+        eigene.sport = "dance"
+        g = models.Session(session_uuid="garmin-" + secrets.token_hex(8), user_id=uid, sport="training",
+                           started_at=start + timedelta(seconds=1), ended_at=start + timedelta(seconds=65),
+                           status="analyzed")
+        db.add(g); db.flush()
+        tanz.speichern(db, eid, [{"start_ms": 500, "ende_ms": 30000, "vorschlag": "samba", "gewaehlt": None,
+                                  "quelle": "auto", "tempo": 100, "dreh": 10}], "uhr",
+                       fenster_uhr=[{"t_ms": 10000, "tempo": 100, "klar": 0.5, "quer": 0.1, "umdr": None}],
+                       orte=[{"t_ms": 2000, "lat": 47.9, "lon": 9.3, "genauigkeit": 5}])
+        db.commit()
+        g_mod.in_garmin_session_aufgehen(db, eigene, g)
+        db.expire_all()
+        g2 = db.get(models.Session, g.id)
+        assert g2.sport == "dance"
+        assert db.get(models.Session, eid).merged_into == g.id
+        assert tanz.laden(db, eid) is None
+        t = tanz.laden(db, g.id)
+        # 1 s spaeter gestartet -> Session-ms um 1000 frueher, nie unter 0.
+        assert [(a["start_ms"], a["ende_ms"]) for a in t["abschnitte"]] == [(0, 29000)]
+        assert [(a["start_ms"], a["ende_ms"]) for a in t["uhr"]] == [(0, 29000)]
+        assert t["fenster_uhr"][0]["t_ms"] == 9000 and t["orte"][0]["t_ms"] == 1000
+    finally:
+        db.close()

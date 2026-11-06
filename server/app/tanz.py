@@ -118,6 +118,30 @@ def laden(db, session_id: int) -> dict | None:
     }
 
 
+def umhaengen(db, alt_id: int, neu_id: int, versatz_ms: int) -> bool:
+    """Tanz-Daten einer Session auf eine andere umhaengen (Garmin, 06.11.2026): die eigene Aufnahme der Tanz-App geht in
+    der Garmin-Session derselben Fahrt auf, wenn Garmins Datei mehr Accel hat — die Abschnitte, Fenster und Orte der Uhr
+    muessen mit, sonst haengen sie an einer ausgeblendeten Session. Zeiten sind Session-ms; `versatz_ms` = Start der
+    alten minus Start der neuen Session (ein Zeitpunkt T liegt dort bei T - Start). Hat die neue schon Tanz-Daten, bleibt
+    alles, wie es ist. Committet NICHT."""
+    if db.get(models.TanzSession, neu_id) is not None or db.get(models.TanzSession, alt_id) is None:
+        return False
+    v = int(versatz_ms)
+    schieben = lambda t: None if t is None else max(0, int(t) + v)
+    for a in db.query(models.TanzAbschnitt).filter_by(session_id=alt_id).all():
+        a.session_id, a.start_ms, a.ende_ms = neu_id, schieben(a.start_ms), schieben(a.ende_ms)
+    for f in db.query(models.TanzFenster).filter_by(session_id=alt_id).all():
+        f.session_id, f.t_ms = neu_id, schieben(f.t_ms)
+    for o in db.query(models.TanzOrt).filter_by(session_id=alt_id).all():
+        o.session_id, o.t_ms = neu_id, schieben(o.t_ms)
+    kopf = db.get(models.TanzSession, alt_id)
+    db.add(models.TanzSession(session_id=neu_id, quelle=kopf.quelle, stand=kopf.stand, notiz=kopf.notiz))
+    db.flush()
+    db.delete(kopf)
+    db.flush()
+    return True
+
+
 def sperren(db, session_id: int) -> models.TanzSession | None:
     """Kopfzeile mit SELECT … FOR UPDATE: gleichzeitige Korrekturen warten bis zum Commit aufeinander
     (22.10.2026: vier parallele Web-Korrekturen haben die fruehere tanz.json zerschrieben)."""
