@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-<rect x="16" y="16" width="480" height="480" rx="96" fill="#22d3ee"/>
-<g transform="translate(56,56) scale(0.390625)" color="#020617">
+<rect x="16" y="16" width="480" height="480" rx="96" fill="#020617"/>
+<g transform="translate(46.33,25.89) scale(0.40872)" color="#22d3ee">
 <g fill="currentColor" transform="translate(0.000000,1024.000000) scale(0.100000,-0.100000)" stroke="none"><path d="M4845 7070 c-3 -5 -30 -10 -60 -10 -30 0 -57 -4 -60 -10 -3 -5 -17
 -10 -30 -10 -13 0 -27 -4 -30 -10 -3 -5 -15 -10 -25 -10 -11 0 -35 -9 -55 -20
 -20 -11 -46 -20 -58 -20 -24 0 -145 -57 -175 -82 -9 -8 -33 -22 -53 -31 -20
