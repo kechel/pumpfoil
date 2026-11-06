@@ -65,12 +65,19 @@ function Countdown({ ev, lang, t }: { ev: TeamEvent; lang: string; t: (k: string
 /** Oeffentliche Event-Adresse zum Teilen (Jan, 01.11.2026) — nur bei oeffentlichem, freigegebenem Team; Gaeste sehen
  *  dort die Bestenlisten in Gastform. */
 /** Gesamtsummen ueber alle Teilnehmer (Jan, 01.11.2026) — nur die angeklickten, Kacheln wie die Teamstatistik. */
+const SUMMEN_SPALTEN: Record<number, string> = {
+  1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-1 sm:grid-cols-3", 4: "grid-cols-2 sm:grid-cols-4",
+  5: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5", 6: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6",
+  7: "grid-cols-2 sm:grid-cols-4 lg:grid-cols-7",
+};
+
 function EventSummen({ ev, t }: { ev: TeamEvent; t: (k: string) => string }) {
   const auswahl = EVENT_SUMMEN.filter((k) => (ev.summen_auswahl ?? []).includes(k.key));
   return (
     <div className="mb-4">
       <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("team.event.teamGesamt")}</p>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {/* Je nach Anzahl ueber die ganze Breite (Jan, 06.11.2026). Klassen ausgeschrieben, sonst findet Tailwind sie nicht. */}
+      <div className={`grid gap-2 ${SUMMEN_SPALTEN[Math.min(auswahl.length, 7)] ?? "grid-cols-2"}`}>
         {auswahl.map((k) => (
           <div key={k.key} className="team-rand rounded-xl border-2 bg-slate-900/60 p-3 text-center">
             <div className="team-akzent text-2xl font-bold leading-tight">{k.fmt(ev.summen?.[k.key] ?? 0)}</div>
