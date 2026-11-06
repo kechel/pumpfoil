@@ -415,7 +415,7 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
                     if nur_spots else [])
     key = (team.id, tf.id, tf.kennzahl, tf.sportart, tf.accel_only, tf.nur_brett, tf.foil_band,
            nur_spots, tuple(sorted(spot_ids)), period, fenster, ALLE if alle else tuple(sorted(ids)), ohne_dateien,
-           laenge)
+           laenge, tuple(sorted(global_aus(db))) if alle else ())
     hit = _cache_holen(key)
     if hit is not None:
         if stand is not None:
@@ -431,6 +431,10 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
         q = C._band_filter(db, q, tf.foil_band, 0)
         if not alle:
             q = q.filter(S.user_id.in_(ids))
+        else:
+            aus = global_aus(db)
+            if aus:
+                q = q.filter(S.user_id.notin_(list(aus)))
         if fenster is not None:
             q = q.filter(S.started_at >= fenster[0], S.started_at < fenster[1])
         elif cut is not None:
@@ -748,6 +752,25 @@ def offizielles_team_id(db: Session) -> int | None:
     return t.id if t is not None and t.geloescht_am is None else None
 
 
+_GLOBAL_AUS = {"zeit": 0.0, "ids": frozenset()}
+
+
+def global_aus(db: Session) -> frozenset:
+    """Wer nicht an globalen Events teilnehmen will (Profil › Privatsphaere, settings.global_events_aus). 60 s gemerkt."""
+    if time.time() - float(_GLOBAL_AUS["zeit"]) < 60:
+        return _GLOBAL_AUS["ids"]
+    ids = set()
+    for uid, roh in db.query(models.User.id, models.User.settings_json).filter(
+            models.User.settings_json.ilike("%global_events_aus%")).all():
+        try:
+            if json.loads(roh or "{}").get("global_events_aus"):
+                ids.add(uid)
+        except ValueError:
+            continue
+    _GLOBAL_AUS.update({"zeit": time.time(), "ids": frozenset(ids)})
+    return _GLOBAL_AUS["ids"]
+
+
 def ist_global(e: models.TeamEvent) -> bool:
     return bool(getattr(e, "global_event", False))
 
@@ -877,8 +900,12 @@ def event_berechnen(db: Session, t: models.Team, e: models.TeamEvent, nur_team_i
     if not ist_global(e):
         return voll
     erlaubt = set(nur_team_ids) if nur_team_ids is not None else None
+    aus = global_aus(db)
     out = []
     for tf in voll:
+        # Wer nach dem Einfrieren ausgestiegen ist (Profil-Schalter), fehlt auch im Endstand; Raenge rutschen nach.
+        if e.ergebnis_json and aus:
+            tf = {**tf, "zeilen": [{**z, "rang": i + 1} for i, z in enumerate(z for z in tf["zeilen"] if z["user_id"] not in aus)]}
         x = {**tf, "zeilen": [z for z in tf["zeilen"] if erlaubt is None or z["user_id"] in erlaubt][:TAFEL_LAENGE]}
         if betrachter is not None:
             x["eigene"] = next((z for z in tf["zeilen"] if z["user_id"] == betrachter), None)
@@ -918,7 +945,7 @@ def event_summen(db: Session, t: models.Team, e: models.TeamEvent) -> dict:
     if not alle and not ids:
         return leer
     key = (t.id, "event_summen", e.id, sportart, accel_only, fenster, tuple(sorted(spots)), bool(e.ohne_dateien),
-           ALLE if alle else tuple(sorted(ids)))
+           ALLE if alle else tuple(sorted(ids)), tuple(sorted(global_aus(db))) if alle else ())
     hit = _cache_holen(key)
     if hit is None:
         S, AR = C.S, C.AR
@@ -929,6 +956,8 @@ def event_summen(db: Session, t: models.Team, e: models.TeamEvent) -> dict:
         ), None, accel_only, sportart).filter(S.started_at >= fenster[0], S.started_at < fenster[1])
         if not alle:
             q = q.filter(S.user_id.in_(ids))
+        elif global_aus(db):
+            q = q.filter(S.user_id.notin_(list(global_aus(db))))
         if e.ohne_dateien:
             q = q.filter(*[~S.session_uuid.like(f"{p}%") for p in DATEI_PRAEFIXE])
         if spots:
@@ -1016,6 +1045,8 @@ def abzeichen(db: Session, uid: int) -> list[dict]:
                  .filter(E.eingefroren_am.isnot(None), E.geloescht_am.is_(None), Tm.frei_am.isnot(None),
                          Tm.geloescht_am.is_(None))
                  .order_by(E.ende.desc()).limit(500).all()):
+        if ist_global(e) and uid in global_aus(db):
+            continue
         for tf in json.loads(e.ergebnis_json or "[]"):
             for z in tf.get("zeilen", [])[:ABZEICHEN_PLAETZE]:
                 if z.get("user_id") == uid:

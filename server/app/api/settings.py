@@ -223,6 +223,9 @@ DEFAULTS = {
     "hide_location": False,
     # Kommentare unter den eigenen Sessions abschalten (02.11.2026, app/kommentare.py). Aus = fuer alle ausgeblendet.
     "comments_off": False,
+    # Nicht an globalen Events teilnehmen (06.11.2026, teams.global_aus): fehlt dann in deren Bestenlisten, Team-Wertung
+    # und Gesamtsummen — auch in schon beendeten (dort nur in der Ausgabe, Raenge rutschen nach).
+    "global_events_aus": False,
 }
 
 # Schalter der oeffentlichen Foiler-Seite (ohne `enabled`, das steht fuer die ganze Seite).
@@ -652,6 +655,8 @@ def update_settings(
         current["hide_location"] = bool(patch["hide_location"])
     if "comments_off" in patch:
         current["comments_off"] = bool(patch["comments_off"])
+    if "global_events_aus" in patch:
+        current["global_events_aus"] = bool(patch["global_events_aus"])
     if "weight_hidden" in patch:
         current["weight_hidden"] = bool(patch["weight_hidden"])
     if "watch_wrist" in patch and patch["watch_wrist"] in ("", "left", "right"):

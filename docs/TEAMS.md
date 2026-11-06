@@ -422,7 +422,9 @@ Team-Event (`team_events.global_event`, `team_wertung_n`), Rechnung in `app/team
   (Alle Teams, Team-Vergleich, aktivste Teams, Team-Rangliste der Events). Reservierte Adressen wie `pumpfoil` duerfen
   nur Admins vergeben.
 - **Wer zaehlt:** jeder mit passenden Sessions im Fenster, ohne Beitritt — dieselbe Regel wie die Community-
-  Bestenlisten (versteckte/gesperrte Konten fehlen; einen eigenen Abmelde-Schalter gibt es nicht).
+  Bestenlisten (versteckte/gesperrte Konten fehlen). Opt-out im Profil › Privatsphaere „Nicht an globalen Events
+  teilnehmen" (`settings.global_events_aus`, `teams.global_aus`): fehlt dann in Bestenlisten, Team-Wertung, Summen
+  und Abzeichen, auch in schon beendeten (dort nur in der Ausgabe, Raenge rutschen nach).
 - **Team-Rangliste** je Bestenliste: Summe der besten N Mitglieder (Standard 5, 0 = alle), nur freigegebene Teams
   mit oeffentlichen Bestenlisten (wie der Team-Vergleich); Mitglied in zwei Teams zaehlt fuer beide.
 - **Filter „mein Team"** (`GET …/events/{id}?team=<slug>`): nur dessen Mitglieder, mit dem Rang der Gesamtwertung.

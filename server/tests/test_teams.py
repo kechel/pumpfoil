@@ -848,3 +848,26 @@ def test_events_meiner_teams(client, monkeypatch):
     titel = [e["titel"] for e in client.get("/api/teams/liste/events/meine", headers=kb).json()]
     assert titel == ["Laeuft", "Spaeter", "Gestern vorbei"]
     assert client.get("/api/teams/liste/events/meine", headers=kc).json() == []
+
+
+def test_globales_event_opt_out(client, monkeypatch):
+    """Profil › Privatsphaere „nicht an globalen Events teilnehmen" (06.11.2026): fehlt in Bestenliste und Summen."""
+    from app import teams as T
+    adm = _admin(client, "glob-opt-adm@t.de")
+    (_io, ko) = _konto(client, "glob-opt-off@t.de", "Opt Offiziell")
+    (ia, ka), (ib, kb) = _konto(client, "glob-opt-a@t.de", "Opt Anna"), _konto(client, "glob-opt-b@t.de", "Opt Bert")
+    offiziell = _team(client, ko, "Opt Offiziell Team")
+    monkeypatch.setenv("TEAM_GLOBAL", offiziell)
+    _freigeben(client, adm, ko, offiziell)
+    _session(ia, 300, tage=1)
+    _session(ib, 200, tage=1)
+    jetzt = datetime.now(timezone.utc)
+    ev = client.post(f"/api/teams/{offiziell}/events", headers=ko, json={
+        "titel": "Opt", "start": (jetzt - timedelta(days=2)).isoformat(), "ende": (jetzt + timedelta(days=1)).isoformat(),
+        "tafeln": [{"kennzahl": "sum_pumps", "accel_only": False}], "global_event": True}).json()
+    namen = lambda: {z["name"] for z in client.get(f"/api/teams/{offiziell}/events/{ev['id']}", headers=ka).json()["tafeln"][0]["zeilen"]}
+    assert {"Opt Anna", "Opt Bert"} <= namen()
+    assert client.put("/api/settings", headers=kb, json={"global_events_aus": True}).status_code == 200
+    T._GLOBAL_AUS["zeit"] = 0.0
+    T._cache.clear()
+    assert "Opt Bert" not in namen() and "Opt Anna" in namen()

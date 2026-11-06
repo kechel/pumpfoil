@@ -1639,6 +1639,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - [ ] Event-Seite: kein Beitreten bei globalen, Hinweis `team.event.globalHinweis`, Team-Rangliste je Bestenliste
         (`tafeln[].teams`), Auswahl „Bestenliste fuer" eigene Teams (`?team=<slug>`), Abzeichen auf der Profilseite.
   - [ ] Event anlegen im offiziellen Team (`offiziell` am Team): Haken + Teamwertung (beste 3/5/10/alle).
+  - [ ] Seit 06.11. nachmittags dazu: Event-Seite eine Bestenliste per Auswahl, links Fahrer rechts Teams, Top 10 +
+        eigene Zeile (`tafeln[].eigene`), Stand mit Datum in den Listen (`tafeln[].stand`, „Endstand" nach dem Einfrieren),
+        Aktualisieren, Teilen-Bild der Team-Rangliste, Pille LIVE im Bild; Community „Events deiner Teams"
+        (`/liste/events/meine`), Kalenderkarte fuer globale Events; Profil-Schalter `global_events_aus`.
   **Danach:** Changelog-Punkte je App bei der Einreichung, `NAECHSTES` in appmeta.py, PARITY-AUDIT nachziehen.
 
 - **🔲 02.11. (Nutzer-Feedback, Team-Kapitaen PL, 1:1-Chat mit Jan) — langer Vorschlagskatalog Community/Home/Bestenliste.**

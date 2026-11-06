@@ -431,6 +431,7 @@ export default function Settings() {
           unter den block mit Public profile page passen"). Steht richtig hier: es ist dieselbe
           Art Entscheidung — was sehen andere von mir. */}
       <OrtVerbergenCard onSaved={flashSaved} />
+      <GlobaleEventsCard onSaved={flashSaved} />
       <AktivAufKarteCard onSaved={flashSaved} />
 
       {/* Online-Punkt (Jan, 01.10.2026: „bau das mit ins profil ein zum ausstellen, aber erstmal
@@ -797,6 +798,34 @@ function OnlinePunktCard({ onSaved }: { onSaved?: () => void }) {
           className="h-4 w-4 rounded border-slate-600 bg-slate-800"
         />
         {t("online.switch")}
+      </label>
+    </Card>
+  );
+}
+
+// Opt-out globale Events (Jan, 06.11.2026): wer nicht automatisch in den Bestenlisten der globalen Events stehen will.
+function GlobaleEventsCard({ onSaved }: { onSaved?: () => void }) {
+  const t = useT();
+  const [an, setAn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    api.getSettings().then((s) => setAn(!!s.global_events_aus)).catch(() => setAn(false));
+  }, []);
+  if (an === null) return null;
+  return (
+    <Card className="mt-4 p-5">
+      <h3 className="mb-1 font-semibold">{t("globalev.title")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("globalev.hint")}</p>
+      <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-slate-200">
+        <input type="checkbox" checked={an} disabled={busy}
+          onChange={(e) => {
+            const wert = e.target.checked;
+            setBusy(true);
+            api.saveSettings({ global_events_aus: wert }).then(() => { setAn(wert); onSaved?.(); })
+              .catch(() => {}).finally(() => setBusy(false));
+          }}
+          className="h-4 w-4 rounded border-slate-600 bg-slate-800" />
+        {t("globalev.switch")}
       </label>
     </Card>
   );
