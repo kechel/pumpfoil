@@ -154,14 +154,14 @@ struct TeamBestenlistenSection: View {
             Picker(Loc.t("team.vergleich.titel", lang), selection: $art) {
                 ForEach(VERGLEICH_ARTEN, id: \.0) { k, lk in Text(Loc.t(lk, lang)).tag(k) }
             }
-            .pickerStyle(.menu)
+            .pickerStyle(.menu).labelsHidden()   // Label stand doppelt und brach um (07.11.2026)
             Spacer(minLength: 4)
             Picker(Loc.t("team.vergleich.titel", lang), selection: $top) {
                 ForEach([3, 5, 10], id: \.self) { n in
                     Text(Loc.t("team.vergleich.top", lang).replacingOccurrences(of: "{n}", with: String(n))).tag(n)
                 }
             }
-            .pickerStyle(.menu)
+            .pickerStyle(.menu).labelsHidden()
         }
     }
 
