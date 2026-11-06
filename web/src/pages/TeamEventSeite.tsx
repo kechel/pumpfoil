@@ -367,7 +367,8 @@ export default function TeamEventSeite() {
           busy={busy} onJa={beitreten} onNein={() => setDialog(false)} />
       )}
 
-      {bild && <TeamTafelBild team={team} tafel={bild} onClose={() => setBild(null)} zeitraum={ev.titel} stand={standFuer(bild)} />}
+      {bild && <TeamTafelBild team={team} tafel={bild} onClose={() => setBild(null)} zeitraum={ev.titel} stand={standFuer(bild)}
+        abzeichen={ev.status === "laeuft" || ev.status === "auswertung" ? t(`team.event.status.${ev.status}`) : null} />}
     </div>
   );
 }

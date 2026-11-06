@@ -27,6 +27,7 @@ export type BildDaten = {
   flaggen?: Record<string, HTMLImageElement>;   // geladene Flaggen je ISO-Code (s. BestenlisteBildDialog)
   wappenBilder?: Record<string, HTMLImageElement>;   // geladene Team-Logos je URL
   hell?: boolean;           // helle Fassung (Jan, 02.11.2026: Umschalter wie beim Teilen einer Session)
+  abzeichen?: string | null; // oben rechts als Pille, z. B. „live" solange ein Event nicht final ist (06.11.2026)
 };
 
 // Dieselben Farben wie die Session-Karte (sharecard.py: NAVY, WATER, CYAN/DCYAN, Sekundaer), je Fassung.
@@ -69,10 +70,22 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
     g.drawImage(d.logo, X, 58, 110, 110); g.restore();
     tx = X + 110 + 32;
   }
+  // Abzeichen oben rechts (Event noch nicht final): Pille in der Akzentfarbe, Titel wird entsprechend kuerzer.
+  let rechts = BILD_B - X;
+  if (d.abzeichen) {
+    g.font = `800 28px ${SCHRIFT}`;
+    const text = d.abzeichen.toUpperCase();
+    const bw = g.measureText(text).width + 44, bh = 50, bx = BILD_B - X - bw, by = 72;
+    g.fillStyle = akzent;
+    g.beginPath(); g.roundRect(bx, by, bw, bh, bh / 2); g.fill();
+    g.fillStyle = F.topText; g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText(text, bx + bw / 2, by + bh / 2 + 1);
+    rechts = bx - 24;
+  }
   g.textAlign = "left"; g.textBaseline = "alphabetic";
   g.fillStyle = akzent;
   g.font = `700 58px ${SCHRIFT}`;
-  g.fillText(kuerzen(g, d.titel, BILD_B - tx - X), tx, 64 + 54);
+  g.fillText(kuerzen(g, d.titel, rechts - tx), tx, 64 + 54);
   g.font = `700 30px ${SCHRIFT}`;
   g.fillText(kuerzen(g, d.unterzeile, BILD_B - tx - X), tx, 128 + 28);
 

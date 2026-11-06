@@ -7,11 +7,13 @@ import { kennzahl } from "../lib/teamKennzahlen";
 import BestenlisteBildDialog from "./BestenlisteBildDialog";
 import { useT } from "../i18n";
 
-export default function TeamTafelBild({ team, tafel, zeitraum, onClose, stand }: {
+export default function TeamTafelBild({ team, tafel, zeitraum, onClose, stand, abzeichen }: {
   team: { name: string; slug: string; logo_url: string | null; farbe: string | null; bestenlisten_oeffentlich?: boolean };
   tafel: TeamTafelMitZeilen; zeitraum: string; onClose: () => void;
   /** Events: „Stand 14:32" bzw. „Endstand" in der Unterzeile (Jan, 06.11.2026). */
   stand?: string | null;
+  /** Pille oben rechts, z. B. „live", solange das Event nicht final ist. */
+  abzeichen?: string | null;
 }) {
   const t = useT();
   const k = kennzahl(tafel.kennzahl);
@@ -25,7 +27,8 @@ export default function TeamTafelBild({ team, tafel, zeitraum, onClose, stand }:
     // `dunkel` = Textfarbe fuer den DUNKLEN Modus (helle Stufe, s. lib/teamFarben.ts) — auf Navy muss sie leuchten.
     akzent: (TEAM_FARBEN[team.farbe || "cyan"] ?? TEAM_FARBEN.cyan).dunkel,
     akzentHell: (TEAM_FARBEN[team.farbe || "cyan"] ?? TEAM_FARBEN.cyan).hell,
-  }), [team, tafel, zeitraum, stand]);   // eslint-disable-line react-hooks/exhaustive-deps
+    abzeichen,
+  }), [team, tafel, zeitraum, stand, abzeichen]);   // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <BestenlisteBildDialog daten={daten} logoUrl={team.logo_url} dateiname={`${team.slug}-${tafel.kennzahl}.jpg`}
       titel={t("team.bild.titel")} hinweis={team.bestenlisten_oeffentlich ? null : t("team.bild.hinweisIntern")} onClose={onClose} />
