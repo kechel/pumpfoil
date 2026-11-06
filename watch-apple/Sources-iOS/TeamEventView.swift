@@ -6,6 +6,10 @@ import SwiftUI
 // Teilen-Zeile bei oeffentlichem Team; Box „Event-Regeln". Beitreten fuer Angemeldete ohne Mitgliedschaft mit dem
 // Kleingedruckten (TeamBeitrittSheet). Leitung/Moderatoren bearbeiten das Event ueber das Zahnrad oben
 // (TeamEventsVerwalten.swift, seit 04.11.2026 nativ; vorher im Web).
+// Seit 06.11.2026 (web 5a5db913 … c6697ebf): EINE Bestenliste zur Zeit per Auswahl, „Aktualisieren", solange das Event
+// laeuft oder ausgewertet wird, „Stand <Datum Uhrzeit>" bzw. „Endstand" in den Listen, Teilen als Bild mit Abzeichen LIVE.
+// Globale Events (jeder nimmt automatisch teil): kein Beitreten, Hinweis mit Opt-out, Top 10 + eigene Zeile und darunter
+// die Team-Rangliste (Summe der besten N je Team), kein Haftungsabsatz (das Event ist von pumpfoil.org selbst).
 
 struct TeamEventView: View {
     let slug: String
@@ -18,6 +22,11 @@ struct TeamEventView: View {
     @State private var busy = false
     @State private var meldung: String?
     @State private var editor: TeamEventEntwurf?
+    /// Gewaehlte Bestenliste (Index in `tafeln`), wie die Auswahl der Community-Bestenliste.
+    @State private var wahl = 0
+    @State private var laedt = false
+    /// Eigene aktive Teams (globale Events: eigene Teams hinter Platz 10 bleiben in der Team-Rangliste sichtbar).
+    @State private var meineSlugs: [String] = []
     @Environment(\.dismiss) private var dismiss
 
     private var feedbackPfad: String { "/teams/" + slug + "/events/" + String(eventId) }
@@ -45,7 +54,8 @@ struct TeamEventView: View {
     }
 
     private func editorSheet(_ e: TeamEventEntwurf) -> some View {
-        TeamEventEditor(slug: slug, farbe: team?.farbe, entwurf: e, auswahl: nil, lang: lang, fertig: { gespeichert in
+        TeamEventEditor(slug: slug, farbe: team?.farbe, entwurf: e, auswahl: nil, lang: lang, offiziell: team?.offiziell == true,
+                        fertig: { gespeichert in
             editor = nil
             if gespeichert { meldung = Loc.t("team.gespeichert", lang) }
             Task { await laden() }
@@ -64,15 +74,29 @@ struct TeamEventView: View {
 
     private func seite(_ t: TeamInfo, _ e: TeamEvent) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            teamZeile(t)
+            teamZeile(t, e)
             if let m = meldung { meldungsBox(m) }
             bild(t, e)
             EventKopf(e: e, farbe: t.farbe, lang: lang)
-            beitrittBereich(t)
+            if !e.istGlobal { beitrittBereich(t) }
             Text(Loc.t(eventStandKey(e.status), lang)).font(.title3.weight(.bold))
             standBereich(t, e)
             teilenBereich(t, e)
             EventRegelnBox(e: e, lang: lang)
+        }
+    }
+
+    /// Globale Events: Wappen + Name des offiziellen Teams ohne Link, dazu „Global" (web: kein Team zum Mitmachen).
+    @ViewBuilder private func teamZeile(_ t: TeamInfo, _ e: TeamEvent) -> some View {
+        if e.istGlobal {
+            HStack(spacing: 8) {
+                TeamWappen(name: t.name, logo: t.logo_url, farbe: t.farbe, size: 20)
+                Text(t.name).font(.subheadline).foregroundStyle(.secondary)
+                EventGlobalChip(lang: lang)
+            }
+            .padding(.top, 8)
+        } else {
+            teamZeile(t)
         }
     }
 
@@ -135,22 +159,170 @@ struct TeamEventView: View {
         } else {
             if e.status == "laeuft" { EventEndetInKarte(e: e, farbe: t.farbe, lang: lang) }
             if !(e.summen_auswahl ?? []).isEmpty { summenBereich(t, e) }
-            let mehrereSportarten: Bool = Set(e.tafeln.map { $0.sportart }).count > 1
-            ForEach(Array(e.tafeln.enumerated()), id: \.offset) { _, tf in
-                TeamTafelKarte(tf: tf, farbe: t.farbe, lang: lang, ohneFilter: true, sportZeigen: mehrereSportarten)
-            }
+            auswahlZeile(e)
+            tafelBereich(t, e)
         }
+    }
+
+    /// Je nach Anzahl ueber die ganze Breite (web b48a1cac, Spalten wie dort auf dem Handy): 1 -> 1, 3 -> 1, sonst 2.
+    private func summenSpalten(_ e: TeamEvent) -> Int {
+        let n: Int = eventSummenKacheln(e, lang).count
+        return n == 1 || n == 3 ? 1 : 2
     }
 
     private func summenBereich(_ t: TeamInfo, _ e: TeamEvent) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(Loc.t("team.event.teamGesamt", lang).uppercased()).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-            TeamZahlenRaster(kacheln: eventSummenKacheln(e, lang), farbe: t.farbe, spalten: 2, rand: true, gross: true)
+            TeamZahlenRaster(kacheln: eventSummenKacheln(e, lang), farbe: t.farbe, spalten: summenSpalten(e), rand: true, gross: true)
         }
     }
 
+    // MARK: Eine Bestenliste zur Zeit
+
+    private func gewaehlt(_ e: TeamEvent) -> TeamTafel? {
+        guard !e.tafeln.isEmpty else { return nil }
+        return e.tafeln[min(wahl, e.tafeln.count - 1)]
+    }
+
+    /// Globale Events: Top 10 und die eigene Zeile darunter (wie die Community-Bestenliste, web 61628ba7).
+    private func anzeigeTafel(_ e: TeamEvent, _ tf: TeamTafel) -> TeamTafel {
+        guard e.istGlobal else { return tf }
+        var x: TeamTafel = tf
+        var z: [TeamZeile] = Array(tf.zeilen.prefix(10))
+        if let ich = tf.eigene, ich.rang > 10 { z.append(ich) }
+        x.zeilen = z
+        return x
+    }
+
+    private func laeuftNoch(_ e: TeamEvent) -> Bool { e.status == "laeuft" || e.status == "auswertung" }
+
+    /// Auswahl der Bestenliste (ab zwei) und „Aktualisieren" (solange sich noch etwas aendern kann).
+    @ViewBuilder private func auswahlZeile(_ e: TeamEvent) -> some View {
+        if e.tafeln.count > 1 || laeuftNoch(e) {
+            HStack(spacing: 8) {
+                if e.tafeln.count > 1 { tafelAuswahl(e) }
+                Spacer(minLength: 4)
+                if laeuftNoch(e) { neuLadenKnopf }
+            }
+        }
+    }
+
+    private func tafelAuswahl(_ e: TeamEvent) -> some View {
+        let n: Int = e.tafeln.count
+        let bindung: Binding<Int> = Binding(get: { min(wahl, n - 1) }, set: { wahl = $0 })
+        return Picker(Loc.t("home.leaderboards", lang), selection: bindung) {
+            ForEach(Array(e.tafeln.enumerated()), id: \.offset) { i, tf in
+                Text(Loc.t(teamKennzahl(tf.kennzahl).labelKey, lang)).tag(i)
+            }
+        }
+        .pickerStyle(.menu)
+    }
+
+    /// Der Server rechnet hoechstens alle 2 min neu (web 881d7843).
+    private var neuLadenKnopf: some View {
+        Button { Task { await neuLaden() } } label: {
+            HStack(spacing: 6) {
+                if laedt { ProgressView().controlSize(.small) } else { Image(systemName: "arrow.clockwise") }
+                Text(Loc.t("team.event.neuLaden", lang))
+            }
+            .font(.subheadline)
+        }
+        .buttonStyle(.bordered)
+        .disabled(laedt)
+    }
+
+    /// Fahrer-Liste, bei globalen Events darunter die Team-Rangliste (auf dem Handy untereinander wie im Web).
+    @ViewBuilder private func tafelBereich(_ t: TeamInfo, _ e: TeamEvent) -> some View {
+        if let tf0 = gewaehlt(e) {
+            let stand: String? = eventStandText(e, tf0, lang)
+            let mehrSport: Bool = Set(e.tafeln.map { $0.sportart }).count > 1
+            TeamTafelKarte(tf: anzeigeTafel(e, tf0), farbe: t.farbe, lang: lang, ohneFilter: true, sportZeigen: mehrSport,
+                           standText: stand, onBild: { fahrerBild(t, e, tf0) })
+            if e.istGlobal {
+                TeamWertungKarte(tf: tf0, n: e.team_wertung_n ?? 5, farbe: t.farbe, lang: lang, eigeneSlugs: meineSlugs,
+                                 standText: stand, onBild: { teamsBild(e, tf0) })
+            }
+        }
+    }
+
+    // MARK: Teilen als Bild
+
+    /// Abzeichen oben rechts im Bild, solange das Event nicht final ist (web 6f12c55f).
+    private func bildAbzeichen(_ e: TeamEvent) -> String? {
+        laeuftNoch(e) ? Loc.t("team.event.status." + e.status, lang) : nil
+    }
+
+    /// Fahrer-Bestenliste als Bild (web TeamTafelBild): Teamname, darunter Kennzahl · Sportart · Event · Stand; Top 10.
+    private func fahrerBild(_ t: TeamInfo, _ e: TeamEvent, _ tf: TeamTafel) {
+        let k: TeamKennzahl = teamKennzahl(tf.kennzahl)
+        let sprache: String = lang
+        var teile: [String] = [Loc.t(k.labelKey, lang)]
+        if tf.sportart != "pumpfoil" { teile.append(Loc.t("cls.sport." + tf.sportart, lang)) }
+        teile.append(e.titel)
+        if let st = eventStandText(e, tf, lang) { teile.append(st) }
+        let unter: String = teile.joined(separator: " · ")
+        let abz: String? = bildAbzeichen(e)
+        let titel: String = t.name
+        var zeilen: [TeamBildZeile] = []
+        for z in tf.zeilen.prefix(10) {
+            zeilen.append(TeamBildZeile(rang: z.rang, name: z.name ?? z.initialen ?? "—", wert: k.fmt(z.value, sprache), ich: false,
+                                        logo: nil, farbe: nil, land: z.land))
+        }
+        let fertig: [TeamBildZeile] = zeilen
+        Task { @MainActor in
+            let flaggen: [String: UIImage] = TeamEventView.flaggen(fertig)
+            let daten = TeamBildDaten(titel: titel, unterzeile: unter, zeilen: fertig, eigene: nil, logos: [:], flaggen: flaggen,
+                                      abzeichen: abz)
+            TeamBildDialog.zeigen(daten, lang: sprache)
+        }
+    }
+
+    /// Team-Rangliste als Bild (web 6b9a6f0d): Top 10, das eigene Team dahinter darunter, Wappen je Zeile.
+    private func teamsBild(_ e: TeamEvent, _ tf: TeamTafel) {
+        let k: TeamKennzahl = teamKennzahl(tf.kennzahl)
+        let sprache: String = lang
+        let n: Int = e.team_wertung_n ?? 5
+        let meine: [String] = meineSlugs
+        let alle: [TeamWertungZeile] = tf.teams ?? []
+        let wertung: String = n == 0 ? Loc.t("team.event.wertungAlle", lang) : teamText("team.event.wertungBeste", lang, ["n": String(n)])
+        var teile: [String] = [e.titel, wertung]
+        if let st = eventStandText(e, tf, lang) { teile.append(st) }
+        let unter: String = teile.joined(separator: " · ")
+        let titel: String = Loc.t("team.event.teams", lang) + " · " + Loc.t(k.labelKey, lang)
+        let abz: String? = bildAbzeichen(e)
+        var zeilen: [TeamBildZeile] = []
+        for x in alle.prefix(10) { zeilen.append(TeamEventView.bildZeile(x, k.fmt(x.value, sprache), meine.contains(x.slug))) }
+        var eigen: TeamBildZeile? = nil
+        if let x = alle.dropFirst(10).first(where: { meine.contains($0.slug) }) {
+            eigen = TeamEventView.bildZeile(x, k.fmt(x.value, sprache), true)
+        }
+        let fertig: [TeamBildZeile] = zeilen
+        let ende: TeamBildZeile? = eigen
+        Task { @MainActor in
+            let alleZeilen: [TeamBildZeile] = fertig + (ende.map { [$0] } ?? [])
+            let logos: [String: UIImage] = await TeamBildLogos.laden(alleZeilen)
+            let flaggen: [String: UIImage] = TeamEventView.flaggen(alleZeilen)
+            let daten = TeamBildDaten(titel: titel, unterzeile: unter, zeilen: fertig, eigene: ende, logos: logos, flaggen: flaggen,
+                                      abzeichen: abz)
+            TeamBildDialog.zeigen(daten, lang: sprache)
+        }
+    }
+
+    private static func bildZeile(_ x: TeamWertungZeile, _ wert: String, _ ich: Bool) -> TeamBildZeile {
+        TeamBildZeile(rang: x.rang, name: x.name, wert: wert, ich: ich, logo: x.logo_url, farbe: x.farbe, land: x.land)
+    }
+
+    @MainActor private static func flaggen(_ zeilen: [TeamBildZeile]) -> [String: UIImage] {
+        var out: [String: UIImage] = [:]
+        for z in zeilen {
+            if let l = z.land, out[l] == nil, let b = TeamFlaggenBild.bild(l) { out[l] = b }
+        }
+        return out
+    }
+
     @ViewBuilder private func teilenBereich(_ t: TeamInfo, _ e: TeamEvent) -> some View {
-        if t.bestenlisten_oeffentlich == true, let u = Api.teamWebURL("/teams/" + t.slug + "/events/" + String(e.id)) {
+        // Globale Events immer (sichtbar fuer jeden Angemeldeten und als Gast-Link), sonst nur bei oeffentlichen Bestenlisten.
+        if t.bestenlisten_oeffentlich == true || e.istGlobal, let u = Api.teamWebURL("/teams/" + t.slug + "/events/" + String(e.id)) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(Loc.t("team.event.teilen", lang)).font(.subheadline).foregroundStyle(.secondary)
                 TeamTeilenZeile(url: u, titel: e.titel, farbe: t.farbe, lang: lang)
@@ -167,10 +339,23 @@ struct TeamEventView: View {
             ev = e
             team = await t
             fehlt = team == nil
+            if e.istGlobal && meineSlugs.isEmpty { await meineTeamsLaden() }
         } catch {
             _ = await t
             if ev == nil { fehlt = true }
         }
+    }
+
+    /// Nur die Bestenlisten neu holen (Knopf „Aktualisieren"); schlaegt es fehl, bleibt der alte Stand stehen.
+    private func neuLaden() async {
+        laedt = true
+        defer { laedt = false }
+        if let e = try? await Api.teamEvent(slug, id: eventId) { ev = e }
+    }
+
+    private func meineTeamsLaden() async {
+        guard let l = try? await Api.teamsMine() else { return }
+        meineSlugs = l.filter { $0.status == "aktiv" && $0.slug != slug }.map { $0.slug }
     }
 
     private func beitreten() async {
@@ -216,6 +401,7 @@ private struct EventKopf: View {
             Text(zeitraum).font(.subheadline.weight(.semibold))
             if let s = spots { teamSpotChip(s) }
             if let b = beschreibung { Text(b).font(.subheadline.weight(.semibold)).fixedSize(horizontal: false, vertical: true) }
+            if e.istGlobal { EventGlobalHinweis(lang: lang) }
             Rectangle().fill(tf.akzent).frame(height: 2)
         }
     }
@@ -333,7 +519,8 @@ private struct EventRegelnBox: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(Loc.t("team.event.regelnTitel", lang)).font(.subheadline.weight(.semibold))
             ForEach(Array(punkte.enumerated()), id: \.offset) { _, z in punkt(z) }
-            haftung
+            // Haftungsabsatz nur bei Team-Events — globale veranstaltet pumpfoil.org selbst (web 5a5db913).
+            if !e.istGlobal { haftung }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -356,5 +543,113 @@ private struct EventRegelnBox: View {
             Text("•").font(.subheadline).foregroundStyle(.secondary)
             Text(z).font(.subheadline).fixedSize(horizontal: false, vertical: true)
         }
+    }
+}
+
+/// Globale Events: „Alle nehmen automatisch teil …" und darunter der Weg zum Opt-out (Einstellungen › Privatsphaere,
+/// web f82e0e66) als Link.
+private struct EventGlobalHinweis: View {
+    let lang: String
+    private var marke: TeamFarbe { TeamFarbe(nil) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(Loc.t("team.event.globalHinweis", lang)).font(.subheadline)
+                .fixedSize(horizontal: false, vertical: true)
+            NavigationLink {
+                EinstellungenView(start: "privat")
+                    .brandToolbar(Loc.t("nav.settings", lang), feedbackUrl: "/einstellungen")
+            } label: {
+                Text(Loc.t("team.event.globalOptOut", lang)).font(.subheadline).underline()
+                    .foregroundStyle(marke.akzent)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.top, 2)
+    }
+}
+
+/// Team-Rangliste eines globalen Events (web TeamWertung, 06.11.2026): je Team die Summe der besten N Mitglieder,
+/// `fahrer`/`teilnehmer` daneben. Top 10, dazu die eigenen Teams weiter hinten. Gleiche Karte und Ueberschrift wie die
+/// Fahrer-Liste (web 22c5da16: „einheitlich"), Stand in derselben Zeile wie „Summe der besten 5" (web c6697ebf).
+private struct TeamWertungKarte: View {
+    let tf: TeamTafel
+    let n: Int
+    let farbe: String?
+    let lang: String
+    let eigeneSlugs: [String]
+    let standText: String?
+    let onBild: () -> Void
+
+    private var k: TeamKennzahl { teamKennzahl(tf.kennzahl) }
+    private var tfarbe: TeamFarbe { TeamFarbe(farbe) }
+    private var alle: [TeamWertungZeile] { tf.teams ?? [] }
+    private var zeilen: [TeamWertungZeile] {
+        let a: [TeamWertungZeile] = alle
+        let hinten: [TeamWertungZeile] = a.dropFirst(10).filter { eigeneSlugs.contains($0.slug) }
+        return Array(a.prefix(10)) + hinten
+    }
+    private var titel: String { Loc.t("team.event.teams", lang) + " · " + Loc.t(k.labelKey, lang) }
+    private var unterzeile: String {
+        let w: String = n == 0 ? Loc.t("team.event.wertungAlle", lang) : teamText("team.event.wertungBeste", lang, ["n": String(n)])
+        guard let st = standText else { return w }
+        return w + " · " + st
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            kopf
+            Text(unterzeile).font(.caption).foregroundStyle(.secondary)
+            liste
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var kopf: some View {
+        HStack(spacing: 8) {
+            Text(titel).font(.headline).foregroundStyle(tfarbe.akzent)
+            if !alle.isEmpty {
+                Spacer(minLength: 4)
+                TeamTeilenKnopf(lang: lang, aktion: onBild)
+            }
+        }
+    }
+
+    @ViewBuilder private var liste: some View {
+        if zeilen.isEmpty {
+            Text(Loc.t("team.event.keineTeams", lang)).font(.subheadline).foregroundStyle(.secondary).padding(.top, 4)
+        } else {
+            VStack(spacing: 0) {
+                ForEach(Array(zeilen.enumerated()), id: \.element.slug) { i, z in
+                    if i > 0 { Divider() }
+                    zeile(z)
+                }
+            }
+        }
+    }
+
+    private func rangFarbe(_ rang: Int) -> Color { rang <= 3 ? tfarbe.akzent : Color.secondary }
+
+    private func anteil(_ z: TeamWertungZeile) -> String { String(z.fahrer) + "/" + String(z.teilnehmer) }
+
+    private func zeile(_ z: TeamWertungZeile) -> some View {
+        NavigationLink { TeamView(slug: z.slug) } label: {
+            HStack(spacing: 8) {
+                Text(String(z.rang)).font(.subheadline.weight(.bold)).foregroundStyle(rangFarbe(z.rang))
+                    .frame(width: 24, alignment: .trailing)
+                TeamWappen(name: z.name, logo: z.logo_url, farbe: z.farbe, size: 24)
+                Text(z.name).font(.subheadline).lineLimit(1)
+                Spacer(minLength: 4)
+                Text(anteil(z)).font(.caption).foregroundStyle(.secondary).monospacedDigit()
+                Text(k.fmt(z.value, lang)).font(.subheadline.weight(.semibold)).monospacedDigit()
+            }
+            .padding(.vertical, 6)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }

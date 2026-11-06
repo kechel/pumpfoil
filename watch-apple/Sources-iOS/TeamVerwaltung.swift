@@ -117,7 +117,8 @@ struct TeamVerwaltungView: View {
             TeamMitgliederVerwalten(daten: m, slug: slug, leiter: leiter, farbe: t.farbe, lang: lang, melden: melden,
                                     fragen: { frage = $0 }, neuLaden: { Task { await mitgliederLaden(); await kopfLaden() } })
         }
-        TeamEventsVerwaltenKarte(slug: slug, farbe: t.farbe, auswahl: auswahl, lang: lang, melden: melden)
+        TeamEventsVerwaltenKarte(slug: slug, farbe: t.farbe, auswahl: auswahl, lang: lang, melden: melden,
+                                 offiziell: t.offiziell == true)
         if let l = links {
             TeamEinladungenKarte(slug: slug, name: t.name, farbe: t.farbe, links: l, leiter: leiter, lang: lang,
                                  fragen: { frage = $0 }, neu: { art in Task { await linkNeu(art) } })

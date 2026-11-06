@@ -174,6 +174,10 @@ struct TeamTafelKarte: View {
     /// Sportart als Marke neben der Ueberschrift — wenn die Bestenlisten verschiedene Sportarten haben (web 831f6406,
     /// Jan 02.11.2026: „in den kacheln fehlt die anzeige welche sportart jeweils gemeint ist").
     var sportZeigen: Bool = false
+    /// „Stand 6. Nov., 14:32" bzw. „Endstand" unter der Ueberschrift (Event-Seite, web 72c78190, 06.11.2026).
+    var standText: String? = nil
+    /// Als Bild teilen — Knopf „Teilen" rechts neben der Ueberschrift (web 6b9a6f0d); nil = kein Knopf.
+    var onBild: (() -> Void)? = nil
 
     private var k: TeamKennzahl { teamKennzahl(tf.kennzahl) }
     private var tfarbe: TeamFarbe { TeamFarbe(farbe) }
@@ -192,6 +196,7 @@ struct TeamTafelKarte: View {
             if !ohneFilter && !filter.isEmpty {
                 Text(filter).font(.caption).foregroundStyle(.secondary)
             }
+            if let st = standText { Text(st).font(.caption).foregroundStyle(.secondary) }
             zeilenBereich
         }
         .padding(12)
@@ -207,6 +212,10 @@ struct TeamTafelKarte: View {
                     .padding(.horizontal, 8).padding(.vertical, 2)
                     .background(Capsule().fill(Color(.tertiarySystemBackground)))
             }
+            if let b = onBild, !tf.zeilen.isEmpty {
+                Spacer(minLength: 4)
+                TeamTeilenKnopf(lang: lang, aktion: b)
+            }
         }
     }
 
@@ -221,6 +230,20 @@ struct TeamTafelKarte: View {
                 }
             }
         }
+    }
+}
+
+/// „Teilen" mit Symbol (web 6b9a6f0d: Text neben dem Symbol) — oeffnet das Teilen-Bild einer Bestenliste.
+struct TeamTeilenKnopf: View {
+    let lang: String
+    let aktion: () -> Void
+
+    var body: some View {
+        Button(action: aktion) {
+            Label(Loc.t("team.teilen", lang), systemImage: "square.and.arrow.up").font(.subheadline)
+        }
+        .buttonStyle(.borderless)
+        .accessibilityHint(Loc.t("team.bild.titel", lang))
     }
 }
 

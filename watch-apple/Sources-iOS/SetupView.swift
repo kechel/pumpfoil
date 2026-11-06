@@ -133,7 +133,8 @@ struct SetupView: View {
                           || nsModel.trimmingCharacters(in: .whitespaces).isEmpty)
             if !stabErr.isEmpty { Text(stabErr).foregroundStyle(.red) }
         }
-        Section { MissingHintRow(question: Loc.t("setup.missingStab", lang), lang: lang) }
+        Section { MissingHintRow(question: Loc.t("setup.missingStab", lang), lang: lang,
+                                 vorlage: Loc.t("setup.missingStabPrefill", lang)) }
     }
 
     @ViewBuilder private func stabRow(_ st: StabBrief, isMine: Bool) -> some View {

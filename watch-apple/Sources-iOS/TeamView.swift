@@ -359,7 +359,7 @@ private struct TeamKopf: View {
 
     private var tf: TeamFarbe { TeamFarbe(k.farbe) }
     private var infoZeile: String {
-        var teile: [String] = [teamText("team.mitgliederAnzahl", lang, ["n": String(k.mitglieder_anzahl)])]
+        var teile: [String] = [teamText(k.mitglieder_anzahl == 1 ? "team.mitgliederAnzahl1" : "team.mitgliederAnzahl", lang, ["n": String(k.mitglieder_anzahl)])]
         if k.bestenlisten_oeffentlich == true { teile.append(Loc.t("team.oeffentlichBadge", lang)) }
         let sp: String = teamSportartenText(k.sportarten, lang)
         if !sp.isEmpty { teile.append(sp) }

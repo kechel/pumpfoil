@@ -75,6 +75,8 @@ struct TeamInfo: Codable {
     var freigabe_notiz: String? = nil
     var auftritt_geaendert: Bool? = nil
     var frei: TeamFreierAuftritt? = nil     // der freigegebene Auftritt; nil = noch nie freigegeben
+    /// Offizielles Team (server TEAM_GLOBAL, 06.11.2026): nur hier gibt es globale Events.
+    var offiziell: Bool? = nil
 
     var istVerwalter: Bool { meine_rolle == "leiter" || meine_rolle == "moderator" }
 }
@@ -109,7 +111,28 @@ struct TeamTafel: Codable {
     var nur_brett: Bool? = nil
     var foil_band: String? = nil
     var nur_teamspots: Bool? = nil
-    let zeilen: [TeamZeile]
+    var zeilen: [TeamZeile]
+    /// Globale Events (06.11.2026): Team-Rangliste dieser Bestenliste (Summe der besten N Mitglieder je Team).
+    var teams: [TeamWertungZeile]? = nil
+    /// Globale Events: die eigene Zeile aus der vollen Liste, auch hinter den gezeigten Plaetzen.
+    var eigene: TeamZeile? = nil
+    /// Events: wann die Bestenliste gerechnet wurde (ISO; der Server rechnet hoechstens alle 2 min neu).
+    var stand: String? = nil
+}
+
+/// Eine Zeile der Team-Rangliste eines globalen Events (Server teams.team_wertung): `fahrer` davon gezaehlt,
+/// `teilnehmer` = Mitglieder mit Wert im Event.
+struct TeamWertungZeile: Codable, Identifiable {
+    let rang: Int
+    let slug: String
+    let name: String
+    var logo_url: String? = nil
+    var farbe: String? = nil
+    var land: String? = nil
+    let value: Double
+    let fahrer: Int
+    let teilnehmer: Int
+    var id: String { slug }
 }
 
 struct TeamBestenlisten: Codable {
@@ -191,6 +214,11 @@ struct TeamEvent: Codable, Identifiable {
     var summen_accel_only: Bool? = nil
     var vorlage: String? = nil
     var spot_ids: [Int]? = nil
+    /// Globales Event (06.11.2026): jeder nimmt automatisch teil; Team-Rangliste aus den besten N (0 = alle).
+    var global: Bool? = nil
+    var team_wertung_n: Int? = nil
+
+    var istGlobal: Bool { global == true }
 
     func summe(_ key: String) -> Double {
         guard let w = summen?[key], let v = w else { return 0 }
@@ -225,6 +253,8 @@ struct TeamEventKurz: Codable, Identifiable {
     let sportarten: [String]
     let spots: [TeamSpotKurz]
     let team: TeamEventTeam
+    /// Globales Event (06.11.2026): jeder nimmt automatisch teil
+    var global: Bool? = nil
     var listenId: String { "\(team.slug)-\(id)" }
 }
 

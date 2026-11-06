@@ -28,6 +28,12 @@ extension Api {
         try await request("/api/teams/liste/events", method: "GET", body: nil, auth: true)
     }
 
+    /// Team-Events der eigenen Teams (laufend, kommend, letzte 7 Tage; Community unter den globalen und Home › Team,
+    /// 06.11.2026). Globale Events stehen dort nicht.
+    static func teamsEventsMeine() async throws -> [TeamEventKurz] {
+        try await request("/api/teams/liste/events/meine", method: "GET", body: nil, auth: true)
+    }
+
     /// Alle Events seitenweise: laufend -> kommend -> vergangen. Der Server begrenzt `n` auf 50.
     static func teamsEventsAlle(offset: Int, n: Int) async throws -> [TeamEventKurz] {
         try await request("/api/teams/liste/events/alle?offset=\(offset)&n=\(n)", method: "GET", body: nil, auth: true)

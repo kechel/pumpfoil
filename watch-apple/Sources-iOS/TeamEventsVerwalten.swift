@@ -61,6 +61,9 @@ struct TeamEventEntwurf: Identifiable {
     var tafeln: [TeamTafelEntwurf] = [TeamTafelEntwurf()]
     var spot_ids: [Int] = []
     var vorlage: String?
+    /// Globales Event (06.11.2026, nur im offiziellen Team) und Teamwertung: beste N, 0 = alle.
+    var global_event = false
+    var team_wertung_n = 5
     let id = UUID()
 
     static func neu() -> TeamEventEntwurf {
@@ -84,6 +87,8 @@ struct TeamEventEntwurf: Identifiable {
         e.tafeln = ev.tafeln.map { TeamTafelEntwurf($0) }
         e.spot_ids = ev.spot_ids ?? ev.spots.map { $0.id }
         e.vorlage = ev.vorlage
+        e.global_event = ev.istGlobal
+        e.team_wertung_n = ev.team_wertung_n ?? 5
         return e
     }
 
@@ -109,6 +114,8 @@ struct TeamEventEntwurf: Identifiable {
             "summen": summen,
             "summen_sportart": summen_sportart,
             "summen_accel_only": summen_accel_only,
+            "global_event": global_event,
+            "team_wertung_n": global_event ? team_wertung_n as Any : NSNull() as Any,
         ]
     }
 }
@@ -121,6 +128,8 @@ struct TeamEventsVerwaltenKarte: View {
     let auswahl: TeamAuswahl?
     let lang: String
     let melden: (String) -> Void
+    /// Offizielles Team (06.11.2026): im Editor der Haken „Globales Event" und die Teamwertung.
+    var offiziell: Bool = false
     @State private var liste: [TeamEvent] = []
     @State private var offen: TeamEventEntwurf?
 
@@ -136,7 +145,7 @@ struct TeamEventsVerwaltenKarte: View {
         }
         .task { await laden() }
         .sheet(item: $offen) { e in
-            TeamEventEditor(slug: slug, farbe: farbe, entwurf: e, auswahl: auswahl, lang: lang) { gespeichert in
+            TeamEventEditor(slug: slug, farbe: farbe, entwurf: e, auswahl: auswahl, lang: lang, offiziell: offiziell) { gespeichert in
                 offen = nil
                 Task { await laden() }
                 if gespeichert { melden(Loc.t("team.gespeichert", lang)) }
@@ -172,6 +181,8 @@ struct TeamEventEditor: View {
     @State var entwurf: TeamEventEntwurf
     @State var auswahl: TeamAuswahl?
     let lang: String
+    /// Offizielles Team: Haken „Globales Event" + Teamwertung (web 5a5db913). Sonst wird nie global gespeichert.
+    var offiziell: Bool = false
     /// `true` = gespeichert, `false` = abgebrochen oder geloescht.
     let fertig: (Bool) -> Void
     var geloescht: (() -> Void)? = nil
@@ -193,6 +204,7 @@ struct TeamEventEditor: View {
                         Text(Loc.t("team.err.event_eingefroren", lang)).font(.subheadline).foregroundStyle(.secondary)
                     }
                 } else {
+                    if offiziell { globalSection }
                     grundSection
                     tafelnSection
                     summenSection
@@ -228,6 +240,26 @@ struct TeamEventEditor: View {
 
     private var vorlageWahl: Binding<String> {
         Binding(get: { entwurf.vorlage ?? "" }, set: { k in vorlageSetzen(k) })
+    }
+
+    /// Globales Event (06.11.2026): jeder mit passenden Sessions nimmt teil, dazu eine Team-Rangliste aus den besten N
+    /// Mitgliedern jedes Teams. Nur im offiziellen Team.
+    @ViewBuilder private var globalSection: some View {
+        Section {
+            Toggle(isOn: $entwurf.global_event) {
+                Text(Loc.t("team.event.globalHaken", lang)).font(.subheadline.weight(.semibold))
+            }
+            if entwurf.global_event {
+                Picker(Loc.t("team.event.wertung", lang), selection: $entwurf.team_wertung_n) {
+                    ForEach([3, 5, 10], id: \.self) { n in
+                        Text(teamText("team.event.wertungBeste", lang, ["n": String(n)])).tag(n)
+                    }
+                    Text(Loc.t("team.event.wertungAlle", lang)).tag(0)
+                }
+                .font(.subheadline)
+            }
+        }
+        .listRowBackground(TeamFarbe(nil).flaeche.opacity(0.10))
     }
 
     @ViewBuilder private var grundSection: some View {
@@ -361,6 +393,8 @@ struct TeamEventEditor: View {
         busy = true
         fehler = nil
         defer { busy = false }
+        // Global nur im offiziellen Team (der Server lehnt es sonst ab: nur_offiziell).
+        if !offiziell { entwurf.global_event = false }
         do {
             if let id = entwurf.eventId {
                 _ = try await Api.teamEventAendern(slug, id: id, entwurf.json)

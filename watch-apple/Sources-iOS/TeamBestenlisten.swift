@@ -270,6 +270,8 @@ struct TeamBildDaten {
     let flaggen: [String: UIImage]
     /// „Daten von: Garmin · …" klein ueber dem Fuss (Garmins Vorgabe: in jedem Bild, 05.11.2026).
     var quelle: String? = nil
+    /// Pille oben rechts, z. B. „Live", solange ein Event nicht final ist (web 6f12c55f, 06.11.2026).
+    var abzeichen: String? = nil
 }
 
 /// Logos vorab laden: ImageRenderer zeichnet sofort, ein NetzBild kaeme zu spaet (dann stuenden nur Initialen da).
@@ -407,12 +409,26 @@ struct TeamBestenlisteBild: View {
         .frame(width: 1080, height: 1080, alignment: .topLeading)
     }
 
+    // Mit Abzeichen wird der Titel entsprechend kuerzer, die Unterzeile behaelt die volle Breite (wie im Web).
     private var kopf: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(daten.titel).font(.system(size: 58, weight: .bold)).foregroundStyle(f.akzent).lineLimit(1)
+            HStack(alignment: .center, spacing: 24) {
+                Text(daten.titel).font(.system(size: 58, weight: .bold)).foregroundStyle(f.akzent).lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                if let a = daten.abzeichen { pille(a) }
+            }
             Text(daten.unterzeile).font(.system(size: 30, weight: .bold)).foregroundStyle(f.akzent).lineLimit(1)
         }
         .frame(width: 900, alignment: .leading)
+    }
+
+    /// Pille in der Akzentfarbe, Schrift wie web F.topText (dunkel: Navy, hell: weiss).
+    private func pille(_ text: String) -> some View {
+        Text(text.uppercased()).font(.system(size: 28, weight: .heavy)).lineLimit(1).fixedSize()
+            .foregroundStyle(hell ? Color.white : f.grund)
+            .padding(.horizontal, 22)
+            .frame(height: 50)
+            .background(f.akzent, in: Capsule())
     }
 
     private var zeilenBlock: some View {

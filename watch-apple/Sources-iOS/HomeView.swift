@@ -12,6 +12,10 @@ struct HomeView: View {
     // Programmatische Navigation fuer die Rekord-Kacheln (LazyVGrid) — s. CommunityView.
     @State private var navPath = NavigationPath()
     @State private var homeTab: String = ReiterSpeicher.von("home", "uebersicht")   // App-Port Phase 3 (Reiter)
+    // Events (web EventHinweis.tsx, 06.11.2026): globale fuer die Hinweise auf der Uebersicht, die der eigenen Teams fuer
+    // Home › Team (Kacheln + Abzeichen am Reiter). Hier geladen, weil die Ansichten leer starten (s. EventHinweise).
+    @State private var globalEvents: [TeamEventKurz] = []
+    @State private var teamEvents: [TeamEventKurz] = []
     // Zweite Reiterzeile unter Home › Stats (wie web PersonalHome `StatsBereich`): Verlauf · Kennzahlen · Lage des Bretts.
     @State private var statsTab: String = ReiterSpeicher.von("homestats", "verlauf")
     // Home › Spots (Phase 4): alle Spots mit eigenen Sessions (nil = laedt noch).
@@ -105,6 +109,7 @@ struct HomeView: View {
                 .refreshable { await load() }
                 .task { await load() }
                 .task { await checkUpdate() }
+                .task(id: sync.tick) { await eventsLaden() }
                 .onChange(of: sync.tick) { _ in Task { await load() } }
                 .onChange(of: stats?.count) { _ in maybeShowRating() }
                 .task { await ratingAfterDelay() }
@@ -151,7 +156,7 @@ struct HomeView: View {
             homeReiterleiste
             switch homeTab {
             case "rekorde": homeRekorde
-            case "team": HomeTeamsListe(lang: lang, neuLadenTick: sync.tick)
+            case "team": HomeTeamsListe(lang: lang, neuLadenTick: sync.tick, teamEvents: teamEvents)
             case "spots": HomeSpotsBereich(lang: lang, liste: meineSpots, homespotName: homespotName)
             case "stats": homeStats
             default: homeUebersicht
@@ -163,7 +168,8 @@ struct HomeView: View {
     private var homeReiter: [ReiterDef] {
         var r: [ReiterDef] = [ReiterDef(id: "uebersicht", label: Loc.t("tab.overview", lang)),
                               ReiterDef(id: "rekorde", label: Loc.t("side.records", lang)),
-                              ReiterDef(id: "team", label: Loc.t("tab.team", lang))]
+                              // Abzeichen: LIVE bzw. Zahl der kommenden Events der eigenen Teams (web 03fd4574).
+                              ReiterDef(id: "team", label: Loc.t("tab.team", lang), abzeichen: reiterAbzeichen(teamEvents))]
         // „Spots" nur mit Homespot oder eigenen Spots (wie im Web).
         if homespotName != nil || !(meineSpots ?? []).isEmpty { r.append(ReiterDef(id: "spots", label: Loc.t("nav.spots", lang))) }
         r.append(ReiterDef(id: "stats", label: Loc.t("tab.stats", lang)))
@@ -210,6 +216,8 @@ struct HomeView: View {
     }
 
     @ViewBuilder private var homeUebersicht: some View {
+        // Laufendes oder bald beginnendes globales Event (web 5ac875bc, 06.11.2026).
+        if !globalEvents.isEmpty { EventHinweise(lang: lang, events: globalEvents) }
         if incomingXfer > 0 { transferHint }
         if let n = session.profile?.needs_classification, n > 0 { needsClassHint(n) }
         if let n = session.profile?.sorted_out_new, n > 0 { aussortiertHinweis(n) }
@@ -220,6 +228,12 @@ struct HomeView: View {
         FreundeLetzteAbschnitt(lang: lang, neuLadenTick: sync.tick)
         // Wetter am Homespot direkt unter den letzten Sessions (Jan, 25.09.2026).
         if let sw = weather { HomeWeatherCard(sw: sw, lang: lang) }
+    }
+
+    private func eventsLaden() async {
+        async let g: [TeamEventKurz]? = try? Api.teamsEventsAktuell()
+        if let t = try? await Api.teamsEventsMeine() { teamEvents = t }
+        if let gl = await g { globalEvents = gl }
     }
 
     @ViewBuilder private var homeRekorde: some View {

@@ -128,7 +128,8 @@ struct EinstellungenUebersicht: View {
         Section {
             kachel("konten", symbol: "applewatch", titel: Loc.t("tab.watchAccounts", lang), unter: Loc.t("accounts.title", lang))
             if session.profile?.social_allowed != false { freundeKachel }
-            kachel("team", symbol: "flag", titel: Loc.t("team.profilKnopf", lang), unter: Loc.t("team.profilHinweis", lang), zahl: teamAnfragen)
+            // Teams: drei Personen, die Fahne steht seit 06.11.2026 fuer Events (web fefda447 TeamIcon/EventIcon).
+            kachel("team", symbol: "person.3", titel: Loc.t("team.profilKnopf", lang), unter: Loc.t("team.profilHinweis", lang), zahl: teamAnfragen)
             ausruestungKachel
             importKachel
         }
@@ -474,7 +475,7 @@ struct TeamSuche: View {
     }
 
     private func unterzeile(_ tm: TeamListenEintrag) -> String {
-        let n: String = teamText("team.mitgliederAnzahl", lang, ["n": String(tm.mitglieder_anzahl)])
+        let n: String = teamText(tm.mitglieder_anzahl == 1 ? "team.mitgliederAnzahl1" : "team.mitgliederAnzahl", lang, ["n": String(tm.mitglieder_anzahl)])
         let sp: String = teamSportartenText(tm.sportarten, lang)
         return sp.isEmpty ? n : n + " · " + sp
     }

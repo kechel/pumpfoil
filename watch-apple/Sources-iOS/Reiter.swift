@@ -7,6 +7,14 @@ import SwiftUI
 struct ReiterDef: Identifiable, Hashable {
     let id: String
     let label: String
+    /// Abzeichen hinter dem Namen (web ReiterDef.badge, 06.11.2026): Events — LIVE bzw. Zahl der kommenden.
+    var abzeichen: ReiterAbzeichen? = nil
+}
+
+/// Event-Abzeichen eines Reiters: `live` = ein Event laeuft, sonst `bald` kommende (0 = nichts zeigen).
+struct ReiterAbzeichen: Hashable {
+    let live: Bool
+    let bald: Int
 }
 
 struct Reiterleiste: View {
@@ -35,14 +43,12 @@ struct Reiterleiste: View {
         let an = r.id == aktiv
         Button { aktiv = r.id } label: {
             if stufe == 2 {
-                Text(r.label).font(.subheadline).fontWeight(an ? .semibold : .regular).lineLimit(1)
-                    .foregroundStyle(an ? Color.primary : Color.secondary)
+                beschriftung(r, an)
                     .padding(.horizontal, 12).padding(.vertical, 6)
                     .background(RoundedRectangle(cornerRadius: 8).fill(an ? Color(.systemBackground) : Color.clear))
             } else {
                 VStack(spacing: 0) {
-                    Text(r.label).font(.subheadline).fontWeight(an ? .semibold : .regular).lineLimit(1)
-                        .foregroundStyle(an ? Color.primary : Color.secondary)
+                    beschriftung(r, an)
                         .padding(.horizontal, 12).padding(.vertical, 10)
                     Rectangle().fill(an && !unter ? Color.accentColor : Color.clear).frame(height: 2)
                 }
@@ -53,6 +59,20 @@ struct Reiterleiste: View {
         .buttonStyle(.plain)
         .id(r.id)
     }
+
+    private func beschriftung(_ r: ReiterDef, _ an: Bool) -> some View {
+        HStack(spacing: 6) {
+            Text(r.label).font(.subheadline).fontWeight(an ? .semibold : .regular).lineLimit(1)
+                .foregroundStyle(an ? Color.primary : Color.secondary)
+            if let a = r.abzeichen { EventReiterAbzeichen(live: a.live, bald: a.bald, lang: Api.uiLang) }
+        }
+    }
+}
+
+/// Abzeichen-Werte aus einer Event-Liste (web useEventAbzeichen / useTeamEventAbzeichen): laeuft eins -> LIVE, sonst die
+/// Zahl der kommenden.
+func reiterAbzeichen(_ events: [TeamEventKurz]) -> ReiterAbzeichen {
+    ReiterAbzeichen(live: events.contains { $0.status == "laeuft" }, bald: events.filter { $0.status == "kommend" }.count)
 }
 
 /// Gewaehlter Reiter je Bereich fuer die Dauer der App-Sitzung (wie im Web: jeder Bereich kehrt dorthin zurueck, wo man

@@ -27,6 +27,9 @@ struct CommunityView: View {
     // Reiter (App-Port Phase 8, 04.11.2026, wie web Home.tsx): Rekorde & Bestenliste · Medien · Teams & Events. Die letzte
     // Wahl gilt fuer die App-Sitzung. Spots und Routen stehen seitdem unter „Spots" (Reiter Liste/Routen).
     @State private var tab: String = ReiterSpeicher.von("community", "bestenliste")
+    // Abzeichen am Reiter „Teams & Events" (web 5ac875bc, 06.11.2026): LIVE, solange ein globales Event laeuft, sonst die
+    // Zahl der bald beginnenden (dieselbe Liste wie der Abschnitt „Globale Events").
+    @State private var eventAbzeichen: ReiterAbzeichen? = nil
     @State private var error: String?
     @State private var period = "10d"
     // Foil-Band („vergleichbare Foils") fuer Rekorde UND Bestenlisten — NICHT fuer Spots und
@@ -121,6 +124,7 @@ struct CommunityView: View {
             .refreshable { await reloadAll() }
             .task { if records == nil { await reloadAll() } }
             .task { await heuteVorwaehlen() }
+            .task { await eventAbzeichenLaden() }
             // „Neueste Medien" bei jedem Betreten auffrischen (gelöschte Fotos sofort weg, wie PWA).
             .onAppear { Task { await refreshMedia() } }
             .onChange(of: genau) { _ in Task { await reloadAll() } }
@@ -147,7 +151,12 @@ struct CommunityView: View {
 
     private var communityReiter: [ReiterDef] {
         [ReiterDef(id: "bestenliste", label: Loc.t("tab.rankings", lang)), ReiterDef(id: "medien", label: Loc.t("tab.media", lang)),
-         ReiterDef(id: "teams", label: Loc.t("land.teamsTitle", lang))]
+         ReiterDef(id: "teams", label: Loc.t("land.teamsTitle", lang), abzeichen: eventAbzeichen)]
+    }
+
+    private func eventAbzeichenLaden() async {
+        guard let l = try? await Api.teamsEventsAktuell() else { return }
+        eventAbzeichen = reiterAbzeichen(l)
     }
 
     // Rekorde und Bestenliste in EINER Ansicht (Jan, 02.11.2026: die Kacheln passen gut ueber die Bestenlisten).

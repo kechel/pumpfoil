@@ -201,3 +201,44 @@ struct KommentareSection: View {
         an = (s["comments_off"] as? Bool) != true
     }
 }
+
+/// Profil › Privatsphaere: „Nicht an globalen Events teilnehmen" (PWA GlobaleEventsCard, web 161ff0b7, 06.11.2026; Feld
+/// `global_events_aus` in /api/settings). Globale Events werten sonst jeden mit passenden Sessions automatisch.
+/// Speichert sofort; schlaegt das fehl, springt der Schalter zurueck.
+struct GlobaleEventsSection: View {
+    let lang: String
+    @State private var aus: Bool? = nil
+    @State private var busy = false
+
+    var body: some View {
+        Section {
+            if aus != nil {
+                Toggle(Loc.t("globalev.switch", lang), isOn: Binding(get: { aus ?? false }, set: { v in setzen(v) }))
+                    .disabled(busy)
+            } else {
+                // Ohne sichtbaren Inhalt laeuft `.task` nie (Memory swiftui-leere-group-laedt-nicht).
+                ProgressView()
+            }
+        } header: {
+            Text(Loc.t("globalev.title", lang))
+        } footer: {
+            Text(Loc.t("globalev.hint", lang))
+        }
+        .task { await laden() }
+    }
+
+    private func setzen(_ v: Bool) {
+        let alt = aus
+        aus = v
+        busy = true
+        Task {
+            do { try await Api.saveSettings(["global_events_aus": v]) } catch { aus = alt }
+            busy = false
+        }
+    }
+
+    private func laden() async {
+        let s = (try? await Api.settings()) ?? [:]
+        aus = (s["global_events_aus"] as? Bool) == true
+    }
+}

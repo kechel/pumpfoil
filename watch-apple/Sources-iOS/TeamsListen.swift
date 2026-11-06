@@ -30,22 +30,41 @@ struct TeamsZielView: View {
 /// Laufende und in den naechsten Tagen beginnende Events, alle; je Event eine Listenzeile mit GENAU einem Link
 /// (mehrere Links in einer List-Zeile oeffnen sonst zwei Ziele, s. CommunityView). Die beiden Links unten sind
 /// Knoepfe, die selbst genau ein Ziel an den Stapel haengen.
+/// Seit 06.11.2026 (web 5a5db913/c911ef76) heisst der Abschnitt „Globale Events" — der Server liefert nur noch globale;
+/// darunter „Events deiner Teams" (laufend, kommend, letzte 7 Tage), nur wenn es welche gibt.
 struct TeamEventsAbschnitt: View {
     let lang: String
     @Binding var pfad: NavigationPath
     @State private var events: [TeamEventKurz]?
+    @State private var meine: [TeamEventKurz] = []
 
     var body: some View {
+        Group {
+            // `.task` nur am ersten Abschnitt — an der Group liefe es je Kind einmal.
+            globalAbschnitt
+                .task { if events == nil { await laden() } }
+            if !meine.isEmpty { meineAbschnitt }
+        }
+    }
+
+    private var globalAbschnitt: some View {
         Section {
             if let ev = events, ev.isEmpty {
-                Text(Loc.t("team.event.keineAktuellen", lang)).font(.subheadline).foregroundStyle(.secondary)
+                Text(Loc.t("team.event.keineGlobalen", lang)).font(.subheadline).foregroundStyle(.secondary)
             }
             ForEach(events ?? []) { e in zeile(e) }
             linkZeile
         } header: {
-            Label(Loc.t("team.eventsAktuell", lang), systemImage: "flag.checkered").font(.headline)
+            Label(Loc.t("team.eventsGlobal", lang), systemImage: "flag").font(.headline)
         }
-        .task { if events == nil { await laden() } }
+    }
+
+    private var meineAbschnitt: some View {
+        Section {
+            ForEach(meine, id: \.listenId) { e in zeile(e) }
+        } header: {
+            Label(Loc.t("team.eventsMeineTeams", lang), systemImage: "flag").font(.headline)
+        }
     }
 
     private func zeile(_ e: TeamEventKurz) -> some View {
@@ -69,7 +88,9 @@ struct TeamEventsAbschnitt: View {
     }
 
     func laden() async {
+        async let m: [TeamEventKurz]? = try? Api.teamsEventsMeine()
         events = (try? await Api.teamsEventsAktuell()) ?? []
+        meine = await m ?? []
     }
 }
 
@@ -95,7 +116,8 @@ struct AktivsteTeamsAbschnitt: View {
                         NavigationLink(value: TeamsZiel.team(tm.slug)) { zeile(tm) }
                     }
                 } header: {
-                    Text(Loc.t("team.aktivste", lang)).font(.headline)
+                    // Teams: drei Personen (web fefda447 TeamIcon); die Fahne steht fuer Events.
+                    Label(Loc.t("team.aktivste", lang), systemImage: "person.3").font(.headline)
                 }
             }
             Section {
@@ -116,7 +138,7 @@ struct AktivsteTeamsAbschnitt: View {
     }
 
     private func unterzeile(_ tm: TeamListenEintrag) -> String {
-        let n: String = teamText("team.mitgliederAnzahl", lang, ["n": String(tm.mitglieder_anzahl)])
+        let n: String = teamText(tm.mitglieder_anzahl == 1 ? "team.mitgliederAnzahl1" : "team.mitgliederAnzahl", lang, ["n": String(tm.mitglieder_anzahl)])
         let sp: String = teamSportartenText(tm.sportarten, lang)
         return sp.isEmpty ? n : n + " · " + sp
     }
@@ -184,7 +206,7 @@ struct TeamsAlleView: View {
     }
 
     private func unterzeile(_ tm: TeamListenEintrag) -> String {
-        let n: String = teamText("team.mitgliederAnzahl", lang, ["n": String(tm.mitglieder_anzahl)])
+        let n: String = teamText(tm.mitglieder_anzahl == 1 ? "team.mitgliederAnzahl1" : "team.mitgliederAnzahl", lang, ["n": String(tm.mitglieder_anzahl)])
         let sp: String = teamSportartenText(tm.sportarten, lang)
         return sp.isEmpty ? n : n + " · " + sp
     }
@@ -296,6 +318,8 @@ struct TeamAnfragenZahl: View {
 struct HomeTeamsListe: View {
     let lang: String
     var neuLadenTick: Int = 0
+    /// Events der eigenen Teams (HomeView laedt sie, 06.11.2026).
+    var teamEvents: [TeamEventKurz] = []
     @State private var teams: [TeamKurz]? = nil
     // Neu gegruendetes Team: die Verwaltung haengt HIER (bleibt stehen), nicht an der Gruenden-Karte, die beim Neuladen
     // der Teamliste verschwindet.
@@ -314,6 +338,8 @@ struct HomeTeamsListe: View {
                 }
                 .padding(6)
                 .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+                // Events der eigenen Teams als Kacheln (web 03fd4574, 06.11.2026), vor den letzten Sessions wie im Web.
+                if !teamEvents.isEmpty { HomeTeamEventsListe(lang: lang, events: teamEvents) }
                 // Die letzten Sessions der Teammitglieder (PWA TeamLetzteMitWahl).
                 TeamLetzteAbschnitt(teams: t, lang: lang)
             }
@@ -343,6 +369,133 @@ struct HomeTeamsListe: View {
             }
             .padding(8)
             .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Event-Hinweise (Home)
+
+// Hinweise auf Events (web EventHinweis.tsx, Jan 06.11.2026): auf Home › Uebersicht eine Zeile je globalem Event, das
+// laeuft oder in den naechsten 24 h beginnt; sie fuehrt in die Community › Teams & Events („dann lernt man direkt wo das
+// immer steht"). Je Event wegklickbar (Merker `foil_event_weg`, nur Komfort, die letzten 50). Home › Team zeigt die Events
+// der eigenen Teams als Kacheln (HomeTeamEventsListe), der Reiter dort ein Abzeichen.
+
+extension Notification.Name {
+    /// Community › Teams & Events oeffnen (MainTabView schaltet auf den Community-Tab, der baut sich dabei neu auf und
+    /// liest den Reiter aus `ReiterSpeicher`).
+    static let eventsZiel = Notification.Name("pumpfoil.eventsZiel")
+}
+
+enum EventsZiel {
+    static func oeffnen() {
+        ReiterSpeicher.setze("community", "teams")
+        NotificationCenter.default.post(name: .eventsZiel, object: nil)
+    }
+}
+
+/// Die Liste laedt HomeView (globale Events, `teamsEventsAktuell`) und reicht sie herein: eine Ansicht, die im
+/// Ausgangszustand nichts zeigt, fuehrte ihren `.task` nie aus (Memory swiftui-leere-group-laedt-nicht).
+struct EventHinweise: View {
+    let lang: String
+    let events: [TeamEventKurz]
+    @AppStorage("foil_event_weg") private var wegText = ""
+
+    private static let baldSekunden: Double = 24 * 3600
+
+    private var weg: [String] { wegText.split(separator: "\n").map(String.init) }
+
+    private var zeigen: [TeamEventKurz] {
+        let w: [String] = weg
+        let jetzt = Date()
+        return events.filter { e in
+            if w.contains(e.listenId) { return false }
+            if e.status == "laeuft" { return true }
+            guard e.status == "kommend", let start = teamDatum(e.start) else { return false }
+            return start.timeIntervalSince(jetzt) < EventHinweise.baldSekunden
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(zeigen, id: \.listenId) { e in EventHinweisZeile(e: e, lang: lang) { wegklicken(e.listenId) } }
+        }
+    }
+
+    private func wegklicken(_ k: String) {
+        let neu: [String] = Array((weg + [k]).suffix(50))
+        wegText = neu.joined(separator: "\n")
+    }
+}
+
+/// Eine Hinweis-Zeile: Fahne, Titel in Pumpfoil-Cyan, Countdown, rechts das Abzeichen (nicht fett), oben rechts das X.
+private struct EventHinweisZeile: View {
+    let e: TeamEventKurz
+    let lang: String
+    let wegklicken: () -> Void
+
+    private var marke: TeamFarbe { TeamFarbe(nil) }
+    private var live: Bool { e.status == "laeuft" }
+    private var abzeichenKey: String { live ? "eventHinweis.live" : "eventHinweis.bald" }
+    private var uhrZiel: String { live ? e.ende : e.start }
+    private var uhrVorsatz: String { Loc.t(live ? "team.event.endetIn" : "team.event.startIn", lang) }
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            Button { EventsZiel.oeffnen() } label: { inhalt }
+                .buttonStyle(.plain)
+            Button(action: wegklicken) {
+                Image(systemName: "xmark").font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
+                    .padding(8)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Loc.t("banner.dismiss", lang))
+        }
+        .background(marke.flaeche.opacity(0.10), in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(marke.akzent.opacity(0.4), lineWidth: 1))
+    }
+
+    private var inhalt: some View {
+        HStack(alignment: .center, spacing: 8) {
+            Image(systemName: "flag").font(.subheadline).foregroundStyle(marke.akzent)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(e.titel).font(.subheadline.weight(.semibold)).foregroundStyle(marke.akzent)
+                    .fixedSize(horizontal: false, vertical: true)
+                TimelineView(.periodic(from: Date(), by: 1)) { ctx in
+                    Text(uhrText(ctx.date)).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+                }
+            }
+            Spacer(minLength: 4)
+            TeamEventStatusChip(status: e.status, farbe: nil, lang: lang, textKey: abzeichenKey, fett: false)
+        }
+        .padding(.leading, 14).padding(.vertical, 10).padding(.trailing, 34)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func uhrText(_ jetzt: Date) -> String {
+        uhrVorsatz + " " + teamCountdown(uhrZiel, jetzt: jetzt, lang) + " →"
+    }
+}
+
+/// Home › Team (web TeamEventsListe, 06.11.2026): die Events der eigenen Teams als Kacheln — laufende, kommende, letzte
+/// 7 Tage. Die Liste laedt HomeView (dieselbe wie fuer das Abzeichen am Reiter); ohne Events zeigt der Aufrufer nichts.
+struct HomeTeamEventsListe: View {
+    let lang: String
+    let events: [TeamEventKurz]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(Loc.t("team.eventsMeineTeams", lang), systemImage: "flag").font(.headline)
+                .padding(.top, 8)
+            ForEach(events, id: \.listenId) { e in kachel(e) }
+        }
+    }
+
+    private func kachel(_ e: TeamEventKurz) -> some View {
+        NavigationLink { TeamEventView(slug: e.team.slug, eventId: e.id) } label: {
+            TeamEventKachel(d: EventKachelDaten(e), lang: lang)
         }
         .buttonStyle(.plain)
     }

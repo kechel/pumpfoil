@@ -116,6 +116,8 @@ struct SettingsView: View {
         OnlinePunktSection(lang: lang)
         // Kommentare unter meinen Sessions erlauben (PWA KommentareCard, 02.11.2026).
         KommentareSection(lang: lang)
+        // Nicht an globalen Events teilnehmen (PWA GlobaleEventsCard, 06.11.2026) — direkt nach den Kommentaren wie im Web.
+        GlobaleEventsSection(lang: lang)
         GeteilteAufnahmenSection(lang: lang)
     }
 

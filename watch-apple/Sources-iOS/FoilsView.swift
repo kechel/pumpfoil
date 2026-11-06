@@ -62,7 +62,8 @@ struct FoilsView: View {
                 if restList.isEmpty { Text(Loc.t("gear.noHits", lang)).foregroundStyle(.secondary) }
             }
             specsEstFooter
-            Section { MissingHintRow(question: Loc.t("foils.missingFoil", lang), lang: lang) }
+            Section { MissingHintRow(question: Loc.t("foils.missingFoil", lang), lang: lang,
+                                     vorlage: Loc.t("foils.missingPrefill", lang)) }
         } else {
             Section { Text(Loc.t("gear.searchHint", lang)).foregroundStyle(.secondary) }
         }
@@ -140,9 +141,12 @@ struct FoilsView: View {
 // vorbelegtem Text öffnet (wie web/src/components/MissingHint.tsx). Steht unter Katalog-Listen,
 // die naturgemäß unvollständig sind (Foils, Stabs): ohne diesen Weg war die Lücke eine Sackgasse,
 // und Nutzer schrieben erst Tage später per Mail.
+// `vorlage` (web b1d19d41, Jan 06.11.2026: „text vorausfuellen gut"): Text im Feedback-Feld mit dem, was wir zum
+// Eintragen brauchen (Marke, Modell, Groesse, Link), statt der Frage selbst. Ohne Vorlage wie bisher die Frage.
 struct MissingHintRow: View {
     let question: String
     let lang: String
+    var vorlage: String? = nil
     @State private var show = false
 
     var body: some View {
@@ -157,7 +161,7 @@ struct MissingHintRow: View {
             .foregroundStyle(Color.accentColor)
             .fontWeight(.semibold)
         }
-        .sheet(isPresented: $show) { FeedbackView(lang: lang, prefill: question) }
+        .sheet(isPresented: $show) { FeedbackView(lang: lang, prefill: vorlage ?? question) }
     }
 }
 

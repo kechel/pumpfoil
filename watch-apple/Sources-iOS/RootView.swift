@@ -136,6 +136,9 @@ struct MainTabView: View {
             tabBar
         }
         .overlay(alignment: .bottom) { compareOverlay }
+        // Event-Hinweis auf Home: Community › Teams & Events (TeamsListen.swift EventsZiel, 06.11.2026). selectTab baut
+        // den Tab neu auf, der liest dabei den Reiter aus ReiterSpeicher.
+        .onReceive(NotificationCenter.default.publisher(for: .eventsZiel)) { _ in selectTab(2) }
         .sheet(isPresented: $showCompare) {
             NavigationStack { CompareView(preselect: compare.refs) }
         }
