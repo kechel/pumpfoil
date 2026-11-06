@@ -1163,6 +1163,7 @@ NAECHSTES: list[dict] = [
          "A session that was merged with its Garmin recording opens as the merged session, even from an old link.",
          "Sports is its own tab in the settings, between Team and Equipment.",
          "The foil calculator asks for the mast immersion depth, up to 100 cm, not the mast length.",
+         "Session lists load 20 at a time and fetch more as you scroll, so they open faster, and older community and spot sessions can now be reached.",
      ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.61",
      "items": [
@@ -1172,6 +1173,7 @@ NAECHSTES: list[dict] = [
          "A session that was merged with its Garmin recording opens as the merged session, even from an old link.",
          "Sports is its own tab in the settings, between Team and Equipment.",
          "The foil calculator asks for the mast immersion depth, up to 100 cm, not the mast length.",
+         "Session lists load 20 at a time and fetch more as you scroll, so they open faster, and older community and spot sessions can now be reached.",
      ]},
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
