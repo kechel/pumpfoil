@@ -243,8 +243,8 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
         </h3>
         {onBild && tf.zeilen.length > 0 && (
           <button onClick={onBild} title={t("team.bild.titel")} aria-label={t("team.bild.titel")}
-            className="shrink-0 rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-100">
-            <ShareIcon className="h-4 w-4" />
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100">
+            <ShareIcon className="h-4 w-4" /> {t("team.teilen")}
           </button>
         )}
       </div>

@@ -7,7 +7,11 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, FoilBand, getToken, TeamAuftritt, TeamEvent, TeamRolle, TeamTafelMitZeilen } from "../lib/api";
-import { SettingsIcon } from "../components/Icons";
+import { SettingsIcon, ShareIcon } from "../components/Icons";
+import BestenlisteBildDialog from "../components/BestenlisteBildDialog";
+import { teamInitialen } from "../components/TeamWappen";
+import { TEAM_FARBEN } from "../lib/teamFarben";
+import type { TeamWertungZeile } from "../lib/api";
 import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
 import { Card } from "../components/ui";
 import TeamWappen from "../components/TeamWappen";
@@ -91,8 +95,18 @@ function EventSummen({ ev, t }: { ev: TeamEvent; t: (k: string) => string }) {
 }
 
 /** Team-Rangliste eines globalen Events (06.11.2026): je Team die Summe der besten N Mitglieder. */
-function TeamWertung({ tf, n, t, eigeneSlugs, standText }: { tf: TeamTafelMitZeilen; n: number; t: (k: string, p?: Record<string, string>) => string;
-  eigeneSlugs: string[]; standText?: string | null }) {
+/** Zeile des Teilen-Bilds einer Team-Rangliste — wie die Team-Bestenlisten der Community (Home.tsx TeamVergleich). */
+function teamBildZeile(x: TeamWertungZeile, wert: string, ich: boolean) {
+  const f = TEAM_FARBEN[x.farbe || "cyan"] ?? TEAM_FARBEN.cyan;
+  return {
+    rang: x.rang, name: x.name, initialen: teamInitialen(x.name), wert, ich, land: x.land || null,
+    wappen: { logo: x.logo_url, flaeche: f.dunkelFlaeche ?? f.dunkel, schrift: f.dunkelAuf ?? "#020617",
+              flaecheHell: f.hellFlaeche ?? f.hell, schriftHell: f.hellAuf ?? "#ffffff" },
+  };
+}
+
+function TeamWertung({ tf, n, t, eigeneSlugs, standText, onBild }: { tf: TeamTafelMitZeilen; n: number; t: (k: string, p?: Record<string, string>) => string;
+  eigeneSlugs: string[]; standText?: string | null; onBild?: () => void }) {
   const k = kennzahl(tf.kennzahl);
   // Top 10, dazu die eigenen Teams weiter hinten (wie die Community-Bestenliste, Jan 06.11.2026).
   const alle = tf.teams ?? [];
@@ -100,7 +114,15 @@ function TeamWertung({ tf, n, t, eigeneSlugs, standText }: { tf: TeamTafelMitZei
   return (
     // Gleiche Karte und Ueberschrift wie die Fahrer-Liste links (Tafel), Jan 06.11.2026: „einheitlich".
     <Card className="p-4">
-      <h3 className="team-akzent font-semibold">{t("team.event.teams")} · {t(k.labelKey)}</h3>
+      <div className="flex items-start gap-2">
+        <h3 className="team-akzent min-w-0 flex-1 font-semibold">{t("team.event.teams")} · {t(k.labelKey)}</h3>
+        {onBild && alle.length > 0 && (
+          <button onClick={onBild} title={t("team.bild.titel")} aria-label={t("team.bild.titel")}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100">
+            <ShareIcon className="h-4 w-4" /> {t("team.teilen")}
+          </button>
+        )}
+      </div>
       <p className="text-xs text-slate-400">
         {[n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }), standText].filter(Boolean).join(" · ")}
       </p>
@@ -152,6 +174,7 @@ export default function TeamEventSeite() {
   // Eine Bestenliste zur Zeit, per Auswahl wie die Community-Bestenliste (Jan, 06.11.2026).
   const [wahl, setWahl] = useState(0);
   const [laedt, setLaedt] = useState(false);
+  const [bildTeams, setBildTeams] = useState<TeamTafelMitZeilen | null>(null);
   const [dialog, setDialog] = useState(false);
   // Ziel in der Gast-Kopfzeile (main.tsx GastRahmen); erst nach dem Einhaengen im DOM.
   const [kopfAktion, setKopfAktion] = useState<HTMLElement | null>(null);
@@ -332,7 +355,8 @@ export default function TeamEventSeite() {
           return (
             <div className={`grid gap-3 ${ev.global ? "sm:grid-cols-2" : ""}`}>
               <Tafel tf={tf} gast={gast} t={t} ohneFilter sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} standText={standText} />
-              {ev.global && <TeamWertung tf={tf} n={ev.team_wertung_n ?? 5} t={t} eigeneSlugs={meineTeams.map((x) => x.slug)} standText={standText} />}
+              {ev.global && <TeamWertung tf={tf} n={ev.team_wertung_n ?? 5} t={t} eigeneSlugs={meineTeams.map((x) => x.slug)} standText={standText}
+                onBild={gast ? undefined : () => setBildTeams(tf0)} />}
             </div>
           );
         })()}
@@ -367,6 +391,27 @@ export default function TeamEventSeite() {
           busy={busy} onJa={beitreten} onNein={() => setDialog(false)} />
       )}
 
+      {bildTeams && (() => {
+        // Team-Rangliste als Bild (Jan, 06.11.2026): Top 10, eigene Teams dahinter darunter, Wappen je Zeile.
+        const k = kennzahl(bildTeams.kennzahl);
+        const n = ev.team_wertung_n ?? 5;
+        const alle = bildTeams.teams ?? [];
+        const eigeneSlugs = meineTeams.map((x) => x.slug);
+        const eigen = alle.slice(10).find((x) => eigeneSlugs.includes(x.slug));
+        return (
+          <BestenlisteBildDialog onClose={() => setBildTeams(null)} titel={t("team.bild.titel")} logoUrl={team.logo_url}
+            dateiname={`${team.slug}-event-${ev.id}-teams-${bildTeams.kennzahl}.jpg`}
+            daten={{
+              titel: `${t("team.event.teams")} · ${t(k.labelKey)}`,
+              unterzeile: [ev.titel, n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }),
+                standFuer(bildTeams)].filter(Boolean).join(" · "),
+              zeilen: alle.slice(0, 10).map((x) => teamBildZeile(x, k.fmt(x.value), eigeneSlugs.includes(x.slug))),
+              eigene: eigen ? teamBildZeile(eigen, k.fmt(eigen.value), true) : null,
+              leer: t("team.event.keineTeams"),
+              abzeichen: ev.status === "laeuft" || ev.status === "auswertung" ? t(`team.event.status.${ev.status}`) : null,
+            }} />
+        );
+      })()}
       {bild && <TeamTafelBild team={team} tafel={bild} onClose={() => setBild(null)} zeitraum={ev.titel} stand={standFuer(bild)}
         abzeichen={ev.status === "laeuft" || ev.status === "auswertung" ? t(`team.event.status.${ev.status}`) : null} />}
     </div>
