@@ -626,6 +626,16 @@ def complete_session(
             if t >= 0 and d > 0:
                 fenster.append([t, d])
         s.pause_windows = _json_mod.dumps(sorted(fenster)) if fenster else None
+    # Apple Watch bis 1.1.61: Pausen der vorigen Aufnahme geerbt, alle Zeitstempel um ihre Summe zu frueh (06.11.2026,
+    # app/zeitversatz.py). Hier richtigstellen, bevor Endzeit und Auswertung darauf rechnen — so stimmen auch Aufnahmen
+    # der alten App-Fassungen. Die Liste der Uhr wird fuer die naechste Aufnahme gemerkt.
+    if (device.platform or "") == "apple" and body.pauses is not None:
+        from .. import zeitversatz
+        try:
+            if not zeitversatz.korrigieren(db, s, body.pauses):
+                zeitversatz.pausen_merken(s, body.pauses)
+        except Exception as exc:  # noqa: BLE001 — eine misslungene Korrektur darf den Abschluss nicht kippen
+            log.warning("zeitversatz: #%s nicht korrigiert: %s", s.id, exc)
     if body.ended_at is not None:
         s.ended_at = body.ended_at
     # Fehlt die Endzeit (Uhr schickt sie nicht / Aufnahme abgebrochen), aus dem letzten

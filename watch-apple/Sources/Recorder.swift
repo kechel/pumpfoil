@@ -339,6 +339,10 @@ final class Recorder: NSObject, ObservableObject {
         guard !isRecording else { return }
         uuid = UUID().uuidString
         startedAt = Date()
+        // Pausen der vorigen Aufnahme vergessen (06.11.2026). Bis 1.1.61 blieben Pausenzeit und Pausenliste stehen:
+        // jede weitere Aufnahme bis zum App-Neustart lag um die Summe der alten Pausen zu frueh (Mysia #19856: 4553 s,
+        // alles vor dem Start, „0 m") und schickte die alten Pausen als eigene mit. Wear OS setzt das seit jeher zurueck.
+        isPaused = false; pausedMs = 0; pauseBeiMs = 0; pauseListe = []; pauseMahnungenBisher = 0
         chunkIndex = 0
         accel.removeAll(); gps.removeAll(); spWin.removeAll()
         prevLoc = nil; distAccum = 0; maxMps = 0; hrSum = 0; hrCount = 0; maxHRv = 0; lastHR = 0
