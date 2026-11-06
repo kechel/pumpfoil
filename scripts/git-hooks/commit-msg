@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Commit-Nachricht gegen Nutzernamen pruefen (scripts/namen-pruefen.py) — das Git-Log ist oeffentlich.
+root="$(git rev-parse --show-toplevel)" || exit 1
+py="$root/server/.venv/bin/python"; [ -x "$py" ] || py=python3
+exec "$py" "$root/scripts/namen-pruefen.py" --nachricht "$1"

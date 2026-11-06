@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 # Vor jedem Commit: keine Nutzerdaten, Abzuege oder Geheimnisse ins oeffentliche Repo (s. Kopf von
-# scripts/datenleck-pruefen.py). Aktivieren (einmalig pro Klon):  git config core.hooksPath scripts/git-hooks
+# scripts/datenleck-pruefen.py) und keine Nutzernamen (scripts/namen-pruefen.py, liest sie frisch aus der DB).
+# Aktivieren (einmalig pro Klon):  git config core.hooksPath scripts/git-hooks
 root="$(git rev-parse --show-toplevel)" || exit 1
-exec python3 "$root/scripts/datenleck-pruefen.py" --staged
+python3 "$root/scripts/datenleck-pruefen.py" --staged || exit 1
+py="$root/server/.venv/bin/python"; [ -x "$py" ] || py=python3
+exec "$py" "$root/scripts/namen-pruefen.py" --staged

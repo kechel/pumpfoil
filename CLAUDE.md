@@ -1,229 +1,46 @@
-# PumpFoil — Projekt-Setup für Claude
+# PumpFoil — Arbeitsregeln für Claude
 
-Multi-Plattform-Pumpfoil-Tracker: dünne Recorder-Apps auf Sportuhren, Analyse server-seitig,
-Web-PWA + native Mobile-Apps als Frontend. Repo öffentlich (AGPL).
+Multi-Plattform-Pumpfoil-Tracker (FastAPI + Postgres, Web-PWA, Garmin/Wear/Apple/Huawei/Zepp/Suunto-Recorder,
+Android/iOS-Apps), ~200 aktive Nutzer, Repo **öffentlich** (AGPL). Die ausführliche Projektübersicht steht in
+`docs/PROJEKT.md` (bis 06.11.2026 war sie diese Datei); alles Weitere findet der Projekt-Atlas.
 
-## Stack
+## Erst nachschlagen, dann handeln
 
-- **Server:** FastAPI, **PostgreSQL** (`localhost:5432/foil`, `DATABASE_URL` in `server/.env`).
-  Postgres ist die DB, **ohne Rückfallebene**: fehlt `DATABASE_URL`, bricht `app/config.py`
-  mit einer Meldung ab (der frühere `sqlite://`-Default ist am 08.09.2026 raus — er ließ Skripte
-  stumm gegen eine leere DB laufen). Tests brauchen `TEST_DATABASE_URL` bzw. leiten `foil_test`
-  aus `DATABASE_URL` ab. systemd-Service **`foil-server`** (Port 8090).
-- **Web:** React + Vite + TypeScript (`web/`).
-- **Garmin-Uhr:** Monkey C / Connect IQ (`watch/`).
-- **Android Phone + Wear OS:** Kotlin/Compose, ein Gradle-Projekt (`android/`, Module `:app` + `:wear`).
-- **iOS App + Apple Watch:** SwiftUI (`watch-apple/`, `Sources-iOS/` = iPhone-App, `Sources/` = Watch).
+**Sobald ein Thema aufkommt, das nicht schon im Kontext steht** (z. B. „Icons für Teams“, „Garmin-Release“,
+„Backup“, „Polar-Import“), zuerst:
 
-## Was Claude bauen/deployen kann — und was nicht
+    scripts/kontext.py <stichpunkt>, <stichpunkt>, ...
 
-| Ziel | Claude baut? | Live/Deploy |
-|---|---|---|
-| **Web** (`web/`) | ✅ bauen **und** deployen | `cd web && npm run build` → `web/dist`, von FastAPI live ausgeliefert. **Sofort online, kein Restart.** |
-| **Garmin-Uhr** (alle 78 Geräte) | ✅ bauen | Version in `watch/source/Config.mc` bumpen, dann `cd watch && ./build-all.sh` (SDK = Symlink `~/connectiq-sdk` aufs aktuelle, Signierschlüssel `~/.connectiq/developer_key.der` außerhalb des SDK — ein SDK-Wechsel ist nur der Link, s. `watch/setup-sdk.sh`) → `watch/bin/` (gitignored). Server liest frisch pro Request → **sofort live** unter `/api/app/devices` + `/api/app/download/<id>`. |
-| **Android Phone** (`:app`) | ✅ bauen + verifizieren | `cd android && JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew :app:compileDebugKotlin --no-daemon`. Signiertes Release-AAB + Play-Upload: **nur Jan.** |
-| **Wear OS** (`:wear`) | ✅ bauen + verifizieren | `./gradlew :wear:compileDebugKotlin --no-daemon`. Signiertes Release + Upload: **nur Jan.** |
-| **iOS App** (`Sources-iOS/`) | ❌ nur Code | Build/Verify/Sign/Upload **nur Jan** (Xcode/macOS, `project.yml` via xcodegen). |
-| **Apple Watch** (`Sources/`) | ❌ nur Code | Build/Verify/Sign/Upload **nur Jan** (Xcode/macOS). |
+Das durchsucht Memories, Skills, `docs/`, READMEs, Code-Verzeichnisse (Symbole je Datei, API-Routen,
+Web-Seiten, Env-Variablen, UI-Texte), den Git-Verlauf und die SDK-Dokus (Connect IQ, Garmin Connect API,
+SuuntoPlus). Es findet Wortanfänge, ähnliche Schreibweisen und — per Vektor — Bedeutungsverwandtes über
+Deutsch/Englisch hinweg. Ausgabe ist eine **Übersicht je Quelle mit Treffer-Nummern**; Volltext nur für die
+Treffer, die zählen: `scripts/kontext.py --voll <nr>,<nr>`. Weitere Schalter: `--quelle memory,repo`,
+`--bis YYYY-MM-DD` (Stand zu einem Stichtag), `--mehr 3`. Danach gezielt Dateien lesen bzw. grep.
 
-Diese Verteilung ist Jan bekannt — **nicht in jeder Antwort wiederholen** („das kann nur ich in Xcode"
-etc.). Einfach die Code-Änderung liefern und sagen, was noch auf Jans Seite zu tun ist, falls relevant.
+Der Index baut sich bei jedem Sitzungsstart selbst nach (`.claude/settings.json`, Hook auf
+`scripts/atlas/bauen.py`); er liegt außerhalb des Repos (`~/pumpfoil-atlas/`), weil Memories Nutzer nennen.
+**Neues Wissen gehört in eine Memory oder einen Doku-Absatz** — nie nur in die Antwort; dann findet es der
+Atlas beim nächsten Start.
 
-## Backups
+## Was immer gilt (ohne Stichwort)
 
-Zwei systemd-Timer (User `jan`, oneshot), Skripte in `deploy/`:
-- `foil-backup-latest.timer` → täglich 03:30 → `backup-latest.sh`: `pg_dump` (custom, atomar) +
-  `server/data` + `server/media` als Hardlinks nach `/opt/foil/backups/pumpfoil.org/latest-backup/`
-  (Pull-Quelle für externen Backup-Server). `BASE` per `BACKUP_BASE` überschreibbar.
-- `foil-backup-snapshot.timer` → **monatlich am 1., 04:00** (`OnCalendar=*-*-01`, am 21.09.2026
-  gegen die Unit geprueft; hier stand vorher „Mi 04:00", das war nie so) → `backup-snapshot.sh`: `cp -al` → permanenter
-  Hardlink-Snapshot unter `…/hardlink-snapshots/<stamp>`.
-- **Nur `jan` darf die Sicherungen lesen** (29.10.2026): `/opt/foil` steht auf 700, die Skripte setzen
-  `umask 077` und ziehen die Rechte bei jedem Lauf nach. Auf der VM gibt es weitere Nutzer (andere
-  Projekte); vorher waren alle DB-Dumps fuer sie lesbar. Der Pull von host17 laeuft als `jan`.
-- `backup-secrets.sh` (von `backup-latest.sh` mit aufgerufen): `server/.env` +
-  `vapid_private.pem` + Garmin-`developer_key.der` **GPG-verschlüsselt an Jans Key**
-  (Fingerprint im Skript gepinnt; nur Public-Key auf der VM) → `latest-backup/secrets.tar.gz.gpg`,
-  wandert durch die Pull-Kette mit. Entschlüsselungs-Test 2026-08-02 durch Jan bestätigt.
-  **Seit 29.10.2026 steht darin auch `FOIL_TOKEN_KEY`** — der Schlüssel, mit dem die Polar-/Suunto-/
-  COROS-Zugänge in der DB verschlüsselt sind (`server/app/geheim.py`). Ohne ihn sind sie wertlos und
-  alle müssten neu verbinden: nie ändern oder löschen, ohne vorher umzuschlüsseln. Geräte- und
-  Reset-Tokens stehen nur als SHA-256 in der DB (`security.token_hash`).
-
-## Netz / Deployment (WICHTIG für Tests)
-
-- Die App (`foil-server`, uvicorn `:8090`) läuft auf **dieser VM**. Der **Reverse-Proxy (Apache)
-  läuft auf einer SEPARATEN VM** und leitet nur weiter (`ProxyPass / → diese-VM:8090`; Template in
-  `deploy/`). Die SPA/`web/dist` + statische Assets liefert die FastAPI-App selbst aus.
-- **Diese VM erreicht `pumpfoil.org` / die externe IP NICHT** (ging noch nie) → **niemals
-  `curl https://pumpfoil.org/...` von hier** (hängt bis Timeout). Öffentliche Endpunkte **immer
-  lokal** testen: `curl http://localhost:8090/...`. `pumpfoil.org` selbst funktioniert einwandfrei
-  (PWA + Medien) — nur eben nicht von der VM aus erreichbar.
-- Öffentliche, nicht verlinkte Datei-URL (z. B. Play-Belege): über eine App-Route ausliefern
-  (Beispiel `GET /demo/wear-fgs.webm` in `main.py`) → erscheint dann unter `https://pumpfoil.org/...`.
-
-## Git / GitHub
-
-- Remote: **`git@github.com:kechel/pumpfoil.git`** (`origin/main`). **Standing: nach jedem Commit
-  zu GitHub pushen** — Jan hält `main` immer aktuell auf GitHub.
-
-## Qualität geht vor Tempo (ab 13.09.2026)
-
-**Jan:** „ab sofort viel mehr auf qualität und qualitätssicherung achten … wir haben inzwischen
-200 aktive nutzer die auf eine mehr oder weniger stabile app vertrauen. dieses amazfit-desaster
-kostet uns jetzt schon vertrauen, reputation und nutzer"
-
-Das Projekt ist aus dem Bastelstadium heraus. Ein Fehler kostet nicht mehr einen Nachmittag,
-sondern Nutzer — und bei den Store-Apps dauert jede Korrektur Wochen, weil eine Einreichung
-dazwischenhängt. Konkret, aus dem Abend, an dem die Regel entstand:
-
-- **Vor jeder Einreichung ein LANGER Testlauf**, nicht zwanzig Sekunden. Am 13.09. tauchten drei
-  Fehler auf, die kurze Läufe alle durchgewunken hätten: der GPS-Schreibpfad brach ab dem zweiten
-  Block ab (>2 min nötig), der Accel-Pfad ebenso, und die Zeitachse kippte erst bei 142 Blöcken
-  (>15 min).
-- **Gegen die vorige Fassung vergleichen, mit Zahlen.** Gefunden wurde der Hauptfehler durch eine
-  Tabelle — 18/11/27 Punkte (alter Build) gegen 10/10/10 (neuer). Einzeln sah jede Session
-  plausibel aus.
-- **Fehler nie nur einmal melden.** Ein „log once"-Wächter ließ die Meldung genau einmal durch;
-  dadurch sah ein kaputter Schreibpfad aus wie „die Aufnahme hört auf".
-- **Der AUFNAHME-Pfad ist gefährlicher als der Upload-Pfad.** Ein kaputter Upload lässt sich
-  wiederholen, eine kaputte Aufnahme ist weg.
-- **Server-Daten prüfen, nicht den Bildschirm:** Lücken/Doppelte in `ingest_chunks`, Dauer gegen
-  Punktzahl, `metrics_json.time_base`.
-- **Nicht diagnostizieren, bevor es belegt ist.** Eine Vermutung als Vermutung kennzeichnen.
-- **Was sich testen lässt, wird getestet** — Server mit pytest, reine Funktionen der Uhren-Apps
-  in Node nachstellen (Binärformat-Rundlauf, Fortsetz-Simulation über viele Abbrüche).
-
-## Konventionen
-
-- **Tanz-App (`watch-dance/`) — HARTE REGEL (Jan, 21.10.2026):** Code fliesst **nur Pumpfoil -> Tanz**
-  (`watch/` -> `watch-dance/`), **NIE umgekehrt**. Tanz-Arbeit aendert nie die Pumpfoil-App — keine
-  gemeinsamen Bausteine, keine Vorbereitung in `watch/`. Tanz-Auswertung am Server nur fuer
-  `sport == "dance"` in eigenen Modulen. Die Tanz-App ist nur fuer Jans Garmin (Sideload per USB),
-  nie Store, nie `watch/bin`. Details: `watch-dance/README.md`.
-
-- **Release-Tabelle auf `/changelog`:** die oeffentliche Changelog-Seite zeigt oben, welche
-  App-Version im Store ist, welche im Review liegt und was als Naechstes kommt. Live kommt aus
-  `appmeta._APP_META`; **`IN_REVIEW` und `NAECHSTES` in `server/app/api/appmeta.py` bei jeder
-  Einreichung und jeder Freigabe mitziehen** (Details im Kommentar dort und in `docs/TODO.md`).
-- **Python-Pakete der Produktion:** `server/requirements-prod.txt` ist der `pip freeze` der Server-venv und wird
-  montags von `.github/workflows/audit.yml` gegen bekannte Luecken geprueft (Web: `web/scripts/audit.mjs`, mit
-  begruendeten Ausnahmen). **Nach jeder Aenderung der venv neu schreiben** (Befehl im Kopf der Datei), sonst prueft
-  die Action einen alten Stand.
-- **Datenleck-Sperre:** `scripts/datenleck-pruefen.py` laeuft als pre-commit-Hook (`core.hooksPath scripts/git-hooks`)
-  und in der CI. Sie sperrt tmp/- und Sicherungsordner, Archive/Abzuege/Rohdaten, Tabellenabzuege mit `user_id`,
-  grosse Dateien und Geheimnisse aus `server/.env`. Das Repo ist oeffentlich; was einmal gepusht ist, laesst sich
-  nicht zurueckholen. **Nie mit `--no-verify` umgehen**; echte Ausnahmen mit Grund in `.datenleck-ausnahmen`.
-- **systemd-Sandbox:** `foil-server` läuft mit `deploy/foil-server.service.d/sandbox.conf` (Drop-in):
-  Dateisystem schreibgeschützt bis auf `server/data`, `server/media` und zwei Caches. Schreibt der Server
-  künftig woanders hin, dort `ReadWritePaths` ergänzen — sonst „Read-only file system".
-- **Server neu starten** darf Claude jederzeit (Dev-Stadium): `sudo systemctl restart foil-server`.
-  Nach `server/`-Code-Änderungen nötig; Web/Watch-Builds brauchen **keinen** Restart (frisch gelesen).
-- **Detektor-/Analyse-Pipeline** (`server/app/analysis/`): Änderungen erst mit Jans OK; Befund +
-  verifizierter Fix + Regressions-Check vorlegen. Reanalyse aller Sessions:
-  Postgres-`DATABASE_URL` muss im Env sein (manueller `.env`-Parser; `set -a; . ./.env` exportiert
-  es NICHT zuverlässig → das Skript bricht dann beim Import mit „DATABASE_URL fehlt“ ab).
-- **Keine Garmin-Passwörter** im Produkt speichern (nur Jans eigene R&D-Tokens, env, gitignored).
-- **Datenschutz / Cookies:** pumpfoil.org setzt **null Cookies**. Nur first-party `localStorage` für
-  Funktion (Login-Token, Sprache `foil_lang`, `theme`, Banner-Version, `hideCompareTip`) — kein
-  Tracking/Analytics (harte Vorgabe), keine Dritt-Skripte/Fonts/Karten von extern. YouTube nur als
-  **Click-to-Load** über `youtube-nocookie.com` (Impressum-Keys `imp.yt*`) — Startseite UND
-  Community-Feed. → **Kein Cookie-Banner nötig** (Consent braucht es nur für nicht-essentielle/
-  Tracking-Speicherung, die wir nicht haben).
-  **Am 30.08.2026 einen Tag lang anders probiert und wieder verworfen:** der Feed lief kurz über
-  den vollen Player (`www.youtube.com`), damit man dort liken und folgen kann. Das brachte nichts —
-  der Like-Knopf erscheint nur bei YouTube-Angemeldeten mit erlaubten Dritt-Cookies, bei Jan kam
-  keiner. Kosten wären ein Einwilligungs-Hinweis vor jedem Abspielen und ein Absatz mehr in der
-  Datenschutzerklärung gewesen. Zurückgebaut; zum Liken führt jetzt ein Knopf zu YouTube hinaus.
-  **Wer das erneut erwägt:** ein echter Like aus unserer Seite geht NUR über die YouTube Data API
-  (`videos.rate`) mit Google-OAuth je Nutzer und Verifizierung eines sensiblen Zugriffsbereichs.
-  Erst neu bewerten, falls je ein Dritt-Skript/Analytics/externe Font/Karte dazukommt.
-- **News-Banner (DB-getrieben, kein PWA-Rebuild):** Inhalt + Version stehen in der DB
-  (`NewsBanner`-Singleton), öffentlicher `GET /api/app/news`. `WelcomeBanner.tsx` holt das und zeigt den
-  Banner, wenn `enabled` und `version` > weggeklickter Wert (localStorage `foil_banner_v1`); Text =
-  `texts[lang]||de`. **Gepflegt im Admin-Tab „News-Banner"** (`PUT /api/admin/news`): Text je Sprache +
-  Version-Bump → News posten ohne Deploy. **HARTE REGEL: der Banner ist GLOBAL/öffentlich (alle Nutzer,
-  alle Sprachen) → NUR allgemeine Ankündigungen. NIEMALS Persönliches oder an einzelne Nutzer Gerichtetes
-  in den Banner** (Privatsphäre); persönliche Nachrichten ausschließlich per 1:1-Chat/DM. „Trag den Banner
-  nach" = nur allgemeine News; im Zweifel nachfragen. Android und iOS zeigen den Banner
-  ebenfalls (beide fragen `/api/app/news` ab, `HomeScreen.kt` bzw. `HomeView.swift`, mit demselben
-  `foil_banner_v1`-Merker) — die frühere TODO-Notiz hier war veraltet.
-- **Scripts/Backups — HARTE REGEL:** NIEMALS ungefragt etwas ausführen, das löscht oder
-  überschreiben kann (z. B. `rsync --delete`, `rm`, Spiegel-Syncs). Destruktive Optionen nur nach
-  explizitem OK von Jan. Und: „schreib mir ein Script" heißt **nur schreiben** — nicht automatisch
-  ausführen; Ausführung nur, wenn Jan es ausdrücklich sagt.
-
-## Dokumentation & weitere Kontext-Quellen
-
-**Verträge & Datenformat**
-- [`docs/data-format.md`](docs/data-format.md) — Upload-Vertrag Watch↔Server (GPS + int16-Accel-Chunks).
-- [`docs/ingest-contract.md`](docs/ingest-contract.md) — wie eine beliebige Watch-Plattform zum Recorder wird (2 Upload-Wege).
-- [`docs/DATA-PIPELINE.md`](docs/DATA-PIPELINE.md) — **Datenweg Upload → Anzeige, belegt** (mit
-  Flussdiagramm). **Vor jeder Untersuchung an Zeitachsen/Raten/Sample-Daten zuerst hier lesen** —
-  nicht raten. Das Wichtigste in Kurzform:
-  - **Drei Zeitbegriffe, die dauernd verwechselt werden.** `t_*_session_ms` = Session-ms ·
-    `segments_json.t_start_ms` + `accel_windows_json.t_center_ms` = **auf den Trim re-basiert**
-    (`+ sessions.trim_start_ms` ergibt Session-ms) · `i_start`/`i_end` = Sample-Index.
-    `excluded_ranges`/`fremdkraft_keep` sind wieder Session-ms. Alle Clients nutzen nur `t_start_ms`.
-  - **`sessions.accel_hz` ist eine ANFORDERUNG, keine Messung.** Connect IQ hält 25 Hz ein,
-    Wear/Apple liefern gerätespezifisch auch 50 Hz, Handys 100–125 Hz. Echte Rate:
-    `metrics_json.accel_hz_measured`. `gps_hz` ist immer 1 und nur eine Rechengröße.
-  - **Accel-Samples haben keine Zeitstempel** — die Achse wird gebaut. `metrics_json.time_base`
-    sagt wie: `exact_chunks` (aus `t0_ms`, gemessen) vs. `measured_rate` (eine Durchschnittsrate,
-    Sample 0 bei t=0). **Diese Felder zuerst lesen, bevor man eine Accel-Zahl glaubt.**
-  - **Achse repariert (§9.1/§9.2, 10.08.):** `run_analysis` baute bis dahin eine ZWEITE eigene Achse
-    und ignorierte `timebase.py` — ein belegter Fall lag 124 s daneben („Pumps hören mitten im Lauf
-    auf", 45 s Gleitphase → nach dem Fix 1,57 s). Jetzt kommt die Achse aus `timebase.py` und der
-    Accel liegt auf einem gleichmäßigen Raster, damit `index = t · hz` wirklich gilt.
-    `metrics_json.accel_axis` belegt es je Session. **🟢 Reanalyse des Bestands ist DURCH** (geprüft
-    19.08.: 886 von 886 Accel-Sessions haben `accel_axis`, die älteste gefahren am 02.05., alle auf
-    `algo_version` v2-windows-1 — kein Mischbestand). Die frühere Notiz „Reanalyse noch offen" war
-    veraltet; wer hier „offen" liest, prüft es bitte erst gegen die DB, statt sie erneut zu starten.
-  - **`longest_glide_s` ist die längste Lücke zwischen zwei ERKANNTEN Pumps**, keine gemessene
-    Gleitphase → ein hoher Wert heißt meist „Pumps nicht erkannt".
-  - **Zahlen nachmessen statt glauben:** `cd server && .venv/bin/python ../scripts/pipeline-check.py`
-    (rein lesend, prüft seine Quersummen selbst).
-
-**Produkt & Planung**
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — Ziel: alle gängigen Sportuhren; welche unterstützt/geplant.
-- [`docs/UX-IA.md`](docs/UX-IA.md) — Informationsarchitektur über bestehende + geplante Features.
-- [`docs/TEAMS.md`](docs/TEAMS.md) — Teams/Gruppen mit Bestenlisten: Plan + Jans Entscheidungen (31.10.2026).
-- [`docs/FEDERATION.md`](docs/FEDERATION.md) — Föderation mehrerer Instanzen (Konzept, 03.11.2026): Freigabe-Stufen, signierte Serverliste mit Sperren, Instanz-Konfiguration, offene Fragen.
-- [`docs/TODO.md`](docs/TODO.md) — **einzige Quelle für offene Arbeit** (TODOs + Backlog-Ideen + R&D,
-  git-abgeglichen). Neue spontane TODOs dort in die 📥 Inbox. (`docs/IDEAS.md` ist nur noch ein Pointer.)
-- [`server/app/data/sportarten_stand.json`](server/app/data/sportarten_stand.json) — **Stand-Buch je Sportart**: was die
-  Auswertung je Sportart kann (Erkennung, Grenzen, Karte, Kennzahlen, Rekorde …), Stufenplan, Verlauf mit Datum/Version.
-  Oeffentlich auf /changelog („Analysis by sport“). Bei JEDER sportartbezogenen Aenderung mitpflegen.
-- [`docs/PARITY-AUDIT.md`](docs/PARITY-AUDIT.md) — Feature-Parität Web ↔ Watch/Apps (✅/⚠️/❌/🐛). **Oben die
-  CHECKLISTE für jede Aufnahme-Funktion auf den Uhren** (alle vier, jeder Zustand inkl. Pause) —
-  vor dem Commit abhaken.
-- [`docs/WATCH-STORAGE.md`](docs/WATCH-STORAGE.md) — **Uhr-Puffer**: warum die Restzeit geschaetzt
-  ist (Connect IQ kennt kein `freeStorage`), gemessene Kapazitaeten der Flotte, Warnschwellen.
-- [`docs/COLOR-ZONES.md`](docs/COLOR-ZONES.md) — **Farbskalen (Puls-/Geschwindigkeits-Zonen)**: eine
-  Quelle im Profil für Zahl UND Grafik auf allen fünf Renderern, Vorschlags-Formeln, Fallen.
-- [`docs/PAGES.md`](docs/PAGES.md) — Seiten-Index der Web-PWA (alle Routen + Kurzbeschreibung, inkl. Impressum/Support/Feedback).
-
-**Komponenten-READMEs**
-- [`watch/README.md`](watch/README.md) · [`watch-apple/README.md`](watch-apple/README.md)
-  (+ [`UPLOAD.md`](watch-apple/UPLOAD.md), App-Store-Submit) — Recorder-Apps.
-- [`deploy/README.md`](deploy/README.md) — Apache/systemd-Deploy.
-- [`brand/README.md`](brand/README.md) — Marken-/Store-/Social-Assets + Generator (`brand/master/`); Zuordnungs-Karte.
-- [`analyse/README.md`](analyse/README.md) + [`FINDINGS.md`](analyse/FINDINGS.md) — Dual-Watch-Experiment (Pump-Wahrheit).
-- [`docs/PIPELINE-KARTE.md`](docs/PIPELINE-KARTE.md) — **was beeinflusst was** in der Analyse (v2, v3-Modell,
-  Brett-Regeln, Sportart, Auto-Zuschnitt, Rekorde), in Reihenfolge mit Auslösern. Vor jeder Arbeit an Modell oder Regeln lesen.
-- [`docs/GROUND-TRUTH.md`](docs/GROUND-TRUTH.md) — **worauf Pump-/Gleit-Erkennung wirklich steht**
-  (gemessen): Pump-Zählung auf EINEM Fahrer geeicht, Gleit-Erkennung existiert nicht. Warum das
-  Handy am Brett die Wahrheit für die Uhr ist, welche Datenmengen es braucht (drei Fragen, drei
-  Antworten) und was **vor** dem Sammeln erfasst werden muss. Vor jeder Arbeit an Pump-/Gleit-Zahlen
-  oder an Personalisierung zuerst hier lesen.
-
-**Memories (lokal, sessionübergreifend — NICHT im Repo)**
-Persistenter Kontext unter `~/.claude/projects/-home-jan-garmin-connect-iq/memory/`.
-[`MEMORY.md`](file:///home/jan/.claude/projects/-home-jan-garmin-connect-iq/memory/MEMORY.md) ist der
-**vollständige Index** und wird jede Session automatisch geladen. Schlüssel-Memories u. a.:
-- `build-deploy-matrix`, `github-repo`, `jan-knows-build-constraints` — wer baut/deployt was, Push-Konvention.
-- `connectiq-sdk-build`, `wear-build-jdk` — Watch-/Wear-Build-Details.
-- `backups`, `prod-restart-ok`, `web-deploy-build` — Betrieb/Deploy.
-- `wrist-detector-improvements`, `board-imu-experiment` — Detektor-Bilanz + offene ML-/FR55-Themen.
-- `garmin-watch-fieldtest-gotchas`, `garmin-settings-pairing`, `todo-watch-model-direct-download` — Garmin-Praxis.
-- `todo-oauth-login`, `ios-native-port`, `roadmap-multiplatform`, `user-technical-poweruser`, `jan-prefers-large-images`.
+- **Repo öffentlich:** keine Nutzernamen, Nutzerdaten, Geheimnisse in Code, Doku oder Commit-Nachrichten.
+  Datenleck-Sperre (pre-commit + CI) **nie** mit `--no-verify` umgehen. Nach jedem Commit `git push`.
+- **Nichts Unumkehrbares ungefragt:** nie ungefragt in die DB schreiben, nichts löschen/überschreiben
+  (`rm`, `rsync --delete` …) ohne Jans OK. `server/data` + `server/media` sind mit den Backups hardgelinkt →
+  neu schreiben und tauschen, nie an Ort und Stelle. „Schreib ein Skript“ heißt nur schreiben.
+- **Nie öffentlich oder als Jan posten** (Banner, Social, GitHub, öffentliche Chats): nur Entwürfe. Antworten
+  an Nutzer nur über das eigene Konto (id 230), nach Vorlage.
+- **Alte App-Versionen sind im Feld:** Server-Änderungen bleiben abwärtskompatibel zu allen Uhren-/App-
+  Fassungen, die noch hochladen. Uhren-Apps nicht ausbauen, nur Fehler beheben.
+- **Qualität vor Tempo:** lange Testläufe vor jeder Einreichung, gegen die Vorfassung mit Zahlen vergleichen,
+  Server-Daten prüfen statt Bildschirm, Vermutungen als Vermutungen kennzeichnen. Analyse-Pipeline
+  (`server/app/analysis/`) nur mit Jans OK ändern.
+- **Netz:** diese VM erreicht `pumpfoil.org` nicht — immer `curl http://localhost:8090/...`.
+  `sudo systemctl restart foil-server` darf ich jederzeit (nach `server/`-Änderungen nötig, nach Import-Check).
+- **Bauen:** Web und Garmin baue und deploye ich (`watch/bin` ist live → erst nach Store-Freigabe), Android/
+  Wear nur kompilieren; signieren, iOS/Apple-Watch-Builds und Store-Uploads macht Jan. Nicht jedes Mal
+  wiederholen. Versionen erst beim Release bumpen.
+- **Tanz-App:** Code fließt nur `watch/` → `watch-dance/`, nie umgekehrt.
+- **Stil:** Jan ist ITler — knapp und technisch, deutsch. Ein Befehl pro Code-Box.
