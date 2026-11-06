@@ -189,6 +189,26 @@ def uebersicht(db, ids: list[int], ws: list[str], mehr: int) -> None:
             print(f"          {kurz(text, ws)}")
 
 
+def kurzliste(db, ids: list[int], n: int) -> None:
+    """Eine Zeile je Treffer, hoechstens einer je Datei und zwei Commits — fuer den UserPromptSubmit-Hook."""
+    pfade, git, zeilen = set(), 0, []
+    for i in ids:
+        r = db.execute("SELECT rowid, quelle, pfad, zeile, datum, titel FROM stuecke WHERE rowid = ?", (i,)).fetchone()
+        if r is None or r[2] in pfade or r[1] == "i18n":
+            continue
+        if r[1] == "git":
+            git += 1
+            if git > 2:
+                continue
+        pfade.add(r[2])
+        rid, quelle, pfad, zeile, datum, titel = r
+        ort = f"{pfad}:{zeile}" if zeile else pfad
+        zeilen.append(f"  #{rid} [{quelle}] {titel[:70]} — {ort}" + (f" ({datum})" if datum else ""))
+        if len(zeilen) >= n:
+            break
+    print("\n".join(zeilen))
+
+
 def voll(db, ids: str) -> None:
     for i in ids.split(","):
         r = db.execute("SELECT quelle, pfad, zeile, datum, titel, text FROM stuecke WHERE rowid = ?", (int(i),)).fetchone()
@@ -231,6 +251,7 @@ def main() -> None:
     ap.add_argument("--seit", help="Datum YYYY-MM-DD")
     ap.add_argument("--bis", help="Datum YYYY-MM-DD (Stichtag)")
     ap.add_argument("--mehr", type=int, default=1, help="Faktor fuer mehr Treffer je Gruppe")
+    ap.add_argument("--kurz", type=int, metavar="N", help="nur die N besten Treffer, eine Zeile je Treffer (fuer den Hook)")
     a = ap.parse_args()
     nachbauen()
     if not DB.exists():
@@ -247,6 +268,9 @@ def main() -> None:
     var = schreibweisen(db, ws)
     vek = suche_vektor(db, stichpunkte, a)
     ids = zusammen(suche_fts(db, fts_ausdruck(stichpunkte, var), a), vek)
+    if a.kurz:
+        kurzliste(db, ids, a.kurz)
+        return
     gebaut = (db.execute("SELECT v FROM info WHERE k = 'gebaut'").fetchone() or ["?"])[0]
     print(f"Atlas vom {gebaut} · {len(ids)} Treffer für: {' | '.join(stichpunkte)}"
           + ("" if vek else "  (ohne Vektorsuche — venv fehlt?)"))

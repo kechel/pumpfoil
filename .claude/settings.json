@@ -9,6 +9,17 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/scripts/atlas/hook-prompt.py\"",
+            "timeout": 15
+          }
+        ]
+      }
     ]
   }
 }

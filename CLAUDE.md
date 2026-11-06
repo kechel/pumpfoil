@@ -18,8 +18,12 @@ Deutsch/Englisch hinweg. Ausgabe ist eine **Übersicht je Quelle mit Treffer-Num
 Treffer, die zählen: `scripts/kontext.py --voll <nr>,<nr>`. Weitere Schalter: `--quelle memory,repo`,
 `--bis YYYY-MM-DD` (Stand zu einem Stichtag), `--mehr 3`. Danach gezielt Dateien lesen bzw. grep.
 
-Der Index baut sich bei jedem Sitzungsstart selbst nach (`.claude/settings.json`, Hook auf
-`scripts/atlas/bauen.py`); er liegt außerhalb des Repos (`~/pumpfoil-atlas/`), weil Memories Nutzer nennen.
+Zu jeder Nachricht von Jan legt ein Hook (`UserPromptSubmit` → `scripts/atlas/hook-prompt.py`) schon die zehn
+passendsten Stellen als „Projekt-Atlas (automatisch …)“ in den Kontext — **diese Liste ansehen**, bevor ich antworte,
+und bei Bedarf nachlesen. Sie ersetzt keine gezielte Suche mit eigenen Stichpunkten, wenn sie nicht passt.
+
+Der Index baut sich beim Sitzungsstart und vor jeder Abfrage, die älter als 15 min ist, selbst nach
+(`.claude/settings.json`, im Repo); er liegt außerhalb des Repos (`~/pumpfoil-atlas/`), weil Memories Nutzer nennen.
 **Neues Wissen gehört in eine Memory oder einen Doku-Absatz** — nie nur in die Antwort; dann findet es der
 Atlas beim nächsten Start.
 
