@@ -830,7 +830,10 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
         (func.lower(func.coalesce(D.label, "")).like("%huawei%"), literal("huawei")),
         (func.lower(func.coalesce(D.label, "")).like("%apple%"), literal("apple")),
         (func.lower(func.coalesce(D.label, "")).like("%wear%"), literal("wear")),
-        (func.lower(func.coalesce(D.label, "")).like("%phone%"), literal("phone")),
+        # Handy-Recorder getrennt nach System (Jan, 06.11.2026): das iPhone meldet sich mit platform "ios", die
+        # Android-App laesst das Feld leer (beide Label „Phone"). Geprueft am Geraetemodell: ios = nur iPhones.
+        (D.platform == "ios", literal("phone_ios")),
+        (func.lower(func.coalesce(D.label, "")).like("%phone%"), literal("phone_android")),
         else_=literal("other"),
     )
 
@@ -915,7 +918,7 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
                 gesamt[c_] = gesamt.get(c_, 0) + n_
         return je_tag, gesamt
 
-    PLATTFORMEN = ("garmin", "apple", "wear", "zepp", "huawei", "phone",
+    PLATTFORMEN = ("garmin", "apple", "wear", "zepp", "huawei", "phone_android", "phone_ios",
                    "suunto", "polar", "coros", "garmin_connect", "datei")
     # Clients, ueber die jemand hereinschaut. "unbekannt" ist kein Fehler, sondern eine
     # App-Fassung, die die Kennung noch nicht schickt (bzw. ein Aufruf ohne sie).

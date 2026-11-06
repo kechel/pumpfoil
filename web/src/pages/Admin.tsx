@@ -337,7 +337,8 @@ const PLATTFORM_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = 
   ["p_wear", "Wear OS", "#4ade80"],
   ["p_zepp", "Amazfit", "#fbbf24"],
   ["p_huawei", "Huawei", "#e11d48"],
-  ["p_phone", "Handy", "#c084fc"],
+  ["p_phone_android", "Handy Android", "#c084fc"],
+  ["p_phone_ios", "Handy iPhone", "#f472b6"],
   // Kontoverknuepfungen und Datei-Uploads einzeln: „Konto-Import" als eine Kurve verbarg, ob
   // Suunto, Polar oder COROS einbricht — und das sind drei verschiedene Anbindungen mit drei
   // verschiedenen Ausfallgruenden. „Datei" fasst FIT und TCX/GPX zusammen, fuer den Blick von
