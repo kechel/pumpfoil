@@ -21,6 +21,7 @@ struct HomeView: View {
 
     @State private var stats: OverallStats?
     @State private var latest: [SessionSummary] = []
+    @State private var latestGeladen = false   // vorher kein „keine Sessions" (s. load)
     @State private var weather: SpotWeather?
     // Homespot als Link in der Zeile „Letzte Sessions" (Jan, 16.10.2026)
     @State private var homespotName: String? = nil
@@ -407,7 +408,9 @@ struct HomeView: View {
                 Text("\(Loc.t("phome.allMine", lang)) →").font(.caption).foregroundStyle(Color.accentColor)
             }
         }
-        if latest.isEmpty {
+        if latest.isEmpty && !latestGeladen {
+            ProgressView().frame(maxWidth: .infinity).padding(20)
+        } else if latest.isEmpty {
             Text(Loc.t("sessions.empty", lang))
                 .foregroundStyle(.secondary).frame(maxWidth: .infinity, alignment: .center)
                 .padding(20).background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
@@ -683,7 +686,9 @@ struct HomeView: View {
                 byFoil = (try? await Api.statsByFoil(accelOnly: accelOnly, period: zeitraum, sport: sportart)) ?? []
             }
         }
-        latest = Array(((try? await Api.sessions()) ?? []).prefix(3))
+        // Nur die drei neuesten holen, und bei einem Fehler die bisherige Liste behalten (06.11.2026: Jan sah „No sessions",
+        // weil die ganze Liste geladen wurde und „laedt noch"/„Fehler" wie „leer" aussahen).
+        if let neu = try? await Api.sessions(limit: 3) { latest = Array(neu.prefix(3)); latestGeladen = true }
         // `homespot_effective` statt `homespot` (s. settings.py): sonst blieb die Wetterkarte
         // bei fast allen aus, obwohl das Profil „Automatisch (letzte Session)" versprach.
         let einst = try? await Api.settings()

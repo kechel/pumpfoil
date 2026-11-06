@@ -118,6 +118,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
     // und sagt in der Antwort, welche es war.
     var sportart by remember { mutableStateOf<String?>(null) }
     var latest by remember { mutableStateOf<List<SessionSummary>>(emptyList()) }
+    var latestGeladen by remember { mutableStateOf(false) }   // vorher kein „keine Sessions"
     var weather by remember { mutableStateOf<SpotWeather?>(null) }
     var startSuccess by remember { mutableStateOf<StartSuccess?>(null) }
     var carveStats by remember { mutableStateOf<CarveStats?>(null) }
@@ -214,7 +215,8 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
             OnbState.angeboten = true
             onOnboarding()
         }
-        latest = try { Api.sessions().take(3) } catch (_: Exception) { emptyList() }
+        // Nur die drei neuesten holen; bei einem Fehler die bisherige Liste behalten (06.11.2026, wie iOS).
+        try { latest = Api.sessions(limit = 3).take(3); latestGeladen = true } catch (_: Exception) {}
         community = try { Api.communityStats() } catch (_: Exception) { community }
         startSuccess = try { Api.startSuccess() } catch (_: Exception) { startSuccess }
         carveStats = try { Api.carveStats() } catch (_: Exception) { carveStats }
@@ -446,7 +448,9 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
                 }
             }
             Spacer(Modifier.height(8.dp))
-            if (latest.isEmpty()) {
+            if (latest.isEmpty() && !latestGeladen) {
+                Box(Modifier.fillMaxWidth().padding(20.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            } else if (latest.isEmpty()) {
                 Card(Modifier.fillMaxWidth()) {
                     Text(I18n.t("sessions.empty"), Modifier.padding(20.dp).fillMaxWidth(),
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,

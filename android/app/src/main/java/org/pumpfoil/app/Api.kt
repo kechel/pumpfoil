@@ -271,9 +271,10 @@ object Api {
     // `sport`: null/"all" = alle Sportarten (Serverdefault), sonst genau diese — wie `api.sessions`
     // in der PWA (Nutzerwunsch 27.09.2026, Filter nach Sportart).
     suspend fun sessions(month: String? = null, filter: String = "pump", accelOnly: Boolean = false,
-                         sport: String? = null, board: Boolean = false): List<SessionSummary> = withContext(Dispatchers.IO) {
+                         sport: String? = null, board: Boolean = false, limit: Int? = null): List<SessionSummary> = withContext(Dispatchers.IO) {
         val qs = buildString {
             append("?filter=$filter")
+            if (limit != null) append("&limit=$limit")   // Home: nur die neuesten (sonst die ganze Liste)
             if (!month.isNullOrBlank()) append("&month=$month")
             if (accelOnly) append("&accel_only=true")
             if (board) append("&board=true")   // nur Handy am Brett (POB)

@@ -145,8 +145,9 @@ enum Api {
     // `sport`: "all" (Default) schraenkt nicht ein und wird gar nicht erst mitgeschickt — wie die
     // PWA (api.ts). Der Server liest es fuer eigene Sessions wie der Community-Feed (27.09.2026).
     static func sessions(month: String? = nil, filter: String = "pump", accelOnly: Bool = false,
-                         sport: String = "all", board: Bool = false) async throws -> [SessionSummary] {
+                         sport: String = "all", board: Bool = false, limit: Int? = nil) async throws -> [SessionSummary] {
         var qs = "?filter=\(filter)"
+        if let limit { qs += "&limit=\(limit)" }   // Home: nur die neuesten (sonst die ganze Liste, bei Jan 1,4 MB)
         if let month, !month.isEmpty { qs += "&month=\(month)" }
         if accelOnly { qs += "&accel_only=true" }
         if board { qs += "&board=true" }   // nur Handy am Brett (POB)
