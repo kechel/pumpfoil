@@ -41,14 +41,18 @@ export function EventHinweise({ art }: { art: "global" | "team" }) {
         const live = e.status === "laeuft";
         return (
           <div key={k} className="relative rounded-2xl border border-brand-500/40 bg-brand-500/10 py-2.5 pl-4 pr-10 text-sm">
-            <Link to={`/teams/${e.team.slug}/events/${e.id}`} className="block hover:underline">
-              <span className={`mr-2 rounded-full px-2 py-0.5 text-xs font-bold ${live ? "bg-brand-500 text-slate-950 event-puls" : "bg-slate-800 text-slate-300"}`}>
+            {/* Titel in unserem dunklen Cyan (hell: brand-700, dunkel: brand-300), Abzeichen rechts und nicht fett
+                (Jan, 06.11.2026). */}
+            <Link to={`/teams/${e.team.slug}/events/${e.id}`} className="flex flex-wrap items-center gap-x-2 gap-y-1 hover:underline">
+              <span className="min-w-0 flex-1">
+                <span className="font-semibold text-brand-700 dark:text-brand-300">{e.titel}</span>
+                {art === "team" && <span className="text-slate-400"> · {e.team.name}</span>}
+                <span className="text-slate-400"> · </span>
+                <KachelUhr ziel={live ? e.ende : e.start} text={t(live ? "team.event.endetIn" : "team.event.startIn")} lang={lang} /> →
+              </span>
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${live ? "bg-brand-500 text-slate-950 event-puls" : "bg-slate-800 text-slate-300"}`}>
                 {t(art === "team" ? "eventHinweis.teamLive" : live ? "eventHinweis.live" : "eventHinweis.bald")}
               </span>
-              <span className="font-semibold text-slate-100">{e.titel}</span>
-              {art === "team" && <span className="text-slate-400"> · {e.team.name}</span>}
-              <span className="text-slate-400"> · </span>
-              <KachelUhr ziel={live ? e.ende : e.start} text={t(live ? "team.event.endetIn" : "team.event.startIn")} lang={lang} /> →
             </Link>
             <button onClick={() => wegklicken(k)} aria-label={t("banner.dismiss")} title={t("banner.dismiss")}
               className="absolute right-2 top-2 rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-slate-200">
