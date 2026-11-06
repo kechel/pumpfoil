@@ -2311,7 +2311,9 @@ export interface TeamWertungZeile extends Pick<TeamAuftritt, "name" | "slug" | "
 }
 export interface TeamTafelMitZeilen extends TeamTafel { zeilen: TeamZeile[]; teams?: TeamWertungZeile[];
   /** globale Events: die eigene Zeile, auch hinter den gezeigten Plaetzen */
-  eigene?: TeamZeile | null }
+  eigene?: TeamZeile | null;
+  /** Events: wann die Bestenliste gerechnet wurde (ISO) */
+  stand?: string }
 export interface TeamOeffentlich extends TeamAuftritt { id: number; mitglieder_anzahl: number; period: string; tafeln: TeamTafelMitZeilen[]; events?: TeamEvent[] }
 export type TeamEventTafel = Pick<TeamTafel, "kennzahl" | "sportart" | "accel_only" | "nur_brett" | "foil_band">;
 export interface TeamEventIn {

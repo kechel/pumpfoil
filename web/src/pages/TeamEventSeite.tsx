@@ -288,10 +288,16 @@ export default function TeamEventSeite() {
           )}
           {/* „Bestenliste für" (eigenes Team) wieder raus (Jan, 06.11.2026) — Top 10 + man selbst reicht. */}
           {/* Neu laden, solange sich noch etwas aendern kann (Jan, 06.11.2026). Der Server rechnet hoechstens alle 2 min neu. */}
+          {(ev.status === "laeuft" || ev.status === "auswertung") && ev.tafeln[Math.min(wahl, ev.tafeln.length - 1)]?.stand && (
+            <span className="ml-auto text-xs text-slate-400">
+              {t("team.event.standUm", { zeit: new Date(ev.tafeln[Math.min(wahl, ev.tafeln.length - 1)].stand!)
+                .toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" }) })}
+            </span>
+          )}
           {!gast && (ev.status === "laeuft" || ev.status === "auswertung") && (
             <button onClick={() => { setLaedt(true); api.teamEvent(slug, id).then(setEv).catch(() => {}).finally(() => setLaedt(false)); }}
               disabled={laedt}
-              className="ml-auto inline-flex items-center gap-1.5 rounded-xl border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50">
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50">
               <svg viewBox="0 0 24 24" className={`h-4 w-4 ${laedt ? "animate-spin" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M21 12a9 9 0 1 1-2.64-6.36" /><path d="M21 3v6h-6" />
               </svg>

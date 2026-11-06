@@ -354,7 +354,7 @@ def vor_konto_loeschen(db: Session, uid: int) -> list[str]:
 
 # ---------------------------------------------------------------------------- Bestenlisten ----
 
-_cache: dict[tuple, tuple[float, list]] = {}
+_cache: dict[tuple, tuple] = {}   # key -> (monotonic, wert, Wanduhr-Zeit der Rechnung)
 _CACHE_S = 120
 _CACHE_MAX = 500
 
@@ -366,10 +366,16 @@ def _cache_holen(key):
     return None
 
 
+def _cache_stand(key) -> float | None:
+    """Wann der Eintrag gerechnet wurde (Unix-Sekunden) — fuer „Stand: 14:32" auf der Event-Seite (06.11.2026)."""
+    t = _cache.get(key)
+    return t[2] if t is not None and len(t) > 2 else None
+
+
 def _cache_setzen(key, wert):
     if len(_cache) >= _CACHE_MAX:
         _cache.clear()
-    _cache[key] = (time.monotonic(), wert)
+    _cache[key] = (time.monotonic(), wert, time.time())
 
 
 # Von Hand hochgeladene Dateien (api/sessions.py: „fit-" fuer FIT, „imp-" fuer GPX/TCX). Kontoverknuepfungen
@@ -385,7 +391,7 @@ ALLE = "alle"   # member_ids fuer globale Events: jeder, der passende Sessions h
 def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period: str,
                     member_ids: list[int] | str | None = None, fenster: tuple[datetime, datetime] | None = None,
                     event_spots: list[int] | None = None, ohne_dateien: bool = False,
-                    laenge: int | None = TAFEL_LAENGE) -> list[dict]:
+                    laenge: int | None = TAFEL_LAENGE, stand: list | None = None) -> list[dict]:
     """Rangliste einer Tafel: je Person der beste Wert bzw. die Summe, absteigend.
 
     `ohne_dateien` (Events, 01.11.2026): keine von Hand hochgeladenen Dateien (FIT/GPX/TCX, s. DATEI_PRAEFIXE).
@@ -412,7 +418,11 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
            laenge)
     hit = _cache_holen(key)
     if hit is not None:
+        if stand is not None:
+            stand.append(_cache_stand(key) or time.time())
         return hit
+    if stand is not None:
+        stand.append(time.time())
 
     S, U, AR = C.S, C.U, C.AR
     cut = C._cutoff(period)
@@ -844,12 +854,16 @@ def _event_voll(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
     glob = ist_global(e)
     fenster = (_aware(e.start), _aware(e.ende))
     out = []
+    zeiten: list[float] = []
     for tf in event_tafeln(e):
         zeilen = tafel_berechnen(db, t, tf, "all", ids, fenster=fenster, event_spots=event_spots(e),
-                                 ohne_dateien=bool(e.ohne_dateien), laenge=GLOBAL_ZEILEN_MAX if glob else TAFEL_LAENGE)
+                                 ohne_dateien=bool(e.ohne_dateien), laenge=GLOBAL_ZEILEN_MAX if glob else TAFEL_LAENGE,
+                                 stand=zeiten)
         x = {**tafel_out(tf), "zeilen": zeilen}
         if glob:
             x["teams"] = team_wertung(db, zeilen, wertung_n(e), t.id)
+        # Stand dieser Bestenliste: wann gerechnet (aus dem 2-Minuten-Cache ggf. etwas frueher).
+        x["stand"] = datetime.fromtimestamp(min(zeiten[-1:] or [time.time()]), timezone.utc).isoformat()
         out.append(x)
     return out
 

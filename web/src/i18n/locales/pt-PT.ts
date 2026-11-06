@@ -2706,6 +2706,7 @@ const ptPT: Record<string, string> = {
   "team.event.wertungAlle": "Soma de todos os membros",
   "team.event.teams": "Equipas",
   "team.event.neuLaden": "Atualizar",
+  "team.event.standUm": "Atualizado às {zeit}",
   "team.event.keineTeams": "Ainda nenhum membro de equipa neste evento.",
   "team.event.teamFilter": "Classificação de",
   "team.event.alle": "Todos",

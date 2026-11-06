@@ -2709,6 +2709,7 @@ const zh: Record<string, string> = {
   "team.event.wertungAlle": "全体成员之和",
   "team.event.teams": "团队",
   "team.event.neuLaden": "刷新",
+  "team.event.standUm": "截至 {zeit}",
   "team.event.keineTeams": "此活动中还没有团队成员。",
   "team.event.teamFilter": "排行榜：",
   "team.event.alle": "所有人",
