@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, TeamEventKurz } from "../lib/api";
 import KachelUhr from "./KachelUhr";
+import EventKurzKachel from "./EventKurzKachel";
+import { FlagIcon } from "./Icons";
 import { CloseIcon } from "./Icons";
 import { useI18n } from "../i18n";
 
@@ -76,4 +78,41 @@ export function useEventAbzeichen(): { live: boolean; bald: number } {
       bald: l.filter((e) => e.status === "kommend").length })).catch(() => {});
   }, []);
   return d;
+}
+
+/** Home › Team (Jan, 06.11.2026): die Events der eigenen Teams als Kacheln — laufende, kommende, letzte 7 Tage. */
+export function TeamEventsListe() {
+  const { t } = useI18n();
+  const [events, setEvents] = useState<TeamEventKurz[] | null>(null);
+  useEffect(() => { api.teamsEventsMeine().then(setEvents).catch(() => setEvents([])); }, []);
+  if (!events?.length) return null;
+  return (
+    <div className="mb-5">
+      <div className="mb-1.5 flex items-center gap-2">
+        <FlagIcon className="h-5 w-5 text-brand-400" />
+        <h3 className="text-lg font-bold">{t("team.eventsMeineTeams")}</h3>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {events.map((e) => <EventKurzKachel key={`${e.team.slug}-${e.id}`} e={e} />)}
+      </div>
+    </div>
+  );
+}
+
+/** Abzeichen fuer den Home-Reiter „Team": LIVE, solange ein Event eines eigenen Teams laeuft, sonst die Zahl der kommenden. */
+export function useTeamEventAbzeichen(): { live: boolean; bald: number } {
+  const [d, setD] = useState({ live: false, bald: 0 });
+  useEffect(() => {
+    api.teamsEventsMeine().then((l) => setD({ live: l.some((e) => e.status === "laeuft"),
+      bald: l.filter((e) => e.status === "kommend").length })).catch(() => {});
+  }, []);
+  return d;
+}
+
+/** Das Abzeichen selbst (Reiter „Teams & Events" und Home › Team gleich). */
+export function EventAbzeichen({ live, bald }: { live: boolean; bald: number }) {
+  const { t } = useI18n();
+  if (live) return <span className="event-puls ml-1.5 rounded-full bg-brand-500 px-1.5 py-0.5 text-xs font-bold uppercase text-slate-950">{t("team.event.status.laeuft")}</span>;
+  if (bald > 0) return <span className="ml-1.5 rounded-full bg-slate-800 px-1.5 py-0.5 text-xs font-semibold text-brand-600 dark:text-brand-300">{bald}</span>;
+  return null;
 }

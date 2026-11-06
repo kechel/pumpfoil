@@ -1,5 +1,5 @@
 import { TechnikUebersicht } from "../components/TechnikTabelle";
-import { EventHinweise } from "../components/EventHinweis";
+import { EventAbzeichen, EventHinweise, TeamEventsListe, useTeamEventAbzeichen } from "../components/EventHinweis";
 import { sortiereNachSport, sortiereSports, standardSportart, classLabelKey } from "../lib/sportClass";
 import { setLastSessionsFilter } from "../lib/lastSession";
 import { useWiederAufwachen } from "../lib/useWiederAufwachen";
@@ -437,10 +437,12 @@ export default function PersonalHome() {
 
   // Reiter (Plan docs/UX-IA.md, 02.11.2026). Home startet immer mit der Uebersicht — dort schaut man nach dem Pumpen
   // zuerst hin —, deshalb ohne `merken`.
+  const teamEvAbz = useTeamEventAbzeichen();
   const reiter: ReiterDef[] = [
     { id: "uebersicht", label: t("tab.overview") },
     { id: "rekorde", label: t("side.records") },
-    { id: "team", label: t("tab.team") },
+    // Abzeichen: LIVE bzw. Zahl der kommenden Events der eigenen Teams (Jan, 06.11.2026).
+    { id: "team", label: t("tab.team"), badge: <EventAbzeichen {...teamEvAbz} /> },
     // „Spots" statt „Homespot" (Jan, 04.11.2026): darunter alle eigenen Spots, der Homespot vorgewaehlt.
     ...(homespotId != null || (meineSpots?.length ?? 0) > 0 ? [{ id: "spots", label: t("nav.spots") }] : []),
     // „Stats" statt „Verlauf" (Jan, 02.11.2026), darin eine zweite Reiterzeile fuer die einzelnen Auswertungen.
@@ -632,7 +634,8 @@ export default function PersonalHome() {
         </div>
       </>}
 
-      {tab === "team" && <><EventHinweise art="team" /><MeineTeams teams={meineTeams} /></>}
+      {/* Events der eigenen Teams als Kacheln (laufende zuerst) — ersetzt die einzelne „Team-Event laeuft"-Zeile. */}
+      {tab === "team" && <MeineTeams teams={meineTeams} />}
 
       {tab === "spots" && <SpotsBereich homespotId={homespotId} homespotName={homespot} liste={meineSpots} />}
 
@@ -750,6 +753,7 @@ function MeineTeams({ teams }: { teams: TeamKurz[] }) {
           {t("team.gruenden")} →
         </Link>
       </>}
+      {teams.length > 0 && <TeamEventsListe />}
       {teams.length > 0 && <TeamLetzteMitWahl teams={teams} />}
     </>
   );

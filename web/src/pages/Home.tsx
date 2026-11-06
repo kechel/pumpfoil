@@ -3,7 +3,7 @@ import { fmtDate } from "../lib/time";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand, TeamEventKurz, TeamListenEintrag, TeamVergleich, TeamVergleichKennzahl, TeamVergleichZeile } from "../lib/api";
 import EventKurzKachel from "../components/EventKurzKachel";
-import { useEventAbzeichen } from "../components/EventHinweis";
+import { EventAbzeichen, useEventAbzeichen } from "../components/EventHinweis";
 import { LayoutPreview } from "../components/LayoutPreview";
 import { WatchShape } from "../lib/watchLayout";
 import { Card, Avatar } from "../components/ui";
@@ -693,9 +693,7 @@ function CommunitySection() {
     // werden die seiten zuuu klein"). Alte Links mit ?tab=rekorde landen ueber den Rueckfall ebenfalls hier.
     { id: "bestenliste", label: t("tab.rankings") },
     { id: "medien", label: t("tab.media") },
-    { id: "teams", label: t("land.teamsTitle"), badge: evAbz.live
-      ? <span className="event-puls ml-1.5 rounded-full bg-brand-500 px-1.5 py-0.5 text-xs font-bold uppercase text-slate-950">{t("team.event.status.laeuft")}</span>
-      : evAbz.bald > 0 ? <span className="ml-1.5 rounded-full bg-slate-800 px-1.5 py-0.5 text-xs font-semibold text-brand-600 dark:text-brand-300">{evAbz.bald}</span> : null },
+    { id: "teams", label: t("land.teamsTitle"), badge: <EventAbzeichen {...evAbz} /> },
   ];
   const [tab, setTab] = useReiter("community", reiter.map((r) => r.id), "bestenliste", { merken: true });
   const [data, setData] = useState<CommunityRecords | null>(null);
