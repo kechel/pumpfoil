@@ -1180,6 +1180,11 @@ NAECHSTES: list[dict] = [
          "Session lists load 20 at a time and fetch more as you scroll, so they open faster, and older community and spot sessions can now be reached.",
      ]},
     # iPhone + Apple Watch 1.1.61 am 06.11. eingereicht -> IN_REVIEW.
+    # 06.11.2026: Apple Watch setzt die Pausen der vorigen Aufnahme zurueck (6352227c), nach der Einreichung von 1.1.61.
+    {"name": "iPhone + Apple Watch", "version": "1.1.62",
+     "items": [
+         "On the Apple Watch, a new recording no longer carries over the pauses of the previous one, which shifted it in time and could leave it empty; affected sessions have been corrected.",
+     ]},
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
      "items": [

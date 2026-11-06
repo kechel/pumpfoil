@@ -1513,6 +1513,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 06.11. Apple Watch: geerbte Pausen (Meldung Mysia u989 in Session-Kommentaren).** `Recorder.start()` setzte
+  Pausenzeit und Pausenliste der vorigen Aufnahme nicht zurueck (seit der Pause vom 24.09.): jede weitere Aufnahme bis
+  zum App-Neustart lag um die Summe der alten Pausen zu frueh und schickte die alten Pausen als eigene mit. 33 Aufnahmen
+  von 8 Nutzern. **Erledigt:** App-Fix (6352227c, kommt mit iOS **1.1.62** — 1.1.61 liegt ohne ihn in der Pruefung),
+  Server stellt jede Apple-Watch-Aufnahme beim Abschluss selbst richtig (`app/zeitversatz.py`, auch alte App-Fassungen),
+  die 33 rueckwirkend korrigiert und neu ausgewertet (Sicherung `/home/jan/sicherungen/zeitversatz-2026-11-06/`),
+  #12718 Endzeit nachgezogen, 7 Nutzer per DM informiert (Christine u690 nicht: nur 1 m). Eigene Pausen, die damals
+  unter 0 lagen, sind verloren (Daten vollstaendig). **Offen:** nach dem Release von 1.1.62 pruefen, dass keine neuen
+  Faelle mehr auftauchen (Log `zeitversatz:`).
+
 - **🟢 05.11. — Garmin Connect: die hoehere Accel-Rate wird die Session (Jan: „wer mehr hat gewinnt").** Beim Zusammenfuehren
   (beide Reihenfolgen) Rate = Accel-Werte / Wanduhr-Dauer, bei beiden gleich gerechnet; Garmin gewinnt ab 1,2-facher Rate
   (`garmin.garmin_besser`, Log „Accel-Rate eigene … Garmin …"). Ohne GPS in Garmins Datei (Tanz/Halle) bleibt es beim
