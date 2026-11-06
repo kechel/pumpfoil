@@ -2816,6 +2816,7 @@ const en: Record<string, string> = {
   "team.event.teams": "Teams",
   "team.event.neuLaden": "Refresh",
   "team.event.standUm": "As of {zeit}",
+  "team.event.endstand": "Final standings",
   "team.event.keineTeams": "No team member in this event yet.",
   "team.event.teamFilter": "Leaderboard for",
   "team.event.alle": "Everyone",

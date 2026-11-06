@@ -2713,6 +2713,7 @@ const id: Record<string, string> = {
   "team.event.teams": "Tim",
   "team.event.neuLaden": "Muat ulang",
   "team.event.standUm": "Per {zeit}",
+  "team.event.endstand": "Klasemen akhir",
   "team.event.keineTeams": "Belum ada anggota tim di event ini.",
   "team.event.teamFilter": "Papan peringkat untuk",
   "team.event.alle": "Semua",

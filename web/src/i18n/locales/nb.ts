@@ -2684,6 +2684,7 @@ const nb: Record<string, string> = {
   "team.event.teams": "Lag",
   "team.event.neuLaden": "Oppdater",
   "team.event.standUm": "Per {zeit}",
+  "team.event.endstand": "Sluttstilling",
   "team.event.keineTeams": "Ingen lagmedlemmer i dette eventet ennå.",
   "team.event.teamFilter": "Toppliste for",
   "team.event.alle": "Alle",

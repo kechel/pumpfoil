@@ -2713,6 +2713,7 @@ const ru: Record<string, string> = {
   "team.event.teams": "Команды",
   "team.event.neuLaden": "Обновить",
   "team.event.standUm": "По состоянию на {zeit}",
+  "team.event.endstand": "Итоговые результаты",
   "team.event.keineTeams": "В этом событии пока нет участников команд.",
   "team.event.teamFilter": "Рейтинг для",
   "team.event.alle": "Все",

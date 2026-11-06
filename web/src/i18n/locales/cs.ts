@@ -2766,6 +2766,7 @@ const cs: Record<string, string> = {
   "team.event.teams": "Týmy",
   "team.event.neuLaden": "Obnovit",
   "team.event.standUm": "Stav v {zeit}",
+  "team.event.endstand": "Konečné pořadí",
   "team.event.keineTeams": "V tomto eventu zatím není žádný člen týmu.",
   "team.event.teamFilter": "Žebříček pro",
   "team.event.alle": "Všichni",

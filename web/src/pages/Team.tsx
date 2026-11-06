@@ -211,7 +211,7 @@ function Logbuch({ eintraege, t, zurueck }: { eintraege: TeamLogbuchEintrag[]; t
   );
 }
 
-export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZeigen = false }: {
+export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZeigen = false, standText }: {
   tf: TeamTafelMitZeilen; gast: boolean; t: (k: string, p?: Record<string, string>) => string; onBild?: () => void;
   /** Sportart als Marke neben der Ueberschrift — wenn die Bestenlisten verschiedene Sportarten haben (Jan, 02.11.2026:
    * „in den kacheln fehlt die anzeige welche sportart jeweils gemeint ist"). */
@@ -220,6 +220,8 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
   ohneFilter?: boolean;
   /** Zurueck-Link der Session- und Profilseite („‹ Eventname" statt „‹ Sessions", Jan 01.11.2026), wie in LaengsteLaeufe. */
   zurueck?: { zurueck: string; zurueckText: string };
+  /** „Stand 14:32" unter der Ueberschrift (Event-Seite, Jan 06.11.2026: „direkt mit in den listen"). */
+  standText?: string | null;
 }) {
   const k = kennzahl(tf.kennzahl);
   const filter = [
@@ -247,6 +249,7 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
         )}
       </div>
       {filter && !ohneFilter && <p className="text-xs text-slate-400">{filter}</p>}
+      {standText && <p className="text-xs text-slate-400">{standText}</p>}
       {tf.zeilen.length === 0 ? <p className="mt-2 text-sm text-slate-400">{t("team.tafel.leer")}</p> : (
         <ol className="mt-2">
           {tf.zeilen.map((z) => {

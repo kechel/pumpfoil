@@ -2767,6 +2767,7 @@ const nl: Record<string, string> = {
   "team.event.teams": "Teams",
   "team.event.neuLaden": "Vernieuwen",
   "team.event.standUm": "Stand {zeit}",
+  "team.event.endstand": "Eindstand",
   "team.event.keineTeams": "Nog geen teamlid in dit event.",
   "team.event.teamFilter": "Klassement voor",
   "team.event.alle": "Iedereen",

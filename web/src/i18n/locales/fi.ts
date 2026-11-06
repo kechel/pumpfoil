@@ -2748,6 +2748,7 @@ const fi: Record<string, string> = {
   "team.event.teams": "Joukkueet",
   "team.event.neuLaden": "Päivitä",
   "team.event.standUm": "Tilanne {zeit}",
+  "team.event.endstand": "Lopputulokset",
   "team.event.keineTeams": "Tapahtumassa ei ole vielä yhtään joukkueen jäsentä.",
   "team.event.teamFilter": "Tulostaulu:",
   "team.event.alle": "Kaikki",

@@ -2870,6 +2870,7 @@ const de: Record<string, string> = {
   "team.event.teams": "Teams",
   "team.event.neuLaden": "Aktualisieren",
   "team.event.standUm": "Stand {zeit}",
+  "team.event.endstand": "Endstand",
   "team.event.keineTeams": "Noch kein Mitglied eines Teams in diesem Event.",
   "team.event.teamFilter": "Bestenliste für",
   "team.event.alle": "Alle",

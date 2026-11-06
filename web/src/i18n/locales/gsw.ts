@@ -2597,6 +2597,7 @@ const gsw: Record<string, string> = {
   "team.event.teams": "Teams",
   "team.event.neuLaden": "Aktualisiere",
   "team.event.standUm": "Stand {zeit}",
+  "team.event.endstand": "Schlussstand",
   "team.event.keineTeams": "No kei Mitglied vomne Team i dem Event.",
   "team.event.teamFilter": "Beschtelischte für",
   "team.event.alle": "Alli",

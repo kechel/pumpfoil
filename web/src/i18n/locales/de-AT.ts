@@ -2598,6 +2598,7 @@ const deAT: Record<string, string> = {
   "team.event.teams": "Teams",
   "team.event.neuLaden": "Aktualisieren",
   "team.event.standUm": "Stand {zeit}",
+  "team.event.endstand": "Endstand",
   "team.event.keineTeams": "Noch ka Mitglied von an Team in dem Event.",
   "team.event.teamFilter": "Bestenliste für",
   "team.event.alle": "Alle",

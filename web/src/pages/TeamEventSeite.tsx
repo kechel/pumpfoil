@@ -83,8 +83,8 @@ function EventSummen({ ev, t }: { ev: TeamEvent; t: (k: string) => string }) {
 }
 
 /** Team-Rangliste eines globalen Events (06.11.2026): je Team die Summe der besten N Mitglieder. */
-function TeamWertung({ tf, n, t, eigeneSlugs }: { tf: TeamTafelMitZeilen; n: number; t: (k: string, p?: Record<string, string>) => string;
-  eigeneSlugs: string[] }) {
+function TeamWertung({ tf, n, t, eigeneSlugs, standText }: { tf: TeamTafelMitZeilen; n: number; t: (k: string, p?: Record<string, string>) => string;
+  eigeneSlugs: string[]; standText?: string | null }) {
   const k = kennzahl(tf.kennzahl);
   // Top 10, dazu die eigenen Teams weiter hinten (wie die Community-Bestenliste, Jan 06.11.2026).
   const alle = tf.teams ?? [];
@@ -93,6 +93,7 @@ function TeamWertung({ tf, n, t, eigeneSlugs }: { tf: TeamTafelMitZeilen; n: num
     <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-3">
       <p className="text-sm font-semibold text-slate-100">{t("team.event.teams")} · {t(k.labelKey)}</p>
       <p className="text-xs text-slate-400">{n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) })}</p>
+      {standText && <p className="text-xs text-slate-400">{standText}</p>}
       {teams.length === 0 && <p className="mt-2 text-sm text-slate-400">{t("team.event.keineTeams")}</p>}
       <ol className="mt-2">
         {teams.map((x) => (
@@ -206,6 +207,17 @@ export default function TeamEventSeite() {
     }).catch((e) => setMeldung(t(`team.err.${fehlerCode(e)}`))).finally(() => setBusy(false));
   };
 
+  // „Stand 14:32" in den Listen und im geteilten Bild, solange sich noch etwas aendern kann; danach „Endstand"
+  // (Jan, 06.11.2026).
+  const standFuer = (tf: TeamTafelMitZeilen | null | undefined): string | null => {
+    if (!ev || !tf) return null;
+    if (ev.status === "beendet") return t("team.event.endstand");
+    if ((ev.status === "laeuft" || ev.status === "auswertung") && tf.stand) {
+      return t("team.event.standUm", { zeit: new Date(tf.stand).toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" }) });
+    }
+    return null;
+  };
+
   if (fehlt) return <p className="text-sm text-slate-400">{t("team.nichtGefunden")}</p>;
   if (!team || !ev) return <p className="text-sm text-slate-400">{t("common.loading")}</p>;
 
@@ -288,16 +300,10 @@ export default function TeamEventSeite() {
           )}
           {/* „Bestenliste für" (eigenes Team) wieder raus (Jan, 06.11.2026) — Top 10 + man selbst reicht. */}
           {/* Neu laden, solange sich noch etwas aendern kann (Jan, 06.11.2026). Der Server rechnet hoechstens alle 2 min neu. */}
-          {(ev.status === "laeuft" || ev.status === "auswertung") && ev.tafeln[Math.min(wahl, ev.tafeln.length - 1)]?.stand && (
-            <span className="ml-auto text-xs text-slate-400">
-              {t("team.event.standUm", { zeit: new Date(ev.tafeln[Math.min(wahl, ev.tafeln.length - 1)].stand!)
-                .toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" }) })}
-            </span>
-          )}
           {!gast && (ev.status === "laeuft" || ev.status === "auswertung") && (
             <button onClick={() => { setLaedt(true); api.teamEvent(slug, id).then(setEv).catch(() => {}).finally(() => setLaedt(false)); }}
               disabled={laedt}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50">
+              className="ml-auto inline-flex items-center gap-1.5 rounded-xl border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50">
               <svg viewBox="0 0 24 24" className={`h-4 w-4 ${laedt ? "animate-spin" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M21 12a9 9 0 1 1-2.64-6.36" /><path d="M21 3v6h-6" />
               </svg>
@@ -311,10 +317,11 @@ export default function TeamEventSeite() {
           // Globale Events: Top 10 und die eigene Zeile darunter (wie die Community-Bestenliste, Jan 06.11.2026).
           const tf = ev.global ? { ...tf0, zeilen: [...tf0.zeilen.slice(0, 10),
             ...(tf0.eigene && tf0.eigene.rang > 10 && !teamFilter ? [tf0.eigene] : [])] } : tf0;
+          const standText = standFuer(tf0);
           return (
             <div className={`grid gap-3 ${ev.global ? "sm:grid-cols-2" : ""}`}>
-              <Tafel tf={tf} gast={gast} t={t} ohneFilter sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} />
-              {ev.global && <TeamWertung tf={tf} n={ev.team_wertung_n ?? 5} t={t} eigeneSlugs={meineTeams.map((x) => x.slug)} />}
+              <Tafel tf={tf} gast={gast} t={t} ohneFilter sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} standText={standText} />
+              {ev.global && <TeamWertung tf={tf} n={ev.team_wertung_n ?? 5} t={t} eigeneSlugs={meineTeams.map((x) => x.slug)} standText={standText} />}
             </div>
           );
         })()}
@@ -349,7 +356,7 @@ export default function TeamEventSeite() {
           busy={busy} onJa={beitreten} onNein={() => setDialog(false)} />
       )}
 
-      {bild && <TeamTafelBild team={team} tafel={bild} onClose={() => setBild(null)} zeitraum={ev.titel} />}
+      {bild && <TeamTafelBild team={team} tafel={bild} onClose={() => setBild(null)} zeitraum={ev.titel} stand={standFuer(bild)} />}
     </div>
   );
 }

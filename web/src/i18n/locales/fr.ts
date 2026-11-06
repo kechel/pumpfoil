@@ -2596,6 +2596,7 @@ const fr: Record<string, string> = {
   "team.event.teams": "Équipes",
   "team.event.neuLaden": "Actualiser",
   "team.event.standUm": "État à {zeit}",
+  "team.event.endstand": "Classement final",
   "team.event.keineTeams": "Aucun membre d'équipe dans cet événement pour l'instant.",
   "team.event.teamFilter": "Classement pour",
   "team.event.alle": "Tous",
