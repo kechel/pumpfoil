@@ -248,7 +248,7 @@ private fun FoilerInhalt(
         val openTeam = LocalOpenTeam.current
         val angaben = buildList<Triple<ImageVector, String, @Composable () -> Unit>> {
             // Teams ganz oben (Jan, 05.11.2026), nur freigegebene, mit Wappen; Tippen oeffnet die Teamseite.
-            if (d.teams.isNotEmpty()) add(Triple(Icons.Filled.Groups, I18n.t("team.community")) {
+            if (d.teams.isNotEmpty()) add(Triple(TeamSymbol, I18n.t("team.community")) {   // Team-Symbol (Web TeamIcon, 06.11.2026)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     d.teams.forEach { tm ->
                         Row(Modifier.clickable(enabled = openTeam != null) { openTeam?.invoke(tm.slug) },

@@ -233,7 +233,7 @@ fun FoilsScreen(onBack: () -> Unit = {}, onSetup: () -> Unit = {},
                         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 6.dp))
                 }
                 // „Marke/Größe fehlt?" -> Feedback mit vorbelegtem Text (wie PWA, unter der Liste).
-                item { MissingHint(I18n.t("foils.missingFoil")) }
+                item { MissingHint(I18n.t("foils.missingFoil"), I18n.t("foils.missingPrefill")) }
             } else {
                 item {
                     Text(I18n.t("gear.searchHint"), style = MaterialTheme.typography.bodyMedium,

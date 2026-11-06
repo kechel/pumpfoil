@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -146,6 +147,8 @@ data class TeamInfo(
     @SerialName("freigabe_notiz") val freigabeNotiz: String? = null,
     @SerialName("auftritt_geaendert") val auftrittGeaendert: Boolean = false,
     val frei: kotlinx.serialization.json.JsonObject? = null,   // freigegebene Fassung (nur ob es sie gibt, zaehlt)
+    // Offizielles Team (server TEAM_GLOBAL, 06.11.2026): nur hier gibt es globale Events.
+    val offiziell: Boolean = false,
 ) {
     val verwalter: Boolean get() = meineRolle == "leiter" || meineRolle == "moderator"
 }
@@ -175,6 +178,26 @@ data class TeamTafel(
     @SerialName("nur_teamspots") val nurTeamspots: Boolean = false,
     @SerialName("foil_band") val foilBand: String = "all",
     val zeilen: List<TeamZeile> = emptyList(),
+    // Nur bei Events (06.11.2026): Team-Rangliste eines globalen Events, die eigene Zeile (auch hinter Platz 10) und
+    // wann die Liste gerechnet wurde (ISO, UTC).
+    val teams: List<TeamWertungZeile>? = null,
+    val eigene: TeamZeile? = null,
+    val stand: String? = null,
+)
+
+/** Team-Rangliste eines globalen Events (server teams.team_wertung): Summe der besten N Mitglieder, `fahrer` davon
+ *  gezaehlt, `teilnehmer` im Event. */
+@Serializable
+data class TeamWertungZeile(
+    val rang: Int = 0,
+    val name: String = "",
+    val slug: String = "",
+    @SerialName("logo_url") val logoUrl: String? = null,
+    val farbe: String? = null,
+    val land: String? = null,
+    val value: Double = 0.0,
+    val fahrer: Int = 0,
+    val teilnehmer: Int = 0,
 )
 
 @Serializable
@@ -261,6 +284,9 @@ data class TeamEvent(
     val vorlage: String? = null,
     @SerialName("banner_url") val bannerUrl: String? = null,
     @SerialName("banner_fokus") val bannerFokus: String? = null,
+    // Globales Event (06.11.2026): jeder nimmt automatisch teil; Teamwertung = Summe der besten N (0 = alle).
+    val global: Boolean = false,
+    @SerialName("team_wertung_n") val teamWertungN: Int? = null,
 ) {
     /** Sportarten: die der Bestenlisten, ohne Bestenliste die der Gesamtsummen (wie Web eventSportarten). */
     val sportarten: List<String> get() = (if (tafeln.isNotEmpty()) tafeln.map { it.sportart } else listOf(summenSportart)).distinct()
@@ -287,6 +313,7 @@ data class TeamEventKurz(
     val sportarten: List<String> = emptyList(),
     val spots: List<TeamSpotKurz> = emptyList(),
     val team: TeamEventTeam = TeamEventTeam(),
+    val global: Boolean = false,   // globales Event (06.11.2026): eigene Karte mit Kalenderblock
 )
 
 @Serializable
@@ -510,6 +537,23 @@ internal fun eventZeitraumGenau(start: String, ende: String, zeitzone: String?):
     }.getOrElse { start to ende }
 }
 
+/** Kalenderblock der Karte globaler Events (Web eventTage, 06.11.2026): Monat, Tage („7–8"), Wochentage („Sa–So") in
+ *  der Zeitzone des Events. Ein Ende um Mitternacht gehoert zum Vortag; ueber einen Monatswechsel stehen beide Monate da. */
+internal data class EventTage(val monat: String, val tage: String, val wochentage: String)
+
+internal fun eventTage(start: String, ende: String, zeitzone: String?): EventTage {
+    val a = isoInstant(start) ?: return EventTage("", "", "")
+    val b0 = isoInstant(ende) ?: return EventTage("", "", "")
+    val b = if (mitternacht(b0, zeitzone)) b0.minusSeconds(12 * 3600) else b0
+    return runCatching {
+        val ma = icuFormat("MMM", zeitzone, a).removeSuffix("."); val mb = icuFormat("MMM", zeitzone, b).removeSuffix(".")
+        val ta = icuFormat("d", zeitzone, a).removeSuffix("."); val tb = icuFormat("d", zeitzone, b).removeSuffix(".")
+        val wa = icuFormat("EEE", zeitzone, a); val wb = icuFormat("EEE", zeitzone, b)
+        val gleicherTag = ma == mb && ta == tb
+        EventTage(if (ma == mb) ma else "$ma – $mb", if (gleicherTag) ta else "$ta–$tb", if (gleicherTag) wa else "$wa–$wb")
+    }.getOrElse { EventTage("", "", "") }
+}
+
 /** Ein Zeitpunkt (Upload-Frist) mittel lang, in der Zeitzone des Events. */
 internal fun eventZeit(iso: String, zeitzone: String?): String {
     val i = isoInstant(iso) ?: return iso
@@ -702,9 +746,123 @@ fun EventKachel(e: TeamEvent, farbe: String?, onClick: () -> Unit, modifier: Mod
     EventKachel(e.titel, e.beschreibung, e.status, e.start, e.ende, e.zeitzone, e.sportarten, e.spots, farbe, onClick, modifier)
 
 @Composable
-fun EventKachel(e: TeamEventKurz, onClick: () -> Unit, modifier: Modifier = Modifier) =
+fun EventKachel(e: TeamEventKurz, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    if (e.global) { GlobalEventKachel(e, onClick, modifier); return }
     EventKachel(e.titel, e.beschreibung, e.status, e.start, e.ende, e.zeitzone, e.sportarten, e.spots, e.team.farbe, onClick,
         modifier, team = e.team)
+}
+
+/** Abzeichen „Global" (Karten, Event-Seite): Pumpfoil-Cyan, hell dunkler (Web brand-700 / dark brand-300). */
+@Composable
+fun GlobalChip() {
+    val dunkel = teamDunkel()
+    Text(
+        I18n.t("team.event.global"), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
+        color = if (dunkel) Color(0xFF67E8F9) else Color(0xFF0E7490),
+        modifier = Modifier.clip(CircleShape).background(Color(0xFF06B6D4).copy(alpha = 0.15f))
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+    )
+}
+
+/** Pumpfoil-Cyan fuer Text/Symbole auf neutralem Grund (Web brand-700 hell, brand-300 dunkel). */
+@Composable
+internal fun markenAkzent(): Color = if (teamDunkel()) Color(0xFF67E8F9) else Color(0xFF0E7490)
+
+/**
+ * Karte globaler Events (Web EventKurzKachel GlobalKachel, Jan 06.11.2026: „der zeitraum sollte groesser dargestellt
+ * werden, irgendwie ist alles wichtig"): Kalenderblock links (Monat, Tage, Wochentage), rechts Status, „Global",
+ * Sportarten/Spots, Titel gross, Countdown und die erste Zeile der Beschreibung. Ohne Teamname — „Global" sagt, woher es kommt.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun GlobalEventKachel(e: TeamEventKurz, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val laeuft = e.status == "laeuft"
+    val marke = MaterialTheme.colorScheme.primary
+    val akzent = markenAkzent()
+    val d = eventTage(e.start, e.ende, e.zeitzone)
+    Card(
+        modifier.fillMaxWidth().clip(CardDefaults.shape).clickable(onClick = onClick),
+        border = BorderStroke(2.dp, if (laeuft) marke else marke.copy(alpha = 0.4f)),
+    ) {
+        Row(Modifier.padding(14.dp)) {
+            Column(Modifier.width(84.dp).clip(RoundedCornerShape(12.dp)).background(marke.copy(alpha = 0.15f))
+                .padding(horizontal = 4.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(d.monat.uppercase(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = akzent,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                Text(d.tage, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, maxLines = 1,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                Text(d.wochentage, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            }
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    // „laeuft" in Pumpfoil-Cyan statt Teamfarbe (die Karte gehoert keinem Team).
+                    EventStatusChip(e.status, TeamFarbe(akzent = marke, flaeche = marke, aufFlaeche = MaterialTheme.colorScheme.onPrimary))
+                    GlobalChip()
+                    e.sportarten.forEach { SportChip(it) }
+                    e.spots.forEach { SpotChip(it.name ?: "#${it.id}") }
+                }
+                Text(e.titel, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+                if (e.status == "kommend" || laeuft) {
+                    val jetzt = rememberJetzt()
+                    Text(I18n.t(if (laeuft) "team.event.endetIn" else "team.event.startIn") + " " +
+                            countdownText(restSekunden(if (laeuft) e.ende else e.start, jetzt)),
+                        style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = akzent,
+                        modifier = Modifier.padding(top = 2.dp))
+                }
+                e.beschreibung?.trim()?.takeIf { it.isNotEmpty() }?.let { b ->
+                    Text(b.lineSequence().first(), style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Abzeichen am Reiter (Community „Teams & Events", Home „Team"; Web EventAbzeichen, 06.11.2026): LIVE pulsierend, solange
+ * ein Event laeuft, sonst die Zahl der kommenden. Nichts, wenn beides nicht zutrifft.
+ */
+@Composable
+fun EventAbzeichen(live: Boolean, bald: Int) {
+    val marke = MaterialTheme.colorScheme.primary
+    if (live) {
+        Text(I18n.t("team.event.status.laeuft").uppercase(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onPrimary, maxLines = 1,
+            modifier = Modifier.alpha(pulsAlpha(true)).clip(CircleShape).background(marke).padding(horizontal = 6.dp, vertical = 1.dp))
+    } else if (bald > 0) {
+        Text(bald.toString(), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = markenAkzent(),
+            modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant).padding(horizontal = 6.dp, vertical = 1.dp))
+    }
+}
+
+// ------------------------------------------------------------------------------- Symbole ----
+// Wie web/src/components/Icons.tsx (fefda447, Jan 06.11.2026: „ueberall wo wir auf events verweisen auch das
+// event-zeichen"): Events = Fahne, Teams = drei Personen (Mitte vorn); Strich 2, runde Enden, keine Fuellung.
+
+private fun strichSymbol(name: String, vararg pfade: String): androidx.compose.ui.graphics.vector.ImageVector =
+    androidx.compose.ui.graphics.vector.ImageVector.Builder(name, 24.dp, 24.dp, 24f, 24f).apply {
+        pfade.forEach { d ->
+            addPath(androidx.compose.ui.graphics.vector.addPathNodes(d), fill = null,
+                stroke = androidx.compose.ui.graphics.SolidColor(Color.Black), strokeLineWidth = 2f,
+                strokeLineCap = androidx.compose.ui.graphics.StrokeCap.Round,
+                strokeLineJoin = androidx.compose.ui.graphics.StrokeJoin.Round)
+        }
+    }.build()
+
+/** Events: die Fahne (Web EventIcon = FlagIcon). Mit `Icon(tint = …)` einfaerben. */
+val EventSymbol: androidx.compose.ui.graphics.vector.ImageVector by lazy {
+    strichSymbol("event", "M5 21V4", "M5 4h11l-2 3 2 3H5")
+}
+
+/** Teams: drei Personen (Web TeamIcon); Community bleibt bei zweien (Material Groups). Kreise als zwei Boegen. */
+val TeamSymbol: androidx.compose.ui.graphics.vector.ImageVector by lazy {
+    strichSymbol("team",
+        "M12 4a3 3 0 1 0 0 6a3 3 0 1 0 0-6z", "M6.5 20v-1.5a5.5 5.5 0 0 1 11 0V20",
+        "M5 6.8a2.2 2.2 0 1 0 0 4.4a2.2 2.2 0 1 0 0-4.4z", "M1.5 19v-1a3.5 3.5 0 0 1 4.2-3.4",
+        "M19 6.8a2.2 2.2 0 1 0 0 4.4a2.2 2.2 0 1 0 0-4.4z", "M22.5 19v-1a3.5 3.5 0 0 0-4.2-3.4")
+}
 
 /**
  * Beitritts-Dialog (Web BeitrittDialog). Das Kleingedruckte steht IMMER da (Jan, 31.10.2026): wer beitritt, stimmt zu,
@@ -752,20 +910,27 @@ fun TeamKnopf(text: String, farbe: TeamFarbe, onClick: () -> Unit, enabled: Bool
 @Composable
 fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit, ohneFilter: Boolean = false,
                    /** Sportart als Marke neben der Ueberschrift, wenn die Listen verschiedene Sportarten haben (Web 831f6406). */
-                   sportZeigen: Boolean = false) {
+                   sportZeigen: Boolean = false,
+                   /** „Stand 6. Nov., 14:32" bzw. „Endstand" unter der Ueberschrift (Event-Seite, Web 06.11.2026). */
+                   standText: String? = null,
+                   /** Als Bild teilen: Knopf „Teilen" rechts neben der Ueberschrift (Web 6b9a6f0d). */
+                   onBild: (() -> Unit)? = null) {
     val oeffneFoiler = LocalOpenFoiler.current
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(kennzahlLabel(tf.kennzahl), color = farbe.akzent, style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f, fill = false))
-                if (sportZeigen) {
-                    Spacer(Modifier.width(8.dp))
-                    Text(I18n.t("cls.sport.${tf.sportart}"), style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.clip(RoundedCornerShape(50)).background(MaterialTheme.colorScheme.surfaceVariant)
-                            .padding(horizontal = 8.dp, vertical = 2.dp))
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                    Text(kennzahlLabel(tf.kennzahl), color = farbe.akzent, style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f, fill = false))
+                    if (sportZeigen) {
+                        Spacer(Modifier.width(8.dp))
+                        Text(I18n.t("cls.sport.${tf.sportart}"), style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.clip(RoundedCornerShape(50)).background(MaterialTheme.colorScheme.surfaceVariant)
+                                .padding(horizontal = 8.dp, vertical = 2.dp))
+                    }
                 }
+                if (onBild != null && tf.zeilen.isNotEmpty()) TeilenKnopf(onBild)
             }
             val filter = listOfNotNull(
                 if (tf.sportart != "pumpfoil" && !sportZeigen) I18n.t("cls.sport.${tf.sportart}") else null,
@@ -774,6 +939,7 @@ fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit
             ).joinToString(" · ")
             if (filter.isNotEmpty() && !ohneFilter) Text(filter, style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
+            standText?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             if (tf.zeilen.isEmpty()) {
                 Text(I18n.t("team.tafel.leer"), style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
@@ -814,6 +980,16 @@ fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit
                 }
             }
         }
+    }
+}
+
+/** Knopf „Teilen" mit Symbol (Bestenliste als Bild; Web: Symbol und Text, 06.11.2026). */
+@Composable
+internal fun TeilenKnopf(onClick: () -> Unit) {
+    TextButton(onClick = onClick, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)) {
+        Icon(androidx.compose.material.icons.Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(I18n.t("team.teilen"), style = MaterialTheme.typography.bodyMedium)
     }
 }
 

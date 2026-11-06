@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
@@ -34,7 +38,9 @@ import androidx.compose.ui.unit.dp
  *   zweiten Zeile darunter, damit man sieht, was zusammengehoert.
  * - `stufe = 2`: zweite Zeile als Flaeche direkt unter der ersten, der aktive Reiter als helle Pille.
  */
-data class ReiterDef(val id: String, val label: String)
+data class ReiterDef(val id: String, val label: String,
+                     /** Abzeichen hinter dem Text (Web ReiterDef.badge, 06.11.2026: LIVE bzw. Zahl der kommenden Events). */
+                     val badge: (@Composable () -> Unit)? = null)
 
 @Composable
 fun Reiterleiste(reiter: List<ReiterDef>, aktiv: String, onWahl: (String) -> Unit,
@@ -69,10 +75,12 @@ fun Reiterleiste(reiter: List<ReiterDef>, aktiv: String, onWahl: (String) -> Uni
                     .clip(if (hinterlegt) RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp) else RoundedCornerShape(0.dp))
                     .background(if (hinterlegt) flaeche else androidx.compose.ui.graphics.Color.Transparent)
                     .clickable { onWahl(r.id) }) {
-                    Text(r.label, style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = if (an) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (an) farben.onBackground else farben.onSurfaceVariant, maxLines = 1,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp))
+                    Row(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(r.label, style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = if (an) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (an) farben.onBackground else farben.onSurfaceVariant, maxLines = 1)
+                        r.badge?.let { Spacer(Modifier.width(6.dp)); it() }
+                    }
                     Box(Modifier.height(2.dp).fillMaxWidth()
                         .background(if (an && !unter) farben.primary else androidx.compose.ui.graphics.Color.Transparent))
                 }

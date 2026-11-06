@@ -431,7 +431,7 @@ fun SetupScreen(onBack: () -> Unit,
                     )
                 }
                 // „Stabilizer fehlt?" -> Feedback mit vorbelegtem Text (wie PWA, unter der Stab-Liste).
-                item { MissingHint(I18n.t("setup.missingStab")) }
+                item { MissingHint(I18n.t("setup.missingStab"), I18n.t("setup.missingStabPrefill")) }
                 // Eigenen Stab anlegen, wenn er im Katalog fehlt (privat, nur für dieses Konto).
                 item {
                     Column(Modifier.padding(vertical = 8.dp)) {
@@ -529,7 +529,7 @@ fun SetupScreen(onBack: () -> Unit,
                         }
                     }
                     // „Stabilizer fehlt?" -> Feedback mit vorbelegtem Text (wie PWA, unter der Stab-Liste).
-                    item { MissingHint(I18n.t("setup.missingStab")) }
+                    item { MissingHint(I18n.t("setup.missingStab"), I18n.t("setup.missingStabPrefill")) }
                 } else {
                     item {
                         Text(I18n.t("gear.searchHint"), style = MaterialTheme.typography.bodyMedium,

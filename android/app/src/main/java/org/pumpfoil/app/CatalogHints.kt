@@ -70,11 +70,13 @@ fun EstimateBadge(label: String, hint: String, specs: Boolean = false) {
 // die naturgemäß unvollständig sind (Foils, Stabs): die Hersteller-Landschaft ändert sich jährlich.
 // Grund (wie in der PWA): Nutzer mussten anschreiben, weil ihre Marke fehlte und die Liste nirgends
 // sagte, dass man sie nachtragen lassen kann — eine Sackgasse genau an der auffälligen Stelle.
+// `vorlage`: Text im Feedback-Feld (Web 06.11.2026, Jan: „text vorausfuellen gut") — eine Vorlage mit dem, was wir
+// zum Eintragen brauchen (Marke, Modell, Groesse, Link), statt der Frage selbst. Ohne Vorlage wie bisher die Frage.
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun MissingHint(what: String) {
+fun MissingHint(what: String, vorlage: String? = null) {
     var open by remember { mutableStateOf(false) }
-    if (open) FeedbackDialog(onDismiss = { open = false }, prefill = what)
+    if (open) FeedbackDialog(onDismiss = { open = false }, prefill = vorlage ?: what)
     // FlowRow, damit Frage und Knopf auf schmalen Geräten umbrechen statt abgeschnitten zu werden.
     FlowRow(
         Modifier.padding(top = 12.dp, bottom = 4.dp),

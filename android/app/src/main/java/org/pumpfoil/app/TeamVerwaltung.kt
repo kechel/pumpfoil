@@ -586,7 +586,7 @@ fun TeamVerwaltungScreen(slug: String, grund: Boolean, onFertig: (String?) -> Un
                                 }
                             }
 
-                            TeamEventsVerwaltenKarte(akt, t.farbe, listen, onMeldung = { melden(it) })
+                            TeamEventsVerwaltenKarte(akt, t.farbe, listen, onMeldung = { melden(it) }, offiziell = t.offiziell)
 
                             links?.let { l ->
                                 VKarte(I18n.t("team.links"), I18n.t("team.linksHinweis")) {
@@ -860,6 +860,9 @@ private data class EventEntwurf(
     val tafeln: List<TeamTafel>,
     val spotIds: List<Int> = emptyList(),
     val vorlage: String? = null,
+    // Globales Event (06.11.2026, nur im offiziellen Team) und Teamwertung: beste N, 0 = alle (null = Server-Standard 5).
+    val globalEvent: Boolean = false,
+    val teamWertungN: Int? = null,
 )
 
 /** Naechster Samstag 00:00 bis Montag 00:00 (heute Samstag: der naechste) bzw. dieser Monat (Web wochenende/monat). */
@@ -899,10 +902,12 @@ private fun entwurfAus(ev: TeamEvent) = EventEntwurf(
     id = ev.id, eingefroren = ev.status == "beendet", bannerUrl = ev.bannerUrl, bannerFokus = ev.bannerFokus,
     ohneDateien = ev.ohneDateien, teambildZeigen = ev.teambildZeigen, summen = ev.summenAuswahl, summenSportart = ev.summenSportart,
     summenAccelOnly = ev.summenAccelOnly, titel = ev.titel, beschreibung = ev.beschreibung ?: "", start = lokal(ev.start), ende = lokal(ev.ende),
-    spotIds = ev.spotIds, vorlage = ev.vorlage, tafeln = ev.tafeln.map { it.copy(zeilen = emptyList(), id = null, nurTeamspots = false) },
+    spotIds = ev.spotIds, vorlage = ev.vorlage, tafeln = ev.tafeln.map { it.copy(zeilen = emptyList(), id = null, nurTeamspots = false,
+        teams = null, eigene = null, stand = null) },
+    globalEvent = ev.global, teamWertungN = ev.teamWertungN ?: 5,
 )
 
-private fun eventKoerper(e: EventEntwurf): JsonObject = buildJsonObject {
+private fun eventKoerper(e: EventEntwurf, offiziell: Boolean): JsonObject = buildJsonObject {
     val zone = ZoneId.systemDefault()
     put("titel", e.titel.trim())
     if (e.beschreibung.isBlank()) put("beschreibung", JsonNull) else put("beschreibung", e.beschreibung.trim())
@@ -924,11 +929,15 @@ private fun eventKoerper(e: EventEntwurf): JsonObject = buildJsonObject {
     put("summen", buildJsonArray { e.summen.forEach { add(it) } })
     put("summen_sportart", e.summenSportart)
     put("summen_accel_only", e.summenAccelOnly)
+    // Wie Web TeamEventsVerwalten: der Haken zaehlt nur im offiziellen Team (der Server prueft es ebenfalls).
+    put("global_event", offiziell && e.globalEvent)
+    if (e.teamWertungN == null) put("team_wertung_n", JsonNull) else put("team_wertung_n", e.teamWertungN)
 }
 
 /** Events eines Teams in der Verwaltung: Liste mit Stand und Zeitfenster, „Bearbeiten" und „Neues Event" (Popup). */
 @Composable
-private fun TeamEventsVerwaltenKarte(slug: String, farbe: String?, listen: VerwaltungsListen, onMeldung: (String) -> Unit) {
+private fun TeamEventsVerwaltenKarte(slug: String, farbe: String?, listen: VerwaltungsListen, onMeldung: (String) -> Unit,
+                                     offiziell: Boolean = false) {
     var liste by remember(slug) { mutableStateOf<List<TeamEvent>>(emptyList()) }
     var neuLaden by remember { mutableIntStateOf(0) }
     var entwurf by remember { mutableStateOf<EventEntwurf?>(null) }
@@ -951,7 +960,7 @@ private fun TeamEventsVerwaltenKarte(slug: String, farbe: String?, listen: Verwa
         TeamKnopf("+ " + I18n.t("team.event.neu"), f, onClick = { entwurf = leererEntwurf() })
     }
     entwurf?.let { e ->
-        TeamEventDialog(slug, farbe, e, listen,
+        TeamEventDialog(slug, farbe, e, listen, offiziell,
             onZu = { entwurf = null },
             onGeaendert = { neuLaden++ },
             onMeldung = onMeldung)
@@ -963,12 +972,12 @@ private fun TeamEventsVerwaltenKarte(slug: String, farbe: String?, listen: Verwa
  * Spots selbst; `onZu` nach Schliessen, Speichern oder Loeschen (die Seite laedt das Event dann neu).
  */
 @Composable
-fun TeamEventBearbeitenDialog(slug: String, farbe: String?, ev: TeamEvent, onZu: () -> Unit) {
+fun TeamEventBearbeitenDialog(slug: String, farbe: String?, ev: TeamEvent, onZu: () -> Unit, offiziell: Boolean = false) {
     var listen by remember { mutableStateOf<VerwaltungsListen?>(null) }
     val ctx = LocalContext.current
     LaunchedEffect(Unit) { listen = verwaltungsListenLaden() }
     val l = listen ?: return
-    TeamEventDialog(slug, farbe, entwurfAus(ev), l, onZu = onZu, onGeaendert = {},
+    TeamEventDialog(slug, farbe, entwurfAus(ev), l, offiziell, onZu = onZu, onGeaendert = {},
         onMeldung = { android.widget.Toast.makeText(ctx, it, android.widget.Toast.LENGTH_SHORT).show() })
 }
 
@@ -994,7 +1003,7 @@ private fun DatumZeitFeld(label: String, wert: LocalDateTime, onWert: (LocalDate
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun TeamEventDialog(slug: String, farbe: String?, start: EventEntwurf, listen: VerwaltungsListen,
+private fun TeamEventDialog(slug: String, farbe: String?, start: EventEntwurf, listen: VerwaltungsListen, offiziell: Boolean,
                             onZu: () -> Unit, onGeaendert: () -> Unit, onMeldung: (String) -> Unit) {
     var e by remember(start.id) { mutableStateOf(start) }
     var fehler by remember { mutableStateOf<String?>(null) }
@@ -1040,6 +1049,23 @@ private fun TeamEventDialog(slug: String, farbe: String?, start: EventEntwurf, l
                     }
                     // Ohne eigenes Eventbild: Teambild zeigen (Standard an).
                     if (e.bannerUrl == null) Haken(e.teambildZeigen, I18n.t("team.event.teambildZeigen"), { e = e.copy(teambildZeigen = it) })
+                    // Globales Event (Web 06.11.2026): nur im offiziellen Team. Jeder mit passenden Sessions nimmt teil,
+                    // dazu eine Team-Rangliste aus den besten N Mitgliedern jedes Teams.
+                    if (offiziell) {
+                        Column(Modifier.fillMaxWidth().padding(vertical = 6.dp).clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f))
+                            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.30f), RoundedCornerShape(12.dp)).padding(8.dp)) {
+                            Haken(e.globalEvent, I18n.t("team.event.globalHaken"), { e = e.copy(globalEvent = it) })
+                            if (e.globalEvent) {
+                                Text(I18n.t("team.event.wertung"), style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(top = 4.dp))
+                                AuswahlFeld((e.teamWertungN ?: 5).toString(),
+                                    listOf(3, 5, 10).map { Option(it.toString(), I18n.t("team.event.wertungBeste").replace("{n}", it.toString())) } +
+                                        Option("0", I18n.t("team.event.wertungAlle")),
+                                    onWahl = { e = e.copy(teamWertungN = it.toIntOrNull() ?: 5) }, modifier = Modifier.fillMaxWidth())
+                            }
+                        }
+                    }
                     OutlinedTextField(value = e.titel, onValueChange = { e = e.copy(titel = it.take(80)) }, singleLine = true,
                         label = { Text(I18n.t("team.event.titel")) }, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
                     Row(Modifier.padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1130,7 +1156,7 @@ private fun TeamEventDialog(slug: String, farbe: String?, start: EventEntwurf, l
                             scope.launch {
                                 try {
                                     val id = e.id
-                                    if (id != null) Api.teamEventAendern(slug, id, eventKoerper(e)) else Api.teamEventAnlegen(slug, eventKoerper(e))
+                                    if (id != null) Api.teamEventAendern(slug, id, eventKoerper(e, offiziell)) else Api.teamEventAnlegen(slug, eventKoerper(e, offiziell))
                                     onGeaendert(); onMeldung(I18n.t("team.gespeichert")); onZu()
                                 } catch (x: Exception) { fehler = teamFehlerText(x) }
                                 busy = false

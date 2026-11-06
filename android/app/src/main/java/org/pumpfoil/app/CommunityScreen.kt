@@ -119,8 +119,12 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                     onOpenTeam: (String) -> Unit = {}, onProfilLand: () -> Unit = {}) {
     // Reiter wie im Web (Home.tsx CommunitySection, docs/UX-IA.md App-Port Phase 8, 04.11.2026): Rekorde & Bestenliste ·
     // Medien · Teams & Events. Spots und Routen stehen jetzt unter der Hauptnavigation „Spots" (Reiter Liste / Routen).
+    // Abzeichen am Reiter „Teams & Events" (Web 06.11.2026): LIVE, solange ein globales Event laeuft, sonst die Zahl
+    // der bald beginnenden.
+    val evAbz = rememberEventAbzeichen(meine = false)
     val reiter = listOf(ReiterDef("bestenliste", I18n.t("tab.rankings")), ReiterDef("medien", I18n.t("tab.media")),
-                        ReiterDef("teams", I18n.t("land.teamsTitle")))
+                        ReiterDef("teams", I18n.t("land.teamsTitle"),
+                            badge = if (evAbz.live || evAbz.bald > 0) ({ EventAbzeichen(evAbz.live, evAbz.bald) }) else null))
     var tab by rememberReiter("community", reiter.map { it.id }, "bestenliste")
     var records by remember { mutableStateOf<Map<String, PeriodRecords>?>(null) }
     var leaders by remember { mutableStateOf<Leaders?>(null) }

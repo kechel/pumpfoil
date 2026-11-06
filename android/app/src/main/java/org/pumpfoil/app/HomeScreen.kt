@@ -94,7 +94,8 @@ private object RatingClock { val startMs = android.os.SystemClock.elapsedRealtim
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, onOpenCommunity: () -> Unit = {}, onRecord: () -> Unit = {}, onOpenSortedOut: () -> Unit = {}, onOnboarding: () -> Unit = {}, social: Boolean = true, onOpenSpot: (String) -> Unit = {}, onOpenTeam: (String) -> Unit = {}, onOpenTeams: () -> Unit = {},
-               onPrivacy: () -> Unit = {}, onOpenKommentare: (Int) -> Unit = {}, onTeamGegruendet: (String) -> Unit = {}) {
+               onPrivacy: () -> Unit = {}, onOpenKommentare: (Int) -> Unit = {}, onTeamGegruendet: (String) -> Unit = {},
+               onOpenEvent: (String, Int) -> Unit = { _, _ -> }) {
     var profile by remember { mutableStateOf<Profile?>(null) }
     var homespotLink by remember { mutableStateOf<String?>(null) }
     // Home › Spots (04.11.2026): Homespot als Nummer (homespot_effective_id) und alle Spots mit eigenen Sessions.
@@ -347,9 +348,12 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
             // Reiter wie im Web (docs/UX-IA.md, App-Port Phase 3–5, 04.11.2026):
             // Uebersicht · Rekorde · Team · Spots · Stats · Uhren · Profil.
             // „Spots" nur mit Homespot oder eigenen Spots, „Profil" nur mit bekannter eigener ID (wie PersonalHome.tsx).
+            // Abzeichen am Reiter „Team" (Web 06.11.2026): LIVE bzw. Zahl der kommenden Events der eigenen Teams.
+            val teamEvAbz = rememberEventAbzeichen(meine = true)
             val homeReiter = listOfNotNull(
                 ReiterDef("uebersicht", I18n.t("tab.overview")), ReiterDef("rekorde", I18n.t("side.records")),
-                ReiterDef("team", I18n.t("tab.team")),
+                ReiterDef("team", I18n.t("tab.team"),
+                    badge = if (teamEvAbz.live || teamEvAbz.bald > 0) ({ EventAbzeichen(teamEvAbz.live, teamEvAbz.bald) }) else null),
                 if (homespotId != null || !meineSpots.isNullOrEmpty()) ReiterDef("spots", I18n.t("nav.spots")) else null,
                 ReiterDef("stats", I18n.t("tab.stats")),
                 ReiterDef("uhren", I18n.t("ptab.watches")),
@@ -360,6 +364,13 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
             Spacer(Modifier.height(if (tab == "spots" || tab == "uhren") 0.dp else 10.dp))
 
             if (tab == "uebersicht") {
+
+            // Laufendes oder bald beginnendes globales Event (Web EventHinweise, 06.11.2026) — fuehrt in die Community ›
+            // Teams & Events. Unter 13 gibt es keine Community-Seite zu entdecken, dann kein Hinweis.
+            if (social) GlobaleEventHinweise(onOeffnen = {
+                ReiterSpeicher.von("community", "bestenliste").value = "teams"
+                onOpenCommunity()
+            }, modifier = Modifier.padding(bottom = 10.dp))
 
             // Hinweis auf eingehende Session-Übertragungen (Details/Annehmen in „Meine Sessions").
             if (incomingXfer > 0) {
@@ -607,6 +618,8 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
                             }
                         }
                     }
+                    // Events der eigenen Teams als Kacheln (Web TeamEventsListe, 06.11.2026), laufende zuerst.
+                    TeamEventsListe(onOpenEvent, Modifier.padding(top = 12.dp))
                     // Die letzten Sessions der Teammitglieder unter der Teamliste (Web PersonalHome TeamLetzteMitWahl).
                     TeamLetzte(meineTeams, onOpenSession = { onOpen(it, null) })
                 }

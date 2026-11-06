@@ -353,6 +353,8 @@ fun EinstellungenTeil(z: EinstellungenStand, teil: String, mitSpeichern: Boolean
                     Spacer(Modifier.height(12.dp))
                     OrtVerbergenKarte(onSaved = { flashSaved() })
                     Spacer(Modifier.height(12.dp))
+                    GlobaleEventsKarte(onSaved = { flashSaved() })
+                    Spacer(Modifier.height(12.dp))
                     AktivAufKarteKarte(onSaved = { flashSaved() })
                     Spacer(Modifier.height(12.dp))
                     OnlinePunktKarte(onSaved = { flashSaved() })

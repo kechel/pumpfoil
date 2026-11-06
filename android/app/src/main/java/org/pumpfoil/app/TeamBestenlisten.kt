@@ -197,7 +197,11 @@ internal class BildZeile(val rang: Int, val name: String, val wert: String, val 
                          val wappen: Boolean = false, val logoUrl: String? = null, val farbe: String? = null)
 
 internal class TeamBildDaten(val titel: String, val unter: String, val zeilen: List<BildZeile>, val datei: String,
-                             val quelle: String? = null)   // „Daten von: Garmin · …" ueber dem Fuss (Garmins Vorgabe)
+                             val quelle: String? = null,   // „Daten von: Garmin · …" ueber dem Fuss (Garmins Vorgabe)
+                             // Pille oben rechts, z. B. „LIVE", solange ein Event nicht final ist (Web 6f12c55f, 06.11.2026)
+                             val abzeichen: String? = null,
+                             // Text, wenn die Liste leer ist (Team-Rangliste eines Events ohne Teams)
+                             val leer: String? = null)
 
 // Dieselben Farben wie web/src/lib/bestenlisteBild.ts (DUNKEL/HELL, wie die Session-Karte sharecard.py), je Fassung.
 private class BildFarben(val grund: Int, val flaeche: Int, val linie: Int, val akzent: Int, val text: Int, val leise: Int)
@@ -256,8 +260,19 @@ private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, 
         while (s.length > 1 && p.measureText("$s…") > max) s = s.dropLast(1)
         return "$s…"
     }
+    // Abzeichen oben rechts (Event noch nicht final): Pille in der Akzentfarbe, der Titel wird entsprechend kuerzer.
+    var rechts = B - X
+    d.abzeichen?.let { ab ->
+        schrift(28f, true)
+        val text = ab.uppercase()
+        val bw = p.measureText(text) + 44f; val bh = 50f; val bx = B - X - bw; val by = 72f
+        p.color = F.akzent; g.drawRoundRect(bx, by, bx + bw, by + bh, bh / 2, bh / 2, p)
+        p.color = F.grund; p.textAlign = android.graphics.Paint.Align.CENTER
+        g.drawText(text, bx + bw / 2, by + bh / 2 - (p.descent() + p.ascent()) / 2f, p)
+        rechts = bx - 24
+    }
     p.color = F.akzent; p.textAlign = android.graphics.Paint.Align.LEFT
-    schrift(58f, true); g.drawText(kuerzen(d.titel, B - 2 * X), X, 118f, p)
+    schrift(58f, true); g.drawText(kuerzen(d.titel, rechts - X), X, 118f, p)
     schrift(30f, true); g.drawText(kuerzen(d.unter, B - 2 * X), X, 156f, p)
 
     val oben = 215f; val unten = B - 150f
@@ -311,6 +326,10 @@ private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, 
         schrift(Math.round(gross * 0.92f).toFloat(), z.rang == 1 || hinterlegt)
         p.textAlign = android.graphics.Paint.Align.LEFT; p.color = F.text
         g.drawText(kuerzen(z.name, B - X - wb - 30 - nx), nx, mitteText(mitte), p)
+    }
+    if (zeilen.isEmpty()) d.leer?.let { l ->
+        p.color = F.leise; schrift(34f, false); p.textAlign = android.graphics.Paint.Align.LEFT
+        g.drawText(kuerzen(l, B - 2 * X), X, oben + 60f, p)
     }
     zeilen.forEachIndexed { i, z ->
         if (i > 0) { p.color = F.linie; g.drawRect(X, oben + i * zh, B - X, oben + i * zh + 2, p) }
@@ -473,8 +492,11 @@ fun AktivsteTeams(onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier) {
     val top = teams.orEmpty().filter { it.sessions30d > 0 }.sortedByDescending { it.sessions30d }.take(10)
     if (top.isEmpty()) return
     Column(modifier.fillMaxWidth()) {
-        Text(I18n.t("team.aktivste"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 6.dp))
+        Row(Modifier.padding(bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(TeamSymbol, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(I18n.t("team.aktivste"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        }
         top.forEach { tm ->
             val f = teamFarbe(tm.farbe)
             Card(Modifier.fillMaxWidth().padding(bottom = 6.dp).clip(RoundedCornerShape(12.dp)).clickable { onOpenTeam(tm.slug) }) {

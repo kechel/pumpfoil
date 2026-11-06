@@ -1,6 +1,7 @@
 package org.pumpfoil.app
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,7 +25,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,7 +49,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CancellationException
@@ -60,29 +64,139 @@ import kotlinx.coroutines.flow.first
  * und die Teams als kleine Links auf der Startseite (PersonalHome.tsx, neben dem Homespot).
  */
 
-/** Community-Abschnitt: laufende und in den naechsten Tagen beginnende Events, Links zu „Alle Events"/„Alle Teams". */
+/**
+ * Community-Abschnitt „Globale Events" (Web Home.tsx TeamsSection, seit 06.11.2026): der Server liefert hier nur noch
+ * globale Events (jeder nimmt teil), Team-Events stehen auf der Teamseite. Darunter „Events deiner Teams" (laufend,
+ * kommend, letzte 7 Tage) — nur fuer Mitglieder und nur, wenn es welche gibt.
+ */
 @Composable
 fun CommunityEventsAbschnitt(onOpenEvent: (String, Int) -> Unit, onAlleEvents: () -> Unit, onAlleTeams: () -> Unit) {
     var events by remember { mutableStateOf<List<TeamEventKurz>?>(null) }
+    var meine by remember { mutableStateOf<List<TeamEventKurz>>(emptyList()) }
     LaunchedEffect(Unit) { events = try { Api.teamsEventsAktuell() } catch (_: Exception) { emptyList() } }
+    LaunchedEffect(Unit) { meine = try { Api.teamsEventsMeine() } catch (_: Exception) { emptyList() } }
     Column(Modifier.padding(horizontal = 12.dp).padding(top = 8.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Filled.Flag, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(I18n.t("team.eventsAktuell"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-        }
+        EventUeberschrift(I18n.t("team.eventsGlobal"))
         Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
             TextButton(onClick = onAlleEvents) { Text(I18n.t("team.alleEvents") + " →") }
             TextButton(onClick = onAlleTeams) { Text(I18n.t("team.alle") + " →") }
         }
         val l = events
         if (l != null && l.isEmpty()) {
-            Text(I18n.t("team.event.keineAktuellen"), style = MaterialTheme.typography.bodyMedium,
+            Text(I18n.t("team.event.keineGlobalen"), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         l?.forEach { e ->
             EventKachel(e, onClick = { onOpenEvent(e.team.slug, e.id) }, modifier = Modifier.padding(bottom = 8.dp))
         }
+        if (meine.isNotEmpty()) {
+            Spacer(Modifier.height(16.dp))
+            EventUeberschrift(I18n.t("team.eventsMeineTeams"))
+            Spacer(Modifier.height(6.dp))
+            meine.forEach { e ->
+                EventKachel(e, onClick = { onOpenEvent(e.team.slug, e.id) }, modifier = Modifier.padding(bottom = 8.dp))
+            }
+        }
+    }
+}
+
+/** Ueberschrift eines Event-Abschnitts mit der Fahne (Web FlagIcon/EventIcon + h3). */
+@Composable
+internal fun EventUeberschrift(text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(EventSymbol, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+    }
+}
+
+// ------------------------------------------------------------------------- Event-Hinweise ----
+// Wie web/src/components/EventHinweis.tsx (Jan, 06.11.2026): eine Zeile auf Home › Uebersicht fuer globale Events
+// (laufend oder in den naechsten 24 h beginnend), je Event wegklickbar (`foil_event_weg`, nur eine Komfort-Erinnerung);
+// Abzeichen fuer die Reiter; die Events der eigenen Teams als Kacheln auf Home › Team.
+
+private const val EVENT_WEG = "foil_event_weg"
+private const val BALD_MS = 24 * 3600 * 1000L
+
+/** Abzeichen-Daten: laeuft eines, und wie viele beginnen bald (Web useEventAbzeichen / useTeamEventAbzeichen). */
+data class EventAbzeichenDaten(val live: Boolean = false, val bald: Int = 0)
+
+/** `meine = false`: globale Events (Community-Reiter), `true`: Events der eigenen Teams (Home-Reiter „Team"). */
+@Composable
+fun rememberEventAbzeichen(meine: Boolean): EventAbzeichenDaten {
+    var d by remember(meine) { mutableStateOf(EventAbzeichenDaten()) }
+    LaunchedEffect(meine) {
+        runCatching { if (meine) Api.teamsEventsMeine() else Api.teamsEventsAktuell() }.getOrNull()?.let { l ->
+            d = EventAbzeichenDaten(l.any { it.status == "laeuft" }, l.count { it.status == "kommend" })
+        }
+    }
+    return d
+}
+
+/**
+ * Home › Uebersicht: laufendes oder in 24 h beginnendes globales Event als Zeile mit Countdown und Abzeichen rechts.
+ * Antippen fuehrt in die Community › Teams & Events (Jan: „dann lernt man direkt wo das immer steht").
+ */
+@Composable
+fun GlobaleEventHinweise(onOeffnen: () -> Unit, modifier: Modifier = Modifier) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val prefs = remember { ctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE) }
+    var weg by remember { mutableStateOf(runCatching { prefs.getString(EVENT_WEG, null).orEmpty().split(",").filter { it.isNotBlank() } }.getOrDefault(emptyList())) }
+    var events by remember { mutableStateOf<List<TeamEventKurz>>(emptyList()) }
+    LaunchedEffect(Unit) { events = try { Api.teamsEventsAktuell() } catch (_: Exception) { emptyList() } }
+    if (events.isEmpty()) return   // ohne Events auch keine Sekunden-Uhr
+    val jetzt = rememberJetzt()
+    val zeigen = events.filter { e ->
+        if ("${e.team.slug}-${e.id}" in weg) false
+        else e.status == "laeuft" ||
+            (e.status == "kommend" && (isoInstant(e.start)?.toEpochMilli() ?: Long.MAX_VALUE) - jetzt < BALD_MS)
+    }
+    if (zeigen.isEmpty()) return
+    val marke = MaterialTheme.colorScheme.primary
+    val akzent = markenAkzent()
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        zeigen.forEach { e ->
+            val k = "${e.team.slug}-${e.id}"
+            val live = e.status == "laeuft"
+            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(marke.copy(alpha = 0.10f))
+                .border(1.dp, marke.copy(alpha = 0.4f), RoundedCornerShape(16.dp)).clickable(onClick = onOeffnen)
+                .padding(start = 14.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(EventSymbol, contentDescription = null, tint = akzent, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(buildAnnotatedString {
+                    withStyle(SpanStyle(color = akzent, fontWeight = FontWeight.SemiBold)) { append(e.titel) }
+                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) { append(" · ") }
+                    withStyle(SpanStyle(color = akzent, fontWeight = FontWeight.SemiBold)) {
+                        append(I18n.t(if (live) "team.event.endetIn" else "team.event.startIn") + " " +
+                            countdownText(restSekunden(if (live) e.ende else e.start, jetzt)))
+                    }
+                    append(" →")
+                }, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f).padding(vertical = 6.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(I18n.t(if (live) "eventHinweis.live" else "eventHinweis.bald"), style = MaterialTheme.typography.labelMedium,
+                    color = if (live) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.clip(CircleShape).background(if (live) marke else MaterialTheme.colorScheme.surfaceVariant)
+                        .padding(horizontal = 8.dp, vertical = 2.dp))
+                IconButton(onClick = {
+                    val neu = (weg + k).takeLast(50)
+                    runCatching { prefs.edit().putString(EVENT_WEG, neu.joinToString(",")).apply() }
+                    weg = neu
+                }) { Icon(Icons.Filled.Close, contentDescription = I18n.t("banner.dismiss"), modifier = Modifier.size(18.dp)) }
+            }
+        }
+    }
+}
+
+/** Home › Team (Web TeamEventsListe, 06.11.2026): die Events der eigenen Teams als Kacheln — laufend, kommend, letzte 7 Tage. */
+@Composable
+fun TeamEventsListe(onOpenEvent: (String, Int) -> Unit, modifier: Modifier = Modifier) {
+    var events by remember { mutableStateOf<List<TeamEventKurz>>(emptyList()) }
+    LaunchedEffect(Unit) { events = try { Api.teamsEventsMeine() } catch (_: Exception) { emptyList() } }
+    if (events.isEmpty()) return
+    Column(modifier.fillMaxWidth()) {
+        EventUeberschrift(I18n.t("team.eventsMeineTeams"))
+        Spacer(Modifier.height(6.dp))
+        events.forEach { e -> EventKachel(e, onClick = { onOpenEvent(e.team.slug, e.id) }, modifier = Modifier.padding(bottom = 8.dp)) }
     }
 }
 
@@ -95,7 +209,12 @@ fun TeamsAlleScreen(onBack: () -> Unit, onOpenTeam: (String) -> Unit, onGruenden
     LaunchedEffect(Unit) { rows = try { Api.teamsListe() } catch (_: Exception) { emptyList() } }
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text(I18n.t("team.alle")) },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(TeamSymbol, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
+                    Spacer(Modifier.width(8.dp)); Text(I18n.t("team.alle"))
+                }
+            },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back")) } },
             actions = {
                 TextButton(onClick = onGruenden) { Text(I18n.t("team.gruenden")) }
@@ -174,7 +293,12 @@ fun EventsAlleScreen(onBack: () -> Unit, onOpenEvent: (String, Int) -> Unit) {
     }
     Scaffold(topBar = {
         TopAppBar(
-            title = { Text(I18n.t("team.alleEvents")) },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(EventSymbol, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
+                    Spacer(Modifier.width(8.dp)); Text(I18n.t("team.alleEvents"))
+                }
+            },
             navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = I18n.t("a11y.back")) } },
             actions = { FeedbackKnopf() },
         )

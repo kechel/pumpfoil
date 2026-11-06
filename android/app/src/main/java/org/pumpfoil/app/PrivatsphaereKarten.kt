@@ -126,6 +126,39 @@ fun OrtVerbergenKarte(onSaved: () -> Unit) {
 }
 
 /**
+ * Opt-out globale Events (Web GlobaleEventsCard in Settings.tsx; Jan, 06.11.2026): wer nicht automatisch in den
+ * Bestenlisten, der Team-Wertung und den Summen globaler Events stehen will (`global_events_aus`). Direkt unter
+ * „Ort verbergen", wie in der PWA.
+ */
+@Composable
+fun GlobaleEventsKarte(onSaved: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var an by remember { mutableStateOf<Boolean?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        an = try { Api.settings()["global_events_aus"]?.jsonPrimitive?.booleanOrNull ?: false } catch (_: Exception) { false }
+    }
+    val wert = an ?: return
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp)) {
+            Text(I18n.t("globalev.title"), style = MaterialTheme.typography.titleMedium)
+            Text(I18n.t("globalev.hint"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp, bottom = 6.dp))
+            Haken(I18n.t("globalev.switch"), wert, aktiv = !busy) { neu ->
+                busy = true
+                scope.launch {
+                    try {
+                        Api.saveSettings(buildJsonObject { put("global_events_aus", neu) })
+                        an = neu; onSaved()
+                    } catch (_: Exception) {}
+                    busy = false
+                }
+            }
+        }
+    }
+}
+
+/**
  * Opt-out „auf der Spot-Karte als gerade aktiv zaehlen" (Web: AktivAufKarteCard in Settings.tsx;
  * Jan, 14.10.2026). Wirkt nur auf die gruenen Spots; im Gesamtzaehler „N gerade am Pumpen" zaehlt
  * man weiter mit (verraet niemanden). Fehlt der Wert, gilt er als an — wie settings.DEFAULTS.

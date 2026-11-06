@@ -9,6 +9,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -67,6 +72,7 @@ fun TeamEventScreen(
     onBack: () -> Unit,
     onOpenTeam: (String) -> Unit,
     onOpenSession: (Int) -> Unit,
+    onPrivacy: () -> Unit = {},
 ) {
     var team by remember(slug) { mutableStateOf<TeamInfo?>(null) }
     var ev by remember(slug, eventId) { mutableStateOf<TeamEvent?>(null) }
@@ -77,6 +83,12 @@ fun TeamEventScreen(
     var meldung by remember { mutableStateOf<String?>(null) }
     var bearbeiten by remember { mutableStateOf(false) }
     var evLaden by remember { mutableIntStateOf(0) }
+    // Eine Bestenliste zur Zeit, per Auswahl wie die Community-Bestenliste (Web 06.11.2026).
+    var wahl by remember(slug, eventId) { mutableIntStateOf(0) }
+    var laedt by remember { mutableStateOf(false) }
+    var teilBild by remember { mutableStateOf<TeamBildDaten?>(null) }
+    // Globale Events: eigene (aktive) Teams, fuer ihre Zeilen hinter Platz 10 und die Hervorhebung im Bild.
+    var meineTeams by remember { mutableStateOf<Set<String>>(emptySet()) }
     val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val uri = LocalUriHandler.current
@@ -91,16 +103,41 @@ fun TeamEventScreen(
         }
     }
 
+    LaunchedEffect(ev?.global) {
+        if (ev?.global != true) return@LaunchedEffect
+        meineTeams = runCatching { Api.teamsMine().filter { it.status == "aktiv" && it.slug != slug }.map { it.slug }.toSet() }
+            .getOrDefault(emptySet())
+    }
+
     val t = team
     val e = ev
     val f = teamFarbe(t?.farbe)
+    // „Stand 6. Nov., 14:32" in den Listen und im geteilten Bild, solange sich noch etwas aendern kann; danach „Endstand"
+    // (Web standFuer, 06.11.2026). Mit Datum — im geteilten Bild muss man sehen, von welchem Tag der Stand ist.
+    fun standFuer(tf: TeamTafel?): String? {
+        val ev0 = e ?: return null
+        if (tf == null) return null
+        if (ev0.status == "beendet") return I18n.t("team.event.endstand")
+        if (ev0.status == "laeuft" || ev0.status == "auswertung") {
+            val i = isoInstant(tf.stand) ?: return null
+            val zeit = runCatching {
+                android.icu.text.DateFormat.getInstanceForSkeleton("dMMMjjmm", java.util.Locale.forLanguageTag(I18n.lang))
+                    .format(java.util.Date(i.toEpochMilli()))
+            }.getOrElse { kurzDatum(tf.stand) }
+            return I18n.t("team.event.standUm").replace("{zeit}", zeit)
+        }
+        return null
+    }
+    // Pille im geteilten Bild, solange das Event nicht final ist („LIVE" bzw. „Auswertung").
+    val bildAbzeichen = e?.status?.takeIf { it == "laeuft" || it == "auswertung" }?.let { I18n.t("team.event.status.$it") }
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    // Zurueck zum Team: Wappen + Teamname (wie der Link oben auf der Web-Seite).
+                    // Zurueck zum Team: Wappen + Teamname (wie der Link oben auf der Web-Seite). Globale Events gehoeren dem
+                    // offiziellen Team, das nirgends als Team auftaucht -> dort kein Link (Web 06.11.2026).
                     if (t != null) Row(verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { onOpenTeam(t.slug) }) {
+                        modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(enabled = e?.global != true) { onOpenTeam(t.slug) }) {
                         TeamWappen(t.name, t.logoUrl, t.farbe, 24.dp)
                         Spacer(Modifier.width(8.dp))
                         Text(t.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -111,7 +148,8 @@ fun TeamEventScreen(
                 },
                 actions = {
                     // Teilen nur bei oeffentlichen Bestenlisten — dort sehen auch Gaeste das Event (wie Web EventTeilen).
-                    if (t != null && e != null && t.bestenlistenOeffentlich) {
+                    // Globale Events sind immer als Gast-Link sichtbar.
+                    if (t != null && e != null && (t.bestenlistenOeffentlich || e.global)) {
                         IconButton(onClick = { teilenUrl(ctx, teamWebUrl("/teams/${t.slug}/events/${e.id}"), e.titel) }) {
                             Icon(Icons.Filled.Share, contentDescription = I18n.t("team.teilen"))
                         }
@@ -146,6 +184,7 @@ fun TeamEventScreen(
                         Text(e.titel, color = f.akzent, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold,
                             modifier = Modifier.align(Alignment.CenterVertically))
                         Box(Modifier.align(Alignment.CenterVertically)) { EventStatusChip(e.status, f) }
+                        if (e.global) Box(Modifier.align(Alignment.CenterVertically)) { GlobalChip() }
                     }
                     Text(
                         eventZeitraum(e.start, e.ende, e.zeitzone) +
@@ -155,17 +194,26 @@ fun TeamEventScreen(
                     e.beschreibung?.trim()?.takeIf { it.isNotEmpty() }?.let {
                         Text(it, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
                     }
+                    // Globale Events (Web 06.11.2026): jeder nimmt automatisch teil; darunter der Weg zum Opt-out
+                    // (Einstellungen › Privatsphaere, Karte „Globale Events") als Link.
+                    if (e.global) {
+                        Text(I18n.t("team.event.globalHinweis"), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 8.dp))
+                        Text(I18n.t("team.event.globalOptOut"), style = MaterialTheme.typography.bodyMedium, color = markenAkzent(),
+                            textDecoration = TextDecoration.Underline,
+                            modifier = Modifier.padding(top = 2.dp).clip(RoundedCornerShape(4.dp)).clickable(onClick = onPrivacy))
+                    }
                     Box(Modifier.padding(vertical = 12.dp).fillMaxWidth().height(2.dp).background(f.akzent))
 
                     // Angemeldet ohne Mitgliedschaft: Beitreten in Teamfarbe; bei laufender Anfrage nur der Hinweis.
-                    if (t.anmeldungenZulassen && t.meinStatus == null) {
+                    // Bei globalen Events gibt es nichts beizutreten.
+                    if (!e.global && t.anmeldungenZulassen && t.meinStatus == null) {
                         Column(Modifier.padding(bottom = 12.dp)) {
                             TeamKnopf(I18n.t("team.join.knopf"), f, onClick = { dialog = true })
                             Text(I18n.t("team.join.eventHinweis").replace("{name}", t.name), style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
                         }
                     }
-                    if (t.meinStatus == "angefragt") {
+                    if (!e.global && t.meinStatus == "angefragt") {
                         Text(I18n.t("team.join.wartet"), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 12.dp))
                     }
 
@@ -193,11 +241,75 @@ fun TeamEventScreen(
                                 // Einzahl bei 1 („1 Teilnehmer“, 01.11.2026)
                                 fmt(v) to I18n.t(if (v == 1.0 && key == "aktive") "team.event.teilnehmer1" else label)
                             }, f,
-                                spalten = 2, rand = true)
+                                // Je nach Anzahl ueber die ganze Breite (Web b48a1cac): 1–3 in einer Reihe, 4 als 2 × 2, sonst 3 je Reihe.
+                                spalten = when (summen.size) { 1, 2, 3 -> summen.size; 4 -> 2; else -> 3 }, rand = true)
                             Spacer(Modifier.height(12.dp))
                         }
-                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            e.tafeln.forEach { TeamTafelKarte(it, f, onOpenSession, ohneFilter = true, sportZeigen = e.tafeln.map { x -> x.sportart }.distinct().size > 1) }
+                        // Eine Bestenliste zur Zeit (Auswahl wie in der Community), bei globalen Events darunter ihre
+                        // Team-Rangliste. Daneben „Aktualisieren", solange sich noch etwas aendern kann (der Server rechnet
+                        // hoechstens alle 2 min neu).
+                        val idx = wahl.coerceIn(0, maxOf(0, e.tafeln.size - 1))
+                        val neuLadenMoeglich = e.status == "laeuft" || e.status == "auswertung"
+                        if (e.tafeln.size > 1 || neuLadenMoeglich) {
+                            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                                if (e.tafeln.size > 1) {
+                                    AuswahlFeld(idx.toString(), e.tafeln.mapIndexed { i, tf -> Option(i.toString(), kennzahlLabel(tf.kennzahl)) },
+                                        onWahl = { wahl = it.toIntOrNull() ?: 0 }, modifier = Modifier.weight(1f))
+                                } else Spacer(Modifier.weight(1f))
+                                if (neuLadenMoeglich) {
+                                    Spacer(Modifier.width(8.dp))
+                                    OutlinedButton(enabled = !laedt, onClick = {
+                                        laedt = true
+                                        scope.launch {
+                                            runCatching { Api.teamEvent(slug, eventId) }.getOrNull()?.let { ev = it }
+                                            laedt = false
+                                        }
+                                    }, contentPadding = PaddingValues(horizontal = 12.dp)) {
+                                        if (laedt) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                                        else Icon(Icons.Filled.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(Modifier.width(6.dp))
+                                        Text(I18n.t("team.event.neuLaden"))
+                                    }
+                                }
+                            }
+                        }
+                        e.tafeln.getOrNull(idx)?.let { tf0 ->
+                            // Globale Events: Top 10 und die eigene Zeile darunter (wie die Community-Bestenliste).
+                            val eig = tf0.eigene?.takeIf { it.rang > 10 }
+                            val tf = if (e.global) tf0.copy(zeilen = tf0.zeilen.take(10) + listOfNotNull(eig)) else tf0
+                            val standText = standFuer(tf0)
+                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                TeamTafelKarte(tf, f, onOpenSession, ohneFilter = true,
+                                    sportZeigen = e.tafeln.map { x -> x.sportart }.distinct().size > 1, standText = standText,
+                                    onBild = {
+                                        val ich = tf0.eigene?.userId
+                                        teilBild = TeamBildDaten(t.name,
+                                            listOfNotNull(kennzahlLabel(tf0.kennzahl),
+                                                tf0.sportart.takeIf { it != "pumpfoil" }?.let { I18n.t("cls.sport.$it") }, e.titel, standText)
+                                                .joinToString(" · "),
+                                            tf.zeilen.map { z ->
+                                                BildZeile(z.rang, z.name ?: z.initialen, kennzahlWert(tf0.kennzahl, z.value),
+                                                    ich != null && z.userId == ich, land = z.land)
+                                            },
+                                            "${t.slug}-event-${e.id}-${tf0.kennzahl}.png", abzeichen = bildAbzeichen,
+                                            leer = I18n.t("team.tafel.leer"))
+                                    })
+                                if (e.global) TeamWertungKarte(tf0, e.teamWertungN ?: 5, f, meineTeams, standText, onOpenTeam,
+                                    onBild = {
+                                        val n = e.teamWertungN ?: 5
+                                        val alle = tf0.teams.orEmpty()
+                                        val eigen = alle.drop(10).firstOrNull { it.slug in meineTeams }
+                                        teilBild = TeamBildDaten(
+                                            "${I18n.t("team.event.teams")} · ${kennzahlLabel(tf0.kennzahl)}",
+                                            listOfNotNull(e.titel, wertungText(n), standText).joinToString(" · "),
+                                            (alle.take(10) + listOfNotNull(eigen)).map { x ->
+                                                BildZeile(x.rang, x.name, kennzahlWert(tf0.kennzahl, x.value), x.slug in meineTeams,
+                                                    land = x.land, wappen = true, logoUrl = x.logoUrl, farbe = x.farbe)
+                                            },
+                                            "${t.slug}-event-${e.id}-teams-${tf0.kennzahl}.png", abzeichen = bildAbzeichen,
+                                            leer = I18n.t("team.event.keineTeams"))
+                                    })
+                            }
                         }
                     }
 
@@ -221,10 +333,13 @@ fun TeamEventScreen(
                                     Text(p, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                                 }
                             }
-                            // Haftungsausschluss (Jan, 01.11.2026): Events und ihre Zusagen sind Sache der Teams.
-                            HorizontalDivider(Modifier.padding(vertical = 10.dp))
-                            Text(I18n.t("team.event.disclaimer"), style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            // Haftungsausschluss (Jan, 01.11.2026): Events und ihre Zusagen sind Sache der Teams — nicht bei
+                            // globalen Events (die richtet pumpfoil.org selbst aus).
+                            if (!e.global) {
+                                HorizontalDivider(Modifier.padding(vertical = 10.dp))
+                                Text(I18n.t("team.event.disclaimer"), style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
                         }
                     }
                     Spacer(Modifier.height(24.dp))
@@ -251,7 +366,54 @@ fun TeamEventScreen(
     }
     val evB = ev
     if (bearbeiten && t != null && evB != null) {
-        TeamEventBearbeitenDialog(t.slug, t.farbe, evB, onZu = { bearbeiten = false; evLaden++ })
+        TeamEventBearbeitenDialog(t.slug, t.farbe, evB, onZu = { bearbeiten = false; evLaden++ }, offiziell = t.offiziell)
+    }
+    teilBild?.let { TeamBildDialog(it, onClose = { teilBild = null }) }
+}
+
+private fun wertungText(n: Int): String =
+    if (n == 0) I18n.t("team.event.wertungAlle") else I18n.t("team.event.wertungBeste").replace("{n}", n.toString())
+
+/**
+ * Team-Rangliste eines globalen Events (Web TeamWertung, 06.11.2026): je Team die Summe der besten N Mitglieder, Top 10
+ * und die eigenen Teams weiter hinten. Gleiche Karte und Ueberschrift wie die Fahrer-Liste darueber („einheitlich").
+ */
+@Composable
+private fun TeamWertungKarte(tf: TeamTafel, n: Int, f: TeamFarbe, eigeneSlugs: Set<String>, standText: String?,
+                             onOpenTeam: (String) -> Unit, onBild: () -> Unit) {
+    val alle = tf.teams.orEmpty()
+    val teams = alle.take(10) + alle.drop(10).filter { it.slug in eigeneSlugs }
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text("${I18n.t("team.event.teams")} · ${kennzahlLabel(tf.kennzahl)}", color = f.akzent,
+                    style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                if (alle.isNotEmpty()) TeilenKnopf(onBild)
+            }
+            Text(listOfNotNull(wertungText(n), standText).joinToString(" · "), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (teams.isEmpty()) {
+                Text(I18n.t("team.event.keineTeams"), style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
+            }
+            teams.forEachIndexed { i, x ->
+                if (i > 0) HorizontalDivider()
+                val eigen = x.slug in eigeneSlugs
+                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable { onOpenTeam(x.slug) }.padding(vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Text("${x.rang}", Modifier.width(24.dp), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold,
+                        color = if (x.rang <= 3) f.akzent else MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.End)
+                    Spacer(Modifier.width(8.dp))
+                    TeamWappen(x.name, x.logoUrl, x.farbe, 24.dp)
+                    Spacer(Modifier.width(8.dp))
+                    Text(x.name, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        fontWeight = if (eigen) FontWeight.SemiBold else FontWeight.Normal)
+                    Text("${x.fahrer}/${x.teilnehmer}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Spacer(Modifier.width(8.dp))
+                    Text(kennzahlWert(tf.kennzahl, x.value), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
     }
 }
 

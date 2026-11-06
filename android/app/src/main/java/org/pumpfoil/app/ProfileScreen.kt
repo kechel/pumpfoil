@@ -244,7 +244,8 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoilStats
                         }
                     },
                     supportingContent = { Text(I18n.t("team.profilHinweis")) },
-                    leadingContent = { Icon(Icons.Filled.Flag, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                    // Teams: drei Personen (Web TeamIcon, 06.11.2026) — die Fahne steht seitdem fuer Events.
+                    leadingContent = { Icon(TeamSymbol, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                     trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
                 )
                 ListItem(

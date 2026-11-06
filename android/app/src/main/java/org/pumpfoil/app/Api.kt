@@ -1768,6 +1768,10 @@ object Api {
     suspend fun teamsEventsAktuell(): List<TeamEventKurz> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(TeamEventKurz.serializer()), http("GET", "/api/teams/liste/events", null, auth = true))
     }
+    /** Team-Events der eigenen Teams (laufend, kommend, letzte 7 Tage) — Community unter den globalen, Home › Team (06.11.2026). */
+    suspend fun teamsEventsMeine(): List<TeamEventKurz> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(TeamEventKurz.serializer()), http("GET", "/api/teams/liste/events/meine", null, auth = true))
+    }
     /** Alle sichtbaren Events seitenweise: laufend, kommend, vergangen (n hoechstens 50, prueft der Server). */
     suspend fun teamsEventsAlle(offset: Int, n: Int): List<TeamEventKurz> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(TeamEventKurz.serializer()),

@@ -324,7 +324,8 @@ fun MainScaffold(onLogout: () -> Unit) {
                                                 // Zahnrad der Profil-Vorschau -> Einstellungen › Privatsphaere; „Team gruenden" -> Einstellungen › Team.
                                                 onPrivacy = { nav.zuEinstellungen("privat") },
                                                 onOpenKommentare = { sid -> nav.navigate("kommentare/$sid?inhaber=true") },
-                                                onTeamGegruendet = { sl -> nav.navigate("teamverwalten/${Uri.encode(sl)}?grund=true") }) }
+                                                onTeamGegruendet = { sl -> nav.navigate("teamverwalten/${Uri.encode(sl)}?grund=true") },
+                                                onOpenEvent = { sl, id -> nav.navigate("teamevent/${Uri.encode(sl)}/$id") }) }
             composable("sessions") { SessionsScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onCompare = { nav.navigate("compare") }) }
             composable("community") { CommunityScreen(onOpen = { id -> nav.navigate("session/$id") }, onFoilStats = { nav.navigate("foilstats") }, onWatchStats = { nav.navigate("watchstats") }, onLayouts = { nav.navigate("layoutgallery") },
                 onOpenRoute = { s, id -> nav.navigate("spot/${Uri.encode(s)}?route=$id") },
@@ -522,6 +523,8 @@ fun MainScaffold(onLogout: () -> Unit) {
                         else nav.navigate("team/${Uri.encode(s)}")
                     },
                     onOpenSession = { sid -> nav.navigate("session/$sid") },
+                    // Hinweis auf das Opt-out globaler Events -> Einstellungen › Privatsphaere (Web 06.11.2026).
+                    onPrivacy = { nav.zuEinstellungen("privat") },
                 )
             }
             // Einladungslink eines Teams (TeamEinladung.kt); danach ersetzt die Teamseite die Einladung.
