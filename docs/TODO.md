@@ -1513,6 +1513,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🟡 06.11. Uhren-Sprache: Profil > Systemsprache > Englisch (Jan).** Anlass: Olek meldete, ein Fahrer sah auf der
+  Apple Watch bei der Ersteinrichtung Deutsch. Regel (Jan: „profil ueberschreibt dann alles", „wenn es eine
+  systemsprache gibt dann natuerlich immer die benutzen", „fallback nach systemsprache englisch"). Stand je Uhr:
+  Garmin ✅ (Low-Mem-Builds immer Englisch, absichtlich) · Wear OS ✅ (fehlender Text jetzt Englisch statt Deutsch,
+  mit 1.2.48) · **Apple Watch ❌ -> behoben** (d0c02950, fest "de" an allen Aufrufern, kommt mit iOS 1.1.62) ·
+  Zepp/Suunto ⚠️ ohne Systemsprache (vor dem Koppeln Englisch) · **Huawei ❌ offen**: nur Systemsprache ueber die
+  Ressourcen (en/de/de-AT/pl), die Profil-Sprache aus der Config wird ignoriert — braeuchte eigene Texttabellen wie
+  Zepp. Im Feld betroffen war nur die Apple Watch.
+
 - **🟡 06.11. Apple Watch: geerbte Pausen (Meldung Mysia u989 in Session-Kommentaren).** `Recorder.start()` setzte
   Pausenzeit und Pausenliste der vorigen Aufnahme nicht zurueck (seit der Pause vom 24.09.): jede weitere Aufnahme bis
   zum App-Neustart lag um die Summe der alten Pausen zu frueh und schickte die alten Pausen als eigene mit. 33 Aufnahmen
