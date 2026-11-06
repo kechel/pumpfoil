@@ -1513,6 +1513,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 06.11. Event-Zeitfenster einstellbar machen (Jan: „muss einstellbar werden irgendwann, nichts mehr daran aendern
+  dieses we").** Heute hat ein Event EIN festes Fenster [start, ende) in seiner Zeitzone (`team_events.zeitzone`), fuer
+  alle gleich; gezaehlt wird `sessions.started_at`. Das erste globale Event (#4, Sa 07.11. 0:00 – So 08.11. 20:00
+  Europe/Berlin) beginnt damit in Kalifornien Fr 15:00, in Neuseeland Sa 12:00. Gewuenscht: beim Anlegen waehlbar
+  „festes Fenster" | „Ortszeit je Fahrer" (Fenster gilt in der Zeitzone der Session, aus dem Spot, `tz` in
+  `tafel_berechnen`). Folgen bedenken: Event laeuft weltweit ~50 statt 44 h, Status „laeuft" heisst dann „laeuft noch
+  irgendwo", Einfrieren erst 24 h nach dem spaetesten Ende, Countdown/Kalenderkarte je Betrachter. **Erst nach dem
+  Wochenende 07./08.11.**, ausser es fallen Fehler auf.
+
 - **💡 06.11. Gemerkt (Jan: „erstmal nur merken"): 100-Hz/25-Hz-Paare aus Garmin Connect als Datengrundlage.** Jede
   zusammengefuehrte Fahrt ist dieselbe Fahrt am selben Handgelenk zweimal: Garmins FIT (~100 Hz) und unsere Aufnahme
   (25 Hz). Erste Paare 06.11.: Alex #20305/#20303 (fenix 6 Pro, 96,9/24,2 Hz, Pumps pg-1 1140/1159), Oerni #20315/#20313
