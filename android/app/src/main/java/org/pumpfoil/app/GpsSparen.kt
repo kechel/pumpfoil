@@ -33,21 +33,6 @@ object GpsSparen {
         return !pm.isIgnoringBatteryOptimizations(ctx.packageName)
     }
 
-    /** App-Infos von Pumpfoil: dort liegt bei Samsung, Pixel und Xiaomi der Punkt „Akku". */
-    fun akkuEinstellungenOeffnen(ctx: Context) {
-        val versuche = listOf(
-            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:${ctx.packageName}")),
-            Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS),
-            Intent(Settings.ACTION_SETTINGS),
-        )
-        for (i in versuche) {
-            try {
-                ctx.startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                return
-            } catch (_: Exception) { /* naechste versuchen */ }
-        }
-    }
-
     /** Energiespar-Einstellungen; gibt es die Seite nicht (manche Hersteller), die allgemeinen Einstellungen. */
     fun einstellungenOeffnen(ctx: Context) {
         for (aktion in listOf(Settings.ACTION_BATTERY_SAVER_SETTINGS, Settings.ACTION_SETTINGS)) {

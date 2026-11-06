@@ -247,7 +247,7 @@ fun RecordScreen(onBack: () -> Unit) {
                         SparenWarnung(onOeffnen = { GpsSparen.einstellungenOeffnen(ctx) })
                     } else if (akkuOptimiert) {
                         Spacer(Modifier.height(16.dp))
-                        AkkuHinweis(onOeffnen = { GpsSparen.akkuEinstellungenOeffnen(ctx) })
+                        AkkuHinweis()
                     }
                     Spacer(Modifier.height(16.dp))
                     // Autostart-Schalter (wie Uhr): losfahren startet die Aufnahme automatisch.
@@ -410,9 +410,11 @@ private fun SparenWarnung(onOeffnen: () -> Unit) {
 }
 
 /** Akku-Optimierung an (GpsSparen.akkuOptimiert): kein Fehler, viele Handys halten das GPS trotzdem — deshalb ein
- *  Hinweis statt einer roten Warnung, aber gut lesbar und mit Knopf direkt zu den App-Infos. */
+ *  Hinweis statt einer roten Warnung, aber gut lesbar. OHNE Knopf (Jan, 06.11.2026: „geht zu app einstellungen … und
+ *  nicht zu den batterie-saver optionen, wenn das nicht richtig geht lieber weglassen"): direkt auf die Akku-Seite der
+ *  App kommt nur, wer REQUEST_IGNORE_BATTERY_OPTIMIZATIONS hat — die laesst Google Play nur in Ausnahmen zu. */
 @Composable
-private fun AkkuHinweis(onOeffnen: () -> Unit) {
+private fun AkkuHinweis() {
     Card(
         Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
@@ -423,8 +425,6 @@ private fun AkkuHinweis(onOeffnen: () -> Unit) {
             Spacer(Modifier.height(4.dp))
             Text(I18n.t("rec.akkuText"), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSecondaryContainer)
-            Spacer(Modifier.height(8.dp))
-            OutlinedButton(onClick = onOeffnen) { Text(I18n.t("rec.akkuKnopf")) }
         }
     }
 }
