@@ -140,6 +140,7 @@ export default function TeamEventSeite() {
   const teamFilter = "";   // Filter „Bestenliste fuer" entfernt (06.11.2026); der Server kennt ?team= weiter
   // Eine Bestenliste zur Zeit, per Auswahl wie die Community-Bestenliste (Jan, 06.11.2026).
   const [wahl, setWahl] = useState(0);
+  const [laedt, setLaedt] = useState(false);
   const [dialog, setDialog] = useState(false);
   // Ziel in der Gast-Kopfzeile (main.tsx GastRahmen); erst nach dem Einhaengen im DOM.
   const [kopfAktion, setKopfAktion] = useState<HTMLElement | null>(null);
@@ -286,6 +287,17 @@ export default function TeamEventSeite() {
             </select>
           )}
           {/* „Bestenliste für" (eigenes Team) wieder raus (Jan, 06.11.2026) — Top 10 + man selbst reicht. */}
+          {/* Neu laden, solange sich noch etwas aendern kann (Jan, 06.11.2026). Der Server rechnet hoechstens alle 2 min neu. */}
+          {!gast && (ev.status === "laeuft" || ev.status === "auswertung") && (
+            <button onClick={() => { setLaedt(true); api.teamEvent(slug, id).then(setEv).catch(() => {}).finally(() => setLaedt(false)); }}
+              disabled={laedt}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-xl border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50">
+              <svg viewBox="0 0 24 24" className={`h-4 w-4 ${laedt ? "animate-spin" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M21 12a9 9 0 1 1-2.64-6.36" /><path d="M21 3v6h-6" />
+              </svg>
+              {t("team.event.neuLaden")}
+            </button>
+          )}
         </div>
         {(() => {
           const tf0 = ev.tafeln[Math.min(wahl, ev.tafeln.length - 1)];

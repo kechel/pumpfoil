@@ -2814,6 +2814,7 @@ const en: Record<string, string> = {
   "team.event.wertungBeste": "Sum of the best {n}",
   "team.event.wertungAlle": "Sum of all members",
   "team.event.teams": "Teams",
+  "team.event.neuLaden": "Refresh",
   "team.event.keineTeams": "No team member in this event yet.",
   "team.event.teamFilter": "Leaderboard for",
   "team.event.alle": "Everyone",

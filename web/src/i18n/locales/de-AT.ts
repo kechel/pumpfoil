@@ -2596,6 +2596,7 @@ const deAT: Record<string, string> = {
   "team.event.wertungBeste": "Summe der besten {n}",
   "team.event.wertungAlle": "Summe aller Mitglieder",
   "team.event.teams": "Teams",
+  "team.event.neuLaden": "Aktualisieren",
   "team.event.keineTeams": "Noch ka Mitglied von an Team in dem Event.",
   "team.event.teamFilter": "Bestenliste für",
   "team.event.alle": "Alle",

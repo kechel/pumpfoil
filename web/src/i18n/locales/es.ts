@@ -2593,6 +2593,7 @@ const es: Record<string, string> = {
   "team.event.wertungBeste": "Suma de los {n} mejores",
   "team.event.wertungAlle": "Suma de todos los miembros",
   "team.event.teams": "Equipos",
+  "team.event.neuLaden": "Actualizar",
   "team.event.keineTeams": "Todavía no hay ningún miembro de un equipo en este evento.",
   "team.event.teamFilter": "Clasificación de",
   "team.event.alle": "Todos",

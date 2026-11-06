@@ -2765,6 +2765,7 @@ const nl: Record<string, string> = {
   "team.event.wertungBeste": "Som van de beste {n}",
   "team.event.wertungAlle": "Som van alle leden",
   "team.event.teams": "Teams",
+  "team.event.neuLaden": "Vernieuwen",
   "team.event.keineTeams": "Nog geen teamlid in dit event.",
   "team.event.teamFilter": "Klassement voor",
   "team.event.alle": "Iedereen",
