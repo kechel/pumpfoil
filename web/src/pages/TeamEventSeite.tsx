@@ -86,11 +86,11 @@ function EventSummen({ ev, t }: { ev: TeamEvent; t: (k: string) => string }) {
 function TeamWertung({ tf, n, t }: { tf: TeamTafelMitZeilen; n: number; t: (k: string, p?: Record<string, string>) => string }) {
   const k = kennzahl(tf.kennzahl);
   const teams = tf.teams ?? [];
-  if (!teams.length) return null;
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-3">
       <p className="text-sm font-semibold text-slate-100">{t("team.event.teams")} · {t(k.labelKey)}</p>
       <p className="text-xs text-slate-400">{n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) })}</p>
+      {teams.length === 0 && <p className="mt-2 text-sm text-slate-400">{t("team.event.keineTeams")}</p>}
       <ol className="mt-2">
         {teams.slice(0, 20).map((x) => (
           <li key={x.slug ?? x.name} className="flex items-center gap-2 border-t border-slate-800 py-1.5 first:border-t-0">
@@ -135,6 +135,8 @@ export default function TeamEventSeite() {
   // Globale Events (06.11.2026): Bestenliste wahlweise nur fuer eines der eigenen Teams.
   const [meineTeams, setMeineTeams] = useState<{ slug: string; name: string }[]>([]);
   const [teamFilter, setTeamFilter] = useState("");
+  // Eine Bestenliste zur Zeit, per Auswahl wie die Community-Bestenliste (Jan, 06.11.2026).
+  const [wahl, setWahl] = useState(0);
   const [dialog, setDialog] = useState(false);
   // Ziel in der Gast-Kopfzeile (main.tsx GastRahmen); erst nach dem Einhaengen im DOM.
   const [kopfAktion, setKopfAktion] = useState<HTMLElement | null>(null);
@@ -272,23 +274,34 @@ export default function TeamEventSeite() {
           </div>
         )}
         {(ev.summen_auswahl ?? []).length > 0 && <EventSummen ev={ev} t={t} />}
-        {ev.global && meineTeams.length > 0 && (
-          <label className="mb-3 flex flex-wrap items-center gap-2 text-sm text-slate-300">{t("team.event.teamFilter")}
-            <select value={teamFilter} onChange={(x) => setTeamFilter(x.target.value)}
+        {/* Eine Bestenliste zur Zeit (Auswahl wie in der Community), bei globalen Events daneben ihre Team-Rangliste. */}
+        <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-slate-300">
+          {ev.tafeln.length > 1 && (
+            <select value={Math.min(wahl, ev.tafeln.length - 1)} onChange={(x) => setWahl(Number(x.target.value))}
               className="rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100">
-              <option value="">{t("team.event.alle")}</option>
-              {meineTeams.map((x) => <option key={x.slug} value={x.slug}>{x.name}</option>)}
+              {ev.tafeln.map((tf, i) => <option key={i} value={i}>{t(kennzahl(tf.kennzahl).labelKey)}</option>)}
             </select>
-          </label>
-        )}
-        <div className="grid gap-3 sm:grid-cols-2">
-          {ev.tafeln.map((tf, i) => (
-            <div key={i} className="space-y-3">
+          )}
+          {ev.global && meineTeams.length > 0 && (
+            <label className="flex flex-wrap items-center gap-2">{t("team.event.teamFilter")}
+              <select value={teamFilter} onChange={(x) => setTeamFilter(x.target.value)}
+                className="rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100">
+                <option value="">{t("team.event.alle")}</option>
+                {meineTeams.map((x) => <option key={x.slug} value={x.slug}>{x.name}</option>)}
+              </select>
+            </label>
+          )}
+        </div>
+        {(() => {
+          const tf = ev.tafeln[Math.min(wahl, ev.tafeln.length - 1)];
+          if (!tf) return null;
+          return (
+            <div className={`grid gap-3 ${ev.global ? "sm:grid-cols-2" : ""}`}>
               <Tafel tf={tf} gast={gast} t={t} ohneFilter sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} />
               {ev.global && <TeamWertung tf={tf} n={ev.team_wertung_n ?? 5} t={t} />}
             </div>
-          ))}
-        </div>
+          );
+        })()}
         </>
       )}
 

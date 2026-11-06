@@ -2868,6 +2868,7 @@ const de: Record<string, string> = {
   "team.event.wertungBeste": "Summe der besten {n}",
   "team.event.wertungAlle": "Summe aller Mitglieder",
   "team.event.teams": "Teams",
+  "team.event.keineTeams": "Noch kein Mitglied eines Teams in diesem Event.",
   "team.event.teamFilter": "Bestenliste für",
   "team.event.alle": "Alle",
   "team.alle": "Alle Teams",

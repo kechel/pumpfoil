@@ -2711,6 +2711,7 @@ const id: Record<string, string> = {
   "team.event.wertungBeste": "Jumlah {n} terbaik",
   "team.event.wertungAlle": "Jumlah semua anggota",
   "team.event.teams": "Tim",
+  "team.event.keineTeams": "Belum ada anggota tim di event ini.",
   "team.event.teamFilter": "Papan peringkat untuk",
   "team.event.alle": "Semua",
   "team.alle": "Semua tim",
