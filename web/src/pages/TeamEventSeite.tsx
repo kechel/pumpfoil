@@ -137,7 +137,7 @@ export default function TeamEventSeite() {
     offiziell?: boolean }) | null>(null);
   // Globale Events (06.11.2026): Bestenliste wahlweise nur fuer eines der eigenen Teams.
   const [meineTeams, setMeineTeams] = useState<{ slug: string; name: string }[]>([]);
-  const [teamFilter, setTeamFilter] = useState("");
+  const teamFilter = "";   // Filter „Bestenliste fuer" entfernt (06.11.2026); der Server kennt ?team= weiter
   // Eine Bestenliste zur Zeit, per Auswahl wie die Community-Bestenliste (Jan, 06.11.2026).
   const [wahl, setWahl] = useState(0);
   const [dialog, setDialog] = useState(false);
