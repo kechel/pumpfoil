@@ -911,6 +911,14 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 06.11.2026 ~06:52 (Jans Meldung). .iq aus 9bd83fd1, 222 Varianten. Fall Olek (FR245 ohne Handy, Sync nur
+    # per Garmin Express -> bekommt `gc` nie): Aufnahme startet bei vollem Speicher immer. Test 1.0.101-ta im Emulator
+    # (FR245 #20242, fēnix #20243) sauber; voller Speicher nicht getestet.
+    {"name": "Garmin", "version": "1.0.101",
+     "eingereicht": "2026-11-06",
+     "items": [
+         "Recording starts even when the watch storage is full: your watch still saves the activity, and it reaches us through Garmin Connect or a file import.",
+     ]},
     # EINGEREICHT 05.11.2026 13:00 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.60 (70),
     # Kennung 315275cf-5e6f-4a23-bd3c-9c4fe92b4d41). Code auf der VM nur swiftc -parse, Typcheck in Jans Xcode.
     {"name": "iPhone + Apple Watch", "version": "1.1.60",
@@ -1157,12 +1165,7 @@ NAECHSTES: list[dict] = [
      ]},
     # Garmin Connect stand hier bis zur Freigabe fuer alle am 05.11.2026 (jetzt live, Changelog-Ereignis).
     # Garmin 1.0.100 am 05.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkte im Changelog mit garmin 1.0.100.
-    # 06.11.2026 (Jan, Fall Olek: FR245 ohne Handy, Sync nur per Garmin Express -> bekommt `gc` nie): Aufnahme startet bei
-    # vollem Speicher immer, nicht nur mit Garmin-Verknuepfung.
-    {"name": "Garmin", "version": "1.0.101",
-     "items": [
-         "Recording starts even when the watch storage is full: your watch still saves the activity, and it reaches us through Garmin Connect or a file import.",
-     ]},
+    # Garmin 1.0.101 am 06.11. eingereicht -> IN_REVIEW.
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
      "items": [
