@@ -114,11 +114,13 @@ fun RecordScreen(onBack: () -> Unit) {
     // Energiesparen an? (s. GpsSparen) Sekuendlich nachsehen — wer es in den Einstellungen abschaltet und
     // zurueckkommt, soll die Warnung sofort verschwinden sehen.
     var sparen by remember { mutableStateOf(GpsSparen.an(ctx)) }
+    var akkuOptimiert by remember { mutableStateOf(GpsSparen.akkuOptimiert(ctx)) }
     LaunchedEffect(Unit) {
         while (true) {
             kotlinx.coroutines.delay(1000)
             if (gpsReady && android.os.SystemClock.elapsedRealtime() - gpsReadyMs > 10_000) gpsReady = false
             sparen = GpsSparen.an(ctx)
+            akkuOptimiert = GpsSparen.akkuOptimiert(ctx)
         }
     }
 
@@ -243,6 +245,9 @@ fun RecordScreen(onBack: () -> Unit) {
                     if (sparen) {
                         Spacer(Modifier.height(16.dp))
                         SparenWarnung(onOeffnen = { GpsSparen.einstellungenOeffnen(ctx) })
+                    } else if (akkuOptimiert) {
+                        Spacer(Modifier.height(16.dp))
+                        AkkuHinweis(onOeffnen = { GpsSparen.akkuEinstellungenOeffnen(ctx) })
                     }
                     Spacer(Modifier.height(16.dp))
                     // Autostart-Schalter (wie Uhr): losfahren startet die Aufnahme automatisch.
@@ -404,6 +409,26 @@ private fun SparenWarnung(onOeffnen: () -> Unit) {
     }
 }
 
+/** Akku-Optimierung an (GpsSparen.akkuOptimiert): kein Fehler, viele Handys halten das GPS trotzdem — deshalb ein
+ *  Hinweis statt einer roten Warnung, aber gut lesbar und mit Knopf direkt zu den App-Infos. */
+@Composable
+private fun AkkuHinweis(onOeffnen: () -> Unit) {
+    Card(
+        Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+    ) {
+        Column(Modifier.padding(14.dp)) {
+            Text(I18n.t("rec.akkuTitel"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSecondaryContainer)
+            Spacer(Modifier.height(4.dp))
+            Text(I18n.t("rec.akkuText"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer)
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(onClick = onOeffnen) { Text(I18n.t("rec.akkuKnopf")) }
+        }
+    }
+}
+
 @Composable
 private fun RecordingBody(st: Recorder.State) {
     // GPS WEG (Garmin-Fall Roman, 25.10.2026, hier nachgezogen): der Zustand aendert sich nur, wenn
@@ -419,9 +444,10 @@ private fun RecordingBody(st: Recorder.State) {
         Spacer(Modifier.height(6.dp))
         Text(I18n.t("rec.gpsSearch"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.error)
-        // Laenger als 30 s still UND Energiesparen an: dann schaltet das Handy wohl das GPS bei dunklem Display ab
-        // (GpsSparen). Ohne Energiesparen ist eine Luecke meist das Handy unter Wasser beim Zurueckschwimmen — normal.
-        if (Recorder.gpsStilleMs() > 30_000 && GpsSparen.an(LocalContext.current)) {
+        // Laenger als 30 s still UND Energiesparen oder Akku-Optimierung an: dann schaltet das Handy wohl das GPS bei
+        // dunklem Display ab (GpsSparen). Sonst ist eine Luecke meist das Handy unter Wasser beim Zurueckschwimmen.
+        val c = LocalContext.current
+        if (Recorder.gpsStilleMs() > 30_000 && (GpsSparen.an(c) || GpsSparen.akkuOptimiert(c))) {
             Spacer(Modifier.height(4.dp))
             Text(I18n.t("rec.gpsAus"), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.error)

@@ -1183,6 +1183,7 @@ NAECHSTES: list[dict] = [
          "Sports is its own tab in the settings, between Team and Equipment.",
          "The foil calculator asks for the mast immersion depth, up to 100 cm, not the mast length.",
          "Session lists load 20 at a time and fetch more as you scroll, so they open faster, and older community and spot sessions can now be reached.",
+         "Recording on the phone: if battery optimisation is on for Pumpfoil, the start screen asks you to set it to Unrestricted, because some phones otherwise turn GPS off while the screen is dark.",
      ]},
     # iPhone + Apple Watch 1.1.61 am 06.11. eingereicht -> IN_REVIEW.
     # 06.11.2026: Apple Watch setzt die Pausen der vorigen Aufnahme zurueck (6352227c), nach der Einreichung von 1.1.61.
