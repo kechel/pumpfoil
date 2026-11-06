@@ -55,7 +55,7 @@ export function EventHinweise({ art }: { art: "global" | "team" }) {
                 <span className="text-slate-400"> · </span>
                 <KachelUhr ziel={live ? e.ende : e.start} text={t(live ? "team.event.endetIn" : "team.event.startIn")} lang={lang} /> →
               </span>
-              <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${live ? "bg-brand-500 text-slate-950 event-puls" : "bg-slate-800 text-slate-300"}`}>
+              <span className={`max-w-[7rem] shrink-0 rounded-xl px-2 py-0.5 text-center text-xs leading-tight ${live ? "bg-brand-500 text-slate-950 event-puls" : "bg-slate-800 text-slate-300"}`}>
                 {t(art === "team" ? "eventHinweis.teamLive" : live ? "eventHinweis.live" : "eventHinweis.bald")}
               </span>
             </Link>

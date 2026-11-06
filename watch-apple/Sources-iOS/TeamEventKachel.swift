@@ -191,6 +191,8 @@ struct TeamEventStatusChip: View {
     var textKey: String? = nil
     /// Fett nur am Status-Abzeichen; der Home-Hinweis will es nicht fett (web be01239d).
     var fett: Bool = true
+    /// Hoechstbreite: dann bricht der Text um statt die Zeile zu sprengen (Home-Hinweis auf dem Handy, Jan 06.11.2026).
+    var maxBreite: CGFloat? = nil
     @Environment(\.accessibilityReduceMotion) private var bewegungAus
     @State private var puls = false
 
@@ -209,10 +211,13 @@ struct TeamEventStatusChip: View {
     var body: some View {
         Text(text)
             .font(.caption2.weight(gewicht))
-            .lineLimit(1)
+            .lineLimit(maxBreite == nil ? 1 : 2)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: maxBreite)
             .foregroundStyle(vorne)
             .padding(.horizontal, 8).padding(.vertical, 2)
-            .background(hinten, in: Capsule())
+            .background(hinten, in: RoundedRectangle(cornerRadius: 10))
             .opacity(deckkraft)
             .animation(pulsAnimation, value: puls)
             .onAppear { if laeuft && !bewegungAus { puls = true } }

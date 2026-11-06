@@ -467,7 +467,7 @@ private struct EventHinweisZeile: View {
                 }
             }
             Spacer(minLength: 4)
-            TeamEventStatusChip(status: e.status, farbe: nil, lang: lang, textKey: abzeichenKey, fett: false)
+            TeamEventStatusChip(status: e.status, farbe: nil, lang: lang, textKey: abzeichenKey, fett: false, maxBreite: 96)
         }
         .padding(.leading, 14).padding(.vertical, 10).padding(.trailing, 34)
         .frame(maxWidth: .infinity, alignment: .leading)

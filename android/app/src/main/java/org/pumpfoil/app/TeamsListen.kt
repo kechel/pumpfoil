@@ -173,9 +173,12 @@ fun GlobaleEventHinweise(onOeffnen: () -> Unit, modifier: Modifier = Modifier) {
                     append(" →")
                 }, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f).padding(vertical = 6.dp))
                 Spacer(Modifier.width(6.dp))
+                // Hoechstbreite, damit das Abzeichen umbricht statt dem Titel den Platz zu nehmen (Jan, 06.11.2026).
                 Text(I18n.t(if (live) "eventHinweis.live" else "eventHinweis.bald"), style = MaterialTheme.typography.labelMedium,
                     color = if (live) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.clip(CircleShape).background(if (live) marke else MaterialTheme.colorScheme.surfaceVariant)
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.widthIn(max = 96.dp).clip(RoundedCornerShape(10.dp))
+                        .background(if (live) marke else MaterialTheme.colorScheme.surfaceVariant)
                         .padding(horizontal = 8.dp, vertical = 2.dp))
                 IconButton(onClick = {
                     val neu = (weg + k).takeLast(50)
