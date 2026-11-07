@@ -15,6 +15,7 @@ import type { TeamWertungZeile } from "../lib/api";
 import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
 import { Card } from "../components/ui";
 import TeamWappen from "../components/TeamWappen";
+import { dateiTeil } from "../lib/bestenlisteBild";
 import { TeamHerkunft } from "../components/TeamHerkunft";
 import TeamBanner from "../components/TeamBanner";
 import TeamTafelBild from "../components/TeamTafelBild";
@@ -408,7 +409,7 @@ export default function TeamEventSeite() {
         const eigen = alle.slice(10).find((x) => eigeneSlugs.includes(x.slug));
         return (
           <BestenlisteBildDialog onClose={() => setBildTeams(null)} titel={t("team.bild.titel")} logoUrl={team.logo_url}
-            dateiname={`${team.slug}-event-${ev.id}-teams-${bildTeams.kennzahl}.jpg`}
+            dateiname={`${dateiTeil(ev.titel) || `event-${ev.id}`}-teams-${bildTeams.kennzahl}.jpg`}
             daten={{
               titel: `${t("team.event.teams")} · ${t(k.labelKey)}`,
               unterzeile: [ev.titel, n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }),
@@ -421,6 +422,7 @@ export default function TeamEventSeite() {
         );
       })()}
       {bild && <TeamTafelBild team={team} tafel={bild} onClose={() => setBild(null)} zeitraum={ev.titel} stand={standFuer(bild)}
+        dateiBasis={dateiTeil(ev.titel) || `event-${ev.id}`} teamsZeigen={!!ev.global}
         abzeichen={ev.status === "laeuft" || ev.status === "auswertung" ? t(`team.event.status.${ev.status}`) : null} />}
     </div>
   );

@@ -11,7 +11,7 @@ const SCHRIFT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 export type BildZeile = { rang: number; name: string | null; initialen: string; wert: string; ich?: boolean;
   land?: string | null;   // Nationalitaet (ISO-Code) -> Flagge vor dem Namen
   // Team-Bestenliste (04.11.2026): Wappen vor dem Namen — Logo, sonst die Initialen auf der Teamfarbe (wie TeamWappen).
-  wappen?: { logo: string | null; flaeche: string; schrift: string; flaecheHell: string; schriftHell: string } };
+  wappen?: { logo: string | null; initialen?: string; flaeche: string; schrift: string; flaecheHell: string; schriftHell: string } };
 
 export type BildDaten = {
   titel: string;            // Kopfzeile gross, z. B. „Längster Lauf" oder der Teamname
@@ -26,6 +26,7 @@ export type BildDaten = {
   marke?: HTMLImageElement | null;  // unser Schriftzug unten rechts (zur Fassung passend: weiss auf dunkel, navy auf hell)
   flaggen?: Record<string, HTMLImageElement>;   // geladene Flaggen je ISO-Code (s. BestenlisteBildDialog)
   wappenBilder?: Record<string, HTMLImageElement>;   // geladene Team-Logos je URL
+  wappenPlatz?: boolean;   // Platz fuer ein Wappen auch in Zeilen ohne (globale Events, Namen buendig; 07.11.2026)
   hell?: boolean;           // helle Fassung (Jan, 02.11.2026: Umschalter wie beim Teilen einer Session)
   abzeichen?: string | null; // oben rechts als Pille, z. B. „live" solange ein Event nicht final ist (06.11.2026)
 };
@@ -118,11 +119,11 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
       } else {
         g.fillStyle = d.hell ? z.wappen.flaecheHell : z.wappen.flaeche; g.fillRect(nx, wy, ws, ws);
         g.fillStyle = d.hell ? z.wappen.schriftHell : z.wappen.schrift; g.font = `700 ${Math.round(ws * 0.38)}px ${SCHRIFT}`; g.textAlign = "center";
-        g.fillText(z.initialen, nx + ws / 2, mitte);
+        g.fillText(z.wappen.initialen ?? z.initialen, nx + ws / 2, mitte);
       }
       g.restore();
-      nx += ws + 16;
     }
+    if (z.wappen || d.wappenPlatz) nx += Math.round(gross * 1.25) + 16;
     // Flagge 4:3 vor dem Namen, mit feinem Rand (weisse Flaggen verschwaenden sonst auf hellem Grund). Der
     // Platz bleibt auch ohne Flagge frei, damit die Namen buendig stehen (Jan, 03.11.2026).
     const fl = z.land ? d.flaggen?.[z.land] : undefined;
@@ -163,6 +164,21 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
     g.font = `400 20px ${SCHRIFT}`;
     g.fillText(kuerzen(g, d.quelle, BILD_B - 2 * X), X, BILD_H - X - 22);
   }
+}
+
+/** Text als Dateinamen-Teil (Jan, 07.11.2026: „event-bezeichnung dateinamenfreundlich"): ohne Akzente, klein,
+ *  nur a-z, 0-9 und Bindestriche. Schriften ohne lateinische Buchstaben ergeben "" -> Aufrufer nimmt einen Ersatz. */
+export function dateiTeil(s: string | null | undefined): string {
+  return (s || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/ß/g, "ss").replace(/[łŁ]/g, "l")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60).replace(/-+$/, "");
+}
+
+/** Zeitstempel vor die Endung (lokale Zeit, „…-2026-11-07-1412.jpg"), damit Downloads sich nicht ueberschreiben. */
+export function mitZeitstempel(name: string, jetzt = new Date()): string {
+  const p = (n: number) => String(n).padStart(2, "0");
+  const st = `${jetzt.getFullYear()}-${p(jetzt.getMonth() + 1)}-${p(jetzt.getDate())}-${p(jetzt.getHours())}${p(jetzt.getMinutes())}`;
+  const i = name.lastIndexOf(".");
+  return i > 0 ? `${name.slice(0, i)}-${st}${name.slice(i)}` : `${name}-${st}`;
 }
 
 /** Bild als Datei — SYNCHRON in der Klick-Geste (toDataURL statt toBlob), sonst lehnt iOS das Teilen ab. */
