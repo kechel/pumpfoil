@@ -2228,6 +2228,8 @@ const pl: Record<string, string> = {
   "imp.gh2": "Jeśli nie chcesz, żeby było tam widać Twoją nazwę, napisz do nas, a uczynimy ją nieczytelną w aktualnych plikach. Starsze wersje pozostają w historii repozytorium, dopóki nie zostanie ona przepisana.",
   "imp.gh3": "pumpfoil.org tylko odsyła do GitHuba i niczego stamtąd nie wczytuje. Na github.com obowiązuje polityka prywatności GitHuba.",
   "imp.gh4": "Pumpfoil jest rozwijany z pomocą asystenta AI Claude, który samodzielnie publikuje zmiany w kodzie źródłowym na GitHubie. Dane użytkowników nie powinny się tam znaleźć i nigdy nie są tam celowo wysyłane; każda publikacja jest automatycznie sprawdzana. Mimo to nie można wykluczyć, że ich fragmenty przez pomyłkę staną się publiczne, na przykład nazwy wyświetlane, miejsca i godziny sesji lub dane z czujników (trasy GPS, dane ruchu, tętno). To, co raz trafiło na GitHuba, mogło zostać skopiowane przez innych i nie da się tego już w pełni wycofać. <b>Jeśli nie chcesz podejmować tego ryzyka, nie nagrywaj ani nie przesyłaj sesji przez Pumpfoil.</b>",
+  "imp.werteTitle": "Pomiary i to, co wyświetlamy",
+  "imp.werteText": "Obiecujemy dokładnie jedno: na serwerze działa publiczny kod źródłowy z GitHuba. Wyświetlane jest to, co oblicza z przesłanych danych, nawet jeśli liczby są błędne lub nieoczekiwane. Nie obiecujemy, że pomiary, sesje, rekordy, rankingi i eventy są poprawne lub niezmanipulowane.",
   "imp.connIntro": "Opcjonalnie i wyłącznie na Twoje wyraźne działanie możesz połączyć konto innej usługi, aby importować aktywności:",
   "imp.fbTitle": "Logowanie przez Facebooka („Kontynuuj przez Facebooka”)",
   "imp.fbIntro": "Jeśli zalogujesz się swoim kontem na Facebooku, przetwarzamy wyłącznie następujące dane:",

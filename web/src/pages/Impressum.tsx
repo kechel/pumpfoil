@@ -209,6 +209,13 @@ export default function Impressum() {
           </ul>
         </section>
 
+        {/* Messwerte und Anzeigen (Jan, 07.11.2026): der Satz aus den Team-Regeln („Haftung") gilt fuer ALLE Daten und
+            Anzeigen — verbindlich ist allein der oeffentliche Quellcode. */}
+        <section className="rounded-xl border border-slate-700 bg-slate-900/40 p-4">
+          <h3 className="mb-2 font-semibold text-slate-200">{t("imp.werteTitle")}</h3>
+          <p className="text-slate-300">{t("imp.werteText")}</p>
+        </section>
+
         {/* KI-Unterstuetzung: Auswertung, Modellverbesserung und Katalogrecherche laufen mit
             Claude, dabei koennen Inhalte an Anthropic uebertragen werden. Gehoert offengelegt
             wie die anderen Dritten (Google/Apple/verknuepfte Konten). */}

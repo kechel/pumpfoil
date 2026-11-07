@@ -2106,6 +2106,8 @@ const nb: Record<string, string> = {
   "imp.gh2": "Vil du ikke at navnet ditt skal stå der, skriv til oss, så gjør vi det ugjenkjennelig i de nåværende filene. Eldre versjoner blir liggende i historikken til repositoriet så lenge den ikke skrives om.",
   "imp.gh3": "pumpfoil.org lenker bare til GitHub og laster ikke noe derfra. På github.com gjelder GitHubs personvernerklæring.",
   "imp.gh4": "Pumpfoil utvikles med hjelp fra KI-assistenten Claude, som selv publiserer endringer i kildekoden på GitHub. Brukerdata hører ikke hjemme der og lastes aldri opp med vilje; hver publisering sjekkes automatisk for det. Likevel kan det ikke utelukkes at deler av dem blir offentlige ved en feil, for eksempel visningsnavn, steder og tider for økter eller sensordata (GPS-spor, bevegelsesdata, puls). Det som en gang har ligget på GitHub, kan være kopiert av andre og kan da ikke trekkes helt tilbake. <b>Hvis du ikke vil ta denne risikoen, bør du ikke ta opp eller laste opp økter med Pumpfoil.</b>",
+  "imp.werteTitle": "Måleverdier og visninger",
+  "imp.werteText": "Vi lover nøyaktig én ting: serveren kjører den offentlige kildekoden fra GitHub. Det som vises, er det den beregner ut fra de opplastede dataene, også om tallene er feil eller uventede. Vi lover ikke at målinger, økter, rekorder, topplister og eventer er riktige eller ikke manipulert.",
   "imp.connIntro": "Valgfritt, og bare når du selv gjør det, kan du knytte til en tredjepartskonto for å importere aktiviteter:",
   "imp.fbTitle": "Facebook-innlogging («Fortsett med Facebook»)",
   "imp.fbIntro": "Hvis du logger inn med Facebook-kontoen din, behandler vi utelukkende disse dataene:",

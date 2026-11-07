@@ -1713,6 +1713,8 @@ const gsw: Record<string, string> = {
   "imp.gh2": "Wenn du din Name det nöd wotsch gseh, schriib üs, denn machemer en i de aktuelle Dateie unkenntlich. Elteri Fassige bliibed i de Versionsgschicht vom Repository erhalte, solang die nöd umgschribe wird.",
   "imp.gh3": "pumpfoil.org verlinkt GitHub nume und ladet nüt vo det. Wenn du github.com uftuesch, gilt d Dateschutzerklärig vo GitHub.",
   "imp.gh4": "Pumpfoil wird mit Hilf vom KI-Assistänt Claude entwicklet, wo Änderige am Quelltext sälbständig uf GitHub veröffentlicht. Nutzerdate ghöred det nöd ane und wärded nie absichtlich ufeglade; jedi Veröffentlichung wird automatisch druf prüeft. Trotzdem chamer nöd usschliesse, dass us Versehe Usschnitt öffentlich wärded, zum Biispiel Aazeigenäme, Ort und Ziite vo Sessions oder Sensordate (GPS-Strecke, Bewegigsdate, Puls). Was emal uf GitHub gstande isch, chönd anderi kopiert ha, und das lönd sich denn nüme ganz zruggholle. <b>Wer das Risiko nöd wott iigah, sött mit Pumpfoil kei Sessions ufzeichne oder ufelade.</b>",
+  "imp.werteTitle": "Mässwärt und Aazeige",
+  "imp.werteText": "Mir säged genau eis zue: Uf em Server lauft de öffentlich Quellcode vo GitHub. Aazeigt wird, was er us de ueglade Date rächnet, au wänn das falschi oder unerwarteti Zahle sind. Dass Mässwärt, Sessions, Rekord, Bestelischte und Events stimmed oder nöd manipuliert worde sind, säged mir nöd zue.",
   "imp.connIntro": "Optional und nur uf dini uusdrücklichi Aktion chasch es Konto vomene Dritt-Aabieter verchnüpfe, zum Aktivitäte importiere:",
   "imp.fbTitle": "Facebook-Aameldig („Wiiter mit Facebook“)",
   "imp.fbIntro": "Wänn du di mit dim Facebook-Konto aamäldisch, verarbeited mir usschliesslich die folgende Date:",
