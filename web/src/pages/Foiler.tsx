@@ -181,10 +181,12 @@ export default function Foiler({ userId, eingebettet = false, als }:
         </Card>
       )}
 
-      <div className="mb-5 flex items-center gap-3">
+      {/* Mobil stehen die Knoepfe in einer eigenen Zeile unter Name und Avatar — vorher quetschten sie den Namen weg und
+          „Nachricht" lief aus dem Bild (Jan, 07.11.2026, PWA mobil). */}
+      <div className="mb-5 flex flex-wrap items-center gap-3">
         {!eingebettet && <ZurueckPfeil fallback={zurueckZu?.zurueck ?? "/community"} />}
         <Avatar name={d.name} url={d.avatar_url} seed={d.id} userId={d.id} size={56} />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           {/* Nationalitaet nur als Flagge, der Name des Landes als Hovertext (Jan, 05.11.2026). */}
           <h1 className="flex items-center gap-2 text-xl font-bold">
             <span className="truncate">{d.name ?? "—"}</span>
@@ -199,7 +201,7 @@ export default function Foiler({ userId, eingebettet = false, als }:
         {/* Nachricht schreiben, oben rechts — wie der Spot-Chat-Knopf in der Spot-Ansicht. Nicht auf
             der eigenen Seite. */}
         {!d.ich && (
-          <div className="ml-auto flex shrink-0 flex-wrap justify-end gap-2 self-start">
+          <div className="flex w-full flex-wrap gap-2 sm:ml-auto sm:w-auto sm:shrink-0 sm:justify-end sm:self-start">
             {/* Freundschaft (15.10.2026): Stand und Dialog, s. components/Freundschaft.tsx. Bei einer
                 eingehenden Anfrage steht der Knopf als „Annehmen" da. */}
             {d.freundschaft_moeglich && (
@@ -317,10 +319,11 @@ export default function Foiler({ userId, eingebettet = false, als }:
               const inner = (
                 <Card className="h-full px-2.5 py-1.5">
                   <div className="text-[11px] leading-tight text-slate-400">{x.label}</div>
-                  <div className="text-lg font-bold leading-tight tabular-nums text-brand-400">
+                  <div className="text-base font-bold leading-tight tabular-nums text-brand-400 sm:text-lg">
                     {x.wert && x.wert > 0 ? x.fmt(x.wert) : "–"}
                   </div>
-                  {x.wert && x.wert > 0 && x.datum && (
+                  {/* !! statt x.wert && …: bei 0 schrieb React sonst eine nackte „0" in die Kachel. */}
+                  {!!x.wert && x.wert > 0 && !!x.datum && (
                     <div className="text-[10px] leading-tight tabular-nums text-slate-500">
                       {datum(x.datum, x.tz ?? null)}
                     </div>
@@ -334,7 +337,7 @@ export default function Foiler({ userId, eingebettet = false, als }:
             {summen.map((x) => (
               <Card key={x.label} className="h-full px-2.5 py-1.5">
                 <div className="text-[11px] leading-tight text-slate-400">{x.label}</div>
-                <div className="text-lg font-bold leading-tight tabular-nums text-brand-400">{x.wert}</div>
+                <div className="text-base font-bold leading-tight tabular-nums text-brand-400 sm:text-lg">{x.wert}</div>
               </Card>
             ))}
           </div>
