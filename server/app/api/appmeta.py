@@ -1190,6 +1190,8 @@ NAECHSTES: list[dict] = [
          "Global events: everyone takes part automatically, with a calendar card, a team ranking (sum of the best riders), the top 10 plus your own row, a refresh button and a share image; you can opt out under Settings, Privacy.",
          "Events of your own teams appear on Home under Team and in the community, and the Teams & Events tab shows LIVE or the number of upcoming events.",
          "Asking for a missing foil or stabilizer opens the feedback form with a template to fill in.",
+         "Leaderboards show three-digit places in full, in the list and in the share image, and the filters above them fit on one line.",
+         "The start screen on the Apple Watch scrolls, so Switch account is always reachable.",
      ]},
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",

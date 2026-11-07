@@ -390,19 +390,24 @@ struct RecordView: View {
 
     // MARK: - Startbildschirm
 
+    // Scrollbar (07.11.2026, Jan: „switch account ist fast nicht zu sehen und nicht scrollbar"): mit Sportart,
+    // Foil-Name in zwei Zeilen und Auto-Start-Zeile passt der Bildschirm nicht mehr auf jede Uhr.
     private var idleScreen: some View {
-        VStack(spacing: 8) {
-            idleHeader
-            if rec.starting {
-                // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
-                ProgressView().scaleEffect(0.8)
-                Text(startingText)
-                    .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
-            } else {
-                idleControls
+        ScrollView {
+            VStack(spacing: 8) {
+                idleHeader
+                if rec.starting {
+                    // Startphase (GPS/Session): kein Start-Button, nur Spinner + Status.
+                    ProgressView().scaleEffect(0.8)
+                    Text(startingText)
+                        .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                } else {
+                    idleControls
+                }
             }
+            .padding(.horizontal)
+            .padding(.bottom)
         }
-        .padding()
         // Auto-Start-Monitor wird NICHT hier gearmt, sondern erst nach dem Countdown
         // (tickAutoStart, autoTimer). Beim Verlassen des Idle sicher aufräumen.
         .onDisappear { autoMon.disarm(); autoArmed = false }
