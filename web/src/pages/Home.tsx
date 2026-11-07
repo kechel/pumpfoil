@@ -14,7 +14,7 @@ import BestenlisteBildDialog from "../components/BestenlisteBildDialog";
 import TeamListenKachel from "../components/TeamListenKachel";
 import TeamWappen, { teamInitialen } from "../components/TeamWappen";
 import { TeamHerkunft } from "../components/TeamHerkunft";
-import { Quellen, quellenText } from "../components/Quellen";
+import { Quellen } from "../components/Quellen";
 import { TEAM_FARBEN, teamFarbStil } from "../lib/teamFarben";
 import { initialenAus } from "../lib/bestenlisteBild";
 import { SessionRow } from "../components/SessionRow";
@@ -581,7 +581,6 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
           zeilen: (data[k.key] ?? []).slice(0, 10).map((r, i) => zeile(r, i + 1)),
           eigene: eigene && eigene.rank != null ? zeile(eigene, eigene.rank) : null,
           leer: "—",
-          quelle: quellenText(data.quellen, t),
         }} />
     );
   };
@@ -1109,7 +1108,6 @@ function TeamBestenlisten({ period, sport, region, titel }: { period: string; sp
             zeilen: zeilen.slice(0, 10).map((z, i) => bildZeile(z, i)),
             eigene: (() => { const i = zeilen.findIndex((z, j) => j >= 10 && meine.has(z.slug)); return i >= 0 ? bildZeile(zeilen[i], i) : null; })(),
             leer: "—",
-            quelle: quellenText(d?.quellen, t),
           }} />
       )}
     </div>

@@ -1,7 +1,7 @@
 // Dialog „Bestenliste als Bild teilen" — fuer Teams und Community derselbe (02.11.2026). Gezeichnet wird in
 // lib/bestenlisteBild.ts; hier nur Vorschau, Teilen und Speichern.
 import { useEffect, useRef, useState } from "react";
-import { BILD_B, BILD_H, bildDatei, bildLaden, bildSpeichern, mitZeitstempel, zeichneBestenliste, type BildDaten } from "../lib/bestenlisteBild";
+import { BILD_B, BILD_H, bildDatei, bildLaden, bildSpeichern, mitZeitstempel, plattformZeile, zeichneBestenliste, type BildDaten } from "../lib/bestenlisteBild";
 import { useT } from "../i18n";
 import { flaggeUrl } from "../lib/laender";
 import { KONTINENT_PFADE } from "../lib/kontinente";
@@ -48,7 +48,7 @@ export default function BestenlisteBildDialog({ daten, logoUrl, dateiname, titel
       const logos = new Set([...daten.zeilen, ...(daten.eigene ? [daten.eigene] : [])].map((z) => z.wappen?.logo).filter(Boolean) as string[]);
       await Promise.all([...logos].map((u) => bildLaden(u).then((im) => { wappenBilder[u] = im; }).catch(() => {})));
       if (weg) return;
-      zeichneBestenliste(g, { ...daten, logo, marke, hell, flaggen, wappenBilder });
+      zeichneBestenliste(g, { ...daten, quelle: plattformZeile(t), logo, marke, hell, flaggen, wappenBilder });
       setFertig(true);
     })().catch(() => setFehler(t("share.errImage")));
     return () => { weg = true; };

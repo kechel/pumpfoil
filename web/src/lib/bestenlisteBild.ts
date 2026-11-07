@@ -22,7 +22,7 @@ export type BildDaten = {
   zeilen: BildZeile[];      // hoechstens 10
   eigene?: BildZeile | null; // eigene Zeile unter Platz 10
   leer: string;             // Text, wenn es keine Zeilen gibt
-  quelle?: string | null;   // „Daten von: Garmin · …" klein ueber dem Fuss (Garmins Vorgabe: in jedem Bild sichtbar)
+  quelle?: string | null;   // klein ueber dem Fuss: seit 07.11.2026 IMMER die volle Plattform-Liste (s. plattformZeile)
   akzent?: string;          // Teamfarbe fuer die dunkle Fassung; sonst Marken-Cyan
   akzentHell?: string;      // Teamfarbe fuer die helle Fassung
   logo?: HTMLImageElement | null;   // Teamwappen links neben der Ueberschrift
@@ -198,11 +198,22 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
   }
   g.fillStyle = F.leise; g.font = `400 26px ${SCHRIFT}`; g.textAlign = "left";
   g.fillText("Have fun, keep pumping!", X, BILD_H - X + 38);
-  // Quellen zwischen Liste (endet bei BILD_H - 150) und Fuss, klein wie unter der Liste auf der Seite.
+  // Plattform-Liste zwischen Liste (endet bei BILD_H - 150) und Fuss, klein wie unter der Liste auf der Seite.
   if (d.quelle) {
-    g.font = `400 20px ${SCHRIFT}`;
+    let px = 20;   // die volle Liste soll ganz drauf: notfalls bis 15 px kleiner
+    g.font = `400 ${px}px ${SCHRIFT}`;
+    while (px > 15 && g.measureText(d.quelle).width > BILD_B - 2 * X) { px -= 1; g.font = `400 ${px}px ${SCHRIFT}`; }
     g.fillText(kuerzen(g, d.quelle, BILD_B - 2 * X), X, BILD_H - X - 22);
   }
+}
+
+/** Alle Uhren, Konten und Wege, mit denen man aufnehmen kann — in JEDEM Teilen-Bild statt der Quellen der einzelnen
+ *  Liste (Jan, 07.11.2026: „vollstaendige liste und garkeine einzelne quellenliste nur fuer garmin"; „das ist ja werbung
+ *  fuer uns wenn die teilnehmer das am sonntag abend ueberall teilen"). Garmin steht damit auch in jedem Bild.
+ *  Herstellernamen unuebersetzt, nur Handy und Datei-Upload. Neue Plattform -> hier ergaenzen. */
+export function plattformZeile(t: (k: string) => string): string {
+  return ["Garmin", "Apple Watch", "Wear OS", "Huawei", "Amazfit", "Suunto", "Polar", "COROS", "Xiaomi",
+    t("quellen.phone"), t("quellen.file")].join(" · ");
 }
 
 /** Text als Dateinamen-Teil (Jan, 07.11.2026: „event-bezeichnung dateinamenfreundlich"): ohne Akzente, klein,
