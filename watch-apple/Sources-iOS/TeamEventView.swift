@@ -216,6 +216,8 @@ struct TeamEventView: View {
             }
         }
         .pickerStyle(.menu)
+        // Einzeilig (07.11.2026): neben „Aktualisieren" brach „Total on-foil distance" sonst in zwei Zeilen um.
+        .lineLimit(1).fixedSize(horizontal: true, vertical: false)
     }
 
     /// Der Server rechnet hoechstens alle 2 min neu (web 881d7843).
