@@ -412,7 +412,8 @@ export default function TeamEventSeite() {
             dateiname={`${dateiTeil(ev.titel) || `event-${ev.id}`}-teams-${bildTeams.kennzahl}.jpg`}
             daten={{
               titel: `${t("team.event.teams")} · ${t(k.labelKey)}`,
-              unterzeile: [ev.titel, n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }),
+              unterzeile: `${ev.titel} · ${eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang)}`,
+              unterzeile2: [n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }),
                 standFuer(bildTeams)].filter(Boolean).join(" · "),
               zeilen: alle.slice(0, 10).map((x) => teamBildZeile(x, k.fmt(x.value), eigeneSlugs.includes(x.slug))),
               eigene: eigen ? teamBildZeile(eigen, k.fmt(eigen.value), true) : null,
@@ -423,6 +424,7 @@ export default function TeamEventSeite() {
       })()}
       {bild && <TeamTafelBild team={team} tafel={bild} onClose={() => setBild(null)} zeitraum={ev.titel} stand={standFuer(bild)}
         dateiBasis={dateiTeil(ev.titel) || `event-${ev.id}`} teamsZeigen={!!ev.global}
+        eventZeile={`${ev.titel} · ${eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang)}`}
         abzeichen={ev.status === "laeuft" || ev.status === "auswertung" ? t(`team.event.status.${ev.status}`) : null} />}
     </div>
   );

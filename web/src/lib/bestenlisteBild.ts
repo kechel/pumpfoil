@@ -16,6 +16,7 @@ export type BildZeile = { rang: number; name: string | null; initialen: string; 
 export type BildDaten = {
   titel: string;            // Kopfzeile gross, z. B. „Längster Lauf" oder der Teamname
   unterzeile: string;       // Sportart/Kennzahl, Zeitraum, Stand (Datum)
+  unterzeile2?: string | null;   // zweite Unterzeile, kleiner (Events: Kennzahl und Stand unter Eventname + Zeitraum; 07.11.2026)
   zeilen: BildZeile[];      // hoechstens 10
   eigene?: BildZeile | null; // eigene Zeile unter Platz 10
   leer: string;             // Text, wenn es keine Zeilen gibt
@@ -89,10 +90,14 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
   g.fillText(kuerzen(g, d.titel, rechts - tx), tx, 64 + 54);
   g.font = `700 30px ${SCHRIFT}`;
   g.fillText(kuerzen(g, d.unterzeile, BILD_B - tx - X), tx, 128 + 28);
+  if (d.unterzeile2) {
+    g.fillStyle = F.sek; g.font = `600 26px ${SCHRIFT}`;
+    g.fillText(kuerzen(g, d.unterzeile2, BILD_B - tx - X), tx, 128 + 28 + 38);
+  }
 
   // Zeilen: verfuegbare Hoehe zwischen Kopf und Logo gleichmaessig nutzen (hoechstens 80 px je Zeile).
   const zeilen = d.zeilen.slice(0, 10);
-  const oben = 215, unten = BILD_H - 150;
+  const oben = d.unterzeile2 ? 240 : 215, unten = BILD_H - 150;
   const n = Math.max(zeilen.length, 1) + (d.eigene && zeilen.length ? 1.4 : 0);
   const zh = Math.min(110, Math.floor((unten - oben) / n));
   const gross = Math.round(zh * 0.5);
