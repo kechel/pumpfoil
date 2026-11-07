@@ -413,9 +413,9 @@ export default function TeamEventSeite() {
             daten={{
               // Wie das Fahrer-Bild: Eventname als Titel, „Teamname · Zeitraum", dann was gewertet wird (07.11.2026).
               titel: ev.titel, titelAnpassen: true,
-              unterzeile: `${team.name} · ${eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang)}`,
-              unterzeile2: [`${t("team.event.teams")} · ${t(k.labelKey)}`, n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }),
-                standFuer(bildTeams)].filter(Boolean).join(" · "),
+              unterzeile: `${team.name} · ${t("team.event.teams")} · ${t(k.labelKey)}`,
+              unterzeile2: [eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang, true),
+                [n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }), standFuer(bildTeams)].filter(Boolean).join(" · ")].join("\n"),
               zeilen: alle.slice(0, 10).map((x) => teamBildZeile(x, k.fmt(x.value), eigeneSlugs.includes(x.slug))),
               eigene: eigen ? teamBildZeile(eigen, k.fmt(eigen.value), true) : null,
               leer: t("team.event.keineTeams"),
@@ -425,7 +425,7 @@ export default function TeamEventSeite() {
       })()}
       {bild && <TeamTafelBild team={team} tafel={bild} onClose={() => setBild(null)} zeitraum={ev.titel} stand={standFuer(bild)}
         dateiBasis={dateiTeil(ev.titel) || `event-${ev.id}`} teamsZeigen={!!ev.global}
-        ohneLogo={!!ev.global} eventZeile={[ev.titel, eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang)]}
+        ohneLogo={!!ev.global} eventZeile={[ev.titel, eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang, true)]}
         abzeichen={ev.status === "laeuft" || ev.status === "auswertung" ? t(`team.event.status.${ev.status}`) : null} />}
     </div>
   );

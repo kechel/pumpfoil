@@ -39,10 +39,9 @@ export default function TeamTafelBild({ team, tafel, zeitraum, onClose, stand, a
     titel: eventZeile ? eventZeile[0] : team.name,
     titelAnpassen: !!eventZeile,
     // Sportart dazu, sobald es nicht Pumpfoil ist — sonst weiss im geteilten Bild niemand, welche gemeint ist (02.11.2026).
-    unterzeile: eventZeile ? `${team.name} · ${eventZeile[1]}` : [t(k.labelKey), tafel.sportart && tafel.sportart !== "pumpfoil" ? t(`cls.sport.${tafel.sportart}`) : null, zeitraum,
+    unterzeile: eventZeile ? [team.name, t(k.labelKey), tafel.sportart && tafel.sportart !== "pumpfoil" ? t(`cls.sport.${tafel.sportart}`) : null].filter(Boolean).join(" · ") : [t(k.labelKey), tafel.sportart && tafel.sportart !== "pumpfoil" ? t(`cls.sport.${tafel.sportart}`) : null, zeitraum,
       stand].filter(Boolean).join(" · "),
-    unterzeile2: eventZeile ? [t(k.labelKey), tafel.sportart && tafel.sportart !== "pumpfoil" ? t(`cls.sport.${tafel.sportart}`) : null,
-      stand].filter(Boolean).join(" · ") : null,
+    unterzeile2: eventZeile ? [eventZeile[1], stand].filter(Boolean).join("\n") : null,
     zeilen: tafel.zeilen.slice(0, 10).map((z) => ({ rang: z.rang, name: z.name, initialen: z.initialen, land: z.land, wert: k.fmt(z.value),
       wappen: teamsZeigen ? wappenVon(z.teams?.[0]) : undefined })),
     wappenPlatz: teamsZeigen && tafel.zeilen.slice(0, 10).some((z) => z.teams?.length),

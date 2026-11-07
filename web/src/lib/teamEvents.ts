@@ -51,16 +51,18 @@ function mitternacht(d: Date, zeitzone: string | null): boolean {
 /** Zeitfenster eines Events mit Wochentag. Das Ende zaehlt nicht mehr dazu ([start, ende)); liegen beide Grenzen auf
  *  Mitternacht (Wochenende, Monat …), stehen nur die Tage da und das Ende ist der LETZTE Tag — „Sa 07.11. – So 08.11.“
  *  statt „07.11. 0:00 – 09.11. 0:00“, das nach drei Tagen aussah (Jan, 01.11.2026). */
-export function eventZeitraum(start: string, ende: string, zeitzone: string | null, lang: string): string {
+export function eventZeitraum(start: string, ende: string, zeitzone: string | null, lang: string, kurz = false): string {
   const a = new Date(start), b = new Date(ende);
   const tz = zeitzone || undefined;
+  // `kurz` (Teilen-Bild, 07.11.2026): ohne Jahr, wenn das Event im laufenden Jahr liegt — sonst passte es nicht in die Zeile.
+  const jahr = kurz && a.getFullYear() === new Date().getFullYear() && b.getFullYear() === a.getFullYear() ? undefined : "numeric" as const;
   try {
     if (mitternacht(a, zeitzone) && mitternacht(b, zeitzone)) {
-      const f = new Intl.DateTimeFormat(lang, { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: tz });
+      const f = new Intl.DateTimeFormat(lang, { weekday: "short", day: "numeric", month: "short", year: jahr, timeZone: tz });
       const letzter = new Date(b.getTime() - 12 * 3600 * 1000);   // sicher im Vortag, auch bei Zeitumstellung
       return `${f.format(a)} – ${f.format(letzter)}`;
     }
-    const f = new Intl.DateTimeFormat(lang, { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: tz });
+    const f = new Intl.DateTimeFormat(lang, { weekday: "short", day: "numeric", month: "short", year: jahr, hour: "2-digit", minute: "2-digit", timeZone: tz });
     return `${f.format(a)} – ${f.format(b)}`;
   } catch {
     return `${a.toLocaleString()} – ${b.toLocaleString()}`;

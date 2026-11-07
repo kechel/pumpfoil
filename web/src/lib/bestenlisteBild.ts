@@ -15,7 +15,8 @@ export type BildZeile = { rang: number; name: string | null; initialen: string; 
 
 export type BildDaten = {
   titel: string;            // Kopfzeile gross, z. B. „Längster Lauf" oder der Teamname
-  titelAnpassen?: boolean;  // lange Titel (Eventname): Schrift bis 40 px verkleinern, sonst zwei Zeilen (07.11.2026)
+  titelAnpassen?: boolean;  // Eventname als Titel: dunkel, eine Zeile bis 46 px, sonst zwei Zeilen so gross wie moeglich;
+                            // das Abzeichen steht dann rechts neben der ersten kleinen Unterzeile statt neben dem Titel (07.11.2026)
   unterzeile: string;       // Sportart/Kennzahl, Zeitraum, Stand (Datum)
   unterzeile2?: string | null;   // weitere Unterzeilen, kleiner, mit \n getrennt (Events: Zeitraum, dann Kennzahl + Stand; 07.11.2026)
   zeilen: BildZeile[];      // hoechstens 10
@@ -75,42 +76,58 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
   }
   // Abzeichen oben rechts (Event noch nicht final): Pille in der Akzentfarbe, Titel wird entsprechend kuerzer.
   let rechts = BILD_B - X;
-  if (d.abzeichen) {
-    g.font = `800 28px ${SCHRIFT}`;
-    const text = d.abzeichen.toUpperCase();
-    const bw = g.measureText(text).width + 44, bh = 50, bx = BILD_B - X - bw, by = 72;
+  const pille = (by: number, bh: number, px: number) => {
+    g.font = `800 ${px}px ${SCHRIFT}`;
+    const text = (d.abzeichen || "").toUpperCase();
+    const bw = g.measureText(text).width + Math.round(bh * 0.88), bx = BILD_B - X - bw;
     g.fillStyle = akzent;
     g.beginPath(); g.roundRect(bx, by, bw, bh, bh / 2); g.fill();
     g.fillStyle = F.topText; g.textAlign = "center"; g.textBaseline = "middle";
     g.fillText(text, bx + bw / 2, by + bh / 2 + 1);
-    rechts = bx - 24;
-  }
+    g.textAlign = "left"; g.textBaseline = "alphabetic";
+    return bx;
+  };
+  if (d.abzeichen && !d.titelAnpassen) rechts = pille(72, 50, 28) - 24;
   g.textAlign = "left"; g.textBaseline = "alphabetic";
   g.fillStyle = akzent;
   g.font = `700 58px ${SCHRIFT}`;
   let dy = 0;   // zusaetzliche Hoehe, wenn der Titel zwei Zeilen braucht
+  if (d.titelAnpassen) g.fillStyle = F.text;   // Eventname dunkel bzw. weiss statt Akzentfarbe (Jan, 07.11.2026)
   if (d.titelAnpassen && g.measureText(d.titel).width > rechts - tx) {
+    // Erst eine Zeile mit maessig kleinerer Schrift (bis 46 px); sonst zwei Zeilen in der groessten Schrift, bei der
+    // beide passen (Jan: „etwas groesser, darf ruhig die zweite zeile auch voll ausnutzen").
     let px = 58;
-    while (px > 40 && g.measureText(d.titel).width > rechts - tx) { px -= 2; g.font = `700 ${px}px ${SCHRIFT}`; }
+    while (px > 46 && g.measureText(d.titel).width > rechts - tx) { px -= 2; g.font = `700 ${px}px ${SCHRIFT}`; }
     if (g.measureText(d.titel).width <= rechts - tx) {
       g.fillText(d.titel, tx, 64 + 54);
     } else {
-      // Zwei Zeilen: so viele Woerter wie passen in die erste, der Rest (ggf. gekuerzt) in die zweite.
-      const w = d.titel.split(/\s+/);
-      let n = 1;
-      while (n < w.length && g.measureText(w.slice(0, n + 1).join(" ")).width <= rechts - tx) n++;
-      g.fillText(kuerzen(g, w.slice(0, n).join(" "), rechts - tx), tx, 64 + 40);
-      g.fillText(kuerzen(g, w.slice(n).join(" "), BILD_B - tx - X), tx, 64 + 40 + 46);
-      dy = 32;
+      const w = d.titel.split(/\s+/), breit = rechts - tx;
+      const teilen = () => {   // erste Zeile so voll wie moeglich, Rest in die zweite
+        let n = 1;
+        while (n < w.length && g.measureText(w.slice(0, n + 1).join(" ")).width <= breit) n++;
+        return [w.slice(0, n).join(" "), w.slice(n).join(" ")];
+      };
+      px = 58; g.font = `700 ${px}px ${SCHRIFT}`;
+      let [z1, z2] = teilen();
+      while (px > 36 && (g.measureText(z1).width > breit || g.measureText(z2).width > breit)) {
+        px -= 2; g.font = `700 ${px}px ${SCHRIFT}`; [z1, z2] = teilen();
+      }
+      const zh2 = Math.round(px * 1.12);
+      g.fillText(kuerzen(g, z1, breit), tx, 64 + px - 4);
+      g.fillText(kuerzen(g, z2, breit), tx, 64 + px - 4 + zh2);
+      dy = px - 4 + zh2 - 54 + 14;   // + Luft zur Unterzeile
     }
   } else {
     g.fillText(kuerzen(g, d.titel, rechts - tx), tx, 64 + 54);
   }
-  g.font = `700 30px ${SCHRIFT}`;
+  g.font = `700 30px ${SCHRIFT}`; g.fillStyle = akzent;
   g.fillText(kuerzen(g, d.unterzeile, BILD_B - tx - X), tx, 128 + 28 + dy);
   const weitere = (d.unterzeile2 || "").split("\n").filter(Boolean);
+  // Abzeichen bei Event-Titeln rechts neben der ersten kleinen Unterzeile (Jan: „das live kann ja auch drunter").
+  let rechts2 = BILD_B - X;
+  if (d.abzeichen && d.titelAnpassen) rechts2 = pille(128 + 28 + dy + 38 - 30, 40, 22) - 20;
   g.fillStyle = F.sek; g.font = `600 26px ${SCHRIFT}`;
-  weitere.forEach((z, i) => g.fillText(kuerzen(g, z, BILD_B - tx - X), tx, 128 + 28 + dy + 38 * (i + 1)));
+  weitere.forEach((z, i) => g.fillText(kuerzen(g, z, (i === 0 ? rechts2 : BILD_B - X) - tx), tx, 128 + 28 + dy + 38 * (i + 1)));
 
   // Zeilen: verfuegbare Hoehe zwischen Kopf und Logo gleichmaessig nutzen (hoechstens 80 px je Zeile).
   const zeilen = d.zeilen.slice(0, 10);
