@@ -965,7 +965,7 @@ function TeamsSection() {
           3 Tagen beginnende Events, alle (vorerst ohne Grenze). Kachel wie auf der Teamseite. */}
       {events && events.length === 0 && <p className="text-sm text-slate-400">{t("team.event.keineGlobalen")}</p>}
       {!!events?.length && (
-        <div className="grid gap-3 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {events.map((e) => <EventKurzKachel key={`${e.team.slug}-${e.id}`} e={e} />)}
         </div>
       )}

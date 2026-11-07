@@ -463,7 +463,7 @@ export default function Team() {
           {stat && <Statistik s={stat} t={t} />}
           {!tafeln ? <p className="text-sm text-slate-400">{t("common.loading")}</p> : tafeln.length === 0
             ? <p className="text-sm text-slate-400">{t("team.keineTafeln")}</p>
-            : <div className="grid gap-3 sm:grid-cols-2">{tafeln.map((tf) => (
+            : <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{tafeln.map((tf) => (
                 <Tafel key={tf.id ?? tf.kennzahl} tf={tf} gast={gast} t={t} sportZeigen={new Set(tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${kopf.slug}`, zurueckText: kopf.name }} onBild={gast ? undefined : () => setBild({ tf, zeile: t(ZEITRAEUME.find(([k]) => k === period)?.[1] ?? "period.30d") })} />
               ))}</div>}
         </>

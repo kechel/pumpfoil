@@ -363,7 +363,7 @@ export default function TeamEventSeite() {
             ...(tf0.eigene && tf0.eigene.rang > 10 && !teamFilter ? [tf0.eigene] : [])] } : tf0;
           const standText = standFuer(tf0);
           return (
-            <div className={`grid gap-3 ${ev.global ? "sm:grid-cols-2" : ""}`}>
+            <div className={`grid grid-cols-1 gap-3 ${ev.global ? "sm:grid-cols-2" : ""}`}>
               <Tafel tf={tf} gast={gast} t={t} teamsZeigen={!!ev.global} ohneFilter sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} standText={standText} />
               {ev.global && <TeamWertung tf={tf} n={ev.team_wertung_n ?? 5} t={t} eigeneSlugs={meineTeams.map((x) => x.slug)} standText={standText}
                 onBild={gast ? undefined : () => setBildTeams(tf0)} />}
