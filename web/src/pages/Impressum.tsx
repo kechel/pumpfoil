@@ -30,6 +30,8 @@ export default function Impressum() {
           <ul className="list-disc space-y-1 pl-5 text-slate-200">
             {li("imp.public1")}
             {li("imp.public2")}
+            {li("imp.public3")}
+            {li("imp.public4")}
           </ul>
         </section>
 
@@ -43,8 +45,33 @@ export default function Impressum() {
             {li("imp.community4")}
             {li("imp.community5")}
             {li("imp.community6")}
+            {li("imp.community7")}
+            {li("imp.community8")}
           </ul>
           <p className="mt-2 text-xs text-slate-400" dangerouslySetInnerHTML={{ __html: t("imp.communityNote") }} />
+        </section>
+
+        {/* Freunde (15.10.) und Teams (31.10.) / globale Events (06.11.), nachgetragen 07.11.2026: was Freunde sehen,
+            wie im Freunde-Dialog; bei Teams getrennt, was man selbst entscheidet und was die Teamleitung festlegt
+            (Beitritts-Dialog, Team-Regeln). */}
+        <section className="rounded-xl border border-sky-900/50 bg-sky-950/20 p-4">
+          <h3 className="mb-2 font-semibold text-sky-700 dark:text-sky-300">{t("imp.friendsTitle")}</h3>
+          <ul className="list-disc space-y-1 pl-5 text-slate-200">
+            {li("imp.friends1")}
+            {li("imp.friends2")}
+            {li("imp.friends3")}
+          </ul>
+        </section>
+
+        <section className="rounded-xl border border-sky-900/50 bg-sky-950/20 p-4">
+          <h3 className="mb-2 font-semibold text-sky-700 dark:text-sky-300">{t("imp.teamsTitle")}</h3>
+          <ul className="list-disc space-y-1 pl-5 text-slate-200">
+            {li("imp.teams1")}
+            {li("imp.teams2")}
+            {li("imp.teams3")}
+            {li("imp.teams4")}
+            {li("imp.teams5")}
+          </ul>
         </section>
 
         <section className="rounded-xl border border-emerald-900/50 bg-emerald-950/20 p-4">
@@ -64,6 +91,7 @@ export default function Impressum() {
           <ul className="list-disc space-y-1 pl-5 text-slate-200">
             {li("imp.operator1")}
             {li("imp.operator2")}
+            {li("imp.operator3")}
           </ul>
         </section>
 
@@ -126,6 +154,16 @@ export default function Impressum() {
           </ul>
         </section>
 
+        {/* KI-Zugang (MCP, Connector): nur auf ausdrueckliche Zustimmung, nur lesend, nur eigene Aufnahmen. */}
+        <section className="rounded-xl border border-slate-700 bg-slate-900/40 p-4">
+          <h3 className="mb-2 font-semibold text-slate-200">{t("imp.mcpTitle")}</h3>
+          <ul className="list-disc space-y-1 pl-5 text-slate-200">
+            {li("imp.mcp1")}
+            {li("imp.mcp2")}
+            {li("imp.mcp3")}
+          </ul>
+        </section>
+
         {/* Garmin Connect (05.11.2026): Garmin verlangt in der Datenschutzerklaerung, wie die Daten genutzt werden, alle
             Empfaenger inkl. Hoster, ob verkauft wird, ob KI sie verarbeitet, und wie man einsieht, loescht und trennt.
             KI: nichts automatisch, kein Training; eine einzelne Session nur auf ausdrueckliche Bitte (Jan, 05.11.). */}
@@ -135,6 +173,7 @@ export default function Impressum() {
           <ul className="list-disc space-y-1 pl-5 text-slate-200">
             {li("imp.garmin1")}
             {li("imp.garmin2")}
+            {li("imp.garmin2b")}
             {li("imp.garmin3")}
             {li("imp.garmin4")}
             {li("imp.garmin5")}
