@@ -410,6 +410,31 @@ def test_naechster_start_gewinnt(client, garmin):
         db.close()
 
 
+def test_zwei_uhren_gleichzeitig_nur_dieselbe_uhr(client, garmin):
+    # 07.11.2026: fēnix (006-B4376) und FR55 (006-B3869) starteten 4 s auseinander; der Import der einen Uhr landete in der
+    # Aufnahme der anderen. Mit Produktnummer aus der Datei zaehlt nur noch die Aufnahme derselben Uhr.
+    from app.db import SessionLocal
+    from app import models
+    uid, _ = _konto(client)
+    t0 = datetime(2026, 11, 7, 13, 17, 32, tzinfo=timezone.utc)
+    fr55, _u1 = _eigene_session(uid, t0, minuten=8)
+    fenix, _u2 = _eigene_session(uid, t0 + timedelta(seconds=4), minuten=58)
+    db = SessionLocal()
+    try:
+        db.get(models.DeviceToken, db.get(models.Session, fr55).device_id).part_number = "006-B3869-00"
+        db.get(models.DeviceToken, db.get(models.Session, fenix).device_id).part_number = "006-B4376-00"
+        db.commit()
+        start, ende = t0 + timedelta(seconds=5), t0 + timedelta(minutes=8)
+        assert garmin._eigene_aufnahme(db, uid, start, ende, produkt=3869).id == fr55
+        assert garmin._eigene_aufnahme(db, uid, start, ende, produkt=4376).id == fenix
+        assert garmin._eigene_aufnahme(db, uid, start, ende, produkt=9999) is None   # dritte Uhr: eigene Session
+        assert garmin._eigene_aufnahme(db, uid, start, ende).id == fenix              # ohne Nummer wie bisher (Zeit)
+        assert garmin.andere_uhr(db, db.get(models.Session, fenix), 3869)
+        assert not garmin.andere_uhr(db, db.get(models.Session, fenix), None)
+    finally:
+        db.close()
+
+
 def test_offene_aufnahme_nur_bei_fast_gleichem_start(client, garmin):
     from app.db import SessionLocal
     from app import models

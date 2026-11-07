@@ -291,7 +291,34 @@ def _profil(eintrag: dict) -> str:
     return str(eintrag.get("activityType") or "").upper().removesuffix("_V2").removesuffix("_WS")
 
 
-def _eigene_aufnahme(db: Session, user_id: int, start: datetime, ende: datetime) -> models.Session | None:
+def _produkt_der_uhr(db: Session, device_id: int | None) -> int | None:
+    """Garmin-Produktnummer einer gekoppelten Uhr aus ihrer Part-Number („006-B3869-00" -> 3869); None = unbekannt."""
+    import re
+    if not device_id:
+        return None
+    pn = db.query(models.DeviceToken.part_number).filter_by(id=device_id).scalar()
+    m = re.match(r"^\d{3}-B(\d+)-", pn or "")
+    return int(m.group(1)) if m else None
+
+
+def andere_uhr(db: Session, eigene: models.Session, produkt: int | None) -> bool:
+    """Stammt die Garmin-Datei sicher von einer ANDEREN Uhr als die eigene Aufnahme? Nur wenn beide Nummern bekannt sind
+    und sich unterscheiden (Jan, 07.11.2026: fēnix und FR55 gleichzeitig — der Import der einen Uhr landete in der
+    Aufnahme der anderen). Unbekannt -> wie bisher allein nach der Zeit."""
+    eig = _produkt_der_uhr(db, eigene.device_id)
+    return eig is not None and produkt is not None and eig != produkt
+
+
+def _produkt_der_datei(pfad) -> int | None:
+    from ..fitimport import parse_fit_bytes
+    try:
+        return parse_fit_bytes(pfad.read_bytes()).get("garmin_produkt")
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _eigene_aufnahme(db: Session, user_id: int, start: datetime, ende: datetime,
+                     produkt: int | None = None) -> models.Session | None:
     """Aufnahme aus unseren eigenen Apps zur selben Zeit? Dann ist die Garmin-Aktivitaet dieselbe Fahrt — unsere
     Connect-IQ-App legt in Garmin Connect ebenfalls eine Aktivitaet an (oder das Handy lief daneben mit). Eigene
     Aufnahmen tragen ein Geraet (device_id), Importe nicht. Eine noch laufende zaehlt, wenn sie vorher begann."""
@@ -304,6 +331,7 @@ def _eigene_aufnahme(db: Session, user_id: int, start: datetime, ende: datetime)
     # liegengebliebene offene Aufnahme die Datei einer spaeteren Fahrt bekommen, deren eigener Upload noch aussteht.
     kandidaten = [x for x in kandidaten
                   if x.ended_at is not None or abs((_aware(x.started_at) - start).total_seconds()) <= 120]
+    kandidaten = [x for x in kandidaten if not andere_uhr(db, x, produkt)]
     # Mehrere Treffer: die mit dem naechsten Start. Am 05.11.2026 hing eine 90-s-Fahrt (Start 14:38:28) an der
     # Aufnahme davor (14:38:09, 7 s, ohne eingetragenes Ende = „laeuft noch"), weil die frueheste gewann; dieselbe
     # Aufnahme beginnt in beiden Dateien auf die Sekunde gleich.
@@ -417,9 +445,12 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
         start = _aware(parsed["started_at"])
         samples = parsed.get("gps_samples") or []
         ende = start + timedelta(milliseconds=int(samples[-1][0] if samples else parsed.get("dauer_ms") or 0))
-        eigene = _eigene_aufnahme(db, user.id, start, max(ende, start + timedelta(seconds=60)))
+        eigene = _eigene_aufnahme(db, user.id, start, max(ende, start + timedelta(seconds=60)),
+                                  produkt=parsed.get("garmin_produkt"))
     if eigene is None and koennte_unsere_sein(eintrag):
         eigene = _eigene_zum_eintrag(db, user.id, eintrag)
+        if eigene is not None and andere_uhr(db, eigene, parsed.get("garmin_produkt")):
+            eigene = None
     if eigene is not None and not importsports.konto_import_grund(parsed) and (
             storage.duenn(eigene.session_uuid) or garmin_besser(eigene, parsed)):
         # Garmins Datei ist die bessere Aufnahme: entweder hat die Uhr eigene Bloecke absichtlich weggelassen
@@ -859,6 +890,8 @@ def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
                 continue   # Garmin-Profil-Aufnahme einer anderen Uhr (s. koennte_unsere_sein) — bleibt eigene Session
             d = storage.session_dir(g.session_uuid)
             originale = sorted(d.glob("original.*")) if d.exists() else []
+            if originale and andere_uhr(db, eigene, _produkt_der_datei(originale[0])):
+                continue   # Import einer anderen Uhr zur selben Zeit (07.11.2026) — bleibt seine eigene Session
             # Garmins Session hat die bessere Aufnahme (duenn bei uns oder hoehere Accel-Rate): sie bleibt die Fahrt,
             # unsere geht darin auf.
             if storage.duenn(eigene.session_uuid) or (originale and _garmin_datei_besser(eigene, originale[0])):

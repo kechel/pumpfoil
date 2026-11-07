@@ -324,7 +324,13 @@ def _ernten(fit, profil: dict | None = None) -> tuple[list, list, list, str, obj
             abbruch = exc
             break
         if msg.name == "file_id":
-            fit_type = {d.name: d.value for d in msg}.get("type")
+            fid = {d.name: d.value for d in msg}
+            fit_type = fid.get("type")
+            # Garmin-Produktnummer der aufzeichnenden Uhr (FR55 = 3869, wie die Part-Number 006-B3869-00). Damit ordnet der
+            # Garmin-Import eine Datei nur der eigenen Aufnahme DERSELBEN Uhr zu (07.11.2026: zwei Uhren gleichzeitig).
+            produkt = fid.get("garmin_product") if fid.get("manufacturer") in ("garmin", 1) else None
+            if profil is not None and isinstance(produkt, int):
+                profil["produkt"] = produkt
         if msg.name == "record":
             records.append({d.name: d.value for d in msg})
         elif msg.name == "accelerometer_data":
@@ -432,6 +438,7 @@ def parse_fit_bytes(data: bytes) -> dict:
         "dauer_ms": int((max(times) - t0).total_seconds() * 1000),
         "sport": sport,
         "sport_name": profil.get("name"),
+        "garmin_produkt": profil.get("produkt"),
         "foil_status": foil_status,
         # Gesetzt, wenn die Datei nur bis zu einer Stelle lesbar war (abgebrochene Aufzeichnung,
         # falsche Pruefsumme, Muell hinter dem Ende). Der Import laeuft trotzdem — hiermit kann
