@@ -133,6 +133,8 @@ function TeamWertung({ tf, n, t, eigeneSlugs, standText, onBild }: { tf: TeamTaf
           <li key={x.slug ?? x.name} className="flex items-center gap-2 border-t border-slate-800 py-1.5 first:border-t-0">
             <span className={`w-6 shrink-0 text-right text-sm font-bold ${x.rang <= 3 ? "team-akzent" : "text-slate-400"}`}>{x.rang}</span>
             <TeamWappen name={x.name} logo={x.logo_url} farbe={x.farbe} size={24} />
+            {/* Herkunft wie im Teilen-Bild (Jan, 07.11.2026); fester Platz, damit die Namen buendig stehen. */}
+            <span className="flex w-[18px] shrink-0"><TeamHerkunft land={x.land} kuerzel={false} /></span>
             <Link to={`/teams/${x.slug}`} className="min-w-0 flex-1 truncate text-sm text-slate-100 hover:text-brand-400">{x.name}</Link>
             <span className="text-xs text-slate-400">{x.fahrer}/{x.teilnehmer}</span>
             <span className="text-sm font-semibold tabular-nums text-slate-100">{k.fmt(x.value)}</span>
