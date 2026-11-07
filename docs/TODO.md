@@ -1516,6 +1516,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 07.11. Max-Speed: Live-Anzeige der Garmin-App gegen Server pruefen** (Hinweis eines Nutzers, FR970 + fēnix 7 Pro
+  parallel). Server ist korrekt: max 1 s je Lauf = GPS-Rohwert der Uhr = Garmins eigene Geschwindigkeit in der FIT
+  (#20402, 5 Laeufe, 17,2–19,8 km/h). FoilMotion (fēnix) zeigt 2–4 km/h mehr (Lap-Max = einzelne 1-s-Spitze, Laps sind ganze
+  Sets). Offen: unsere Uhr zeigte direkt nach dem Sturz ~1,5 km/h MEHR als FoilMotion — vermutlich nimmt die Live-Anzeige
+  einen anderen Wert (Garmin-Max inkl. Sturz-Spitze?). Warten auf Screenshots der Uhranzeigen; Uhren-App nur Fehler beheben.
+
 - **🔲 07.11. Apps: Datenschutzseite und Team-Regeln nachziehen** (Jan: heute nur PWA). Im Web neu:
   - `imp.public3/4`, `imp.community7/8`, `imp.operator3`, `imp.friends*`, `imp.teams*`, `imp.mcp*`, `imp.garmin2b`;
     geändert: `imp.owner5` (commit c5124c3a).
