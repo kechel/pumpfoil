@@ -116,7 +116,7 @@ function TeamWertung({ tf, n, t, eigeneSlugs, standText, onBild }: { tf: TeamTaf
     // Gleiche Karte und Ueberschrift wie die Fahrer-Liste links (Tafel), Jan 06.11.2026: „einheitlich".
     <Card className="p-4">
       <div className="flex items-start gap-2">
-        <h3 className="team-akzent min-w-0 flex-1 font-semibold">{t("team.event.teams")} · {t(k.labelKey)}</h3>
+        <h3 className="team-akzent min-w-0 flex-1 font-semibold">{t("team.event.teams")} · {t(k.labelKey)}{tf.sportart && tf.sportart !== "pumpfoil" ? ` · ${t(`cls.sport.${tf.sportart}`)}` : ""}</h3>
         {onBild && alle.length > 0 && (
           <button onClick={onBild} title={t("team.bild.titel")} aria-label={t("team.bild.titel")}
             className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100">
@@ -145,6 +145,12 @@ function TeamWertung({ tf, n, t, eigeneSlugs, standText, onBild }: { tf: TeamTaf
   );
 }
 
+/** Name einer Event-Bestenliste; hat das Event Bestenlisten verschiedener Sportarten, steht die Sportart dabei. */
+function tafelTitel(tf: { kennzahl: string; sportart: string }, ev: { tafeln: { sportart: string }[] }, t: (k: string) => string): string {
+  const mehrere = new Set(ev.tafeln.map((x) => x.sportart)).size > 1;
+  return mehrere ? `${t(kennzahl(tf.kennzahl).labelKey)} · ${t(`cls.sport.${tf.sportart}`)}` : t(kennzahl(tf.kennzahl).labelKey);
+}
+
 /** Event-Uebersicht als Teilen-Bild (Jan, 07.11.2026): Gesamtsummen plus die ersten 3 je Kategorie; welche Kategorien
  *  (Bestenlisten, bei globalen Events auch ihre Team-Wertungen) waehlt man im Dialog. */
 function EventUebersichtBild({ ev, team, t, lang, stand, onClose }: {
@@ -152,8 +158,8 @@ function EventUebersichtBild({ ev, team, t, lang, stand, onClose }: {
   stand: string | null; onClose: () => void;
 }) {
   const kategorien = [
-    ...ev.tafeln.map((tf, i) => ({ key: `p${i}`, titel: t(kennzahl(tf.kennzahl).labelKey), tf, team: false })),
-    ...(ev.global ? ev.tafeln.map((tf, i) => ({ key: `t${i}`, titel: `${t("team.event.teams")} · ${t(kennzahl(tf.kennzahl).labelKey)}`, tf, team: true })) : []),
+    ...ev.tafeln.map((tf, i) => ({ key: `p${i}`, titel: tafelTitel(tf, ev, t), tf, team: false })),
+    ...(ev.global ? ev.tafeln.map((tf, i) => ({ key: `t${i}`, titel: `${t("team.event.teams")} · ${tafelTitel(tf, ev, t)}`, tf, team: true })) : []),
   ];
   // Standard: die Bestenlisten der Fahrer (hoechstens 4, damit das Bild nicht zu lang wird), Team-Wertungen abgewaehlt.
   const [wahl, setWahl] = useState<Set<string>>(() => new Set(kategorien.filter((k) => !k.team).slice(0, 4).map((k) => k.key)));
@@ -391,7 +397,8 @@ export default function TeamEventSeite() {
           {ev.tafeln.length > 1 && (
             <select value={Math.min(wahl, ev.tafeln.length - 1)} onChange={(x) => setWahl(Number(x.target.value))}
               className="rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100">
-              {ev.tafeln.map((tf, i) => <option key={i} value={i}>{t(kennzahl(tf.kennzahl).labelKey)}</option>)}
+              {/* Mehrere Sportarten (z. B. Pumpfoil und Foil Scoot getrennt, Jan 07.11.2026): Sportart mit in die Auswahl. */}
+              {ev.tafeln.map((tf, i) => <option key={i} value={i}>{tafelTitel(tf, ev, t)}</option>)}
             </select>
           )}
           {/* Event-Uebersicht als Bild (07.11.2026): Summen + die ersten 3 je Kategorie. */}
@@ -474,7 +481,7 @@ export default function TeamEventSeite() {
             daten={{
               // Wie das Fahrer-Bild: Eventname als Titel, „Teamname · Zeitraum", dann was gewertet wird (07.11.2026).
               titel: ev.titel, titelAnpassen: true,
-              unterzeile: `${team.name} · ${t("team.event.teams")} · ${t(k.labelKey)}`,
+              unterzeile: [team.name, t("team.event.teams"), t(k.labelKey), bildTeams.sportart && bildTeams.sportart !== "pumpfoil" ? t(`cls.sport.${bildTeams.sportart}`) : null].filter(Boolean).join(" · "),
               unterzeile2: [eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang, true),
                 [n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }), standFuer(bildTeams)].filter(Boolean).join(" · ")].join("\n"),
               zeilen: alle.slice(0, 10).map((x) => teamBildZeile(x, k.fmt(x.value), eigeneSlugs.includes(x.slug))),
