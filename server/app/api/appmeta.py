@@ -924,6 +924,20 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 07.11.2026 01:26 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.62 (72),
+    # Kennung d86afb2f-97ec-4304-8dcc-45349194ba14). Aus 651002c6. Von Jan im Simulator getestet (globale Events, Opt-out
+    # in beide Richtungen, Teilen-Bild, Platz 127, Filterzeilen, Feedback-Vorlage, Watch-Sprache, Pausen-Test #20348/#20349).
+    {"name": "iPhone + Apple Watch", "version": "1.1.62",
+     "eingereicht": "2026-11-07",
+     "items": [
+         "On the Apple Watch, a new recording no longer carries over the pauses of the previous one, which shifted it in time and could leave it empty; affected sessions have been corrected.",
+         "Until the Apple Watch has fetched your settings, it uses the watch's language (English if we don't have it) instead of German.",
+         "Global events: everyone takes part automatically, with a calendar card, a team ranking (sum of the best riders), the top 10 plus your own row, a refresh button and a share image; you can opt out under Settings, Privacy.",
+         "Events of your own teams appear on Home under Team and in the community, and the Teams & Events tab shows LIVE or the number of upcoming events.",
+         "Asking for a missing foil or stabilizer opens the feedback form with a template to fill in.",
+         "Leaderboards show three-digit places in full, in the list and in the share image, and the filters above them fit on one line.",
+         "The start screen on the Apple Watch scrolls, so Switch account is always reachable.",
+     ]},
     # iPhone + Apple Watch 1.1.61 am 06.11. eingereicht, am 07.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 945-951 im Changelog.
     # Garmin 1.0.101 am 06.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt 940 im Changelog mit garmin 1.0.101.
     # iPhone + Apple Watch 1.1.60 am 05.11. eingereicht, am 06.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 930-939 im Changelog.
@@ -1182,18 +1196,7 @@ NAECHSTES: list[dict] = [
          "Asking for a missing foil or stabilizer opens the feedback form with a template to fill in.",
          "Leaderboards show three-digit places in full, and team rankings say \"from 1 rider\" instead of \"from 1 riders\".",
      ]},
-    # iPhone + Apple Watch 1.1.61 am 07.11. freigegeben; 1.1.62 (72) ist die naechste (ASC-Versionseintrag dann wieder 1.1.x).
-    # 06.11.2026: Apple Watch setzt die Pausen der vorigen Aufnahme zurueck (6352227c), nach der Einreichung von 1.1.61.
-    {"name": "iPhone + Apple Watch", "version": "1.1.62",
-     "items": [
-         "On the Apple Watch, a new recording no longer carries over the pauses of the previous one, which shifted it in time and could leave it empty; affected sessions have been corrected.",
-         "Until the Apple Watch has fetched your settings, it uses the watch's language (English if we don't have it) instead of German.",
-         "Global events: everyone takes part automatically, with a calendar card, a team ranking (sum of the best riders), the top 10 plus your own row, a refresh button and a share image; you can opt out under Settings, Privacy.",
-         "Events of your own teams appear on Home under Team and in the community, and the Teams & Events tab shows LIVE or the number of upcoming events.",
-         "Asking for a missing foil or stabilizer opens the feedback form with a template to fill in.",
-         "Leaderboards show three-digit places in full, in the list and in the share image, and the filters above them fit on one line.",
-         "The start screen on the Apple Watch scrolls, so Switch account is always reachable.",
-     ]},
+    # iPhone + Apple Watch 1.1.62 am 07.11. 01:26 eingereicht -> IN_REVIEW.
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
      "items": [
