@@ -1515,6 +1515,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 07.11. Apps: Datenschutzseite und Team-Regeln nachziehen** (Jan: heute nur PWA). Im Web neu:
+  - `imp.public3/4`, `imp.community7/8`, `imp.operator3`, `imp.friends*`, `imp.teams*`, `imp.mcp*`, `imp.garmin2b`;
+    geändert: `imp.owner5` (commit c5124c3a).
+  - Team-Regeln: Abschnitt `global` (`team.regeln.global.*`), geändert: `oeffentlich.text` und `statistik.text`.
+  - Die App-Kopien (`ImpressumScreen.kt`, `ImpressumView.swift`) fehlen schon länger: `community5/6`, Garmin, Huawei
+    und GitHub. Die Abschnittslisten der Regeln stehen in `TeamScreen.kt` (`REGEL_ABSCHNITTE`) und `TeamView.swift`
+    (`abschnitte`).
+
 - **🔲 06.11. Event-Zeitfenster einstellbar machen (Jan: „muss einstellbar werden irgendwann, nichts mehr daran aendern
   dieses we").** Heute hat ein Event EIN festes Fenster [start, ende) in seiner Zeitzone (`team_events.zeitzone`), fuer
   alle gleich; gezaehlt wird `sessions.started_at`. Das erste globale Event (#4, Sa 07.11. 0:00 – So 08.11. 20:00

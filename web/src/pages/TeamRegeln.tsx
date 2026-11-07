@@ -11,7 +11,7 @@ import { useT } from "../i18n";
 import { ScrollToTop } from "../components/ScrollToTop";
 
 const ABSCHNITTE = ["was", "rollen", "beitreten", "oeffentlich", "bestenlisten", "statistik", "logbuch",
-  "events", "chat", "loeschen", "konto", "haftung"];
+  "events", "global", "chat", "loeschen", "konto", "haftung"];
 
 /** `eingebettet`: als Reiter „Regeln" auf der Team-Seite (Jan, 02.11.2026) — ohne eigene Titelzeile und ohne Sprung nach oben. */
 export default function TeamRegeln({ eingebettet = false }: { eingebettet?: boolean } = {}) {
