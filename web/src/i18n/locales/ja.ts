@@ -2780,6 +2780,8 @@ const ja: Record<string, string> = {
   "team.chat": "チームチャット",
   "team.chatTitel": "チーム {name}",
   "team.bild.titel": "画像として共有",
+  "team.bild.mitMir": "自分も表示",
+  "team.bild.mitMeinemTeam": "自分のチームも表示",
   "team.bild.speichern": "保存",
   "team.bild.hinweisIntern": "このチームのランキングは公開されていません。それでも画像には、それを見るすべての人に名前が表示されます。",
   "team.events": "イベント",

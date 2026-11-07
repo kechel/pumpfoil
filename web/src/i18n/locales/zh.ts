@@ -2781,6 +2781,8 @@ const zh: Record<string, string> = {
   "team.chat": "团队聊天",
   "team.chatTitel": "团队 {name}",
   "team.bild.titel": "以图片分享",
+  "team.bild.mitMir": "也显示我",
+  "team.bild.mitMeinemTeam": "也显示我的团队",
   "team.bild.speichern": "保存",
   "team.bild.hinweisIntern": "该团队的排行榜未公开。但图片仍会向所有看到它的人显示名字。",
   "team.events": "活动",

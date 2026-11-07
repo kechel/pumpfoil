@@ -2755,6 +2755,8 @@ const nb: Record<string, string> = {
   "team.chat": "Lagchat",
   "team.chatTitel": "Lag {name}",
   "team.bild.titel": "Del som bilde",
+  "team.bild.mitMir": "Vis meg også",
+  "team.bild.mitMeinemTeam": "Vis laget mitt også",
   "team.bild.speichern": "Lagre",
   "team.bild.hinweisIntern": "Topplistene til dette laget er ikke offentlige. Bildet viser likevel navnene til alle som får se det.",
   "team.events": "Arrangementer",

@@ -2667,6 +2667,8 @@ const it: Record<string, string> = {
   "team.chat": "Chat del team",
   "team.chatTitel": "Team {name}",
   "team.bild.titel": "Condividi come immagine",
+  "team.bild.mitMir": "Includi me",
+  "team.bild.mitMeinemTeam": "Includi il mio team",
   "team.bild.speichern": "Salva",
   "team.bild.hinweisIntern": "Le classifiche di questo team non sono pubbliche. L'immagine mostra comunque i nomi a chiunque la veda.",
   "team.events": "Eventi",

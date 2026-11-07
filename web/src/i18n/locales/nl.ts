@@ -2838,6 +2838,8 @@ const nl: Record<string, string> = {
   "team.chat": "Teamchat",
   "team.chatTitel": "Team {name}",
   "team.bild.titel": "Delen als afbeelding",
+  "team.bild.mitMir": "Mezelf tonen",
+  "team.bild.mitMeinemTeam": "Mijn team tonen",
   "team.bild.speichern": "Opslaan",
   "team.bild.hinweisIntern": "De ranglijsten van dit team zijn niet openbaar. De afbeelding toont de namen toch aan iedereen die hem te zien krijgt.",
   "team.events": "Events",

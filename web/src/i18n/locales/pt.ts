@@ -2784,6 +2784,8 @@ const pt: Record<string, string> = {
   "team.chat": "Chat da equipe",
   "team.chatTitel": "Equipe {name}",
   "team.bild.titel": "Compartilhar como imagem",
+  "team.bild.mitMir": "Me incluir",
+  "team.bild.mitMeinemTeam": "Incluir minha equipe",
   "team.bild.speichern": "Salvar",
   "team.bild.hinweisIntern": "Os rankings desta equipe não são públicos. Mesmo assim, a imagem mostra os nomes para qualquer pessoa que a vir.",
   "team.events": "Eventos",

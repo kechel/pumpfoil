@@ -2763,6 +2763,8 @@ const pl: Record<string, string> = {
   "team.chat": "Czat drużyny",
   "team.chatTitel": "Drużyna {name}",
   "team.bild.titel": "Udostępnij jako obraz",
+  "team.bild.mitMir": "Pokaż też mnie",
+  "team.bild.mitMeinemTeam": "Pokaż też moją drużynę",
   "team.bild.speichern": "Zapisz",
   "team.bild.hinweisIntern": "Rankingi tej drużyny nie są publiczne. Obraz i tak pokazuje nazwy każdemu, kto go zobaczy.",
   "team.events": "Wydarzenia",

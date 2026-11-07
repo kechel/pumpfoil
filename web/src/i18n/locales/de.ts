@@ -2943,6 +2943,8 @@ const de: Record<string, string> = {
   "team.chat": "Team-Chat",
   "team.chatTitel": "Team {name}",
   "team.bild.titel": "Als Bild teilen",
+  "team.bild.mitMir": "Mich mit zeigen",
+  "team.bild.mitMeinemTeam": "Mein Team mit zeigen",
   "team.bild.speichern": "Speichern",
   "team.bild.hinweisIntern": "Die Bestenlisten dieses Teams sind nicht öffentlich. Das Bild zeigt die Namen trotzdem allen, die es zu sehen bekommen.",
   // Teams (31.10.2026, docs/TEAMS.md)

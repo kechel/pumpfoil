@@ -2784,6 +2784,8 @@ const id: Record<string, string> = {
   "team.chat": "Chat tim",
   "team.chatTitel": "Tim {name}",
   "team.bild.titel": "Bagikan sebagai gambar",
+  "team.bild.mitMir": "Tampilkan saya juga",
+  "team.bild.mitMeinemTeam": "Tampilkan tim saya juga",
   "team.bild.speichern": "Simpan",
   "team.bild.hinweisIntern": "Papan peringkat tim ini tidak publik. Namun gambar ini tetap menampilkan nama kepada siapa pun yang melihatnya.",
   "team.events": "Event",

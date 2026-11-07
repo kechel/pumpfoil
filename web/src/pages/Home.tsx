@@ -1098,7 +1098,7 @@ function TeamBestenlisten({ period, sport, region, titel }: { period: string; sp
         </button>
       )}
       {bild && (
-        <BestenlisteBildDialog onClose={() => setBild(false)} titel={t("team.bild.titel")} dateiname={`pumpfoil-teams-${art}.jpg`}
+        <BestenlisteBildDialog onClose={() => setBild(false)} titel={t("team.bild.titel")} eigenesTeam dateiname={`pumpfoil-teams-${art}.jpg`}
           daten={{
             titel: t(VERGLEICH_ARTEN.find(([k]) => k === art)?.[1] ?? ""),
             unterzeile: [t("team.vergleich.titel"), t(`cls.sport.${sport}`), t("team.vergleich.top", { n: String(top) }),

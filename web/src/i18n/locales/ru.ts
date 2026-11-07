@@ -2784,6 +2784,8 @@ const ru: Record<string, string> = {
   "team.chat": "Чат команды",
   "team.chatTitel": "Команда {name}",
   "team.bild.titel": "Поделиться картинкой",
+  "team.bild.mitMir": "Показать и меня",
+  "team.bild.mitMeinemTeam": "Показать и мою команду",
   "team.bild.speichern": "Сохранить",
   "team.bild.hinweisIntern": "Таблицы лидеров этой команды не публичные. Но картинка всё равно показывает имена всем, кто её увидит.",
   "team.events": "События",

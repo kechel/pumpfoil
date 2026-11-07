@@ -1,6 +1,6 @@
 // Dialog „Bestenliste als Bild teilen" — fuer Teams und Community derselbe (02.11.2026). Gezeichnet wird in
 // lib/bestenlisteBild.ts; hier nur Vorschau, Teilen und Speichern.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BILD_B, BILD_H, bildDatei, bildLaden, bildSpeichern, mitZeitstempel, plattformZeile, zeichneBestenliste, type BildDaten } from "../lib/bestenlisteBild";
 import { useT } from "../i18n";
 import { flaggeUrl } from "../lib/laender";
@@ -17,8 +17,10 @@ function kontinentBild(k: string, hell: boolean): Promise<HTMLImageElement> {
   return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); });
 }
 
-export default function BestenlisteBildDialog({ daten, logoUrl, dateiname, titel, hinweis, onClose }: {
+export default function BestenlisteBildDialog({ daten: datenRoh, logoUrl, dateiname, titel, hinweis, onClose, eigenesTeam = false }: {
   daten: BildDaten; logoUrl?: string | null; dateiname: string; titel: string; hinweis?: string | null; onClose: () => void;
+  /** Die eigene Zeile ist ein Team (Team-Ranglisten) — dann heisst der Schalter „Mein Team zeigen". */
+  eigenesTeam?: boolean;
 }) {
   const t = useT();
   const ref = useRef<HTMLCanvasElement>(null);
@@ -27,6 +29,10 @@ export default function BestenlisteBildDialog({ daten, logoUrl, dateiname, titel
   // Hell/Dunkel wie beim Teilen einer Session; die Wahl merkt sich der Browser (nur Komfort).
   const [hell, setHellRoh] = useState(() => { try { return localStorage.getItem("foil_bild_hell") === "1"; } catch { return false; } });
   const setHell = (v: boolean) => { setHellRoh(v); try { localStorage.setItem("foil_bild_hell", v ? "1" : "0"); } catch { /* egal */ } };
+  // Eigene Zeile unter Platz 10 als Wahl (Jan, 07.11.2026: „include myself" optional). Standard an, gemerkt wie hell/dunkel.
+  const [mitMir, setMitMirRoh] = useState(() => { try { return localStorage.getItem("foil_bild_mit_mir") !== "0"; } catch { return true; } });
+  const setMitMir = (v: boolean) => { setMitMirRoh(v); try { localStorage.setItem("foil_bild_mit_mir", v ? "1" : "0"); } catch { /* egal */ } };
+  const daten = useMemo(() => (datenRoh.eigene && !mitMir ? { ...datenRoh, eigene: null } : datenRoh), [datenRoh, mitMir]);
 
   useEffect(() => {
     let weg = false;
@@ -74,6 +80,12 @@ export default function BestenlisteBildDialog({ daten, logoUrl, dateiname, titel
         <canvas ref={ref} width={BILD_B} height={BILD_H} className="mb-3 w-full rounded-xl border border-slate-700" />
         {hinweis && <p className="mb-3 text-xs text-amber-700 dark:text-amber-300">{hinweis}</p>}
         {fehler && <p className="mb-3 text-sm text-red-700 dark:text-red-300">{fehler}</p>}
+        {datenRoh.eigene && (
+          <label className="mb-3 flex items-center gap-2 text-sm text-slate-200">
+            <input type="checkbox" checked={mitMir} onChange={(e) => setMitMir(e.target.checked)} className="h-4 w-4 accent-brand-500" />
+            {t(eigenesTeam ? "team.bild.mitMeinemTeam" : "team.bild.mitMir")}
+          </label>
+        )}
         <div className="mb-3 flex gap-2">
           {([false, true] as const).map((h) => (
             <button key={String(h)} onClick={() => setHell(h)}

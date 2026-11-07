@@ -2669,6 +2669,8 @@ const gsw: Record<string, string> = {
   "team.chat": "Team-Chat",
   "team.chatTitel": "Team {name}",
   "team.bild.titel": "Als Bild teile",
+  "team.bild.mitMir": "Mich au zeige",
+  "team.bild.mitMeinemTeam": "Mis Team au zeige",
   "team.bild.speichern": "Spichere",
   "team.bild.hinweisIntern": "D Bestelischte vo dem Team sind nöd öffentlich. S Bild zeigt d Näme trotzdem allne, wo's überchömed.",
   // Teams (31.10.2026, docs/TEAMS.md)

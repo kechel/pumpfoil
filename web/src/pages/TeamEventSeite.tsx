@@ -410,7 +410,7 @@ export default function TeamEventSeite() {
         const eigeneSlugs = meineTeams.map((x) => x.slug);
         const eigen = alle.slice(10).find((x) => eigeneSlugs.includes(x.slug));
         return (
-          <BestenlisteBildDialog onClose={() => setBildTeams(null)} titel={t("team.bild.titel")} logoUrl={ev.global ? null : team.logo_url}
+          <BestenlisteBildDialog onClose={() => setBildTeams(null)} titel={t("team.bild.titel")} eigenesTeam logoUrl={ev.global ? null : team.logo_url}
             dateiname={`${dateiTeil(ev.titel) || `event-${ev.id}`}-teams-${bildTeams.kennzahl}.jpg`}
             daten={{
               // Wie das Fahrer-Bild: Eventname als Titel, „Teamname · Zeitraum", dann was gewertet wird (07.11.2026).

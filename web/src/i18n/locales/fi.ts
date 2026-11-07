@@ -2819,6 +2819,8 @@ const fi: Record<string, string> = {
   "team.chat": "Tiimichat",
   "team.chatTitel": "Tiimi {name}",
   "team.bild.titel": "Jaa kuvana",
+  "team.bild.mitMir": "Näytä myös minut",
+  "team.bild.mitMeinemTeam": "Näytä myös tiimini",
   "team.bild.speichern": "Tallenna",
   "team.bild.hinweisIntern": "Tämän tiimin tulostaulukot eivät ole julkisia. Kuva näyttää silti nimet kaikille, jotka sen näkevät.",
   "team.events": "Tapahtumat",

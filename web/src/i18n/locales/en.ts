@@ -2889,6 +2889,8 @@ const en: Record<string, string> = {
   "team.chat": "Team chat",
   "team.chatTitel": "Team {name}",
   "team.bild.titel": "Share as image",
+  "team.bild.mitMir": "Include myself",
+  "team.bild.mitMeinemTeam": "Include my team",
   "team.bild.speichern": "Save",
   "team.bild.hinweisIntern": "This team's leaderboards aren't public. The image still shows the names to anyone who gets to see it.",
   // Teams (31.10.2026, docs/TEAMS.md)

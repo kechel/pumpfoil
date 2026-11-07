@@ -2837,6 +2837,8 @@ const cs: Record<string, string> = {
   "team.chat": "Týmový chat",
   "team.chatTitel": "Tým {name}",
   "team.bild.titel": "Sdílet jako obrázek",
+  "team.bild.mitMir": "Zobrazit i mě",
+  "team.bild.mitMeinemTeam": "Zobrazit i můj tým",
   "team.bild.speichern": "Uložit",
   "team.bild.hinweisIntern": "Žebříčky tohoto týmu nejsou veřejné. Obrázek přesto ukáže jména každému, kdo ho uvidí.",
   "team.events": "Akce",

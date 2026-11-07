@@ -45,6 +45,11 @@ export default function TeamTafelBild({ team, tafel, zeitraum, onClose, stand, a
     zeilen: tafel.zeilen.slice(0, 10).map((z) => ({ rang: z.rang, name: z.name, initialen: z.initialen, land: z.land, wert: k.fmt(z.value),
       wappen: teamsZeigen ? wappenVon(z.teams?.[0]) : undefined })),
     wappenPlatz: teamsZeigen && tafel.zeilen.slice(0, 10).some((z) => z.teams?.length),
+    // Eigene Zeile hinter Platz 10 (globale Events), im Dialog abwaehlbar (07.11.2026).
+    eigene: tafel.eigene && tafel.eigene.rang > 10
+      ? { rang: tafel.eigene.rang, name: tafel.eigene.name, initialen: tafel.eigene.initialen, land: tafel.eigene.land,
+          wert: k.fmt(tafel.eigene.value), wappen: teamsZeigen ? wappenVon(tafel.eigene.teams?.[0]) : undefined }
+      : null,
     leer: t("team.tafel.leer"),
     // `dunkel` = Textfarbe fuer den DUNKLEN Modus (helle Stufe, s. lib/teamFarben.ts) — auf Navy muss sie leuchten.
     akzent: (TEAM_FARBEN[team.farbe || "cyan"] ?? TEAM_FARBEN.cyan).dunkel,
