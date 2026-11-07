@@ -27,7 +27,8 @@ export default function TeamTafelBild({ team, tafel, zeitraum, onClose, stand, a
   dateiBasis?: string;
   /** Globale Events: Team-Wappen je Fahrer. */
   teamsZeigen?: boolean;
-  /** Events: [Eventname, Zeitraum des Events] — Name als Unterzeile, darunter Zeitraum, dann Kennzahl + Stand (Jan, 07.11.2026). */
+  /** Events: [Eventname, Zeitraum des Events] — Eventname als Titel, darunter „Teamname · Zeitraum", dann Kennzahl + Stand
+   *  (Jan, 07.11.2026: „teamname und eventname noch vertauschen"). */
   eventZeile?: [string, string];
   /** Globale Events: kein Wappen oben links, das pumpfoil.org-Logo steht ja unten rechts (Jan, 07.11.2026). */
   ohneLogo?: boolean;
@@ -35,12 +36,13 @@ export default function TeamTafelBild({ team, tafel, zeitraum, onClose, stand, a
   const t = useT();
   const k = kennzahl(tafel.kennzahl);
   const daten = useMemo(() => ({
-    titel: team.name,
+    titel: eventZeile ? eventZeile[0] : team.name,
+    titelAnpassen: !!eventZeile,
     // Sportart dazu, sobald es nicht Pumpfoil ist — sonst weiss im geteilten Bild niemand, welche gemeint ist (02.11.2026).
-    unterzeile: eventZeile ? eventZeile[0] : [t(k.labelKey), tafel.sportart && tafel.sportart !== "pumpfoil" ? t(`cls.sport.${tafel.sportart}`) : null, zeitraum,
+    unterzeile: eventZeile ? `${team.name} · ${eventZeile[1]}` : [t(k.labelKey), tafel.sportart && tafel.sportart !== "pumpfoil" ? t(`cls.sport.${tafel.sportart}`) : null, zeitraum,
       stand].filter(Boolean).join(" · "),
-    unterzeile2: eventZeile ? `${eventZeile[1]}\n${[t(k.labelKey), tafel.sportart && tafel.sportart !== "pumpfoil" ? t(`cls.sport.${tafel.sportart}`) : null,
-      stand].filter(Boolean).join(" · ")}` : null,
+    unterzeile2: eventZeile ? [t(k.labelKey), tafel.sportart && tafel.sportart !== "pumpfoil" ? t(`cls.sport.${tafel.sportart}`) : null,
+      stand].filter(Boolean).join(" · ") : null,
     zeilen: tafel.zeilen.slice(0, 10).map((z) => ({ rang: z.rang, name: z.name, initialen: z.initialen, land: z.land, wert: k.fmt(z.value),
       wappen: teamsZeigen ? wappenVon(z.teams?.[0]) : undefined })),
     wappenPlatz: teamsZeigen && tafel.zeilen.slice(0, 10).some((z) => z.teams?.length),

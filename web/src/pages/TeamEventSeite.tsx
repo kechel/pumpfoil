@@ -411,9 +411,10 @@ export default function TeamEventSeite() {
           <BestenlisteBildDialog onClose={() => setBildTeams(null)} titel={t("team.bild.titel")} logoUrl={ev.global ? null : team.logo_url}
             dateiname={`${dateiTeil(ev.titel) || `event-${ev.id}`}-teams-${bildTeams.kennzahl}.jpg`}
             daten={{
-              titel: `${t("team.event.teams")} · ${t(k.labelKey)}`,
-              unterzeile: ev.titel,
-              unterzeile2: eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang) + "\n" + [n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }),
+              // Wie das Fahrer-Bild: Eventname als Titel, „Teamname · Zeitraum", dann was gewertet wird (07.11.2026).
+              titel: ev.titel, titelAnpassen: true,
+              unterzeile: `${team.name} · ${eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang)}`,
+              unterzeile2: [`${t("team.event.teams")} · ${t(k.labelKey)}`, n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }),
                 standFuer(bildTeams)].filter(Boolean).join(" · "),
               zeilen: alle.slice(0, 10).map((x) => teamBildZeile(x, k.fmt(x.value), eigeneSlugs.includes(x.slug))),
               eigene: eigen ? teamBildZeile(eigen, k.fmt(eigen.value), true) : null,

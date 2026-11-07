@@ -15,6 +15,7 @@ export type BildZeile = { rang: number; name: string | null; initialen: string; 
 
 export type BildDaten = {
   titel: string;            // Kopfzeile gross, z. B. „Längster Lauf" oder der Teamname
+  titelAnpassen?: boolean;  // lange Titel (Eventname): Schrift bis 40 px verkleinern, sonst zwei Zeilen (07.11.2026)
   unterzeile: string;       // Sportart/Kennzahl, Zeitraum, Stand (Datum)
   unterzeile2?: string | null;   // weitere Unterzeilen, kleiner, mit \n getrennt (Events: Zeitraum, dann Kennzahl + Stand; 07.11.2026)
   zeilen: BildZeile[];      // hoechstens 10
@@ -87,16 +88,33 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
   g.textAlign = "left"; g.textBaseline = "alphabetic";
   g.fillStyle = akzent;
   g.font = `700 58px ${SCHRIFT}`;
-  g.fillText(kuerzen(g, d.titel, rechts - tx), tx, 64 + 54);
+  let dy = 0;   // zusaetzliche Hoehe, wenn der Titel zwei Zeilen braucht
+  if (d.titelAnpassen && g.measureText(d.titel).width > rechts - tx) {
+    let px = 58;
+    while (px > 40 && g.measureText(d.titel).width > rechts - tx) { px -= 2; g.font = `700 ${px}px ${SCHRIFT}`; }
+    if (g.measureText(d.titel).width <= rechts - tx) {
+      g.fillText(d.titel, tx, 64 + 54);
+    } else {
+      // Zwei Zeilen: so viele Woerter wie passen in die erste, der Rest (ggf. gekuerzt) in die zweite.
+      const w = d.titel.split(/\s+/);
+      let n = 1;
+      while (n < w.length && g.measureText(w.slice(0, n + 1).join(" ")).width <= rechts - tx) n++;
+      g.fillText(kuerzen(g, w.slice(0, n).join(" "), rechts - tx), tx, 64 + 40);
+      g.fillText(kuerzen(g, w.slice(n).join(" "), BILD_B - tx - X), tx, 64 + 40 + 46);
+      dy = 32;
+    }
+  } else {
+    g.fillText(kuerzen(g, d.titel, rechts - tx), tx, 64 + 54);
+  }
   g.font = `700 30px ${SCHRIFT}`;
-  g.fillText(kuerzen(g, d.unterzeile, BILD_B - tx - X), tx, 128 + 28);
+  g.fillText(kuerzen(g, d.unterzeile, BILD_B - tx - X), tx, 128 + 28 + dy);
   const weitere = (d.unterzeile2 || "").split("\n").filter(Boolean);
   g.fillStyle = F.sek; g.font = `600 26px ${SCHRIFT}`;
-  weitere.forEach((z, i) => g.fillText(kuerzen(g, z, BILD_B - tx - X), tx, 128 + 28 + 38 * (i + 1)));
+  weitere.forEach((z, i) => g.fillText(kuerzen(g, z, BILD_B - tx - X), tx, 128 + 28 + dy + 38 * (i + 1)));
 
   // Zeilen: verfuegbare Hoehe zwischen Kopf und Logo gleichmaessig nutzen (hoechstens 80 px je Zeile).
   const zeilen = d.zeilen.slice(0, 10);
-  const oben = 215 + 34 * weitere.length, unten = BILD_H - 150;
+  const oben = 215 + dy + 34 * weitere.length, unten = BILD_H - 150;
   const n = Math.max(zeilen.length, 1) + (d.eigene && zeilen.length ? 1.4 : 0);
   const zh = Math.min(110, Math.floor((unten - oben) / n));
   const gross = Math.round(zh * 0.5);
