@@ -1516,6 +1516,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 07.11. Vergessene Stopp-Taste kostet Laeufe? (nach dem Wochenende pruefen)** #20507 (Venu 2S, App 1.0.99, 2 h mit
+  Auto-Heimfahrt ab ~96 min): volle Aufnahme -> 0 Laeufe (1 vom 40-km/h-Gate verworfen); nur die ersten 15 min (trim) ->
+  1 Lauf, 83 m. Die Beschleunigungsrate ist gleich (31,3 Hz), der Lauf wurde in der langen Fassung also nicht gefunden statt
+  verworfen. Vermutung: OSM-Wasserabfrage ueber die riesige Spur-Bbox liefert den See nicht -> `_clip_ends_to_water` schneidet
+  den Lauf weg. Trockenlauf mit/ohne Autofahrt vergleichen (nicht speichern). Pipeline-Aenderung nur mit Jans OK.
+  #20507 ist vorerst per trim_end_ms=900000 gekuerzt (Jan: „ja bitte machen").
+
 - **🔲 07.11. Max-Speed: Live-Anzeige der Garmin-App gegen Server pruefen** (Hinweis eines Nutzers, FR970 + fēnix 7 Pro
   parallel). Server ist korrekt: max 1 s je Lauf = GPS-Rohwert der Uhr = Garmins eigene Geschwindigkeit in der FIT
   (#20402, 5 Laeufe, 17,2–19,8 km/h). FoilMotion (fēnix) zeigt 2–4 km/h mehr (Lap-Max = einzelne 1-s-Spitze, Laps sind ganze
