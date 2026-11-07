@@ -2741,6 +2741,8 @@ const id: Record<string, string> = {
   "team.event.wertungBeste": "Jumlah {n} terbaik",
   "team.event.wertungAlle": "Jumlah semua anggota",
   "team.event.teams": "Tim",
+  "team.event.uebersichtTeilen": "Bagikan ringkasan",
+  "team.event.uebersichtWahl": "Tampilkan di gambar:",
   "team.event.neuLaden": "Muat ulang",
   "team.event.standUm": "Per {zeit}",
   "team.event.endstand": "Klasemen akhir",

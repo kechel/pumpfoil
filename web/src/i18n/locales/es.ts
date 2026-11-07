@@ -2623,6 +2623,8 @@ const es: Record<string, string> = {
   "team.event.wertungBeste": "Suma de los {n} mejores",
   "team.event.wertungAlle": "Suma de todos los miembros",
   "team.event.teams": "Equipos",
+  "team.event.uebersichtTeilen": "Compartir resumen",
+  "team.event.uebersichtWahl": "Mostrar en la imagen:",
   "team.event.neuLaden": "Actualizar",
   "team.event.standUm": "Actualizado a las {zeit}",
   "team.event.endstand": "Clasificación final",

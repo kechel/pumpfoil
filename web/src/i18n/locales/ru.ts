@@ -2741,6 +2741,8 @@ const ru: Record<string, string> = {
   "team.event.wertungBeste": "Сумма лучших {n}",
   "team.event.wertungAlle": "Сумма всех участников",
   "team.event.teams": "Команды",
+  "team.event.uebersichtTeilen": "Поделиться итогами",
+  "team.event.uebersichtWahl": "Показать на картинке:",
   "team.event.neuLaden": "Обновить",
   "team.event.standUm": "По состоянию на {zeit}",
   "team.event.endstand": "Итоговые результаты",

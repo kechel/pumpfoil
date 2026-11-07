@@ -2737,6 +2737,8 @@ const ja: Record<string, string> = {
   "team.event.wertungBeste": "上位{n}人の合計",
   "team.event.wertungAlle": "全メンバーの合計",
   "team.event.teams": "チーム",
+  "team.event.uebersichtTeilen": "まとめを共有",
+  "team.event.uebersichtWahl": "画像に表示：",
   "team.event.neuLaden": "更新",
   "team.event.standUm": "{zeit} 時点",
   "team.event.endstand": "最終結果",

@@ -9,7 +9,7 @@ import { teamInitialen } from "./TeamWappen";
 import { useT } from "../i18n";
 
 /** Wappen des (ersten) Teams eines Fahrers im Bild — globale Events, wie die Spalte in der Liste (07.11.2026). */
-function wappenVon(x?: { name: string; logo_url: string | null; farbe: string | null }) {
+export function wappenVon(x?: { name: string; logo_url: string | null; farbe: string | null }) {
   if (!x) return undefined;
   const f = TEAM_FARBEN[x.farbe || "cyan"] ?? TEAM_FARBEN.cyan;
   return { logo: x.logo_url, initialen: teamInitialen(x.name), flaeche: f.dunkelFlaeche ?? f.dunkel, schrift: f.dunkelAuf ?? "#020617",

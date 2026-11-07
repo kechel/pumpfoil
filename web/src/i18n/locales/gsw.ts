@@ -2625,6 +2625,8 @@ const gsw: Record<string, string> = {
   "team.event.wertungBeste": "Summe vo de beschte {n}",
   "team.event.wertungAlle": "Summe vo allne Mitglieder",
   "team.event.teams": "Teams",
+  "team.event.uebersichtTeilen": "Übersicht teile",
+  "team.event.uebersichtWahl": "Im Bild zeige:",
   "team.event.neuLaden": "Aktualisiere",
   "team.event.standUm": "Stand {zeit}",
   "team.event.endstand": "Schlussstand",

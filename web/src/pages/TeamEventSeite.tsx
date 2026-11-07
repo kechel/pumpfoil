@@ -15,10 +15,10 @@ import type { TeamWertungZeile } from "../lib/api";
 import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
 import { Card } from "../components/ui";
 import TeamWappen from "../components/TeamWappen";
-import { dateiTeil } from "../lib/bestenlisteBild";
+import { dateiTeil, uebersichtHoehe, type BildZeile } from "../lib/bestenlisteBild";
 import { TeamHerkunft } from "../components/TeamHerkunft";
 import TeamBanner from "../components/TeamBanner";
-import TeamTafelBild from "../components/TeamTafelBild";
+import TeamTafelBild, { wappenVon } from "../components/TeamTafelBild";
 import { teamFarbStil } from "../lib/teamFarben";
 import { EVENT_SUMMEN, eventGemessen, kennzahl } from "../lib/teamKennzahlen";
 import { eventZeit, eventZeitraum, eventZeitraumGenau } from "../lib/teamEvents";
@@ -145,6 +145,57 @@ function TeamWertung({ tf, n, t, eigeneSlugs, standText, onBild }: { tf: TeamTaf
   );
 }
 
+/** Event-Uebersicht als Teilen-Bild (Jan, 07.11.2026): Gesamtsummen plus die ersten 3 je Kategorie; welche Kategorien
+ *  (Bestenlisten, bei globalen Events auch ihre Team-Wertungen) waehlt man im Dialog. */
+function EventUebersichtBild({ ev, team, t, lang, stand, onClose }: {
+  ev: TeamEvent; team: TeamAuftritt; t: (k: string, p?: Record<string, string>) => string; lang: string;
+  stand: string | null; onClose: () => void;
+}) {
+  const kategorien = [
+    ...ev.tafeln.map((tf, i) => ({ key: `p${i}`, titel: t(kennzahl(tf.kennzahl).labelKey), tf, team: false })),
+    ...(ev.global ? ev.tafeln.map((tf, i) => ({ key: `t${i}`, titel: `${t("team.event.teams")} · ${t(kennzahl(tf.kennzahl).labelKey)}`, tf, team: true })) : []),
+  ];
+  // Standard: die Bestenlisten der Fahrer (hoechstens 4, damit das Bild nicht zu lang wird), Team-Wertungen abgewaehlt.
+  const [wahl, setWahl] = useState<Set<string>>(() => new Set(kategorien.filter((k) => !k.team).slice(0, 4).map((k) => k.key)));
+  const summen = EVENT_SUMMEN.filter((k) => (ev.summen_auswahl ?? []).includes(k.key))
+    .map((k) => ({ wert: k.fmt(ev.summen?.[k.key] ?? 0), label: t(ev.summen?.[k.key] === 1 && k.labelKey1 ? k.labelKey1 : k.labelKey) }));
+  const gruppen = kategorien.filter((k) => wahl.has(k.key)).map((k) => {
+    const f = kennzahl(k.tf.kennzahl);
+    const zeilen: BildZeile[] = k.team
+      ? (k.tf.teams ?? []).slice(0, 3).map((x) => teamBildZeile(x, f.fmt(x.value), false))
+      : k.tf.zeilen.slice(0, 3).map((z) => ({ rang: z.rang, name: z.name, initialen: z.initialen, land: z.land, wert: f.fmt(z.value),
+          wappen: ev.global ? wappenVon(z.teams?.[0]) : undefined }));
+    return { titel: k.titel, zeilen };
+  });
+  const farbe = TEAM_FARBEN[team.farbe || "cyan"] ?? TEAM_FARBEN.cyan;
+  const daten = {
+    titel: ev.titel, titelAnpassen: true,
+    unterzeile: team.name,
+    unterzeile2: [eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang, true), stand].filter(Boolean).join("\n"),
+    zeilen: [], leer: "—", summen, gruppen, hoehe: uebersichtHoehe(summen.length, gruppen.length),
+    wappenPlatz: gruppen.some((gr) => gr.zeilen.some((z) => z.wappen)),
+    akzent: farbe.dunkel, akzentHell: farbe.hell,
+    abzeichen: ev.status === "laeuft" || ev.status === "auswertung" ? t(`team.event.status.${ev.status}`) : null,
+  };
+  const umschalten = (key: string) => setWahl((w) => { const n = new Set(w); if (n.has(key)) n.delete(key); else n.add(key); return n; });
+  return (
+    <BestenlisteBildDialog onClose={onClose} titel={t("team.event.uebersichtTeilen")} logoUrl={ev.global ? null : team.logo_url}
+      dateiname={`${dateiTeil(ev.titel) || `event-${ev.id}`}-uebersicht.jpg`} daten={daten}>
+      <div className="mb-3">
+        <p className="mb-1 text-xs text-slate-400">{t("team.event.uebersichtWahl")}</p>
+        <div className="flex flex-col gap-1">
+          {kategorien.map((k) => (
+            <label key={k.key} className="flex items-center gap-2 text-sm text-slate-200">
+              <input type="checkbox" checked={wahl.has(k.key)} onChange={() => umschalten(k.key)} className="h-4 w-4 accent-brand-500" />
+              {k.titel}
+            </label>
+          ))}
+        </div>
+      </div>
+    </BestenlisteBildDialog>
+  );
+}
+
 function EventTeilen({ url, titel, t }: { url: string; titel: string; t: (k: string) => string }) {
   const [kopiert, setKopiert] = useState(false);
   return (
@@ -186,6 +237,7 @@ export default function TeamEventSeite() {
   const [ev, setEv] = useState<TeamEvent | null>(null);
   const [fehlt, setFehlt] = useState(false);
   const [bild, setBild] = useState<TeamTafelMitZeilen | null>(null);
+  const [uebersicht, setUebersicht] = useState(false);
   const [popup, setPopup] = useState(false);
   const [meldung, setMeldung] = useState<string | null>(null);
   const [sports, setSports] = useState<string[]>(["pumpfoil"]);
@@ -342,6 +394,13 @@ export default function TeamEventSeite() {
               {ev.tafeln.map((tf, i) => <option key={i} value={i}>{t(kennzahl(tf.kennzahl).labelKey)}</option>)}
             </select>
           )}
+          {/* Event-Uebersicht als Bild (07.11.2026): Summen + die ersten 3 je Kategorie. */}
+          {!gast && ev.tafeln.length + (ev.summen_auswahl ?? []).length > 0 && (
+            <button onClick={() => setUebersicht(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:bg-slate-800">
+              <ShareIcon className="h-4 w-4" /> {t("team.event.uebersichtTeilen")}
+            </button>
+          )}
           {/* „Bestenliste für" (eigenes Team) wieder raus (Jan, 06.11.2026) — Top 10 + man selbst reicht. */}
           {/* Neu laden, solange sich noch etwas aendern kann (Jan, 06.11.2026). Der Server rechnet hoechstens alle 2 min neu. */}
           {!gast && (ev.status === "laeuft" || ev.status === "auswertung") && (
@@ -425,6 +484,8 @@ export default function TeamEventSeite() {
             }} />
         );
       })()}
+      {uebersicht && <EventUebersichtBild ev={ev} team={team} t={t} lang={lang} stand={ev.tafeln[0] ? standFuer(ev.tafeln[0]) : null}
+        onClose={() => setUebersicht(false)} />}
       {bild && <TeamTafelBild team={team} tafel={bild} onClose={() => setBild(null)} zeitraum={ev.titel} stand={standFuer(bild)}
         dateiBasis={dateiTeil(ev.titel) || `event-${ev.id}`} teamsZeigen={!!ev.global}
         ohneLogo={!!ev.global} eventZeile={[ev.titel, eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang, true)]}

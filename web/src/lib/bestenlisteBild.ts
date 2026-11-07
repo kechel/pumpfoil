@@ -32,7 +32,17 @@ export type BildDaten = {
   wappenPlatz?: boolean;   // Platz fuer ein Wappen auch in Zeilen ohne (globale Events, Namen buendig; 07.11.2026)
   hell?: boolean;           // helle Fassung (Jan, 02.11.2026: Umschalter wie beim Teilen einer Session)
   abzeichen?: string | null; // oben rechts als Pille, z. B. „live" solange ein Event nicht final ist (06.11.2026)
+  // Event-Uebersicht (Jan, 07.11.2026: „zusammengefasste event-total share moeglichkeit … und den ersten 3 plaetzen je
+  // kategorie, auswaehlbar"): statt `zeilen` Summen-Kacheln und je Kategorie die ersten Plaetze. Hoehe waechst mit.
+  summen?: { wert: string; label: string }[];
+  gruppen?: { titel: string; zeilen: BildZeile[] }[];
+  hoehe?: number;
 };
+
+/** Hoehe der Event-Uebersicht: Kopf, Summen, je Kategorie Titel + 3 Zeilen, Fuss — zwischen quadratisch und 9:16. */
+export function uebersichtHoehe(summen: number, gruppen: number): number {
+  return Math.max(BILD_H, Math.min(1920, 360 + (summen ? 190 : 0) + gruppen * 262 + 200));
+}
 
 // Dieselben Farben wie die Session-Karte (sharecard.py: NAVY, WATER, CYAN/DCYAN, Sekundaer), je Fassung.
 const DUNKEL = { grund: "#020617", flaeche: "#0c1426", linie: "#1e293b", akzent: "#22d3ee", text: "#ffffff", sek: "#cbd5e1",
@@ -64,8 +74,9 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
   const F = d.hell ? HELL : DUNKEL;
   const akzent = (d.hell ? d.akzentHell : d.akzent) || F.akzent;
   const X = 90;
+  const H = d.hoehe ?? BILD_H;
   g.fillStyle = F.grund;
-  g.fillRect(0, 0, BILD_B, BILD_H);
+  g.fillRect(0, 0, BILD_B, H);
 
   // Kopf wie bei der Session-Karte: Ueberschrift + Unterzeile oben links, optional mit Wappen davor.
   let tx = X;
@@ -130,11 +141,11 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
   weitere.forEach((z, i) => g.fillText(kuerzen(g, z, (i === 0 ? rechts2 : BILD_B - X) - tx), tx, 128 + 28 + dy + 38 * (i + 1)));
 
   // Zeilen: verfuegbare Hoehe zwischen Kopf und Logo gleichmaessig nutzen (hoechstens 80 px je Zeile).
-  const zeilen = d.zeilen.slice(0, 10);
-  const oben = 215 + dy + 34 * weitere.length, unten = BILD_H - 150;
+  const zeilen = d.gruppen ? [] : d.zeilen.slice(0, 10);
+  const oben = 215 + dy + 34 * weitere.length, unten = H - 150;
   const n = Math.max(zeilen.length, 1) + (d.eigene && zeilen.length ? 1.4 : 0);
-  const zh = Math.min(110, Math.floor((unten - oben) / n));
-  const gross = Math.round(zh * 0.5);
+  let zh = Math.min(110, Math.floor((unten - oben) / n));
+  let gross = Math.round(zh * 0.5);
 
   const zeile = (z: BildZeile, y: number) => {
     const mitte = y + zh / 2;
@@ -175,11 +186,48 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
     g.font = `${z.rang === 1 || z.ich ? 700 : 500} ${Math.round(gross * 0.92)}px ${SCHRIFT}`; g.textAlign = "left"; g.fillStyle = F.text;
     g.fillText(kuerzen(g, z.name ?? "—", BILD_B - X - wb - 30 - nx), nx, mitte);
   };
+  if (d.gruppen) {
+    // Event-Uebersicht: Summen-Kacheln nebeneinander, darunter je Kategorie Titel + die ersten Plaetze.
+    let y = oben;
+    const su = d.summen ?? [];
+    if (su.length) {
+      const gap = 18, kb = (BILD_B - 2 * X - gap * (su.length - 1)) / su.length, kh = 150;
+      su.forEach((k, i) => {
+        const kx = X + i * (kb + gap);
+        g.fillStyle = F.flaeche; g.beginPath(); g.roundRect(kx, y, kb, kh, 22); g.fill();
+        g.strokeStyle = akzent; g.lineWidth = 3; g.stroke();
+        g.textAlign = "center"; g.textBaseline = "alphabetic"; g.fillStyle = akzent;
+        let px = su.length > 3 ? 46 : 56;
+        g.font = `800 ${px}px ${SCHRIFT}`;
+        while (px > 28 && g.measureText(k.wert).width > kb - 24) { px -= 2; g.font = `800 ${px}px ${SCHRIFT}`; }
+        g.fillText(k.wert, kx + kb / 2, y + 82);
+        g.fillStyle = F.sek; g.font = `600 ${su.length > 3 ? 20 : 24}px ${SCHRIFT}`;
+        g.fillText(kuerzen(g, k.label, kb - 20), kx + kb / 2, y + 122);
+      });
+      y += kh + 40;
+    }
+    zh = 62; gross = 31;
+    for (const gr of d.gruppen) {
+      if (y + 44 + 3 * zh > H - 170) break;
+      g.textAlign = "left"; g.textBaseline = "alphabetic"; g.fillStyle = F.text; g.font = `700 30px ${SCHRIFT}`;
+      g.fillText(kuerzen(g, gr.titel, BILD_B - 2 * X), X, y + 30);
+      y += 44;
+      gr.zeilen.slice(0, 3).forEach((z, i) => {
+        if (i > 0) { g.fillStyle = F.linie; g.fillRect(X, y + i * zh, BILD_B - 2 * X, 2); }
+        zeile(z, y + i * zh);
+      });
+      if (!gr.zeilen.length) {
+        g.fillStyle = F.sek; g.font = `400 26px ${SCHRIFT}`; g.textAlign = "left"; g.textBaseline = "middle";
+        g.fillText(d.leer, X, y + zh / 2);
+      }
+      y += Math.max(1, Math.min(3, gr.zeilen.length)) * zh + 30;
+    }
+  }
   zeilen.forEach((z, i) => {
     if (i > 0) { g.fillStyle = F.linie; g.fillRect(X, oben + i * zh, BILD_B - 2 * X, 2); }
     zeile(z, oben + i * zh);
   });
-  if (!zeilen.length) {
+  if (!zeilen.length && !d.gruppen) {
     g.fillStyle = F.sek; g.font = `400 34px ${SCHRIFT}`; g.textAlign = "center"; g.textBaseline = "middle";
     g.fillText(d.leer, BILD_B / 2, (oben + unten) / 2);
   }
@@ -194,18 +242,18 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
   g.textBaseline = "alphabetic";
   if (d.marke) {
     const lh = 54, lw = d.marke.width * lh / d.marke.height;
-    g.drawImage(d.marke, BILD_B - X - lw, BILD_H - X, lw, lh);
+    g.drawImage(d.marke, BILD_B - X - lw, H - X, lw, lh);
   }
   // Motto in unserem Cyan (Jan, 07.11.2026), nicht in der Teamfarbe; hell die dunklere Stufe wegen des Kontrasts.
   g.fillStyle = F.akzent; g.font = `600 26px ${SCHRIFT}`; g.textAlign = "left";
-  g.fillText("Have fun, keep pumping!", X, BILD_H - X + 38);
+  g.fillText("Have fun, keep pumping!", X, H - X + 38);
   g.fillStyle = F.leise;
   // Plattform-Liste zwischen Liste (endet bei BILD_H - 150) und Fuss, klein wie unter der Liste auf der Seite.
   if (d.quelle) {
     let px = 20;   // die volle Liste soll ganz drauf: notfalls bis 15 px kleiner
     g.font = `400 ${px}px ${SCHRIFT}`;
     while (px > 15 && g.measureText(d.quelle).width > BILD_B - 2 * X) { px -= 1; g.font = `400 ${px}px ${SCHRIFT}`; }
-    g.fillText(kuerzen(g, d.quelle, BILD_B - 2 * X), X, BILD_H - X - 22);
+    g.fillText(kuerzen(g, d.quelle, BILD_B - 2 * X), X, H - X - 22);
   }
 }
 

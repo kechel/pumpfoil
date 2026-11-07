@@ -2741,6 +2741,8 @@ const pt: Record<string, string> = {
   "team.event.wertungBeste": "Soma dos {n} melhores",
   "team.event.wertungAlle": "Soma de todos os membros",
   "team.event.teams": "Equipes",
+  "team.event.uebersichtTeilen": "Compartilhar resumo",
+  "team.event.uebersichtWahl": "Mostrar na imagem:",
   "team.event.neuLaden": "Atualizar",
   "team.event.standUm": "Atualizado às {zeit}",
   "team.event.endstand": "Classificação final",

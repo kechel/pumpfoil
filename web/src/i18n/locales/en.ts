@@ -2844,6 +2844,8 @@ const en: Record<string, string> = {
   "team.event.wertungBeste": "Sum of the best {n}",
   "team.event.wertungAlle": "Sum of all members",
   "team.event.teams": "Teams",
+  "team.event.uebersichtTeilen": "Share summary",
+  "team.event.uebersichtWahl": "Show in the image:",
   "team.event.neuLaden": "Refresh",
   "team.event.standUm": "As of {zeit}",
   "team.event.endstand": "Final standings",

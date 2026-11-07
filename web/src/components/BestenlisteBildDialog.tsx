@@ -1,6 +1,6 @@
 // Dialog „Bestenliste als Bild teilen" — fuer Teams und Community derselbe (02.11.2026). Gezeichnet wird in
 // lib/bestenlisteBild.ts; hier nur Vorschau, Teilen und Speichern.
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { BILD_B, BILD_H, bildDatei, bildLaden, bildSpeichern, mitZeitstempel, plattformZeile, zeichneBestenliste, type BildDaten } from "../lib/bestenlisteBild";
 import { useT } from "../i18n";
 import { flaggeUrl } from "../lib/laender";
@@ -17,8 +17,10 @@ function kontinentBild(k: string, hell: boolean): Promise<HTMLImageElement> {
   return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); });
 }
 
-export default function BestenlisteBildDialog({ daten: datenRoh, logoUrl, dateiname, titel, hinweis, onClose, eigenesTeam = false }: {
+export default function BestenlisteBildDialog({ daten: datenRoh, logoUrl, dateiname, titel, hinweis, onClose, eigenesTeam = false, children }: {
   daten: BildDaten; logoUrl?: string | null; dateiname: string; titel: string; hinweis?: string | null; onClose: () => void;
+  /** Zusaetzliche Einstellungen ueber Hell/Dunkel, z. B. die Kategorie-Auswahl der Event-Uebersicht. */
+  children?: ReactNode;
   /** Die eigene Zeile ist ein Team (Team-Ranglisten) — dann heisst der Schalter „Mein Team zeigen". */
   eigenesTeam?: boolean;
 }) {
@@ -46,12 +48,13 @@ export default function BestenlisteBildDialog({ daten: datenRoh, logoUrl, datein
       try { marke = await bildLaden(hell ? "/wordmark-h-light.png" : "/wordmark-h-dark.png"); } catch { marke = null; }
       // Flaggen der Fahrer, die ihre Nationalitaet eingestellt haben (02.11.2026); eine fehlende Flagge laesst nur sie weg.
       const flaggen: Record<string, HTMLImageElement> = {};
-      const codes = new Set([...daten.zeilen, ...(daten.eigene ? [daten.eigene] : [])].map((z) => z.land).filter(Boolean) as string[]);
+      const alleZeilen = [...daten.zeilen, ...(daten.eigene ? [daten.eigene] : []), ...(daten.gruppen ?? []).flatMap((gr) => gr.zeilen)];
+      const codes = new Set(alleZeilen.map((z) => z.land).filter(Boolean) as string[]);
       await Promise.all([...codes].map((c) => (c.startsWith("k:") ? kontinentBild(c.slice(2), hell) : bildLaden(flaggeUrl(c)))
         .then((im) => { flaggen[c] = im; }).catch(() => {})));
       // Team-Wappen je Zeile (04.11.2026); ein nicht ladbares Logo faellt auf die Initialen zurueck.
       const wappenBilder: Record<string, HTMLImageElement> = {};
-      const logos = new Set([...daten.zeilen, ...(daten.eigene ? [daten.eigene] : [])].map((z) => z.wappen?.logo).filter(Boolean) as string[]);
+      const logos = new Set(alleZeilen.map((z) => z.wappen?.logo).filter(Boolean) as string[]);
       await Promise.all([...logos].map((u) => bildLaden(u).then((im) => { wappenBilder[u] = im; }).catch(() => {})));
       if (weg) return;
       zeichneBestenliste(g, { ...daten, quelle: plattformZeile(t), logo, marke, hell, flaggen, wappenBilder });
@@ -77,9 +80,10 @@ export default function BestenlisteBildDialog({ daten: datenRoh, logoUrl, datein
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div className="max-h-full w-full max-w-sm overflow-y-auto rounded-2xl border border-slate-700 bg-white p-4 dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
         <h3 className="mb-2 font-semibold text-slate-100">{titel}</h3>
-        <canvas ref={ref} width={BILD_B} height={BILD_H} className="mb-3 w-full rounded-xl border border-slate-700" />
+        <canvas ref={ref} width={BILD_B} height={daten.hoehe ?? BILD_H} className="mb-3 w-full rounded-xl border border-slate-700" />
         {hinweis && <p className="mb-3 text-xs text-amber-700 dark:text-amber-300">{hinweis}</p>}
         {fehler && <p className="mb-3 text-sm text-red-700 dark:text-red-300">{fehler}</p>}
+        {children}
         {datenRoh.eigene && (
           <label className="mb-3 flex items-center gap-2 text-sm text-slate-200">
             <input type="checkbox" checked={mitMir} onChange={(e) => setMitMir(e.target.checked)} className="h-4 w-4 accent-brand-500" />

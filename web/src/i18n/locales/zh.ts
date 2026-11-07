@@ -2738,6 +2738,8 @@ const zh: Record<string, string> = {
   "team.event.wertungBeste": "前{n}名之和",
   "team.event.wertungAlle": "全体成员之和",
   "team.event.teams": "团队",
+  "team.event.uebersichtTeilen": "分享汇总",
+  "team.event.uebersichtWahl": "在图片中显示：",
   "team.event.neuLaden": "刷新",
   "team.event.standUm": "截至 {zeit}",
   "team.event.endstand": "最终排名",
