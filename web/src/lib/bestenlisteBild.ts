@@ -196,8 +196,10 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
     const lh = 54, lw = d.marke.width * lh / d.marke.height;
     g.drawImage(d.marke, BILD_B - X - lw, BILD_H - X, lw, lh);
   }
-  g.fillStyle = F.leise; g.font = `400 26px ${SCHRIFT}`; g.textAlign = "left";
+  // Motto in unserem Cyan (Jan, 07.11.2026), nicht in der Teamfarbe; hell die dunklere Stufe wegen des Kontrasts.
+  g.fillStyle = F.akzent; g.font = `600 26px ${SCHRIFT}`; g.textAlign = "left";
   g.fillText("Have fun, keep pumping!", X, BILD_H - X + 38);
+  g.fillStyle = F.leise;
   // Plattform-Liste zwischen Liste (endet bei BILD_H - 150) und Fuss, klein wie unter der Liste auf der Seite.
   if (d.quelle) {
     let px = 20;   // die volle Liste soll ganz drauf: notfalls bis 15 px kleiner
