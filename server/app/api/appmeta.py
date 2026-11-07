@@ -1180,6 +1180,7 @@ NAECHSTES: list[dict] = [
          "Global events: everyone takes part automatically, with a calendar card, a team ranking (sum of the best riders), the top 10 plus your own row, a refresh button and a share image; you can opt out under Settings, Privacy.",
          "Events of your own teams appear on Home under Team and in the community, and the Teams & Events tab shows LIVE or the number of upcoming events.",
          "Asking for a missing foil or stabilizer opens the feedback form with a template to fill in.",
+         "Leaderboards show three-digit places in full, and team rankings say \"from 1 rider\" instead of \"from 1 riders\".",
      ]},
     # iPhone + Apple Watch 1.1.61 am 07.11. freigegeben; 1.1.62 (72) ist die naechste (ASC-Versionseintrag dann wieder 1.1.x).
     # 06.11.2026: Apple Watch setzt die Pausen der vorigen Aufnahme zurueck (6352227c), nach der Einreichung von 1.1.61.
