@@ -361,7 +361,7 @@ export default function TeamEventSeite() {
           const standText = standFuer(tf0);
           return (
             <div className={`grid gap-3 ${ev.global ? "sm:grid-cols-2" : ""}`}>
-              <Tafel tf={tf} gast={gast} t={t} ohneFilter sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} standText={standText} />
+              <Tafel tf={tf} gast={gast} t={t} teamsZeigen={!!ev.global} ohneFilter sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} standText={standText} />
               {ev.global && <TeamWertung tf={tf} n={ev.team_wertung_n ?? 5} t={t} eigeneSlugs={meineTeams.map((x) => x.slug)} standText={standText}
                 onBild={gast ? undefined : () => setBildTeams(tf0)} />}
             </div>
@@ -382,7 +382,8 @@ export default function TeamEventSeite() {
           {eventGemessen(ev, t) && <li>{t("team.event.gemessen")}: {eventGemessen(ev, t)}</li>}
           {ev.ohne_dateien && <li>{t("team.event.ohneDateienKurz")}</li>}
           {ev.status === "auswertung" && <li>{t("team.event.auswertungHinweis", { bis: eventZeit(ev.einfrieren_am, ev.zeitzone, lang) })}</li>}
-          {t("team.regeln.events.text").split("\n").filter(Boolean).map((z, i) => <li key={i}>{z}</li>)}
+          {/* Globale Events: deren eigene Regeln statt der Team-Event-Regeln („Teamleitung kann …", 07.11.2026). */}
+          {t(ev.global ? "team.regeln.global.text" : "team.regeln.events.text").split("\n").filter(Boolean).map((z, i) => <li key={i}>{z}</li>)}
         </ul>
         {/* Haftungsausschluss (Jan, 01.11.2026): Events und ihre Zusagen sind Sache der Teams, nicht von pumpfoil.org. */}
         {!ev.global && <p className="mt-3 border-t border-slate-800 pt-3 text-sm text-slate-400">{t("team.event.disclaimer")}</p>}

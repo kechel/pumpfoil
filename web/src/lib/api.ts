@@ -2295,6 +2295,8 @@ export interface TeamZeile {
   user_id?: number; avatar_url?: string | null; session_id?: number; started_at?: string | null; spot?: string | null;
   /** Nationalitaet (ISO), nur fuer Eingeloggte */
   land?: string | null;
+  /** Globale Events: Teams der Person (Wappen-Spalte, 07.11.2026) — dieselben wie in der Team-Wertung. */
+  teams?: { slug: string; name: string; logo_url: string | null; farbe: string | null }[];
 }
 export interface TeamStatistik {
   sessions: number; runs: number; pumps: number; distance_m: number; time_s: number; spots: number;

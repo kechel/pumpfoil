@@ -497,9 +497,10 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
 
 
 def fuer_gast(zeilen: list[dict]) -> list[dict]:
-    """Ohne Login nur Rang, Anzeigename, Initialen, Wert (Jan, 31.10.2026)."""
-    return [{"rang": r["rang"], "name": r["name"], "initialen": r["initialen"], "value": r["value"]}
-            for r in zeilen]
+    """Ohne Login nur Rang, Anzeigename, Initialen, Wert (Jan, 31.10.2026). Bei globalen Events dazu die Wappen der
+    Teams (`teams`) — dieselben, die auch Gaeste in der Team-Wertung sehen."""
+    return [{"rang": r["rang"], "name": r["name"], "initialen": r["initialen"], "value": r["value"],
+             **({"teams": r["teams"]} if "teams" in r else {})} for r in zeilen]
 
 
 def tafel_out(tf: models.TeamTafel) -> dict:
@@ -806,6 +807,23 @@ def team_wertung(db: Session, zeilen: list[dict], n: int, ausser_team_id: int | 
     return out
 
 
+def zeilen_teams(db: Session, uids: list[int], ausser_team_id: int | None) -> dict[int, list[dict]]:
+    """Wappen je Person fuer die Bestenlisten globaler Events (Jan, 07.11.2026: „dritte spalte mit dem team-wappen …
+    team-name als hover"). Dieselben Teams wie in `team_wertung`, aktuelle Mitgliedschaft."""
+    if not uids:
+        return {}
+    M, Tm = models.TeamMitglied, models.Team
+    out: dict[int, list[dict]] = {}
+    for t, uid in (db.query(Tm, M.user_id).join(M, M.team_id == Tm.id)
+                   .filter(M.status == "aktiv", M.user_id.in_(uids), Tm.frei_am.isnot(None),
+                           Tm.geloescht_am.is_(None), Tm.oeffentlich.is_(True)).order_by(Tm.id).all()):
+        if t.id != ausser_team_id:
+            a = auftritt(t, False)
+            out.setdefault(uid, []).append({"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"],
+                                            "farbe": a["farbe"]})
+    return out
+
+
 def _aware(t: datetime) -> datetime:
     return t if t.tzinfo else t.replace(tzinfo=timezone.utc)
 
@@ -910,6 +928,12 @@ def event_berechnen(db: Session, t: models.Team, e: models.TeamEvent, nur_team_i
         if betrachter is not None:
             x["eigene"] = next((z for z in tf["zeilen"] if z["user_id"] == betrachter), None)
         out.append(x)
+    uids = sorted({z["user_id"] for x in out for z in x["zeilen"] + ([x["eigene"]] if x.get("eigene") else [])})
+    wappen = zeilen_teams(db, uids, t.id)
+    for x in out:
+        x["zeilen"] = [{**z, "teams": wappen.get(z["user_id"], [])} for z in x["zeilen"]]
+        if x.get("eigene"):
+            x["eigene"] = {**x["eigene"], "teams": wappen.get(x["eigene"]["user_id"], [])}
     return out
 
 

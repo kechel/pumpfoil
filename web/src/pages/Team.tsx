@@ -211,7 +211,7 @@ function Logbuch({ eintraege, t, zurueck }: { eintraege: TeamLogbuchEintrag[]; t
   );
 }
 
-export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZeigen = false, standText }: {
+export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZeigen = false, standText, teamsZeigen = false }: {
   tf: TeamTafelMitZeilen; gast: boolean; t: (k: string, p?: Record<string, string>) => string; onBild?: () => void;
   /** Sportart als Marke neben der Ueberschrift — wenn die Bestenlisten verschiedene Sportarten haben (Jan, 02.11.2026:
    * „in den kacheln fehlt die anzeige welche sportart jeweils gemeint ist"). */
@@ -222,6 +222,8 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
   zurueck?: { zurueck: string; zurueckText: string };
   /** „Stand 14:32" unter der Ueberschrift (Event-Seite, Jan 06.11.2026: „direkt mit in den listen"). */
   standText?: string | null;
+  /** Globale Events: Spalte mit den Team-Wappen, Teamname beim Darueberfahren (Jan, 07.11.2026). */
+  teamsZeigen?: boolean;
 }) {
   const k = kennzahl(tf.kennzahl);
   const filter = [
@@ -261,6 +263,15 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
                   <span className="team-farbe team-flaeche inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-slate-200">{z.initialen}</span>
                 ) : <Avatar name={z.name} url={z.avatar_url} seed={z.user_id} userId={z.user_id} size={28} linkState={zurueck} />}
                 <Flagge land={z.land} />
+                {teamsZeigen && (
+                  <span className="flex w-7 shrink-0 -space-x-2" title={(z.teams ?? []).map((x) => x.name).join(", ") || undefined}>
+                    {(z.teams ?? []).slice(0, 2).map((x) => (
+                      <Link key={x.slug} to={`/teams/${x.slug}`} className="shrink-0" aria-label={x.name}>
+                        <TeamWappen name={x.name} logo={x.logo_url} farbe={x.farbe} size={20} />
+                      </Link>
+                    ))}
+                  </span>
+                )}
                 <span className="min-w-0 flex-1">
                   {gast || !z.user_id ? <span className="block truncate text-sm text-slate-100">{z.name ?? "—"}</span>
                     : <Link to={`/foiler/${z.user_id}`} state={zurueck} className="pf-name block truncate text-sm text-slate-100 hover:text-brand-400">{z.name ?? "—"}</Link>}
