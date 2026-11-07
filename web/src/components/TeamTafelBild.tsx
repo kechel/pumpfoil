@@ -16,7 +16,7 @@ function wappenVon(x?: { name: string; logo_url: string | null; farbe: string | 
            flaecheHell: f.hellFlaeche ?? f.hell, schriftHell: f.hellAuf ?? "#ffffff" };
 }
 
-export default function TeamTafelBild({ team, tafel, zeitraum, onClose, stand, abzeichen, dateiBasis, teamsZeigen = false, eventZeile }: {
+export default function TeamTafelBild({ team, tafel, zeitraum, onClose, stand, abzeichen, dateiBasis, teamsZeigen = false, eventZeile, ohneLogo = false }: {
   team: { name: string; slug: string; logo_url: string | null; farbe: string | null; bestenlisten_oeffentlich?: boolean };
   tafel: TeamTafelMitZeilen; zeitraum: string; onClose: () => void;
   /** Events: „Stand 14:32" bzw. „Endstand" in der Unterzeile (Jan, 06.11.2026). */
@@ -29,6 +29,8 @@ export default function TeamTafelBild({ team, tafel, zeitraum, onClose, stand, a
   teamsZeigen?: boolean;
   /** Events: [Eventname, Zeitraum des Events] — Name als Unterzeile, darunter Zeitraum, dann Kennzahl + Stand (Jan, 07.11.2026). */
   eventZeile?: [string, string];
+  /** Globale Events: kein Wappen oben links, das pumpfoil.org-Logo steht ja unten rechts (Jan, 07.11.2026). */
+  ohneLogo?: boolean;
 }) {
   const t = useT();
   const k = kennzahl(tafel.kennzahl);
@@ -49,7 +51,7 @@ export default function TeamTafelBild({ team, tafel, zeitraum, onClose, stand, a
     abzeichen,
   }), [team, tafel, zeitraum, stand, abzeichen, teamsZeigen, eventZeile]);   // eslint-disable-line react-hooks/exhaustive-deps
   return (
-    <BestenlisteBildDialog daten={daten} logoUrl={team.logo_url} dateiname={`${dateiBasis || team.slug}-${tafel.kennzahl}.jpg`}
+    <BestenlisteBildDialog daten={daten} logoUrl={ohneLogo ? null : team.logo_url} dateiname={`${dateiBasis || team.slug}-${tafel.kennzahl}.jpg`}
       titel={t("team.bild.titel")} hinweis={team.bestenlisten_oeffentlich ? null : t("team.bild.hinweisIntern")} onClose={onClose} />
   );
 }

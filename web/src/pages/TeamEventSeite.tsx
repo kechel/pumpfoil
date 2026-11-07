@@ -408,7 +408,7 @@ export default function TeamEventSeite() {
         const eigeneSlugs = meineTeams.map((x) => x.slug);
         const eigen = alle.slice(10).find((x) => eigeneSlugs.includes(x.slug));
         return (
-          <BestenlisteBildDialog onClose={() => setBildTeams(null)} titel={t("team.bild.titel")} logoUrl={team.logo_url}
+          <BestenlisteBildDialog onClose={() => setBildTeams(null)} titel={t("team.bild.titel")} logoUrl={ev.global ? null : team.logo_url}
             dateiname={`${dateiTeil(ev.titel) || `event-${ev.id}`}-teams-${bildTeams.kennzahl}.jpg`}
             daten={{
               titel: `${t("team.event.teams")} · ${t(k.labelKey)}`,
@@ -424,7 +424,7 @@ export default function TeamEventSeite() {
       })()}
       {bild && <TeamTafelBild team={team} tafel={bild} onClose={() => setBild(null)} zeitraum={ev.titel} stand={standFuer(bild)}
         dateiBasis={dateiTeil(ev.titel) || `event-${ev.id}`} teamsZeigen={!!ev.global}
-        eventZeile={[ev.titel, eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang)]}
+        ohneLogo={!!ev.global} eventZeile={[ev.titel, eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang)]}
         abzeichen={ev.status === "laeuft" || ev.status === "auswertung" ? t(`team.event.status.${ev.status}`) : null} />}
     </div>
   );
