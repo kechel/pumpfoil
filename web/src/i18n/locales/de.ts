@@ -3068,6 +3068,7 @@ const de: Record<string, string> = {
   "team.vergleich.hinweis": "Je Team zählt die Summe seiner besten {n} Fahrer. {sport}, auch Läufe ohne Bewegungsdaten; nur Teams mit öffentlichen Bestenlisten.",
   "team.vergleich.top": "Beste {n}",
   "team.vergleich.ausFahrern": "aus {n} Fahrern",
+  "team.vergleich.ausFahrern1": "aus 1 Fahrer",
   "team.vergleich.leer": "In diesem Zeitraum hat noch kein Team eine Session.",
   "tab.rules": "Regeln",
   "team.alleMeine": "Alle meine Teams",

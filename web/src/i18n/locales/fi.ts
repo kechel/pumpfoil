@@ -2944,6 +2944,7 @@ const fi: Record<string, string> = {
   "team.vergleich.hinweis": "Jokaiselle tiimille lasketaan sen {n} parhaan kuskin summa. {sport}, myös laskut ilman liikedataa; vain tiimit, joiden tulostaulut ovat julkisia.",
   "team.vergleich.top": "Parhaat {n}",
   "team.vergleich.ausFahrern": "{n} kuskista",
+  "team.vergleich.ausFahrern1": "1 kuskista",
   "team.vergleich.leer": "Millään tiimillä ei ole vielä sessiota tällä jaksolla.",
   "tab.rules": "Säännöt",
   "team.alleMeine": "Kaikki tiimini",

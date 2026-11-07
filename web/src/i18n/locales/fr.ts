@@ -2792,6 +2792,7 @@ const fr: Record<string, string> = {
   "team.vergleich.hinweis": "Chaque équipe compte la somme de ses {n} meilleurs riders. {sport}, y compris les sorties sans données de mouvement ; seulement les équipes aux classements publics.",
   "team.vergleich.top": "{n} meilleurs",
   "team.vergleich.ausFahrern": "sur {n} riders",
+  "team.vergleich.ausFahrern1": "sur 1 rider",
   "team.vergleich.leer": "Aucune équipe n'a encore de session sur cette période.",
   "tab.rules": "Règles",
   "team.alleMeine": "Toutes mes équipes",

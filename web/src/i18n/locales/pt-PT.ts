@@ -2903,6 +2903,7 @@ const ptPT: Record<string, string> = {
   "team.vergleich.hinweis": "Cada equipa soma os seus {n} melhores riders. {sport}, incluindo voltas sem dados de movimento; só equipas com classificações públicas.",
   "team.vergleich.top": "Melhores {n}",
   "team.vergleich.ausFahrern": "de {n} riders",
+  "team.vergleich.ausFahrern1": "de 1 rider",
   "team.vergleich.leer": "Nenhuma equipa tem ainda uma sessão neste período.",
   "tab.rules": "Regras",
   "team.alleMeine": "Todas as minhas equipas",

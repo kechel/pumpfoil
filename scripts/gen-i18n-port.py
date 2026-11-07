@@ -31,7 +31,7 @@ SCHLUESSEL = [
     "gear.title", "gear.mastShim", "gear.searchHint", "gear.noHits", "setup.stabTitle", "setup.boardTitle",
     # Phase 8: Community-Reiter, Team-Bestenlisten
     "tab.rankings", "tab.media", "land.teamsTitle", "team.vergleich.titel", "team.vergleich.hinweis",
-    "team.vergleich.top", "team.vergleich.ausFahrern", "team.vergleich.leer", "team.bild.titel", "team.aktivste",
+    "team.vergleich.top", "team.vergleich.ausFahrern", "team.vergleich.ausFahrern1", "team.vergleich.leer", "team.bild.titel", "team.aktivste",
     "team.alle",
     # 05.11.2026: Rangliste nach Oleks Entwurf (Ueberschriften „Bestenlisten – Mitglieder/Teams"), Uhren-Statistik-Reiter
     "home.leaderboards", "watchStats.sectionFoiling",

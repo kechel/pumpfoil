@@ -2962,6 +2962,7 @@ const cs: Record<string, string> = {
   "team.vergleich.hinweis": "Každý tým počítá součet svých {n} nejlepších jezdců. {sport}, i jízdy bez pohybových dat; jen týmy s veřejnými žebříčky.",
   "team.vergleich.top": "Nejlepších {n}",
   "team.vergleich.ausFahrern": "z {n} jezdců",
+  "team.vergleich.ausFahrern1": "z 1 jezdce",
   "team.vergleich.leer": "V tomto období zatím žádný tým nemá session.",
   "tab.rules": "Pravidla",
   "team.alleMeine": "Všechny moje týmy",

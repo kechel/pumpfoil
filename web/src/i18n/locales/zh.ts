@@ -2906,6 +2906,7 @@ const zh: Record<string, string> = {
   "team.vergleich.hinweis": "每个团队按其最佳 {n} 名骑手的总和计算。{sport}，也包括没有运动数据的滑行；仅限排行榜公开的团队。",
   "team.vergleich.top": "前 {n} 名",
   "team.vergleich.ausFahrern": "来自 {n} 名骑手",
+  "team.vergleich.ausFahrern1": "来自 1 名骑手",
   "team.vergleich.leer": "此期间还没有团队有训练记录。",
   "tab.rules": "规则",
   "team.alleMeine": "我的所有团队",

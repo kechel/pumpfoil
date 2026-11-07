@@ -2794,6 +2794,7 @@ const gsw: Record<string, string> = {
   "team.vergleich.hinweis": "Pro Team zellt d Summe vo sine beschte {n} Fahrer. {sport}, au Läuf ohni Bewegigsdate; nur Teams mit öffentliche Bestelischte.",
   "team.vergleich.top": "Beschti {n}",
   "team.vergleich.ausFahrern": "us {n} Fahrer",
+  "team.vergleich.ausFahrern1": "us 1 Fahrer",
   "team.vergleich.leer": "I däm Ziitruum het no kes Team e Session.",
   "tab.rules": "Regle",
   "team.alleMeine": "Alli mini Teams",

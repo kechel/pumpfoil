@@ -159,7 +159,8 @@ fun TeamBestenlisten(period: String, sport: String, titel: String, onOpenTeam: (
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(vergleichWert(art, z.wert(art)), color = f.akzent, fontWeight = FontWeight.Bold,
                                     style = MaterialTheme.typography.titleSmall)
-                                Text(I18n.t("team.vergleich.ausFahrern").replace("{n}", z.fahrer(art).toString()),
+                                Text(if (z.fahrer(art) == 1) I18n.t("team.vergleich.ausFahrern1")   // Einzahl (07.11.2026: „from 1 riders")
+                                    else I18n.t("team.vergleich.ausFahrern").replace("{n}", z.fahrer(art).toString()),
                                     style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }

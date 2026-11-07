@@ -1075,7 +1075,7 @@ function TeamBestenlisten({ period, sport, region, titel }: { period: string; sp
           {zeilen.map((z, i) => (
             // „aus N Fahrern" als Tooltip: in der schmalen Spalte haette die Zeile sonst zwei Zeilen.
             <Link key={z.slug} to={`/teams/${z.slug}`} style={teamFarbStil(z.farbe)}
-              title={t("team.vergleich.ausFahrern", { n: String(z[`${art}_fahrer`]) })}
+              title={z[`${art}_fahrer`] === 1 ? t("team.vergleich.ausFahrern1") : t("team.vergleich.ausFahrern", { n: String(z[`${art}_fahrer`]) })}
               className="team-farbe flex items-center gap-2 rounded-lg bg-slate-900 px-2.5 py-1.5 hover:underline">
               <span className="min-w-4 shrink-0 text-center text-xs font-bold tabular-nums text-slate-400">{i + 1}</span>
               <TeamWappen name={z.name} logo={z.logo_url} farbe={z.farbe} size={30} />

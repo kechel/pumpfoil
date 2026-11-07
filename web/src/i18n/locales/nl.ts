@@ -2963,6 +2963,7 @@ const nl: Record<string, string> = {
   "team.vergleich.hinweis": "Elk team telt de som van zijn beste {n} riders. {sport}, ook runs zonder bewegingsdata; alleen teams met openbare ranglijsten.",
   "team.vergleich.top": "Beste {n}",
   "team.vergleich.ausFahrern": "van {n} riders",
+  "team.vergleich.ausFahrern1": "van 1 rider",
   "team.vergleich.leer": "Nog geen team heeft een sessie in deze periode.",
   "tab.rules": "Regels",
   "team.alleMeine": "Al mijn teams",

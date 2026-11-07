@@ -2909,6 +2909,7 @@ const ru: Record<string, string> = {
   "team.vergleich.hinweis": "Для каждой команды считается сумма её {n} лучших райдеров. {sport}, включая заезды без данных движения; только команды с публичными рейтингами.",
   "team.vergleich.top": "Лучшие {n}",
   "team.vergleich.ausFahrern": "из {n} райдеров",
+  "team.vergleich.ausFahrern1": "из 1 райдера",
   "team.vergleich.leer": "За этот период ни у одной команды пока нет сессий.",
   "tab.rules": "Правила",
   "team.alleMeine": "Все мои команды",

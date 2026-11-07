@@ -2909,6 +2909,7 @@ const id: Record<string, string> = {
   "team.vergleich.hinweis": "Setiap tim dihitung dari jumlah {n} rider terbaiknya. {sport}, termasuk run tanpa data gerak; hanya tim dengan papan peringkat publik.",
   "team.vergleich.top": "{n} terbaik",
   "team.vergleich.ausFahrern": "dari {n} rider",
+  "team.vergleich.ausFahrern1": "dari 1 rider",
   "team.vergleich.leer": "Belum ada tim dengan sesi pada periode ini.",
   "tab.rules": "Aturan",
   "team.alleMeine": "Semua tim saya",

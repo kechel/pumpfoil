@@ -2905,6 +2905,7 @@ const ja: Record<string, string> = {
   "team.vergleich.hinweis": "各チームの上位{n}人のライダーの合計で比べます。{sport}、モーションデータのない走行も含みます。ランキングを公開しているチームのみ。",
   "team.vergleich.top": "上位{n}人",
   "team.vergleich.ausFahrern": "{n}人の合計",
+  "team.vergleich.ausFahrern1": "1人の合計",
   "team.vergleich.leer": "この期間にセッションのあるチームはまだありません。",
   "tab.rules": "ルール",
   "team.alleMeine": "自分のすべてのチーム",

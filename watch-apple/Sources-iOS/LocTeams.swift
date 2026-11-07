@@ -20,24 +20,24 @@ enum LocTeam {
 
     static let sprachen: [String: [String: String]] = {
         var d: [String: [String: String]] = [:]
-        d["de"] = zusammen([_de0, _de1, _de2, _de3, _de4, _de5])
-        d["gsw"] = zusammen([_gsw0, _gsw1, _gsw2, _gsw3, _gsw4, _gsw5])
-        d["de-AT"] = zusammen([_de_AT0, _de_AT1, _de_AT2, _de_AT3, _de_AT4, _de_AT5])
-        d["en"] = zusammen([_en0, _en1, _en2, _en3, _en4, _en5])
-        d["fr"] = zusammen([_fr0, _fr1, _fr2, _fr3, _fr4, _fr5])
-        d["it"] = zusammen([_it0, _it1, _it2, _it3, _it4, _it5])
-        d["es"] = zusammen([_es0, _es1, _es2, _es3, _es4, _es5])
-        d["fi"] = zusammen([_fi0, _fi1, _fi2, _fi3, _fi4, _fi5])
-        d["nl"] = zusammen([_nl0, _nl1, _nl2, _nl3, _nl4, _nl5])
-        d["cs"] = zusammen([_cs0, _cs1, _cs2, _cs3, _cs4, _cs5])
-        d["pl"] = zusammen([_pl0, _pl1, _pl2, _pl3, _pl4, _pl5])
-        d["pt"] = zusammen([_pt0, _pt1, _pt2, _pt3, _pt4, _pt5])
-        d["pt-PT"] = zusammen([_pt_PT0, _pt_PT1, _pt_PT2, _pt_PT3, _pt_PT4, _pt_PT5])
-        d["ja"] = zusammen([_ja0, _ja1, _ja2, _ja3, _ja4, _ja5])
-        d["zh"] = zusammen([_zh0, _zh1, _zh2, _zh3, _zh4, _zh5])
-        d["ru"] = zusammen([_ru0, _ru1, _ru2, _ru3, _ru4, _ru5])
-        d["id"] = zusammen([_id0, _id1, _id2, _id3, _id4, _id5])
-        d["nb"] = zusammen([_nb0, _nb1, _nb2, _nb3, _nb4, _nb5])
+        d["de"] = zusammen([_de0, _de1, _de2, _de3, _de4, _de5, _de6])
+        d["gsw"] = zusammen([_gsw0, _gsw1, _gsw2, _gsw3, _gsw4, _gsw5, _gsw6])
+        d["de-AT"] = zusammen([_de_AT0, _de_AT1, _de_AT2, _de_AT3, _de_AT4, _de_AT5, _de_AT6])
+        d["en"] = zusammen([_en0, _en1, _en2, _en3, _en4, _en5, _en6])
+        d["fr"] = zusammen([_fr0, _fr1, _fr2, _fr3, _fr4, _fr5, _fr6])
+        d["it"] = zusammen([_it0, _it1, _it2, _it3, _it4, _it5, _it6])
+        d["es"] = zusammen([_es0, _es1, _es2, _es3, _es4, _es5, _es6])
+        d["fi"] = zusammen([_fi0, _fi1, _fi2, _fi3, _fi4, _fi5, _fi6])
+        d["nl"] = zusammen([_nl0, _nl1, _nl2, _nl3, _nl4, _nl5, _nl6])
+        d["cs"] = zusammen([_cs0, _cs1, _cs2, _cs3, _cs4, _cs5, _cs6])
+        d["pl"] = zusammen([_pl0, _pl1, _pl2, _pl3, _pl4, _pl5, _pl6])
+        d["pt"] = zusammen([_pt0, _pt1, _pt2, _pt3, _pt4, _pt5, _pt6])
+        d["pt-PT"] = zusammen([_pt_PT0, _pt_PT1, _pt_PT2, _pt_PT3, _pt_PT4, _pt_PT5, _pt_PT6])
+        d["ja"] = zusammen([_ja0, _ja1, _ja2, _ja3, _ja4, _ja5, _ja6])
+        d["zh"] = zusammen([_zh0, _zh1, _zh2, _zh3, _zh4, _zh5, _zh6])
+        d["ru"] = zusammen([_ru0, _ru1, _ru2, _ru3, _ru4, _ru5, _ru6])
+        d["id"] = zusammen([_id0, _id1, _id2, _id3, _id4, _id5, _id6])
+        d["nb"] = zusammen([_nb0, _nb1, _nb2, _nb3, _nb4, _nb5, _nb6])
         return d
     }()
 
@@ -159,12 +159,20 @@ enum LocTeam {
         "team.event.disclaimer": "Events veranstalten die Teams selbst. pumpfoil.org hat keinen Einfluss auf Events und darin gemachte Zusagen finanzieller oder anderer Art und übernimmt dafür keine Verantwortung. Der Rechtsweg ist ausgeschlossen. Zahlungen und alle anderen Absprachen regeln Veranstalter und Teilnehmer unabhängig von pumpfoil.org. Ebenso übernimmt pumpfoil.org keine Verantwortung dafür, dass gemessene Werte und Daten korrekt sind oder nicht manipuliert wurden. Angezeigt wird, was der öffentliche Quellcode auf GitHub aus den hochgeladenen Daten berechnet; weitere Zusagen gibt es nicht.",
         "team.event.ende": "Ende",
         "team.event.endetIn": "Endet in",
+        "team.event.endstand": "Endstand",
         "team.event.ergebnis": "Ergebnis",
         "team.event.gemessen": "Gemessen",
+        "team.event.global": "Global",
+        "team.event.globalHaken": "Globales Event – alle nehmen automatisch teil, ohne Beitritt",
+        "team.event.globalHinweis": "Alle nehmen automatisch teil – du musst dich nirgends anmelden.",
+        "team.event.globalOptOut": "Du kannst dich unter Einstellungen › Privatsphäre abmelden.",
         "team.event.keineAktuellen": "Gerade läuft kein Event, und in den nächsten drei Tagen beginnt auch keins.",
+        "team.event.keineGlobalen": "Gerade läuft kein globales Event, und in den nächsten drei Tagen beginnt auch keins.",
+        "team.event.keineTeams": "Noch kein Mitglied eines Teams in diesem Event.",
         "team.event.loeschenFrage": "Event „{titel}“ löschen?",
         "team.event.minuten": "Min.",
         "team.event.neu": "Event anlegen",
+        "team.event.neuLaden": "Aktualisieren",
         "team.event.nochNichts": "Die Bestenlisten erscheinen, sobald das Event läuft.",
         "team.event.ohneDateien": "Nur Aufnahmen von Uhr, App oder Kontoverknüpfung werten (keine von Hand hochgeladenen FIT-, GPX- oder TCX-Dateien)",
         "team.event.ohneDateienKurz": "Es zählen nur Aufnahmen von Uhr, App oder Kontoverknüpfung, keine hochgeladenen Dateien.",
@@ -173,6 +181,7 @@ enum LocTeam {
         "team.event.sekunden": "Sek.",
         "team.event.spots": "Spots",
         "team.event.stand": "Aktueller Stand",
+        "team.event.standUm": "Stand {zeit}",
         "team.event.start": "Beginn",
         "team.event.startIn": "Startet in",
         "team.event.status.auswertung": "Auswertung",
@@ -180,28 +189,33 @@ enum LocTeam {
         "team.event.status.kommend": "kommt",
         "team.event.status.laeuft": "läuft",
         "team.event.stunden": "Std.",
+    ]
+
+    private static let _de3: [String: String] = [
         "team.event.summen": "Event-Gesamtsummen",
         "team.event.summenHinweis": "Zusammengezählt über alle Teilnehmer. Anklicken, was auf der Event-Seite stehen soll.",
         "team.event.tag": "Tag",
         "team.event.tage": "Tage",
         "team.event.teamGesamt": "Event gesamt",
         "team.event.teambildZeigen": "Teambild zeigen, solange kein eigenes Eventbild hochgeladen ist",
+        "team.event.teams": "Teams",
         "team.event.teilen": "Teilen:",
         "team.event.teilnehmer": "Teilnehmer",
         "team.event.teilnehmer1": "Teilnehmer",
-    ]
-
-    private static let _de3: [String: String] = [
         "team.event.titel": "Titel",
         "team.event.uploadsBis": "Sessions aus dem Zeitraum können bis {bis} hochgeladen werden, dann steht das Ergebnis fest.",
         "team.event.vergangen": "Vergangene Events",
         "team.event.vorlage": "Vorlage",
+        "team.event.wertung": "Teamwertung",
+        "team.event.wertungAlle": "Summe aller Mitglieder",
+        "team.event.wertungBeste": "Summe der besten {n}",
         "team.eventbild.entfernen": "Eventbild entfernen",
         "team.eventbild.hinweis": "Breites Bild oben auf der Event-Seite, am besten 1600 × 500 px (mindestens 800 px breit).",
         "team.eventbild.hochladen": "Eventbild hochladen",
         "team.eventbild.titel": "Eventbild",
         "team.events": "Events",
-        "team.eventsAktuell": "Laufende & kommende Events",
+        "team.eventsGlobal": "Globale Events",
+        "team.eventsMeineTeams": "Events deiner Teams",
         "team.farbe": "Teamfarbe",
         "team.finden": "Team finden",
         "team.findenPlatzhalter": "Teamname suchen …",
@@ -223,6 +237,9 @@ enum LocTeam {
         "team.herkunft": "Land / Region",
         "team.join.anfrage": "Deine Anfrage geht an die Teamleitung, sie entscheidet.",
         "team.join.anfrageProfil": "Zur Prüfung sieht sie, an welchen Spots und in welchen Sportarten du bisher unterwegs warst (nur die Zahl der Sessions).",
+    ]
+
+    private static let _de4: [String: String] = [
         "team.join.anfragen": "Anfrage senden",
         "team.join.angefragt": "Anfrage gesendet.",
         "team.join.beitreten": "Beitreten",
@@ -237,9 +254,6 @@ enum LocTeam {
         "team.join.wartet": "Anfrage läuft",
         "team.k.best": "Bester Wert",
         "team.k.sum_distance": "On-Foil-Strecke gesamt",
-    ]
-
-    private static let _de4: [String: String] = [
         "team.k.sum_pumps": "Pumps gesamt",
         "team.k.sum_runs": "Läufe gesamt",
         "team.k.sum_sessions": "Sessions",
@@ -270,6 +284,10 @@ enum LocTeam {
         "team.meine": "Meine Teams",
         "team.mitglieder": "Mitglieder",
         "team.mitgliederAnzahl": "{n} Mitglieder",
+        "team.mitgliederAnzahl1": "1 Mitglied",
+    ]
+
+    private static let _de5: [String: String] = [
         "team.mitgliederSichtbar": "Wer sieht die Mitgliederliste?",
         "team.name": "Teamname",
         "team.nichtGefunden": "Dieses Team gibt es nicht, oder es ist nicht öffentlich.",
@@ -283,11 +301,9 @@ enum LocTeam {
         "team.qr": "QR-Code",
         "team.qrTeilen": "QR-Code teilen",
         "team.regeln.events.text": "Ein Event hat ein Zeitfenster und eigene Bestenlisten, auf Wunsch nur an bestimmten Spots.\nZusätzlich oder statt Bestenlisten kann ein Event Gesamtsummen über alle Teilnehmer zeigen, etwa die Pumps oder die Strecke des ganzen Teams. Jedes Event braucht mindestens eine Bestenliste oder eine Summe.\nEs zählen nur Sessions, die im Zeitfenster starten.\nDie Leitung kann je Event festlegen, dass von Hand hochgeladene Dateien (FIT, GPX, TCX) nicht zählen; Aufnahmen von Uhr, App und Kontoverknüpfungen zählen dann weiter.\nNach dem Ende kann man noch 24 Stunden hochladen, die Teamseite zeigt dann „Auswertung“. Danach ist das Ergebnis eingefroren, späteres Zuschneiden oder Löschen ändert nichts mehr.\nWer nach dem Ende austritt, bleibt im Ergebnis; wer danach beitritt, kommt nicht mehr hinein.\nEingefroren wird nachts und zusätzlich, sobald jemand die Teamseite aufruft.\nDie Zeiten gelten in der Zeitzone, in der das Event angelegt wurde, und werden für alle so angezeigt.\nPlatz 1 bis 3 bekommen ein Event-Abzeichen auf ihrer Foiler-Seite, aber nur bei Teams, deren Auftritt freigegeben ist.",
+        "team.regeln.intro": "So funktionieren Teams auf pumpfoil.org: wer was sieht, wie gewertet wird und was beim Löschen passiert.",
         "team.rolle.leiter": "Leitung",
         "team.rolle.mitglied": "Mitglied",
-    ]
-
-    private static let _de5: [String: String] = [
         "team.rolle.moderator": "Moderator",
         "team.rolleUebergeben": "Leitung übergeben",
         "team.sessions30": "Sessions in 30 Tagen",
@@ -317,7 +333,11 @@ enum LocTeam {
         "team.teilen": "Teilen",
         "team.uebergebenFrage": "Die Leitung an {name} übergeben? Du wirst dann Moderator.",
         "team.vergleich.ausFahrern": "aus {n} Fahrern",
-        "team.vergleich.hinweis": "Je Team zählt die Summe seiner besten {n} Fahrer. Pumpfoil, auch Läufe ohne Bewegungsdaten; nur Teams mit öffentlichen Bestenlisten.",
+    ]
+
+    private static let _de6: [String: String] = [
+        "team.vergleich.ausFahrern1": "aus 1 Fahrer",
+        "team.vergleich.hinweis": "Je Team zählt die Summe seiner besten {n} Fahrer. {sport}, auch Läufe ohne Bewegungsdaten; nur Teams mit öffentlichen Bestenlisten.",
         "team.vergleich.leer": "In diesem Zeitraum hat noch kein Team eine Session.",
         "team.vergleich.titel": "Team-Bestenlisten",
         "team.vergleich.top": "Beste {n}",
@@ -444,12 +464,20 @@ enum LocTeam {
         "team.event.disclaimer": "Events veranstalted d Teams sälber. pumpfoil.org het kei Iifluss uf Events und uf Zuesage, wo drin gmacht wärded, ob finanziell oder andersch, und übernimmt dafür kei Verantwortig. De Rächtswäg isch usgschlosse. Zahlige und alli andere Abmachige regled Veranstalter und Teilnähmer unabhängig vo pumpfoil.org. Gnau so übernimmt pumpfoil.org kei Verantwortig defür, dass gmässni Wärt und Date stimmed oder nöd manipuliert worde sind. Azeigt wird, was de öffentlich Quellcode uf GitHub us de ufeglade Date usrächnet; wiiteri Zuesage gits kei.",
         "team.event.ende": "Änd",
         "team.event.endetIn": "Hört uf in",
+        "team.event.endstand": "Schlussstand",
         "team.event.ergebnis": "Ergebnis",
         "team.event.gemessen": "Gmässe",
+        "team.event.global": "Global",
+        "team.event.globalHaken": "Globals Event – alli mached automatisch mit, ohni Biitritt",
+        "team.event.globalHinweis": "Alli mached automatisch mit – du muesch di niene aamälde.",
+        "team.event.globalOptOut": "Du chasch di under Iistellige › Privatsphäre abmälde.",
         "team.event.keineAktuellen": "Grad lauft kei Event, und i de nöchschte drei Täg fangt au keis aa.",
+        "team.event.keineGlobalen": "Grad lauft kei globals Event, und i de nöchschte drei Täg fangt au keis aa.",
+        "team.event.keineTeams": "No kei Mitglied vomne Team i dem Event.",
         "team.event.loeschenFrage": "Event „{titel}“ lösche?",
         "team.event.minuten": "Min.",
         "team.event.neu": "Event aalege",
+        "team.event.neuLaden": "Aktualisiere",
         "team.event.nochNichts": "D Bestelischte chömed, sobald s Event lauft.",
         "team.event.ohneDateien": "Nur Ufnahme vo Uhr, App oder Kontoverchnüpfig werte (kei vo Hand uegladeni FIT-, GPX- oder TCX-Dateie)",
         "team.event.ohneDateienKurz": "Es zelled nur Ufnahme vo Uhr, App oder Kontoverchnüpfig, kei uegladeni Dateie.",
@@ -458,6 +486,7 @@ enum LocTeam {
         "team.event.sekunden": "Sek.",
         "team.event.spots": "Spots",
         "team.event.stand": "Aktuelle Stand",
+        "team.event.standUm": "Stand {zeit}",
         "team.event.start": "Aafang",
         "team.event.startIn": "Startet in",
         "team.event.status.auswertung": "Uswärtig",
@@ -465,28 +494,33 @@ enum LocTeam {
         "team.event.status.kommend": "chunnt",
         "team.event.status.laeuft": "lauft",
         "team.event.stunden": "Std.",
+    ]
+
+    private static let _gsw3: [String: String] = [
         "team.event.summen": "Event-Gsamtsumme",
         "team.event.summenHinweis": "Zämezellt über alli Teilnähmer. Aaklicke, was uf de Event-Siite söll stoh.",
         "team.event.tag": "Tag",
         "team.event.tage": "Täg",
         "team.event.teamGesamt": "Event total",
         "team.event.teambildZeigen": "Teambild zeige, solang kei eigets Eventbild uegladet isch",
+        "team.event.teams": "Teams",
         "team.event.teilen": "Teile:",
         "team.event.teilnehmer": "Teilnähmer",
         "team.event.teilnehmer1": "Teilnähmer",
-    ]
-
-    private static let _gsw3: [String: String] = [
         "team.event.titel": "Titel",
         "team.event.uploadsBis": "Sessions us em Ziitruum chönd bis {bis} uegladet werde, denn staht s Ergebnis fescht.",
         "team.event.vergangen": "Vergangeni Events",
         "team.event.vorlage": "Vorlag",
+        "team.event.wertung": "Teamwärtig",
+        "team.event.wertungAlle": "Summe vo allne Mitglieder",
+        "team.event.wertungBeste": "Summe vo de beschte {n}",
         "team.eventbild.entfernen": "Eventbild useneh",
         "team.eventbild.hinweis": "Breits Bild obe uf de Event-Siite, am beschte 1600 × 500 px (mindeschtens 800 px breit).",
         "team.eventbild.hochladen": "Eventbild ufelade",
         "team.eventbild.titel": "Eventbild",
         "team.events": "Events",
-        "team.eventsAktuell": "Laufendi & chömendi Events",
+        "team.eventsGlobal": "Globali Events",
+        "team.eventsMeineTeams": "Events vo dine Teams",
         "team.farbe": "Teamfarb",
         "team.finden": "Team finde",
         "team.findenPlatzhalter": "Teamname sueche …",
@@ -508,6 +542,9 @@ enum LocTeam {
         "team.herkunft": "Land / Region",
         "team.join.anfrage": "Dini Aafrog gaht a d Teamleitig, die entscheidet.",
         "team.join.anfrageProfil": "Zum Prüefe gseht si, a wele Spots und i wele Sportarte du bis jetzt unterwägs gsi bisch (nur d Zahl vo de Sessions).",
+    ]
+
+    private static let _gsw4: [String: String] = [
         "team.join.anfragen": "Aafrog schicke",
         "team.join.angefragt": "Aafrog gschickt.",
         "team.join.beitreten": "Biitrete",
@@ -522,9 +559,6 @@ enum LocTeam {
         "team.join.wartet": "Aafrog lauft",
         "team.k.best": "Beschte Wert",
         "team.k.sum_distance": "On-Foil-Strecki total",
-    ]
-
-    private static let _gsw4: [String: String] = [
         "team.k.sum_pumps": "Pumps total",
         "team.k.sum_runs": "Läuf total",
         "team.k.sum_sessions": "Sessions",
@@ -555,6 +589,10 @@ enum LocTeam {
         "team.meine": "Mini Teams",
         "team.mitglieder": "Mitglieder",
         "team.mitgliederAnzahl": "{n} Mitglieder",
+        "team.mitgliederAnzahl1": "1 Mitglied",
+    ]
+
+    private static let _gsw5: [String: String] = [
         "team.mitgliederSichtbar": "Wer gseht d Mitgliederlischte?",
         "team.name": "Teamname",
         "team.nichtGefunden": "Das Team gits nöd, oder es isch nöd öffentlich.",
@@ -568,11 +606,9 @@ enum LocTeam {
         "team.qr": "QR-Code",
         "team.qrTeilen": "QR-Code teile",
         "team.regeln.events.text": "Es Event het es Ziitfänschter und eigeni Bestelischte, wenn mer will nume a bestimmte Spots.\nZuesätzlich oder statt Bestelischte cha en Event Gsamtsumme über alli Teilnähmer zeige, öppe d Pumps oder d Strecki vom ganze Team. Jede Event bruucht mindestens e Bestelischte oder e Summe.\nEs zähled nume Sessions, wo im Ziitfänschter aafanged.\nD Leitig cha pro Event feschtlege, dass vo Hand uegladeni Dateie (FIT, GPX, TCX) nöd zelled; Ufnahme vo Uhr, App und Kontoverchnüpfige zelled denn wiiter.\nNach em Änd cha mer no 24 Stund uelade, d Teamsiite zeigt denn „Uswärtig“. Drnoch isch s Resultat iigfrore, spöters Zueschniide oder Lösche ändered nüt meh.\nWer nach em Änd ustritt, blibt im Ergebnis; wer dänn biitritt, chunnt nüme drii.\nIigfrore wird znacht und zuesätzlich, sobald öpper d Teamsiite uftuet.\nD Ziite gälted i de Ziitzone, i dere s Event aagleit worde isch, und werded für alli so aazeigt.\nPlatz 1 bis 3 überchömed es Event-Abzeiche uf ihrere Foiler-Siite, aber nume bi Teams, wo de Uftritt freigä isch.",
+        "team.regeln.intro": "So funktioniered Teams uf pumpfoil.org: wer was gseht, wie gwertet wird und was bim Lösche passiert.",
         "team.rolle.leiter": "Leitig",
         "team.rolle.mitglied": "Mitglied",
-    ]
-
-    private static let _gsw5: [String: String] = [
         "team.rolle.moderator": "Moderator",
         "team.rolleUebergeben": "Leitig übergä",
         "team.sessions30": "Sessions i 30 Täg",
@@ -602,7 +638,11 @@ enum LocTeam {
         "team.teilen": "Teile",
         "team.uebergebenFrage": "D Leitig a {name} übergä? Du wirsch denn Moderator.",
         "team.vergleich.ausFahrern": "us {n} Fahrer",
-        "team.vergleich.hinweis": "Pro Team zellt d Summe vo sine beschte {n} Fahrer. Pumpfoil, au Läuf ohni Bewegigsdate; nur Teams mit öffentliche Bestelischte.",
+    ]
+
+    private static let _gsw6: [String: String] = [
+        "team.vergleich.ausFahrern1": "us 1 Fahrer",
+        "team.vergleich.hinweis": "Pro Team zellt d Summe vo sine beschte {n} Fahrer. {sport}, au Läuf ohni Bewegigsdate; nur Teams mit öffentliche Bestelischte.",
         "team.vergleich.leer": "I däm Ziitruum het no kes Team e Session.",
         "team.vergleich.titel": "Team-Bestelischte",
         "team.vergleich.top": "Beschti {n}",
@@ -729,12 +769,20 @@ enum LocTeam {
         "team.event.disclaimer": "Events veranstalten die Teams selbst. pumpfoil.org hat keinen Einfluss auf Events und darin gemachte Zusagen finanzieller oder anderer Art und übernimmt dafür keine Verantwortung. Der Rechtsweg ist ausgeschlossen. Zahlungen und alle anderen Absprachen regeln Veranstalter und Teilnehmer unabhängig von pumpfoil.org. Ebenso übernimmt pumpfoil.org keine Verantwortung dafür, dass gemessene Werte und Daten korrekt sind oder nicht manipuliert wurden. Angezeigt wird, was der öffentliche Quellcode auf GitHub aus den hochgeladenen Daten berechnet; weitere Zusagen gibt es nicht.",
         "team.event.ende": "Ende",
         "team.event.endetIn": "Endet in",
+        "team.event.endstand": "Endstand",
         "team.event.ergebnis": "Ergebnis",
         "team.event.gemessen": "Gemessen",
+        "team.event.global": "Global",
+        "team.event.globalHaken": "Globales Event – alle nehmen automatisch teil, ohne Beitritt",
+        "team.event.globalHinweis": "Alle nehmen automatisch teil – du musst di nirgends anmelden.",
+        "team.event.globalOptOut": "Du kannst dich unter Einstellungen › Privatsphäre abmelden.",
         "team.event.keineAktuellen": "Gerade läuft kein Event, und in den nächsten drei Tagen beginnt auch keins.",
+        "team.event.keineGlobalen": "Grad läuft ka globales Event, und in den nächsten drei Tagen fangt a kans an.",
+        "team.event.keineTeams": "Noch ka Mitglied von an Team in dem Event.",
         "team.event.loeschenFrage": "Event „{titel}“ löschen?",
         "team.event.minuten": "Min.",
         "team.event.neu": "Event anlegen",
+        "team.event.neuLaden": "Aktualisieren",
         "team.event.nochNichts": "Die Bestenlisten tauchen auf, sobald das Event läuft.",
         "team.event.ohneDateien": "Nur Aufnahmen von Uhr, App oder Kontoverknüpfung werten (keine von Hand hochgeladenen FIT-, GPX- oder TCX-Dateien)",
         "team.event.ohneDateienKurz": "Es zählen nur Aufnahmen von Uhr, App oder Kontoverknüpfung, keine hochgeladenen Dateien.",
@@ -743,6 +791,7 @@ enum LocTeam {
         "team.event.sekunden": "Sek.",
         "team.event.spots": "Spots",
         "team.event.stand": "Aktueller Stand",
+        "team.event.standUm": "Stand {zeit}",
         "team.event.start": "Anfang",
         "team.event.startIn": "Startet in",
         "team.event.status.auswertung": "Auswertung",
@@ -750,28 +799,33 @@ enum LocTeam {
         "team.event.status.kommend": "kommt",
         "team.event.status.laeuft": "rennt",
         "team.event.stunden": "Std.",
+    ]
+
+    private static let _de_AT3: [String: String] = [
         "team.event.summen": "Event-Gesamtsummen",
         "team.event.summenHinweis": "Zusammengezählt über alle Teilnehmer. Anklicken, was auf der Event-Seite stehen soll.",
         "team.event.tag": "Tag",
         "team.event.tage": "Tage",
         "team.event.teamGesamt": "Event gesamt",
         "team.event.teambildZeigen": "Teambild zeigen, solange kein eigenes Eventbild hochgeladen ist",
+        "team.event.teams": "Teams",
         "team.event.teilen": "Teilen:",
         "team.event.teilnehmer": "Teilnehmer",
         "team.event.teilnehmer1": "Teilnehmer",
-    ]
-
-    private static let _de_AT3: [String: String] = [
         "team.event.titel": "Titel",
         "team.event.uploadsBis": "Sessions aus dem Zeitraum können bis {bis} hochgeladen werden, dann steht das Ergebnis fest.",
         "team.event.vergangen": "Vergangene Events",
         "team.event.vorlage": "Vorlage",
+        "team.event.wertung": "Teamwertung",
+        "team.event.wertungAlle": "Summe aller Mitglieder",
+        "team.event.wertungBeste": "Summe der besten {n}",
         "team.eventbild.entfernen": "Eventbild entfernen",
         "team.eventbild.hinweis": "Breites Bild oben auf der Event-Seite, am besten 1600 × 500 px (mindestens 800 px breit).",
         "team.eventbild.hochladen": "Eventbild hochladen",
         "team.eventbild.titel": "Eventbild",
         "team.events": "Events",
-        "team.eventsAktuell": "Laufende & kommende Events",
+        "team.eventsGlobal": "Globale Events",
+        "team.eventsMeineTeams": "Events deiner Teams",
         "team.farbe": "Teamfarb",
         "team.finden": "Team finden",
         "team.findenPlatzhalter": "Teamname suchen …",
@@ -793,6 +847,9 @@ enum LocTeam {
         "team.herkunft": "Land / Region",
         "team.join.anfrage": "Deine Anfrage geht an die Teamleitung, die entscheidet.",
         "team.join.anfrageProfil": "Zum Prüfen sieht sie, an welchen Spots und in welchen Sportarten du bisher unterwegs warst (nur die Zahl der Sessions).",
+    ]
+
+    private static let _de_AT4: [String: String] = [
         "team.join.anfragen": "Anfrage schicken",
         "team.join.angefragt": "Anfrage g'schickt.",
         "team.join.beitreten": "Beitreten",
@@ -807,9 +864,6 @@ enum LocTeam {
         "team.join.wartet": "Anfrage läuft",
         "team.k.best": "Bester Wert",
         "team.k.sum_distance": "On-Foil-Strecke insgesamt",
-    ]
-
-    private static let _de_AT4: [String: String] = [
         "team.k.sum_pumps": "Pumps insgesamt",
         "team.k.sum_runs": "Läufe insgesamt",
         "team.k.sum_sessions": "Sessions",
@@ -840,6 +894,10 @@ enum LocTeam {
         "team.meine": "Meine Teams",
         "team.mitglieder": "Mitglieder",
         "team.mitgliederAnzahl": "{n} Mitglieder",
+        "team.mitgliederAnzahl1": "1 Mitglied",
+    ]
+
+    private static let _de_AT5: [String: String] = [
         "team.mitgliederSichtbar": "Wer sieht die Mitgliederliste?",
         "team.name": "Teamnam",
         "team.nichtGefunden": "Des Team gibt's ned, oder es is ned öffentlich.",
@@ -853,11 +911,9 @@ enum LocTeam {
         "team.qr": "QR-Code",
         "team.qrTeilen": "QR-Code teilen",
         "team.regeln.events.text": "A Event hat a Zeitfenster und eigene Bestenlisten, wenn ma will nur an bestimmten Spots.\nZusätzlich oder statt Bestenlisten kann ein Event Gesamtsummen über alle Teilnehmer zeigen, etwa die Pumps oder die Strecke des ganzen Teams. Jedes Event braucht mindestens eine Bestenliste oder eine Summe.\nEs zählen nur Sessions, die im Zeitfenster anfangen.\nDie Leitung kann je Event festlegen, dass von Hand hochgeladene Dateien (FIT, GPX, TCX) nicht zählen; Aufnahmen von Uhr, App und Kontoverknüpfungen zählen dann weiter.\nNachm Ende kann ma no 24 Stunden raufladen, die Teamseite zeigt dann „Auswertung“. Danach is des Ergebnis eing'froren, späteres Zuschneiden oder Löschen ändert nix mehr.\nWer nach dem Ende austritt, bleibt im Ergebnis; wer danach beitritt, kommt nicht mehr hinein.\nEing'froren wird in der Nacht und zusätzlich, sobald wer die Teamseite aufmacht.\nDie Zeiten gelten in der Zeitzone, in der des Event ang'legt worden is, und werden für alle so anzeigt.\nPlatz 1 bis 3 kriegen a Event-Abzeichen auf ihrer Foiler-Seite, aber nur bei Teams, deren Auftritt freigeben is.",
+        "team.regeln.intro": "So funktionieren Teams auf pumpfoil.org: wer was sieht, wie g'wertet wird und was beim Löschen passiert.",
         "team.rolle.leiter": "Leitung",
         "team.rolle.mitglied": "Mitglied",
-    ]
-
-    private static let _de_AT5: [String: String] = [
         "team.rolle.moderator": "Moderator",
         "team.rolleUebergeben": "Leitung übergeben",
         "team.sessions30": "Sessions in 30 Tagen",
@@ -887,7 +943,11 @@ enum LocTeam {
         "team.teilen": "Teilen",
         "team.uebergebenFrage": "Die Leitung an {name} übergeben? Du wirst dann Moderator.",
         "team.vergleich.ausFahrern": "aus {n} Fahrern",
-        "team.vergleich.hinweis": "Je Team zählt die Summe seiner besten {n} Fahrer. Pumpfoil, auch Läufe ohne Bewegungsdaten; nur Teams mit öffentlichen Bestenlisten.",
+    ]
+
+    private static let _de_AT6: [String: String] = [
+        "team.vergleich.ausFahrern1": "aus 1 Fahrer",
+        "team.vergleich.hinweis": "Je Team zählt die Summe seiner besten {n} Fahrer. {sport}, auch Läufe ohne Bewegungsdaten; nur Teams mit öffentlichen Bestenlisten.",
         "team.vergleich.leer": "In dem Zeitraum hat no ka Team a Session.",
         "team.vergleich.titel": "Team-Bestenlisten",
         "team.vergleich.top": "Beste {n}",
@@ -1014,12 +1074,20 @@ enum LocTeam {
         "team.event.disclaimer": "Events are run by the teams themselves. pumpfoil.org has no influence on events or on any promises made in them, financial or otherwise, and accepts no responsibility for them. Recourse to the courts is excluded. Payments and all other arrangements are settled between organisers and participants, independently of pumpfoil.org. Likewise, pumpfoil.org accepts no responsibility for whether measured values and data are correct or have been manipulated. What is shown is what the public source code on GitHub calculates from the uploaded data; there are no further promises.",
         "team.event.ende": "End",
         "team.event.endetIn": "Ends in",
+        "team.event.endstand": "Final standings",
         "team.event.ergebnis": "Results",
         "team.event.gemessen": "Measured",
+        "team.event.global": "Global",
+        "team.event.globalHaken": "Global event – everyone takes part automatically, no joining",
+        "team.event.globalHinweis": "Everyone takes part automatically – you don't need to sign up anywhere.",
+        "team.event.globalOptOut": "You can opt out under Settings › Privacy.",
         "team.event.keineAktuellen": "No event is running right now, and none starts in the next three days.",
+        "team.event.keineGlobalen": "No global event is running right now, and none starts in the next three days.",
+        "team.event.keineTeams": "No team member in this event yet.",
         "team.event.loeschenFrage": "Delete the event “{titel}”?",
         "team.event.minuten": "min",
         "team.event.neu": "Create event",
+        "team.event.neuLaden": "Refresh",
         "team.event.nochNichts": "The leaderboards appear once the event is running.",
         "team.event.ohneDateien": "Only count recordings from a watch, the app or a linked account (no manually uploaded FIT, GPX or TCX files)",
         "team.event.ohneDateienKurz": "Only recordings from a watch, the app or a linked account count, no uploaded files.",
@@ -1028,6 +1096,7 @@ enum LocTeam {
         "team.event.sekunden": "sec",
         "team.event.spots": "Spots",
         "team.event.stand": "Current standings",
+        "team.event.standUm": "As of {zeit}",
         "team.event.start": "Start",
         "team.event.startIn": "Starts in",
         "team.event.status.auswertung": "results pending",
@@ -1035,28 +1104,33 @@ enum LocTeam {
         "team.event.status.kommend": "upcoming",
         "team.event.status.laeuft": "live",
         "team.event.stunden": "hrs",
+    ]
+
+    private static let _en3: [String: String] = [
         "team.event.summen": "Event totals",
         "team.event.summenHinweis": "Added up across all participants. Tick what should appear on the event page.",
         "team.event.tag": "day",
         "team.event.tage": "days",
         "team.event.teamGesamt": "Event total",
         "team.event.teambildZeigen": "Show the team banner as long as no event banner is uploaded",
+        "team.event.teams": "Teams",
         "team.event.teilen": "Share:",
         "team.event.teilnehmer": "Participants",
         "team.event.teilnehmer1": "Participant",
-    ]
-
-    private static let _en3: [String: String] = [
         "team.event.titel": "Title",
         "team.event.uploadsBis": "Sessions from the window can be uploaded until {bis}, then the result is final.",
         "team.event.vergangen": "Past events",
         "team.event.vorlage": "Template",
+        "team.event.wertung": "Team ranking",
+        "team.event.wertungAlle": "Sum of all members",
+        "team.event.wertungBeste": "Sum of the best {n}",
         "team.eventbild.entfernen": "Remove event banner",
         "team.eventbild.hinweis": "Wide image at the top of the event page, ideally 1600 × 500 px (at least 800 px wide).",
         "team.eventbild.hochladen": "Upload event banner",
         "team.eventbild.titel": "Event banner",
         "team.events": "Events",
-        "team.eventsAktuell": "Current & upcoming events",
+        "team.eventsGlobal": "Global events",
+        "team.eventsMeineTeams": "Your teams' events",
         "team.farbe": "Team colour",
         "team.finden": "Find a team",
         "team.findenPlatzhalter": "Search team name …",
@@ -1078,6 +1152,9 @@ enum LocTeam {
         "team.herkunft": "Country / region",
         "team.join.anfrage": "Your request goes to the team lead, who decides.",
         "team.join.anfrageProfil": "To review it, they see which spots and sports you have been out on so far (only the number of sessions).",
+    ]
+
+    private static let _en4: [String: String] = [
         "team.join.anfragen": "Send request",
         "team.join.angefragt": "Request sent.",
         "team.join.beitreten": "Join",
@@ -1092,9 +1169,6 @@ enum LocTeam {
         "team.join.wartet": "Request pending",
         "team.k.best": "Best value",
         "team.k.sum_distance": "Total on-foil distance",
-    ]
-
-    private static let _en4: [String: String] = [
         "team.k.sum_pumps": "Total pumps",
         "team.k.sum_runs": "Total runs",
         "team.k.sum_sessions": "Sessions",
@@ -1125,6 +1199,10 @@ enum LocTeam {
         "team.meine": "My teams",
         "team.mitglieder": "Members",
         "team.mitgliederAnzahl": "{n} members",
+        "team.mitgliederAnzahl1": "1 member",
+    ]
+
+    private static let _en5: [String: String] = [
         "team.mitgliederSichtbar": "Who can see the member list?",
         "team.name": "Team name",
         "team.nichtGefunden": "This team doesn't exist or isn't public.",
@@ -1138,11 +1216,9 @@ enum LocTeam {
         "team.qr": "QR code",
         "team.qrTeilen": "Share QR code",
         "team.regeln.events.text": "An event has a time window and its own leaderboards, optionally only at certain spots.\nIn addition to or instead of leaderboards, an event can show totals across all participants, such as the whole team's pumps or distance. Every event needs at least one leaderboard or one total.\nOnly sessions that start within the window count.\nFor each event the team lead can decide that manually uploaded files (FIT, GPX, TCX) don't count; recordings from watches, the app and linked accounts still count.\nAfter the end you can still upload for 24 hours; the team page then shows “results pending”. After that the result is frozen, and later trimming or deleting no longer changes anything.\nAnyone who leaves after the end stays in the result; anyone who joins afterwards is not added.\nResults are frozen at night and also as soon as someone opens the team page.\nTimes are in the time zone the event was created in and are shown that way to everyone.\nPlaces 1 to 3 get an event badge on their foiler page, but only for teams whose appearance is approved.",
+        "team.regeln.intro": "How teams work on pumpfoil.org: who sees what, how things are scored, and what happens when something is deleted.",
         "team.rolle.leiter": "Lead",
         "team.rolle.mitglied": "Member",
-    ]
-
-    private static let _en5: [String: String] = [
         "team.rolle.moderator": "Moderator",
         "team.rolleUebergeben": "Hand over lead",
         "team.sessions30": "sessions in 30 days",
@@ -1172,7 +1248,11 @@ enum LocTeam {
         "team.teilen": "Share",
         "team.uebergebenFrage": "Hand the lead over to {name}? You'll become a moderator.",
         "team.vergleich.ausFahrern": "from {n} riders",
-        "team.vergleich.hinweis": "Each team counts the sum of its best {n} riders. Pumpfoil, including runs without motion data; only teams with public leaderboards.",
+    ]
+
+    private static let _en6: [String: String] = [
+        "team.vergleich.ausFahrern1": "from 1 rider",
+        "team.vergleich.hinweis": "Each team counts the sum of its best {n} riders. {sport}, including runs without motion data; only teams with public leaderboards.",
         "team.vergleich.leer": "No team has a session in this period yet.",
         "team.vergleich.titel": "Team leaderboards",
         "team.vergleich.top": "Best {n}",
@@ -1299,12 +1379,20 @@ enum LocTeam {
         "team.event.disclaimer": "Les événements sont organisés par les équipes elles-mêmes. pumpfoil.org n'a aucune influence sur les événements ni sur les promesses qui y sont faites, financières ou autres, et décline toute responsabilité. Tout recours juridique est exclu. Les paiements et tous les autres accords se règlent entre organisateurs et participants, indépendamment de pumpfoil.org. De même, pumpfoil.org décline toute responsabilité quant à l'exactitude des valeurs et données mesurées ou à leur éventuelle manipulation. Ce qui s'affiche est ce que le code source public sur GitHub calcule à partir des données envoyées ; il n'y a aucune autre garantie.",
         "team.event.ende": "Fin",
         "team.event.endetIn": "Se termine dans",
+        "team.event.endstand": "Classement final",
         "team.event.ergebnis": "Résultats",
         "team.event.gemessen": "Mesuré",
+        "team.event.global": "Global",
+        "team.event.globalHaken": "Événement global – tout le monde participe automatiquement, sans inscription",
+        "team.event.globalHinweis": "Tout le monde participe automatiquement – tu n'as besoin de t'inscrire nulle part.",
+        "team.event.globalOptOut": "Tu peux te désinscrire dans Réglages › Confidentialité.",
         "team.event.keineAktuellen": "Aucun événement en cours, et aucun ne commence dans les trois prochains jours.",
+        "team.event.keineGlobalen": "Aucun événement global en cours, et aucun ne commence dans les trois prochains jours.",
+        "team.event.keineTeams": "Aucun membre d'équipe dans cet événement pour l'instant.",
         "team.event.loeschenFrage": "Supprimer l'événement « {titel} » ?",
         "team.event.minuten": "min",
         "team.event.neu": "Créer un événement",
+        "team.event.neuLaden": "Actualiser",
         "team.event.nochNichts": "Les classements apparaissent dès que l'événement a commencé.",
         "team.event.ohneDateien": "Ne compter que les enregistrements de montre, de l'app ou d'un compte lié (pas de fichiers FIT, GPX ou TCX importés à la main)",
         "team.event.ohneDateienKurz": "Seuls comptent les enregistrements de montre, de l'app ou d'un compte lié, pas les fichiers importés.",
@@ -1313,6 +1401,7 @@ enum LocTeam {
         "team.event.sekunden": "s",
         "team.event.spots": "Spots",
         "team.event.stand": "Classement actuel",
+        "team.event.standUm": "État à {zeit}",
         "team.event.start": "Début",
         "team.event.startIn": "Commence dans",
         "team.event.status.auswertung": "résultats en attente",
@@ -1320,28 +1409,33 @@ enum LocTeam {
         "team.event.status.kommend": "à venir",
         "team.event.status.laeuft": "en cours",
         "team.event.stunden": "h",
+    ]
+
+    private static let _fr3: [String: String] = [
         "team.event.summen": "Totaux de l'événement",
         "team.event.summenHinweis": "Additionnés sur tous les participants. Coche ce qui doit apparaître sur la page de l'événement.",
         "team.event.tag": "jour",
         "team.event.tage": "jours",
         "team.event.teamGesamt": "Total de l'événement",
         "team.event.teambildZeigen": "Afficher la bannière de l'équipe tant qu'aucune bannière d'événement n'est importée",
+        "team.event.teams": "Équipes",
         "team.event.teilen": "Partager :",
         "team.event.teilnehmer": "Participants",
         "team.event.teilnehmer1": "Participant",
-    ]
-
-    private static let _fr3: [String: String] = [
         "team.event.titel": "Titre",
         "team.event.uploadsBis": "Les sessions de la période peuvent être importées jusqu'au {bis}, ensuite le résultat est définitif.",
         "team.event.vergangen": "Événements passés",
         "team.event.vorlage": "Modèle",
+        "team.event.wertung": "Classement des équipes",
+        "team.event.wertungAlle": "Somme de tous les membres",
+        "team.event.wertungBeste": "Somme des {n} meilleurs",
         "team.eventbild.entfernen": "Retirer la bannière",
         "team.eventbild.hinweis": "Image large en haut de la page de l'événement, idéalement 1600 × 500 px (au moins 800 px de large).",
         "team.eventbild.hochladen": "Importer la bannière",
         "team.eventbild.titel": "Bannière de l'événement",
         "team.events": "Événements",
-        "team.eventsAktuell": "Événements en cours et à venir",
+        "team.eventsGlobal": "Événements globaux",
+        "team.eventsMeineTeams": "Événements de tes équipes",
         "team.farbe": "Couleur de l'équipe",
         "team.finden": "Trouver une équipe",
         "team.findenPlatzhalter": "Chercher une équipe …",
@@ -1363,6 +1457,9 @@ enum LocTeam {
         "team.herkunft": "Pays / région",
         "team.join.anfrage": "Ta demande est envoyée au responsable de l'équipe, qui décide.",
         "team.join.anfrageProfil": "Pour l'examiner, elle voit sur quels spots et dans quels sports tu as été actif jusqu'ici (seulement le nombre de sessions).",
+    ]
+
+    private static let _fr4: [String: String] = [
         "team.join.anfragen": "Envoyer la demande",
         "team.join.angefragt": "Demande envoyée.",
         "team.join.beitreten": "Rejoindre",
@@ -1377,9 +1474,6 @@ enum LocTeam {
         "team.join.wartet": "Demande en cours",
         "team.k.best": "Meilleure valeur",
         "team.k.sum_distance": "Distance on-foil totale",
-    ]
-
-    private static let _fr4: [String: String] = [
         "team.k.sum_pumps": "Pumps au total",
         "team.k.sum_runs": "Runs au total",
         "team.k.sum_sessions": "Sessions",
@@ -1410,6 +1504,10 @@ enum LocTeam {
         "team.meine": "Mes équipes",
         "team.mitglieder": "Membres",
         "team.mitgliederAnzahl": "{n} membres",
+        "team.mitgliederAnzahl1": "1 membre",
+    ]
+
+    private static let _fr5: [String: String] = [
         "team.mitgliederSichtbar": "Qui voit la liste des membres ?",
         "team.name": "Nom de l'équipe",
         "team.nichtGefunden": "Cette équipe n'existe pas ou n'est pas publique.",
@@ -1423,11 +1521,9 @@ enum LocTeam {
         "team.qr": "QR code",
         "team.qrTeilen": "Partager le QR code",
         "team.regeln.events.text": "Un événement a une fenêtre de temps et ses propres classements, si on le souhaite uniquement sur certains spots.\nEn plus des classements, ou à leur place, un événement peut afficher des totaux sur tous les participants, par exemple les pumps ou la distance de toute l'équipe. Chaque événement a besoin d'au moins un classement ou un total.\nSeules les sessions qui commencent dans la fenêtre comptent.\nPour chaque événement, les responsables peuvent décider que les fichiers importés à la main (FIT, GPX, TCX) ne comptent pas ; les enregistrements de montres, de l'app et des comptes liés comptent toujours.\nAprès la fin, on peut encore envoyer des sessions pendant 24 heures ; la page de l'équipe affiche alors « résultats en attente ». Ensuite le résultat est figé, et un découpage ou une suppression ultérieurs ne changent plus rien.\nQui quitte l'équipe après la fin reste dans le résultat ; qui la rejoint ensuite n'y est plus ajouté.\nLes résultats sont figés la nuit, et aussi dès que quelqu'un ouvre la page de l'équipe.\nLes heures sont celles du fuseau horaire dans lequel l'événement a été créé et s'affichent ainsi pour tout le monde.\nLes places 1 à 3 reçoivent un badge d'événement sur leur page foiler, mais seulement pour les équipes dont l'apparence est validée.",
+        "team.regeln.intro": "Comment fonctionnent les équipes sur pumpfoil.org : qui voit quoi, comment on est classé et ce qui se passe lors d'une suppression.",
         "team.rolle.leiter": "Responsable",
         "team.rolle.mitglied": "Membre",
-    ]
-
-    private static let _fr5: [String: String] = [
         "team.rolle.moderator": "Modérateur",
         "team.rolleUebergeben": "Transmettre la responsabilité",
         "team.sessions30": "sessions en 30 jours",
@@ -1457,7 +1553,11 @@ enum LocTeam {
         "team.teilen": "Partager",
         "team.uebergebenFrage": "Transmettre la responsabilité à {name} ? Tu deviendras modérateur.",
         "team.vergleich.ausFahrern": "sur {n} riders",
-        "team.vergleich.hinweis": "Chaque équipe compte la somme de ses {n} meilleurs riders. Pumpfoil, y compris les sorties sans données de mouvement ; seulement les équipes aux classements publics.",
+    ]
+
+    private static let _fr6: [String: String] = [
+        "team.vergleich.ausFahrern1": "sur 1 rider",
+        "team.vergleich.hinweis": "Chaque équipe compte la somme de ses {n} meilleurs riders. {sport}, y compris les sorties sans données de mouvement ; seulement les équipes aux classements publics.",
         "team.vergleich.leer": "Aucune équipe n'a encore de session sur cette période.",
         "team.vergleich.titel": "Classements des équipes",
         "team.vergleich.top": "{n} meilleurs",
@@ -1584,12 +1684,20 @@ enum LocTeam {
         "team.event.disclaimer": "Gli eventi sono organizzati dai team stessi. pumpfoil.org non ha alcuna influenza sugli eventi né sulle promesse fatte al loro interno, economiche o di altro tipo, e non se ne assume alcuna responsabilità. È escluso il ricorso alle vie legali. Pagamenti e ogni altro accordo si regolano tra organizzatori e partecipanti, indipendentemente da pumpfoil.org. Allo stesso modo, pumpfoil.org non si assume alcuna responsabilità sulla correttezza dei valori e dei dati misurati o sulla loro eventuale manipolazione. Viene mostrato ciò che il codice sorgente pubblico su GitHub calcola dai dati caricati; non ci sono altre garanzie.",
         "team.event.ende": "Fine",
         "team.event.endetIn": "Termina tra",
+        "team.event.endstand": "Classifica finale",
         "team.event.ergebnis": "Risultati",
         "team.event.gemessen": "Misurato",
+        "team.event.global": "Globale",
+        "team.event.globalHaken": "Evento globale – partecipano tutti automaticamente, senza iscrizione",
+        "team.event.globalHinweis": "Partecipano tutti automaticamente – non devi iscriverti da nessuna parte.",
+        "team.event.globalOptOut": "Puoi rinunciare in Impostazioni › Privacy.",
         "team.event.keineAktuellen": "Nessun evento in corso e nessuno inizia nei prossimi tre giorni.",
+        "team.event.keineGlobalen": "Al momento non c'è nessun evento globale e nessuno inizia nei prossimi tre giorni.",
+        "team.event.keineTeams": "Ancora nessun membro di un team in questo evento.",
         "team.event.loeschenFrage": "Eliminare l'evento «{titel}»?",
         "team.event.minuten": "min",
         "team.event.neu": "Crea evento",
+        "team.event.neuLaden": "Aggiorna",
         "team.event.nochNichts": "Le classifiche compaiono non appena l'evento è in corso.",
         "team.event.ohneDateien": "Conta solo registrazioni da orologio, app o account collegato (niente file FIT, GPX o TCX caricati a mano)",
         "team.event.ohneDateienKurz": "Contano solo registrazioni da orologio, app o account collegato, nessun file caricato.",
@@ -1598,6 +1706,7 @@ enum LocTeam {
         "team.event.sekunden": "sec",
         "team.event.spots": "Spot",
         "team.event.stand": "Classifica attuale",
+        "team.event.standUm": "Aggiornato alle {zeit}",
         "team.event.start": "Inizio",
         "team.event.startIn": "Inizia tra",
         "team.event.status.auswertung": "risultati in attesa",
@@ -1605,28 +1714,33 @@ enum LocTeam {
         "team.event.status.kommend": "in arrivo",
         "team.event.status.laeuft": "in corso",
         "team.event.stunden": "ore",
+    ]
+
+    private static let _it3: [String: String] = [
         "team.event.summen": "Totali dell'evento",
         "team.event.summenHinweis": "Sommati su tutti i partecipanti. Seleziona cosa mostrare nella pagina dell'evento.",
         "team.event.tag": "giorno",
         "team.event.tage": "giorni",
         "team.event.teamGesamt": "Totale evento",
         "team.event.teambildZeigen": "Mostra l'immagine del team finché non c'è un'immagine dell'evento",
+        "team.event.teams": "Team",
         "team.event.teilen": "Condividi:",
         "team.event.teilnehmer": "Partecipanti",
         "team.event.teilnehmer1": "Partecipante",
-    ]
-
-    private static let _it3: [String: String] = [
         "team.event.titel": "Titolo",
         "team.event.uploadsBis": "Le sessioni del periodo si possono caricare fino a {bis}, poi il risultato è definitivo.",
         "team.event.vergangen": "Eventi passati",
         "team.event.vorlage": "Modello",
+        "team.event.wertung": "Classifica a squadre",
+        "team.event.wertungAlle": "Somma di tutti i membri",
+        "team.event.wertungBeste": "Somma dei migliori {n}",
         "team.eventbild.entfernen": "Rimuovi immagine dell'evento",
         "team.eventbild.hinweis": "Immagine larga in cima alla pagina dell'evento, ideale 1600 × 500 px (almeno 800 px di larghezza).",
         "team.eventbild.hochladen": "Carica immagine dell'evento",
         "team.eventbild.titel": "Immagine dell'evento",
         "team.events": "Eventi",
-        "team.eventsAktuell": "Eventi in corso e in arrivo",
+        "team.eventsGlobal": "Eventi globali",
+        "team.eventsMeineTeams": "Eventi dei tuoi team",
         "team.farbe": "Colore del team",
         "team.finden": "Trova un team",
         "team.findenPlatzhalter": "Cerca il nome del team …",
@@ -1648,6 +1762,9 @@ enum LocTeam {
         "team.herkunft": "Paese / regione",
         "team.join.anfrage": "La tua richiesta va al responsabile del team, che decide.",
         "team.join.anfrageProfil": "Per valutarla, vede in quali spot e in quali sport sei stato finora (solo il numero di sessioni).",
+    ]
+
+    private static let _it4: [String: String] = [
         "team.join.anfragen": "Invia richiesta",
         "team.join.angefragt": "Richiesta inviata.",
         "team.join.beitreten": "Unisciti",
@@ -1662,9 +1779,6 @@ enum LocTeam {
         "team.join.wartet": "Richiesta in corso",
         "team.k.best": "Miglior valore",
         "team.k.sum_distance": "Distanza on-foil totale",
-    ]
-
-    private static let _it4: [String: String] = [
         "team.k.sum_pumps": "Pump totali",
         "team.k.sum_runs": "Run totali",
         "team.k.sum_sessions": "Sessioni",
@@ -1695,6 +1809,10 @@ enum LocTeam {
         "team.meine": "I miei team",
         "team.mitglieder": "Membri",
         "team.mitgliederAnzahl": "{n} membri",
+        "team.mitgliederAnzahl1": "1 membro",
+    ]
+
+    private static let _it5: [String: String] = [
         "team.mitgliederSichtbar": "Chi vede l'elenco dei membri?",
         "team.name": "Nome del team",
         "team.nichtGefunden": "Questo team non esiste o non è pubblico.",
@@ -1708,11 +1826,9 @@ enum LocTeam {
         "team.qr": "Codice QR",
         "team.qrTeilen": "Condividi codice QR",
         "team.regeln.events.text": "Un evento ha una finestra di tempo e classifiche proprie, se si vuole solo in certi spot.\nOltre alle classifiche, o al loro posto, un evento può mostrare totali su tutti i partecipanti, come i pump o la distanza dell'intero team. Ogni evento richiede almeno una classifica o un totale.\nContano solo le sessioni che iniziano nella finestra.\nPer ogni evento il responsabile può decidere che i file caricati a mano (FIT, GPX, TCX) non contino; le registrazioni da orologi, app e account collegati contano comunque.\nDopo la fine si può ancora caricare per 24 ore; la pagina del team mostra allora «risultati in attesa». Poi il risultato è congelato, e ritagli o eliminazioni successivi non cambiano più nulla.\nChi esce dopo la fine resta nel risultato; chi entra dopo non viene più aggiunto.\nI risultati vengono congelati di notte e inoltre appena qualcuno apre la pagina del team.\nGli orari valgono nel fuso orario in cui è stato creato l'evento e vengono mostrati così a tutti.\nI posti da 1 a 3 ricevono un badge dell'evento sulla loro pagina foiler, ma solo nei team il cui aspetto è approvato.",
+        "team.regeln.intro": "Come funzionano i team su pumpfoil.org: chi vede cosa, come si viene classificati e cosa succede quando qualcosa viene eliminato.",
         "team.rolle.leiter": "Responsabile",
         "team.rolle.mitglied": "Membro",
-    ]
-
-    private static let _it5: [String: String] = [
         "team.rolle.moderator": "Moderatore",
         "team.rolleUebergeben": "Cedi la guida",
         "team.sessions30": "sessioni in 30 giorni",
@@ -1742,7 +1858,11 @@ enum LocTeam {
         "team.teilen": "Condividi",
         "team.uebergebenFrage": "Cedere la guida a {name}? Diventerai moderatore.",
         "team.vergleich.ausFahrern": "da {n} rider",
-        "team.vergleich.hinweis": "Ogni squadra conta la somma dei suoi {n} migliori rider. Pumpfoil, anche uscite senza dati di movimento; solo squadre con classifiche pubbliche.",
+    ]
+
+    private static let _it6: [String: String] = [
+        "team.vergleich.ausFahrern1": "da 1 rider",
+        "team.vergleich.hinweis": "Ogni squadra conta la somma dei suoi {n} migliori rider. {sport}, anche uscite senza dati di movimento; solo squadre con classifiche pubbliche.",
         "team.vergleich.leer": "Nessuna squadra ha ancora una sessione in questo periodo.",
         "team.vergleich.titel": "Classifiche delle squadre",
         "team.vergleich.top": "Migliori {n}",
@@ -1869,12 +1989,20 @@ enum LocTeam {
         "team.event.disclaimer": "Los eventos los organizan los propios equipos. pumpfoil.org no tiene ninguna influencia sobre los eventos ni sobre las promesas que se hagan en ellos, económicas o de otro tipo, y no asume ninguna responsabilidad. Queda excluida la vía judicial. Los pagos y cualquier otro acuerdo los resuelven organizadores y participantes, independientemente de pumpfoil.org. Del mismo modo, pumpfoil.org no asume ninguna responsabilidad sobre si los valores y datos medidos son correctos o han sido manipulados. Se muestra lo que el código fuente público en GitHub calcula a partir de los datos subidos; no hay más promesas.",
         "team.event.ende": "Fin",
         "team.event.endetIn": "Termina en",
+        "team.event.endstand": "Clasificación final",
         "team.event.ergebnis": "Resultados",
         "team.event.gemessen": "Se mide",
+        "team.event.global": "Global",
+        "team.event.globalHaken": "Evento global – todos participan automáticamente, sin inscribirse",
+        "team.event.globalHinweis": "Todos participan automáticamente – no tienes que inscribirte en ningún sitio.",
+        "team.event.globalOptOut": "Puedes darte de baja en Ajustes › Privacidad.",
         "team.event.keineAktuellen": "Ahora mismo no hay ningún evento en curso y ninguno empieza en los próximos tres días.",
+        "team.event.keineGlobalen": "Ahora no hay ningún evento global y ninguno empieza en los próximos tres días.",
+        "team.event.keineTeams": "Todavía no hay ningún miembro de un equipo en este evento.",
         "team.event.loeschenFrage": "¿Eliminar el evento «{titel}»?",
         "team.event.minuten": "min",
         "team.event.neu": "Crear evento",
+        "team.event.neuLaden": "Actualizar",
         "team.event.nochNichts": "Las clasificaciones aparecen en cuanto empieza el evento.",
         "team.event.ohneDateien": "Contar solo grabaciones del reloj, la app o una cuenta vinculada (sin archivos FIT, GPX o TCX subidos a mano)",
         "team.event.ohneDateienKurz": "Solo cuentan grabaciones del reloj, la app o una cuenta vinculada, no archivos subidos.",
@@ -1883,6 +2011,7 @@ enum LocTeam {
         "team.event.sekunden": "s",
         "team.event.spots": "Spots",
         "team.event.stand": "Clasificación actual",
+        "team.event.standUm": "Actualizado a las {zeit}",
         "team.event.start": "Inicio",
         "team.event.startIn": "Empieza en",
         "team.event.status.auswertung": "resultados pendientes",
@@ -1890,28 +2019,33 @@ enum LocTeam {
         "team.event.status.kommend": "próximo",
         "team.event.status.laeuft": "en curso",
         "team.event.stunden": "h",
+    ]
+
+    private static let _es3: [String: String] = [
         "team.event.summen": "Totales del evento",
         "team.event.summenHinweis": "Sumados entre todos los participantes. Marca lo que debe aparecer en la página del evento.",
         "team.event.tag": "día",
         "team.event.tage": "días",
         "team.event.teamGesamt": "Total del evento",
         "team.event.teambildZeigen": "Mostrar la imagen del equipo mientras no haya imagen propia del evento",
+        "team.event.teams": "Equipos",
         "team.event.teilen": "Compartir:",
         "team.event.teilnehmer": "Participantes",
         "team.event.teilnehmer1": "Participante",
-    ]
-
-    private static let _es3: [String: String] = [
         "team.event.titel": "Título",
         "team.event.uploadsBis": "Las sesiones del periodo se pueden subir hasta {bis}; después el resultado es definitivo.",
         "team.event.vergangen": "Eventos pasados",
         "team.event.vorlage": "Plantilla",
+        "team.event.wertung": "Clasificación por equipos",
+        "team.event.wertungAlle": "Suma de todos los miembros",
+        "team.event.wertungBeste": "Suma de los {n} mejores",
         "team.eventbild.entfernen": "Quitar imagen del evento",
         "team.eventbild.hinweis": "Imagen ancha arriba en la página del evento, idealmente 1600 × 500 px (al menos 800 px de ancho).",
         "team.eventbild.hochladen": "Subir imagen del evento",
         "team.eventbild.titel": "Imagen del evento",
         "team.events": "Eventos",
-        "team.eventsAktuell": "Eventos en curso y próximos",
+        "team.eventsGlobal": "Eventos globales",
+        "team.eventsMeineTeams": "Eventos de tus equipos",
         "team.farbe": "Color del equipo",
         "team.finden": "Buscar equipo",
         "team.findenPlatzhalter": "Buscar nombre del equipo …",
@@ -1933,6 +2067,9 @@ enum LocTeam {
         "team.herkunft": "País / región",
         "team.join.anfrage": "Tu solicitud llega al líder del equipo, que decide.",
         "team.join.anfrageProfil": "Para revisarla, ve en qué spots y deportes has estado hasta ahora (solo el número de sesiones).",
+    ]
+
+    private static let _es4: [String: String] = [
         "team.join.anfragen": "Enviar solicitud",
         "team.join.angefragt": "Solicitud enviada.",
         "team.join.beitreten": "Unirse",
@@ -1947,9 +2084,6 @@ enum LocTeam {
         "team.join.wartet": "Solicitud pendiente",
         "team.k.best": "Mejor valor",
         "team.k.sum_distance": "Distancia on-foil total",
-    ]
-
-    private static let _es4: [String: String] = [
         "team.k.sum_pumps": "Pumps en total",
         "team.k.sum_runs": "Runs en total",
         "team.k.sum_sessions": "Sesiones",
@@ -1980,6 +2114,10 @@ enum LocTeam {
         "team.meine": "Mis equipos",
         "team.mitglieder": "Miembros",
         "team.mitgliederAnzahl": "{n} miembros",
+        "team.mitgliederAnzahl1": "1 miembro",
+    ]
+
+    private static let _es5: [String: String] = [
         "team.mitgliederSichtbar": "¿Quién ve la lista de miembros?",
         "team.name": "Nombre del equipo",
         "team.nichtGefunden": "Este equipo no existe o no es público.",
@@ -1993,11 +2131,9 @@ enum LocTeam {
         "team.qr": "Código QR",
         "team.qrTeilen": "Compartir código QR",
         "team.regeln.events.text": "Un evento tiene una franja de tiempo y sus propias clasificaciones, si se quiere solo en ciertos spots.\nAdemás de las clasificaciones, o en su lugar, un evento puede mostrar totales de todos los participantes, como los pumps o la distancia de todo el equipo. Cada evento necesita al menos una clasificación o un total.\nSolo cuentan las sesiones que empiezan dentro de la franja.\nEn cada evento, el líder puede decidir que no cuenten los archivos subidos a mano (FIT, GPX, TCX); las grabaciones de relojes, la app y cuentas vinculadas siguen contando.\nTras el final aún se puede subir durante 24 horas; la página del equipo muestra entonces «resultados pendientes». Después el resultado queda congelado, y recortar o eliminar más tarde ya no cambia nada.\nQuien sale después del final sigue en el resultado; quien se une después ya no entra.\nLos resultados se congelan por la noche y además en cuanto alguien abre la página del equipo.\nLas horas valen en la zona horaria en la que se creó el evento y se muestran así a todos.\nLos puestos 1 a 3 reciben una insignia del evento en su página de foiler, pero solo en equipos cuya apariencia está aprobada.",
+        "team.regeln.intro": "Así funcionan los equipos en pumpfoil.org: quién ve qué, cómo se puntúa y qué pasa al eliminar algo.",
         "team.rolle.leiter": "Líder",
         "team.rolle.mitglied": "Miembro",
-    ]
-
-    private static let _es5: [String: String] = [
         "team.rolle.moderator": "Moderador",
         "team.rolleUebergeben": "Ceder el liderazgo",
         "team.sessions30": "sesiones en 30 días",
@@ -2027,7 +2163,11 @@ enum LocTeam {
         "team.teilen": "Compartir",
         "team.uebergebenFrage": "¿Ceder el liderazgo a {name}? Tú pasarás a ser moderador.",
         "team.vergleich.ausFahrern": "de {n} riders",
-        "team.vergleich.hinweis": "Cada equipo suma a sus {n} mejores riders. Pumpfoil, también tandas sin datos de movimiento; solo equipos con clasificaciones públicas.",
+    ]
+
+    private static let _es6: [String: String] = [
+        "team.vergleich.ausFahrern1": "de 1 rider",
+        "team.vergleich.hinweis": "Cada equipo suma a sus {n} mejores riders. {sport}, también tandas sin datos de movimiento; solo equipos con clasificaciones públicas.",
         "team.vergleich.leer": "Ningún equipo tiene aún una sesión en este periodo.",
         "team.vergleich.titel": "Clasificaciones de equipos",
         "team.vergleich.top": "Mejores {n}",
@@ -2154,12 +2294,20 @@ enum LocTeam {
         "team.event.disclaimer": "Tapahtumat järjestävät tiimit itse. pumpfoil.orgilla ei ole vaikutusvaltaa tapahtumiin eikä niissä annettuihin taloudellisiin tai muihin lupauksiin, eikä se ota niistä vastuuta. Oikeustie on suljettu pois. Maksut ja kaikki muut sopimukset järjestäjät ja osallistujat hoitavat keskenään, pumpfoil.orgista riippumatta. Samoin pumpfoil.org ei vastaa siitä, ovatko mitatut arvot ja tiedot oikeita tai onko niitä manipuloitu. Näytetään se, minkä GitHubissa oleva julkinen lähdekoodi laskee ladatuista tiedoista; muita lupauksia ei ole.",
         "team.event.ende": "Loppu",
         "team.event.endetIn": "Päättyy",
+        "team.event.endstand": "Lopputulokset",
         "team.event.ergebnis": "Tulokset",
         "team.event.gemessen": "Mitataan",
+        "team.event.global": "Globaali",
+        "team.event.globalHaken": "Globaali tapahtuma – kaikki osallistuvat automaattisesti, ilman liittymistä",
+        "team.event.globalHinweis": "Kaikki osallistuvat automaattisesti – sinun ei tarvitse ilmoittautua mihinkään.",
+        "team.event.globalOptOut": "Voit jättäytyä pois kohdassa Asetukset › Yksityisyys.",
         "team.event.keineAktuellen": "Yhtään tapahtumaa ei ole käynnissä, eikä mikään ala seuraavan kolmen päivän aikana.",
+        "team.event.keineGlobalen": "Yhtään globaalia tapahtumaa ei ole käynnissä, eikä yksikään ala seuraavan kolmen päivän aikana.",
+        "team.event.keineTeams": "Tapahtumassa ei ole vielä yhtään joukkueen jäsentä.",
         "team.event.loeschenFrage": "Poistetaanko tapahtuma ”{titel}”?",
         "team.event.minuten": "min",
         "team.event.neu": "Luo tapahtuma",
+        "team.event.neuLaden": "Päivitä",
         "team.event.nochNichts": "Tulostaulukot näkyvät, kun tapahtuma on käynnissä.",
         "team.event.ohneDateien": "Laske vain kellon, sovelluksen tai yhdistetyn tilin tallenteet (ei käsin ladattuja FIT-, GPX- tai TCX-tiedostoja)",
         "team.event.ohneDateienKurz": "Vain kellon, sovelluksen tai yhdistetyn tilin tallenteet lasketaan, ei ladattuja tiedostoja.",
@@ -2168,6 +2316,7 @@ enum LocTeam {
         "team.event.sekunden": "s",
         "team.event.spots": "Spotit",
         "team.event.stand": "Tilanne nyt",
+        "team.event.standUm": "Tilanne {zeit}",
         "team.event.start": "Alku",
         "team.event.startIn": "Alkaa",
         "team.event.status.auswertung": "tulokset tulossa",
@@ -2175,28 +2324,33 @@ enum LocTeam {
         "team.event.status.kommend": "tulossa",
         "team.event.status.laeuft": "käynnissä",
         "team.event.stunden": "t",
+    ]
+
+    private static let _fi3: [String: String] = [
         "team.event.summen": "Tapahtuman yhteissummat",
         "team.event.summenHinweis": "Laskettu yhteen kaikilta osallistujilta. Valitse, mitä tapahtuman sivulla näytetään.",
         "team.event.tag": "päivä",
         "team.event.tage": "päivää",
         "team.event.teamGesamt": "Tapahtuma yhteensä",
         "team.event.teambildZeigen": "Näytä tiimin banneri, kunnes tapahtumalle on ladattu oma banneri",
+        "team.event.teams": "Joukkueet",
         "team.event.teilen": "Jaa:",
         "team.event.teilnehmer": "Osallistujat",
         "team.event.teilnehmer1": "Osallistuja",
-    ]
-
-    private static let _fi3: [String: String] = [
         "team.event.titel": "Otsikko",
         "team.event.uploadsBis": "Ajanjakson sessiot voi ladata {bis} asti, sen jälkeen tulos on lopullinen.",
         "team.event.vergangen": "Menneet tapahtumat",
         "team.event.vorlage": "Pohja",
+        "team.event.wertung": "Joukkuetulokset",
+        "team.event.wertungAlle": "Kaikkien jäsenten summa",
+        "team.event.wertungBeste": "{n} parhaan summa",
         "team.eventbild.entfernen": "Poista tapahtuman banneri",
         "team.eventbild.hinweis": "Leveä kuva tapahtumasivun yläosassa, mieluiten 1600 × 500 px (vähintään 800 px leveä).",
         "team.eventbild.hochladen": "Lataa tapahtuman banneri",
         "team.eventbild.titel": "Tapahtuman banneri",
         "team.events": "Tapahtumat",
-        "team.eventsAktuell": "Käynnissä olevat ja tulevat tapahtumat",
+        "team.eventsGlobal": "Globaalit tapahtumat",
+        "team.eventsMeineTeams": "Joukkueidesi tapahtumat",
         "team.farbe": "Tiimin väri",
         "team.finden": "Etsi tiimi",
         "team.findenPlatzhalter": "Hae tiimin nimeä …",
@@ -2218,6 +2372,9 @@ enum LocTeam {
         "team.herkunft": "Maa / alue",
         "team.join.anfrage": "Pyyntösi menee tiimin vetäjälle, joka päättää.",
         "team.join.anfrageProfil": "Arviointia varten vetäjä näkee, millä spoteilla ja missä lajeissa olet tähän asti liikkunut (vain sessioiden määrän).",
+    ]
+
+    private static let _fi4: [String: String] = [
         "team.join.anfragen": "Lähetä pyyntö",
         "team.join.angefragt": "Pyyntö lähetetty.",
         "team.join.beitreten": "Liity",
@@ -2232,9 +2389,6 @@ enum LocTeam {
         "team.join.wartet": "Pyyntö odottaa",
         "team.k.best": "Paras tulos",
         "team.k.sum_distance": "Foil-matka yhteensä",
-    ]
-
-    private static let _fi4: [String: String] = [
         "team.k.sum_pumps": "Pumppauksia yhteensä",
         "team.k.sum_runs": "Lenkkejä yhteensä",
         "team.k.sum_sessions": "Sessiot",
@@ -2265,6 +2419,10 @@ enum LocTeam {
         "team.meine": "Omat tiimit",
         "team.mitglieder": "Jäsenet",
         "team.mitgliederAnzahl": "Jäseniä: {n}",
+        "team.mitgliederAnzahl1": "Jäseniä: 1",
+    ]
+
+    private static let _fi5: [String: String] = [
         "team.mitgliederSichtbar": "Kuka näkee jäsenluettelon?",
         "team.name": "Tiimin nimi",
         "team.nichtGefunden": "Tätä tiimiä ei ole, tai se ei ole julkinen.",
@@ -2278,11 +2436,9 @@ enum LocTeam {
         "team.qr": "QR-koodi",
         "team.qrTeilen": "Jaa QR-koodi",
         "team.regeln.events.text": "Tapahtumalla on aikaikkuna ja omat tulostaulukot, halutessa vain tietyillä spoteilla.\nTulostaulukoiden lisäksi tai sijaan tapahtuma voi näyttää kaikkien osallistujien yhteissummia, esimerkiksi koko tiimin pumppaukset tai matkan. Jokainen tapahtuma tarvitsee vähintään yhden tulostaulukon tai yhteissumman.\nMukaan lasketaan vain sessiot, jotka alkavat aikaikkunan sisällä.\nVetäjä voi päättää tapahtumakohtaisesti, ettei käsin ladattuja tiedostoja (FIT, GPX, TCX) lasketa; kellojen, sovelluksen ja yhdistettyjen tilien tallenteet lasketaan edelleen.\nLopun jälkeen voi vielä 24 tuntia ladata sessioita, ja tiimisivulla näkyy silloin ”tulokset tulossa”. Sen jälkeen tulos jäädytetään, eikä myöhempi rajaus tai poisto enää muuta mitään.\nLopun jälkeen eroava pysyy tuloksissa; myöhemmin liittyvä ei enää tule mukaan.\nJäädytys tehdään öisin ja lisäksi heti, kun joku avaa tiimisivun.\nAjat ovat sen aikavyöhykkeen mukaisia, jossa tapahtuma luotiin, ja ne näytetään kaikille samoin.\nSijat 1–3 saavat tapahtumamerkin foilaajasivulleen, mutta vain tiimeissä, joiden ulkoasu on hyväksytty.",
+        "team.regeln.intro": "Näin tiimit toimivat pumpfoil.orgissa: kuka näkee mitä, miten tulokset lasketaan ja mitä poistaessa tapahtuu.",
         "team.rolle.leiter": "Vetäjä",
         "team.rolle.mitglied": "Jäsen",
-    ]
-
-    private static let _fi5: [String: String] = [
         "team.rolle.moderator": "Moderaattori",
         "team.rolleUebergeben": "Luovuta vetovastuu",
         "team.sessions30": "sessiota 30 päivässä",
@@ -2312,7 +2468,11 @@ enum LocTeam {
         "team.teilen": "Jaa",
         "team.uebergebenFrage": "Luovutetaanko vetovastuu käyttäjälle {name}? Sinusta tulee moderaattori.",
         "team.vergleich.ausFahrern": "{n} kuskista",
-        "team.vergleich.hinweis": "Jokaiselle tiimille lasketaan sen {n} parhaan kuskin summa. Pumpfoil, myös laskut ilman liikedataa; vain tiimit, joiden tulostaulut ovat julkisia.",
+    ]
+
+    private static let _fi6: [String: String] = [
+        "team.vergleich.ausFahrern1": "1 kuskista",
+        "team.vergleich.hinweis": "Jokaiselle tiimille lasketaan sen {n} parhaan kuskin summa. {sport}, myös laskut ilman liikedataa; vain tiimit, joiden tulostaulut ovat julkisia.",
         "team.vergleich.leer": "Millään tiimillä ei ole vielä sessiota tällä jaksolla.",
         "team.vergleich.titel": "Tiimien tulostaulut",
         "team.vergleich.top": "Parhaat {n}",
@@ -2439,12 +2599,20 @@ enum LocTeam {
         "team.event.disclaimer": "Events worden door de teams zelf georganiseerd. pumpfoil.org heeft geen invloed op events of op toezeggingen die daarin worden gedaan, financieel of anderszins, en aanvaardt daarvoor geen verantwoordelijkheid. De gang naar de rechter is uitgesloten. Betalingen en alle andere afspraken regelen organisatoren en deelnemers onafhankelijk van pumpfoil.org. Evenmin is pumpfoil.org verantwoordelijk voor de juistheid van gemeten waarden en gegevens of voor eventuele manipulatie ervan. Getoond wordt wat de openbare broncode op GitHub uit de geüploade gegevens berekent; verdere toezeggingen zijn er niet.",
         "team.event.ende": "Einde",
         "team.event.endetIn": "Eindigt over",
+        "team.event.endstand": "Eindstand",
         "team.event.ergebnis": "Uitslag",
         "team.event.gemessen": "Gemeten",
+        "team.event.global": "Globaal",
+        "team.event.globalHaken": "Globaal event – iedereen doet automatisch mee, zonder aanmelden",
+        "team.event.globalHinweis": "Iedereen doet automatisch mee – je hoeft je nergens aan te melden.",
+        "team.event.globalOptOut": "Je kunt je afmelden onder Instellingen › Privacy.",
         "team.event.keineAktuellen": "Er loopt nu geen event en de komende drie dagen begint er ook geen.",
+        "team.event.keineGlobalen": "Er loopt nu geen globaal event, en er begint er ook geen in de komende drie dagen.",
+        "team.event.keineTeams": "Nog geen teamlid in dit event.",
         "team.event.loeschenFrage": "Event „{titel}” verwijderen?",
         "team.event.minuten": "min",
         "team.event.neu": "Event aanmaken",
+        "team.event.neuLaden": "Vernieuwen",
         "team.event.nochNichts": "De ranglijsten verschijnen zodra het event loopt.",
         "team.event.ohneDateien": "Alleen opnames van horloge, app of gekoppeld account tellen (geen handmatig geüploade FIT-, GPX- of TCX-bestanden)",
         "team.event.ohneDateienKurz": "Alleen opnames van horloge, app of gekoppeld account tellen, geen geüploade bestanden.",
@@ -2453,6 +2621,7 @@ enum LocTeam {
         "team.event.sekunden": "sec",
         "team.event.spots": "Spots",
         "team.event.stand": "Huidige stand",
+        "team.event.standUm": "Stand {zeit}",
         "team.event.start": "Begin",
         "team.event.startIn": "Begint over",
         "team.event.status.auswertung": "uitslag volgt",
@@ -2460,28 +2629,33 @@ enum LocTeam {
         "team.event.status.kommend": "komt eraan",
         "team.event.status.laeuft": "loopt",
         "team.event.stunden": "uur",
+    ]
+
+    private static let _nl3: [String: String] = [
         "team.event.summen": "Eventtotalen",
         "team.event.summenHinweis": "Opgeteld over alle deelnemers. Vink aan wat op de eventpagina moet staan.",
         "team.event.tag": "dag",
         "team.event.tage": "dagen",
         "team.event.teamGesamt": "Event totaal",
         "team.event.teambildZeigen": "Teambanner tonen zolang er geen eventbanner is geüpload",
+        "team.event.teams": "Teams",
         "team.event.teilen": "Delen:",
         "team.event.teilnehmer": "Deelnemers",
         "team.event.teilnehmer1": "Deelnemer",
-    ]
-
-    private static let _nl3: [String: String] = [
         "team.event.titel": "Titel",
         "team.event.uploadsBis": "Sessies uit de periode kunnen tot {bis} worden geüpload, daarna staat de uitslag vast.",
         "team.event.vergangen": "Afgelopen events",
         "team.event.vorlage": "Sjabloon",
+        "team.event.wertung": "Teamklassement",
+        "team.event.wertungAlle": "Som van alle leden",
+        "team.event.wertungBeste": "Som van de beste {n}",
         "team.eventbild.entfernen": "Eventbanner verwijderen",
         "team.eventbild.hinweis": "Brede afbeelding bovenaan de eventpagina, het liefst 1600 × 500 px (minstens 800 px breed).",
         "team.eventbild.hochladen": "Eventbanner uploaden",
         "team.eventbild.titel": "Eventbanner",
         "team.events": "Events",
-        "team.eventsAktuell": "Lopende & komende events",
+        "team.eventsGlobal": "Globale events",
+        "team.eventsMeineTeams": "Events van je teams",
         "team.farbe": "Teamkleur",
         "team.finden": "Team zoeken",
         "team.findenPlatzhalter": "Zoek teamnaam …",
@@ -2503,6 +2677,9 @@ enum LocTeam {
         "team.herkunft": "Land / regio",
         "team.join.anfrage": "Je verzoek gaat naar de teamleiding, die beslist.",
         "team.join.anfrageProfil": "Om het te beoordelen, ziet zij op welke spots en in welke sporten je tot nu toe bent geweest (alleen het aantal sessies).",
+    ]
+
+    private static let _nl4: [String: String] = [
         "team.join.anfragen": "Verzoek sturen",
         "team.join.angefragt": "Verzoek verstuurd.",
         "team.join.beitreten": "Lid worden",
@@ -2517,9 +2694,6 @@ enum LocTeam {
         "team.join.wartet": "Verzoek loopt",
         "team.k.best": "Beste waarde",
         "team.k.sum_distance": "On-foil-afstand totaal",
-    ]
-
-    private static let _nl4: [String: String] = [
         "team.k.sum_pumps": "Pumps totaal",
         "team.k.sum_runs": "Runs totaal",
         "team.k.sum_sessions": "Sessies",
@@ -2550,6 +2724,10 @@ enum LocTeam {
         "team.meine": "Mijn teams",
         "team.mitglieder": "Leden",
         "team.mitgliederAnzahl": "{n} leden",
+        "team.mitgliederAnzahl1": "1 lid",
+    ]
+
+    private static let _nl5: [String: String] = [
         "team.mitgliederSichtbar": "Wie ziet de ledenlijst?",
         "team.name": "Teamnaam",
         "team.nichtGefunden": "Dit team bestaat niet of is niet openbaar.",
@@ -2563,11 +2741,9 @@ enum LocTeam {
         "team.qr": "QR-code",
         "team.qrTeilen": "QR-code delen",
         "team.regeln.events.text": "Een event heeft een tijdvak en eigen ranglijsten, desgewenst alleen op bepaalde spots.\nNaast of in plaats van ranglijsten kan een event totalen over alle deelnemers tonen, zoals de pumps of de afstand van het hele team. Elk event heeft minstens één ranglijst of één totaal nodig.\nAlleen sessies die binnen het tijdvak starten tellen mee.\nPer event kan de leiding bepalen dat handmatig geüploade bestanden (FIT, GPX, TCX) niet tellen; opnames van horloges, de app en gekoppelde accounts tellen dan nog wel.\nNa het einde kun je nog 24 uur uploaden; de teampagina toont dan „uitslag volgt”. Daarna is de uitslag bevroren en verandert later bijsnijden of verwijderen niets meer.\nWie na het einde vertrekt, blijft in de uitslag; wie daarna lid wordt, komt er niet meer bij.\nUitslagen worden 's nachts bevroren en ook zodra iemand de teampagina opent.\nDe tijden gelden in de tijdzone waarin het event is aangemaakt en worden voor iedereen zo getoond.\nPlaats 1 tot 3 krijgen een event-badge op hun foilerpagina, maar alleen bij teams waarvan het uiterlijk is vrijgegeven.",
+        "team.regeln.intro": "Zo werken teams op pumpfoil.org: wie wat ziet, hoe er gerangschikt wordt en wat er gebeurt als iets wordt verwijderd.",
         "team.rolle.leiter": "Leiding",
         "team.rolle.mitglied": "Lid",
-    ]
-
-    private static let _nl5: [String: String] = [
         "team.rolle.moderator": "Moderator",
         "team.rolleUebergeben": "Leiding overdragen",
         "team.sessions30": "sessies in 30 dagen",
@@ -2597,7 +2773,11 @@ enum LocTeam {
         "team.teilen": "Delen",
         "team.uebergebenFrage": "De leiding aan {name} overdragen? Je wordt dan moderator.",
         "team.vergleich.ausFahrern": "van {n} riders",
-        "team.vergleich.hinweis": "Elk team telt de som van zijn beste {n} riders. Pumpfoil, ook runs zonder bewegingsdata; alleen teams met openbare ranglijsten.",
+    ]
+
+    private static let _nl6: [String: String] = [
+        "team.vergleich.ausFahrern1": "van 1 rider",
+        "team.vergleich.hinweis": "Elk team telt de som van zijn beste {n} riders. {sport}, ook runs zonder bewegingsdata; alleen teams met openbare ranglijsten.",
         "team.vergleich.leer": "Nog geen team heeft een sessie in deze periode.",
         "team.vergleich.titel": "Teamranglijsten",
         "team.vergleich.top": "Beste {n}",
@@ -2724,12 +2904,20 @@ enum LocTeam {
         "team.event.disclaimer": "Akce pořádají samy týmy. pumpfoil.org nemá žádný vliv na akce ani na sliby v nich dané, finanční či jiné, a nepřebírá za ně žádnou odpovědnost. Právní cesta je vyloučena. Platby a všechny další dohody si pořadatelé a účastníci řeší sami, nezávisle na pumpfoil.org. Stejně tak pumpfoil.org nepřebírá žádnou odpovědnost za to, zda jsou naměřené hodnoty a data správné nebo zda nebyly zmanipulovány. Zobrazuje se to, co z nahraných dat spočítá veřejný zdrojový kód na GitHubu; žádné další záruky neexistují.",
         "team.event.ende": "Konec",
         "team.event.endetIn": "Končí za",
+        "team.event.endstand": "Konečné pořadí",
         "team.event.ergebnis": "Výsledky",
         "team.event.gemessen": "Měří se",
+        "team.event.global": "Globální",
+        "team.event.globalHaken": "Globální event – účastní se automaticky všichni, bez přihlášení",
+        "team.event.globalHinweis": "Účastní se automaticky všichni – nikde se nemusíš přihlašovat.",
+        "team.event.globalOptOut": "Odhlásit se můžeš v Nastavení › Soukromí.",
         "team.event.keineAktuellen": "Teď neprobíhá žádná akce a v příštích třech dnech žádná nezačíná.",
+        "team.event.keineGlobalen": "Právě neběží žádný globální event a v příštích třech dnech žádný nezačíná.",
+        "team.event.keineTeams": "V tomto eventu zatím není žádný člen týmu.",
         "team.event.loeschenFrage": "Smazat akci „{titel}“?",
         "team.event.minuten": "min",
         "team.event.neu": "Vytvořit akci",
+        "team.event.neuLaden": "Obnovit",
         "team.event.nochNichts": "Žebříčky se objeví, jakmile akce začne.",
         "team.event.ohneDateien": "Počítat jen záznamy z hodinek, aplikace nebo propojeného účtu (žádné ručně nahrané soubory FIT, GPX, TCX)",
         "team.event.ohneDateienKurz": "Počítají se jen záznamy z hodinek, aplikace nebo propojeného účtu, žádné nahrané soubory.",
@@ -2738,6 +2926,7 @@ enum LocTeam {
         "team.event.sekunden": "s",
         "team.event.spots": "Spoty",
         "team.event.stand": "Aktuální pořadí",
+        "team.event.standUm": "Stav v {zeit}",
         "team.event.start": "Začátek",
         "team.event.startIn": "Začíná za",
         "team.event.status.auswertung": "vyhodnocování",
@@ -2745,28 +2934,33 @@ enum LocTeam {
         "team.event.status.kommend": "brzy",
         "team.event.status.laeuft": "probíhá",
         "team.event.stunden": "hod.",
+    ]
+
+    private static let _cs3: [String: String] = [
         "team.event.summen": "Součty akce",
         "team.event.summenHinweis": "Sečteno za všechny účastníky. Zaškrtni, co se má zobrazit na stránce akce.",
         "team.event.tag": "den",
         "team.event.tage": "dní",
         "team.event.teamGesamt": "Akce celkem",
         "team.event.teambildZeigen": "Zobrazit banner týmu, dokud není nahraný banner akce",
+        "team.event.teams": "Týmy",
         "team.event.teilen": "Sdílet:",
         "team.event.teilnehmer": "Účastníci",
         "team.event.teilnehmer1": "Účastník",
-    ]
-
-    private static let _cs3: [String: String] = [
         "team.event.titel": "Název",
         "team.event.uploadsBis": "Sessions z tohoto období lze nahrát do {bis}, pak je výsledek konečný.",
         "team.event.vergangen": "Minulé akce",
         "team.event.vorlage": "Šablona",
+        "team.event.wertung": "Pořadí týmů",
+        "team.event.wertungAlle": "Součet všech členů",
+        "team.event.wertungBeste": "Součet nejlepších {n}",
         "team.eventbild.entfernen": "Odebrat banner akce",
         "team.eventbild.hinweis": "Široký obrázek nahoře na stránce akce, ideálně 1600 × 500 px (aspoň 800 px na šířku).",
         "team.eventbild.hochladen": "Nahrát banner akce",
         "team.eventbild.titel": "Banner akce",
         "team.events": "Akce",
-        "team.eventsAktuell": "Probíhající a nadcházející akce",
+        "team.eventsGlobal": "Globální eventy",
+        "team.eventsMeineTeams": "Eventy tvých týmů",
         "team.farbe": "Barva týmu",
         "team.finden": "Najít tým",
         "team.findenPlatzhalter": "Hledat název týmu …",
@@ -2788,6 +2982,9 @@ enum LocTeam {
         "team.herkunft": "Země / region",
         "team.join.anfrage": "Tvoje žádost půjde vedení týmu, které rozhodne.",
         "team.join.anfrageProfil": "Pro posouzení vidí, na kterých spotech a v jakých sportech jsi dosud jezdil (jen počet sessions).",
+    ]
+
+    private static let _cs4: [String: String] = [
         "team.join.anfragen": "Odeslat žádost",
         "team.join.angefragt": "Žádost odeslána.",
         "team.join.beitreten": "Přidat se",
@@ -2802,9 +2999,6 @@ enum LocTeam {
         "team.join.wartet": "Žádost čeká",
         "team.k.best": "Nejlepší hodnota",
         "team.k.sum_distance": "Vzdálenost na foilu celkem",
-    ]
-
-    private static let _cs4: [String: String] = [
         "team.k.sum_pumps": "Pumpnutí celkem",
         "team.k.sum_runs": "Jízdy celkem",
         "team.k.sum_sessions": "Vyjížďky",
@@ -2835,6 +3029,10 @@ enum LocTeam {
         "team.meine": "Moje týmy",
         "team.mitglieder": "Členové",
         "team.mitgliederAnzahl": "Členové: {n}",
+        "team.mitgliederAnzahl1": "Členové: 1",
+    ]
+
+    private static let _cs5: [String: String] = [
         "team.mitgliederSichtbar": "Kdo vidí seznam členů?",
         "team.name": "Název týmu",
         "team.nichtGefunden": "Tento tým neexistuje nebo není veřejný.",
@@ -2848,11 +3046,9 @@ enum LocTeam {
         "team.qr": "QR kód",
         "team.qrTeilen": "Sdílet QR kód",
         "team.regeln.events.text": "Akce má časové okno a vlastní žebříčky, volitelně jen na vybraných spotech.\nNavíc nebo místo žebříčků může akce ukazovat součty za všechny účastníky, třeba pumpy nebo vzdálenost celého týmu. Každá akce potřebuje aspoň jeden žebříček nebo jeden součet.\nPočítají se jen vyjížďky, které v časovém okně začnou.\nU každé akce může vedoucí určit, že ručně nahrané soubory (FIT, GPX, TCX) se nepočítají; záznamy z hodinek, aplikace a propojených účtů se počítají dál.\nPo konci lze ještě 24 hodin nahrávat, stránka týmu pak ukazuje „vyhodnocování“. Potom je výsledek zmrazený a pozdější ořezání nebo smazání už nic nezmění.\nKdo odejde po konci, zůstává ve výsledku; kdo se přidá potom, už se nezapočítá.\nZmrazuje se v noci a navíc hned, jakmile někdo otevře stránku týmu.\nČasy platí v časovém pásmu, ve kterém byla akce vytvořena, a tak se zobrazují všem.\nMísta 1 až 3 dostanou odznak z akce na své stránce foilera, ale jen u týmů, jejichž vzhled je schválený.",
+        "team.regeln.intro": "Jak fungují týmy na pumpfoil.org: kdo co vidí, jak se hodnotí a co se stane při smazání.",
         "team.rolle.leiter": "Vedoucí",
         "team.rolle.mitglied": "Člen",
-    ]
-
-    private static let _cs5: [String: String] = [
         "team.rolle.moderator": "Moderátor",
         "team.rolleUebergeben": "Předat vedení",
         "team.sessions30": "vyjížděk za 30 dní",
@@ -2882,7 +3078,11 @@ enum LocTeam {
         "team.teilen": "Sdílet",
         "team.uebergebenFrage": "Předat vedení týmu {name}? Ty se pak staneš moderátorem.",
         "team.vergleich.ausFahrern": "z {n} jezdců",
-        "team.vergleich.hinweis": "Každý tým počítá součet svých {n} nejlepších jezdců. Pumpfoil, i jízdy bez pohybových dat; jen týmy s veřejnými žebříčky.",
+    ]
+
+    private static let _cs6: [String: String] = [
+        "team.vergleich.ausFahrern1": "z 1 jezdce",
+        "team.vergleich.hinweis": "Každý tým počítá součet svých {n} nejlepších jezdců. {sport}, i jízdy bez pohybových dat; jen týmy s veřejnými žebříčky.",
         "team.vergleich.leer": "V tomto období zatím žádný tým nemá session.",
         "team.vergleich.titel": "Žebříčky týmů",
         "team.vergleich.top": "Nejlepších {n}",
@@ -3009,12 +3209,20 @@ enum LocTeam {
         "team.event.disclaimer": "Wydarzenia organizują same drużyny. pumpfoil.org nie ma żadnego wpływu na wydarzenia ani na składane w nich obietnice, finansowe lub inne, i nie ponosi za nie odpowiedzialności. Droga sądowa jest wykluczona. Płatności i wszelkie inne ustalenia organizatorzy i uczestnicy załatwiają między sobą, niezależnie od pumpfoil.org. Tak samo pumpfoil.org nie ponosi odpowiedzialności za to, czy zmierzone wartości i dane są poprawne lub czy nie zostały zmanipulowane. Wyświetlane jest to, co publiczny kod źródłowy na GitHubie oblicza z przesłanych danych; innych obietnic nie ma.",
         "team.event.ende": "Koniec",
         "team.event.endetIn": "Koniec za",
+        "team.event.endstand": "Wyniki końcowe",
         "team.event.ergebnis": "Wyniki",
         "team.event.gemessen": "Mierzone",
+        "team.event.global": "Globalny",
+        "team.event.globalHaken": "Globalny event – wszyscy biorą udział automatycznie, bez dołączania",
+        "team.event.globalHinweis": "Wszyscy biorą udział automatycznie – nigdzie nie musisz się zapisywać.",
+        "team.event.globalOptOut": "Możesz zrezygnować w Ustawienia › Prywatność.",
         "team.event.keineAktuellen": "Teraz nie trwa żadne wydarzenie i żadne nie zaczyna się w ciągu najbliższych trzech dni.",
+        "team.event.keineGlobalen": "Teraz nie trwa żaden globalny event i żaden nie zaczyna się w ciągu najbliższych trzech dni.",
+        "team.event.keineTeams": "W tym evencie nie ma jeszcze żadnego członka drużyny.",
         "team.event.loeschenFrage": "Usunąć wydarzenie „{titel}”?",
         "team.event.minuten": "min",
         "team.event.neu": "Utwórz wydarzenie",
+        "team.event.neuLaden": "Odśwież",
         "team.event.nochNichts": "Rankingi pojawią się, gdy wydarzenie się rozpocznie.",
         "team.event.ohneDateien": "Licz tylko nagrania z zegarka, aplikacji lub połączonego konta (bez ręcznie przesłanych plików FIT, GPX, TCX)",
         "team.event.ohneDateienKurz": "Liczą się tylko nagrania z zegarka, aplikacji lub połączonego konta, bez przesłanych plików.",
@@ -3023,6 +3231,7 @@ enum LocTeam {
         "team.event.sekunden": "sek.",
         "team.event.spots": "Spoty",
         "team.event.stand": "Aktualna klasyfikacja",
+        "team.event.standUm": "Stan na {zeit}",
         "team.event.start": "Początek",
         "team.event.startIn": "Start za",
         "team.event.status.auswertung": "liczenie wyników",
@@ -3030,28 +3239,33 @@ enum LocTeam {
         "team.event.status.kommend": "wkrótce",
         "team.event.status.laeuft": "trwa",
         "team.event.stunden": "godz.",
+    ]
+
+    private static let _pl3: [String: String] = [
         "team.event.summen": "Sumy wydarzenia",
         "team.event.summenHinweis": "Zsumowane dla wszystkich uczestników. Zaznacz, co ma się pojawić na stronie wydarzenia.",
         "team.event.tag": "dzień",
         "team.event.tage": "dni",
         "team.event.teamGesamt": "Wydarzenie łącznie",
         "team.event.teambildZeigen": "Pokaż baner drużyny, dopóki nie ma banera wydarzenia",
+        "team.event.teams": "Drużyny",
         "team.event.teilen": "Udostępnij:",
         "team.event.teilnehmer": "Uczestnicy",
         "team.event.teilnehmer1": "Uczestnik",
-    ]
-
-    private static let _pl3: [String: String] = [
         "team.event.titel": "Tytuł",
         "team.event.uploadsBis": "Sesje z tego okresu można przesłać do {bis}, potem wynik jest ostateczny.",
         "team.event.vergangen": "Minione wydarzenia",
         "team.event.vorlage": "Szablon",
+        "team.event.wertung": "Ranking drużyn",
+        "team.event.wertungAlle": "Suma wszystkich członków",
+        "team.event.wertungBeste": "Suma najlepszych {n}",
         "team.eventbild.entfernen": "Usuń baner wydarzenia",
         "team.eventbild.hinweis": "Szeroki obraz na górze strony wydarzenia, najlepiej 1600 × 500 px (co najmniej 800 px szerokości).",
         "team.eventbild.hochladen": "Prześlij baner wydarzenia",
         "team.eventbild.titel": "Baner wydarzenia",
         "team.events": "Wydarzenia",
-        "team.eventsAktuell": "Trwające i nadchodzące wydarzenia",
+        "team.eventsGlobal": "Globalne eventy",
+        "team.eventsMeineTeams": "Eventy twoich drużyn",
         "team.farbe": "Kolor drużyny",
         "team.finden": "Znajdź drużynę",
         "team.findenPlatzhalter": "Szukaj nazwy drużyny …",
@@ -3073,6 +3287,9 @@ enum LocTeam {
         "team.herkunft": "Kraj / region",
         "team.join.anfrage": "Twoja prośba trafi do lidera drużyny, który podejmie decyzję.",
         "team.join.anfrageProfil": "Do oceny lider widzi, na jakich spotach i w jakich sportach do tej pory pływałeś (tylko liczbę sesji).",
+    ]
+
+    private static let _pl4: [String: String] = [
         "team.join.anfragen": "Wyślij prośbę",
         "team.join.angefragt": "Prośba wysłana.",
         "team.join.beitreten": "Dołącz",
@@ -3087,9 +3304,6 @@ enum LocTeam {
         "team.join.wartet": "Prośba oczekuje",
         "team.k.best": "Najlepsza wartość",
         "team.k.sum_distance": "Dystans na foilu łącznie",
-    ]
-
-    private static let _pl4: [String: String] = [
         "team.k.sum_pumps": "Pompy łącznie",
         "team.k.sum_runs": "Przejazdy łącznie",
         "team.k.sum_sessions": "Sesje",
@@ -3120,6 +3334,10 @@ enum LocTeam {
         "team.meine": "Moje drużyny",
         "team.mitglieder": "Członkowie",
         "team.mitgliederAnzahl": "Członkowie: {n}",
+        "team.mitgliederAnzahl1": "Członkowie: 1",
+    ]
+
+    private static let _pl5: [String: String] = [
         "team.mitgliederSichtbar": "Kto widzi listę członków?",
         "team.name": "Nazwa drużyny",
         "team.nichtGefunden": "Ta drużyna nie istnieje albo nie jest publiczna.",
@@ -3133,11 +3351,9 @@ enum LocTeam {
         "team.qr": "Kod QR",
         "team.qrTeilen": "Udostępnij kod QR",
         "team.regeln.events.text": "Wydarzenie ma okno czasowe i własne rankingi, w razie potrzeby tylko na wybranych spotach.\nOprócz rankingów lub zamiast nich wydarzenie może pokazywać sumy wszystkich uczestników, np. pumpy lub dystans całej drużyny. Każde wydarzenie potrzebuje co najmniej jednego rankingu lub jednej sumy.\nLiczą się tylko sesje rozpoczęte w tym oknie czasowym.\nDla każdego wydarzenia lider może ustalić, że ręcznie przesłane pliki (FIT, GPX, TCX) się nie liczą; nagrania z zegarków, aplikacji i połączonych kont nadal się liczą.\nPo zakończeniu można jeszcze przez 24 godziny wgrywać sesje, strona drużyny pokazuje wtedy „liczenie wyników”. Potem wynik zostaje zamrożony i późniejsze przycinanie czy usuwanie niczego już nie zmienia.\nKto odejdzie po zakończeniu, zostaje w wyniku; kto dołączy później, nie zostanie już dodany.\nWyniki są zamrażane w nocy, a dodatkowo, gdy tylko ktoś otworzy stronę drużyny.\nGodziny obowiązują w strefie czasowej, w której utworzono wydarzenie, i wszyscy widzą je właśnie tak.\nMiejsca od 1 do 3 dostają odznakę z wydarzenia na swojej stronie foilera, ale tylko w drużynach, których wygląd jest zatwierdzony.",
+        "team.regeln.intro": "Jak działają drużyny na pumpfoil.org: kto co widzi, jak liczone są wyniki i co się dzieje przy usuwaniu.",
         "team.rolle.leiter": "Lider",
         "team.rolle.mitglied": "Członek",
-    ]
-
-    private static let _pl5: [String: String] = [
         "team.rolle.moderator": "Moderator",
         "team.rolleUebergeben": "Przekaż rolę lidera",
         "team.sessions30": "sesji w 30 dni",
@@ -3167,7 +3383,11 @@ enum LocTeam {
         "team.teilen": "Udostępnij",
         "team.uebergebenFrage": "Przekazać rolę lidera {name}? Zostaniesz wtedy moderatorem.",
         "team.vergleich.ausFahrern": "z {n} riderów",
-        "team.vergleich.hinweis": "Każda drużyna liczy sumę swoich {n} najlepszych riderów. Pumpfoil, także przejazdy bez danych ruchu; tylko drużyny z publicznymi rankingami.",
+    ]
+
+    private static let _pl6: [String: String] = [
+        "team.vergleich.ausFahrern1": "z 1 ridera",
+        "team.vergleich.hinweis": "Każda drużyna liczy sumę swoich {n} najlepszych riderów. {sport}, także przejazdy bez danych ruchu; tylko drużyny z publicznymi rankingami.",
         "team.vergleich.leer": "W tym okresie żadna drużyna nie ma jeszcze sesji.",
         "team.vergleich.titel": "Rankingi drużyn",
         "team.vergleich.top": "Najlepszych {n}",
@@ -3294,12 +3514,20 @@ enum LocTeam {
         "team.event.disclaimer": "Os eventos são organizados pelas próprias equipes. O pumpfoil.org não tem influência sobre os eventos nem sobre promessas feitas neles, financeiras ou de outro tipo, e não assume nenhuma responsabilidade por elas. Fica excluída a via judicial. Pagamentos e todos os outros acordos são resolvidos entre organizadores e participantes, de forma independente do pumpfoil.org. Da mesma forma, o pumpfoil.org não assume nenhuma responsabilidade sobre se os valores e dados medidos estão corretos ou foram manipulados. É exibido o que o código-fonte público no GitHub calcula a partir dos dados enviados; não há outras promessas.",
         "team.event.ende": "Fim",
         "team.event.endetIn": "Termina em",
+        "team.event.endstand": "Classificação final",
         "team.event.ergebnis": "Resultado",
         "team.event.gemessen": "Medido",
+        "team.event.global": "Global",
+        "team.event.globalHaken": "Evento global – todos participam automaticamente, sem inscrição",
+        "team.event.globalHinweis": "Todos participam automaticamente – você não precisa se inscrever em lugar nenhum.",
+        "team.event.globalOptOut": "Você pode sair em Configurações › Privacidade.",
         "team.event.keineAktuellen": "Nenhum evento em andamento agora, e nenhum começa nos próximos três dias.",
+        "team.event.keineGlobalen": "Nenhum evento global está acontecendo agora, e nenhum começa nos próximos três dias.",
+        "team.event.keineTeams": "Ainda nenhum membro de equipe neste evento.",
         "team.event.loeschenFrage": "Excluir o evento “{titel}”?",
         "team.event.minuten": "min",
         "team.event.neu": "Criar evento",
+        "team.event.neuLaden": "Atualizar",
         "team.event.nochNichts": "As classificações aparecem assim que o evento começar.",
         "team.event.ohneDateien": "Contar só gravações do relógio, do app ou de conta vinculada (sem arquivos FIT, GPX ou TCX enviados à mão)",
         "team.event.ohneDateienKurz": "Só contam gravações do relógio, do app ou de conta vinculada, sem arquivos enviados.",
@@ -3308,6 +3536,7 @@ enum LocTeam {
         "team.event.sekunden": "s",
         "team.event.spots": "Spots",
         "team.event.stand": "Classificação atual",
+        "team.event.standUm": "Atualizado às {zeit}",
         "team.event.start": "Início",
         "team.event.startIn": "Começa em",
         "team.event.status.auswertung": "apurando",
@@ -3315,28 +3544,33 @@ enum LocTeam {
         "team.event.status.kommend": "em breve",
         "team.event.status.laeuft": "ao vivo",
         "team.event.stunden": "h",
+    ]
+
+    private static let _pt3: [String: String] = [
         "team.event.summen": "Totais do evento",
         "team.event.summenHinweis": "Somados entre todos os participantes. Marque o que deve aparecer na página do evento.",
         "team.event.tag": "dia",
         "team.event.tage": "dias",
         "team.event.teamGesamt": "Total do evento",
         "team.event.teambildZeigen": "Mostrar o banner da equipe enquanto não houver banner do evento",
+        "team.event.teams": "Equipes",
         "team.event.teilen": "Compartilhar:",
         "team.event.teilnehmer": "Participantes",
         "team.event.teilnehmer1": "Participante",
-    ]
-
-    private static let _pt3: [String: String] = [
         "team.event.titel": "Título",
         "team.event.uploadsBis": "Sessões do período podem ser enviadas até {bis}; depois o resultado é definitivo.",
         "team.event.vergangen": "Eventos anteriores",
         "team.event.vorlage": "Modelo",
+        "team.event.wertung": "Classificação por equipes",
+        "team.event.wertungAlle": "Soma de todos os membros",
+        "team.event.wertungBeste": "Soma dos {n} melhores",
         "team.eventbild.entfernen": "Remover banner do evento",
         "team.eventbild.hinweis": "Imagem larga no topo da página do evento, de preferência 1600 × 500 px (pelo menos 800 px de largura).",
         "team.eventbild.hochladen": "Enviar banner do evento",
         "team.eventbild.titel": "Banner do evento",
         "team.events": "Eventos",
-        "team.eventsAktuell": "Eventos em andamento e próximos",
+        "team.eventsGlobal": "Eventos globais",
+        "team.eventsMeineTeams": "Eventos das suas equipes",
         "team.farbe": "Cor da equipe",
         "team.finden": "Encontrar equipe",
         "team.findenPlatzhalter": "Buscar nome da equipe …",
@@ -3358,6 +3592,9 @@ enum LocTeam {
         "team.herkunft": "País / região",
         "team.join.anfrage": "Seu pedido vai para a liderança da equipe, que decide.",
         "team.join.anfrageProfil": "Para avaliar, ela vê em quais spots e esportes você já andou até agora (só o número de sessões).",
+    ]
+
+    private static let _pt4: [String: String] = [
         "team.join.anfragen": "Enviar pedido",
         "team.join.angefragt": "Pedido enviado.",
         "team.join.beitreten": "Participar",
@@ -3372,9 +3609,6 @@ enum LocTeam {
         "team.join.wartet": "Pedido pendente",
         "team.k.best": "Melhor valor",
         "team.k.sum_distance": "Distância on-foil total",
-    ]
-
-    private static let _pt4: [String: String] = [
         "team.k.sum_pumps": "Total de pumps",
         "team.k.sum_runs": "Total de voltas",
         "team.k.sum_sessions": "Sessões",
@@ -3405,6 +3639,10 @@ enum LocTeam {
         "team.meine": "Minhas equipes",
         "team.mitglieder": "Membros",
         "team.mitgliederAnzahl": "{n} membros",
+        "team.mitgliederAnzahl1": "1 membro",
+    ]
+
+    private static let _pt5: [String: String] = [
         "team.mitgliederSichtbar": "Quem vê a lista de membros?",
         "team.name": "Nome da equipe",
         "team.nichtGefunden": "Esta equipe não existe ou não é pública.",
@@ -3418,11 +3656,9 @@ enum LocTeam {
         "team.qr": "QR code",
         "team.qrTeilen": "Compartilhar QR code",
         "team.regeln.events.text": "Um evento tem um período e rankings próprios, se quiser só em certos spots.\nAlém dos rankings, ou no lugar deles, um evento pode mostrar totais de todos os participantes, como os pumps ou a distância da equipe inteira. Todo evento precisa de pelo menos um ranking ou um total.\nSó contam as sessões que começam dentro do período.\nEm cada evento o líder pode definir que arquivos enviados à mão (FIT, GPX, TCX) não contam; gravações de relógios, do app e de contas vinculadas continuam contando.\nDepois do fim ainda dá para enviar por 24 horas; a página da equipe mostra então “apurando”. Depois disso o resultado fica congelado, e cortar ou excluir depois não muda mais nada.\nQuem sair depois do fim continua no resultado; quem entrar depois não é mais incluído.\nOs resultados são congelados à noite e também assim que alguém abre a página da equipe.\nOs horários valem no fuso horário em que o evento foi criado e aparecem assim para todo mundo.\nOs lugares 1 a 3 ganham uma medalha do evento na página de foiler, mas só em equipes com aparência aprovada.",
+        "team.regeln.intro": "Como as equipes funcionam no pumpfoil.org: quem vê o quê, como a pontuação funciona e o que acontece quando algo é excluído.",
         "team.rolle.leiter": "Líder",
         "team.rolle.mitglied": "Membro",
-    ]
-
-    private static let _pt5: [String: String] = [
         "team.rolle.moderator": "Moderador",
         "team.rolleUebergeben": "Passar a liderança",
         "team.sessions30": "sessões em 30 dias",
@@ -3452,7 +3688,11 @@ enum LocTeam {
         "team.teilen": "Compartilhar",
         "team.uebergebenFrage": "Passar a liderança para {name}? Você vira moderador.",
         "team.vergleich.ausFahrern": "de {n} riders",
-        "team.vergleich.hinweis": "Cada equipe soma seus {n} melhores riders. Pumpfoil, inclusive voltas sem dados de movimento; só equipes com rankings públicos.",
+    ]
+
+    private static let _pt6: [String: String] = [
+        "team.vergleich.ausFahrern1": "de 1 rider",
+        "team.vergleich.hinweis": "Cada equipe soma seus {n} melhores riders. {sport}, inclusive voltas sem dados de movimento; só equipes com rankings públicos.",
         "team.vergleich.leer": "Nenhuma equipe tem sessão neste período ainda.",
         "team.vergleich.titel": "Rankings de equipes",
         "team.vergleich.top": "Melhores {n}",
@@ -3579,12 +3819,20 @@ enum LocTeam {
         "team.event.disclaimer": "Os eventos são organizados pelas próprias equipas. O pumpfoil.org não tem influência sobre os eventos nem sobre promessas neles feitas, financeiras ou de outro tipo, e não assume qualquer responsabilidade por elas. Fica excluída a via judicial. Pagamentos e todos os outros acordos são resolvidos entre organizadores e participantes, de forma independente do pumpfoil.org. Da mesma forma, o pumpfoil.org não assume qualquer responsabilidade sobre se os valores e dados medidos estão corretos ou foram manipulados. É mostrado o que o código-fonte público no GitHub calcula a partir dos dados carregados; não há outras promessas.",
         "team.event.ende": "Fim",
         "team.event.endetIn": "Termina daqui a",
+        "team.event.endstand": "Classificação final",
         "team.event.ergebnis": "Resultado",
         "team.event.gemessen": "Medido",
+        "team.event.global": "Global",
+        "team.event.globalHaken": "Evento global – todos participam automaticamente, sem inscrição",
+        "team.event.globalHinweis": "Todos participam automaticamente – não precisas de te inscrever em lado nenhum.",
+        "team.event.globalOptOut": "Podes sair em Definições › Privacidade.",
         "team.event.keineAktuellen": "Nenhum evento a decorrer agora, e nenhum começa nos próximos três dias.",
+        "team.event.keineGlobalen": "Não está a decorrer nenhum evento global, e nenhum começa nos próximos três dias.",
+        "team.event.keineTeams": "Ainda nenhum membro de equipa neste evento.",
         "team.event.loeschenFrage": "Eliminar o evento «{titel}»?",
         "team.event.minuten": "min",
         "team.event.neu": "Criar evento",
+        "team.event.neuLaden": "Atualizar",
         "team.event.nochNichts": "As classificações aparecem assim que o evento começar.",
         "team.event.ohneDateien": "Contar só gravações do relógio, da app ou de conta ligada (sem ficheiros FIT, GPX ou TCX carregados à mão)",
         "team.event.ohneDateienKurz": "Só contam gravações do relógio, da app ou de conta ligada, sem ficheiros carregados.",
@@ -3593,6 +3841,7 @@ enum LocTeam {
         "team.event.sekunden": "s",
         "team.event.spots": "Spots",
         "team.event.stand": "Classificação atual",
+        "team.event.standUm": "Atualizado às {zeit}",
         "team.event.start": "Início",
         "team.event.startIn": "Começa daqui a",
         "team.event.status.auswertung": "a apurar",
@@ -3600,28 +3849,33 @@ enum LocTeam {
         "team.event.status.kommend": "em breve",
         "team.event.status.laeuft": "a decorrer",
         "team.event.stunden": "h",
+    ]
+
+    private static let _pt_PT3: [String: String] = [
         "team.event.summen": "Totais do evento",
         "team.event.summenHinweis": "Somados entre todos os participantes. Assinala o que deve aparecer na página do evento.",
         "team.event.tag": "dia",
         "team.event.tage": "dias",
         "team.event.teamGesamt": "Total do evento",
         "team.event.teambildZeigen": "Mostrar o banner da equipa enquanto não houver banner do evento",
+        "team.event.teams": "Equipas",
         "team.event.teilen": "Partilhar:",
         "team.event.teilnehmer": "Participantes",
         "team.event.teilnehmer1": "Participante",
-    ]
-
-    private static let _pt_PT3: [String: String] = [
         "team.event.titel": "Título",
         "team.event.uploadsBis": "Sessões do período podem ser carregadas até {bis}; depois o resultado é definitivo.",
         "team.event.vergangen": "Eventos anteriores",
         "team.event.vorlage": "Modelo",
+        "team.event.wertung": "Classificação por equipas",
+        "team.event.wertungAlle": "Soma de todos os membros",
+        "team.event.wertungBeste": "Soma dos {n} melhores",
         "team.eventbild.entfernen": "Remover banner do evento",
         "team.eventbild.hinweis": "Imagem larga no topo da página do evento, de preferência 1600 × 500 px (pelo menos 800 px de largura).",
         "team.eventbild.hochladen": "Carregar banner do evento",
         "team.eventbild.titel": "Banner do evento",
         "team.events": "Eventos",
-        "team.eventsAktuell": "Eventos a decorrer e próximos",
+        "team.eventsGlobal": "Eventos globais",
+        "team.eventsMeineTeams": "Eventos das tuas equipas",
         "team.farbe": "Cor da equipa",
         "team.finden": "Encontrar equipa",
         "team.findenPlatzhalter": "Procurar nome da equipa …",
@@ -3643,6 +3897,9 @@ enum LocTeam {
         "team.herkunft": "País / região",
         "team.join.anfrage": "O teu pedido vai para a liderança da equipa, que decide.",
         "team.join.anfrageProfil": "Para avaliar, vê em que spots e desportos já andaste até agora (só o número de sessões).",
+    ]
+
+    private static let _pt_PT4: [String: String] = [
         "team.join.anfragen": "Enviar pedido",
         "team.join.angefragt": "Pedido enviado.",
         "team.join.beitreten": "Aderir",
@@ -3657,9 +3914,6 @@ enum LocTeam {
         "team.join.wartet": "Pedido pendente",
         "team.k.best": "Melhor valor",
         "team.k.sum_distance": "Distância on-foil total",
-    ]
-
-    private static let _pt_PT4: [String: String] = [
         "team.k.sum_pumps": "Total de pumps",
         "team.k.sum_runs": "Total de voltas",
         "team.k.sum_sessions": "Sessões",
@@ -3690,6 +3944,10 @@ enum LocTeam {
         "team.meine": "As minhas equipas",
         "team.mitglieder": "Membros",
         "team.mitgliederAnzahl": "{n} membros",
+        "team.mitgliederAnzahl1": "1 membro",
+    ]
+
+    private static let _pt_PT5: [String: String] = [
         "team.mitgliederSichtbar": "Quem vê a lista de membros?",
         "team.name": "Nome da equipa",
         "team.nichtGefunden": "Esta equipa não existe ou não é pública.",
@@ -3703,11 +3961,9 @@ enum LocTeam {
         "team.qr": "Código QR",
         "team.qrTeilen": "Partilhar código QR",
         "team.regeln.events.text": "Um evento tem um período e rankings próprios, se quiseres só em certos spots.\nAlém dos rankings, ou em vez deles, um evento pode mostrar totais de todos os participantes, como os pumps ou a distância da equipa inteira. Cada evento precisa de pelo menos um ranking ou um total.\nSó contam as sessões que começam dentro do período.\nEm cada evento o líder pode definir que ficheiros carregados à mão (FIT, GPX, TCX) não contam; gravações de relógios, da app e de contas ligadas continuam a contar.\nDepois do fim ainda é possível enviar durante 24 horas; a página da equipa mostra então «a apurar». A partir daí o resultado fica congelado, e cortar ou eliminar mais tarde já não muda nada.\nQuem sair depois do fim continua no resultado; quem aderir depois já não é incluído.\nOs resultados são congelados à noite e também assim que alguém abre a página da equipa.\nAs horas valem no fuso horário em que o evento foi criado e são mostradas assim a todos.\nOs lugares 1 a 3 recebem uma medalha do evento na sua página de foiler, mas só em equipas cuja aparência está aprovada.",
+        "team.regeln.intro": "Como funcionam as equipas no pumpfoil.org: quem vê o quê, como se pontua e o que acontece quando algo é eliminado.",
         "team.rolle.leiter": "Líder",
         "team.rolle.mitglied": "Membro",
-    ]
-
-    private static let _pt_PT5: [String: String] = [
         "team.rolle.moderator": "Moderador",
         "team.rolleUebergeben": "Passar a liderança",
         "team.sessions30": "sessões em 30 dias",
@@ -3737,7 +3993,11 @@ enum LocTeam {
         "team.teilen": "Partilhar",
         "team.uebergebenFrage": "Passar a liderança a {name}? Passas a ser moderador.",
         "team.vergleich.ausFahrern": "de {n} riders",
-        "team.vergleich.hinweis": "Cada equipa soma os seus {n} melhores riders. Pumpfoil, incluindo voltas sem dados de movimento; só equipas com classificações públicas.",
+    ]
+
+    private static let _pt_PT6: [String: String] = [
+        "team.vergleich.ausFahrern1": "de 1 rider",
+        "team.vergleich.hinweis": "Cada equipa soma os seus {n} melhores riders. {sport}, incluindo voltas sem dados de movimento; só equipas com classificações públicas.",
         "team.vergleich.leer": "Nenhuma equipa tem ainda uma sessão neste período.",
         "team.vergleich.titel": "Classificações de equipas",
         "team.vergleich.top": "Melhores {n}",
@@ -3864,12 +4124,20 @@ enum LocTeam {
         "team.event.disclaimer": "イベントは各チームが自ら主催します。pumpfoil.org はイベントや、その中でなされる金銭的その他の約束に一切関与せず、責任を負いません。法的手段による請求はできません。支払いやその他の取り決めは、pumpfoil.org とは無関係に主催者と参加者の間で行ってください。 同様に、pumpfoil.org は計測された数値やデータが正しいかどうか、改ざんされていないかについて一切責任を負いません。表示されるのは、GitHub で公開されているソースコードがアップロードされたデータから計算した結果であり、それ以上の保証はありません。",
         "team.event.ende": "終了",
         "team.event.endetIn": "終了まで",
+        "team.event.endstand": "最終結果",
         "team.event.ergebnis": "結果",
         "team.event.gemessen": "計測項目",
+        "team.event.global": "グローバル",
+        "team.event.globalHaken": "グローバルイベント – 参加登録なしで全員が自動的に参加",
+        "team.event.globalHinweis": "全員が自動的に参加します。どこにも登録する必要はありません。",
+        "team.event.globalOptOut": "設定 › プライバシーで参加をオフにできます。",
         "team.event.keineAktuellen": "開催中のイベントはなく、今後3日以内に始まるイベントもありません。",
+        "team.event.keineGlobalen": "現在開催中のグローバルイベントはなく、今後3日以内に始まるものもありません。",
+        "team.event.keineTeams": "このイベントにはまだチームメンバーがいません。",
         "team.event.loeschenFrage": "イベント「{titel}」を削除しますか？",
         "team.event.minuten": "分",
         "team.event.neu": "イベントを作成",
+        "team.event.neuLaden": "更新",
         "team.event.nochNichts": "イベントが始まるとランキングが表示されます。",
         "team.event.ohneDateien": "ウォッチ、アプリ、連携アカウントの記録のみを集計（手動でアップロードした FIT・GPX・TCX ファイルは除外）",
         "team.event.ohneDateienKurz": "ウォッチ、アプリ、連携アカウントの記録のみ集計され、アップロードしたファイルは含まれません。",
@@ -3878,6 +4146,7 @@ enum LocTeam {
         "team.event.sekunden": "秒",
         "team.event.spots": "スポット",
         "team.event.stand": "現在の順位",
+        "team.event.standUm": "{zeit} 時点",
         "team.event.start": "開始",
         "team.event.startIn": "開始まで",
         "team.event.status.auswertung": "集計中",
@@ -3885,28 +4154,33 @@ enum LocTeam {
         "team.event.status.kommend": "開催予定",
         "team.event.status.laeuft": "開催中",
         "team.event.stunden": "時間",
+    ]
+
+    private static let _ja3: [String: String] = [
         "team.event.summen": "イベント合計",
         "team.event.summenHinweis": "参加者全員の合計です。イベントページに表示する項目を選んでください。",
         "team.event.tag": "日",
         "team.event.tage": "日",
         "team.event.teamGesamt": "イベント合計",
         "team.event.teambildZeigen": "イベントバナーがない間はチームバナーを表示する",
+        "team.event.teams": "チーム",
         "team.event.teilen": "共有：",
         "team.event.teilnehmer": "参加者",
         "team.event.teilnehmer1": "参加者",
-    ]
-
-    private static let _ja3: [String: String] = [
         "team.event.titel": "タイトル",
         "team.event.uploadsBis": "期間中のセッションは {bis} までアップロードでき、その後結果が確定します。",
         "team.event.vergangen": "過去のイベント",
         "team.event.vorlage": "テンプレート",
+        "team.event.wertung": "チームランキング",
+        "team.event.wertungAlle": "全メンバーの合計",
+        "team.event.wertungBeste": "上位{n}人の合計",
         "team.eventbild.entfernen": "イベントバナーを削除",
         "team.eventbild.hinweis": "イベントページ上部の横長画像。1600 × 500 px が理想です（幅 800 px 以上）。",
         "team.eventbild.hochladen": "イベントバナーをアップロード",
         "team.eventbild.titel": "イベントバナー",
         "team.events": "イベント",
-        "team.eventsAktuell": "開催中・まもなく始まるイベント",
+        "team.eventsGlobal": "グローバルイベント",
+        "team.eventsMeineTeams": "あなたのチームのイベント",
         "team.farbe": "チームカラー",
         "team.finden": "チームを探す",
         "team.findenPlatzhalter": "チーム名で検索 …",
@@ -3928,6 +4202,9 @@ enum LocTeam {
         "team.herkunft": "国・地域",
         "team.join.anfrage": "申請はチームリーダーに届き、リーダーが判断します。",
         "team.join.anfrageProfil": "審査のため、これまでにどのスポットでどの種目をしたか（セッション数のみ）がリーダーに表示されます。",
+    ]
+
+    private static let _ja4: [String: String] = [
         "team.join.anfragen": "申請を送信",
         "team.join.angefragt": "申請を送信しました。",
         "team.join.beitreten": "参加",
@@ -3942,9 +4219,6 @@ enum LocTeam {
         "team.join.wartet": "申請中",
         "team.k.best": "ベスト値",
         "team.k.sum_distance": "オンフォイル距離の合計",
-    ]
-
-    private static let _ja4: [String: String] = [
         "team.k.sum_pumps": "ポンプ合計",
         "team.k.sum_runs": "ラン合計",
         "team.k.sum_sessions": "セッション",
@@ -3975,6 +4249,10 @@ enum LocTeam {
         "team.meine": "マイチーム",
         "team.mitglieder": "メンバー",
         "team.mitgliederAnzahl": "メンバー {n} 人",
+        "team.mitgliederAnzahl1": "メンバー 1 人",
+    ]
+
+    private static let _ja5: [String: String] = [
         "team.mitgliederSichtbar": "メンバー一覧を見られるのは？",
         "team.name": "チーム名",
         "team.nichtGefunden": "このチームは存在しないか、公開されていません。",
@@ -3988,11 +4266,9 @@ enum LocTeam {
         "team.qr": "QRコード",
         "team.qrTeilen": "QRコードを共有",
         "team.regeln.events.text": "イベントには期間と独自のランキングがあり、特定のスポットに限定することもできます。\nランキングに加えて、またはその代わりに、イベントでは参加者全員の合計（チーム全体のパンプ数や距離など）を表示できます。各イベントにはランキングか合計が少なくとも1つ必要です。\n期間内に開始したセッションだけが集計されます。\nリーダーはイベントごとに、手動でアップロードしたファイル（FIT・GPX・TCX）を集計しないよう設定できます。ウォッチ、アプリ、連携アカウントの記録は引き続き集計されます。\n終了後も24時間はアップロードでき、その間チームページには「集計中」と表示されます。その後、結果は確定され、後からトリミングや削除をしても何も変わりません。\n終了後に退出した人は結果に残り、その後に参加した人は加わりません。\n結果は毎晩確定されるほか、誰かがチームページを開いた時点でも確定されます。\n時刻はイベントを作成したタイムゾーンのもので、全員にそのまま表示されます。\n1位から3位にはフォイラーページにイベントバッジが付きますが、外観が承認されたチームに限ります。",
+        "team.regeln.intro": "pumpfoil.org のチームの仕組み：誰が何を見られるか、どう集計されるか、削除するとどうなるか。",
         "team.rolle.leiter": "リーダー",
         "team.rolle.mitglied": "メンバー",
-    ]
-
-    private static let _ja5: [String: String] = [
         "team.rolle.moderator": "モデレーター",
         "team.rolleUebergeben": "リーダーを引き継ぐ",
         "team.sessions30": "30日間のセッション",
@@ -4022,7 +4298,11 @@ enum LocTeam {
         "team.teilen": "共有",
         "team.uebergebenFrage": "リーダーを {name} に引き継ぎますか？あなたはモデレーターになります。",
         "team.vergleich.ausFahrern": "{n}人の合計",
-        "team.vergleich.hinweis": "各チームの上位{n}人のライダーの合計で比べます。パンプフォイル、モーションデータのない走行も含みます。ランキングを公開しているチームのみ。",
+    ]
+
+    private static let _ja6: [String: String] = [
+        "team.vergleich.ausFahrern1": "1人の合計",
+        "team.vergleich.hinweis": "各チームの上位{n}人のライダーの合計で比べます。{sport}、モーションデータのない走行も含みます。ランキングを公開しているチームのみ。",
         "team.vergleich.leer": "この期間にセッションのあるチームはまだありません。",
         "team.vergleich.titel": "チームランキング",
         "team.vergleich.top": "上位{n}人",
@@ -4149,12 +4429,20 @@ enum LocTeam {
         "team.event.disclaimer": "活动由各团队自行组织。pumpfoil.org 对活动及其中作出的任何经济或其他承诺没有任何影响，也不承担任何责任。不得诉诸法律途径。付款及其他一切约定由组织者与参与者自行处理，与 pumpfoil.org 无关。 同样，pumpfoil.org 不对测得的数值和数据是否正确或是否被篡改承担任何责任。显示的内容即 GitHub 上的公开源代码根据上传的数据计算出的结果，除此之外不作任何承诺。",
         "team.event.ende": "结束",
         "team.event.endetIn": "距离结束",
+        "team.event.endstand": "最终排名",
         "team.event.ergebnis": "结果",
         "team.event.gemessen": "计量项目",
+        "team.event.global": "全球",
+        "team.event.globalHaken": "全球活动 – 所有人自动参加，无需加入",
+        "team.event.globalHinweis": "所有人自动参加 – 你不需要在任何地方报名。",
+        "team.event.globalOptOut": "可在 设置 › 隐私 中退出。",
         "team.event.keineAktuellen": "目前没有进行中的活动，未来三天内也没有活动开始。",
+        "team.event.keineGlobalen": "目前没有正在进行的全球活动，未来三天内也没有即将开始的。",
+        "team.event.keineTeams": "此活动中还没有团队成员。",
         "team.event.loeschenFrage": "删除活动“{titel}”？",
         "team.event.minuten": "分",
         "team.event.neu": "创建活动",
+        "team.event.neuLaden": "刷新",
         "team.event.nochNichts": "活动开始后将显示排行榜。",
         "team.event.ohneDateien": "仅统计手表、App 或已关联账户的记录（不含手动上传的 FIT、GPX 或 TCX 文件）",
         "team.event.ohneDateienKurz": "仅统计手表、App 或已关联账户的记录，不含上传的文件。",
@@ -4163,6 +4451,7 @@ enum LocTeam {
         "team.event.sekunden": "秒",
         "team.event.spots": "地点",
         "team.event.stand": "当前排名",
+        "team.event.standUm": "截至 {zeit}",
         "team.event.start": "开始",
         "team.event.startIn": "距离开始",
         "team.event.status.auswertung": "结果统计中",
@@ -4170,28 +4459,33 @@ enum LocTeam {
         "team.event.status.kommend": "即将开始",
         "team.event.status.laeuft": "进行中",
         "team.event.stunden": "小时",
+    ]
+
+    private static let _zh3: [String: String] = [
         "team.event.summen": "活动总计",
         "team.event.summenHinweis": "所有参与者的总和。勾选要在活动页面上显示的项目。",
         "team.event.tag": "天",
         "team.event.tage": "天",
         "team.event.teamGesamt": "活动总计",
         "team.event.teambildZeigen": "在未上传活动横幅前显示团队横幅",
+        "team.event.teams": "团队",
         "team.event.teilen": "分享：",
         "team.event.teilnehmer": "参与者",
         "team.event.teilnehmer1": "参与者",
-    ]
-
-    private static let _zh3: [String: String] = [
         "team.event.titel": "标题",
         "team.event.uploadsBis": "该时段的记录可在 {bis} 前上传，之后结果确定。",
         "team.event.vergangen": "往期活动",
         "team.event.vorlage": "模板",
+        "team.event.wertung": "团队排名",
+        "team.event.wertungAlle": "全体成员之和",
+        "team.event.wertungBeste": "前{n}名之和",
         "team.eventbild.entfernen": "移除活动横幅",
         "team.eventbild.hinweis": "活动页面顶部的宽幅图片，最好是 1600 × 500 px（宽度至少 800 px）。",
         "team.eventbild.hochladen": "上传活动横幅",
         "team.eventbild.titel": "活动横幅",
         "team.events": "活动",
-        "team.eventsAktuell": "进行中和即将开始的活动",
+        "team.eventsGlobal": "全球活动",
+        "team.eventsMeineTeams": "你的团队活动",
         "team.farbe": "团队颜色",
         "team.finden": "查找团队",
         "team.findenPlatzhalter": "搜索团队名称 …",
@@ -4213,6 +4507,9 @@ enum LocTeam {
         "team.herkunft": "国家/地区",
         "team.join.anfrage": "你的申请将发送给团队负责人，由其决定。",
         "team.join.anfrageProfil": "审核时，负责人会看到你目前去过哪些地点、从事过哪些运动（仅显示记录次数）。",
+    ]
+
+    private static let _zh4: [String: String] = [
         "team.join.anfragen": "发送申请",
         "team.join.angefragt": "申请已发送。",
         "team.join.beitreten": "加入",
@@ -4227,9 +4524,6 @@ enum LocTeam {
         "team.join.wartet": "申请处理中",
         "team.k.best": "最佳数值",
         "team.k.sum_distance": "上翼总距离",
-    ]
-
-    private static let _zh4: [String: String] = [
         "team.k.sum_pumps": "泵动总数",
         "team.k.sum_runs": "航段总数",
         "team.k.sum_sessions": "记录数",
@@ -4260,6 +4554,10 @@ enum LocTeam {
         "team.meine": "我的团队",
         "team.mitglieder": "成员",
         "team.mitgliederAnzahl": "{n} 名成员",
+        "team.mitgliederAnzahl1": "1 名成员",
+    ]
+
+    private static let _zh5: [String: String] = [
         "team.mitgliederSichtbar": "谁能看到成员列表？",
         "team.name": "团队名称",
         "team.nichtGefunden": "该团队不存在或未公开。",
@@ -4273,11 +4571,9 @@ enum LocTeam {
         "team.qr": "二维码",
         "team.qrTeilen": "分享二维码",
         "team.regeln.events.text": "活动有一个时间窗口和自己的排行榜，也可以只限某些地点。\n除排行榜之外或代替排行榜，活动可以显示所有参与者的总计，例如整个团队的 pump 次数或距离。每个活动至少需要一个排行榜或一项总计。\n只有在时间窗口内开始的记录才计入。\n负责人可以为每个活动设定不统计手动上传的文件（FIT、GPX、TCX）；手表、App 和已关联账户的记录仍然计入。\n结束后仍可在 24 小时内上传，此时团队页面显示“结果统计中”。之后结果被冻结，之后再裁剪或删除都不会改变任何内容。\n结束后退出的人仍保留在结果中；之后加入的人不会再被计入。\n冻结在夜间进行，此外只要有人打开团队页面也会立即冻结。\n时间以创建活动时所在的时区为准，并以此向所有人显示。\n第 1 至 3 名会在自己的玩家主页上获得活动徽章，但仅限外观已获批准的团队。",
+        "team.regeln.intro": "pumpfoil.org 上的团队是这样运作的：谁能看到什么、如何计分，以及删除时会发生什么。",
         "team.rolle.leiter": "负责人",
         "team.rolle.mitglied": "成员",
-    ]
-
-    private static let _zh5: [String: String] = [
         "team.rolle.moderator": "管理员",
         "team.rolleUebergeben": "移交负责人",
         "team.sessions30": "30天内的次数",
@@ -4307,7 +4603,11 @@ enum LocTeam {
         "team.teilen": "分享",
         "team.uebergebenFrage": "将负责人移交给 {name}？你将成为管理员。",
         "team.vergleich.ausFahrern": "来自 {n} 名骑手",
-        "team.vergleich.hinweis": "每个团队按其最佳 {n} 名骑手的总和计算。Pumpfoil，也包括没有运动数据的滑行；仅限排行榜公开的团队。",
+    ]
+
+    private static let _zh6: [String: String] = [
+        "team.vergleich.ausFahrern1": "来自 1 名骑手",
+        "team.vergleich.hinweis": "每个团队按其最佳 {n} 名骑手的总和计算。{sport}，也包括没有运动数据的滑行；仅限排行榜公开的团队。",
         "team.vergleich.leer": "此期间还没有团队有训练记录。",
         "team.vergleich.titel": "团队排行榜",
         "team.vergleich.top": "前 {n} 名",
@@ -4434,12 +4734,20 @@ enum LocTeam {
         "team.event.disclaimer": "События проводят сами команды. pumpfoil.org не влияет на события и на данные в них обещания, финансовые или иные, и не несёт за них ответственности. Обращение в суд исключено. Платежи и все прочие договорённости организаторы и участники решают между собой, независимо от pumpfoil.org. Точно так же pumpfoil.org не несёт ответственности за то, верны ли измеренные значения и данные и не были ли они подделаны. Показывается то, что публичный исходный код на GitHub рассчитывает из загруженных данных; других обещаний нет.",
         "team.event.ende": "Конец",
         "team.event.endetIn": "До конца",
+        "team.event.endstand": "Итоговые результаты",
         "team.event.ergebnis": "Итоги",
         "team.event.gemessen": "Измеряется",
+        "team.event.global": "Глобальное",
+        "team.event.globalHaken": "Глобальное событие – участвуют все автоматически, без вступления",
+        "team.event.globalHinweis": "Участвуют все автоматически – нигде не нужно регистрироваться.",
+        "team.event.globalOptOut": "Отказаться можно в Настройки › Конфиденциальность.",
         "team.event.keineAktuellen": "Сейчас нет идущих событий, и в ближайшие три дня ни одно не начинается.",
+        "team.event.keineGlobalen": "Сейчас нет глобальных событий, и в ближайшие три дня ни одно не начинается.",
+        "team.event.keineTeams": "В этом событии пока нет участников команд.",
         "team.event.loeschenFrage": "Удалить событие «{titel}»?",
         "team.event.minuten": "мин",
         "team.event.neu": "Создать событие",
+        "team.event.neuLaden": "Обновить",
         "team.event.nochNichts": "Таблицы появятся, как только событие начнётся.",
         "team.event.ohneDateien": "Учитывать только записи с часов, из приложения или привязанного аккаунта (без вручную загруженных файлов FIT, GPX, TCX)",
         "team.event.ohneDateienKurz": "Учитываются только записи с часов, из приложения или привязанного аккаунта, без загруженных файлов.",
@@ -4448,6 +4756,7 @@ enum LocTeam {
         "team.event.sekunden": "сек",
         "team.event.spots": "Споты",
         "team.event.stand": "Текущее положение",
+        "team.event.standUm": "По состоянию на {zeit}",
         "team.event.start": "Начало",
         "team.event.startIn": "Начало через",
         "team.event.status.auswertung": "подведение итогов",
@@ -4455,28 +4764,33 @@ enum LocTeam {
         "team.event.status.kommend": "скоро",
         "team.event.status.laeuft": "идёт",
         "team.event.stunden": "ч",
+    ]
+
+    private static let _ru3: [String: String] = [
         "team.event.summen": "Суммы события",
         "team.event.summenHinweis": "Сложено по всем участникам. Отметь, что показывать на странице события.",
         "team.event.tag": "дн.",
         "team.event.tage": "дн.",
         "team.event.teamGesamt": "Событие всего",
         "team.event.teambildZeigen": "Показывать баннер команды, пока нет баннера события",
+        "team.event.teams": "Команды",
         "team.event.teilen": "Поделиться:",
         "team.event.teilnehmer": "Участники",
         "team.event.teilnehmer1": "Участник",
-    ]
-
-    private static let _ru3: [String: String] = [
         "team.event.titel": "Название",
         "team.event.uploadsBis": "Сессии за этот период можно загрузить до {bis}, после этого итог окончательный.",
         "team.event.vergangen": "Прошедшие события",
         "team.event.vorlage": "Шаблон",
+        "team.event.wertung": "Рейтинг команд",
+        "team.event.wertungAlle": "Сумма всех участников",
+        "team.event.wertungBeste": "Сумма лучших {n}",
         "team.eventbild.entfernen": "Удалить баннер события",
         "team.eventbild.hinweis": "Широкое изображение вверху страницы события, лучше всего 1600 × 500 px (не меньше 800 px в ширину).",
         "team.eventbild.hochladen": "Загрузить баннер события",
         "team.eventbild.titel": "Баннер события",
         "team.events": "События",
-        "team.eventsAktuell": "Текущие и предстоящие события",
+        "team.eventsGlobal": "Глобальные события",
+        "team.eventsMeineTeams": "События твоих команд",
         "team.farbe": "Цвет команды",
         "team.finden": "Найти команду",
         "team.findenPlatzhalter": "Искать по названию …",
@@ -4498,6 +4812,9 @@ enum LocTeam {
         "team.herkunft": "Страна / регион",
         "team.join.anfrage": "Твоя заявка уйдёт руководителю команды, он и решит.",
         "team.join.anfrageProfil": "Для проверки руководитель видит, на каких спотах и в каких видах спорта ты катался до сих пор (только число сессий).",
+    ]
+
+    private static let _ru4: [String: String] = [
         "team.join.anfragen": "Отправить заявку",
         "team.join.angefragt": "Заявка отправлена.",
         "team.join.beitreten": "Вступить",
@@ -4512,9 +4829,6 @@ enum LocTeam {
         "team.join.wartet": "Заявка на рассмотрении",
         "team.k.best": "Лучшее значение",
         "team.k.sum_distance": "Дистанция на фойле всего",
-    ]
-
-    private static let _ru4: [String: String] = [
         "team.k.sum_pumps": "Помпинг всего",
         "team.k.sum_runs": "Заезды всего",
         "team.k.sum_sessions": "Сессии",
@@ -4545,6 +4859,10 @@ enum LocTeam {
         "team.meine": "Мои команды",
         "team.mitglieder": "Участники",
         "team.mitgliederAnzahl": "Участники: {n}",
+        "team.mitgliederAnzahl1": "Участники: 1",
+    ]
+
+    private static let _ru5: [String: String] = [
         "team.mitgliederSichtbar": "Кто видит список участников?",
         "team.name": "Название команды",
         "team.nichtGefunden": "Такой команды нет, или она не публичная.",
@@ -4558,11 +4876,9 @@ enum LocTeam {
         "team.qr": "QR-код",
         "team.qrTeilen": "Поделиться QR-кодом",
         "team.regeln.events.text": "У события есть временное окно и свои таблицы лидеров, по желанию только на определённых спотах.\nПомимо таблиц лидеров или вместо них событие может показывать суммы по всем участникам, например пампы или дистанцию всей команды. Каждому событию нужна хотя бы одна таблица или одна сумма.\nУчитываются только сессии, начатые в этом окне.\nДля каждого события руководитель может решить, что вручную загруженные файлы (FIT, GPX, TCX) не учитываются; записи с часов, из приложения и привязанных аккаунтов по-прежнему учитываются.\nПосле окончания можно ещё 24 часа загружать записи, страница команды тогда показывает «подведение итогов». Затем результат замораживается, и последующая обрезка или удаление уже ничего не меняют.\nКто выходит после окончания, остаётся в результате; кто вступает позже, уже не добавляется.\nРезультаты замораживаются ночью, а также сразу, как только кто-то откроет страницу команды.\nВремя указано в часовом поясе, в котором создано событие, и так же показывается всем.\nМеста с 1 по 3 получают значок события на своей странице фойлера, но только в командах с одобренным оформлением.",
+        "team.regeln.intro": "Как устроены команды на pumpfoil.org: кто что видит, как считаются результаты и что происходит при удалении.",
         "team.rolle.leiter": "Руководитель",
         "team.rolle.mitglied": "Участник",
-    ]
-
-    private static let _ru5: [String: String] = [
         "team.rolle.moderator": "Модератор",
         "team.rolleUebergeben": "Передать руководство",
         "team.sessions30": "сессий за 30 дней",
@@ -4592,7 +4908,11 @@ enum LocTeam {
         "team.teilen": "Поделиться",
         "team.uebergebenFrage": "Передать руководство участнику {name}? Ты станешь модератором.",
         "team.vergleich.ausFahrern": "из {n} райдеров",
-        "team.vergleich.hinweis": "Для каждой команды считается сумма её {n} лучших райдеров. Пампфойл, включая заезды без данных движения; только команды с публичными рейтингами.",
+    ]
+
+    private static let _ru6: [String: String] = [
+        "team.vergleich.ausFahrern1": "из 1 райдера",
+        "team.vergleich.hinweis": "Для каждой команды считается сумма её {n} лучших райдеров. {sport}, включая заезды без данных движения; только команды с публичными рейтингами.",
         "team.vergleich.leer": "За этот период ни у одной команды пока нет сессий.",
         "team.vergleich.titel": "Рейтинги команд",
         "team.vergleich.top": "Лучшие {n}",
@@ -4719,12 +5039,20 @@ enum LocTeam {
         "team.event.disclaimer": "Event diselenggarakan oleh tim itu sendiri. pumpfoil.org tidak memiliki pengaruh atas event maupun janji yang dibuat di dalamnya, baik finansial maupun lainnya, dan tidak bertanggung jawab atasnya. Jalur hukum dikecualikan. Pembayaran dan semua kesepakatan lain diatur antara penyelenggara dan peserta, terlepas dari pumpfoil.org. Begitu pula, pumpfoil.org tidak bertanggung jawab atas benar tidaknya nilai dan data yang diukur atau apakah data tersebut dimanipulasi. Yang ditampilkan adalah hasil perhitungan kode sumber publik di GitHub dari data yang diunggah; tidak ada janji lain.",
         "team.event.ende": "Selesai",
         "team.event.endetIn": "Berakhir dalam",
+        "team.event.endstand": "Klasemen akhir",
         "team.event.ergebnis": "Hasil",
         "team.event.gemessen": "Diukur",
+        "team.event.global": "Global",
+        "team.event.globalHaken": "Event global – semua orang otomatis ikut, tanpa bergabung",
+        "team.event.globalHinweis": "Semua orang otomatis ikut – kamu tidak perlu mendaftar di mana pun.",
+        "team.event.globalOptOut": "Kamu bisa keluar di Pengaturan › Privasi.",
         "team.event.keineAktuellen": "Saat ini tidak ada event yang berlangsung, dan tidak ada yang dimulai dalam tiga hari ke depan.",
+        "team.event.keineGlobalen": "Saat ini tidak ada event global yang berlangsung, dan tidak ada yang dimulai dalam tiga hari ke depan.",
+        "team.event.keineTeams": "Belum ada anggota tim di event ini.",
         "team.event.loeschenFrage": "Hapus event “{titel}”?",
         "team.event.minuten": "mnt",
         "team.event.neu": "Buat event",
+        "team.event.neuLaden": "Muat ulang",
         "team.event.nochNichts": "Papan peringkat muncul begitu event berlangsung.",
         "team.event.ohneDateien": "Hanya hitung rekaman dari jam, aplikasi, atau akun tertaut (tanpa file FIT, GPX, atau TCX yang diunggah manual)",
         "team.event.ohneDateienKurz": "Hanya rekaman dari jam, aplikasi, atau akun tertaut yang dihitung, tanpa file unggahan.",
@@ -4733,6 +5061,7 @@ enum LocTeam {
         "team.event.sekunden": "dtk",
         "team.event.spots": "Spot",
         "team.event.stand": "Klasemen saat ini",
+        "team.event.standUm": "Per {zeit}",
         "team.event.start": "Mulai",
         "team.event.startIn": "Mulai dalam",
         "team.event.status.auswertung": "menunggu hasil",
@@ -4740,28 +5069,33 @@ enum LocTeam {
         "team.event.status.kommend": "akan datang",
         "team.event.status.laeuft": "berlangsung",
         "team.event.stunden": "jam",
+    ]
+
+    private static let _id3: [String: String] = [
         "team.event.summen": "Total event",
         "team.event.summenHinweis": "Dijumlahkan dari semua peserta. Centang yang ingin ditampilkan di halaman event.",
         "team.event.tag": "hari",
         "team.event.tage": "hari",
         "team.event.teamGesamt": "Total event",
         "team.event.teambildZeigen": "Tampilkan banner tim selama belum ada banner event",
+        "team.event.teams": "Tim",
         "team.event.teilen": "Bagikan:",
         "team.event.teilnehmer": "Peserta",
         "team.event.teilnehmer1": "Peserta",
-    ]
-
-    private static let _id3: [String: String] = [
         "team.event.titel": "Judul",
         "team.event.uploadsBis": "Sesi dari periode ini bisa diunggah sampai {bis}, setelah itu hasilnya final.",
         "team.event.vergangen": "Event sebelumnya",
         "team.event.vorlage": "Templat",
+        "team.event.wertung": "Peringkat tim",
+        "team.event.wertungAlle": "Jumlah semua anggota",
+        "team.event.wertungBeste": "Jumlah {n} terbaik",
         "team.eventbild.entfernen": "Hapus banner event",
         "team.eventbild.hinweis": "Gambar lebar di bagian atas halaman event, idealnya 1600 × 500 px (minimal lebar 800 px).",
         "team.eventbild.hochladen": "Unggah banner event",
         "team.eventbild.titel": "Banner event",
         "team.events": "Event",
-        "team.eventsAktuell": "Event berlangsung & mendatang",
+        "team.eventsGlobal": "Event global",
+        "team.eventsMeineTeams": "Event tim kamu",
         "team.farbe": "Warna tim",
         "team.finden": "Cari tim",
         "team.findenPlatzhalter": "Cari nama tim …",
@@ -4783,6 +5117,9 @@ enum LocTeam {
         "team.herkunft": "Negara / wilayah",
         "team.join.anfrage": "Permintaanmu dikirim ke ketua tim, yang akan memutuskan.",
         "team.join.anfrageProfil": "Untuk menilainya, ketua melihat di spot mana dan olahraga apa saja kamu pernah bermain sejauh ini (hanya jumlah sesi).",
+    ]
+
+    private static let _id4: [String: String] = [
         "team.join.anfragen": "Kirim permintaan",
         "team.join.angefragt": "Permintaan terkirim.",
         "team.join.beitreten": "Gabung",
@@ -4797,9 +5134,6 @@ enum LocTeam {
         "team.join.wartet": "Permintaan diproses",
         "team.k.best": "Nilai terbaik",
         "team.k.sum_distance": "Total jarak on-foil",
-    ]
-
-    private static let _id4: [String: String] = [
         "team.k.sum_pumps": "Total pump",
         "team.k.sum_runs": "Total run",
         "team.k.sum_sessions": "Sesi",
@@ -4830,6 +5164,10 @@ enum LocTeam {
         "team.meine": "Tim saya",
         "team.mitglieder": "Anggota",
         "team.mitgliederAnzahl": "{n} anggota",
+        "team.mitgliederAnzahl1": "1 anggota",
+    ]
+
+    private static let _id5: [String: String] = [
         "team.mitgliederSichtbar": "Siapa yang bisa melihat daftar anggota?",
         "team.name": "Nama tim",
         "team.nichtGefunden": "Tim ini tidak ada atau tidak publik.",
@@ -4843,11 +5181,9 @@ enum LocTeam {
         "team.qr": "Kode QR",
         "team.qrTeilen": "Bagikan kode QR",
         "team.regeln.events.text": "Event punya rentang waktu dan papan peringkat sendiri, kalau mau hanya di spot tertentu.\nSelain papan peringkat, atau sebagai gantinya, event dapat menampilkan total dari semua peserta, misalnya pump atau jarak seluruh tim. Setiap event memerlukan minimal satu papan peringkat atau satu total.\nHanya sesi yang dimulai dalam rentang waktu itu yang dihitung.\nUntuk setiap event, ketua dapat menetapkan bahwa file yang diunggah manual (FIT, GPX, TCX) tidak dihitung; rekaman dari jam, aplikasi, dan akun tertaut tetap dihitung.\nSetelah selesai, kamu masih bisa mengunggah selama 24 jam; halaman tim lalu menampilkan “menunggu hasil”. Setelah itu hasilnya dibekukan, dan memotong atau menghapus belakangan tidak mengubah apa pun lagi.\nYang keluar setelah selesai tetap ada di hasil; yang bergabung sesudahnya tidak ikut lagi.\nHasil dibekukan pada malam hari dan juga begitu seseorang membuka halaman tim.\nWaktunya mengikuti zona waktu tempat event dibuat dan ditampilkan begitu untuk semua orang.\nPeringkat 1 sampai 3 mendapat lencana event di halaman foiler mereka, tapi hanya untuk tim yang tampilannya sudah disetujui.",
+        "team.regeln.intro": "Begini cara kerja tim di pumpfoil.org: siapa melihat apa, bagaimana peringkat dihitung, dan apa yang terjadi saat sesuatu dihapus.",
         "team.rolle.leiter": "Ketua",
         "team.rolle.mitglied": "Anggota",
-    ]
-
-    private static let _id5: [String: String] = [
         "team.rolle.moderator": "Moderator",
         "team.rolleUebergeben": "Serahkan posisi ketua",
         "team.sessions30": "sesi dalam 30 hari",
@@ -4877,7 +5213,11 @@ enum LocTeam {
         "team.teilen": "Bagikan",
         "team.uebergebenFrage": "Serahkan posisi ketua kepada {name}? Kamu akan menjadi moderator.",
         "team.vergleich.ausFahrern": "dari {n} rider",
-        "team.vergleich.hinweis": "Setiap tim dihitung dari jumlah {n} rider terbaiknya. Pumpfoil, termasuk run tanpa data gerak; hanya tim dengan papan peringkat publik.",
+    ]
+
+    private static let _id6: [String: String] = [
+        "team.vergleich.ausFahrern1": "dari 1 rider",
+        "team.vergleich.hinweis": "Setiap tim dihitung dari jumlah {n} rider terbaiknya. {sport}, termasuk run tanpa data gerak; hanya tim dengan papan peringkat publik.",
         "team.vergleich.leer": "Belum ada tim dengan sesi pada periode ini.",
         "team.vergleich.titel": "Papan peringkat tim",
         "team.vergleich.top": "{n} terbaik",
@@ -5004,12 +5344,20 @@ enum LocTeam {
         "team.event.disclaimer": "Arrangementene drives av lagene selv. pumpfoil.org har ingen innflytelse på arrangementer eller på løfter som gis i dem, økonomiske eller andre, og tar intet ansvar for dem. Rettslig prøving er utelukket. Betalinger og alle andre avtaler ordner arrangører og deltakere seg imellom, uavhengig av pumpfoil.org. Likeledes tar pumpfoil.org intet ansvar for om målte verdier og data er riktige eller har blitt manipulert. Det som vises, er det den offentlige kildekoden på GitHub beregner ut fra de opplastede dataene; det gis ingen andre løfter.",
         "team.event.ende": "Slutt",
         "team.event.endetIn": "Slutter om",
+        "team.event.endstand": "Sluttstilling",
         "team.event.ergebnis": "Resultat",
         "team.event.gemessen": "Måles",
+        "team.event.global": "Global",
+        "team.event.globalHaken": "Globalt event – alle deltar automatisk, uten å bli med",
+        "team.event.globalHinweis": "Alle deltar automatisk – du trenger ikke melde deg på noe sted.",
+        "team.event.globalOptOut": "Du kan reservere deg under Innstillinger › Personvern.",
         "team.event.keineAktuellen": "Ingen arrangementer pågår nå, og ingen starter de neste tre dagene.",
+        "team.event.keineGlobalen": "Ingen globale eventer pågår nå, og ingen starter de neste tre dagene.",
+        "team.event.keineTeams": "Ingen lagmedlemmer i dette eventet ennå.",
         "team.event.loeschenFrage": "Slette arrangementet «{titel}»?",
         "team.event.minuten": "min",
         "team.event.neu": "Opprett arrangement",
+        "team.event.neuLaden": "Oppdater",
         "team.event.nochNichts": "Listene vises når arrangementet er i gang.",
         "team.event.ohneDateien": "Tell bare opptak fra klokke, app eller koblet konto (ingen manuelt opplastede FIT-, GPX- eller TCX-filer)",
         "team.event.ohneDateienKurz": "Bare opptak fra klokke, app eller koblet konto teller, ingen opplastede filer.",
@@ -5018,6 +5366,7 @@ enum LocTeam {
         "team.event.sekunden": "sek",
         "team.event.spots": "Spots",
         "team.event.stand": "Stillingen nå",
+        "team.event.standUm": "Per {zeit}",
         "team.event.start": "Start",
         "team.event.startIn": "Starter om",
         "team.event.status.auswertung": "resultat ventes",
@@ -5025,28 +5374,33 @@ enum LocTeam {
         "team.event.status.kommend": "kommer",
         "team.event.status.laeuft": "pågår",
         "team.event.stunden": "t",
+    ]
+
+    private static let _nb3: [String: String] = [
         "team.event.summen": "Totaler for arrangementet",
         "team.event.summenHinweis": "Lagt sammen for alle deltakere. Kryss av for det som skal vises på arrangementsiden.",
         "team.event.tag": "dag",
         "team.event.tage": "dager",
         "team.event.teamGesamt": "Arrangementet totalt",
         "team.event.teambildZeigen": "Vis lagbanneret så lenge det ikke er lastet opp et arrangementsbanner",
+        "team.event.teams": "Lag",
         "team.event.teilen": "Del:",
         "team.event.teilnehmer": "Deltakere",
         "team.event.teilnehmer1": "Deltaker",
-    ]
-
-    private static let _nb3: [String: String] = [
         "team.event.titel": "Tittel",
         "team.event.uploadsBis": "Økter fra perioden kan lastes opp til {bis}, deretter er resultatet endelig.",
         "team.event.vergangen": "Tidligere arrangementer",
         "team.event.vorlage": "Mal",
+        "team.event.wertung": "Lagrangering",
+        "team.event.wertungAlle": "Sum av alle medlemmer",
+        "team.event.wertungBeste": "Sum av de {n} beste",
         "team.eventbild.entfernen": "Fjern arrangementsbanner",
         "team.eventbild.hinweis": "Bredt bilde øverst på arrangementssiden, helst 1600 × 500 px (minst 800 px bredt).",
         "team.eventbild.hochladen": "Last opp arrangementsbanner",
         "team.eventbild.titel": "Arrangementsbanner",
         "team.events": "Arrangementer",
-        "team.eventsAktuell": "Pågående og kommende arrangementer",
+        "team.eventsGlobal": "Globale eventer",
+        "team.eventsMeineTeams": "Eventer i lagene dine",
         "team.farbe": "Lagfarge",
         "team.finden": "Finn et lag",
         "team.findenPlatzhalter": "Søk etter lagnavn …",
@@ -5068,6 +5422,9 @@ enum LocTeam {
         "team.herkunft": "Land / region",
         "team.join.anfrage": "Forespørselen din går til lagets leder, som bestemmer.",
         "team.join.anfrageProfil": "For å vurdere den ser lederen hvilke spotter og idretter du har vært ute på så langt (bare antall økter).",
+    ]
+
+    private static let _nb4: [String: String] = [
         "team.join.anfragen": "Send forespørsel",
         "team.join.angefragt": "Forespørselen er sendt.",
         "team.join.beitreten": "Bli med",
@@ -5082,9 +5439,6 @@ enum LocTeam {
         "team.join.wartet": "Forespørsel venter",
         "team.k.best": "Beste verdi",
         "team.k.sum_distance": "Distanse på foil totalt",
-    ]
-
-    private static let _nb4: [String: String] = [
         "team.k.sum_pumps": "Pumper totalt",
         "team.k.sum_runs": "Runs totalt",
         "team.k.sum_sessions": "Økter",
@@ -5115,6 +5469,10 @@ enum LocTeam {
         "team.meine": "Mine lag",
         "team.mitglieder": "Medlemmer",
         "team.mitgliederAnzahl": "{n} medlemmer",
+        "team.mitgliederAnzahl1": "1 medlem",
+    ]
+
+    private static let _nb5: [String: String] = [
         "team.mitgliederSichtbar": "Hvem ser medlemslisten?",
         "team.name": "Lagnavn",
         "team.nichtGefunden": "Dette laget finnes ikke, eller det er ikke offentlig.",
@@ -5128,11 +5486,9 @@ enum LocTeam {
         "team.qr": "QR-kode",
         "team.qrTeilen": "Del QR-kode",
         "team.regeln.events.text": "Et arrangement har et tidsvindu og egne topplister, om ønskelig bare på bestemte spots.\nI tillegg til eller i stedet for topplister kan et arrangement vise totaler for alle deltakere, for eksempel pumpene eller distansen til hele laget. Hvert arrangement trenger minst én toppliste eller én total.\nBare økter som starter i tidsvinduet, teller.\nFor hvert arrangement kan lederen bestemme at manuelt opplastede filer (FIT, GPX, TCX) ikke teller; opptak fra klokker, appen og koblede kontoer teller fortsatt.\nEtter slutt kan du laste opp i 24 timer til, og lagsiden viser da «resultat ventes». Deretter er resultatet fryst, og senere trimming eller sletting endrer ingenting lenger.\nDen som melder seg ut etter slutten, blir stående i resultatet; den som blir med etterpå, kommer ikke med.\nResultatene fryses om natten og i tillegg så snart noen åpner lagsiden.\nTidene gjelder i tidssonen arrangementet ble opprettet i, og vises slik for alle.\nPlass 1 til 3 får et arrangementsmerke på foilersiden sin, men bare i lag der utseendet er godkjent.",
+        "team.regeln.intro": "Slik fungerer lag på pumpfoil.org: hvem som ser hva, hvordan det telles, og hva som skjer ved sletting.",
         "team.rolle.leiter": "Leder",
         "team.rolle.mitglied": "Medlem",
-    ]
-
-    private static let _nb5: [String: String] = [
         "team.rolle.moderator": "Moderator",
         "team.rolleUebergeben": "Overlat lederrollen",
         "team.sessions30": "økter på 30 dager",
@@ -5162,7 +5518,11 @@ enum LocTeam {
         "team.teilen": "Del",
         "team.uebergebenFrage": "Overlate lederrollen til {name}? Du blir da moderator.",
         "team.vergleich.ausFahrern": "fra {n} ryttere",
-        "team.vergleich.hinweis": "Hvert lag teller summen av sine {n} beste ryttere. Pumpfoil, også turer uten bevegelsesdata; bare lag med offentlige topplister.",
+    ]
+
+    private static let _nb6: [String: String] = [
+        "team.vergleich.ausFahrern1": "fra 1 rytter",
+        "team.vergleich.hinweis": "Hvert lag teller summen av sine {n} beste ryttere. {sport}, også turer uten bevegelsesdata; bare lag med offentlige topplister.",
         "team.vergleich.leer": "Ingen lag har en økt i denne perioden ennå.",
         "team.vergleich.titel": "Lagtopplister",
         "team.vergleich.top": "Beste {n}",

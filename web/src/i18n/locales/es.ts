@@ -2791,6 +2791,7 @@ const es: Record<string, string> = {
   "team.vergleich.hinweis": "Cada equipo suma a sus {n} mejores riders. {sport}, también tandas sin datos de movimiento; solo equipos con clasificaciones públicas.",
   "team.vergleich.top": "Mejores {n}",
   "team.vergleich.ausFahrern": "de {n} riders",
+  "team.vergleich.ausFahrern1": "de 1 rider",
   "team.vergleich.leer": "Ningún equipo tiene aún una sesión en este periodo.",
   "tab.rules": "Reglas",
   "team.alleMeine": "Todos mis equipos",

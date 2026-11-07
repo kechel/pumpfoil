@@ -167,7 +167,9 @@ struct TeamBestenlistenSection: View {
 
     private func zeile(_ rang: Int, _ z: TeamVergleichZeile) -> some View {
         let tf = TeamFarbe(z.farbe)
-        let aus: String = Loc.t("team.vergleich.ausFahrern", lang).replacingOccurrences(of: "{n}", with: String(z.fahrer(art)))
+        // Einzahl eigener Schluessel (07.11.2026: „from 1 riders").
+        let aus: String = z.fahrer(art) == 1 ? Loc.t("team.vergleich.ausFahrern1", lang)
+            : Loc.t("team.vergleich.ausFahrern", lang).replacingOccurrences(of: "{n}", with: String(z.fahrer(art)))
         return HStack(spacing: 10) {
             Text(String(rang)).font(.headline.monospacedDigit()).foregroundStyle(.secondary).lineLimit(1).frame(minWidth: 22)
             TeamWappen(name: z.name, logo: z.logo_url, farbe: z.farbe, size: 36)

@@ -2880,6 +2880,7 @@ const nb: Record<string, string> = {
   "team.vergleich.hinweis": "Hvert lag teller summen av sine {n} beste ryttere. {sport}, også turer uten bevegelsesdata; bare lag med offentlige topplister.",
   "team.vergleich.top": "Beste {n}",
   "team.vergleich.ausFahrern": "fra {n} ryttere",
+  "team.vergleich.ausFahrern1": "fra 1 rytter",
   "team.vergleich.leer": "Ingen lag har en økt i denne perioden ennå.",
   "tab.rules": "Regler",
   "team.alleMeine": "Alle lagene mine",
