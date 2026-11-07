@@ -53,7 +53,11 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.61",   # FREIGEGEBEN 2026-11-07 (Jans Meldung; US-Store seit 06.11. 20:59 UTC), Apple-Mail eligible for
+        "latest": "1.1.62",   # FREIGEGEBEN 2026-11-07 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.62 for iOS
+        # (Submission d86afb2f-97ec-4304-8dcc-45349194ba14, eingereicht 06.11. 16:26 PST = 07.11. 01:26, Build 72, aus 651002c6).
+        # Inhalt: Pausen-Fix Apple Watch, Watch-Sprache, globale Events, Events auf Home, Foil-Vorlage, dreistellige Plaetze,
+        # Watch-Start scrollt. Changelog 954-960 + Ereignis 961.
+        # ALT: "latest": "1.1.61",   # FREIGEGEBEN 2026-11-07 (Jans Meldung; US-Store seit 06.11. 20:59 UTC), Apple-Mail eligible for
         # distribution (Submission 5f29b31b-bf11-4b4e-a0ba-21bcbcd84224, eingereicht 05.11. 23:33 PST = 06.11. 08:33, Build 71).
         # ACHTUNG: die Mail und der App Store nennen „1.0.61" — Tippfehler im ASC-Versionseintrag; der Build ist 1.1.61 (71)
         # (ASC-Meldung bei der Einreichung, project.yml). Die App vergleicht mit ihrer Bundle-Version, also gilt hier 1.1.61.
@@ -504,7 +508,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.61",   # FREIGEGEBEN 2026-11-07 — dieselbe Einreichung wie "ios" (ein Bundle; Store nennt sie 1.0.61).
+        "latest": "1.1.62",   # FREIGEGEBEN 2026-11-07 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.61",   # FREIGEGEBEN 2026-11-07 — dieselbe Einreichung wie "ios" (ein Bundle; Store nennt sie 1.0.61).
         # ALT: "latest": "1.1.60",   # FREIGEGEBEN 2026-11-06 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.59",   # FREIGEGEBEN 2026-11-05 — dieselbe Einreichung wie "ios" (ein Bundle; Watch: Wassersperre edbd65ca).
         # ALT: "latest": "1.1.58",   # FREIGEGEBEN 2026-10-29 — dieselbe Einreichung wie "ios" (ein Bundle; Watch-Code unveraendert seit 1.1.57).
@@ -924,20 +929,7 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # EINGEREICHT 07.11.2026 01:26 (Jans Meldung, ASC „iOS-Übermittlung · Warten auf Prüfung", 1.1.62 (72),
-    # Kennung d86afb2f-97ec-4304-8dcc-45349194ba14). Aus 651002c6. Von Jan im Simulator getestet (globale Events, Opt-out
-    # in beide Richtungen, Teilen-Bild, Platz 127, Filterzeilen, Feedback-Vorlage, Watch-Sprache, Pausen-Test #20348/#20349).
-    {"name": "iPhone + Apple Watch", "version": "1.1.62",
-     "eingereicht": "2026-11-07",
-     "items": [
-         "On the Apple Watch, a new recording no longer carries over the pauses of the previous one, which shifted it in time and could leave it empty; affected sessions have been corrected.",
-         "Until the Apple Watch has fetched your settings, it uses the watch's language (English if we don't have it) instead of German.",
-         "Global events: everyone takes part automatically, with a calendar card, a team ranking (sum of the best riders), the top 10 plus your own row, a refresh button and a share image; you can opt out under Settings, Privacy.",
-         "Events of your own teams appear on Home under Team and in the community, and the Teams & Events tab shows LIVE or the number of upcoming events.",
-         "Asking for a missing foil or stabilizer opens the feedback form with a template to fill in.",
-         "Leaderboards show three-digit places in full, in the list and in the share image, and the filters above them fit on one line.",
-         "The start screen on the Apple Watch scrolls, so Switch account is always reachable.",
-     ]},
+    # iPhone + Apple Watch 1.1.62 am 07.11. 01:26 eingereicht, am 07.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 954-960 im Changelog.
     # iPhone + Apple Watch 1.1.61 am 06.11. eingereicht, am 07.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 945-951 im Changelog.
     # Garmin 1.0.101 am 06.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt 940 im Changelog mit garmin 1.0.101.
     # iPhone + Apple Watch 1.1.60 am 05.11. eingereicht, am 06.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 930-939 im Changelog.
