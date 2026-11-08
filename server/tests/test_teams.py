@@ -690,7 +690,8 @@ def test_community_aktuelle_events(client, monkeypatch):
     for kopf in (kb, kc):   # auch Fremde: globale Events gelten fuer alle
         liste = client.get("/api/teams/liste/events", headers=kopf).json()
         titel = [(e["titel"], e["status"], e["global"]) for e in liste if e["team"]["slug"] == slug]
-        assert titel == [("Laeuft", "laeuft", True), ("Bald", "kommend", True)] and {laeuft, bald}
+        # Beendet, aber noch nicht eingefroren („Results pending") bleibt stehen (08.11.2026).
+        assert titel == [("Laeuft", "laeuft", True), ("Vorbei", "auswertung", True), ("Bald", "kommend", True)] and {laeuft, bald}
 
 
 def test_event_uebersicht_seitenweise(client, monkeypatch):

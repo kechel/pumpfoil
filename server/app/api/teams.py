@@ -278,12 +278,16 @@ def vergleich(period: str = "30d", top: int = 5, sport: str = "pumpfoil", region
 @router.get("/liste/events")
 def liste_events(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
     """Community-Abschnitt (Jan, 01.11.2026): laufende Events und solche, die in den naechsten Tagen beginnen
-    (T.EVENT_VORSCHAU), alle. Ohne Bestenlisten — die stehen auf der Event-Seite."""
+    (T.EVENT_VORSCHAU), alle. Ohne Bestenlisten — die stehen auf der Event-Seite. Seit 08.11.2026 auch beendete, die
+    noch nicht eingefroren sind („Results pending", Jan: „zeigen wir da trotzdem noch mit an"). Reihenfolge: laufende,
+    dann in Auswertung, dann kommende."""
     jetzt = T._jetzt()
     E = models.TeamEvent
     q, eigene = _events_sichtbar(db, user.id)
-    rows = (q.filter(E.eingefroren_am.is_(None), E.ende > jetzt, E.start <= jetzt + T.EVENT_VORSCHAU)
+    rows = (q.filter(E.eingefroren_am.is_(None), E.start <= jetzt + T.EVENT_VORSCHAU)
             .order_by(E.start).limit(200).all())   # alle zeigen (Jan); die Grenze ist nur ein Notanker
+    rang = {"laeuft": 0, "auswertung": 1, "kommend": 2}
+    rows.sort(key=lambda r: rang.get(T.event_status(r[0], jetzt), 3))   # stabil: innerhalb nach Start
     return [_event_kurz(db, e, t, t.id in eigene, jetzt) for e, t in rows]
 
 
