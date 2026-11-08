@@ -28,7 +28,7 @@ export default function OpenDiscussions() {
   if (admin === null) return null;
   if (!admin) return <div className="mx-auto max-w-2xl p-6 text-sm text-slate-400">This page isn't public yet.</div>;
   return (
-    <div className="mx-auto max-w-2xl p-6" style={{ paddingTop: "calc(1.5rem + env(safe-area-inset-top))" }}>
+    <div className="mx-auto max-w-6xl p-6" style={{ paddingTop: "calc(1.5rem + env(safe-area-inset-top))" }}>
       <ScrollToTop />
       <h1 className="mb-1 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil />Open Discussions</h1>
       <p className="text-sm text-slate-400">Questions the community is debating right now. We collect what has been said, for and
@@ -41,6 +41,9 @@ export default function OpenDiscussions() {
         high, that the rider holds while pumping. There is no motor — it is pure muscle power, like pumpfoiling. The question
         came up around the first global event and was discussed in the community chat and in private messages.</p>
 
+      {/* Pro links, Contra rechts (Jan, 08.11.2026); auf dem Handy untereinander. */}
+      <div className="grid grid-cols-1 gap-x-8 md:grid-cols-2">
+      <div>
       <H3>Arguments for counting foil scoot together with pumpfoil</H3>
       <ul className="list-disc pl-5 text-sm">
         <Arg text="Same board, same foil, same muscles, no external propulsion. The handlebar is a walking stick — if anything, a burden."
@@ -57,6 +60,8 @@ export default function OpenDiscussions() {
           wer="a foil scoot rider" />
       </ul>
 
+      </div>
+      <div>
       <H3>Arguments for separate rankings</H3>
       <ul className="list-disc pl-5 text-sm">
         <Arg text="At the same fitness level, scoot riders seem to pump longer and further."
@@ -72,6 +77,9 @@ export default function OpenDiscussions() {
         <Arg text="Balance is easier with a handlebar."
           wer="pumpfoil.org" />
       </ul>
+
+      </div>
+      </div>
 
       <H3>What the data says</H3>
       <ul className="list-disc pl-5 text-sm text-slate-300">
