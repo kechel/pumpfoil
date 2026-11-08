@@ -173,8 +173,13 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       // NICHT: er ging zuerst auf Englisch, also sahen Schweizer und oesterreichische Nutzer
       // rund 500 Texte auf Englisch statt auf Deutsch (gefunden 31.08. beim Sprachdurchgang).
       const bruecke = BRUECKE[lang];
-      let s = DICTS[lang]?.[key] ?? (bruecke ? DICTS[bruecke]?.[key] : undefined)
-              ?? en[key] ?? de[key] ?? key;
+      const nach = (k: string) => DICTS[lang]?.[k] ?? (bruecke ? DICTS[bruecke]?.[k] : undefined) ?? en[k] ?? de[k];
+      // Gemischte Sportarten (server/app/sportmix.py, 08.11.2026): „cls.sport.pumpfoil+foil_scoot" aus den Namen der
+      // Teile zusammensetzen („Pumpfoil + Foil Scoot") — so stimmt jede Stelle, die eine Sportart beschriftet.
+      if (key.startsWith("cls.sport.") && key.includes("+") && nach(key) === undefined) {
+        return key.slice(10).split("+").filter(Boolean).map((x) => nach(`cls.sport.${x}`) ?? x).join(" + ");
+      }
+      let s = nach(key) ?? key;
       if (vars) {
         for (const k of Object.keys(vars)) {
           s = s.replace(new RegExp(`\\{${k}\\}`, "g"), String(vars[k]));
