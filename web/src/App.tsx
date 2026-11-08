@@ -54,6 +54,7 @@ const NEU_BIS = Date.UTC(2026, 8, 30);   // 30. September 2026
 const NEU_BIS_5 = Date.UTC(2026, 9, 14); // Teil 5, erschienen 30.09.2026 — zwei Wochen „neu" wie Teil 4
 // Hinweis „Einstellungen: oben auf dein Bild" an der Stelle des alten Menuepunkts, eine Woche ab dem Umbau 04.11.2026.
 const EINSTELLUNGEN_HINWEIS_BIS = Date.UTC(2026, 10, 11);
+const NEU_BIS_OD = Date.UTC(2026, 10, 22); // Open Discussions, erschienen 08.11.2026 — zwei Wochen hervorgehoben
 const NEU_BIS_6 = Date.UTC(2026, 10, 2); // Teil 6, erschienen 24.10.2026 — Hervorhebung am 02.11.2026 beendet (Jan: „ist jetzt lang genug gewesen")
 
 // Englisches Changelog-Datum ("July 21, 2026") -> kurzes Datum im Locale des Nutzers
@@ -384,8 +385,14 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
         <ChangelogLink />
         {/* Open Discussions (08.11.2026, von Jan freigegeben): nur Englisch. */}
         <NavLink to="/open-discussions" end
-          className={({ isActive }) => `mt-2 flex items-center gap-1.5 px-3 text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
-          Open Discussions
+          className={({ isActive }) => `mt-2 flex items-center gap-1.5 px-3 text-xs ${
+            NEU_BIS_OD > Date.now() ? "rounded-lg py-1 bg-brand-500/10 ring-1 ring-brand-500/25 " : ""
+          }${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
+          <span className="whitespace-nowrap">Open Discussions</span>
+          {NEU_BIS_OD > Date.now() && (
+            <span title={t("badge.new")} aria-label={t("badge.new")}
+              className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" />
+          )}
         </NavLink>
         {/* Die Reihe der Nerd-Analysen. BESCHRIFTUNGEN AUS DEN SPRACHDATEIEN (Jan, 22.09.2026:
             „ich habe mal japanisch probiert, die menuepunkte selber sind noch nicht uebersetzt
