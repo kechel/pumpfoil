@@ -1516,6 +1516,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 08.11. Gruene Spots: versehentlicher Stopp meldet den Fahrer ab (andermal ueberlegen).** Versehentlich
+  gestoppte Uhr-Aufnahme (3 min, 0 Laeufe) kam nach der Positionsmeldung hoch; nach der Regel vom 15.10. heisst
+  „Upload mit 0 Laeufen" fertig, also faellt der Fahrer aus „gerade am Pumpen", der Spot wird nicht gruen. Die neu
+  gestartete Aufnahme meldet die Uhr nicht als Signal: Positionsmeldung gibt es nur beim ersten GPS-Fix im
+  Startbildschirm, nicht nach Stopp + Neustart in derselben App-Sitzung. Ideen: Stummel (< ~5 min, 0 Laeufe) nicht
+  als Abmeldung werten, oder die Uhr meldet beim Start jeder Aufnahme die Position erneut. Erstmal so lassen.
+
 - **🔲 08.11. Foil Scoot automatisch erkennen? Mit Handgelenk-Daten bisher nicht trennbar.** Anlass: Meldung „nicht
   Pumpfoil" gegen #20435 (3 Laeufe à ~10 min, 16 km/h, 10,3 km). Je Fahrer verglichen (4 Scoot-Fahrer/723 Laeufe, 90–99
   Pumpfoiler): Bewegung 0,30–0,71 g (Scoot) gegen 0,15–1,98 g (Pumpfoil), Takt ueberlappt, seitlicher Anteil (PCA,
