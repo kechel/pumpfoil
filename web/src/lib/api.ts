@@ -2312,6 +2312,8 @@ export interface TeamLogbuchEintrag {
 /** Team-Rangliste eines globalen Events: Summe der besten N Mitglieder (`fahrer` davon gezaehlt, `teilnehmer` im Event). */
 export interface TeamWertungZeile extends Pick<TeamAuftritt, "name" | "slug" | "logo_url" | "farbe" | "land"> {
   rang: number; value: number; fahrer: number; teilnehmer: number;
+  /** ein mitgezaehltes Mitglied hat eine offene Meldung (08.11.2026) */
+  strittig?: boolean;
 }
 export interface TeamTafelMitZeilen extends TeamTafel { zeilen: TeamZeile[]; teams?: TeamWertungZeile[];
   /** globale Events: die eigene Zeile, auch hinter den gezeigten Plaetzen */

@@ -135,7 +135,15 @@ function TeamWertung({ tf, n, t, eigeneSlugs, standText, onBild }: { tf: TeamTaf
             <TeamWappen name={x.name} logo={x.logo_url} farbe={x.farbe} size={24} />
             {/* Herkunft wie im Teilen-Bild (Jan, 07.11.2026); fester Platz, damit die Namen buendig stehen. */}
             <span className="flex w-[18px] shrink-0"><TeamHerkunft land={x.land} kuerzel={false} /></span>
-            <Link to={`/teams/${x.slug}`} className="min-w-0 flex-1 truncate text-sm text-slate-100 hover:text-brand-400">{x.name}</Link>
+            <span className="min-w-0 flex-1">
+              <Link to={`/teams/${x.slug}`} className="block truncate text-sm text-slate-100 hover:text-brand-400">{x.name}</Link>
+              {/* Ein mitgezaehltes Mitglied hat eine offene Meldung (08.11.2026). */}
+              {x.strittig && (
+                <span className="block text-[11px] font-medium text-amber-700 dark:text-amber-300" title={t("team.tafel.strittigTitel")}>
+                  {t("team.tafel.strittig")}
+                </span>
+              )}
+            </span>
             <span className="text-xs text-slate-400">{x.fahrer}/{x.teilnehmer}</span>
             <span className="text-sm font-semibold tabular-nums text-slate-100">{k.fmt(x.value)}</span>
           </li>

@@ -806,19 +806,23 @@ def team_wertung(db: Session, zeilen: list[dict], n: int, ausser_team_id: int | 
         return []
     M, Tm = models.TeamMitglied, models.Team
     wert = {z["user_id"]: float(z["value"]) for z in zeilen}
-    je: dict[int, list[float]] = {}
+    strittig = {z["user_id"] for z in zeilen if z.get("strittig")}
+    je: dict[int, list[tuple[float, int]]] = {}
     for tid, uid in (db.query(M.team_id, M.user_id).join(Tm, Tm.id == M.team_id)
                      .filter(M.status == "aktiv", M.user_id.in_(list(wert)), Tm.frei_am.isnot(None),
                              Tm.geloescht_am.is_(None), Tm.oeffentlich.is_(True)).all()):
         if tid != ausser_team_id:
-            je.setdefault(tid, []).append(wert[uid])
+            je.setdefault(tid, []).append((wert[uid], uid))
     out = []
     for t in db.query(Tm).filter(Tm.id.in_(list(je))).all() if je else []:
         werte = sorted(je[t.id], reverse=True)
         beste = werte if n == 0 else werte[:n]
         a = auftritt(t, False)
         out.append({"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"],
-                    "land": a["land"], "value": round(sum(beste), 2), "fahrer": len(beste), "teilnehmer": len(werte)})
+                    "land": a["land"], "value": round(sum(v for v, _ in beste), 2), "fahrer": len(beste),
+                    "teilnehmer": len(werte),
+                    # Strittig, sobald ein MITGEZAEHLTES Mitglied eine offene Meldung hat (Jan, 08.11.2026).
+                    **({"strittig": True} if any(u in strittig for _, u in beste) else {})})
     out.sort(key=lambda x: (-x["value"], (x["name"] or "").lower()))
     for i, x in enumerate(out):
         x["rang"] = i + 1
