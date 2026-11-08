@@ -277,7 +277,8 @@ eine Sonderwertung, andere wollen „nur freies Pumpfoilen" sehen. Jans Entschei
   Neues (aeltere Apps kennen den Schluessel nicht).
 - Events: gibt es dieselbe Bestenliste (Kennzahl + Filter) fuer Pumpfoil UND Foil Scoot, kommt die gemischte direkt
   dahinter dazu (`teams.event_tafeln_mit_mix`, nicht gespeichert, wird mit eingefroren). Summen bleiben bei der ersten
-  echten Bestenliste.
+  echten Bestenliste. Ausgeliefert nur mit `?mix=1` (Web); ohne bleibt die Antwort fuer die Apps wie
+  vorher. Der Event-Editor uebernimmt sie nicht als eigene Tafel.
 - Profil: `rangliste_sport` ("" = Pumpfoil, Sportart oder Mischung) — Standard der Community-Auswahl, des
   Team-Vergleichs und Vorauswahl in Events. Web: Einstellungen › Sportarten. Native Apps: noch nicht.
 
