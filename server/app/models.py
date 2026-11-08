@@ -2181,3 +2181,8 @@ class TeamEvent(Base):
     # besten `team_wertung_n` Mitgliedern (NULL = teams.WERTUNG_N_STANDARD, 0 = alle). Nur im offiziellen Team setzbar.
     global_event: Mapped[bool] = mapped_column(Boolean, default=False)
     team_wertung_n: Mapped[int | None] = mapped_column(Integer)
+    # Endstand festhalten (Jan, 08.11.2026: „der snapshot muss alles snapshotten"): wer fuer welches Team angetreten
+    # ist, samt Team-Auftritt (globale Events, teams.team_zuordnung — zum Ende, spaetestens beim Einfrieren) und die
+    # Spots des Events mit Namen (beim Einfrieren).
+    team_zuordnung_json: Mapped[str | None] = mapped_column(Text)
+    spots_fest_json: Mapped[str | None] = mapped_column(Text)

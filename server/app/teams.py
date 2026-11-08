@@ -348,6 +348,17 @@ def vor_konto_loeschen(db: Session, uid: int) -> list[str]:
                     z["rang"] = i + 1
         if geaendert:
             e.ergebnis_json = _json.dumps(tafeln_)
+    # Festgehaltene Teamzugehoerigkeit und Teilnehmer: auch dort die Person heraus.
+    for e in db.query(models.TeamEvent).filter(or_(models.TeamEvent.team_zuordnung_json.isnot(None),
+                                                   models.TeamEvent.teilnehmer_json.isnot(None))).all():
+        if e.team_zuordnung_json:
+            z_ = _json.loads(e.team_zuordnung_json)
+            if z_["mitglieder"].pop(str(uid), None) is not None:
+                e.team_zuordnung_json = _json.dumps(z_)
+        if e.teilnehmer_json:
+            ids = _json.loads(e.teilnehmer_json)
+            if uid in ids:
+                e.teilnehmer_json = _json.dumps([i for i in ids if i != uid])
     db.flush()
     return medien
 
@@ -801,25 +812,66 @@ def wertung_n(e: models.TeamEvent) -> int:
     return WERTUNG_N_STANDARD if n is None else max(0, int(n))
 
 
-def team_wertung(db: Session, zeilen: list[dict], n: int, ausser_team_id: int | None) -> list[dict]:
+def team_zuordnung(db: Session, ausser_team_id: int | None = None) -> dict:
+    """Wer jetzt fuer welches Team zaehlt — dieselben Teams wie im Team-Vergleich (freigegeben, Bestenlisten
+    oeffentlich, nicht geloescht), ohne `ausser_team_id`. Mit dem freigegebenen Auftritt jedes Teams (Name, Logo,
+    Farbe, Land), damit ein festgehaltener Stand auch spaetere Umbenennungen uebersteht.
+    Form: {"mitglieder": {"<uid>": [team_id, ...]}, "teams": {"<team_id>": {slug, name, logo_url, farbe, land}}}"""
+    M, Tm = models.TeamMitglied, models.Team
+    mitglieder: dict[str, list[int]] = {}
+    teams: dict[str, dict] = {}
+    for t, uid in (db.query(Tm, M.user_id).join(M, M.team_id == Tm.id)
+                   .filter(M.status == "aktiv", Tm.frei_am.isnot(None), Tm.geloescht_am.is_(None),
+                           Tm.oeffentlich.is_(True)).order_by(Tm.id, M.user_id).all()):
+        if t.id == ausser_team_id:
+            continue
+        mitglieder.setdefault(str(uid), []).append(t.id)
+        if str(t.id) not in teams:
+            a = auftritt(t, False)
+            teams[str(t.id)] = {k: a[k] for k in ("slug", "name", "logo_url", "farbe", "land")}
+    return {"mitglieder": mitglieder, "teams": teams}
+
+
+def event_zuordnung(db: Session, e: models.TeamEvent) -> dict:
+    """Teamzugehoerigkeit fuer ein globales Event: festgehalten zum Ende (`team_zuordnung_json`), sonst die aktuelle."""
+    if e.team_zuordnung_json:
+        return json.loads(e.team_zuordnung_json)
+    return team_zuordnung(db, e.team_id)
+
+
+def events_zuordnung_sichern(db: Session, jetzt: datetime | None = None) -> None:
+    """VOR jeder Aenderung, die die Team-Wertung globaler Events verschiebt (Beitritt, Austritt, Entfernen, Annehmen,
+    Freigabe, Sichtbarkeit, Land, Team loeschen): bei beendeten, noch nicht eingefrorenen globalen Events festhalten,
+    wer fuer welches Team angetreten ist. Jan, 08.11.2026: „der snapshot muss alles snapshotten" — wer nach dem Ende
+    das Team wechselt, zaehlt fuer das alte. Ohne Aenderung bis zum Einfrieren ist der Stand dort derselbe."""
+    j = jetzt or _jetzt()
+    E = models.TeamEvent
+    offen = (db.query(E).filter(E.ende <= j, E.eingefroren_am.is_(None), E.geloescht_am.is_(None),
+                                E.team_zuordnung_json.is_(None), E.global_event.is_(True)).all())
+    for e in offen:
+        e.team_zuordnung_json = json.dumps(team_zuordnung(db, e.team_id))
+
+
+def team_wertung(db: Session, zeilen: list[dict], n: int, ausser_team_id: int | None,
+                 zuordnung: dict | None = None) -> list[dict]:
     """Team-Rangliste einer Bestenliste: je Team die Summe der besten `n` Werte seiner Mitglieder (0 = alle).
-    Dieselben Teams wie im Team-Vergleich (freigegeben, Bestenlisten oeffentlich), ohne das offizielle Team."""
+    Dieselben Teams wie im Team-Vergleich (freigegeben, Bestenlisten oeffentlich), ohne das offizielle Team.
+    `zuordnung` (s. `team_zuordnung`): festgehaltener Stand statt der aktuellen Mitgliedschaft."""
     if not zeilen:
         return []
-    M, Tm = models.TeamMitglied, models.Team
+    z_ = zuordnung if zuordnung is not None else team_zuordnung(db, ausser_team_id)
     wert = {z["user_id"]: float(z["value"]) for z in zeilen}
     strittig = {z["user_id"] for z in zeilen if z.get("strittig")}
     je: dict[int, list[tuple[float, int]]] = {}
-    for tid, uid in (db.query(M.team_id, M.user_id).join(Tm, Tm.id == M.team_id)
-                     .filter(M.status == "aktiv", M.user_id.in_(list(wert)), Tm.frei_am.isnot(None),
-                             Tm.geloescht_am.is_(None), Tm.oeffentlich.is_(True)).all()):
-        if tid != ausser_team_id:
-            je.setdefault(tid, []).append((wert[uid], uid))
+    for uid in wert:
+        for tid in z_["mitglieder"].get(str(uid), []):
+            if tid != ausser_team_id:
+                je.setdefault(tid, []).append((wert[uid], uid))
     out = []
-    for t in db.query(Tm).filter(Tm.id.in_(list(je))).all() if je else []:
-        werte = sorted(je[t.id], reverse=True)
+    for tid in je:
+        werte = sorted(je[tid], reverse=True)
         beste = werte if n == 0 else werte[:n]
-        a = auftritt(t, False)
+        a = z_["teams"][str(tid)]
         out.append({"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"],
                     "land": a["land"], "value": round(sum(v for v, _ in beste), 2), "fahrer": len(beste),
                     "teilnehmer": len(werte),
@@ -831,20 +883,19 @@ def team_wertung(db: Session, zeilen: list[dict], n: int, ausser_team_id: int | 
     return out
 
 
-def zeilen_teams(db: Session, uids: list[int], ausser_team_id: int | None) -> dict[int, list[dict]]:
+def zeilen_teams(db: Session, uids: list[int], ausser_team_id: int | None,
+                 zuordnung: dict | None = None) -> dict[int, list[dict]]:
     """Wappen je Person fuer die Bestenlisten globaler Events (Jan, 07.11.2026: „dritte spalte mit dem team-wappen …
-    team-name als hover"). Dieselben Teams wie in `team_wertung`, aktuelle Mitgliedschaft."""
+    team-name als hover"). Dieselben Teams wie in `team_wertung`; `zuordnung` = festgehaltener Stand, sonst aktuell."""
     if not uids:
         return {}
-    M, Tm = models.TeamMitglied, models.Team
+    z_ = zuordnung if zuordnung is not None else team_zuordnung(db, ausser_team_id)
     out: dict[int, list[dict]] = {}
-    for t, uid in (db.query(Tm, M.user_id).join(M, M.team_id == Tm.id)
-                   .filter(M.status == "aktiv", M.user_id.in_(uids), Tm.frei_am.isnot(None),
-                           Tm.geloescht_am.is_(None), Tm.oeffentlich.is_(True)).order_by(Tm.id).all()):
-        if t.id != ausser_team_id:
-            a = auftritt(t, False)
-            out.setdefault(uid, []).append({"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"],
-                                            "farbe": a["farbe"]})
+    for uid in uids:
+        for tid in z_["mitglieder"].get(str(uid), []):
+            if tid != ausser_team_id:
+                a = z_["teams"][str(tid)]
+                out.setdefault(uid, []).append({k: a[k] for k in ("slug", "name", "logo_url", "farbe")})
     return out
 
 
@@ -900,6 +951,7 @@ def events_teilnehmer_sichern(db: Session, team_id: int, jetzt: datetime | None 
     Bestenlisten nicht mehr aendern — und wer danach beitritt, kommt nicht mehr hinein. Eingefrorene Events
     stehen ohnehin fest; nur die DSGVO-Loeschung nimmt dort noch Zeilen heraus."""
     j = jetzt or _jetzt()
+    events_zuordnung_sichern(db, j)
     E = models.TeamEvent
     offen = (db.query(E).filter(E.team_id == team_id, E.ende <= j, E.eingefroren_am.is_(None),
                                 E.geloescht_am.is_(None), E.teilnehmer_json.is_(None),
@@ -917,6 +969,7 @@ def _event_voll(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
         return json.loads(e.ergebnis_json)
     ids = event_teilnehmer(db, t, e)
     glob = ist_global(e)
+    zuordnung = event_zuordnung(db, e) if glob else None
     fenster = (_aware(e.start), _aware(e.ende))
     out = []
     zeiten: list[float] = []
@@ -926,7 +979,7 @@ def _event_voll(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
                                  stand=zeiten)
         x = {**tafel_out(tf), "zeilen": zeilen}
         if glob:
-            x["teams"] = team_wertung(db, zeilen, wertung_n(e), t.id)
+            x["teams"] = team_wertung(db, zeilen, wertung_n(e), t.id, zuordnung)
         # Stand dieser Bestenliste: wann gerechnet (aus dem 2-Minuten-Cache ggf. etwas frueher).
         x["stand"] = datetime.fromtimestamp(min(zeiten[-1:] or [time.time()]), timezone.utc).isoformat()
         out.append(x)
@@ -952,12 +1005,18 @@ def event_berechnen(db: Session, t: models.Team, e: models.TeamEvent, nur_team_i
         if betrachter is not None:
             x["eigene"] = next((z for z in tf["zeilen"] if z["user_id"] == betrachter), None)
         out.append(x)
-    uids = sorted({z["user_id"] for x in out for z in x["zeilen"] + ([x["eigene"]] if x.get("eigene") else [])})
-    wappen = zeilen_teams(db, uids, t.id)
+    # Eingefroren: die Wappen stehen schon in der Zeile (beim Einfrieren aus der festgehaltenen Zuordnung).
+    uids = sorted({z["user_id"] for x in out for z in x["zeilen"] + ([x["eigene"]] if x.get("eigene") else [])
+                   if "teams" not in z})
+    wappen = zeilen_teams(db, uids, t.id, event_zuordnung(db, e)) if uids else {}
+
+    def mit(z: dict) -> dict:
+        return z if "teams" in z else {**z, "teams": wappen.get(z["user_id"], [])}
+
     for x in out:
-        x["zeilen"] = [{**z, "teams": wappen.get(z["user_id"], [])} for z in x["zeilen"]]
+        x["zeilen"] = [mit(z) for z in x["zeilen"]]
         if x.get("eigene"):
-            x["eigene"] = {**x["eigene"], "teams": wappen.get(x["eigene"]["user_id"], [])}
+            x["eigene"] = mit(x["eigene"])
     return out
 
 
@@ -1029,7 +1088,20 @@ def event_einfrieren(db: Session, e: models.TeamEvent, jetzt: datetime | None = 
     # Frisch rechnen, nicht aus dem 2-Minuten-Cache.
     for k in [k for k in _cache if k and k[0] == t.id]:
         _cache.pop(k, None)
-    e.ergebnis_json = json.dumps(_event_voll(db, t, e))
+    if ist_global(e) and not e.team_zuordnung_json:
+        e.team_zuordnung_json = json.dumps(team_zuordnung(db, e.team_id))   # keine Aenderung seit dem Ende
+    voll = _event_voll(db, t, e)
+    if ist_global(e):
+        # Wappen je Zeile mit festschreiben (sonst kaemen sie beim Abruf aus der aktuellen Mitgliedschaft).
+        z_ = json.loads(e.team_zuordnung_json)
+        for tf in voll:
+            w = zeilen_teams(db, [z["user_id"] for z in tf["zeilen"]], t.id, z_)
+            tf["zeilen"] = [{**z, "teams": w.get(z["user_id"], [])} for z in tf["zeilen"]]
+    # Spots des Events mit Namen (Umbenennungen spaeter aendern den Endstand nicht).
+    ids = event_spots(e)
+    e.spots_fest_json = json.dumps([{"id": i, "name": n} for i, n in db.query(models.Spot.id, models.Spot.name)
+                                    .filter(models.Spot.id.in_(ids)).all()] if ids else [])
+    e.ergebnis_json = json.dumps(voll)
     if event_summen_auswahl(e):
         e.summen_ergebnis_json = json.dumps(event_summen(db, t, e))
     e.eingefroren_am = j
@@ -1040,6 +1112,7 @@ def events_einfrieren(db: Session) -> int:
     """Naechtlich (record_snapshot.py) und beim Abruf: alle faelligen Events festschreiben."""
     n = 0
     grenze = _jetzt() - EINFRIEREN_NACH
+    events_zuordnung_sichern(db)
     for e in db.query(models.TeamEvent).filter(models.TeamEvent.eingefroren_am.is_(None),
                                                models.TeamEvent.geloescht_am.is_(None),
                                                models.TeamEvent.ende <= grenze).all():
@@ -1056,7 +1129,9 @@ def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = Fal
     spots = []
     if not gast:
         ids = event_spots(e)
-        if ids:
+        if e.spots_fest_json is not None:
+            spots = json.loads(e.spots_fest_json)
+        elif ids:
             spots = [{"id": i, "name": n} for i, n in db.query(models.Spot.id, models.Spot.name)
                      .filter(models.Spot.id.in_(ids)).all()]
     return {"id": e.id, "titel": e.titel, "beschreibung": e.beschreibung, "start": _aware(e.start).isoformat(),

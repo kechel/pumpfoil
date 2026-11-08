@@ -871,3 +871,54 @@ def test_globales_event_opt_out(client, monkeypatch):
     T._GLOBAL_AUS["zeit"] = 0.0
     T._cache.clear()
     assert "Opt Bert" not in namen() and "Opt Anna" in namen()
+
+
+def test_globales_event_endstand_fest(client, monkeypatch):
+    """Endstand fest (08.11.2026, Jan: „der snapshot muss alles snapshotten"): wer nach dem Ende eines globalen Events
+    austritt oder das Team umstellt, aendert weder Team-Rangliste noch Wappen; eingefroren auch Spots und Eventbild."""
+    from app import models, teams as T
+    from app.db import SessionLocal
+    db = SessionLocal()
+    db.query(models.RateEvent).delete()                       # Registrieren ist auf 5 je Stunde begrenzt
+    db.commit()
+    db.close()
+    adm = _admin(client, "fest-adm@t.de")
+    (_io, ko) = _konto(client, "fest-off@t.de", "Fest Olga")
+    (ia, ka), (ib, kb) = _konto(client, "fest-a@t.de", "Fest A"), _konto(client, "fest-b@t.de", "Fest B")
+    offiziell = _team(client, ko, "Fest Offiziell")
+    monkeypatch.setenv("TEAM_GLOBAL", offiziell)
+    _freigeben(client, adm, ko, offiziell)
+    slug, _l = _team_mit(client, ka, kb, "Festteam")
+    client.put(f"/api/teams/{slug}", headers=ka, json={"land": "de"})
+    _freigeben(client, adm, ka, slug)
+    _session(ia, 300, tage=1)
+    _session(ib, 100, tage=1)
+    jetzt = datetime.now(timezone.utc)
+    ende = jetzt - timedelta(hours=2)
+    body = {"titel": "Fest-Wochenende", "start": (jetzt - timedelta(days=3)).isoformat(), "ende": ende.isoformat(),
+            "tafeln": [{"kennzahl": "sum_pumps", "accel_only": False}], "global_event": True, "team_wertung_n": 0}
+    eid = client.post(f"/api/teams/{offiziell}/events", headers=ko, json=body).json()["id"]
+
+    def stand():
+        tf = client.get(f"/api/teams/{offiziell}/events/{eid}", headers=ka).json()["tafeln"][0]
+        team = next(x for x in tf["teams"] if x["slug"] == slug)
+        wappen = {z["name"]: [w["slug"] for w in z["teams"]] for z in tf["zeilen"] if z["name"] in ("Fest A", "Fest B")}
+        return team["value"], team["teilnehmer"], team["land"], wappen
+
+    vorher = stand()
+    assert vorher == (400, 2, "DE", {"Fest A": [slug], "Fest B": [slug]})
+    # Nach dem Ende: B tritt aus, das Team stellt das Land um — Auswertung und Endstand bleiben.
+    assert client.post(f"/api/teams/{slug}/austreten", headers=kb).status_code == 200
+    client.put(f"/api/teams/{slug}", headers=ka, json={"land": "pl"})
+    assert stand() == vorher
+    db = SessionLocal()
+    try:
+        assert T.event_einfrieren(db, db.get(models.TeamEvent, eid), jetzt=ende + timedelta(hours=25)) is True
+        db.commit()
+    finally:
+        db.close()
+    assert stand() == vorher
+    # Eingefroren: Eventbild nicht mehr aenderbar.
+    assert client.put(f"/api/teams/{offiziell}/events/{eid}/banner", headers=ko,
+                      json={"fokus": "10,10"}).status_code == 409
+    assert client.delete(f"/api/teams/{offiziell}/events/{eid}/banner", headers=ko).status_code == 409

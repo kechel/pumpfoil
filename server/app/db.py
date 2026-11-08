@@ -640,7 +640,9 @@ def _migrate_add_columns() -> None:
                                                "teilnehmer_json": "TEXT", "summen_sportart": "VARCHAR(40)",
                                                "summen_accel_only": "BOOLEAN",
                                                # Globale Events (06.11.2026)
-                                               "global_event": "BOOLEAN DEFAULT FALSE", "team_wertung_n": "INTEGER"})
+                                               "global_event": "BOOLEAN DEFAULT FALSE", "team_wertung_n": "INTEGER",
+                                               # Endstand festhalten (08.11.2026)
+                                               "team_zuordnung_json": "TEXT", "spots_fest_json": "TEXT"})
     want["teams"]["land"] = "VARCHAR(10)"        # Team-Herkunft (03.11.2026)
     want.setdefault("analysis_results", {}).update({"lauf_start_at": "TIMESTAMP WITH TIME ZONE",   # app/laufzeiten.py
                                                     "lauf_ende_at": "TIMESTAMP WITH TIME ZONE"})

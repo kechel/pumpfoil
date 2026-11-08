@@ -202,6 +202,15 @@ beendeten, noch nicht eingefrorenen Events festgehalten (`teams.events_teilnehme
 austritt, bleibt drin, wer danach beitritt, kommt nicht hinein. Eingefrorene Ergebnisse aendert nur noch die
 DSGVO-Loeschung; gesperrte Konten fallen auch aus festgehaltenen Teilnehmern.
 
+**Endstand fest** (08.11.2026, Jan: „der snapshot muss alles snapshotten"): eingefroren sind Bestenlisten (Rang, Wert,
+Name, Avatar, Nationalitaet, Session, Spot, Vermerk „strittig"), Gesamtsummen, Team-Rangliste (mit Name, Logo, Farbe, Land
+des Teams), die Wappen je Zeile, die Spots des Events mit Namen (`spots_fest_json`) und das Eventbild (Aenderung -> 409).
+Bei globalen Events haelt `team_zuordnung_json` fest, wer fuer welches Team angetreten ist, samt freigegebenem
+Team-Auftritt — zum Ende: vor jeder Aenderung, die das verschiebt (Beitritt, Austritt, Entfernen, Annehmen, Freigabe,
+Teameinstellungen, Team loeschen; `teams.events_zuordnung_sichern`), spaetestens beim Einfrieren. Danach aendert nur noch
+die DSGVO-Loeschung (Zeilen, Zuordnung, Teilnehmer) und der Ausstieg aus globalen Events den Endstand. Live bleiben
+der Kopf des ausrichtenden Teams und die verlinkten Sessions selbst. Aeltere, schon eingefrorene Events nicht nachgetragen.
+
 ## Teambild (01.11.2026)
 
 Breites Bild ueber dem Teamkopf. Empfohlen 1600 x 500 px; gespeichert hoechstens 1600 px breit, nie zugeschnitten;

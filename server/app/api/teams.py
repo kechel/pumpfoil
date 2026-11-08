@@ -574,6 +574,7 @@ async def event_banner(slug: str, event_id: int, file: UploadFile = File(...), u
     from ..media import MAX_UPLOAD_BYTES, ImageError, delete_media, save_image
     t, _m = _verwalter(db, slug, user)
     e = _event(db, t, event_id)
+    _nicht_eingefroren(e)
     raw = await file.read(MAX_UPLOAD_BYTES + 1)
     try:
         url = save_image(raw, subdir="teams", max_dim=1600, min_breite=800, min_verhaeltnis=1.5)
@@ -591,6 +592,7 @@ def event_banner_fokus(slug: str, event_id: int, body: FokusIn, user: models.Use
                        db: Session = Depends(get_db)) -> dict:
     t, _m = _verwalter(db, slug, user)
     e = _event(db, t, event_id)
+    _nicht_eingefroren(e)
     x, y = (min(100, int(v)) for v in body.fokus.split(","))
     e.banner_fokus = f"{x},{y}"
     db.commit()
@@ -603,11 +605,18 @@ def event_banner_entfernen(slug: str, event_id: int, user: models.User = Depends
     from ..media import delete_media
     t, _m = _verwalter(db, slug, user)
     e = _event(db, t, event_id)
+    _nicht_eingefroren(e)
     alt, e.banner_url = e.banner_url, None
     db.commit()
     if alt:
         delete_media(alt)
     return {"banner_url": None}
+
+
+def _nicht_eingefroren(e: models.TeamEvent) -> None:
+    """Eingefrorene Events stehen fest, auch das Eventbild (Jan, 08.11.2026: „der snapshot muss alles snapshotten")."""
+    if e.eingefroren_am is not None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "event_eingefroren")
 
 
 @router.put("/{slug}/events/{event_id}")
@@ -734,6 +743,7 @@ class EinstellungenIn(BaseModel):
 def einstellen(slug: str, body: EinstellungenIn, user: models.User = Depends(current_user),
                db: Session = Depends(get_db)) -> dict:
     t = _leiter(db, slug, user)
+    T.events_zuordnung_sichern(db)   # Sichtbarkeit/Land aendern die Team-Wertung globaler Events
     if body.name is not None:
         t.name = _name_pruefen(db, body.name, t.id)
     if body.slug is not None and body.slug != t.slug:
@@ -912,6 +922,7 @@ def loeschen(slug: str, body: LoeschenIn, user: models.User = Depends(current_us
     t = _leiter(db, slug, user)
     if " ".join(body.name.split()).lower() != t.name.lower():
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "name_falsch")
+    T.events_zuordnung_sichern(db)
     T.team_weich_loeschen(t, user.id)
     db.commit()
     return {"ok": True}
@@ -986,6 +997,7 @@ def admin_entscheiden(team_id: int, body: FreigabeIn, _a: models.User = Depends(
     if t is None or t.geloescht_am is not None:
         raise _404()
     weg: list[str] = []
+    T.events_zuordnung_sichern(db)   # Freigabe aendert Auftritt und Team-Wertung globaler Events
     if body.ok:
         weg = T.freigeben(db, t)
     else:
