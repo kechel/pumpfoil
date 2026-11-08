@@ -813,19 +813,34 @@ function SpotsBereich({ homespotId, homespotName, liste }: { homespotId: number 
 }
 
 /** Ein Spot unter „Spots": DERSELBE Inhalt wie die Spot-Seite (SpotBereich, samt Session-Liste) — nur die Kopfzeile ist
- * eine andere (Jan, 02.11.2026). Sportart wie dort: Pumpfoil, wenn es am Spot welche gibt, sonst die erste. */
+ * eine andere (Jan, 02.11.2026). Sportart-Knoepfe wie auf der Spot-Seite, Vorgabe „Alle" (Jan, 08.11.2026: am Illmensee
+ * fehlte die Foilscoot-Session — vorher stand hier fest Pumpfoil, sobald es am Spot welche gab). */
 function SpotAnsicht({ spotId, kopf }: { spotId: number; kopf?: React.ReactNode }) {
+  const t = useT();
   const [sports, setSports] = useState<string[] | null>(null);
+  const [sport, setSport] = useState("all");
   useEffect(() => {
     let aktuell = true;
+    setSport("all");
     api.communitySports(String(spotId)).then((l) => { if (aktuell) setSports(l.map((x) => x.sport)); }).catch(() => { if (aktuell) setSports([]); });
     return () => { aktuell = false; };
   }, [spotId]);
   if (!sports) return <Spinner />;
-  const sport = sports.includes("pumpfoil") ? "pumpfoil" : (sports[0] ?? null);
+  const knoepfe = sports.length > 1 && (
+    <div className="mb-3 flex flex-wrap items-center gap-1.5">
+      {["all", ...sports].map((s) => (
+        <button key={s} onClick={() => setSport(s)}
+          className={`rounded-full border px-3 py-1 text-sm ${s === sport
+            ? "border-brand-500 bg-brand-500 font-semibold text-slate-950"
+            : "border-slate-700 text-slate-200 hover:border-slate-500"}`}>
+          {s === "all" ? t("all.allSports") : t(`cls.sport.${s}`)}
+        </button>
+      ))}
+    </div>
+  );
   // Kopf (Spotname + Link) UNTER der Reiterzeile, sonst risse er die Zeile von der Spotzeile darueber ab.
-  return <SpotBereich spot={String(spotId)} sport={sport} accelOnly={false} param="stab" kopf={kopf}
-    sessions={<CommunityList name="" spot={String(spotId)} accelOnly={false} sport="all" />} />;
+  return <SpotBereich spot={String(spotId)} sport={sport} accelOnly={false} param="stab" kopf={<>{kopf}{knoepfe}</>}
+    sessions={<CommunityList key={sport} name="" spot={String(spotId)} accelOnly={false} sport={sport} />} />;
 }
 
 /** „Meine Spots" (Jan, 03.11.2026): alle Spots mit eigenen Sessions, zuletzt besuchte zuerst, mit Sessions, letztem
