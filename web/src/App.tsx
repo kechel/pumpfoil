@@ -8,7 +8,7 @@ import { api, clearToken, Profile } from "./lib/api";
 import { applyPumpUnit } from "./lib/pumpRate";
 import { clearLastSession } from "./lib/lastSession";
 import { Avatar } from "./components/ui";
-import { SessionsIcon, LogoutIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, ServerIcon, UploadIcon, ChevronIcon } from "./components/Icons";
+import { SessionsIcon, LogoutIcon, SettingsIcon, ShieldIcon, CommunityIcon, SpotsIcon, HomeIcon, FoilIcon, DiscussionIcon, ServerIcon, UploadIcon, ChevronIcon } from "./components/Icons";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { useI18n, useT } from "./i18n";
 // Die Untertitel der vier Artikel dienen als Titel fuer den Mauszeiger — sie sind
@@ -383,12 +383,17 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
             oben zu den Inhalten, nicht in die Fussleiste. */}
         {isAdmin && <AppAktualisieren />}
         <ChangelogLink />
-        {/* Open Discussions (08.11.2026, von Jan freigegeben): nur Englisch. */}
-        <NavLink to="/open-discussions" end
-          className={({ isActive }) => `mt-2 flex items-center gap-1.5 px-3 text-xs ${
+        {/* Open Discussions (08.11.2026, von Jan freigegeben): Uebermenuepunkt wie die Detection, darunter je Thema ein
+            Eintrag. Nur Englisch. Die Hervorhebung „neu" liegt auf dem Thema, wie bei den Nerd-Teilen. */}
+        <NavLink to="/open-discussions/foil-scoot"
+          className={({ isActive }) => `mt-2 flex items-center gap-1.5 px-3 text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
+          <DiscussionIcon className="h-4 w-4" /> Open Discussions
+        </NavLink>
+        <NavLink to="/open-discussions/foil-scoot" end
+          className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${
             NEU_BIS_OD > Date.now() ? "rounded-lg py-1 bg-brand-500/10 ring-1 ring-brand-500/25 " : ""
           }${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
-          <span className="whitespace-nowrap">Open Discussions</span>
+          <span className="whitespace-nowrap">↳ Foil scoot vs. pumpfoil</span>
           {NEU_BIS_OD > Date.now() && (
             <span title={t("badge.new")} aria-label={t("badge.new")}
               className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" />

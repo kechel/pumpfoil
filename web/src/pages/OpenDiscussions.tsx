@@ -25,11 +25,12 @@ export default function OpenDiscussions() {
   return (
     <div className="mx-auto max-w-6xl p-6" style={{ paddingTop: "calc(1.5rem + env(safe-area-inset-top))" }}>
       <ScrollToTop />
-      <h1 className="mb-1 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil />Open Discussions</h1>
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Open Discussions</p>
+      <h1 className="mb-1 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil />Foil scoot vs. pumpfoil</h1>
       <p className="text-sm text-slate-400">Questions the community is debating right now. We collect what has been said, for and
         against, without a verdict — so everyone can see how decisions come about. Last updated 8 November 2026.</p>
 
-      <H>Foil scoot: its own sport, or part of pumpfoiling?</H>
+      <H>Is foil scoot its own sport, or part of pumpfoiling?</H>
       <p className="text-sm text-slate-300">A foil scoot is a pumpfoil board and foil with a vertical handlebar, about a metre
         high, that the rider holds while pumping. There is no motor — it is pure muscle power, like pumpfoiling. The question
         came up around the first global event and was discussed in the community chat and in private messages.</p>
@@ -112,10 +113,10 @@ export default function OpenDiscussions() {
         <p>Foil scoot is treated as its own sport with its own records and leaderboards. In the global event it has separate
           leaderboards. Riders set foil scoot themselves, per session or as their default sport for new sessions. Because the
           data can't tell the two apart, the rider's own classification counts; reported sessions are reviewed by hand.</p>
-        <p className="mt-2">This is where things stand today, not a final decision. The discussion is open — tell us what you think
-          in the community chat.</p>
+        <p className="mt-2">This is where things stand today, not a final decision. The discussion is open.</p>
         <p className="mt-2 text-xs text-slate-400">— Jan, pumpfoil.org</p>
       </div>
+      <p className="mt-6 text-sm text-slate-300">Please discuss in the community chat, directly with Jan, or via the feedback button.</p>
     </div>
   );
 }

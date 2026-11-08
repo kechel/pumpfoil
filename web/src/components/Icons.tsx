@@ -157,6 +157,17 @@ export const BoardIcon = ({ className = base }: P) => (
   </svg>
 );
 
+// Open Discussions (Jan, 08.11.2026: „ein discussion icon selber zeichnen"): zwei Sprechblasen, die sich ueberlappen —
+// links ein Plus, rechts ein Minus: dafuer und dagegen.
+export const DiscussionIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M13.5 4.5h6a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-.5v2.5l-3-2.5" />
+    <path d="M4.5 8.5h8a2 2 0 0 1 2 2v4.5a2 2 0 0 1-2 2H9l-3.5 3v-3h-1a2 2 0 0 1-2-2v-4.5a2 2 0 0 1 2-2Z" />
+    <path d="M8.5 11v4" /><path d="M6.5 13h4" />
+    <path d="M15.5 8.5h3" />
+  </svg>
+);
+
 export const FoilIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>
     <path d="M2 7c6-3 14-3 20 0-6 2.5-14 2.5-20 0Z" />

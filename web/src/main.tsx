@@ -236,7 +236,9 @@ const router = createBrowserRouter([
       { path: "/impressum", element: <Impressum />, handle: TEXT },
       { path: "/datenloeschung", element: <Datenloeschung />, handle: TEXT },
       { path: "/changelog", element: <Changelog />, handle: TEXT },
-      { path: "/open-discussions", element: <OpenDiscussions />, handle: TEXT },
+      // Open Discussions: Uebermenuepunkt, je Thema eine Seite (08.11.2026); die alte Adresse leitet aufs erste Thema.
+      { path: "/open-discussions", element: <Navigate to="/open-discussions/foil-scoot" replace /> },
+      { path: "/open-discussions/foil-scoot", element: <OpenDiscussions />, handle: TEXT },
       { path: "/nerd-analysen", element: <NerdAnalysen />, handle: TEXT },
       { path: "/nerd-analysen-2", element: <NerdAnalysen2 />, handle: TEXT },
       { path: "/nerd-analysen-3", element: <NerdAnalysen3 />, handle: TEXT },
