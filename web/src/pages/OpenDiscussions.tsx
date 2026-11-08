@@ -1,11 +1,10 @@
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { ScrollToTop } from "../components/ScrollToTop";
-import { api } from "../lib/api";
 
 // Open Discussions (Jan, 08.11.2026): Fragen, die die Community gerade diskutiert — gesammelt, was dafuer und dagegen
 // gesagt wurde, ohne Loesung, darunter Jans Stand. Nur Englisch, ANONYM (Rollen statt Namen; Quellen sind auch private
-// Chats). VORERST NUR FUER ADMINS sichtbar (Menue-Link und Seite), bis Jan freigibt.
+// Chats). Von Jan am 08.11.2026 freigegeben (vorher nur fuer Admins).
 
 function H({ children }: { children: ReactNode }) {
   return <h2 className="mb-3 mt-8 border-b border-slate-800 pb-1 text-lg font-bold text-slate-100">{children}</h2>;
@@ -23,18 +22,12 @@ function Arg({ text, wer }: { text: string; wer: string }) {
 }
 
 export default function OpenDiscussions() {
-  const [admin, setAdmin] = useState<boolean | null>(null);
-  useEffect(() => { api.getProfile().then((p) => setAdmin(!!p.is_admin)).catch(() => setAdmin(false)); }, []);
-  if (admin === null) return null;
-  if (!admin) return <div className="mx-auto max-w-2xl p-6 text-sm text-slate-400">This page isn't public yet.</div>;
   return (
     <div className="mx-auto max-w-6xl p-6" style={{ paddingTop: "calc(1.5rem + env(safe-area-inset-top))" }}>
       <ScrollToTop />
       <h1 className="mb-1 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil />Open Discussions</h1>
       <p className="text-sm text-slate-400">Questions the community is debating right now. We collect what has been said, for and
         against, without a verdict — so everyone can see how decisions come about. Last updated 8 November 2026.</p>
-      <p className="mt-2 rounded-lg border border-amber-600/40 bg-amber-500/10 p-2 text-xs text-amber-800 dark:text-amber-200">
-        Draft, visible to admins only.</p>
 
       <H>Foil scoot: its own sport, or part of pumpfoiling?</H>
       <p className="text-sm text-slate-300">A foil scoot is a pumpfoil board and foil with a vertical handlebar, about a metre
