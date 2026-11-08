@@ -266,9 +266,10 @@ export default function Sessions() {
     api.communitySports(spot).then((l) => { if (aktuell) setSpotSports(l.map((x) => x.sport)); }).catch(() => {});
     return () => { aktuell = false; };
   }, [spot]);
-  // Sportart von Rekorden und Heatmap: der Filter, bei „Alle" Pumpfoil, sonst die erste des Spots.
-  const rekordSport: string | null = sport !== "all" ? sport
-    : (spotSports.includes("pumpfoil") ? "pumpfoil" : (spotSports[0] ?? null));
+  // Sportart von Rekorden und Heatmap = der Filter. „Alle" zaehlt am Spot ALLES zusammen (Jan, 08.11.2026: „'all sports'
+  // sollte alles an dem spot zusammen zaehlen") — vorher stand dort still Pumpfoil bzw. die erste Sportart des Spots.
+  const rekordSport: string | null = spot ? sport
+    : (sport !== "all" ? sport : (spotSports.includes("pumpfoil") ? "pumpfoil" : (spotSports[0] ?? null)));
   const [spots, setSpots] = useState<{ id: number; name: string; water?: string | null }[]>([]);
   const nameById = useMemo(() => Object.fromEntries(spots.map((s) => [String(s.id), s.name])), [spots]);
   const spotName = spot ? (nameById[spot] ?? spot) : "";
@@ -1550,7 +1551,7 @@ function SpotRecords({ spot, accelOnly, sport, leerText }: { spot: string; accel
   }
   return (
     <Card className="mb-3 p-4">
-      <h3 className="mb-2 font-semibold">{t("rec.spotTitle")} · {t(`cls.sport.${sport}`)}</h3>
+      <h3 className="mb-2 font-semibold">{t("rec.spotTitle")} · {sport === "all" ? t("all.allSports") : t(`cls.sport.${sport}`)}</h3>
       <SpotRecordsSport key={sport} sport={sport} data={data} spot={spot} accelOnly={accelOnly} />
     </Card>
   );
