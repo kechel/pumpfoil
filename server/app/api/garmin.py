@@ -451,8 +451,7 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
         eigene = _eigene_zum_eintrag(db, user.id, eintrag)
         if eigene is not None and andere_uhr(db, eigene, parsed.get("garmin_produkt")):
             eigene = None
-    if eigene is not None and not importsports.konto_import_grund(parsed) and (
-            storage.duenn(eigene.session_uuid) or garmin_besser(eigene, parsed)):
+    if eigene is not None and not importsports.konto_import_grund(parsed) and garmin_ersetzt(eigene, parsed):
         # Garmins Datei ist die bessere Aufnahme: entweder hat die Uhr eigene Bloecke absichtlich weggelassen
         # (Datenwege, duenn) oder Garmins Beschleunigung hat die hoehere Rate. Sie wird die Session, unsere liefert
         # Sportart, Foil, Ausruestung und Geraet und zeigt danach auf sie (Jan, 05.11.2026).
@@ -829,6 +828,48 @@ def garmin_besser(eigene: models.Session, parsed: dict) -> bool:
     return besser
 
 
+# Garmins Aufnahme muss die eigene auch zeitlich abdecken (08.11.2026, #20815/#20823: die Garmin-Aktivitaet war nach 28 min
+# gestoppt, unsere App lief 92 min weiter — die hoehere Accel-Rate gewann, 64 min GPS und alle spaeteren Laeufe waren weg).
+DECKUNG_MIN = 0.9
+
+
+def _spanne_eigene_s(s: models.Session) -> float:
+    from .. import storage
+    try:
+        g = storage.load_gps(s.session_uuid)
+        if len(g):
+            return float(g[-1][0]) / 1000
+    except Exception:  # noqa: BLE001
+        pass
+    if s.started_at is None or s.ended_at is None:
+        return 0.0
+    return max(0.0, (_aware(s.ended_at) - _aware(s.started_at)).total_seconds())
+
+
+def _spanne_garmin_s(parsed: dict) -> float:
+    samples = parsed.get("gps_samples") or []
+    if samples:
+        return float(samples[-1][0]) / 1000
+    return (parsed.get("dauer_ms") or 0) / 1000
+
+
+def garmin_deckt(eigene: models.Session, parsed: dict) -> bool:
+    """Reicht Garmins Aufnahme (GPS bzw. Records) mindestens ueber DECKUNG_MIN der eigenen? Sonst bleibt unsere die Fahrt
+    und Garmins Datei wird nur angehaengt — egal, wie viel besser ihre Beschleunigung ist."""
+    eg, gg = _spanne_eigene_s(eigene), _spanne_garmin_s(parsed)
+    ok = eg <= 0 or gg >= eg * DECKUNG_MIN
+    if not ok:
+        log.info("garmin: Garmin-Datei deckt eigene #%s nicht ab (%.0f s von %.0f s) -> eigene bleibt", eigene.id, gg, eg)
+    return ok
+
+
+def garmin_ersetzt(eigene: models.Session, parsed: dict) -> bool:
+    """Wird Garmins Datei die Session (unsere geht darin auf)? Nur wenn sie die Fahrt abdeckt UND unsere duenn ist oder
+    Garmin die deutlich bessere Beschleunigung hat."""
+    from .. import storage
+    return garmin_deckt(eigene, parsed) and (storage.duenn(eigene.session_uuid) or garmin_besser(eigene, parsed))
+
+
 def in_garmin_session_aufgehen(db: Session, eigene: models.Session, g: models.Session) -> None:
     """Duenne eigene Aufnahme (Datenwege) geht in der Garmin-Session derselben Fahrt auf: Sportart, Foil und Ausruestung
     von der Uhr, alles Nutzergemachte, dann zeigt sie per merged_into auf die Garmin-Session und wird ausgeblendet.
@@ -858,10 +899,10 @@ def in_garmin_session_aufgehen(db: Session, eigene: models.Session, g: models.Se
     log.info("garmin: duenne Aufnahme #%s geht in Garmin-Session #%s auf (user %s)", eigene.id, g.id, eigene.user_id)
 
 
-def _garmin_datei_besser(eigene: models.Session, pfad) -> bool:
+def _garmin_datei_ersetzt(eigene: models.Session, pfad) -> bool:
     from ..fitimport import parse_fit_bytes
     try:
-        return garmin_besser(eigene, parse_fit_bytes(pfad.read_bytes()))
+        return garmin_ersetzt(eigene, parse_fit_bytes(pfad.read_bytes()))
     except Exception as exc:  # noqa: BLE001 — im Zweifel bleibt unsere Aufnahme
         log.warning("garmin: Rate der Garmin-Datei %s nicht lesbar: %s", pfad, exc)
         return False
@@ -894,7 +935,8 @@ def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
                 continue   # Import einer anderen Uhr zur selben Zeit (07.11.2026) — bleibt seine eigene Session
             # Garmins Session hat die bessere Aufnahme (duenn bei uns oder hoehere Accel-Rate): sie bleibt die Fahrt,
             # unsere geht darin auf.
-            if storage.duenn(eigene.session_uuid) or (originale and _garmin_datei_besser(eigene, originale[0])):
+            # Ohne Originaldatei laesst sich die Deckung nicht pruefen: dann nur bei duenner eigener Aufnahme (wie bisher).
+            if (_garmin_datei_ersetzt(eigene, originale[0]) if originale else storage.duenn(eigene.session_uuid)):
                 in_garmin_session_aufgehen(db, eigene, g)
                 return 1
             if not originale:

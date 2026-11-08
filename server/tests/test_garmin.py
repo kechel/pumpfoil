@@ -570,7 +570,7 @@ def test_duenne_eigene_dann_garmin(client, garmin, monkeypatch, tmp_path):
     monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
     monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(parents=True, exist_ok=True) or tmp_path / u)
     start = datetime(2026, 11, 4, 9, 0, tzinfo=timezone.utc)
-    sid, _u = _duenne_eigene(uid, start, tmp_path)
+    sid, _u = _duenne_eigene(uid, start, tmp_path, minuten=10)   # Garmins Datei (_parsed) deckt 10 min
     monkeypatch.setattr(garmin.httpx, "get", lambda u, **k: _Antwort(content=b"FIT"))
     import app.fitimport as fi
     import app.api.sessions as sess
@@ -690,9 +690,10 @@ def test_hoehere_accel_rate_gewinnt(client, garmin, monkeypatch, tmp_path):
         return g
     monkeypatch.setattr(sess, "import_parsed_session", _import)
     url = "https://apis.garmin.com/wellness-api/rest/activityFile?id=11"
-    for minute, hz, garmin_gewinnt in ((0, 100, True), (30, 10, False)):
+    # 08.11.2026 (#20815/#20823): Garmin mit 100 Hz, aber nach 10 von 30 min gestoppt -> unsere bleibt (Deckung).
+    for minute, hz, eigene_min, garmin_gewinnt in ((0, 100, 10, True), (20, 10, 10, False), (40, 100, 30, False)):
         start = datetime(2026, 11, 5, 8, minute, tzinfo=timezone.utc)
-        sid, suuid = _eigene_session(uid, start, minuten=10)
+        sid, suuid = _eigene_session(uid, start, minuten=eigene_min)
         n = int(hz * 600)
         monkeypatch.setattr(fi, "parse_fit_bytes", lambda b, start=start, n=n: {
             **_parsed(start), "accel_bytes": b"\0" * (6 * n), "dauer_ms": 600_000})
