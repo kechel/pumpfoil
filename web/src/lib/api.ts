@@ -2190,17 +2190,18 @@ export const api = {
     req<{ slug: string; id: number }>("/api/teams", { method: "POST", body: JSON.stringify({ name, slug: slug || null }) }),
   team: (slug: string) => req<TeamInfo>(`/api/teams/${encodeURIComponent(slug)}`),
   teamOeffentlich: (slug: string, period: string) =>
-    req<TeamOeffentlich>(`/api/public/teams/${encodeURIComponent(slug)}?period=${period}`),
+    req<TeamOeffentlich>(`/api/public/teams/${encodeURIComponent(slug)}?period=${period}&mix=1`),
   teamBestenlisten: (slug: string, period: string) =>
     req<{ period: string; tafeln: TeamTafelMitZeilen[] }>(`/api/teams/${encodeURIComponent(slug)}/bestenlisten?period=${period}`),
   teamStatistik: (slug: string, period: string) =>
     req<TeamStatistik>(`/api/teams/${encodeURIComponent(slug)}/statistik?period=${period}`),
   teamLogbuch: (slug: string) => req<TeamLogbuchEintrag[]>(`/api/teams/${encodeURIComponent(slug)}/logbuch`),
-  teamEvents: (slug: string) => req<TeamEvent[]>(`/api/teams/${encodeURIComponent(slug)}/events`),
+  // `mix=1` (08.11.2026): gemischte Event-Bestenlisten („Pumpfoil + Foil Scoot") mitliefern — die Apps kennen sie noch nicht.
+  teamEvents: (slug: string) => req<TeamEvent[]>(`/api/teams/${encodeURIComponent(slug)}/events?mix=1`),
   teamEvent: (slug: string, id: number | string, team?: string) =>
-    req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events/${id}${team ? `?team=${encodeURIComponent(team)}` : ""}`),
+    req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events/${id}?mix=1${team ? `&team=${encodeURIComponent(team)}` : ""}`),
   teamEventOeffentlich: (slug: string, id: number | string) =>
-    req<{ team: TeamAuftritt & { id: number; bestenlisten_oeffentlich: boolean; anmeldungen_zulassen?: boolean }; event: TeamEvent }>(`/api/public/teams/${encodeURIComponent(slug)}/events/${id}`),
+    req<{ team: TeamAuftritt & { id: number; bestenlisten_oeffentlich: boolean; anmeldungen_zulassen?: boolean }; event: TeamEvent }>(`/api/public/teams/${encodeURIComponent(slug)}/events/${id}?mix=1`),
   teamEventBanner: async (slug: string, id: number, file: File) =>
     uploadFile<{ banner_url: string; banner_fokus: string }>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/banner`, file),
   teamEventBannerFokus: (slug: string, id: number, fokus: string) =>

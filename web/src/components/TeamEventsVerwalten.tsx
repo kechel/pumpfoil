@@ -11,7 +11,7 @@ import { Card } from "./ui";
 import { TrashIcon } from "./Icons";
 import { EVENT_SUMMEN, TEAM_KENNZAHLEN, fehlerCode } from "../lib/teamKennzahlen";
 import { EVENT_VORLAGEN, alsEingabe, eventZeitraum, neueEventTafel } from "../lib/teamEvents";
-import { sortiereNachSport } from "../lib/sportClass";
+import { istMix, sortiereNachSport } from "../lib/sportClass";
 import { bandLabel } from "../pages/Home";
 import { useI18n } from "../i18n";
 
@@ -72,7 +72,8 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
     global_event: !!ev.global, team_wertung_n: ev.team_wertung_n ?? 5,
     id: ev.id, eingefroren: ev.status === "beendet", banner_url: ev.banner_url, banner_fokus: ev.banner_fokus, ohne_dateien: ev.ohne_dateien, teambild_zeigen: ev.teambild_zeigen, summen: ev.summen_auswahl ?? [], summen_sportart: ev.summen_sportart, summen_accel_only: ev.summen_accel_only, titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
     ende: alsEingabe(new Date(ev.ende)), spot_ids: ev.spot_ids, vorlage: ev.vorlage,
-    tafeln: ev.tafeln.map(({ kennzahl, sportart, accel_only, nur_brett, foil_band }) => ({ kennzahl, sportart, accel_only, nur_brett, foil_band })),
+    // Gemischte Bestenlisten (Pumpfoil + Foil Scoot) leitet der Server selbst ab — nicht als eigene Tafel speichern.
+    tafeln: ev.tafeln.filter((x) => !istMix(x.sportart)).map(({ kennzahl, sportart, accel_only, nur_brett, foil_band }) => ({ kennzahl, sportart, accel_only, nur_brett, foil_band })),
   });
   const schliessen = () => { setE(null); setPopupFehler(null); onZu?.(); };
   useEffect(() => { if (nurEvent) bearbeiten(nurEvent); }, [nurEvent?.id]);   // eslint-disable-line react-hooks/exhaustive-deps

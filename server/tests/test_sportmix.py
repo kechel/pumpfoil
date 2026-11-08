@@ -106,7 +106,9 @@ def test_event_gemischte_bestenliste(client, monkeypatch):
                        {"kennzahl": "sum_distance", "sportart": "foil_scoot", "accel_only": False}]}
     r = client.post(f"/api/teams/{slug}/events", headers=ko, json=body)
     assert r.status_code == 200, r.text
-    ev = client.get(f"/api/teams/{slug}/events/{r.json()['id']}", headers=ko).json()
+    alt = client.get(f"/api/teams/{slug}/events/{r.json()['id']}", headers=ko).json()
+    assert MIX not in {t["sportart"] for t in alt["tafeln"]}    # Apps ohne mix=1: keine gemischte Bestenliste
+    ev = client.get(f"/api/teams/{slug}/events/{r.json()['id']}?mix=1", headers=ko).json()
     # Gemischt nur „Total distance" (gibt es fuer beide), direkt hinter der Foil-Scoot-Liste; sum_runs nur Pumpfoil.
     assert [(t["kennzahl"], t["sportart"]) for t in ev["tafeln"]] == [
         ("sum_distance", "pumpfoil"), ("sum_runs", "pumpfoil"), ("sum_distance", "foil_scoot"), ("sum_distance", MIX)]

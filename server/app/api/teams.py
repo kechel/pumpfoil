@@ -523,13 +523,13 @@ def _event(db: Session, t: models.Team, event_id: int) -> models.TeamEvent:
 
 
 @router.get("/{slug}/events")
-def events(slug: str, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+def events(slug: str, mix: bool = False, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
     t, m = _team_fuer(db, slug, user)
     _darf_tafeln(t, m)
     liste = T.events_liste(db, t.id, beendete=20)
     if any(T.event_einfrieren(db, e) for e in liste):
         db.commit()
-    return [T.event_out(db, t, e) for e in liste]
+    return [T.event_out(db, t, e, mix=mix) for e in liste]
 
 
 @router.post("/{slug}/events")
@@ -554,7 +554,7 @@ def event_anlegen(slug: str, body: EventIn, user: models.User = Depends(current_
 
 
 @router.get("/{slug}/events/{event_id}")
-def event_einzeln(slug: str, event_id: int, team: str | None = None, user: models.User = Depends(current_user),
+def event_einzeln(slug: str, event_id: int, team: str | None = None, mix: bool = False, user: models.User = Depends(current_user),
                   db: Session = Depends(get_db)) -> dict:
     """Ein Event direkt (Event-Seite), unabhaengig davon, wie weit es in der Liste zurueckliegt. Globale Events sieht
     jeder; `team` = nur die Zeilen der Mitglieder dieses Teams (Filter „mein Team")."""
@@ -565,7 +565,7 @@ def event_einzeln(slug: str, event_id: int, team: str | None = None, user: model
     if T.event_einfrieren(db, e):
         db.commit()
     return T.event_out(db, t, e, nur_team_ids=_nur_team(db, team, user) if T.ist_global(e) else None,
-                       betrachter=user.id)
+                       betrachter=user.id, mix=mix)
 
 
 class FokusIn(BaseModel):
@@ -936,7 +936,7 @@ def loeschen(slug: str, body: LoeschenIn, user: models.User = Depends(current_us
 # ------------------------------------------------------------------------------- Oeffentlich ----
 
 @public_router.get("/{slug}")
-def oeffentlich(slug: str, response: Response, period: str = "30d", db: Session = Depends(get_db),
+def oeffentlich(slug: str, response: Response, period: str = "30d", mix: bool = False, db: Session = Depends(get_db),
                 _rl: None = Depends(rate_limit(120, 900, "team-oeffentlich"))) -> dict:
     """Ohne Login: nur oeffentliche, freigegebene Teams; Bestenlisten in Gast-Form. Nicht fuer Suchmaschinen."""
     from .community import PERIODS
@@ -950,11 +950,11 @@ def oeffentlich(slug: str, response: Response, period: str = "30d", db: Session 
             "tafeln": [{**T.tafel_out(tf), "zeilen": T.fuer_gast(T.tafel_berechnen(db, t, tf, period, ids))}
                        for tf in T.tafeln(db, t.id)],
             # Events sind Bestenlisten mit Zeitfenster -> in derselben Gastform (ohne Spots).
-            "events": [T.event_out(db, t, e, gast=True) for e in T.events_liste(db, t.id, beendete=10)]}
+            "events": [T.event_out(db, t, e, gast=True, mix=mix) for e in T.events_liste(db, t.id, beendete=10)]}
 
 
 @public_router.get("/{slug}/events/{event_id}")
-def oeffentliches_event(slug: str, event_id: int, response: Response, db: Session = Depends(get_db),
+def oeffentliches_event(slug: str, event_id: int, response: Response, mix: bool = False, db: Session = Depends(get_db),
                         _rl: None = Depends(rate_limit(120, 900, "team-oeffentlich"))) -> dict:
     """Ein Event ohne Login (Teilen-Link, 01.11.2026): nur bei oeffentlichem, freigegebenem Team, in Gastform."""
     response.headers["X-Robots-Tag"] = "noindex, nofollow"
@@ -970,7 +970,7 @@ def oeffentliches_event(slug: str, event_id: int, response: Response, db: Sessio
     # anmeldungen_zulassen: fuer den Knopf „Anmelden und beitreten" auf der Event-Seite (01.11.2026).
     return {"team": {**_kurz(t, False, db), "bestenlisten_oeffentlich": True,
                      "anmeldungen_zulassen": bool(t.anmeldungen_zulassen)},
-            "event": T.event_out(db, t, e, gast=True)}
+            "event": T.event_out(db, t, e, gast=True, mix=mix)}
 
 
 # ---------------------------------------------------------------------------------- Admin ----

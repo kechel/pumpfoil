@@ -1175,8 +1175,12 @@ def events_einfrieren(db: Session) -> int:
 
 
 def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = False,
-              nur_team_ids: list[int] | None = None, betrachter: int | None = None) -> dict:
+              nur_team_ids: list[int] | None = None, betrachter: int | None = None, mix: bool = False) -> dict:
     tafeln_ = event_berechnen(db, t, e, nur_team_ids, None if gast else betrachter)
+    if not mix:
+        # Gemischte Bestenlisten (08.11.2026) nur fuer Clients, die sie kennen (`?mix=1`, Web) — die Apps zeigten den
+        # Schluessel „pumpfoil+foil_scoot" sonst roh.
+        tafeln_ = [tf for tf in tafeln_ if not sportmix.ist_mix(tf.get("sportart"))]
     if gast:
         tafeln_ = [{**tf, "zeilen": fuer_gast(tf["zeilen"])} for tf in tafeln_]
     spots = []
