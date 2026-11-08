@@ -1516,6 +1516,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+- **🔲 08.11. Erkennung: GPS-Wiederfinden nach Unterwasser-Luecke als Lauf gewertet (nach dem Wochenende).** #20528
+  (Kind, Venu 2S, Garmin-FIT, Stufe attempts) Lauf 2: echter Start am Steg 409 s (10–11 km/h, 15 m), dann 16 s ohne GPS
+  (Uhr unter Wasser, [[gps-luecken-uhr-unter-wasser]]), Wiederfinden 117 m draussen, „Ruecklauf" mit 28–42 km/h -> als Lauf
+  430–443 s, 65 m gezaehlt. Das 40-km/h-Gate greift nur je ganzem Lauf. Idee: Punkte direkt nach einer GPS-Luecke mit
+  Sprung > plausibler Strecke nicht als Laufstart nehmen. Pipeline-Aenderung nur mit Jans OK.
+
 - **🔲 07.11. Vergessene Stopp-Taste kostet Laeufe? (nach dem Wochenende pruefen)** #20507 (Venu 2S, App 1.0.99, 2 h mit
   Auto-Heimfahrt ab ~96 min): volle Aufnahme -> 0 Laeufe (1 vom 40-km/h-Gate verworfen); nur die ersten 15 min (trim) ->
   1 Lauf, 83 m. Die Beschleunigungsrate ist gleich (31,3 Hz), der Lauf wurde in der langen Fassung also nicht gefunden statt
