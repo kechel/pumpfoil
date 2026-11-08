@@ -1520,7 +1520,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Pumpfoil" gegen #20435 (3 Laeufe à ~10 min, 16 km/h, 10,3 km). Je Fahrer verglichen (4 Scoot-Fahrer/723 Laeufe, 90–99
   Pumpfoiler): Bewegung 0,30–0,71 g (Scoot) gegen 0,15–1,98 g (Pumpfoil), Takt ueberlappt, seitlicher Anteil (PCA,
   dritte/erste Hauptachse) Scoot 0,12–0,29 gegen Pumpfoil Median 0,17 (19 Fahrer < 0,10). #20435: 0,82 g, 0,08 — kein
-  Beweis in keine Richtung, Session bleibt Pumpfoil. Fuer eine Regel fehlen sichere Scoot-Aufnahmen von mehr Fahrern,
+  Beweis in keine Richtung. **Nachtrag 08.11.: der Fahrer bestaetigte Foil Scoot** — also auch Scoot mit kraeftiger
+  Armbewegung (0,82 g) und viel Querbewegung (quer/laengs 0,78); Handgelenk-Merkmale trennen damit nachweislich nicht.
+  #20435/#20465 per Admin als foil_scoot eingeordnet. Fuer eine Regel fehlen sichere Scoot-Aufnahmen von mehr Fahrern,
   ideal mit Kreisel und eine Uhr fest am Lenker als Gegenprobe. #20465 (vom Besitzer geloescht, 0 Laeufe) am 08.11.
   auf Jans Wunsch wiederhergestellt.
 
