@@ -2295,6 +2295,8 @@ export interface TeamZeile {
   user_id?: number; avatar_url?: string | null; session_id?: number; started_at?: string | null; spot?: string | null;
   /** Nationalitaet (ISO), nur fuer Eingeloggte */
   land?: string | null;
+  /** Offene Meldung „nicht Pumpfoil" gegen (eine der) Sessions dieser Zeile, noch nicht entschieden (08.11.2026). */
+  strittig?: boolean;
   /** Globale Events: Teams der Person (Wappen-Spalte, 07.11.2026) — dieselben wie in der Team-Wertung. */
   teams?: { slug: string; name: string; logo_url: string | null; farbe: string | null }[];
 }

@@ -275,6 +275,12 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
                 <span className="min-w-0 flex-1">
                   {gast || !z.user_id ? <span className="block truncate text-sm text-slate-100">{z.name ?? "—"}</span>
                     : <Link to={`/foiler/${z.user_id}`} state={zurueck} className="pf-name block truncate text-sm text-slate-100 hover:text-brand-400">{z.name ?? "—"}</Link>}
+                  {/* Offene Meldung, noch nicht entschieden: zaehlt, aber mit Vermerk direkt an der Zeile (Jan, 08.11.2026). */}
+                  {z.strittig && (
+                    <span className="block text-[11px] font-medium text-amber-700 dark:text-amber-300" title={t("team.tafel.strittigTitel")}>
+                      {t("team.tafel.strittig")}
+                    </span>
+                  )}
                   {!gast && z.started_at && (
                     <span className="block truncate text-xs text-slate-400">
                       {new Date(z.started_at).toLocaleDateString()}{z.spot ? ` · ${z.spot}` : ""}
@@ -288,6 +294,12 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
             );
           })}
         </ol>
+      )}
+      {tf.zeilen.some((z) => z.strittig) && (
+        <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">
+          {t(tf.zeilen.filter((z) => z.strittig).length === 1 ? "team.tafel.strittigHinweis1" : "team.tafel.strittigHinweis",
+            { n: String(tf.zeilen.filter((z) => z.strittig).length) })}
+        </p>
       )}
     </Card>
   );

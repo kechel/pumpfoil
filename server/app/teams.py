@@ -388,6 +388,16 @@ DATEI_PRAEFIXE = ("fit-", "imp-")
 ALLE = "alle"   # member_ids fuer globale Events: jeder, der passende Sessions hat (06.11.2026)
 
 
+def strittige_sessions(db: Session) -> set[int]:
+    """Sessions mit offener Meldung „nicht Pumpfoil" (Jan, 08.11.2026: „direkt bei der session in der bestenliste selber
+    … in dispute"): gemeldet und noch nicht von einem Admin entschieden. Sie zaehlen, solange sie in der Wertung stehen,
+    tragen in Bestenlisten aber den Vermerk `strittig`. Die Tabelle ist klein — jedes Mal frisch gelesen."""
+    S, F = models.Session, models.SessionFlag
+    return {sid for (sid,) in db.query(F.session_id).join(S, S.id == F.session_id).filter(
+        S.deleted.isnot(True), S.pumpfoil_override.isnot(True),
+        or_(S.sport_source.is_(None), S.sport_source != "admin")).distinct().all()}
+
+
 def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period: str,
                     member_ids: list[int] | str | None = None, fenster: tuple[datetime, datetime] | None = None,
                     event_spots: list[int] | None = None, ohne_dateien: bool = False,
@@ -450,6 +460,7 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
         return q
 
     out: list[dict] = []
+    strittig = strittige_sessions(db)
     if tf.kennzahl in BEST:
         valcol, _idx = C.REC_COL[tf.kennzahl]
         q = C._community(db.query(U.id, valcol, S.id, S.started_at, C.NAME, U.avatar_url, S.place_name,
@@ -465,7 +476,7 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
                 spot, tz = C._ort(db, sicht, uid, place, lat, lon)
                 out.append({"user_id": uid, "name": name, "avatar_url": av, "value": round(float(val), 2),
                             "session_id": sid, "started_at": ts.isoformat() if ts else None,
-                            "spot": spot, "tz": tz})
+                            "spot": spot, "tz": tz, **({"strittig": True} if sid in strittig else {})})
     else:
         from . import pumpgleit_anzeige as PA
         wert = {
@@ -478,11 +489,17 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
         }[tf.kennzahl]
         q = C._community(db.query(U.id, C.NAME, U.avatar_url, wert), None, tf.accel_only, tf.sportart)
         q = filtern(q)
+        # Summen: die Zeile ist strittig, sobald eine der mitgezaehlten Sessions es ist.
+        strittige_nutzer: set[int] = set()
+        if q is not None and strittig:
+            qs = filtern(C._community(db.query(U.id), None, tf.accel_only, tf.sportart))
+            if qs is not None:
+                strittige_nutzer = {u for (u,) in qs.filter(S.id.in_(list(strittig))).distinct().all()}
         if q is not None:
             for uid, name, av, val in q.group_by(U.id, U.display_name, U.avatar_url).all():
                 if val and float(val) > 0:
                     out.append({"user_id": uid, "name": name, "avatar_url": av,
-                                "value": round(float(val), 2)})
+                                "value": round(float(val), 2), **({"strittig": True} if uid in strittige_nutzer else {})})
     out.sort(key=lambda r: (-r["value"], r.get("started_at") or "", r["user_id"]))
     if laenge is not None:
         out = out[:laenge]
@@ -500,7 +517,8 @@ def fuer_gast(zeilen: list[dict]) -> list[dict]:
     """Ohne Login nur Rang, Anzeigename, Initialen, Wert (Jan, 31.10.2026). Bei globalen Events dazu die Wappen der
     Teams (`teams`) — dieselben, die auch Gaeste in der Team-Wertung sehen."""
     return [{"rang": r["rang"], "name": r["name"], "initialen": r["initialen"], "value": r["value"],
-             **({"teams": r["teams"]} if "teams" in r else {})} for r in zeilen]
+             **({"teams": r["teams"]} if "teams" in r else {}),
+             **({"strittig": True} if r.get("strittig") else {})} for r in zeilen]
 
 
 def tafel_out(tf: models.TeamTafel) -> dict:
