@@ -38,6 +38,7 @@ import httpx
 import jwt as pyjwt
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from .. import geheim, models
@@ -342,7 +343,7 @@ def _sicherer_name(text: str) -> str:
     return "".join(c for c in str(text) if c.isalnum() or c in "-_")[:60] or "aktivitaet"
 
 
-def datei_anhaengen(ziel: models.Session, roh: bytes, beschreibung: dict) -> str | None:
+def datei_anhaengen(ziel: models.Session, roh: bytes, beschreibung: dict, praefix: str = "garmin-connect") -> str | None:
     """Garmin-Datei an eine Session haengen, ohne etwas zu ueberschreiben (Jan, 05.11.2026: „die daten von uhr und
     ueber garmin fuer die gleiche session verknuepfen … immer beide daten komplett speichern damit nichts verloren
     gehen kann"). Je Garmin-Aktivitaet eine NEUE Datei `garmin-connect-<summaryId>.fit` plus `.json` mit der
@@ -352,7 +353,7 @@ def datei_anhaengen(ziel: models.Session, roh: bytes, beschreibung: dict) -> str
 
     from .. import storage
     d = storage.ensure_session_dir(ziel.session_uuid)
-    name = f"garmin-connect-{_sicherer_name(beschreibung.get('summaryId') or beschreibung.get('activityId') or '')}"
+    name = f"{praefix}-{_sicherer_name(beschreibung.get('summaryId') or beschreibung.get('activityId') or '')}"
     fit, info = d / f"{name}.fit", d / f"{name}.json"
     if fit.exists():
         return None
@@ -908,6 +909,67 @@ def _garmin_datei_ersetzt(eigene: models.Session, pfad) -> bool:
         return False
 
 
+# --- Von Hand hochgeladene FIT-Dateien (09.11.2026) ---------------------------------------------------------------
+# Anlass: Ein Nutzer lud die FIT-Datei seiner Fahrt hoch, weil die Uhr noch nicht synchronisiert hatte; spaeter kam der
+# Upload unserer App dazu — dieselbe Fahrt stand doppelt in Event und Bestenlisten. Jan: „bau das fuer fit-importe
+# genauso, aber die daten sollen natuerlich trotzdem gespeichert werden, am ende wollen wir immer die besseren daten zur
+# analyse und auswertung verwenden". Also dieselben Regeln wie fuer Garmin Connect: die bessere Aufnahme wird die
+# Session (Deckung + Beschleunigung, garmin_ersetzt), die andere geht darin auf bzw. haengt als Datei daran.
+FIT_START_TOLERANZ_S = 120
+
+
+def _parsed_der_datei(pfad) -> dict | None:
+    from ..fitimport import parse_fit_bytes
+    try:
+        return parse_fit_bytes(pfad.read_bytes())
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def fit_ist_dieselbe_aufnahme(db: Session, eigene: models.Session, parsed: dict | None) -> bool:
+    """Ist die FIT-Datei die Aufzeichnung unserer App zur eigenen Aufnahme? Strenger als bei Garmin Connect (dort sagt
+    der Push, woher die Datei kommt): der Profilname muss unserer sein („Pumpfoil"/„Dance"), die Uhr darf keine andere
+    sein, und der Start muss auf FIT_START_TOLERANZ_S stimmen. Eine zweite Uhr mit Garmins Profil oder einer anderen
+    App (Vergleichsfahrten mit zwei Uhren) bleibt damit ihre eigene Session."""
+    if not parsed or parsed.get("started_at") is None or eigene.started_at is None:
+        return False
+    if str(parsed.get("sport_name") or "").strip().lower() not in UNSERE_NAMEN:
+        return False
+    if andere_uhr(db, eigene, parsed.get("garmin_produkt")):
+        return False
+    return abs((_aware(parsed["started_at"]) - _aware(eigene.started_at)).total_seconds()) <= FIT_START_TOLERANZ_S
+
+
+def fit_zur_eigenen_aufnahme(db: Session, user: models.User, raw: bytes, parsed: dict,
+                             dateiname: str | None) -> models.Session | None:
+    """FIT-Upload zu einer eigenen Aufnahme derselben Fahrt: die bessere wird die Session, die andere geht darin auf
+    (Datei bleibt angehaengt bzw. der Ordner der eigenen Aufnahme unangetastet). None = keine eigene Aufnahme dazu, der
+    normale Import laeuft weiter."""
+    import hashlib
+
+    from .sessions import import_parsed_session
+    if parsed.get("started_at") is None:
+        return None
+    start = _aware(parsed["started_at"])
+    samples = parsed.get("gps_samples") or []
+    ende = start + timedelta(milliseconds=int(samples[-1][0] if samples else parsed.get("dauer_ms") or 0))
+    eigene = _eigene_aufnahme(db, user.id, start, max(ende, start + timedelta(seconds=60)),
+                              produkt=parsed.get("garmin_produkt"))
+    if eigene is None or not fit_ist_dieselbe_aufnahme(db, eigene, parsed):
+        return None
+    if garmin_ersetzt(eigene, parsed):
+        g = import_parsed_session(db, user, raw, parsed, src_label="fit-upload", uuid_prefix="fit-", filename=dateiname,
+                                  sport_override=eigene.sport_class, von_hand=True, ausser_id=eigene.id)
+        if g is not None and g.id != eigene.id:
+            in_garmin_session_aufgehen(db, eigene, g)
+            log.info("fit-upload: eigene Aufnahme #%s geht in FIT-Session #%s auf (user %s)", eigene.id, g.id, user.id)
+            return g
+    datei_anhaengen(eigene, raw, {"summaryId": hashlib.sha256(raw).hexdigest()[:16], "datei": dateiname,
+                                  "deviceName": None}, praefix="fit-upload")
+    log.info("fit-upload: Datei an eigene Aufnahme #%s angehaengt (user %s)", eigene.id, user.id)
+    return eigene
+
+
 def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
     """Andere Reihenfolge: Garmin war schneller, jetzt schliesst unsere App die Aufnahme ab. Garmin-Importe desselben
     Nutzers zur selben Zeit werden mit ihr verknuepft: ihre Originaldatei kommt (als Kopie) an unsere Session, die
@@ -925,12 +987,17 @@ def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
     n = 0
     try:
         for g in db.query(S).filter(S.user_id == eigene.user_id, S.deleted.isnot(True),
-                                    S.session_uuid.like("garmin-%"), S.started_at < ende,
-                                    S.ended_at > eigene.started_at).all():
-            if not koennte_unsere_sein(_push_gelesen(g)):
-                continue   # Garmin-Profil-Aufnahme einer anderen Uhr (s. koennte_unsere_sein) — bleibt eigene Session
+                                    or_(S.session_uuid.like("garmin-%"), S.session_uuid.like("fit-%")),
+                                    S.started_at < ende, S.ended_at > eigene.started_at).all():
             d = storage.session_dir(g.session_uuid)
             originale = sorted(d.glob("original.*")) if d.exists() else []
+            if g.session_uuid.startswith("fit-"):
+                # Von Hand hochgeladene FIT-Datei (09.11.2026): nur die Datei unserer App derselben Uhr, auf wenige
+                # Sekunden gleich gestartet — sonst eine andere Aufnahme (zweite Uhr, andere App) und bleibt eigene Session.
+                if not originale or not fit_ist_dieselbe_aufnahme(db, eigene, _parsed_der_datei(originale[0])):
+                    continue
+            elif not koennte_unsere_sein(_push_gelesen(g)):
+                continue   # Garmin-Profil-Aufnahme einer anderen Uhr (s. koennte_unsere_sein) — bleibt eigene Session
             if originale and andere_uhr(db, eigene, _produkt_der_datei(originale[0])):
                 continue   # Import einer anderen Uhr zur selben Zeit (07.11.2026) — bleibt seine eigene Session
             # Garmins Session hat die bessere Aufnahme (duenn bei uns oder hoehere Accel-Rate): sie bleibt die Fahrt,
@@ -943,7 +1010,8 @@ def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
                 continue
             datei_anhaengen(eigene, originale[0].read_bytes(),
                             {"summaryId": g.session_uuid, "deviceName": g.device_model,
-                             "von_session": g.id, "von_uuid": g.session_uuid})
+                             "von_session": g.id, "von_uuid": g.session_uuid},
+                            praefix="fit-upload" if g.session_uuid.startswith("fit-") else "garmin-connect")
             nutzerinhalte_uebertragen(db, g, eigene)
             g.deleted = True
             g.merged_into = eigene.id      # alte Links leiten weiter (sessions.get_session)

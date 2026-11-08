@@ -1065,6 +1065,15 @@ async def upload_fit(
             return {"skipped": "exists_different", "existing_id": vorhanden.id,
                     "sport": sport, "started_at": started_at.isoformat()}
 
+    # FIT-Datei unserer App zu einer eigenen Aufnahme derselben Fahrt (09.11.2026, garmin.fit_zur_eigenen_aufnahme):
+    # keine zweite Session — die bessere Aufnahme wird die Session, die andere bleibt gespeichert und verknuepft.
+    if uuid_prefix == "fit-" and not db.query(models.Session.id).filter(
+            models.Session.user_id == user.id, models.Session.deleted.isnot(True),
+            models.Session.content_hash == neu_hash).first():
+        from .garmin import fit_zur_eigenen_aufnahme
+        verknuepft = fit_zur_eigenen_aufnahme(db, user, raw, parsed, dateiname)
+        if verknuepft is not None:
+            return _session_out(verknuepft, with_analysis=True)
     s = import_parsed_session(db, user, raw, parsed, src_label=src_label, uuid_prefix=uuid_prefix,
                               filename=dateiname, von_hand=True)
     if s is None:  # bewusst gelöschte Aktivität nicht wieder importieren (mit von_hand=True nicht mehr erreichbar)

@@ -824,3 +824,89 @@ def test_warteschlange_uebersteht_neustart(client, garmin, monkeypatch):
     e2 = {**e, "summaryId": f"ws-{secrets.token_hex(3)}"}
     assert client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [e2]}).status_code == 200
     assert not list(garmin._ws_dir().glob(f"{garmin._ws_schluessel(e2)}.*"))
+
+
+# --- Von Hand hochgeladene FIT-Dateien (09.11.2026) -----------------------------------------------------------------
+
+def _fit_parsed(start, hz, name="Pumpfoil", produkt=None):
+    return {**_parsed(start), "accel_bytes": b"\0" * (6 * int(hz * 600)), "dauer_ms": 600_000, "sport_name": name,
+            "garmin_produkt": produkt}
+
+
+def test_fit_upload_zur_eigenen_aufnahme(client, garmin, monkeypatch, tmp_path):
+    """FIT-Datei unserer App nach dem Uhr-Upload: bessere Datei (100 Hz, deckt ab) wird die Session, die eigene geht
+    darin auf; schlechtere haengt nur an der eigenen; Datei einer anderen App (zweite Uhr) bleibt aussen vor."""
+    from app import models, storage
+    from app.db import SessionLocal
+    import app.api.sessions as sess
+    import app.analysis as an
+    uid, _ = _konto(client)
+    monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
+    monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(parents=True, exist_ok=True) or tmp_path / u)
+    monkeypatch.setattr(an, "run_analysis", lambda db, s: None)
+    monkeypatch.setattr(garmin, "rate_eigene", lambda s: 25.0)
+
+    def _import(db, user, raw, parsed, **k):
+        g = models.Session(session_uuid="fit-" + secrets.token_hex(6), user_id=user.id, started_at=parsed["started_at"],
+                           ended_at=parsed["started_at"] + timedelta(minutes=10), status="analyzed")
+        db.add(g); db.commit()
+        return g
+    monkeypatch.setattr(sess, "import_parsed_session", _import)
+    db = SessionLocal()
+    try:
+        user = db.get(models.User, uid)
+        # 1) bessere Datei: wird die Session
+        start = datetime(2026, 11, 8, 14, 0, tzinfo=timezone.utc)
+        sid, _su = _eigene_session(uid, start, minuten=10)
+        g = garmin.fit_zur_eigenen_aufnahme(db, user, b"FIT1", _fit_parsed(start + timedelta(seconds=2), 100), "a.fit")
+        eigene = db.get(models.Session, sid)
+        assert g.session_uuid.startswith("fit-") and eigene.deleted and eigene.merged_into == g.id
+        assert g.device_id == eigene.device_id
+        # 2) schlechtere Datei: haengt an der eigenen, keine neue Session
+        start = datetime(2026, 11, 8, 15, 0, tzinfo=timezone.utc)
+        sid, suuid = _eigene_session(uid, start, minuten=10)
+        g = garmin.fit_zur_eigenen_aufnahme(db, user, b"FIT2", _fit_parsed(start, 10), "b.fit")
+        assert g.id == sid and not db.get(models.Session, sid).deleted
+        assert list((tmp_path / suuid).glob("fit-upload-*.fit"))
+        # 3) andere App auf der zweiten Uhr: kein Bezug zur eigenen Aufnahme
+        start = datetime(2026, 11, 8, 16, 0, tzinfo=timezone.utc)
+        sid, _su = _eigene_session(uid, start, minuten=10)
+        assert garmin.fit_zur_eigenen_aufnahme(db, user, b"FIT3", _fit_parsed(start, 100, name="Foil"), "c.fit") is None
+        # 4) Start zu weit weg: andere Fahrt
+        assert garmin.fit_zur_eigenen_aufnahme(db, user, b"FIT4", _fit_parsed(start + timedelta(minutes=5), 100), "d.fit") is None
+    finally:
+        db.close()
+
+
+def test_fit_zuerst_dann_eigene_aufnahme(client, garmin, monkeypatch, tmp_path):
+    """Andere Reihenfolge (Nutzer-Meldung 08.11.2026): erst die FIT-Datei hochgeladen, dann synct die Uhr. Bessere FIT-Datei
+    bleibt die Session, die eigene geht darin auf; FIT einer anderen App bleibt eine eigene Session."""
+    from app import models, storage
+    from app.db import SessionLocal
+    import app.fitimport as fi
+    import app.analysis as an
+    uid, _ = _konto(client)
+    monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
+    monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(parents=True, exist_ok=True) or tmp_path / u)
+    monkeypatch.setattr(an, "run_analysis", lambda db, s: None)
+    monkeypatch.setattr(garmin, "rate_eigene", lambda s: 25.0)
+    monkeypatch.setattr(storage, "duenn", lambda u: False)
+    db = SessionLocal()
+    try:
+        ergebnisse = []
+        for i, (name, eigene_geht_auf) in enumerate((("Pumpfoil", True), ("FoilApp", False))):
+            start = datetime(2026, 11, 8, 10 + i, 0, tzinfo=timezone.utc)
+            f = models.Session(session_uuid="fit-" + secrets.token_hex(6), user_id=uid, started_at=start,
+                               ended_at=start + timedelta(minutes=10), status="analyzed")
+            db.add(f); db.commit()
+            (tmp_path / f.session_uuid).mkdir(parents=True)
+            (tmp_path / f.session_uuid / "original.fit").write_bytes(f"FIT{i}".encode())
+            monkeypatch.setattr(fi, "parse_fit_bytes", lambda b, start=start, name=name: _fit_parsed(start, 100, name=name))
+            sid, _su = _eigene_session(uid, start + timedelta(seconds=2), minuten=10)
+            eigene = db.get(models.Session, sid)
+            garmin.nach_eigener_aufnahme(db, eigene)
+            db.refresh(eigene); db.refresh(f)
+            ergebnisse.append((eigene.deleted, eigene.merged_into == f.id, f.deleted))
+        assert ergebnisse == [(True, True, False), (False, False, False)]
+    finally:
+        db.close()

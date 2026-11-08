@@ -145,3 +145,19 @@ beim alten Verhalten. Mit Verknuepfung (`GET /api/devices/config`, Regel `device
 - **Vor der Einreichung pruefen:** langer Lauf auf einer 96-KB-Uhr (Instinct 2) mit Verknuepfung — kostet der
   SensorLogger dort Heap? (Spitze 89/92 KB gemessen.) Kommt die FIT mit Beschleunigung an, geht die duenne Session
   darin auf? Und eine Aufnahme bei absichtlich vollem Puffer.
+
+## Von Hand hochgeladene FIT-Dateien derselben Aufnahme (09.11.2026)
+
+Anlass: FIT-Datei einer Fahrt von Hand hochgeladen, weil die Uhr noch nicht synchronisiert hatte; spaeter kam der
+Upload unserer App — dieselbe Fahrt stand doppelt in Event und Bestenlisten. Jan: „die daten sollen natuerlich trotzdem
+gespeichert werden, am ende wollen wir immer die besseren daten zur analyse und auswertung verwenden".
+
+- Gleiche Regeln wie bei Garmin Connect, beide Reihenfolgen: `garmin.fit_zur_eigenen_aufnahme` (Upload nach der
+  eigenen Aufnahme, aufgerufen in `POST /api/sessions/upload-fit`) und `garmin.nach_eigener_aufnahme` (eigene Aufnahme
+  nach dem FIT-Upload, jetzt auch `fit-*`-Sessions).
+- Dieselbe Aufnahme nur, wenn der Profilname in der Datei unserer ist („Pumpfoil"/„Dance"), die Uhr keine andere ist
+  (`andere_uhr`) und der Start auf 120 s stimmt (`fit_ist_dieselbe_aufnahme`). Eine zweite Uhr mit anderer App oder
+  Garmin-Profil (Vergleichsfahrten) bleibt eine eigene Session.
+- Die bessere Aufnahme wird die Session (`garmin_ersetzt`: deckt die Fahrt ab UND eigene duenn oder Datei mit
+  deutlich hoeherer Beschleunigungsrate) — die eigene geht darin auf (`merged_into`, Ordner bleibt). Sonst haengt die
+  Datei als `fit-upload-<hash>.fit` an der eigenen Session.
