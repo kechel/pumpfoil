@@ -1710,6 +1710,8 @@ const pl: Record<string, string> = {
   "gear.noHits": "Brak wyników.",
   "foils.defaultSport": "Domyślny sport dla nowych sesji",
   "foils.defaultSportHint": "Dotyczy tylko przyszłych nagrań — istniejące sesje zostają bez zmian. Wybór na zegarku pojawi się później.",
+  "foils.rangSport": "Domyślny widok rankingów",
+  "foils.rangSportHint": "Co rankingi społeczności, porównanie drużyn i wydarzenia pokazują najpierw. W widoku mieszanym przy każdym zawodniku widać jego dyscyplinę.",
   "foils.mySports": "Sporty na zegarku",
   "foils.mySportsHint": "Wybierz, które sporty możesz wybrać na zegarku przed startem. Twój domyślny sport jest zawsze uwzględniony.",
   "foils.hint": "Zaznacz swoje foile i wybierz jeden jako domyślny (★). Domyślny można nadpisać w każdej sesji.",

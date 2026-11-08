@@ -211,6 +211,10 @@ Teameinstellungen, Team loeschen; `teams.events_zuordnung_sichern`), spaetestens
 die DSGVO-Loeschung (Zeilen, Zuordnung, Teilnehmer) und der Ausstieg aus globalen Events den Endstand. Live bleiben
 der Kopf des ausrichtenden Teams und die verlinkten Sessions selbst. Aeltere, schon eingefrorene Events nicht nachgetragen.
 
+**Gemischte Bestenlisten** (08.11.2026): hat ein Event dieselbe Bestenliste fuer Pumpfoil und Foil Scoot, kommt
+„Pumpfoil + Foil Scoot" als weitere dazu, mit Sportart-Abzeichen je Fahrer und Team — s. docs/sport-classification.md
+„Gemischte Ranglisten".
+
 ## Teambild (01.11.2026)
 
 Breites Bild ueber dem Teamkopf. Empfohlen 1600 x 500 px; gespeichert hoechstens 1600 px breit, nie zugeschnitten;

@@ -258,7 +258,8 @@ def vergleich(period: str = "30d", top: int = 5, sport: str = "pumpfoil", region
     from ..sportarten import SPORTS
     period = period if period in PERIODS else "30d"
     top = top if top in T.VERGLEICH_TOP else 5
-    sport = sport if sport in SPORTS else "pumpfoil"
+    from .. import sportmix
+    sport = sportmix.gueltig(sport if sport != "all" else "pumpfoil")   # auch Mischungen (08.11.2026)
     # Region (05.11.2026, app/regionen.py): Teams nach ihrer Herkunft — ein polnisches Team steht unter Polen und unter
     # Europa, ein Team mit Herkunft „Europa" nur unter Europa, eines mit „Erde" nur in Global.
     from .. import regionen

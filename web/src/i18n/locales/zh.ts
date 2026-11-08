@@ -2174,6 +2174,8 @@ const zh: Record<string, string> = {
   "dm.tabBot": "机器人",
   "foils.defaultSport": "新会话的默认运动",
   "foils.defaultSportHint": "仅对今后的记录生效——已有会话保持不变。在手表上选择的功能稍后推出。",
+  "foils.rangSport": "排行榜默认视图",
+  "foils.rangSportHint": "社区排行榜、团队对比和活动首先显示的内容。在混合视图中，每位骑手都会标注其运动项目。",
   "foils.mySports": "手表上的运动",
   "foils.mySportsHint": "选择开始前可在手表上选择的运动。你的默认运动始终包含在内。",
   "foils.missingCta": "请我们补充",

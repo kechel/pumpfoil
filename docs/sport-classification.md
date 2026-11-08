@@ -262,6 +262,25 @@ Einmal-Korrektur des Bestands: `scripts/import-sportart-korrigieren.py` (Trocken
 Vorgabe). Gelaufen am 05.09.2026: 130 umgestuft, 242 Sportarten nachgetragen, 42 zur Klaerung
 vorgelegt.
 
+## Gemischte Ranglisten (08.11.2026)
+
+Anlass: Diskussion Pumpfoil gegen Foil Scoot im Community-Chat (07./08.11.2026). Ein Scooter-Fahrer wollte nicht in
+eine Sonderwertung, andere wollen „nur freies Pumpfoilen" sehen. Jans Entscheidung: getrennte Listen bleiben, dazu eine
+**gemischte Ansicht „Pumpfoil + Foil Scoot"**, in der jede Zeile ein Abzeichen ihrer Sportart traegt.
+
+- Schluessel `pumpfoil+foil_scoot` (`server/app/sportmix.py`). Er geht ueberall durch, wo eine Sportart steht;
+  `community._community` filtert auf alle Teile (Pumpfoil samt NULL-Altbestand). Unkodiert wird „+" in der Adresse
+  zum Leerzeichen — beides gilt. Rechnung generisch fuer jede Kombination, angeboten nur die Paare in `MIXE`.
+- Abzeichen (`sportarten` je Zeile) NUR in gemischten Ansichten: beste Session -> deren Sportart, Summen -> alle
+  gefahrenen. Teams (Team-Vergleich, Team-Wertung im Event) tragen die Sportarten ihrer gezaehlten Fahrer.
+- `GET /api/community/sports?mix=1` haengt die Mischung an, wenn beide Sportarten Laeufe haben — ohne `mix` nichts
+  Neues (aeltere Apps kennen den Schluessel nicht).
+- Events: gibt es dieselbe Bestenliste (Kennzahl + Filter) fuer Pumpfoil UND Foil Scoot, kommt die gemischte direkt
+  dahinter dazu (`teams.event_tafeln_mit_mix`, nicht gespeichert, wird mit eingefroren). Summen bleiben bei der ersten
+  echten Bestenliste.
+- Profil: `rangliste_sport` ("" = Pumpfoil, Sportart oder Mischung) — Standard der Community-Auswahl, des
+  Team-Vergleichs und Vorauswahl in Events. Web: Einstellungen › Sportarten. Native Apps: noch nicht.
+
 ## Vorgeschlagene Reihenfolge
 
 - **Stufe 1 (Kern):** Spalten + `session_flags`, Melden (fremd: nur die freundliche Bitte, KEINE

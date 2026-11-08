@@ -3,6 +3,7 @@ import { fmtDate } from "../lib/time";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand, TeamEventKurz, TeamListenEintrag, TeamVergleich, TeamVergleichKennzahl, TeamVergleichZeile } from "../lib/api";
 import EventKurzKachel from "../components/EventKurzKachel";
+import { SportAbzeichen } from "../components/SportAbzeichen";
 import { EventAbzeichen, useEventAbzeichen } from "../components/EventHinweis";
 import { LayoutPreview } from "../components/LayoutPreview";
 import { WatchShape } from "../lib/watchLayout";
@@ -26,7 +27,7 @@ import { CommunityStats } from "../components/CommunityStats";
 import { useAccelDefault } from "../lib/useAccelDefault";
 import { useI18n, useT } from "../i18n";
 import { landName } from "../lib/laender";
-import { MOTOR_SPORTS, PADDEL_SPORTS, WIND_SPORTS, sortiereNachSport } from "../lib/sportClass";
+import { MOTOR_SPORTS, PADDEL_SPORTS, WIND_SPORTS, ranglistenSportart, sortiereNachSport, sportLabel } from "../lib/sportClass";
 import { fmtLaufDauer } from "../lib/dauer";
 
 function InstallButton() {
@@ -263,6 +264,7 @@ export function RecordGrid({ rec, showSpot, sport, nurSport, nurBelegt }: { rec?
                   <span className="inline-flex items-center gap-1 align-middle">
                     <Avatar name={r!.name} url={r!.avatar_url} userId={r!.user_id} size={20} />
                     <span className="pf-name text-brand-600 dark:text-brand-300">{r!.name}</span>
+                    <SportAbzeichen sportarten={r!.sportarten} klein />
                   </span>
                 )}
                 {r!.started_at && (
@@ -323,6 +325,7 @@ function LeaderList({ rows, field, unit, fmt, me }: { rows: LeaderRow[]; field: 
     const inhalt = (
       <>
         <span className="pf-name min-w-0 flex-1 truncate text-sm text-slate-200">{r.name}</span>
+        <SportAbzeichen sportarten={r.sportarten} klein />
         <span className="shrink-0 text-sm font-semibold tabular-nums text-slate-100">{fmt ? fmt(r[field] as number) : r[field] as number}</span>
         <span className="shrink-0 text-[10px] uppercase text-slate-400">{typeof unit === "function" ? unit(r[field] as number) : unit}</span>
       </>
@@ -576,7 +579,7 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
       <BestenlisteBildDialog onClose={() => setBild(false)} titel={t("team.bild.titel")} dateiname={`pumpfoil-${k.key}.jpg`}
         daten={{
           titel: t(k.labelKey),
-          unterzeile: [t(`cls.sport.${sport}`), t(periodLabelKey), band && band.art !== "alle" ? bandLabel(band, t) : null,
+          unterzeile: [sportLabel(sport, t), t(periodLabelKey), band && band.art !== "alle" ? bandLabel(band, t) : null,
             new Date().toLocaleDateString(document.documentElement.lang || undefined)].filter(Boolean).join(" · "),
           zeilen: (data[k.key] ?? []).slice(0, 10).map((r, i) => zeile(r, i + 1)),
           eigene: eigene && eigene.rank != null ? zeile(eigene, eigene.rank) : null,
@@ -703,7 +706,8 @@ function CommunitySection() {
   const [sp, setSp] = useSearchParams();
   const setzeParam = (k: string, v: string, standard: string) =>
     setSp((alt) => { const n = new URLSearchParams(alt); v === standard ? n.delete(k) : n.set(k, v); return n; }, { replace: true });
-  const sport = sp.get("sport") || gemerkt("foil_komm_sport") || "pumpfoil";
+  // Ohne Wahl: zuletzt gewaehlt, sonst die Standard-Ansicht aus dem Profil (z. B. „Pumpfoil + Foil Scoot", 08.11.2026).
+  const sport = sp.get("sport") || gemerkt("foil_komm_sport") || ranglistenSportart();
   const setSport = (v: string) => { merken("foil_komm_sport", v); setzeParam("sport", v, "pumpfoil"); };
   const [sports, setSports] = useState<{ sport: string; runs: number }[]>([]);
   // Ohne Wahl in der Adresse: „Heute", sobald heute alle 10 Plaetze der Bestenliste besetzt sind (Vorschlag eines
@@ -798,7 +802,7 @@ function CommunitySection() {
   }, [accelOnly, sport, freunde]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    api.communitySports().then(setSports).catch(() => {});
+    api.communitySports(undefined, true).then(setSports).catch(() => {});
   }, []);
 
   // KEINE Sperre auf `data` mehr (16.09.2026). Frueher stand hier `if (!data) return null;` —
@@ -844,7 +848,7 @@ function CommunitySection() {
   const sportAuswahl = (sportListe.length > 1) && (
     <select value={sport} onChange={(e) => setSport(e.target.value)}
       className="max-w-[14rem] truncate rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm font-medium text-slate-100">
-      {sortiereNachSport(sportListe, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{t(`cls.sport.${x.sport}`)}</option>)}
+      {sortiereNachSport(sportListe, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{sportLabel(x.sport, t)}</option>)}
     </select>
   );
   // Filter, die nur fuer die Mitglieder-Bestenliste und die Kacheln gelten (Oleks Entwurf, 05.11.2026): dieselben wie
@@ -1081,13 +1085,14 @@ function TeamBestenlisten({ period, sport, region, titel }: { period: string; sp
               <span className="flex min-w-0 flex-1 items-center gap-1.5">
                 <span className="team-akzent truncate text-sm">{z.name}</span><TeamHerkunft land={z.land} />
               </span>
+              <SportAbzeichen sportarten={z.sportarten} klein />
               <span className="shrink-0 text-sm font-semibold tabular-nums text-slate-100">{zahl(z)}</span>
               <span className="shrink-0 text-[10px] uppercase text-slate-400">{einheit(z)}</span>
             </Link>
           ))}
         </div>
       )}
-      <p className="mt-2 text-xs text-slate-400">{t("team.vergleich.hinweis", { n: String(top), sport: t(`cls.sport.${sport}`) })}</p>
+      <p className="mt-2 text-xs text-slate-400">{t("team.vergleich.hinweis", { n: String(top), sport: sportLabel(sport, t) })}</p>
       <Quellen quellen={d?.quellen} />
       {/* Als Bild teilen wie die Bestenliste der Fahrer (Jan, 03.11.2026). Flaggen nur fuer Laender; Kontinent/Erde
           („k:…") haben kein Flaggenbild und bleiben im Bild ohne Zeichen. */}
@@ -1101,7 +1106,7 @@ function TeamBestenlisten({ period, sport, region, titel }: { period: string; sp
         <BestenlisteBildDialog onClose={() => setBild(false)} titel={t("team.bild.titel")} eigenesTeam dateiname={`pumpfoil-teams-${art}.jpg`}
           daten={{
             titel: t(VERGLEICH_ARTEN.find(([k]) => k === art)?.[1] ?? ""),
-            unterzeile: [t("team.vergleich.titel"), t(`cls.sport.${sport}`), t("team.vergleich.top", { n: String(top) }),
+            unterzeile: [t("team.vergleich.titel"), sportLabel(sport, t), t("team.vergleich.top", { n: String(top) }),
               t(PERIODS.find(([k]) => k === period)?.[1] ?? ""),
               new Date().toLocaleDateString(document.documentElement.lang || undefined)].join(" · "),
             // Wappen je Zeile und das eigene Team hervorgehoben; liegt es hinter Platz 10, steht es darunter (04.11.2026).

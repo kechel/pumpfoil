@@ -20,7 +20,7 @@ from sqlalchemy import Float, Integer, and_, case, cast, false, func, literal, n
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, joinedload
 
-from .. import models, sportprofil
+from .. import models, sportmix, sportprofil
 from ..suche import bedingung_oder_alles as _such_alles, wort_bedingung as _such
 from ..accounts import is_new_account
 from ..db import get_db
@@ -256,6 +256,40 @@ def _drin(t: datetime | None, cut: datetime | None) -> bool:
     return t >= cut and (bis is None or t < bis)
 
 
+def _sport_bedingung(sport: str):
+    """Sportart-Filter: „pumpfoil" mit NULL-Altbestand, Mischungen (app/sportmix.py, 08.11.2026) als Summe ihrer Teile."""
+    if sport == "all":
+        return true()
+    teile = sportmix.teile(sport) or (sport,)
+    bed = [S.sport_class.in_(teile)]
+    if "pumpfoil" in teile:
+        bed.append(S.sport_class.is_(None))
+    return or_(*bed)
+
+
+def mix_abzeichen(db: Session, sport: str, zeilen, nutzer_q=None) -> None:
+    """Abzeichen der Sportart je Zeile, NUR in gemischten Ansichten (app/sportmix.py, Jan 08.11.2026: „bei jedem Fahrer
+    ein Badge … um welche Sportart es sich handelt"). Setzt `sportarten` (Liste, Reihenfolge der Sportarten-Liste):
+    Zeilen mit `session_id` bekommen deren Sportart, reine Summen-Zeilen (`user_id`) die Sportarten, die der Fahrer in
+    `nutzer_q` (Abfrage auf S.user_id, S.sport_class mit denselben Filtern wie die Liste) gefahren ist."""
+    if not sportmix.ist_mix(sport):
+        return
+    zeilen = [z for z in zeilen if isinstance(z, dict)]
+    reihe = {sp: i for i, sp in enumerate(sportmix.teile(sport))}
+    sids = {z["session_id"] for z in zeilen if z.get("session_id")}
+    je_s = {sid: (sc or "pumpfoil") for sid, sc in db.query(S.id, S.sport_class).filter(S.id.in_(sids)).all()} if sids else {}
+    uids = {z["user_id"] for z in zeilen if not z.get("session_id") and z.get("user_id")}
+    je_u: dict[int, set] = {}
+    if uids and nutzer_q is not None:
+        for uid, sc in nutzer_q.filter(S.user_id.in_(uids)).distinct().all():
+            je_u.setdefault(uid, set()).add(sc or "pumpfoil")
+    for z in zeilen:
+        if z.get("session_id") in je_s:
+            z["sportarten"] = [je_s[z["session_id"]]]
+        elif z.get("user_id") in je_u:
+            z["sportarten"] = sorted(je_u[z["user_id"]], key=lambda x: reihe.get(x, 99))
+
+
 def _community(query, viewer_id: int | None = None, accel_only: bool = True,
                sport: str = "pumpfoil", nur_foiling: bool = True, nur_gps: bool = False):
     """Joins + Filter für community-sichtbare Sessions. query selektiert beliebige Spalten.
@@ -294,9 +328,7 @@ def _community(query, viewer_id: int | None = None, accel_only: bool = True,
                 # sportgetrennten Ansichten und alle Rekorde/Bestenlisten fragen weiterhin EINE
                 # Sportart ab — hier faellt also nur die Sport-Bedingung weg, alle anderen Filter
                 # (gelöscht, gemeldet, unklassifiziert, Datenmüll, laufende Aufnahme) bleiben.
-                (true() if sport == "all" else
-                 (or_(S.sport_class.is_(None), S.sport_class == "pumpfoil")
-                  if sport == "pumpfoil" else (S.sport_class == sport))),
+                _sport_bedingung(sport),
                 or_(S.data_quality.is_(None), S.data_quality == "ok"))
     )
     # Ansicht „Freunde" (?friends=1, s. app/freunde.py): nur ich + meine bestaetigten Freunde. Ein
@@ -1048,7 +1080,7 @@ def community_regionen(period: str = "10d", sport: str = "pumpfoil",
 
 @router.get("/sports")
 def community_sports(
-    accel_only: bool = False, spot: str | None = None,
+    accel_only: bool = False, spot: str | None = None, mix: bool = False,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     """Sportarten, für die es überhaupt etwas zu zeigen gibt: mindestens EIN Lauf, all time
@@ -1074,12 +1106,25 @@ def community_sports(
             n = (_community(db.query(func.count(S.id)), user.id, accel_only, sp).filter(cond).scalar() or 0)
             if int(n) > 0:
                 out.append({"sport": sp, "runs": 0, "sessions": int(n)})
-        return out
+        return _mixe_dazu(out, mix, "sessions")
     for sp in (*SPORTS, *SPORTS_LEGACY):
         n = (_community(db.query(func.coalesce(func.sum(AR.num_runs), 0)), user.id, accel_only, sp)
              .scalar() or 0)
         if int(n) > 0:
             out.append({"sport": sp, "runs": int(n)})
+    return _mixe_dazu(out, mix, "runs")
+
+
+def _mixe_dazu(out: list[dict], mix: bool, feld: str) -> list[dict]:
+    """`mix=1` (08.11.2026): gemischte Ansichten (app/sportmix.py) anhaengen, wenn ALLE Teile vorkommen — nur auf
+    Anfrage, aeltere Apps kennen den Schluessel `pumpfoil+foil_scoot` nicht und zeigten ihn roh."""
+    if not mix:
+        return out
+    je = {x["sport"]: x for x in out}
+    for m in sportmix.angeboten(je):
+        teile = sportmix.teile(m)
+        out.append({"sport": m, "teile": list(teile), "runs": sum(je[t]["runs"] for t in teile),
+                    **({"sessions": sum(je[t].get("sessions", 0) for t in teile)} if feld == "sessions" else {})})
     return out
 
 
@@ -1280,6 +1325,7 @@ def community_records(accel_only: bool = True, sport: str = "pumpfoil", foil_ban
                                 cache=cache, foil_band=foil_band) for m in METRICS + tuple(extra)}
            for p in zeitraeume}
     _sport_rekorde_dazu(db, out, sport, spot, _user.id, accel_only, foil_band)
+    mix_abzeichen(db, sport, [v for rek in out.values() if isinstance(rek, dict) for v in rek.values()])
     # Quellen klein unter den Kacheln (s. quellen): aus welchen Geraeten/Diensten die gezeigten Rekorde stammen.
     for p, rek in out.items():
         if isinstance(rek, dict):
@@ -1489,6 +1535,7 @@ def spot_records(
     # Rekorde je Sportart auch am Spot (20.10.2026), gleiche Form wie /records ohne Zeitraum-Ebene.
     tmp = {period: out}
     _sport_rekorde_dazu(db, tmp, sport, spot, _user.id, accel_only, "all", perioden={period: cut})
+    mix_abzeichen(db, sport, list(tmp[period].values()))
     return tmp[period]
 
 
@@ -1635,6 +1682,15 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
             for x in liste:
                 if x:
                     x["land"] = laender.get(x["user_id"])
+    if sportmix.ist_mix(sport):
+        nq = _band_filter(db, _community(db.query(S.user_id, S.sport_class), _user.id, accel_only, sport), foil_band, _user.id)
+        if cut is not None:
+            nq = _ab(nq, cut, S.started_at)
+        if spot:
+            nq = nq.filter(_spot_cond(spot, db))
+        # Bestenlisten mit bestem Einzellauf: die Sportart DIESER Session; Summen: alle gefahrenen.
+        for name in listen:
+            mix_abzeichen(db, sport, out[name] + ([me[name]] if me.get(name) else []), nq)
     out["quellen"] = quellen(db, user_ids=uids, viewer_id=_user.id, accel_only=accel_only, sport=sport,
                              cut=cut, spot=spot, foil_band=foil_band)
     return out

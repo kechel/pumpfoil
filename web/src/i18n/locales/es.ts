@@ -2006,6 +2006,8 @@ const es: Record<string, string> = {
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Deporte por defecto para sesiones nuevas",
   "foils.defaultSportHint": "Vale solo para futuras grabaciones — las sesiones existentes se quedan como están. Elegirlo en el reloj llegará más adelante.",
+  "foils.rangSport": "Vista predeterminada de las clasificaciones",
+  "foils.rangSportHint": "Lo que muestran primero las clasificaciones de la comunidad, la comparación de equipos y los eventos. En la vista mixta cada rider lleva la etiqueta de su deporte.",
   "foils.mySports": "Deportes en el reloj",
   "foils.mySportsHint": "Elige qué deportes puedes seleccionar en el reloj antes de empezar. Tu deporte predeterminado siempre está incluido.",
   "foils.missingCta": "Pídenos que lo añadamos",

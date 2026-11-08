@@ -51,9 +51,36 @@ export function setzeStandardSport(s?: string | null) {
 }
 export const standardSportart = () => standardSport;
 export function sortiereSports<T extends string>(ids: readonly T[], t: (k: string) => string): T[] {
-  const rang = (id: string) => (id === standardSport ? 0 : id === "other" ? 2 : 1);
-  return [...ids].sort((a, b) => rang(a) - rang(b) || t(`cls.sport.${a}`).localeCompare(t(`cls.sport.${b}`)));
+  // Mischungen (Pumpfoil + Foil Scoot) direkt hinter der eigenen Standard-Sportart.
+  const rang = (id: string) => (id === standardSport ? 0 : istMix(id) ? 0.5 : id === "other" ? 2 : 1);
+  return [...ids].sort((a, b) => rang(a) - rang(b) || sportLabel(a, t).localeCompare(sportLabel(b, t)));
 }
+
+// Gemischte Ansicht mehrerer Sportarten (server/app/sportmix.py, Jan 08.11.2026): Schluessel „pumpfoil+foil_scoot".
+// In solchen Ansichten traegt jede Zeile ein Abzeichen ihrer Sportart (`sportarten`, vom Server).
+export const istMix = (s?: string | null) => !!s && s.includes("+");
+export const mixTeile = (s: string) => s.split("+").filter(Boolean);
+/** Anzeigename einer Sportart oder Mischung („Pumpfoil + Foil Scoot"). */
+export function sportLabel(s: string, t: (k: string) => string): string {
+  return istMix(s) ? mixTeile(s).map((x) => t(`cls.sport.${x}`)).join(" + ") : t(`cls.sport.${s}`);
+}
+// Standard-Ansicht der Ranglisten aus dem Profil (Einstellung `rangliste_sport`, "" = Pumpfoil) — wie die
+// Standard-Sportart beim Laden/Speichern der Einstellungen gemerkt.
+let ranglistenSport = (() => { try { return localStorage.getItem("foil_rang_sport") || ""; } catch { return ""; } })();
+export function setzeRanglistenSport(s?: string | null) {
+  if (s === undefined || s === null) return;
+  // Geaendert (Profil gespeichert, oder auf einem anderen Geraet): die zuletzt in der Community gewaehlte Sportart
+  // vergessen, sonst wuerde sie die neue Standard-Ansicht ueberdecken.
+  const geaendert = s !== ranglistenSport;
+  ranglistenSport = s;
+  try {
+    localStorage.setItem("foil_rang_sport", s);
+    if (geaendert) localStorage.removeItem("foil_komm_sport");
+  } catch { /* privat: nur fuer diese Sitzung */ }
+}
+/** Angebotene Mischungen — wie MIXE in server/app/sportmix.py. */
+export const MIXE = ["pumpfoil+foil_scoot"] as const;
+export const ranglistenSportart = () => ranglistenSport || "pumpfoil";
 export function sortiereNachSport<T>(liste: readonly T[], sp: (x: T) => string, t: (k: string) => string): T[] {
   const ord = sortiereSports(liste.map(sp), t);
   return [...liste].sort((a, b) => ord.indexOf(sp(a)) - ord.indexOf(sp(b)));

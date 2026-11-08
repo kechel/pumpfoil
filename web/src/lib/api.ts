@@ -1,6 +1,6 @@
 // Schmaler API-Client. JWT im localStorage.
 import { downscaleImage } from "./downscaleImage";
-import { setzeStandardSport } from "./sportClass";
+import { setzeRanglistenSport, setzeStandardSport } from "./sportClass";
 import { demoAnonymisieren, demoLive } from "./demoNames";
 
 const TOKEN_KEY = "foil_jwt";
@@ -726,6 +726,8 @@ export interface LeaderRow {
   session_id?: number | null;   // nur bei Einzellauf-Listen: die Session des besten Laufs
   rank?: number;   // nur in `me`: die eigene Stelle, wenn sie nicht unter den ersten 10 ist
   land?: string | null;   // Nationalitaet (ISO-Code), nur wenn selbst eingestellt (02.11.2026)
+  /** Gemischte Ansicht (z. B. Pumpfoil + Foil Scoot, 08.11.2026): Sportart(en) dieser Zeile fuers Abzeichen. */
+  sportarten?: string[];
 }
 export interface Leaders {
   // Quellen der gezeigten Daten (server community.quellen), klein unter der Liste.
@@ -1754,8 +1756,9 @@ export const api = {
   foilBands: (accelOnly = true, sport = "pumpfoil") =>
     req<FoilBand[]>(`/api/community/foil-bands?accel_only=${accelOnly}&sport=${sport}`),
   // `spot`: nur die Sportarten dieses Spots (Sessions statt Laeufe, Filter-Knoepfe der Spot-Seite, 28.10.2026).
-  communitySports: (spot?: string) => req<{ sport: string; runs: number; sessions?: number }[]>(
-    `/api/community/sports${spot ? `?spot=${encodeURIComponent(spot)}` : ""}`),
+  // `mix` (08.11.2026): gemischte Ansichten („pumpfoil+foil_scoot") mit anbieten, wenn alle Teile vorkommen.
+  communitySports: (spot?: string, mix = false) => req<{ sport: string; runs: number; sessions?: number; teile?: string[] }[]>(
+    `/api/community/sports?${new URLSearchParams({ ...(spot ? { spot } : {}), ...(mix ? { mix: "1" } : {}) })}`),
   // Lage-Zahlen aus Aufnahmen MIT DEM HANDY AM BRETT (`placement = "board"`). Leere `klassen`
   // heisst: der Nutzer hat keine solche Aufnahme — die Startseite zeigt den Abschnitt dann nicht.
   // Heisst NICHT `boardAttitude` — den Namen hat schon die Lage-Ansicht EINER Session (s. oben).
@@ -1995,7 +1998,7 @@ export const api = {
   getSettings: () => {
     const jetzt = Date.now();
     if (!einstellungenGeteilt || jetzt - einstellungenGeteilt.at > GETEILT_MS) {
-      const p = req<Record<string, any>>("/api/settings").then((r) => { setzeStandardSport(r?.default_sport_class); return r; });
+      const p = req<Record<string, any>>("/api/settings").then((r) => { setzeStandardSport(r?.default_sport_class); setzeRanglistenSport(r?.rangliste_sport); return r; });
       einstellungenGeteilt = { at: jetzt, p };
       p.catch(() => { einstellungenGeteilt = null; });
     }
@@ -2039,7 +2042,7 @@ export const api = {
     req<Record<string, any>>("/api/settings", {
       method: "PUT",
       body: JSON.stringify(patch),
-    }).then((r) => { setzeStandardSport(r?.default_sport_class); return r; }),
+    }).then((r) => { setzeStandardSport(r?.default_sport_class); setzeRanglistenSport(r?.rangliste_sport); return r; }),
   mlStatus: () =>
     req<{ n_samples: number; n_sessions: number; classes: string[]; features: string[] }>(
       "/api/ml/status"
@@ -2254,7 +2257,7 @@ export interface TeamAuftritt { name: string; slug: string; beschreibung: string
 export interface TeamKurz extends TeamAuftritt { id: number; rolle: TeamRolle; status: "aktiv" | "angefragt"; anfragen: number; freigabe: string | null }
 /** Team-Bestenlisten der Community (03.11.2026): je Kennzahl Summe der besten `top` Fahrer, `<k>_fahrer` = wie viele davon. */
 export type TeamVergleichKennzahl = "pumps" | "distance_m" | "time_s" | "sessions" | "runs";
-export type TeamVergleichZeile = Pick<TeamAuftritt, "name" | "slug" | "logo_url" | "farbe" | "land"> & { mitglieder: number; aktive: number }
+export type TeamVergleichZeile = Pick<TeamAuftritt, "name" | "slug" | "logo_url" | "farbe" | "land"> & { mitglieder: number; aktive: number; sportarten?: string[] }
   & Record<TeamVergleichKennzahl | `${TeamVergleichKennzahl}_fahrer`, number>;
 export interface TeamVergleich { period: string; top: number; teams: TeamVergleichZeile[]; quellen?: string[] }
 /** Community-Seite: laufende und bald beginnende Events (ohne Bestenlisten) */
@@ -2299,6 +2302,8 @@ export interface TeamZeile {
   strittig?: boolean;
   /** Globale Events: Teams der Person (Wappen-Spalte, 07.11.2026) — dieselben wie in der Team-Wertung. */
   teams?: { slug: string; name: string; logo_url: string | null; farbe: string | null }[];
+  /** Gemischte Ansicht (z. B. Pumpfoil + Foil Scoot, 08.11.2026): Sportart(en) dieser Zeile fuers Abzeichen. */
+  sportarten?: string[];
 }
 export interface TeamStatistik {
   sessions: number; runs: number; pumps: number; distance_m: number; time_s: number; spots: number;
@@ -2314,6 +2319,8 @@ export interface TeamWertungZeile extends Pick<TeamAuftritt, "name" | "slug" | "
   rang: number; value: number; fahrer: number; teilnehmer: number;
   /** ein mitgezaehltes Mitglied hat eine offene Meldung (08.11.2026) */
   strittig?: boolean;
+  /** Gemischte Ansicht (z. B. Pumpfoil + Foil Scoot, 08.11.2026): Sportart(en) dieser Zeile fuers Abzeichen. */
+  sportarten?: string[];
 }
 export interface TeamTafelMitZeilen extends TeamTafel { zeilen: TeamZeile[]; teams?: TeamWertungZeile[];
   /** globale Events: die eigene Zeile, auch hinter den gezeigten Plaetzen */
@@ -2386,6 +2393,7 @@ export interface StatRecord {
   avatar_url?: string | null;
   spot?: string | null;
   track_preview?: string | null;
+  sportarten?: string[];   // gemischte Ansicht: Sportart der Rekord-Session (08.11.2026)
 }
 // Trainingskurve: je Session der Median des Hoechstpulses nach 1/2/5 Minuten Lauf.
 // `hr60`/`hr120`/`hr300` = die Werte, `n60`/`n120`/`n300` = aus wievielen Laeufen sie kommen.

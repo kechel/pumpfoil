@@ -1934,6 +1934,8 @@ const de: Record<string, string> = {
   "gear.noHits": "Keine Treffer.",
   "foils.defaultSport": "Standard-Sportart für neue Sessions",
   "foils.defaultSportHint": "Gilt nur für künftige Aufnahmen — bestehende Sessions bleiben, wie sie sind. Auf der Uhr wählbar wird das später.",
+  "foils.rangSport": "Standard-Ansicht der Ranglisten",
+  "foils.rangSportHint": "Was Community-Bestenlisten, Team-Vergleich und Events zuerst zeigen. In der gemischten Ansicht steht bei jedem Fahrer die Sportart.",
   "foils.mySports": "Sportarten an der Uhr",
   "foils.mySportsHint": "Wähle, welche Sportarten du an der Uhr vor dem Start auswählen kannst. Deine Standard-Sportart ist immer dabei.",
   "foils.hint": "Merke deine Foils und wähle eines als Standard (★). Der Standard ist je Session überschreibbar.",

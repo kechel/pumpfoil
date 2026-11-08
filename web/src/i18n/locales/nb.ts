@@ -1601,6 +1601,8 @@ const nb: Record<string, string> = {
   "gear.noHits": "Ingen treff.",
   "foils.defaultSport": "Standardsport for nye økter",
   "foils.defaultSportHint": "Gjelder bare fremtidige opptak — eksisterende økter forblir som de er. Valg på klokka kommer senere.",
+  "foils.rangSport": "Standardvisning av rangeringene",
+  "foils.rangSportHint": "Hva fellesskapets resultatlister, lagsammenligningen og arrangementene viser først. I blandet visning er hver utøver merket med sin sport.",
   "foils.mySports": "Sporter på klokka",
   "foils.mySportsHint": "Velg hvilke sporter du kan velge på klokka før start. Standardsporten din er alltid med.",
   "foils.hint": "Merk foilene dine og velg én som standard (★). Standarden kan overstyres per økt.",

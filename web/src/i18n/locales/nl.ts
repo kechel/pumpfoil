@@ -2258,6 +2258,8 @@ const nl: Record<string, string> = {
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Standaardsport voor nieuwe sessies",
   "foils.defaultSportHint": "Geldt alleen voor toekomstige opnames — bestaande sessies blijven zoals ze zijn. Kiezen op het horloge komt later.",
+  "foils.rangSport": "Standaardweergave van de ranglijsten",
+  "foils.rangSportHint": "Wat community-ranglijsten, teamvergelijking en events als eerste tonen. In de gemengde weergave staat bij elke rijder de sport.",
   "foils.mySports": "Sporten op het horloge",
   "foils.mySportsHint": "Kies welke sporten je op het horloge kunt kiezen voor de start. Je standaardsport zit er altijd bij.",
   "foils.missingCta": "Vraag ons om hem toe te voegen",

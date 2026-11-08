@@ -125,6 +125,9 @@ DEFAULTS = {
     # Wer überwiegend Wingfoil aufzeichnet, lädt damit direkt in die richtige Kategorie hoch und muss
     # nichts nachträglich zuordnen. Wirkt nur beim Anlegen; bestehende Sessions bleiben unberührt.
     "default_sport_class": "pumpfoil",
+    # Standard-Ansicht der Ranglisten (Community, Team-Vergleich, Events), 08.11.2026 (Jan): "" = Pumpfoil wie bisher,
+    # sonst eine Sportart oder eine Mischung wie "pumpfoil+foil_scoot" (app/sportmix.py). Nur Anzeige, keine Daten.
+    "rangliste_sport": "",
     # Equipment je Sportart (19.10.2026, app/equipment_sport.py): {sportart: {foil_id, board_id,
     # stab_id, mast_len_cm}}. Greift beim Anlegen und beim Umstellen der Sportart, nur fuer
     # Felder, die niemand von Hand gesetzt hat.
@@ -775,6 +778,10 @@ def update_settings(
         v = patch["default_sport_class"]
         if v in SPORTS:
             current["default_sport_class"] = v
+    if "rangliste_sport" in patch:
+        from .. import sportmix
+        v = patch["rangliste_sport"]
+        current["rangliste_sport"] = "" if not isinstance(v, str) or v in ("", "pumpfoil", "all") else sportmix.gueltig(v, "")
     if "browse_all_pages" in patch:
         current["browse_all_pages"] = bool(patch["browse_all_pages"])
     # Freie Seitenreihenfolge (3-Feld-Seiten und Layouts gemischt). `views` wird daraus

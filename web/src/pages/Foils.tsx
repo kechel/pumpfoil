@@ -8,7 +8,7 @@ import { Card, Spinner } from "../components/ui";
 import { MissingHint } from "../components/MissingHint";
 import { StarIcon, FoilIcon } from "../components/Icons";
 import { useT } from "../i18n";
-import { SPORTS, sortiereSports } from "../lib/sportClass";
+import { MIXE, SPORTS, mixTeile, sortiereSports, sportLabel } from "../lib/sportClass";
 
 /** „Ausrüstung" (Jan, 04.11.2026): vorher zwei lange Seiten („Meine Foils" + „Detailliertes Setup"), jetzt Reiter.
  * Foils zuerst — dafuer kommen die meisten. Kataloge (Foils, Stabs) nur noch ueber die Suche. */
@@ -54,9 +54,12 @@ function Sportarten() {
   const [defSport, setDefSport] = useState("pumpfoil");
   // Sportarten an der Uhr (19.10.2026): Standard-Sportart immer dabei, die uebrigen hier anwaehlen.
   const [mySports, setMySports] = useState<string[]>([]);
+  // Standard-Ansicht der Ranglisten (08.11.2026): Pumpfoil, eine Sportart einer Mischung oder die Mischung selbst.
+  const [rangSport, setRangSport] = useState("");
   useEffect(() => {
     api.getSettings().then((s) => {
       setDefSport((s.default_sport_class as string) ?? "pumpfoil");
+      setRangSport((s.rangliste_sport as string) ?? "");
       setMySports((s.my_sports as string[]) ?? []);
     }).catch(() => {});
   }, []);
@@ -71,6 +74,21 @@ function Sportarten() {
           {sortiereSports(SPORTS, t).map((k) => <option key={k} value={k}>{t(`cls.sport.${k}`)}</option>)}
         </select>
         <span className="mt-1 block text-sm text-slate-400">{t("foils.defaultSportHint")}</span>
+      </label>
+
+      {/* Standard-Ansicht der Ranglisten (Jan, 08.11.2026: „Das soll man im Profil einstellen können, wenn man das
+          Default will"): Community-Bestenlisten, Team-Vergleich und die Vorauswahl in Events. In der gemischten
+          Ansicht traegt jede Zeile ein Abzeichen ihrer Sportart. */}
+      <label className="mb-4 block text-sm text-slate-200">
+        {t("foils.rangSport")}
+        <select value={rangSport || "pumpfoil"}
+          onChange={(e) => { const v = e.target.value === "pumpfoil" ? "" : e.target.value; setRangSport(v); api.saveSettings({ rangliste_sport: v }).catch(() => {}); }}
+          className="mt-1 block rounded-xl border border-slate-700 bg-slate-900 px-2.5 py-2 text-sm text-slate-100">
+          {Array.from(new Set(["pumpfoil", ...MIXE.flatMap((m) => [...mixTeile(m), m])])).map((k) => (
+            <option key={k} value={k}>{sportLabel(k, t)}</option>
+          ))}
+        </select>
+        <span className="mt-1 block text-sm text-slate-400">{t("foils.rangSportHint")}</span>
       </label>
 
       {/* Sportarten, die man an der Uhr vor dem Start waehlen kann (19.10.2026). */}

@@ -2017,6 +2017,8 @@ const gsw: Record<string, string> = {
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Standard-Sportart für neui Sessions",
   "foils.defaultSportHint": "Gilt nur für künftigi Ufnahme — bestehendi Sessions bliebed, wie sie sind. Uf de Uhr uswählbar wird das spöter.",
+  "foils.rangSport": "Standard-Aasicht vo de Ranglischte",
+  "foils.rangSportHint": "Was Community-Beschtelischte, Team-Vergliich und Events zerscht zeiged. I de gmischte Aasicht staht bi jedem Fahrer d Sportart.",
   "foils.mySports": "Sportarte a dä Uhr",
   "foils.mySportsHint": "Wähl, weli Sportarte du a dä Uhr vor em Start chasch uswähle. Dini Standard-Sportart isch immer debi.",
   "foils.missingCta": "Nachtrage la",

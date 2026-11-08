@@ -1797,6 +1797,8 @@ const en: Record<string, string> = {
   "gear.noHits": "No matches.",
   "foils.defaultSport": "Default sport for new sessions",
   "foils.defaultSportHint": "Applies to future recordings only — existing sessions stay as they are. Choosing it on the watch comes later.",
+  "foils.rangSport": "Default view of the rankings",
+  "foils.rangSportHint": "What community leaderboards, team comparison and events show first. In the mixed view every rider is tagged with their sport.",
   "foils.mySports": "Sports on the watch",
   "foils.mySportsHint": "Choose which sports you can pick on the watch before you start. Your default sport is always included.",
   "foils.hint": "Mark your foils and pick one as default (★). The default is overridable per session.",

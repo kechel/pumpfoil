@@ -2194,6 +2194,8 @@ const ptPT: Record<string, string> = {
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Desporto predefinido para novas sessões",
   "foils.defaultSportHint": "Vale só para gravações futuras — as sessões existentes ficam como estão. Escolher no relógio vem mais tarde.",
+  "foils.rangSport": "Vista predefinida das classificações",
+  "foils.rangSportHint": "O que as classificações da comunidade, a comparação de equipas e os eventos mostram primeiro. Na vista mista, cada rider aparece com o selo do seu desporto.",
   "foils.mySports": "Desportos no relógio",
   "foils.mySportsHint": "Escolhe que desportos podes selecionar no relógio antes de começar. O teu desporto predefinido está sempre incluído.",
   "foils.missingCta": "Peça para adicionarmos",

@@ -2200,6 +2200,8 @@ const id: Record<string, string> = {
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Olahraga bawaan untuk sesi baru",
   "foils.defaultSportHint": "Hanya berlaku untuk rekaman berikutnya — sesi yang sudah ada tetap seperti apa adanya. Memilihnya di jam akan menyusul.",
+  "foils.rangSport": "Tampilan default peringkat",
+  "foils.rangSportHint": "Yang pertama ditampilkan oleh papan peringkat komunitas, perbandingan tim, dan event. Di tampilan campuran setiap rider diberi label olahraganya.",
   "foils.mySports": "Olahraga di jam",
   "foils.mySportsHint": "Pilih olahraga yang bisa kamu pilih di jam sebelum mulai. Olahraga bawaanmu selalu disertakan.",
   "foils.missingCta": "Minta kami menambahkannya",

@@ -25,6 +25,8 @@ import { eventZeit, eventZeitraum, eventZeitraumGenau } from "../lib/teamEvents"
 import { BeitrittDialog, Tafel } from "./Team";
 import { fehlerCode } from "../lib/teamKennzahlen";
 import { useI18n } from "../i18n";
+import { SportAbzeichen } from "../components/SportAbzeichen";
+import { ranglistenSportart, sportLabel } from "../lib/sportClass";
 
 /** Wie die Ergebnisse heissen: vorher Details, waehrenddessen aktueller Stand, danach Ergebnis. */
 export function eventStandKey(status: TeamEvent["status"]): string {
@@ -116,7 +118,7 @@ function TeamWertung({ tf, n, t, eigeneSlugs, standText, onBild }: { tf: TeamTaf
     // Gleiche Karte und Ueberschrift wie die Fahrer-Liste links (Tafel), Jan 06.11.2026: „einheitlich".
     <Card className="p-4">
       <div className="flex items-start gap-2">
-        <h3 className="team-akzent min-w-0 flex-1 font-semibold">{t("team.event.teams")} · {t(k.labelKey)}{tf.sportart && tf.sportart !== "pumpfoil" ? ` · ${t(`cls.sport.${tf.sportart}`)}` : ""}</h3>
+        <h3 className="team-akzent min-w-0 flex-1 font-semibold">{t("team.event.teams")} · {t(k.labelKey)}{tf.sportart && tf.sportart !== "pumpfoil" ? ` · ${sportLabel(tf.sportart, t)}` : ""}</h3>
         {onBild && alle.length > 0 && (
           <button onClick={onBild} title={t("team.bild.titel")} aria-label={t("team.bild.titel")}
             className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100">
@@ -137,6 +139,7 @@ function TeamWertung({ tf, n, t, eigeneSlugs, standText, onBild }: { tf: TeamTaf
             <span className="flex w-[18px] shrink-0"><TeamHerkunft land={x.land} kuerzel={false} /></span>
             <span className="min-w-0 flex-1">
               <Link to={`/teams/${x.slug}`} className="block truncate text-sm text-slate-100 hover:text-brand-400">{x.name}</Link>
+              {x.sportarten && <span className="mt-0.5 block"><SportAbzeichen sportarten={x.sportarten} klein /></span>}
               {/* Ein mitgezaehltes Mitglied hat eine offene Meldung (08.11.2026). */}
               {x.strittig && (
                 <span className="block text-[11px] font-medium text-amber-700 dark:text-amber-300" title={t("team.tafel.strittigTitel")}>
@@ -156,7 +159,7 @@ function TeamWertung({ tf, n, t, eigeneSlugs, standText, onBild }: { tf: TeamTaf
 /** Name einer Event-Bestenliste; hat das Event Bestenlisten verschiedener Sportarten, steht die Sportart dabei. */
 function tafelTitel(tf: { kennzahl: string; sportart: string }, ev: { tafeln: { sportart: string }[] }, t: (k: string) => string): string {
   const mehrere = new Set(ev.tafeln.map((x) => x.sportart)).size > 1;
-  return mehrere ? `${t(kennzahl(tf.kennzahl).labelKey)} · ${t(`cls.sport.${tf.sportart}`)}` : t(kennzahl(tf.kennzahl).labelKey);
+  return mehrere ? `${t(kennzahl(tf.kennzahl).labelKey)} · ${sportLabel(tf.sportart, t)}` : t(kennzahl(tf.kennzahl).labelKey);
 }
 
 /** Event-Uebersicht als Teilen-Bild (Jan, 07.11.2026): Gesamtsummen plus die ersten 3 je Kategorie; welche Kategorien
@@ -269,6 +272,13 @@ export default function TeamEventSeite() {
       api.teamEvent(slug, id, teamFilter || undefined).then(setEv).catch(() => setFehlt(true));
     }
   }, [slug, id, gast, teamFilter]);
+  // Vorauswahl nach der Standard-Ansicht im Profil (08.11.2026): wer „Pumpfoil + Foil Scoot" eingestellt hat, sieht
+  // zuerst die gemischte Bestenliste, sofern das Event eine hat. Nur beim ersten Laden dieses Events.
+  useEffect(() => {
+    if (!ev) return;
+    const i = ev.tafeln.findIndex((x) => x.sportart === ranglistenSportart());
+    if (i > 0) setWahl(i);
+  }, [ev?.id]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (gast || !ev?.global) return;
     api.teamsMine().then((l) => setMeineTeams(l.filter((x) => x.status === "aktiv" && x.slug !== slug)
@@ -489,7 +499,7 @@ export default function TeamEventSeite() {
             daten={{
               // Wie das Fahrer-Bild: Eventname als Titel, „Teamname · Zeitraum", dann was gewertet wird (07.11.2026).
               titel: ev.titel, titelAnpassen: true,
-              unterzeile: [bildTeams.sportart && bildTeams.sportart !== "pumpfoil" ? t(`cls.sport.${bildTeams.sportart}`) : null, t("team.event.teams"), t(k.labelKey)].filter(Boolean).join(" · "),
+              unterzeile: [bildTeams.sportart && bildTeams.sportart !== "pumpfoil" ? sportLabel(bildTeams.sportart, t) : null, t("team.event.teams"), t(k.labelKey)].filter(Boolean).join(" · "),
               unterzeile2: [eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang, true),
                 [team.name, n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }), standFuer(bildTeams)].filter(Boolean).join(" · ")].join("\n"),
               zeilen: alle.slice(0, 10).map((x) => teamBildZeile(x, k.fmt(x.value), eigeneSlugs.includes(x.slug))),

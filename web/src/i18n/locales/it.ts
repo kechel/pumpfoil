@@ -2007,6 +2007,8 @@ const it: Record<string, string> = {
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Sport predefinito per le nuove sessioni",
   "foils.defaultSportHint": "Vale solo per le registrazioni future — le sessioni esistenti restano come sono. La scelta sull'orologio arriverà più avanti.",
+  "foils.rangSport": "Vista predefinita delle classifiche",
+  "foils.rangSportHint": "Cosa mostrano per primo le classifiche della community, il confronto tra team e gli eventi. Nella vista mista ogni rider ha il badge del suo sport.",
   "foils.mySports": "Sport sull'orologio",
   "foils.mySportsHint": "Scegli quali sport puoi selezionare sull'orologio prima di partire. Il tuo sport predefinito è sempre incluso.",
   "foils.missingCta": "Chiedici di aggiungerlo",

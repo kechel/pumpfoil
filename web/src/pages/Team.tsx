@@ -11,6 +11,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, getToken, TeamInfo, TeamLogbuchEintrag, TeamMitglied, TeamStatistik, TeamTafelMitZeilen } from "../lib/api";
 import { Avatar, Card } from "../components/ui";
 import { Flagge } from "../components/Flagge";
+import { SportAbzeichen } from "../components/SportAbzeichen";
+import { sportLabel } from "../lib/sportClass";
 import { ChatBubbleIcon, LocationIcon, SettingsIcon, ShareIcon } from "../components/Icons";
 import TeamTafelBild from "../components/TeamTafelBild";
 import TeamQr from "../components/TeamQr";
@@ -239,7 +241,7 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
           {t(k.labelKey)}
           {sportZeigen && (
             <span className="ml-2 inline-block rounded-full bg-slate-800 px-2 py-0.5 align-middle text-xs font-medium text-slate-300">
-              {t(`cls.sport.${tf.sportart}`)}
+              {sportLabel(tf.sportart, t)}
             </span>
           )}
         </h3>
@@ -275,6 +277,7 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
                 <span className="min-w-0 flex-1">
                   {gast || !z.user_id ? <span className="block truncate text-sm text-slate-100">{z.name ?? "—"}</span>
                     : <Link to={`/foiler/${z.user_id}`} state={zurueck} className="pf-name block truncate text-sm text-slate-100 hover:text-brand-400">{z.name ?? "—"}</Link>}
+                  {z.sportarten && <span className="mt-0.5 block"><SportAbzeichen sportarten={z.sportarten} klein /></span>}
                   {/* Offene Meldung, noch nicht entschieden: zaehlt, aber mit Vermerk direkt an der Zeile (Jan, 08.11.2026). */}
                   {z.strittig && (
                     <span className="block text-[11px] font-medium text-amber-700 dark:text-amber-300" title={t("team.tafel.strittigTitel")}>

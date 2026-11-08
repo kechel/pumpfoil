@@ -2211,6 +2211,8 @@ const fi: Record<string, string> = {
   "dm.tabBot": "Botti",
   "foils.defaultSport": "Uusien sessioiden oletuslaji",
   "foils.defaultSportHint": "Koskee vain tulevia tallennuksia — olemassa olevat sessiot pysyvät ennallaan. Valinta kellossa tulee myöhemmin.",
+  "foils.rangSport": "Tulostaulukoiden oletusnäkymä",
+  "foils.rangSportHint": "Mitä yhteisön tulostaulukot, joukkuevertailu ja tapahtumat näyttävät ensin. Yhdistetyssä näkymässä jokaisella kuskilla on lajinsa merkki.",
   "foils.mySports": "Lajit kellossa",
   "foils.mySportsHint": "Valitse, mitkä lajit voit valita kellosta ennen aloitusta. Oletuslajisi on aina mukana.",
   "foils.missingCta": "Pyydä meitä lisäämään se",

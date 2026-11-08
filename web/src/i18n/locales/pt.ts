@@ -2200,6 +2200,8 @@ const pt: Record<string, string> = {
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Esporte padrão para novas sessões",
   "foils.defaultSportHint": "Vale só para gravações futuras — as sessões existentes ficam como estão. Escolher no relógio vem mais tarde.",
+  "foils.rangSport": "Visualização padrão dos rankings",
+  "foils.rangSportHint": "O que os rankings da comunidade, a comparação de equipes e os eventos mostram primeiro. Na visualização mista, cada rider aparece com o selo do seu esporte.",
   "foils.mySports": "Esportes no relógio",
   "foils.mySportsHint": "Escolha quais esportes você pode selecionar no relógio antes de começar. Seu esporte padrão está sempre incluído.",
   "foils.missingCta": "Peça para adicionarmos",

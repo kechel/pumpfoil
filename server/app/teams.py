@@ -30,7 +30,7 @@ from datetime import datetime, timezone
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
-from . import models
+from . import models, sportmix
 
 ROLLEN = ("leiter", "moderator", "mitglied")
 EINLADUNGS_ARTEN = ("join", "apply")
@@ -522,6 +522,11 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
         r["rang"] = i + 1
         r["initialen"] = initialen(r["name"])
         r["land"] = laender.get(r["user_id"])
+    if sportmix.ist_mix(tf.sportart) and out:
+        # Gemischte Bestenliste (app/sportmix.py): Abzeichen der Sportart je Zeile — beste Session: deren Sportart,
+        # Summen: alle gefahrenen. Steht in der Zeile und wird mit eingefroren.
+        nq = filtern(C._community(db.query(S.user_id, S.sport_class), None, tf.accel_only, tf.sportart))
+        C.mix_abzeichen(db, tf.sportart, out, nq)
     _cache_setzen(key, out)
     return out
 
@@ -531,7 +536,8 @@ def fuer_gast(zeilen: list[dict]) -> list[dict]:
     Teams (`teams`) — dieselben, die auch Gaeste in der Team-Wertung sehen."""
     return [{"rang": r["rang"], "name": r["name"], "initialen": r["initialen"], "value": r["value"],
              **({"teams": r["teams"]} if "teams" in r else {}),
-             **({"strittig": True} if r.get("strittig") else {})} for r in zeilen]
+             **({"strittig": True} if r.get("strittig") else {}),
+             **({"sportarten": r["sportarten"]} if r.get("sportarten") else {})} for r in zeilen]
 
 
 def tafel_out(tf: models.TeamTafel) -> dict:
@@ -653,6 +659,13 @@ def vergleich(db: Session, period: str, top: int, sportart: str = "pumpfoil") ->
         for uid, n, runs, pumps, dist, zeit in q.all():
             je_person[uid] = {"sessions": int(n or 0), "runs": int(runs or 0), "pumps": int(pumps or 0),
                               "distance_m": float(dist or 0), "time_s": float(zeit or 0)}
+        if sportmix.ist_mix(sportart):
+            # Gemischte Ansicht (app/sportmix.py): welche Sportarten die Mitglieder gefahren sind -> Abzeichen am Team.
+            nq = C._ab(C._community(db.query(S.user_id, S.sport_class), None, False, sportart)
+                       .filter(S.user_id.in_(alle)), C._cutoff(period), S.started_at).distinct()
+            for uid, sc in nq.all():
+                if uid in je_person:
+                    je_person[uid].setdefault("_sp", set()).add(sc or "pumpfoil")
     out = []
     for t in teams:
         werte = [je_person[u] for u in mitglieder[t.id] if u in je_person]
@@ -664,8 +677,12 @@ def vergleich(db: Session, period: str, top: int, sportart: str = "pumpfoil") ->
             summe[k] = round(sum(beste), 1) if k in ("distance_m", "time_s") else int(sum(beste))
             summe[f"{k}_fahrer"] = len(beste)
         a = auftritt(t, False)
+        mix = {}
+        if sportmix.ist_mix(sportart):
+            gefahren = set().union(*(w.get("_sp", set()) for w in werte))
+            mix = {"sportarten": [x for x in sportmix.teile(sportart) if x in gefahren]}
         out.append({"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"],
-                    "land": a["land"], "mitglieder": len(mitglieder[t.id]), "aktive": len(werte), **summe})
+                    "land": a["land"], "mitglieder": len(mitglieder[t.id]), "aktive": len(werte), **summe, **mix})
     _cache_setzen(key, out)
     return out
 
@@ -862,6 +879,7 @@ def team_wertung(db: Session, zeilen: list[dict], n: int, ausser_team_id: int | 
     z_ = zuordnung if zuordnung is not None else team_zuordnung(db, ausser_team_id)
     wert = {z["user_id"]: float(z["value"]) for z in zeilen}
     strittig = {z["user_id"] for z in zeilen if z.get("strittig")}
+    sp_je = {z["user_id"]: z["sportarten"] for z in zeilen if z.get("sportarten")}   # gemischte Bestenliste
     je: dict[int, list[tuple[float, int]]] = {}
     for uid in wert:
         for tid in z_["mitglieder"].get(str(uid), []):
@@ -876,7 +894,10 @@ def team_wertung(db: Session, zeilen: list[dict], n: int, ausser_team_id: int | 
                     "land": a["land"], "value": round(sum(v for v, _ in beste), 2), "fahrer": len(beste),
                     "teilnehmer": len(werte),
                     # Strittig, sobald ein MITGEZAEHLTES Mitglied eine offene Meldung hat (Jan, 08.11.2026).
-                    **({"strittig": True} if any(u in strittig for _, u in beste) else {})})
+                    **({"strittig": True} if any(u in strittig for _, u in beste) else {}),
+                    # Gemischte Bestenliste: die Sportarten der mitgezaehlten Fahrer als Abzeichen am Team (08.11.2026).
+                    **({"sportarten": list(dict.fromkeys(sp for _, u in beste for sp in sp_je.get(u, [])))}
+                       if sp_je else {})})
     out.sort(key=lambda x: (-x["value"], (x["name"] or "").lower()))
     for i, x in enumerate(out):
         x["rang"] = i + 1
@@ -923,6 +944,38 @@ def event_tafeln(e: models.TeamEvent) -> list[models.TeamTafel]:
                                     sportart=x.get("sportart", "pumpfoil"), accel_only=x.get("accel_only", True),
                                     nur_brett=x.get("nur_brett", False), foil_band=x.get("foil_band", "all"),
                                     nur_teamspots=False, reihenfolge=i))
+    return out
+
+
+def event_tafeln_mit_mix(e: models.TeamEvent) -> list[models.TeamTafel]:
+    """Bestenlisten eines Events samt gemischten (Jan, 08.11.2026): gibt es dieselbe Bestenliste (Kennzahl und Filter)
+    fuer ALLE Teile einer angebotenen Mischung (app/sportmix.py — Pumpfoil und Foil Scoot je „Total distance"), kommt
+    die Kombination als weitere Bestenliste direkt hinter die letzte ihrer Teile. Nicht gespeichert, aus den Tafeln
+    abgeleitet; IDs -(Event-ID*100 + 50 + i), hinter denen der echten Tafeln."""
+    tafeln_ = event_tafeln(e)
+    filt = lambda x: (x.kennzahl, x.accel_only, x.nur_brett, x.foil_band)   # noqa: E731
+    nach: dict[int, list[models.TeamTafel]] = {}   # Index der letzten Teil-Tafel -> Mischungen dahinter
+    n = 0
+    for m in sportmix.MIXE:
+        teile = sportmix.teile(m)
+        gesehen = set()
+        for tf in tafeln_:
+            k = filt(tf)
+            if tf.sportart not in teile or k in gesehen:
+                continue
+            idx = [i for i, x in enumerate(tafeln_) if filt(x) == k and x.sportart in teile]
+            if {tafeln_[i].sportart for i in idx} != set(teile):
+                continue
+            gesehen.add(k)
+            nach.setdefault(max(idx), []).append(models.TeamTafel(
+                id=-(e.id * 100 + 50 + n), team_id=e.team_id, kennzahl=tf.kennzahl, sportart=m,
+                accel_only=tf.accel_only, nur_brett=tf.nur_brett, foil_band=tf.foil_band, nur_teamspots=False,
+                reihenfolge=100 + n))
+            n += 1
+    out = []
+    for i, tf in enumerate(tafeln_):
+        out.append(tf)
+        out.extend(nach.get(i, []))
     return out
 
 
@@ -973,7 +1026,7 @@ def _event_voll(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
     fenster = (_aware(e.start), _aware(e.ende))
     out = []
     zeiten: list[float] = []
-    for tf in event_tafeln(e):
+    for tf in event_tafeln_mit_mix(e):
         zeilen = tafel_berechnen(db, t, tf, "all", ids, fenster=fenster, event_spots=event_spots(e),
                                  ohne_dateien=bool(e.ohne_dateien), laenge=GLOBAL_ZEILEN_MAX if glob else TAFEL_LAENGE,
                                  stand=zeiten)
