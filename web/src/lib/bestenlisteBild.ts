@@ -138,7 +138,13 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
   let rechts2 = BILD_B - X;
   if (d.abzeichen && d.titelAnpassen) rechts2 = pille(128 + 28 + dy + 38 - 30, 40, 22) - 20;
   g.fillStyle = F.sek; g.font = `600 26px ${SCHRIFT}`;
-  weitere.forEach((z, i) => g.fillText(kuerzen(g, z, (i === 0 ? rechts2 : BILD_B - X) - tx), tx, 128 + 28 + dy + 38 * (i + 1)));
+  weitere.forEach((z, i) => {
+    // Lange Zeilen (Teamname · Wertung · Stand) erst bis 20 px verkleinern, dann kuerzen (08.11.2026).
+    const breit = (i === 0 ? rechts2 : BILD_B - X) - tx;
+    let px = 26; g.font = `600 ${px}px ${SCHRIFT}`;
+    while (px > 20 && g.measureText(z).width > breit) { px -= 1; g.font = `600 ${px}px ${SCHRIFT}`; }
+    g.fillText(kuerzen(g, z, breit), tx, 128 + 28 + dy + 38 * (i + 1));
+  });
 
   // Zeilen: verfuegbare Hoehe zwischen Kopf und Logo gleichmaessig nutzen (hoechstens 80 px je Zeile).
   const zeilen = d.gruppen ? [] : d.zeilen.slice(0, 10);

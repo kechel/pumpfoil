@@ -489,9 +489,9 @@ export default function TeamEventSeite() {
             daten={{
               // Wie das Fahrer-Bild: Eventname als Titel, „Teamname · Zeitraum", dann was gewertet wird (07.11.2026).
               titel: ev.titel, titelAnpassen: true,
-              unterzeile: [team.name, t("team.event.teams"), t(k.labelKey), bildTeams.sportart && bildTeams.sportart !== "pumpfoil" ? t(`cls.sport.${bildTeams.sportart}`) : null].filter(Boolean).join(" · "),
+              unterzeile: [bildTeams.sportart && bildTeams.sportart !== "pumpfoil" ? t(`cls.sport.${bildTeams.sportart}`) : null, t("team.event.teams"), t(k.labelKey)].filter(Boolean).join(" · "),
               unterzeile2: [eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang, true),
-                [n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }), standFuer(bildTeams)].filter(Boolean).join(" · ")].join("\n"),
+                [team.name, n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }), standFuer(bildTeams)].filter(Boolean).join(" · ")].join("\n"),
               zeilen: alle.slice(0, 10).map((x) => teamBildZeile(x, k.fmt(x.value), eigeneSlugs.includes(x.slug))),
               eigene: eigen ? teamBildZeile(eigen, k.fmt(eigen.value), true) : null,
               leer: t("team.event.keineTeams"),
