@@ -39,19 +39,18 @@ export default function OpenDiscussions() {
       <H>Foil scoot: its own sport, or part of pumpfoiling?</H>
       <p className="text-sm text-slate-300">A foil scoot is a pumpfoil board and foil with a vertical handlebar, about a metre
         high, that the rider holds while pumping. There is no motor — it is pure muscle power, like pumpfoiling. The question
-        came up during the first global event weekend, when a foil scoot session in the pumpfoil ranking was reported by
-        another rider, and was discussed in the community chat and in private messages.</p>
+        came up around the first global event and was discussed in the community chat and in private messages.</p>
 
       <H3>Arguments for counting foil scoot together with pumpfoil</H3>
       <ul className="list-disc pl-5 text-sm">
         <Arg text="Same board, same foil, same muscles, no external propulsion. The handlebar is a walking stick — if anything, a burden."
           wer="a foil scoot rider" />
         <Arg text="The scoot only has a real advantage at the start. All other records can be compared."
-          wer="a long-time foil scoot rider" />
+          wer="a foil scoot rider" />
         <Arg text="Having to switch to the foil scoot category to appear in the records demotivates scoot riders."
-          wer="a long-time foil scoot rider" />
+          wer="a foil scoot rider" />
         <Arg text="With a handlebar you can use your upper body more, but you lose the arm swings. That may cancel out."
-          wer="a long-time foil scoot rider" />
+          wer="a foil scoot rider" />
         <Arg text="Pumping downwind or in waves is easier than on flat water and still counts as pumpfoiling. First instinct: include foil scoots, maybe don't distinguish at all. (Not true: downwind and wave pumping are separate sports on pumpfoil.org too.)"
           wer="a pumpfoil rider" />
         <Arg text="Envy is a poor guide for comparing performances. If needed, label scoot riders instead of leaving them out of the ranking."
@@ -65,11 +64,11 @@ export default function OpenDiscussions() {
         <Arg text="A possible reason: in a snowboard stance the legs can't contribute equally, and they also have to steer the pitch separately. The handlebar takes over part of the balance."
           wer="pumpfoil.org" />
         <Arg text="The scoot has a clear advantage at the start — and starts decide how many runs you get."
-          wer="a long-time foil scoot rider" />
+          wer="a foil scoot rider" />
         <Arg text="Foil scoot is hard to compare with free pumpfoiling, similar to foil assist. Sub-categories make sense. (Not true: foil assist is clearly not muscle power only.)"
           wer="a pumpfoil rider" />
-        <Arg text="A foil scoot session in the pumpfoil ranking of a global event felt unfair and was reported."
-          wer="several pumpfoil riders" />
+        <Arg text="Foil scoot sessions in the pumpfoil rankings feel unfair to some pumpfoilers."
+          wer="pumpfoil riders" />
         <Arg text="Balance is easier with a handlebar."
           wer="pumpfoil.org" />
       </ul>
@@ -82,8 +81,7 @@ export default function OpenDiscussions() {
           between 0.15 and 2 g, and the share of sideways movement overlaps too. We had expected a hand on the bar to move far
           less sideways; the data doesn't show that.</li>
         <li className="mt-2">So we can't detect foil scoot automatically. The rider's own classification counts.</li>
-        <li className="mt-2">This weekend two scoot riders rode 15 to 23 minutes in one go. Some pumpfoilers do that too — mostly
-          top riders, up to 90 minutes.</li>
+        <li className="mt-2">Long runs of 15 minutes and more in one go occur with foil scoot riders as well as with pumpfoilers.</li>
         <li className="mt-2">Whether scoot riders really go further at the same fitness is an impression so far. Only riders who do
           both could measure it.</li>
       </ul>
@@ -99,7 +97,7 @@ export default function OpenDiscussions() {
         <Arg text="Decide per metric: separate for total distance and time, where an advantage would add up; shared, with a marker, for top speed and run length."
           wer="pumpfoil.org" />
         <Arg text="Show foil scoot in the community records by default as well, since everything except the start is comparable."
-          wer="a long-time foil scoot rider" />
+          wer="a foil scoot rider" />
         <Arg text="Sub-categories for foil scoot and foil assist."
           wer="a pumpfoil rider" />
         <Arg text="Include foil scoot in pumpfoil without distinguishing."
