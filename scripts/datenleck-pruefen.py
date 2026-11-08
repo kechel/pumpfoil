@@ -51,6 +51,14 @@ GEHEIM = [
 # Pfade (*_FILE) stehen absichtlich im Code/in der Doku. Kurze Werte werden ohnehin uebergangen.
 ENV_MINDESTLAENGE = 12
 ENV_GEHEIM = re.compile(r"SECRET|PASS|PRIVATE|TOKEN|DATABASE_URL|SUBSCRIPTION_KEY|^JWT")
+# Ordner PRIVAT/ (Jan, 08.11.2026): Notizen, die nie oeffentlich werden duerfen, auch nicht, wenn ein privater
+# Zweig spaeter hierher gemergt wird. Erlaubt nur in Klonen, deren origin NICHT auf GitHub zeigt.
+PRIVAT = re.compile(r"(^|/)PRIVAT/", re.I)
+
+
+def oeffentlicher_klon() -> bool:
+    url = subprocess.run(["git", "remote", "get-url", "origin"], capture_output=True, text=True).stdout
+    return not url.strip() or "github.com" in url
 
 
 def ausnahmen() -> list[str]:
@@ -104,6 +112,8 @@ def pruefen(pfad: str, inhalt: bytes, env: list[bytes]) -> list[str]:
     klein = pfad.lower()
     if ORDNER.search("/" + pfad):
         gruende.append("liegt in einem Sicherungs-/tmp-Ordner")
+    if PRIVAT.search("/" + pfad) and oeffentlicher_klon():
+        gruende.append("liegt in PRIVAT/ — gehoert nie ins oeffentliche Repo")
     if klein.endswith(ENDUNGEN) or (Path(klein).name.startswith(".env") and not klein.endswith(".example")):
         gruende.append(f"Dateityp {Path(pfad).suffix or Path(pfad).name} (Archiv/Abzug/Rohdaten/Schluessel)")
     if klein.endswith(DATEN) and sieht_nach_tabelle_aus(pfad, inhalt):
