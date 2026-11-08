@@ -79,7 +79,14 @@ export default function BestenlisteBildDialog({ daten: datenRoh, logoUrl, datein
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div className="max-h-full w-full max-w-sm overflow-y-auto rounded-2xl border border-slate-700 bg-white p-4 dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
-        <h3 className="mb-2 font-semibold text-slate-100">{titel}</h3>
+        {/* X zum Schliessen oben rechts (Jan, 08.11.2026: „da ist ja viel platz"); „Abbrechen" unten bleibt. */}
+        <div className="mb-2 flex items-start gap-2">
+          <h3 className="min-w-0 flex-1 font-semibold text-slate-100">{titel}</h3>
+          <button onClick={onClose} aria-label={t("common.close")} title={t("common.close")}
+            className="-mr-1 -mt-1 shrink-0 rounded-full p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-100">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        </div>
         <canvas ref={ref} width={BILD_B} height={daten.hoehe ?? BILD_H} className="mb-3 w-full rounded-xl border border-slate-700" />
         {hinweis && <p className="mb-3 text-xs text-amber-700 dark:text-amber-300">{hinweis}</p>}
         {fehler && <p className="mb-3 text-sm text-red-700 dark:text-red-300">{fehler}</p>}
