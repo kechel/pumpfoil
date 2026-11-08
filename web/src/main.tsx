@@ -113,6 +113,7 @@ const NerdAnalysen4 = seite(() => import("./pages/NerdAnalysen4"));
 const NerdAnalysen5 = seite(() => import("./pages/NerdAnalysen5"));
 // Teil 6: ENTWURF zum Gegenlesen (23.10.2026) — Route ja, aber nirgends verlinkt (kein NerdNav, keine Sidebar).
 const NerdAnalysen6 = seite(() => import("./pages/NerdAnalysen6"));
+const OpenDiscussions = seite(() => import("./pages/OpenDiscussions"));
 const Systemarchitektur = seite(() => import("./pages/Systemarchitektur"));
 const Reset = seite(() => import("./pages/Reset"));
 
@@ -235,6 +236,7 @@ const router = createBrowserRouter([
       { path: "/impressum", element: <Impressum />, handle: TEXT },
       { path: "/datenloeschung", element: <Datenloeschung />, handle: TEXT },
       { path: "/changelog", element: <Changelog />, handle: TEXT },
+      { path: "/open-discussions", element: <OpenDiscussions />, handle: TEXT },
       { path: "/nerd-analysen", element: <NerdAnalysen />, handle: TEXT },
       { path: "/nerd-analysen-2", element: <NerdAnalysen2 />, handle: TEXT },
       { path: "/nerd-analysen-3", element: <NerdAnalysen3 />, handle: TEXT },

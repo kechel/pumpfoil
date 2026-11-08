@@ -382,6 +382,13 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
             oben zu den Inhalten, nicht in die Fussleiste. */}
         {isAdmin && <AppAktualisieren />}
         <ChangelogLink />
+        {/* Open Discussions (08.11.2026): vorerst nur fuer Admins, bis Jan freigibt. Nur Englisch. */}
+        {isAdmin && (
+          <NavLink to="/open-discussions" end
+            className={({ isActive }) => `mt-2 flex items-center gap-1.5 px-3 text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
+            Open Discussions
+          </NavLink>
+        )}
         {/* Die Reihe der Nerd-Analysen. BESCHRIFTUNGEN AUS DEN SPRACHDATEIEN (Jan, 22.09.2026:
             „ich habe mal japanisch probiert, die menuepunkte selber sind noch nicht uebersetzt
             fuer die 4 nerd-teile") — vorher stand hier deutscher Text fest im Quelltext, waehrend
