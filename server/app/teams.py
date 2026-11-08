@@ -395,7 +395,9 @@ def strittige_sessions(db: Session) -> set[int]:
     S, F = models.Session, models.SessionFlag
     return {sid for (sid,) in db.query(F.session_id).join(S, S.id == F.session_id).filter(
         S.deleted.isnot(True), S.pumpfoil_override.isnot(True),
-        or_(S.sport_source.is_(None), S.sport_source != "admin")).distinct().all()}
+        or_(S.sport_source.is_(None), S.sport_source != "admin"),
+        # Hat der Besitzer nach der Meldung eine andere Sportart gewaehlt, ist die Meldung damit beantwortet.
+        or_(S.sport_class.is_(None), S.sport_class == "pumpfoil")).distinct().all()}
 
 
 def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period: str,
