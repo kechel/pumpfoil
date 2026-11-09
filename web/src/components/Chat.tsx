@@ -82,13 +82,18 @@ export function Chat({ scope, fill = false, kommentare = false, inhaber = false 
     return () => { clearTimeout(id); document.removeEventListener("click", close); document.removeEventListener("scroll", close, true); };
   }, [menuFor]);
 
-  // Eingabefeld mit der Textmenge mitwachsen lassen (bis 50 % Bildschirmhöhe, dann scrollbar).
+  // Eingabefeld mit der Textmenge mitwachsen lassen (bis 50 % Bildschirmhöhe, dann scrollbar). Im Chat-Fenster (fill)
+  // hoechstens ein Drittel des Fensters: beim Bearbeiten einer langen Nachricht schob das Feld sonst Senden und Foto-Knopf
+  // unten aus dem Fenster, und scrollen ging nicht (Jan, 09.11.2026).
+  const wurzelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;
+    const fenster = fill ? wurzelRef.current?.clientHeight : 0;
+    const max = fenster ? Math.max(80, Math.round(fenster * 0.33)) : Math.round(window.innerHeight * 0.5);
     el.style.height = "auto";
-    el.style.height = Math.min(el.scrollHeight, Math.round(window.innerHeight * 0.5)) + "px";
-  }, [text]);
+    el.style.height = Math.min(el.scrollHeight, max) + "px";
+  }, [text, fill, editing]);
 
   // Lesestand serverseitig setzen (Unread auf der Startseite, und im 1:1 die ✓✓ beim Gegenueber).
   // NUR bei sichtbarem Tab — sonst kaeme „gelesen" von einem Chat, der im Hintergrund pollt.
@@ -319,7 +324,7 @@ export function Chat({ scope, fill = false, kommentare = false, inhaber = false 
   }
 
   return (
-    <div className={fill ? "flex h-full flex-col" : ""}>
+    <div ref={wurzelRef} className={fill ? "flex h-full flex-col" : ""}>
       {!kommentare && <div className="mb-2 flex items-center justify-end gap-3 text-xs">
         <button onClick={toggleSub} className={`flex items-center gap-1 ${push ? "text-brand-300" : "text-slate-500 hover:text-slate-300"}`} title={t("chat.subscribe")}>
           {push ? <BellIcon className="h-3.5 w-3.5" /> : <BellOffIcon className="h-3.5 w-3.5" />} {push ? t("chat.subscribed") : t("chat.subscribe")}
