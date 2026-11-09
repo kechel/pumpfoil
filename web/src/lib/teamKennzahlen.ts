@@ -32,7 +32,8 @@ export const SPRINT_KENNZAHLEN: { key: string; labelKey: string; fmt: (v: number
   { key: "sprint_100m", labelKey: "team.k.sprint_100m", fmt: sprintStrecke(100) },
   { key: "sprint_200m", labelKey: "team.k.sprint_200m", fmt: sprintStrecke(200) },
   { key: "sprint_300m", labelKey: "team.k.sprint_300m", fmt: sprintStrecke(300) },
-  { key: "sprint_60s", labelKey: "team.k.sprint_60s", fmt: (v) => `${(v * 3.6).toFixed(1)} km/h` },
+  // Minute: Tempo und die Strecke in dieser Minute (Jan, 09.11.2026), ganze Meter.
+  { key: "sprint_60s", labelKey: "team.k.sprint_60s", fmt: (v) => `${(v * 3.6).toFixed(1)} km/h · ${Math.round(v * 60)} m` },
 ];
 /** Was ein Event messen kann: die Team-Kennzahlen plus die Sprints. */
 export const EVENT_KENNZAHLEN = [...TEAM_KENNZAHLEN, ...SPRINT_KENNZAHLEN];

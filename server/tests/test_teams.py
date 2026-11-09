@@ -691,16 +691,17 @@ def test_community_aktuelle_events(client, monkeypatch):
             "global_event": glob}).json()["id"]
     laeuft = ev("Laeuft", timedelta(hours=-1), timedelta(days=1))
     bald = ev("Bald", timedelta(days=2), timedelta(days=3))
-    ev("Spaeter", timedelta(days=5), timedelta(days=6))
+    ev("Spaeter", timedelta(days=5), timedelta(days=6))       # Vorschau 7 Tage (09.11.2026)
+    ev("Zu spaet", timedelta(days=8), timedelta(days=9))      # mehr als 7 Tage hin: noch nicht
     ev("Vorbei", timedelta(days=-3), timedelta(hours=-1))
-    ev("Fertig", timedelta(days=-3), timedelta(hours=-30))    # eingefroren seit 6 h: noch 18 h zu sehen (09.11.2026)
-    ev("Alt", timedelta(days=-4), timedelta(hours=-49))       # Einfrieren + 24 h vorbei: weg
+    ev("Fertig", timedelta(days=-3), timedelta(hours=-60))    # 2,5 Tage nach Ende: noch zu sehen (3 Tage, 09.11.2026)
+    ev("Alt", timedelta(days=-5), timedelta(hours=-73))       # mehr als 3 Tage nach Ende: weg
     ev("Intern", timedelta(hours=-1), timedelta(days=1), glob=False)
     for kopf in (kb, kc):   # auch Fremde: globale Events gelten fuer alle
         liste = client.get("/api/teams/liste/events", headers=kopf).json()
         titel = [(e["titel"], e["status"], e["global"]) for e in liste if e["team"]["slug"] == slug]
         # Beendet, aber noch nicht eingefroren („Results pending") bleibt stehen (08.11.2026).
-        assert [x[0] for x in titel] == ["Laeuft", "Vorbei", "Fertig", "Bald"] and {laeuft, bald}
+        assert [x[0] for x in titel] == ["Laeuft", "Vorbei", "Fertig", "Bald", "Spaeter"] and {laeuft, bald}
         assert titel[0][1:] == ("laeuft", True) and titel[1][1:] == ("auswertung", True) and titel[3][1:] == ("kommend", True)
 
 

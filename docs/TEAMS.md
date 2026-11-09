@@ -13,7 +13,7 @@ Raum-Zustand ab, Loeschen des Teams loescht den Chat mit).
 
 **Stufe 3 LIVE seit 31.10.2026:** Events (Tabelle `team_events`): Zeitfenster [Beginn, Ende) mit Zeitzone, bis zu
 6 Bestenlisten, optional nur an bestimmten Spots, Vorlagen (`web/src/lib/teamEvents.ts`). Gewertet wird, was im
-Fenster startet; 24 h nach dem Ende friert das Ergebnis ein (nachts in `record_snapshot.py` und beim Abruf).
+Fenster startet; 4 h nach dem Ende friert das Ergebnis ein (bis 09.11.2026: 24 h; Timer alle 5 min, zusaetzlich beim Abruf).
 Abzeichen fuer Platz 1–3 auf der Foiler-Seite, nur aus Teams mit freigegebenem Auftritt (sonst wuerde ein internes
 Team ueber die Foiler-Seite bekannt). Eine Kontoloeschung entfernt die Person auch aus eingefrorenen Ergebnissen.
 Option „keine FIT-Importe" NICHT gebaut: `device_id` trennt Uhr- nicht sicher von Handy-Aufnahmen.
@@ -183,7 +183,7 @@ Zeitfenster mit Zeitzone, Kennzahl(en), optional auf einen oder mehrere Spots be
 Event-Anlegen („Meiste Runs am Wochenende“, „Laengster Lauf“, „Meiste Pumps“ … aus den vorhandenen
 Kennzahlen; neue wie „schnellster km“ kommen spaeter dazu). **Event-Abzeichen** fuer die Ersten, sichtbar
 auf der Foiler-Seite (wie der Supporter-Badge). Gewertet nur Aufnahmen, die im Fenster gestartet sind; Upload bis
-Ende + 24 h, dann eingefroren (sonst verschiebt nachtraegliches Zuschneiden das Ergebnis). Je Event einstellbar
+Ende + 4 h (bis 09.11.2026: 24 h), dann eingefroren (sonst verschiebt nachtraegliches Zuschneiden das Ergebnis). Je Event einstellbar
 (01.11.2026, `ohne_dateien`): keine von Hand hochgeladenen Dateien (`fit-`/`imp-`), Uhr, App und
 Kontoverknuepfungen zaehlen weiter. Vorhandene Waechter (Fake-Meldungen, Autofahrt-Grenzen,
 aussortierte Laeufe, Sportart-Regel) gelten ohnehin.
@@ -303,7 +303,7 @@ fuer Regeln bleibt der Server (`server/app/teams.py`, `server/app/api/teams.py`)
 |---|---|
 | Eigene Teams (Home-Links, Badge offene Anfragen `anfragen`) | `GET /mine` |
 | Alle freigegebenen Teams (Seite „Alle Teams") | `GET /liste` |
-| Laufende, beendete noch nicht eingefrorene („Results pending", seit 08.11.2026), eingefrorene noch 24 h danach (seit 09.11.2026) + in 3 Tagen beginnende Events (Community) | `GET /liste/events` |
+| Laufende, beendete bis 3 Tage nach dem Ende (eingefroren oder „Results pending") + in 7 Tagen beginnende Events (Community, seit 09.11.2026) | `GET /liste/events` |
 | Alle Events, seitenweise (laufend → kommend → vergangen) | `GET /liste/events/alle?offset=&n=` (n ≤ 50) |
 | Teamseite | `GET /{slug}` (`meine_rolle`, `mein_status`, `anfragen_offen`, `anmeldungen_zulassen`, `automatisch_akzeptieren`, `bestenlisten_oeffentlich`, `chat_scope`) |
 | Bestenlisten / Teamstatistik / Logbuch | `GET /{slug}/bestenlisten?period=` · `/{slug}/statistik?period=` · `/{slug}/logbuch` |
@@ -319,7 +319,7 @@ die Texte stehen im Web unter `team.err.<code>` und koennen 1:1 uebernommen werd
 
 **Event-Objekt** (`teams.event_out`) — Felder, die die Apps kennen muessen:
 `status` (kommend | laeuft | auswertung | beendet), `start`/`ende` (ISO mit Zone) + `zeitzone`, `einfrieren_am`
-(Upload-Frist = Ende + 24 h), `tafeln[]` (darf LEER sein), `summen_auswahl[]` + `summen{}` (Schluessel
+(Upload-Frist = Ende + 4 h), `tafeln[]` (darf LEER sein), `summen_auswahl[]` + `summen{}` (Schluessel
 `teams.EVENT_SUMMEN`: pumps, distance_m, time_s, sessions, runs, spots, aktive), `summen_sportart`/`summen_accel_only`
 (nur ohne Bestenliste relevant), `ohne_dateien`, `teambild_zeigen`, `banner_url`/`banner_fokus`, `spots[]` (fuer Gaeste
 leer). Kurzform fuer Listen (`_event_kurz`): zusaetzlich `sportarten[]` und `team{slug,name,logo_url,farbe}`, ohne Tafeln.
@@ -344,7 +344,7 @@ leer). Kurzform fuer Listen (`_event_kurz`): zusaetzlich `sportarten[]` und `tea
 - Teambild/Eventbild: nie zugeschnitten gespeichert; Anzeige 2,5:1 (Handy) mit `object-position` aus `banner_fokus`
   („x,y" in Prozent).
 
-**Regeln, die der Server erzwingt** (Apps nur Zustand anzeigen): Einfrieren 24 h nach Ende; Teilnehmer nach dem Ende
+**Regeln, die der Server erzwingt** (Apps nur Zustand anzeigen): Einfrieren 4 h nach Ende; Teilnehmer nach dem Ende
 festgehalten (`teilnehmer_json`, Austritt/Beitritt danach aendert nichts); Loeschen weich; Moderatoren duerfen Events
 und Anfragen, aber keine Rollen; Event ohne Bestenliste nur mit mind. einer Summe.
 

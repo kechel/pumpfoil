@@ -84,7 +84,9 @@ export default function NerdSprints() {
         <i> anywhere</i> within one run: the fastest 100 m, 200 m or 300 m, and the highest average speed over 60 seconds. Every
         run is checked from every possible starting point, so a slow start costs you nothing.</P>
       <P>Distances are shown as a time with the average speed behind it, for example <C>21.4 s · 16.8 km/h</C>. The minute is
-        shown as an average speed. Faster is better on all four.</P>
+        shown as its average speed and the distance covered, for example <C>16.8 km/h · 280 m</C>. Times have one decimal: the
+        watch measures once per second, and over 100 m the measurement is good to a few tenths of a second, so hundredths would
+        only pretend to be precise. Rankings still use the full value. Faster is better on all four.</P>
       <P>A sprint never spans two runs. If you come off the foil, the next run starts from zero. A run that is too short for a
         distance simply has no value for it — most runs are long enough for 100 m, far fewer for 300 m or a full minute.</P>
       <Schema />

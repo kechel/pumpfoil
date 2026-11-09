@@ -780,10 +780,10 @@ def logbuch(db: Session, team_id: int, limit: int = 50) -> list[dict]:
 from datetime import timedelta  # noqa: E402
 import json  # noqa: E402
 
-EINFRIEREN_NACH = timedelta(hours=24)
+EINFRIEREN_NACH = timedelta(hours=4)   # 24 h -> 4 h am 09.11.2026 (Jan)
 EVENT_MAX_DAUER = timedelta(days=62)
 EVENT_MAX_OFFEN = 20             # kommende + laufende Events je Team
-EVENT_VORSCHAU = timedelta(days=3)  # Community-Seite: kommende Events, die so bald beginnen (Jan, 01.11.2026)
+EVENT_VORSCHAU = timedelta(days=7)  # Community-Seite: kommende Events, die so bald beginnen (01.11.: 3 Tage, 09.11.: 7 Tage)
 EVENT_MAX_TAFELN = 10   # 6 -> 10 am 09.11.2026 (Jan: Ranglisten ans Limit gestossen), nach dem Einfrieren von Event 4
 ABZEICHEN_PLAETZE = 3
 
