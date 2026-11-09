@@ -139,3 +139,23 @@ def test_team_wertung_sprint_durchschnitt():
     schnitt = {x["slug"]: x for x in T.team_wertung(None, zeilen, 2, None, zuordnung, schnitt=True)}
     assert schnitt["a"]["value"] == 5.5 and schnitt["a"]["fahrer"] == 2
     assert schnitt["b"]["value"] == 5.8 and schnitt["b"]["rang"] == 1
+
+
+def test_event_bis_zehn_bestenlisten(client):
+    # Limit je Event 6 -> 10 (09.11.2026): 10 gehen, 11 nicht.
+    from datetime import datetime, timedelta, timezone
+    from test_sportmix import _frei, _konto
+    _frei()
+    (_uid, k) = _konto(client, "zehn-tafeln@t.de", "Zehn Tafeln")
+    slug = client.post("/api/teams", headers=k, json={"name": "Zehn Tafeln Team"}).json()["slug"]
+    jetzt = datetime.now(timezone.utc)
+    kz = ["sum_distance", "sum_runs", "sum_pumps", "sum_time", "sprint_100m", "sprint_200m", "sprint_300m", "sprint_60s",
+          "session_pumps", "sum_distance"]
+    def body(n):
+        return {"titel": "Viele Listen", "start": (jetzt + timedelta(days=1)).isoformat(),
+                "ende": (jetzt + timedelta(days=2)).isoformat(),
+                "tafeln": [{"kennzahl": kz[i % len(kz)], "sportart": "pumpfoil", "accel_only": i >= 9} for i in range(n)]}
+    r = client.post(f"/api/teams/{slug}/events?sprint=1", headers=k, json=body(10))
+    assert r.status_code == 200, r.text
+    assert len(r.json()["tafeln"]) == 10
+    assert client.post(f"/api/teams/{slug}/events?sprint=1", headers=k, json=body(11)).status_code == 422

@@ -167,7 +167,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
               )}
             </div>
           ))}
-          {e.tafeln.length < 6 && <button className={`${knopf} mb-3`} onClick={() => setE({ ...e, tafeln: [...e.tafeln, neueEventTafel()] })}>+ {t("team.tafel.neu")}</button>}
+          {e.tafeln.length < 10 && <button className={`${knopf} mb-3`} onClick={() => setE({ ...e, tafeln: [...e.tafeln, neueEventTafel()] })}>+ {t("team.tafel.neu")}</button>}
 
           {/* Gesamtsummen ueber alle Teilnehmer, einzeln anklickbar (Jan, 01.11.2026). */}
           <p className="mb-1 text-sm text-slate-300">{t("team.event.summen")}</p>

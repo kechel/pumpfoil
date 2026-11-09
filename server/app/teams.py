@@ -784,7 +784,7 @@ EINFRIEREN_NACH = timedelta(hours=24)
 EVENT_MAX_DAUER = timedelta(days=62)
 EVENT_MAX_OFFEN = 20             # kommende + laufende Events je Team
 EVENT_VORSCHAU = timedelta(days=3)  # Community-Seite: kommende Events, die so bald beginnen (Jan, 01.11.2026)
-EVENT_MAX_TAFELN = 6
+EVENT_MAX_TAFELN = 10   # 6 -> 10 am 09.11.2026 (Jan: Ranglisten ans Limit gestossen), nach dem Einfrieren von Event 4
 ABZEICHEN_PLAETZE = 3
 
 # --- Globale Events (Jan, 06.11.2026) -------------------------------------------------------------------------------

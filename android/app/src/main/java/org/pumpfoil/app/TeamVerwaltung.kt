@@ -1098,7 +1098,7 @@ private fun TeamEventDialog(slug: String, farbe: String?, start: EventEntwurf, l
                             }
                         }
                     }
-                    if (e.tafeln.size < 6) OutlinedButton(onClick = { e = e.copy(tafeln = e.tafeln + neueEventTafel()) },
+                    if (e.tafeln.size < 10) OutlinedButton(onClick = { e = e.copy(tafeln = e.tafeln + neueEventTafel()) },
                         modifier = Modifier.padding(top = 4.dp, bottom = 10.dp)) { Text("+ " + I18n.t("team.tafel.neu")) }
 
                     // Gesamtsummen ueber alle Teilnehmer, einzeln anklickbar.

@@ -313,7 +313,7 @@ struct TeamEventEditor: View {
                     }
                 }
             }
-            if entwurf.tafeln.count < 6 {
+            if entwurf.tafeln.count < 10 {
                 Button("+ " + Loc.t("team.tafel.neu", lang)) { entwurf.tafeln.append(TeamTafelEntwurf()) }
             }
         }
