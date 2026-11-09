@@ -2747,6 +2747,8 @@ const zh: Record<string, string> = {
   "team.event.wertung": "团队排名",
   "team.event.wertungBeste": "前{n}名之和",
   "team.event.wertungAlle": "全体成员之和",
+  "team.event.wertungSchnittBeste": "最佳 {n} 人的平均值",
+  "team.event.wertungSchnittAlle": "全体成员的平均值",
   "team.event.teams": "团队",
   "team.event.uebersichtTeilen": "分享汇总",
   "team.event.uebersichtWahl": "在图片中显示：",

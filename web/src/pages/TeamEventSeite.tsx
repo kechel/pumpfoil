@@ -20,7 +20,7 @@ import { TeamHerkunft } from "../components/TeamHerkunft";
 import TeamBanner from "../components/TeamBanner";
 import TeamTafelBild, { wappenVon } from "../components/TeamTafelBild";
 import { teamFarbStil } from "../lib/teamFarben";
-import { EVENT_SUMMEN, eventGemessen, kennzahl } from "../lib/teamKennzahlen";
+import { EVENT_SUMMEN, eventGemessen, kennzahl, wertungText } from "../lib/teamKennzahlen";
 import { eventZeit, eventZeitraum, eventZeitraumGenau } from "../lib/teamEvents";
 import { BeitrittDialog, Tafel } from "./Team";
 import { fehlerCode } from "../lib/teamKennzahlen";
@@ -128,7 +128,7 @@ function TeamWertung({ tf, n, t, eigeneSlugs, standText, onBild }: { tf: TeamTaf
         )}
       </div>
       <p className="text-xs text-slate-400">
-        {[n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }), standText].filter(Boolean).join(" · ")}
+        {[wertungText(tf.kennzahl, n, t), standText].filter(Boolean).join(" · ")}
       </p>
       {teams.length === 0 && <p className="mt-2 text-sm text-slate-400">{t("team.event.keineTeams")}</p>}
       <ol className="mt-2">
@@ -502,7 +502,7 @@ export default function TeamEventSeite() {
               titel: ev.titel, titelAnpassen: true,
               unterzeile: [bildTeams.sportart && bildTeams.sportart !== "pumpfoil" ? sportLabel(bildTeams.sportart, t) : null, t("team.event.teams"), t(k.labelKey)].filter(Boolean).join(" · "),
               unterzeile2: [eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang, true),
-                [team.name, n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }), standFuer(bildTeams)].filter(Boolean).join(" · ")].join("\n"),
+                [team.name, wertungText(bildTeams.kennzahl, n, t), standFuer(bildTeams)].filter(Boolean).join(" · ")].join("\n"),
               zeilen: alle.slice(0, 10).map((x) => teamBildZeile(x, k.fmt(x.value), eigeneSlugs.includes(x.slug), t)),
               eigene: eigen ? teamBildZeile(eigen, k.fmt(eigen.value), true, t) : null,
               leer: t("team.event.keineTeams"),

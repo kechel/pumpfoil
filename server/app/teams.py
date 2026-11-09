@@ -879,8 +879,10 @@ def events_zuordnung_sichern(db: Session, jetzt: datetime | None = None) -> None
 
 
 def team_wertung(db: Session, zeilen: list[dict], n: int, ausser_team_id: int | None,
-                 zuordnung: dict | None = None) -> list[dict]:
+                 zuordnung: dict | None = None, schnitt: bool = False) -> list[dict]:
     """Team-Rangliste einer Bestenliste: je Team die Summe der besten `n` Werte seiner Mitglieder (0 = alle).
+    `schnitt` (Sprint-Kennzahlen, Jan 09.11.2026 „mach es so das es sinn ergibt"): Geschwindigkeiten addiert man nicht —
+    dort zaehlt der Durchschnitt der besten `n` (ueber die tatsaechlich mitgezaehlten, `fahrer` steht daneben).
     Dieselben Teams wie im Team-Vergleich (freigegeben, Bestenlisten oeffentlich), ohne das offizielle Team.
     `zuordnung` (s. `team_zuordnung`): festgehaltener Stand statt der aktuellen Mitgliedschaft."""
     if not zeilen:
@@ -900,7 +902,8 @@ def team_wertung(db: Session, zeilen: list[dict], n: int, ausser_team_id: int | 
         beste = werte if n == 0 else werte[:n]
         a = z_["teams"][str(tid)]
         out.append({"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"],
-                    "land": a["land"], "value": round(sum(v for v, _ in beste), 2), "fahrer": len(beste),
+                    "land": a["land"], "value": round(sum(v for v, _ in beste) / (len(beste) if schnitt else 1), 3 if schnitt else 2),
+                    "fahrer": len(beste),
                     "teilnehmer": len(werte),
                     # Strittig, sobald ein MITGEZAEHLTES Mitglied eine offene Meldung hat (Jan, 08.11.2026).
                     **({"strittig": True} if any(u in strittig for _, u in beste) else {}),
@@ -1041,7 +1044,7 @@ def _event_voll(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
                                  stand=zeiten)
         x = {**tafel_out(tf), "zeilen": zeilen}
         if glob:
-            x["teams"] = team_wertung(db, zeilen, wertung_n(e), t.id, zuordnung)
+            x["teams"] = team_wertung(db, zeilen, wertung_n(e), t.id, zuordnung, schnitt=tf.kennzahl in SPRINT)
         # Stand dieser Bestenliste: wann gerechnet (aus dem 2-Minuten-Cache ggf. etwas frueher).
         x["stand"] = datetime.fromtimestamp(min(zeiten[-1:] or [time.time()]), timezone.utc).isoformat()
         out.append(x)

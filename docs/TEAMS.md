@@ -224,6 +224,9 @@ gespeicherten Sprint-Bestenlisten, damit eine alte App sie beim Speichern nicht 
 („21,4 s · 16,8 km/h"), die Minute als km/h. Reine GPS-Sessions (ohne Bewegungsdaten) erreichen unplausible Werte (bis
 26–29 km/h ueber eine Minute, 09.11. gemessen) — fuer Sprint-Bestenlisten „nur mit Bewegungsdaten" empfehlen.
 Alte Sessions: `scripts/sprints-nachrechnen.py` (Trockenlauf ohne `--echt`).
+Team-Wertung globaler Events: bei Sprints der **Durchschnitt** der besten N (ueber die tatsaechlich mitgezaehlten), sonst
+die Summe (`team_wertung(..., schnitt=True)`, Jan 09.11.: „mach es so das es sinn ergibt"); Web-Text `team.event.wertungSchnitt*`.
+Erklaerseite `/nerd-analysen-sprints` (`NerdSprints.tsx`): vorerst nur Admins, nur Englisch.
 
 ## Teambild (01.11.2026)
 

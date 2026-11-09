@@ -2633,6 +2633,8 @@ const it: Record<string, string> = {
   "team.event.wertung": "Classifica a squadre",
   "team.event.wertungBeste": "Somma dei migliori {n}",
   "team.event.wertungAlle": "Somma di tutti i membri",
+  "team.event.wertungSchnittBeste": "Media dei migliori {n}",
+  "team.event.wertungSchnittAlle": "Media di tutti i membri",
   "team.event.teams": "Team",
   "team.event.uebersichtTeilen": "Condividi riepilogo",
   "team.event.uebersichtWahl": "Mostra nell'immagine:",

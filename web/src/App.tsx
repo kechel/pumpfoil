@@ -464,6 +464,13 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
               className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" />
           )}
         </NavLink>
+        {/* Fliegende Sprints (09.11.2026): Vorschau nur fuer Admins, nur Englisch (Jan). */}
+        {isAdmin && (
+          <NavLink to="/nerd-analysen-sprints" end
+            className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
+            <span className="whitespace-nowrap">↳ Flying sprints (admin)</span>
+          </NavLink>
+        )}
         {/* Derselbe Fall eine Zeile tiefer: stand ebenfalls fest auf Deutsch. */}
         <NavLink to="/systemarchitektur" end title={t("nav.arch")}
           className={({ isActive }) => `mt-2 flex items-center gap-1.5 px-3 text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>

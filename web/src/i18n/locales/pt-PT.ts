@@ -2744,6 +2744,8 @@ const ptPT: Record<string, string> = {
   "team.event.wertung": "Classificação por equipas",
   "team.event.wertungBeste": "Soma dos {n} melhores",
   "team.event.wertungAlle": "Soma de todos os membros",
+  "team.event.wertungSchnittBeste": "Média dos {n} melhores",
+  "team.event.wertungSchnittAlle": "Média de todos os membros",
   "team.event.teams": "Equipas",
   "team.event.uebersichtTeilen": "Partilhar resumo",
   "team.event.uebersichtWahl": "Mostrar na imagem:",

@@ -37,6 +37,14 @@ export const SPRINT_KENNZAHLEN: { key: string; labelKey: string; fmt: (v: number
 /** Was ein Event messen kann: die Team-Kennzahlen plus die Sprints. */
 export const EVENT_KENNZAHLEN = [...TEAM_KENNZAHLEN, ...SPRINT_KENNZAHLEN];
 
+/** Wie die Team-Wertung globaler Events zaehlt (server teams.team_wertung): Sprints als Durchschnitt der besten N,
+ *  alles andere als Summe — Geschwindigkeiten addiert man nicht. */
+export function wertungText(kennzahlKey: string, n: number, t: (k: string, p?: Record<string, string>) => string): string {
+  const schnitt = SPRINT_KENNZAHLEN.some((k) => k.key === kennzahlKey);
+  if (n === 0) return t(schnitt ? "team.event.wertungSchnittAlle" : "team.event.wertungAlle");
+  return t(schnitt ? "team.event.wertungSchnittBeste" : "team.event.wertungBeste", { n: String(n) });
+}
+
 export function kennzahl(key: string) {
   return EVENT_KENNZAHLEN.find((k) => k.key === key) ?? { key, labelKey: key, fmt: (v: number) => String(v) };
 }

@@ -113,6 +113,7 @@ const NerdAnalysen4 = seite(() => import("./pages/NerdAnalysen4"));
 const NerdAnalysen5 = seite(() => import("./pages/NerdAnalysen5"));
 // Teil 6: ENTWURF zum Gegenlesen (23.10.2026) — Route ja, aber nirgends verlinkt (kein NerdNav, keine Sidebar).
 const NerdAnalysen6 = seite(() => import("./pages/NerdAnalysen6"));
+const NerdSprints = seite(() => import("./pages/NerdSprints"));
 const OpenDiscussions = seite(() => import("./pages/OpenDiscussions"));
 const Systemarchitektur = seite(() => import("./pages/Systemarchitektur"));
 const Reset = seite(() => import("./pages/Reset"));
@@ -271,6 +272,8 @@ const router = createBrowserRouter([
           { path: "foiler/:id", element: <Foiler /> },
           // Laengste eigene Laeufe im Vergleich (Jan, 02.10.2026) — seit 02.10. fuer alle, Knopf ganz unten auf Home.
           { path: "laeufe", element: <LaengsteLaeufe /> },
+          // Erklaerseite fliegende Sprints (09.11.2026): vorerst nur Admins, nur Englisch, nicht oeffentlich.
+          { path: "nerd-analysen-sprints", element: <NerdSprints /> },
           { path: "alle-sessions", element: <AllSessionsRedirect /> },
           { path: "spots", element: <Spots /> },
           { path: "foils", element: <Foils /> },

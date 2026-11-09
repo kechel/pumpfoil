@@ -2721,6 +2721,8 @@ const nb: Record<string, string> = {
   "team.event.wertung": "Lagrangering",
   "team.event.wertungBeste": "Sum av de {n} beste",
   "team.event.wertungAlle": "Sum av alle medlemmer",
+  "team.event.wertungSchnittBeste": "Snitt av de beste {n}",
+  "team.event.wertungSchnittAlle": "Snitt av alle medlemmer",
   "team.event.teams": "Lag",
   "team.event.uebersichtTeilen": "Del oversikt",
   "team.event.uebersichtWahl": "Vis i bildet:",

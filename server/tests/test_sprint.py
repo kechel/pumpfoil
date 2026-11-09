@@ -124,3 +124,18 @@ def test_event_sprint_nur_mit_schalter(client, monkeypatch):
     r = client.put(f"/api/teams/{slug}/tafeln", headers=k,
                    json=[{"kennzahl": "sprint_100m", "sportart": "pumpfoil", "accel_only": False}])
     assert r.status_code == 422
+
+
+def test_team_wertung_sprint_durchschnitt():
+    # Geschwindigkeiten addiert man nicht: Sprint-Team-Wertung = Durchschnitt der besten N, sonst Summe.
+    from app import teams as T
+    zuordnung = {"mitglieder": {"1": [10], "2": [10], "3": [10], "4": [20]},
+                 "teams": {"10": {"slug": "a", "name": "A", "logo_url": None, "farbe": None, "land": None},
+                           "20": {"slug": "b", "name": "B", "logo_url": None, "farbe": None, "land": None}}}
+    zeilen = [{"user_id": 1, "value": 6.0}, {"user_id": 2, "value": 5.0}, {"user_id": 3, "value": 1.0},
+              {"user_id": 4, "value": 5.8}]
+    summe = {x["slug"]: x for x in T.team_wertung(None, zeilen, 2, None, zuordnung)}
+    assert summe["a"]["value"] == 11.0 and summe["a"]["rang"] == 1
+    schnitt = {x["slug"]: x for x in T.team_wertung(None, zeilen, 2, None, zuordnung, schnitt=True)}
+    assert schnitt["a"]["value"] == 5.5 and schnitt["a"]["fahrer"] == 2
+    assert schnitt["b"]["value"] == 5.8 and schnitt["b"]["rang"] == 1

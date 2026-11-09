@@ -2746,6 +2746,8 @@ const ja: Record<string, string> = {
   "team.event.wertung": "チームランキング",
   "team.event.wertungBeste": "上位{n}人の合計",
   "team.event.wertungAlle": "全メンバーの合計",
+  "team.event.wertungSchnittBeste": "上位 {n} 人の平均",
+  "team.event.wertungSchnittAlle": "全メンバーの平均",
   "team.event.teams": "チーム",
   "team.event.uebersichtTeilen": "まとめを共有",
   "team.event.uebersichtWahl": "画像に表示：",

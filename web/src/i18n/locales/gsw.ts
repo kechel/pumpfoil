@@ -2634,6 +2634,8 @@ const gsw: Record<string, string> = {
   "team.event.wertung": "Teamwärtig",
   "team.event.wertungBeste": "Summe vo de beschte {n}",
   "team.event.wertungAlle": "Summe vo allne Mitglieder",
+  "team.event.wertungSchnittBeste": "Durchschnitt vo de beschte {n}",
+  "team.event.wertungSchnittAlle": "Durchschnitt vo allne Mitglieder",
   "team.event.teams": "Teams",
   "team.event.uebersichtTeilen": "Übersicht teile",
   "team.event.uebersichtWahl": "Im Bild zeige:",

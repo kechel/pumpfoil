@@ -2785,6 +2785,8 @@ const fi: Record<string, string> = {
   "team.event.wertung": "Joukkuetulokset",
   "team.event.wertungBeste": "{n} parhaan summa",
   "team.event.wertungAlle": "Kaikkien jäsenten summa",
+  "team.event.wertungSchnittBeste": "Parhaan {n} keskiarvo",
+  "team.event.wertungSchnittAlle": "Kaikkien jäsenten keskiarvo",
   "team.event.teams": "Joukkueet",
   "team.event.uebersichtTeilen": "Jaa yhteenveto",
   "team.event.uebersichtWahl": "Näytä kuvassa:",

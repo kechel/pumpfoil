@@ -2907,6 +2907,8 @@ const de: Record<string, string> = {
   "team.event.wertung": "Teamwertung",
   "team.event.wertungBeste": "Summe der besten {n}",
   "team.event.wertungAlle": "Summe aller Mitglieder",
+  "team.event.wertungSchnittBeste": "Durchschnitt der besten {n}",
+  "team.event.wertungSchnittAlle": "Durchschnitt aller Mitglieder",
   "team.event.teams": "Teams",
   "team.event.uebersichtTeilen": "Übersicht teilen",
   "team.event.uebersichtWahl": "Im Bild zeigen:",

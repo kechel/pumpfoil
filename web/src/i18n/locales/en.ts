@@ -2853,6 +2853,8 @@ const en: Record<string, string> = {
   "team.event.wertung": "Team ranking",
   "team.event.wertungBeste": "Sum of the best {n}",
   "team.event.wertungAlle": "Sum of all members",
+  "team.event.wertungSchnittBeste": "Average of the best {n}",
+  "team.event.wertungSchnittAlle": "Average of all members",
   "team.event.teams": "Teams",
   "team.event.uebersichtTeilen": "Share summary",
   "team.event.uebersichtWahl": "Show in the image:",

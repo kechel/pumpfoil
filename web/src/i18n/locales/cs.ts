@@ -2803,6 +2803,8 @@ const cs: Record<string, string> = {
   "team.event.wertung": "Pořadí týmů",
   "team.event.wertungBeste": "Součet nejlepších {n}",
   "team.event.wertungAlle": "Součet všech členů",
+  "team.event.wertungSchnittBeste": "Průměr nejlepších {n}",
+  "team.event.wertungSchnittAlle": "Průměr všech členů",
   "team.event.teams": "Týmy",
   "team.event.uebersichtTeilen": "Sdílet přehled",
   "team.event.uebersichtWahl": "Zobrazit na obrázku:",

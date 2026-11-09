@@ -2804,6 +2804,8 @@ const nl: Record<string, string> = {
   "team.event.wertung": "Teamklassement",
   "team.event.wertungBeste": "Som van de beste {n}",
   "team.event.wertungAlle": "Som van alle leden",
+  "team.event.wertungSchnittBeste": "Gemiddelde van de beste {n}",
+  "team.event.wertungSchnittAlle": "Gemiddelde van alle leden",
   "team.event.teams": "Teams",
   "team.event.uebersichtTeilen": "Overzicht delen",
   "team.event.uebersichtWahl": "Tonen in de afbeelding:",

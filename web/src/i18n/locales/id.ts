@@ -2750,6 +2750,8 @@ const id: Record<string, string> = {
   "team.event.wertung": "Peringkat tim",
   "team.event.wertungBeste": "Jumlah {n} terbaik",
   "team.event.wertungAlle": "Jumlah semua anggota",
+  "team.event.wertungSchnittBeste": "Rata-rata {n} terbaik",
+  "team.event.wertungSchnittAlle": "Rata-rata semua anggota",
   "team.event.teams": "Tim",
   "team.event.uebersichtTeilen": "Bagikan ringkasan",
   "team.event.uebersichtWahl": "Tampilkan di gambar:",
