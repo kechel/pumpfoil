@@ -1038,7 +1038,22 @@ def _event_voll(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
     """Bestenlisten des Events — eingefroren aus `ergebnis_json`, sonst live. Bei globalen Events mit ALLEN Zeilen
     (bis GLOBAL_ZEILEN_MAX) und der Team-Rangliste je Bestenliste (`teams`); gekuerzt wird erst in `event_berechnen`."""
     if e.ergebnis_json:
-        return json.loads(e.ergebnis_json)
+        voll = json.loads(e.ergebnis_json)
+        # Endstaende von vor dem 09.11.2026 haben keine Teamgroesse: aus der MIT festgehaltenen Zuordnung ergaenzen
+        # (derselbe Stand wie das Ergebnis, nichts Aktuelles).
+        if e.team_zuordnung_json and any("mitglieder" not in x for tf in voll for x in tf.get("teams") or []):
+            z_ = json.loads(e.team_zuordnung_json)
+            groesse: dict[str, int] = {}
+            for tids in z_.get("mitglieder", {}).values():
+                for tid in tids:
+                    slug_ = (z_.get("teams", {}).get(str(tid)) or {}).get("slug")
+                    if slug_:
+                        groesse[slug_] = groesse.get(slug_, 0) + 1
+            for tf in voll:
+                for x in tf.get("teams") or []:
+                    if "mitglieder" not in x and x.get("slug") in groesse:
+                        x["mitglieder"] = groesse[x["slug"]]
+        return voll
     ids = event_teilnehmer(db, t, e)
     glob = ist_global(e)
     zuordnung = event_zuordnung(db, e) if glob else None
