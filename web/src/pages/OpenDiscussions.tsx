@@ -125,12 +125,41 @@ export default function OpenDiscussions() {
         <p>Foil scoot is treated as its own sport with its own records and leaderboards. In the global event it has separate
           leaderboards. Riders set foil scoot themselves, per session or as their default sport for new sessions. Because the
           data can't tell the two apart, the rider's own classification counts; reported sessions are reviewed by hand.</p>
-        <p className="mt-2">Since 8 November, rankings, team comparison and events also offer an optional mixed view
-          “Pumpfoil + Foil Scoot”, in which every rider carries a badge for their sport; you can make it your default view in
-          the settings. The separate rankings stay as they are. In team rankings, only the sport shown counts.</p>
         <p className="mt-2">This is where things stand today, not a final decision. The discussion is open.</p>
         <p className="mt-2 text-xs text-slate-400">— Jan, pumpfoil.org</p>
       </div>
+      <H3>Consequences so far</H3>
+      {/* Jans Antwort im Community-Chat vom 08./09.11.2026 samt seinen Teilen-Bildern (Jan: „uebernimm das doch mal inkl.
+          der bilder"). Die Bilder liegen in server/media/discussions/ (nicht im Repo: sie zeigen Fahrer- und Teamnamen). */}
+      <div className="rounded-xl border border-slate-700 bg-slate-900/40 p-4 text-sm text-slate-300">
+        <p>Since 8 November, rankings, team comparison and events offer an optional mixed view “Pumpfoil + Foil Scoot”. Every
+          rider carries a badge for their sport, teams carry the badges of all sports their members rode. You can make the
+          mixed view your default under Settings → Sports. The separate rankings stay as they are, and pumpfoil alone remains
+          the default.</p>
+        <p className="mt-2">In team rankings only the sport shown counts. Compare ILL Pumpers in the images below: second
+          place with 24.7 km in the mixed view, third place with 8.2 km when only pumpfoil counts.</p>
+        <p className="mt-2">Anyone can share whichever view they like. If you think there should be no mixed results at all,
+          please let me know.</p>
+        <p className="mt-2 text-xs text-slate-400">— Jan, pumpfoil.org</p>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
+        {[
+          ["1", "Riders, mixed view: every rider with a sport badge (P = Pumpfoil, F = Foil Scoot)"],
+          ["2", "Riders, pumpfoil only"],
+          ["3", "Teams, mixed view: pumpfoil and foil scoot sessions count"],
+          ["4", "Teams, pumpfoil only: only pumpfoil sessions count"],
+          ["5", "Event overview with both views"],
+        ].map(([n, text]) => (
+          <figure key={n}>
+            <a href={`/media/discussions/foil-scoot-2026-11-09-${n}.webp`} target="_blank" rel="noreferrer">
+              <img src={`/media/discussions/foil-scoot-2026-11-09-${n}.webp`} alt={text} loading="lazy"
+                className="w-full rounded-lg border border-slate-700" />
+            </a>
+            <figcaption className="mt-1 text-xs text-slate-400">{text}</figcaption>
+          </figure>
+        ))}
+      </div>
+
       <p className="mt-6 text-sm text-slate-300">Please discuss in the community chat, directly with Jan, or via the feedback button.</p>
     </div>
   );
