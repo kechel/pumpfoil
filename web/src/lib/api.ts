@@ -2360,7 +2360,7 @@ export interface TeamEvent {
 }
 export interface TeamAbzeichen {
   rang: number; event: string; team: string; team_slug: string; farbe: string | null; kennzahl: string; wert: number; datum: string;
-  global?: boolean; event_id?: number;
+  global?: boolean; event_id?: number; sportart?: string | null;
 }
 export interface TeamMitglied {
   user_id: number; name: string; avatar_url: string | null; rolle: TeamRolle; seit: string | null;

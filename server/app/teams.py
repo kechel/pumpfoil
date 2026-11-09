@@ -1269,7 +1269,7 @@ def abzeichen(db: Session, uid: int) -> list[dict]:
             for z in tf.get("zeilen", [])[:ABZEICHEN_PLAETZE]:
                 if z.get("user_id") == uid:
                     out.append({"rang": z["rang"], "event": e.titel, "team": t.frei_name, "team_slug": t.frei_slug,
-                                "farbe": t.frei_farbe, "kennzahl": tf["kennzahl"], "wert": z["value"],
+                                "farbe": t.frei_farbe, "kennzahl": tf["kennzahl"], "sportart": tf.get("sportart"), "wert": z["value"],
                                 "datum": _aware(e.ende).date().isoformat(), "global": ist_global(e),
                                 "event_id": e.id})
     return out[:30]

@@ -34,6 +34,8 @@ import { fmtLaufDauer } from "../lib/dauer";
 import { FreundschaftKnopf } from "../components/Freundschaft";
 import { JahresbilanzSection, ManoeverVerlaufSection } from "./PersonalHome";
 import { classLabelKey } from "../lib/sportClass";
+import { kennzahl as eventKennzahl } from "../lib/teamKennzahlen";
+import type { TeamAbzeichen } from "../lib/api";
 
 // Bewusst dieselbe Formel wie auf der eigenen Startseite (`PersonalHome.fmtDur`) — eine zweite
 // Schreibweise fuer dieselbe Zahl liest sich wie ein anderer Wert.
@@ -71,6 +73,24 @@ const setupLabels = (s: { setup?: { stab?: { brand: string; model: string; size:
 
 /** `userId` + `eingebettet`: die eigene Profilseite als Reiter „Profil" in Home (Jan, 04.11.2026) — ohne Zurueck-Pfeil
  * und ohne Sprung nach oben. `als`: Vorschau, so wie Freunde bzw. alle anderen die Seite sehen. */
+const MEDAILLE = ["#facc15", "#cbd5e1", "#ea8a4a"];
+// Sportart einer Event-Bestenliste, gemischte als „Pumpfoil + Foil Scoot".
+function sportartName(sp: string, t: (k: string) => string): string {
+  return sp.split("+").map((x) => t(`cls.sport.${x}`)).join(" + ");
+}
+
+/** Event-Abzeichen je Event zusammenfassen, beste Plaetze zuerst (09.11.2026). */
+function abzeichenJeEvent(l: TeamAbzeichen[]) {
+  const g = new Map<string, TeamAbzeichen & { key: string; event_id?: number; global?: boolean; plaetze: TeamAbzeichen[] }>();
+  for (const a of l) {
+    const x = a as TeamAbzeichen & { event_id?: number; global?: boolean };
+    const key = x.event_id != null ? `e${x.event_id}` : `${a.event}|${a.datum}|${a.team_slug}`;
+    if (!g.has(key)) g.set(key, { ...x, key, plaetze: [] });
+    g.get(key)!.plaetze.push(a);
+  }
+  return [...g.values()].map((x) => ({ ...x, plaetze: [...x.plaetze].sort((a, b) => a.rang - b.rang) }));
+}
+
 export default function Foiler({ userId, eingebettet = false, als }:
   { userId?: number; eingebettet?: boolean; als?: "freunde" | "alle" } = {}) {
   const params = useParams();
@@ -285,13 +305,27 @@ export default function Foiler({ userId, eingebettet = false, als }:
         {d.team_abzeichen && d.team_abzeichen.length > 0 && (
           <>
             <span className="flex items-center gap-1.5 text-slate-400"><StarIcon className="h-4 w-4" />{t("team.abzeichen")}:</span>
-            <span className="flex flex-col gap-0.5">
-              {d.team_abzeichen.map((a, i) => (
-                // Globale Events (06.11.2026): „Global" statt des (offiziellen) Teams, Link aufs Event.
-                <Link key={i} to={a.global && a.event_id ? `/teams/${a.team_slug}/events/${a.event_id}` : `/teams/${a.team_slug}`}
-                  className="font-semibold text-slate-200 hover:underline">
-                  {t(`team.platz${a.rang}`)} · {a.event} · {a.global ? t("team.event.global") : a.team}
-                </Link>
+            {/* Je Event EINE Zeile (Jan, 09.11.2026: „das wiederholt sich zu sehr"): Event · Datum · Team/Global, dahinter
+                die Plaetze als kleine Medaillen mit der Kategorie. */}
+            <span className="flex flex-col gap-1">
+              {abzeichenJeEvent(d.team_abzeichen).map((g) => (
+                <span key={g.key} className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  <Link to={g.global && g.event_id ? `/teams/${g.team_slug}/events/${g.event_id}` : `/teams/${g.team_slug}`}
+                    className="font-semibold text-slate-200 hover:underline">{g.event}</Link>
+                  <span className="text-xs text-slate-400">
+                    {new Date(g.datum).toLocaleDateString(lang, { day: "numeric", month: "short", year: "numeric" })} · {g.global ? t("team.event.global") : g.team}
+                  </span>
+                  <span className="flex flex-wrap gap-x-2 gap-y-0.5 text-xs text-slate-300">
+                    {g.plaetze.map((a, i) => (
+                      <span key={i} className="inline-flex items-center gap-1" title={t(`team.platz${a.rang}`)}>
+                        <span className="inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-slate-950"
+                          style={{ background: MEDAILLE[a.rang - 1] }}>{a.rang}</span>
+                        {t(eventKennzahl(a.kennzahl).labelKey)}
+                        {new Set(g.plaetze.map((p) => p.sportart)).size > 1 && a.sportart ? ` · ${sportartName(a.sportart, t)}` : ""}
+                      </span>
+                    ))}
+                  </span>
+                </span>
               ))}
             </span>
           </>
