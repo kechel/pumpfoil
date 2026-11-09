@@ -262,9 +262,6 @@ export default function TeamEventSeite() {
   const [sports, setSports] = useState<string[]>(["pumpfoil"]);
   const [bands, setBands] = useState<FoilBand[]>([]);
   const [alleSpots, setAlleSpots] = useState<{ id: number; name: string }[]>([]);
-  // Siegertreppchen (09.11.2026): vorerst nur fuer Admins.
-  const [istAdmin, setIstAdmin] = useState(false);
-  useEffect(() => { if (!gast) api.getProfile().then((p) => setIstAdmin(!!p.is_admin)).catch(() => {}); }, [gast]);
   const nav = useNavigate();
 
   useEffect(() => {
@@ -454,8 +451,9 @@ export default function TeamEventSeite() {
           const standText = standFuer(tf0);
           return (
             <>
-            {/* Siegertreppchen ueber der Bestenliste, nur beendete Events, vorerst nur Admins (Jan, 09.11.2026). */}
-            {istAdmin && ev.status === "beendet" && <EventPodest evId={ev.id} tf={tf0} global={!!ev.global} t={t} />}
+            {/* Siegertreppchen ueber der Bestenliste, nur beendete Events; seit 09.11.2026 fuer alle (Jan), Gaeste sehen die
+                Zeilen wie in der Liste in Gastform. */}
+            {ev.status === "beendet" && <EventPodest evId={ev.id} tf={tf0} global={!!ev.global} t={t} />}
             <div className={`grid grid-cols-1 gap-3 ${ev.global ? "sm:grid-cols-2" : ""}`}>
               <Tafel tf={tf} gast={gast} t={t} teamsZeigen={!!ev.global} ohneFilter sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} standText={standText} />
               {ev.global && <TeamWertung tf={tf} n={ev.team_wertung_n ?? 5} t={t} eigeneSlugs={meineTeams.map((x) => x.slug)} standText={standText}
