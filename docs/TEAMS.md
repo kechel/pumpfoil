@@ -228,6 +228,14 @@ Team-Wertung globaler Events: bei Sprints der **Durchschnitt** der besten N (ueb
 die Summe (`team_wertung(..., schnitt=True)`, Jan 09.11.: „mach es so das es sinn ergibt"); Web-Text `team.event.wertungSchnitt*`.
 Erklaerseite `/nerd-analysen-sprints` (`NerdSprints.tsx`): vorerst nur Admins, nur Englisch.
 
+**Endstand = Snapshot** (geprueft 09.11.2026, Jan: „der snapshot des fertigen ergebnisses … und nicht eine aktuelle
+neuberechnung"): nach dem Einfrieren lesen alle Pfade nur noch `ergebnis_json` (Zeilen, Team-Wertung, Wappen je Zeile),
+`summen_ergebnis_json` und `spots_fest_json`; `event_out`, Abzeichen (`abzeichen`) und das Teilen-Bild rechnen nichts neu,
+Aendern gibt 409. Einzige Ausnahme mit Absicht: wer danach `global_events_aus` setzt, faellt aus den Fahrerzeilen
+(Raenge ruecken nach), nicht aus der Team-Wertung. Neue Felder (Sprint-Bestenlisten, Durchschnitts-Team-Wertung) landen
+automatisch im Snapshot, weil er die komplette `_event_voll`-Ausgabe speichert. Eingefroren wird alle 5 min per
+`foil-events-einfrieren.timer` (`server/events_einfrieren.py`), zusaetzlich beim Abruf und nachts in `record_snapshot.py`.
+
 ## Teambild (01.11.2026)
 
 Breites Bild ueber dem Teamkopf. Empfohlen 1600 x 500 px; gespeichert hoechstens 1600 px breit, nie zugeschnitten;

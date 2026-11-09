@@ -1,0 +1,12 @@
+[Unit]
+Description=pumpfoil.org: faellige Team-Events einfrieren (Endstand festschreiben)
+After=postgresql.service network.target
+
+# Pfade wie die live laufenden Units auf dieser VM (User=jan, /home/jan/garmin-connect-iq).
+# Bei Server-Umzug hier + in allen foil-*.service Pfade/User anpassen — siehe deploy/README.md.
+[Service]
+Type=oneshot
+User=jan
+EnvironmentFile=-/home/jan/garmin-connect-iq/server/.env
+WorkingDirectory=/home/jan/garmin-connect-iq/server
+ExecStart=/home/jan/garmin-connect-iq/server/.venv/bin/python events_einfrieren.py

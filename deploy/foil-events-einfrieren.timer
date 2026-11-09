@@ -1,0 +1,7 @@
+[Unit]
+Description=Alle 5 Minuten faellige Team-Events einfrieren (ende + 24 h)
+[Timer]
+OnCalendar=*:0/5
+Persistent=true
+[Install]
+WantedBy=timers.target

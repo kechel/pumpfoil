@@ -134,6 +134,12 @@ Aktive Timer (`systemctl list-timers | grep foil`):
   `rsync` von `data/` und `media/` als Hardlinks nach `$BACKUP_BASE/latest-backup`.
 - **foil-backup-snapshot.timer** (Mi 04:00) → permanenter Hardlink-Snapshot.
 - **foil-db-backup.timer** → zusätzlicher rotierender `pg_dump` (`scripts.backup_db`).
+- **foil-events-einfrieren.timer** (alle **5 min**) → `events_einfrieren.py`: friert Team-Events ein, sobald
+  `ende + 24 h` vorbei ist (Endstand in `ergebnis_json`), statt erst beim ersten Abruf (09.11.2026).
+  ```
+  sudo cp deploy/foil-events-einfrieren.{service,timer} /etc/systemd/system/
+  sudo systemctl daemon-reload && sudo systemctl enable --now foil-events-einfrieren.timer
+  ```
 - **foil-records.timer** (täglich **03:15**, vor dem Backup) → `record_snapshot.py`: Community-
   Rekorde snapshotten, echte Verbesserungen in `record_events` loggen + Push. Installieren:
   ```bash
