@@ -54,7 +54,9 @@ const NEU_BIS = Date.UTC(2026, 8, 30);   // 30. September 2026
 const NEU_BIS_5 = Date.UTC(2026, 9, 14); // Teil 5, erschienen 30.09.2026 — zwei Wochen „neu" wie Teil 4
 // Hinweis „Einstellungen: oben auf dein Bild" an der Stelle des alten Menuepunkts, eine Woche ab dem Umbau 04.11.2026.
 const EINSTELLUNGEN_HINWEIS_BIS = Date.UTC(2026, 10, 11);
-const NEU_BIS_OD = Date.UTC(2026, 10, 22); // Open Discussions, erschienen 08.11.2026 — zwei Wochen hervorgehoben
+// Open Discussions, erschienen 08.11.2026 — Hervorhebung am 09.11.2026 an den Sprint-Artikel abgegeben (Jan).
+const NEU_BIS_OD = Date.UTC(2026, 10, 9);
+const NEU_BIS_SPRINTS = Date.UTC(2026, 10, 23); // Flying sprints, erschienen 09.11.2026 — zwei Wochen „neu"
 const NEU_BIS_6 = Date.UTC(2026, 10, 2); // Teil 6, erschienen 24.10.2026 — Hervorhebung am 02.11.2026 beendet (Jan: „ist jetzt lang genug gewesen")
 
 // Englisches Changelog-Datum ("July 21, 2026") -> kurzes Datum im Locale des Nutzers
@@ -464,13 +466,17 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
               className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" />
           )}
         </NavLink>
-        {/* Fliegende Sprints (09.11.2026): Vorschau nur fuer Admins, nur Englisch (Jan). */}
-        {isAdmin && (
-          <NavLink to="/nerd-analysen-sprints" end
-            className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
-            <span className="whitespace-nowrap">↳ Flying sprints (admin)</span>
-          </NavLink>
-        )}
+        {/* Fliegende Sprints (09.11.2026): oeffentlich, nur Englisch; zwei Wochen als neu markiert (statt Open Discussions). */}
+        <NavLink to="/nerd-analysen-sprints" end
+          className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${
+            NEU_BIS_SPRINTS > Date.now() ? "rounded-lg py-1 bg-brand-500/10 ring-1 ring-brand-500/25 " : ""
+          }${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
+          <span className="whitespace-nowrap">↳ Flying sprints: how we time them</span>
+          {NEU_BIS_SPRINTS > Date.now() && (
+            <span title={t("badge.new")} aria-label={t("badge.new")}
+              className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" />
+          )}
+        </NavLink>
         {/* Derselbe Fall eine Zeile tiefer: stand ebenfalls fest auf Deutsch. */}
         <NavLink to="/systemarchitektur" end title={t("nav.arch")}
           className={({ isActive }) => `mt-2 flex items-center gap-1.5 px-3 text-xs ${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>

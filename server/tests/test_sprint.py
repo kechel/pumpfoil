@@ -161,3 +161,23 @@ def test_event_bis_zehn_bestenlisten(client):
     assert r.status_code == 200, r.text
     assert len(r.json()["tafeln"]) == 10
     assert client.post(f"/api/teams/{slug}/events?sprint=1", headers=k, json=body(11)).status_code == 422
+
+
+def test_aufgefuelltes_tempo_zaehlt_nicht(monkeypatch):
+    # Uhr meldet Tempo 0 (keine Messung); der Standard-Ladeweg wuerde es aus den Positionen auffuellen. Die Sprints
+    # duerfen davon nichts sehen: ohne Uhr-Tempo kein Wert.
+    from app.analysis import sprint as SP
+    from app import storage
+
+    class R:
+        segments_json = '[{"t_start_session_ms": 0, "t_end_session_ms": 59000}]'
+    class S:
+        session_uuid = "x"
+        trim_start_ms = 0
+    gps = _spur([5.0] * 60)
+    for p in gps:
+        p[3] = 0.0
+    monkeypatch.setattr(storage, "load_gps", lambda uuid, roh=False: gps if roh else storage.tempo_auffuellen([list(p) for p in gps]))
+    r = R()
+    SP.setzen(S(), r)
+    assert r.sprint_100m_mps == 0.0 and r.sprint_60s_mps == 0.0

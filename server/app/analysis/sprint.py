@@ -25,7 +25,7 @@ import math
 
 import numpy as np
 
-VERSION = 1
+VERSION = 2   # 2: nur Uhr-Tempo (roh), ohne aus Positionen aufgefuelltes (09.11.2026)
 STRECKEN_M = (100, 200, 300)
 DAUERN_S = (60,)
 LUECKE_S = 3.0
@@ -151,7 +151,10 @@ def setzen(session, result) -> bool:
         segmente = []
     if not isinstance(segmente, list):
         segmente = []
-    erg = session_sprints(storage.load_gps(session.session_uuid) if segmente else [], segmente,
+    # roh=True: NUR das Uhr-Tempo. Der Standard-Ladeweg fuellt fehlendes Tempo (0/-1) aus den Positionen auf
+    # (storage.tempo_auffuellen) — das waere genau die Positionsstrecke, die hier nicht zaehlen soll, und hebelte
+    # MIN_TEMPO_ANTEIL aus (Befund 09.11.2026: 36 von 2949 Sessions betroffen, 11 hatten nur dadurch einen Wert).
+    erg = session_sprints(storage.load_gps(session.session_uuid, roh=True) if segmente else [], segmente,
                           int(session.trim_start_ms or 0))
     for kz in KENNZAHLEN:
         setattr(result, kz + "_mps", erg["best"].get(kz, 0.0))

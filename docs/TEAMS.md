@@ -226,7 +226,7 @@ gespeicherten Sprint-Bestenlisten, damit eine alte App sie beim Speichern nicht 
 Alte Sessions: `scripts/sprints-nachrechnen.py` (Trockenlauf ohne `--echt`).
 Team-Wertung globaler Events: bei Sprints der **Durchschnitt** der besten N (ueber die tatsaechlich mitgezaehlten), sonst
 die Summe (`team_wertung(..., schnitt=True)`, Jan 09.11.: „mach es so das es sinn ergibt"); Web-Text `team.event.wertungSchnitt*`.
-Erklaerseite `/nerd-analysen-sprints` (`NerdSprints.tsx`): vorerst nur Admins, nur Englisch.
+Erklaerseite `/nerd-analysen-sprints` (`NerdSprints.tsx`): oeffentlich seit 09.11.2026, nur Englisch.
 Bestenlisten je Event: hoechstens 10 (`EVENT_MAX_TAFELN`, vorher 6; 09.11.2026 nach dem Einfrieren von Event 4). Native Editoren ab der naechsten App-Fassung, alte Apps zeigen den Knopf nur bis 6.
 **Siegertreppchen** (09.11.2026, `web/src/components/EventPodest.tsx`): ueber der Bestenliste beendeter Events, vorerst
 NUR fuer Admins und nur in der PWA. Folgt der gewaehlten Bestenliste; Fahrer als schwebende Foils (Gold/Silber/Bronze, Form

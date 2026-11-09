@@ -1,14 +1,13 @@
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../lib/api";
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { ScrollToTop } from "../components/ScrollToTop";
 
 // Erklaerseite zu den fliegenden Sprints (server/app/analysis/sprint.py, Team-Wertung teams.team_wertung).
 // Jan, 09.11.2026: „erstelle vielleicht eine erklaerseite auf der das erklaert wird wie der algorithmus funktioniert, als
 // neuen nerd-artikel oder so, dann koennen wir auch darauf verweisen und oeffentlich transparent machen fuer jeden was
-// genau wie bewertet und berechnet wird, gern erstmal nur in der pwa, nur auf englisch und nur fuer admins sichtbar".
-// Darum: Route im angemeldeten Bereich, Inhalt nur fuer Admins, Menuepunkt nur fuer Admins. Zahlen aus der Messung vom
+// genau wie bewertet und berechnet wird". Erst nur fuer Admins, am 09.11.2026 von Jan oeffentlich gemacht (nur Englisch,
+// Textseite wie die Nerd-Teile: ohne Login lesbar). Zahlen aus der Messung vom
 // 09.11. (docs/TODO.md „Schnellste 100 m …"), nur zusammengefasst, keine Fahrer. Wenn die Konstanten in sprint.py sich
 // aendern, diese Seite mitziehen.
 
@@ -65,16 +64,10 @@ function Schema() {
 }
 
 export default function NerdSprints() {
-  const [admin, setAdmin] = useState<boolean | null>(null);
-  useEffect(() => { api.getProfile().then((p) => setAdmin(!!p.is_admin)).catch(() => setAdmin(false)); }, []);
-  if (admin === null) return null;
-  if (!admin) {
-    return <div className="mx-auto max-w-3xl p-6 text-sm text-slate-400">This page is not published yet.</div>;
-  }
   return (
     <div className="mx-auto max-w-3xl p-6" style={{ paddingTop: "calc(1.5rem + env(safe-area-inset-top))" }}>
       <ScrollToTop />
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Nerd analyses · admin preview</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Nerd analyses</p>
       <h1 className="mb-1 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil />Flying sprints: how we time them</h1>
       <p className="text-sm text-slate-400">The fastest flying 100 m, 200 m and 300 m and the fastest flying minute — what is measured,
         what does not count, and how teams are ranked. Last updated 9 November 2026.</p>
@@ -85,7 +78,7 @@ export default function NerdSprints() {
         run is checked from every possible starting point, so a slow start costs you nothing.</P>
       <P>Distances are shown as a time with the average speed behind it, for example <C>21.4 s · 16.8 km/h</C>. The minute is
         shown as its average speed and the distance covered, for example <C>16.8 km/h · 280 m</C>. Times have one decimal: the
-        watch measures once per second, and over 100 m the measurement is good to a few tenths of a second, so hundredths would
+        watch measures once per second, and over 100 m the measurement is probably good to a few tenths of a second, so hundredths would
         only pretend to be precise. Rankings still use the full value. Faster is better on all four.</P>
       <P>A sprint never spans two runs. If you come off the foil, the next run starts from zero. A run that is too short for a
         distance simply has no value for it — most runs are long enough for 100 m, far fewer for 300 m or a full minute.</P>

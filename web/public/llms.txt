@@ -39,6 +39,7 @@
 - [Phone on the board: measured at the source](https://pumpfoil.org/nerd-analysen-4)
 - [A new on-foil detection, checked against every truth we have](https://pumpfoil.org/nerd-analysen-5)
 - [Pumps and glides: counting every pump once, detecting glides, checked against a phone on the board](https://pumpfoil.org/nerd-analysen-6)
+- [Flying sprints: how the fastest flying 100 m, 200 m, 300 m and minute are timed from the watch's own GPS speed](https://pumpfoil.org/nerd-analysen-sprints)
 - [System architecture](https://pumpfoil.org/systemarchitektur)
 - [Changelog](https://pumpfoil.org/changelog)
 - [Source code (GitHub)](https://github.com/kechel/pumpfoil)

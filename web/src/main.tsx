@@ -246,6 +246,8 @@ const router = createBrowserRouter([
       { path: "/nerd-analysen-4", element: <NerdAnalysen4 />, handle: TEXT },
       { path: "/nerd-analysen-5", element: <NerdAnalysen5 />, handle: TEXT },
       { path: "/nerd-analysen-6", element: <NerdAnalysen6 />, handle: TEXT },
+      // Fliegende Sprints (09.11.2026, oeffentlich, nur Englisch).
+      { path: "/nerd-analysen-sprints", element: <NerdSprints />, handle: TEXT },
       { path: "/systemarchitektur", element: <Systemarchitektur />, handle: TEXT },
       // Dieselben Seiten unter /<code>/… (02.11.2026), s. SprachSeite.
       { path: "/:lang/why-pumpfoil", element: <SprachSeite slug="/why-pumpfoil"><Warum /></SprachSeite>, handle: TEXT },
@@ -272,8 +274,6 @@ const router = createBrowserRouter([
           { path: "foiler/:id", element: <Foiler /> },
           // Laengste eigene Laeufe im Vergleich (Jan, 02.10.2026) — seit 02.10. fuer alle, Knopf ganz unten auf Home.
           { path: "laeufe", element: <LaengsteLaeufe /> },
-          // Erklaerseite fliegende Sprints (09.11.2026): vorerst nur Admins, nur Englisch, nicht oeffentlich.
-          { path: "nerd-analysen-sprints", element: <NerdSprints /> },
           { path: "alle-sessions", element: <AllSessionsRedirect /> },
           { path: "spots", element: <Spots /> },
           { path: "foils", element: <Foils /> },

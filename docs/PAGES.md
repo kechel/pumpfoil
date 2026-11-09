@@ -67,7 +67,7 @@ heraus und von der Startseite verlinkt.
 | `/nerd-analysen-2` | `NerdAnalysen2.tsx` | Teil 2: Wie die Erkennung funktioniert (Signalverarbeitung/ML hinter Pump-/On-Foil-/Start-Ende-/Gleit-Erkennung). Selbstgezeichnete SVGs. |
 | `/nerd-analysen-3` | `NerdAnalysen3.tsx` | Teil 3: zweite Doppeluhr-Messung mit echten Fotos + Mess-Plots (`web/public/nerd3/`, same-origin). 8 Sprachen. |
 | `/nerd-analysen-6` | `NerdAnalysen6.tsx` | Teil 6: Pump- und Gleit-Erkennung pg-1 gegen das Brett (`docs/PUMP-GLEIT.md`), freigegeben 24.10.2026. Bilder `web/public/nerd6/` aus `scripts/pumpgleit/nerd6_bilder.py`. 18 Sprachen (`nerd6.i18n.ts`). Verlinkt: Sidebar, NerdNav, Startseite (Tiefe-Inhalte), `llms.txt`. |
-| `/nerd-analysen-sprints` | `NerdSprints.tsx` | Fliegende Sprints: Messung (Uhr-Tempo, Gegenprobe, Luecken), GPS-only-Hinweis, Team-Wertung als Durchschnitt. 09.11.2026, VORSCHAU: nur Admins (Inhalt + Menuepunkt), nur Englisch, im angemeldeten Bereich. Zahlen an `analysis/sprint.py` koppeln. |
+| `/nerd-analysen-sprints` | `NerdSprints.tsx` | Fliegende Sprints: Messung (Uhr-Tempo, Gegenprobe, Luecken), GPS-only-Hinweis, Team-Wertung als Durchschnitt. 09.11.2026, Seit 09.11.2026 oeffentlich (Textseite ohne Login), nur Englisch; Sidebar (bis 23.11. als neu markiert), sitemap.xml, llms.txt. Zahlen an `analysis/sprint.py` koppeln. |
 | `/systemarchitektur` | `Systemarchitektur.tsx` | Realer Server-Aufbau, prüfbar für IT-Interessierte. Nur Deutsch. **Keine Secrets** (Verfahren/Design, keine Keys/Hosts/IPs). |
 
 ## Admin
