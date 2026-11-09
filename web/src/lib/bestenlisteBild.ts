@@ -215,23 +215,24 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
     g.font = `700 ${gross}px ${SCHRIFT}`; g.textAlign = "right"; g.fillStyle = akzent;
     g.fillText(z.wert, BILD_B - X, mitte);
     let wb = g.measureText(z.wert).width;
-    // Sportart-Kuerzel rechtsbuendig vor dem Wert, in fester Spaltenbreite je Sportart (untereinander buendig).
+    // Sportart-Kuerzel rechtsbuendig vor dem Wert.
     if (z.abzeichen?.length) {
-      const pp = Math.max(14, Math.round(gross * 0.5)), ph = Math.round(pp * 1.6), pg = 8;
+      const pp = Math.max(16, Math.round(gross * 0.62)), ph = Math.round(pp * 1.5), pg = 8;
       g.font = `700 ${pp}px ${SCHRIFT}`;
       const pw = Math.max(ph, ...Object.values(kurz).map((k) => g.measureText(k).width + Math.round(pp * 0.9)));
-      const reihe = Object.keys(namen);   // feste Reihenfolge der Spalten
-      // Am breitesten Wert ausrichten, damit die Spalten ueber alle Zeilen buendig stehen.
+      // Am breitesten Wert ausrichten, damit die Pillen buendig vor der Wertespalte stehen.
       g.font = `700 ${gross}px ${SCHRIFT}`;
       const wMax = Math.max(wb, ...alleZeilen.map((x) => g.measureText(x.wert).width));
       g.font = `700 ${pp}px ${SCHRIFT}`;
-      const rechtsP = BILD_B - X - wMax - 24;
-      reihe.forEach((sp, i) => {
-        if (!z.abzeichen!.some((a) => a.sport === sp)) return;
-        const x0 = rechtsP - (reihe.length - i) * (pw + pg) + pg;
+      // Keine festen Spalten je Sportart (Jan, 09.11.2026: „meistens hat jeder nur eine sportart, nur eins weiter links
+      // wenn noetig"): die Pillen dicht von rechts, eine zweite links daneben.
+      const reihe = Object.keys(namen).filter((sp) => z.abzeichen!.some((a) => a.sport === sp));
+      let x0 = BILD_B - X - wMax - 24 - pw;
+      [...reihe].reverse().forEach((sp) => {
         const [fl, tf] = pillFarbe(sp);
         g.fillStyle = fl; g.beginPath(); g.roundRect(x0, mitte - ph / 2, pw, ph, 8); g.fill();
         g.fillStyle = tf; g.textAlign = "center"; g.fillText(kurz[sp] ?? "?", x0 + pw / 2, mitte + 1);
+        x0 -= pw + pg;
       });
       wb = wMax + 24 + reihe.length * (pw + pg);
       g.textAlign = "right";
