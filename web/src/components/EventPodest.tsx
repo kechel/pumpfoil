@@ -6,7 +6,7 @@ import { TeamHerkunft } from "./TeamHerkunft";
 import TeamWappen from "./TeamWappen";
 import { Card } from "./ui";
 
-// Siegertreppchen ueber der Bestenliste beendeter Events (Jan, 09.11.2026). Erst nur Admins, seit 09.11. fuer alle Eingeloggten; nur PWA
+// Siegertreppchen ueber der Bestenliste beendeter Events (Jan, 09.11.2026). Erst nur Admins, seit 09.11. fuer jeden, der die Eventseite sieht; nur PWA
 // (Entwurf: Canvas „Event-Siegertreppchen"). Zeigt die gerade gewaehlte Bestenliste: Fahrer als schwebende Foils
 // (Gold am hoechsten), bei globalen Events umschaltbar auf die Team-Wertung — je Team ein Foil (Mastlaenge = Platz), darauf je Mitglied
 // ein Kopf (hell = im Event gefahren, grau = nicht; wer in die Wertung kam, ist egal).

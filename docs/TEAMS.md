@@ -229,7 +229,7 @@ die Summe (`team_wertung(..., schnitt=True)`, Jan 09.11.: „mach es so das es s
 Erklaerseite `/nerd-analysen-sprints` (`NerdSprints.tsx`): oeffentlich seit 09.11.2026, nur Englisch.
 Bestenlisten je Event: hoechstens 10 (`EVENT_MAX_TAFELN`, vorher 6; 09.11.2026 nach dem Einfrieren von Event 4). Native Editoren ab der naechsten App-Fassung, alte Apps zeigen den Knopf nur bis 6.
 **Siegertreppchen** (09.11.2026, `web/src/components/EventPodest.tsx`): ueber der Bestenliste beendeter Events, seit
-09.11.2026 fuer alle Eingeloggten (nicht fuer Gaeste), nur in der PWA. Folgt der gewaehlten Bestenliste; Fahrer als schwebende Foils (Gold/Silber/Bronze, Form
+09.11.2026 mit denselben Rechten wie die Eventseite (zeigt nur deren Daten; Gaeste in Gastform), nur PWA. Folgt der gewaehlten Bestenliste; Fahrer als schwebende Foils (Gold/Silber/Bronze, Form
 wie im Wappen von Team 9), bei globalen Events umschaltbar auf Teams: Foil je Team in Gold/Silber/Bronze (Mastlaenge = Platz), darauf je Mitglied ein Kopf (hell =
 im Event gefahren, grau = nicht). Dafuer traegt `team_wertung` seit 09.11. `mitglieder` und `banner_url`/`banner_fokus` (aus
 der festgehaltenen Zuordnung; aeltere Snapshots: Teamgroesse aus `team_zuordnung_json`; banner_* derzeit ungenutzt). Ton: Pixabay-Sound 484333
