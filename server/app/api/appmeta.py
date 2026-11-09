@@ -624,8 +624,9 @@ _APP_META: dict[str, dict[str, str]] = {
     # Die Watch 5 schickt `p=huawei` (1.0.2 ist so eingereicht) -> devices._plat_fuer_hinweis
     # bildet das auf "huawei-watch5" ab. `latest` erst bei bestaetigter Freigabe setzen.
     "huawei-watch5": {      # watch-huawei/arkts, HarmonyOS 5/6, laedt selbst hoch (seit 1.0.2)
-        "latest": "1.0.3",  # FREIGEGEBEN 2026-11-04 (Jans Meldung, AppGallery-Mail: Einreichung 02.11. 20:03:25 approved
-        # and released). Erste Huawei-Fassung im Store. Davor 1.0.2 abgelehnt 22.10./28.10., 1.0.3 abgelehnt 02.11.
+        "latest": "1.0.4",  # FREIGEGEBEN 2026-11-09 (Jans Meldung, AppGallery-Mail: Einreichung 04.11. 17:42:06 Pekinger Zeit
+        # approved and released). 1.0.3 am 04.11. als erste Huawei-Fassung freigegeben; davor 1.0.2 abgelehnt 22.10./28.10.,
+        # 1.0.3 abgelehnt 02.11.
         "min_supported": "",
         # Ueber den Paketnamen (von Jan im Browser bestaetigt 04.11.); die Form /app/C<App-ID> zeigte NICHTS.
         "store_url": "https://appgallery.huawei.com/app/detail?id=org.pumpfoil.huawei",
@@ -987,15 +988,7 @@ IN_REVIEW: list[dict] = [
          "The switch for the phone recorder is now on the settings overview right under the language, where new users look for it first.",
      ]},
     # iPhone + Apple Watch 1.1.59 am 05.11. FREIGEGEBEN -> raus (s. _APP_META); 39 Punkte tragen ios 1.1.59, Ereignis 05.11.
-    # EINGEREICHT 04.11.2026 (Jans Meldung, AppGallery „Under pre-review"; Paket arkts-default-signed.app 1.0.4 (1000004),
-    # 0,11 MB, hochgeladen 10:40:21, Laender wie zuletzt). Aus c4638ba9: Hinweise des Pruefberichts zu 1.0.3 (Seiten
-    # gleiten, Pause-Seiten passen ins runde Display, „Paused" ersetzt den obersten Text), dazu Einstellungen zeigen den
-    # neuen Wert sofort, Auto-Start nur vom Startbildschirm. Jan im Emulator: Gleiten, Einstellungen, Sessions #19894–19904.
-    {"name": "Huawei Watch 5", "version": "1.0.4",
-     "eingereicht": "2026-11-04",
-     "items": [
-         "Pages slide in when you change them, and the pause screens fit the round display.",
-     ]},
+    # Huawei Watch 5 1.0.4 am 09.11. FREIGEGEBEN (s. _APP_META["huawei-watch5"]); Punkt im Changelog mit huawei-watch5 1.0.4.
     # Garmin 1.0.99 am 03.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt im Changelog mit garmin 1.0.99.
     # iPhone + Apple Watch 1.1.58 am 29.10. FREIGEGEBEN -> raus (s. _APP_META); Punkte 771/772/789/790/794/795/796 tragen ios 1.1.58, vier neue am 29.10.
     # Android 1.1.46 / Wear 1.2.46 (eingereicht 28.10., freigegeben 05.11.2026) -> LIVE; 19 Punkte hatten schon
