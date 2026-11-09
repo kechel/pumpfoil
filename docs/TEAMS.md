@@ -274,7 +274,7 @@ fuer Regeln bleibt der Server (`server/app/teams.py`, `server/app/api/teams.py`)
 |---|---|
 | Eigene Teams (Home-Links, Badge offene Anfragen `anfragen`) | `GET /mine` |
 | Alle freigegebenen Teams (Seite „Alle Teams") | `GET /liste` |
-| Laufende, beendete noch nicht eingefrorene („Results pending", seit 08.11.2026) + in 3 Tagen beginnende Events (Community) | `GET /liste/events` |
+| Laufende, beendete noch nicht eingefrorene („Results pending", seit 08.11.2026), eingefrorene noch 24 h danach (seit 09.11.2026) + in 3 Tagen beginnende Events (Community) | `GET /liste/events` |
 | Alle Events, seitenweise (laufend → kommend → vergangen) | `GET /liste/events/alle?offset=&n=` (n ≤ 50) |
 | Teamseite | `GET /{slug}` (`meine_rolle`, `mein_status`, `anfragen_offen`, `anmeldungen_zulassen`, `automatisch_akzeptieren`, `bestenlisten_oeffentlich`, `chat_scope`) |
 | Bestenlisten / Teamstatistik / Logbuch | `GET /{slug}/bestenlisten?period=` · `/{slug}/statistik?period=` · `/{slug}/logbuch` |

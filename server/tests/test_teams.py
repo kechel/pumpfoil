@@ -686,12 +686,15 @@ def test_community_aktuelle_events(client, monkeypatch):
     bald = ev("Bald", timedelta(days=2), timedelta(days=3))
     ev("Spaeter", timedelta(days=5), timedelta(days=6))
     ev("Vorbei", timedelta(days=-3), timedelta(hours=-1))
+    ev("Fertig", timedelta(days=-3), timedelta(hours=-30))    # eingefroren seit 6 h: noch 18 h zu sehen (09.11.2026)
+    ev("Alt", timedelta(days=-4), timedelta(hours=-49))       # Einfrieren + 24 h vorbei: weg
     ev("Intern", timedelta(hours=-1), timedelta(days=1), glob=False)
     for kopf in (kb, kc):   # auch Fremde: globale Events gelten fuer alle
         liste = client.get("/api/teams/liste/events", headers=kopf).json()
         titel = [(e["titel"], e["status"], e["global"]) for e in liste if e["team"]["slug"] == slug]
         # Beendet, aber noch nicht eingefroren („Results pending") bleibt stehen (08.11.2026).
-        assert titel == [("Laeuft", "laeuft", True), ("Vorbei", "auswertung", True), ("Bald", "kommend", True)] and {laeuft, bald}
+        assert [x[0] for x in titel] == ["Laeuft", "Vorbei", "Fertig", "Bald"] and {laeuft, bald}
+        assert titel[0][1:] == ("laeuft", True) and titel[1][1:] == ("auswertung", True) and titel[3][1:] == ("kommend", True)
 
 
 def test_event_uebersicht_seitenweise(client, monkeypatch):

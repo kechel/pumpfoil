@@ -276,18 +276,24 @@ def vergleich(period: str = "30d", top: int = 5, sport: str = "pumpfoil", region
     return {"period": period, "top": top, "sport": sport, "region": region, "teams": teams, "quellen": q}
 
 
+# Community-Seite: beendete Events so lange nach dem Einfrieren noch zeigen (Jan, 09.11.2026).
+COMMUNITY_NACHLAUF = timedelta(hours=24)
+
+
 @router.get("/liste/events")
 def liste_events(user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
     """Community-Abschnitt (Jan, 01.11.2026): laufende Events und solche, die in den naechsten Tagen beginnen
     (T.EVENT_VORSCHAU), alle. Ohne Bestenlisten — die stehen auf der Event-Seite. Seit 08.11.2026 auch beendete, die
-    noch nicht eingefroren sind („Results pending", Jan: „zeigen wir da trotzdem noch mit an"). Reihenfolge: laufende,
-    dann in Auswertung, dann kommende."""
+    noch nicht eingefroren sind („Results pending", Jan: „zeigen wir da trotzdem noch mit an"), und seit 09.11.2026 noch
+    COMMUNITY_NACHLAUF nach dem Einfrieren (Jan: „sogar noch 24h bis ende des snapshots verlaengern") — gerechnet ab dem
+    planmaessigen Einfrieren (ende + EINFRIEREN_NACH), nicht ab `eingefroren_am`, das erst der naechste Lauf setzt.
+    Reihenfolge: laufende, in Auswertung, beendete, dann kommende."""
     jetzt = T._jetzt()
     E = models.TeamEvent
     q, eigene = _events_sichtbar(db, user.id)
-    rows = (q.filter(E.eingefroren_am.is_(None), E.start <= jetzt + T.EVENT_VORSCHAU)
+    rows = (q.filter(E.ende > jetzt - T.EINFRIEREN_NACH - COMMUNITY_NACHLAUF, E.start <= jetzt + T.EVENT_VORSCHAU)
             .order_by(E.start).limit(200).all())   # alle zeigen (Jan); die Grenze ist nur ein Notanker
-    rang = {"laeuft": 0, "auswertung": 1, "kommend": 2}
+    rang = {"laeuft": 0, "auswertung": 1, "beendet": 2, "kommend": 3}
     rows.sort(key=lambda r: rang.get(T.event_status(r[0], jetzt), 3))   # stabil: innerhalb nach Start
     return [_event_kurz(db, e, t, t.id in eigene, jetzt) for e, t in rows]
 
