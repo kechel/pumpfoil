@@ -212,7 +212,7 @@ struct TeamEventEditor: View {
                     Section { Toggle(Loc.t("team.event.ohneDateien", lang), isOn: $entwurf.ohne_dateien).font(.subheadline) }
                 }
                 if let f = fehler { Section { Text(f).foregroundStyle(.red) } }
-                if entwurf.eventId != nil { loeschenSection }
+                if entwurf.eventId != nil && !entwurf.eingefroren { loeschenSection }
             }
             .navigationTitle(kopf)
             .navigationBarTitleDisplayMode(.inline)

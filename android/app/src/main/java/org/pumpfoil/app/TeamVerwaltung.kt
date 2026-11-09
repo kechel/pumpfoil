@@ -1163,7 +1163,7 @@ private fun TeamEventDialog(slug: String, farbe: String?, start: EventEntwurf, l
                             }
                         })
                     OutlinedButton(onClick = onZu) { Text(I18n.t("common.cancel")) }
-                    if (e.id != null) TextButton(onClick = { loeschFrage = true }) {
+                    if (e.id != null && !e.eingefroren) TextButton(onClick = { loeschFrage = true }) {
                         Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(4.dp))
                         Text(I18n.t("common.delete"), color = MaterialTheme.colorScheme.error)

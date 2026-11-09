@@ -356,7 +356,8 @@ export default function TeamEventSeite() {
         : ev.teambild_zeigen !== false && team.banner_url ? <TeamBanner url={team.banner_url} fokus={team.banner_fokus} className="mb-4" /> : null}
       <div className="team-rand mb-4 border-b-2 pb-4">
         <div className="mb-1 flex flex-wrap items-center gap-2">
-          {verwalter && (
+          {/* Eingefroren: nichts mehr zu aendern oder zu loeschen (Jan, 09.11.2026) — kein Zahnrad. */}
+          {verwalter && ev.status !== "beendet" && (
             <button onClick={popupAuf} title={t("team.event.bearbeiten")} aria-label={t("team.event.bearbeiten")}
               className="order-last ml-auto shrink-0 rounded-xl border border-slate-700 p-2 text-slate-300 hover:bg-slate-800">
               <SettingsIcon className="h-5 w-5" />

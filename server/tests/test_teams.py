@@ -418,9 +418,16 @@ def test_event_fenster_einfrieren_abzeichen(client):
         db.close()
     ev = next(e for e in client.get(f"/api/teams/{slug}/events", headers=ka).json() if e["id"] == eid)
     assert [(z["user_id"], z["rang"]) for z in ev["tafeln"][0]["zeilen"]] == [(ia, 1)]
-    # Weich loeschen (01.11.2026): aus Liste und Abzeichen weg, in der DB noch da; ebenso das ganze Team.
+    # Eingefroren: ueber die API nicht loeschbar (Jan, 09.11.2026), nur von Hand in der DB.
     assert client.get(f"/api/community/foiler/{ia}", headers=ka).json()["team_abzeichen"]
-    assert client.delete(f"/api/teams/{slug}/events/{eid}", headers=ka).status_code == 200
+    assert client.delete(f"/api/teams/{slug}/events/{eid}", headers=ka).status_code == 409
+    # Weich geloescht (von Hand): aus Liste und Abzeichen weg, in der DB noch da; ebenso das ganze Team.
+    db = SessionLocal()
+    try:
+        db.get(models.TeamEvent, eid).geloescht_am = datetime.now(timezone.utc)
+        db.commit()
+    finally:
+        db.close()
     assert eid not in {e["id"] for e in client.get(f"/api/teams/{slug}/events", headers=ka).json()}
     assert client.get(f"/api/community/foiler/{ia}", headers=ka).json()["team_abzeichen"] == []
     db = SessionLocal()

@@ -228,7 +228,8 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
               </button>
             )}
             <button className={knopf} onClick={() => schliessen()}>{t("common.cancel")}</button>
-            {e.id && (
+            {/* Eingefrorene Events nicht loeschbar (Jan, 09.11.2026), der Server lehnt es auch ab. */}
+            {e.id && !e.eingefroren && (
               <button className={`${knopf} ml-auto inline-flex items-center gap-1.5 text-red-700 dark:text-red-300`} onClick={() => {
                 if (!e.id || !window.confirm(t("team.event.loeschenFrage", { titel: e.titel }))) return;
                 api.teamEventLoeschen(slug, e.id).then(() => { schliessen(); laden(); })
@@ -254,8 +255,8 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
               {t(`team.event.status.${ev.status}`)} · {eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang)}
             </span>
           </span>
-          {/* Loeschen nur im Popup (Jan, 01.11.2026); eingefrorene Events oeffnen es nur noch zum Loeschen. */}
-          <button className={knopf} onClick={() => bearbeiten(ev)}>{t("team.event.bearbeiten")}</button>
+          {/* Loeschen nur im Popup (Jan, 01.11.2026); eingefrorene Events weder aenderbar noch loeschbar (09.11.2026). */}
+          {ev.status !== "beendet" && <button className={knopf} onClick={() => bearbeiten(ev)}>{t("team.event.bearbeiten")}</button>}
         </div>
       ))}
 

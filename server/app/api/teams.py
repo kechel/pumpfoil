@@ -666,9 +666,12 @@ def event_aendern(slug: str, event_id: int, body: EventIn, sprint: bool = False,
 @router.delete("/{slug}/events/{event_id}")
 def event_loeschen(slug: str, event_id: int, user: models.User = Depends(current_user),
                    db: Session = Depends(get_db)) -> dict:
-    """Weich loeschen: ausgeblendet, aber noch in der DB (spaeter Papierkorb). Abzeichen daraus verschwinden."""
+    """Weich loeschen: ausgeblendet, aber noch in der DB (spaeter Papierkorb). Abzeichen daraus verschwinden.
+    Eingefrorene Events nicht (Jan, 09.11.2026: „das ist mir zu gefaehrlich, lieber nur hier ueber direktes schreiben in
+    die db") — der Endstand und die Abzeichen daraus bleiben; wer es wirklich will, fragt den Admin."""
     t, _m = _verwalter(db, slug, user)   # Events auch fuer Moderatoren (Jan, 01.11.2026)
     e = _event(db, t, event_id)
+    _nicht_eingefroren(e)
     e.geloescht_am, e.geloescht_von = T._jetzt(), user.id
     db.commit()
     return {"ok": True}
