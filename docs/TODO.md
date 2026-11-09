@@ -1804,6 +1804,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   gps-spruengen ganz rauslassen in dieser bewertung" — Lauf faellt raus, wenn die Glitch-Bereinigung zu oft
   eingreift oder ein Sprung im Bestfenster liegt; Schwelle erst am Bestand messen (Anteil betroffener Laeufe, ob
   die Rekordwerte danach plausibel sind), dann festlegen.
+  **09.11. Messung (Event-Idee „schnellste fliegende Minute / 100 m"):** 7026 Pumpfoil-Laeufe seit 01.10. ohne
+  GPS-Luecke >3 s, bestes Fenster einmal aus den Positionen, einmal aus dem Doppler-Tempo integriert. Abweichung
+  (Median / P90, km/h): 100 m Garmin 0,52/1,36, Apple Watch 1,45/3,58, Wear 0,91/2,20, Handy 1,53/4,55;
+  60 s Garmin 0,38/0,86, Apple 0,84/1,60, Wear 0,71/1,46. Positionen liegen systematisch HOEHER (Zickzack-Rauschen
+  verlaengert den Weg, das Bestfenster sucht sich das Rauschen aus) — je Plattform verschieden, also unfair zwischen
+  Uhren. Erreichbarkeit seit 01.09.: 100 m schaffen 351 von 394 Fahrern, 60 s nur 249, 200 m 281. Skript-Stand
+  im Verlauf vom 09.11. (scratchpad fenster.py), nicht im Repo.
 
 - **31.10. — Teams (Jan, nach Telefonat mit einem Nutzer).** Plan + Jans fuenf Entscheidungen in [`docs/TEAMS.md`](TEAMS.md); Stufe 1 (Web) als Naechstes.
 - **30.10. — Garmin: Feld „Pairing-Code“ in den App-Einstellungen (niedrige Prio, Jan: „viel arbeit mit kaum nutzen“).**
