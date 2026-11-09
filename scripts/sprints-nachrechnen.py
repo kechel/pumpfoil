@@ -4,6 +4,7 @@
     cd server && .venv/bin/python ../scripts/sprints-nachrechnen.py                 # Trockenlauf mit Bilanz
     cd server && .venv/bin/python ../scripts/sprints-nachrechnen.py --echt          # schreiben
     cd server && .venv/bin/python ../scripts/sprints-nachrechnen.py --ab 2026-11-01 --echt
+    cd server && .venv/bin/python ../scripts/sprints-nachrechnen.py --event 5 --echt   # nur Zeitfenster+Teilnehmer eines Events
 
 Schreibt NUR die Cache-Spalten `analysis_results.sprint_*` (NULL -> Wert); keine bestehende Zahl aendert sich, keine
 Neuanalyse. Neue Sessions bekommen die Werte ohnehin bei der Analyse (run_analysis). Committet blockweise (Memory
@@ -28,6 +29,7 @@ def main() -> None:
     ap.add_argument("--echt", action="store_true", help="wirklich schreiben")
     ap.add_argument("--ab", help="nur Sessions ab diesem Tag (YYYY-MM-DD)")
     ap.add_argument("--alle", action="store_true", help="auch schon gerechnete neu rechnen")
+    ap.add_argument("--event", type=int, help="nur Sessions im Zeitfenster dieses Team-Events (und seiner Teilnehmer)")
     args = ap.parse_args()
     db = SessionLocal()
     S, A = models.Session, models.AnalysisResult
@@ -37,6 +39,13 @@ def main() -> None:
         q = q.filter(A.sprint_json.is_(None))
     if args.ab:
         q = q.filter(S.started_at >= datetime.fromisoformat(args.ab).replace(tzinfo=timezone.utc))
+    if args.event:
+        from app import teams as T
+        e = db.get(models.TeamEvent, args.event)
+        q = q.filter(S.started_at >= e.start, S.started_at < e.ende)
+        teilnehmer = T.event_teilnehmer(db, db.get(models.Team, e.team_id), e)
+        if teilnehmer != T.ALLE:
+            q = q.filter(S.user_id.in_(teilnehmer or [-1]))
     ids = [i for (i,) in q.order_by(A.id).all()]
     print(f"{len(ids)} Sessions {'werden geschrieben' if args.echt else '(Trockenlauf)'}")
     mit = {kz: 0 for kz in SP.KENNZAHLEN}
