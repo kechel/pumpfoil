@@ -2,14 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { TeamTafelMitZeilen, TeamWertungZeile, TeamZeile } from "../lib/api";
 import { kennzahl } from "../lib/teamKennzahlen";
-import { TEAM_FARBEN } from "../lib/teamFarben";
 import { TeamHerkunft } from "./TeamHerkunft";
 import TeamWappen from "./TeamWappen";
 import { Card } from "./ui";
 
 // Siegertreppchen ueber der Bestenliste beendeter Events (Jan, 09.11.2026). Vorerst NUR fuer Admins und nur in der PWA
 // (Entwurf: Canvas „Event-Siegertreppchen"). Zeigt die gerade gewaehlte Bestenliste: Fahrer als schwebende Foils
-// (Gold am hoechsten), bei globalen Events umschaltbar auf die Team-Wertung — Stufe = Teambanner, darauf je Mitglied
+// (Gold am hoechsten), bei globalen Events umschaltbar auf die Team-Wertung — je Team ein Foil (Mastlaenge = Platz), darauf je Mitglied
 // ein Kopf (hell = im Event gefahren, grau = nicht; wer in die Wertung kam, ist egal).
 //
 // Ton: „Winner Awards Logo" von tunetank (Pixabay, ID 484333, Pixabay-Lizenz: Einbau ohne Namensnennung erlaubt,
@@ -97,37 +96,31 @@ function FahrerPlatz({ z, platz, fmt }: { z: TeamZeile; platz: number; fmt: (v: 
   );
 }
 
-// Teams (Jan, 09.11.2026): statt Podest ein Foil je Team — das Brett ist das Teambanner, darauf stehen die Mitglieder,
+// Teams (Jan, 09.11.2026): statt Podest ein Foil je Team in Gold/Silber/Bronze, darauf stehen die Mitglieder,
 // die Mastlaenge gibt die Hoehe (Gold am laengsten). Alle Fluegel stehen auf einer Linie.
 const MAST = [70, 44, 22];
 // Hoechstens so viele Koepfe (Jan, 09.11.2026); die echten Zahlen stehen darunter. Mitfahrer zuerst.
 const KOEPFE_MAX = 30;
 
-function TeamFoil({ platz, banner, fokus, farbe, id }: { platz: number; banner?: string | null; fokus?: string | null; farbe: string; id: string }) {
+function TeamFoil({ platz }: { platz: number }) {
   const m = METALL[platz - 1] ?? METALL[2];
   const L = MAST[platz - 1] ?? 22;
   const y = 6.5 + L;           // Hoehe der Fluegel (Brett 6 hoch)
-  const pos = fokus ? fokus.split(",").map((p) => `${p}%`).join(" ") : "50% 50%";
+  // Ganz in Gold/Silber/Bronze, auch das Brett (Jan, 09.11.2026: „keine anderen farben").
   return (
     <svg viewBox={`0 0 122 ${y + 6}`} className="block w-full" aria-hidden="true">
-      <defs><clipPath id={id}><rect x="4" y="0.75" width="96" height="6" rx="3" /></clipPath></defs>
       <g fill={m.fill} stroke={m.rand} strokeWidth="0.6">
         <rect x="80" y="6.5" width="6" height={L} />
         <rect x="40" y={y - 2} width="78" height="4" rx="2" />
         <path d={`M36 ${y} Q44 ${y - 4.4} 58 ${y - 3.4} Q68 ${y - 2.6} 68 ${y} Q68 ${y + 2.6} 58 ${y + 3.4} Q44 ${y + 4.4} 36 ${y} Z`} />
         <path d={`M101 ${y} Q109 ${y - 3.2} 118.5 ${y - 1.2} L118.5 ${y + 1.2} Q109 ${y + 3.2} 101 ${y} Z`} />
+        <rect x="4" y="0.75" width="96" height="6" rx="3" />
       </g>
-      {/* Brett = Teambanner (ohne Banner: Teamfarbe), Rand in Gold/Silber/Bronze */}
-      <rect x="4" y="0.75" width="96" height="6" rx="3" fill={farbe} />
-      {banner && <image href={banner} x="4" y="0.75" width="96" height="6" preserveAspectRatio="xMidYMid slice" clipPath={`url(#${id})`}
-        style={{ objectPosition: pos }} />}
-      <rect x="4" y="0.75" width="96" height="6" rx="3" fill="none" stroke={m.rand} strokeWidth="0.6" />
     </svg>
   );
 }
 
 function TeamPlatz({ x, platz, fmt }: { x: TeamWertungZeile & { mitglieder?: number; banner_url?: string | null; banner_fokus?: string | null }; platz: number; fmt: (v: number) => string }) {
-  const farbe = (TEAM_FARBEN[x.farbe || "cyan"] ?? TEAM_FARBEN.cyan).dunkel;
   const mitglieder = Math.max(x.mitglieder ?? x.teilnehmer, x.teilnehmer);
   // Ueber KOEPFE_MAX: im Verhaeltnis verkleinert, mindestens ein heller Kopf, wenn jemand gefahren ist.
   const koepfe = Math.min(mitglieder, KOEPFE_MAX);
@@ -145,7 +138,7 @@ function TeamPlatz({ x, platz, fmt }: { x: TeamWertungZeile & { mitglieder?: num
         <div className="ml-[3%] flex w-[79%] flex-wrap items-end justify-center gap-y-0.5" title={`${x.teilnehmer} / ${mitglieder}`}>
           {Array.from({ length: koepfe }, (_, i) => <Kopf key={i} gefahren={i < hell} gross />)}
         </div>
-        <TeamFoil platz={platz} banner={x.banner_url} fokus={x.banner_fokus} farbe={farbe} id={`podest-brett-${platz}`} />
+        <TeamFoil platz={platz} />
       </div>
       <span className="text-xs font-semibold text-slate-400">{x.teilnehmer} / {mitglieder}</span>
     </div>
