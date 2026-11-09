@@ -709,6 +709,13 @@ export default function Landing() {
                 </Link>
               </li>
             ))}
+            {/* Open Discussions (Jan, 09.11.2026: „auf der public startseite mit verlinken … reicht aber auf englisch"): die
+                Seite gibt es nur englisch, deshalb auch die Zeile hier fest englisch statt in 18 Sprachen. */}
+            <li lang="en">
+              <Link to="/open-discussions/foil-scoot" className="text-brand-700 hover:underline dark:text-brand-300">
+                Open discussion: foil scoot vs. pumpfoil — the arguments and what we changed (English)
+              </Link>
+            </li>
           </ul>
         </section>
 
