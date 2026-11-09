@@ -12,8 +12,9 @@ export type BildZeile = { rang: number; name: string | null; initialen: string; 
   land?: string | null;   // Nationalitaet (ISO-Code) -> Flagge vor dem Namen
   // Team-Bestenliste (04.11.2026): Wappen vor dem Namen — Logo, sonst die Initialen auf der Teamfarbe (wie TeamWappen).
   wappen?: { logo: string | null; initialen?: string; flaeche: string; schrift: string; flaecheHell: string; schriftHell: string };
-  // Gemischte Ansicht (Jan, 09.11.2026: „das share image enthaelt die badges je fahrer noch nicht"): Sportart-Pillen hinter
-  // dem Namen, wie SportAbzeichen auf der Seite. Text schon uebersetzt (s. bildAbzeichen).
+  // Gemischte Ansicht (Jan, 09.11.2026): Sportart als kurze Pille rechtsbuendig vor dem Wert — Anfangsbuchstabe, bei
+  // gleichem Anfang so viele Buchstaben wie noetig (s. kuerzel). Die Unterzeile faerbt den Sportart-Namen in derselben
+  // Farbe ein, das ist die Legende. `text` ist der volle, uebersetzte Name (s. bildAbzeichen).
   abzeichen?: { sport: string; text: string }[] };
 
 // Farben der Sportart-Pillen je Fassung — dieselben Toene wie components/SportAbzeichen.tsx (Cyan / Bernstein).
@@ -24,6 +25,17 @@ const PILLE: Record<string, { dunkel: [string, string]; hell: [string, string] }
 const PILLE_SONST = { dunkel: ["#1e293b", "#cbd5e1"] as [string, string], hell: ["#e2e8f0", "#334155"] as [string, string] };
 
 /** Sportart-Pillen fuer eine Bildzeile; nur wenn der Server `sportarten` mitschickt (gemischte Ansicht). */
+/** Kuerzel je Sportart: kuerzester Anfang des Namens, den keine andere der gezeigten Sportarten teilt (P/F, Pu/Pa …). */
+function kuerzel(namen: Record<string, string>): Record<string, string> {
+  const e = Object.entries(namen), aus: Record<string, string> = {};
+  for (const [sp, n] of e) {
+    let k = 1;
+    while (k < n.length && e.some(([s2, n2]) => s2 !== sp && n2.toLowerCase().startsWith(n.slice(0, k).toLowerCase()))) k++;
+    aus[sp] = n.slice(0, 1).toUpperCase() + n.slice(1, k);
+  }
+  return aus;
+}
+
 export function bildAbzeichen(t: (k: string) => string, sportarten?: string[] | null, reihenfolge: readonly string[] = []) {
   if (!sportarten?.length) return undefined;
   const pos = (x: string) => { const i = reihenfolge.indexOf(x); return i < 0 ? 999 : i; };
@@ -148,8 +160,31 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
   } else {
     g.fillText(kuerzen(g, d.titel, rechts - tx), tx, 64 + 54);
   }
+  // Sportarten aller Zeilen (gemischte Ansicht): Namen fuer die Legende, Kuerzel fuer die Pillen.
+  const alleZeilen = [...d.zeilen, ...(d.eigene ? [d.eigene] : []), ...(d.gruppen ?? []).flatMap((x) => x.zeilen)];
+  const namen: Record<string, string> = {};
+  alleZeilen.forEach((z) => z.abzeichen?.forEach((a) => { namen[a.sport] = a.text; }));
+  const kurz = kuerzel(namen);
+  const pillFarbe = (sp: string) => (PILLE[sp] ?? PILLE_SONST)[d.hell ? "hell" : "dunkel"];
   g.font = `700 30px ${SCHRIFT}`; g.fillStyle = akzent;
-  g.fillText(kuerzen(g, d.unterzeile, BILD_B - tx - X), tx, 128 + 28 + dy);
+  {
+    // Sportart-Namen ausser Pumpfoil (der steht ohnehin in der Akzentfarbe) in ihrer Pillenfarbe; passt die Zeile nicht,
+    // gekuerzt und einfarbig wie bisher.
+    const breit = BILD_B - tx - X, yU = 128 + 28 + dy;
+    const farbig = Object.entries(namen).filter(([sp, n]) => sp !== "pumpfoil" && n && d.unterzeile.includes(n));
+    if (farbig.length && g.measureText(d.unterzeile).width <= breit) {
+      const muster = new RegExp(`(${farbig.map(([, n]) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`);
+      let x = tx;
+      for (const teil of d.unterzeile.split(muster).filter(Boolean)) {
+        const sp = farbig.find(([, n]) => n === teil)?.[0];
+        g.fillStyle = sp ? pillFarbe(sp)[1] : akzent;
+        g.fillText(teil, x, yU);
+        x += g.measureText(teil).width;
+      }
+    } else {
+      g.fillText(kuerzen(g, d.unterzeile, breit), tx, yU);
+    }
+  }
   const weitere = (d.unterzeile2 || "").split("\n").filter(Boolean);
   // Abzeichen bei Event-Titeln rechts neben der ersten kleinen Unterzeile (Jan: „das live kann ja auch drunter").
   let rechts2 = BILD_B - X;
@@ -179,7 +214,28 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
     g.textAlign = "right"; g.fillText(String(z.rang), X + 50, mitte);
     g.font = `700 ${gross}px ${SCHRIFT}`; g.textAlign = "right"; g.fillStyle = akzent;
     g.fillText(z.wert, BILD_B - X, mitte);
-    const wb = g.measureText(z.wert).width;
+    let wb = g.measureText(z.wert).width;
+    // Sportart-Kuerzel rechtsbuendig vor dem Wert, in fester Spaltenbreite je Sportart (untereinander buendig).
+    if (z.abzeichen?.length) {
+      const pp = Math.max(14, Math.round(gross * 0.5)), ph = Math.round(pp * 1.6), pg = 8;
+      g.font = `700 ${pp}px ${SCHRIFT}`;
+      const pw = Math.max(ph, ...Object.values(kurz).map((k) => g.measureText(k).width + Math.round(pp * 0.9)));
+      const reihe = Object.keys(namen);   // feste Reihenfolge der Spalten
+      // Am breitesten Wert ausrichten, damit die Spalten ueber alle Zeilen buendig stehen.
+      g.font = `700 ${gross}px ${SCHRIFT}`;
+      const wMax = Math.max(wb, ...alleZeilen.map((x) => g.measureText(x.wert).width));
+      g.font = `700 ${pp}px ${SCHRIFT}`;
+      const rechtsP = BILD_B - X - wMax - 24;
+      reihe.forEach((sp, i) => {
+        if (!z.abzeichen!.some((a) => a.sport === sp)) return;
+        const x0 = rechtsP - (reihe.length - i) * (pw + pg) + pg;
+        const [fl, tf] = pillFarbe(sp);
+        g.fillStyle = fl; g.beginPath(); g.roundRect(x0, mitte - ph / 2, pw, ph, 8); g.fill();
+        g.fillStyle = tf; g.textAlign = "center"; g.fillText(kurz[sp] ?? "?", x0 + pw / 2, mitte + 1);
+      });
+      wb = wMax + 24 + reihe.length * (pw + pg);
+      g.textAlign = "right";
+    }
     let nx = X + 74;
     if (z.wappen) {
       const ws = Math.round(gross * 1.25), wy = mitte - ws / 2;
@@ -206,23 +262,8 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
       g.strokeStyle = F.linie; g.lineWidth = 2; g.strokeRect(nx, mitte - fh / 2, fw, fh);
     }
     nx += fw + 16;
-    // Sportart-Pillen hinter dem Namen: erst ihre Breite messen, damit der Name notfalls gekuerzt wird, nie die Pillen.
-    const pp = Math.max(14, Math.round(gross * 0.5)), ph = Math.round(pp * 1.6), pad = Math.round(pp * 0.55), pg = 8;
-    g.font = `600 ${pp}px ${SCHRIFT}`;
-    const pb = (z.abzeichen ?? []).map((a) => g.measureText(a.text).width + 2 * pad);
-    const pillen = pb.length ? pb.reduce((a, b) => a + b, 0) + pg * pb.length + 6 : 0;
     g.font = `${z.rang === 1 || z.ich ? 700 : 500} ${Math.round(gross * 0.92)}px ${SCHRIFT}`; g.textAlign = "left"; g.fillStyle = F.text;
-    const name = kuerzen(g, z.name ?? "—", BILD_B - X - wb - 30 - nx - pillen);
-    g.fillText(name, nx, mitte);
-    let px0 = nx + g.measureText(name).width + 6 + pg;
-    (z.abzeichen ?? []).forEach((a, i) => {
-      const [fl, tx2] = (PILLE[a.sport] ?? PILLE_SONST)[d.hell ? "hell" : "dunkel"];
-      g.fillStyle = fl; g.beginPath(); g.roundRect(px0, mitte - ph / 2, pb[i], ph, 8); g.fill();
-      g.fillStyle = tx2; g.font = `600 ${pp}px ${SCHRIFT}`; g.textAlign = "center";
-      g.fillText(a.text, px0 + pb[i] / 2, mitte + 1);
-      px0 += pb[i] + pg;
-    });
-    g.textAlign = "left";
+    g.fillText(kuerzen(g, z.name ?? "—", BILD_B - X - wb - 30 - nx), nx, mitte);
   };
   if (d.gruppen) {
     // Event-Uebersicht: Summen-Kacheln nebeneinander, darunter je Kategorie Titel + die ersten Plaetze.
