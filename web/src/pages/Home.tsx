@@ -248,10 +248,10 @@ export function RecordGrid({ rec, showSpot, sport, nurSport, nurBelegt }: { rec?
         // Der Carve-Rekord hängt an keiner Session (session_id ist null) — für ihn reicht ein Wert.
         const has = !!(r && r.value && (r.session_id || it.key === "carves180"));
         const inner = (
-          <Card className="relative h-full overflow-hidden p-3">
+          <Card className="relative isolate h-full overflow-hidden p-3">
             {/* Streckenverlauf auf JEDER Kachel (Jan, 02.11.2026: der Versuch „nur die erste" ist zurueckgenommen). */}
             {has && r!.track_preview && (
-              <TrackPreview data={r!.track_preview} className="pointer-events-none absolute right-2 top-1/2 h-3/4 w-20 -translate-y-1/2 text-brand-400/70" />
+              <TrackPreview data={r!.track_preview} className="pointer-events-none absolute right-2 top-1/2 h-3/4 w-20 -z-10 -translate-y-1/2 text-brand-400/20" />
             )}
             {/* Quoten mit Anzahl („100 % von 146", 20.10.2026): sonst sagt 100 % allein wenig. */}
             <div className="text-lg font-bold tabular-nums text-brand-400">
