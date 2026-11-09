@@ -28,7 +28,7 @@ export default function OpenDiscussions() {
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Open Discussions</p>
       <h1 className="mb-1 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil />Foil scoot vs. pumpfoil</h1>
       <p className="text-sm text-slate-400">Questions the community is debating right now. We collect what has been said, for and
-        against, without a verdict — so everyone can see how decisions come about. Last updated 8 November 2026.</p>
+        against, without a verdict — so everyone can see how decisions come about. Last updated 9 November 2026.</p>
 
       <H>Is foil scoot its own sport, or part of pumpfoiling?</H>
       <p className="text-sm text-slate-300">A foil scoot is a pumpfoil board and foil with a vertical handlebar, about a metre
@@ -52,6 +52,10 @@ export default function OpenDiscussions() {
           wer="a pumpfoil rider" />
         <Arg text="Envy is a poor guide for comparing performances. If needed, label scoot riders instead of leaving them out of the ranking."
           wer="a foil scoot rider" />
+        <Arg text="Separate rankings split a small, growing community. Everyone shares the same challenge of pure, muscle-powered foiling, and speed, heart rate and effort are practically the same."
+          wer="a foil scoot rider" />
+        <Arg text="Outside conditions affect the results far more: where you can start, the quality of the gear, wind, current and waves on the water, algae and weeds. With a label, everyone can judge a performance for themselves."
+          wer="a foil scoot rider" />
       </ul>
 
       </div>
@@ -70,6 +74,10 @@ export default function OpenDiscussions() {
           wer="pumpfoil riders" />
         <Arg text="Balance is easier with a handlebar."
           wer="pumpfoil.org" />
+        <Arg text="A handlebar fundamentally changes the biomechanics and makes the start much more forgiving."
+          wer="a foil scoot rider" />
+        <Arg text="The muscle work on a scoot is completely different. There are no mixed rankings for skateboards and kick scooters either."
+          wer="a rider, via the feedback form" />
       </ul>
 
       </div>
@@ -94,8 +102,8 @@ export default function OpenDiscussions() {
           wer="pumpfoil.org" />
         <Arg text="Keep separate rankings, but let scoot riders choose to be listed and keep their stats among pumpfoilers — as an option, not for everyone."
           wer="pumpfoil.org" />
-        <Arg text="One shared leaderboard where scoot riders are marked, with a filter for pumpfoil only."
-          wer="a foil scoot rider; pumpfoil.org" />
+        <Arg text="One shared leaderboard where scoot riders are marked, with a filter for pumpfoil only. The filter should stay set once chosen. It keeps everyone cheering each other on in one place, while purists can sort for unassisted runs."
+          wer="foil scoot riders; pumpfoil.org" />
         <Arg text="Decide per metric: separate for total distance and time, where an advantage would add up; shared, with a marker, for top speed and run length."
           wer="pumpfoil.org" />
         <Arg text="Show foil scoot in the community records by default as well, since everything except the start is comparable."
@@ -103,6 +111,10 @@ export default function OpenDiscussions() {
         <Arg text="Sub-categories for foil scoot and foil assist."
           wer="a pumpfoil rider" />
         <Arg text="Include foil scoot in pumpfoil without distinguishing."
+          wer="a pumpfoil rider" />
+        <Arg text="No mixed rankings at all."
+          wer="a rider, via the feedback form" />
+        <Arg text="Only a few riders use a foil scoot, so don't add a combined entry to the main sport menu — it looks squeezed in. Better a separate switch with and without foil scoot next to it."
           wer="a pumpfoil rider" />
         <Arg text="Separate foil scoot leaderboards in events, so scoot riders have their own ranking there."
           wer="pumpfoil.org (in place since 7 November)" />
@@ -113,6 +125,9 @@ export default function OpenDiscussions() {
         <p>Foil scoot is treated as its own sport with its own records and leaderboards. In the global event it has separate
           leaderboards. Riders set foil scoot themselves, per session or as their default sport for new sessions. Because the
           data can't tell the two apart, the rider's own classification counts; reported sessions are reviewed by hand.</p>
+        <p className="mt-2">Since 8 November, rankings, team comparison and events also offer an optional mixed view
+          “Pumpfoil + Foil Scoot”, in which every rider carries a badge for their sport; you can make it your default view in
+          the settings. The separate rankings stay as they are. In team rankings, only the sport shown counts.</p>
         <p className="mt-2">This is where things stand today, not a final decision. The discussion is open.</p>
         <p className="mt-2 text-xs text-slate-400">— Jan, pumpfoil.org</p>
       </div>
