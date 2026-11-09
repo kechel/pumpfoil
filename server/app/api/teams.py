@@ -294,7 +294,13 @@ def liste_events(user: models.User = Depends(current_user), db: Session = Depend
     rows = (q.filter(E.ende > jetzt - T.EINFRIEREN_NACH - COMMUNITY_NACHLAUF, E.start <= jetzt + T.EVENT_VORSCHAU)
             .order_by(E.start).limit(200).all())   # alle zeigen (Jan); die Grenze ist nur ein Notanker
     rang = {"laeuft": 0, "auswertung": 1, "beendet": 2, "kommend": 3}
-    rows.sort(key=lambda r: rang.get(T.event_status(r[0], jetzt), 3))   # stabil: innerhalb nach Start
+    # Innerhalb: laufende/kommende nach Start, vorbei/beendete zuletzt beendet zuerst — eindeutig, nicht von der
+    # Reihenfolge der DB abhaengig (CI 09.11.2026: zwei Events mit gleichem Start standen mal so, mal so).
+    def schluessel(r):
+        st = T.event_status(r[0], jetzt)
+        zeit = T._aware(r[0].start).timestamp() if st in ("laeuft", "kommend") else -T._aware(r[0].ende).timestamp()
+        return (rang.get(st, 3), zeit, r[0].id)
+    rows.sort(key=schluessel)
     return [_event_kurz(db, e, t, t.id in eigene, jetzt) for e, t in rows]
 
 
