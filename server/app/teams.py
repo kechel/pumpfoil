@@ -53,6 +53,15 @@ RESERVIERT = {"neu", "new", "admin", "join", "apply", "einladung", "teams", "tea
 BEST = ("distance", "duration", "speed", "glide", "runs", "session_distance", "session_time", "session_pumps")
 SUMME = ("sum_sessions", "sum_runs", "sum_pumps", "sum_distance", "sum_time", "sum_spots")
 KENNZAHLEN = BEST + SUMME
+# Fliegende Sprints (09.11.2026, analysis/sprint.py): je Person die beste Session wie BEST, Wert = Tempo des besten
+# Fensters (m/s). Vorerst NUR in Events waehlbar (Jan: „erstmal nur in events … noch nicht in den rekord-kacheln oder
+# community-seiten") und nur an Clients, die sie kennen (`?sprint=1`) — alte Apps zeigten den Rohschluessel.
+SPRINT = ("sprint_100m", "sprint_200m", "sprint_300m", "sprint_60s")
+EVENT_KENNZAHLEN = KENNZAHLEN + SPRINT
+
+
+def _sprint_col(kennzahl: str):
+    return getattr(models.AnalysisResult, kennzahl + "_mps")
 # Gesamtsummen eines Events ueber alle Teilnehmer (Jan, 01.11.2026) — dieselben Groessen wie die Teamstatistik.
 EVENT_SUMMEN = ("sessions", "runs", "pumps", "distance_m", "time_s", "spots", "aktive")
 
@@ -428,7 +437,7 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
 
     alle = member_ids == ALLE
     ids = [] if alle else (member_ids if member_ids is not None else mitglieder_ids(db, team.id))
-    if (not alle and not ids) or tf.kennzahl not in KENNZAHLEN:
+    if (not alle and not ids) or tf.kennzahl not in EVENT_KENNZAHLEN:
         return []
     if event_spots:
         spot_ids, nur_spots = list(event_spots), True
@@ -474,8 +483,8 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
 
     out: list[dict] = []
     strittig = strittige_sessions(db)
-    if tf.kennzahl in BEST:
-        valcol, _idx = C.REC_COL[tf.kennzahl]
+    if tf.kennzahl in BEST or tf.kennzahl in SPRINT:
+        valcol = _sprint_col(tf.kennzahl) if tf.kennzahl in SPRINT else C.REC_COL[tf.kennzahl][0]
         q = C._community(db.query(U.id, valcol, S.id, S.started_at, C.NAME, U.avatar_url, S.place_name,
                                   S.place_lat, S.place_lon, S.ort_sichtbarkeit),
                          None, tf.accel_only, tf.sportart)
@@ -1175,8 +1184,12 @@ def events_einfrieren(db: Session) -> int:
 
 
 def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = False,
-              nur_team_ids: list[int] | None = None, betrachter: int | None = None, mix: bool = False) -> dict:
+              nur_team_ids: list[int] | None = None, betrachter: int | None = None, mix: bool = False,
+              sprint: bool = False) -> dict:
     tafeln_ = event_berechnen(db, t, e, nur_team_ids, None if gast else betrachter)
+    if not sprint:
+        # Sprint-Bestenlisten (09.11.2026) wie die gemischten nur fuer Clients, die sie kennen (`?sprint=1`).
+        tafeln_ = [tf for tf in tafeln_ if tf.get("kennzahl") not in SPRINT]
     if not mix:
         # Gemischte Bestenlisten (08.11.2026) nur fuer Clients, die sie kennen (`?mix=1`, Web) — die Apps zeigten den
         # Schluessel „pumpfoil+foil_scoot" sonst roh.

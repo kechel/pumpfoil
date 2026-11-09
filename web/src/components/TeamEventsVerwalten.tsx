@@ -9,7 +9,7 @@ import { BannerBearbeiten } from "./TeamBanner";
 import { api, FoilBand, TeamEvent, TeamEventTafel } from "../lib/api";
 import { Card } from "./ui";
 import { TrashIcon } from "./Icons";
-import { EVENT_SUMMEN, TEAM_KENNZAHLEN, fehlerCode } from "../lib/teamKennzahlen";
+import { EVENT_KENNZAHLEN, EVENT_SUMMEN, fehlerCode } from "../lib/teamKennzahlen";
 import { EVENT_VORLAGEN, alsEingabe, eventZeitraum, neueEventTafel } from "../lib/teamEvents";
 import { istMix, sortiereNachSport } from "../lib/sportClass";
 import { bandLabel } from "../pages/Home";
@@ -148,7 +148,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
           {e.tafeln.map((tf, i) => (
             <div key={i} className="mb-2 flex flex-wrap items-center gap-2 text-sm text-slate-300">
               <select value={tf.kennzahl} onChange={(x) => tafel(i, { kennzahl: x.target.value })} className={`${auswahl} min-w-0 flex-1`}>
-                {TEAM_KENNZAHLEN.map((k) => <option key={k.key} value={k.key}>{t(k.labelKey)}</option>)}
+                {EVENT_KENNZAHLEN.map((k) => <option key={k.key} value={k.key}>{t(k.labelKey)}</option>)}
               </select>
               <select value={tf.sportart} onChange={(x) => tafel(i, { sportart: x.target.value })} className={auswahl}>
                 {sortiereNachSport(sports, (x) => x, t).map((s) => <option key={s} value={s}>{t(`cls.sport.${s}`)}</option>)}

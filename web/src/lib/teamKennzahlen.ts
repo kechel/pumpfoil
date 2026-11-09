@@ -24,8 +24,21 @@ export const TEAM_KENNZAHLEN: { key: string; labelKey: string; fmt: (v: number) 
   { key: "sum_spots", labelKey: "team.k.sum_spots", fmt: ganz, summe: true },
 ];
 
+// Fliegende Sprints (09.11.2026, server/app/analysis/sprint.py): Wert = Tempo des besten Fensters in m/s. Vorerst NUR in
+// Events waehlbar (Jan: „erstmal nur in events"), nicht in den festen Team-Bestenlisten — deshalb eine eigene Liste.
+// Strecken als Zeit wie beim Sprint, km/h dahinter; die Minute als km/h. Eine Nachkommastelle, mehr gibt GPS nicht her.
+const sprintStrecke = (m: number) => (v: number) => `${(m / v).toFixed(1)} s · ${(v * 3.6).toFixed(1)} km/h`;
+export const SPRINT_KENNZAHLEN: { key: string; labelKey: string; fmt: (v: number) => string; summe?: boolean }[] = [
+  { key: "sprint_100m", labelKey: "team.k.sprint_100m", fmt: sprintStrecke(100) },
+  { key: "sprint_200m", labelKey: "team.k.sprint_200m", fmt: sprintStrecke(200) },
+  { key: "sprint_300m", labelKey: "team.k.sprint_300m", fmt: sprintStrecke(300) },
+  { key: "sprint_60s", labelKey: "team.k.sprint_60s", fmt: (v) => `${(v * 3.6).toFixed(1)} km/h` },
+];
+/** Was ein Event messen kann: die Team-Kennzahlen plus die Sprints. */
+export const EVENT_KENNZAHLEN = [...TEAM_KENNZAHLEN, ...SPRINT_KENNZAHLEN];
+
 export function kennzahl(key: string) {
-  return TEAM_KENNZAHLEN.find((k) => k.key === key) ?? { key, labelKey: key, fmt: (v: number) => String(v) };
+  return EVENT_KENNZAHLEN.find((k) => k.key === key) ?? { key, labelKey: key, fmt: (v: number) => String(v) };
 }
 
 /** Sportarten eines Teams kurz und knapp („Pumpfoil · Wingfoil"), in der Reihenfolge seiner Bestenlisten. */

@@ -215,6 +215,16 @@ der Kopf des ausrichtenden Teams und die verlinkten Sessions selbst. Aeltere, sc
 „Pumpfoil + Foil Scoot" als weitere dazu, mit Sportart-Abzeichen je Fahrer und Team — s. docs/sport-classification.md
 „Gemischte Ranglisten".
 
+**Fliegende Sprints** (09.11.2026): Event-Kennzahlen `sprint_100m`, `sprint_200m`, `sprint_300m`, `sprint_60s` — je Person
+die beste Session, Wert = Tempo (m/s) des schnellsten Fensters irgendwo in einem Lauf (`analysis/sprint.py`: Uhr-Tempo
+integriert, Gegenprobe gegen die Positionen, keine Luecke > 3 s im Fenster; gespeichert in `analysis_results.sprint_*`).
+Nur in Events waehlbar (`T.EVENT_KENNZAHLEN`), nicht in den festen Team-Bestenlisten, nicht in Rekorden/Community. Nur fuer
+Clients mit `?sprint=1` (Web); ohne den Schalter fehlen sie in der Antwort, und `PUT …/events/{id}` behaelt die
+gespeicherten Sprint-Bestenlisten, damit eine alte App sie beim Speichern nicht loescht. Web zeigt Strecken als Zeit
+(„21,4 s · 16,8 km/h"), die Minute als km/h. Reine GPS-Sessions (ohne Bewegungsdaten) erreichen unplausible Werte (bis
+26–29 km/h ueber eine Minute, 09.11. gemessen) — fuer Sprint-Bestenlisten „nur mit Bewegungsdaten" empfehlen.
+Alte Sessions: `scripts/sprints-nachrechnen.py` (Trockenlauf ohne `--echt`).
+
 ## Teambild (01.11.2026)
 
 Breites Bild ueber dem Teamkopf. Empfohlen 1600 x 500 px; gespeichert hoechstens 1600 px breit, nie zugeschnitten;

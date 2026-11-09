@@ -1792,7 +1792,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   „Upload via Wi-Fi/phone" (watch/source/Strings.mc, StringsLite.mc) und „Upload (WLAN)" (watch/README.md) anpassen,
   je nach Ergebnis. Aufnahme-Pfad bleibt unberuehrt; vor Store nur nach Test auf echter Uhr.
 
-- **🔲 01.11. (Jan) — Schnellste 100 m / 200 m / 500 m / 1 km als Kennzahlen (Teams, Events, evtl. Rekorde).** Jan: „wenn
+- **🟡 01.11. (Jan) — Schnellste 100 m / 200 m / 500 m / 1 km als Kennzahlen (Teams, Events, evtl. Rekorde).** STAND 09.11.: 100/200/300 m + 1 min gebaut, nur in Events (s. docs/TEAMS.md „Fliegende Sprints"); Rekorde/Community/Apps offen. Jan: „wenn
   wir danach 'schnellster km' bauen, dann aber … direkt 'schnellster 100m und 200m und 500m' gleich mitziehen". Machbar
   wie das Low End (analysis/lowend.py): je Lauf die kuerzeste Zeit ueber die Strecke aus dem gespeicherten Track
   (Koordinaten + 1-s-Takt), gecacht in analysis_results, keine Detektor-Aenderung. Bestand 01.11.: von 57 232

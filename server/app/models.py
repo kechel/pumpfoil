@@ -763,6 +763,13 @@ class AnalysisResult(Base):
     carve_l: Mapped[int | None] = mapped_column(Integer)
     # Low End je Lauf (m/s, JSON-Liste; analysis/lowend.py) — Cache wie carve_*: NULL = noch nicht gerechnet.
     low_end_json: Mapped[str | None] = mapped_column(Text)
+    # Fliegende Sprints (analysis/sprint.py, 09.11.2026): Durchschnittstempo (m/s) des besten Fensters der Session ueber
+    # 100/200/300 m bzw. 60 s. NULL = noch nicht gerechnet, 0 = kein gueltiges Fenster. Je Lauf in `sprint_json`.
+    sprint_100m_mps: Mapped[float | None] = mapped_column(Float)
+    sprint_200m_mps: Mapped[float | None] = mapped_column(Float)
+    sprint_300m_mps: Mapped[float | None] = mapped_column(Float)
+    sprint_60s_mps: Mapped[float | None] = mapped_column(Float)
+    sprint_json: Mapped[str | None] = mapped_column(Text)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 

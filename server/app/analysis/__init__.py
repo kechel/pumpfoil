@@ -1246,6 +1246,15 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -
     except Exception:  # noqa: BLE001
         db.rollback()
         logging.getLogger(__name__).exception("Lauf-Zeitpunkte fuer Session %s", session.id)
+    # Fliegende Sprints 100/200/300 m + 1 min (09.11.2026, analysis/sprint.py) — wie die Lauf-Zeitpunkte NACH den
+    # Brett-Regeln, aus den fertigen Laeufen; auch in der Zwischenanalyse (Events laufen live). Darf nie brechen.
+    try:
+        from .sprint import setzen as _sprint_setzen
+        if _sprint_setzen(session, result):
+            db.commit()
+    except Exception:  # noqa: BLE001
+        db.rollback()
+        logging.getLogger(__name__).exception("Sprints fuer Session %s", session.id)
     # PUMP-/GLEIT-ERKENNUNG pg-1 (Weg B, Jans Entscheidung 23.10.2026): ZUSAETZLICH gespeichert (pg_*-Spalten,
     # pg_*-Schluessel je Lauf, metrics.pumpgleit); alle bisherigen Felder bleiben, wie sie oben geschrieben
     # wurden. Nur in der finalen Analyse gerechnet (Zwischenanalyse: pg-Felder leer). Welche Zahlen die

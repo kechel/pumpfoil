@@ -618,6 +618,12 @@ def _migrate_add_columns() -> None:
             "carve_m": "INTEGER",
             "carve_l": "INTEGER",
             "low_end_json": "TEXT",   # Low End je Lauf (Cache, analysis/lowend.py)
+            # Fliegende Sprints (analysis/sprint.py, 09.11.2026): bestes Fenster der Session in m/s
+            "sprint_100m_mps": "FLOAT",
+            "sprint_200m_mps": "FLOAT",
+            "sprint_300m_mps": "FLOAT",
+            "sprint_60s_mps": "FLOAT",
+            "sprint_json": "TEXT",
             # Pump-/Gleit-Erkennung pg-1, zusaetzlich (app/pumpgleit_anzeige.py)
             "pg_version": "VARCHAR(16)",
             "pg_pump_count": "INTEGER",

@@ -2190,18 +2190,19 @@ export const api = {
     req<{ slug: string; id: number }>("/api/teams", { method: "POST", body: JSON.stringify({ name, slug: slug || null }) }),
   team: (slug: string) => req<TeamInfo>(`/api/teams/${encodeURIComponent(slug)}`),
   teamOeffentlich: (slug: string, period: string) =>
-    req<TeamOeffentlich>(`/api/public/teams/${encodeURIComponent(slug)}?period=${period}&mix=1`),
+    req<TeamOeffentlich>(`/api/public/teams/${encodeURIComponent(slug)}?period=${period}&mix=1&sprint=1`),
   teamBestenlisten: (slug: string, period: string) =>
     req<{ period: string; tafeln: TeamTafelMitZeilen[] }>(`/api/teams/${encodeURIComponent(slug)}/bestenlisten?period=${period}`),
   teamStatistik: (slug: string, period: string) =>
     req<TeamStatistik>(`/api/teams/${encodeURIComponent(slug)}/statistik?period=${period}`),
   teamLogbuch: (slug: string) => req<TeamLogbuchEintrag[]>(`/api/teams/${encodeURIComponent(slug)}/logbuch`),
-  // `mix=1` (08.11.2026): gemischte Event-Bestenlisten („Pumpfoil + Foil Scoot") mitliefern — die Apps kennen sie noch nicht.
-  teamEvents: (slug: string) => req<TeamEvent[]>(`/api/teams/${encodeURIComponent(slug)}/events?mix=1`),
+  // `mix=1` (08.11.2026): gemischte Event-Bestenlisten („Pumpfoil + Foil Scoot") mitliefern, `sprint=1` (09.11.2026) die
+  // Sprint-Bestenlisten (fliegende 100/200/300 m, Minute) — die Apps kennen beide noch nicht.
+  teamEvents: (slug: string) => req<TeamEvent[]>(`/api/teams/${encodeURIComponent(slug)}/events?mix=1&sprint=1`),
   teamEvent: (slug: string, id: number | string, team?: string) =>
-    req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events/${id}?mix=1${team ? `&team=${encodeURIComponent(team)}` : ""}`),
+    req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events/${id}?mix=1&sprint=1${team ? `&team=${encodeURIComponent(team)}` : ""}`),
   teamEventOeffentlich: (slug: string, id: number | string) =>
-    req<{ team: TeamAuftritt & { id: number; bestenlisten_oeffentlich: boolean; anmeldungen_zulassen?: boolean }; event: TeamEvent }>(`/api/public/teams/${encodeURIComponent(slug)}/events/${id}?mix=1`),
+    req<{ team: TeamAuftritt & { id: number; bestenlisten_oeffentlich: boolean; anmeldungen_zulassen?: boolean }; event: TeamEvent }>(`/api/public/teams/${encodeURIComponent(slug)}/events/${id}?mix=1&sprint=1`),
   teamEventBanner: async (slug: string, id: number, file: File) =>
     uploadFile<{ banner_url: string; banner_fokus: string }>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/banner`, file),
   teamEventBannerFokus: (slug: string, id: number, fokus: string) =>
@@ -2209,9 +2210,9 @@ export const api = {
   teamEventBannerEntfernen: (slug: string, id: number) =>
     req<{ banner_url: null }>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/banner`, { method: "DELETE" }),
   teamEventAnlegen: (slug: string, body: TeamEventIn) =>
-    req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events`, { method: "POST", body: JSON.stringify(body) }),
+    req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events?sprint=1`, { method: "POST", body: JSON.stringify(body) }),
   teamEventAendern: (slug: string, id: number, body: TeamEventIn) =>
-    req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+    req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events/${id}?sprint=1`, { method: "PUT", body: JSON.stringify(body) }),
   teamEventLoeschen: (slug: string, id: number) =>
     req<{ ok: boolean }>(`/api/teams/${encodeURIComponent(slug)}/events/${id}`, { method: "DELETE" }),
   teamMitglieder: (slug: string) =>
