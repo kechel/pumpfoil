@@ -98,7 +98,7 @@ struct SpotCompareView: View {
             SpotKennzahl(titel: Loc.t("leader.mostPumps", lang), wert: { Double($0.pumps) }, zeige: { String(Int($0)) }),
             SpotKennzahl(titel: Loc.t("spotcmp.foilers", lang), wert: { Double($0.foilers) }, zeige: { String(Int($0)) }),
             SpotKennzahl(titel: Loc.t("spotcmp.distance", lang), wert: { $0.foiling_km }, zeige: { String(format: "%.1f km", $0) }),
-            SpotKennzahl(titel: Loc.t("rec.sessionTime", lang), wert: { Double($0.onfoil_s) }, zeige: { Self.dauer($0) }),
+            SpotKennzahl(titel: Loc.t("leader.totalTime", lang), wert: { Double($0.onfoil_s) }, zeige: { Self.dauer($0) }),
             SpotKennzahl(titel: Loc.t("rec.farthestRun", lang), wert: { $0.longest_run?.value ?? 0 },
                          zeige: { $0 >= 1000 ? String(format: "%.2f km", $0 / 1000) : String(format: "%.0f m", $0) },
                          halter: { $0.longest_run }),

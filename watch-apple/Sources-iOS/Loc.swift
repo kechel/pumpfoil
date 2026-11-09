@@ -879,8 +879,8 @@ static let csOverlay: [String: String] = {
         "period.365d": "1 rok",
         "period.all": "Za celou dobu",
         "leader.mostSessions": "Nejvíce vyjížděk",
-        "leader.mostRuns": "Nejvíce jízd",
-        "leader.mostPumps": "Nejvíce pumpnutí",
+        "leader.mostRuns": "Jízdy celkem",
+        "leader.mostPumps": "Pumpnutí celkem",
         "leader.mostSpots": "Nejvíce spotů",
         "unit.sessions": "Vyjížďky",
         "unit.runs": "Jízdy",
@@ -969,10 +969,10 @@ static let csOverlay: [String: String] = {
         "rec.longestGlide": "Nejdelší klouzání",
     ]
     private static let _csOverlayP5s2: [String: String] = [
-        "rec.mostRuns": "Nejvíce jízd",
-        "rec.sessionDistance": "Nejdelší vyjížďka",
-        "rec.sessionTime": "Čas na foilu",
-        "rec.sessionPumps": "Nejvíce pumpnutí",
+        "rec.mostRuns": "Nejvíce jízd za jednu vyjížďku",
+        "rec.sessionDistance": "Nejdelší vzdálenost za jednu vyjížďku",
+        "rec.sessionTime": "Nejvíce času na foilu za jednu vyjížďku",
+        "rec.sessionPumps": "Nejvíce pumpnutí za jednu vyjížďku",
         "rec.maxHr": "Max. tep",
     ]
 
@@ -2104,8 +2104,8 @@ static let nlOverlay: [String: String] = {
         "period.365d": "1 jaar",
         "period.all": "Altijd",
         "leader.mostSessions": "Meeste sessies",
-        "leader.mostRuns": "Meeste runs",
-        "leader.mostPumps": "Meeste pumps",
+        "leader.mostRuns": "Runs totaal",
+        "leader.mostPumps": "Pumps totaal",
         "leader.mostSpots": "Meeste spots",
         "unit.sessions": "sessies",
         "unit.runs": "runs",
@@ -2194,10 +2194,10 @@ static let nlOverlay: [String: String] = {
         "rec.longestGlide": "Langste glijfase",
     ]
     private static let _nlOverlayP5s2: [String: String] = [
-        "rec.mostRuns": "Meeste runs",
-        "rec.sessionDistance": "Verste sessie",
-        "rec.sessionTime": "On-foil-tijd",
-        "rec.sessionPumps": "Meeste pumps",
+        "rec.mostRuns": "Meeste runs in één sessie",
+        "rec.sessionDistance": "Verste afstand in één sessie",
+        "rec.sessionTime": "Meeste on-foil-tijd in één sessie",
+        "rec.sessionPumps": "Meeste pumps in één sessie",
         "rec.maxHr": "Max. hartslag",
     ]
 
@@ -5935,8 +5935,8 @@ static let fiOverlay: [String: String] = {
         "period.365d": "1 vuosi",
         "period.all": "Kaikki aika",
         "leader.mostSessions": "Eniten sessioita",
-        "leader.mostRuns": "Eniten lenkkejä",
-        "leader.mostPumps": "Eniten pumppauksia",
+        "leader.mostRuns": "Lenkkejä yhteensä",
+        "leader.mostPumps": "Pumppauksia yhteensä",
         "leader.mostSpots": "Eniten spotteja",
         "unit.sessions": "sessiota",
         "unit.runs": "lenkkiä",
@@ -6009,13 +6009,13 @@ static let fiOverlay: [String: String] = {
     private static let _fiOverlayP6s2: [String: String] = [
         "rec.topSpeed": "Huippunopeus",
         "rec.longestGlide": "Pisin liukuvaihe",
-        "rec.mostRuns": "Eniten lenkkejä",
-        "rec.sessionDistance": "Pisin sessio",
-        "rec.sessionTime": "Foil-aika",
+        "rec.mostRuns": "Eniten lenkkejä yhdessä sessiossa",
+        "rec.sessionDistance": "Pisin matka yhdessä sessiossa",
+        "rec.sessionTime": "Eniten foil-aikaa yhdessä sessiossa",
     ]
 
     private static let _fiOverlayP7: [String: String] = [
-        "rec.sessionPumps": "Eniten pumppeja",
+        "rec.sessionPumps": "Eniten pumppauksia yhdessä sessiossa",
         "rec.maxHr": "Max. syke",
         "rec.earlyBird": "Aamuvirkku",
         "rec.nightOwl": "Yökyöpeli",
@@ -7130,8 +7130,8 @@ static let fiOverlay: [String: String] = {
         "period.365d": r("1 Jahr", "1 Jahr", "1 Joar", "1 year", "1 an", "1 anno", "1 año"),
         "period.all": r("Allzeit", "Allzit", "Olle Zeit", "All time", "Tout", "Sempre", "Histórico"),
         "leader.mostSessions": r("Meiste Sessions", "Meischti Sessions", "Die meisten Sessions", "Most sessions", "Plus de sessions", "Più sessioni", "Más sesiones"),
-        "leader.mostRuns": r("Meiste Läufe", "Meischti Läuf", "Die meisten Läufe", "Most runs", "Plus de runs", "Più run", "Más runs"),
-        "leader.mostPumps": r("Meiste Pumps", "Meischti Pumps", "Die meisten Pumps", "Most pumps", "Plus de pumps", "Più pumps", "Más pumps"),
+        "leader.mostRuns": r("Läufe gesamt", "Läuf total", "Läufe insgesamt", "Total runs", "Runs au total", "Run totali", "Runs en total"),
+        "leader.mostPumps": r("Pumps gesamt", "Pumps total", "Pumps insgesamt", "Total pumps", "Pumps au total", "Pump totali", "Pumps en total"),
         "leader.mostSpots": r("Meiste Spots", "Meischti Spots", "Die meisten Spots", "Most spots", "Plus de spots", "Più spot", "Más spots"),
         "unit.sessions": r("Sessions", "Sessions", "Sessions", "Sessions", "Sessions", "Sessioni", "Sesiones"),
         "unit.runs": r("Läufe", "Läuf", "Läuf", "Runs", "Runs", "Run", "Runs"),
@@ -7280,13 +7280,13 @@ static let fiOverlay: [String: String] = {
         "rec.longestRun": r("Längster Lauf", "Längschte Lauf", "Längster Lauf", "Longest run", "Run le plus durable", "Run più duraturo", "Run más duradero"),
         "rec.topSpeed": r("Top-Speed", "Top-Speed", "Top-Speed", "Top speed", "Vitesse max", "Velocità max", "Velocidad máx."),
         "rec.longestGlide": r("Längste Gleitphase", "Längschti Gleitphase", "Längste Gleitphase", "Longest glide", "Plus longue glisse", "Planata più lunga", "Planeo más largo"),
-        "rec.mostRuns": r("Meiste Läufe", "Meischti Läuf", "Meiste Läuf", "Most runs", "Plus de runs", "Più run", "Más runs"),
-        "rec.sessionDistance": r("Weiteste Session", "Wiitesti Session", "Weiteste Session", "Farthest session", "Distance max (session)", "Distanza max (sessione)", "Distancia máx. (sesión)"),
-        "rec.sessionTime": r("On-Foil-Zeit", "On-Foil-Ziit", "On-Foil-Zeit", "On-foil time", "Temps on-foil", "Tempo on-foil", "Tiempo on-foil"),
+        "rec.mostRuns": r("Meiste Läufe in einer Session", "Meischti Läuf i einere Session", "Meiste Läuf in aner Session", "Most runs in one session", "Le plus de runs en une session", "Più run in una sessione", "Más runs en una sesión"),
+        "rec.sessionDistance": r("Weiteste Strecke in einer Session", "Wiitesti Strecki i einere Session", "Weiteste Streck'n in aner Session", "Most distance in one session", "Le plus de distance en une session", "Più distanza in una sessione", "Más distancia en una sesión"),
+        "rec.sessionTime": r("Meiste On-Foil-Zeit in einer Session", "Meischti On-Foil-Ziit i einere Session", "Meiste On-Foil-Zeit in aner Session", "Most on-foil time in one session", "Le plus de temps on-foil en une session", "Più tempo on-foil in una sessione", "Más tiempo on-foil en una sesión"),
     ]
 
     private static let __t2P3: [String: [String: String]] = [
-        "rec.sessionPumps": r("Meiste Pumps", "Meischti Pumps", "Meiste Pumps", "Most pumps", "Pumps max", "Più pump", "Más pumps"),
+        "rec.sessionPumps": r("Meiste Pumps in einer Session", "Meischti Pumps i einere Session", "Meiste Pumps in aner Session", "Most pumps in one session", "Le plus de pumps en une session", "Più pump in una sessione", "Más pumps en una sesión"),
         "rec.maxHr": r("Max. Puls", "Max. Puls", "Max. Puls", "Max heart rate", "FC max", "FC max", "FC máx."),
         "rec.earlyBird": r("Early Bird", "Early Bird", "Early Bird", "Early bird", "Lève-tôt", "Mattiniero", "Madrugador"),
         "rec.nightOwl": r("Nachteule", "Nachtüüle", "Nachteule", "Night owl", "Oiseau de nuit", "Nottambulo", "Noctámbulo"),

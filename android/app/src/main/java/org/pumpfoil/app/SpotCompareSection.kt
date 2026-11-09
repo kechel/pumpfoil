@@ -91,7 +91,7 @@ fun SpotCompareSection(onOpenSession: (Int) -> Unit, onOpenSpot: (String) -> Uni
         Kennzahl(I18n.t("leader.mostPumps"), { it.pumps.toDouble() }, { "%.0f".format(it) }),
         Kennzahl(I18n.t("spotcmp.foilers"), { it.foilers.toDouble() }, { "%.0f".format(it) }),
         Kennzahl(I18n.t("spotcmp.distance"), { it.foilingKm }, { "%.1f km".format(it) }),
-        Kennzahl(I18n.t("rec.sessionTime"), { it.onfoilS.toDouble() }, { dauer(it) }),
+        Kennzahl(I18n.t("leader.totalTime"), { it.onfoilS.toDouble() }, { dauer(it) }),
         Kennzahl(I18n.t("rec.farthestRun"), { it.longestRun?.value ?: 0.0 },
             { if (it >= 1000) "%.2f km".format(it / 1000) else "%.0f m".format(it) }, { it.longestRun }),
         Kennzahl(I18n.t("rec.topSpeed"), { it.topSpeed?.value ?: 0.0 }, { "%.1f km/h".format(it) }, { it.topSpeed }),

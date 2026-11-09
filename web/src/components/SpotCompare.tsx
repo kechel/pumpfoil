@@ -61,7 +61,7 @@ export function SpotCompare({ ohneKopf = false }: { ohneKopf?: boolean } = {}) {
     { label: t("leader.mostPumps"), fmt: (v) => String(v), val: (s) => s.pumps },
     { label: t("spotcmp.foilers"), fmt: (v) => String(v), val: (s) => s.foilers },
     { label: t("spotcmp.distance"), fmt: (v) => `${v} km`, val: (s) => s.foiling_km },
-    { label: t("rec.sessionTime"), fmt: fmtDur, val: (s) => s.onfoil_s },
+    { label: t("leader.totalTime"), fmt: fmtDur, val: (s) => s.onfoil_s },
     {
       label: t("rec.farthestRun"), fmt: (v) => (v >= 1000 ? `${(v / 1000).toFixed(2)} km` : `${Math.round(v)} m`),
       val: (s) => s.longest_run?.value ?? 0, holder: (s) => s.longest_run,
