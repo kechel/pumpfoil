@@ -1313,6 +1313,9 @@ IDEEN: list[str] = [
     # Uhr nur den letzten Lauf; Jan: „direkt auf der uhr ist aber auch ne gute idee".
     "Scroll through all runs of the session on your watch, not just the last one, to compare "
     "them with friends right at the water.",
+    # Vorschlag eines Team-Kapitaens im 1:1-Chat mit Jan (09.11.2026): Events weit im Voraus sehen, um sich
+    # vorzubereiten. Heute zeigt /events nur kommende Events innerhalb von `EVENT_VORSCHAU`. Jan: „erstmal merken".
+    "An event calendar, so you can see upcoming events well ahead and prepare for them.",
     # Heart Rate Recovery (ThermikDreher, 14.10.) stand hier ein paar Stunden — am selben Tag als
     # Pulsabfall 60/120 s in der Lauftabelle gebaut, steht im Changelog. Nicht wieder eintragen.
     # Der „private Modus" (Feedback #146) stand hier bis 25.09. — gebaut als „Ort verbergen",
