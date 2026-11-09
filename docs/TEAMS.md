@@ -304,6 +304,7 @@ fuer Regeln bleibt der Server (`server/app/teams.py`, `server/app/api/teams.py`)
 | Eigene Teams (Home-Links, Badge offene Anfragen `anfragen`) | `GET /mine` |
 | Alle freigegebenen Teams (Seite „Alle Teams") | `GET /liste` |
 | Laufende, beendete bis 3 Tage nach dem Ende (eingefroren oder „Results pending") + in 7 Tagen beginnende Events (Community, seit 09.11.2026) | `GET /liste/events` |
+| Kalender-Abo aller globalen Events (iCalendar, OHNE Login, nur Titel/Zeit/Beschreibung/Link; letzte 90 Tage + kommende; Knopf „Add to calendar" auf der Community-Seite, 09.11.2026) | `GET /api/public/events/global.ics` |
 | Alle Events, seitenweise (laufend → kommend → vergangen) | `GET /liste/events/alle?offset=&n=` (n ≤ 50) |
 | Teamseite | `GET /{slug}` (`meine_rolle`, `mein_status`, `anfragen_offen`, `anmeldungen_zulassen`, `automatisch_akzeptieren`, `bestenlisten_oeffentlich`, `chat_scope`) |
 | Bestenlisten / Teamstatistik / Logbuch | `GET /{slug}/bestenlisten?period=` · `/{slug}/statistik?period=` · `/{slug}/logbuch` |

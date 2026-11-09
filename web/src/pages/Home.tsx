@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { KalenderAbo } from "../components/KalenderAbo";
 import { fmtDate } from "../lib/time";
 import { Link, useSearchParams } from "react-router-dom";
 import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand, TeamEventKurz, TeamListenEintrag, TeamVergleich, TeamVergleichKennzahl, TeamVergleichZeile } from "../lib/api";
@@ -977,6 +978,8 @@ function TeamsSection() {
       {/* Die Wege weiter als Knoepfe unter dem jeweiligen Abschnitt (Jan, 02.11.2026), nicht mehr als Links im Kopf. */}
       <div className="mt-3 flex flex-wrap gap-2">
         <Link to="/events" className={KNOPF_WEITER}>{t("team.alleEvents")} →</Link>
+        {/* Kalender-Abo fuer alle globalen Events (09.11.2026). */}
+        <KalenderAbo klasse={KNOPF_WEITER} />
       </div>
       {/* Events der eigenen Teams (Jan, 06.11.2026): unter den globalen, nur fuer Mitglieder, nur wenn es welche gibt. */}
       {meine.length > 0 && (

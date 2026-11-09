@@ -1034,3 +1034,66 @@ def admin_entscheiden(team_id: int, body: FreigabeIn, _a: models.User = Depends(
     for u in weg:
         delete_media(u)
     return {"freigabe": t.freigabe}
+
+
+# --- Kalender-Abo fuer globale Events (Jan, 09.11.2026) -------------------------------------------------------------
+# „bei den global events haette ich gerne noch einen ical-link … public, oeffentlich, fuer alle der gleiche" / „also ein
+# link fuer alle events". EIN Feed (iCalendar, RFC 5545) fuer alle, ohne Login — Kalender wie Google holen ihn von ihren
+# eigenen Servern. Inhalt NUR, was die oeffentliche Eventseite ohnehin zeigt: Titel, Zeitraum, Beschreibung, Link. Keine
+# Namen, keine Ergebnisse. Globale Events der letzten 90 Tage und alle kommenden.
+ICS_RUECKBLICK = timedelta(days=90)
+# Eigener Router: unter /api/public/teams/ wuerde „global-events.ics" als Team-Slug gelesen.
+ics_router = APIRouter(prefix="/api/public/events", tags=["teams"])
+
+
+def _ics_text(s: str) -> str:
+    return (s.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,")
+            .replace("\r\n", "\n").replace("\n", "\\n"))
+
+
+def _ics_falten(zeile: str) -> list[str]:
+    """Zeilen hoechstens 75 Oktette, Fortsetzung mit einem Leerzeichen (RFC 5545 3.1), UTF-8 nicht zerschneiden."""
+    out, rest = [], zeile
+    grenze = 75
+    while len(rest.encode("utf-8")) > grenze:
+        k = grenze
+        while len(rest[:k].encode("utf-8")) > grenze:
+            k -= 1
+        out.append(rest[:k])
+        rest = " " + rest[k:]
+        grenze = 75
+    out.append(rest)
+    return out
+
+
+def _ics_zeit(t: datetime) -> str:
+    return T._aware(t).astimezone(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
+
+@ics_router.get("/global.ics")
+def global_events_ics(db: Session = Depends(get_db), _rl: None = Depends(rate_limit(60, 900, "events-ics"))) -> Response:
+    from ..config import get_settings
+    basis = get_settings().base_url
+    tid = T.offizielles_team_id(db)
+    jetzt = T._jetzt()
+    zeilen = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//pumpfoil.org//Global events//EN", "CALSCALE:GREGORIAN",
+              "METHOD:PUBLISH", "X-WR-CALNAME:pumpfoil.org global events",
+              "X-WR-CALDESC:Global pumpfoil events on pumpfoil.org - everyone who rides takes part automatically.",
+              "REFRESH-INTERVAL;VALUE=DURATION:PT6H", "X-PUBLISHED-TTL:PT6H"]
+    t = db.get(models.Team, tid) if tid else None
+    if t is not None:
+        E = models.TeamEvent
+        slug = T.auftritt(t, False)["slug"] or t.slug
+        for e in (db.query(E).filter(E.team_id == t.id, E.global_event.is_(True), E.geloescht_am.is_(None),
+                                     E.ende > jetzt - ICS_RUECKBLICK).order_by(E.start).all()):
+            url = f"{basis}/teams/{slug}/events/{e.id}"
+            beschreibung = ((e.beschreibung or "").strip() + "\n\n" + url).strip()
+            zeilen += ["BEGIN:VEVENT", f"UID:global-event-{e.id}@pumpfoil.org", f"DTSTAMP:{_ics_zeit(jetzt)}",
+                       f"DTSTART:{_ics_zeit(e.start)}", f"DTEND:{_ics_zeit(e.ende)}",
+                       f"SUMMARY:{_ics_text(e.titel or 'pumpfoil.org event')}", f"DESCRIPTION:{_ics_text(beschreibung)}",
+                       f"URL:{url}", "TRANSP:TRANSPARENT", "END:VEVENT"]
+    zeilen.append("END:VCALENDAR")
+    text = "\r\n".join(z for zeile in zeilen for z in _ics_falten(zeile)) + "\r\n"
+    return Response(text, media_type="text/calendar; charset=utf-8",
+                    headers={"Cache-Control": "public, max-age=900",
+                             "Content-Disposition": 'inline; filename="pumpfoil-global-events.ics"'})

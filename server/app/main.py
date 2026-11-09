@@ -531,6 +531,7 @@ app.include_router(friends.router, dependencies=[Depends(require_social)])
 # Teams (31.10.2026, docs/TEAMS.md): angemeldet hinter dem Social-Gate; die oeffentliche Bestenliste ohne Login.
 app.include_router(teams_api.router, dependencies=[Depends(require_social)])
 app.include_router(teams_api.public_router)
+app.include_router(teams_api.ics_router)   # Kalender-Abo globale Events (09.11.2026), ohne Login
 app.include_router(teams_api.admin_router)
 app.include_router(appmeta.router)
 

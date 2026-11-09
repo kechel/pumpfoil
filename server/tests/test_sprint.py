@@ -181,3 +181,27 @@ def test_aufgefuelltes_tempo_zaehlt_nicht(monkeypatch):
     r = R()
     SP.setzen(S(), r)
     assert r.sprint_100m_mps == 0.0 and r.sprint_60s_mps == 0.0
+
+
+def test_global_events_ics(client, monkeypatch):
+    # Kalender-Abo (09.11.2026): ein Feed ohne Login, nur globale Events, nur Titel/Zeit/Beschreibung/Link.
+    from datetime import datetime, timedelta, timezone
+    from test_sportmix import _frei, _konto
+    _frei()
+    (_uid, k) = _konto(client, "ics@t.de", "Ics Team")
+    slug = client.post("/api/teams", headers=k, json={"name": "Ics Offiziell"}).json()["slug"]
+    monkeypatch.setenv("TEAM_GLOBAL", slug)
+    jetzt = datetime.now(timezone.utc)
+    def ev(titel, glob):
+        return client.post(f"/api/teams/{slug}/events", headers=k, json={
+            "titel": titel, "beschreibung": "Fast; really, fast", "start": (jetzt + timedelta(days=2)).isoformat(),
+            "ende": (jetzt + timedelta(days=3)).isoformat(), "tafeln": [{"kennzahl": "sum_pumps"}], "global_event": glob})
+    assert ev("Sprint Weekend", True).status_code == 200
+    ev("Nur intern", False)
+    r = client.get("/api/public/events/global.ics")
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/calendar")
+    t = r.text
+    assert t.startswith("BEGIN:VCALENDAR\r\n") and t.endswith("END:VCALENDAR\r\n")
+    assert "SUMMARY:Sprint Weekend" in t and "Nur intern" not in t
+    assert "Fast\; really\\, fast" in t
+    assert all(len(z.encode()) <= 75 for z in t.split("\r\n"))
