@@ -11,7 +11,24 @@ const SCHRIFT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 export type BildZeile = { rang: number; name: string | null; initialen: string; wert: string; ich?: boolean;
   land?: string | null;   // Nationalitaet (ISO-Code) -> Flagge vor dem Namen
   // Team-Bestenliste (04.11.2026): Wappen vor dem Namen — Logo, sonst die Initialen auf der Teamfarbe (wie TeamWappen).
-  wappen?: { logo: string | null; initialen?: string; flaeche: string; schrift: string; flaecheHell: string; schriftHell: string } };
+  wappen?: { logo: string | null; initialen?: string; flaeche: string; schrift: string; flaecheHell: string; schriftHell: string };
+  // Gemischte Ansicht (Jan, 09.11.2026: „das share image enthaelt die badges je fahrer noch nicht"): Sportart-Pillen hinter
+  // dem Namen, wie SportAbzeichen auf der Seite. Text schon uebersetzt (s. bildAbzeichen).
+  abzeichen?: { sport: string; text: string }[] };
+
+// Farben der Sportart-Pillen je Fassung — dieselben Toene wie components/SportAbzeichen.tsx (Cyan / Bernstein).
+const PILLE: Record<string, { dunkel: [string, string]; hell: [string, string] }> = {
+  pumpfoil: { dunkel: ["rgba(34,211,238,0.16)", "#67e8f9"], hell: ["rgba(14,116,144,0.12)", "#0e7490"] },
+  foil_scoot: { dunkel: ["rgba(245,158,11,0.18)", "#fcd34d"], hell: ["rgba(245,158,11,0.16)", "#b45309"] },
+};
+const PILLE_SONST = { dunkel: ["#1e293b", "#cbd5e1"] as [string, string], hell: ["#e2e8f0", "#334155"] as [string, string] };
+
+/** Sportart-Pillen fuer eine Bildzeile; nur wenn der Server `sportarten` mitschickt (gemischte Ansicht). */
+export function bildAbzeichen(t: (k: string) => string, sportarten?: string[] | null, reihenfolge: readonly string[] = []) {
+  if (!sportarten?.length) return undefined;
+  const pos = (x: string) => { const i = reihenfolge.indexOf(x); return i < 0 ? 999 : i; };
+  return [...sportarten].sort((a, b) => pos(a) - pos(b)).map((sport) => ({ sport, text: t(`cls.sport.${sport}`) }));
+}
 
 export type BildDaten = {
   titel: string;            // Kopfzeile gross, z. B. „Längster Lauf" oder der Teamname
@@ -189,8 +206,23 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
       g.strokeStyle = F.linie; g.lineWidth = 2; g.strokeRect(nx, mitte - fh / 2, fw, fh);
     }
     nx += fw + 16;
+    // Sportart-Pillen hinter dem Namen: erst ihre Breite messen, damit der Name notfalls gekuerzt wird, nie die Pillen.
+    const pp = Math.max(14, Math.round(gross * 0.5)), ph = Math.round(pp * 1.6), pad = Math.round(pp * 0.55), pg = 8;
+    g.font = `600 ${pp}px ${SCHRIFT}`;
+    const pb = (z.abzeichen ?? []).map((a) => g.measureText(a.text).width + 2 * pad);
+    const pillen = pb.length ? pb.reduce((a, b) => a + b, 0) + pg * pb.length + 6 : 0;
     g.font = `${z.rang === 1 || z.ich ? 700 : 500} ${Math.round(gross * 0.92)}px ${SCHRIFT}`; g.textAlign = "left"; g.fillStyle = F.text;
-    g.fillText(kuerzen(g, z.name ?? "—", BILD_B - X - wb - 30 - nx), nx, mitte);
+    const name = kuerzen(g, z.name ?? "—", BILD_B - X - wb - 30 - nx - pillen);
+    g.fillText(name, nx, mitte);
+    let px0 = nx + g.measureText(name).width + 6 + pg;
+    (z.abzeichen ?? []).forEach((a, i) => {
+      const [fl, tx2] = (PILLE[a.sport] ?? PILLE_SONST)[d.hell ? "hell" : "dunkel"];
+      g.fillStyle = fl; g.beginPath(); g.roundRect(px0, mitte - ph / 2, pb[i], ph, 8); g.fill();
+      g.fillStyle = tx2; g.font = `600 ${pp}px ${SCHRIFT}`; g.textAlign = "center";
+      g.fillText(a.text, px0 + pb[i] / 2, mitte + 1);
+      px0 += pb[i] + pg;
+    });
+    g.textAlign = "left";
   };
   if (d.gruppen) {
     // Event-Uebersicht: Summen-Kacheln nebeneinander, darunter je Kategorie Titel + die ersten Plaetze.

@@ -7,6 +7,8 @@ import { kennzahl } from "../lib/teamKennzahlen";
 import BestenlisteBildDialog from "./BestenlisteBildDialog";
 import { teamInitialen } from "./TeamWappen";
 import { useT } from "../i18n";
+import { bildAbzeichen } from "../lib/bestenlisteBild";
+import { SPORTS } from "../lib/sportClass";
 
 /** Wappen des (ersten) Teams eines Fahrers im Bild — globale Events, wie die Spalte in der Liste (07.11.2026). */
 export function wappenVon(x?: { name: string; logo_url: string | null; farbe: string | null }) {
@@ -44,12 +46,12 @@ export default function TeamTafelBild({ team, tafel, zeitraum, onClose, stand, a
       stand].filter(Boolean).join(" · "),
     unterzeile2: eventZeile ? [eventZeile[1], [team.name, stand].filter(Boolean).join(" · ")].filter(Boolean).join("\n") : null,
     zeilen: tafel.zeilen.slice(0, 10).map((z) => ({ rang: z.rang, name: z.name, initialen: z.initialen, land: z.land, wert: k.fmt(z.value),
-      wappen: teamsZeigen ? wappenVon(z.teams?.[0]) : undefined })),
+      abzeichen: bildAbzeichen(t, z.sportarten, SPORTS), wappen: teamsZeigen ? wappenVon(z.teams?.[0]) : undefined })),
     wappenPlatz: teamsZeigen && tafel.zeilen.slice(0, 10).some((z) => z.teams?.length),
     // Eigene Zeile hinter Platz 10 (globale Events), im Dialog abwaehlbar (07.11.2026).
     eigene: tafel.eigene && tafel.eigene.rang > 10
       ? { rang: tafel.eigene.rang, name: tafel.eigene.name, initialen: tafel.eigene.initialen, land: tafel.eigene.land,
-          wert: k.fmt(tafel.eigene.value), wappen: teamsZeigen ? wappenVon(tafel.eigene.teams?.[0]) : undefined }
+          abzeichen: bildAbzeichen(t, tafel.eigene.sportarten, SPORTS), wert: k.fmt(tafel.eigene.value), wappen: teamsZeigen ? wappenVon(tafel.eigene.teams?.[0]) : undefined }
       : null,
     leer: t("team.tafel.leer"),
     // `dunkel` = Textfarbe fuer den DUNKLEN Modus (helle Stufe, s. lib/teamFarben.ts) — auf Navy muss sie leuchten.

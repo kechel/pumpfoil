@@ -35,6 +35,14 @@ export default function BestenlisteBildDialog({ daten: datenRoh, logoUrl, datein
   const [mitMir, setMitMirRoh] = useState(() => { try { return localStorage.getItem("foil_bild_mit_mir") !== "0"; } catch { return true; } });
   const setMitMir = (v: boolean) => { setMitMirRoh(v); try { localStorage.setItem("foil_bild_mit_mir", v ? "1" : "0"); } catch { /* egal */ } };
   const daten = useMemo(() => (datenRoh.eigene && !mitMir ? { ...datenRoh, eigene: null } : datenRoh), [datenRoh, mitMir]);
+  // ESC schliesst wie das X (Jan, 09.11.2026).
+  const zu = useRef(onClose);
+  zu.current = onClose;
+  useEffect(() => {
+    const taste = (e: KeyboardEvent) => { if (e.key === "Escape") zu.current(); };
+    window.addEventListener("keydown", taste);
+    return () => window.removeEventListener("keydown", taste);
+  }, []);
 
   useEffect(() => {
     let weg = false;

@@ -15,7 +15,7 @@ import type { TeamWertungZeile } from "../lib/api";
 import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
 import { Card } from "../components/ui";
 import TeamWappen from "../components/TeamWappen";
-import { dateiTeil, uebersichtHoehe, type BildZeile } from "../lib/bestenlisteBild";
+import { bildAbzeichen, dateiTeil, uebersichtHoehe, type BildZeile } from "../lib/bestenlisteBild";
 import { TeamHerkunft } from "../components/TeamHerkunft";
 import TeamBanner from "../components/TeamBanner";
 import TeamTafelBild, { wappenVon } from "../components/TeamTafelBild";
@@ -26,7 +26,7 @@ import { BeitrittDialog, Tafel } from "./Team";
 import { fehlerCode } from "../lib/teamKennzahlen";
 import { useI18n } from "../i18n";
 import { SportAbzeichen } from "../components/SportAbzeichen";
-import { ranglistenSportart, sportLabel } from "../lib/sportClass";
+import { SPORTS, ranglistenSportart, sportLabel } from "../lib/sportClass";
 
 /** Wie die Ergebnisse heissen: vorher Details, waehrenddessen aktueller Stand, danach Ergebnis. */
 export function eventStandKey(status: TeamEvent["status"]): string {
@@ -99,10 +99,11 @@ function EventSummen({ ev, t }: { ev: TeamEvent; t: (k: string) => string }) {
 
 /** Team-Rangliste eines globalen Events (06.11.2026): je Team die Summe der besten N Mitglieder. */
 /** Zeile des Teilen-Bilds einer Team-Rangliste — wie die Team-Bestenlisten der Community (Home.tsx TeamVergleich). */
-function teamBildZeile(x: TeamWertungZeile, wert: string, ich: boolean) {
+function teamBildZeile(x: TeamWertungZeile, wert: string, ich: boolean, t: (k: string) => string) {
   const f = TEAM_FARBEN[x.farbe || "cyan"] ?? TEAM_FARBEN.cyan;
   return {
     rang: x.rang, name: x.name, initialen: teamInitialen(x.name), wert, ich, land: x.land || null,
+    abzeichen: bildAbzeichen(t, x.sportarten, SPORTS),
     wappen: { logo: x.logo_url, flaeche: f.dunkelFlaeche ?? f.dunkel, schrift: f.dunkelAuf ?? "#020617",
               flaecheHell: f.hellFlaeche ?? f.hell, schriftHell: f.hellAuf ?? "#ffffff" },
   };
@@ -179,9 +180,9 @@ function EventUebersichtBild({ ev, team, t, lang, stand, onClose }: {
   const gruppen = kategorien.filter((k) => wahl.has(k.key)).map((k) => {
     const f = kennzahl(k.tf.kennzahl);
     const zeilen: BildZeile[] = k.team
-      ? (k.tf.teams ?? []).slice(0, 3).map((x) => teamBildZeile(x, f.fmt(x.value), false))
+      ? (k.tf.teams ?? []).slice(0, 3).map((x) => teamBildZeile(x, f.fmt(x.value), false, t))
       : k.tf.zeilen.slice(0, 3).map((z) => ({ rang: z.rang, name: z.name, initialen: z.initialen, land: z.land, wert: f.fmt(z.value),
-          wappen: ev.global ? wappenVon(z.teams?.[0]) : undefined }));
+          abzeichen: bildAbzeichen(t, z.sportarten, SPORTS), wappen: ev.global ? wappenVon(z.teams?.[0]) : undefined }));
     return { titel: k.titel, zeilen };
   });
   const farbe = TEAM_FARBEN[team.farbe || "cyan"] ?? TEAM_FARBEN.cyan;
@@ -502,8 +503,8 @@ export default function TeamEventSeite() {
               unterzeile: [bildTeams.sportart && bildTeams.sportart !== "pumpfoil" ? sportLabel(bildTeams.sportart, t) : null, t("team.event.teams"), t(k.labelKey)].filter(Boolean).join(" · "),
               unterzeile2: [eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang, true),
                 [team.name, n === 0 ? t("team.event.wertungAlle") : t("team.event.wertungBeste", { n: String(n) }), standFuer(bildTeams)].filter(Boolean).join(" · ")].join("\n"),
-              zeilen: alle.slice(0, 10).map((x) => teamBildZeile(x, k.fmt(x.value), eigeneSlugs.includes(x.slug))),
-              eigene: eigen ? teamBildZeile(eigen, k.fmt(eigen.value), true) : null,
+              zeilen: alle.slice(0, 10).map((x) => teamBildZeile(x, k.fmt(x.value), eigeneSlugs.includes(x.slug), t)),
+              eigene: eigen ? teamBildZeile(eigen, k.fmt(eigen.value), true, t) : null,
               leer: t("team.event.keineTeams"),
               abzeichen: ev.status === "laeuft" || ev.status === "auswertung" ? t(`team.event.status.${ev.status}`) : null,
             }} />

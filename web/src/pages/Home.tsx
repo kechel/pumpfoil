@@ -17,7 +17,7 @@ import TeamWappen, { teamInitialen } from "../components/TeamWappen";
 import { TeamHerkunft } from "../components/TeamHerkunft";
 import { Quellen } from "../components/Quellen";
 import { TEAM_FARBEN, teamFarbStil } from "../lib/teamFarben";
-import { initialenAus } from "../lib/bestenlisteBild";
+import { bildAbzeichen, initialenAus } from "../lib/bestenlisteBild";
 import { SessionRow } from "../components/SessionRow";
 import { Lightbox } from "../components/Lightbox";
 import { VideoModal, ytId } from "../components/VideoModal";
@@ -27,7 +27,7 @@ import { CommunityStats } from "../components/CommunityStats";
 import { useAccelDefault } from "../lib/useAccelDefault";
 import { useI18n, useT } from "../i18n";
 import { landName } from "../lib/laender";
-import { MOTOR_SPORTS, PADDEL_SPORTS, WIND_SPORTS, ranglistenSportart, sortiereNachSport, sportLabel } from "../lib/sportClass";
+import { MOTOR_SPORTS, PADDEL_SPORTS, SPORTS, WIND_SPORTS, ranglistenSportart, sortiereNachSport, sportLabel } from "../lib/sportClass";
 import { fmtLaufDauer } from "../lib/dauer";
 
 function InstallButton() {
@@ -573,7 +573,8 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
       const u = typeof k.unit === "function" ? k.unit(v) : t(k.unitKey ?? "");
       return `${k.fmt ? k.fmt(v) : v} ${u}`;
     };
-    const zeile = (r: LeaderRow, rang: number) => ({ rang, name: r.name, initialen: initialenAus(r.name), wert: fmtWert(r), land: r.land });
+    const zeile = (r: LeaderRow, rang: number) => ({ rang, name: r.name, initialen: initialenAus(r.name), wert: fmtWert(r), land: r.land,
+      abzeichen: bildAbzeichen(t, r.sportarten, SPORTS) });
     const eigene = data.me?.[k.key];
     return (
       <BestenlisteBildDialog onClose={() => setBild(false)} titel={t("team.bild.titel")} dateiname={`pumpfoil-${k.key}.jpg`}
@@ -1056,6 +1057,7 @@ function TeamBestenlisten({ period, sport, region, titel }: { period: string; sp
     const f = TEAM_FARBEN[z.farbe || "cyan"] ?? TEAM_FARBEN.cyan;
     return {
       rang: i + 1, name: z.name, initialen: teamInitialen(z.name), wert: wert(z), ich: meine.has(z.slug),
+      abzeichen: bildAbzeichen(t, z.sportarten, SPORTS),
       land: z.land || null,   // Kontinent/Erde als Umriss (BestenlisteBildDialog kontinentBild)
       wappen: { logo: z.logo_url, flaeche: f.dunkelFlaeche ?? f.dunkel, schrift: f.dunkelAuf ?? "#020617",
                 flaecheHell: f.hellFlaeche ?? f.hell, schriftHell: f.hellAuf ?? "#ffffff" },
