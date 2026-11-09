@@ -14,6 +14,7 @@ import { TEAM_FARBEN } from "../lib/teamFarben";
 import type { TeamWertungZeile } from "../lib/api";
 import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
 import { Card } from "../components/ui";
+import EventPodest from "../components/EventPodest";
 import TeamWappen from "../components/TeamWappen";
 import { bildAbzeichen, dateiTeil, uebersichtHoehe, type BildZeile } from "../lib/bestenlisteBild";
 import { TeamHerkunft } from "../components/TeamHerkunft";
@@ -261,6 +262,9 @@ export default function TeamEventSeite() {
   const [sports, setSports] = useState<string[]>(["pumpfoil"]);
   const [bands, setBands] = useState<FoilBand[]>([]);
   const [alleSpots, setAlleSpots] = useState<{ id: number; name: string }[]>([]);
+  // Siegertreppchen (09.11.2026): vorerst nur fuer Admins.
+  const [istAdmin, setIstAdmin] = useState(false);
+  useEffect(() => { if (!gast) api.getProfile().then((p) => setIstAdmin(!!p.is_admin)).catch(() => {}); }, [gast]);
   const nav = useNavigate();
 
   useEffect(() => {
@@ -449,11 +453,15 @@ export default function TeamEventSeite() {
             ...(tf0.eigene && tf0.eigene.rang > 10 && !teamFilter ? [tf0.eigene] : [])] } : tf0;
           const standText = standFuer(tf0);
           return (
+            <>
+            {/* Siegertreppchen ueber der Bestenliste, nur beendete Events, vorerst nur Admins (Jan, 09.11.2026). */}
+            {istAdmin && ev.status === "beendet" && <EventPodest evId={ev.id} tf={tf0} global={!!ev.global} t={t} />}
             <div className={`grid grid-cols-1 gap-3 ${ev.global ? "sm:grid-cols-2" : ""}`}>
               <Tafel tf={tf} gast={gast} t={t} teamsZeigen={!!ev.global} ohneFilter sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} standText={standText} />
               {ev.global && <TeamWertung tf={tf} n={ev.team_wertung_n ?? 5} t={t} eigeneSlugs={meineTeams.map((x) => x.slug)} standText={standText}
                 onBild={gast ? undefined : () => setBildTeams(tf0)} />}
             </div>
+            </>
           );
         })()}
         </>

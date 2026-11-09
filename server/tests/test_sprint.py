@@ -139,6 +139,8 @@ def test_team_wertung_sprint_durchschnitt():
     schnitt = {x["slug"]: x for x in T.team_wertung(None, zeilen, 2, None, zuordnung, schnitt=True)}
     assert schnitt["a"]["value"] == 5.5 and schnitt["a"]["fahrer"] == 2
     assert schnitt["b"]["value"] == 5.8 and schnitt["b"]["rang"] == 1
+    # Siegertreppchen: Teamgroesse aus der Zuordnung (alle Mitglieder, nicht nur die mit Wert).
+    assert summe["a"]["mitglieder"] == 3 and summe["b"]["mitglieder"] == 1 and summe["a"]["teilnehmer"] == 3
 
 
 def test_event_bis_zehn_bestenlisten(client):

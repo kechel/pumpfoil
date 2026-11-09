@@ -854,7 +854,8 @@ def team_zuordnung(db: Session, ausser_team_id: int | None = None) -> dict:
         mitglieder.setdefault(str(uid), []).append(t.id)
         if str(t.id) not in teams:
             a = auftritt(t, False)
-            teams[str(t.id)] = {k: a[k] for k in ("slug", "name", "logo_url", "farbe", "land")}
+            # banner_* seit 09.11.2026 (Siegertreppchen); aeltere festgehaltene Staende haben sie nicht.
+            teams[str(t.id)] = {k: a[k] for k in ("slug", "name", "logo_url", "farbe", "land", "banner_url", "banner_fokus")}
     return {"mitglieder": mitglieder, "teams": teams}
 
 
@@ -892,6 +893,11 @@ def team_wertung(db: Session, zeilen: list[dict], n: int, ausser_team_id: int | 
     strittig = {z["user_id"] for z in zeilen if z.get("strittig")}
     sp_je = {z["user_id"]: z["sportarten"] for z in zeilen if z.get("sportarten")}   # gemischte Bestenliste
     je: dict[int, list[tuple[float, int]]] = {}
+    # Mitglieder je Team zum festgehaltenen Stand (Siegertreppchen, 09.11.2026: „wie gross das team war").
+    groesse: dict[str, int] = {}
+    for tids in z_["mitglieder"].values():
+        for tid in tids:
+            groesse[str(tid)] = groesse.get(str(tid), 0) + 1
     for uid in wert:
         for tid in z_["mitglieder"].get(str(uid), []):
             if tid != ausser_team_id:
@@ -904,7 +910,8 @@ def team_wertung(db: Session, zeilen: list[dict], n: int, ausser_team_id: int | 
         out.append({"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"],
                     "land": a["land"], "value": round(sum(v for v, _ in beste) / (len(beste) if schnitt else 1), 3 if schnitt else 2),
                     "fahrer": len(beste),
-                    "teilnehmer": len(werte),
+                    "teilnehmer": len(werte), "mitglieder": groesse.get(str(tid), len(werte)),
+                    "banner_url": a.get("banner_url"), "banner_fokus": a.get("banner_fokus"),
                     # Strittig, sobald ein MITGEZAEHLTES Mitglied eine offene Meldung hat (Jan, 08.11.2026).
                     **({"strittig": True} if any(u in strittig for _, u in beste) else {}),
                     # Gemischte Bestenliste: die Sportarten der mitgezaehlten Fahrer als Abzeichen am Team (08.11.2026).

@@ -228,6 +228,13 @@ Team-Wertung globaler Events: bei Sprints der **Durchschnitt** der besten N (ueb
 die Summe (`team_wertung(..., schnitt=True)`, Jan 09.11.: „mach es so das es sinn ergibt"); Web-Text `team.event.wertungSchnitt*`.
 Erklaerseite `/nerd-analysen-sprints` (`NerdSprints.tsx`): vorerst nur Admins, nur Englisch.
 Bestenlisten je Event: hoechstens 10 (`EVENT_MAX_TAFELN`, vorher 6; 09.11.2026 nach dem Einfrieren von Event 4). Native Editoren ab der naechsten App-Fassung, alte Apps zeigen den Knopf nur bis 6.
+**Siegertreppchen** (09.11.2026, `web/src/components/EventPodest.tsx`): ueber der Bestenliste beendeter Events, vorerst
+NUR fuer Admins und nur in der PWA. Folgt der gewaehlten Bestenliste; Fahrer als schwebende Foils (Gold/Silber/Bronze, Form
+wie im Wappen von Team 9), bei globalen Events umschaltbar auf Teams: Stufe = Teambanner, darauf je Mitglied ein Kopf (hell =
+im Event gefahren, grau = nicht). Dafuer traegt `team_wertung` seit 09.11. `mitglieder` und `banner_url`/`banner_fokus` (aus
+der festgehaltenen Zuordnung; aeltere Snapshots ohne → nur die Mitfahrer, Teamfarbe statt Banner). Ton: Pixabay-Sound 484333
+(Pixabay-Lizenz, keine Weitergabe der Datei allein) in `server/media/sounds/` mit Lizenzzertifikat, NICHT im Repo; spielt
+bei jedem Betreten, Knopf + „Stumm" (localStorage).
 
 **Endstand = Snapshot** (geprueft 09.11.2026, Jan: „der snapshot des fertigen ergebnisses … und nicht eine aktuelle
 neuberechnung"): nach dem Einfrieren lesen alle Pfade nur noch `ergebnis_json` (Zeilen, Team-Wertung, Wappen je Zeile),
