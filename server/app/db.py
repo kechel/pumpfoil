@@ -287,7 +287,8 @@ def _tokens_hashen() -> None:
     for tabelle in ("device_tokens", "password_resets"):
         with engine.connect() as conn:
             da = conn.execute(text(
-                "SELECT 1 FROM information_schema.columns WHERE table_name = :t AND column_name = 'token_gehasht'"),
+                "SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = :t "
+                "AND column_name = 'token_gehasht'"),
                 {"t": tabelle}).first() is not None
             if da and conn.execute(text(
                     f"SELECT 1 FROM {tabelle} WHERE token_gehasht IS NOT TRUE LIMIT 1")).first() is None:
@@ -342,11 +343,12 @@ def _tokens_verschluesseln() -> None:
         return
     for tabelle, spalten in _VERSCHLUESSELT.items():
         with engine.connect() as conn:
-            if conn.execute(text("SELECT 1 FROM information_schema.tables WHERE table_name = :t"),
+            if conn.execute(text("SELECT 1 FROM information_schema.tables WHERE table_schema = current_schema() AND table_name = :t"),
                             {"t": tabelle}).first() is None:
                 continue
             typen = dict(conn.execute(text(
-                "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = :t"),
+                "SELECT column_name, data_type FROM information_schema.columns WHERE table_schema = current_schema() "
+                "AND table_name = :t"),
                 {"t": tabelle}).all())
             offen = " OR ".join(f"({c} IS NOT NULL AND {c} <> '' AND {c} NOT LIKE 'enc1:%')" for c in spalten)
             zeilen = conn.execute(text(f"SELECT id, {', '.join(spalten)} FROM {tabelle} WHERE {offen}")).all()
@@ -369,12 +371,12 @@ def _tokens_verschluesseln() -> None:
 
 
 def _schema_stand(conn) -> dict:
-    """Spalten (mit Typ/Nullbarkeit) und Indexnamen des Schemas public, in zwei billigen Katalog-Abfragen."""
+    """Spalten (mit Typ/Nullbarkeit) und Indexnamen des aktuellen Schemas (sonst public), in zwei billigen Katalog-Abfragen."""
     from sqlalchemy import text
     spalten = {(r[0], r[1]): (r[2], r[3]) for r in conn.execute(text(
         "SELECT table_name, column_name, data_type, is_nullable FROM information_schema.columns "
-        "WHERE table_schema = 'public'"))}
-    indexe = {r[0] for r in conn.execute(text("SELECT indexname FROM pg_indexes WHERE schemaname = 'public'"))}
+        "WHERE table_schema = current_schema()"))}
+    indexe = {r[0] for r in conn.execute(text("SELECT indexname FROM pg_indexes WHERE schemaname = current_schema()"))}
     return {"spalten": spalten, "indexe": indexe}
 
 
