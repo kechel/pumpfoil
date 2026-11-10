@@ -74,3 +74,18 @@ def test_einweg_zurueckpaddeln_und_kurzer_lauf_am_start():
     r = pruefe(*_session(st))
     assert r["status"] == "fremdkraft", r
     assert r["fremd"][-1]["art"] == "rueckweg_ohne_foil"
+
+
+def test_viele_kurze_schwimmstrecken_auf_dem_rueckweg_erlaubt():
+    # 3 km raus, zurueck in Laeufen mit je 130 m Schwimmen Richtung Start dazwischen (5 x 130 = 650 m: ueber 500 m,
+    # aber unter 25 % von 3 km = 750 m -> erlaubt), danach Runden am Steg
+    st = [_lauf(0, 0, 3000)]
+    t, pos = 700_000, 3000
+    for _ in range(5):
+        st.append(_lauf(t, pos - 130, pos - 600)); t += 300_000
+        pos -= 600
+    for _ in range(6):
+        st.append(_lauf(t, 0, 500)); t += 200_000
+        st.append(_lauf(t, 500, 0)); t += 200_000
+    r = pruefe(*_session(st))
+    assert r["status"] == "geschafft", r

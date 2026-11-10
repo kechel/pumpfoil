@@ -8,8 +8,9 @@ Zusatz gegen Fremdkraft (Jan 10.11.): keine aktive Autofahrt in der Session, und
 Versatz, der schneller ist, als man schwimmt oder geht (> FREMD_KMH ueber > FREMD_M, auch ueber GPS-Luecken).
 
 Rueckweg auf dem Foil (Jan 10.11., Session mit 12 km Rueckweg paddelnd und 127-m-Lauf am Start): ab dem fernsten
-Punkt darf die Annaeherung an den Start ausserhalb der Laeufe hoechstens RUECK_OHNE_FOIL_M betragen (Schwimmen zum
-Ufer nach Stuerzen ja, Zurueckpaddeln/-laufen/-fahren nein, auch langsam).
+Punkt darf die Annaeherung an den Start ausserhalb der Laeufe hoechstens 25 % dieser Entfernung betragen, mindestens
+500 m (Schwimmen zum naechsten Startplatz und viele Relaunches ja, Zurueckpaddeln/-laufen/-fahren nein, auch langsam).
+Gemessen 10.11.: Rueckpaddler 91-100 %+, echte Rueckwege 0-5 %.
 
 Startpunkt = erster brauchbarer Fix des ersten Laufs (die Uhr laeuft oft schon an Land).
 Pumpfoil zeigt nur „vermutlich geschafft"; ob jemand den Sticker bekommt, entscheidet der Betreiber.
@@ -26,7 +27,8 @@ HEIM_FIXES = 2       # Fixes im Lauf innerhalb HEIM_M nach Erfuellung von 1 + 2
 GATE_ACC_M = 20.0
 FREMD_KMH = 8.0      # Versatz zwischen zwei Laeufen schneller als das = Fremdkraft (Boot, Auto, Rad)
 FREMD_M = 300.0
-RUECK_OHNE_FOIL_M = 500.0  # Rueckweg ab dem fernsten Punkt: hoechstens so viel Annaeherung an den Start AUSSERHALB der Laeufe
+RUECK_OHNE_FOIL_ANTEIL = 0.25  # Rueckweg ab dem fernsten Punkt: hoechstens dieser Anteil der Entfernung ausserhalb der Laeufe,
+RUECK_OHNE_FOIL_MIN_M = 500.0  # mindestens aber so viel (jede Luecke traegt auch ~22 m abgeschnittenen Laufweg, p90 64 m)
 
 
 def _m(lat1, lon1, lat2, lon2) -> float:
@@ -132,7 +134,8 @@ def pruefe(gps: list, segmente: list, auto_fahrten: list | None = None) -> dict:
     for l0, l1 in zip(voll[fern:], voll[fern + 1:]):
         an += max(0.0, _m(s_lat, s_lon, l0[-1][1], l0[-1][2]) - _m(s_lat, s_lon, l1[0][1], l1[0][2]))
     erg["rueck_ohne_foil_m"] = round(an, 1)
-    if an > RUECK_OHNE_FOIL_M and erg["zurueck"]:
+    fern_m = max(_m(s_lat, s_lon, p[1], p[2]) for p in voll[fern])
+    if an > max(RUECK_OHNE_FOIL_MIN_M, RUECK_OHNE_FOIL_ANTEIL * fern_m) and erg["zurueck"]:
         erg["fremd"].append({"art": "rueckweg_ohne_foil", "t_von": int(voll[fern][-1][0]), "t_bis": int(voll[-1][0][0]),
                              "m": round(an), "kmh": 0.0})
 
