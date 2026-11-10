@@ -63,6 +63,10 @@ export class Stand {
   vorher: number[] | null = null;
   burst: number[][] = [];
   spdMaxClean: number = 0;
+  c1: number = 0;
+  c2: number = 0;
+  spdMaxGlatt: number = 0;
+  maxLaeufe: number = 0;
   hr: number = 0;
   hrSum: number = 0;
   hrN: number = 0;
@@ -128,13 +132,21 @@ export class Stand {
       }
       this.prev = [lat, lon];
       this.spdMaxClean = maxKandidat(this.burst, jetzt, v);
-      if (this.spdMaxClean > this.max) {
-        this.max = this.spdMaxClean;
-      }
+      // V-max wie der Server (Jan 10.11.2026): Maximum der 3-s-Median-Kurve, nur in Laeufen (gps.py _seg_fields);
+      // bisher hoechster 1-s-Wert der ganzen Aufnahme. Median der gesaeuberten Werte der letzten 3 Fixe (c1, c2,
+      // spdMaxClean), wie common/lauf.js.
+      const a: number = this.c1;
+      const b: number = this.c2;
+      this.c1 = b;
+      this.c2 = this.spdMaxClean;
+      this.spdMaxGlatt = Math.max(Math.min(a, b), Math.min(Math.max(a, b), this.c2));
     }
     this.median(this.cur, el, fix);
     const vorher: boolean = this.foiling;
     this.lauf(this.sp3, this.cur, this.dist, el);
+    // Session-V-max: gewertete Laeufe, dazu der laufende, sobald er die Mindestdauer hat.
+    const laufZaehlt: boolean = this.foiling && el - this.runStartMs >= MIN_RUN_MS;
+    this.max = Math.max(this.maxLaeufe, laufZaehlt ? this.runMaxMps : 0);
     return vorher !== this.foiling;
   }
 
@@ -194,13 +206,13 @@ export class Stand {
       } else {
         this.runStartMs = t - RUN_ENTER_DWELL * 1000;
         this.runStartDist = dist;
-        this.runMaxMps = this.spdMaxClean;
+        this.runMaxMps = this.spdMaxGlatt;
         this.runMaxHr = this.hr > 0 ? this.hr : 0;
       }
       return;
     }
-    if (this.spdMaxClean > this.runMaxMps) {
-      this.runMaxMps = this.spdMaxClean;
+    if (this.spdMaxGlatt > this.runMaxMps) {
+      this.runMaxMps = this.spdMaxGlatt;
     }
     if (this.hr > this.runMaxHr) {
       this.runMaxHr = this.hr;
@@ -226,6 +238,9 @@ export class Stand {
     this.lastRunDurMs = durMs;
     this.lastRunDistM = distM;
     this.lastRunAvgMps = durMs > 0 ? distM / (durMs / 1000) : 0;
+    if (this.runMaxMps > this.maxLaeufe) {
+      this.maxLaeufe = this.runMaxMps;
+    }
     this.lastRunMaxMps = this.runMaxMps;
     this.lastRunMaxHr = this.runMaxHr;
     this.runMaxHr = 0;
