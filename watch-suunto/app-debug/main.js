@@ -1232,7 +1232,7 @@ var STD_HASH = 2399432573;   // server/app/data/standard_layouts.json, s. bau.mj
  * reserviert — eigene Funktionen nur als `var f = function`. Die Rueckrufe unten (onLoad, evaluate, …)
  * sind genau die, die die Firmware erwartet. Kein Date, ES5.
  */
-var APP_VER = 100;                 // 1.00 (manifest "version" hoechstens 4 Zeichen)
+var APP_VER = 101;                 // 1.01 (manifest "version" hoechstens 4 Zeichen)
 var SLOTS_ACC = 80, SLOTS_GPS = 150;
 
 var st, kf, aw, al, pu, fu;        // Stand, Konfig, Auswahl, Alarm, Pumpe, Funk

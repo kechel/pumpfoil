@@ -301,9 +301,9 @@ test("Update-Hinweis im Startbildschirm, wenn das Profil eine neuere Version mel
   uhr.ruf("evaluate", { utc: 1, lt: 0 });
   assert.ok(uhr.sichtbar().some((x) => x.txt === "Update 1.02"), JSON.stringify(uhr.sichtbar()));
   const gleich = new Uhr({ einstellungen: { handy: "false" } });
-  gleich.speicher.set("k", kompaktVon({ latestVersion: "1.00" }));
+  gleich.speicher.set("k", kompaktVon({ latestVersion: "1.01" }));
   gleich.ruf("onLoad"); gleich.ruf("getUserInterface"); gleich.ruf("evaluate", { utc: 1, lt: 0 });
-  assert.ok(gleich.sichtbar().some((x) => x.txt === "Version 1.00"));
+  assert.ok(gleich.sichtbar().some((x) => x.txt === "Version 1.01"));
 });
 
 test("Standard-Layouts: das Handy schickt nur std, die Uhr nimmt ihre mitgebrachten (Pruefsumme im HALLO)", async () => {

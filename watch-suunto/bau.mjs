@@ -131,7 +131,7 @@ export function manifest() {
   const quelle = (name, source) => ({ name, source, type: "subscribe" });
   return {
     name: "Pumpfoil",
-    version: "1.00",
+    version: "1.01",
     author: "pumpfoil.org",
     description: "Runs, pumps and cadence on the watch; raw data to the Pumpfoil phone app",
     type: "device",
