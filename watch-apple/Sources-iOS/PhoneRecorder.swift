@@ -129,6 +129,10 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     private var burstPos = 0
     /// maxKandidat() pro Fix nur EINMAL — sonst halbiert sich das 15-s-Fenster.
     private var spdMaxClean = 0.0
+    /// V-max wie der Server (Jan 10.11.2026): Maximum der 3-s-Median-Kurve, nur in Laeufen (gps.py _seg_fields); bisher
+    /// hoechster 1-s-Wert der ganzen Aufnahme. Median der gesaeuberten Werte der letzten 3 s, Session-Max aus gewerteten Laeufen.
+    private var maxGlattWin: [[Double]] = []
+    private var spdMaxGlatt = 0.0
     private var minSpeedSeitEnde = 99.0
     private var lastRunStartMs = 0.0, lastRunStartDist = 0.0   // Start des zuletzt beendeten Laufs
     private let MAX_PLAUSIBLE_MPS = 32.0 / 3.6   // darueber ist es kein Pumpfoil
@@ -187,7 +191,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         chunkIndex = 0
         uploadSent = 0; uploadTotal = 0
         lock.lock(); accelBuf.removeAll(); gyroBuf.removeAll(); magBuf.removeAll(); gpsBuf.removeAll(); spWin.removeAll(); lock.unlock()
-        prevLat = .nan; prevLon = .nan; distM = 0; maxMps = 0
+        prevLat = .nan; prevLon = .nan; distM = 0; maxMps = 0; maxGlattWin = []; spdMaxGlatt = 0
         posGemeldet = false
         foiling = false; foilEnter = 0; foilExit = 0; runEndedMs = -100000
         runCnt = 0; runStartMs = 0; runStartDist = 0; runMaxMps = 0
@@ -469,7 +473,10 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         }
         prevLat = l.coordinate.latitude; prevLon = l.coordinate.longitude; prevT = Double(tMs)
         spdMaxClean = maxKandidat(sp)
-        if spdMaxClean > maxMps { maxMps = spdMaxClean }
+        maxGlattWin.append([Double(tMs), spdMaxClean])
+        while let f = maxGlattWin.first, Double(tMs) - f[0] > 3000 { maxGlattWin.removeFirst() }
+        let gs = maxGlattWin.map { $0[1] }.sorted()
+        spdMaxGlatt = gs.isEmpty ? 0 : gs[gs.count / 2]
         spWin.append([Double(tMs), sp])
         while let f = spWin.first, Double(tMs) - f[0] > 3000 { spWin.removeFirst() }
         lock.unlock()
@@ -481,7 +488,9 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         while distVerlauf.count > 1, let f = distVerlauf.first, Double(tMs) - f.t > 8000 { distVerlauf.removeFirst() }
         let nowFoiling = updateFoilingRun(sp3 * 3.6, Double(tMs), distM, sp)
         gpsFix = true
-        speedKmh = sp * 3.6; speed3sKmh = sp3 * 3.6; maxSpeedKmh = maxMps * 3.6
+        speedKmh = sp * 3.6; speed3sKmh = sp3 * 3.6
+        // gewertete Laeufe, dazu der laufende, sobald er die Mindestdauer hat
+        maxSpeedKmh = (nowFoiling && Double(tMs) - runStartMs >= MIN_RUN_MS ? max(maxMps, runMaxMps) : maxMps) * 3.6
         distanceM = distM; avgSpeedKmh = distM / sec * 3.6; elapsedSec = tMs / 1000
         isFoiling = nowFoiling; runCount = runCnt
         runDurationMs = Int(nowFoiling ? max(0, Double(tMs) - runStartMs) : lastRunDurMs)
@@ -528,12 +537,12 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
                     } else {
                         runStartMs = tMs - Double(RUN_ENTER_DWELL) * 1000
                         runStartDist = distVerlauf.last(where: { $0.t <= runStartMs + 500 })?.d ?? distVerlauf.first?.d ?? dist
-                        runMaxMps = spdMaxClean
+                        runMaxMps = spdMaxGlatt
                     }
                 }
             }
         } else {
-            if spdMaxClean > runMaxMps { runMaxMps = spdMaxClean }
+            if spdMaxGlatt > runMaxMps { runMaxMps = spdMaxGlatt }
             foilExit = sp3Kmh < 9 ? foilExit + 1 : 0
             if foilExit >= RUN_EXIT_DWELL {
                 foiling = false; foilEnter = 0
@@ -547,6 +556,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
                     lastRunStartMs = runStartMs; lastRunStartDist = runStartDist
                     lastRunDurMs = durMs
                     lastRunDistM = distM; lastRunMaxMps = runMaxMps
+                    if runMaxMps > maxMps { maxMps = runMaxMps }   // Session-V-max nur aus gewerteten Laeufen
                     let lauf = LiveLauf(startSek: Int(runStartMs / 1000), durMs: Int(durMs), distM: distM,
                                         avgKmh: durMs > 0 ? distM / (durMs / 1000) * 3.6 : 0, maxKmh: runMaxMps * 3.6)
                     if runIstFortsetzung, !laeufeListe.isEmpty { laeufeListe[laeufeListe.count - 1] = lauf }
