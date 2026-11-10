@@ -60,9 +60,13 @@ class SessionRecorder {
     hidden var _chunkIndex = 0;      // fortlaufender Chunk-Index (gps & accel getrennt gezählt)
     hidden var _burstRing = new [15];   // BURST_WIN; Rohwerte der letzten 15 s (Max-Saeuberung)
     hidden var _burstPos = 0;
-    // Der gesaeuberte Wert des LAUFENDEN Ticks. Wichtig: _maxKandidat() darf pro Tick nur EINMAL
-    // laufen — jeder Aufruf schiebt in den 15-s-Ring, zwei Aufrufe halbieren also das Fenster.
-    hidden var _spdMaxClean = 0.0;
+    // Die gesaeuberten Werte der letzten 3 Ticks [0..2] und ihr Median [3]. Wichtig: _maxKandidat() darf pro Tick
+    // nur EINMAL laufen — jeder Aufruf schiebt in den 15-s-Ring, zwei Aufrufe halbieren also das Fenster.
+    // V-max wie der Server (Jan 10.11.2026): Maximum der 3-s-Median-Kurve, nur in Laeufen (gps.py _seg_fields). Bis
+    // 1.0.x stand hier der hoechste 1-s-Wert der ganzen Aufnahme — Garmin im Median 1,7 km/h ueber dem Server, 28 %
+    // der Sessions mehr als 3 km/h (2311 Sessions seit 01.08., scripts/uhr-vmax-messen.py). Ein Array statt neuer
+    // Felder: SessionRecorder steht an der Grenze von 253 Membern (128-KB-Builds).
+    hidden var _spdMaxClean as Lang.Array<Lang.Float> = [0.0, 0.0, 0.0, 0.0];
     hidden var _minSpeedSeitEnde = 99.0;   // kleinster Speed seit dem letzten Lauf-Ende
     hidden var _runIstFortsetzung = false; // laufender Lauf setzt den vorigen fort -> nicht zaehlen
     hidden var _lastRunStartMs = 0;        // Start des zuletzt beendeten Laufs (fuer Fortsetzungen)
@@ -1441,6 +1445,7 @@ class SessionRecorder {
         _accelChunkIndex = 0;
         storageDropped = 0;
         _maxSpdSeen = 0.0;
+        _spdMaxClean = [0.0, 0.0, 0.0, 0.0];
         _accelT0 = {};
         _accelBufT0 = null;
         _gpsChunkIndex = 0;
@@ -1810,8 +1815,11 @@ class SessionRecorder {
             if (act == null) { return; }
             var spd = _saneSpeed(act.currentSpeed);
             if (gpsPoor()) { spd = 0.0; }   // s. _gpsQuality: kein Vertrauen -> keine Phantom-Laeufe
-            _spdMaxClean = _maxKandidat(spd);
-            if (_spdMaxClean > _maxSpdSeen) { _maxSpdSeen = _spdMaxClean; }
+            var mk = _spdMaxClean as Lang.Array<Lang.Float>;
+            mk[_burstPos % 3] = _maxKandidat(spd);   // _burstPos zaehlt modulo 15, also auch modulo 3 lueckenlos
+            var mlo = mk[0] < mk[1] ? mk[0] : mk[1];
+            var mhi = mk[0] < mk[1] ? mk[1] : mk[0];
+            mk[3] = mk[2] < mlo ? mlo : (mk[2] > mhi ? mhi : mk[2]);   // Median aus drei
             _currentHr = act.currentHeartRate;
             _speedRing[_speedRingPos] = spd;
             _speedRingPos = (_speedRingPos + 1) % SPEED_AVG_SAMPLES;
@@ -2005,16 +2013,15 @@ class SessionRecorder {
                         // Start rückdatieren auf den ersten schnellen Tick.
                         _runStartMs = tMs - RUN_ENTER_DWELL * 1000;
                         _runStartDist = dist;
-                        _runMaxSpeed = _spdMaxClean;
+                        _runMaxSpeed = _spdMaxClean[3];
                         _runMaxHr = (_currentHr != null && _currentHr > 0) ? _currentHr : 0;
                         resetMarks();   // neuer Lauf -> Marken von vorn (Fortsetzung nicht)
                     }
                 }
             }
         } else {
-            // Lauf-Maximum aus demselben gesaeuberten Wert wie das Session-Maximum (schon in
-            // diesem Tick berechnet, s. _spdMaxClean).
-            if (_spdMaxClean > _runMaxSpeed) { _runMaxSpeed = _spdMaxClean; }
+            // Lauf-Maximum aus dem 3-s-Median der gesaeuberten Werte (schon in diesem Tick berechnet, s. _spdMaxClean).
+            if (_spdMaxClean[3] > _runMaxSpeed) { _runMaxSpeed = _spdMaxClean[3]; }
             if (_currentHr != null && _currentHr > _runMaxHr) { _runMaxHr = _currentHr; }
             _exitStreak = (v3 < RUN_EXIT_MPS) ? _exitStreak + 1 : 0;
             if (_exitStreak >= RUN_EXIT_DWELL) {
@@ -2039,6 +2046,7 @@ class SessionRecorder {
                 _lastRunDurMs = durMs;
                 _lastRunDistM = distM;
                 _lastRunMaxSpeed = _runMaxSpeed;
+                if (_runMaxSpeed > _maxSpdSeen) { _maxSpdSeen = _runMaxSpeed; }   // Session-V-max nur aus gewerteten Laeufen
                 _lastRunMaxHr = _runMaxHr;
                 _runMaxHr = 0;
                 _lastRunAvgSpeed = (durMs > 0) ? _lastRunDistM / (durMs / 1000.0) : 0.0;
@@ -2612,9 +2620,11 @@ class SessionRecorder {
         return _saneSpeed(act != null ? act.averageSpeed : null);
     }
     (:full) function maxSpeed() {
-        // Eigener Hoechstwert ueber die qualitaets-gegateten Ticks — act.maxSpeed wuerde einen
-        // einzigen Cold-Start-Glitch (100 km/h am Steg) die ganze Session lang anzeigen.
-        return _maxSpdSeen;
+        // Eigener Hoechstwert — act.maxSpeed wuerde einen einzigen Cold-Start-Glitch (100 km/h am Steg) die ganze
+        // Session lang anzeigen. Gewertete Laeufe, dazu der laufende, sobald er die Mindestdauer hat.
+        var m = _maxSpdSeen;
+        if (_foiling && elapsedTimeMs() - _runStartMs >= MIN_RUN_MS && _runMaxSpeed > m) { m = _runMaxSpeed; }
+        return m;
     }
     (:full) function avgHr() {
         var act = Activity.getActivityInfo();
