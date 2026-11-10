@@ -253,7 +253,8 @@ fun TeamEventScreen(
                         if (e.tafeln.size > 1 || neuLadenMoeglich) {
                             Row(Modifier.fillMaxWidth().padding(bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                                 if (e.tafeln.size > 1) {
-                                    AuswahlFeld(idx.toString(), e.tafeln.mapIndexed { i, tf -> Option(i.toString(), kennzahlLabel(tf.kennzahl)) },
+                                    // Mehrere Sportarten (z. B. Pumpfoil und Foil Scoot getrennt): Sportart mit in die Auswahl (Web d6b52f77).
+                                    AuswahlFeld(idx.toString(), e.tafeln.mapIndexed { i, tf -> Option(i.toString(), tafelTitel(tf, e)) },
                                         onWahl = { wahl = it.toIntOrNull() ?: 0 }, modifier = Modifier.weight(1f))
                                 } else Spacer(Modifier.weight(1f))
                                 if (neuLadenMoeglich) {
@@ -281,6 +282,7 @@ fun TeamEventScreen(
                             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                                 TeamTafelKarte(tf, f, onOpenSession, ohneFilter = true,
                                     sportZeigen = e.tafeln.map { x -> x.sportart }.distinct().size > 1, standText = standText,
+                                    teamsZeigen = e.global, onOpenTeam = onOpenTeam,
                                     onBild = {
                                         val ich = tf0.eigene?.userId
                                         teilBild = TeamBildDaten(t.name,
@@ -300,8 +302,9 @@ fun TeamEventScreen(
                                         val alle = tf0.teams.orEmpty()
                                         val eigen = alle.drop(10).firstOrNull { it.slug in meineTeams }
                                         teilBild = TeamBildDaten(
-                                            "${I18n.t("team.event.teams")} · ${kennzahlLabel(tf0.kennzahl)}",
-                                            listOfNotNull(e.titel, wertungText(n), standText).joinToString(" · "),
+                                            "${I18n.t("team.event.teams")} · ${kennzahlLabel(tf0.kennzahl)}" +
+                                                (if (tf0.sportart != "pumpfoil") " · ${I18n.t("cls.sport.${tf0.sportart}")}" else ""),
+                                            listOfNotNull(e.titel, wertungText(tf0.kennzahl, n), standText).joinToString(" · "),
                                             (alle.take(10) + listOfNotNull(eigen)).map { x ->
                                                 BildZeile(x.rang, x.name, kennzahlWert(tf0.kennzahl, x.value), x.slug in meineTeams,
                                                     land = x.land, wappen = true, logoUrl = x.logoUrl, farbe = x.farbe)
@@ -371,8 +374,10 @@ fun TeamEventScreen(
     teilBild?.let { TeamBildDialog(it, onClose = { teilBild = null }) }
 }
 
-private fun wertungText(n: Int): String =
-    if (n == 0) I18n.t("team.event.wertungAlle") else I18n.t("team.event.wertungBeste").replace("{n}", n.toString())
+/** Name einer Event-Bestenliste; hat das Event Bestenlisten verschiedener Sportarten, steht die Sportart dabei (Web tafelTitel). */
+private fun tafelTitel(tf: TeamTafel, e: TeamEvent): String =
+    if (e.tafeln.map { it.sportart }.distinct().size > 1) "${kennzahlLabel(tf.kennzahl)} · ${I18n.t("cls.sport.${tf.sportart}")}"
+    else kennzahlLabel(tf.kennzahl)
 
 /**
  * Team-Rangliste eines globalen Events (Web TeamWertung, 06.11.2026): je Team die Summe der besten N Mitglieder, Top 10
@@ -386,11 +391,13 @@ private fun TeamWertungKarte(tf: TeamTafel, n: Int, f: TeamFarbe, eigeneSlugs: S
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text("${I18n.t("team.event.teams")} · ${kennzahlLabel(tf.kennzahl)}", color = f.akzent,
+                // Sportart dahinter, wenn es nicht Pumpfoil ist (Web d6b52f77) — gemischte als „Pumpfoil + Foil Scoot".
+                Text("${I18n.t("team.event.teams")} · ${kennzahlLabel(tf.kennzahl)}" +
+                    (if (tf.sportart != "pumpfoil") " · ${I18n.t("cls.sport.${tf.sportart}")}" else ""), color = f.akzent,
                     style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                 if (alle.isNotEmpty()) TeilenKnopf(onBild)
             }
-            Text(listOfNotNull(wertungText(n), standText).joinToString(" · "), style = MaterialTheme.typography.bodyMedium,
+            Text(listOfNotNull(wertungText(tf.kennzahl, n), standText).joinToString(" · "), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (teams.isEmpty()) {
                 Text(I18n.t("team.event.keineTeams"), style = MaterialTheme.typography.bodyMedium,
@@ -405,9 +412,17 @@ private fun TeamWertungKarte(tf: TeamTafel, n: Int, f: TeamFarbe, eigeneSlugs: S
                         color = if (x.rang <= 3) f.akzent else MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.End)
                     Spacer(Modifier.width(8.dp))
                     TeamWappen(x.name, x.logoUrl, x.farbe, 24.dp)
-                    Spacer(Modifier.width(8.dp))
-                    Text(x.name, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        fontWeight = if (eigen) FontWeight.SemiBold else FontWeight.Normal)
+                    Spacer(Modifier.width(6.dp))
+                    // Herkunft wie im Teilen-Bild (Web 0595efde); fester Platz, damit die Namen buendig stehen.
+                    Box(Modifier.width(18.dp), contentAlignment = Alignment.Center) { TeamHerkunftZeichen(x.land, kuerzel = false) }
+                    Spacer(Modifier.width(6.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(x.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            fontWeight = if (eigen) FontWeight.SemiBold else FontWeight.Normal)
+                        if (!x.sportarten.isNullOrEmpty()) Box(Modifier.padding(top = 2.dp)) { SportAbzeichen(x.sportarten) }
+                        // Ein mitgezaehltes Mitglied hat eine offene Meldung (08.11.2026).
+                        if (x.strittig) StrittigVermerk()
+                    }
                     Text("${x.fahrer}/${x.teilnehmer}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.width(8.dp))
                     Text(kennzahlWert(tf.kennzahl, x.value), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)

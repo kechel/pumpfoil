@@ -91,6 +91,11 @@ object I18n {
         // Einrichtungs-Assistent: eigene Tabelle in I18nOnboarding.kt, aus den Web-Sprachdateien
         // erzeugt. Zuerst gefragt, damit die grossen Tabellen dafuer nicht angefasst werden.
         if (key.startsWith("onb.")) OnbI18n.get(key, lang)?.let { return it }
+        // Gemischte Sportarten (server/app/sportmix.py, 08.11.2026; Web i18n ae255be3): „cls.sport.pumpfoil+foil_scoot" aus
+        // den Namen der Teile zusammensetzen („Pumpfoil + Foil Scoot") — so stimmt jede Stelle, die eine Sportart beschriftet.
+        if (key.startsWith("cls.sport.") && '+' in key) {
+            return key.removePrefix("cls.sport.").split("+").filter { it.isNotEmpty() }.joinToString(" + ") { t("cls.sport.$it") }
+        }
         NEU[key]?.let { m -> (m[lang] ?: (if (lang == "pt-PT") m["pt"] else null) ?: m["en"])?.let { return it } }
         teamsText(key, lang)?.let { return it }   // Teams & Events (I18nTeams.kt, aus den Web-Sprachdateien)
         portText(key, lang)?.let { return it }    // App-Port ab 04.11.2026 (I18nPort.kt, aus den Web-Sprachdateien)

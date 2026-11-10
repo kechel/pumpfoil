@@ -902,8 +902,9 @@ private fun entwurfAus(ev: TeamEvent) = EventEntwurf(
     id = ev.id, eingefroren = ev.status == "beendet", bannerUrl = ev.bannerUrl, bannerFokus = ev.bannerFokus,
     ohneDateien = ev.ohneDateien, teambildZeigen = ev.teambildZeigen, summen = ev.summenAuswahl, summenSportart = ev.summenSportart,
     summenAccelOnly = ev.summenAccelOnly, titel = ev.titel, beschreibung = ev.beschreibung ?: "", start = lokal(ev.start), ende = lokal(ev.ende),
-    spotIds = ev.spotIds, vorlage = ev.vorlage, tafeln = ev.tafeln.map { it.copy(zeilen = emptyList(), id = null, nurTeamspots = false,
-        teams = null, eigene = null, stand = null) },
+    // Gemischte Bestenlisten (Pumpfoil + Foil Scoot) leitet der Server selbst ab — nicht als eigene Tafel speichern (wie Web).
+    spotIds = ev.spotIds, vorlage = ev.vorlage, tafeln = ev.tafeln.filter { '+' !in it.sportart }.map { it.copy(zeilen = emptyList(), id = null,
+        nurTeamspots = false, teams = null, eigene = null, stand = null) },
     globalEvent = ev.global, teamWertungN = ev.teamWertungN ?: 5,
 )
 
@@ -1081,7 +1082,8 @@ private fun TeamEventDialog(slug: String, farbe: String?, start: EventEntwurf, l
                         Column(Modifier.fillMaxWidth().padding(vertical = 4.dp).clip(RoundedCornerShape(12.dp))
                             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp)).padding(8.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                AuswahlFeld(tf.kennzahl, (KENNZAHLEN_BEST + KENNZAHLEN_SUMME).map { Option(it, kennzahlLabel(it)) },
+                                // Events messen auch die fliegenden Sprints (Web EVENT_KENNZAHLEN), die festen Team-Bestenlisten nicht.
+                                AuswahlFeld(tf.kennzahl, (KENNZAHLEN_BEST + KENNZAHLEN_SUMME + KENNZAHLEN_SPRINT).map { Option(it, kennzahlLabel(it)) },
                                     { aendern(tf.copy(kennzahl = it)) }, Modifier.weight(1f))
                                 // Auch die letzte darf weg, wenn Gesamtsummen gewaehlt sind (Event nur mit Summen).
                                 if (e.tafeln.size > 1 || e.summen.isNotEmpty()) IconButton(onClick = {

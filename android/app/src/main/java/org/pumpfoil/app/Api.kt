@@ -1794,11 +1794,13 @@ object Api {
     suspend fun teamMitglieder(slug: String): List<TeamMitglied> = withContext(Dispatchers.IO) {
         json.decodeFromString(TeamMitgliederAntwort.serializer(), http("GET", slugPfad(slug) + "/mitglieder", null, auth = true)).mitglieder
     }
+    // `mix=1` (08.11.2026): gemischte Event-Bestenlisten („Pumpfoil + Foil Scoot") mitliefern, `sprint=1` (09.11.2026) die
+    // Sprint-Bestenlisten (fliegende 100/200/300 m, Minute) — wie Web lib/api.ts; ohne die Schalter laesst der Server beide weg.
     suspend fun teamEvents(slug: String): List<TeamEvent> = withContext(Dispatchers.IO) {
-        json.decodeFromString(ListSerializer(TeamEvent.serializer()), http("GET", slugPfad(slug) + "/events", null, auth = true))
+        json.decodeFromString(ListSerializer(TeamEvent.serializer()), http("GET", slugPfad(slug) + "/events?mix=1&sprint=1", null, auth = true))
     }
     suspend fun teamEvent(slug: String, id: Int): TeamEvent = withContext(Dispatchers.IO) {
-        json.decodeFromString(TeamEvent.serializer(), http("GET", slugPfad(slug) + "/events/$id", null, auth = true))
+        json.decodeFromString(TeamEvent.serializer(), http("GET", slugPfad(slug) + "/events/$id?mix=1&sprint=1", null, auth = true))
     }
     /** Beitreten → `status` aktiv | angefragt (entscheidet „automatisch akzeptieren" am Server). */
     suspend fun teamBeitreten(slug: String): TeamBeitritt = withContext(Dispatchers.IO) {
@@ -1886,11 +1888,12 @@ object Api {
     suspend fun teamLoeschen(slug: String, name: String): Unit = withContext(Dispatchers.IO) {
         http("POST", slugPfad(slug) + "/loeschen", buildJsonObject { put("name", name) }.toString(), auth = true); Unit
     }
+    // `sprint=1`: der Editor kennt die Sprint-Kennzahlen (wie Web teamEventAnlegen/-Aendern).
     suspend fun teamEventAnlegen(slug: String, body: JsonObject): TeamEvent = withContext(Dispatchers.IO) {
-        json.decodeFromString(TeamEvent.serializer(), http("POST", slugPfad(slug) + "/events", body.toString(), auth = true))
+        json.decodeFromString(TeamEvent.serializer(), http("POST", slugPfad(slug) + "/events?sprint=1", body.toString(), auth = true))
     }
     suspend fun teamEventAendern(slug: String, id: Int, body: JsonObject): TeamEvent = withContext(Dispatchers.IO) {
-        json.decodeFromString(TeamEvent.serializer(), http("PUT", slugPfad(slug) + "/events/$id", body.toString(), auth = true))
+        json.decodeFromString(TeamEvent.serializer(), http("PUT", slugPfad(slug) + "/events/$id?sprint=1", body.toString(), auth = true))
     }
     suspend fun teamEventLoeschen(slug: String, id: Int): Unit = withContext(Dispatchers.IO) {
         http("DELETE", slugPfad(slug) + "/events/$id", null, auth = true); Unit

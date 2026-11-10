@@ -51,6 +51,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -165,6 +167,12 @@ data class TeamZeile(
     @SerialName("started_at") val startedAt: String? = null,
     val spot: String? = null,
     val land: String? = null,   // Nationalitaet, nur wenn im Profil eingestellt (Server additiv seit 02.11.2026)
+    // Offene Meldung „nicht Pumpfoil" gegen (eine der) Sessions dieser Zeile, noch nicht entschieden (08.11.2026).
+    val strittig: Boolean = false,
+    // Globale Events: Teams der Person (Wappen-Spalte, Web 8fc88474) — dieselben wie in der Team-Wertung.
+    val teams: List<TeamEventTeam>? = null,
+    // Gemischte Ansicht (z. B. Pumpfoil + Foil Scoot, 08.11.2026): Sportart(en) dieser Zeile fuers Abzeichen.
+    val sportarten: List<String>? = null,
 )
 
 /** Eine Bestenliste samt Zeilen (Team und Event). */
@@ -198,6 +206,8 @@ data class TeamWertungZeile(
     val value: Double = 0.0,
     val fahrer: Int = 0,
     val teilnehmer: Int = 0,
+    val strittig: Boolean = false,              // ein mitgezaehltes Mitglied hat eine offene Meldung (08.11.2026)
+    val sportarten: List<String>? = null,       // gemischte Ansicht: Sportart(en) dieser Zeile fuers Abzeichen
 )
 
 @Serializable
@@ -314,6 +324,9 @@ data class TeamEventKurz(
     val spots: List<TeamSpotKurz> = emptyList(),
     val team: TeamEventTeam = TeamEventTeam(),
     val global: Boolean = false,   // globales Event (06.11.2026): eigene Karte mit Kalenderblock
+    // Bild unten in der Kachel (10.11.2026): Eventbild, sonst Teambild (wenn das Event es zeigt) — der Server waehlt.
+    @SerialName("banner_url") val bannerUrl: String? = null,
+    @SerialName("banner_fokus") val bannerFokus: String? = null,
 )
 
 @Serializable
@@ -443,8 +456,14 @@ internal fun kennzahlLabel(key: String): String = I18n.t(when (key) {
     "runs" -> "rec.mostRuns"
     "session_distance" -> "rec.sessionDistance"
     "session_time" -> "rec.sessionTime"
-    else -> "team.k.$key"   // sum_pumps, sum_runs, sum_sessions, sum_distance, sum_time, sum_spots
+    else -> "team.k.$key"   // sum_pumps, sum_runs, sum_sessions, sum_distance, sum_time, sum_spots, sprint_*
 })
+
+// Fliegende Sprints (09.11.2026, Web SPRINT_KENNZAHLEN): Wert = Tempo des besten Fensters in m/s. Nur in Events waehlbar,
+// nicht in den festen Team-Bestenlisten. Strecken als Zeit, km/h dahinter; die Minute als km/h und die Strecke darin.
+internal val KENNZAHLEN_SPRINT = listOf("sprint_100m", "sprint_200m", "sprint_300m", "sprint_60s")
+private val SPRINT_STRECKE = mapOf("sprint_100m" to 100.0, "sprint_200m" to 200.0, "sprint_300m" to 300.0)
+internal fun istSprint(key: String): Boolean = key in KENNZAHLEN_SPRINT
 
 internal fun kennzahlWert(key: String, v: Double): String = when (key) {
     "distance" -> if (v < 1000) "${v.roundToInt()} m" else "%.2f km".format(v / 1000)
@@ -455,7 +474,17 @@ internal fun kennzahlWert(key: String, v: Double): String = when (key) {
     "session_time" -> "${(v / 60).roundToInt()} min"
     "sum_distance" -> kmGesamt(v)
     "sum_time" -> zeitGesamt(v)
+    "sprint_100m", "sprint_200m", "sprint_300m" ->
+        if (v > 0) "%.1f s · %.1f km/h".format(SPRINT_STRECKE.getValue(key) / v, v * 3.6) else "—"
+    "sprint_60s" -> "%.1f km/h · %d m".format(v * 3.6, (v * 60).roundToInt())
     else -> ganzZahl(v)
+}
+
+/** Wie die Team-Wertung globaler Events zaehlt (Web wertungText): Sprints als Durchschnitt der besten N, sonst die Summe. */
+internal fun wertungText(kennzahl: String, n: Int): String {
+    val schnitt = istSprint(kennzahl)
+    return if (n == 0) I18n.t(if (schnitt) "team.event.wertungSchnittAlle" else "team.event.wertungAlle")
+    else I18n.t(if (schnitt) "team.event.wertungSchnittBeste" else "team.event.wertungBeste").replace("{n}", n.toString())
 }
 
 /** Kennzahl, dahinter die Sportart, wenn es nicht Pumpfoil ist (Web tafelKurz). */
@@ -623,13 +652,13 @@ fun TeamWappen(name: String?, logo: String?, farbe: String?, size: Dp = 40.dp) {
 
 /** Team- bzw. Eventbild: nie zugeschnitten gespeichert; Anzeige 2,5:1 mit dem Fokuspunkt „x,y" (Prozent). */
 @Composable
-fun TeamBanner(url: String, fokus: String?, modifier: Modifier = Modifier) {
+fun TeamBanner(url: String, fokus: String?, modifier: Modifier = Modifier, ecken: Dp = 16.dp) {
     val (x, y) = (fokus ?: "50,50").split(",").map { (it.trim().toFloatOrNull() ?: 50f).coerceIn(0f, 100f) }
         .let { if (it.size == 2) it[0] to it[1] else 50f to 50f }
     AsyncImage(
         model = Api.mediaUrl(url), contentDescription = null, contentScale = ContentScale.Crop,
         alignment = BiasAlignment(x / 50f - 1f, y / 50f - 1f),
-        modifier = modifier.fillMaxWidth().aspectRatio(2.5f).clip(RoundedCornerShape(16.dp)),
+        modifier = modifier.fillMaxWidth().aspectRatio(2.5f).clip(RoundedCornerShape(ecken)),
     )
 }
 
@@ -670,6 +699,40 @@ fun SportChip(sport: String) {
     )
 }
 
+/**
+ * Abzeichen der Sportart(en) einer Zeile in gemischten Ranglisten (Web SportAbzeichen, 08.11.2026). Nur wo der Server
+ * `sportarten` mitschickt — das tut er ausschliesslich in gemischten Ansichten. Feste Farbe je Sportart, unbekannte grau.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun SportAbzeichen(sportarten: List<String>?) {
+    if (sportarten.isNullOrEmpty()) return
+    val dunkel = teamDunkel()
+    val reihe = SPORTS
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        sportarten.sortedBy { reihe.indexOf(it).let { i -> if (i < 0) Int.MAX_VALUE else i } }.forEach { sp ->
+            val (schrift, grund) = when (sp) {
+                "pumpfoil" -> (if (dunkel) Color(0xFF67E8F9) else Color(0xFF0E7490)) to Color(0xFF06B6D4).copy(alpha = 0.15f)
+                "foil_scoot" -> (if (dunkel) Color(0xFFFCD34D) else Color(0xFFB45309)) to Color(0xFFF59E0B).copy(alpha = 0.15f)
+                else -> MaterialTheme.colorScheme.onSurfaceVariant to MaterialTheme.colorScheme.surfaceVariant
+            }
+            Text(I18n.t("cls.sport.$sp"), fontSize = 10.sp, lineHeight = 10.sp, fontWeight = FontWeight.Medium, color = schrift,
+                modifier = Modifier.clip(RoundedCornerShape(4.dp)).background(grund).padding(horizontal = 5.dp, vertical = 2.dp))
+        }
+    }
+}
+
+/** Vermerk „in Klaerung" an einer Zeile (Web Team.tsx, 08.11.2026): offene Meldung, zaehlt bis zur Entscheidung. */
+@Composable
+internal fun StrittigVermerk() {
+    Text(I18n.t("team.tafel.strittig"), fontSize = 11.sp, fontWeight = FontWeight.Medium, color = strittigFarbe(),
+        modifier = Modifier.semantics { contentDescription = I18n.t("team.tafel.strittig") + ". " + I18n.t("team.tafel.strittigTitel") })
+}
+
+/** Bernstein wie im Web (amber-700 hell, amber-300 dunkel). */
+@Composable
+internal fun strittigFarbe(): Color = if (teamDunkel()) Color(0xFFFCD34D) else Color(0xFFB45309)
+
 @Composable
 fun SpotChip(name: String) {
     Row(
@@ -695,7 +758,7 @@ fun SpotChip(name: String) {
 fun EventKachel(
     titel: String, beschreibung: String?, status: String, start: String, ende: String, zeitzone: String?,
     sportarten: List<String>, spots: List<TeamSpotKurz>, farbe: String?, onClick: () -> Unit,
-    modifier: Modifier = Modifier, team: TeamEventTeam? = null,
+    modifier: Modifier = Modifier, team: TeamEventTeam? = null, bannerUrl: String? = null, bannerFokus: String? = null,
 ) {
     val f = teamFarbe(farbe)
     val laeuft = status == "laeuft"
@@ -737,8 +800,20 @@ fun EventKachel(
                 Text(I18n.t(eventStandKey(status)) + " →", color = f.akzent, style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold)
             }
+            KachelBild(bannerUrl, bannerFokus)
         }
     }
+}
+
+/**
+ * Bild unten in der Event-Kachel (Web EventKurzKachel KachelBild, 10.11.2026): Eventbild, sonst Teambild — der Server waehlt
+ * (api/teams._event_kurz). Gleiches Seitenverhaeltnis wie auf der Eventseite, damit der Fokuspunkt hier wie dort passt.
+ * Die Kacheln stehen in der App untereinander, das „unten buendig" einer Kachelreihe im Web entfaellt daher.
+ */
+@Composable
+private fun KachelBild(url: String?, fokus: String?) {
+    if (url.isNullOrBlank()) return
+    TeamBanner(url, fokus, Modifier.padding(top = 12.dp), ecken = 12.dp)
 }
 
 @Composable
@@ -749,7 +824,7 @@ fun EventKachel(e: TeamEvent, farbe: String?, onClick: () -> Unit, modifier: Mod
 fun EventKachel(e: TeamEventKurz, onClick: () -> Unit, modifier: Modifier = Modifier) {
     if (e.global) { GlobalEventKachel(e, onClick, modifier); return }
     EventKachel(e.titel, e.beschreibung, e.status, e.start, e.ende, e.zeitzone, e.sportarten, e.spots, e.team.farbe, onClick,
-        modifier, team = e.team)
+        modifier, team = e.team, bannerUrl = e.bannerUrl, bannerFokus = e.bannerFokus)
 }
 
 /** Abzeichen „Global" (Karten, Event-Seite): Pumpfoil-Cyan, hell dunkler (Web brand-700 / dark brand-300). */
@@ -784,7 +859,8 @@ fun GlobalEventKachel(e: TeamEventKurz, onClick: () -> Unit, modifier: Modifier 
         modifier.fillMaxWidth().clip(CardDefaults.shape).clickable(onClick = onClick),
         border = BorderStroke(2.dp, if (laeuft) marke else marke.copy(alpha = 0.4f)),
     ) {
-        Row(Modifier.padding(14.dp)) {
+        Column(Modifier.padding(14.dp)) {
+        Row {
             Column(Modifier.width(84.dp).clip(RoundedCornerShape(12.dp)).background(marke.copy(alpha = 0.15f))
                 .padding(horizontal = 4.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(d.monat.uppercase(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = akzent,
@@ -819,6 +895,8 @@ fun GlobalEventKachel(e: TeamEventKurz, onClick: () -> Unit, modifier: Modifier 
                         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
                 }
             }
+        }
+        KachelBild(e.bannerUrl, e.bannerFokus)
         }
     }
 }
@@ -917,7 +995,10 @@ fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit
                    /** „Stand 6. Nov., 14:32" bzw. „Endstand" unter der Ueberschrift (Event-Seite, Web 06.11.2026). */
                    standText: String? = null,
                    /** Als Bild teilen: Knopf „Teilen" rechts neben der Ueberschrift (Web 6b9a6f0d). */
-                   onBild: (() -> Unit)? = null) {
+                   onBild: (() -> Unit)? = null,
+                   /** Globale Events: Spalte mit den Team-Wappen der Person (Web 8fc88474); antippen oeffnet das Team. */
+                   teamsZeigen: Boolean = false,
+                   onOpenTeam: ((String) -> Unit)? = null) {
     val oeffneFoiler = LocalOpenFoiler.current
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
@@ -969,9 +1050,24 @@ fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit
                     Spacer(Modifier.width(6.dp))
                     LandFlagge(z.land)   // nach dem Profilbild, Platz bleibt auch ohne Land (Web Flagge)
                     Spacer(Modifier.width(6.dp))
+                    if (teamsZeigen) {
+                        // Bis zu zwei Wappen, leicht ueberlappend; fester Platz, damit die Namen buendig stehen.
+                        Box(Modifier.width(28.dp)) {
+                            z.teams.orEmpty().take(2).forEachIndexed { j, x ->
+                                Box(Modifier.padding(start = (j * 10).dp).clip(RoundedCornerShape(6.dp))
+                                    .then(if (onOpenTeam != null) Modifier.clickable { onOpenTeam(x.slug) } else Modifier)) {
+                                    TeamWappen(x.name, x.logoUrl, x.farbe, 20.dp)
+                                }
+                            }
+                        }
+                        Spacer(Modifier.width(6.dp))
+                    }
                     Column(Modifier.weight(1f)) {
                         Text(z.name ?: "—", style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis,
                             modifier = if (uid != null && oeffneFoiler != null) Modifier.clickable { oeffneFoiler(uid) } else Modifier)
+                        if (!z.sportarten.isNullOrEmpty()) Box(Modifier.padding(top = 2.dp)) { SportAbzeichen(z.sportarten) }
+                        // Offene Meldung, noch nicht entschieden: zaehlt, aber mit Vermerk direkt an der Zeile (Web 08.11.2026).
+                        if (z.strittig) StrittigVermerk()
                         if (z.startedAt != null) Text(kurzDatum(z.startedAt) + (z.spot?.let { " · $it" } ?: ""),
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -981,6 +1077,11 @@ fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit
                     Text(kennzahlWert(tf.kennzahl, z.value), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
                         modifier = if (sid != null) Modifier.clickable { onOpenSession(sid) }.padding(vertical = 4.dp) else Modifier)
                 }
+            }
+            val strittig = tf.zeilen.count { it.strittig }
+            if (strittig > 0) {
+                Text(I18n.t(if (strittig == 1) "team.tafel.strittigHinweis1" else "team.tafel.strittigHinweis").replace("{n}", strittig.toString()),
+                    style = MaterialTheme.typography.bodySmall, color = strittigFarbe(), modifier = Modifier.padding(top = 8.dp))
             }
         }
     }
