@@ -1161,6 +1161,8 @@ NAECHSTES: list[dict] = [
     {"name": "Garmin", "version": "1.0.102",
      "items": [
          "In the pause menu, Resume is preselected, so pressing START twice continues your recording.",
+         # 10.11.2026: V-max wie der Server (0e878a78)
+         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
      ]},
     # 06.11.2026 (Jan: „bitte version bumpen, dann teste ich das und release", vorher „den rest portieren"): Garmin Connect in
     # beiden Apps (Karte/Reiter, Quellenzeile — kam erst nach den Einreichungen von 1.1.47 und 1.1.60), Garmin-Hinweise mit zwei
@@ -1180,8 +1182,35 @@ NAECHSTES: list[dict] = [
          "Events of your own teams appear on Home under Team and in the community, and the Teams & Events tab shows LIVE or the number of upcoming events.",
          "Asking for a missing foil or stabilizer opens the feedback form with a template to fill in.",
          "Leaderboards show three-digit places in full, and team rankings say \"from 1 rider\" instead of \"from 1 riders\".",
+         # 10.11.2026: Event-Port (e790d550, ff801ed5, 3ac7795a), Kachel (bd8c20dc), V-max (98050cbb)
+         "Events can rank flying sprints (fastest 100 m, 200 m, 300 m or minute), and the team ranking of a sprint uses the average of the best riders.",
+         "Mixed leaderboards such as Pumpfoil + Foil Scoot show the sport of each row, and disputed sessions are marked.",
+         "If you are in several teams, mark one as your primary team; in global events you count for one team only and can switch for each event until 6 hours before it ends.",
+         "Finished events show a podium for riders and teams, with a winner sound you can mute.",
+         "An event overview can be shared as an image with the totals and the top 3 of each ranking.",
+         "Event cards look the same everywhere, show the event or team banner, and you can subscribe to all global events in your calendar.",
+         "Your profile shows a badge for each event placing.",
+         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
      ]},
     # iPhone + Apple Watch 1.1.62 am 07.11. 01:26 eingereicht -> IN_REVIEW.
+    # 10.11.2026: 1.1.63 nie eingereicht, 1.1.64 (74) traegt den Event-Port (7cd19783, d493f81f, 4809e2e5), die
+    # Kachel (bd8c20dc), das Kalender-Abo als Menue (6eb20f5a) und die V-max (f3426467, 90e47c9b).
+    {"name": "iPhone + Apple Watch", "version": "1.1.64",
+     "items": [
+         "Events can rank flying sprints (fastest 100 m, 200 m, 300 m or minute), and the team ranking of a sprint uses the average of the best riders.",
+         "Mixed leaderboards such as Pumpfoil + Foil Scoot show the sport of each row, and disputed sessions are marked.",
+         "If you are in several teams, mark one as your primary team; in global events you count for one team only and can switch for each event until 6 hours before it ends.",
+         "Finished events show a podium for riders and teams, with a winner sound you can mute.",
+         "An event overview can be shared as an image with the totals and the top 3 of each ranking.",
+         "Event cards look the same everywhere, show the event or team banner, and you can subscribe to all global events in your calendar.",
+         "Your profile shows a badge for each event placing.",
+         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
+     ]},
+    # 10.11.2026: V-max wie der Server (9718cafb); 1.0.4 ist seit 09.11. live.
+    {"name": "Huawei Watch 5", "version": "1.0.5",
+     "items": [
+         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
+     ]},
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
      "items": [
@@ -1199,6 +1228,7 @@ NAECHSTES: list[dict] = [
     {"name": "Suunto", "version": "1.01",
      "items": [
          "The watch tells the phone which Suunto sport mode you started; under Linked accounts you set which sport each mode counts as.",
+         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
      ]},
     # 15.10.2026 (Jan: „alle immer moeglichst auf dem gleichen stand"): Garmin-1.0.93-Uhrseite
     # nach Zepp portiert. Nicht gebumpt (1.0.13 ist live). Dazu wartet seit fc953a91 „Speicher voll
@@ -1210,6 +1240,8 @@ NAECHSTES: list[dict] = [
          "You can pick the sport before you start, on the Foil & Alarm page, and a sport other than your default shows under the title on the start screen.",
          # 22.10.2026: Pause-Erinnerung (cdbe2cfc)
          "While a recording is paused, the watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
+         # 10.11.2026: V-max wie der Server (dcd42773)
+         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
      ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
