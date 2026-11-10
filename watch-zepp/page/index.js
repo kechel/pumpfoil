@@ -2516,7 +2516,7 @@ Page(
               // Lauf-Start auf den ersten schnellen Tick zurückdatieren (wie Garmin/Wear).
               s.runStartMs = tMs - RUN_ENTER_DWELL * 1000;
               s.runStartDist = dist;
-              s.runMaxMps = s.spdMaxClean;
+              s.runMaxMps = s.spdMaxGlatt;
               s.runMaxHr = s.hr > 0 ? s.hr : 0;
               s._markDistN = 0; s._markTimeN = 0;   // neuer Lauf -> Marken von vorn
             }
@@ -2524,7 +2524,7 @@ Page(
           }
         }
       } else {
-        if (s.spdMaxClean > s.runMaxMps) s.runMaxMps = s.spdMaxClean;
+        if (s.spdMaxGlatt > s.runMaxMps) s.runMaxMps = s.spdMaxGlatt;
         if (s.hr > s.runMaxHr) s.runMaxHr = s.hr;
         s.exitStreak = (v3 < RUN_EXIT_MPS) ? s.exitStreak + 1 : 0;
         if (s.exitStreak >= RUN_EXIT_DWELL) {
@@ -2547,6 +2547,7 @@ Page(
           s.lastRunDurMs = durMs;
           s.lastRunDistM = distM;
           s.lastRunAvgMps = durMs > 0 ? s.lastRunDistM / (durMs / 1000) : 0;
+          if (s.runMaxMps > s.maxLaeufe) s.maxLaeufe = s.runMaxMps;   // Session-V-max nur aus gewerteten Laeufen
           s.lastRunMaxMps = s.runMaxMps;
           s.lastRunMaxHr = s.runMaxHr;
           s.runMaxHr = 0;
@@ -2586,7 +2587,8 @@ Page(
       // burstBuf = 15-s-Fenster fuer die Max-Saeuberung; spdMaxClean = gesaeuberter Wert des
       // LAUFENDEN Ticks (maxKandidat darf pro Tick nur EINMAL laufen, sonst halbiert sich das
       // Fenster durch Doppel-Eintraege).
-      s.burstBuf = []; s.spdMaxClean = 0; s.minSpeedSeitEnde = 99; s.runIstFortsetzung = false;
+      s.burstBuf = []; s.spdMaxClean = 0; s.maxGlattWin = []; s.spdMaxGlatt = 0; s.maxLaeufe = 0;
+      s.minSpeedSeitEnde = 99; s.runIstFortsetzung = false;
       s.lastRunStartMs = 0; s.lastRunStartDist = 0;
       s.lastRunDurMs = 0; s.lastRunDistM = 0; s.lastRunAvgMps = 0; s.lastRunMaxMps = 0;
       s.runsSumDurMs = 0; s.runsSumDistM = 0;
@@ -3334,7 +3336,14 @@ Page(
           if (s.prev && !jump) s.dist += distM(s.prev[0], s.prev[1], lat, lon);
           s.prev = [lat, lon];
           s.spdMaxClean = maxKandidat(s.burstBuf || (s.burstBuf = []), sampleNow, speed);
-          if (s.spdMaxClean > s.max) s.max = s.spdMaxClean;
+          // V-max wie der Server (Jan 10.11.2026): Maximum der 3-s-Median-Kurve, nur in Laeufen (gps.py
+          // _seg_fields); bisher hoechster 1-s-Wert der ganzen Aufnahme. Hier der Median der gesaeuberten
+          // Werte der letzten 3 s; Lauf-Max daraus, Session-Max aus gewerteten Laeufen (s. unten, _updateRun).
+          const gw = s.maxGlattWin || (s.maxGlattWin = []);
+          gw.push([sampleNow, s.spdMaxClean]);
+          while (gw.length && sampleNow - gw[0][0] > SPEED_WIN_S * 1000) gw.shift();
+          const gs = gw.map((x) => x[1]).sort((a, b) => a - b);
+          s.spdMaxGlatt = gs[gs.length >> 1];
           if (s.almOn) this._checkAlarm(speed * 3.6);   // Vibrationsalarm bei Speed-Grenzen
           // Alle zehn Punkte an die Datei anhaengen und die (winzigen) Kopfdaten sichern.
           if (s.gpsFile) {
@@ -3344,6 +3353,8 @@ Page(
         // Lauf-Erkennung: erst glätten (auch ohne Fix, damit das Fenster altert), dann Automat.
         this._pushSpeed(s.cur, el, fix);
         this._updateRun(s.sp3, s.cur, s.dist, el);
+        // Session-V-max: gewertete Laeufe, dazu der laufende, sobald er die Mindestdauer hat.
+        s.max = Math.max(s.maxLaeufe || 0, s.foiling && el - s.runStartMs >= MIN_RUN_MS ? s.runMaxMps : 0);
         if (s.almOn && s.foiling) this._checkMarks(s.dist, el);
         // Zustandswechsel: Ring des neuen Zustands von vorne (erste Datenseite = 1, Seite 0 ist der
         // Stopp-Screen) + eine kurze Vibration als Rückmeldung — wie RecordView._vibeSwitch bzw.
