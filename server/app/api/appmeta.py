@@ -930,6 +930,21 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # EINGEREICHT 10.11.2026 11:47 (Jans Meldung, ASC „Warten auf Pruefung“, Uebermittlung
+    # 39a85ee1-84c4-4cad-b03f-2e8a6107a2a6). 1.1.63 nie eingereicht, 1.1.64 (74) traegt den Event-Port (7cd19783, d493f81f, 4809e2e5), die
+    # Kachel (bd8c20dc), das Kalender-Abo als Menue (6eb20f5a) und die V-max (f3426467, 90e47c9b).
+    {"name": "iPhone + Apple Watch", "version": "1.1.64",
+     "eingereicht": "2026-11-10",
+     "items": [
+         "Events can rank flying sprints (fastest 100 m, 200 m, 300 m or minute), and the team ranking of a sprint uses the average of the best riders.",
+         "Mixed leaderboards such as Pumpfoil + Foil Scoot show the sport of each row, and disputed sessions are marked.",
+         "If you are in several teams, mark one as your primary team; in global events you count for one team only and can switch for each event until 6 hours before it ends.",
+         "Finished events show a podium for riders and teams, with a winner sound you can mute.",
+         "An event overview can be shared as an image with the totals and the top 3 of each ranking.",
+         "Event cards look the same everywhere, show the event or team banner, and you can subscribe to all global events in your calendar.",
+         "Your profile shows a badge for each event placing.",
+         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
+     ]},
     # iPhone + Apple Watch 1.1.62 am 07.11. 01:26 eingereicht, am 07.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 954-960 im Changelog.
     # iPhone + Apple Watch 1.1.61 am 06.11. eingereicht, am 07.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 945-951 im Changelog.
     # Garmin 1.0.101 am 06.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt 940 im Changelog mit garmin 1.0.101.
@@ -1193,19 +1208,7 @@ NAECHSTES: list[dict] = [
          "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
      ]},
     # iPhone + Apple Watch 1.1.62 am 07.11. 01:26 eingereicht -> IN_REVIEW.
-    # 10.11.2026: 1.1.63 nie eingereicht, 1.1.64 (74) traegt den Event-Port (7cd19783, d493f81f, 4809e2e5), die
-    # Kachel (bd8c20dc), das Kalender-Abo als Menue (6eb20f5a) und die V-max (f3426467, 90e47c9b).
-    {"name": "iPhone + Apple Watch", "version": "1.1.64",
-     "items": [
-         "Events can rank flying sprints (fastest 100 m, 200 m, 300 m or minute), and the team ranking of a sprint uses the average of the best riders.",
-         "Mixed leaderboards such as Pumpfoil + Foil Scoot show the sport of each row, and disputed sessions are marked.",
-         "If you are in several teams, mark one as your primary team; in global events you count for one team only and can switch for each event until 6 hours before it ends.",
-         "Finished events show a podium for riders and teams, with a winner sound you can mute.",
-         "An event overview can be shared as an image with the totals and the top 3 of each ranking.",
-         "Event cards look the same everywhere, show the event or team banner, and you can subscribe to all global events in your calendar.",
-         "Your profile shows a badge for each event placing.",
-         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
-     ]},
+    # iPhone + Apple Watch 1.1.64 am 10.11. 11:47 eingereicht -> IN_REVIEW.
     # 10.11.2026: V-max wie der Server (9718cafb); 1.0.4 ist seit 09.11. live.
     {"name": "Huawei Watch 5", "version": "1.0.5",
      "items": [
