@@ -775,10 +775,11 @@ fun SpotChip(name: String) {
 }
 
 /**
- * Die Event-Kachel — ueberall dieselbe (Teamseite oben und unten, Community, Alle Events; Jan 01.11.2026): Titel,
- * Status, Sportarten, Spots, Zeitraum + Countdown in derselben Zeile, NUR die erste Zeile der Beschreibung (hoechstens
- * zwei Zeilen hoch, fett), der Link rechts auf Hoehe der letzten Zeile. Keine Sieger, keine Kennzahlen.
- * `team` gesetzt (Listen ueber mehrere Teams): Wappen vor dem Titel und der Teamname vor dem Zeitraum.
+ * Die Event-Kachel — ueberall dieselbe (Teamseite, Community, Alle Events; Jan 01.11.2026, seit 10.11.2026 fuer alle die
+ * Kalenderkarte der globalen Events, Jan: „nimm doch die gleiche wie ueberall"; Web EventKurzKachel): Kalenderblock links
+ * (Monat, Tage, Wochentage), rechts Status, Herkunft, Sportarten/Spots, Titel gross, Countdown und die erste Zeile der
+ * Beschreibung, unten das Bild. Globale Events tragen „Global" in Pumpfoil-Cyan, Team-Events die Teamfarbe und — wenn
+ * `team` gesetzt ist (Listen ueber mehrere Teams) — Wappen und Teamname.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -786,48 +787,69 @@ fun EventKachel(
     titel: String, beschreibung: String?, status: String, start: String, ende: String, zeitzone: String?,
     sportarten: List<String>, spots: List<TeamSpotKurz>, farbe: String?, onClick: () -> Unit,
     modifier: Modifier = Modifier, team: TeamEventTeam? = null, bannerUrl: String? = null, bannerFokus: String? = null,
+    global: Boolean = false,
 ) {
-    val f = teamFarbe(farbe)
     val laeuft = status == "laeuft"
+    val marke = MaterialTheme.colorScheme.primary
+    val tf = teamFarbe(farbe)
+    // Global: Pumpfoil-Cyan („laeuft" ebenso, die Karte gehoert keinem Team); sonst die Teamfarbe.
+    val f = if (global) TeamFarbe(akzent = marke, flaeche = marke, aufFlaeche = MaterialTheme.colorScheme.onPrimary) else tf
+    val akzent = if (global) markenAkzent() else tf.akzent
+    val d = eventTage(start, ende, zeitzone)
     Card(
         modifier.fillMaxWidth().clip(CardDefaults.shape).clickable(onClick = onClick),
-        border = if (laeuft) BorderStroke(2.dp, f.akzent) else null,
+        border = when {
+            global -> BorderStroke(2.dp, if (laeuft) marke else marke.copy(alpha = 0.4f))
+            laeuft -> BorderStroke(2.dp, tf.akzent)
+            else -> null
+        },
     ) {
-        Column(Modifier.padding(12.dp)) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (team != null) Box(Modifier.align(Alignment.CenterVertically)) { TeamWappen(team.name, team.logoUrl, team.farbe, 20.dp) }
-                Text(titel, color = f.akzent, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.CenterVertically))
-                Box(Modifier.align(Alignment.CenterVertically)) { EventStatusChip(status, f) }
-                sportarten.forEach { Box(Modifier.align(Alignment.CenterVertically)) { SportChip(it) } }
-                spots.forEach { Box(Modifier.align(Alignment.CenterVertically)) { SpotChip(it.name ?: "#${it.id}") } }
+        Column(Modifier.padding(14.dp)) {
+        Row {
+            Column(Modifier.width(84.dp).clip(RoundedCornerShape(12.dp)).background(f.akzent.copy(alpha = 0.15f))
+                .padding(horizontal = 4.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(d.monat.uppercase(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = akzent,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                Text(d.tage, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, maxLines = 1,
+                    color = MaterialTheme.colorScheme.onSurface, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                Text(d.wochentage, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
-            Spacer(Modifier.size(4.dp))
-            Row(verticalAlignment = Alignment.Bottom) {
-                Column(Modifier.weight(1f)) {
-                    val zaehlt = status == "kommend" || laeuft
-                    val jetzt = if (zaehlt) rememberJetzt() else 0L
-                    Text(buildAnnotatedString {
-                        if (team != null) append(team.name + " · ")
-                        append(eventZeitraum(start, ende, zeitzone))
-                        if (zaehlt) {
-                            append(" · ")
-                            withStyle(SpanStyle(color = f.akzent, fontWeight = FontWeight.SemiBold)) {
-                                append(I18n.t(if (laeuft) "team.event.endetIn" else "team.event.startIn") + " " +
-                                    countdownText(restSekunden(if (laeuft) ende else start, jetzt)))
-                            }
-                        }
-                    }, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    beschreibung?.trim()?.takeIf { it.isNotEmpty() }?.let { b ->
-                        Text(b.lineSequence().first(), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
-                            maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 2.dp))
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Box(Modifier.align(Alignment.CenterVertically)) { EventStatusChip(status, f) }
+                    if (global) Box(Modifier.align(Alignment.CenterVertically)) { GlobalChip() }
+                    else if (team != null) Row(
+                        Modifier.align(Alignment.CenterVertically).clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant).padding(start = 2.dp, end = 8.dp, top = 2.dp, bottom = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        TeamWappen(team.name, team.logoUrl, team.farbe, 16.dp)
+                        Spacer(Modifier.width(4.dp))
+                        Text(team.name, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                     }
+                    sportarten.forEach { Box(Modifier.align(Alignment.CenterVertically)) { SportChip(it) } }
+                    spots.forEach { Box(Modifier.align(Alignment.CenterVertically)) { SpotChip(it.name ?: "#${it.id}") } }
                 }
-                Spacer(Modifier.width(10.dp))
-                Text(I18n.t(eventStandKey(status)) + " →", color = f.akzent, style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold)
+                // Titel ausdruecklich in der Akzentfarbe (Jan, 06.11.2026) — sonst erbte er das gedaempfte Grau der Card.
+                Text(titel, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
+                    color = akzent, modifier = Modifier.padding(top = 4.dp))
+                if (status == "kommend" || laeuft) {
+                    val jetzt = rememberJetzt()
+                    Text(I18n.t(if (laeuft) "team.event.endetIn" else "team.event.startIn") + " " +
+                            countdownText(restSekunden(if (laeuft) ende else start, jetzt)),
+                        style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = akzent,
+                        modifier = Modifier.padding(top = 2.dp))
+                }
+                beschreibung?.trim()?.takeIf { it.isNotEmpty() }?.let { b ->
+                    Text(b.lineSequence().first(), style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                }
             }
-            KachelBild(bannerUrl, bannerFokus)
+        }
+        KachelBild(bannerUrl, bannerFokus)
         }
     }
 }
@@ -845,13 +867,13 @@ private fun KachelBild(url: String?, fokus: String?) {
 
 @Composable
 fun EventKachel(e: TeamEvent, farbe: String?, onClick: () -> Unit, modifier: Modifier = Modifier) =
-    EventKachel(e.titel, e.beschreibung, e.status, e.start, e.ende, e.zeitzone, e.sportarten, e.spots, farbe, onClick, modifier)
+    EventKachel(e.titel, e.beschreibung, e.status, e.start, e.ende, e.zeitzone, e.sportarten, e.spots, farbe, onClick, modifier,
+        bannerUrl = e.bannerUrl, bannerFokus = e.bannerFokus, global = e.global)
 
 @Composable
 fun EventKachel(e: TeamEventKurz, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    if (e.global) { GlobalEventKachel(e, onClick, modifier); return }
     EventKachel(e.titel, e.beschreibung, e.status, e.start, e.ende, e.zeitzone, e.sportarten, e.spots, e.team.farbe, onClick,
-        modifier, team = e.team, bannerUrl = e.bannerUrl, bannerFokus = e.bannerFokus)
+        modifier, team = e.team, bannerUrl = e.bannerUrl, bannerFokus = e.bannerFokus, global = e.global)
 }
 
 /** Abzeichen „Global" (Karten, Event-Seite): Pumpfoil-Cyan, hell dunkler (Web brand-700 / dark brand-300). */
@@ -869,64 +891,6 @@ fun GlobalChip() {
 /** Pumpfoil-Cyan fuer Text/Symbole auf neutralem Grund (Web brand-700 hell, brand-300 dunkel). */
 @Composable
 internal fun markenAkzent(): Color = if (teamDunkel()) Color(0xFF67E8F9) else Color(0xFF0E7490)
-
-/**
- * Karte globaler Events (Web EventKurzKachel GlobalKachel, Jan 06.11.2026: „der zeitraum sollte groesser dargestellt
- * werden, irgendwie ist alles wichtig"): Kalenderblock links (Monat, Tage, Wochentage), rechts Status, „Global",
- * Sportarten/Spots, Titel gross, Countdown und die erste Zeile der Beschreibung. Ohne Teamname — „Global" sagt, woher es kommt.
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun GlobalEventKachel(e: TeamEventKurz, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val laeuft = e.status == "laeuft"
-    val marke = MaterialTheme.colorScheme.primary
-    val akzent = markenAkzent()
-    val d = eventTage(e.start, e.ende, e.zeitzone)
-    Card(
-        modifier.fillMaxWidth().clip(CardDefaults.shape).clickable(onClick = onClick),
-        border = BorderStroke(2.dp, if (laeuft) marke else marke.copy(alpha = 0.4f)),
-    ) {
-        Column(Modifier.padding(14.dp)) {
-        Row {
-            Column(Modifier.width(84.dp).clip(RoundedCornerShape(12.dp)).background(marke.copy(alpha = 0.15f))
-                .padding(horizontal = 4.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(d.monat.uppercase(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = akzent,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                Text(d.tage, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, maxLines = 1,
-                    color = MaterialTheme.colorScheme.onSurface, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                Text(d.wochentage, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-            }
-            Spacer(Modifier.width(14.dp))
-            Column(Modifier.weight(1f)) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    // „laeuft" in Pumpfoil-Cyan statt Teamfarbe (die Karte gehoert keinem Team).
-                    EventStatusChip(e.status, TeamFarbe(akzent = marke, flaeche = marke, aufFlaeche = MaterialTheme.colorScheme.onPrimary))
-                    GlobalChip()
-                    e.sportarten.forEach { SportChip(it) }
-                    e.spots.forEach { SpotChip(it.name ?: "#${it.id}") }
-                }
-                // Titel in unserem Cyan wie die Titel der Team-Events (Jan, 06.11.2026: „ist das nicht eigentlich unser cyan?");
-                // ohne ausdrueckliche Farbe erbte er die gedaempfte Textfarbe der Card und wirkte im Dunkeln grau.
-                Text(e.titel, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
-                    color = akzent, modifier = Modifier.padding(top = 4.dp))
-                if (e.status == "kommend" || laeuft) {
-                    val jetzt = rememberJetzt()
-                    Text(I18n.t(if (laeuft) "team.event.endetIn" else "team.event.startIn") + " " +
-                            countdownText(restSekunden(if (laeuft) e.ende else e.start, jetzt)),
-                        style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = akzent,
-                        modifier = Modifier.padding(top = 2.dp))
-                }
-                e.beschreibung?.trim()?.takeIf { it.isNotEmpty() }?.let { b ->
-                    Text(b.lineSequence().first(), style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
-                }
-            }
-        }
-        KachelBild(e.bannerUrl, e.bannerFokus)
-        }
-    }
-}
 
 /**
  * Abzeichen am Reiter (Community „Teams & Events", Home „Team"; Web EventAbzeichen, 06.11.2026): LIVE pulsierend, solange

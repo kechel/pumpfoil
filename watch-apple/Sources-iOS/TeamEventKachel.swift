@@ -289,7 +289,7 @@ struct EventKachelDaten {
     /// Globales Event (06.11.2026): eigene Karte mit Kalenderblock, ohne Teamname.
     var global: Bool = false
     /// Bild unten in der Kachel (web EventKurzKachel `KachelBild`, 10.11.2026): Eventbild, sonst Teambild — der Server
-    /// waehlt (nur in der Kurzform der Listen; die Kacheln der Teamseite zeigen wie im Web keins).
+    /// waehlt; auf der Teamseite nur das Eventbild.
     var banner_url: String? = nil
     var banner_fokus: String? = nil
 
@@ -297,6 +297,8 @@ struct EventKachelDaten {
         id = e.id; self.slug = slug; titel = e.titel; beschreibung = e.beschreibung
         start = e.start; ende = e.ende; zeitzone = e.zeitzone; status = e.status
         sportarten = e.sportarten; spots = e.spots; self.farbe = farbe; global = e.istGlobal
+        // Teamseite: nur das Eventbild — das Teambild steht dort schon oben (web pages/Team.tsx, 10.11.2026).
+        banner_url = e.banner_url; banner_fokus = e.banner_fokus
     }
 
     init(_ e: TeamEventKurz) {
@@ -307,102 +309,35 @@ struct EventKachelDaten {
     }
 }
 
+/// EINE Event-Kachel fuer alle Stellen (Jan 10.11.2026: „nimm doch die gleiche wie ueberall"; web EventKurzKachel):
+/// die Kalenderkarte, fuer Team-Events in Teamfarbe.
 struct TeamEventKachel: View {
     let d: EventKachelDaten
     let lang: String
 
-    private var tf: TeamFarbe { TeamFarbe(d.farbe) }
-    private var laeuft: Bool { d.status == "laeuft" }
-    private var mitUhr: Bool { d.status == "kommend" || d.status == "laeuft" }
-    private var zeitraum: String { eventZeitraum(d.start, d.ende, d.zeitzone, lang) }
-    private var linkText: String { Loc.t(eventStandKey(d.status), lang) + " →" }
-    private var uhrZiel: String { d.status == "kommend" ? d.start : d.ende }
-    private var uhrVorsatz: String { Loc.t(d.status == "kommend" ? "team.event.startIn" : "team.event.endetIn", lang) }
-    private var vorZeitraum: String {
-        guard let t = d.team else { return zeitraum }
-        return t.name + " · " + zeitraum
-    }
-    private var randFarbe: Color { laeuft ? tf.akzent : Color.clear }
-
-    var body: some View {
-        if d.global {
-            GlobalEventKachel(d: d, lang: lang)
-        } else {
-            teamKachel
-        }
-    }
-
-    private var teamKachel: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            kopf
-            HStack(alignment: .lastTextBaseline, spacing: 8) {
-                unten
-                Spacer(minLength: 4)
-                Text(linkText).font(.subheadline.weight(.semibold)).foregroundStyle(tf.akzent).lineLimit(1)
-            }
-            EventKachelBild(d: d)
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(randFarbe, lineWidth: 2))
-        .contentShape(RoundedRectangle(cornerRadius: 16))
-    }
-
-    private var kopf: some View {
-        FoilerFliessReihe(abstand: 6) {
-            if let t = d.team { TeamWappen(name: t.name, logo: t.logo_url, farbe: t.farbe, size: 20) }
-            Text(d.titel).font(.headline).foregroundStyle(tf.akzent)
-            TeamEventStatusChip(status: d.status, farbe: d.farbe, lang: lang)
-            ForEach(d.sportarten, id: \.self) { sp in sportClassPill(Loc.t("cls.sport." + sp, lang)) }
-            ForEach(d.spots) { sp in teamSpotChip(sp.anzeige) }
-        }
-    }
-
-    private var unten: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            zeitZeileMitUhr
-            if let z = eventErsteZeile(d.beschreibung) {
-                Text(z).font(.subheadline.weight(.semibold)).lineLimit(2)
-            }
-        }
-    }
-
-    @ViewBuilder private var zeitZeileMitUhr: some View {
-        if mitUhr {
-            TimelineView(.periodic(from: Date(), by: 1)) { ctx in
-                zeitZeile(ctx.date).font(.caption).foregroundColor(.secondary)
-            }
-        } else {
-            Text(vorZeitraum).font(.caption).foregroundStyle(.secondary)
-        }
-    }
-
-    /// „Team · Zeitraum · Startet in 5 T. 12:03:45" — der Countdown in Teamfarbe und fett.
-    private func zeitZeile(_ jetzt: Date) -> Text {
-        let uhr: String = uhrVorsatz + " " + teamCountdown(uhrZiel, jetzt: jetzt, lang)
-        let vorn: Text = Text(vorZeitraum + " · ")
-        let hinten: Text = Text(uhr).bold().monospacedDigit().foregroundColor(tf.akzent)
-        return vorn + hinten
-    }
+    var body: some View { EventKalenderKachel(d: d, lang: lang) }
 }
 
 // MARK: - Kachel globaler Events
 
-/// Globale Events (web GlobalKachel, Jan 06.11.2026: „der zeitraum sollte groesser dargestellt werden, irgendwie ist
-/// alles wichtig"): groessere Karte mit Kalenderblock links (Monat, Tage, Wochentage), rechts Abzeichen, Titel gross,
-/// Countdown und zwei Zeilen Beschreibung. Ohne Teamname — „Global" sagt, woher es kommt. Pumpfoil-Cyan statt Teamfarbe.
-struct GlobalEventKachel: View {
+/// Kalenderkarte (web EventKurzKachel, Jan 06.11.2026: „der zeitraum sollte groesser dargestellt werden, irgendwie ist
+/// alles wichtig"; seit 10.11.2026 fuer alle Events): Kalenderblock links (Monat, Tage, Wochentage), rechts Abzeichen,
+/// Titel gross, Countdown und zwei Zeilen Beschreibung. Globale Events: „Global" in Pumpfoil-Cyan. Team-Events: Teamfarbe,
+/// in Listen ueber mehrere Teams dazu Wappen und Teamname.
+struct EventKalenderKachel: View {
     let d: EventKachelDaten
     let lang: String
 
-    private var marke: TeamFarbe { TeamFarbe(nil) }
+    private var marke: TeamFarbe { TeamFarbe(d.global ? nil : d.farbe) }
     private var laeuft: Bool { d.status == "laeuft" }
     private var mitUhr: Bool { d.status == "kommend" || d.status == "laeuft" }
     private var tage: EventTage { eventTage(d.start, d.ende, d.zeitzone, lang) }
     private var uhrZiel: String { d.status == "kommend" ? d.start : d.ende }
     private var uhrVorsatz: String { Loc.t(d.status == "kommend" ? "team.event.startIn" : "team.event.endetIn", lang) }
-    private var randFarbe: Color { laeuft ? marke.akzent : marke.akzent.opacity(0.4) }
+    private var randFarbe: Color {
+        if laeuft { return marke.akzent }
+        return d.global ? marke.akzent.opacity(0.4) : Color.clear
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -449,8 +384,17 @@ struct GlobalEventKachel: View {
 
     private var abzeichen: some View {
         FoilerFliessReihe(abstand: 6) {
-            TeamEventStatusChip(status: d.status, farbe: nil, lang: lang)
-            EventGlobalChip(lang: lang)
+            TeamEventStatusChip(status: d.status, farbe: d.global ? nil : d.farbe, lang: lang)
+            if d.global {
+                EventGlobalChip(lang: lang)
+            } else if let t = d.team {
+                HStack(spacing: 4) {
+                    TeamWappen(name: t.name, logo: t.logo_url, farbe: t.farbe, size: 16)
+                    Text(t.name).font(.caption2.weight(.semibold)).foregroundStyle(.secondary).lineLimit(1)
+                }
+                .padding(.leading, 2).padding(.trailing, 8).padding(.vertical, 2)
+                .background(Color.secondary.opacity(0.15), in: Capsule())
+            }
             ForEach(d.sportarten, id: \.self) { sp in sportClassPill(Loc.t("cls.sport." + sp, lang)) }
             ForEach(d.spots) { sp in teamSpotChip(sp.anzeige) }
         }

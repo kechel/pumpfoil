@@ -6,22 +6,20 @@
 // Die Regeln setzt der Server (server/app/teams.py); hier wird nur gezeigt, was er liefert.
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { useEffect, useState } from "react";
-import KachelUhr from "../components/KachelUhr";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, getToken, TeamInfo, TeamLogbuchEintrag, TeamMitglied, TeamStatistik, TeamTafelMitZeilen } from "../lib/api";
 import { Avatar, Card } from "../components/ui";
 import { Flagge } from "../components/Flagge";
 import { SportAbzeichen } from "../components/SportAbzeichen";
 import { sportLabel } from "../lib/sportClass";
-import { ChatBubbleIcon, LocationIcon, SettingsIcon, ShareIcon } from "../components/Icons";
+import { ChatBubbleIcon, SettingsIcon, ShareIcon } from "../components/Icons";
 import TeamTafelBild from "../components/TeamTafelBild";
 import TeamQr from "../components/TeamQr";
 import { Reiterleiste, useReiter } from "../components/Reiter";
 import { openChatOverlay } from "../components/DmWidget";
-import { eventZeitraum } from "../lib/teamEvents";
 import TeamRegeln from "./TeamRegeln";
-import { eventStandKey } from "./TeamEventSeite";
-import type { TeamEvent } from "../lib/api";
+import type { TeamAuftritt, TeamEvent, TeamEventKurz } from "../lib/api";
+import EventKurzKachel from "../components/EventKurzKachel";
 import TeamWappen from "../components/TeamWappen";
 import { TeamHerkunft } from "../components/TeamHerkunft";
 import TeamBanner from "../components/TeamBanner";
@@ -117,63 +115,28 @@ function Statistik({ s, t }: { s: TeamStatistik; t: (k: string, p?: Record<strin
   );
 }
 
-/** Vergangene Events, kompakt wie das Logbuch: je Event eine Zeile mit den Siegern; aufklappen zeigt die Bestenlisten. */
-/** Vergangene Events, kompakt wie das Logbuch: je Event eine Zeile mit den Siegern; ein Klick oeffnet das Event. */
-/** Event-Kachel der Teamseite (Jan, 01.11.2026) — dieselbe fuer kommende, laufende und vergangene Events: Titel, Status,
- *  Sportart/Spots, Zeitraum (mit Countdown), erste Zeile der Beschreibung. Kennzahlen und Sieger stehen auf der Event-Seite. */
-function TeamEventKachel({ e, slug, lang, t }: {
-  e: TeamEvent; slug: string; lang: string; t: (k: string, p?: Record<string, string>) => string;
-}) {
-  return (
-    <Link to={`/teams/${slug}/events/${e.id}`} className="block">
-      <Card className={`p-4 hover:border-slate-700 ${e.status === "laeuft" ? "team-rand border-2" : ""}`}>
-        <div className="mb-1 flex flex-wrap items-center gap-2">
-          <h3 className="team-akzent text-lg font-bold">{e.titel}</h3>
-          <span className={`rounded-full px-2 py-0.5 text-xs ${e.status === "laeuft" ? "team-knopf event-puls font-bold" : "bg-slate-800 font-semibold text-slate-300"}`}>
-            {t(`team.event.status.${e.status}`)}
-          </span>
-          {/* Sportart und Spots als Abzeichen wie in den Session-Kacheln, neben dem Status (Platz sparen, Jan 01.11.2026).
-              Sonst nur Titel, Zeitraum und eigener Text — Kennzahlen und Stand stehen auf der Event-Seite. */}
-          {eventSportarten(e).map((sp) => (
-            <span key={sp} className="rounded bg-amber-500/15 px-1.5 py-0.5 text-xs text-amber-700 dark:text-amber-300">{t(`cls.sport.${sp}`)}</span>
-          ))}
-          {e.spots.map((sp) => (
-            <span key={sp.id} className="inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300">
-              <LocationIcon className="h-3.5 w-3.5" /> {sp.name ?? `#${sp.id}`}
-            </span>
-          ))}
-        </div>
-        {/* Link rechts unten auf Hoehe der letzten Zeile, keine eigene Zeile (Jan, 01.11.2026). */}
-        <div className="flex items-end gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-sm text-slate-400">
-              {eventZeitraum(e.start, e.ende, e.zeitzone, lang)}
-              {(e.status === "kommend" || e.status === "laeuft") && (
-                <> · <KachelUhr ziel={e.status === "kommend" ? e.start : e.ende} text={t(e.status === "kommend" ? "team.event.startIn" : "team.event.endetIn")} lang={lang} /></>
-              )}
-            </p>
-            {/* Nur die erste Zeile der Beschreibung, hoechstens zwei Zeilen hoch (Jan, 01.11.2026): so steuert die Leitung
-                mit dem ersten Umbruch, was in der Kachel steht. */}
-            {e.beschreibung?.trim() && (
-              <p className="mt-1 line-clamp-2 text-sm font-semibold text-slate-200">{e.beschreibung.trim().split("\n")[0]}</p>
-            )}
-          </div>
-          <span className="team-akzent shrink-0 text-sm font-semibold">{t(eventStandKey(e.status))} →</span>
-        </div>
-      </Card>
-    </Link>
-  );
+/** Event-Kachel der Teamseite: seit 10.11.2026 dieselbe wie auf der Community-Seite und unter „Alle Events" (Jan: „nimm
+ *  doch die gleiche wie ueberall") — ohne Teamabzeichen, das Team steht im Kopf. Bild nur das Eventbild: das Teambild
+ *  steht auf dieser Seite schon oben. */
+function TeamEventKachel({ e, kopf }: { e: TeamEvent; kopf: TeamAuftritt }) {
+  const kurz: TeamEventKurz = {
+    id: e.id, titel: e.titel, beschreibung: e.beschreibung, start: e.start, ende: e.ende, zeitzone: e.zeitzone,
+    status: e.status, sportarten: eventSportarten(e), spots: e.spots, global: e.global,
+    team: { slug: kopf.slug, name: kopf.name, logo_url: kopf.logo_url, farbe: kopf.farbe, land: kopf.land },
+    banner_url: e.banner_url ?? null, banner_fokus: e.banner_fokus ?? null,
+  };
+  return <EventKurzKachel e={kurz} ohneTeam />;
 }
 
 /** Vergangene Events (aelter als eine Woche) unten — mit derselben Kachel wie oben, ohne Sieger (Jan, 01.11.2026). */
-function VergangeneEvents({ events, slug, lang, t }: {
-  events: TeamEvent[]; slug: string; lang: string; t: (k: string, p?: Record<string, string>) => string;
+function VergangeneEvents({ events, kopf, t }: {
+  events: TeamEvent[]; kopf: TeamAuftritt; t: (k: string, p?: Record<string, string>) => string;
 }) {
   return (
     <div className="mt-4">
       <h3 className="mb-2 font-semibold text-slate-100">{t("team.event.vergangen")}</h3>
-      <div className="space-y-3">
-        {events.map((e) => <TeamEventKachel key={e.id} e={e} slug={slug} lang={lang} t={t} />)}
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        {events.map((e) => <TeamEventKachel key={e.id} e={e} kopf={kopf} />)}
       </div>
     </div>
   );
@@ -310,7 +273,7 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
 
 export default function Team() {
   const { slug = "" } = useParams();
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const nav = useNavigate();
   const gast = !getToken();
   const [tteil, setTteil] = useReiter("team", ["rekorde", "events", "logbuch", "mitglieder", "teilen", "regeln"], "rekorde");
@@ -457,10 +420,10 @@ export default function Team() {
         <p className="text-sm text-slate-400">{t("team.event.keineAktuellen")}</p>
       )}
       {tteil === "events" && eventsOben.length > 0 && (
-        <div className="mb-5 space-y-3">
+        <div className="mb-5 grid grid-cols-1 gap-3 lg:grid-cols-2">
           {eventsOben.map((e) => (
-            // Kompakte Kachel; ein Klick oeffnet das Event mit allen Bestenlisten (Jan, 01.11.2026).
-            <TeamEventKachel key={e.id} e={e} slug={kopf.slug} lang={lang} t={t} />
+            // Ein Klick oeffnet das Event mit allen Bestenlisten (Jan, 01.11.2026).
+            <TeamEventKachel key={e.id} e={e} kopf={kopf} />
           ))}
         </div>
       )}
@@ -503,7 +466,7 @@ export default function Team() {
       )}
 
       {/* Reihenfolge unten (Jan, 01.11.2026): Teamadresse vorletzt, Logbuch ganz unten. */}
-      {tteil === "events" && eventsUnten.length > 0 && <VergangeneEvents events={eventsUnten} slug={kopf.slug} lang={lang} t={t} />}
+      {tteil === "events" && eventsUnten.length > 0 && <VergangeneEvents events={eventsUnten} kopf={kopf} t={t} />}
       {tteil === "logbuch" && (gast || kopf.darf_bestenlisten) && logbuch && <Logbuch eintraege={logbuch} t={t} zurueck={{ zurueck: `/teams/${kopf.slug}`, zurueckText: kopf.name }} />}
       {tteil === "teilen" && kopf.mein_status === "aktiv" && <>
         <TeamAdresse kopf={kopf} t={t} />
