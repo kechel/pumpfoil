@@ -155,6 +155,11 @@ object Recorder {
     // Gesaeuberter Wert des LAUFENDEN Fixes: maxKandidat() darf pro Fix nur EINMAL laufen, sonst
     // stehen zwei Eintraege im 15-s-Ring und das Fenster ist nur halb so lang.
     private var spdMaxClean = 0.0
+    // V-max wie der Server (Jan 10.11.2026): Maximum der 3-s-Median-Kurve, nur in Laeufen (gps.py _seg_fields). Bisher
+    // hoechster 1-s-Wert der ganzen Aufnahme — Wear im Median 0,9 km/h ueber dem Server, 33 % der Sessions mehr als
+    // 3 km/h (scripts/uhr-vmax-messen.py). Median der gesaeuberten Werte der letzten 3 s; Session-Max aus gewerteten Laeufen.
+    private val maxGlattWin = ArrayList<DoubleArray>()
+    private var spdMaxGlatt = 0.0
     private var minSpeedSeitEnde = 99.0     // kleinster Speed seit dem letzten Lauf-Ende
     private var runIstFortsetzung = false   // setzt den vorigen Lauf fort -> nicht neu zaehlen
     private var lastRunStartMs = 0L         // Start des zuletzt beendeten Laufs (fuer Fortsetzungen)
@@ -260,14 +265,14 @@ object Recorder {
                         // Lauf-Start auf den Dwell-Beginn zurückdatieren (wie Garmin).
                         runStartMs = tMs - RUN_ENTER_DWELL * 1000L
                         runStartDist = dist
-                        runMaxMps = spdMaxClean
+                        runMaxMps = spdMaxGlatt
                         runMaxHr = if (lastHr > 0 && tMs - lastHrMs <= PULS_ALT_MS) lastHr else 0
                         markDistN = 0; markTimeN = 0   // neuer Lauf -> Marken von vorn
                     }
                 }
             }
         } else {
-            if (spdMaxClean > runMaxMps) runMaxMps = spdMaxClean
+            if (spdMaxGlatt > runMaxMps) runMaxMps = spdMaxGlatt
             if (lastHr > runMaxHr && tMs - lastHrMs <= PULS_ALT_MS) runMaxHr = lastHr
             foilExitStreak = if (sp3Kmh < 9.0) foilExitStreak + 1 else 0
             if (foilExitStreak >= RUN_EXIT_DWELL) {
@@ -289,6 +294,7 @@ object Recorder {
                 lastRunDistM = distM
                 lastRunAvgMps = if (durMs > 0) lastRunDistM / (durMs / 1000.0) else 0.0
                 lastRunMaxMps = runMaxMps
+                if (runMaxMps > maxMps) maxMps = runMaxMps   // Session-V-max nur aus gewerteten Laeufen
                 lastRunMaxHr = runMaxHr
                 runMaxHr = 0
                 laufSumme.laufEnde(distM, durMs, runIstFortsetzung)   // VOR dem Ruecksetzen der Flagge
@@ -399,7 +405,7 @@ object Recorder {
         prevLat = Double.NaN; prevLon = Double.NaN; alteFixes = 0; lastHrMs = 0; letzteGpsT = -1; genauigkeit.reset()
         messwegGps = "lm"; messwegGpsNeu = 0; messwegGpsWechsel = ""; messwegAccel = "normal"; messwegWach = false
         messwegPulsNeu = 0; messwegPulsEnde = ""
-        distM = 0.0; maxMps = 0.0; hrSum = 0; hrCount = 0; maxHrV = 0; lastHr = 0
+        distM = 0.0; maxMps = 0.0; maxGlattWin.clear(); spdMaxGlatt = 0.0; hrSum = 0; hrCount = 0; maxHrV = 0; lastHr = 0
         val meta = JSONObject()
             .put("session_uuid", uuid)
             .put("started_at", nowIso())
@@ -870,7 +876,9 @@ object Recorder {
             }
             prevLat = lat; prevLon = lon
             spdMaxClean = maxKandidat(sp)
-            if (spdMaxClean > maxMps) maxMps = spdMaxClean
+            maxGlattWin.add(doubleArrayOf(tMs.toDouble(), spdMaxClean))
+            while (maxGlattWin.isNotEmpty() && tMs - maxGlattWin[0][0] > 3000) maxGlattWin.removeAt(0)
+            spdMaxGlatt = maxGlattWin.map { it[1] }.sorted()[maxGlattWin.size / 2]
             // 3-s-Fenster pflegen.
             spWin.add(doubleArrayOf(tMs.toDouble(), sp))
             while (spWin.isNotEmpty() && tMs - spWin[0][0] > 3000) spWin.removeAt(0)
@@ -898,7 +906,8 @@ object Recorder {
             gpsGutMs = if (poor) _state.value.gpsGutMs else SystemClock.elapsedRealtime(),
             speedKmh = sp * 3.6,
             speed3sKmh = sp3 * 3.6,
-            maxSpeedKmh = maxMps * 3.6,
+            // gewertete Laeufe, dazu der laufende, sobald er die Mindestdauer hat
+            maxSpeedKmh = (if (nowFoiling && tMs.toLong() - runStartMs >= MIN_RUN_MS) maxOf(maxMps, runMaxMps) else maxMps) * 3.6,
             distanceM = distM,
             avgSpeedKmh = distM / sec * 3.6,
             elapsedSec = (tMs / 1000).toLong(),
