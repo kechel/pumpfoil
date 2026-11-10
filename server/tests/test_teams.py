@@ -934,3 +934,31 @@ def test_globales_event_endstand_fest(client, monkeypatch):
     assert client.put(f"/api/teams/{offiziell}/events/{eid}/banner", headers=ko,
                       json={"fokus": "10,10"}).status_code == 409
     assert client.delete(f"/api/teams/{offiziell}/events/{eid}/banner", headers=ko).status_code == 409
+
+
+def test_event_kachel_bild(client, monkeypatch):
+    """Kachel-Bild (10.11.2026): Eventbild, sonst Teambild (wenn das Event es zeigt), sonst keins."""
+    (_ia, ka), (_ib, kb) = _konto(client, "te-a-bild@t.de"), _konto(client, "te-b-bild@t.de")
+    slug, _l = _team_mit(client, ka, kb, "Bildteam")
+    monkeypatch.setenv("TEAM_GLOBAL", slug)
+    jetzt = datetime.now(timezone.utc)
+
+    def ev(titel, **extra):
+        return client.post(f"/api/teams/{slug}/events", headers=ka, json={
+            "titel": titel, "start": (jetzt - timedelta(hours=1)).isoformat(),
+            "ende": (jetzt + timedelta(days=1)).isoformat(), "tafeln": [{"kennzahl": "sum_pumps"}],
+            "global_event": True, **extra}).json()["id"]
+    eig, team, ohne = ev("Eigenes"), ev("Teambild"), ev("Ohne", teambild_zeigen=False)
+    from app.db import SessionLocal
+    from app import models
+    db = SessionLocal()
+    t = db.query(models.Team).filter(models.Team.slug == slug).one()
+    t.banner_url, t.banner_fokus = "/media/teams/team.webp", "20,30"
+    e = db.get(models.TeamEvent, eig)
+    e.banner_url, e.banner_fokus = "/media/teams/event.webp", "60,40"
+    db.commit()
+    db.close()
+    liste = {x["id"]: x for x in client.get("/api/teams/liste/events", headers=ka).json()}
+    assert (liste[eig]["banner_url"], liste[eig]["banner_fokus"]) == ("/media/teams/event.webp", "60,40")
+    assert (liste[team]["banner_url"], liste[team]["banner_fokus"]) == ("/media/teams/team.webp", "20,30")
+    assert liste[ohne]["banner_url"] is None

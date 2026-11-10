@@ -8,6 +8,14 @@ import { LocationIcon } from "./Icons";
 import { teamFarbStil } from "../lib/teamFarben";
 import { eventTage, eventZeitraum } from "../lib/teamEvents";
 import { useI18n } from "../i18n";
+import TeamBanner from "./TeamBanner";
+
+/** Bild unten in der Kachel (Jan, 10.11.2026: „die event-banner auch noch auf der community-seite in den kacheln … unten
+ *  drunter"): Eventbild, sonst Teambild — der Server waehlt (api/teams._event_kurz), gleiches Seitenverhaeltnis wie auf der
+ *  Eventseite, damit der Fokuspunkt dort wie hier passt. */
+function KachelBild({ e }: { e: TeamEventKurz }) {
+  return e.banner_url ? <TeamBanner url={e.banner_url} fokus={e.banner_fokus} className="mt-3 !rounded-xl" /> : null;
+}
 
 /** Globale Events (Jan, 06.11.2026: „der zeitraum sollte groesser dargestellt werden, irgendwie ist alles wichtig"):
  *  groessere Karte mit Kalenderblock links (Monat, Tage, Wochentage), rechts Abzeichen, Titel, Countdown und zwei
@@ -17,7 +25,8 @@ function GlobalKachel({ e }: { e: TeamEventKurz }) {
   const d = eventTage(e.start, e.ende, e.zeitzone, lang);
   return (
     <Link to={`/teams/${e.team.slug}/events/${e.id}`}
-      className={`flex gap-4 rounded-2xl border-2 bg-slate-900/60 p-4 hover:border-brand-400 ${e.status === "laeuft" ? "border-brand-400" : "border-brand-500/40"}`}>
+      className={`block rounded-2xl border-2 bg-slate-900/60 p-4 hover:border-brand-400 ${e.status === "laeuft" ? "border-brand-400" : "border-brand-500/40"}`}>
+      <div className="flex gap-4">
       <div className="flex w-20 shrink-0 flex-col items-center justify-center rounded-xl bg-brand-500/15 px-1 py-2 text-center">
         <span className="text-xs font-bold uppercase tracking-wide text-brand-700 dark:text-brand-300">{d.monat}</span>
         <span className="text-2xl font-extrabold leading-tight text-slate-100 sm:text-3xl">{d.tage}</span>
@@ -44,6 +53,8 @@ function GlobalKachel({ e }: { e: TeamEventKurz }) {
         )}
         {e.beschreibung?.trim() && <p className="mt-1 line-clamp-2 text-sm text-slate-300">{e.beschreibung.trim().split("\n")[0]}</p>}
       </div>
+      </div>
+      <KachelBild e={e} />
     </Link>
   );
 }
@@ -76,6 +87,7 @@ export default function EventKurzKachel({ e }: { e: TeamEventKurz }) {
         )}
       </p>
       {e.beschreibung?.trim() && <p className="mt-0.5 line-clamp-2 text-sm font-semibold text-slate-200">{e.beschreibung.trim().split("\n")[0]}</p>}
+      <KachelBild e={e} />
     </Link>
   );
 }

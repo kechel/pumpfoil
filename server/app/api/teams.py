@@ -231,9 +231,18 @@ def _event_kurz(db: Session, e: models.TeamEvent, t: models.Team, intern: bool, 
     spots = ([{"id": i, "name": n} for i, n in db.query(models.Spot.id, models.Spot.name)
               .filter(models.Spot.id.in_(ids)).all()] if ids else [])
     a = T.auftritt(t, intern)
+    # Bild unten in der Kachel (Jan, 10.11.2026): das Eventbild, sonst — wie auf der Eventseite — das Teambild, wenn
+    # das Event es zeigen soll (teambild_zeigen). Teambild ueber auftritt(): ausserhalb des Teams nur das freigegebene.
+    if e.banner_url:
+        bild, fokus = e.banner_url, e.banner_fokus
+    elif e.teambild_zeigen is not False and a.get("banner_url"):
+        bild, fokus = a["banner_url"], a.get("banner_fokus")
+    else:
+        bild, fokus = None, None
     return {"id": e.id, "titel": e.titel, "beschreibung": e.beschreibung, "start": T._aware(e.start).isoformat(),
             "ende": T._aware(e.ende).isoformat(), "zeitzone": e.zeitzone, "status": T.event_status(e, jetzt),
             "sportarten": sportarten, "spots": spots, "global": T.ist_global(e),
+            "banner_url": bild, "banner_fokus": fokus,
             "team": {"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"], "land": a["land"]}}
 
 
