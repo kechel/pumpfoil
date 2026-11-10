@@ -933,6 +933,14 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # 10.11.2026: V-max wie der Server (9718cafb); 1.0.4 ist seit 09.11. live.
+    # EINGEREICHT 10.11.2026 12:26 (Jans Meldung, AppGallery Connect „Under pre-review“, arkts-default-signed.app
+    # 1.0.5 (1000005), 0,11 MB). Emulator-Test #21099 mit v=1.0.5 hochgeladen (0 Laeufe im Emulator, ungeklaert).
+    {"name": "Huawei Watch 5", "version": "1.0.5",
+     "eingereicht": "2026-11-10",
+     "items": [
+         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
+     ]},
     # 15.10.2026 (Jan: „alle immer moeglichst auf dem gleichen stand"): Garmin-1.0.93-Uhrseite
     # nach Zepp portiert. Nicht gebumpt (1.0.13 ist live). Dazu wartet seit fc953a91 „Speicher voll
     # an den Server melden" (ohne eigenen Punkt, reine Diagnose).
@@ -1224,11 +1232,7 @@ NAECHSTES: list[dict] = [
      ]},
     # iPhone + Apple Watch 1.1.62 am 07.11. 01:26 eingereicht -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.64 am 10.11. 11:47 eingereicht -> IN_REVIEW.
-    # 10.11.2026: V-max wie der Server (9718cafb); 1.0.4 ist seit 09.11. live.
-    {"name": "Huawei Watch 5", "version": "1.0.5",
-     "items": [
-         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
-     ]},
+    # Huawei Watch 5 1.0.5 am 10.11. eingereicht -> IN_REVIEW.
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
      "items": [
