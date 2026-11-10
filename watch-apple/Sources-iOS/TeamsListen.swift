@@ -53,9 +53,8 @@ struct TeamEventsAbschnitt: View {
                 Text(Loc.t("team.event.keineGlobalen", lang)).font(.subheadline).foregroundStyle(.secondary)
             }
             ForEach(events ?? []) { e in zeile(e) }
+            // „Alle Events" und Kalender-Abo in EINER Zeile unter den Events (Jan 10.11.2026: „kompakter").
             linkZeile
-            // Kalender-Abo fuer alle globalen Events (web KalenderAbo.tsx, 09.11.2026), neben „Alle Events".
-            KalenderAbo(lang: lang)
         } header: {
             Label(Loc.t("team.eventsGlobal", lang), systemImage: "flag").font(.headline)
         }
@@ -82,7 +81,9 @@ struct TeamEventsAbschnitt: View {
             Spacer()
             Button { pfad.append(TeamsZiel.alleEvents) } label: { linkText("team.alleEvents") }
                 .buttonStyle(.borderless)
+            KalenderAbo(lang: lang)
         }
+        .lineLimit(1).minimumScaleFactor(0.8)
     }
 
     private func linkText(_ key: String) -> some View {
@@ -117,38 +118,28 @@ struct KalenderAbo: View {
         return c?.url
     }
 
-    private var abo: some View {
-        Button { if let u = URL(string: webcal) { openURL(u) } } label: {
-            Label(Loc.t("team.ics.abo", lang), systemImage: "calendar.badge.plus").font(.subheadline)
+    /// Ein Menue statt drei Knoepfen (Jan 10.11.2026: „kompakter"): Eintragen, Google Kalender, Link kopieren.
+    var body: some View {
+        Menu {
+            Button { if let u = URL(string: webcal) { openURL(u) } } label: {
+                Label(Loc.t("team.ics.abo", lang), systemImage: "calendar.badge.plus")
+            }
+            Button { if let u = google { openURL(u) } } label: {
+                Label(Loc.t("team.ics.google", lang), systemImage: "arrow.up.right.square")
+            }
+            Button {
+                UIPasteboard.general.string = https
+                kopiert = true
+                Task { try? await Task.sleep(nanoseconds: 2_000_000_000); kopiert = false }
+            } label: {
+                Label(Loc.t("team.ics.kopieren", lang), systemImage: "doc.on.doc")
+            }
+        } label: {
+            Label(Loc.t(kopiert ? "team.ics.kopiert" : "team.ics.abo", lang), systemImage: "calendar.badge.plus")
+                .font(.subheadline)
         }
         .buttonStyle(.borderless)
         .accessibilityHint(Loc.t("team.ics.titel", lang))
-    }
-
-    private var googleKnopf: some View {
-        Button { if let u = google { openURL(u) } } label: {
-            Text(Loc.t("team.ics.google", lang)).font(.subheadline)
-        }
-        .buttonStyle(.borderless)
-    }
-
-    private var kopieren: some View {
-        Button {
-            UIPasteboard.general.string = https
-            kopiert = true
-            Task { try? await Task.sleep(nanoseconds: 2_000_000_000); kopiert = false }
-        } label: {
-            Text(Loc.t(kopiert ? "team.ics.kopiert" : "team.ics.kopieren", lang)).font(.subheadline)
-        }
-        .buttonStyle(.borderless)
-    }
-
-    var body: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: 16) { Spacer(); abo; googleKnopf; kopieren }
-            VStack(alignment: .trailing, spacing: 8) { abo; googleKnopf; kopieren }
-                .frame(maxWidth: .infinity, alignment: .trailing)
-        }
     }
 }
 

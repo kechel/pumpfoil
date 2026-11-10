@@ -79,12 +79,6 @@ fun CommunityEventsAbschnitt(onOpenEvent: (String, Int) -> Unit, onAlleEvents: (
     LaunchedEffect(Unit) { meine = try { Api.teamsEventsMeine() } catch (_: Exception) { emptyList() } }
     Column(Modifier.padding(horizontal = 12.dp).padding(top = 8.dp)) {
         EventUeberschrift(I18n.t("team.eventsGlobal"))
-        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
-            TextButton(onClick = onAlleEvents) { Text(I18n.t("team.alleEvents") + " →") }
-            TextButton(onClick = onAlleTeams) { Text(I18n.t("team.alle") + " →") }
-        }
-        // Kalender-Abo fuer alle globalen Events (Web components/KalenderAbo.tsx, 09.11.2026) neben „Alle Events".
-        KalenderAbo()
         val l = events
         if (l != null && l.isEmpty()) {
             Text(I18n.t("team.event.keineGlobalen"), style = MaterialTheme.typography.bodyMedium,
@@ -93,6 +87,8 @@ fun CommunityEventsAbschnitt(onOpenEvent: (String, Int) -> Unit, onAlleEvents: (
         l?.forEach { e ->
             EventKachel(e, onClick = { onOpenEvent(e.team.slug, e.id) }, modifier = Modifier.padding(bottom = 8.dp))
         }
+        // Wege weiter + Kalender-Abo UNTER den Events, kompakt in einer umbrechenden Zeile (Jan 10.11.2026, wie Web Home.tsx).
+        KalenderAbo(onAlleEvents, onAlleTeams)
         if (meine.isNotEmpty()) {
             Spacer(Modifier.height(16.dp))
             EventUeberschrift(I18n.t("team.eventsMeineTeams"))
@@ -111,7 +107,7 @@ fun CommunityEventsAbschnitt(onOpenEvent: (String, Int) -> Unit, onAlleEvents: (
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun KalenderAbo() {
+private fun KalenderAbo(onAlleEvents: () -> Unit, onAlleTeams: () -> Unit) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val uri = LocalUriHandler.current
     val scope = rememberCoroutineScope()
@@ -119,18 +115,22 @@ private fun KalenderAbo() {
     val https = Api.BASE.trimEnd('/') + "/api/public/events/global.ics"
     val webcal = https.replace(Regex("^https?:"), "webcal:")
     val google = "https://calendar.google.com/calendar/render?cid=" + android.net.Uri.encode(webcal)
-    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-        TextButton(onClick = {
-            // Ohne Kalender-App fuer webcal: auf Google ausweichen, das jeder Browser oeffnet.
-            if (runCatching { uri.openUri(webcal) }.isFailure) runCatching { uri.openUri(google) }
-        }) { Text(I18n.t("team.ics.abo")) }
-        TextButton(onClick = { runCatching { uri.openUri(google) } }) { Text(I18n.t("team.ics.google") + " ↗") }
-        TextButton(onClick = {
+    val knopf: @Composable (String, () -> Unit) -> Unit = { text, onClick ->
+        TextButton(onClick = onClick, contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+            modifier = Modifier.height(32.dp)) { Text(text, style = MaterialTheme.typography.labelMedium) }
+    }
+    FlowRow(Modifier.fillMaxWidth().padding(bottom = 4.dp), horizontalArrangement = Arrangement.Start) {
+        knopf(I18n.t("team.alleEvents") + " →", onAlleEvents)
+        knopf(I18n.t("team.alle") + " →", onAlleTeams)
+        // Ohne Kalender-App fuer webcal: auf Google ausweichen, das jeder Browser oeffnet.
+        knopf(I18n.t("team.ics.abo")) { if (runCatching { uri.openUri(webcal) }.isFailure) runCatching { uri.openUri(google) } }
+        knopf(I18n.t("team.ics.google") + " ↗") { runCatching { uri.openUri(google) } }
+        knopf(I18n.t(if (kopiert) "team.ics.kopiert" else "team.ics.kopieren")) {
             val cm = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
             cm.setPrimaryClip(android.content.ClipData.newPlainText(I18n.t("team.ics.titel"), https))
             kopiert = true
             scope.launch { kotlinx.coroutines.delay(2000); kopiert = false }
-        }) { Text(I18n.t(if (kopiert) "team.ics.kopiert" else "team.ics.kopieren")) }
+        }
     }
 }
 
