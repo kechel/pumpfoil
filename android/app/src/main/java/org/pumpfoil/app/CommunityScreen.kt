@@ -586,9 +586,14 @@ fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modi
                     Card(
                         Modifier.weight(1f).then(if (klickbar) Modifier.clickable { onOpen(ri.e.sessionId!!) } else Modifier),
                     ) {
-                      // Box nur als Overlay-Rahmen: die Vorschau liegt ÜBER der Kachel (wie in der
-                      // PWA, Home.tsx) und beeinflusst die Höhe nicht — ohne Track bleibt alles gleich.
+                      // Box nur als Rahmen: die Vorschau liegt HINTER dem Text (Web 1be44c9e, 09.11.2026: Deckkraft 0,2)
+                      // und beeinflusst die Höhe nicht — ohne Track bleibt alles gleich.
                       Box(Modifier.fillMaxWidth()) {
+                        // Farbe kommt aus colorScheme.primary (TrackPreviewCanvas) -> beide Farbmodi.
+                        if (has) ri.e.trackPreview?.takeIf { it.isNotBlank() }?.let { tp ->
+                            TrackPreviewCanvas(tp, Modifier.align(Alignment.CenterEnd)
+                                .padding(end = 6.dp).size(width = 56.dp, height = 40.dp).alpha(0.2f))
+                        }
                         Column(Modifier.padding(10.dp)) {
                             Text(if (has) ri.value else "–", style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, maxLines = 1)
@@ -614,11 +619,6 @@ fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modi
                                 if (sub.isNotBlank()) Text(sub, style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
-                        }
-                        // Farbe kommt aus colorScheme.primary (TrackPreviewCanvas) -> beide Farbmodi.
-                        if (has) ri.e.trackPreview?.takeIf { it.isNotBlank() }?.let { tp ->
-                            TrackPreviewCanvas(tp, Modifier.align(Alignment.CenterEnd)
-                                .padding(end = 6.dp).size(width = 56.dp, height = 40.dp).alpha(0.7f))
                         }
                       }
                     }
@@ -841,7 +841,7 @@ internal fun BestenlistenBlock(lb: Leaders, sportart: String, lbMetric: String, 
                 val zeilen = list.take(10).mapIndexed { i, e -> BildZeile(i + 1, e.name ?: "—", "${leaderWert(e)} ${leaderEinheit(e)}", false, land = e.land) } +
                     listOfNotNull(lb.me[lbMetric]?.let { ich -> ich.rank?.let { r ->
                         BildZeile(r, ich.name ?: "—", "${leaderWert(ich)} ${leaderEinheit(ich)}", true, land = ich.land) } })
-                lbBild = TeamBildDaten(I18n.t(art), unter, zeilen, "pumpfoil-$lbMetric.png", quellenText(lb.quellen))
+                lbBild = TeamBildDaten(I18n.t(art), unter, zeilen, "pumpfoil-$lbMetric.png")
             }) {
                 Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))

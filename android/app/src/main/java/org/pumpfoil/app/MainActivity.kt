@@ -314,7 +314,8 @@ fun MainScaffold(onLogout: () -> Unit) {
         // Tipp auf ein Profilbild -> Profilseite (Online.kt, LocalOpenFoiler). Einmal hier gesetzt,
         // gilt es fuer jede Karte, Zeile und Chat-Nachricht darunter.
         androidx.compose.runtime.CompositionLocalProvider(LocalOpenFoiler provides { uid: Int -> nav.navigate("foiler/$uid") },
-            LocalOpenTeam provides { sl: String -> nav.navigate("team/${Uri.encode(sl)}") }) {
+            LocalOpenTeam provides { sl: String -> nav.navigate("team/${Uri.encode(sl)}") },
+            LocalOpenTeamEvent provides { sl: String, id: Int -> nav.navigate("teamevent/${Uri.encode(sl)}/$id") }) {
         androidx.compose.runtime.CompositionLocalProvider(LocalFeedbackUrl provides feedbackUrl(backEntry)) {
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
             composable("home") { HomeScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }, onRecord = { nav.navigate("record") }, onOpenSortedOut = { SessionsWunsch.setzeFilter("other"); nav.switchTab("sessions") }, onOnboarding = { nav.navigate("onboarding") }, social = social,

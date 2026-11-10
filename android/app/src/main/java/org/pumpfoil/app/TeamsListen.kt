@@ -43,6 +43,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -57,6 +58,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 /*
  * Teams & Events in Listen (01.11.2026, docs/TEAMS.md „Native-Port"): Community-Abschnitt „Laufende & kommende Events"
@@ -81,6 +83,8 @@ fun CommunityEventsAbschnitt(onOpenEvent: (String, Int) -> Unit, onAlleEvents: (
             TextButton(onClick = onAlleEvents) { Text(I18n.t("team.alleEvents") + " →") }
             TextButton(onClick = onAlleTeams) { Text(I18n.t("team.alle") + " →") }
         }
+        // Kalender-Abo fuer alle globalen Events (Web components/KalenderAbo.tsx, 09.11.2026) neben „Alle Events".
+        KalenderAbo()
         val l = events
         if (l != null && l.isEmpty()) {
             Text(I18n.t("team.event.keineGlobalen"), style = MaterialTheme.typography.bodyMedium,
@@ -97,6 +101,36 @@ fun CommunityEventsAbschnitt(onOpenEvent: (String, Int) -> Unit, onAlleEvents: (
                 EventKachel(e, onClick = { onOpenEvent(e.team.slug, e.id) }, modifier = Modifier.padding(bottom = 8.dp))
             }
         }
+    }
+}
+
+/**
+ * Kalender-Abo aller globalen Events (Web KalenderAbo.tsx): GET /api/public/events/global.ics (ohne Login). `webcal://`
+ * oeffnet die Kalender-App mit dem Abo-Dialog, Google Kalender bekommt die Adresse ueber seinen Abo-Link, dazu
+ * „Link kopieren" fuer alles andere (Kalender › Abonnieren › Adresse einfuegen).
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun KalenderAbo() {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val uri = LocalUriHandler.current
+    val scope = rememberCoroutineScope()
+    var kopiert by remember { mutableStateOf(false) }
+    val https = Api.BASE.trimEnd('/') + "/api/public/events/global.ics"
+    val webcal = https.replace(Regex("^https?:"), "webcal:")
+    val google = "https://calendar.google.com/calendar/render?cid=" + android.net.Uri.encode(webcal)
+    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+        TextButton(onClick = {
+            // Ohne Kalender-App fuer webcal: auf Google ausweichen, das jeder Browser oeffnet.
+            if (runCatching { uri.openUri(webcal) }.isFailure) runCatching { uri.openUri(google) }
+        }) { Text(I18n.t("team.ics.abo")) }
+        TextButton(onClick = { runCatching { uri.openUri(google) } }) { Text(I18n.t("team.ics.google") + " ↗") }
+        TextButton(onClick = {
+            val cm = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            cm.setPrimaryClip(android.content.ClipData.newPlainText(I18n.t("team.ics.titel"), https))
+            kopiert = true
+            scope.launch { kotlinx.coroutines.delay(2000); kopiert = false }
+        }) { Text(I18n.t(if (kopiert) "team.ics.kopiert" else "team.ics.kopieren")) }
     }
 }
 
@@ -331,7 +365,13 @@ fun EventsAlleScreen(onBack: () -> Unit, onOpenEvent: (String, Int) -> Unit) {
 fun MeineTeamsScreen(onBack: () -> Unit, onOpenTeam: (String) -> Unit, onAlleTeams: () -> Unit, onTeamGegruendet: (String) -> Unit = {}) {
     var meine by remember { mutableStateOf<List<TeamKurz>?>(null) }
     val uri = LocalUriHandler.current
+    val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) { meine = try { Api.teamsMine() } catch (_: Exception) { emptyList() } }
+    // Primaeres Team (Web Teams.tsx, 10.11.2026): nur sinnvoll, wenn man in mehr als einem Team ist, das in globalen Events zaehlt.
+    val mehrereWertbar = (meine ?: emptyList()).count { it.wertbar } > 1
+    val primaerSetzen: (String) -> Unit = { slug ->
+        scope.launch { try { Api.teamPrimaer(slug); meine = Api.teamsMine() } catch (_: Exception) {} }
+    }
     Scaffold(topBar = {
         TopAppBar(
             title = { Text(I18n.t("team.meine")) },
@@ -359,6 +399,7 @@ fun MeineTeamsScreen(onBack: () -> Unit, onOpenTeam: (String) -> Unit, onAlleTea
                                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 if (m.sportarten.isNotEmpty()) Text(sportartenText(m.sportarten), style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                PrimaerTeamMarke(m, mehrereWertbar) { primaerSetzen(m.slug) }
                             }
                             if (m.anfragen > 0) {
                                 Text(m.anfragen.toString(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold,
@@ -369,6 +410,7 @@ fun MeineTeamsScreen(onBack: () -> Unit, onOpenTeam: (String) -> Unit, onAlleTea
                     }
                 }
             }
+            if (mehrereWertbar) item { PrimaerHinweis() }
             item {
                 Column(Modifier.padding(top = 8.dp)) {
                     TextButton(onClick = onAlleTeams) { Text(I18n.t("team.alle") + " →") }
@@ -378,6 +420,30 @@ fun MeineTeamsScreen(onBack: () -> Unit, onOpenTeam: (String) -> Unit, onAlleTea
             }
         }
     }
+}
+
+/** „★ Primaeres Team" bzw. „☆ Zum primaeren Team machen" (Web Teams.tsx, 10.11.2026) — nur bei mehreren wertbaren Teams. */
+@Composable
+private fun PrimaerTeamMarke(m: TeamKurz, mehrereWertbar: Boolean, onSetzen: () -> Unit) {
+    if (!mehrereWertbar) return
+    if (m.primaer) {
+        Text("★ " + I18n.t("team.primaer"), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(top = 2.dp).clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)).padding(horizontal = 8.dp, vertical = 2.dp))
+    } else if (m.wertbar) {
+        Text("☆ " + I18n.t("team.primaerSetzen"), style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp).clip(CircleShape)
+                .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape).clickable(onClick = onSetzen)
+                .padding(horizontal = 8.dp, vertical = 2.dp))
+    }
+}
+
+@Composable
+private fun PrimaerHinweis() {
+    Text(I18n.t("team.primaerHinweis"), style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 4.dp))
 }
 
 @Composable
@@ -438,7 +504,13 @@ fun TeamSuche(onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier) {
 fun MeineTeamsInhalt(onOpenTeam: (String) -> Unit, onAlleTeams: () -> Unit, onTeamGegruendet: (String) -> Unit = {}) {
     var meine by remember { mutableStateOf<List<TeamKurz>?>(null) }
     val uri = LocalUriHandler.current
+    val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) { meine = try { Api.teamsMine() } catch (_: Exception) { emptyList() } }
+    // Primaeres Team (Web Teams.tsx, 10.11.2026): nur sinnvoll, wenn man in mehr als einem Team ist, das in globalen Events zaehlt.
+    val mehrereWertbar = (meine ?: emptyList()).count { it.wertbar } > 1
+    val primaerSetzen: (String) -> Unit = { slug ->
+        scope.launch { try { Api.teamPrimaer(slug); meine = Api.teamsMine() } catch (_: Exception) {} }
+    }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         val l = meine
         when {
@@ -458,6 +530,7 @@ fun MeineTeamsInhalt(onOpenTeam: (String) -> Unit, onAlleTeams: () -> Unit, onTe
                             }
                             Text(if (m.status == "angefragt") I18n.t("team.join.wartet") else I18n.t("team.rolle.${m.rolle}"),
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            PrimaerTeamMarke(m, mehrereWertbar) { primaerSetzen(m.slug) }
                         }
                         if (m.anfragen > 0) {
                             Text(m.anfragen.toString(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold,
@@ -468,6 +541,7 @@ fun MeineTeamsInhalt(onOpenTeam: (String) -> Unit, onAlleTeams: () -> Unit, onTe
                 }
             }
         }
+        if (mehrereWertbar) PrimaerHinweis()
         Spacer(Modifier.height(4.dp))
         TeamSuche(onOpenTeam)
         // Gruenden nativ unter der Teamsuche (Web Teams.tsx, 04.11.2026); danach in die Verwaltung (Grunddaten).

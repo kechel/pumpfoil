@@ -1802,6 +1802,15 @@ object Api {
     suspend fun teamEvent(slug: String, id: Int): TeamEvent = withContext(Dispatchers.IO) {
         json.decodeFromString(TeamEvent.serializer(), http("GET", slugPfad(slug) + "/events/$id?mix=1&sprint=1", null, auth = true))
     }
+    /** Primaeres Team setzen (10.11.2026): dafuer tritt man in globalen Events an (409 team_nicht_wertbar). */
+    suspend fun teamPrimaer(slug: String): Unit = withContext(Dispatchers.IO) {
+        http("PUT", slugPfad(slug) + "/primaer", null, auth = true); Unit
+    }
+    /** Teamwahl fuer EIN globales Event (10.11.2026); `teamId` null = wieder das primaere. */
+    suspend fun teamEventMeinTeam(slug: String, id: Int, teamId: Int?): EventMeinTeam = withContext(Dispatchers.IO) {
+        val body = if (teamId == null) "{\"team_id\":null}" else "{\"team_id\":$teamId}"
+        json.decodeFromString(EventMeinTeam.serializer(), http("PUT", slugPfad(slug) + "/events/$id/mein-team", body, auth = true))
+    }
     /** Beitreten → `status` aktiv | angefragt (entscheidet „automatisch akzeptieren" am Server). */
     suspend fun teamBeitreten(slug: String): TeamBeitritt = withContext(Dispatchers.IO) {
         json.decodeFromString(TeamBeitritt.serializer(), http("POST", slugPfad(slug) + "/beitreten", null, auth = true))

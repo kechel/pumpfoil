@@ -36,9 +36,13 @@ import androidx.compose.ui.unit.dp
  * Alle Fenster kommen in EINEM Aufruf (`communityRecords(spot = …)`); `spotRecords` liefert nur
  * eins und würde für den Rückfall vier Abrufe brauchen.
  */
-/** Sportart von Rekorden und Heatmap der Spot-Seite: der Filter, bei „Alle" Pumpfoil, sonst die erste des Spots. */
-fun rekordSportFuer(sport: String, spotSports: List<String>): String? =
-    if (sport != "all") sport else if ("pumpfoil" in spotSports) "pumpfoil" else spotSports.firstOrNull()
+/** Sportart von Rekorden und Heatmap der Spot-Seite = der Filter. „Alle" zaehlt am Spot ALLES zusammen (Web 1eec9e07,
+ *  08.11.2026: „'all sports' sollte alles an dem spot zusammen zaehlen") — vorher stand dort still Pumpfoil bzw. die
+ *  erste Sportart des Spots. Der Server nimmt `sport=all` bei Rekorden und Bestenlisten. */
+@Suppress("UNUSED_PARAMETER")
+fun rekordSportFuer(sport: String, spotSports: List<String>): String? = sport
+
+private fun spotSportName(sport: String): String = if (sport == "all") I18n.t("all.allSports") else I18n.t("cls.sport.$sport")
 
 /**
  * Sportart-Knoepfe = Filter der ganzen Spot-Seite (Liste, Rekorde, Heatmap), fest UEBER der scrollenden
@@ -68,7 +72,7 @@ fun SpotRecordsSection(spot: String, accelOnly: Boolean, sport: String, onOpen: 
     LaunchedEffect(spot, accelOnly, sport) {
         daten = try { Api.communityRecords(accelOnly = accelOnly, spot = spot, sport = sport) } catch (_: Exception) { emptyMap() }
     }
-    val titel = I18n.t("rec.spotTitle") + " · " + I18n.t("cls.sport.$sport")
+    val titel = I18n.t("rec.spotTitle") + " · " + spotSportName(sport)
     // WAEHREND DES LADENS die Ueberschrift schon zeigen, nicht nichts.
     //
     // Das ist kein Schoenheits-, sondern ein Anker-Problem gewesen. Dieser Abschnitt ist der
@@ -120,7 +124,7 @@ private fun SpotRecordsSport(daten: Map<String, PeriodRecords>, sport: String, o
             fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 16.dp, bottom = 4.dp))
         if (leer) Text("—", color = MaterialTheme.colorScheme.onSurfaceVariant)
         else BestenlistenBlock(l, sport, metrik, { metrik = it }, onOpen,
-            unterzeile = listOf(spot, I18n.t("cls.sport.$sport"), I18n.t("period.$wahl")))
+            unterzeile = listOf(spot, spotSportName(sport), I18n.t("period.$wahl")))
     }
 }
 

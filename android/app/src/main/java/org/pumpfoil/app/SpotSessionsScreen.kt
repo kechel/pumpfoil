@@ -114,7 +114,7 @@ fun SpotReiterBereich(spot: String, onOpen: (Int) -> Unit, sport0: String = "all
     // Bis die Karte da ist, steht noch nicht fest, ob es Heatmap und Beschreibungen gibt — so lange bleibt ein gemerkter
     // Reiter (etwa beim Spotwechsel auf Home) stehen, statt auf „Rekorde" zurueckzufallen.
     var karteGeladen by remember(spot) { mutableStateOf(false) }
-    // Sportart von Rekorden und Heatmap (28.10.2026): Filter, bei „Alle" Pumpfoil bzw. die erste des Spots.
+    // Sportart von Rekorden und Heatmap = der Filter, „Alle" zaehlt alle Sportarten am Spot zusammen (Web 1eec9e07).
     val rekordSport = rekordSportFuer(sport, spotSports)
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val heatZustand = remember(spotId) { spotId?.let { SpotPanelZustand(ctx, it) } }

@@ -100,6 +100,10 @@ data class TeamKurz(
     val anfragen: Int = 0,
     val land: String? = null,       // Herkunft: ISO-Code oder "k:<kontinent>"
     val freigabe: String? = null,   // keine | wartet | frei | abgelehnt (nur fuer die Leitung)
+    // Primaeres Team (10.11.2026): zaehlt in globalen Events / ist das Team, fuer das man dort antritt / selbst gewaehlt
+    val wertbar: Boolean = false,
+    val primaer: Boolean = false,
+    @SerialName("primaer_gewaehlt") val primaerGewaehlt: Boolean = false,
 )
 
 /** GET /api/teams/liste — freigegebene Teams in ihrer freigegebenen Fassung. */
@@ -297,10 +301,32 @@ data class TeamEvent(
     // Globales Event (06.11.2026): jeder nimmt automatisch teil; Teamwertung = Summe der besten N (0 = alle).
     val global: Boolean = false,
     @SerialName("team_wertung_n") val teamWertungN: Int? = null,
+    // Globale Events (10.11.2026): fuer welches seiner Teams der Betrachter antritt — nur, wenn er in einem zaehlt
+    @SerialName("mein_team") val meinTeam: EventMeinTeam? = null,
 ) {
     /** Sportarten: die der Bestenlisten, ohne Bestenliste die der Gesamtsummen (wie Web eventSportarten). */
     val sportarten: List<String> get() = (if (tafeln.isNotEmpty()) tafeln.map { it.sportart } else listOf(summenSportart)).distinct()
 }
+
+/** Teamwahl des Betrachters fuer ein globales Event (server api/teams._mein_team, 10.11.2026). */
+@Serializable
+data class EventMeinTeam(
+    val auswahl: List<EventMeinTeamWahl> = emptyList(),
+    val gewaehlt: Int? = null,
+    val primaer: Int? = null,
+    val effektiv: Int? = null,
+    val aenderbar: Boolean = false,
+    val schluss: String? = null,
+)
+
+@Serializable
+data class EventMeinTeamWahl(
+    val id: Int = 0,
+    val slug: String = "",
+    val name: String = "",
+    @SerialName("logo_url") val logoUrl: String? = null,
+    val farbe: String? = null,
+)
 
 @Serializable
 data class TeamEventTeam(

@@ -181,7 +181,7 @@ fun TeamBestenlisten(period: String, sport: String, titel: String, onOpenTeam: (
                         BildZeile(i + 1, z.name, vergleichWert(art, z.wert(art)), z.slug in meine, land = z.land,
                             wappen = true, logoUrl = z.logoUrl, farbe = z.farbe)
                     }
-                    bild = TeamBildDaten(titel, unter, bildZeilen, "pumpfoil-teams-$art.png", quellenText(d?.quellen))
+                    bild = TeamBildDaten(titel, unter, bildZeilen, "pumpfoil-teams-$art.png", eigenesTeam = true)
                 }) {
                     Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(6.dp))
@@ -198,11 +198,20 @@ internal class BildZeile(val rang: Int, val name: String, val wert: String, val 
                          val wappen: Boolean = false, val logoUrl: String? = null, val farbe: String? = null)
 
 internal class TeamBildDaten(val titel: String, val unter: String, val zeilen: List<BildZeile>, val datei: String,
-                             val quelle: String? = null,   // „Daten von: Garmin · …" ueber dem Fuss (Garmins Vorgabe)
                              // Pille oben rechts, z. B. „LIVE", solange ein Event nicht final ist (Web 6f12c55f, 06.11.2026)
                              val abzeichen: String? = null,
                              // Text, wenn die Liste leer ist (Team-Rangliste eines Events ohne Teams)
-                             val leer: String? = null)
+                             val leer: String? = null,
+                             // Die eigene Zeile (hinter Platz 10) ist ein Team — dann heisst der Schalter „Mein Team zeigen".
+                             val eigenesTeam: Boolean = false)
+
+/** Alle Uhren, Konten und Wege, mit denen man aufnehmen kann — in JEDEM Teilen-Bild statt der Quellen der einzelnen Liste
+ *  (Web lib/bestenlisteBild.ts plattformZeile, 07.11.2026). Herstellernamen unuebersetzt, nur Handy und Datei-Upload. */
+internal fun plattformZeile(): String = listOf("Garmin", "Apple Watch", "Wear OS", "Huawei", "Amazfit", "Suunto", "Polar", "COROS", "Xiaomi",
+    I18n.t("quellen.phone"), I18n.t("quellen.file")).joinToString(" · ")
+
+/** Eigene Zeile unter Platz 10 im Bild zeigen (Web foil_bild_mit_mir, Standard an). */
+private const val BILD_MIT_MIR_PREF = "foil_bild_mit_mir"
 
 // Dieselben Farben wie web/src/lib/bestenlisteBild.ts (DUNKEL/HELL, wie die Session-Karte sharecard.py), je Fassung.
 private class BildFarben(val grund: Int, val flaeche: Int, val linie: Int, val akzent: Int, val text: Int, val leise: Int)
@@ -245,10 +254,11 @@ private fun flaggeBild(land: String?): android.graphics.Bitmap? {
  * liegt es hinter Platz 10, steht es mit „⋮" darunter. Unten links das Motto, rechts unser Schriftzug (zur Fassung passend).
  */
 private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, android.graphics.Bitmap>,
-                            flaggen: Map<String, android.graphics.Bitmap>, marke: android.graphics.Bitmap?): android.graphics.Bitmap {
+                            flaggen: Map<String, android.graphics.Bitmap>, marke: android.graphics.Bitmap?,
+                            mitMir: Boolean = true): android.graphics.Bitmap {
     val F = if (hell) BILD_HELL else BILD_DUNKEL
     val zeilen = d.zeilen.take(10)
-    val eigene = d.zeilen.drop(10).firstOrNull { it.ich }
+    val eigene = if (mitMir) d.zeilen.drop(10).firstOrNull { it.ich } else null
     val B = 1080f; val X = 90f
     val b = android.graphics.Bitmap.createBitmap(1080, 1080, android.graphics.Bitmap.Config.ARGB_8888)
     val g = android.graphics.Canvas(b)
@@ -350,10 +360,17 @@ private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, 
         p.color = F.akzent; schrift(34f, true); p.textAlign = android.graphics.Paint.Align.RIGHT
         g.drawText("pumpfoil.org", B - X, B - X + 38, p)
     }
-    p.color = F.leise; schrift(26f, false); p.textAlign = android.graphics.Paint.Align.LEFT
+    // Motto in unserem Cyan (Web 272ade79, 07.11.2026), nicht in der Teamfarbe; hell die dunklere Stufe wegen des Kontrasts.
+    p.color = F.akzent; schrift(26f, true); p.textAlign = android.graphics.Paint.Align.LEFT
     g.drawText("Have fun, keep pumping!", X, B - X + 38, p)
-    // Quellen zwischen Liste und Fuss, klein wie unter der Liste in der App (Web bestenlisteBild.ts).
-    d.quelle?.let { q -> schrift(20f, false); g.drawText(q, X, B - X - 22, p) }
+    // Plattform-Liste zwischen Liste und Fuss, klein wie unter der Liste (Web bestenlisteBild.ts): immer die volle Liste,
+    // notfalls bis 15 px kleiner, damit sie ganz drauf passt.
+    p.color = F.leise
+    val quelle = plattformZeile()
+    var px = 20f
+    schrift(px, false)
+    while (px > 15f && p.measureText(quelle) > B - 2 * X) { px -= 1f; schrift(px, false) }
+    g.drawText(kuerzen(quelle, B - 2 * X), X, B - X - 22, p)
     return b
 }
 
@@ -368,6 +385,9 @@ internal fun TeamBildDialog(d: TeamBildDaten, onClose: () -> Unit) {
     val scope = rememberCoroutineScope()
     val prefs = remember { ctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE) }
     var hell by remember { mutableStateOf(runCatching { prefs.getBoolean(BILD_HELL_PREF, false) }.getOrDefault(false)) }
+    // Eigene Zeile unter Platz 10 als Wahl (Web 56960f2a, 07.11.2026: „include myself" optional), Standard an, gemerkt.
+    var mitMir by remember { mutableStateOf(runCatching { prefs.getBoolean(BILD_MIT_MIR_PREF, true) }.getOrDefault(true)) }
+    val hatEigene = remember(d) { d.zeilen.drop(10).any { it.ich } }
     var logos by remember { mutableStateOf<Map<String, android.graphics.Bitmap>?>(null) }
     var flaggen by remember { mutableStateOf<Map<String, android.graphics.Bitmap>>(emptyMap()) }
     var bmp by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
@@ -388,13 +408,13 @@ internal fun TeamBildDialog(d: TeamBildDaten, onClose: () -> Unit) {
         }
         logos = m
     }
-    LaunchedEffect(hell, logos) {
+    LaunchedEffect(hell, logos, mitMir) {
         val l = logos ?: return@LaunchedEffect
         bmp = withContext(Dispatchers.Default) {
             val marke = runCatching {
                 android.graphics.BitmapFactory.decodeResource(ctx.resources, if (hell) R.drawable.wordmark_h_light else R.drawable.wordmark_h_dark)
             }.getOrNull()
-            zeichneTeamBild(d, hell, l, flaggen, marke)
+            zeichneTeamBild(d, hell, l, flaggen, marke, mitMir)
         }
     }
     fun meldung(t: String) = android.widget.Toast.makeText(ctx, t, android.widget.Toast.LENGTH_SHORT).show()
@@ -421,6 +441,20 @@ internal fun TeamBildDialog(d: TeamBildDaten, onClose: () -> Unit) {
                     Box(Modifier.fillMaxWidth().aspectRatio(1f), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                 }
                 Spacer(Modifier.height(10.dp))
+                if (hatEigene) {
+                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable {
+                        mitMir = !mitMir
+                        runCatching { prefs.edit().putBoolean(BILD_MIT_MIR_PREF, mitMir).apply() }
+                    }, verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.material3.Checkbox(checked = mitMir, onCheckedChange = { v ->
+                            mitMir = v
+                            runCatching { prefs.edit().putBoolean(BILD_MIT_MIR_PREF, v).apply() }
+                        })
+                        Text(I18n.t(if (d.eigenesTeam) "team.bild.mitMeinemTeam" else "team.bild.mitMir"),
+                            style = MaterialTheme.typography.bodyMedium)
+                    }
+                    Spacer(Modifier.height(6.dp))
+                }
                 SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                     listOf(false, true).forEachIndexed { i, h ->
                         SegmentedButton(selected = hell == h, onClick = {

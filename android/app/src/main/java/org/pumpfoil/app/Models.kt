@@ -1614,6 +1614,23 @@ data class FoilerProfil(
     @SerialName("gewicht_kg") val gewichtKg: Double? = null,
     // Vorschau „Alle" auf der eigenen, abgeschalteten Seite (04.11.2026): dann kommt kein Inhalt, nur dieser Merker.
     @SerialName("vorschau_ausgeblendet") val vorschauAusgeblendet: Boolean = false,
+    // Event-Abzeichen (Teams Stufe 3): Plaetze 1–3 aus Events freigegebener Teams (Web TeamAbzeichen).
+    @SerialName("team_abzeichen") val teamAbzeichen: List<TeamAbzeichen> = emptyList(),
+)
+
+@Serializable
+data class TeamAbzeichen(
+    val rang: Int = 0,
+    val event: String = "",
+    val team: String = "",
+    @SerialName("team_slug") val teamSlug: String = "",
+    val farbe: String? = null,
+    val kennzahl: String = "",
+    val wert: Double = 0.0,
+    val datum: String = "",
+    val global: Boolean = false,
+    @SerialName("event_id") val eventId: Int? = null,
+    val sportart: String? = null,
 )
 
 @Serializable

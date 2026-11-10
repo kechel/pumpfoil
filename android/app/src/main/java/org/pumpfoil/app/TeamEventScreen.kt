@@ -2,6 +2,7 @@ package org.pumpfoil.app
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -219,6 +220,13 @@ fun TeamEventScreen(
 
                     Text(I18n.t(eventStandKey(e.status)), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 8.dp))
+                    // Teamwahl globaler Events (Web EventMeinTeam, 10.11.2026): schon vor dem Start, bis 6 h vor dem Ende.
+                    val mt = e.meinTeam
+                    if (e.global && mt != null && (e.status == "kommend" || e.status == "laeuft")) {
+                        EventMeinTeamWahl(slug, e.id, mt) {
+                            scope.launch { runCatching { Api.teamEvent(slug, eventId) }.getOrNull()?.let { ev = it } }
+                        }
+                    }
                     if (e.status == "kommend") {
                         EventCountdown(e, f)
                     } else {
@@ -310,7 +318,7 @@ fun TeamEventScreen(
                                                     land = x.land, wappen = true, logoUrl = x.logoUrl, farbe = x.farbe)
                                             },
                                             "${t.slug}-event-${e.id}-teams-${tf0.kennzahl}.png", abzeichen = bildAbzeichen,
-                                            leer = I18n.t("team.event.keineTeams"))
+                                            leer = I18n.t("team.event.keineTeams"), eigenesTeam = true)
                                     })
                             }
                         }
@@ -428,6 +436,60 @@ private fun TeamWertungKarte(tf: TeamTafel, n: Int, f: TeamFarbe, eigeneSlugs: S
                     Text(kennzahlWert(tf.kennzahl, x.value), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                 }
             }
+        }
+    }
+}
+
+/** Globale Events (Web components/EventMeinTeam.tsx, 10.11.2026): wer in mehreren Teams ist, zaehlt nur fuer eines —
+ *  vorgewaehlt das primaere, hier fuer dieses Event umstellbar bis 6 h vor dem Ende. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun EventMeinTeamWahl(slug: String, evId: Int, mt: EventMeinTeam, onGeaendert: () -> Unit) {
+    if (mt.auswahl.size < 2) return
+    var busy by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    fun waehle(id: Int) {
+        if (busy || !mt.aenderbar || id == mt.effektiv) return
+        busy = true
+        // Das primaere Team waehlen heisst: keine Sonderwahl fuer dieses Event (folgt spaeteren Aenderungen des primaeren).
+        scope.launch {
+            try { Api.teamEventMeinTeam(slug, evId, if (id == mt.primaer) null else id); onGeaendert() } catch (_: Exception) {}
+            busy = false
+        }
+    }
+    Card(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+        Column(Modifier.padding(12.dp)) {
+            Text(I18n.t("team.event.meinTeam"), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+            FlowRow(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                mt.auswahl.forEach { x ->
+                    val an = x.id == mt.effektiv
+                    val tf = teamFarbe(x.farbe)
+                    val aktiv = !busy && (mt.aenderbar || an)
+                    Row(
+                        Modifier.clip(RoundedCornerShape(50))
+                            .then(if (an) Modifier.background(tf.flaeche)
+                                  else Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(50)))
+                            .clickable(enabled = aktiv && mt.aenderbar && !an) { waehle(x.id) }
+                            .padding(horizontal = 12.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        TeamWappen(x.name, x.logoUrl, x.farbe, 16.dp)
+                        Spacer(Modifier.width(6.dp))
+                        Text(x.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            fontWeight = if (an) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (an) tf.aufFlaeche else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.widthIn(max = 192.dp))
+                        if (x.id == mt.primaer) {
+                            Spacer(Modifier.width(4.dp))
+                            Text("★", style = MaterialTheme.typography.labelSmall,
+                                color = (if (an) tf.aufFlaeche else MaterialTheme.colorScheme.onSurface).copy(alpha = 0.8f))
+                        }
+                    }
+                }
+            }
+            Text(I18n.t(if (mt.aenderbar) "team.event.meinTeamHinweis" else "team.event.meinTeamFest"),
+                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp))
         }
     }
 }

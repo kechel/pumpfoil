@@ -3,6 +3,10 @@ package org.pumpfoil.app
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -289,6 +293,11 @@ private fun FoilerInhalt(
                     }
                 })
             }
+            // Event-Abzeichen (Teams Stufe 3): je Event EINE Zeile (Web Foiler.tsx, 09.11.2026: „das wiederholt sich zu sehr"):
+            // Event · Datum · Team/Global, dahinter die Plaetze als kleine Medaillen mit der Kategorie.
+            if (d.teamAbzeichen.isNotEmpty()) add(Triple(Icons.Filled.Star, I18n.t("team.abzeichen")) {
+                AbzeichenJeEvent(d.teamAbzeichen)
+            })
             d.kanal?.takeIf { it.isNotBlank() }?.let { k ->
                 add(Triple(Icons.Filled.PlayArrow, "YouTube") {
                     // Angezeigt wird der Kanal-Name (@handle), nicht die ganze URL.
@@ -406,6 +415,55 @@ private fun KachelView(k: Kachel, modifier: Modifier, onOpenSession: (Int) -> Un
                 color = MaterialTheme.colorScheme.primary, maxLines = 1)
             k.datum?.let {
                 Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+private val MEDAILLE = listOf(Color(0xFFFACC15), Color(0xFFCBD5E1), Color(0xFFEA8A4A))
+
+/** Event-Abzeichen je Event zusammengefasst, beste Plaetze zuerst (Web abzeichenJeEvent, 09.11.2026). */
+private fun abzeichenJeEvent(l: List<TeamAbzeichen>): List<List<TeamAbzeichen>> =
+    l.groupBy { a -> a.eventId?.let { "e$it" } ?: "${a.event}|${a.datum}|${a.teamSlug}" }.values
+        .map { g -> g.sortedBy { it.rang } }
+
+// Sportart einer Event-Bestenliste, gemischte als „Pumpfoil + Foil Scoot".
+private fun sportartName(sp: String): String = sp.split("+").joinToString(" + ") { I18n.t("cls.sport.$it") }
+
+private fun abzeichenDatum(iso: String): String = try {
+    java.time.LocalDate.parse(iso.take(10)).format(
+        java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM)
+            .withLocale(java.util.Locale.forLanguageTag(I18n.lang)))
+} catch (_: Exception) { iso }
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AbzeichenJeEvent(l: List<TeamAbzeichen>) {
+    val openTeam = LocalOpenTeam.current
+    val openEvent = LocalOpenTeamEvent.current
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        abzeichenJeEvent(l).forEach { g ->
+            val k = g.first()
+            val gemischt = g.map { it.sportart }.toSet().size > 1
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                val ziel: (() -> Unit)? = if (k.global && k.eventId != null && openEvent != null) ({ openEvent(k.teamSlug, k.eventId) })
+                                          else openTeam?.let { o -> { o(k.teamSlug) } }
+                Text(k.event, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable(enabled = ziel != null) { ziel?.invoke() })
+                Text(abzeichenDatum(k.datum) + " · " + (if (k.global) I18n.t("team.event.global") else k.team),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.align(Alignment.CenterVertically))
+                g.forEach { a ->
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterVertically)) {
+                        Box(Modifier.size(16.dp).clip(CircleShape).background(MEDAILLE.getOrElse(a.rang - 1) { MEDAILLE[2] }),
+                            contentAlignment = Alignment.Center) {
+                            Text(a.rang.toString(), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF020617))
+                        }
+                        Spacer(Modifier.width(4.dp))
+                        Text(kennzahlLabel(a.kennzahl) + (if (gemischt && !a.sportart.isNullOrBlank()) " · " + sportartName(a.sportart) else ""),
+                            style = MaterialTheme.typography.bodySmall)
+                    }
+                }
             }
         }
     }
