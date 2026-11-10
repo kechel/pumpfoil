@@ -444,6 +444,23 @@ also wie viele der Sportarten man schon gefahren ist.
    ein Erstfahrer-Abzeichen), oder erst ab zwei Fahrern? Nur Pumpfoil oder je Sportart? Fahrer mit verborgenem Ort
    (Freunde-Funktion) ausnehmen? Sessions vor dem eigenen Konto (FIT-Import alter Fahrten) mitzaehlen?
 
+### Event-Idee: GPS-Kunst — „Wer malt das coolste Bild aufs Wasser?" (Jan, 10.11.2026; NOCH NICHT BAUEN)
+
+Fuer das uebernaechste globale Event (nach dem Sprint-Wochenende). Nur festgehalten, nichts gebaut.
+
+- **Einreichen:** Jeder waehlt eine eigene Session, trimmt sie selbst (von/bis, mit Vorschau des Tracks) und darf das
+  Bild rotieren.
+- **Bewertung durch die Community**, aber **anonym**: nur der Track, weiss auf weissem Grund bzw. Linie auf leerem
+  Grund — keine Karte, kein See, kein Name, kein Team. Damit Teams nicht nur sich selbst hochvoten; nebenbei verraet
+  ein nackter Track keinen Heimatspot.
+- **Moderation (Jan, entschieden):** Humor bleibt, auch wenn ein Penis gewinnt. Nur wirklich Verbotenes
+  (Hakenkreuz u. Ae., §86a) wird aussortiert. Legal bleibt, illegal fliegt.
+- **Gedanken zur Umsetzung (Vorschlaege, nicht entschieden):** Reihenfolge der Galerie je Betrachter zufaellig (sonst
+  gewinnen frueh eingereichte Bilder); eine Stimme je Nutzer und Bild oder Paarvergleich „welches ist cooler?";
+  Track metrisch projizieren und auf ein gemeinsames Format normalisieren (sonst gestaucht je Breitengrad, und der
+  grosse See haette mehr Platz als der Weiher); Melde-Knopf plus Admin-Blick vor dem Ende; nach Voting-Schluss die
+  Aufloesung mit Namen, Teams und Spots als Siegerehrung.
+
 ## Stufen
 
 1. **Kern (Web):** Teams, Rollen, Beitritt (zwei Schalter + join/apply-Links mit QR-Code), Registrierung
