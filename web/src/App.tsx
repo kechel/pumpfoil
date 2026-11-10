@@ -471,7 +471,7 @@ export default function App({ children }: { children?: React.ReactNode } = {}) {
           className={({ isActive }) => `mt-1 flex items-center gap-1.5 px-3 pl-[26px] text-xs ${
             NEU_BIS_SPRINTS > Date.now() ? "rounded-lg py-1 bg-brand-500/10 ring-1 ring-brand-500/25 " : ""
           }${isActive ? "font-semibold text-brand-400" : "text-slate-400 hover:text-slate-300"}`}>
-          <span className="whitespace-nowrap">↳ Flying sprints: how we time them</span>
+          <span className="whitespace-nowrap">↳ Flying sprints</span>
           {NEU_BIS_SPRINTS > Date.now() && (
             <span title={t("badge.new")} aria-label={t("badge.new")}
               className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400" />
