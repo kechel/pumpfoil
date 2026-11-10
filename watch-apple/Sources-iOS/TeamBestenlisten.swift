@@ -259,6 +259,8 @@ struct TeamBildZeile: Identifiable {
     let logo: String?
     let farbe: String?
     var land: String? = nil
+    /// Name fuer die Initialen im Wappen, wenn es nicht der Zeilenname ist (Fahrer mit Team-Wappen, Event-Uebersicht).
+    var wappenName: String? = nil
     var id: Int { rang }
 }
 
@@ -320,19 +322,27 @@ struct TeamBildDialog: View {
     @State private var bild: UIImage?
 
     @MainActor static func zeigen(_ daten: TeamBildDaten, lang: String) {
+        praesentieren { schliessen, teilen in
+            AnyView(TeamBildDialog(daten: daten, lang: lang, schliessen: schliessen, teilen: teilen))
+        }
+    }
+
+    /// Ein Bild-Dialog als UIKit-Blatt ueber dem obersten Controller; `baue` bekommt Schliessen und Teilen (Share-Sheet).
+    /// Auch fuer die Event-Uebersicht (EventUebersichtBild.swift).
+    @MainActor static func praesentieren(_ baue: (@escaping () -> Void, @escaping (UIImage) -> Void) -> AnyView) {
         let fenster: UIWindow? = UIApplication.shared.connectedScenes
             .compactMap { ($0 as? UIWindowScene)?.keyWindow }.first
         guard var oben: UIViewController = fenster?.rootViewController else { return }
         while let p = oben.presentedViewController { oben = p }
         let host = UIHostingController(rootView: AnyView(EmptyView()))
-        let dialog = TeamBildDialog(daten: daten, lang: lang, schliessen: { [weak host] in host?.dismiss(animated: true) },
-                                    teilen: { [weak host] img in
+        let schliessen: () -> Void = { [weak host] in host?.dismiss(animated: true) }
+        let teilen: (UIImage) -> Void = { [weak host] img in
             guard let h = host else { return }
             let vc = UIActivityViewController(activityItems: [img], applicationActivities: nil)
             vc.popoverPresentationController?.sourceView = h.view
             h.present(vc, animated: true)
-        })
-        host.rootView = AnyView(dialog)
+        }
+        host.rootView = baue(schliessen, teilen)
         oben.present(host, animated: true)
     }
 
@@ -437,14 +447,7 @@ struct TeamBestenlisteBild: View {
         .frame(width: 900, alignment: .leading)
     }
 
-    /// Pille in der Akzentfarbe, Schrift wie web F.topText (dunkel: Navy, hell: weiss).
-    private func pille(_ text: String) -> some View {
-        Text(text.uppercased()).font(.system(size: 28, weight: .heavy)).lineLimit(1).fixedSize()
-            .foregroundStyle(hell ? Color.white : f.grund)
-            .padding(.horizontal, 22)
-            .frame(height: 50)
-            .background(f.akzent, in: Capsule())
-    }
+    private func pille(_ text: String) -> some View { TeamBildPille(text: text, hell: hell) }
 
     private var zeilenBlock: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -457,25 +460,43 @@ struct TeamBestenlisteBild: View {
             if mitEigener, let e = daten.eigene {
                 Text("⋮").font(.system(size: gross, weight: .bold)).foregroundStyle(f.leise)
                     .frame(width: 60, height: (zh * 0.4).rounded())
-                zeile(TeamBildZeile(rang: e.rang, name: e.name, wert: e.wert, ich: true, logo: e.logo, farbe: e.farbe, land: e.land))
+                zeile(TeamBildZeile(rang: e.rang, name: e.name, wert: e.wert, ich: true, logo: e.logo, farbe: e.farbe, land: e.land,
+                                    wappenName: e.wappenName))
             }
         }
         .frame(width: 900, alignment: .leading)
     }
 
     private func zeile(_ z: TeamBildZeile) -> some View {
+        TeamBildZeilenAnsicht(z: z, zh: zh, gross: gross, hell: hell, logos: daten.logos, flaggen: daten.flaggen)
+    }
+
+    private var fuss: some View { TeamBildFuss(hell: hell) }
+}
+
+// MARK: - Bausteine der Teilen-Bilder (auch fuer die Event-Uebersicht, EventUebersichtBild.swift)
+
+/// Eine Zeile: Rang, Wappen, Flagge 4:3 mit feinem Rand (Platz bleibt auch ohne Flagge frei), Name, Wert; die eigene
+/// Zeile hinterlegt.
+struct TeamBildZeilenAnsicht: View {
+    let z: TeamBildZeile
+    let zh: CGFloat
+    let gross: CGFloat
+    let hell: Bool
+    let logos: [String: UIImage]
+    let flaggen: [String: UIImage]
+
+    private var f: TeamBildFarben { hell ? .hell : .dunkel }
+
+    var body: some View {
         let fh: CGFloat = (gross * 0.8).rounded()
         let fw: CGFloat = (fh * 4 / 3).rounded()
         return HStack(spacing: 0) {
-            Text(String(z.rang)).font(.system(size: gross, weight: .heavy))
-                .foregroundStyle(z.rang <= 3 ? f.akzent : f.leise)
-                // Dreistellig (eigene Zeile, 07.11.2026) wurde „1…“: nach links Platz wie im Web-Bild (rechtsbuendig), notfalls kleiner.
-                .lineLimit(1).minimumScaleFactor(0.6).frame(width: 74, alignment: .trailing)
-                .padding(.leading, -24)
+            rang
             Spacer().frame(width: 24)
-            wappen(z)
+            wappen
             Spacer().frame(width: 16)
-            flagge(z.land, fw, fh)
+            flagge(fw, fh)
             Spacer().frame(width: 16)
             Text(z.name).font(.system(size: (gross * 0.92).rounded(), weight: z.rang == 1 || z.ich ? .bold : .medium))
                 .foregroundStyle(f.text).lineLimit(1)
@@ -490,24 +511,34 @@ struct TeamBestenlisteBild: View {
         )
     }
 
-    @ViewBuilder private func wappen(_ z: TeamBildZeile) -> some View {
+    private var rang: some View {
+        Text(String(z.rang)).font(.system(size: gross, weight: .heavy))
+            .foregroundStyle(z.rang <= 3 ? f.akzent : f.leise)
+            // Dreistellig (eigene Zeile, 07.11.2026) wurde „1…“: nach links Platz wie im Web-Bild (rechtsbuendig), notfalls kleiner.
+            .lineLimit(1).minimumScaleFactor(0.6).frame(width: 74, alignment: .trailing)
+            .padding(.leading, -24)
+    }
+
+    @ViewBuilder private var wappen: some View {
         let ws: CGFloat = (gross * 1.25).rounded()
-        if let l = z.logo, let b = daten.logos[l] {
+        if let l = z.logo, let b = logos[l] {
             Image(uiImage: b).resizable().scaledToFit()
                 .frame(width: ws, height: ws)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
         } else {
             let tf = TeamFarbe(z.farbe)
-            Text(teamInitialen(z.name)).font(.system(size: (ws * 0.38).rounded(), weight: .bold)).foregroundStyle(tf.aufFlaeche)
+            Text(teamInitialen(z.wappenName ?? z.name)).font(.system(size: (ws * 0.38).rounded(), weight: .bold))
+                .foregroundStyle(tf.aufFlaeche)
                 .frame(width: ws, height: ws)
                 .background(tf.flaeche, in: RoundedRectangle(cornerRadius: 10))
         }
     }
 
-    @ViewBuilder private func flagge(_ land: String?, _ fw: CGFloat, _ fh: CGFloat) -> some View {
+    @ViewBuilder private func flagge(_ fw: CGFloat, _ fh: CGFloat) -> some View {
         // Kontinent/Erde je nach Hell/Dunkel des Bildes (die vorab geladenen Flaggen kennen nur eine Fassung).
+        let land: String? = z.land
         let kont: UIImage? = land.flatMap { $0.hasPrefix("k:") ? TeamFlaggenBild.kontinent(String($0.dropFirst(2)), hell: hell) : nil }
-        if let l = land, let b = kont ?? daten.flaggen[l] {
+        if let l = land, let b = kont ?? flaggen[l] {
             Image(uiImage: b).resizable().scaledToFill()
                 .frame(width: fw, height: fh)
                 .clipped()
@@ -516,8 +547,33 @@ struct TeamBestenlisteBild: View {
             Color.clear.frame(width: fw, height: fh)
         }
     }
+}
 
-    private var fuss: some View {
+/// Pille in der Akzentfarbe, Schrift wie web F.topText (dunkel: Navy, hell: weiss).
+struct TeamBildPille: View {
+    let text: String
+    let hell: Bool
+    var schrift: CGFloat = 28
+    var hoehe: CGFloat = 50
+
+    private var f: TeamBildFarben { hell ? .hell : .dunkel }
+
+    var body: some View {
+        Text(text.uppercased()).font(.system(size: schrift, weight: .heavy)).lineLimit(1).fixedSize()
+            .foregroundStyle(hell ? Color.white : f.grund)
+            .padding(.horizontal, (hoehe * 0.44).rounded())
+            .frame(height: hoehe)
+            .background(f.akzent, in: Capsule())
+    }
+}
+
+/// Fuss: Motto links, Schriftzug rechts.
+struct TeamBildFuss: View {
+    let hell: Bool
+
+    private var f: TeamBildFarben { hell ? .hell : .dunkel }
+
+    var body: some View {
         HStack(alignment: .bottom) {
             // Motto in unserem Cyan (web 272ade79, Jan 07.11.2026), nicht in der Teamfarbe; hell die dunklere Stufe.
             Text("Have fun, keep pumping!").font(.system(size: 26, weight: .semibold)).foregroundStyle(f.akzent)

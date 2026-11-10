@@ -142,6 +142,8 @@ struct TeamWertungZeile: Codable, Identifiable {
     let value: Double
     let fahrer: Int
     let teilnehmer: Int
+    /// Mitglieder des Teams insgesamt (Koepfe auf dem Siegertreppchen, web EventPodest; aeltere Server: fehlt).
+    var mitglieder: Int? = nil
     /// Ein mitgezaehltes Mitglied hat eine offene Meldung (08.11.2026).
     var strittig: Bool? = nil
     /// Gemischte Ansicht (08.11.2026): Sportart(en) dieser Zeile fuers Abzeichen.

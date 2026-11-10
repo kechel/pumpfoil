@@ -169,7 +169,7 @@ struct TeamEventView: View {
         } else {
             if e.status == "laeuft" { EventEndetInKarte(e: e, farbe: t.farbe, lang: lang) }
             if !(e.summen_auswahl ?? []).isEmpty { summenBereich(t, e) }
-            auswahlZeile(e)
+            auswahlZeile(t, e)
             tafelBereich(t, e)
         }
     }
@@ -206,15 +206,26 @@ struct TeamEventView: View {
 
     private func laeuftNoch(_ e: TeamEvent) -> Bool { e.status == "laeuft" || e.status == "auswertung" }
 
-    /// Auswahl der Bestenliste (ab zwei) und „Aktualisieren" (solange sich noch etwas aendern kann).
-    @ViewBuilder private func auswahlZeile(_ e: TeamEvent) -> some View {
-        if e.tafeln.count > 1 || laeuftNoch(e) {
-            HStack(spacing: 8) {
+    /// Bestenlisten oder Summen vorhanden — dann gibt es die Event-Uebersicht als Bild (web c0d044a2).
+    private func uebersichtMoeglich(_ e: TeamEvent) -> Bool { e.tafeln.count + (e.summen_auswahl ?? []).count > 0 }
+
+    /// Auswahl der Bestenliste (ab zwei), „Übersicht teilen" und „Aktualisieren" (solange sich noch etwas aendern kann);
+    /// bricht auf schmalen Geraeten um wie die Zeile im Web (flex-wrap).
+    @ViewBuilder private func auswahlZeile(_ t: TeamInfo, _ e: TeamEvent) -> some View {
+        if e.tafeln.count > 1 || laeuftNoch(e) || uebersichtMoeglich(e) {
+            FoilerFliessReihe(abstand: 8) {
                 if e.tafeln.count > 1 { tafelAuswahl(e) }
-                Spacer(minLength: 4)
+                if uebersichtMoeglich(e) { uebersichtKnopf(t, e) }
                 if laeuftNoch(e) { neuLadenKnopf }
             }
         }
+    }
+
+    private func uebersichtKnopf(_ t: TeamInfo, _ e: TeamEvent) -> some View {
+        Button { uebersichtBild(t, e) } label: {
+            Label(Loc.t("team.event.uebersichtTeilen", lang), systemImage: "square.and.arrow.up").font(.subheadline)
+        }
+        .buttonStyle(.bordered)
     }
 
     private func tafelAuswahl(_ e: TeamEvent) -> some View {
@@ -249,6 +260,10 @@ struct TeamEventView: View {
         if let tf0 = gewaehlt(e) {
             let stand: String? = eventStandText(e, tf0, lang)
             let mehrSport: Bool = Set(e.tafeln.map { $0.sportart }).count > 1
+            // Siegertreppchen ueber der Bestenliste, nur beendete Events (web EventPodest, 09.11.2026).
+            if e.status == "beendet" {
+                EventPodest(evId: e.id, tf: tf0, global: e.istGlobal, farbe: t.farbe, lang: lang)
+            }
             TeamTafelKarte(tf: anzeigeTafel(e, tf0), farbe: t.farbe, lang: lang, ohneFilter: true, sportZeigen: mehrSport,
                            standText: stand, onBild: { fahrerBild(t, e, tf0) }, teamsZeigen: e.istGlobal)
             if e.istGlobal {
@@ -326,6 +341,52 @@ struct TeamEventView: View {
                                       abzeichen: abz, eigenesTeam: true)
             TeamBildDialog.zeigen(daten, lang: sprache)
         }
+    }
+
+    /// Event-Uebersicht als Bild (web EventUebersichtBild, c0d044a2): Summen + die ersten 3 je Kategorie, Kategorien
+    /// (Fahrer-Bestenlisten, bei globalen Events auch ihre Team-Wertungen) im Dialog waehlbar.
+    private func uebersichtBild(_ t: TeamInfo, _ e: TeamEvent) {
+        var kategorien: [TeamUebersichtKategorie] = []
+        for (i, tf) in e.tafeln.enumerated() {
+            kategorien.append(TeamUebersichtKategorie(key: "p" + String(i), titel: eventTafelTitel(tf, e, lang),
+                                                      zeilen: uebersichtFahrer(e, tf), team: false))
+        }
+        if e.istGlobal {
+            for (i, tf) in e.tafeln.enumerated() {
+                let titel: String = Loc.t("team.event.teams", lang) + " · " + eventTafelTitel(tf, e, lang)
+                kategorien.append(TeamUebersichtKategorie(key: "t" + String(i), titel: titel,
+                                                          zeilen: uebersichtTeams(tf), team: true))
+            }
+        }
+        var klein: [String] = [eventZeitraum(e.start, e.ende, e.zeitzone, lang)]
+        if let tf = e.tafeln.first, let st = eventStandText(e, tf, lang) { klein.append(st) }
+        let daten = TeamUebersichtDaten(titel: e.titel, unterzeile: t.name, unterzeile2: klein,
+                                        summen: eventSummenKacheln(e, lang), kategorien: kategorien,
+                                        logos: [:], flaggen: [:], abzeichen: bildAbzeichen(e))
+        let sprache: String = lang
+        Task { @MainActor in
+            let alle: [TeamBildZeile] = daten.kategorien.flatMap { $0.zeilen }
+            let logos: [String: UIImage] = await TeamBildLogos.laden(alle)
+            let fertig = TeamUebersichtDaten(titel: daten.titel, unterzeile: daten.unterzeile, unterzeile2: daten.unterzeile2,
+                                             summen: daten.summen, kategorien: daten.kategorien, logos: logos,
+                                             flaggen: TeamEventView.flaggen(alle), abzeichen: daten.abzeichen)
+            TeamUebersichtDialog.zeigen(fertig, lang: sprache)
+        }
+    }
+
+    /// Die ersten 3 einer Fahrer-Bestenliste; bei globalen Events mit dem Wappen ihres (ersten) Teams (web wappenVon).
+    private func uebersichtFahrer(_ e: TeamEvent, _ tf: TeamTafel) -> [TeamBildZeile] {
+        let k: TeamKennzahl = teamKennzahl(tf.kennzahl)
+        return tf.zeilen.prefix(3).map { z in
+            let w: TeamEventTeam? = e.istGlobal ? z.teams?.first : nil
+            return TeamBildZeile(rang: z.rang, name: z.name ?? z.initialen ?? "—", wert: k.fmt(z.value, lang), ich: false,
+                                 logo: w?.logo_url, farbe: w?.farbe, land: z.land, wappenName: w?.name)
+        }
+    }
+
+    private func uebersichtTeams(_ tf: TeamTafel) -> [TeamBildZeile] {
+        let k: TeamKennzahl = teamKennzahl(tf.kennzahl)
+        return (tf.teams ?? []).prefix(3).map { x in TeamEventView.bildZeile(x, k.fmt(x.value, lang), false) }
     }
 
     private static func bildZeile(_ x: TeamWertungZeile, _ wert: String, _ ich: Bool) -> TeamBildZeile {
