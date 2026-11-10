@@ -169,6 +169,13 @@ final class Recorder: NSObject, ObservableObject {
     /// Gesaeuberter Wert des LAUFENDEN Fixes: maxKandidat() darf pro Fix nur EINMAL laufen, sonst
     /// stehen zwei Eintraege im 15-s-Ring und das Fenster ist nur halb so lang.
     private var spdMaxClean = 0.0
+    /// V-max wie der Server (Jan 10.11.2026, „die angezeigte V-max waere falsch"): Median der gesaeuberten Werte der
+    /// letzten 3 s, und nur IM Lauf. Der Server nimmt das Maximum der 3-s-Median-Kurve innerhalb der Laeufe
+    /// (gps.py _seg_fields). Bis 1.1.63 stand hier der hoechste 1-s-Wert der ganzen Aufnahme: auf der Apple Watch im
+    /// Median 4,1 km/h ueber dem Server, bei 59 % der Sessions mehr als 3 km/h (633 Sessions seit 01.08.,
+    /// scripts/uhr-vmax-messen.py) — Doppler-Spitzen beim Eintauchen/Sturz und an Land. So: Median 0,0, 3 % > 3 km/h.
+    private var maxGlattWin: [(t: Double, mps: Double)] = []
+    private var spdMaxGlatt = 0.0
     private var minSpeedSeitEnde = 99.0     // kleinster Speed seit dem letzten Lauf-Ende
     private var lastRunStartMs = 0          // Start des zuletzt beendeten Laufs (fuer Fortsetzungen)
     private var lastRunStartDist = 0.0
@@ -345,7 +352,7 @@ final class Recorder: NSObject, ObservableObject {
         isPaused = false; pausedMs = 0; pauseBeiMs = 0; pauseListe = []; pauseMahnungenBisher = 0
         chunkIndex = 0
         accel.removeAll(); gps.removeAll(); spWin.removeAll()
-        prevLoc = nil; distAccum = 0; maxMps = 0; hrSum = 0; hrCount = 0; maxHRv = 0; lastHR = 0
+        prevLoc = nil; distAccum = 0; maxMps = 0; maxGlattWin = []; spdMaxGlatt = 0; hrSum = 0; hrCount = 0; maxHRv = 0; lastHR = 0
         lastHRms = -1
         gpsPoor = false   // stand sonst noch auf dem Wert der vorigen Aufnahme; gpsFrischePruefen setzt ihn neu
         // Aufzeichnungsmodus aus der (gecachten) Config — pro Konto, offline-tauglich.
@@ -434,13 +441,13 @@ final class Recorder: NSObject, ObservableObject {
                         if lastRunMaxHrV > runMaxHr { runMaxHr = lastRunMaxHrV }
                     } else {
                         // Lauf-Start auf den Dwell-Beginn zurückdatieren (wie Garmin).
-                        runStartMs = tMs - runEnterDwellMs; runStartDist = dist; runMaxMps = spdMaxClean; runMaxHr = hr > 0 ? hr : 0
+                        runStartMs = tMs - runEnterDwellMs; runStartDist = dist; runMaxMps = spdMaxGlatt; runMaxHr = hr > 0 ? hr : 0
                         markDistN = 0; markTimeN = 0   // neuer Lauf -> Marken von vorn
                     }
                 }
             }
         } else {
-            if spdMaxClean > runMaxMps { runMaxMps = spdMaxClean }
+            if spdMaxGlatt > runMaxMps { runMaxMps = spdMaxGlatt }
             if hr > runMaxHr { runMaxHr = hr }
             foilExitStreak = speed3sKmh < foilExitKmh ? foilExitStreak + 1 : 0
             if foilExitStreak >= foilExitDwellS {
@@ -467,6 +474,7 @@ final class Recorder: NSObject, ObservableObject {
                     lastRunDistM = distM
                     lastRunAvgMps = durMs > 0 ? lastRunDistM / (Double(durMs) / 1000.0) : 0
                     lastRunMaxMps = runMaxMps
+                    if runMaxMps > maxMps { maxMps = runMaxMps }
                     lastRunMaxHrV = runMaxHr
                     runMaxHr = 0
                     if !runIstFortsetzung { runCount += 1 }
@@ -478,6 +486,9 @@ final class Recorder: NSObject, ObservableObject {
         runDurationMs = isFoiling ? max(0, tMs - runStartMs) : lastRunDurMs
         runDistanceM = isFoiling ? max(0, dist - runStartDist) : lastRunDistM
         runMaxSpeedKmh = (isFoiling ? runMaxMps : lastRunMaxMps) * 3.6
+        // Session-V-max: gewertete Laeufe, dazu der laufende, sobald er die Mindestdauer hat (zu kurze fallen raus).
+        let laufZaehlt = isFoiling && tMs - runStartMs >= minRunMs
+        maxSpeedKmh = max(maxMps, laufZaehlt ? runMaxMps : 0) * 3.6
         lastRunDurationMs = lastRunDurMs
         lastRunDistanceM = lastRunDistM
         lastRunAvgSpeedKmh = lastRunAvgMps * 3.6
@@ -932,7 +943,10 @@ extension Recorder: CLLocationManagerDelegate {
             }
             self.prevLoc = loc
             self.spdMaxClean = self.maxKandidat(sp)
-            if self.spdMaxClean > self.maxMps { self.maxMps = self.spdMaxClean }
+            self.maxGlattWin.append((Double(t), self.spdMaxClean))
+            while let f = self.maxGlattWin.first, Double(t) - f.t > 3000 { self.maxGlattWin.removeFirst() }
+            let gs = self.maxGlattWin.map { $0.mps }.sorted()
+            self.spdMaxGlatt = gs.isEmpty ? 0 : gs[gs.count / 2]
             self.spWin.append((Double(t), sp))
             while let f = self.spWin.first, Double(t) - f.t > 3000 { self.spWin.removeFirst() }
             // MEDIAN statt Mittel — wie Garmin (speed3sMed), Zepp und der Server
@@ -943,7 +957,6 @@ extension Recorder: CLLocationManagerDelegate {
             let sec = max(1.0, Double(t) / 1000.0)
             self.speedKmh = sp * 3.6
             self.speed3sKmh = sp3 * 3.6
-            self.maxSpeedKmh = self.maxMps * 3.6
             self.distanceM = self.distAccum
             self.avgSpeedKmh = self.distAccum / sec * 3.6
         }
