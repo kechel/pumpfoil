@@ -1721,6 +1721,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
         auf die ID der Antwort um (Android `onWeitergeleitet` -> neue Route, iOS `showSession`). **Nicht geprueft:** ob
         HttpURLConnection/URLSession beim Weiterleiten den Authorization-Kopf mitschicken (gleicher Host, sollte). Test geht NICHT
         mit Jans Konto: Admins bekommen die geloeschte Session statt der Weiterleitung (sessions.py `not user.is_admin`).
+  **Wertungsklasse (10.11., Web a2081ec0; Apps offen):**
+  - [ ] Profil: Karte „Wertungsklasse" (Keine Angabe / Frauen / Maenner / Nicht-binaer, `settings.wertungsklasse`
+        "" | w | m | nb), Schluessel `wk.*` (18 Sprachen in den Web-Locales).
+  - [ ] Event-Seite: Filterzeile „Wertung: Alle | Frauen (n) | …" aus `event.klassen` (Server bietet nur Klassen mit
+        >= 3 Teilnehmenden an und nur bei >= 2 Klassen), Abruf mit `?klasse=`; Rang in der Klasse, `rang_gesamt` bleibt.
   **Globale Events (06.11.; Apps 06.11. abends fuer Android 1.1.48 / iOS 1.1.62, 4346348a / e9af6c75):**
   - [x] Community-Abschnitt heisst „Globale Events" (`team.eventsGlobal`, `team.event.keineGlobalen`), Karten mit
         Abzeichen „Global" (`global` am Event); die Liste liefert der Server schon nur noch globale.
