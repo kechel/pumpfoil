@@ -14,7 +14,8 @@ import TeamBanner from "./TeamBanner";
  *  drunter"): Eventbild, sonst Teambild — der Server waehlt (api/teams._event_kurz), gleiches Seitenverhaeltnis wie auf der
  *  Eventseite, damit der Fokuspunkt dort wie hier passt. */
 function KachelBild({ e }: { e: TeamEventKurz }) {
-  return e.banner_url ? <TeamBanner url={e.banner_url} fokus={e.banner_fokus} className="mt-3 !rounded-xl" /> : null;
+  // mt-auto: in einer Kachelreihe stehen die Bilder unten buendig, auch wenn der Text links kuerzer ist (Jan, 10.11.2026).
+  return e.banner_url ? <div className="mt-auto pt-3"><TeamBanner url={e.banner_url} fokus={e.banner_fokus} className="!rounded-xl" /></div> : null;
 }
 
 /** Globale Events (Jan, 06.11.2026: „der zeitraum sollte groesser dargestellt werden, irgendwie ist alles wichtig"):
@@ -25,11 +26,12 @@ function GlobalKachel({ e }: { e: TeamEventKurz }) {
   const d = eventTage(e.start, e.ende, e.zeitzone, lang);
   return (
     <Link to={`/teams/${e.team.slug}/events/${e.id}`}
-      className={`block rounded-2xl border-2 bg-slate-900/60 p-4 hover:border-brand-400 ${e.status === "laeuft" ? "border-brand-400" : "border-brand-500/40"}`}>
+      className={`flex h-full flex-col rounded-2xl border-2 bg-slate-900/60 p-4 hover:border-brand-400 ${e.status === "laeuft" ? "border-brand-400" : "border-brand-500/40"}`}>
       <div className="flex gap-4">
-      <div className="flex w-20 shrink-0 flex-col items-center justify-center rounded-xl bg-brand-500/15 px-1 py-2 text-center">
+      <div className="flex min-w-20 shrink-0 flex-col items-center justify-center rounded-xl bg-brand-500/15 px-1 py-2 text-center">
         <span className="text-xs font-bold uppercase tracking-wide text-brand-700 dark:text-brand-300">{d.monat}</span>
-        <span className="text-2xl font-extrabold leading-tight text-slate-100 sm:text-3xl">{d.tage}</span>
+        {/* einzeilig, auch bei „14–15" (Jan, 10.11.2026) */}
+        <span className="whitespace-nowrap text-xl font-extrabold leading-tight text-slate-100 sm:text-2xl">{d.tage}</span>
         <span className="text-xs font-semibold text-slate-400">{d.wochentage}</span>
       </div>
       <div className="min-w-0 flex-1">
@@ -64,7 +66,7 @@ export default function EventKurzKachel({ e }: { e: TeamEventKurz }) {
   if (e.global) return <GlobalKachel e={e} />;
   return (
     <Link to={`/teams/${e.team.slug}/events/${e.id}`} style={teamFarbStil(e.team.farbe)}
-      className={`team-farbe block rounded-2xl border bg-slate-900/60 p-3 hover:border-slate-700 ${e.status === "laeuft" ? "team-rand border-2" : "border-slate-800"}`}>
+      className={`team-farbe flex h-full flex-col rounded-2xl border bg-slate-900/60 p-3 hover:border-slate-700 ${e.status === "laeuft" ? "team-rand border-2" : "border-slate-800"}`}>
       <div className="mb-0.5 flex flex-wrap items-center gap-1.5">
         <TeamWappen name={e.team.name} logo={e.team.logo_url} farbe={e.team.farbe} size={20} />
         <span className="team-akzent font-semibold">{e.titel}</span>
