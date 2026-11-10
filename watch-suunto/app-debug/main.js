@@ -44,6 +44,7 @@ var Stand = function () { this.neu(); };
 Stand.prototype.neu = function () {
   this.spWin = []; this.sp3 = 0; this.cur = 0; this.dist = 0; this.max = 0;
   this.prev = null; this.vorher = null; this.burst = []; this.spdMaxClean = 0;
+  this.c1 = 0; this.c2 = 0; this.spdMaxGlatt = 0; this.maxLaeufe = 0;
   this.hr = 0; this.hrSum = 0; this.hrN = 0; this.hrMax = 0;
   this.foiling = false; this.enterStreak = 0; this.exitStreak = 0; this.runEndedMs = -100000;
   this.runStartMs = 0; this.runStartDist = 0; this.runMaxMps = 0; this.runMaxHr = 0; this.runCount = 0;
@@ -77,11 +78,18 @@ Stand.prototype.tick = function (el, jetzt, fix, lat, lon, speed, hr) {
     if (this.prev && !sprung) this.dist += meter(this.prev[0], this.prev[1], lat, lon);
     this.prev = [lat, lon];
     this.spdMaxClean = maxKandidat(this.burst, jetzt, v);
-    if (this.spdMaxClean > this.max) this.max = this.spdMaxClean;
+    // V-max wie der Server (Jan 10.11.2026): Maximum der 3-s-Median-Kurve, nur in Laeufen (gps.py _seg_fields);
+    // bisher hoechster 1-s-Wert der ganzen Aufnahme. Median der gesaeuberten Werte der letzten 3 Fixe (c1, c2,
+    // spdMaxClean) — ohne Array und Sortieren: die Lite-Uhren uebersetzen app.js in 48 KB Heap (build-all.sh).
+    var a = this.c1, b = this.c2;
+    this.c1 = b; this.c2 = this.spdMaxClean;
+    this.spdMaxGlatt = Math.max(Math.min(a, b), Math.min(Math.max(a, b), this.c2));
   }
   this.median(this.cur, el, fix);
   var vorher = this.foiling;
   this.lauf(this.sp3, this.cur, this.dist, el);
+  // Session-V-max: gewertete Laeufe, dazu der laufende, sobald er die Mindestdauer hat.
+  this.max = Math.max(this.maxLaeufe, this.foiling && el - this.runStartMs >= MIN_RUN_MS ? this.runMaxMps : 0);
   return vorher !== this.foiling;
 };
 Stand.prototype.median = function (mps, t, fix) {
@@ -118,11 +126,11 @@ Stand.prototype.lauf = function (v3, vInst, dist, t) {
       s.runsSumDistM = Math.max(0, s.runsSumDistM - s.lastRunDistM);
     } else {
       s.runStartMs = t - RUN_ENTER_DWELL * 1000; s.runStartDist = dist;
-      s.runMaxMps = s.spdMaxClean; s.runMaxHr = s.hr > 0 ? s.hr : 0;
+      s.runMaxMps = s.spdMaxGlatt; s.runMaxHr = s.hr > 0 ? s.hr : 0;
     }
     return;
   }
-  if (s.spdMaxClean > s.runMaxMps) s.runMaxMps = s.spdMaxClean;
+  if (s.spdMaxGlatt > s.runMaxMps) s.runMaxMps = s.spdMaxGlatt;
   if (s.hr > s.runMaxHr) s.runMaxHr = s.hr;
   s.exitStreak = (v3 < RUN_EXIT_MPS) ? s.exitStreak + 1 : 0;
   if (s.exitStreak < RUN_EXIT_DWELL) return;
@@ -137,6 +145,7 @@ Stand.prototype.lauf = function (v3, vInst, dist, t) {
   s.lastRunStartMs = s.runStartMs; s.lastRunStartDist = s.runStartDist;
   s.lastRunDurMs = durMs; s.lastRunDistM = distM;
   s.lastRunAvgMps = durMs > 0 ? distM / (durMs / 1000) : 0;
+  if (s.runMaxMps > s.maxLaeufe) s.maxLaeufe = s.runMaxMps;
   s.lastRunMaxMps = s.runMaxMps; s.lastRunMaxHr = s.runMaxHr; s.runMaxHr = 0;
   s.runsSumDurMs += durMs; s.runsSumDistM += distM;
   if (!s.runIstFortsetzung) s.runCount++;
