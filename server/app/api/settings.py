@@ -229,6 +229,9 @@ DEFAULTS = {
     # Nicht an globalen Events teilnehmen (06.11.2026, teams.global_aus): fehlt dann in deren Bestenlisten, Team-Wertung
     # und Gesamtsummen — auch in schon beendeten (dort nur in der Ausgabe, Raenge rutschen nach).
     "global_events_aus": False,
+    # Wertungsklasse fuer Bestenlisten-Filter (10.11.2026, teams.wertungsklassen): "" = keine Angabe (Standard),
+    # "w" Frauen, "m" Maenner, "nb" nicht-binaer/divers. Freiwillig, selbst gewaehlt, nie geprueft.
+    "wertungsklasse": "",
 }
 
 # Schalter der oeffentlichen Foiler-Seite (ohne `enabled`, das steht fuer die ganze Seite).
@@ -660,6 +663,8 @@ def update_settings(
         current["comments_off"] = bool(patch["comments_off"])
     if "global_events_aus" in patch:
         current["global_events_aus"] = bool(patch["global_events_aus"])
+    if "wertungsklasse" in patch and patch["wertungsklasse"] in ("", "w", "m", "nb"):
+        current["wertungsklasse"] = patch["wertungsklasse"]
     if "weight_hidden" in patch:
         current["weight_hidden"] = bool(patch["weight_hidden"])
     if "watch_wrist" in patch and patch["watch_wrist"] in ("", "left", "right"):

@@ -641,7 +641,8 @@ def event_anlegen(slug: str, body: EventIn, sprint: bool = False, user: models.U
 
 
 @router.get("/{slug}/events/{event_id}")
-def event_einzeln(slug: str, event_id: int, team: str | None = None, mix: bool = False, sprint: bool = False, user: models.User = Depends(current_user),
+def event_einzeln(slug: str, event_id: int, team: str | None = None, mix: bool = False, sprint: bool = False,
+                  klasse: str | None = None, user: models.User = Depends(current_user),
                   db: Session = Depends(get_db)) -> dict:
     """Ein Event direkt (Event-Seite), unabhaengig davon, wie weit es in der Liste zurueckliegt. Globale Events sieht
     jeder; `team` = nur die Zeilen der Mitglieder dieses Teams (Filter „mein Team")."""
@@ -652,7 +653,7 @@ def event_einzeln(slug: str, event_id: int, team: str | None = None, mix: bool =
     if T.event_einfrieren(db, e):
         db.commit()
     out = T.event_out(db, t, e, nur_team_ids=_nur_team(db, team, user) if T.ist_global(e) else None,
-                      betrachter=user.id, mix=mix, sprint=sprint)
+                      betrachter=user.id, mix=mix, sprint=sprint, klasse=klasse)
     if T.ist_global(e):
         out["mein_team"] = _mein_team(db, e, user.id)   # primaeres Team / Wahl je Event (10.11.2026)
     return out

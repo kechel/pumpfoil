@@ -831,6 +831,59 @@ def global_aus(db: Session) -> frozenset:
     return _GLOBAL_AUS["ids"]
 
 
+# Wertungsklassen (10.11.2026, Jan): Filter der Event-Bestenlisten nach Frauen/Maenner/nicht-binaer. Eine Klasse wird nur
+# angeboten, wenn mindestens KLASSE_MIN Teilnehmende sie haben (eine einzelne Person waere sonst erkennbar); bleibt danach
+# nur eine Klasse uebrig (z. B. ein reines Frauen-Event), gibt es gar keinen Filter.
+WERTUNGSKLASSEN = ("w", "m", "nb")
+KLASSE_MIN = 3
+_KLASSEN = {"zeit": 0.0, "map": {}}
+
+
+def wertungsklassen(db: Session) -> dict:
+    """user_id -> Wertungsklasse ("w"/"m"/"nb"), nur wer eine gewaehlt hat. 60 s gemerkt."""
+    if time.time() - float(_KLASSEN["zeit"]) < 60:
+        return _KLASSEN["map"]
+    aus: dict[int, str] = {}
+    for uid, roh in db.query(models.User.id, models.User.settings_json).filter(
+            models.User.settings_json.ilike("%wertungsklasse%")).all():
+        try:
+            k = json.loads(roh or "{}").get("wertungsklasse")
+        except ValueError:
+            continue
+        if k in WERTUNGSKLASSEN:
+            aus[uid] = k
+    _KLASSEN.update({"zeit": time.time(), "map": aus})
+    return aus
+
+
+def klassen_angebot(db: Session, tafeln_: list[dict]) -> dict:
+    """Welche Klassen der Filter anbietet: {klasse: anzahl}, nur Klassen mit >= KLASSE_MIN verschiedenen Personen ueber
+    alle Bestenlisten des Events — und leer, wenn danach weniger als zwei Klassen bleiben."""
+    km = wertungsklassen(db)
+    je: dict[str, set] = {k: set() for k in WERTUNGSKLASSEN}
+    for tf in tafeln_:
+        for z in tf.get("zeilen", []):
+            k = km.get(z.get("user_id"))
+            if k:
+                je[k].add(z["user_id"])
+    angebot = {k: len(v) for k, v in je.items() if len(v) >= KLASSE_MIN}
+    return angebot if len(angebot) >= 2 else {}
+
+
+def nach_klasse(db: Session, tafeln_: list[dict], klasse: str) -> list[dict]:
+    """Nur die Zeilen dieser Klasse, NEU durchnummeriert (Rang in der Klasse); der Gesamtrang bleibt als `rang_gesamt`."""
+    km = wertungsklassen(db)
+    out = []
+    for tf in tafeln_:
+        zeilen = [z for z in tf.get("zeilen", []) if km.get(z.get("user_id")) == klasse]
+        x = {**tf, "zeilen": [{**z, "rang_gesamt": z.get("rang"), "rang": i + 1} for i, z in enumerate(zeilen)]}
+        if tf.get("eigene"):
+            e = tf["eigene"]
+            x["eigene"] = next((z for z in x["zeilen"] if z.get("user_id") == e.get("user_id")), None)
+        out.append(x)
+    return out
+
+
 def ist_global(e: models.TeamEvent) -> bool:
     return bool(getattr(e, "global_event", False))
 
@@ -1145,11 +1198,15 @@ def _event_voll(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
 
 
 def event_berechnen(db: Session, t: models.Team, e: models.TeamEvent, nur_team_ids: list[int] | None = None,
-                    betrachter: int | None = None) -> list[dict]:
+                    betrachter: int | None = None, klasse: str | None = None) -> list[dict]:
     """Bestenlisten fuer die Ausgabe: je Tafel hoechstens TAFEL_LAENGE Zeilen. `nur_team_ids` (globale Events, Filter
     „mein Team"): nur die Zeilen dieser Personen, mit ihrem Rang in der Gesamtwertung. `betrachter` (globale Events):
     seine eigene Zeile als `eigene`, auch wenn er weiter hinten steht (Anzeige Top 10 + man selbst, wie die Community)."""
     voll = _event_voll(db, t, e)
+    # Wertungsklasse (10.11.2026): auf den VOLLEN Zeilen filtern und neu nummerieren, erst danach kuerzen — sonst fehlten
+    # alle, die gesamt hinter Platz 50 stehen. Nur Klassen, die das Angebot enthaelt (>= KLASSE_MIN, >= 2 Klassen).
+    if klasse and klasse in klassen_angebot(db, voll):
+        voll = nach_klasse(db, voll, klasse)
     if not ist_global(e):
         return voll
     erlaubt = set(nur_team_ids) if nur_team_ids is not None else None
@@ -1281,8 +1338,10 @@ def events_einfrieren(db: Session) -> int:
 
 def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = False,
               nur_team_ids: list[int] | None = None, betrachter: int | None = None, mix: bool = False,
-              sprint: bool = False) -> dict:
-    tafeln_ = event_berechnen(db, t, e, nur_team_ids, None if gast else betrachter)
+              sprint: bool = False, klasse: str | None = None) -> dict:
+    tafeln_ = event_berechnen(db, t, e, nur_team_ids, None if gast else betrachter, klasse=None if gast else klasse)
+    # Wertungsklassen (10.11.2026): Angebot aus den VOLLEN Zeilen des Events; Gaeste bekommen keinen Filter.
+    klassen = {} if gast else klassen_angebot(db, _event_voll(db, t, e))
     if not sprint:
         # Sprint-Bestenlisten (09.11.2026) wie die gemischten nur fuer Clients, die sie kennen (`?sprint=1`).
         tafeln_ = [tf for tf in tafeln_ if tf.get("kennzahl") not in SPRINT]
@@ -1311,7 +1370,9 @@ def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = Fal
             # Eventbild auch fuer Gaeste, OHNE Freigabe (anders als das Teambild) — Jan, 01.11.2026: „das risiko gehe
             # ich erstmal ein". Titel und Beschreibung von Events sind ebenso ohne Freigabe oeffentlich.
             "banner_url": e.banner_url, "banner_fokus": e.banner_fokus,
-            "global": ist_global(e), "team_wertung_n": wertung_n(e)}
+            "global": ist_global(e), "team_wertung_n": wertung_n(e),
+            # Filter „Wertungsklasse" (10.11.2026): angebotene Klassen mit Anzahl, leer = kein Filter; `klasse` = aktiv.
+            "klassen": klassen, "klasse": klasse if klasse in klassen else None}
 
 
 def events_liste(db: Session, team_id: int, beendete: int = 10) -> list[models.TeamEvent]:

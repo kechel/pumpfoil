@@ -245,6 +245,8 @@ export default function TeamEventSeite() {
   // Globale Events (06.11.2026): Bestenliste wahlweise nur fuer eines der eigenen Teams.
   const [meineTeams, setMeineTeams] = useState<{ slug: string; name: string }[]>([]);
   const teamFilter = "";   // Filter „Bestenliste fuer" entfernt (06.11.2026); der Server kennt ?team= weiter
+  // Wertungsklasse (10.11.2026): "" = alle; der Server bietet nur Klassen mit >= 3 Teilnehmenden an, und nur wenn es >= 2 gibt.
+  const [klasse, setKlasse] = useState("");
   // Eine Bestenliste zur Zeit, per Auswahl wie die Community-Bestenliste (Jan, 06.11.2026).
   const [wahl, setWahl] = useState(0);
   const [laedt, setLaedt] = useState(false);
@@ -272,9 +274,9 @@ export default function TeamEventSeite() {
       api.teamEventOeffentlich(slug, id).then((d) => { setTeam(d.team); setEv(d.event); }).catch(() => setFehlt(true));
     } else {
       api.team(slug).then(setTeam).catch(() => setFehlt(true));
-      api.teamEvent(slug, id, teamFilter || undefined).then(setEv).catch(() => setFehlt(true));
+      api.teamEvent(slug, id, teamFilter || undefined, klasse || undefined).then(setEv).catch(() => setFehlt(true));
     }
-  }, [slug, id, gast, teamFilter]);
+  }, [slug, id, gast, teamFilter, klasse]);
   // Vorauswahl nach der Standard-Ansicht im Profil (08.11.2026): wer „Pumpfoil + Foil Scoot" eingestellt hat, sieht
   // zuerst die gemischte Bestenliste, sofern das Event eine hat. Nur beim ersten Laden dieses Events.
   useEffect(() => {
@@ -459,6 +461,17 @@ export default function TeamEventSeite() {
             <>
             {/* Siegertreppchen ueber der Bestenliste, nur beendete Events. Gleiche Rechte wie die Eventseite (Jan, 09.11.2026):
                 es zeigt nur, was die Seite ohnehin geladen hat — Gaeste also in Gastform (Rang, Name, Wert, Wappen). */}
+            {!gast && ev.klassen && Object.keys(ev.klassen).length > 0 && (
+              <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+                <span className="text-slate-400">{t("wk.filter")}:</span>
+                {(["", ...["w", "m", "nb"].filter((k) => ev.klassen![k])] as string[]).map((k) => (
+                  <button key={k || "alle"} onClick={() => setKlasse(k)}
+                    className={`rounded-lg border px-3 py-1 ${(ev.klasse ?? "") === k ? "border-brand-500 bg-brand-500 font-semibold text-slate-950" : "border-slate-600 text-slate-200 hover:bg-slate-800"}`}>
+                    {k ? `${t(`wk.${k}`)} (${ev.klassen![k]})` : t("wk.alle")}
+                  </button>
+                ))}
+              </div>
+            )}
             {ev.status === "beendet" && <EventPodest evId={ev.id} tf={tf0} global={!!ev.global} t={t} />}
             <div className={`grid grid-cols-1 gap-3 ${ev.global ? "sm:grid-cols-2" : ""}`}>
               <Tafel tf={tf} gast={gast} t={t} teamsZeigen={!!ev.global} ohneFilter sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} standText={standText} />

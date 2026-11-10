@@ -319,6 +319,9 @@ export default function Settings() {
         <LandWahl land={land} onChange={saveLand} />
       </Card>
 
+      {/* Wertungsklasse (Jan, 10.11.2026): freiwillig, nur fuer den Filter in Event-Bestenlisten. Selbst gewaehlt, nie geprueft. */}
+      <WertungsklasseCard onSaved={flashSaved} />
+
       {/* Direkt unter dem Anzeigenamen (Jan, 30.08.) — beides ist "wer bin ich hier". */}
       <SocialChannelCard />
 
@@ -799,6 +802,34 @@ function OnlinePunktCard({ onSaved }: { onSaved?: () => void }) {
         />
         {t("online.switch")}
       </label>
+    </Card>
+  );
+}
+
+// Wertungsklasse (Jan, 10.11.2026): Frauen / Maenner / nicht-binaer / keine Angabe (Standard). Filtert nur Event-
+// Bestenlisten; angeboten wird eine Klasse dort erst ab 3 Teilnehmenden (Server, teams.klassen_angebot).
+function WertungsklasseCard({ onSaved }: { onSaved?: () => void }) {
+  const t = useT();
+  const [wert, setWert] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    api.getSettings().then((s) => setWert((s.wertungsklasse as string) ?? "")).catch(() => setWert(""));
+  }, []);
+  if (wert === null) return null;
+  const optionen: [string, string][] = [["", t("wk.none")], ["w", t("wk.w")], ["m", t("wk.m")], ["nb", t("wk.nb")]];
+  return (
+    <Card className="mt-4 p-5">
+      <h3 className="mb-1 font-semibold">{t("wk.title")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("wk.hint")}</p>
+      <div className="flex flex-wrap gap-2">
+        {optionen.map(([k, label]) => (
+          <button key={k} disabled={busy}
+            onClick={() => { setBusy(true); api.saveSettings({ wertungsklasse: k }).then(() => { setWert(k); onSaved?.(); }).catch(() => {}).finally(() => setBusy(false)); }}
+            className={`rounded-lg border px-3 py-1.5 text-sm ${wert === k ? "border-brand-500 bg-brand-500 font-semibold text-slate-950" : "border-slate-600 text-slate-200 hover:bg-slate-800"}`}>
+            {label}
+          </button>
+        ))}
+      </div>
     </Card>
   );
 }

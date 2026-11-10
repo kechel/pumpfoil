@@ -2199,8 +2199,8 @@ export const api = {
   // `mix=1` (08.11.2026): gemischte Event-Bestenlisten („Pumpfoil + Foil Scoot") mitliefern, `sprint=1` (09.11.2026) die
   // Sprint-Bestenlisten (fliegende 100/200/300 m, Minute) — die Apps kennen beide noch nicht.
   teamEvents: (slug: string) => req<TeamEvent[]>(`/api/teams/${encodeURIComponent(slug)}/events?mix=1&sprint=1`),
-  teamEvent: (slug: string, id: number | string, team?: string) =>
-    req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events/${id}?mix=1&sprint=1${team ? `&team=${encodeURIComponent(team)}` : ""}`),
+  teamEvent: (slug: string, id: number | string, team?: string, klasse?: string) =>
+    req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events/${id}?mix=1&sprint=1${team ? `&team=${encodeURIComponent(team)}` : ""}${klasse ? `&klasse=${encodeURIComponent(klasse)}` : ""}`),
   teamEventOeffentlich: (slug: string, id: number | string) =>
     req<{ team: TeamAuftritt & { id: number; bestenlisten_oeffentlich: boolean; anmeldungen_zulassen?: boolean }; event: TeamEvent }>(`/api/public/teams/${encodeURIComponent(slug)}/events/${id}?mix=1&sprint=1`),
   teamEventBanner: async (slug: string, id: number, file: File) =>
@@ -2348,6 +2348,8 @@ export interface TeamEventIn {
   global_event?: boolean; team_wertung_n?: number | null;
 }
 export interface TeamEvent {
+  /** Filter „Wertungsklasse" (10.11.2026): angebotene Klassen mit Anzahl (leer = kein Filter), aktive Klasse */
+  klassen?: Record<string, number>; klasse?: string | null;
   id: number; titel: string; beschreibung: string | null; start: string; ende: string; zeitzone: string | null;
   vorlage: string | null; status: "kommend" | "laeuft" | "auswertung" | "beendet";
   spots: { id: number; name: string | null }[]; spot_ids: number[]; einfrieren_am: string;
