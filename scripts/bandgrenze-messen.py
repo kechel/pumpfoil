@@ -10,6 +10,7 @@ Gesucht werden Stuecke mit geglaettetem Tempo ueber der Bandgrenze, die an einen
 die nach der Spitze verworfen wurden (metrics.fremdkraft_laeufe, quelle "tempo").
 
 Aufruf:  cd server && OMP_NUM_THREADS=1 .venv/bin/python ../scripts/bandgrenze-messen.py [--detection model] [--csv out.csv]
+         Event-Ueberwachung: ... --detection alle --seit "2026-11-14 05:00+01" --bis "2026-11-15 16:00+01"
 Liest .env selbst (DATABASE_URL). Schreibt NICHTS in die DB.
 """
 import argparse, csv, json, os, sys
@@ -46,6 +47,10 @@ def main():
     ap.add_argument("--min-s", type=float, default=2.0, help="Mindestlaenge eines Stuecks ueber der Grenze")
     ap.add_argument("--csv")
     ap.add_argument("--limit", type=int)
+    # Waehrend eines Events (Jan, 10.11.2026: „schon waehrend des events … ueberwachen die daten"): nur Sessions, die im
+    # Zeitfenster beginnen, z. B. --seit "2026-11-14 05:00+01" --bis "2026-11-15 16:00+01" (Flying Sprint Weekend, Event 11).
+    ap.add_argument("--seit", help="Startzeit ab (ISO, mit Zone)")
+    ap.add_argument("--bis", help="Startzeit bis (ISO, mit Zone)")
     a = ap.parse_args()
 
     db = SessionLocal()
@@ -54,10 +59,14 @@ def main():
            "where s.sport_class = any(:sp) and not coalesce(s.deleted, false)")
     if a.detection != "alle":
         sql += " and a.detection = :det"
+    if a.seit:
+        sql += " and s.started_at >= cast(:seit as timestamptz)"
+    if a.bis:
+        sql += " and s.started_at <= cast(:bis as timestamptz)"
     sql += " order by s.id"
     if a.limit:
         sql += f" limit {int(a.limit)}"
-    rows = db.execute(text(sql), {"sp": a.sport.split(","), "det": a.detection}).fetchall()
+    rows = db.execute(text(sql), {"sp": a.sport.split(","), "det": a.detection, "seit": a.seit, "bis": a.bis}).fetchall()
     band = a.band / 3.6
 
     treffer, verworfen, n_sess, n_mit = [], [], 0, set()

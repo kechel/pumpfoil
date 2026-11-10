@@ -505,6 +505,24 @@ Team-Event (`team_events.global_event`, `team_wertung_n`), Rechnung in `app/team
   „Global"; auf der Profilseite steht bei Abzeichen aus globalen Events „Global" statt des Teams.
 - **Apps:** noch nicht portiert (docs/TODO.md Port-Liste).
 
+### Waehrend eines Events ueberwachen (Jan, 10.11.2026)
+
+Jan: „schon waehrend des events, wir bleiben dabei, schauen auch auf meldungen im feedback & chat und ueberwachen die
+daten". Erster Einsatz: Flying Sprint Weekend (Event 11, Sa 14.11. 05:00 bis So 15.11. 16:00). Mehrmals am Tag:
+
+1. **Posteingang** (Skill `posteingang`): Chats an das Assistenten-Konto, oeffentlicher Chat, Feedback, GitHub — Meldungen
+   wie „mein Sprint fehlt", „Lauf abgeschnitten", „falsche Zeit".
+2. **Tempogrenzen** (Pumpfoil/Foil Scoot: 25 km/h Band, 32 km/h Lauf-Spitze, gps.py): rein lesend
+   `cd server && OMP_NUM_THREADS=1 .venv/bin/python ../scripts/bandgrenze-messen.py --detection alle --seit "2026-11-14 05:00+01" --bis "2026-11-15 16:00+01"`
+   — zeigt Stuecke ueber der Bandgrenze direkt an einem Lauf und wegen der Spitze verworfene Laeufe. Echte Sprints
+   (Doppler und Position stimmen ueberein, kein Auto/Boot) Jan vorlegen; er holt sie in der Session zurueck. Probe auf
+   das Wochenende 08./09.11.: 156 Sessions, 5 Stuecke, 6 verworfene Laeufe.
+3. **Bestenlisten** auf der Eventseite gegen die Daten: Spitzenwerte unplausibel (100 m unter ~11,5 s = ueber 32 km/h)?
+   Haengende Uploads (`status` recording/complete ohne Analyse) der Teilnehmer?
+
+Nach dem Event mit diesen Zahlen entscheiden, ob die Grenzen fuer Sprint-Events hochgehen (Nachrechnung 30/40 km/h:
+`scripts/bandgrenze-regression.py`, kein Bestwert betroffen; Recherche 10.11.: Weltspitze vermutlich 11-13 s auf 100 m).
+
 ## Offene Punkte
 
 - Push bei Beitrittsanfrage / Event-Start — spaeter, optional.
