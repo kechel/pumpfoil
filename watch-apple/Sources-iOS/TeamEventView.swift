@@ -338,7 +338,7 @@ struct TeamEventView: View {
             let logos: [String: UIImage] = await TeamBildLogos.laden(alleZeilen)
             let flaggen: [String: UIImage] = TeamEventView.flaggen(alleZeilen)
             let daten = TeamBildDaten(titel: titel, unterzeile: unter, zeilen: fertig, eigene: ende, logos: logos, flaggen: flaggen,
-                                      abzeichen: abz, eigenesTeam: true)
+                                      eigenesTeam: true, abzeichen: abz)
             TeamBildDialog.zeigen(daten, lang: sprache)
         }
     }
