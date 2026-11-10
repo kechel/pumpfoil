@@ -930,6 +930,22 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # 15.10.2026 (Jan: „alle immer moeglichst auf dem gleichen stand"): Garmin-1.0.93-Uhrseite
+    # nach Zepp portiert. Nicht gebumpt (1.0.13 ist live). Dazu wartet seit fc953a91 „Speicher voll
+    # an den Server melden" (ohne eigenen Punkt, reine Diagnose).
+    # 19.10.2026: Sportart-Wahl auf der Uhr (Jan: „bitte umsetzen auf alle uhren und in coming next").
+    # Version wird erst beim Einreichen gebumpt (1.0.14 liegt im Review).
+    # EINGEREICHT 10.11.2026 (Jans Meldung, Zepp-Konsole appId 1118995 „Under Review (Can be Withdrawn)“, Paket mit
+    # node zepp.mjs build + pruefe gebaut und nachgeprueft).
+    {"name": "Amazfit", "version": "1.0.15",
+     "eingereicht": "2026-11-10",
+     "items": [
+         "You can pick the sport before you start, on the Foil & Alarm page, and a sport other than your default shows under the title on the start screen.",
+         # 22.10.2026: Pause-Erinnerung (cdbe2cfc)
+         "While a recording is paused, the watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
+         # 10.11.2026: V-max wie der Server (dcd42773)
+         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
+     ]},
     # 06.11.2026 (Jan: „fortsetzen vorauswaehlen ist gut"): Pausen-Menue mit Vorauswahl.
     # EINGEREICHT 10.11.2026 (Jans Meldung), .iq aus 7b71999b, 222 Geraete, release-staging/garmin-1.0.102/.
     {"name": "Garmin", "version": "1.0.102",
@@ -1236,19 +1252,7 @@ NAECHSTES: list[dict] = [
          "The watch tells the phone which Suunto sport mode you started; under Linked accounts you set which sport each mode counts as.",
          "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
      ]},
-    # 15.10.2026 (Jan: „alle immer moeglichst auf dem gleichen stand"): Garmin-1.0.93-Uhrseite
-    # nach Zepp portiert. Nicht gebumpt (1.0.13 ist live). Dazu wartet seit fc953a91 „Speicher voll
-    # an den Server melden" (ohne eigenen Punkt, reine Diagnose).
-    # 19.10.2026: Sportart-Wahl auf der Uhr (Jan: „bitte umsetzen auf alle uhren und in coming next").
-    # Version wird erst beim Einreichen gebumpt (1.0.14 liegt im Review).
-    {"name": "Amazfit", "version": "1.0.15",
-     "items": [
-         "You can pick the sport before you start, on the Foil & Alarm page, and a sport other than your default shows under the title on the start screen.",
-         # 22.10.2026: Pause-Erinnerung (cdbe2cfc)
-         "While a recording is paused, the watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
-         # 10.11.2026: V-max wie der Server (dcd42773)
-         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
-     ]},
+    # Amazfit 1.0.15 am 10.11. eingereicht -> IN_REVIEW.
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 

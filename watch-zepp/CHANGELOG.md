@@ -10,7 +10,7 @@ This changelog covers the Zepp OS watch app only.
 > and possibly after the upload — it is listed under 1.0.7. **Keep this file current with every
 > bump**, then nobody has to dig through commits again.
 
-## Unreleased (naechste Version nach 1.0.14)
+## 1.0.15 — eingereicht am 10.11.2026 (code 18)
 
 - **Sportart vor dem Start waehlen** (19.10.2026): Knopf „Sportart: …" auf der Seite „Foil & Alarm"
   (nur wenn der Server mehr als eine Sportart liefert, `/config?sp=1` -> `sports`), Tippen schaltet
