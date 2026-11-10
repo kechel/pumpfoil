@@ -978,12 +978,12 @@ IN_REVIEW: list[dict] = [
     # iPhone + Apple Watch 1.1.61 am 06.11. eingereicht, am 07.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 945-951 im Changelog.
     # Garmin 1.0.101 am 06.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt 940 im Changelog mit garmin 1.0.101.
     # iPhone + Apple Watch 1.1.60 am 05.11. eingereicht, am 06.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 930-939 im Changelog.
-    # EINGEREICHT 05.11.2026 (Jans Meldung, Play Console „Schnelle Vorabpruefungen … noch maximal 14 Minuten",
-    # Produktion 62 (1.1.47), Produktion (Wear OS) 1058 (1.2.47), verwaltete Veroeffentlichung). Inhalt: alles seit 1.1.46
-    # (Teams/Events, Reiter wie die PWA, Kommentare, Nationalitaet, Rangliste nach Oleks Entwurf mit Region, Profil mit
-    # Flagge + Teams, Handy-Recorder-Schalter in der Uebersicht, GPS-/Energiespar-Warnung). Emulator-Laeufe am 05.11.
-    {"name": "Android phone + Wear OS", "version": "1.1.47 / 1.2.47",
-     "eingereicht": "2026-11-05",
+    # Android 1.1.47 / Wear 1.2.47 (eingereicht 05.11.) am 10.11. vor der Freigabe durch 1.1.48 ERSETZT.
+    # EINGEREICHT 10.11.2026 (Jans Meldung): interner Test 63 (1.1.48) / 1059 (1.2.48) in die Produktion hochgestuft, ersetzt
+    # das seit 05.11. in Pruefung liegende 1.1.47 (das die Sprint-Bestenlisten nicht kennt — Flying Sprint Weekend 14./15.11.).
+    # Play: „Schnelle Vorabpruefungen … noch maximal 14 Minuten". Inhalt: alles aus 1.1.47 plus 1.1.48.
+    {"name": "Android phone + Wear OS", "version": "1.1.48 / 1.2.48",
+     "eingereicht": "2026-11-10",
      "items": [
          "Teams come to the app: team pages with their picture, crest, leaderboards, team totals and logbook, and your teams in your profile.",
          "Event pages with countdown, live leaderboards and totals for all participants, the current events on the Community tab, and lists of all teams and all events.",
@@ -1030,6 +1030,27 @@ IN_REVIEW: list[dict] = [
          "Profile pages show the rider's flag next to the name and the teams they belong to at the top.",
          "Watch stats has two tabs, foiling per watch and how well the watches record, and the text size can be set under Display.",
          "The switch for the phone recorder is now on the settings overview right under the language, where new users look for it first.",
+         "Link your Garmin Connect account in the app under Watches, Garmin Connect, and the sessions you record on your Garmin arrive automatically.",
+         "Garmin users see two short steps: pair the watch with a code for settings, foils and layouts, and link Garmin Connect for additional data.",
+         "Records and leaderboards say which watches and accounts the numbers come from, and so does the share image.",
+         "A session that was merged with its Garmin recording opens as the merged session, even from an old link.",
+         "Sports is its own tab in the settings, between Team and Equipment.",
+         "The foil calculator asks for the mast immersion depth, up to 100 cm, not the mast length.",
+         "Session lists load 20 at a time and fetch more as you scroll, so they open faster, and older community and spot sessions can now be reached.",
+         "Recording on the phone: if battery optimisation is on for Pumpfoil, the start screen asks you to set it to Unrestricted, because some phones otherwise turn GPS off while the screen is dark.",
+         "Global events: everyone takes part automatically, with a calendar card, a team ranking (sum of the best riders), the top 10 plus your own row, a refresh button and a share image; you can opt out under Settings, Privacy.",
+         "Events of your own teams appear on Home under Team and in the community, and the Teams & Events tab shows LIVE or the number of upcoming events.",
+         "Asking for a missing foil or stabilizer opens the feedback form with a template to fill in.",
+         "Leaderboards show three-digit places in full, and team rankings say \"from 1 rider\" instead of \"from 1 riders\".",
+         # 10.11.2026: Event-Port (e790d550, ff801ed5, 3ac7795a), Kachel (bd8c20dc), V-max (98050cbb)
+         "Events can rank flying sprints (fastest 100 m, 200 m, 300 m or minute), and the team ranking of a sprint uses the average of the best riders.",
+         "Mixed leaderboards such as Pumpfoil + Foil Scoot show the sport of each row, and disputed sessions are marked.",
+         "If you are in several teams, mark one as your primary team; in global events you count for one team only and can switch for each event until 6 hours before it ends.",
+         "Finished events show a podium for riders and teams, with a winner sound you can mute.",
+         "An event overview can be shared as an image with the totals and the top 3 of each ranking.",
+         "Event cards look the same everywhere, show the event or team banner, and you can subscribe to all global events in your calendar.",
+         "Your profile shows a badge for each event placing.",
+         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
      ]},
     # iPhone + Apple Watch 1.1.59 am 05.11. FREIGEGEBEN -> raus (s. _APP_META); 39 Punkte tragen ios 1.1.59, Ereignis 05.11.
     # Huawei Watch 5 1.0.4 am 09.11. FREIGEGEBEN (s. _APP_META["huawei-watch5"]); Punkt im Changelog mit huawei-watch5 1.0.4.
@@ -1202,34 +1223,7 @@ NAECHSTES: list[dict] = [
     # Garmin 1.0.100 am 05.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkte im Changelog mit garmin 1.0.100.
     # Garmin 1.0.101 am 06.11. eingereicht -> IN_REVIEW.
     # Garmin 1.0.102 am 10.11. eingereicht -> IN_REVIEW.
-    # 06.11.2026 (Jan: „bitte version bumpen, dann teste ich das und release", vorher „den rest portieren"): Garmin Connect in
-    # beiden Apps (Karte/Reiter, Quellenzeile — kam erst nach den Einreichungen von 1.1.47 und 1.1.60), Garmin-Hinweise mit zwei
-    # Schritten, Weiterleitung zusammengefuehrter Sessions, Sportarten als eigener Reiter, Foil-Rechner-Eintauchtiefe.
-    # Android 1.1.48 ersetzt das noch in Pruefung liegende 1.1.47.
-    {"name": "Android phone + Wear OS", "version": "1.1.48 / 1.2.48",
-     "items": [
-         "Link your Garmin Connect account in the app under Watches, Garmin Connect, and the sessions you record on your Garmin arrive automatically.",
-         "Garmin users see two short steps: pair the watch with a code for settings, foils and layouts, and link Garmin Connect for additional data.",
-         "Records and leaderboards say which watches and accounts the numbers come from, and so does the share image.",
-         "A session that was merged with its Garmin recording opens as the merged session, even from an old link.",
-         "Sports is its own tab in the settings, between Team and Equipment.",
-         "The foil calculator asks for the mast immersion depth, up to 100 cm, not the mast length.",
-         "Session lists load 20 at a time and fetch more as you scroll, so they open faster, and older community and spot sessions can now be reached.",
-         "Recording on the phone: if battery optimisation is on for Pumpfoil, the start screen asks you to set it to Unrestricted, because some phones otherwise turn GPS off while the screen is dark.",
-         "Global events: everyone takes part automatically, with a calendar card, a team ranking (sum of the best riders), the top 10 plus your own row, a refresh button and a share image; you can opt out under Settings, Privacy.",
-         "Events of your own teams appear on Home under Team and in the community, and the Teams & Events tab shows LIVE or the number of upcoming events.",
-         "Asking for a missing foil or stabilizer opens the feedback form with a template to fill in.",
-         "Leaderboards show three-digit places in full, and team rankings say \"from 1 rider\" instead of \"from 1 riders\".",
-         # 10.11.2026: Event-Port (e790d550, ff801ed5, 3ac7795a), Kachel (bd8c20dc), V-max (98050cbb)
-         "Events can rank flying sprints (fastest 100 m, 200 m, 300 m or minute), and the team ranking of a sprint uses the average of the best riders.",
-         "Mixed leaderboards such as Pumpfoil + Foil Scoot show the sport of each row, and disputed sessions are marked.",
-         "If you are in several teams, mark one as your primary team; in global events you count for one team only and can switch for each event until 6 hours before it ends.",
-         "Finished events show a podium for riders and teams, with a winner sound you can mute.",
-         "An event overview can be shared as an image with the totals and the top 3 of each ranking.",
-         "Event cards look the same everywhere, show the event or team banner, and you can subscribe to all global events in your calendar.",
-         "Your profile shows a badge for each event placing.",
-         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
-     ]},
+    # Android 1.1.48 / Wear 1.2.48 am 10.11. eingereicht (ersetzt 1.1.47) -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.62 am 07.11. 01:26 eingereicht -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.64 am 10.11. 11:47 eingereicht -> IN_REVIEW.
     # Huawei Watch 5 1.0.5 am 10.11. eingereicht -> IN_REVIEW.
