@@ -250,7 +250,8 @@ struct FoilerView: View {
         let uhr: Bool = !(d.uhren ?? []).isEmpty
         let foil: Bool = !(d.foils ?? []).isEmpty
         let teams: Bool = !(d.teams ?? []).isEmpty
-        return hs || uhr || foil || teams || d.kanal != nil || d.gewicht_kg != nil || d.supporter != nil
+        let abz: Bool = !(d.team_abzeichen ?? []).isEmpty
+        return hs || uhr || foil || teams || abz || d.kanal != nil || d.gewicht_kg != nil || d.supporter != nil
     }
 
     @ViewBuilder private func angaben(_ d: FoilerProfil) -> some View {
@@ -262,6 +263,7 @@ struct FoilerView: View {
                 uhrZeile(d)
                 foilZeile(d)
                 supporterZeile(d)
+                abzeichenZeilen(d)
                 kanalZeile(d)
             }
         }
@@ -280,6 +282,88 @@ struct FoilerView: View {
                     Text(tm.name).fontWeight(.semibold).foregroundStyle(TeamFarbe(tm.farbe).akzent).lineLimit(1)
                 }
             }
+        }
+    }
+
+    // Event-Abzeichen (web Foiler.tsx, 09.11.2026): je Event EINE Zeile — Event, Datum · Team/Global, dahinter die Plaetze
+    // als kleine Medaillen mit der Kategorie. Globale Events fuehren aufs Event, sonst aufs Team.
+    @ViewBuilder private func abzeichenZeilen(_ d: FoilerProfil) -> some View {
+        let gruppen: [AbzeichenGruppe] = abzeichenJeEvent(d.team_abzeichen ?? [])
+        if !gruppen.isEmpty {
+            HStack(spacing: 8) {
+                Image(systemName: "star").foregroundStyle(.secondary).frame(width: 22)
+                Text(Loc.t("team.abzeichen", lang)).foregroundStyle(.secondary)
+            }
+            ForEach(gruppen) { g in
+                NavigationLink(destination: TeamsZielView(ziel: abzeichenZiel(g.kopf))) { abzeichenZeile(g) }
+            }
+        }
+    }
+
+    private func abzeichenZiel(_ a: TeamAbzeichen) -> TeamsZiel {
+        if a.global == true, let id = a.event_id { return .event(a.team_slug, id) }
+        return .team(a.team_slug)
+    }
+
+    private func abzeichenUnterzeile(_ a: TeamAbzeichen) -> String {
+        var datum: String = a.datum
+        if let tag = Self.isoTag.date(from: a.datum) {
+            let f = DateFormatter()
+            f.locale = teamLocale(lang)
+            f.dateStyle = .medium
+            datum = f.string(from: tag)
+        }
+        return datum + " · " + (a.global == true ? Loc.t("team.event.global", lang) : a.team)
+    }
+
+    private static let isoTag: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
+
+    private func abzeichenZeile(_ g: AbzeichenGruppe) -> some View {
+        let mehrereSportarten: Bool = Set(g.plaetze.map { $0.sportart ?? "" }).count > 1
+        return VStack(alignment: .leading, spacing: 3) {
+            Text(g.kopf.event).fontWeight(.semibold).lineLimit(2)
+            Text(abzeichenUnterzeile(g.kopf)).font(.caption).foregroundStyle(.secondary)
+            ForEach(Array(g.plaetze.enumerated()), id: \.offset) { _, a in
+                medaillenZeile(a, mehrereSportarten)
+            }
+        }
+        .padding(.leading, 30)
+    }
+
+    private func medaillenZeile(_ a: TeamAbzeichen, _ mitSportart: Bool) -> some View {
+        var text: String = Loc.t(teamKennzahl(a.kennzahl).labelKey, lang)
+        if mitSportart, let sp = a.sportart {
+            text += " · " + sp.split(separator: "+").map { Loc.t("cls.sport." + String($0), lang) }.joined(separator: " + ")
+        }
+        return HStack(spacing: 5) {
+            Text(String(a.rang)).font(.system(size: 10, weight: .bold))
+                .foregroundStyle(Color(red: 0x02 / 255, green: 0x06 / 255, blue: 0x17 / 255))
+                .frame(width: 16, height: 16)
+                .background(Circle().fill(Self.medaille(a.rang)))
+            Text(text).font(.caption)
+        }
+        .accessibilityLabel(Loc.t(Self.platzKey(a.rang), lang) + " · " + text)
+    }
+
+    private static func platzKey(_ rang: Int) -> String {
+        switch rang {
+        case 1: return "team.platz1"
+        case 2: return "team.platz2"
+        default: return "team.platz3"
+        }
+    }
+
+    /// Gold, Silber, Bronze wie web MEDAILLE (#facc15, #cbd5e1, #ea8a4a).
+    private static func medaille(_ rang: Int) -> Color {
+        switch rang {
+        case 1: return Color(red: 0xfa / 255, green: 0xcc / 255, blue: 0x15 / 255)
+        case 2: return Color(red: 0xcb / 255, green: 0xd5 / 255, blue: 0xe1 / 255)
+        default: return Color(red: 0xea / 255, green: 0x8a / 255, blue: 0x4a / 255)
         }
     }
 
@@ -823,5 +907,31 @@ struct FoilerFliessReihe: Layout {
         let frei: CGSize = v.sizeThatFits(.unspecified)
         if frei.width <= breite { return frei }
         return v.sizeThatFits(ProposedViewSize(width: breite, height: nil))
+    }
+}
+
+/// Event-Abzeichen eines Events (web Foiler.tsx `abzeichenJeEvent`): Reihenfolge des Servers, Plaetze aufsteigend.
+struct AbzeichenGruppe: Identifiable {
+    let id: String
+    let kopf: TeamAbzeichen
+    var plaetze: [TeamAbzeichen]
+}
+
+func abzeichenJeEvent(_ l: [TeamAbzeichen]) -> [AbzeichenGruppe] {
+    var gruppen: [AbzeichenGruppe] = []
+    var index: [String: Int] = [:]
+    for a in l {
+        let key: String = a.event_id.map { "e" + String($0) } ?? (a.event + "|" + a.datum + "|" + a.team_slug)
+        if let i = index[key] {
+            gruppen[i].plaetze.append(a)
+        } else {
+            index[key] = gruppen.count
+            gruppen.append(AbzeichenGruppe(id: key, kopf: a, plaetze: [a]))
+        }
+    }
+    return gruppen.map { g in
+        var x = g
+        x.plaetze.sort { $0.rang < $1.rang }
+        return x
     }
 }

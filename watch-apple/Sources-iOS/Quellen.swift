@@ -19,6 +19,15 @@ func quellenText(_ quellen: [String]?, lang: String) -> String? {
     return Loc.t("quellen.titel", lang) + ": " + namen.joined(separator: " · ")
 }
 
+/// Alle Uhren, Konten und Wege, mit denen man aufnehmen kann — in JEDEM Teilen-Bild statt der Quellen der einzelnen
+/// Liste (web bestenlisteBild.ts plattformZeile, Jan 07.11.2026: „das ist ja werbung fuer uns"). Herstellernamen
+/// unuebersetzt, nur Handy und Datei-Upload. Neue Plattform -> hier und im Web ergaenzen.
+func plattformZeile(_ lang: String) -> String {
+    let namen: [String] = ["Garmin", "Apple Watch", "Wear OS", "Huawei", "Amazfit", "Suunto", "Polar", "COROS", "Xiaomi",
+                           Loc.t("quellen.phone", lang), Loc.t("quellen.file", lang)]
+    return namen.joined(separator: " · ")
+}
+
 struct QuellenZeile: View {
     let quellen: [String]?
     let lang: String

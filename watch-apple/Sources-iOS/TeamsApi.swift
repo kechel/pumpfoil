@@ -71,6 +71,20 @@ extension Api {
         try await request(teamPfad(slug) + "/events/\(id)?mix=1&sprint=1", method: "GET", body: nil, auth: true)
     }
 
+    /// Primaeres Team setzen (10.11.2026): dafuer tritt man in globalen Events an. 409 `team_nicht_wertbar`.
+    static func teamPrimaer(_ slug: String) async throws {
+        struct A: Decodable { let primaer: String }
+        let _: A = try await request(teamPfad(slug) + "/primaer", method: "PUT", body: nil, auth: true)
+    }
+
+    /// Teamwahl fuer EIN globales Event (10.11.2026); `teamId` nil = wieder das primaere. 409 `teamwahl_geschlossen`.
+    static func teamEventMeinTeam(_ slug: String, id: Int, teamId: Int?) async throws {
+        // null ausdruecklich senden (NSNull), nicht weglassen
+        let wert: Any = teamId.map { $0 as Any } ?? NSNull()
+        let _: EventMeinTeam? = try await request(teamPfad(slug) + "/events/\(id)/mein-team", method: "PUT",
+                                                  body: ["team_id": wert], auth: true)
+    }
+
     /// Beitreten: `status` aktiv (automatisch akzeptiert) oder angefragt.
     static func teamBeitreten(_ slug: String) async throws -> TeamBeitrittAntwort {
         try await request(teamPfad(slug) + "/beitreten", method: "POST", body: nil, auth: true)

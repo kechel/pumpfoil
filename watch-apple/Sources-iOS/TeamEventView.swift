@@ -80,6 +80,7 @@ struct TeamEventView: View {
             EventKopf(e: e, farbe: t.farbe, lang: lang)
             if !e.istGlobal { beitrittBereich(t) }
             Text(Loc.t(eventStandKey(e.status), lang)).font(.title3.weight(.bold))
+            meinTeamBereich(t, e)
             standBereich(t, e)
             teilenBereich(t, e)
             EventRegelnBox(e: e, lang: lang)
@@ -148,6 +149,15 @@ struct TeamEventView: View {
             TeamBeitrittSheet(name: t.name, oeffentlich: t.oeffentlich == true,
                               freigabeNoetig: t.automatisch_akzeptieren != true, farbe: t.farbe, busy: busy,
                               lang: lang, onJa: { Task { await beitreten() } }, onNein: { dialog = false })
+        }
+    }
+
+    // MARK: Teamwahl globaler Events (10.11.2026)
+
+    /// Wie web TeamEventSeite: schon vor dem Start, bis 6 h vor dem Ende; nur wer in mehr als einem wertbaren Team ist.
+    @ViewBuilder private func meinTeamBereich(_ t: TeamInfo, _ e: TeamEvent) -> some View {
+        if e.istGlobal, let mt = e.mein_team, mt.auswahl.count >= 2, e.status == "kommend" || e.status == "laeuft" {
+            EventMeinTeamKarte(slug: t.slug, evId: e.id, mt: mt, lang: lang) { Task { await neuLaden() } }
         }
     }
 
@@ -271,10 +281,17 @@ struct TeamEventView: View {
             zeilen.append(TeamBildZeile(rang: z.rang, name: z.name ?? z.initialen ?? "—", wert: k.fmt(z.value, sprache), ich: false,
                                         logo: nil, farbe: nil, land: z.land))
         }
+        // Eigene Zeile hinter Platz 10 (globale Events), im Dialog abwaehlbar (web 56960f2a, 07.11.2026).
+        var eigen: TeamBildZeile? = nil
+        if let z = tf.eigene, z.rang > 10 {
+            eigen = TeamBildZeile(rang: z.rang, name: z.name ?? z.initialen ?? "—", wert: k.fmt(z.value, sprache), ich: true,
+                                  logo: nil, farbe: nil, land: z.land)
+        }
         let fertig: [TeamBildZeile] = zeilen
+        let ende: TeamBildZeile? = eigen
         Task { @MainActor in
-            let flaggen: [String: UIImage] = TeamEventView.flaggen(fertig)
-            let daten = TeamBildDaten(titel: titel, unterzeile: unter, zeilen: fertig, eigene: nil, logos: [:], flaggen: flaggen,
+            let flaggen: [String: UIImage] = TeamEventView.flaggen(fertig + (ende.map { [$0] } ?? []))
+            let daten = TeamBildDaten(titel: titel, unterzeile: unter, zeilen: fertig, eigene: ende, logos: [:], flaggen: flaggen,
                                       abzeichen: abz)
             TeamBildDialog.zeigen(daten, lang: sprache)
         }
@@ -306,7 +323,7 @@ struct TeamEventView: View {
             let logos: [String: UIImage] = await TeamBildLogos.laden(alleZeilen)
             let flaggen: [String: UIImage] = TeamEventView.flaggen(alleZeilen)
             let daten = TeamBildDaten(titel: titel, unterzeile: unter, zeilen: fertig, eigene: ende, logos: logos, flaggen: flaggen,
-                                      abzeichen: abz)
+                                      abzeichen: abz, eigenesTeam: true)
             TeamBildDialog.zeigen(daten, lang: sprache)
         }
     }
@@ -377,6 +394,61 @@ struct TeamEventView: View {
 }
 
 // MARK: - Bausteine der Event-Seite
+
+/// Globale Events (web EventMeinTeam.tsx, 10.11.2026): wer in mehreren Teams ist, zaehlt nur fuer eines — vorgewaehlt das
+/// primaere, hier fuer dieses Event umstellbar bis 6 h vor dem Ende.
+struct EventMeinTeamKarte: View {
+    let slug: String
+    let evId: Int
+    let mt: EventMeinTeam
+    let lang: String
+    let geaendert: () -> Void
+    @State private var busy = false
+
+    private func waehle(_ id: Int) {
+        guard !busy, mt.aenderbar, id != mt.effektiv else { return }
+        busy = true
+        // Das primaere Team waehlen heisst: keine Sonderwahl fuer dieses Event (folgt spaeteren Aenderungen des primaeren).
+        let wert: Int? = id == mt.primaer ? nil : id
+        Task {
+            let ok: Bool = (try? await Api.teamEventMeinTeam(slug, id: evId, teamId: wert)) != nil
+            busy = false
+            if ok { geaendert() }
+        }
+    }
+
+    private func chip(_ x: EventMeinTeam.Wahl) -> some View {
+        let an: Bool = x.id == mt.effektiv
+        let tf = TeamFarbe(x.farbe)
+        return Button { waehle(x.id) } label: {
+            HStack(spacing: 6) {
+                TeamWappen(name: x.name, logo: x.logo_url, farbe: x.farbe, size: 16)
+                Text(x.name).font(.subheadline.weight(an ? .semibold : .regular)).lineLimit(1)
+                if x.id == mt.primaer { Text("★").font(.caption).opacity(0.8) }
+            }
+            .foregroundStyle(an ? tf.aufFlaeche : Color.primary)
+            .padding(.horizontal, 12).padding(.vertical, 5)
+            .background(Capsule().fill(an ? tf.flaeche : Color.clear))
+            .overlay(Capsule().stroke(an ? Color.clear : Color.secondary.opacity(0.5), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .disabled(busy || (!mt.aenderbar && !an))
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(Loc.t("team.event.meinTeam", lang)).font(.subheadline.weight(.semibold))
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) { ForEach(mt.auswahl) { x in chip(x) } }
+            }
+            Text(Loc.t(mt.aenderbar ? "team.event.meinTeamHinweis" : "team.event.meinTeamFest", lang))
+                .font(.footnote).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
+    }
+}
 
 /// Name einer Event-Bestenliste; hat das Event Bestenlisten verschiedener Sportarten, steht die Sportart dabei (web tafelTitel).
 func eventTafelTitel(_ tf: TeamTafel, _ e: TeamEvent, _ lang: String) -> String {

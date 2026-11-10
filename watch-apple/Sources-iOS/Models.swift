@@ -1014,6 +1014,22 @@ struct FoilerTeam: Decodable {
     let land: String?
 }
 
+/// Event-Abzeichen (Server teams.abzeichen): ein Platz 1–3 in einer Event-Bestenliste. `sportart` seit 09.11.2026,
+/// gemischte Listen als "pumpfoil+foilscoot".
+struct TeamAbzeichen: Decodable {
+    let rang: Int
+    let event: String
+    let team: String
+    let team_slug: String
+    let farbe: String?
+    let kennzahl: String
+    let wert: Double?
+    let datum: String
+    var global: Bool? = nil
+    var event_id: Int? = nil
+    var sportart: String? = nil
+}
+
 struct FoilerSupporter: Decodable {
     let stufe: Int
     let tage_jahr: Int?
@@ -1032,6 +1048,7 @@ struct FoilerProfil: Decodable {
     let uhren: [String]?
     let land: String?             // Nationalitaet (ISO-Code), 05.11.2026
     let teams: [FoilerTeam]?      // Teams mit freigegebenem Auftritt, 05.11.2026
+    var team_abzeichen: [TeamAbzeichen]? = nil   // Event-Abzeichen, Plaetze 1–3 (web Foiler.tsx, 09.11.2026)
     let supporter: FoilerSupporter?   // Supporter-Badge (23.10.2026), nur wenn gerade sichtbar
     let kanal: String?            // freigegebener YouTube-Kanal
     let foils: [FoilerFoil]?

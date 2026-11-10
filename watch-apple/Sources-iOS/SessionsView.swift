@@ -56,7 +56,7 @@ struct SessionsView: View {
     @State private var sport = "all"
     @State private var sports: [CommunitySport] = []
     // Sportarten des gewaehlten Spots fuer die Filter-Knoepfe (28.10.2026) und daraus die Sportart von
-    // Rekorden und Heatmap (Filter, bei „Alle" Pumpfoil bzw. die erste des Spots).
+    // Rekorden und Heatmap (= der Filter, „Alle" zaehlt seit web 1eec9e07 alle Sportarten zusammen).
     @State private var spotSports: [String] = []
     private var rekordSport: String? { rekordSportFuer(sport, spotSports) }
     @State private var weather: SpotWeather?

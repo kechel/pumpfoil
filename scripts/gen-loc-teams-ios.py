@@ -9,7 +9,9 @@ DATEIEN = ["TeamModels.swift", "TeamsApi.swift", "TeamFarben.swift", "TeamEventK
            "TeamView.swift", "TeamEventView.swift", "TeamsListen.swift",
            # Team-Verwaltung nativ, Teilen-Bild, Teams in den Einstellungen (App-Port, 04.11.2026)
            "TeamVerwaltung.swift", "TeamGrunddaten.swift", "TeamEventsVerwalten.swift", "TeamGruenden.swift",
-           "TeamBestenlisten.swift", "EinstellungenView.swift"]
+           "TeamBestenlisten.swift", "EinstellungenView.swift",
+           # Event-Abzeichen auf der Profilseite (10.11.2026)
+           "FoilerView.swift"]
 # fw.* = die kurzen Uhr-Texte unter den Werten (Layout-Vorschau, 01.11.2026) — vorher zeigte iOS dort die langen
 # Feldnamen, die ueberlappten und vom Web abwichen.
 # team.regeln.* (10.11.2026): die Team-Regeln werden aus zusammengesetzten Schluesseln gelesen (TeamRegelnInhalt) und

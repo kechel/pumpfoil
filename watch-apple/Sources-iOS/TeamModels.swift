@@ -26,6 +26,10 @@ struct TeamKurz: Codable, Identifiable {
     let anfragen: Int
     var freigabe: String? = nil
     var land: String? = nil
+    /// Primaeres Team (10.11.2026): zaehlt in globalen Events / ist das Team, fuer das man dort antritt / selbst gewaehlt.
+    var wertbar: Bool? = nil
+    var primaer: Bool? = nil
+    var primaer_gewaehlt: Bool? = nil
 }
 
 /// Eintrag der Seite „Alle Teams" (`GET /api/teams/liste`).
@@ -227,6 +231,8 @@ struct TeamEvent: Codable, Identifiable {
     /// Globales Event (06.11.2026): jeder nimmt automatisch teil; Team-Rangliste aus den besten N (0 = alle).
     var global: Bool? = nil
     var team_wertung_n: Int? = nil
+    /// Globale Events (10.11.2026): fuer welches seiner Teams der Betrachter antritt — nur, wenn er in einem zaehlt.
+    var mein_team: EventMeinTeam? = nil
 
     var istGlobal: Bool { global == true }
 
@@ -241,6 +247,23 @@ struct TeamEvent: Codable, Identifiable {
         var gesehen = Set<String>()
         return aus.filter { gesehen.insert($0).inserted }
     }
+}
+
+/// Teamwahl des Betrachters fuer ein globales Event (Server `_mein_team`, 10.11.2026): Auswahl = seine wertbaren Teams.
+struct EventMeinTeam: Codable {
+    struct Wahl: Codable, Identifiable {
+        let id: Int
+        let slug: String
+        let name: String
+        let logo_url: String?
+        let farbe: String?
+    }
+    let auswahl: [Wahl]
+    let gewaehlt: Int?
+    let primaer: Int?
+    let effektiv: Int?
+    let aenderbar: Bool
+    var schluss: String? = nil
 }
 
 /// Team-Kopf in der Kurzform eines Events.

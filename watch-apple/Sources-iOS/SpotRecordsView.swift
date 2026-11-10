@@ -353,7 +353,7 @@ struct SpotRecordsKasten: View {
 
     private var titel: String {
         let t: String = Loc.t("rec.spotTitle", lang)
-        return t + " · " + Loc.t("cls.sport.\(sport)", lang)
+        return t + " · " + (sport == "all" ? Loc.t("all.allSports", lang) : Loc.t("cls.sport.\(sport)", lang))
     }
 
     // Eigene Wahl merken — ueber das Binding statt `.onChange(of:)`, das auch beim automatischen
@@ -440,11 +440,11 @@ struct SpotRecordsKasten: View {
 }
 
 
-/// Sportart von Rekorden und Heatmap der Spot-Seite: der Filter, bei „Alle" Pumpfoil, sonst die erste des Spots.
+/// Sportart von Rekorden und Heatmap der Spot-Seite = der Filter. „Alle" zaehlt am Spot ALLES zusammen (web 1eec9e07,
+/// Jan 08.11.2026: „'all sports' sollte alles an dem spot zusammen zaehlen") — der Server nimmt sport=all fuer
+/// Rekorde und Bestenliste. Vorher stand dort still Pumpfoil bzw. die erste Sportart des Spots.
 func rekordSportFuer(_ sport: String, _ spotSports: [String]) -> String? {
-    if sport != "all" { return sport }
-    if spotSports.contains("pumpfoil") { return "pumpfoil" }
-    return spotSports.first
+    sport
 }
 
 /// Sportart-Knoepfe = Filter der ganzen Spot-Seite (Liste, Rekorde, Heatmap), UEBER der Rekord-Ueberschrift

@@ -385,9 +385,39 @@ struct EinstellungenTeamView: View {
                 }
                 .padding(6)
                 .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+                if mehrereWertbar {
+                    Text(Loc.t("team.primaerHinweis", lang)).font(.footnote).foregroundStyle(.secondary)
+                }
             }
         } else {
             ProgressView().frame(maxWidth: .infinity)
+        }
+    }
+
+    // Primaeres Team (web Teams.tsx, 10.11.2026): nur sinnvoll, wenn man in mehr als einem Team ist, das in globalen
+    // Events zaehlt.
+    private var mehrereWertbar: Bool { (teams ?? []).filter { $0.wertbar == true }.count > 1 }
+
+    private func primaerSetzen(_ slug: String) {
+        Task {
+            guard (try? await Api.teamPrimaer(slug)) != nil else { return }
+            teams = (try? await Api.teamsMine()) ?? teams
+        }
+    }
+
+    @ViewBuilder private func primaerMarke(_ tm: TeamKurz) -> some View {
+        if mehrereWertbar && tm.primaer == true {
+            Text("★ " + Loc.t("team.primaer", lang))
+                .font(.caption.weight(.semibold)).foregroundStyle(Color.accentColor)
+                .padding(.horizontal, 8).padding(.vertical, 2)
+                .background(Color.accentColor.opacity(0.15), in: Capsule())
+        } else if mehrereWertbar && tm.wertbar == true {
+            Button { primaerSetzen(tm.slug) } label: {
+                Text("☆ " + Loc.t("team.primaerSetzen", lang)).font(.caption).foregroundStyle(.secondary)
+                    .padding(.horizontal, 8).padding(.vertical, 2)
+                    .overlay(Capsule().stroke(Color.secondary.opacity(0.5), lineWidth: 1))
+            }
+            .buttonStyle(.borderless)
         }
     }
 
@@ -410,6 +440,7 @@ struct EinstellungenTeamView: View {
                     Text(rolleText(tm)).font(.caption).foregroundStyle(.secondary)
                     let sp: String = teamSportartenText(tm.sportarten, lang)
                     if !sp.isEmpty { Text(sp).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
+                    primaerMarke(tm)
                 }
                 Spacer(minLength: 4)
                 if tm.anfragen > 0 { TeamAnfragenZahl(n: tm.anfragen) }

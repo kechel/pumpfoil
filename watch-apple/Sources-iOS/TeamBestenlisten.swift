@@ -237,7 +237,7 @@ struct TeamBestenlistenSection: View {
                 if let l = z.land, flaggen[l] == nil, let b = TeamFlaggenBild.bild(l) { flaggen[l] = b }
             }
             let daten = TeamBildDaten(titel: titel, unterzeile: unter, zeilen: bz, eigene: ende, logos: logos, flaggen: flaggen,
-                                      quelle: quellenText(d?.quellen, lang: lang))
+                                      eigenesTeam: true)
             TeamBildDialog.zeigen(daten, lang: sprache)
             baut = false
         }
@@ -267,11 +267,14 @@ struct TeamBildDaten {
     let titel: String
     let unterzeile: String
     let zeilen: [TeamBildZeile]
-    let eigene: TeamBildZeile?
+    var eigene: TeamBildZeile?
     let logos: [String: UIImage]
     let flaggen: [String: UIImage]
-    /// „Daten von: Garmin · …" klein ueber dem Fuss (Garmins Vorgabe: in jedem Bild, 05.11.2026).
+    /// Klein ueber dem Fuss (Garmins Vorgabe: in jedem Bild, 05.11.2026). Seit 07.11.2026 setzt der Dialog hier IMMER die
+    /// volle Plattform-Liste ein (`plattformZeile`, web bestenlisteBild.ts) — was die Aufrufer uebergeben, zaehlt nicht mehr.
     var quelle: String? = nil
+    /// Die eigene Zeile ist ein Team (Team-Ranglisten): Schalter „Mein Team zeigen" statt „Mich zeigen" (web 56960f2a).
+    var eigenesTeam: Bool = false
     /// Pille oben rechts, z. B. „Live", solange ein Event nicht final ist (web 6f12c55f, 06.11.2026).
     var abzeichen: String? = nil
 }
@@ -312,6 +315,8 @@ struct TeamBildDialog: View {
     let schliessen: () -> Void
     let teilen: (UIImage) -> Void
     @AppStorage("foil_bild_hell") private var hell = false
+    // Eigene Zeile unter Platz 10 als Wahl (web 56960f2a, 07.11.2026), Standard an, gemerkt wie hell/dunkel.
+    @AppStorage("foil_bild_mit_mir") private var mitMir = true
     @State private var bild: UIImage?
 
     @MainActor static func zeigen(_ daten: TeamBildDaten, lang: String) {
@@ -341,6 +346,10 @@ struct TeamBildDialog: View {
                         Text(Loc.t("theme.light", lang)).tag(true)
                     }
                     .pickerStyle(.segmented)
+                    if daten.eigene != nil {
+                        Toggle(Loc.t(daten.eigenesTeam ? "team.bild.mitMeinemTeam" : "team.bild.mitMir", lang), isOn: $mitMir)
+                            .font(.subheadline)
+                    }
                     Button { if let b = bild { teilen(b) } } label: {
                         Label(Loc.t("team.teilen", lang), systemImage: "square.and.arrow.up").frame(maxWidth: .infinity)
                     }
@@ -355,7 +364,7 @@ struct TeamBildDialog: View {
                 ToolbarItem(placement: .cancellationAction) { Button(Loc.t("common.cancel", lang)) { schliessen() } }
             }
         }
-        .task(id: hell) { await zeichnen() }
+        .task(id: String(hell) + String(mitMir)) { await zeichnen() }
     }
 
     @ViewBuilder private var vorschau: some View {
@@ -369,7 +378,10 @@ struct TeamBildDialog: View {
     }
 
     @MainActor private func zeichnen() {
-        let inhalt = TeamBestenlisteBild(daten: daten, hell: hell)
+        var d: TeamBildDaten = daten
+        d.quelle = plattformZeile(lang)
+        if !mitMir { d.eigene = nil }
+        let inhalt = TeamBestenlisteBild(daten: d, hell: hell)
             .environment(\.colorScheme, hell ? .light : .dark)
         let r = ImageRenderer(content: inhalt)
         r.scale = 1
@@ -404,7 +416,8 @@ struct TeamBestenlisteBild: View {
             zeilenBlock.offset(x: rand, y: oben)
             fuss.offset(x: rand, y: 990)
             if let q = daten.quelle {
-                Text(q).font(.system(size: 20)).foregroundStyle(f.leise).lineLimit(1)
+                // Die volle Liste soll ganz drauf: notfalls bis 15 px kleiner (wie im Web).
+                Text(q).font(.system(size: 20)).foregroundStyle(f.leise).lineLimit(1).minimumScaleFactor(0.75)
                     .frame(width: 900, alignment: .leading).offset(x: rand, y: 945)
             }
         }
@@ -506,7 +519,8 @@ struct TeamBestenlisteBild: View {
 
     private var fuss: some View {
         HStack(alignment: .bottom) {
-            Text("Have fun, keep pumping!").font(.system(size: 26)).foregroundStyle(f.leise)
+            // Motto in unserem Cyan (web 272ade79, Jan 07.11.2026), nicht in der Teamfarbe; hell die dunklere Stufe.
+            Text("Have fun, keep pumping!").font(.system(size: 26, weight: .semibold)).foregroundStyle(f.akzent)
                 .padding(.bottom, 10)
             Spacer()
             Image("WordmarkH").renderingMode(.template).resizable().scaledToFit()

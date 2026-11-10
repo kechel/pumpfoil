@@ -75,6 +75,7 @@ enum LocTeam {
         "leader.totalTime": "On-Foil-Zeit gesamt",
         "sd.avgHrFoil": "Ø Puls auf dem Foil",
         "team.ablehnen": "Ablehnen",
+        "team.abzeichen": "Event-Abzeichen",
         "team.adresse": "Adresse",
         "team.adresseAendernHinweis": "Alte Adressen leiten weiter, geteilte Links bleiben gültig.",
         "team.adresseHinweis": "Nur Kleinbuchstaben, Ziffern und Bindestriche.",
@@ -92,10 +93,10 @@ enum LocTeam {
         "team.anfrage.sessions": "{n} Sessions",
         "team.anfrage.spots": "Spots",
         "team.anfragen": "Anfragen",
-        "team.anfragenEins": "1 neue Anfrage",
     ]
 
     private static let _de1: [String: String] = [
+        "team.anfragenEins": "1 neue Anfrage",
         "team.anfragenViele": "{n} neue Anfragen",
         "team.anmeldungenZulassen": "Anmeldungen zulassen",
         "team.anmeldungenZulassenText": "Angemeldete sehen auf der Teamseite einen Knopf „Beitreten“.",
@@ -117,9 +118,12 @@ enum LocTeam {
         "team.beschreibung": "Beschreibung",
         "team.bestenlisten": "Bestenlisten",
         "team.bestenlistenHinweis": "Je Person zählt der beste Wert bzw. die Summe im gewählten Zeitraum. Alle Sessions der Mitglieder zählen, auch die von vor dem Beitritt.",
+        "team.bild.mitMeinemTeam": "Mein Team mit zeigen",
+        "team.bild.mitMir": "Mich mit zeigen",
         "team.bild.titel": "Als Bild teilen",
         "team.chat": "Team-Chat",
         "team.chatTitel": "Team {name}",
+        "team.community": "Teams",
         "team.communityLeer": "Noch keine öffentlichen Teams. Gründe das erste!",
         "team.entfernen": "Entfernen",
         "team.entfernenFrage": "{name} aus dem Team entfernen?",
@@ -137,13 +141,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "Das ist nicht erlaubt.",
         "team.err.not found": "Nicht gefunden.",
         "team.err.nur_leiter": "Das darf nur die Teamleitung.",
+    ]
+
+    private static let _de2: [String: String] = [
         "team.err.nur_verwalter": "Das dürfen nur Teamleitung und Moderatoren.",
         "team.err.slug_belegt": "Diese Adresse ist schon vergeben.",
         "team.err.slug_laenge": "Die Adresse braucht 3 bis 40 Zeichen.",
         "team.err.slug_reserviert": "Diese Adresse ist reserviert.",
-    ]
-
-    private static let _de2: [String: String] = [
         "team.err.slug_zeichen": "Nur Kleinbuchstaben, Ziffern und Bindestriche, nicht am Anfang oder Ende.",
         "team.err.tafel": "Diese Bestenliste lässt sich so nicht anlegen.",
         "team.err.unbekannt": "Das hat nicht geklappt. Bitte später noch einmal versuchen.",
@@ -170,6 +174,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "Gerade läuft kein globales Event, und in den nächsten drei Tagen beginnt auch keins.",
         "team.event.keineTeams": "Noch kein Mitglied eines Teams in diesem Event.",
         "team.event.loeschenFrage": "Event „{titel}“ löschen?",
+        "team.event.meinTeam": "Du trittst an für",
+        "team.event.meinTeamFest": "Weniger als 6 Stunden bis zum Ende — diese Zuordnung steht fest.",
+        "team.event.meinTeamHinweis": "Du bist in mehreren Teams und zählst in diesem Event für eines davon. Ändern kannst du das bis 6 Stunden vor Event-Ende.",
         "team.event.minuten": "Min.",
         "team.event.neu": "Event anlegen",
         "team.event.neuLaden": "Aktualisieren",
@@ -182,6 +189,9 @@ enum LocTeam {
         "team.event.spots": "Spots",
         "team.event.stand": "Aktueller Stand",
         "team.event.standUm": "Stand {zeit}",
+    ]
+
+    private static let _de3: [String: String] = [
         "team.event.start": "Beginn",
         "team.event.startIn": "Startet in",
         "team.event.status.auswertung": "Auswertung",
@@ -189,9 +199,6 @@ enum LocTeam {
         "team.event.status.kommend": "kommt",
         "team.event.status.laeuft": "läuft",
         "team.event.stunden": "Std.",
-    ]
-
-    private static let _de3: [String: String] = [
         "team.event.summen": "Event-Gesamtsummen",
         "team.event.summenHinweis": "Zusammengezählt über alle Teilnehmer. Anklicken, was auf der Event-Seite stehen soll.",
         "team.event.tag": "Tag",
@@ -230,6 +237,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "Dein Team ist freigegeben und in der Community gelistet.",
         "team.freigabe.text.keine": "Dein Team ist bisher nur für Mitglieder sichtbar. Beantrage die Freigabe, damit es in der Community erscheint und die Bestenlisten öffentlich werden können.",
         "team.freigabe.text.wartet": "Die Freigabe ist beantragt. Wir sehen uns Name, Adresse, Beschreibung, Wappen und Farbe an.",
+    ]
+
+    private static let _de4: [String: String] = [
         "team.freigabe.titel": "Öffentlicher Auftritt",
         "team.freigabe.wartet": "wartet auf Freigabe",
         "team.gespeichert": "Gespeichert.",
@@ -237,9 +247,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Dein Team funktioniert sofort, über Einladungslinks. Öffentlich gelistet wird es erst, wenn wir Name, Beschreibung und Wappen einmal angesehen haben.",
         "team.gruendenKnopf": "Gründen",
         "team.herkunft": "Land / Region",
-    ]
-
-    private static let _de4: [String: String] = [
+        "team.ics.abo": "In Kalender eintragen",
+        "team.ics.google": "Google Kalender",
+        "team.ics.kopieren": "Kalender-Link kopieren",
+        "team.ics.kopiert": "Kopiert",
+        "team.ics.titel": "Alle globalen Events im Kalender abonnieren – neue und geänderte Events erscheinen von selbst",
         "team.join.anfrage": "Deine Anfrage geht an die Teamleitung, sie entscheidet.",
         "team.join.anfrageProfil": "Zur Prüfung sieht sie, an welchen Spots und in welchen Sportarten du bisher unterwegs warst (nur die Zahl der Sessions).",
         "team.join.anfragen": "Anfrage senden",
@@ -273,6 +285,9 @@ enum LocTeam {
         "team.link.apply": "Bewerben",
         "team.link.applyText": "Wer diesen Link öffnet, stellt eine Anfrage, über die du oder ein Moderator entscheidet.",
         "team.link.join": "Direkt beitreten",
+    ]
+
+    private static let _de5: [String: String] = [
         "team.link.joinText": "Wer diesen Link öffnet, ist sofort Mitglied.",
         "team.linkNeu": "Neuen Link erzeugen",
         "team.linkNeuFrage": "Neuen Link erzeugen? Der bisherige funktioniert dann nicht mehr.",
@@ -285,9 +300,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} bricht „{was}“ mit {wert} (vorher {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} hält „{was}“ mit {wert}",
         "team.logbuchHinweis": "Wer wann welchen Teamrekord gebrochen hat. Wird jede Nacht nachgeführt.",
-    ]
-
-    private static let _de5: [String: String] = [
         "team.logbuchLeer": "Noch keine Einträge. Der erste Stand kommt in der Nacht nach dem Anlegen der Bestenlisten.",
         "team.logoHochladen": "Wappen hochladen",
         "team.meine": "Meine Teams",
@@ -302,6 +314,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "Bestenlisten öffentlich",
         "team.oeffentlichErstNachFreigabe": "Wirksam erst, wenn der Auftritt freigegeben ist.",
         "team.oeffentlichText": "Dann sieht jeder die Bestenlisten, auch ohne Anmeldung: Platz, Anzeigename und Wert. Sessions, Spots und Profilbilder sehen nur angemeldete Nutzer.",
+        "team.platz1": "1. Platz",
+        "team.platz2": "2. Platz",
+        "team.platz3": "3. Platz",
+        "team.primaer": "Primäres Team",
+        "team.primaerHinweis": "In globalen Events zählst du nur für ein Team: dein primäres, außer du wählst auf der Eventseite ein anderes.",
+        "team.primaerSetzen": "Als primäres Team festlegen",
         "team.profilHinweis": "Teams gründen, beitreten und eigene Bestenlisten führen.",
         "team.profilKnopf": "Team",
         "team.qr": "QR-Code",
@@ -314,7 +332,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "Team-Chat",
         "team.regeln.events.text": "Ein Event hat ein Zeitfenster und eigene Bestenlisten, auf Wunsch nur an bestimmten Spots.\nZusätzlich oder statt Bestenlisten kann ein Event Gesamtsummen über alle Teilnehmer zeigen, etwa die Pumps oder die Strecke des ganzen Teams. Jedes Event braucht mindestens eine Bestenliste oder eine Summe.\nEs zählen nur Sessions, die im Zeitfenster starten.\nDie Leitung kann je Event festlegen, dass von Hand hochgeladene Dateien (FIT, GPX, TCX) nicht zählen; Aufnahmen von Uhr, App und Kontoverknüpfungen zählen dann weiter.\nNach dem Ende kann man noch 4 Stunden hochladen, die Teamseite zeigt dann „Auswertung“. Danach ist das Ergebnis eingefroren, späteres Zuschneiden oder Löschen ändert nichts mehr.\nWer nach dem Ende austritt, bleibt im Ergebnis; wer danach beitritt, kommt nicht mehr hinein.\nEingefroren wird nachts und zusätzlich, sobald jemand die Teamseite aufruft.\nDie Zeiten gelten in der Zeitzone, in der das Event angelegt wurde, und werden für alle so angezeigt.\nPlatz 1 bis 3 bekommen ein Event-Abzeichen auf ihrer Foiler-Seite, aber nur bei Teams, deren Auftritt freigegeben ist.",
         "team.regeln.events.titel": "Events",
-        "team.regeln.global.text": "Globale Events veranstaltet pumpfoil.org selbst. Es zählt automatisch jeder mit passenden Sessions im Zeitfenster, ohne Beitritt und ohne Anmeldung.\nWer nicht mitmachen will, schaltet das im Profil unter „Privatsphäre“ ab („Nicht an globalen Events teilnehmen“). Dann fehlt er in Bestenlisten, Team-Wertungen, Summen und Abzeichen, auch in schon beendeten Events.\nJe Bestenliste gibt es eine Team-Wertung: die Summe der besten Mitglieder jedes Teams, in der Regel 5. Dabei sind freigegebene Teams mit öffentlichen Bestenlisten; wer in zwei Teams ist, zählt für beide.\nDie Bestenlisten sind auch ohne Anmeldung über den Event-Link sichtbar: Platz, Anzeigename, Initialen und Wert.\nSonst gelten die Regeln für Events: Zeitfenster, Auswertung, Einfrieren und Abzeichen für Platz 1 bis 3, auf der Profilseite mit „Global“ gekennzeichnet.",
+        "team.regeln.global.text": "Globale Events veranstaltet pumpfoil.org selbst. Es zählt automatisch jeder mit passenden Sessions im Zeitfenster, ohne Beitritt und ohne Anmeldung.\nWer nicht mitmachen will, schaltet das im Profil unter „Privatsphäre“ ab („Nicht an globalen Events teilnehmen“). Dann fehlt er in Bestenlisten, Team-Wertungen, Summen und Abzeichen, auch in schon beendeten Events.\nJe Bestenliste gibt es eine Team-Wertung: die Summe der besten Mitglieder jedes Teams, in der Regel 5, bei Geschwindigkeiten (Sprints) ihr Durchschnitt. Dabei sind freigegebene Teams mit öffentlichen Bestenlisten. Wer in mehreren Teams ist, zählt nur für eines: sein primäres Team (unter „Meine Teams“ festgelegt, sonst das größte) oder das auf der Eventseite gewählte. Ändern lässt sich das bis 6 Stunden vor Event-Ende.\nDie Bestenlisten sind auch ohne Anmeldung über den Event-Link sichtbar: Platz, Anzeigename, Initialen und Wert.\nSonst gelten die Regeln für Events: Zeitfenster, Auswertung, Einfrieren und Abzeichen für Platz 1 bis 3, auf der Profilseite mit „Global“ gekennzeichnet.",
+    ]
+
+    private static let _de6: [String: String] = [
         "team.regeln.global.titel": "Globale Events",
         "team.regeln.haftung.text": "Events veranstalten die Teams selbst. pumpfoil.org hat keinen Einfluss auf Events und darin gemachte Zusagen finanzieller oder anderer Art und übernimmt dafür keine Verantwortung. Der Rechtsweg ist ausgeschlossen. Zahlungen und alle anderen Absprachen regeln Veranstalter und Teilnehmer unabhängig von pumpfoil.org.\nEbenso übernimmt pumpfoil.org keine Verantwortung dafür, dass gemessene Werte und Daten korrekt sind oder nicht manipuliert wurden. Angezeigt wird, was der öffentliche Quellcode auf GitHub aus den hochgeladenen Daten berechnet; weitere Zusagen gibt es nicht.",
         "team.regeln.haftung.titel": "Haftung",
@@ -333,9 +354,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "Über den Bestenlisten stehen die Summen aller Mitglieder im gewählten Zeitraum: Pumps, On-Foil-Strecke und -Zeit, Sessions, Läufe und wie viele Mitglieder aktiv waren.\nTeam gegen Team: In der Community vergleichen die Team-Bestenlisten alle freigegebenen Teams mit öffentlichen Bestenlisten, je Kennzahl mit der Summe der besten 3, 5 oder 10 Fahrer. Dort gilt für alle Teams dasselbe Maß, nicht die Filter der eigenen Bestenlisten.\nWer in zwei Teams ist, zählt für beide.",
         "team.regeln.statistik.titel": "Teamsummen",
         "team.regeln.titel": "Team-Regeln",
-    ]
-
-    private static let _de6: [String: String] = [
         "team.regeln.was.text": "Eine feste Gruppe mit eigenen Bestenlisten, Events und einem Team-Chat.\nJeder kann Teams gründen, auch mehrere, und in mehreren Teams sein.\nEin neues Team funktioniert sofort, über Einladungslinks.",
         "team.regeln.was.titel": "Was ist ein Team?",
         "team.rolle.leiter": "Leitung",
@@ -363,6 +381,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "Einige Bestenlisten zählen auch Läufe, die nur mit GPS aufgezeichnet wurden (ohne Bewegungsdaten).",
         "team.tafel.leer": "Noch keine Einträge in diesem Zeitraum.",
         "team.tafel.neu": "Bestenliste",
+    ]
+
+    private static let _de7: [String: String] = [
         "team.tafel.nurBewegung": "nur mit Bewegungsdaten",
         "team.tafel.nurBrett": "nur Handy am Brett",
         "team.tafel.nurTeamspots": "nur Teamspots",
@@ -381,9 +402,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Längster Lauf",
         "team.vorlage.monat_strecke": "On-Foil-Kilometer im Monat",
         "team.vorlage.session_pumps": "Meiste Pumps in einer Session",
-    ]
-
-    private static let _de7: [String: String] = [
         "team.vorlage.top_speed": "Top-Speed",
         "team.vorlage.weitester_lauf": "Weitester Lauf",
         "team.vorlage.wochenende_laeufe": "Meiste Läufe am Wochenende",
@@ -420,6 +438,7 @@ enum LocTeam {
         "leader.totalTime": "On-Foil-Ziit total",
         "sd.avgHrFoil": "Ø Puls uf em Foil",
         "team.ablehnen": "Ablehne",
+        "team.abzeichen": "Event-Abzeiche",
         "team.adresse": "Adrässe",
         "team.adresseAendernHinweis": "Alti Adrässe leited wiiter, teilti Links blibed gültig.",
         "team.adresseHinweis": "Nume Chliibuechstabe, Ziffere und Bindestrich.",
@@ -437,10 +456,10 @@ enum LocTeam {
         "team.anfrage.sessions": "{n} Sessions",
         "team.anfrage.spots": "Spots",
         "team.anfragen": "Aafroge",
-        "team.anfragenEins": "1 neui Aafrog",
     ]
 
     private static let _gsw1: [String: String] = [
+        "team.anfragenEins": "1 neui Aafrog",
         "team.anfragenViele": "{n} neui Aafroge",
         "team.anmeldungenZulassen": "Aamäldige zuelah",
         "team.anmeldungenZulassenText": "Aagmeldeti gsehnd uf de Teamsiite en Chnopf „Biitrete“.",
@@ -462,9 +481,12 @@ enum LocTeam {
         "team.beschreibung": "Beschriibig",
         "team.bestenlisten": "Bestelischte",
         "team.bestenlistenHinweis": "Pro Person zählt de bescht Wert oder d Summe im gwählte Ziitruum. Alli Sessions vo de Mitglieder zähled, au die vo vor em Biitritt.",
+        "team.bild.mitMeinemTeam": "Mis Team au zeige",
+        "team.bild.mitMir": "Mich au zeige",
         "team.bild.titel": "Als Bild teile",
         "team.chat": "Team-Chat",
         "team.chatTitel": "Team {name}",
+        "team.community": "Teams",
         "team.communityLeer": "No kei öffentlichi Teams. Gründ s erschte!",
         "team.entfernen": "Usenäh",
         "team.entfernenFrage": "{name} us em Team usenäh?",
@@ -482,13 +504,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "Das isch nöd erlaubt.",
         "team.err.not found": "Nöd gfunde.",
         "team.err.nur_leiter": "Das dörf nume d Teamleitig.",
+    ]
+
+    private static let _gsw2: [String: String] = [
         "team.err.nur_verwalter": "Das dörfed nume Teamleitig und Moderatore.",
         "team.err.slug_belegt": "Die Adrässe isch scho vergä.",
         "team.err.slug_laenge": "D Adrässe bruucht 3 bis 40 Zeiche.",
         "team.err.slug_reserviert": "Die Adrässe isch reserviert.",
-    ]
-
-    private static let _gsw2: [String: String] = [
         "team.err.slug_zeichen": "Nume Chliibuechstabe, Ziffere und Bindestrich, nöd am Aafang oder Änd.",
         "team.err.tafel": "Die Bestelischte lat sich so nöd aalege.",
         "team.err.unbekannt": "Das hät nöd klappt. Bitte spöter nomal probiere.",
@@ -515,6 +537,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "Grad lauft kei globals Event, und i de nöchschte drei Täg fangt au keis aa.",
         "team.event.keineTeams": "No kei Mitglied vomne Team i dem Event.",
         "team.event.loeschenFrage": "Event „{titel}“ lösche?",
+        "team.event.meinTeam": "Du trittsch aa für",
+        "team.event.meinTeamFest": "Weniger als 6 Stund bis zum Änd — die Zueornig staht fescht.",
+        "team.event.meinTeamHinweis": "Du bisch i mehrere Teams und zellsch i dem Event für eis devo. Ändere chasch das bis 6 Stund vor em Event-Änd.",
         "team.event.minuten": "Min.",
         "team.event.neu": "Event aalege",
         "team.event.neuLaden": "Aktualisiere",
@@ -527,6 +552,9 @@ enum LocTeam {
         "team.event.spots": "Spots",
         "team.event.stand": "Aktuelle Stand",
         "team.event.standUm": "Stand {zeit}",
+    ]
+
+    private static let _gsw3: [String: String] = [
         "team.event.start": "Aafang",
         "team.event.startIn": "Startet in",
         "team.event.status.auswertung": "Uswärtig",
@@ -534,9 +562,6 @@ enum LocTeam {
         "team.event.status.kommend": "chunnt",
         "team.event.status.laeuft": "lauft",
         "team.event.stunden": "Std.",
-    ]
-
-    private static let _gsw3: [String: String] = [
         "team.event.summen": "Event-Gsamtsumme",
         "team.event.summenHinweis": "Zämezellt über alli Teilnähmer. Aaklicke, was uf de Event-Siite söll stoh.",
         "team.event.tag": "Tag",
@@ -575,6 +600,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "Dis Team isch freigä und i de Community glischtet.",
         "team.freigabe.text.keine": "Dis Team gseh bis jetzt nume Mitglieder. Beatrag d Freigab, dass es i de Community uftaucht und d Bestelischte öffentlich chönd werde.",
         "team.freigabe.text.wartet": "D Freigab isch beatreit. Mir lueged eus Name, Adrässe, Beschriibig, Wappe und Farb aa.",
+    ]
+
+    private static let _gsw4: [String: String] = [
         "team.freigabe.titel": "Öffentliche Uftritt",
         "team.freigabe.wartet": "wartet uf Freigab",
         "team.gespeichert": "Gspicheret.",
@@ -582,9 +610,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Dis Team lauft sofort, über Iiladigslinks. Öffentlich glischtet wird's erscht, wenn mir Name, Beschriibig und Wappe eimal aagluegt händ.",
         "team.gruendenKnopf": "Gründe",
         "team.herkunft": "Land / Region",
-    ]
-
-    private static let _gsw4: [String: String] = [
+        "team.ics.abo": "In Kaländer iträge",
+        "team.ics.google": "Google Kaländer",
+        "team.ics.kopieren": "Kaländer-Link kopiere",
+        "team.ics.kopiert": "Kopiert",
+        "team.ics.titel": "Alli globale Events im Kaländer abonniere – neui und gänderti Events chömed vo sälber",
         "team.join.anfrage": "Dini Aafrog gaht a d Teamleitig, die entscheidet.",
         "team.join.anfrageProfil": "Zum Prüefe gseht si, a wele Spots und i wele Sportarte du bis jetzt unterwägs gsi bisch (nur d Zahl vo de Sessions).",
         "team.join.anfragen": "Aafrog schicke",
@@ -618,6 +648,9 @@ enum LocTeam {
         "team.link.apply": "Bewärbe",
         "team.link.applyText": "Wer de Link uftuet, stellt e Aafrog, über die du oder en Moderator entscheidet.",
         "team.link.join": "Direkt biitrete",
+    ]
+
+    private static let _gsw5: [String: String] = [
         "team.link.joinText": "Wer de Link uftuet, isch sofort Mitglied.",
         "team.linkNeu": "Neue Link mache",
         "team.linkNeuFrage": "Neue Link mache? De bisherig gaht denn nüm.",
@@ -630,9 +663,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} bricht „{was}“ mit {wert} (vorher {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} hät „{was}“ mit {wert}",
         "team.logbuchHinweis": "Wer wänn welle Teamrekord broche het. Wird jedi Nacht nachgfüehrt.",
-    ]
-
-    private static let _gsw5: [String: String] = [
         "team.logbuchLeer": "No kei Iiträg. De erscht Stand chunnt i de Nacht nach em Aalege vo de Bestelischte.",
         "team.logoHochladen": "Wappe uelade",
         "team.meine": "Mini Teams",
@@ -647,6 +677,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "Bestelischte öffentlich",
         "team.oeffentlichErstNachFreigabe": "Gilt erscht, wenn de Uftritt freigä isch.",
         "team.oeffentlichText": "Denn gseht jede d Bestelischte, au ohni Aamäldig: Platz, Aazeigname und Wert. Sessions, Spots und Profilbilder gsehnd nume Aagmeldeti.",
+        "team.platz1": "1. Platz",
+        "team.platz2": "2. Platz",
+        "team.platz3": "3. Platz",
+        "team.primaer": "Primärs Team",
+        "team.primaerHinweis": "I globale Events zellsch du nur für eis Team: dis primäre, usser du wählsch uf de Eventsiite es anders.",
+        "team.primaerSetzen": "Als primärs Team feschtlegge",
         "team.profilHinweis": "Teams gründe, biitrete und eigeni Bestelischte füehre.",
         "team.profilKnopf": "Team",
         "team.qr": "QR-Code",
@@ -659,7 +695,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "Team-Chat",
         "team.regeln.events.text": "Es Event het es Ziitfänschter und eigeni Bestelischte, wenn mer will nume a bestimmte Spots.\nZuesätzlich oder statt Bestelischte cha en Event Gsamtsumme über alli Teilnähmer zeige, öppe d Pumps oder d Strecki vom ganze Team. Jede Event bruucht mindestens e Bestelischte oder e Summe.\nEs zähled nume Sessions, wo im Ziitfänschter aafanged.\nD Leitig cha pro Event feschtlege, dass vo Hand uegladeni Dateie (FIT, GPX, TCX) nöd zelled; Ufnahme vo Uhr, App und Kontoverchnüpfige zelled denn wiiter.\nNach em Änd cha mer no 4 Stund uelade, d Teamsiite zeigt denn „Uswärtig“. Drnoch isch s Resultat iigfrore, spöters Zueschniide oder Lösche ändered nüt meh.\nWer nach em Änd ustritt, blibt im Ergebnis; wer dänn biitritt, chunnt nüme drii.\nIigfrore wird znacht und zuesätzlich, sobald öpper d Teamsiite uftuet.\nD Ziite gälted i de Ziitzone, i dere s Event aagleit worde isch, und werded für alli so aazeigt.\nPlatz 1 bis 3 überchömed es Event-Abzeiche uf ihrere Foiler-Siite, aber nume bi Teams, wo de Uftritt freigä isch.",
         "team.regeln.events.titel": "Events",
-        "team.regeln.global.text": "Globali Events veranstaltet pumpfoil.org sälber. Es zellt automatisch jede mit passende Sessions im Ziitfänschter, ohni Biitritt und ohni Aamäldig.\nWär nöd mitmache wott, schaltet das im Profil under „Privatsphäre“ ab („Nöd a globale Events teilneh“). Dänn fehlt er i Bestelischte, Team-Wärtige, Summe und Abzeiche, au i scho beändete Events.\nPro Bestelischte gits e Team-Wärtig: d Summe vo de beschte Mitglieder vo jedem Team, i de Regel 5. Debii sind freigäni Teams mit öffentliche Bestelischte; wär i zwei Teams isch, zellt für beidi.\nD Bestelischte sind au ohni Aamäldig über de Event-Link sichtbar: Platz, Aazeigname, Initiale und Wärt.\nSuscht gälted d Regle für Events: Ziitfänschter, Uswärtig, Iifriere und Abzeiche für Platz 1 bis 3, uf de Profilsiite mit „Global“ gchennzeichnet.",
+        "team.regeln.global.text": "Globali Events veranstaltet pumpfoil.org sälber. Es zellt automatisch jede mit passende Sessions im Ziitfänschter, ohni Biitritt und ohni Aamäldig.\nWär nöd mitmache wott, schaltet das im Profil under „Privatsphäre“ ab („Nöd a globale Events teilneh“). Dänn fehlt er i Bestelischte, Team-Wärtige, Summe und Abzeiche, au i scho beändete Events.\nPro Beschtelischte gits e Team-Wertig: d Summe vo de beschte Mitglieder vo jedem Team, i de Regle 5, bi Gschwindigkeite (Sprints) ihre Durchschnitt. Debii sind freigeh Teams mit öffentliche Beschtelischte. Wer i mehrere Teams isch, zellt nur für eis: sis primäre Team (under „Mini Teams“ feschtgleit, susch s gröschte) oder das, wo uf de Eventsiite gwählt isch. Ändere chasch das bis 6 Stund vor em Event-Änd.\nD Bestelischte sind au ohni Aamäldig über de Event-Link sichtbar: Platz, Aazeigname, Initiale und Wärt.\nSuscht gälted d Regle für Events: Ziitfänschter, Uswärtig, Iifriere und Abzeiche für Platz 1 bis 3, uf de Profilsiite mit „Global“ gchennzeichnet.",
+    ]
+
+    private static let _gsw6: [String: String] = [
         "team.regeln.global.titel": "Globali Events",
         "team.regeln.haftung.text": "Events veranstalted d Teams sälber. pumpfoil.org het kei Iifluss uf Events und uf Zuesage, wo drin gmacht wärded, ob finanziell oder andersch, und übernimmt dafür kei Verantwortig. De Rächtswäg isch usgschlosse. Zahlige und alli andere Abmachige regled Veranstalter und Teilnähmer unabhängig vo pumpfoil.org.\nGnau so übernimmt pumpfoil.org kei Verantwortig defür, dass gmässni Wärt und Date stimmed oder nöd manipuliert worde sind. Azeigt wird, was de öffentlich Quellcode uf GitHub us de ufeglade Date usrächnet; wiiteri Zuesage gits kei.",
         "team.regeln.haftung.titel": "Haftig",
@@ -678,9 +717,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "Über de Bestelischte stönd d Summe vo allne Mitglieder im gwählte Ziitruum: Pumps, On-Foil-Strecki und -Ziit, Sessions, Läuf und wie vill Mitglieder aktiv gsi sind.\nTeam gäge Team: I de Community vergliichet d Team-Bestelischte alli freigäne Teams mit öffentliche Bestelischte, pro Kennzahl mit de Summe vo de beschte 3, 5 oder 10 Fahrer. Det gilt für alli Teams s gliiche Mass, nöd d Filter vo de eigete Bestelischte.\nWär i zwei Teams isch, zellt für beidi.",
         "team.regeln.statistik.titel": "Teamsumme",
         "team.regeln.titel": "Team-Regle",
-    ]
-
-    private static let _gsw6: [String: String] = [
         "team.regeln.was.text": "E feschti Gruppe mit eigene Bestelischte, Events und emne Team-Chat.\nJede cha Teams gründe, au mehreri, und i mehrere Teams sii.\nEs neus Team lauft sofort, über Iiladigslinks.",
         "team.regeln.was.titel": "Was isch es Team?",
         "team.rolle.leiter": "Leitig",
@@ -708,6 +744,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "Es paar Bestelischte zelled au Läuf, wo nur mit GPS ufgnoh worde sind (ohni Bewegigsdate).",
         "team.tafel.leer": "No kei Iiträg i dem Ziitruum.",
         "team.tafel.neu": "Bestelischte",
+    ]
+
+    private static let _gsw7: [String: String] = [
         "team.tafel.nurBewegung": "nume mit Bewegigsdate",
         "team.tafel.nurBrett": "nume Handy am Brätt",
         "team.tafel.nurTeamspots": "nume Teamspots",
@@ -726,9 +765,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Längschte Lauf",
         "team.vorlage.monat_strecke": "On-Foil-Kilometer im Monet",
         "team.vorlage.session_pumps": "Meischti Pumps i einere Session",
-    ]
-
-    private static let _gsw7: [String: String] = [
         "team.vorlage.top_speed": "Top-Speed",
         "team.vorlage.weitester_lauf": "Wiitischte Lauf",
         "team.vorlage.wochenende_laeufe": "Meischti Läuf am Wuchenänd",
@@ -765,6 +801,7 @@ enum LocTeam {
         "leader.totalTime": "On-Foil-Zeit gesamt",
         "sd.avgHrFoil": "Ø Puls auf dem Foil",
         "team.ablehnen": "Ablehnen",
+        "team.abzeichen": "Event-Abzeichen",
         "team.adresse": "Adresse",
         "team.adresseAendernHinweis": "Alte Adressen leiten weiter, teilte Links bleiben gültig.",
         "team.adresseHinweis": "Nur Kleinbuchstaben, Ziffern und Bindestriche.",
@@ -782,10 +819,10 @@ enum LocTeam {
         "team.anfrage.sessions": "{n} Sessions",
         "team.anfrage.spots": "Spots",
         "team.anfragen": "Anfragen",
-        "team.anfragenEins": "1 neue Anfrage",
     ]
 
     private static let _de_AT1: [String: String] = [
+        "team.anfragenEins": "1 neue Anfrage",
         "team.anfragenViele": "{n} neue Anfragen",
         "team.anmeldungenZulassen": "Anmeldungen zulassen",
         "team.anmeldungenZulassenText": "Wer ang'meldet is, sieht auf der Teamseite an Knopf „Beitreten“.",
@@ -807,9 +844,12 @@ enum LocTeam {
         "team.beschreibung": "Beschreibung",
         "team.bestenlisten": "Bestenlisten",
         "team.bestenlistenHinweis": "Pro Person zählt der beste Wert oder die Summe im g'wählten Zeitraum. Alle Sessions der Mitglieder zählen, a die von vorm Beitritt.",
+        "team.bild.mitMeinemTeam": "Mein Team mit zeigen",
+        "team.bild.mitMir": "Mich mit zeigen",
         "team.bild.titel": "Als Bild teilen",
         "team.chat": "Team-Chat",
         "team.chatTitel": "Team {name}",
+        "team.community": "Teams",
         "team.communityLeer": "No ka öffentlichen Teams. Gründ des erste!",
         "team.entfernen": "Rausnehmen",
         "team.entfernenFrage": "{name} aus dem Team rausnehmen?",
@@ -827,13 +867,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "Des is ned erlaubt.",
         "team.err.not found": "Ned g'funden.",
         "team.err.nur_leiter": "Des darf nur die Teamleitung.",
+    ]
+
+    private static let _de_AT2: [String: String] = [
         "team.err.nur_verwalter": "Des dürfen nur Teamleitung und Moderatoren.",
         "team.err.slug_belegt": "Die Adresse is schon vergeben.",
         "team.err.slug_laenge": "Die Adresse braucht 3 bis 40 Zeichen.",
         "team.err.slug_reserviert": "Die Adresse is reserviert.",
-    ]
-
-    private static let _de_AT2: [String: String] = [
         "team.err.slug_zeichen": "Nur Kleinbuchstaben, Ziffern und Bindestriche, ned am Anfang oder Ende.",
         "team.err.tafel": "Die Bestenliste lasst si so ned anlegen.",
         "team.err.unbekannt": "Des hat ned klappt. Bitte später nochamal probieren.",
@@ -860,6 +900,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "Grad läuft ka globales Event, und in den nächsten drei Tagen fangt a kans an.",
         "team.event.keineTeams": "Noch ka Mitglied von an Team in dem Event.",
         "team.event.loeschenFrage": "Event „{titel}“ löschen?",
+        "team.event.meinTeam": "Du trittst an für",
+        "team.event.meinTeamFest": "Weniger als 6 Stunden bis zum Ende — diese Zuordnung steht fest.",
+        "team.event.meinTeamHinweis": "Du bist in mehreren Teams und zählst in diesem Event für eines davon. Ändern kannst du das bis 6 Stunden vor Event-Ende.",
         "team.event.minuten": "Min.",
         "team.event.neu": "Event anlegen",
         "team.event.neuLaden": "Aktualisieren",
@@ -872,6 +915,9 @@ enum LocTeam {
         "team.event.spots": "Spots",
         "team.event.stand": "Aktueller Stand",
         "team.event.standUm": "Stand {zeit}",
+    ]
+
+    private static let _de_AT3: [String: String] = [
         "team.event.start": "Anfang",
         "team.event.startIn": "Startet in",
         "team.event.status.auswertung": "Auswertung",
@@ -879,9 +925,6 @@ enum LocTeam {
         "team.event.status.kommend": "kommt",
         "team.event.status.laeuft": "rennt",
         "team.event.stunden": "Std.",
-    ]
-
-    private static let _de_AT3: [String: String] = [
         "team.event.summen": "Event-Gesamtsummen",
         "team.event.summenHinweis": "Zusammengezählt über alle Teilnehmer. Anklicken, was auf der Event-Seite stehen soll.",
         "team.event.tag": "Tag",
@@ -920,6 +963,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "Dei Team is freigeben und in der Community glistet.",
         "team.freigabe.text.keine": "Dei Team sehn bis jetzt nur Mitglieder. Beantrag die Freigabe, damit's in der Community auftaucht und die Bestenlisten öffentlich werden können.",
         "team.freigabe.text.wartet": "Die Freigabe is beantragt. Ma schaun uns Nam, Adresse, Beschreibung, Wappen und Farb an.",
+    ]
+
+    private static let _de_AT4: [String: String] = [
         "team.freigabe.titel": "Öffentlicher Auftritt",
         "team.freigabe.wartet": "wart' auf Freigabe",
         "team.gespeichert": "G'speichert.",
@@ -927,9 +973,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Dei Team rennt sofort, über Einladungslinks. Öffentlich glistet wird's erst, wenn ma uns Nam, Beschreibung und Wappen amal ang'schaut ham.",
         "team.gruendenKnopf": "Gründen",
         "team.herkunft": "Land / Region",
-    ]
-
-    private static let _de_AT4: [String: String] = [
+        "team.ics.abo": "In Kalender eintragen",
+        "team.ics.google": "Google Kalender",
+        "team.ics.kopieren": "Kalender-Link kopieren",
+        "team.ics.kopiert": "Kopiert",
+        "team.ics.titel": "Alle globalen Events im Kalender abonnieren – neue und geänderte Events erscheinen von selbst",
         "team.join.anfrage": "Deine Anfrage geht an die Teamleitung, die entscheidet.",
         "team.join.anfrageProfil": "Zum Prüfen sieht sie, an welchen Spots und in welchen Sportarten du bisher unterwegs warst (nur die Zahl der Sessions).",
         "team.join.anfragen": "Anfrage schicken",
@@ -963,6 +1011,9 @@ enum LocTeam {
         "team.link.apply": "Bewerben",
         "team.link.applyText": "Wer den Link aufmacht, stellt a Anfrage, über die du oder a Moderator entscheidet.",
         "team.link.join": "Gleich beitreten",
+    ]
+
+    private static let _de_AT5: [String: String] = [
         "team.link.joinText": "Wer den Link aufmacht, is sofort Mitglied.",
         "team.linkNeu": "Neuen Link machen",
         "team.linkNeuFrage": "Neuen Link machen? Der alte geht dann nimma.",
@@ -975,9 +1026,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} bricht „{was}“ mit {wert} (vorher {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} hält „{was}“ mit {wert}",
         "team.logbuchHinweis": "Wer wann welchen Teamrekord brochen hat. Wird jede Nacht nachtragen.",
-    ]
-
-    private static let _de_AT5: [String: String] = [
         "team.logbuchLeer": "No ka Einträge. Der erste Stand kommt in der Nacht nachm Anlegen der Bestenlisten.",
         "team.logoHochladen": "Wappen raufladen",
         "team.meine": "Meine Teams",
@@ -992,6 +1040,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "Bestenlisten öffentlich",
         "team.oeffentlichErstNachFreigabe": "Gilt erst, wenn der Auftritt freigeben is.",
         "team.oeffentlichText": "Dann sieht jeder die Bestenlisten, a ohne Anmeldung: Platz, Anzeigenam und Wert. Sessions, Spots und Profilbilder sehn nur Ang'meldete.",
+        "team.platz1": "1. Platz",
+        "team.platz2": "2. Platz",
+        "team.platz3": "3. Platz",
+        "team.primaer": "Primäres Team",
+        "team.primaerHinweis": "In globalen Events zählst du nur für ein Team: dein primäres, außer du wählst auf der Eventseite ein anderes.",
+        "team.primaerSetzen": "Als primäres Team festlegen",
         "team.profilHinweis": "Teams gründen, beitreten und eigene Bestenlisten führen.",
         "team.profilKnopf": "Team",
         "team.qr": "QR-Code",
@@ -1004,7 +1058,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "Team-Chat",
         "team.regeln.events.text": "A Event hat a Zeitfenster und eigene Bestenlisten, wenn ma will nur an bestimmten Spots.\nZusätzlich oder statt Bestenlisten kann ein Event Gesamtsummen über alle Teilnehmer zeigen, etwa die Pumps oder die Strecke des ganzen Teams. Jedes Event braucht mindestens eine Bestenliste oder eine Summe.\nEs zählen nur Sessions, die im Zeitfenster anfangen.\nDie Leitung kann je Event festlegen, dass von Hand hochgeladene Dateien (FIT, GPX, TCX) nicht zählen; Aufnahmen von Uhr, App und Kontoverknüpfungen zählen dann weiter.\nNachm Ende kann ma no 4 Stunden raufladen, die Teamseite zeigt dann „Auswertung“. Danach is des Ergebnis eing'froren, späteres Zuschneiden oder Löschen ändert nix mehr.\nWer nach dem Ende austritt, bleibt im Ergebnis; wer danach beitritt, kommt nicht mehr hinein.\nEing'froren wird in der Nacht und zusätzlich, sobald wer die Teamseite aufmacht.\nDie Zeiten gelten in der Zeitzone, in der des Event ang'legt worden is, und werden für alle so anzeigt.\nPlatz 1 bis 3 kriegen a Event-Abzeichen auf ihrer Foiler-Seite, aber nur bei Teams, deren Auftritt freigeben is.",
         "team.regeln.events.titel": "Events",
-        "team.regeln.global.text": "Globale Events veranstaltet pumpfoil.org selbst. Es zählt automatisch jeder mit passenden Sessions im Zeitfenster, ohne Beitritt und ohne Anmeldung.\nWer ned mitmachen will, schaltet das im Profil unter „Privatsphäre“ ab („Nicht an globalen Events teilnehmen“). Dann fehlt er in Bestenlisten, Team-Wertungen, Summen und Abzeichen, auch in schon beendeten Events.\nJe Bestenliste gibt's a Team-Wertung: die Summe der besten Mitglieder jedes Teams, in der Regel 5. Dabei sind freigegebene Teams mit öffentlichen Bestenlisten; wer in zwei Teams is, zählt für beide.\nDie Bestenlisten sind auch ohne Anmeldung über den Event-Link sichtbar: Platz, Anzeigename, Initialen und Wert.\nSonst gelten die Regeln für Events: Zeitfenster, Auswertung, Einfrieren und Abzeichen für Platz 1 bis 3, auf der Profilseite mit „Global“ gekennzeichnet.",
+        "team.regeln.global.text": "Globale Events veranstaltet pumpfoil.org selbst. Es zählt automatisch jeder mit passenden Sessions im Zeitfenster, ohne Beitritt und ohne Anmeldung.\nWer ned mitmachen will, schaltet das im Profil unter „Privatsphäre“ ab („Nicht an globalen Events teilnehmen“). Dann fehlt er in Bestenlisten, Team-Wertungen, Summen und Abzeichen, auch in schon beendeten Events.\nJe Bestenliste gibt es eine Team-Wertung: die Summe der besten Mitglieder jedes Teams, in der Regel 5, bei Geschwindigkeiten (Sprints) ihr Durchschnitt. Dabei sind freigegebene Teams mit öffentlichen Bestenlisten. Wer in mehreren Teams ist, zählt nur für eines: sein primäres Team (unter „Meine Teams“ festgelegt, sonst das größte) oder das auf der Eventseite gewählte. Ändern lässt sich das bis 6 Stunden vor Event-Ende.\nDie Bestenlisten sind auch ohne Anmeldung über den Event-Link sichtbar: Platz, Anzeigename, Initialen und Wert.\nSonst gelten die Regeln für Events: Zeitfenster, Auswertung, Einfrieren und Abzeichen für Platz 1 bis 3, auf der Profilseite mit „Global“ gekennzeichnet.",
+    ]
+
+    private static let _de_AT6: [String: String] = [
         "team.regeln.global.titel": "Globale Events",
         "team.regeln.haftung.text": "Events veranstalten die Teams selbst. pumpfoil.org hat keinen Einfluss auf Events und darin gemachte Zusagen finanzieller oder anderer Art und übernimmt dafür keine Verantwortung. Der Rechtsweg ist ausgeschlossen. Zahlungen und alle anderen Absprachen regeln Veranstalter und Teilnehmer unabhängig von pumpfoil.org.\nEbenso übernimmt pumpfoil.org keine Verantwortung dafür, dass gemessene Werte und Daten korrekt sind oder nicht manipuliert wurden. Angezeigt wird, was der öffentliche Quellcode auf GitHub aus den hochgeladenen Daten berechnet; weitere Zusagen gibt es nicht.",
         "team.regeln.haftung.titel": "Haftung",
@@ -1023,9 +1080,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "Über die Bestenlisten stehn die Summen von allen Mitgliedern im g'wählten Zeitraum: Pumps, On-Foil-Strecke und -Zeit, Sessions, Läufe und wie viele Mitglieder aktiv waren.\nTeam gegen Team: In der Community vergleichen die Team-Bestenlisten alle freigegebenen Teams mit öffentlichen Bestenlisten, je Kennzahl mit der Summe der besten 3, 5 oder 10 Fahrer. Dort gilt für alle Teams dasselbe Maß, ned die Filter der eigenen Bestenlisten.\nWer in zwei Teams is, zählt für beide.",
         "team.regeln.statistik.titel": "Teamsummen",
         "team.regeln.titel": "Team-Regeln",
-    ]
-
-    private static let _de_AT6: [String: String] = [
         "team.regeln.was.text": "A fixe Partie mit eigenen Bestenlisten, Events und an Team-Chat.\nJeder kann Teams gründen, a mehrere, und in mehreren Teams sein.\nA neues Team rennt sofort, über Einladungslinks.",
         "team.regeln.was.titel": "Was is a Team?",
         "team.rolle.leiter": "Leitung",
@@ -1053,6 +1107,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "Einige Bestenlisten zählen auch Läufe, die nur mit GPS aufgezeichnet wurden (ohne Bewegungsdaten).",
         "team.tafel.leer": "No ka Einträge in dem Zeitraum.",
         "team.tafel.neu": "Bestenliste",
+    ]
+
+    private static let _de_AT7: [String: String] = [
         "team.tafel.nurBewegung": "nur mit Bewegungsdaten",
         "team.tafel.nurBrett": "nur Handy am Brett",
         "team.tafel.nurTeamspots": "nur Teamspots",
@@ -1071,9 +1128,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Längster Lauf",
         "team.vorlage.monat_strecke": "On-Foil-Kilometer im Monat",
         "team.vorlage.session_pumps": "Meiste Pumps in aner Session",
-    ]
-
-    private static let _de_AT7: [String: String] = [
         "team.vorlage.top_speed": "Top-Speed",
         "team.vorlage.weitester_lauf": "Weitester Lauf",
         "team.vorlage.wochenende_laeufe": "Meiste Läufe am Wochenend",
@@ -1110,6 +1164,7 @@ enum LocTeam {
         "leader.totalTime": "Total on-foil time",
         "sd.avgHrFoil": "Ø heart rate on foil",
         "team.ablehnen": "Decline",
+        "team.abzeichen": "Event badges",
         "team.adresse": "Address",
         "team.adresseAendernHinweis": "Old addresses redirect, so shared links keep working.",
         "team.adresseHinweis": "Lowercase letters, digits and hyphens only.",
@@ -1127,10 +1182,10 @@ enum LocTeam {
         "team.anfrage.sessions": "{n} sessions",
         "team.anfrage.spots": "Spots",
         "team.anfragen": "Requests",
-        "team.anfragenEins": "1 new request",
     ]
 
     private static let _en1: [String: String] = [
+        "team.anfragenEins": "1 new request",
         "team.anfragenViele": "{n} new requests",
         "team.anmeldungenZulassen": "Allow sign-ups",
         "team.anmeldungenZulassenText": "Signed-in users see a “Join” button on the team page.",
@@ -1152,9 +1207,12 @@ enum LocTeam {
         "team.beschreibung": "Description",
         "team.bestenlisten": "Leaderboards",
         "team.bestenlistenHinweis": "Each person counts with their best value or their total in the chosen period. All of a member's sessions count, including those from before they joined.",
+        "team.bild.mitMeinemTeam": "Include my team",
+        "team.bild.mitMir": "Include myself",
         "team.bild.titel": "Share as image",
         "team.chat": "Team chat",
         "team.chatTitel": "Team {name}",
+        "team.community": "Teams",
         "team.communityLeer": "No public teams yet. Start the first one!",
         "team.entfernen": "Remove",
         "team.entfernenFrage": "Remove {name} from the team?",
@@ -1172,13 +1230,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "That isn't allowed.",
         "team.err.not found": "Not found.",
         "team.err.nur_leiter": "Only the team lead can do that.",
+    ]
+
+    private static let _en2: [String: String] = [
         "team.err.nur_verwalter": "Only the team lead and moderators can do that.",
         "team.err.slug_belegt": "This address is already taken.",
         "team.err.slug_laenge": "The address needs 3 to 40 characters.",
         "team.err.slug_reserviert": "This address is reserved.",
-    ]
-
-    private static let _en2: [String: String] = [
         "team.err.slug_zeichen": "Lowercase letters, digits and hyphens only, not at the start or end.",
         "team.err.tafel": "This leaderboard can't be set up like that.",
         "team.err.unbekannt": "That didn't work. Please try again later.",
@@ -1205,6 +1263,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "No global event is running right now, and none starts in the next three days.",
         "team.event.keineTeams": "No team member in this event yet.",
         "team.event.loeschenFrage": "Delete the event “{titel}”?",
+        "team.event.meinTeam": "You ride for",
+        "team.event.meinTeamFest": "Less than 6 hours to go — this choice is final.",
+        "team.event.meinTeamHinweis": "You are in several teams and count for one of them in this event. You can change it until 6 hours before the event ends.",
         "team.event.minuten": "min",
         "team.event.neu": "Create event",
         "team.event.neuLaden": "Refresh",
@@ -1217,6 +1278,9 @@ enum LocTeam {
         "team.event.spots": "Spots",
         "team.event.stand": "Current standings",
         "team.event.standUm": "As of {zeit}",
+    ]
+
+    private static let _en3: [String: String] = [
         "team.event.start": "Start",
         "team.event.startIn": "Starts in",
         "team.event.status.auswertung": "results pending",
@@ -1224,9 +1288,6 @@ enum LocTeam {
         "team.event.status.kommend": "upcoming",
         "team.event.status.laeuft": "live",
         "team.event.stunden": "hrs",
-    ]
-
-    private static let _en3: [String: String] = [
         "team.event.summen": "Event totals",
         "team.event.summenHinweis": "Added up across all participants. Tick what should appear on the event page.",
         "team.event.tag": "day",
@@ -1265,6 +1326,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "Your team is approved and listed in the community.",
         "team.freigabe.text.keine": "So far only members can see your team. Request approval so it shows up in the community and its leaderboards can go public.",
         "team.freigabe.text.wartet": "Approval requested. We'll look at the name, address, description, crest and colour.",
+    ]
+
+    private static let _en4: [String: String] = [
         "team.freigabe.titel": "Public appearance",
         "team.freigabe.wartet": "awaiting approval",
         "team.gespeichert": "Saved.",
@@ -1272,9 +1336,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Your team works right away through invite links. It gets listed publicly once we've had a look at its name, description and crest.",
         "team.gruendenKnopf": "Start",
         "team.herkunft": "Country / region",
-    ]
-
-    private static let _en4: [String: String] = [
+        "team.ics.abo": "Add to calendar",
+        "team.ics.google": "Google Calendar",
+        "team.ics.kopieren": "Copy calendar link",
+        "team.ics.kopiert": "Copied",
+        "team.ics.titel": "Subscribe to all global events in your calendar - new and changed events appear automatically",
         "team.join.anfrage": "Your request goes to the team lead, who decides.",
         "team.join.anfrageProfil": "To review it, they see which spots and sports you have been out on so far (only the number of sessions).",
         "team.join.anfragen": "Send request",
@@ -1308,6 +1374,9 @@ enum LocTeam {
         "team.link.apply": "Apply",
         "team.link.applyText": "Whoever opens this link sends a request that you or a moderator decide on.",
         "team.link.join": "Join directly",
+    ]
+
+    private static let _en5: [String: String] = [
         "team.link.joinText": "Whoever opens this link becomes a member right away.",
         "team.linkNeu": "Create new link",
         "team.linkNeuFrage": "Create a new link? The current one will stop working.",
@@ -1320,9 +1389,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} breaks “{was}” with {wert} (before: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} holds “{was}” with {wert}",
         "team.logbuchHinweis": "Who broke which team record, and when. Updated every night.",
-    ]
-
-    private static let _en5: [String: String] = [
         "team.logbuchLeer": "No entries yet. The first standings appear the night after the leaderboards are set up.",
         "team.logoHochladen": "Upload crest",
         "team.meine": "My teams",
@@ -1337,6 +1403,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "Public leaderboards",
         "team.oeffentlichErstNachFreigabe": "Takes effect once the appearance is approved.",
         "team.oeffentlichText": "Everyone can then see the leaderboards, even without signing in: rank, display name and value. Sessions, spots and profile pictures stay visible to signed-in users only.",
+        "team.platz1": "1st place",
+        "team.platz2": "2nd place",
+        "team.platz3": "3rd place",
+        "team.primaer": "Primary team",
+        "team.primaerHinweis": "In global events you count for one team only: your primary team, unless you pick another one on the event page.",
+        "team.primaerSetzen": "Make primary team",
         "team.profilHinweis": "Start or join teams with their own leaderboards.",
         "team.profilKnopf": "Team",
         "team.qr": "QR code",
@@ -1349,7 +1421,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "Team chat",
         "team.regeln.events.text": "An event has a time window and its own leaderboards, optionally only at certain spots.\nIn addition to or instead of leaderboards, an event can show totals across all participants, such as the whole team's pumps or distance. Every event needs at least one leaderboard or one total.\nOnly sessions that start within the window count.\nFor each event the team lead can decide that manually uploaded files (FIT, GPX, TCX) don't count; recordings from watches, the app and linked accounts still count.\nAfter the end you can still upload for 4 hours; the team page then shows “results pending”. After that the result is frozen, and later trimming or deleting no longer changes anything.\nAnyone who leaves after the end stays in the result; anyone who joins afterwards is not added.\nResults are frozen at night and also as soon as someone opens the team page.\nTimes are in the time zone the event was created in and are shown that way to everyone.\nPlaces 1 to 3 get an event badge on their foiler page, but only for teams whose appearance is approved.",
         "team.regeln.events.titel": "Events",
-        "team.regeln.global.text": "Global events are organised by pumpfoil.org itself. Everyone with matching sessions in the time window counts automatically, without joining and without signing up.\nAnyone who doesn't want to take part can turn it off in their profile under “Privacy” (“Don't take part in global events”). They then disappear from leaderboards, team rankings, totals and badges, including events that have already ended.\nEach leaderboard has a team ranking: the sum of each team's best members, usually 5. Approved teams with public leaderboards take part; anyone in two teams counts for both.\nThe leaderboards are also visible without logging in via the event link: rank, display name, initials and value.\nOtherwise the rules for events apply: time window, evaluation, freezing, and badges for places 1 to 3, marked “Global” on the profile page.",
+        "team.regeln.global.text": "Global events are organised by pumpfoil.org itself. Everyone with matching sessions in the time window counts automatically, without joining and without signing up.\nAnyone who doesn't want to take part can turn it off in their profile under “Privacy” (“Don't take part in global events”). They then disappear from leaderboards, team rankings, totals and badges, including events that have already ended.\nEach leaderboard has a team ranking: the sum of each team's best members, usually 5, and for speeds (sprints) their average. Approved teams with public leaderboards take part. Anyone in several teams counts for one only: their primary team (set under “My teams”, otherwise the largest) or the one picked on the event page. This can be changed until 6 hours before the event ends.\nThe leaderboards are also visible without logging in via the event link: rank, display name, initials and value.\nOtherwise the rules for events apply: time window, evaluation, freezing, and badges for places 1 to 3, marked “Global” on the profile page.",
+    ]
+
+    private static let _en6: [String: String] = [
         "team.regeln.global.titel": "Global events",
         "team.regeln.haftung.text": "Events are run by the teams themselves. pumpfoil.org has no influence on events or on any promises made in them, financial or otherwise, and accepts no responsibility for them. Recourse to the courts is excluded. Payments and all other arrangements are settled between organisers and participants, independently of pumpfoil.org.\nLikewise, pumpfoil.org accepts no responsibility for whether measured values and data are correct or have been manipulated. What is shown is what the public source code on GitHub calculates from the uploaded data; there are no further promises.",
         "team.regeln.haftung.titel": "Liability",
@@ -1368,9 +1443,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "Above the leaderboards are the totals of all members in the chosen period: pumps, on-foil distance and time, sessions, runs and how many members were active.\nTeam against team: in the community, the team leaderboards compare all approved teams with public leaderboards, per metric by the sum of the best 3, 5 or 10 riders. The same measure applies to all teams there, not the filters of their own leaderboards.\nAnyone in two teams counts for both.",
         "team.regeln.statistik.titel": "Team totals",
         "team.regeln.titel": "Team rules",
-    ]
-
-    private static let _en6: [String: String] = [
         "team.regeln.was.text": "A fixed group with its own leaderboards, events and team chat.\nAnyone can start teams, several if they like, and be in several teams.\nA new team works right away, through invite links.",
         "team.regeln.was.titel": "What is a team?",
         "team.rolle.leiter": "Lead",
@@ -1398,6 +1470,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "Some leaderboards also count runs recorded with GPS only (no motion data).",
         "team.tafel.leer": "No entries in this period yet.",
         "team.tafel.neu": "Leaderboard",
+    ]
+
+    private static let _en7: [String: String] = [
         "team.tafel.nurBewegung": "motion data only",
         "team.tafel.nurBrett": "phone on board only",
         "team.tafel.nurTeamspots": "team spots only",
@@ -1416,9 +1491,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Longest run",
         "team.vorlage.monat_strecke": "On-foil kilometres this month",
         "team.vorlage.session_pumps": "Most pumps in one session",
-    ]
-
-    private static let _en7: [String: String] = [
         "team.vorlage.top_speed": "Top speed",
         "team.vorlage.weitester_lauf": "Farthest run",
         "team.vorlage.wochenende_laeufe": "Most runs this weekend",
@@ -1455,6 +1527,7 @@ enum LocTeam {
         "leader.totalTime": "Temps on-foil total",
         "sd.avgHrFoil": "Ø fréq. card. sur le foil",
         "team.ablehnen": "Refuser",
+        "team.abzeichen": "Badges d'événement",
         "team.adresse": "Adresse",
         "team.adresseAendernHinweis": "Les anciennes adresses redirigent, les liens partagés restent valables.",
         "team.adresseHinweis": "Lettres minuscules, chiffres et tirets uniquement.",
@@ -1472,10 +1545,10 @@ enum LocTeam {
         "team.anfrage.sessions": "{n} sessions",
         "team.anfrage.spots": "Spots",
         "team.anfragen": "Demandes",
-        "team.anfragenEins": "1 nouvelle demande",
     ]
 
     private static let _fr1: [String: String] = [
+        "team.anfragenEins": "1 nouvelle demande",
         "team.anfragenViele": "{n} nouvelles demandes",
         "team.anmeldungenZulassen": "Autoriser les inscriptions",
         "team.anmeldungenZulassenText": "Les utilisateurs connectés voient un bouton « Rejoindre » sur la page de l'équipe.",
@@ -1497,9 +1570,12 @@ enum LocTeam {
         "team.beschreibung": "Description",
         "team.bestenlisten": "Classements",
         "team.bestenlistenHinweis": "Pour chaque personne compte sa meilleure valeur ou son total sur la période choisie. Toutes les sessions des membres comptent, y compris celles d'avant leur adhésion.",
+        "team.bild.mitMeinemTeam": "Inclure mon équipe",
+        "team.bild.mitMir": "M'inclure",
         "team.bild.titel": "Partager en image",
         "team.chat": "Chat d'équipe",
         "team.chatTitel": "Équipe {name}",
+        "team.community": "Équipes",
         "team.communityLeer": "Pas encore d'équipes publiques. Crée la première !",
         "team.entfernen": "Retirer",
         "team.entfernenFrage": "Retirer {name} de l'équipe ?",
@@ -1517,13 +1593,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "Ce n'est pas autorisé.",
         "team.err.not found": "Introuvable.",
         "team.err.nur_leiter": "Seul le responsable de l'équipe peut faire cela.",
+    ]
+
+    private static let _fr2: [String: String] = [
         "team.err.nur_verwalter": "Seuls le responsable de l'équipe et les modérateurs peuvent faire cela.",
         "team.err.slug_belegt": "Cette adresse est déjà prise.",
         "team.err.slug_laenge": "L'adresse doit compter de 3 à 40 caractères.",
         "team.err.slug_reserviert": "Cette adresse est réservée.",
-    ]
-
-    private static let _fr2: [String: String] = [
         "team.err.slug_zeichen": "Lettres minuscules, chiffres et tirets uniquement, pas au début ni à la fin.",
         "team.err.tafel": "Impossible de créer ce classement ainsi.",
         "team.err.unbekannt": "Ça n'a pas marché. Réessaie plus tard.",
@@ -1550,6 +1626,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "Aucun événement global en cours, et aucun ne commence dans les trois prochains jours.",
         "team.event.keineTeams": "Aucun membre d'équipe dans cet événement pour l'instant.",
         "team.event.loeschenFrage": "Supprimer l'événement « {titel} » ?",
+        "team.event.meinTeam": "Tu roules pour",
+        "team.event.meinTeamFest": "Moins de 6 heures avant la fin — ce choix est définitif.",
+        "team.event.meinTeamHinweis": "Tu es dans plusieurs équipes et tu comptes pour l’une d’elles dans cet événement. Tu peux changer jusqu’à 6 heures avant la fin de l’événement.",
         "team.event.minuten": "min",
         "team.event.neu": "Créer un événement",
         "team.event.neuLaden": "Actualiser",
@@ -1562,6 +1641,9 @@ enum LocTeam {
         "team.event.spots": "Spots",
         "team.event.stand": "Classement actuel",
         "team.event.standUm": "État à {zeit}",
+    ]
+
+    private static let _fr3: [String: String] = [
         "team.event.start": "Début",
         "team.event.startIn": "Commence dans",
         "team.event.status.auswertung": "résultats en attente",
@@ -1569,9 +1651,6 @@ enum LocTeam {
         "team.event.status.kommend": "à venir",
         "team.event.status.laeuft": "en cours",
         "team.event.stunden": "h",
-    ]
-
-    private static let _fr3: [String: String] = [
         "team.event.summen": "Totaux de l'événement",
         "team.event.summenHinweis": "Additionnés sur tous les participants. Coche ce qui doit apparaître sur la page de l'événement.",
         "team.event.tag": "jour",
@@ -1610,6 +1689,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "Ton équipe est validée et listée dans la communauté.",
         "team.freigabe.text.keine": "Pour l'instant, seuls les membres voient ton équipe. Demande la validation pour qu'elle apparaisse dans la communauté et que ses classements puissent devenir publics.",
         "team.freigabe.text.wartet": "Validation demandée. Nous vérifions le nom, l'adresse, la description, le blason et la couleur.",
+    ]
+
+    private static let _fr4: [String: String] = [
         "team.freigabe.titel": "Apparence publique",
         "team.freigabe.wartet": "en attente de validation",
         "team.gespeichert": "Enregistré.",
@@ -1617,9 +1699,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Ton équipe fonctionne tout de suite, via des liens d'invitation. Elle n'apparaît publiquement qu'une fois que nous avons vérifié son nom, sa description et son blason.",
         "team.gruendenKnopf": "Créer",
         "team.herkunft": "Pays / région",
-    ]
-
-    private static let _fr4: [String: String] = [
+        "team.ics.abo": "Ajouter au calendrier",
+        "team.ics.google": "Google Agenda",
+        "team.ics.kopieren": "Copier le lien du calendrier",
+        "team.ics.kopiert": "Copié",
+        "team.ics.titel": "S'abonner à tous les événements globaux dans votre calendrier – les nouveautés et changements apparaissent automatiquement",
         "team.join.anfrage": "Ta demande est envoyée au responsable de l'équipe, qui décide.",
         "team.join.anfrageProfil": "Pour l'examiner, elle voit sur quels spots et dans quels sports tu as été actif jusqu'ici (seulement le nombre de sessions).",
         "team.join.anfragen": "Envoyer la demande",
@@ -1653,6 +1737,9 @@ enum LocTeam {
         "team.link.apply": "Postuler",
         "team.link.applyText": "Qui ouvre ce lien envoie une demande, sur laquelle toi ou un modérateur décidez.",
         "team.link.join": "Rejoindre directement",
+    ]
+
+    private static let _fr5: [String: String] = [
         "team.link.joinText": "Qui ouvre ce lien devient membre tout de suite.",
         "team.linkNeu": "Générer un nouveau lien",
         "team.linkNeuFrage": "Générer un nouveau lien ? L'actuel ne fonctionnera plus.",
@@ -1665,9 +1752,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} bat « {was} » avec {wert} (avant : {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} détient « {was} » avec {wert}",
         "team.logbuchHinweis": "Qui a battu quel record de l'équipe, et quand. Mis à jour chaque nuit.",
-    ]
-
-    private static let _fr5: [String: String] = [
         "team.logbuchLeer": "Aucune entrée pour l'instant. Le premier état arrive la nuit qui suit la création des classements.",
         "team.logoHochladen": "Importer un blason",
         "team.meine": "Mes équipes",
@@ -1682,6 +1766,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "Classements publics",
         "team.oeffentlichErstNachFreigabe": "Effectif seulement une fois l'apparence validée.",
         "team.oeffentlichText": "Tout le monde voit alors les classements, même sans connexion : rang, nom affiché et valeur. Les sessions, spots et photos de profil restent visibles uniquement pour les utilisateurs connectés.",
+        "team.platz1": "1re place",
+        "team.platz2": "2e place",
+        "team.platz3": "3e place",
+        "team.primaer": "Équipe principale",
+        "team.primaerHinweis": "Dans les événements globaux, tu ne comptes que pour une équipe : ton équipe principale, sauf si tu en choisis une autre sur la page de l’événement.",
+        "team.primaerSetzen": "Définir comme équipe principale",
         "team.profilHinweis": "Crée ou rejoins des équipes avec leurs propres classements.",
         "team.profilKnopf": "Équipe",
         "team.qr": "QR code",
@@ -1694,7 +1784,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "Chat d'équipe",
         "team.regeln.events.text": "Un événement a une fenêtre de temps et ses propres classements, si on le souhaite uniquement sur certains spots.\nEn plus des classements, ou à leur place, un événement peut afficher des totaux sur tous les participants, par exemple les pumps ou la distance de toute l'équipe. Chaque événement a besoin d'au moins un classement ou un total.\nSeules les sessions qui commencent dans la fenêtre comptent.\nPour chaque événement, les responsables peuvent décider que les fichiers importés à la main (FIT, GPX, TCX) ne comptent pas ; les enregistrements de montres, de l'app et des comptes liés comptent toujours.\nAprès la fin, on peut encore envoyer des sessions pendant 4 heures ; la page de l'équipe affiche alors « résultats en attente ». Ensuite le résultat est figé, et un découpage ou une suppression ultérieurs ne changent plus rien.\nQui quitte l'équipe après la fin reste dans le résultat ; qui la rejoint ensuite n'y est plus ajouté.\nLes résultats sont figés la nuit, et aussi dès que quelqu'un ouvre la page de l'équipe.\nLes heures sont celles du fuseau horaire dans lequel l'événement a été créé et s'affichent ainsi pour tout le monde.\nLes places 1 à 3 reçoivent un badge d'événement sur leur page foiler, mais seulement pour les équipes dont l'apparence est validée.",
         "team.regeln.events.titel": "Événements",
-        "team.regeln.global.text": "Les événements globaux sont organisés par pumpfoil.org lui-même. Toute personne ayant des sessions correspondantes dans la période compte automatiquement, sans adhésion ni inscription.\nCelui qui ne veut pas participer le désactive dans son profil sous « Confidentialité » (« Ne pas participer aux événements globaux »). Il disparaît alors des classements, classements d'équipe, totaux et badges, y compris des événements déjà terminés.\nChaque classement a un classement d'équipe : la somme des meilleurs membres de chaque équipe, en général 5. Y participent les équipes validées aux classements publics ; quelqu'un qui est dans deux équipes compte pour les deux.\nLes classements sont aussi visibles sans connexion via le lien de l'événement : rang, nom affiché, initiales et valeur.\nSinon, les règles des événements s'appliquent : période, évaluation, gel et badges pour les places 1 à 3, marqués « Global » sur la page de profil.",
+        "team.regeln.global.text": "Les événements globaux sont organisés par pumpfoil.org lui-même. Toute personne ayant des sessions correspondantes dans la période compte automatiquement, sans adhésion ni inscription.\nCelui qui ne veut pas participer le désactive dans son profil sous « Confidentialité » (« Ne pas participer aux événements globaux »). Il disparaît alors des classements, classements d'équipe, totaux et badges, y compris des événements déjà terminés.\nChaque classement a un classement par équipe : la somme des meilleurs membres de chaque équipe, en général 5, et pour les vitesses (sprints) leur moyenne. Les équipes validées avec classements publics y participent. Qui est dans plusieurs équipes ne compte que pour une : son équipe principale (définie sous « Mes équipes », sinon la plus grande) ou celle choisie sur la page de l’événement. Modifiable jusqu’à 6 heures avant la fin de l’événement.\nLes classements sont aussi visibles sans connexion via le lien de l'événement : rang, nom affiché, initiales et valeur.\nSinon, les règles des événements s'appliquent : période, évaluation, gel et badges pour les places 1 à 3, marqués « Global » sur la page de profil.",
+    ]
+
+    private static let _fr6: [String: String] = [
         "team.regeln.global.titel": "Événements globaux",
         "team.regeln.haftung.text": "Les événements sont organisés par les équipes elles-mêmes. pumpfoil.org n'a aucune influence sur les événements ni sur les promesses qui y sont faites, financières ou autres, et décline toute responsabilité. Tout recours juridique est exclu. Les paiements et tous les autres accords se règlent entre organisateurs et participants, indépendamment de pumpfoil.org.\nDe même, pumpfoil.org décline toute responsabilité quant à l'exactitude des valeurs et données mesurées ou à leur éventuelle manipulation. Ce qui s'affiche est ce que le code source public sur GitHub calcule à partir des données envoyées ; il n'y a aucune autre garantie.",
         "team.regeln.haftung.titel": "Responsabilité",
@@ -1713,9 +1806,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "Au-dessus des classements figurent les totaux de tous les membres sur la période choisie : pumps, distance et temps on-foil, sessions, runs et nombre de membres actifs.\nÉquipe contre équipe : dans la communauté, les classements d'équipes comparent toutes les équipes validées aux classements publics, pour chaque indicateur avec la somme des 3, 5 ou 10 meilleurs riders. La même mesure s'y applique à toutes les équipes, pas les filtres de leurs propres classements.\nQuelqu'un qui est dans deux équipes compte pour les deux.",
         "team.regeln.statistik.titel": "Totaux de l'équipe",
         "team.regeln.titel": "Règles des équipes",
-    ]
-
-    private static let _fr6: [String: String] = [
         "team.regeln.was.text": "Un groupe fixe avec ses propres classements, événements et un chat d'équipe.\nTout le monde peut créer des équipes, même plusieurs, et faire partie de plusieurs équipes.\nUne nouvelle équipe fonctionne tout de suite, via des liens d'invitation.",
         "team.regeln.was.titel": "Qu'est-ce qu'une équipe ?",
         "team.rolle.leiter": "Responsable",
@@ -1743,6 +1833,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "Certains classements comptent aussi les runs enregistrés uniquement au GPS (sans données de mouvement).",
         "team.tafel.leer": "Aucune entrée sur cette période pour l'instant.",
         "team.tafel.neu": "Classement",
+    ]
+
+    private static let _fr7: [String: String] = [
         "team.tafel.nurBewegung": "avec données de mouvement uniquement",
         "team.tafel.nurBrett": "téléphone sur la planche uniquement",
         "team.tafel.nurTeamspots": "spots de l'équipe uniquement",
@@ -1761,9 +1854,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Run le plus durable",
         "team.vorlage.monat_strecke": "Kilomètres on-foil du mois",
         "team.vorlage.session_pumps": "Le plus de pumps en une session",
-    ]
-
-    private static let _fr7: [String: String] = [
         "team.vorlage.top_speed": "Vitesse max",
         "team.vorlage.weitester_lauf": "Run le plus long",
         "team.vorlage.wochenende_laeufe": "Le plus de runs ce week-end",
@@ -1800,6 +1890,7 @@ enum LocTeam {
         "leader.totalTime": "Tempo on-foil totale",
         "sd.avgHrFoil": "Ø battito sul foil",
         "team.ablehnen": "Rifiuta",
+        "team.abzeichen": "Badge degli eventi",
         "team.adresse": "Indirizzo",
         "team.adresseAendernHinweis": "I vecchi indirizzi reindirizzano, i link condivisi restano validi.",
         "team.adresseHinweis": "Solo lettere minuscole, cifre e trattini.",
@@ -1817,10 +1908,10 @@ enum LocTeam {
         "team.anfrage.sessions": "{n} sessioni",
         "team.anfrage.spots": "Spot",
         "team.anfragen": "Richieste",
-        "team.anfragenEins": "1 nuova richiesta",
     ]
 
     private static let _it1: [String: String] = [
+        "team.anfragenEins": "1 nuova richiesta",
         "team.anfragenViele": "{n} nuove richieste",
         "team.anmeldungenZulassen": "Consenti le iscrizioni",
         "team.anmeldungenZulassenText": "Chi ha effettuato l'accesso vede un pulsante «Unisciti» nella pagina del team.",
@@ -1842,9 +1933,12 @@ enum LocTeam {
         "team.beschreibung": "Descrizione",
         "team.bestenlisten": "Classifiche",
         "team.bestenlistenHinweis": "Per ogni persona conta il miglior valore o il totale nel periodo scelto. Contano tutte le sessioni dei membri, anche quelle precedenti all'adesione.",
+        "team.bild.mitMeinemTeam": "Includi il mio team",
+        "team.bild.mitMir": "Includi me",
         "team.bild.titel": "Condividi come immagine",
         "team.chat": "Chat del team",
         "team.chatTitel": "Team {name}",
+        "team.community": "Team",
         "team.communityLeer": "Ancora nessun team pubblico. Crea il primo!",
         "team.entfernen": "Rimuovi",
         "team.entfernenFrage": "Rimuovere {name} dal team?",
@@ -1862,13 +1956,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "Non è consentito.",
         "team.err.not found": "Non trovato.",
         "team.err.nur_leiter": "Può farlo solo il responsabile del team.",
+    ]
+
+    private static let _it2: [String: String] = [
         "team.err.nur_verwalter": "Possono farlo solo il responsabile del team e i moderatori.",
         "team.err.slug_belegt": "Questo indirizzo è già in uso.",
         "team.err.slug_laenge": "L'indirizzo deve avere da 3 a 40 caratteri.",
         "team.err.slug_reserviert": "Questo indirizzo è riservato.",
-    ]
-
-    private static let _it2: [String: String] = [
         "team.err.slug_zeichen": "Solo lettere minuscole, cifre e trattini, non all'inizio o alla fine.",
         "team.err.tafel": "Questa classifica non si può creare così.",
         "team.err.unbekannt": "Non ha funzionato. Riprova più tardi.",
@@ -1895,6 +1989,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "Al momento non c'è nessun evento globale e nessuno inizia nei prossimi tre giorni.",
         "team.event.keineTeams": "Ancora nessun membro di un team in questo evento.",
         "team.event.loeschenFrage": "Eliminare l'evento «{titel}»?",
+        "team.event.meinTeam": "Gareggi per",
+        "team.event.meinTeamFest": "Mancano meno di 6 ore — questa scelta è definitiva.",
+        "team.event.meinTeamHinweis": "Sei in più team e in questo evento conti per uno di essi. Puoi cambiarlo fino a 6 ore prima della fine dell’evento.",
         "team.event.minuten": "min",
         "team.event.neu": "Crea evento",
         "team.event.neuLaden": "Aggiorna",
@@ -1907,6 +2004,9 @@ enum LocTeam {
         "team.event.spots": "Spot",
         "team.event.stand": "Classifica attuale",
         "team.event.standUm": "Aggiornato alle {zeit}",
+    ]
+
+    private static let _it3: [String: String] = [
         "team.event.start": "Inizio",
         "team.event.startIn": "Inizia tra",
         "team.event.status.auswertung": "risultati in attesa",
@@ -1914,9 +2014,6 @@ enum LocTeam {
         "team.event.status.kommend": "in arrivo",
         "team.event.status.laeuft": "in corso",
         "team.event.stunden": "ore",
-    ]
-
-    private static let _it3: [String: String] = [
         "team.event.summen": "Totali dell'evento",
         "team.event.summenHinweis": "Sommati su tutti i partecipanti. Seleziona cosa mostrare nella pagina dell'evento.",
         "team.event.tag": "giorno",
@@ -1955,6 +2052,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "Il tuo team è approvato e compare nella community.",
         "team.freigabe.text.keine": "Finora il tuo team è visibile solo ai membri. Richiedi l'approvazione perché compaia nella community e le classifiche possano diventare pubbliche.",
         "team.freigabe.text.wartet": "Approvazione richiesta. Controlleremo nome, indirizzo, descrizione, stemma e colore.",
+    ]
+
+    private static let _it4: [String: String] = [
         "team.freigabe.titel": "Aspetto pubblico",
         "team.freigabe.wartet": "in attesa di approvazione",
         "team.gespeichert": "Salvato.",
@@ -1962,9 +2062,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Il tuo team funziona subito, tramite link d'invito. Compare nell'elenco pubblico solo dopo che abbiamo dato un'occhiata a nome, descrizione e stemma.",
         "team.gruendenKnopf": "Crea",
         "team.herkunft": "Paese / regione",
-    ]
-
-    private static let _it4: [String: String] = [
+        "team.ics.abo": "Aggiungi al calendario",
+        "team.ics.google": "Google Calendar",
+        "team.ics.kopieren": "Copia link del calendario",
+        "team.ics.kopiert": "Copiato",
+        "team.ics.titel": "Iscriviti a tutti gli eventi globali nel tuo calendario – quelli nuovi e modificati compaiono da soli",
         "team.join.anfrage": "La tua richiesta va al responsabile del team, che decide.",
         "team.join.anfrageProfil": "Per valutarla, vede in quali spot e in quali sport sei stato finora (solo il numero di sessioni).",
         "team.join.anfragen": "Invia richiesta",
@@ -1998,6 +2100,9 @@ enum LocTeam {
         "team.link.apply": "Candidati",
         "team.link.applyText": "Chi apre questo link invia una richiesta, su cui decidi tu o un moderatore.",
         "team.link.join": "Unisciti direttamente",
+    ]
+
+    private static let _it5: [String: String] = [
         "team.link.joinText": "Chi apre questo link diventa subito membro.",
         "team.linkNeu": "Genera nuovo link",
         "team.linkNeuFrage": "Generare un nuovo link? Quello attuale smetterà di funzionare.",
@@ -2010,9 +2115,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} batte «{was}» con {wert} (prima: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} detiene «{was}» con {wert}",
         "team.logbuchHinweis": "Chi ha battuto quale record del team, e quando. Aggiornato ogni notte.",
-    ]
-
-    private static let _it5: [String: String] = [
         "team.logbuchLeer": "Ancora nessuna voce. Il primo stato arriva la notte dopo la creazione delle classifiche.",
         "team.logoHochladen": "Carica stemma",
         "team.meine": "I miei team",
@@ -2027,6 +2129,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "Classifiche pubbliche",
         "team.oeffentlichErstNachFreigabe": "Ha effetto solo quando l'aspetto è approvato.",
         "team.oeffentlichText": "Così tutti vedono le classifiche, anche senza accesso: posizione, nome visualizzato e valore. Sessioni, spot e foto profilo restano visibili solo agli utenti che hanno effettuato l'accesso.",
+        "team.platz1": "1º posto",
+        "team.platz2": "2º posto",
+        "team.platz3": "3º posto",
+        "team.primaer": "Team principale",
+        "team.primaerHinweis": "Negli eventi globali conti per un solo team: il tuo team principale, a meno che tu non ne scelga un altro nella pagina dell’evento.",
+        "team.primaerSetzen": "Imposta come team principale",
         "team.profilHinweis": "Crea team o unisciti, con classifiche proprie.",
         "team.profilKnopf": "Team",
         "team.qr": "Codice QR",
@@ -2039,7 +2147,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "Chat del team",
         "team.regeln.events.text": "Un evento ha una finestra di tempo e classifiche proprie, se si vuole solo in certi spot.\nOltre alle classifiche, o al loro posto, un evento può mostrare totali su tutti i partecipanti, come i pump o la distanza dell'intero team. Ogni evento richiede almeno una classifica o un totale.\nContano solo le sessioni che iniziano nella finestra.\nPer ogni evento il responsabile può decidere che i file caricati a mano (FIT, GPX, TCX) non contino; le registrazioni da orologi, app e account collegati contano comunque.\nDopo la fine si può ancora caricare per 4 ore; la pagina del team mostra allora «risultati in attesa». Poi il risultato è congelato, e ritagli o eliminazioni successivi non cambiano più nulla.\nChi esce dopo la fine resta nel risultato; chi entra dopo non viene più aggiunto.\nI risultati vengono congelati di notte e inoltre appena qualcuno apre la pagina del team.\nGli orari valgono nel fuso orario in cui è stato creato l'evento e vengono mostrati così a tutti.\nI posti da 1 a 3 ricevono un badge dell'evento sulla loro pagina foiler, ma solo nei team il cui aspetto è approvato.",
         "team.regeln.events.titel": "Eventi",
-        "team.regeln.global.text": "Gli eventi globali li organizza pumpfoil.org stesso. Conta automaticamente chiunque abbia sessioni adatte nel periodo, senza entrare in un team e senza iscriversi.\nChi non vuole partecipare lo disattiva nel profilo sotto «Privacy» («Non partecipare agli eventi globali»). Allora sparisce da classifiche, classifiche dei team, totali e badge, anche negli eventi già conclusi.\nOgni classifica ha una classifica dei team: la somma dei migliori membri di ogni team, di solito 5. Partecipano i team approvati con classifiche pubbliche; chi è in due team conta per entrambi.\nLe classifiche sono visibili anche senza accesso tramite il link dell'evento: posizione, nome visualizzato, iniziali e valore.\nPer il resto valgono le regole degli eventi: periodo, valutazione, congelamento e badge per i posti da 1 a 3, contrassegnati con «Global» sulla pagina profilo.",
+        "team.regeln.global.text": "Gli eventi globali li organizza pumpfoil.org stesso. Conta automaticamente chiunque abbia sessioni adatte nel periodo, senza entrare in un team e senza iscriversi.\nChi non vuole partecipare lo disattiva nel profilo sotto «Privacy» («Non partecipare agli eventi globali»). Allora sparisce da classifiche, classifiche dei team, totali e badge, anche negli eventi già conclusi.\nOgni classifica ha una classifica a squadre: la somma dei migliori membri di ogni team, di solito 5, e per le velocità (sprint) la loro media. Partecipano i team approvati con classifiche pubbliche. Chi è in più team conta per uno solo: il suo team principale (impostato in «I miei team», altrimenti il più grande) o quello scelto nella pagina dell’evento. Si può cambiare fino a 6 ore prima della fine dell’evento.\nLe classifiche sono visibili anche senza accesso tramite il link dell'evento: posizione, nome visualizzato, iniziali e valore.\nPer il resto valgono le regole degli eventi: periodo, valutazione, congelamento e badge per i posti da 1 a 3, contrassegnati con «Global» sulla pagina profilo.",
+    ]
+
+    private static let _it6: [String: String] = [
         "team.regeln.global.titel": "Eventi globali",
         "team.regeln.haftung.text": "Gli eventi sono organizzati dai team stessi. pumpfoil.org non ha alcuna influenza sugli eventi né sulle promesse fatte al loro interno, economiche o di altro tipo, e non se ne assume alcuna responsabilità. È escluso il ricorso alle vie legali. Pagamenti e ogni altro accordo si regolano tra organizzatori e partecipanti, indipendentemente da pumpfoil.org.\nAllo stesso modo, pumpfoil.org non si assume alcuna responsabilità sulla correttezza dei valori e dei dati misurati o sulla loro eventuale manipolazione. Viene mostrato ciò che il codice sorgente pubblico su GitHub calcola dai dati caricati; non ci sono altre garanzie.",
         "team.regeln.haftung.titel": "Responsabilità",
@@ -2058,9 +2169,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "Sopra le classifiche ci sono i totali di tutti i membri nel periodo scelto: pumps, distanza e tempo on-foil, sessioni, run e quanti membri sono stati attivi.\nTeam contro team: nella community le classifiche dei team confrontano tutti i team approvati con classifiche pubbliche, per ogni metrica con la somma dei migliori 3, 5 o 10 rider. Lì vale per tutti i team la stessa misura, non i filtri delle proprie classifiche.\nChi è in due team conta per entrambi.",
         "team.regeln.statistik.titel": "Totali del team",
         "team.regeln.titel": "Regole dei team",
-    ]
-
-    private static let _it6: [String: String] = [
         "team.regeln.was.text": "Un gruppo fisso con classifiche proprie, eventi e una chat del team.\nChiunque può creare team, anche più di uno, e far parte di più team.\nUn nuovo team funziona subito, tramite link d'invito.",
         "team.regeln.was.titel": "Cos'è un team?",
         "team.rolle.leiter": "Responsabile",
@@ -2088,6 +2196,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "Alcune classifiche contano anche le corse registrate solo con GPS (senza dati di movimento).",
         "team.tafel.leer": "Ancora nessuna voce in questo periodo.",
         "team.tafel.neu": "Classifica",
+    ]
+
+    private static let _it7: [String: String] = [
         "team.tafel.nurBewegung": "solo con dati di movimento",
         "team.tafel.nurBrett": "solo telefono sulla tavola",
         "team.tafel.nurTeamspots": "solo spot del team",
@@ -2106,9 +2217,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Run più duraturo",
         "team.vorlage.monat_strecke": "Chilometri on-foil del mese",
         "team.vorlage.session_pumps": "Più pump in una sessione",
-    ]
-
-    private static let _it7: [String: String] = [
         "team.vorlage.top_speed": "Velocità max",
         "team.vorlage.weitester_lauf": "Run più lungo",
         "team.vorlage.wochenende_laeufe": "Più run nel weekend",
@@ -2145,6 +2253,7 @@ enum LocTeam {
         "leader.totalTime": "Tiempo on-foil total",
         "sd.avgHrFoil": "Ø pulso en el foil",
         "team.ablehnen": "Rechazar",
+        "team.abzeichen": "Insignias de eventos",
         "team.adresse": "Dirección",
         "team.adresseAendernHinweis": "Las direcciones antiguas redirigen, así que los enlaces compartidos siguen funcionando.",
         "team.adresseHinweis": "Solo minúsculas, números y guiones.",
@@ -2162,10 +2271,10 @@ enum LocTeam {
         "team.anfrage.sessions": "{n} sesiones",
         "team.anfrage.spots": "Spots",
         "team.anfragen": "Solicitudes",
-        "team.anfragenEins": "1 solicitud nueva",
     ]
 
     private static let _es1: [String: String] = [
+        "team.anfragenEins": "1 solicitud nueva",
         "team.anfragenViele": "{n} solicitudes nuevas",
         "team.anmeldungenZulassen": "Permitir solicitudes de ingreso",
         "team.anmeldungenZulassenText": "Los usuarios con sesión iniciada ven un botón «Unirse» en la página del equipo.",
@@ -2187,9 +2296,12 @@ enum LocTeam {
         "team.beschreibung": "Descripción",
         "team.bestenlisten": "Clasificaciones",
         "team.bestenlistenHinweis": "De cada persona cuenta su mejor valor o su total en el periodo elegido. Cuentan todas las sesiones de los miembros, también las de antes de unirse.",
+        "team.bild.mitMeinemTeam": "Incluir mi equipo",
+        "team.bild.mitMir": "Incluirme",
         "team.bild.titel": "Compartir como imagen",
         "team.chat": "Chat del equipo",
         "team.chatTitel": "Equipo {name}",
+        "team.community": "Equipos",
         "team.communityLeer": "Aún no hay equipos públicos. ¡Crea el primero!",
         "team.entfernen": "Quitar",
         "team.entfernenFrage": "¿Quitar a {name} del equipo?",
@@ -2207,13 +2319,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "Esto no está permitido.",
         "team.err.not found": "No encontrado.",
         "team.err.nur_leiter": "Solo el líder del equipo puede hacer esto.",
+    ]
+
+    private static let _es2: [String: String] = [
         "team.err.nur_verwalter": "Solo el líder del equipo y los moderadores pueden hacer esto.",
         "team.err.slug_belegt": "Esta dirección ya está en uso.",
         "team.err.slug_laenge": "La dirección necesita de 3 a 40 caracteres.",
         "team.err.slug_reserviert": "Esta dirección está reservada.",
-    ]
-
-    private static let _es2: [String: String] = [
         "team.err.slug_zeichen": "Solo minúsculas, números y guiones, no al principio ni al final.",
         "team.err.tafel": "Esta clasificación no se puede crear así.",
         "team.err.unbekannt": "No ha funcionado. Vuelve a intentarlo más tarde.",
@@ -2240,6 +2352,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "Ahora no hay ningún evento global y ninguno empieza en los próximos tres días.",
         "team.event.keineTeams": "Todavía no hay ningún miembro de un equipo en este evento.",
         "team.event.loeschenFrage": "¿Eliminar el evento «{titel}»?",
+        "team.event.meinTeam": "Compites por",
+        "team.event.meinTeamFest": "Quedan menos de 6 horas — esta elección es definitiva.",
+        "team.event.meinTeamHinweis": "Estás en varios equipos y en este evento cuentas para uno de ellos. Puedes cambiarlo hasta 6 horas antes del final del evento.",
         "team.event.minuten": "min",
         "team.event.neu": "Crear evento",
         "team.event.neuLaden": "Actualizar",
@@ -2252,6 +2367,9 @@ enum LocTeam {
         "team.event.spots": "Spots",
         "team.event.stand": "Clasificación actual",
         "team.event.standUm": "Actualizado a las {zeit}",
+    ]
+
+    private static let _es3: [String: String] = [
         "team.event.start": "Inicio",
         "team.event.startIn": "Empieza en",
         "team.event.status.auswertung": "resultados pendientes",
@@ -2259,9 +2377,6 @@ enum LocTeam {
         "team.event.status.kommend": "próximo",
         "team.event.status.laeuft": "en curso",
         "team.event.stunden": "h",
-    ]
-
-    private static let _es3: [String: String] = [
         "team.event.summen": "Totales del evento",
         "team.event.summenHinweis": "Sumados entre todos los participantes. Marca lo que debe aparecer en la página del evento.",
         "team.event.tag": "día",
@@ -2300,6 +2415,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "Tu equipo está aprobado y aparece en la comunidad.",
         "team.freigabe.text.keine": "Por ahora solo los miembros ven tu equipo. Solicita la aprobación para que aparezca en la comunidad y sus clasificaciones puedan hacerse públicas.",
         "team.freigabe.text.wartet": "Aprobación solicitada. Revisaremos el nombre, la dirección, la descripción, el escudo y el color.",
+    ]
+
+    private static let _es4: [String: String] = [
         "team.freigabe.titel": "Apariencia pública",
         "team.freigabe.wartet": "pendiente de aprobación",
         "team.gespeichert": "Guardado.",
@@ -2307,9 +2425,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Tu equipo funciona desde ya, con enlaces de invitación. Aparece en la lista pública cuando hayamos revisado su nombre, descripción y escudo.",
         "team.gruendenKnopf": "Crear",
         "team.herkunft": "País / región",
-    ]
-
-    private static let _es4: [String: String] = [
+        "team.ics.abo": "Añadir al calendario",
+        "team.ics.google": "Google Calendar",
+        "team.ics.kopieren": "Copiar enlace del calendario",
+        "team.ics.kopiert": "Copiado",
+        "team.ics.titel": "Suscríbete a todos los eventos globales en tu calendario: los nuevos y los cambios aparecen solos",
         "team.join.anfrage": "Tu solicitud llega al líder del equipo, que decide.",
         "team.join.anfrageProfil": "Para revisarla, ve en qué spots y deportes has estado hasta ahora (solo el número de sesiones).",
         "team.join.anfragen": "Enviar solicitud",
@@ -2343,6 +2463,9 @@ enum LocTeam {
         "team.link.apply": "Solicitar ingreso",
         "team.link.applyText": "Quien abra este enlace envía una solicitud sobre la que decides tú o un moderador.",
         "team.link.join": "Unirse directamente",
+    ]
+
+    private static let _es5: [String: String] = [
         "team.link.joinText": "Quien abra este enlace se convierte en miembro al instante.",
         "team.linkNeu": "Generar nuevo enlace",
         "team.linkNeuFrage": "¿Generar un nuevo enlace? El actual dejará de funcionar.",
@@ -2355,9 +2478,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} bate «{was}» con {wert} (antes: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} tiene «{was}» con {wert}",
         "team.logbuchHinweis": "Quién batió qué récord del equipo y cuándo. Se actualiza cada noche.",
-    ]
-
-    private static let _es5: [String: String] = [
         "team.logbuchLeer": "Aún no hay entradas. El primer estado aparece la noche después de crear las clasificaciones.",
         "team.logoHochladen": "Subir escudo",
         "team.meine": "Mis equipos",
@@ -2372,6 +2492,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "Clasificaciones públicas",
         "team.oeffentlichErstNachFreigabe": "Solo tiene efecto cuando la apariencia esté aprobada.",
         "team.oeffentlichText": "Así cualquiera ve las clasificaciones, incluso sin iniciar sesión: puesto, nombre visible y valor. Las sesiones, los spots y las fotos de perfil solo los ven los usuarios con sesión iniciada.",
+        "team.platz1": "1.er puesto",
+        "team.platz2": "2.º puesto",
+        "team.platz3": "3.er puesto",
+        "team.primaer": "Equipo principal",
+        "team.primaerHinweis": "En los eventos globales solo cuentas para un equipo: tu equipo principal, salvo que elijas otro en la página del evento.",
+        "team.primaerSetzen": "Fijar como equipo principal",
         "team.profilHinweis": "Crea equipos o únete a ellos, con sus propias clasificaciones.",
         "team.profilKnopf": "Equipo",
         "team.qr": "Código QR",
@@ -2384,7 +2510,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "Chat del equipo",
         "team.regeln.events.text": "Un evento tiene una franja de tiempo y sus propias clasificaciones, si se quiere solo en ciertos spots.\nAdemás de las clasificaciones, o en su lugar, un evento puede mostrar totales de todos los participantes, como los pumps o la distancia de todo el equipo. Cada evento necesita al menos una clasificación o un total.\nSolo cuentan las sesiones que empiezan dentro de la franja.\nEn cada evento, el líder puede decidir que no cuenten los archivos subidos a mano (FIT, GPX, TCX); las grabaciones de relojes, la app y cuentas vinculadas siguen contando.\nTras el final aún se puede subir durante 4 horas; la página del equipo muestra entonces «resultados pendientes». Después el resultado queda congelado, y recortar o eliminar más tarde ya no cambia nada.\nQuien sale después del final sigue en el resultado; quien se une después ya no entra.\nLos resultados se congelan por la noche y además en cuanto alguien abre la página del equipo.\nLas horas valen en la zona horaria en la que se creó el evento y se muestran así a todos.\nLos puestos 1 a 3 reciben una insignia del evento en su página de foiler, pero solo en equipos cuya apariencia está aprobada.",
         "team.regeln.events.titel": "Eventos",
-        "team.regeln.global.text": "Los eventos globales los organiza el propio pumpfoil.org. Cuenta automáticamente cualquiera con sesiones adecuadas en el periodo, sin unirse ni inscribirse.\nQuien no quiera participar lo desactiva en su perfil, en «Privacidad» («No participar en eventos globales»). Entonces desaparece de clasificaciones, clasificaciones de equipo, totales e insignias, también en eventos ya terminados.\nCada clasificación tiene una clasificación de equipos: la suma de los mejores miembros de cada equipo, normalmente 5. Participan los equipos aprobados con clasificaciones públicas; quien está en dos equipos cuenta para ambos.\nLas clasificaciones también se ven sin iniciar sesión mediante el enlace del evento: puesto, nombre visible, iniciales y valor.\nPor lo demás se aplican las reglas de los eventos: periodo, evaluación, congelación e insignias para los puestos 1 a 3, marcadas con «Global» en la página de perfil.",
+        "team.regeln.global.text": "Los eventos globales los organiza el propio pumpfoil.org. Cuenta automáticamente cualquiera con sesiones adecuadas en el periodo, sin unirse ni inscribirse.\nQuien no quiera participar lo desactiva en su perfil, en «Privacidad» («No participar en eventos globales»). Entonces desaparece de clasificaciones, clasificaciones de equipo, totales e insignias, también en eventos ya terminados.\nCada clasificación tiene una clasificación por equipos: la suma de los mejores miembros de cada equipo, normalmente 5, y en las velocidades (sprints) su media. Participan los equipos aprobados con clasificaciones públicas. Quien está en varios equipos cuenta solo para uno: su equipo principal (fijado en «Mis equipos»; si no, el más grande) o el elegido en la página del evento. Se puede cambiar hasta 6 horas antes del final del evento.\nLas clasificaciones también se ven sin iniciar sesión mediante el enlace del evento: puesto, nombre visible, iniciales y valor.\nPor lo demás se aplican las reglas de los eventos: periodo, evaluación, congelación e insignias para los puestos 1 a 3, marcadas con «Global» en la página de perfil.",
+    ]
+
+    private static let _es6: [String: String] = [
         "team.regeln.global.titel": "Eventos globales",
         "team.regeln.haftung.text": "Los eventos los organizan los propios equipos. pumpfoil.org no tiene ninguna influencia sobre los eventos ni sobre las promesas que se hagan en ellos, económicas o de otro tipo, y no asume ninguna responsabilidad. Queda excluida la vía judicial. Los pagos y cualquier otro acuerdo los resuelven organizadores y participantes, independientemente de pumpfoil.org.\nDel mismo modo, pumpfoil.org no asume ninguna responsabilidad sobre si los valores y datos medidos son correctos o han sido manipulados. Se muestra lo que el código fuente público en GitHub calcula a partir de los datos subidos; no hay más promesas.",
         "team.regeln.haftung.titel": "Responsabilidad",
@@ -2403,9 +2532,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "Encima de las clasificaciones están los totales de todos los miembros en el periodo elegido: pumps, distancia y tiempo on-foil, sesiones, runs y cuántos miembros estuvieron activos.\nEquipo contra equipo: en la comunidad, las clasificaciones de equipos comparan todos los equipos aprobados con clasificaciones públicas, en cada métrica con la suma de los mejores 3, 5 o 10 riders. Allí se aplica la misma medida a todos los equipos, no los filtros de sus propias clasificaciones.\nQuien está en dos equipos cuenta para ambos.",
         "team.regeln.statistik.titel": "Totales del equipo",
         "team.regeln.titel": "Reglas de los equipos",
-    ]
-
-    private static let _es6: [String: String] = [
         "team.regeln.was.text": "Un grupo fijo con sus propias clasificaciones, eventos y un chat del equipo.\nCualquiera puede crear equipos, también varios, y estar en varios equipos.\nUn equipo nuevo funciona al instante, con enlaces de invitación.",
         "team.regeln.was.titel": "¿Qué es un equipo?",
         "team.rolle.leiter": "Líder",
@@ -2433,6 +2559,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "Algunas clasificaciones también cuentan runs grabados solo con GPS (sin datos de movimiento).",
         "team.tafel.leer": "Aún no hay entradas en este periodo.",
         "team.tafel.neu": "Clasificación",
+    ]
+
+    private static let _es7: [String: String] = [
         "team.tafel.nurBewegung": "solo con datos de movimiento",
         "team.tafel.nurBrett": "solo teléfono en la tabla",
         "team.tafel.nurTeamspots": "solo spots del equipo",
@@ -2451,9 +2580,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Run más duradero",
         "team.vorlage.monat_strecke": "Kilómetros on-foil del mes",
         "team.vorlage.session_pumps": "Más pumps en una sesión",
-    ]
-
-    private static let _es7: [String: String] = [
         "team.vorlage.top_speed": "Velocidad máx.",
         "team.vorlage.weitester_lauf": "Run más largo",
         "team.vorlage.wochenende_laeufe": "Más runs este fin de semana",
@@ -2490,6 +2616,7 @@ enum LocTeam {
         "leader.totalTime": "Foil-aika yhteensä",
         "sd.avgHrFoil": "Ø syke foililla",
         "team.ablehnen": "Hylkää",
+        "team.abzeichen": "Tapahtumamerkit",
         "team.adresse": "Osoite",
         "team.adresseAendernHinweis": "Vanhat osoitteet ohjautuvat uuteen, joten jaetut linkit toimivat edelleen.",
         "team.adresseHinweis": "Vain pieniä kirjaimia, numeroita ja yhdysmerkkejä.",
@@ -2507,10 +2634,10 @@ enum LocTeam {
         "team.anfrage.sessions": "{n} sessiota",
         "team.anfrage.spots": "Spotit",
         "team.anfragen": "Pyynnöt",
-        "team.anfragenEins": "1 uusi pyyntö",
     ]
 
     private static let _fi1: [String: String] = [
+        "team.anfragenEins": "1 uusi pyyntö",
         "team.anfragenViele": "{n} uutta pyyntöä",
         "team.anmeldungenZulassen": "Salli liittymispyynnöt",
         "team.anmeldungenZulassenText": "Kirjautuneet käyttäjät näkevät tiimin sivulla painikkeen ”Liity”.",
@@ -2532,9 +2659,12 @@ enum LocTeam {
         "team.beschreibung": "Kuvaus",
         "team.bestenlisten": "Tulostaulukot",
         "team.bestenlistenHinweis": "Jokaiselta lasketaan paras tulos tai summa valitulta ajalta. Kaikki jäsenten sessiot lasketaan, myös ennen liittymistä ajetut.",
+        "team.bild.mitMeinemTeam": "Näytä myös tiimini",
+        "team.bild.mitMir": "Näytä myös minut",
         "team.bild.titel": "Jaa kuvana",
         "team.chat": "Tiimichat",
         "team.chatTitel": "Tiimi {name}",
+        "team.community": "Tiimit",
         "team.communityLeer": "Julkisia tiimejä ei vielä ole. Perusta ensimmäinen!",
         "team.entfernen": "Poista",
         "team.entfernenFrage": "Poistetaanko käyttäjä {name} tiimistä?",
@@ -2552,13 +2682,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "Tämä ei ole sallittua.",
         "team.err.not found": "Ei löytynyt.",
         "team.err.nur_leiter": "Vain tiimin vetäjä voi tehdä tämän.",
+    ]
+
+    private static let _fi2: [String: String] = [
         "team.err.nur_verwalter": "Vain tiimin vetäjä ja moderaattorit voivat tehdä tämän.",
         "team.err.slug_belegt": "Tämä osoite on jo käytössä.",
         "team.err.slug_laenge": "Osoitteessa on oltava 3–40 merkkiä.",
         "team.err.slug_reserviert": "Tämä osoite on varattu.",
-    ]
-
-    private static let _fi2: [String: String] = [
         "team.err.slug_zeichen": "Vain pieniä kirjaimia, numeroita ja yhdysmerkkejä, ei alussa eikä lopussa.",
         "team.err.tafel": "Tätä tulostaulukkoa ei voi luoda näin.",
         "team.err.unbekannt": "Se ei onnistunut. Yritä myöhemmin uudelleen.",
@@ -2585,6 +2715,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "Yhtään globaalia tapahtumaa ei ole käynnissä, eikä yksikään ala seuraavan kolmen päivän aikana.",
         "team.event.keineTeams": "Tapahtumassa ei ole vielä yhtään joukkueen jäsentä.",
         "team.event.loeschenFrage": "Poistetaanko tapahtuma ”{titel}”?",
+        "team.event.meinTeam": "Edustat tiimiä",
+        "team.event.meinTeamFest": "Alle 6 tuntia jäljellä — valinta on lopullinen.",
+        "team.event.meinTeamHinweis": "Olet useassa tiimissä ja lasket tässä tapahtumassa yhteen niistä. Voit vaihtaa sitä 6 tuntiin asti ennen tapahtuman loppua.",
         "team.event.minuten": "min",
         "team.event.neu": "Luo tapahtuma",
         "team.event.neuLaden": "Päivitä",
@@ -2597,6 +2730,9 @@ enum LocTeam {
         "team.event.spots": "Spotit",
         "team.event.stand": "Tilanne nyt",
         "team.event.standUm": "Tilanne {zeit}",
+    ]
+
+    private static let _fi3: [String: String] = [
         "team.event.start": "Alku",
         "team.event.startIn": "Alkaa",
         "team.event.status.auswertung": "tulokset tulossa",
@@ -2604,9 +2740,6 @@ enum LocTeam {
         "team.event.status.kommend": "tulossa",
         "team.event.status.laeuft": "käynnissä",
         "team.event.stunden": "t",
-    ]
-
-    private static let _fi3: [String: String] = [
         "team.event.summen": "Tapahtuman yhteissummat",
         "team.event.summenHinweis": "Laskettu yhteen kaikilta osallistujilta. Valitse, mitä tapahtuman sivulla näytetään.",
         "team.event.tag": "päivä",
@@ -2645,6 +2778,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "Tiimisi on hyväksytty ja näkyy yhteisössä.",
         "team.freigabe.text.keine": "Tiimisi näkyy toistaiseksi vain jäsenille. Hae hyväksyntää, niin se näkyy yhteisössä ja sen tulostaulukot voi avata julkisiksi.",
         "team.freigabe.text.wartet": "Hyväksyntää on haettu. Katsomme nimen, osoitteen, kuvauksen, tunnuksen ja värin.",
+    ]
+
+    private static let _fi4: [String: String] = [
         "team.freigabe.titel": "Julkinen ulkoasu",
         "team.freigabe.wartet": "odottaa hyväksyntää",
         "team.gespeichert": "Tallennettu.",
@@ -2652,9 +2788,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Tiimisi toimii heti kutsulinkkien kautta. Se näkyy julkisesti vasta, kun olemme katsoneet sen nimen, kuvauksen ja tunnuksen.",
         "team.gruendenKnopf": "Perusta",
         "team.herkunft": "Maa / alue",
-    ]
-
-    private static let _fi4: [String: String] = [
+        "team.ics.abo": "Lisää kalenteriin",
+        "team.ics.google": "Google-kalenteri",
+        "team.ics.kopieren": "Kopioi kalenterilinkki",
+        "team.ics.kopiert": "Kopioitu",
+        "team.ics.titel": "Tilaa kaikki globaalit tapahtumat kalenteriisi – uudet ja muuttuneet näkyvät automaattisesti",
         "team.join.anfrage": "Pyyntösi menee tiimin vetäjälle, joka päättää.",
         "team.join.anfrageProfil": "Arviointia varten vetäjä näkee, millä spoteilla ja missä lajeissa olet tähän asti liikkunut (vain sessioiden määrän).",
         "team.join.anfragen": "Lähetä pyyntö",
@@ -2688,6 +2826,9 @@ enum LocTeam {
         "team.link.apply": "Hae jäsenyyttä",
         "team.link.applyText": "Tämän linkin avaaja lähettää pyynnön, josta sinä tai moderaattori päätätte.",
         "team.link.join": "Liity suoraan",
+    ]
+
+    private static let _fi5: [String: String] = [
         "team.link.joinText": "Tämän linkin avaaja on heti jäsen.",
         "team.linkNeu": "Luo uusi linkki",
         "team.linkNeuFrage": "Luodaanko uusi linkki? Nykyinen lakkaa silloin toimimasta.",
@@ -2700,9 +2841,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} rikkoo ennätyksen ”{was}” tuloksella {wert} (aiemmin: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} pitää ennätystä ”{was}” tuloksella {wert}",
         "team.logbuchHinweis": "Kuka rikkoi minkäkin tiimiennätyksen ja milloin. Päivittyy joka yö.",
-    ]
-
-    private static let _fi5: [String: String] = [
         "team.logbuchLeer": "Ei vielä merkintöjä. Ensimmäinen tilanne tulee tulostaulukoiden luomista seuraavana yönä.",
         "team.logoHochladen": "Lataa tunnus",
         "team.meine": "Omat tiimit",
@@ -2717,6 +2855,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "Julkiset tulostaulukot",
         "team.oeffentlichErstNachFreigabe": "Tulee voimaan vasta, kun ulkoasu on hyväksytty.",
         "team.oeffentlichText": "Silloin kuka tahansa näkee tulostaulukot ilman kirjautumista: sijan, näyttönimen ja tuloksen. Sessiot, spotit ja profiilikuvat näkyvät vain kirjautuneille.",
+        "team.platz1": "1. sija",
+        "team.platz2": "2. sija",
+        "team.platz3": "3. sija",
+        "team.primaer": "Ensisijainen tiimi",
+        "team.primaerHinweis": "Globaaleissa tapahtumissa lasket vain yhteen tiimiin: ensisijaiseen tiimiisi, ellet valitse toista tapahtuman sivulla.",
+        "team.primaerSetzen": "Aseta ensisijaiseksi tiimiksi",
         "team.profilHinweis": "Perusta tiimejä tai liity niihin, ja pidä omia tulostaulukoita.",
         "team.profilKnopf": "Tiimi",
         "team.qr": "QR-koodi",
@@ -2729,7 +2873,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "Tiimichat",
         "team.regeln.events.text": "Tapahtumalla on aikaikkuna ja omat tulostaulukot, halutessa vain tietyillä spoteilla.\nTulostaulukoiden lisäksi tai sijaan tapahtuma voi näyttää kaikkien osallistujien yhteissummia, esimerkiksi koko tiimin pumppaukset tai matkan. Jokainen tapahtuma tarvitsee vähintään yhden tulostaulukon tai yhteissumman.\nMukaan lasketaan vain sessiot, jotka alkavat aikaikkunan sisällä.\nVetäjä voi päättää tapahtumakohtaisesti, ettei käsin ladattuja tiedostoja (FIT, GPX, TCX) lasketa; kellojen, sovelluksen ja yhdistettyjen tilien tallenteet lasketaan edelleen.\nLopun jälkeen voi vielä 4 tuntia ladata sessioita, ja tiimisivulla näkyy silloin ”tulokset tulossa”. Sen jälkeen tulos jäädytetään, eikä myöhempi rajaus tai poisto enää muuta mitään.\nLopun jälkeen eroava pysyy tuloksissa; myöhemmin liittyvä ei enää tule mukaan.\nJäädytys tehdään öisin ja lisäksi heti, kun joku avaa tiimisivun.\nAjat ovat sen aikavyöhykkeen mukaisia, jossa tapahtuma luotiin, ja ne näytetään kaikille samoin.\nSijat 1–3 saavat tapahtumamerkin foilaajasivulleen, mutta vain tiimeissä, joiden ulkoasu on hyväksytty.",
         "team.regeln.events.titel": "Tapahtumat",
-        "team.regeln.global.text": "Globaalit tapahtumat järjestää pumpfoil.org itse. Jokainen, jolla on sopivia sessioita aikaikkunassa, lasketaan automaattisesti mukaan, ilman liittymistä ja ilmoittautumista.\nJoka ei halua osallistua, kytkee sen pois profiilissa kohdassa ”Yksityisyys” (”Älä osallistu globaaleihin tapahtumiin”). Silloin hän puuttuu tulostauluilta, tiimipisteistä, summista ja merkeistä, myös jo päättyneistä tapahtumista.\nJokaisella tulostaululla on tiimipisteet: kunkin tiimin parhaiden jäsenten summa, yleensä 5. Mukana ovat hyväksytyt tiimit, joilla on julkiset tulostaulut; kahdessa tiimissä oleva lasketaan molempiin.\nTulostaulut näkyvät myös kirjautumatta tapahtumalinkin kautta: sija, näyttönimi, nimikirjaimet ja arvo.\nMuuten pätevät tapahtumien säännöt: aikaikkuna, tulosten laskenta, jäädytys ja merkit sijoille 1–3, profiilisivulla merkinnällä ”Global”.",
+        "team.regeln.global.text": "Globaalit tapahtumat järjestää pumpfoil.org itse. Jokainen, jolla on sopivia sessioita aikaikkunassa, lasketaan automaattisesti mukaan, ilman liittymistä ja ilmoittautumista.\nJoka ei halua osallistua, kytkee sen pois profiilissa kohdassa ”Yksityisyys” (”Älä osallistu globaaleihin tapahtumiin”). Silloin hän puuttuu tulostauluilta, tiimipisteistä, summista ja merkeistä, myös jo päättyneistä tapahtumista.\nJokaisella tulostaululla on tiimien sarja: kunkin tiimin parhaiden jäsenten summa, yleensä 5, ja nopeuksissa (sprintit) heidän keskiarvonsa. Mukana ovat hyväksytyt tiimit, joiden tulostaulut ovat julkisia. Useassa tiimissä oleva lasketaan vain yhteen: ensisijaiseen tiimiinsä (asetetaan kohdassa ”Omat tiimit”, muuten suurimpaan) tai tapahtuman sivulla valittuun. Valintaa voi muuttaa 6 tuntiin asti ennen tapahtuman loppua.\nTulostaulut näkyvät myös kirjautumatta tapahtumalinkin kautta: sija, näyttönimi, nimikirjaimet ja arvo.\nMuuten pätevät tapahtumien säännöt: aikaikkuna, tulosten laskenta, jäädytys ja merkit sijoille 1–3, profiilisivulla merkinnällä ”Global”.",
+    ]
+
+    private static let _fi6: [String: String] = [
         "team.regeln.global.titel": "Globaalit tapahtumat",
         "team.regeln.haftung.text": "Tapahtumat järjestävät tiimit itse. pumpfoil.orgilla ei ole vaikutusvaltaa tapahtumiin eikä niissä annettuihin taloudellisiin tai muihin lupauksiin, eikä se ota niistä vastuuta. Oikeustie on suljettu pois. Maksut ja kaikki muut sopimukset järjestäjät ja osallistujat hoitavat keskenään, pumpfoil.orgista riippumatta.\nSamoin pumpfoil.org ei vastaa siitä, ovatko mitatut arvot ja tiedot oikeita tai onko niitä manipuloitu. Näytetään se, minkä GitHubissa oleva julkinen lähdekoodi laskee ladatuista tiedoista; muita lupauksia ei ole.",
         "team.regeln.haftung.titel": "Vastuu",
@@ -2748,9 +2895,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "Tulostaulukoiden yläpuolella ovat kaikkien jäsenten summat valitulta ajalta: pumppaukset, foil-matka ja foil-aika, sessiot, lenkit ja montako jäsentä oli aktiivisia.\nTiimi vastaan tiimi: yhteisössä tiimien tulostaulut vertaavat kaikkia hyväksyttyjä tiimejä, joilla on julkiset tulostaulut, jokaisessa mittarissa parhaan 3, 5 tai 10 ajajan summalla. Siellä kaikkia tiimejä mitataan samalla tavalla, ei niiden omien tulostaulujen suodattimilla.\nKahdessa tiimissä oleva lasketaan molempiin.",
         "team.regeln.statistik.titel": "Tiimin summat",
         "team.regeln.titel": "Tiimien säännöt",
-    ]
-
-    private static let _fi6: [String: String] = [
         "team.regeln.was.text": "Pysyvä ryhmä, jolla on omat tulostaulukot, tapahtumat ja tiimichat.\nKuka tahansa voi perustaa tiimejä, myös useita, ja kuulua useaan tiimiin.\nUusi tiimi toimii heti kutsulinkkien kautta.",
         "team.regeln.was.titel": "Mikä on tiimi?",
         "team.rolle.leiter": "Vetäjä",
@@ -2778,6 +2922,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "Osa tulostaulukoista laskee myös pelkällä GPS:llä tallennetut lenkit (ilman liiketietoja).",
         "team.tafel.leer": "Tällä aikavälillä ei vielä tuloksia.",
         "team.tafel.neu": "Tulostaulukko",
+    ]
+
+    private static let _fi7: [String: String] = [
         "team.tafel.nurBewegung": "vain liiketiedoilla",
         "team.tafel.nurBrett": "vain puhelin laudalla",
         "team.tafel.nurTeamspots": "vain tiimin spotit",
@@ -2796,9 +2943,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Pisin lenkki",
         "team.vorlage.monat_strecke": "Foil-kilometrit kuukaudessa",
         "team.vorlage.session_pumps": "Eniten pumppauksia yhdessä sessiossa",
-    ]
-
-    private static let _fi7: [String: String] = [
         "team.vorlage.top_speed": "Huippunopeus",
         "team.vorlage.weitester_lauf": "Pisin matka",
         "team.vorlage.wochenende_laeufe": "Eniten lenkkejä viikonloppuna",
@@ -2835,6 +2979,7 @@ enum LocTeam {
         "leader.totalTime": "Totale on-foil-tijd",
         "sd.avgHrFoil": "Ø hartslag op de foil",
         "team.ablehnen": "Afwijzen",
+        "team.abzeichen": "Event-badges",
         "team.adresse": "Adres",
         "team.adresseAendernHinweis": "Oude adressen sturen door, gedeelde links blijven werken.",
         "team.adresseHinweis": "Alleen kleine letters, cijfers en koppeltekens.",
@@ -2852,10 +2997,10 @@ enum LocTeam {
         "team.anfrage.sessions": "{n} sessies",
         "team.anfrage.spots": "Spots",
         "team.anfragen": "Verzoeken",
-        "team.anfragenEins": "1 nieuw verzoek",
     ]
 
     private static let _nl1: [String: String] = [
+        "team.anfragenEins": "1 nieuw verzoek",
         "team.anfragenViele": "{n} nieuwe verzoeken",
         "team.anmeldungenZulassen": "Aanmeldingen toestaan",
         "team.anmeldungenZulassenText": "Ingelogde gebruikers zien op de teampagina een knop „Lid worden”.",
@@ -2877,9 +3022,12 @@ enum LocTeam {
         "team.beschreibung": "Beschrijving",
         "team.bestenlisten": "Ranglijsten",
         "team.bestenlistenHinweis": "Per persoon telt de beste waarde of het totaal in de gekozen periode. Alle sessies van de leden tellen mee, ook die van voor het lidmaatschap.",
+        "team.bild.mitMeinemTeam": "Mijn team tonen",
+        "team.bild.mitMir": "Mezelf tonen",
         "team.bild.titel": "Delen als afbeelding",
         "team.chat": "Teamchat",
         "team.chatTitel": "Team {name}",
+        "team.community": "Teams",
         "team.communityLeer": "Nog geen openbare teams. Richt het eerste op!",
         "team.entfernen": "Verwijderen",
         "team.entfernenFrage": "{name} uit het team verwijderen?",
@@ -2897,13 +3045,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "Dat is niet toegestaan.",
         "team.err.not found": "Niet gevonden.",
         "team.err.nur_leiter": "Dat mag alleen de teamleiding.",
+    ]
+
+    private static let _nl2: [String: String] = [
         "team.err.nur_verwalter": "Dat mogen alleen de teamleiding en moderatoren.",
         "team.err.slug_belegt": "Dit adres is al in gebruik.",
         "team.err.slug_laenge": "Het adres moet 3 tot 40 tekens lang zijn.",
         "team.err.slug_reserviert": "Dit adres is gereserveerd.",
-    ]
-
-    private static let _nl2: [String: String] = [
         "team.err.slug_zeichen": "Alleen kleine letters, cijfers en koppeltekens, niet aan het begin of einde.",
         "team.err.tafel": "Deze ranglijst kan zo niet worden ingesteld.",
         "team.err.unbekannt": "Dat is niet gelukt. Probeer het later opnieuw.",
@@ -2930,6 +3078,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "Er loopt nu geen globaal event, en er begint er ook geen in de komende drie dagen.",
         "team.event.keineTeams": "Nog geen teamlid in dit event.",
         "team.event.loeschenFrage": "Event „{titel}” verwijderen?",
+        "team.event.meinTeam": "Je rijdt voor",
+        "team.event.meinTeamFest": "Nog minder dan 6 uur — deze keuze staat vast.",
+        "team.event.meinTeamHinweis": "Je zit in meerdere teams en telt in dit event voor één ervan. Je kunt dit wijzigen tot 6 uur voor het einde van het event.",
         "team.event.minuten": "min",
         "team.event.neu": "Event aanmaken",
         "team.event.neuLaden": "Vernieuwen",
@@ -2942,6 +3093,9 @@ enum LocTeam {
         "team.event.spots": "Spots",
         "team.event.stand": "Huidige stand",
         "team.event.standUm": "Stand {zeit}",
+    ]
+
+    private static let _nl3: [String: String] = [
         "team.event.start": "Begin",
         "team.event.startIn": "Begint over",
         "team.event.status.auswertung": "uitslag volgt",
@@ -2949,9 +3103,6 @@ enum LocTeam {
         "team.event.status.kommend": "komt eraan",
         "team.event.status.laeuft": "loopt",
         "team.event.stunden": "uur",
-    ]
-
-    private static let _nl3: [String: String] = [
         "team.event.summen": "Eventtotalen",
         "team.event.summenHinweis": "Opgeteld over alle deelnemers. Vink aan wat op de eventpagina moet staan.",
         "team.event.tag": "dag",
@@ -2990,6 +3141,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "Je team is vrijgegeven en staat in de community.",
         "team.freigabe.text.keine": "Je team is tot nu toe alleen zichtbaar voor leden. Vraag vrijgave aan, zodat het in de community verschijnt en de ranglijsten openbaar kunnen worden.",
         "team.freigabe.text.wartet": "Vrijgave aangevraagd. We bekijken naam, adres, beschrijving, embleem en kleur.",
+    ]
+
+    private static let _nl4: [String: String] = [
         "team.freigabe.titel": "Openbaar uiterlijk",
         "team.freigabe.wartet": "wacht op vrijgave",
         "team.gespeichert": "Opgeslagen.",
@@ -2997,9 +3151,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Je team werkt meteen, via uitnodigingslinks. Openbaar vermeld wordt het pas als we naam, beschrijving en embleem even hebben bekeken.",
         "team.gruendenKnopf": "Oprichten",
         "team.herkunft": "Land / regio",
-    ]
-
-    private static let _nl4: [String: String] = [
+        "team.ics.abo": "Toevoegen aan agenda",
+        "team.ics.google": "Google Agenda",
+        "team.ics.kopieren": "Agendalink kopiëren",
+        "team.ics.kopiert": "Gekopieerd",
+        "team.ics.titel": "Abonneer je op alle globale events in je agenda – nieuwe en gewijzigde events verschijnen vanzelf",
         "team.join.anfrage": "Je verzoek gaat naar de teamleiding, die beslist.",
         "team.join.anfrageProfil": "Om het te beoordelen, ziet zij op welke spots en in welke sporten je tot nu toe bent geweest (alleen het aantal sessies).",
         "team.join.anfragen": "Verzoek sturen",
@@ -3033,6 +3189,9 @@ enum LocTeam {
         "team.link.apply": "Aanmelden",
         "team.link.applyText": "Wie deze link opent, stuurt een verzoek waarover jij of een moderator beslist.",
         "team.link.join": "Direct lid worden",
+    ]
+
+    private static let _nl5: [String: String] = [
         "team.link.joinText": "Wie deze link opent, is meteen lid.",
         "team.linkNeu": "Nieuwe link maken",
         "team.linkNeuFrage": "Nieuwe link maken? De huidige werkt dan niet meer.",
@@ -3045,9 +3204,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} breekt „{was}” met {wert} (eerder: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} houdt „{was}” met {wert}",
         "team.logbuchHinweis": "Wie wanneer welk teamrecord heeft gebroken. Wordt elke nacht bijgewerkt.",
-    ]
-
-    private static let _nl5: [String: String] = [
         "team.logbuchLeer": "Nog geen vermeldingen. De eerste stand komt in de nacht nadat de ranglijsten zijn ingesteld.",
         "team.logoHochladen": "Embleem uploaden",
         "team.meine": "Mijn teams",
@@ -3062,6 +3218,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "Openbare ranglijsten",
         "team.oeffentlichErstNachFreigabe": "Werkt pas als het uiterlijk is vrijgegeven.",
         "team.oeffentlichText": "Dan ziet iedereen de ranglijsten, ook zonder in te loggen: plaats, weergavenaam en waarde. Sessies, spots en profielfoto's blijven alleen zichtbaar voor ingelogde gebruikers.",
+        "team.platz1": "1e plaats",
+        "team.platz2": "2e plaats",
+        "team.platz3": "3e plaats",
+        "team.primaer": "Primair team",
+        "team.primaerHinweis": "Bij globale events tel je maar voor één team: je primaire team, tenzij je op de eventpagina een ander kiest.",
+        "team.primaerSetzen": "Als primair team instellen",
         "team.profilHinweis": "Teams oprichten, lid worden en eigen ranglijsten bijhouden.",
         "team.profilKnopf": "Team",
         "team.qr": "QR-code",
@@ -3074,7 +3236,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "Teamchat",
         "team.regeln.events.text": "Een event heeft een tijdvak en eigen ranglijsten, desgewenst alleen op bepaalde spots.\nNaast of in plaats van ranglijsten kan een event totalen over alle deelnemers tonen, zoals de pumps of de afstand van het hele team. Elk event heeft minstens één ranglijst of één totaal nodig.\nAlleen sessies die binnen het tijdvak starten tellen mee.\nPer event kan de leiding bepalen dat handmatig geüploade bestanden (FIT, GPX, TCX) niet tellen; opnames van horloges, de app en gekoppelde accounts tellen dan nog wel.\nNa het einde kun je nog 4 uur uploaden; de teampagina toont dan „uitslag volgt”. Daarna is de uitslag bevroren en verandert later bijsnijden of verwijderen niets meer.\nWie na het einde vertrekt, blijft in de uitslag; wie daarna lid wordt, komt er niet meer bij.\nUitslagen worden 's nachts bevroren en ook zodra iemand de teampagina opent.\nDe tijden gelden in de tijdzone waarin het event is aangemaakt en worden voor iedereen zo getoond.\nPlaats 1 tot 3 krijgen een event-badge op hun foilerpagina, maar alleen bij teams waarvan het uiterlijk is vrijgegeven.",
         "team.regeln.events.titel": "Events",
-        "team.regeln.global.text": "Globale events organiseert pumpfoil.org zelf. Iedereen met passende sessies in het tijdvak telt automatisch mee, zonder lid te worden en zonder aanmelding.\nWie niet mee wil doen, zet het uit in zijn profiel onder „Privacy” („Niet meedoen aan globale events”). Dan ontbreekt hij in ranglijsten, teamstanden, totalen en badges, ook in events die al voorbij zijn.\nElke ranglijst heeft een teamstand: de som van de beste leden van elk team, meestal 5. Vrijgegeven teams met openbare ranglijsten doen mee; wie in twee teams zit, telt voor allebei.\nDe ranglijsten zijn ook zonder inloggen zichtbaar via de eventlink: plaats, weergavenaam, initialen en waarde.\nVerder gelden de regels voor events: tijdvak, uitslag, bevriezen en badges voor plaats 1 tot 3, op de profielpagina gemarkeerd met „Global”.",
+        "team.regeln.global.text": "Globale events organiseert pumpfoil.org zelf. Iedereen met passende sessies in het tijdvak telt automatisch mee, zonder lid te worden en zonder aanmelding.\nWie niet mee wil doen, zet het uit in zijn profiel onder „Privacy” („Niet meedoen aan globale events”). Dan ontbreekt hij in ranglijsten, teamstanden, totalen en badges, ook in events die al voorbij zijn.\nElke ranglijst heeft een teamklassement: de som van de beste leden van elk team, meestal 5, en bij snelheden (sprints) hun gemiddelde. Goedgekeurde teams met openbare ranglijsten doen mee. Wie in meerdere teams zit, telt maar voor één: het primaire team (in te stellen bij „Mijn teams”, anders het grootste) of het team dat op de eventpagina is gekozen. Dit kan tot 6 uur voor het einde van het event worden gewijzigd.\nDe ranglijsten zijn ook zonder inloggen zichtbaar via de eventlink: plaats, weergavenaam, initialen en waarde.\nVerder gelden de regels voor events: tijdvak, uitslag, bevriezen en badges voor plaats 1 tot 3, op de profielpagina gemarkeerd met „Global”.",
+    ]
+
+    private static let _nl6: [String: String] = [
         "team.regeln.global.titel": "Globale events",
         "team.regeln.haftung.text": "Events worden door de teams zelf georganiseerd. pumpfoil.org heeft geen invloed op events of op toezeggingen die daarin worden gedaan, financieel of anderszins, en aanvaardt daarvoor geen verantwoordelijkheid. De gang naar de rechter is uitgesloten. Betalingen en alle andere afspraken regelen organisatoren en deelnemers onafhankelijk van pumpfoil.org.\nEvenmin is pumpfoil.org verantwoordelijk voor de juistheid van gemeten waarden en gegevens of voor eventuele manipulatie ervan. Getoond wordt wat de openbare broncode op GitHub uit de geüploade gegevens berekent; verdere toezeggingen zijn er niet.",
         "team.regeln.haftung.titel": "Aansprakelijkheid",
@@ -3093,9 +3258,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "Boven de ranglijsten staan de totalen van alle leden in de gekozen periode: pumps, on-foil-afstand en -tijd, sessies, runs en hoeveel leden actief waren.\nTeam tegen team: in de community vergelijken de teamranglijsten alle vrijgegeven teams met openbare ranglijsten, per kengetal met de som van de beste 3, 5 of 10 riders. Daar geldt voor alle teams dezelfde maat, niet de filters van hun eigen ranglijsten.\nWie in twee teams zit, telt voor allebei.",
         "team.regeln.statistik.titel": "Teamtotalen",
         "team.regeln.titel": "Teamregels",
-    ]
-
-    private static let _nl6: [String: String] = [
         "team.regeln.was.text": "Een vaste groep met eigen ranglijsten, events en een teamchat.\nIedereen kan teams oprichten, ook meerdere, en in meerdere teams zitten.\nEen nieuw team werkt meteen, via uitnodigingslinks.",
         "team.regeln.was.titel": "Wat is een team?",
         "team.rolle.leiter": "Leiding",
@@ -3123,6 +3285,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "Sommige ranglijsten tellen ook runs die alleen met gps zijn opgenomen (zonder bewegingsdata).",
         "team.tafel.leer": "Nog geen resultaten in deze periode.",
         "team.tafel.neu": "Ranglijst",
+    ]
+
+    private static let _nl7: [String: String] = [
         "team.tafel.nurBewegung": "alleen met bewegingsdata",
         "team.tafel.nurBrett": "alleen telefoon op de plank",
         "team.tafel.nurTeamspots": "alleen teamspots",
@@ -3141,9 +3306,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Langste run",
         "team.vorlage.monat_strecke": "On-foil-kilometers deze maand",
         "team.vorlage.session_pumps": "Meeste pumps in één sessie",
-    ]
-
-    private static let _nl7: [String: String] = [
         "team.vorlage.top_speed": "Topsnelheid",
         "team.vorlage.weitester_lauf": "Verste run",
         "team.vorlage.wochenende_laeufe": "Meeste runs in het weekend",
@@ -3180,6 +3342,7 @@ enum LocTeam {
         "leader.totalTime": "Celkový čas na foilu",
         "sd.avgHrFoil": "Ø tep na foilu",
         "team.ablehnen": "Odmítnout",
+        "team.abzeichen": "Odznaky z akcí",
         "team.adresse": "Adresa",
         "team.adresseAendernHinweis": "Staré adresy přesměrují, sdílené odkazy dál fungují.",
         "team.adresseHinweis": "Jen malá písmena, číslice a pomlčky.",
@@ -3197,10 +3360,10 @@ enum LocTeam {
         "team.anfrage.sessions": "Sessions: {n}",
         "team.anfrage.spots": "Spoty",
         "team.anfragen": "Žádosti",
-        "team.anfragenEins": "Nové žádosti: 1",
     ]
 
     private static let _cs1: [String: String] = [
+        "team.anfragenEins": "Nové žádosti: 1",
         "team.anfragenViele": "Nové žádosti: {n}",
         "team.anmeldungenZulassen": "Povolit přihlášky",
         "team.anmeldungenZulassenText": "Přihlášení uživatelé uvidí na stránce týmu tlačítko „Přidat se“.",
@@ -3222,9 +3385,12 @@ enum LocTeam {
         "team.beschreibung": "Popis",
         "team.bestenlisten": "Žebříčky",
         "team.bestenlistenHinweis": "U každého se počítá nejlepší hodnota nebo součet ve zvoleném období. Počítají se všechny vyjížďky členů, i ty z doby před vstupem.",
+        "team.bild.mitMeinemTeam": "Zobrazit i můj tým",
+        "team.bild.mitMir": "Zobrazit i mě",
         "team.bild.titel": "Sdílet jako obrázek",
         "team.chat": "Týmový chat",
         "team.chatTitel": "Tým {name}",
+        "team.community": "Týmy",
         "team.communityLeer": "Zatím žádné veřejné týmy. Založ ten první!",
         "team.entfernen": "Odebrat",
         "team.entfernenFrage": "Odebrat {name} z týmu?",
@@ -3242,13 +3408,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "To není povoleno.",
         "team.err.not found": "Nenalezeno.",
         "team.err.nur_leiter": "To smí jen vedení týmu.",
+    ]
+
+    private static let _cs2: [String: String] = [
         "team.err.nur_verwalter": "To smí jen vedení týmu a moderátoři.",
         "team.err.slug_belegt": "Tato adresa je už obsazená.",
         "team.err.slug_laenge": "Adresa musí mít 3 až 40 znaků.",
         "team.err.slug_reserviert": "Tato adresa je rezervovaná.",
-    ]
-
-    private static let _cs2: [String: String] = [
         "team.err.slug_zeichen": "Jen malá písmena, číslice a pomlčky, ne na začátku ani na konci.",
         "team.err.tafel": "Tento žebříček takto nelze vytvořit.",
         "team.err.unbekannt": "To se nepovedlo. Zkus to prosím později znovu.",
@@ -3275,6 +3441,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "Právě neběží žádný globální event a v příštích třech dnech žádný nezačíná.",
         "team.event.keineTeams": "V tomto eventu zatím není žádný člen týmu.",
         "team.event.loeschenFrage": "Smazat akci „{titel}“?",
+        "team.event.meinTeam": "Jezdíš za",
+        "team.event.meinTeamFest": "Zbývá méně než 6 hodin — tato volba je konečná.",
+        "team.event.meinTeamHinweis": "Jsi v několika týmech a v této akci se počítáš za jeden z nich. Změnit to můžeš do 6 hodin před koncem akce.",
         "team.event.minuten": "min",
         "team.event.neu": "Vytvořit akci",
         "team.event.neuLaden": "Obnovit",
@@ -3287,6 +3456,9 @@ enum LocTeam {
         "team.event.spots": "Spoty",
         "team.event.stand": "Aktuální pořadí",
         "team.event.standUm": "Stav v {zeit}",
+    ]
+
+    private static let _cs3: [String: String] = [
         "team.event.start": "Začátek",
         "team.event.startIn": "Začíná za",
         "team.event.status.auswertung": "vyhodnocování",
@@ -3294,9 +3466,6 @@ enum LocTeam {
         "team.event.status.kommend": "brzy",
         "team.event.status.laeuft": "probíhá",
         "team.event.stunden": "hod.",
-    ]
-
-    private static let _cs3: [String: String] = [
         "team.event.summen": "Součty akce",
         "team.event.summenHinweis": "Sečteno za všechny účastníky. Zaškrtni, co se má zobrazit na stránce akce.",
         "team.event.tag": "den",
@@ -3335,6 +3504,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "Tvůj tým je schválený a zobrazený v komunitě.",
         "team.freigabe.text.keine": "Zatím tvůj tým vidí jen členové. Požádej o schválení, aby se objevil v komunitě a jeho žebříčky mohly být veřejné.",
         "team.freigabe.text.wartet": "O schválení je požádáno. Podíváme se na název, adresu, popis, znak a barvu.",
+    ]
+
+    private static let _cs4: [String: String] = [
         "team.freigabe.titel": "Veřejný vzhled",
         "team.freigabe.wartet": "čeká na schválení",
         "team.gespeichert": "Uloženo.",
@@ -3342,9 +3514,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Tvůj tým funguje hned, přes odkazy s pozvánkou. Veřejně se zobrazí až poté, co si prohlédneme jeho název, popis a znak.",
         "team.gruendenKnopf": "Založit",
         "team.herkunft": "Země / region",
-    ]
-
-    private static let _cs4: [String: String] = [
+        "team.ics.abo": "Přidat do kalendáře",
+        "team.ics.google": "Kalendář Google",
+        "team.ics.kopieren": "Kopírovat odkaz na kalendář",
+        "team.ics.kopiert": "Zkopírováno",
+        "team.ics.titel": "Odebírat všechny globální eventy v kalendáři – nové a změněné se objeví samy",
         "team.join.anfrage": "Tvoje žádost půjde vedení týmu, které rozhodne.",
         "team.join.anfrageProfil": "Pro posouzení vidí, na kterých spotech a v jakých sportech jsi dosud jezdil (jen počet sessions).",
         "team.join.anfragen": "Odeslat žádost",
@@ -3378,6 +3552,9 @@ enum LocTeam {
         "team.link.apply": "Požádat o přijetí",
         "team.link.applyText": "Kdo otevře tento odkaz, pošle žádost, o které rozhodneš ty nebo moderátor.",
         "team.link.join": "Přidat se rovnou",
+    ]
+
+    private static let _cs5: [String: String] = [
         "team.link.joinText": "Kdo otevře tento odkaz, je hned členem.",
         "team.linkNeu": "Vytvořit nový odkaz",
         "team.linkNeuFrage": "Vytvořit nový odkaz? Ten dosavadní pak přestane fungovat.",
@@ -3390,9 +3567,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} překonává „{was}“ s hodnotou {wert} (předtím: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} drží „{was}“ s hodnotou {wert}",
         "team.logbuchHinweis": "Kdo kdy překonal který týmový rekord. Aktualizuje se každou noc.",
-    ]
-
-    private static let _cs5: [String: String] = [
         "team.logbuchLeer": "Zatím žádné záznamy. První stav přibude v noci po vytvoření žebříčků.",
         "team.logoHochladen": "Nahrát znak",
         "team.meine": "Moje týmy",
@@ -3407,6 +3581,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "Veřejné žebříčky",
         "team.oeffentlichErstNachFreigabe": "Platí až po schválení vzhledu.",
         "team.oeffentlichText": "Pak žebříčky uvidí každý, i bez přihlášení: pořadí, zobrazované jméno a hodnotu. Vyjížďky, spoty a profilové fotky vidí jen přihlášení uživatelé.",
+        "team.platz1": "1. místo",
+        "team.platz2": "2. místo",
+        "team.platz3": "3. místo",
+        "team.primaer": "Primární tým",
+        "team.primaerHinweis": "V globálních akcích se počítáš jen za jeden tým: svůj primární, pokud na stránce akce nevybereš jiný.",
+        "team.primaerSetzen": "Nastavit jako primární tým",
         "team.profilHinweis": "Zakládej týmy, přidávej se k nim a veď vlastní žebříčky.",
         "team.profilKnopf": "Tým",
         "team.qr": "QR kód",
@@ -3419,7 +3599,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "Týmový chat",
         "team.regeln.events.text": "Akce má časové okno a vlastní žebříčky, volitelně jen na vybraných spotech.\nNavíc nebo místo žebříčků může akce ukazovat součty za všechny účastníky, třeba pumpy nebo vzdálenost celého týmu. Každá akce potřebuje aspoň jeden žebříček nebo jeden součet.\nPočítají se jen vyjížďky, které v časovém okně začnou.\nU každé akce může vedoucí určit, že ručně nahrané soubory (FIT, GPX, TCX) se nepočítají; záznamy z hodinek, aplikace a propojených účtů se počítají dál.\nPo konci lze ještě 4 hodiny nahrávat, stránka týmu pak ukazuje „vyhodnocování“. Potom je výsledek zmrazený a pozdější ořezání nebo smazání už nic nezmění.\nKdo odejde po konci, zůstává ve výsledku; kdo se přidá potom, už se nezapočítá.\nZmrazuje se v noci a navíc hned, jakmile někdo otevře stránku týmu.\nČasy platí v časovém pásmu, ve kterém byla akce vytvořena, a tak se zobrazují všem.\nMísta 1 až 3 dostanou odznak z akce na své stránce foilera, ale jen u týmů, jejichž vzhled je schválený.",
         "team.regeln.events.titel": "Akce",
-        "team.regeln.global.text": "Globální eventy pořádá samo pumpfoil.org. Automaticky se počítá každý s odpovídajícími sessions v časovém okně, bez vstupu do týmu a bez přihlašování.\nKdo se nechce účastnit, vypne to v profilu v části „Soukromí“ („Neúčastnit se globálních eventů“). Pak chybí v žebříčcích, týmových hodnoceních, součtech a odznacích, i v již skončených eventech.\nKaždý žebříček má týmové hodnocení: součet nejlepších členů každého týmu, obvykle 5. Účastní se schválené týmy s veřejnými žebříčky; kdo je ve dvou týmech, počítá se pro oba.\nŽebříčky jsou vidět i bez přihlášení přes odkaz na event: pořadí, zobrazované jméno, iniciály a hodnota.\nJinak platí pravidla pro eventy: časové okno, vyhodnocení, zmrazení a odznaky za místa 1 až 3, na profilové stránce označené „Global“.",
+        "team.regeln.global.text": "Globální eventy pořádá samo pumpfoil.org. Automaticky se počítá každý s odpovídajícími sessions v časovém okně, bez vstupu do týmu a bez přihlašování.\nKdo se nechce účastnit, vypne to v profilu v části „Soukromí“ („Neúčastnit se globálních eventů“). Pak chybí v žebříčcích, týmových hodnoceních, součtech a odznacích, i v již skončených eventech.\nKaždý žebříček má týmové pořadí: součet nejlepších členů každého týmu, obvykle 5, u rychlostí (sprintů) jejich průměr. Účastní se schválené týmy s veřejnými žebříčky. Kdo je v několika týmech, počítá se jen za jeden: za svůj primární tým (nastavený v „Moje týmy“, jinak největší) nebo za tým zvolený na stránce akce. Změnit to lze do 6 hodin před koncem akce.\nŽebříčky jsou vidět i bez přihlášení přes odkaz na event: pořadí, zobrazované jméno, iniciály a hodnota.\nJinak platí pravidla pro eventy: časové okno, vyhodnocení, zmrazení a odznaky za místa 1 až 3, na profilové stránce označené „Global“.",
+    ]
+
+    private static let _cs6: [String: String] = [
         "team.regeln.global.titel": "Globální eventy",
         "team.regeln.haftung.text": "Akce pořádají samy týmy. pumpfoil.org nemá žádný vliv na akce ani na sliby v nich dané, finanční či jiné, a nepřebírá za ně žádnou odpovědnost. Právní cesta je vyloučena. Platby a všechny další dohody si pořadatelé a účastníci řeší sami, nezávisle na pumpfoil.org.\nStejně tak pumpfoil.org nepřebírá žádnou odpovědnost za to, zda jsou naměřené hodnoty a data správné nebo zda nebyly zmanipulovány. Zobrazuje se to, co z nahraných dat spočítá veřejný zdrojový kód na GitHubu; žádné další záruky neexistují.",
         "team.regeln.haftung.titel": "Odpovědnost",
@@ -3438,9 +3621,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "Nad žebříčky jsou součty všech členů ve zvoleném období: pumpnutí, vzdálenost a čas na foilu, vyjížďky, jízdy a kolik členů bylo aktivních.\nTým proti týmu: v komunitě týmové žebříčky porovnávají všechny schválené týmy s veřejnými žebříčky, u každé metriky součtem nejlepších 3, 5 nebo 10 jezdců. Platí tam pro všechny týmy stejné měřítko, ne filtry jejich vlastních žebříčků.\nKdo je ve dvou týmech, počítá se pro oba.",
         "team.regeln.statistik.titel": "Týmové součty",
         "team.regeln.titel": "Pravidla týmů",
-    ]
-
-    private static let _cs6: [String: String] = [
         "team.regeln.was.text": "Pevná skupina s vlastními žebříčky, akcemi a týmovým chatem.\nKaždý může zakládat týmy, i víc najednou, a být ve více týmech.\nNový tým funguje hned, přes odkazy s pozvánkou.",
         "team.regeln.was.titel": "Co je tým?",
         "team.rolle.leiter": "Vedoucí",
@@ -3468,6 +3648,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "Některé žebříčky počítají i jízdy zaznamenané jen s GPS (bez pohybových dat).",
         "team.tafel.leer": "V tomto období zatím žádné záznamy.",
         "team.tafel.neu": "Žebříček",
+    ]
+
+    private static let _cs7: [String: String] = [
         "team.tafel.nurBewegung": "jen s pohybovými daty",
         "team.tafel.nurBrett": "jen telefon na desce",
         "team.tafel.nurTeamspots": "jen týmové spoty",
@@ -3486,9 +3669,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Nejdelší jízda (čas)",
         "team.vorlage.monat_strecke": "Kilometry na foilu za měsíc",
         "team.vorlage.session_pumps": "Nejvíce pumpnutí za jednu vyjížďku",
-    ]
-
-    private static let _cs7: [String: String] = [
         "team.vorlage.top_speed": "Top rychlost",
         "team.vorlage.weitester_lauf": "Nejdelší jízda (vzdálenost)",
         "team.vorlage.wochenende_laeufe": "Nejvíce jízd o víkendu",
@@ -3525,6 +3705,7 @@ enum LocTeam {
         "leader.totalTime": "Łączny czas na foilu",
         "sd.avgHrFoil": "Ø tętno na foilu",
         "team.ablehnen": "Odrzuć",
+        "team.abzeichen": "Odznaki z wydarzeń",
         "team.adresse": "Adres",
         "team.adresseAendernHinweis": "Stare adresy przekierowują, udostępnione linki dalej działają.",
         "team.adresseHinweis": "Tylko małe litery, cyfry i myślniki.",
@@ -3542,10 +3723,10 @@ enum LocTeam {
         "team.anfrage.sessions": "Sesje: {n}",
         "team.anfrage.spots": "Spoty",
         "team.anfragen": "Prośby",
-        "team.anfragenEins": "Nowe prośby: 1",
     ]
 
     private static let _pl1: [String: String] = [
+        "team.anfragenEins": "Nowe prośby: 1",
         "team.anfragenViele": "Nowe prośby: {n}",
         "team.anmeldungenZulassen": "Pozwól na zgłoszenia",
         "team.anmeldungenZulassenText": "Zalogowani widzą na stronie drużyny przycisk „Dołącz”.",
@@ -3567,9 +3748,12 @@ enum LocTeam {
         "team.beschreibung": "Opis",
         "team.bestenlisten": "Rankingi",
         "team.bestenlistenHinweis": "Dla każdej osoby liczy się najlepsza wartość lub suma w wybranym okresie. Liczą się wszystkie sesje członków, także te sprzed dołączenia.",
+        "team.bild.mitMeinemTeam": "Pokaż też moją drużynę",
+        "team.bild.mitMir": "Pokaż też mnie",
         "team.bild.titel": "Udostępnij jako obraz",
         "team.chat": "Czat drużyny",
         "team.chatTitel": "Drużyna {name}",
+        "team.community": "Drużyny",
         "team.communityLeer": "Nie ma jeszcze publicznych drużyn. Załóż pierwszą!",
         "team.entfernen": "Usuń",
         "team.entfernenFrage": "Usunąć {name} z drużyny?",
@@ -3587,13 +3771,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "To jest niedozwolone.",
         "team.err.not found": "Nie znaleziono.",
         "team.err.nur_leiter": "Może to zrobić tylko lider drużyny.",
+    ]
+
+    private static let _pl2: [String: String] = [
         "team.err.nur_verwalter": "Mogą to zrobić tylko lider drużyny i moderatorzy.",
         "team.err.slug_belegt": "Ten adres jest już zajęty.",
         "team.err.slug_laenge": "Adres musi mieć od 3 do 40 znaków.",
         "team.err.slug_reserviert": "Ten adres jest zarezerwowany.",
-    ]
-
-    private static let _pl2: [String: String] = [
         "team.err.slug_zeichen": "Tylko małe litery, cyfry i myślniki, nie na początku ani na końcu.",
         "team.err.tafel": "Tego rankingu nie da się tak utworzyć.",
         "team.err.unbekannt": "Nie udało się. Spróbuj ponownie później.",
@@ -3620,6 +3804,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "Teraz nie trwa żaden globalny event i żaden nie zaczyna się w ciągu najbliższych trzech dni.",
         "team.event.keineTeams": "W tym evencie nie ma jeszcze żadnego członka drużyny.",
         "team.event.loeschenFrage": "Usunąć wydarzenie „{titel}”?",
+        "team.event.meinTeam": "Startujesz dla",
+        "team.event.meinTeamFest": "Zostało mniej niż 6 godzin — ten wybór jest ostateczny.",
+        "team.event.meinTeamHinweis": "Należysz do kilku drużyn i w tym wydarzeniu liczysz się dla jednej z nich. Możesz to zmienić do 6 godzin przed końcem wydarzenia.",
         "team.event.minuten": "min",
         "team.event.neu": "Utwórz wydarzenie",
         "team.event.neuLaden": "Odśwież",
@@ -3632,6 +3819,9 @@ enum LocTeam {
         "team.event.spots": "Spoty",
         "team.event.stand": "Aktualna klasyfikacja",
         "team.event.standUm": "Stan na {zeit}",
+    ]
+
+    private static let _pl3: [String: String] = [
         "team.event.start": "Początek",
         "team.event.startIn": "Start za",
         "team.event.status.auswertung": "liczenie wyników",
@@ -3639,9 +3829,6 @@ enum LocTeam {
         "team.event.status.kommend": "wkrótce",
         "team.event.status.laeuft": "trwa",
         "team.event.stunden": "godz.",
-    ]
-
-    private static let _pl3: [String: String] = [
         "team.event.summen": "Sumy wydarzenia",
         "team.event.summenHinweis": "Zsumowane dla wszystkich uczestników. Zaznacz, co ma się pojawić na stronie wydarzenia.",
         "team.event.tag": "dzień",
@@ -3680,6 +3867,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "Twoja drużyna jest zatwierdzona i widoczna w społeczności.",
         "team.freigabe.text.keine": "Na razie twoją drużynę widzą tylko członkowie. Poproś o zatwierdzenie, aby pojawiła się w społeczności, a jej rankingi mogły stać się publiczne.",
         "team.freigabe.text.wartet": "Prośba o zatwierdzenie została wysłana. Sprawdzimy nazwę, adres, opis, herb i kolor.",
+    ]
+
+    private static let _pl4: [String: String] = [
         "team.freigabe.titel": "Wygląd publiczny",
         "team.freigabe.wartet": "czeka na zatwierdzenie",
         "team.gespeichert": "Zapisano.",
@@ -3687,9 +3877,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Twoja drużyna działa od razu, przez linki z zaproszeniem. Publicznie pojawi się dopiero wtedy, gdy obejrzymy jej nazwę, opis i herb.",
         "team.gruendenKnopf": "Załóż",
         "team.herkunft": "Kraj / region",
-    ]
-
-    private static let _pl4: [String: String] = [
+        "team.ics.abo": "Dodaj do kalendarza",
+        "team.ics.google": "Kalendarz Google",
+        "team.ics.kopieren": "Kopiuj link do kalendarza",
+        "team.ics.kopiert": "Skopiowano",
+        "team.ics.titel": "Subskrybuj wszystkie globalne eventy w kalendarzu – nowe i zmienione pojawią się same",
         "team.join.anfrage": "Twoja prośba trafi do lidera drużyny, który podejmie decyzję.",
         "team.join.anfrageProfil": "Do oceny lider widzi, na jakich spotach i w jakich sportach do tej pory pływałeś (tylko liczbę sesji).",
         "team.join.anfragen": "Wyślij prośbę",
@@ -3723,6 +3915,9 @@ enum LocTeam {
         "team.link.apply": "Zgłoś się",
         "team.link.applyText": "Kto otworzy ten link, wysyła prośbę, o której decydujesz ty albo moderator.",
         "team.link.join": "Dołącz od razu",
+    ]
+
+    private static let _pl5: [String: String] = [
         "team.link.joinText": "Kto otworzy ten link, od razu zostaje członkiem.",
         "team.linkNeu": "Utwórz nowy link",
         "team.linkNeuFrage": "Utworzyć nowy link? Obecny przestanie działać.",
@@ -3735,9 +3930,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} bije „{was}” wynikiem {wert} (wcześniej: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} prowadzi w „{was}” z wynikiem {wert}",
         "team.logbuchHinweis": "Kto i kiedy pobił który rekord drużyny. Aktualizowane co noc.",
-    ]
-
-    private static let _pl5: [String: String] = [
         "team.logbuchLeer": "Brak wpisów. Pierwszy stan pojawi się w nocy po utworzeniu rankingów.",
         "team.logoHochladen": "Wgraj herb",
         "team.meine": "Moje drużyny",
@@ -3752,6 +3944,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "Publiczne rankingi",
         "team.oeffentlichErstNachFreigabe": "Działa dopiero po zatwierdzeniu wyglądu.",
         "team.oeffentlichText": "Wtedy każdy widzi rankingi, także bez logowania: miejsce, nazwę wyświetlaną i wartość. Sesje, spoty i zdjęcia profilowe widzą tylko zalogowani.",
+        "team.platz1": "1. miejsce",
+        "team.platz2": "2. miejsce",
+        "team.platz3": "3. miejsce",
+        "team.primaer": "Główna drużyna",
+        "team.primaerHinweis": "W wydarzeniach globalnych liczysz się tylko dla jednej drużyny: głównej, chyba że na stronie wydarzenia wybierzesz inną.",
+        "team.primaerSetzen": "Ustaw jako główną drużynę",
         "team.profilHinweis": "Zakładaj drużyny, dołączaj do nich i prowadź własne rankingi.",
         "team.profilKnopf": "Drużyna",
         "team.qr": "Kod QR",
@@ -3764,7 +3962,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "Czat drużyny",
         "team.regeln.events.text": "Wydarzenie ma okno czasowe i własne rankingi, w razie potrzeby tylko na wybranych spotach.\nOprócz rankingów lub zamiast nich wydarzenie może pokazywać sumy wszystkich uczestników, np. pumpy lub dystans całej drużyny. Każde wydarzenie potrzebuje co najmniej jednego rankingu lub jednej sumy.\nLiczą się tylko sesje rozpoczęte w tym oknie czasowym.\nDla każdego wydarzenia lider może ustalić, że ręcznie przesłane pliki (FIT, GPX, TCX) się nie liczą; nagrania z zegarków, aplikacji i połączonych kont nadal się liczą.\nPo zakończeniu można jeszcze przez 4 godziny wgrywać sesje, strona drużyny pokazuje wtedy „liczenie wyników”. Potem wynik zostaje zamrożony i późniejsze przycinanie czy usuwanie niczego już nie zmienia.\nKto odejdzie po zakończeniu, zostaje w wyniku; kto dołączy później, nie zostanie już dodany.\nWyniki są zamrażane w nocy, a dodatkowo, gdy tylko ktoś otworzy stronę drużyny.\nGodziny obowiązują w strefie czasowej, w której utworzono wydarzenie, i wszyscy widzą je właśnie tak.\nMiejsca od 1 do 3 dostają odznakę z wydarzenia na swojej stronie foilera, ale tylko w drużynach, których wygląd jest zatwierdzony.",
         "team.regeln.events.titel": "Wydarzenia",
-        "team.regeln.global.text": "Globalne eventy organizuje samo pumpfoil.org. Automatycznie liczy się każdy z pasującymi sesjami w okresie eventu, bez dołączania i bez zapisów.\nKto nie chce brać udziału, wyłącza to w profilu w „Prywatność” („Nie bierz udziału w globalnych eventach”). Wtedy znika z rankingów, klasyfikacji drużyn, sum i odznak, także w eventach, które już się skończyły.\nKażdy ranking ma klasyfikację drużyn: sumę najlepszych członków każdej drużyny, zwykle 5. Biorą w niej udział zatwierdzone drużyny z publicznymi rankingami; kto jest w dwóch drużynach, liczy się dla obu.\nRankingi są widoczne także bez logowania przez link do eventu: miejsce, nazwa wyświetlana, inicjały i wartość.\nPoza tym obowiązują zasady eventów: okres, ocena, zamrożenie i odznaki za miejsca 1–3, oznaczone na stronie profilu jako „Global”.",
+        "team.regeln.global.text": "Globalne eventy organizuje samo pumpfoil.org. Automatycznie liczy się każdy z pasującymi sesjami w okresie eventu, bez dołączania i bez zapisów.\nKto nie chce brać udziału, wyłącza to w profilu w „Prywatność” („Nie bierz udziału w globalnych eventach”). Wtedy znika z rankingów, klasyfikacji drużyn, sum i odznak, także w eventach, które już się skończyły.\nKażda tabela ma ranking drużyn: suma najlepszych członków każdej drużyny, zwykle 5, a przy prędkościach (sprintach) ich średnia. Biorą w nim udział zatwierdzone drużyny z publicznymi tabelami. Kto należy do kilku drużyn, liczy się tylko dla jednej: swojej głównej (ustawionej w „Moje drużyny”, w przeciwnym razie największej) albo wybranej na stronie wydarzenia. Można to zmienić do 6 godzin przed końcem wydarzenia.\nRankingi są widoczne także bez logowania przez link do eventu: miejsce, nazwa wyświetlana, inicjały i wartość.\nPoza tym obowiązują zasady eventów: okres, ocena, zamrożenie i odznaki za miejsca 1–3, oznaczone na stronie profilu jako „Global”.",
+    ]
+
+    private static let _pl6: [String: String] = [
         "team.regeln.global.titel": "Globalne eventy",
         "team.regeln.haftung.text": "Wydarzenia organizują same drużyny. pumpfoil.org nie ma żadnego wpływu na wydarzenia ani na składane w nich obietnice, finansowe lub inne, i nie ponosi za nie odpowiedzialności. Droga sądowa jest wykluczona. Płatności i wszelkie inne ustalenia organizatorzy i uczestnicy załatwiają między sobą, niezależnie od pumpfoil.org.\nTak samo pumpfoil.org nie ponosi odpowiedzialności za to, czy zmierzone wartości i dane są poprawne lub czy nie zostały zmanipulowane. Wyświetlane jest to, co publiczny kod źródłowy na GitHubie oblicza z przesłanych danych; innych obietnic nie ma.",
         "team.regeln.haftung.titel": "Odpowiedzialność",
@@ -3783,9 +3984,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "Nad rankingami widać sumy wszystkich członków w wybranym okresie: pompy, dystans i czas na foilu, sesje, przejazdy oraz liczbę aktywnych członków.\nDrużyna kontra drużyna: w społeczności rankingi drużyn porównują wszystkie zatwierdzone drużyny z publicznymi rankingami, w każdej kategorii sumą najlepszych 3, 5 lub 10 riderów. Obowiązuje tam ta sama miara dla wszystkich drużyn, nie filtry ich własnych rankingów.\nKto jest w dwóch drużynach, liczy się dla obu.",
         "team.regeln.statistik.titel": "Sumy drużyny",
         "team.regeln.titel": "Zasady drużyny",
-    ]
-
-    private static let _pl6: [String: String] = [
         "team.regeln.was.text": "Stała grupa z własnymi rankingami, wydarzeniami i czatem drużyny.\nKażdy może zakładać drużyny, także kilka, i należeć do kilku drużyn.\nNowa drużyna działa od razu, przez linki z zaproszeniem.",
         "team.regeln.was.titel": "Czym jest drużyna?",
         "team.rolle.leiter": "Lider",
@@ -3813,6 +4011,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "Niektóre rankingi liczą też przejazdy nagrane tylko z GPS (bez danych o ruchu).",
         "team.tafel.leer": "Brak wpisów w tym okresie.",
         "team.tafel.neu": "Ranking",
+    ]
+
+    private static let _pl7: [String: String] = [
         "team.tafel.nurBewegung": "tylko z danymi ruchu",
         "team.tafel.nurBrett": "tylko telefon na desce",
         "team.tafel.nurTeamspots": "tylko spoty drużyny",
@@ -3831,9 +4032,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Najdłuższy przejazd",
         "team.vorlage.monat_strecke": "Kilometry na foilu w miesiącu",
         "team.vorlage.session_pumps": "Najwięcej pomp w jednej sesji",
-    ]
-
-    private static let _pl7: [String: String] = [
         "team.vorlage.top_speed": "Prędkość maks.",
         "team.vorlage.weitester_lauf": "Najdalszy przejazd",
         "team.vorlage.wochenende_laeufe": "Najwięcej przejazdów w weekend",
@@ -3870,6 +4068,7 @@ enum LocTeam {
         "leader.totalTime": "Tempo on-foil total",
         "sd.avgHrFoil": "FC Ø no foil",
         "team.ablehnen": "Recusar",
+        "team.abzeichen": "Medalhas de eventos",
         "team.adresse": "Endereço",
         "team.adresseAendernHinweis": "Endereços antigos redirecionam, então links compartilhados continuam funcionando.",
         "team.adresseHinweis": "Só letras minúsculas, números e hifens.",
@@ -3887,10 +4086,10 @@ enum LocTeam {
         "team.anfrage.sessions": "{n} sessões",
         "team.anfrage.spots": "Spots",
         "team.anfragen": "Pedidos",
-        "team.anfragenEins": "1 pedido novo",
     ]
 
     private static let _pt1: [String: String] = [
+        "team.anfragenEins": "1 pedido novo",
         "team.anfragenViele": "{n} pedidos novos",
         "team.anmeldungenZulassen": "Permitir inscrições",
         "team.anmeldungenZulassenText": "Usuários conectados veem um botão “Participar” na página da equipe.",
@@ -3912,9 +4111,12 @@ enum LocTeam {
         "team.beschreibung": "Descrição",
         "team.bestenlisten": "Rankings",
         "team.bestenlistenHinweis": "Cada pessoa conta com seu melhor valor ou seu total no período escolhido. Todas as sessões dos membros contam, inclusive as de antes da entrada.",
+        "team.bild.mitMeinemTeam": "Incluir minha equipe",
+        "team.bild.mitMir": "Me incluir",
         "team.bild.titel": "Compartilhar como imagem",
         "team.chat": "Chat da equipe",
         "team.chatTitel": "Equipe {name}",
+        "team.community": "Equipes",
         "team.communityLeer": "Ainda não há equipes públicas. Crie a primeira!",
         "team.entfernen": "Remover",
         "team.entfernenFrage": "Remover {name} da equipe?",
@@ -3932,13 +4134,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "Isso não é permitido.",
         "team.err.not found": "Não encontrado.",
         "team.err.nur_leiter": "Só a liderança da equipe pode fazer isso.",
+    ]
+
+    private static let _pt2: [String: String] = [
         "team.err.nur_verwalter": "Só a liderança da equipe e os moderadores podem fazer isso.",
         "team.err.slug_belegt": "Este endereço já está em uso.",
         "team.err.slug_laenge": "O endereço precisa ter de 3 a 40 caracteres.",
         "team.err.slug_reserviert": "Este endereço está reservado.",
-    ]
-
-    private static let _pt2: [String: String] = [
         "team.err.slug_zeichen": "Só letras minúsculas, números e hifens, e não no início nem no fim.",
         "team.err.tafel": "Não é possível criar este ranking assim.",
         "team.err.unbekannt": "Não deu certo. Tente de novo mais tarde.",
@@ -3965,6 +4167,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "Nenhum evento global está acontecendo agora, e nenhum começa nos próximos três dias.",
         "team.event.keineTeams": "Ainda nenhum membro de equipe neste evento.",
         "team.event.loeschenFrage": "Excluir o evento “{titel}”?",
+        "team.event.meinTeam": "Você compete por",
+        "team.event.meinTeamFest": "Faltam menos de 6 horas — esta escolha é definitiva.",
+        "team.event.meinTeamHinweis": "Você está em várias equipes e conta para uma delas neste evento. Dá para mudar até 6 horas antes do fim do evento.",
         "team.event.minuten": "min",
         "team.event.neu": "Criar evento",
         "team.event.neuLaden": "Atualizar",
@@ -3977,6 +4182,9 @@ enum LocTeam {
         "team.event.spots": "Spots",
         "team.event.stand": "Classificação atual",
         "team.event.standUm": "Atualizado às {zeit}",
+    ]
+
+    private static let _pt3: [String: String] = [
         "team.event.start": "Início",
         "team.event.startIn": "Começa em",
         "team.event.status.auswertung": "apurando",
@@ -3984,9 +4192,6 @@ enum LocTeam {
         "team.event.status.kommend": "em breve",
         "team.event.status.laeuft": "ao vivo",
         "team.event.stunden": "h",
-    ]
-
-    private static let _pt3: [String: String] = [
         "team.event.summen": "Totais do evento",
         "team.event.summenHinweis": "Somados entre todos os participantes. Marque o que deve aparecer na página do evento.",
         "team.event.tag": "dia",
@@ -4025,6 +4230,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "Sua equipe está aprovada e aparece na comunidade.",
         "team.freigabe.text.keine": "Por enquanto só os membros veem sua equipe. Peça a aprovação para que ela apareça na comunidade e os rankings possam ficar públicos.",
         "team.freigabe.text.wartet": "Aprovação solicitada. Vamos olhar o nome, o endereço, a descrição, o emblema e a cor.",
+    ]
+
+    private static let _pt4: [String: String] = [
         "team.freigabe.titel": "Aparência pública",
         "team.freigabe.wartet": "aguardando aprovação",
         "team.gespeichert": "Salvo.",
@@ -4032,9 +4240,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Sua equipe funciona na hora, por links de convite. Ela só aparece publicamente depois que olharmos o nome, a descrição e o emblema.",
         "team.gruendenKnopf": "Criar",
         "team.herkunft": "País / região",
-    ]
-
-    private static let _pt4: [String: String] = [
+        "team.ics.abo": "Adicionar ao calendário",
+        "team.ics.google": "Google Agenda",
+        "team.ics.kopieren": "Copiar link do calendário",
+        "team.ics.kopiert": "Copiado",
+        "team.ics.titel": "Assine todos os eventos globais no seu calendário – eventos novos e alterados aparecem sozinhos",
         "team.join.anfrage": "Seu pedido vai para a liderança da equipe, que decide.",
         "team.join.anfrageProfil": "Para avaliar, ela vê em quais spots e esportes você já andou até agora (só o número de sessões).",
         "team.join.anfragen": "Enviar pedido",
@@ -4068,6 +4278,9 @@ enum LocTeam {
         "team.link.apply": "Candidatar-se",
         "team.link.applyText": "Quem abrir este link envia um pedido, que você ou um moderador decide.",
         "team.link.join": "Participar direto",
+    ]
+
+    private static let _pt5: [String: String] = [
         "team.link.joinText": "Quem abrir este link vira membro na hora.",
         "team.linkNeu": "Gerar novo link",
         "team.linkNeuFrage": "Gerar um novo link? O atual vai parar de funcionar.",
@@ -4080,9 +4293,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} bate “{was}” com {wert} (antes: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} tem “{was}” com {wert}",
         "team.logbuchHinweis": "Quem bateu qual recorde da equipe, e quando. Atualizado toda noite.",
-    ]
-
-    private static let _pt5: [String: String] = [
         "team.logbuchLeer": "Ainda sem registros. A primeira classificação aparece na noite depois de os rankings serem criados.",
         "team.logoHochladen": "Enviar emblema",
         "team.meine": "Minhas equipes",
@@ -4097,6 +4307,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "Rankings públicos",
         "team.oeffentlichErstNachFreigabe": "Só vale depois que a aparência for aprovada.",
         "team.oeffentlichText": "Aí qualquer pessoa vê os rankings, mesmo sem entrar: posição, nome de exibição e valor. Sessões, spots e fotos de perfil continuam visíveis só para usuários conectados.",
+        "team.platz1": "1º lugar",
+        "team.platz2": "2º lugar",
+        "team.platz3": "3º lugar",
+        "team.primaer": "Equipe principal",
+        "team.primaerHinweis": "Nos eventos globais você conta para uma equipe só: a sua equipe principal, a menos que escolha outra na página do evento.",
+        "team.primaerSetzen": "Definir como equipe principal",
         "team.profilHinweis": "Crie equipes ou participe delas, com rankings próprios.",
         "team.profilKnopf": "Equipe",
         "team.qr": "QR code",
@@ -4109,7 +4325,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "Chat da equipe",
         "team.regeln.events.text": "Um evento tem um período e rankings próprios, se quiser só em certos spots.\nAlém dos rankings, ou no lugar deles, um evento pode mostrar totais de todos os participantes, como os pumps ou a distância da equipe inteira. Todo evento precisa de pelo menos um ranking ou um total.\nSó contam as sessões que começam dentro do período.\nEm cada evento o líder pode definir que arquivos enviados à mão (FIT, GPX, TCX) não contam; gravações de relógios, do app e de contas vinculadas continuam contando.\nDepois do fim ainda dá para enviar por 4 horas; a página da equipe mostra então “apurando”. Depois disso o resultado fica congelado, e cortar ou excluir depois não muda mais nada.\nQuem sair depois do fim continua no resultado; quem entrar depois não é mais incluído.\nOs resultados são congelados à noite e também assim que alguém abre a página da equipe.\nOs horários valem no fuso horário em que o evento foi criado e aparecem assim para todo mundo.\nOs lugares 1 a 3 ganham uma medalha do evento na página de foiler, mas só em equipes com aparência aprovada.",
         "team.regeln.events.titel": "Eventos",
-        "team.regeln.global.text": "Os eventos globais são organizados pelo próprio pumpfoil.org. Conta automaticamente quem tem sessões adequadas no período, sem entrar em equipe e sem se inscrever.\nQuem não quiser participar desliga isso no perfil em “Privacidade” (“Não participar de eventos globais”). Aí some dos rankings, classificações de equipe, totais e selos, inclusive em eventos já encerrados.\nCada ranking tem uma classificação de equipes: a soma dos melhores membros de cada equipe, normalmente 5. Participam as equipes aprovadas com rankings públicos; quem está em duas equipes conta para as duas.\nOs rankings também ficam visíveis sem login pelo link do evento: posição, nome de exibição, iniciais e valor.\nNo mais, valem as regras de eventos: período, apuração, congelamento e selos para as posições 1 a 3, marcados com “Global” na página de perfil.",
+        "team.regeln.global.text": "Os eventos globais são organizados pelo próprio pumpfoil.org. Conta automaticamente quem tem sessões adequadas no período, sem entrar em equipe e sem se inscrever.\nQuem não quiser participar desliga isso no perfil em “Privacidade” (“Não participar de eventos globais”). Aí some dos rankings, classificações de equipe, totais e selos, inclusive em eventos já encerrados.\nCada ranking tem uma classificação por equipes: a soma dos melhores membros de cada equipe, normalmente 5, e nas velocidades (sprints) a média deles. Participam equipes aprovadas com rankings públicos. Quem está em várias equipes conta só para uma: a equipe principal (definida em “Minhas equipes”, senão a maior) ou a escolhida na página do evento. Dá para mudar até 6 horas antes do fim do evento.\nOs rankings também ficam visíveis sem login pelo link do evento: posição, nome de exibição, iniciais e valor.\nNo mais, valem as regras de eventos: período, apuração, congelamento e selos para as posições 1 a 3, marcados com “Global” na página de perfil.",
+    ]
+
+    private static let _pt6: [String: String] = [
         "team.regeln.global.titel": "Eventos globais",
         "team.regeln.haftung.text": "Os eventos são organizados pelas próprias equipes. O pumpfoil.org não tem influência sobre os eventos nem sobre promessas feitas neles, financeiras ou de outro tipo, e não assume nenhuma responsabilidade por elas. Fica excluída a via judicial. Pagamentos e todos os outros acordos são resolvidos entre organizadores e participantes, de forma independente do pumpfoil.org.\nDa mesma forma, o pumpfoil.org não assume nenhuma responsabilidade sobre se os valores e dados medidos estão corretos ou foram manipulados. É exibido o que o código-fonte público no GitHub calcula a partir dos dados enviados; não há outras promessas.",
         "team.regeln.haftung.titel": "Responsabilidade",
@@ -4128,9 +4347,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "Acima dos rankings ficam os totais de todos os membros no período escolhido: pumps, distância e tempo on-foil, sessões, voltas e quantos membros estiveram ativos.\nEquipe contra equipe: na comunidade, os rankings de equipes comparam todas as equipes aprovadas com rankings públicos, em cada métrica pela soma dos 3, 5 ou 10 melhores riders. Ali vale a mesma medida para todas as equipes, não os filtros dos próprios rankings.\nQuem está em duas equipes conta para as duas.",
         "team.regeln.statistik.titel": "Totais da equipe",
         "team.regeln.titel": "Regras das equipes",
-    ]
-
-    private static let _pt6: [String: String] = [
         "team.regeln.was.text": "Um grupo fixo com rankings próprios, eventos e um chat da equipe.\nQualquer pessoa pode criar equipes, até várias, e participar de várias equipes.\nUma equipe nova funciona na hora, por links de convite.",
         "team.regeln.was.titel": "O que é uma equipe?",
         "team.rolle.leiter": "Líder",
@@ -4158,6 +4374,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "Algumas classificações também contam voltas gravadas só com GPS (sem dados de movimento).",
         "team.tafel.leer": "Ainda sem registros neste período.",
         "team.tafel.neu": "Ranking",
+    ]
+
+    private static let _pt7: [String: String] = [
         "team.tafel.nurBewegung": "só com dados de movimento",
         "team.tafel.nurBrett": "só telefone na prancha",
         "team.tafel.nurTeamspots": "só spots da equipe",
@@ -4176,9 +4395,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Volta mais duradoura",
         "team.vorlage.monat_strecke": "Quilômetros on-foil no mês",
         "team.vorlage.session_pumps": "Mais pumps em uma sessão",
-    ]
-
-    private static let _pt7: [String: String] = [
         "team.vorlage.top_speed": "Vel. máxima",
         "team.vorlage.weitester_lauf": "Volta mais longa",
         "team.vorlage.wochenende_laeufe": "Mais voltas no fim de semana",
@@ -4215,6 +4431,7 @@ enum LocTeam {
         "leader.totalTime": "Tempo on-foil total",
         "sd.avgHrFoil": "FC Ø no foil",
         "team.ablehnen": "Recusar",
+        "team.abzeichen": "Medalhas de eventos",
         "team.adresse": "Endereço",
         "team.adresseAendernHinweis": "Os endereços antigos redirecionam, por isso os links partilhados continuam a funcionar.",
         "team.adresseHinweis": "Só letras minúsculas, algarismos e hífenes.",
@@ -4232,10 +4449,10 @@ enum LocTeam {
         "team.anfrage.sessions": "{n} sessões",
         "team.anfrage.spots": "Spots",
         "team.anfragen": "Pedidos",
-        "team.anfragenEins": "1 pedido novo",
     ]
 
     private static let _pt_PT1: [String: String] = [
+        "team.anfragenEins": "1 pedido novo",
         "team.anfragenViele": "{n} pedidos novos",
         "team.anmeldungenZulassen": "Permitir inscrições",
         "team.anmeldungenZulassenText": "Os utilizadores com sessão iniciada veem um botão «Aderir» na página da equipa.",
@@ -4257,9 +4474,12 @@ enum LocTeam {
         "team.beschreibung": "Descrição",
         "team.bestenlisten": "Rankings",
         "team.bestenlistenHinweis": "Cada pessoa conta com o seu melhor valor ou o seu total no período escolhido. Contam todas as sessões dos membros, incluindo as de antes da adesão.",
+        "team.bild.mitMeinemTeam": "Incluir a minha equipa",
+        "team.bild.mitMir": "Incluir-me",
         "team.bild.titel": "Partilhar como imagem",
         "team.chat": "Chat da equipa",
         "team.chatTitel": "Equipa {name}",
+        "team.community": "Equipas",
         "team.communityLeer": "Ainda não há equipas públicas. Cria a primeira!",
         "team.entfernen": "Remover",
         "team.entfernenFrage": "Remover {name} da equipa?",
@@ -4277,13 +4497,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "Isso não é permitido.",
         "team.err.not found": "Não encontrado.",
         "team.err.nur_leiter": "Só a liderança da equipa pode fazer isto.",
+    ]
+
+    private static let _pt_PT2: [String: String] = [
         "team.err.nur_verwalter": "Só a liderança da equipa e os moderadores podem fazer isto.",
         "team.err.slug_belegt": "Este endereço já está ocupado.",
         "team.err.slug_laenge": "O endereço precisa de 3 a 40 caracteres.",
         "team.err.slug_reserviert": "Este endereço está reservado.",
-    ]
-
-    private static let _pt_PT2: [String: String] = [
         "team.err.slug_zeichen": "Só letras minúsculas, algarismos e hífenes, e não no início nem no fim.",
         "team.err.tafel": "Não é possível criar este ranking assim.",
         "team.err.unbekannt": "Não funcionou. Tenta novamente mais tarde.",
@@ -4310,6 +4530,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "Não está a decorrer nenhum evento global, e nenhum começa nos próximos três dias.",
         "team.event.keineTeams": "Ainda nenhum membro de equipa neste evento.",
         "team.event.loeschenFrage": "Eliminar o evento «{titel}»?",
+        "team.event.meinTeam": "Competes por",
+        "team.event.meinTeamFest": "Faltam menos de 6 horas — esta escolha é definitiva.",
+        "team.event.meinTeamHinweis": "Estás em várias equipas e contas para uma delas neste evento. Podes mudar até 6 horas antes do fim do evento.",
         "team.event.minuten": "min",
         "team.event.neu": "Criar evento",
         "team.event.neuLaden": "Atualizar",
@@ -4322,6 +4545,9 @@ enum LocTeam {
         "team.event.spots": "Spots",
         "team.event.stand": "Classificação atual",
         "team.event.standUm": "Atualizado às {zeit}",
+    ]
+
+    private static let _pt_PT3: [String: String] = [
         "team.event.start": "Início",
         "team.event.startIn": "Começa daqui a",
         "team.event.status.auswertung": "a apurar",
@@ -4329,9 +4555,6 @@ enum LocTeam {
         "team.event.status.kommend": "em breve",
         "team.event.status.laeuft": "a decorrer",
         "team.event.stunden": "h",
-    ]
-
-    private static let _pt_PT3: [String: String] = [
         "team.event.summen": "Totais do evento",
         "team.event.summenHinweis": "Somados entre todos os participantes. Assinala o que deve aparecer na página do evento.",
         "team.event.tag": "dia",
@@ -4370,6 +4593,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "A tua equipa está aprovada e aparece na comunidade.",
         "team.freigabe.text.keine": "Por agora só os membros veem a tua equipa. Pede a aprovação para que apareça na comunidade e os rankings possam ficar públicos.",
         "team.freigabe.text.wartet": "Aprovação pedida. Vamos ver o nome, o endereço, a descrição, o emblema e a cor.",
+    ]
+
+    private static let _pt_PT4: [String: String] = [
         "team.freigabe.titel": "Aparência pública",
         "team.freigabe.wartet": "a aguardar aprovação",
         "team.gespeichert": "Guardado.",
@@ -4377,9 +4603,11 @@ enum LocTeam {
         "team.gruendenHinweis": "A tua equipa funciona logo, através de links de convite. Só aparece publicamente depois de vermos o nome, a descrição e o emblema.",
         "team.gruendenKnopf": "Criar",
         "team.herkunft": "País / região",
-    ]
-
-    private static let _pt_PT4: [String: String] = [
+        "team.ics.abo": "Adicionar ao calendário",
+        "team.ics.google": "Google Calendar",
+        "team.ics.kopieren": "Copiar ligação do calendário",
+        "team.ics.kopiert": "Copiado",
+        "team.ics.titel": "Subscreva todos os eventos globais no seu calendário – eventos novos e alterados aparecem sozinhos",
         "team.join.anfrage": "O teu pedido vai para a liderança da equipa, que decide.",
         "team.join.anfrageProfil": "Para avaliar, vê em que spots e desportos já andaste até agora (só o número de sessões).",
         "team.join.anfragen": "Enviar pedido",
@@ -4413,6 +4641,9 @@ enum LocTeam {
         "team.link.apply": "Candidatar-se",
         "team.link.applyText": "Quem abrir este link envia um pedido, que tu ou um moderador decidem.",
         "team.link.join": "Aderir diretamente",
+    ]
+
+    private static let _pt_PT5: [String: String] = [
         "team.link.joinText": "Quem abrir este link passa logo a ser membro.",
         "team.linkNeu": "Gerar novo link",
         "team.linkNeuFrage": "Gerar um novo link? O atual deixa de funcionar.",
@@ -4425,9 +4656,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} bate «{was}» com {wert} (antes: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} detém «{was}» com {wert}",
         "team.logbuchHinweis": "Quem bateu qual recorde da equipa, e quando. Atualizado todas as noites.",
-    ]
-
-    private static let _pt_PT5: [String: String] = [
         "team.logbuchLeer": "Ainda sem registos. A primeira classificação aparece na noite a seguir à criação dos rankings.",
         "team.logoHochladen": "Enviar emblema",
         "team.meine": "As minhas equipas",
@@ -4442,6 +4670,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "Rankings públicos",
         "team.oeffentlichErstNachFreigabe": "Só tem efeito depois de a aparência ser aprovada.",
         "team.oeffentlichText": "Assim qualquer pessoa vê os rankings, mesmo sem iniciar sessão: posição, nome de exibição e valor. Sessões, spots e fotos de perfil continuam visíveis só para utilizadores com sessão iniciada.",
+        "team.platz1": "1.º lugar",
+        "team.platz2": "2.º lugar",
+        "team.platz3": "3.º lugar",
+        "team.primaer": "Equipa principal",
+        "team.primaerHinweis": "Nos eventos globais contas para uma só equipa: a tua equipa principal, a não ser que escolhas outra na página do evento.",
+        "team.primaerSetzen": "Definir como equipa principal",
         "team.profilHinweis": "Cria equipas ou junta-te a elas, com rankings próprios.",
         "team.profilKnopf": "Equipa",
         "team.qr": "Código QR",
@@ -4454,7 +4688,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "Chat da equipa",
         "team.regeln.events.text": "Um evento tem um período e rankings próprios, se quiseres só em certos spots.\nAlém dos rankings, ou em vez deles, um evento pode mostrar totais de todos os participantes, como os pumps ou a distância da equipa inteira. Cada evento precisa de pelo menos um ranking ou um total.\nSó contam as sessões que começam dentro do período.\nEm cada evento o líder pode definir que ficheiros carregados à mão (FIT, GPX, TCX) não contam; gravações de relógios, da app e de contas ligadas continuam a contar.\nDepois do fim ainda é possível enviar durante 4 horas; a página da equipa mostra então «a apurar». A partir daí o resultado fica congelado, e cortar ou eliminar mais tarde já não muda nada.\nQuem sair depois do fim continua no resultado; quem aderir depois já não é incluído.\nOs resultados são congelados à noite e também assim que alguém abre a página da equipa.\nAs horas valem no fuso horário em que o evento foi criado e são mostradas assim a todos.\nOs lugares 1 a 3 recebem uma medalha do evento na sua página de foiler, mas só em equipas cuja aparência está aprovada.",
         "team.regeln.events.titel": "Eventos",
-        "team.regeln.global.text": "Os eventos globais são organizados pelo próprio pumpfoil.org. Conta automaticamente quem tem sessões adequadas no período, sem aderir a uma equipa e sem se inscrever.\nQuem não quiser participar desliga isso no perfil em «Privacidade» («Não participar em eventos globais»). Nesse caso desaparece das classificações, classificações de equipa, totais e emblemas, também em eventos já terminados.\nCada classificação tem uma classificação de equipas: a soma dos melhores membros de cada equipa, normalmente 5. Participam as equipas aprovadas com classificações públicas; quem está em duas equipas conta para as duas.\nAs classificações também são visíveis sem iniciar sessão através da ligação do evento: posição, nome de apresentação, iniciais e valor.\nDe resto aplicam-se as regras dos eventos: período, apuramento, congelamento e emblemas para as posições 1 a 3, marcados com «Global» na página de perfil.",
+        "team.regeln.global.text": "Os eventos globais são organizados pelo próprio pumpfoil.org. Conta automaticamente quem tem sessões adequadas no período, sem aderir a uma equipa e sem se inscrever.\nQuem não quiser participar desliga isso no perfil em «Privacidade» («Não participar em eventos globais»). Nesse caso desaparece das classificações, classificações de equipa, totais e emblemas, também em eventos já terminados.\nCada classificação tem uma classificação por equipas: a soma dos melhores membros de cada equipa, normalmente 5, e nas velocidades (sprints) a média deles. Participam equipas aprovadas com classificações públicas. Quem está em várias equipas conta só para uma: a equipa principal (definida em “As minhas equipas”, caso contrário a maior) ou a escolhida na página do evento. Pode ser alterado até 6 horas antes do fim do evento.\nAs classificações também são visíveis sem iniciar sessão através da ligação do evento: posição, nome de apresentação, iniciais e valor.\nDe resto aplicam-se as regras dos eventos: período, apuramento, congelamento e emblemas para as posições 1 a 3, marcados com «Global» na página de perfil.",
+    ]
+
+    private static let _pt_PT6: [String: String] = [
         "team.regeln.global.titel": "Eventos globais",
         "team.regeln.haftung.text": "Os eventos são organizados pelas próprias equipas. O pumpfoil.org não tem influência sobre os eventos nem sobre promessas neles feitas, financeiras ou de outro tipo, e não assume qualquer responsabilidade por elas. Fica excluída a via judicial. Pagamentos e todos os outros acordos são resolvidos entre organizadores e participantes, de forma independente do pumpfoil.org.\nDa mesma forma, o pumpfoil.org não assume qualquer responsabilidade sobre se os valores e dados medidos estão corretos ou foram manipulados. É mostrado o que o código-fonte público no GitHub calcula a partir dos dados carregados; não há outras promessas.",
         "team.regeln.haftung.titel": "Responsabilidade",
@@ -4473,9 +4710,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "Por cima dos rankings estão os totais de todos os membros no período escolhido: pumps, distância e tempo on-foil, sessões, voltas e quantos membros estiveram ativos.\nEquipa contra equipa: na comunidade, as classificações de equipas comparam todas as equipas aprovadas com classificações públicas, em cada métrica pela soma dos 3, 5 ou 10 melhores riders. Aí aplica-se a mesma medida a todas as equipas, não os filtros das suas próprias classificações.\nQuem está em duas equipas conta para as duas.",
         "team.regeln.statistik.titel": "Totais da equipa",
         "team.regeln.titel": "Regras das equipas",
-    ]
-
-    private static let _pt_PT6: [String: String] = [
         "team.regeln.was.text": "Um grupo fixo com rankings próprios, eventos e um chat da equipa.\nQualquer pessoa pode criar equipas, mesmo várias, e fazer parte de várias equipas.\nUma equipa nova funciona logo, através de links de convite.",
         "team.regeln.was.titel": "O que é uma equipa?",
         "team.rolle.leiter": "Líder",
@@ -4503,6 +4737,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "Algumas classificações também contam voltas gravadas só com GPS (sem dados de movimento).",
         "team.tafel.leer": "Ainda sem registos neste período.",
         "team.tafel.neu": "Ranking",
+    ]
+
+    private static let _pt_PT7: [String: String] = [
         "team.tafel.nurBewegung": "só com dados de movimento",
         "team.tafel.nurBrett": "só telefone na prancha",
         "team.tafel.nurTeamspots": "só spots da equipa",
@@ -4521,9 +4758,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Volta mais duradoura",
         "team.vorlage.monat_strecke": "Quilómetros on-foil no mês",
         "team.vorlage.session_pumps": "Mais pumps numa sessão",
-    ]
-
-    private static let _pt_PT7: [String: String] = [
         "team.vorlage.top_speed": "Vel. máxima",
         "team.vorlage.weitester_lauf": "Volta mais longa",
         "team.vorlage.wochenende_laeufe": "Mais voltas no fim de semana",
@@ -4560,6 +4794,7 @@ enum LocTeam {
         "leader.totalTime": "オンフォイル時間（合計）",
         "sd.avgHrFoil": "Ø 心拍数（フォイル上）",
         "team.ablehnen": "拒否",
+        "team.abzeichen": "イベントバッジ",
         "team.adresse": "アドレス",
         "team.adresseAendernHinweis": "古いアドレスは転送されるので、共有済みのリンクも引き続き使えます。",
         "team.adresseHinweis": "小文字の英字、数字、ハイフンのみ使用できます。",
@@ -4577,10 +4812,10 @@ enum LocTeam {
         "team.anfrage.sessions": "{n} セッション",
         "team.anfrage.spots": "スポット",
         "team.anfragen": "申請",
-        "team.anfragenEins": "新しい申請 1 件",
     ]
 
     private static let _ja1: [String: String] = [
+        "team.anfragenEins": "新しい申請 1 件",
         "team.anfragenViele": "新しい申請 {n} 件",
         "team.anmeldungenZulassen": "参加申し込みを許可",
         "team.anmeldungenZulassenText": "ログイン中のユーザーには、チームページに「参加」ボタンが表示されます。",
@@ -4602,9 +4837,12 @@ enum LocTeam {
         "team.beschreibung": "説明",
         "team.bestenlisten": "ランキング",
         "team.bestenlistenHinweis": "各人の、選択した期間内のベスト値または合計で集計します。メンバーのすべてのセッションが対象で、参加前のものも含まれます。",
+        "team.bild.mitMeinemTeam": "自分のチームも表示",
+        "team.bild.mitMir": "自分も表示",
         "team.bild.titel": "画像として共有",
         "team.chat": "チームチャット",
         "team.chatTitel": "チーム {name}",
+        "team.community": "チーム",
         "team.communityLeer": "公開チームはまだありません。最初のチームを作りましょう！",
         "team.entfernen": "削除",
         "team.entfernenFrage": "{name} をチームから削除しますか？",
@@ -4622,13 +4860,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "この操作は許可されていません。",
         "team.err.not found": "見つかりません。",
         "team.err.nur_leiter": "この操作はチームリーダーのみ行えます。",
+    ]
+
+    private static let _ja2: [String: String] = [
         "team.err.nur_verwalter": "この操作はチームリーダーとモデレーターのみ行えます。",
         "team.err.slug_belegt": "このアドレスはすでに使われています。",
         "team.err.slug_laenge": "アドレスは3〜40文字で入力してください。",
         "team.err.slug_reserviert": "このアドレスは予約されています。",
-    ]
-
-    private static let _ja2: [String: String] = [
         "team.err.slug_zeichen": "小文字の英字、数字、ハイフンのみ使用でき、先頭と末尾にハイフンは使えません。",
         "team.err.tafel": "このランキングはこの設定では作成できません。",
         "team.err.unbekannt": "うまくいきませんでした。しばらくしてからもう一度お試しください。",
@@ -4655,6 +4893,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "現在開催中のグローバルイベントはなく、今後3日以内に始まるものもありません。",
         "team.event.keineTeams": "このイベントにはまだチームメンバーがいません。",
         "team.event.loeschenFrage": "イベント「{titel}」を削除しますか？",
+        "team.event.meinTeam": "参加チーム",
+        "team.event.meinTeamFest": "終了まで6時間を切りました — この選択は確定です。",
+        "team.event.meinTeamHinweis": "複数のチームに所属しているため、このイベントではそのうち1つにカウントされます。イベント終了の6時間前まで変更できます。",
         "team.event.minuten": "分",
         "team.event.neu": "イベントを作成",
         "team.event.neuLaden": "更新",
@@ -4667,6 +4908,9 @@ enum LocTeam {
         "team.event.spots": "スポット",
         "team.event.stand": "現在の順位",
         "team.event.standUm": "{zeit} 時点",
+    ]
+
+    private static let _ja3: [String: String] = [
         "team.event.start": "開始",
         "team.event.startIn": "開始まで",
         "team.event.status.auswertung": "集計中",
@@ -4674,9 +4918,6 @@ enum LocTeam {
         "team.event.status.kommend": "開催予定",
         "team.event.status.laeuft": "開催中",
         "team.event.stunden": "時間",
-    ]
-
-    private static let _ja3: [String: String] = [
         "team.event.summen": "イベント合計",
         "team.event.summenHinweis": "参加者全員の合計です。イベントページに表示する項目を選んでください。",
         "team.event.tag": "日",
@@ -4715,6 +4956,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "チームは承認され、コミュニティに掲載されています。",
         "team.freigabe.text.keine": "現在、チームはメンバーにしか表示されません。承認を申請すると、コミュニティに表示され、ランキングを公開できるようになります。",
         "team.freigabe.text.wartet": "承認を申請しました。名前、アドレス、説明、エンブレム、カラーを確認します。",
+    ]
+
+    private static let _ja4: [String: String] = [
         "team.freigabe.titel": "公開時の外観",
         "team.freigabe.wartet": "承認待ち",
         "team.gespeichert": "保存しました。",
@@ -4722,9 +4966,11 @@ enum LocTeam {
         "team.gruendenHinweis": "チームは招待リンクですぐに使えます。名前・説明・エンブレムを私たちが確認した後に、公開リストに掲載されます。",
         "team.gruendenKnopf": "作成",
         "team.herkunft": "国・地域",
-    ]
-
-    private static let _ja4: [String: String] = [
+        "team.ics.abo": "カレンダーに追加",
+        "team.ics.google": "Google カレンダー",
+        "team.ics.kopieren": "カレンダーのリンクをコピー",
+        "team.ics.kopiert": "コピーしました",
+        "team.ics.titel": "すべてのグローバルイベントをカレンダーで購読——新しいイベントや変更は自動で反映されます",
         "team.join.anfrage": "申請はチームリーダーに届き、リーダーが判断します。",
         "team.join.anfrageProfil": "審査のため、これまでにどのスポットでどの種目をしたか（セッション数のみ）がリーダーに表示されます。",
         "team.join.anfragen": "申請を送信",
@@ -4758,6 +5004,9 @@ enum LocTeam {
         "team.link.apply": "申請",
         "team.link.applyText": "このリンクを開いた人は申請を送り、あなたかモデレーターが判断します。",
         "team.link.join": "直接参加",
+    ]
+
+    private static let _ja5: [String: String] = [
         "team.link.joinText": "このリンクを開いた人はすぐにメンバーになります。",
         "team.linkNeu": "新しいリンクを作成",
         "team.linkNeuFrage": "新しいリンクを作成しますか？現在のリンクは使えなくなります。",
@@ -4770,9 +5019,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} が「{was}」を {wert} で更新（以前: {vorher}、{vorherWert}）",
         "team.logbuch.start": "{name} が「{was}」を {wert} で保持",
         "team.logbuchHinweis": "誰が、いつ、どのチーム記録を更新したか。毎晩更新されます。",
-    ]
-
-    private static let _ja5: [String: String] = [
         "team.logbuchLeer": "まだ記録はありません。最初の順位は、ランキングを設定した日の夜に表示されます。",
         "team.logoHochladen": "エンブレムをアップロード",
         "team.meine": "マイチーム",
@@ -4787,6 +5033,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "ランキング公開中",
         "team.oeffentlichErstNachFreigabe": "外観が承認された後に有効になります。",
         "team.oeffentlichText": "ログインしていない人を含め、誰でもランキング（順位・表示名・記録値）を見られるようになります。セッション、スポット、プロフィール写真はログイン中のユーザーにのみ表示されます。",
+        "team.platz1": "1位",
+        "team.platz2": "2位",
+        "team.platz3": "3位",
+        "team.primaer": "メインチーム",
+        "team.primaerHinweis": "グローバルイベントでは1つのチームにのみカウントされます。イベントページで別のチームを選ばない限り、メインチームです。",
+        "team.primaerSetzen": "メインチームに設定",
         "team.profilHinweis": "チームを作成・参加して、独自のランキングを運営できます。",
         "team.profilKnopf": "チーム",
         "team.qr": "QRコード",
@@ -4799,7 +5051,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "チームチャット",
         "team.regeln.events.text": "イベントには期間と独自のランキングがあり、特定のスポットに限定することもできます。\nランキングに加えて、またはその代わりに、イベントでは参加者全員の合計（チーム全体のパンプ数や距離など）を表示できます。各イベントにはランキングか合計が少なくとも1つ必要です。\n期間内に開始したセッションだけが集計されます。\nリーダーはイベントごとに、手動でアップロードしたファイル（FIT・GPX・TCX）を集計しないよう設定できます。ウォッチ、アプリ、連携アカウントの記録は引き続き集計されます。\n終了後も4時間はアップロードでき、その間チームページには「集計中」と表示されます。その後、結果は確定され、後からトリミングや削除をしても何も変わりません。\n終了後に退出した人は結果に残り、その後に参加した人は加わりません。\n結果は毎晩確定されるほか、誰かがチームページを開いた時点でも確定されます。\n時刻はイベントを作成したタイムゾーンのもので、全員にそのまま表示されます。\n1位から3位にはフォイラーページにイベントバッジが付きますが、外観が承認されたチームに限ります。",
         "team.regeln.events.titel": "イベント",
-        "team.regeln.global.text": "グローバルイベントはpumpfoil.org自身が主催します。期間内に条件に合うセッションがある人は、チーム参加や申し込みなしで自動的に対象になります。\n参加したくない人は、プロフィールの「プライバシー」で「グローバルイベントに参加しない」をオンにします。するとランキング、チーム順位、合計、バッジから外れ、終了済みのイベントからも消えます。\n各ランキングにはチーム順位があります：各チームの上位メンバー（通常5人）の合計です。対象はランキングを公開している承認済みのチームで、2つのチームに所属している人は両方に加算されます。\nランキングはイベントリンクからログインなしでも見られます：順位、表示名、イニシャル、値。\nそれ以外はイベントのルールが適用されます：期間、集計、確定、1〜3位のバッジ（プロフィールページに「Global」と表示）。",
+        "team.regeln.global.text": "グローバルイベントはpumpfoil.org自身が主催します。期間内に条件に合うセッションがある人は、チーム参加や申し込みなしで自動的に対象になります。\n参加したくない人は、プロフィールの「プライバシー」で「グローバルイベントに参加しない」をオンにします。するとランキング、チーム順位、合計、バッジから外れ、終了済みのイベントからも消えます。\n各ランキングにはチームランキングがあります。各チームの上位メンバー（通常5人）の合計で、スピード（スプリント）は平均です。参加するのは承認済みでランキングを公開しているチームです。複数のチームに所属している人は1チームにのみカウントされます：メインチーム（「マイチーム」で設定、未設定なら最大のチーム）またはイベントページで選んだチームです。イベント終了の6時間前まで変更できます。\nランキングはイベントリンクからログインなしでも見られます：順位、表示名、イニシャル、値。\nそれ以外はイベントのルールが適用されます：期間、集計、確定、1〜3位のバッジ（プロフィールページに「Global」と表示）。",
+    ]
+
+    private static let _ja6: [String: String] = [
         "team.regeln.global.titel": "グローバルイベント",
         "team.regeln.haftung.text": "イベントは各チームが自ら主催します。pumpfoil.org はイベントや、その中でなされる金銭的その他の約束に一切関与せず、責任を負いません。法的手段による請求はできません。支払いやその他の取り決めは、pumpfoil.org とは無関係に主催者と参加者の間で行ってください。\n同様に、pumpfoil.org は計測された数値やデータが正しいかどうか、改ざんされていないかについて一切責任を負いません。表示されるのは、GitHub で公開されているソースコードがアップロードされたデータから計算した結果であり、それ以上の保証はありません。",
         "team.regeln.haftung.titel": "免責事項",
@@ -4818,9 +5073,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "ランキングの上には、選択した期間内の全メンバーの合計が表示されます：ポンプ、オンフォイル距離と時間、セッション、ラン、そしてアクティブだったメンバーの数です。\nチーム対チーム：コミュニティのチームランキングでは、ランキングを公開している承認済みのすべてのチームを、指標ごとに上位3人・5人・10人の合計で比べます。そこではすべてのチームに同じ基準が適用され、各チームのランキングのフィルターは使われません。\n2つのチームに所属している人は、両方のチームに加算されます。",
         "team.regeln.statistik.titel": "チームの合計",
         "team.regeln.titel": "チームのルール",
-    ]
-
-    private static let _ja6: [String: String] = [
         "team.regeln.was.text": "独自のランキング、イベント、チームチャットを持つ固定のグループです。\n誰でもチームを作成でき、複数作ることも、複数のチームに入ることもできます。\n新しいチームは招待リンクですぐに使えます。",
         "team.regeln.was.titel": "チームとは？",
         "team.rolle.leiter": "リーダー",
@@ -4848,6 +5100,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "一部のランキングには GPS のみで記録されたラン（モーションデータなし）も含まれます。",
         "team.tafel.leer": "この期間の記録はまだありません。",
         "team.tafel.neu": "ランキング",
+    ]
+
+    private static let _ja7: [String: String] = [
         "team.tafel.nurBewegung": "モーションデータありのみ",
         "team.tafel.nurBrett": "スマホをボードに装着したもののみ",
         "team.tafel.nurTeamspots": "チームスポットのみ",
@@ -4866,9 +5121,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "最長ラン",
         "team.vorlage.monat_strecke": "今月のオンフォイル距離（km）",
         "team.vorlage.session_pumps": "1セッションの最多ポンプ",
-    ]
-
-    private static let _ja7: [String: String] = [
         "team.vorlage.top_speed": "最高速度",
         "team.vorlage.weitester_lauf": "最遠ラン",
         "team.vorlage.wochenende_laeufe": "週末の最多ラン",
@@ -4905,6 +5157,7 @@ enum LocTeam {
         "leader.totalTime": "上翼总时长",
         "sd.avgHrFoil": "Ø 心率（水翼上）",
         "team.ablehnen": "拒绝",
+        "team.abzeichen": "活动徽章",
         "team.adresse": "地址",
         "team.adresseAendernHinweis": "旧地址会自动跳转，已分享的链接仍然有效。",
         "team.adresseHinweis": "只能使用小写字母、数字和连字符。",
@@ -4922,10 +5175,10 @@ enum LocTeam {
         "team.anfrage.sessions": "{n} 次记录",
         "team.anfrage.spots": "地点",
         "team.anfragen": "申请",
-        "team.anfragenEins": "1 个新申请",
     ]
 
     private static let _zh1: [String: String] = [
+        "team.anfragenEins": "1 个新申请",
         "team.anfragenViele": "{n} 个新申请",
         "team.anmeldungenZulassen": "允许申请加入",
         "team.anmeldungenZulassenText": "已登录用户会在团队页面上看到“加入”按钮。",
@@ -4947,9 +5200,12 @@ enum LocTeam {
         "team.beschreibung": "简介",
         "team.bestenlisten": "排行榜",
         "team.bestenlistenHinweis": "每人按所选时间段内的最佳数值或总和计算。成员的所有记录都计入，包括加入之前的记录。",
+        "team.bild.mitMeinemTeam": "也显示我的团队",
+        "team.bild.mitMir": "也显示我",
         "team.bild.titel": "以图片分享",
         "team.chat": "团队聊天",
         "team.chatTitel": "团队 {name}",
+        "team.community": "团队",
         "team.communityLeer": "暂无公开团队。来创建第一个吧！",
         "team.entfernen": "移除",
         "team.entfernenFrage": "将 {name} 移出团队？",
@@ -4967,13 +5223,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "不允许此操作。",
         "team.err.not found": "未找到。",
         "team.err.nur_leiter": "只有团队负责人可以执行此操作。",
+    ]
+
+    private static let _zh2: [String: String] = [
         "team.err.nur_verwalter": "只有团队负责人和管理员可以执行此操作。",
         "team.err.slug_belegt": "该地址已被占用。",
         "team.err.slug_laenge": "地址需要 3 到 40 个字符。",
         "team.err.slug_reserviert": "该地址为保留地址。",
-    ]
-
-    private static let _zh2: [String: String] = [
         "team.err.slug_zeichen": "只能使用小写字母、数字和连字符，且不能位于开头或结尾。",
         "team.err.tafel": "无法按此方式创建该排行榜。",
         "team.err.unbekannt": "操作未成功。请稍后再试。",
@@ -5000,6 +5256,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "目前没有正在进行的全球活动，未来三天内也没有即将开始的。",
         "team.event.keineTeams": "此活动中还没有团队成员。",
         "team.event.loeschenFrage": "删除活动“{titel}”？",
+        "team.event.meinTeam": "你代表",
+        "team.event.meinTeamFest": "距结束不到6小时 — 此选择已确定。",
+        "team.event.meinTeamHinweis": "你在多个队伍中，本次活动只为其中一个计分。活动结束前6小时之前都可以更改。",
         "team.event.minuten": "分",
         "team.event.neu": "创建活动",
         "team.event.neuLaden": "刷新",
@@ -5012,6 +5271,9 @@ enum LocTeam {
         "team.event.spots": "地点",
         "team.event.stand": "当前排名",
         "team.event.standUm": "截至 {zeit}",
+    ]
+
+    private static let _zh3: [String: String] = [
         "team.event.start": "开始",
         "team.event.startIn": "距离开始",
         "team.event.status.auswertung": "结果统计中",
@@ -5019,9 +5281,6 @@ enum LocTeam {
         "team.event.status.kommend": "即将开始",
         "team.event.status.laeuft": "进行中",
         "team.event.stunden": "小时",
-    ]
-
-    private static let _zh3: [String: String] = [
         "team.event.summen": "活动总计",
         "team.event.summenHinweis": "所有参与者的总和。勾选要在活动页面上显示的项目。",
         "team.event.tag": "天",
@@ -5060,6 +5319,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "你的团队已通过审核，并已在社区中列出。",
         "team.freigabe.text.keine": "目前只有成员能看到你的团队。申请审核后，团队会出现在社区中，排行榜也可以公开。",
         "team.freigabe.text.wartet": "已申请审核。我们会查看名称、地址、简介、队徽和颜色。",
+    ]
+
+    private static let _zh4: [String: String] = [
         "team.freigabe.titel": "公开外观",
         "team.freigabe.wartet": "等待审核",
         "team.gespeichert": "已保存。",
@@ -5067,9 +5329,11 @@ enum LocTeam {
         "team.gruendenHinweis": "你的团队通过邀请链接即可立即使用。我们查看过名称、简介和队徽后，它才会公开列出。",
         "team.gruendenKnopf": "创建",
         "team.herkunft": "国家/地区",
-    ]
-
-    private static let _zh4: [String: String] = [
+        "team.ics.abo": "添加到日历",
+        "team.ics.google": "Google 日历",
+        "team.ics.kopieren": "复制日历链接",
+        "team.ics.kopiert": "已复制",
+        "team.ics.titel": "在日历中订阅所有全球活动——新增和变更的活动会自动出现",
         "team.join.anfrage": "你的申请将发送给团队负责人，由其决定。",
         "team.join.anfrageProfil": "审核时，负责人会看到你目前去过哪些地点、从事过哪些运动（仅显示记录次数）。",
         "team.join.anfragen": "发送申请",
@@ -5103,6 +5367,9 @@ enum LocTeam {
         "team.link.apply": "申请",
         "team.link.applyText": "打开此链接的人会提交申请，由你或管理员决定。",
         "team.link.join": "直接加入",
+    ]
+
+    private static let _zh5: [String: String] = [
         "team.link.joinText": "打开此链接的人会立即成为成员。",
         "team.linkNeu": "生成新链接",
         "team.linkNeuFrage": "生成新链接？当前链接将失效。",
@@ -5115,9 +5382,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} 以 {wert} 打破“{was}”（此前：{vorher}，{vorherWert}）",
         "team.logbuch.start": "{name} 以 {wert} 保持“{was}”",
         "team.logbuchHinweis": "谁在何时打破了哪项团队纪录。每晚更新。",
-    ]
-
-    private static let _zh5: [String: String] = [
         "team.logbuchLeer": "暂无记录。设置排行榜后的当晚会出现第一份排名。",
         "team.logoHochladen": "上传队徽",
         "team.meine": "我的团队",
@@ -5132,6 +5396,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "公开排行榜",
         "team.oeffentlichErstNachFreigabe": "外观审核通过后才生效。",
         "team.oeffentlichText": "这样所有人都能看到排行榜，无需登录：名次、显示名称和数值。记录、地点和头像仅对已登录用户可见。",
+        "team.platz1": "第 1 名",
+        "team.platz2": "第 2 名",
+        "team.platz3": "第 3 名",
+        "team.primaer": "主队",
+        "team.primaerHinweis": "在全球活动中你只为一个队伍计分：你的主队，除非你在活动页面选择其他队伍。",
+        "team.primaerSetzen": "设为主队",
         "team.profilHinweis": "创建或加入团队，拥有自己的排行榜。",
         "team.profilKnopf": "团队",
         "team.qr": "二维码",
@@ -5144,7 +5414,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "团队聊天",
         "team.regeln.events.text": "活动有一个时间窗口和自己的排行榜，也可以只限某些地点。\n除排行榜之外或代替排行榜，活动可以显示所有参与者的总计，例如整个团队的 pump 次数或距离。每个活动至少需要一个排行榜或一项总计。\n只有在时间窗口内开始的记录才计入。\n负责人可以为每个活动设定不统计手动上传的文件（FIT、GPX、TCX）；手表、App 和已关联账户的记录仍然计入。\n结束后仍可在 4 小时内上传，此时团队页面显示“结果统计中”。之后结果被冻结，之后再裁剪或删除都不会改变任何内容。\n结束后退出的人仍保留在结果中；之后加入的人不会再被计入。\n冻结在夜间进行，此外只要有人打开团队页面也会立即冻结。\n时间以创建活动时所在的时区为准，并以此向所有人显示。\n第 1 至 3 名会在自己的玩家主页上获得活动徽章，但仅限外观已获批准的团队。",
         "team.regeln.events.titel": "活动",
-        "team.regeln.global.text": "全球活动由 pumpfoil.org 自己举办。只要在活动时间内有符合条件的会话，就会自动计入，无需加入团队，也无需报名。\n不想参加的人，可以在个人资料的“隐私”中打开“不参加全球活动”。之后他会从排行榜、团队排名、汇总和徽章中消失，已结束的活动也一样。\n每个排行榜都有团队排名：每个团队最好的成员（通常 5 名）之和。参加的是排行榜公开且已获批准的团队；同时在两个团队的人，两个团队都计入。\n排行榜也可以通过活动链接在未登录时查看：名次、显示名、首字母和数值。\n其余适用活动规则：时间范围、结算、冻结，以及第 1 至 3 名的徽章，在个人主页上标为“Global”。",
+        "team.regeln.global.text": "全球活动由 pumpfoil.org 自己举办。只要在活动时间内有符合条件的会话，就会自动计入，无需加入团队，也无需报名。\n不想参加的人，可以在个人资料的“隐私”中打开“不参加全球活动”。之后他会从排行榜、团队排名、汇总和徽章中消失，已结束的活动也一样。\n每个排行榜都有队伍排名：每支队伍最佳成员（通常5人）的总和，速度类（冲刺）则取平均值。参与的是已批准且排行榜公开的队伍。加入多个队伍的人只为一个队伍计分：主队（在“我的队伍”中设置，否则为最大的队伍）或在活动页面选择的队伍。活动结束前6小时内不可再更改。\n排行榜也可以通过活动链接在未登录时查看：名次、显示名、首字母和数值。\n其余适用活动规则：时间范围、结算、冻结，以及第 1 至 3 名的徽章，在个人主页上标为“Global”。",
+    ]
+
+    private static let _zh6: [String: String] = [
         "team.regeln.global.titel": "全球活动",
         "team.regeln.haftung.text": "活动由各团队自行组织。pumpfoil.org 对活动及其中作出的任何经济或其他承诺没有任何影响，也不承担任何责任。不得诉诸法律途径。付款及其他一切约定由组织者与参与者自行处理，与 pumpfoil.org 无关。\n同样，pumpfoil.org 不对测得的数值和数据是否正确或是否被篡改承担任何责任。显示的内容即 GitHub 上的公开源代码根据上传的数据计算出的结果，除此之外不作任何承诺。",
         "team.regeln.haftung.titel": "免责声明",
@@ -5163,9 +5436,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "排行榜上方显示所选时间段内全体成员的总计：泵动次数、上翼距离和时长、记录数、航段数以及有多少成员活跃。\n团队对团队：在社区中，团队排行榜比较所有排行榜公开且已获批准的团队，每项指标取最好的 3、5 或 10 名骑手之和。那里对所有团队采用同一标准，不使用各团队自己排行榜的筛选条件。\n同时在两个团队的人，两个团队都计入。",
         "team.regeln.statistik.titel": "团队总计",
         "team.regeln.titel": "团队规则",
-    ]
-
-    private static let _zh6: [String: String] = [
         "team.regeln.was.text": "一个固定的小组，有自己的排行榜、活动和团队聊天。\n任何人都可以创建团队，也可以创建多个，并加入多个团队。\n新团队立即就能使用，通过邀请链接即可。",
         "team.regeln.was.titel": "什么是团队？",
         "team.rolle.leiter": "负责人",
@@ -5193,6 +5463,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "部分排行榜也统计仅用 GPS 记录的滑行（无运动数据）。",
         "team.tafel.leer": "此时间段内暂无记录。",
         "team.tafel.neu": "排行榜",
+    ]
+
+    private static let _zh7: [String: String] = [
         "team.tafel.nurBewegung": "仅含运动数据",
         "team.tafel.nurBrett": "仅手机放在板上",
         "team.tafel.nurTeamspots": "仅团队地点",
@@ -5211,9 +5484,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "最长航段",
         "team.vorlage.monat_strecke": "本月上翼公里数",
         "team.vorlage.session_pumps": "单次记录最多泵动",
-    ]
-
-    private static let _zh7: [String: String] = [
         "team.vorlage.top_speed": "最高速度",
         "team.vorlage.weitester_lauf": "最远航段",
         "team.vorlage.wochenende_laeufe": "周末最多航段",
@@ -5250,6 +5520,7 @@ enum LocTeam {
         "leader.totalTime": "Общее время на фойле",
         "sd.avgHrFoil": "Ø пульс на фойле",
         "team.ablehnen": "Отклонить",
+        "team.abzeichen": "Значки за события",
         "team.adresse": "Адрес",
         "team.adresseAendernHinweis": "Старые адреса перенаправляют, отправленные ссылки продолжают работать.",
         "team.adresseHinweis": "Только строчные латинские буквы, цифры и дефисы.",
@@ -5267,10 +5538,10 @@ enum LocTeam {
         "team.anfrage.sessions": "Сессий: {n}",
         "team.anfrage.spots": "Споты",
         "team.anfragen": "Заявки",
-        "team.anfragenEins": "Новые заявки: 1",
     ]
 
     private static let _ru1: [String: String] = [
+        "team.anfragenEins": "Новые заявки: 1",
         "team.anfragenViele": "Новые заявки: {n}",
         "team.anmeldungenZulassen": "Разрешить заявки",
         "team.anmeldungenZulassenText": "Вошедшие пользователи видят на странице команды кнопку «Вступить».",
@@ -5292,9 +5563,12 @@ enum LocTeam {
         "team.beschreibung": "Описание",
         "team.bestenlisten": "Таблицы лидеров",
         "team.bestenlistenHinweis": "Для каждого человека считается лучшее значение или сумма за выбранный период. Учитываются все сессии участников, в том числе до вступления.",
+        "team.bild.mitMeinemTeam": "Показать и мою команду",
+        "team.bild.mitMir": "Показать и меня",
         "team.bild.titel": "Поделиться картинкой",
         "team.chat": "Чат команды",
         "team.chatTitel": "Команда {name}",
+        "team.community": "Команды",
         "team.communityLeer": "Публичных команд пока нет. Создай первую!",
         "team.entfernen": "Убрать",
         "team.entfernenFrage": "Убрать {name} из команды?",
@@ -5312,13 +5586,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "Это не разрешено.",
         "team.err.not found": "Не найдено.",
         "team.err.nur_leiter": "Это может только руководитель команды.",
+    ]
+
+    private static let _ru2: [String: String] = [
         "team.err.nur_verwalter": "Это могут только руководитель команды и модераторы.",
         "team.err.slug_belegt": "Этот адрес уже занят.",
         "team.err.slug_laenge": "Адрес должен содержать от 3 до 40 символов.",
         "team.err.slug_reserviert": "Этот адрес зарезервирован.",
-    ]
-
-    private static let _ru2: [String: String] = [
         "team.err.slug_zeichen": "Только строчные латинские буквы, цифры и дефисы, не в начале и не в конце.",
         "team.err.tafel": "Такую таблицу лидеров создать нельзя.",
         "team.err.unbekannt": "Не получилось. Попробуй ещё раз позже.",
@@ -5345,6 +5619,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "Сейчас нет глобальных событий, и в ближайшие три дня ни одно не начинается.",
         "team.event.keineTeams": "В этом событии пока нет участников команд.",
         "team.event.loeschenFrage": "Удалить событие «{titel}»?",
+        "team.event.meinTeam": "Ты выступаешь за",
+        "team.event.meinTeamFest": "До конца меньше 6 часов — выбор окончательный.",
+        "team.event.meinTeamHinweis": "Ты состоишь в нескольких командах и в этом событии засчитываешься за одну из них. Изменить можно не позднее чем за 6 часов до конца события.",
         "team.event.minuten": "мин",
         "team.event.neu": "Создать событие",
         "team.event.neuLaden": "Обновить",
@@ -5357,6 +5634,9 @@ enum LocTeam {
         "team.event.spots": "Споты",
         "team.event.stand": "Текущее положение",
         "team.event.standUm": "По состоянию на {zeit}",
+    ]
+
+    private static let _ru3: [String: String] = [
         "team.event.start": "Начало",
         "team.event.startIn": "Начало через",
         "team.event.status.auswertung": "подведение итогов",
@@ -5364,9 +5644,6 @@ enum LocTeam {
         "team.event.status.kommend": "скоро",
         "team.event.status.laeuft": "идёт",
         "team.event.stunden": "ч",
-    ]
-
-    private static let _ru3: [String: String] = [
         "team.event.summen": "Суммы события",
         "team.event.summenHinweis": "Сложено по всем участникам. Отметь, что показывать на странице события.",
         "team.event.tag": "дн.",
@@ -5405,6 +5682,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "Твоя команда одобрена и показана в сообществе.",
         "team.freigabe.text.keine": "Пока твою команду видят только участники. Запроси одобрение, чтобы она появилась в сообществе, а её таблицы лидеров могли стать публичными.",
         "team.freigabe.text.wartet": "Запрос на одобрение отправлен. Мы посмотрим название, адрес, описание, эмблему и цвет.",
+    ]
+
+    private static let _ru4: [String: String] = [
         "team.freigabe.titel": "Публичное оформление",
         "team.freigabe.wartet": "ждёт одобрения",
         "team.gespeichert": "Сохранено.",
@@ -5412,9 +5692,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Твоя команда работает сразу, через ссылки-приглашения. Публично она появится, только когда мы посмотрим её название, описание и эмблему.",
         "team.gruendenKnopf": "Создать",
         "team.herkunft": "Страна / регион",
-    ]
-
-    private static let _ru4: [String: String] = [
+        "team.ics.abo": "Добавить в календарь",
+        "team.ics.google": "Google Календарь",
+        "team.ics.kopieren": "Скопировать ссылку на календарь",
+        "team.ics.kopiert": "Скопировано",
+        "team.ics.titel": "Подписаться на все глобальные события в календаре — новые и изменённые появятся сами",
         "team.join.anfrage": "Твоя заявка уйдёт руководителю команды, он и решит.",
         "team.join.anfrageProfil": "Для проверки руководитель видит, на каких спотах и в каких видах спорта ты катался до сих пор (только число сессий).",
         "team.join.anfragen": "Отправить заявку",
@@ -5448,6 +5730,9 @@ enum LocTeam {
         "team.link.apply": "Подать заявку",
         "team.link.applyText": "Кто откроет эту ссылку, отправит заявку, по которой решаешь ты или модератор.",
         "team.link.join": "Вступить сразу",
+    ]
+
+    private static let _ru5: [String: String] = [
         "team.link.joinText": "Кто откроет эту ссылку, сразу станет участником.",
         "team.linkNeu": "Создать новую ссылку",
         "team.linkNeuFrage": "Создать новую ссылку? Текущая перестанет работать.",
@@ -5460,9 +5745,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} бьёт «{was}» с результатом {wert} (раньше: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} держит «{was}» с результатом {wert}",
         "team.logbuchHinweis": "Кто и когда побил какой рекорд команды. Обновляется каждую ночь.",
-    ]
-
-    private static let _ru5: [String: String] = [
         "team.logbuchLeer": "Записей пока нет. Первые результаты появятся в ночь после создания таблиц лидеров.",
         "team.logoHochladen": "Загрузить эмблему",
         "team.meine": "Мои команды",
@@ -5477,6 +5759,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "Публичные таблицы лидеров",
         "team.oeffentlichErstNachFreigabe": "Действует только после одобрения оформления.",
         "team.oeffentlichText": "Тогда таблицы лидеров видят все, даже без входа: место, отображаемое имя и значение. Сессии, споты и фото профиля видят только вошедшие пользователи.",
+        "team.platz1": "1-е место",
+        "team.platz2": "2-е место",
+        "team.platz3": "3-е место",
+        "team.primaer": "Основная команда",
+        "team.primaerHinweis": "В глобальных событиях ты засчитываешься только за одну команду: основную, если на странице события не выберешь другую.",
+        "team.primaerSetzen": "Сделать основной командой",
         "team.profilHinweis": "Создавай команды, вступай в них и веди свои таблицы лидеров.",
         "team.profilKnopf": "Команда",
         "team.qr": "QR-код",
@@ -5489,7 +5777,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "Чат команды",
         "team.regeln.events.text": "У события есть временное окно и свои таблицы лидеров, по желанию только на определённых спотах.\nПомимо таблиц лидеров или вместо них событие может показывать суммы по всем участникам, например пампы или дистанцию всей команды. Каждому событию нужна хотя бы одна таблица или одна сумма.\nУчитываются только сессии, начатые в этом окне.\nДля каждого события руководитель может решить, что вручную загруженные файлы (FIT, GPX, TCX) не учитываются; записи с часов, из приложения и привязанных аккаунтов по-прежнему учитываются.\nПосле окончания можно ещё 4 часа загружать записи, страница команды тогда показывает «подведение итогов». Затем результат замораживается, и последующая обрезка или удаление уже ничего не меняют.\nКто выходит после окончания, остаётся в результате; кто вступает позже, уже не добавляется.\nРезультаты замораживаются ночью, а также сразу, как только кто-то откроет страницу команды.\nВремя указано в часовом поясе, в котором создано событие, и так же показывается всем.\nМеста с 1 по 3 получают значок события на своей странице фойлера, но только в командах с одобренным оформлением.",
         "team.regeln.events.titel": "События",
-        "team.regeln.global.text": "Глобальные события проводит сам pumpfoil.org. Автоматически учитывается каждый с подходящими сессиями в рамках события, без вступления и без регистрации.\nКто не хочет участвовать, отключает это в профиле в разделе «Конфиденциальность» («Не участвовать в глобальных событиях»). Тогда он пропадает из таблиц, командного зачёта, сумм и значков, в том числе в уже завершённых событиях.\nУ каждой таблицы есть командный зачёт: сумма лучших участников каждой команды, обычно 5. В нём участвуют одобренные команды с публичными таблицами; кто состоит в двух командах, засчитывается за обе.\nТаблицы видны и без входа по ссылке на событие: место, отображаемое имя, инициалы и значение.\nВ остальном действуют правила событий: время события, подведение итогов, фиксация и значки за места с 1 по 3, отмеченные на странице профиля как «Global».",
+        "team.regeln.global.text": "Глобальные события проводит сам pumpfoil.org. Автоматически учитывается каждый с подходящими сессиями в рамках события, без вступления и без регистрации.\nКто не хочет участвовать, отключает это в профиле в разделе «Конфиденциальность» («Не участвовать в глобальных событиях»). Тогда он пропадает из таблиц, командного зачёта, сумм и значков, в том числе в уже завершённых событиях.\nУ каждой таблицы есть командный зачёт: сумма лучших участников каждой команды, обычно 5, а для скоростей (спринтов) — их среднее. Участвуют одобренные команды с публичными таблицами. Кто состоит в нескольких командах, засчитывается только за одну: за основную (задаётся в «Мои команды», иначе — самую большую) или за выбранную на странице события. Изменить можно не позднее чем за 6 часов до конца события.\nТаблицы видны и без входа по ссылке на событие: место, отображаемое имя, инициалы и значение.\nВ остальном действуют правила событий: время события, подведение итогов, фиксация и значки за места с 1 по 3, отмеченные на странице профиля как «Global».",
+    ]
+
+    private static let _ru6: [String: String] = [
         "team.regeln.global.titel": "Глобальные события",
         "team.regeln.haftung.text": "События проводят сами команды. pumpfoil.org не влияет на события и на данные в них обещания, финансовые или иные, и не несёт за них ответственности. Обращение в суд исключено. Платежи и все прочие договорённости организаторы и участники решают между собой, независимо от pumpfoil.org.\nТочно так же pumpfoil.org не несёт ответственности за то, верны ли измеренные значения и данные и не были ли они подделаны. Показывается то, что публичный исходный код на GitHub рассчитывает из загруженных данных; других обещаний нет.",
         "team.regeln.haftung.titel": "Ответственность",
@@ -5508,9 +5799,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "Над таблицами лидеров показаны суммы по всем участникам за выбранный период: помпинг, дистанция и время на фойле, сессии, заезды и сколько участников были активны.\nКоманда против команды: в сообществе таблицы команд сравнивают все одобренные команды с публичными таблицами, по каждому показателю суммой лучших 3, 5 или 10 райдеров. Там для всех команд действует одна мерка, а не фильтры их собственных таблиц.\nКто состоит в двух командах, засчитывается за обе.",
         "team.regeln.statistik.titel": "Итоги команды",
         "team.regeln.titel": "Правила команд",
-    ]
-
-    private static let _ru6: [String: String] = [
         "team.regeln.was.text": "Постоянная группа со своими таблицами лидеров, событиями и чатом команды.\nЛюбой может создавать команды, в том числе несколько, и состоять в нескольких командах.\nНовая команда работает сразу, через ссылки-приглашения.",
         "team.regeln.was.titel": "Что такое команда?",
         "team.rolle.leiter": "Руководитель",
@@ -5538,6 +5826,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "Некоторые таблицы учитывают и заезды, записанные только с GPS (без данных движения).",
         "team.tafel.leer": "За этот период пока нет записей.",
         "team.tafel.neu": "Таблица лидеров",
+    ]
+
+    private static let _ru7: [String: String] = [
         "team.tafel.nurBewegung": "только с данными движения",
         "team.tafel.nurBrett": "только телефон на доске",
         "team.tafel.nurTeamspots": "только споты команды",
@@ -5556,9 +5847,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Самый долгий заезд",
         "team.vorlage.monat_strecke": "Километры на фойле за месяц",
         "team.vorlage.session_pumps": "Больше всего помпинга за сессию",
-    ]
-
-    private static let _ru7: [String: String] = [
         "team.vorlage.top_speed": "Макс. скорость",
         "team.vorlage.weitester_lauf": "Самый дальний заезд",
         "team.vorlage.wochenende_laeufe": "Больше всего заездов за выходные",
@@ -5595,6 +5883,7 @@ enum LocTeam {
         "leader.totalTime": "Total waktu on-foil",
         "sd.avgHrFoil": "Ø detak jantung di foil",
         "team.ablehnen": "Tolak",
+        "team.abzeichen": "Lencana event",
         "team.adresse": "Alamat",
         "team.adresseAendernHinweis": "Alamat lama dialihkan, jadi tautan yang sudah dibagikan tetap berfungsi.",
         "team.adresseHinweis": "Hanya huruf kecil, angka, dan tanda hubung.",
@@ -5612,10 +5901,10 @@ enum LocTeam {
         "team.anfrage.sessions": "{n} sesi",
         "team.anfrage.spots": "Spot",
         "team.anfragen": "Permintaan",
-        "team.anfragenEins": "1 permintaan baru",
     ]
 
     private static let _id1: [String: String] = [
+        "team.anfragenEins": "1 permintaan baru",
         "team.anfragenViele": "{n} permintaan baru",
         "team.anmeldungenZulassen": "Izinkan pendaftaran",
         "team.anmeldungenZulassenText": "Pengguna yang sudah masuk melihat tombol “Gabung” di halaman tim.",
@@ -5637,9 +5926,12 @@ enum LocTeam {
         "team.beschreibung": "Deskripsi",
         "team.bestenlisten": "Papan peringkat",
         "team.bestenlistenHinweis": "Setiap orang dihitung dengan nilai terbaik atau totalnya dalam periode yang dipilih. Semua sesi anggota dihitung, termasuk yang dari sebelum bergabung.",
+        "team.bild.mitMeinemTeam": "Tampilkan tim saya juga",
+        "team.bild.mitMir": "Tampilkan saya juga",
         "team.bild.titel": "Bagikan sebagai gambar",
         "team.chat": "Chat tim",
         "team.chatTitel": "Tim {name}",
+        "team.community": "Tim",
         "team.communityLeer": "Belum ada tim publik. Buat yang pertama!",
         "team.entfernen": "Keluarkan",
         "team.entfernenFrage": "Keluarkan {name} dari tim?",
@@ -5657,13 +5949,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "Itu tidak diizinkan.",
         "team.err.not found": "Tidak ditemukan.",
         "team.err.nur_leiter": "Hanya ketua tim yang boleh melakukan itu.",
+    ]
+
+    private static let _id2: [String: String] = [
         "team.err.nur_verwalter": "Hanya ketua tim dan moderator yang boleh melakukan itu.",
         "team.err.slug_belegt": "Alamat ini sudah dipakai.",
         "team.err.slug_laenge": "Alamat harus 3 sampai 40 karakter.",
         "team.err.slug_reserviert": "Alamat ini dicadangkan.",
-    ]
-
-    private static let _id2: [String: String] = [
         "team.err.slug_zeichen": "Hanya huruf kecil, angka, dan tanda hubung, tidak di awal atau akhir.",
         "team.err.tafel": "Papan peringkat ini tidak bisa dibuat seperti itu.",
         "team.err.unbekannt": "Gagal. Silakan coba lagi nanti.",
@@ -5690,6 +5982,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "Saat ini tidak ada event global yang berlangsung, dan tidak ada yang dimulai dalam tiga hari ke depan.",
         "team.event.keineTeams": "Belum ada anggota tim di event ini.",
         "team.event.loeschenFrage": "Hapus event “{titel}”?",
+        "team.event.meinTeam": "Kamu mewakili",
+        "team.event.meinTeamFest": "Kurang dari 6 jam lagi — pilihan ini sudah tetap.",
+        "team.event.meinTeamHinweis": "Kamu ada di beberapa tim dan dihitung untuk salah satunya di event ini. Kamu bisa mengubahnya sampai 6 jam sebelum event berakhir.",
         "team.event.minuten": "mnt",
         "team.event.neu": "Buat event",
         "team.event.neuLaden": "Muat ulang",
@@ -5702,6 +5997,9 @@ enum LocTeam {
         "team.event.spots": "Spot",
         "team.event.stand": "Klasemen saat ini",
         "team.event.standUm": "Per {zeit}",
+    ]
+
+    private static let _id3: [String: String] = [
         "team.event.start": "Mulai",
         "team.event.startIn": "Mulai dalam",
         "team.event.status.auswertung": "menunggu hasil",
@@ -5709,9 +6007,6 @@ enum LocTeam {
         "team.event.status.kommend": "akan datang",
         "team.event.status.laeuft": "berlangsung",
         "team.event.stunden": "jam",
-    ]
-
-    private static let _id3: [String: String] = [
         "team.event.summen": "Total event",
         "team.event.summenHinweis": "Dijumlahkan dari semua peserta. Centang yang ingin ditampilkan di halaman event.",
         "team.event.tag": "hari",
@@ -5750,6 +6045,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "Timmu sudah disetujui dan tercantum di komunitas.",
         "team.freigabe.text.keine": "Sejauh ini timmu hanya terlihat oleh anggota. Ajukan persetujuan agar tim muncul di komunitas dan papan peringkatnya bisa dibuat publik.",
         "team.freigabe.text.wartet": "Persetujuan sudah diajukan. Kami akan memeriksa nama, alamat, deskripsi, lambang, dan warna.",
+    ]
+
+    private static let _id4: [String: String] = [
         "team.freigabe.titel": "Tampilan publik",
         "team.freigabe.wartet": "menunggu persetujuan",
         "team.gespeichert": "Tersimpan.",
@@ -5757,9 +6055,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Timmu langsung bisa dipakai lewat tautan undangan. Tim baru tampil di daftar publik setelah kami memeriksa nama, deskripsi, dan lambangnya.",
         "team.gruendenKnopf": "Buat",
         "team.herkunft": "Negara / wilayah",
-    ]
-
-    private static let _id4: [String: String] = [
+        "team.ics.abo": "Tambahkan ke kalender",
+        "team.ics.google": "Google Kalender",
+        "team.ics.kopieren": "Salin tautan kalender",
+        "team.ics.kopiert": "Disalin",
+        "team.ics.titel": "Langganan semua event global di kalender – event baru dan yang berubah muncul otomatis",
         "team.join.anfrage": "Permintaanmu dikirim ke ketua tim, yang akan memutuskan.",
         "team.join.anfrageProfil": "Untuk menilainya, ketua melihat di spot mana dan olahraga apa saja kamu pernah bermain sejauh ini (hanya jumlah sesi).",
         "team.join.anfragen": "Kirim permintaan",
@@ -5793,6 +6093,9 @@ enum LocTeam {
         "team.link.apply": "Melamar",
         "team.link.applyText": "Siapa pun yang membuka tautan ini mengirim permintaan yang diputuskan olehmu atau moderator.",
         "team.link.join": "Langsung gabung",
+    ]
+
+    private static let _id5: [String: String] = [
         "team.link.joinText": "Siapa pun yang membuka tautan ini langsung menjadi anggota.",
         "team.linkNeu": "Buat tautan baru",
         "team.linkNeuFrage": "Buat tautan baru? Tautan yang sekarang tidak akan berfungsi lagi.",
@@ -5805,9 +6108,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} memecahkan “{was}” dengan {wert} (sebelumnya: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} memegang “{was}” dengan {wert}",
         "team.logbuchHinweis": "Siapa memecahkan rekor tim yang mana, dan kapan. Diperbarui setiap malam.",
-    ]
-
-    private static let _id5: [String: String] = [
         "team.logbuchLeer": "Belum ada entri. Klasemen pertama muncul pada malam setelah papan peringkat dibuat.",
         "team.logoHochladen": "Unggah lambang",
         "team.meine": "Tim saya",
@@ -5822,6 +6122,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "Papan peringkat publik",
         "team.oeffentlichErstNachFreigabe": "Berlaku setelah tampilan disetujui.",
         "team.oeffentlichText": "Semua orang bisa melihat papan peringkat, bahkan tanpa masuk: peringkat, nama tampilan, dan nilai. Sesi, spot, dan foto profil tetap hanya terlihat oleh pengguna yang sudah masuk.",
+        "team.platz1": "Juara 1",
+        "team.platz2": "Juara 2",
+        "team.platz3": "Juara 3",
+        "team.primaer": "Tim utama",
+        "team.primaerHinweis": "Di event global kamu hanya dihitung untuk satu tim: tim utamamu, kecuali kamu memilih tim lain di halaman event.",
+        "team.primaerSetzen": "Jadikan tim utama",
         "team.profilHinweis": "Buat tim atau gabung ke tim dengan papan peringkat sendiri.",
         "team.profilKnopf": "Tim",
         "team.qr": "Kode QR",
@@ -5834,7 +6140,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "Chat tim",
         "team.regeln.events.text": "Event punya rentang waktu dan papan peringkat sendiri, kalau mau hanya di spot tertentu.\nSelain papan peringkat, atau sebagai gantinya, event dapat menampilkan total dari semua peserta, misalnya pump atau jarak seluruh tim. Setiap event memerlukan minimal satu papan peringkat atau satu total.\nHanya sesi yang dimulai dalam rentang waktu itu yang dihitung.\nUntuk setiap event, ketua dapat menetapkan bahwa file yang diunggah manual (FIT, GPX, TCX) tidak dihitung; rekaman dari jam, aplikasi, dan akun tertaut tetap dihitung.\nSetelah selesai, kamu masih bisa mengunggah selama 4 jam; halaman tim lalu menampilkan “menunggu hasil”. Setelah itu hasilnya dibekukan, dan memotong atau menghapus belakangan tidak mengubah apa pun lagi.\nYang keluar setelah selesai tetap ada di hasil; yang bergabung sesudahnya tidak ikut lagi.\nHasil dibekukan pada malam hari dan juga begitu seseorang membuka halaman tim.\nWaktunya mengikuti zona waktu tempat event dibuat dan ditampilkan begitu untuk semua orang.\nPeringkat 1 sampai 3 mendapat lencana event di halaman foiler mereka, tapi hanya untuk tim yang tampilannya sudah disetujui.",
         "team.regeln.events.titel": "Event",
-        "team.regeln.global.text": "Event global diselenggarakan oleh pumpfoil.org sendiri. Siapa pun yang punya sesi yang cocok dalam rentang waktu otomatis dihitung, tanpa bergabung dan tanpa mendaftar.\nYang tidak ingin ikut bisa mematikannya di profil pada “Privasi” (“Jangan ikut event global”). Maka ia tidak muncul di papan peringkat, peringkat tim, total, dan lencana, juga di event yang sudah selesai.\nSetiap papan peringkat punya peringkat tim: jumlah anggota terbaik setiap tim, biasanya 5. Yang ikut adalah tim yang disetujui dengan papan peringkat publik; yang ada di dua tim dihitung untuk keduanya.\nPapan peringkat juga terlihat tanpa login lewat tautan event: peringkat, nama tampilan, inisial, dan nilai.\nSelebihnya berlaku aturan event: rentang waktu, penilaian, pembekuan, dan lencana untuk peringkat 1 sampai 3, ditandai “Global” di halaman profil.",
+        "team.regeln.global.text": "Event global diselenggarakan oleh pumpfoil.org sendiri. Siapa pun yang punya sesi yang cocok dalam rentang waktu otomatis dihitung, tanpa bergabung dan tanpa mendaftar.\nYang tidak ingin ikut bisa mematikannya di profil pada “Privasi” (“Jangan ikut event global”). Maka ia tidak muncul di papan peringkat, peringkat tim, total, dan lencana, juga di event yang sudah selesai.\nSetiap papan peringkat punya peringkat tim: jumlah anggota terbaik tiap tim, biasanya 5, dan untuk kecepatan (sprint) rata-ratanya. Tim yang disetujui dengan papan peringkat publik ikut serta. Yang ada di beberapa tim hanya dihitung untuk satu: tim utamanya (diatur di “Tim saya”, jika tidak maka tim terbesar) atau tim yang dipilih di halaman event. Bisa diubah sampai 6 jam sebelum event berakhir.\nPapan peringkat juga terlihat tanpa login lewat tautan event: peringkat, nama tampilan, inisial, dan nilai.\nSelebihnya berlaku aturan event: rentang waktu, penilaian, pembekuan, dan lencana untuk peringkat 1 sampai 3, ditandai “Global” di halaman profil.",
+    ]
+
+    private static let _id6: [String: String] = [
         "team.regeln.global.titel": "Event global",
         "team.regeln.haftung.text": "Event diselenggarakan oleh tim itu sendiri. pumpfoil.org tidak memiliki pengaruh atas event maupun janji yang dibuat di dalamnya, baik finansial maupun lainnya, dan tidak bertanggung jawab atasnya. Jalur hukum dikecualikan. Pembayaran dan semua kesepakatan lain diatur antara penyelenggara dan peserta, terlepas dari pumpfoil.org.\nBegitu pula, pumpfoil.org tidak bertanggung jawab atas benar tidaknya nilai dan data yang diukur atau apakah data tersebut dimanipulasi. Yang ditampilkan adalah hasil perhitungan kode sumber publik di GitHub dari data yang diunggah; tidak ada janji lain.",
         "team.regeln.haftung.titel": "Tanggung jawab",
@@ -5853,9 +6162,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "Di atas papan peringkat ada total semua anggota dalam periode yang dipilih: pump, jarak dan waktu on-foil, sesi, run, dan berapa anggota yang aktif.\nTim melawan tim: di komunitas, papan peringkat tim membandingkan semua tim yang disetujui dengan papan peringkat publik, per metrik dengan jumlah 3, 5, atau 10 rider terbaik. Di sana berlaku ukuran yang sama untuk semua tim, bukan filter papan peringkat mereka sendiri.\nYang ada di dua tim dihitung untuk keduanya.",
         "team.regeln.statistik.titel": "Total tim",
         "team.regeln.titel": "Aturan tim",
-    ]
-
-    private static let _id6: [String: String] = [
         "team.regeln.was.text": "Kelompok tetap dengan papan peringkat, event, dan chat tim sendiri.\nSiapa pun bisa membuat tim, bahkan beberapa, dan bergabung di beberapa tim.\nTim baru langsung berfungsi, lewat tautan undangan.",
         "team.regeln.was.titel": "Apa itu tim?",
         "team.rolle.leiter": "Ketua",
@@ -5883,6 +6189,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "Beberapa papan peringkat juga menghitung run yang direkam hanya dengan GPS (tanpa data gerak).",
         "team.tafel.leer": "Belum ada entri dalam periode ini.",
         "team.tafel.neu": "Papan peringkat",
+    ]
+
+    private static let _id7: [String: String] = [
         "team.tafel.nurBewegung": "hanya dengan data gerak",
         "team.tafel.nurBrett": "hanya ponsel di papan",
         "team.tafel.nurTeamspots": "hanya spot tim",
@@ -5901,9 +6210,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Run terlama",
         "team.vorlage.monat_strecke": "Kilometer on-foil bulan ini",
         "team.vorlage.session_pumps": "Pump terbanyak dalam satu sesi",
-    ]
-
-    private static let _id7: [String: String] = [
         "team.vorlage.top_speed": "Kecepatan tertinggi",
         "team.vorlage.weitester_lauf": "Run terjauh",
         "team.vorlage.wochenende_laeufe": "Run terbanyak akhir pekan ini",
@@ -5940,6 +6246,7 @@ enum LocTeam {
         "leader.totalTime": "Total tid på foil",
         "sd.avgHrFoil": "Ø puls på foilen",
         "team.ablehnen": "Avslå",
+        "team.abzeichen": "Arrangementsmerker",
         "team.adresse": "Adresse",
         "team.adresseAendernHinweis": "Gamle adresser videresendes, så delte lenker fortsetter å virke.",
         "team.adresseHinweis": "Bare små bokstaver, sifre og bindestreker.",
@@ -5957,10 +6264,10 @@ enum LocTeam {
         "team.anfrage.sessions": "{n} økter",
         "team.anfrage.spots": "Spotter",
         "team.anfragen": "Forespørsler",
-        "team.anfragenEins": "1 ny forespørsel",
     ]
 
     private static let _nb1: [String: String] = [
+        "team.anfragenEins": "1 ny forespørsel",
         "team.anfragenViele": "{n} nye forespørsler",
         "team.anmeldungenZulassen": "Tillat innmeldinger",
         "team.anmeldungenZulassenText": "Innloggede brukere ser en «Bli med»-knapp på lagsiden.",
@@ -5982,9 +6289,12 @@ enum LocTeam {
         "team.beschreibung": "Beskrivelse",
         "team.bestenlisten": "Topplister",
         "team.bestenlistenHinweis": "Hver person teller med sin beste verdi eller summen i valgt periode. Alle økter til medlemmene teller, også de fra før innmeldingen.",
+        "team.bild.mitMeinemTeam": "Vis laget mitt også",
+        "team.bild.mitMir": "Vis meg også",
         "team.bild.titel": "Del som bilde",
         "team.chat": "Lagchat",
         "team.chatTitel": "Lag {name}",
+        "team.community": "Lag",
         "team.communityLeer": "Ingen offentlige lag ennå. Start det første!",
         "team.entfernen": "Fjern",
         "team.entfernenFrage": "Fjerne {name} fra laget?",
@@ -6002,13 +6312,13 @@ enum LocTeam {
         "team.err.nicht_erlaubt": "Det er ikke tillatt.",
         "team.err.not found": "Ikke funnet.",
         "team.err.nur_leiter": "Bare lagets leder kan gjøre det.",
+    ]
+
+    private static let _nb2: [String: String] = [
         "team.err.nur_verwalter": "Bare lagets leder og moderatorer kan gjøre det.",
         "team.err.slug_belegt": "Denne adressen er allerede tatt.",
         "team.err.slug_laenge": "Adressen må ha 3 til 40 tegn.",
         "team.err.slug_reserviert": "Denne adressen er reservert.",
-    ]
-
-    private static let _nb2: [String: String] = [
         "team.err.slug_zeichen": "Bare små bokstaver, sifre og bindestreker, ikke først eller sist.",
         "team.err.tafel": "Denne topplisten kan ikke settes opp slik.",
         "team.err.unbekannt": "Det gikk ikke. Prøv igjen senere.",
@@ -6035,6 +6345,9 @@ enum LocTeam {
         "team.event.keineGlobalen": "Ingen globale eventer pågår nå, og ingen starter de neste tre dagene.",
         "team.event.keineTeams": "Ingen lagmedlemmer i dette eventet ennå.",
         "team.event.loeschenFrage": "Slette arrangementet «{titel}»?",
+        "team.event.meinTeam": "Du kjører for",
+        "team.event.meinTeamFest": "Mindre enn 6 timer igjen — valget står fast.",
+        "team.event.meinTeamHinweis": "Du er med i flere lag og teller for ett av dem i dette eventet. Du kan endre det til 6 timer før eventet slutter.",
         "team.event.minuten": "min",
         "team.event.neu": "Opprett arrangement",
         "team.event.neuLaden": "Oppdater",
@@ -6047,6 +6360,9 @@ enum LocTeam {
         "team.event.spots": "Spots",
         "team.event.stand": "Stillingen nå",
         "team.event.standUm": "Per {zeit}",
+    ]
+
+    private static let _nb3: [String: String] = [
         "team.event.start": "Start",
         "team.event.startIn": "Starter om",
         "team.event.status.auswertung": "resultat ventes",
@@ -6054,9 +6370,6 @@ enum LocTeam {
         "team.event.status.kommend": "kommer",
         "team.event.status.laeuft": "pågår",
         "team.event.stunden": "t",
-    ]
-
-    private static let _nb3: [String: String] = [
         "team.event.summen": "Totaler for arrangementet",
         "team.event.summenHinweis": "Lagt sammen for alle deltakere. Kryss av for det som skal vises på arrangementsiden.",
         "team.event.tag": "dag",
@@ -6095,6 +6408,9 @@ enum LocTeam {
         "team.freigabe.text.frei": "Laget ditt er godkjent og oppført i fellesskapet.",
         "team.freigabe.text.keine": "Foreløpig ser bare medlemmer laget ditt. Be om godkjenning, så vises det i fellesskapet og topplistene kan bli offentlige.",
         "team.freigabe.text.wartet": "Godkjenning er bedt om. Vi ser på navn, adresse, beskrivelse, våpenskjold og farge.",
+    ]
+
+    private static let _nb4: [String: String] = [
         "team.freigabe.titel": "Offentlig utseende",
         "team.freigabe.wartet": "venter på godkjenning",
         "team.gespeichert": "Lagret.",
@@ -6102,9 +6418,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Laget ditt fungerer med en gang via invitasjonslenker. Det blir oppført offentlig når vi har sett på navnet, beskrivelsen og våpenskjoldet.",
         "team.gruendenKnopf": "Start",
         "team.herkunft": "Land / region",
-    ]
-
-    private static let _nb4: [String: String] = [
+        "team.ics.abo": "Legg til i kalender",
+        "team.ics.google": "Google Kalender",
+        "team.ics.kopieren": "Kopier kalenderlenke",
+        "team.ics.kopiert": "Kopiert",
+        "team.ics.titel": "Abonner på alle globale eventer i kalenderen – nye og endrede eventer dukker opp av seg selv",
         "team.join.anfrage": "Forespørselen din går til lagets leder, som bestemmer.",
         "team.join.anfrageProfil": "For å vurdere den ser lederen hvilke spotter og idretter du har vært ute på så langt (bare antall økter).",
         "team.join.anfragen": "Send forespørsel",
@@ -6138,6 +6456,9 @@ enum LocTeam {
         "team.link.apply": "Søk",
         "team.link.applyText": "Den som åpner denne lenken, sender en forespørsel som du eller en moderator bestemmer over.",
         "team.link.join": "Bli med direkte",
+    ]
+
+    private static let _nb5: [String: String] = [
         "team.link.joinText": "Den som åpner denne lenken, blir medlem med en gang.",
         "team.linkNeu": "Lag ny lenke",
         "team.linkNeuFrage": "Lage en ny lenke? Den nåværende slutter da å virke.",
@@ -6150,9 +6471,6 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} slår «{was}» med {wert} (før: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} har «{was}» med {wert}",
         "team.logbuchHinweis": "Hvem som slo hvilken lagrekord, og når. Oppdateres hver natt.",
-    ]
-
-    private static let _nb5: [String: String] = [
         "team.logbuchLeer": "Ingen oppføringer ennå. Den første stillingen kommer natten etter at topplistene er satt opp.",
         "team.logoHochladen": "Last opp våpenskjold",
         "team.meine": "Mine lag",
@@ -6167,6 +6485,12 @@ enum LocTeam {
         "team.oeffentlichBadge": "Offentlige topplister",
         "team.oeffentlichErstNachFreigabe": "Gjelder først når utseendet er godkjent.",
         "team.oeffentlichText": "Da ser alle topplistene, også uten innlogging: plass, visningsnavn og verdi. Økter, spots og profilbilder ser bare innloggede brukere.",
+        "team.platz1": "1. plass",
+        "team.platz2": "2. plass",
+        "team.platz3": "3. plass",
+        "team.primaer": "Primærlag",
+        "team.primaerHinweis": "I globale eventer teller du bare for ett lag: primærlaget ditt, med mindre du velger et annet på eventsiden.",
+        "team.primaerSetzen": "Sett som primærlag",
         "team.profilHinweis": "Start eller bli med i lag med egne topplister.",
         "team.profilKnopf": "Lag",
         "team.qr": "QR-kode",
@@ -6179,7 +6503,10 @@ enum LocTeam {
         "team.regeln.chat.titel": "Lagchat",
         "team.regeln.events.text": "Et arrangement har et tidsvindu og egne topplister, om ønskelig bare på bestemte spots.\nI tillegg til eller i stedet for topplister kan et arrangement vise totaler for alle deltakere, for eksempel pumpene eller distansen til hele laget. Hvert arrangement trenger minst én toppliste eller én total.\nBare økter som starter i tidsvinduet, teller.\nFor hvert arrangement kan lederen bestemme at manuelt opplastede filer (FIT, GPX, TCX) ikke teller; opptak fra klokker, appen og koblede kontoer teller fortsatt.\nEtter slutt kan du laste opp i 4 timer til, og lagsiden viser da «resultat ventes». Deretter er resultatet fryst, og senere trimming eller sletting endrer ingenting lenger.\nDen som melder seg ut etter slutten, blir stående i resultatet; den som blir med etterpå, kommer ikke med.\nResultatene fryses om natten og i tillegg så snart noen åpner lagsiden.\nTidene gjelder i tidssonen arrangementet ble opprettet i, og vises slik for alle.\nPlass 1 til 3 får et arrangementsmerke på foilersiden sin, men bare i lag der utseendet er godkjent.",
         "team.regeln.events.titel": "Arrangementer",
-        "team.regeln.global.text": "Globale eventer arrangeres av pumpfoil.org selv. Alle med passende økter i tidsvinduet teller automatisk, uten å bli med og uten påmelding.\nDen som ikke vil delta, slår det av i profilen under «Personvern» («Ikke delta i globale eventer»). Da mangler man i topplister, lagkonkurranser, summer og merker, også i eventer som allerede er over.\nHver toppliste har en lagkonkurranse: summen av de beste medlemmene i hvert lag, vanligvis 5. Godkjente lag med offentlige topplister er med; den som er med i to lag, teller for begge.\nTopplistene er også synlige uten innlogging via eventlenken: plass, visningsnavn, initialer og verdi.\nEllers gjelder reglene for eventer: tidsvindu, resultat, frysing og merker for plass 1 til 3, merket «Global» på profilsiden.",
+        "team.regeln.global.text": "Globale eventer arrangeres av pumpfoil.org selv. Alle med passende økter i tidsvinduet teller automatisk, uten å bli med og uten påmelding.\nDen som ikke vil delta, slår det av i profilen under «Personvern» («Ikke delta i globale eventer»). Da mangler man i topplister, lagkonkurranser, summer og merker, også i eventer som allerede er over.\nHver resultatliste har en lagkonkurranse: summen av de beste medlemmene i hvert lag, vanligvis 5, og for fart (sprinter) gjennomsnittet deres. Godkjente lag med offentlige resultatlister er med. Den som er i flere lag, teller bare for ett: primærlaget sitt (satt under «Mine lag», ellers det største) eller laget som er valgt på eventsiden. Det kan endres til 6 timer før eventet slutter.\nTopplistene er også synlige uten innlogging via eventlenken: plass, visningsnavn, initialer og verdi.\nEllers gjelder reglene for eventer: tidsvindu, resultat, frysing og merker for plass 1 til 3, merket «Global» på profilsiden.",
+    ]
+
+    private static let _nb6: [String: String] = [
         "team.regeln.global.titel": "Globale eventer",
         "team.regeln.haftung.text": "Arrangementene drives av lagene selv. pumpfoil.org har ingen innflytelse på arrangementer eller på løfter som gis i dem, økonomiske eller andre, og tar intet ansvar for dem. Rettslig prøving er utelukket. Betalinger og alle andre avtaler ordner arrangører og deltakere seg imellom, uavhengig av pumpfoil.org.\nLikeledes tar pumpfoil.org intet ansvar for om målte verdier og data er riktige eller har blitt manipulert. Det som vises, er det den offentlige kildekoden på GitHub beregner ut fra de opplastede dataene; det gis ingen andre løfter.",
         "team.regeln.haftung.titel": "Ansvar",
@@ -6198,9 +6525,6 @@ enum LocTeam {
         "team.regeln.statistik.text": "Over topplistene står summene for alle medlemmer i valgt periode: pumper, distanse og tid på foil, økter, runs og hvor mange medlemmer som var aktive.\nLag mot lag: i fellesskapet sammenligner laglistene alle godkjente lag med offentlige topplister, per nøkkeltall med summen av de beste 3, 5 eller 10 rytterne. Der gjelder samme mål for alle lag, ikke filtrene i deres egne lister.\nDen som er med i to lag, teller for begge.",
         "team.regeln.statistik.titel": "Lagsummer",
         "team.regeln.titel": "Lagregler",
-    ]
-
-    private static let _nb6: [String: String] = [
         "team.regeln.was.text": "En fast gruppe med egne topplister, arrangementer og lagchat.\nAlle kan starte lag, også flere, og være med i flere lag.\nEt nytt lag fungerer med en gang, via invitasjonslenker.",
         "team.regeln.was.titel": "Hva er et lag?",
         "team.rolle.leiter": "Leder",
@@ -6228,6 +6552,9 @@ enum LocTeam {
         "team.tafel.gpsEinige": "Noen lister teller også turer som bare er tatt opp med GPS (uten bevegelsesdata).",
         "team.tafel.leer": "Ingen oppføringer i denne perioden ennå.",
         "team.tafel.neu": "Toppliste",
+    ]
+
+    private static let _nb7: [String: String] = [
         "team.tafel.nurBewegung": "bare med bevegelsesdata",
         "team.tafel.nurBrett": "bare telefon på brettet",
         "team.tafel.nurTeamspots": "bare lagspots",
@@ -6246,9 +6573,6 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Lengste run (tid)",
         "team.vorlage.monat_strecke": "Kilometer på foil denne måneden",
         "team.vorlage.session_pumps": "Flest pumper i én økt",
-    ]
-
-    private static let _nb7: [String: String] = [
         "team.vorlage.top_speed": "Toppfart",
         "team.vorlage.weitester_lauf": "Lengste run",
         "team.vorlage.wochenende_laeufe": "Flest runs i helgen",

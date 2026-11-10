@@ -54,6 +54,8 @@ struct TeamEventsAbschnitt: View {
             }
             ForEach(events ?? []) { e in zeile(e) }
             linkZeile
+            // Kalender-Abo fuer alle globalen Events (web KalenderAbo.tsx, 09.11.2026), neben „Alle Events".
+            KalenderAbo(lang: lang)
         } header: {
             Label(Loc.t("team.eventsGlobal", lang), systemImage: "flag").font(.headline)
         }
@@ -91,6 +93,62 @@ struct TeamEventsAbschnitt: View {
         async let m: [TeamEventKurz]? = try? Api.teamsEventsMeine()
         events = (try? await Api.teamsEventsAktuell()) ?? []
         meine = await m ?? []
+    }
+}
+
+// MARK: - Kalender-Abo
+
+/// Kalender-Abo fuer alle globalen Events (web KalenderAbo.tsx, Jan 09.11.2026: „ein link fuer alle events"). Server:
+/// GET /api/public/events/global.ics (ohne Login). `webcal://` oeffnet auf dem iPhone direkt den Abo-Dialog, Google
+/// Kalender bekommt die Adresse ueber seinen Abo-Link, „Link kopieren" fuer alles andere. Mehrere Knoepfe in einer
+/// Listenzeile: jeder `.borderless`, sonst loest die ganze Zeile den ersten aus.
+struct KalenderAbo: View {
+    let lang: String
+    @Environment(\.openURL) private var openURL
+    @State private var kopiert = false
+
+    static let pfad = "/api/public/events/global.ics"
+    private var https: String { Api.baseURL + KalenderAbo.pfad }
+    private var webcal: String { https.replacingOccurrences(of: "https://", with: "webcal://") }
+
+    private var google: URL? {
+        var c = URLComponents(string: "https://calendar.google.com/calendar/render")
+        c?.queryItems = [URLQueryItem(name: "cid", value: webcal)]
+        return c?.url
+    }
+
+    private var abo: some View {
+        Button { if let u = URL(string: webcal) { openURL(u) } } label: {
+            Label(Loc.t("team.ics.abo", lang), systemImage: "calendar.badge.plus").font(.subheadline)
+        }
+        .buttonStyle(.borderless)
+        .accessibilityHint(Loc.t("team.ics.titel", lang))
+    }
+
+    private var googleKnopf: some View {
+        Button { if let u = google { openURL(u) } } label: {
+            Text(Loc.t("team.ics.google", lang)).font(.subheadline)
+        }
+        .buttonStyle(.borderless)
+    }
+
+    private var kopieren: some View {
+        Button {
+            UIPasteboard.general.string = https
+            kopiert = true
+            Task { try? await Task.sleep(nanoseconds: 2_000_000_000); kopiert = false }
+        } label: {
+            Text(Loc.t(kopiert ? "team.ics.kopiert" : "team.ics.kopieren", lang)).font(.subheadline)
+        }
+        .buttonStyle(.borderless)
+    }
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 16) { Spacer(); abo; googleKnopf; kopieren }
+            VStack(alignment: .trailing, spacing: 8) { abo; googleKnopf; kopieren }
+                .frame(maxWidth: .infinity, alignment: .trailing)
+        }
     }
 }
 
