@@ -930,6 +930,15 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # 06.11.2026 (Jan: „fortsetzen vorauswaehlen ist gut"): Pausen-Menue mit Vorauswahl.
+    # EINGEREICHT 10.11.2026 (Jans Meldung), .iq aus 7b71999b, 222 Geraete, release-staging/garmin-1.0.102/.
+    {"name": "Garmin", "version": "1.0.102",
+     "eingereicht": "2026-11-10",
+     "items": [
+         "In the pause menu, Resume is preselected, so pressing START twice continues your recording.",
+         # 10.11.2026: V-max wie der Server (0e878a78)
+         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
+     ]},
     # EINGEREICHT 10.11.2026 11:47 (Jans Meldung, ASC „Warten auf Pruefung“, Uebermittlung
     # 39a85ee1-84c4-4cad-b03f-2e8a6107a2a6). 1.1.63 nie eingereicht, 1.1.64 (74) traegt den Event-Port (7cd19783, d493f81f, 4809e2e5), die
     # Kachel (bd8c20dc), das Kalender-Abo als Menue (6eb20f5a) und die V-max (f3426467, 90e47c9b).
@@ -1172,13 +1181,7 @@ NAECHSTES: list[dict] = [
     # Garmin Connect stand hier bis zur Freigabe fuer alle am 05.11.2026 (jetzt live, Changelog-Ereignis).
     # Garmin 1.0.100 am 05.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkte im Changelog mit garmin 1.0.100.
     # Garmin 1.0.101 am 06.11. eingereicht -> IN_REVIEW.
-    # 06.11.2026 (Jan: „fortsetzen vorauswaehlen ist gut"): Pausen-Menue mit Vorauswahl.
-    {"name": "Garmin", "version": "1.0.102",
-     "items": [
-         "In the pause menu, Resume is preselected, so pressing START twice continues your recording.",
-         # 10.11.2026: V-max wie der Server (0e878a78)
-         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
-     ]},
+    # Garmin 1.0.102 am 10.11. eingereicht -> IN_REVIEW.
     # 06.11.2026 (Jan: „bitte version bumpen, dann teste ich das und release", vorher „den rest portieren"): Garmin Connect in
     # beiden Apps (Karte/Reiter, Quellenzeile — kam erst nach den Einreichungen von 1.1.47 und 1.1.60), Garmin-Hinweise mit zwei
     # Schritten, Weiterleitung zusammengefuehrter Sessions, Sportarten als eigener Reiter, Foil-Rechner-Eintauchtiefe.
