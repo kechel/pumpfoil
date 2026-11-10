@@ -8,7 +8,7 @@
 
     <!-- Bereit: START tippen, wie auf allen Uhren -->
     <div class="bbereit" if="{{ ansicht === 'bereit' }}">
-        <text class="marke">PUMPFOIL 1.0.4</text>
+        <text class="marke">PUMPFOIL 1.0.5</text>
         <div class="kstart" onclick="starten">
             <text class="knopftext">{{ tStart }}</text>
         </div>
