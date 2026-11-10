@@ -52,6 +52,8 @@ struct TeamTafelEntwurf: Identifiable, Equatable {
 let TEAM_KENNZAHLEN_BEST: [String] = ["session_pumps", "distance", "duration", "speed", "glide", "runs",
                                       "session_distance", "session_time"]
 let TEAM_KENNZAHLEN_SUMME: [String] = ["sum_pumps", "sum_runs", "sum_sessions", "sum_distance", "sum_time", "sum_spots"]
+/// Fliegende Sprints (09.11.2026, web SPRINT_KENNZAHLEN): vorerst NUR in Events waehlbar, nicht in den Team-Bestenlisten.
+let TEAM_KENNZAHLEN_SPRINT: [String] = ["sprint_100m", "sprint_200m", "sprint_300m", "sprint_60s"]
 
 extension Api {
     fileprivate static func vPfad(_ slug: String) -> String {
@@ -190,12 +192,13 @@ extension Api {
 
     // MARK: Events
 
+    /// `sprint=1` (09.11.2026): Sprint-Kennzahlen annehmen und zurueckgeben (wie web/src/lib/api.ts teamEventAnlegen).
     static func teamEventAnlegen(_ slug: String, _ body: [String: Any]) async throws -> TeamEvent {
-        try await teamJson(vPfad(slug) + "/events", method: "POST", json: body)
+        try await teamJson(vPfad(slug) + "/events?sprint=1", method: "POST", json: body)
     }
 
     static func teamEventAendern(_ slug: String, id: Int, _ body: [String: Any]) async throws -> TeamEvent {
-        try await teamJson(vPfad(slug) + "/events/\(id)", method: "PUT", json: body)
+        try await teamJson(vPfad(slug) + "/events/\(id)?sprint=1", method: "PUT", json: body)
     }
 
     static func teamEventLoeschen(_ slug: String, id: Int) async throws {

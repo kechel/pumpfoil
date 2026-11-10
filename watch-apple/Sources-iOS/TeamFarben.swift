@@ -166,13 +166,15 @@ func teamBannerFokus(_ fokus: String?) -> CGPoint {
 struct TeamBanner: View {
     let url: URL
     let fokus: String?
+    /// Ecken: 16 auf Team-/Eventseite, 12 unten in den Event-Kacheln (web `!rounded-xl`).
+    var ecke: CGFloat = 16
 
     var body: some View {
         Color.clear
             .aspectRatio(2.5, contentMode: .fit)
             .frame(maxWidth: .infinity)
             .overlay { GeometryReader { geo in bild(geo.size) } }
-            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .clipShape(RoundedRectangle(cornerRadius: ecke))
     }
 
     private func bild(_ rahmen: CGSize) -> some View {
@@ -318,6 +320,8 @@ enum TeamFlaggenBild {
 struct TeamHerkunftMarke: View {
     let land: String?
     var gross: Bool = false
+    /// `false`: nur der Umriss, ohne „EU" daneben (web `kuerzel={false}`, Team-Wertung globaler Events).
+    var kuerzel: Bool = true
     @Environment(\.colorScheme) private var schema
 
     var body: some View {
@@ -331,8 +335,10 @@ struct TeamHerkunftMarke: View {
                 } else {
                     Image(systemName: "globe").font(.system(size: gross ? 13 : 10)).foregroundStyle(Color.accentColor)
                 }
-                Text(String(l.dropFirst(2)).uppercased()).font(.system(size: gross ? 12 : 10, weight: .semibold))
-                    .foregroundStyle(.secondary)
+                if kuerzel {
+                    Text(String(l.dropFirst(2)).uppercased()).font(.system(size: gross ? 12 : 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
             }
         }
     }

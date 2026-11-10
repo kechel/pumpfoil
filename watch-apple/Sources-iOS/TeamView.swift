@@ -658,12 +658,13 @@ struct TeamBeitrittSheet: View {
 }
 
 /// Reiter „Regeln" (web TeamRegeln eingebettet, Jan 02.11.2026): je Abschnitt ein Titel und Punkte; die Punkte stehen in
-/// EINEM Text je Abschnitt, getrennt durch Zeilenumbrueche. Muss zu server/app/teams.py passen.
+/// EINEM Text je Abschnitt, getrennt durch Zeilenumbrueche. Muss zu server/app/teams.py passen. Abschnitte wie
+/// web TeamRegeln.tsx ABSCHNITTE (seit 07.11.2026 mit „global", web 9ed3e55c).
 struct TeamRegelnInhalt: View {
     let lang: String
 
     private static let abschnitte: [String] = ["was", "rollen", "beitreten", "oeffentlich", "bestenlisten", "statistik",
-                                               "logbuch", "events", "chat", "loeschen", "konto", "haftung"]
+                                               "logbuch", "events", "global", "chat", "loeschen", "konto", "haftung"]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {

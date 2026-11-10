@@ -211,8 +211,9 @@ struct TeamEventView: View {
         let n: Int = e.tafeln.count
         let bindung: Binding<Int> = Binding(get: { min(wahl, n - 1) }, set: { wahl = $0 })
         return Picker(Loc.t("home.leaderboards", lang), selection: bindung) {
+            // Mehrere Sportarten (z. B. Pumpfoil und Foil Scoot getrennt, web d6b52f77): Sportart mit in die Auswahl.
             ForEach(Array(e.tafeln.enumerated()), id: \.offset) { i, tf in
-                Text(Loc.t(teamKennzahl(tf.kennzahl).labelKey, lang)).tag(i)
+                Text(eventTafelTitel(tf, e, lang)).tag(i)
             }
         }
         .pickerStyle(.menu)
@@ -239,7 +240,7 @@ struct TeamEventView: View {
             let stand: String? = eventStandText(e, tf0, lang)
             let mehrSport: Bool = Set(e.tafeln.map { $0.sportart }).count > 1
             TeamTafelKarte(tf: anzeigeTafel(e, tf0), farbe: t.farbe, lang: lang, ohneFilter: true, sportZeigen: mehrSport,
-                           standText: stand, onBild: { fahrerBild(t, e, tf0) })
+                           standText: stand, onBild: { fahrerBild(t, e, tf0) }, teamsZeigen: e.istGlobal)
             if e.istGlobal {
                 TeamWertungKarte(tf: tf0, n: e.team_wertung_n ?? 5, farbe: t.farbe, lang: lang, eigeneSlugs: meineSlugs,
                                  standText: stand, onBild: { teamsBild(e, tf0) })
@@ -286,11 +287,11 @@ struct TeamEventView: View {
         let n: Int = e.team_wertung_n ?? 5
         let meine: [String] = meineSlugs
         let alle: [TeamWertungZeile] = tf.teams ?? []
-        let wertung: String = n == 0 ? Loc.t("team.event.wertungAlle", lang) : teamText("team.event.wertungBeste", lang, ["n": String(n)])
+        let wertung: String = teamWertungText(tf.kennzahl, n, lang)
         var teile: [String] = [e.titel, wertung]
         if let st = eventStandText(e, tf, lang) { teile.append(st) }
         let unter: String = teile.joined(separator: " · ")
-        let titel: String = Loc.t("team.event.teams", lang) + " · " + Loc.t(k.labelKey, lang)
+        let titel: String = teamWertungTitel(tf, lang)
         let abz: String? = bildAbzeichen(e)
         var zeilen: [TeamBildZeile] = []
         for x in alle.prefix(10) { zeilen.append(TeamEventView.bildZeile(x, k.fmt(x.value, sprache), meine.contains(x.slug))) }
@@ -376,6 +377,20 @@ struct TeamEventView: View {
 }
 
 // MARK: - Bausteine der Event-Seite
+
+/// Name einer Event-Bestenliste; hat das Event Bestenlisten verschiedener Sportarten, steht die Sportart dabei (web tafelTitel).
+func eventTafelTitel(_ tf: TeamTafel, _ e: TeamEvent, _ lang: String) -> String {
+    let name: String = Loc.t(teamKennzahl(tf.kennzahl).labelKey, lang)
+    guard Set(e.tafeln.map { $0.sportart }).count > 1 else { return name }
+    return name + " · " + Loc.t("cls.sport." + tf.sportart, lang)
+}
+
+/// „Teams · Schnellste fliegende 100 m · Foil Scoot" — Sportart nur, wenn es nicht Pumpfoil ist (web TeamWertung, d6b52f77).
+func teamWertungTitel(_ tf: TeamTafel, _ lang: String) -> String {
+    let basis: String = Loc.t("team.event.teams", lang) + " · " + Loc.t(teamKennzahl(tf.kennzahl).labelKey, lang)
+    guard tf.sportart != "pumpfoil" else { return basis }
+    return basis + " · " + Loc.t("cls.sport." + tf.sportart, lang)
+}
 
 /// Titel + Status, Zeitraum fett (+ Spots), Beschreibung fett mit Absaetzen.
 private struct EventKopf: View {
@@ -593,9 +608,10 @@ private struct TeamWertungKarte: View {
         let hinten: [TeamWertungZeile] = a.dropFirst(10).filter { eigeneSlugs.contains($0.slug) }
         return Array(a.prefix(10)) + hinten
     }
-    private var titel: String { Loc.t("team.event.teams", lang) + " · " + Loc.t(k.labelKey, lang) }
+    private var titel: String { teamWertungTitel(tf, lang) }
+    /// „Summe der besten 5" bzw. bei Sprints „Durchschnitt der besten 5" (web wertungText).
     private var unterzeile: String {
-        let w: String = n == 0 ? Loc.t("team.event.wertungAlle", lang) : teamText("team.event.wertungBeste", lang, ["n": String(n)])
+        let w: String = teamWertungText(tf.kennzahl, n, lang)
         guard let st = standText else { return w }
         return w + " · " + st
     }
@@ -638,13 +654,28 @@ private struct TeamWertungKarte: View {
 
     private func anteil(_ z: TeamWertungZeile) -> String { String(z.fahrer) + "/" + String(z.teilnehmer) }
 
+    /// Name, darunter die Sportart-Abzeichen (gemischte Ansicht) und „in Klärung" (ein mitgezaehltes Mitglied hat eine
+    /// offene Meldung, 08.11.2026).
+    private func namensBlock(_ z: TeamWertungZeile) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(z.name).font(.subheadline).lineLimit(1)
+            SportAbzeichen(sportarten: z.sportarten, lang: lang)
+            if z.strittig == true { TeamStrittigMarke(lang: lang) }
+        }
+    }
+
     private func zeile(_ z: TeamWertungZeile) -> some View {
         NavigationLink { TeamView(slug: z.slug) } label: {
             HStack(spacing: 8) {
                 Text(String(z.rang)).font(.subheadline.weight(.bold)).foregroundStyle(rangFarbe(z.rang))
                     .lineLimit(1).minimumScaleFactor(0.6).frame(width: 28, alignment: .trailing)
                 TeamWappen(name: z.name, logo: z.logo_url, farbe: z.farbe, size: 24)
-                Text(z.name).font(.subheadline).lineLimit(1)
+                // Herkunft wie im Teilen-Bild (web 0595efde); fester Platz, damit die Namen buendig stehen.
+                ZStack {
+                    Color.clear.frame(width: 18, height: 12)
+                    TeamHerkunftMarke(land: z.land, kuerzel: false)
+                }
+                namensBlock(z)
                 Spacer(minLength: 4)
                 Text(anteil(z)).font(.caption).foregroundStyle(.secondary).monospacedDigit()
                 Text(k.fmt(z.value, lang)).font(.subheadline.weight(.semibold)).monospacedDigit()

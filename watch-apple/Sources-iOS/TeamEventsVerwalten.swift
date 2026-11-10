@@ -84,7 +84,9 @@ struct TeamEventEntwurf: Identifiable {
         e.summen_accel_only = ev.summen_accel_only ?? false
         e.titel = ev.titel
         e.beschreibung = ev.beschreibung ?? ""
-        e.tafeln = ev.tafeln.map { TeamTafelEntwurf($0) }
+        // Gemischte Bestenlisten (Pumpfoil + Foil Scoot) leitet der Server selbst ab — nicht als eigene Tafel speichern
+        // (wie web TeamEventsVerwalten `bearbeiten`).
+        e.tafeln = ev.tafeln.filter { !$0.sportart.contains("+") }.map { TeamTafelEntwurf($0) }
         e.spot_ids = ev.spot_ids ?? ev.spots.map { $0.id }
         e.vorlage = ev.vorlage
         e.global_event = ev.istGlobal
@@ -161,7 +163,8 @@ struct TeamEventsVerwaltenKarte: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
             Spacer(minLength: 4)
-            // Loeschen nur im Editor (wie im Web); eingefrorene Events oeffnen ihn nur noch zum Loeschen.
+            // Loeschen nur im Editor (wie im Web); eingefrorene Events sind weder aenderbar noch loeschbar (09.11.2026),
+            // der Editor zeigt dann nur den Hinweis.
             Button(Loc.t("team.event.bearbeiten", lang)) { offen = TeamEventEntwurf.aus(ev) }
                 .font(.subheadline).buttonStyle(.bordered)
         }

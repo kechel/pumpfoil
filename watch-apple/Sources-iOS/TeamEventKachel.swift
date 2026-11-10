@@ -288,6 +288,10 @@ struct EventKachelDaten {
     var team: TeamEventTeam? = nil
     /// Globales Event (06.11.2026): eigene Karte mit Kalenderblock, ohne Teamname.
     var global: Bool = false
+    /// Bild unten in der Kachel (web EventKurzKachel `KachelBild`, 10.11.2026): Eventbild, sonst Teambild — der Server
+    /// waehlt (nur in der Kurzform der Listen; die Kacheln der Teamseite zeigen wie im Web keins).
+    var banner_url: String? = nil
+    var banner_fokus: String? = nil
 
     init(_ e: TeamEvent, slug: String, farbe: String?) {
         id = e.id; self.slug = slug; titel = e.titel; beschreibung = e.beschreibung
@@ -299,6 +303,7 @@ struct EventKachelDaten {
         id = e.id; slug = e.team.slug; titel = e.titel; beschreibung = e.beschreibung
         start = e.start; ende = e.ende; zeitzone = e.zeitzone; status = e.status
         sportarten = e.sportarten; spots = e.spots; farbe = e.team.farbe; team = e.team; global = e.global == true
+        banner_url = e.banner_url; banner_fokus = e.banner_fokus
     }
 }
 
@@ -335,6 +340,7 @@ struct TeamEventKachel: View {
                 Spacer(minLength: 4)
                 Text(linkText).font(.subheadline.weight(.semibold)).foregroundStyle(tf.akzent).lineLimit(1)
             }
+            EventKachelBild(d: d)
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -399,9 +405,12 @@ struct GlobalEventKachel: View {
     private var randFarbe: Color { laeuft ? marke.akzent : marke.akzent.opacity(0.4) }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 14) {
-            kalender
-            rechts
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .center, spacing: 14) {
+                kalender
+                rechts
+            }
+            EventKachelBild(d: d)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -455,5 +464,16 @@ struct GlobalEventKachel: View {
 
     private func uhrText(_ jetzt: Date) -> String {
         uhrVorsatz + " " + teamCountdown(uhrZiel, jetzt: jetzt, lang)
+    }
+}
+
+/// Bild unten in der Kachel, volle Breite, 5:2 mit Fokuspunkt wie auf der Eventseite (web EventKurzKachel `KachelBild`).
+struct EventKachelBild: View {
+    let d: EventKachelDaten
+
+    var body: some View {
+        if let u = Api.mediaURL(d.banner_url) {
+            TeamBanner(url: u, fokus: d.banner_fokus, ecke: 12).padding(.top, 6)
+        }
     }
 }

@@ -486,6 +486,8 @@ struct TeamTafelEditor: View {
         }
     }
 
+    private var eventKennzahlen: [String] { TEAM_KENNZAHLEN_BEST + TEAM_KENNZAHLEN_SUMME + TEAM_KENNZAHLEN_SPRINT }
+
     @ViewBuilder private var kennzahlen: some View {
         if gruppiert {
             Section(Loc.t("team.k.best", lang)) {
@@ -495,7 +497,8 @@ struct TeamTafelEditor: View {
                 ForEach(TEAM_KENNZAHLEN_SUMME, id: \.self) { k in Text(Loc.t(teamKennzahl(k).labelKey, lang)).tag(k) }
             }
         } else {
-            ForEach(TEAM_KENNZAHLEN_BEST + TEAM_KENNZAHLEN_SUMME, id: \.self) { k in Text(Loc.t(teamKennzahl(k).labelKey, lang)).tag(k) }
+            // Events (web EVENT_KENNZAHLEN): Team-Kennzahlen plus die Sprints.
+            ForEach(eventKennzahlen, id: \.self) { k in Text(Loc.t(teamKennzahl(k).labelKey, lang)).tag(k) }
         }
     }
 

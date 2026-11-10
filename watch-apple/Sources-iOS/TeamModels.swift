@@ -99,6 +99,12 @@ struct TeamZeile: Codable, Identifiable {
     var started_at: String? = nil
     var spot: String? = nil
     var land: String? = nil   // Nationalitaet (Flagge nach dem Profilbild), nur wer sie selbst eingestellt hat
+    /// Offene Meldung „nicht Pumpfoil" gegen (eine der) Sessions dieser Zeile, noch nicht entschieden (08.11.2026).
+    var strittig: Bool? = nil
+    /// Globale Events: Teams der Person (Wappen-Spalte, web 8fc88474) — dieselben wie in der Team-Wertung.
+    var teams: [TeamEventTeam]? = nil
+    /// Gemischte Ansicht (z. B. Pumpfoil + Foil Scoot, 08.11.2026): Sportart(en) dieser Zeile fuers Abzeichen.
+    var sportarten: [String]? = nil
     var id: String { "\(rang)-\(user_id ?? 0)-\(name ?? "")" }
 }
 
@@ -132,6 +138,10 @@ struct TeamWertungZeile: Codable, Identifiable {
     let value: Double
     let fahrer: Int
     let teilnehmer: Int
+    /// Ein mitgezaehltes Mitglied hat eine offene Meldung (08.11.2026).
+    var strittig: Bool? = nil
+    /// Gemischte Ansicht (08.11.2026): Sportart(en) dieser Zeile fuers Abzeichen.
+    var sportarten: [String]? = nil
     var id: String { slug }
 }
 
@@ -255,6 +265,9 @@ struct TeamEventKurz: Codable, Identifiable {
     let team: TeamEventTeam
     /// Globales Event (06.11.2026): jeder nimmt automatisch teil
     var global: Bool? = nil
+    /// Bild unten in der Kachel (10.11.2026): Eventbild, sonst Teambild (wenn das Event es zeigt), sonst nil.
+    var banner_url: String? = nil
+    var banner_fokus: String? = nil
     var listenId: String { "\(team.slug)-\(id)" }
 }
 

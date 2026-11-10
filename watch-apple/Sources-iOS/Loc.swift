@@ -4955,6 +4955,12 @@ static let nlOverlay: [String: String] = {
     ]
 
     static func t(_ key: String, _ lang: String) -> String {
+        // Gemischte Sportarten (server/app/sportmix.py, 08.11.2026, web ae255be3): „cls.sport.pumpfoil+foil_scoot" aus den
+        // Namen der Teile zusammensetzen („Pumpfoil + Foil Scoot") — so stimmt jede Stelle, die eine Sportart beschriftet.
+        if key.hasPrefix("cls.sport."), key.contains("+") {
+            let teile: [String] = String(key.dropFirst("cls.sport.".count)).split(separator: "+").map { String($0) }
+            return teile.map { t("cls.sport." + $0, lang) }.joined(separator: " + ")
+        }
         // Einrichtungs-Assistent: eigene Tabelle in LocOnboarding.swift, aus den Web-Sprachdateien
         // erzeugt. Zuerst gefragt, damit die grossen Tabellen dafuer nicht angefasst werden.
         if key.hasPrefix("onb."), let v = LocOnb.t(key, lang) { return v }

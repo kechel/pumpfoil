@@ -20,24 +20,24 @@ enum LocTeam {
 
     static let sprachen: [String: [String: String]] = {
         var d: [String: [String: String]] = [:]
-        d["de"] = zusammen([_de0, _de1, _de2, _de3, _de4, _de5, _de6])
-        d["gsw"] = zusammen([_gsw0, _gsw1, _gsw2, _gsw3, _gsw4, _gsw5, _gsw6])
-        d["de-AT"] = zusammen([_de_AT0, _de_AT1, _de_AT2, _de_AT3, _de_AT4, _de_AT5, _de_AT6])
-        d["en"] = zusammen([_en0, _en1, _en2, _en3, _en4, _en5, _en6])
-        d["fr"] = zusammen([_fr0, _fr1, _fr2, _fr3, _fr4, _fr5, _fr6])
-        d["it"] = zusammen([_it0, _it1, _it2, _it3, _it4, _it5, _it6])
-        d["es"] = zusammen([_es0, _es1, _es2, _es3, _es4, _es5, _es6])
-        d["fi"] = zusammen([_fi0, _fi1, _fi2, _fi3, _fi4, _fi5, _fi6])
-        d["nl"] = zusammen([_nl0, _nl1, _nl2, _nl3, _nl4, _nl5, _nl6])
-        d["cs"] = zusammen([_cs0, _cs1, _cs2, _cs3, _cs4, _cs5, _cs6])
-        d["pl"] = zusammen([_pl0, _pl1, _pl2, _pl3, _pl4, _pl5, _pl6])
-        d["pt"] = zusammen([_pt0, _pt1, _pt2, _pt3, _pt4, _pt5, _pt6])
-        d["pt-PT"] = zusammen([_pt_PT0, _pt_PT1, _pt_PT2, _pt_PT3, _pt_PT4, _pt_PT5, _pt_PT6])
-        d["ja"] = zusammen([_ja0, _ja1, _ja2, _ja3, _ja4, _ja5, _ja6])
-        d["zh"] = zusammen([_zh0, _zh1, _zh2, _zh3, _zh4, _zh5, _zh6])
-        d["ru"] = zusammen([_ru0, _ru1, _ru2, _ru3, _ru4, _ru5, _ru6])
-        d["id"] = zusammen([_id0, _id1, _id2, _id3, _id4, _id5, _id6])
-        d["nb"] = zusammen([_nb0, _nb1, _nb2, _nb3, _nb4, _nb5, _nb6])
+        d["de"] = zusammen([_de0, _de1, _de2, _de3, _de4, _de5, _de6, _de7])
+        d["gsw"] = zusammen([_gsw0, _gsw1, _gsw2, _gsw3, _gsw4, _gsw5, _gsw6, _gsw7])
+        d["de-AT"] = zusammen([_de_AT0, _de_AT1, _de_AT2, _de_AT3, _de_AT4, _de_AT5, _de_AT6, _de_AT7])
+        d["en"] = zusammen([_en0, _en1, _en2, _en3, _en4, _en5, _en6, _en7])
+        d["fr"] = zusammen([_fr0, _fr1, _fr2, _fr3, _fr4, _fr5, _fr6, _fr7])
+        d["it"] = zusammen([_it0, _it1, _it2, _it3, _it4, _it5, _it6, _it7])
+        d["es"] = zusammen([_es0, _es1, _es2, _es3, _es4, _es5, _es6, _es7])
+        d["fi"] = zusammen([_fi0, _fi1, _fi2, _fi3, _fi4, _fi5, _fi6, _fi7])
+        d["nl"] = zusammen([_nl0, _nl1, _nl2, _nl3, _nl4, _nl5, _nl6, _nl7])
+        d["cs"] = zusammen([_cs0, _cs1, _cs2, _cs3, _cs4, _cs5, _cs6, _cs7])
+        d["pl"] = zusammen([_pl0, _pl1, _pl2, _pl3, _pl4, _pl5, _pl6, _pl7])
+        d["pt"] = zusammen([_pt0, _pt1, _pt2, _pt3, _pt4, _pt5, _pt6, _pt7])
+        d["pt-PT"] = zusammen([_pt_PT0, _pt_PT1, _pt_PT2, _pt_PT3, _pt_PT4, _pt_PT5, _pt_PT6, _pt_PT7])
+        d["ja"] = zusammen([_ja0, _ja1, _ja2, _ja3, _ja4, _ja5, _ja6, _ja7])
+        d["zh"] = zusammen([_zh0, _zh1, _zh2, _zh3, _zh4, _zh5, _zh6, _zh7])
+        d["ru"] = zusammen([_ru0, _ru1, _ru2, _ru3, _ru4, _ru5, _ru6, _ru7])
+        d["id"] = zusammen([_id0, _id1, _id2, _id3, _id4, _id5, _id6, _id7])
+        d["nb"] = zusammen([_nb0, _nb1, _nb2, _nb3, _nb4, _nb5, _nb6, _nb7])
         return d
     }()
 
@@ -209,6 +209,8 @@ enum LocTeam {
         "team.event.wertung": "Teamwertung",
         "team.event.wertungAlle": "Summe aller Mitglieder",
         "team.event.wertungBeste": "Summe der besten {n}",
+        "team.event.wertungSchnittAlle": "Durchschnitt aller Mitglieder",
+        "team.event.wertungSchnittBeste": "Durchschnitt der besten {n}",
         "team.eventbild.entfernen": "Eventbild entfernen",
         "team.eventbild.hinweis": "Breites Bild oben auf der Event-Seite, am besten 1600 × 500 px (mindestens 800 px breit).",
         "team.eventbild.hochladen": "Eventbild hochladen",
@@ -235,11 +237,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Dein Team funktioniert sofort, über Einladungslinks. Öffentlich gelistet wird es erst, wenn wir Name, Beschreibung und Wappen einmal angesehen haben.",
         "team.gruendenKnopf": "Gründen",
         "team.herkunft": "Land / Region",
-        "team.join.anfrage": "Deine Anfrage geht an die Teamleitung, sie entscheidet.",
-        "team.join.anfrageProfil": "Zur Prüfung sieht sie, an welchen Spots und in welchen Sportarten du bisher unterwegs warst (nur die Zahl der Sessions).",
     ]
 
     private static let _de4: [String: String] = [
+        "team.join.anfrage": "Deine Anfrage geht an die Teamleitung, sie entscheidet.",
+        "team.join.anfrageProfil": "Zur Prüfung sieht sie, an welchen Spots und in welchen Sportarten du bisher unterwegs warst (nur die Zahl der Sessions).",
         "team.join.anfragen": "Anfrage senden",
         "team.join.angefragt": "Anfrage gesendet.",
         "team.join.beitreten": "Beitreten",
@@ -253,6 +255,10 @@ enum LocTeam {
         "team.join.title": "„{name}“ beitreten",
         "team.join.wartet": "Anfrage läuft",
         "team.k.best": "Bester Wert",
+        "team.k.sprint_100m": "Schnellste fliegende 100 m",
+        "team.k.sprint_200m": "Schnellste fliegende 200 m",
+        "team.k.sprint_300m": "Schnellste fliegende 300 m",
+        "team.k.sprint_60s": "Schnellste fliegende Minute",
         "team.k.sum_distance": "On-Foil-Strecke gesamt",
         "team.k.sum_pumps": "Pumps gesamt",
         "team.k.sum_runs": "Läufe gesamt",
@@ -279,15 +285,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} bricht „{was}“ mit {wert} (vorher {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} hält „{was}“ mit {wert}",
         "team.logbuchHinweis": "Wer wann welchen Teamrekord gebrochen hat. Wird jede Nacht nachgeführt.",
+    ]
+
+    private static let _de5: [String: String] = [
         "team.logbuchLeer": "Noch keine Einträge. Der erste Stand kommt in der Nacht nach dem Anlegen der Bestenlisten.",
         "team.logoHochladen": "Wappen hochladen",
         "team.meine": "Meine Teams",
         "team.mitglieder": "Mitglieder",
         "team.mitgliederAnzahl": "{n} Mitglieder",
         "team.mitgliederAnzahl1": "1 Mitglied",
-    ]
-
-    private static let _de5: [String: String] = [
         "team.mitgliederSichtbar": "Wer sieht die Mitgliederliste?",
         "team.name": "Teamname",
         "team.nichtGefunden": "Dieses Team gibt es nicht, oder es ist nicht öffentlich.",
@@ -300,8 +306,38 @@ enum LocTeam {
         "team.profilKnopf": "Team",
         "team.qr": "QR-Code",
         "team.qrTeilen": "QR-Code teilen",
-        "team.regeln.events.text": "Ein Event hat ein Zeitfenster und eigene Bestenlisten, auf Wunsch nur an bestimmten Spots.\nZusätzlich oder statt Bestenlisten kann ein Event Gesamtsummen über alle Teilnehmer zeigen, etwa die Pumps oder die Strecke des ganzen Teams. Jedes Event braucht mindestens eine Bestenliste oder eine Summe.\nEs zählen nur Sessions, die im Zeitfenster starten.\nDie Leitung kann je Event festlegen, dass von Hand hochgeladene Dateien (FIT, GPX, TCX) nicht zählen; Aufnahmen von Uhr, App und Kontoverknüpfungen zählen dann weiter.\nNach dem Ende kann man noch 24 Stunden hochladen, die Teamseite zeigt dann „Auswertung“. Danach ist das Ergebnis eingefroren, späteres Zuschneiden oder Löschen ändert nichts mehr.\nWer nach dem Ende austritt, bleibt im Ergebnis; wer danach beitritt, kommt nicht mehr hinein.\nEingefroren wird nachts und zusätzlich, sobald jemand die Teamseite aufruft.\nDie Zeiten gelten in der Zeitzone, in der das Event angelegt wurde, und werden für alle so angezeigt.\nPlatz 1 bis 3 bekommen ein Event-Abzeichen auf ihrer Foiler-Seite, aber nur bei Teams, deren Auftritt freigegeben ist.",
+        "team.regeln.beitreten.text": "Lässt ein Team Anmeldungen zu, steht auf seiner Seite ein Knopf „Beitreten“. Je nach Einstellung ist man sofort Mitglied, oder die Leitung bzw. ein Moderator entscheidet.\nEs gibt zwei Einladungslinks: einen, mit dem man sofort Mitglied ist, und einen, mit dem man eine Anfrage stellt. Beide gibt es auch als QR-Code.\nWer noch kein Konto hat, legt eins an und ist danach direkt im Team bzw. hat angefragt.\nEin neu erzeugter Link ersetzt den alten, der alte gilt dann nicht mehr.\nMit jedem Beitritt stimmst du zu, dass die Bestenlisten des Teams öffentlich sein können, auch wenn sie es gerade nicht sind.\nBei einer Anfrage sehen Leitung und Moderatoren, an welchen Spots und in welchen Sportarten du bisher unterwegs warst (nur die Zahl der Sessions).",
+        "team.regeln.beitreten.titel": "Beitreten",
+        "team.regeln.bestenlisten.text": "Je Person zählt nur ein Eintrag: der beste Wert aus einer Session, oder bei Summen alles im gewählten Zeitraum zusammen.\nEs zählen alle Sessions der Mitglieder, auch die von vor dem Beitritt. Wer austritt, verschwindet sofort aus den Listen.\nBei Events gilt das nur bis zum Ende, siehe „Events“.\nEs gelten dieselben Filter wie bei den Community-Rekorden: gelöschte, gemeldete, nicht zugeordnete und laufende Aufnahmen zählen nicht.\nJede Bestenliste kann auf eine Sportart, ein Foil-Band, Aufnahmen mit Bewegungsdaten, das Handy am Brett oder die Teamspots begrenzt werden.\nIst „Ort verbergen“ an, zählt die Session nie für einen bestimmten Spot.\nBei Gleichstand liegt vorn, wer den Wert zuerst gefahren ist.",
+        "team.regeln.bestenlisten.titel": "Bestenlisten",
+        "team.regeln.chat.text": "Den Team-Chat lesen und schreiben nur aktive Mitglieder. Wer nur angefragt hat, sieht ihn nicht.\nEr taucht für andere nirgends auf, auch nicht unter den aktiven Chats.\nWer austritt oder entfernt wird, verliert den Zugang sofort und bekommt keine Benachrichtigungen mehr.",
+        "team.regeln.chat.titel": "Team-Chat",
+        "team.regeln.events.text": "Ein Event hat ein Zeitfenster und eigene Bestenlisten, auf Wunsch nur an bestimmten Spots.\nZusätzlich oder statt Bestenlisten kann ein Event Gesamtsummen über alle Teilnehmer zeigen, etwa die Pumps oder die Strecke des ganzen Teams. Jedes Event braucht mindestens eine Bestenliste oder eine Summe.\nEs zählen nur Sessions, die im Zeitfenster starten.\nDie Leitung kann je Event festlegen, dass von Hand hochgeladene Dateien (FIT, GPX, TCX) nicht zählen; Aufnahmen von Uhr, App und Kontoverknüpfungen zählen dann weiter.\nNach dem Ende kann man noch 4 Stunden hochladen, die Teamseite zeigt dann „Auswertung“. Danach ist das Ergebnis eingefroren, späteres Zuschneiden oder Löschen ändert nichts mehr.\nWer nach dem Ende austritt, bleibt im Ergebnis; wer danach beitritt, kommt nicht mehr hinein.\nEingefroren wird nachts und zusätzlich, sobald jemand die Teamseite aufruft.\nDie Zeiten gelten in der Zeitzone, in der das Event angelegt wurde, und werden für alle so angezeigt.\nPlatz 1 bis 3 bekommen ein Event-Abzeichen auf ihrer Foiler-Seite, aber nur bei Teams, deren Auftritt freigegeben ist.",
+        "team.regeln.events.titel": "Events",
+        "team.regeln.global.text": "Globale Events veranstaltet pumpfoil.org selbst. Es zählt automatisch jeder mit passenden Sessions im Zeitfenster, ohne Beitritt und ohne Anmeldung.\nWer nicht mitmachen will, schaltet das im Profil unter „Privatsphäre“ ab („Nicht an globalen Events teilnehmen“). Dann fehlt er in Bestenlisten, Team-Wertungen, Summen und Abzeichen, auch in schon beendeten Events.\nJe Bestenliste gibt es eine Team-Wertung: die Summe der besten Mitglieder jedes Teams, in der Regel 5. Dabei sind freigegebene Teams mit öffentlichen Bestenlisten; wer in zwei Teams ist, zählt für beide.\nDie Bestenlisten sind auch ohne Anmeldung über den Event-Link sichtbar: Platz, Anzeigename, Initialen und Wert.\nSonst gelten die Regeln für Events: Zeitfenster, Auswertung, Einfrieren und Abzeichen für Platz 1 bis 3, auf der Profilseite mit „Global“ gekennzeichnet.",
+        "team.regeln.global.titel": "Globale Events",
+        "team.regeln.haftung.text": "Events veranstalten die Teams selbst. pumpfoil.org hat keinen Einfluss auf Events und darin gemachte Zusagen finanzieller oder anderer Art und übernimmt dafür keine Verantwortung. Der Rechtsweg ist ausgeschlossen. Zahlungen und alle anderen Absprachen regeln Veranstalter und Teilnehmer unabhängig von pumpfoil.org.\nEbenso übernimmt pumpfoil.org keine Verantwortung dafür, dass gemessene Werte und Daten korrekt sind oder nicht manipuliert wurden. Angezeigt wird, was der öffentliche Quellcode auf GitHub aus den hochgeladenen Daten berechnet; weitere Zusagen gibt es nicht.",
+        "team.regeln.haftung.titel": "Haftung",
         "team.regeln.intro": "So funktionieren Teams auf pumpfoil.org: wer was sieht, wie gewertet wird und was beim Löschen passiert.",
+        "team.regeln.konto.text": "Die Person verschwindet aus allen Teams, Bestenlisten und auch aus eingefrorenen Event-Ergebnissen. Die Plätze darunter rücken auf.\nLeitete sie ein Team, übernimmt der dienstälteste Moderator, sonst das dienstälteste Mitglied. Ist niemand mehr da, wird das Team gelöscht.",
+        "team.regeln.konto.titel": "Wenn ein Konto gelöscht wird",
+        "team.regeln.link": "Team-Regeln",
+        "team.regeln.loeschen.text": "Löschen kann nur die Teamleitung, und nur wenn sie den Teamnamen zur Bestätigung eintippt.\nDann ist das Team für alle verschwunden: Mitgliedschaften, Bestenlisten, Logbuch, Events und der Team-Chat. Die Daten heben wir vorerst auf, damit sich ein versehentlich gelöschtes Team wiederherstellen lässt.\nDie Adresse des Teams bleibt gesperrt und wird nie an ein anderes Team vergeben.",
+        "team.regeln.loeschen.titel": "Team löschen",
+        "team.regeln.logbuch.text": "Das Logbuch hält fest, wer wann welchen Teamrekord gebrochen hat. Es wird jede Nacht nachgeführt.\nDer erste Eintrag einer Bestenliste ist der Stand in der ersten Nacht nach dem Anlegen.\nBei Bestwerten zählt jede Steigerung, auch die eigene. Bei Summen zählt nur, wenn jemand die Spitze übernimmt.\nSinkt ein Rekord, weil eine Session gelöscht wurde oder jemand ausgetreten ist, wird das still nachgezogen, ohne Eintrag.",
+        "team.regeln.logbuch.titel": "Logbuch",
+        "team.regeln.oeffentlich.text": "Intern darf ein Team alles. Nach außen erscheint es erst, wenn wir Name, Adresse, Beschreibung, Wappen und Farbe einmal angesehen und freigegeben haben.\nDas Teambild läuft durch dieselbe Freigabe wie das Wappen. Welchen Ausschnitt man sieht, wählt die Leitung ohne neue Freigabe; entfernt sie das Bild, verschwindet es sofort auch nach außen.\nÄndert ein freigegebenes Team seinen Auftritt, gilt das im Team sofort, nach außen erst nach erneuter Freigabe.\nFreigegebene Teams stehen auf der Seite „Alle Teams“. Ihre Events stehen auf der Teamseite; in der Community stehen nur die globalen Events von pumpfoil.org.\nSchaltet die Leitung die Bestenlisten öffentlich, sieht sie jeder, auch ohne Anmeldung, aber nur Platz, Anzeigename, Initialen und Wert. Sessions, Spots, Daten und Profilbilder sehen nur angemeldete Nutzer.\nSuchmaschinen nehmen Teamseiten nicht auf.\nWer die Mitgliederliste sieht, legt die Leitung fest: nur Mitglieder oder alle Angemeldeten.",
+        "team.regeln.oeffentlich.titel": "Was öffentlich ist",
+        "team.regeln.rollen.text": "Die Teamleitung darf alles: Einstellungen, Bestenlisten, Events, Moderatoren benennen, die Leitung übergeben und das Team löschen.\nModeratoren nehmen Anfragen an oder lehnen sie ab, entfernen Mitglieder und legen Events an. Sonst ändern sie nichts.\nMitglieder sehen alles im Team und können jederzeit austreten.\nDie Leitung kann erst austreten, wenn sie die Leitung übergeben hat.",
+        "team.regeln.rollen.titel": "Rollen",
+        "team.regeln.statistik.text": "Über den Bestenlisten stehen die Summen aller Mitglieder im gewählten Zeitraum: Pumps, On-Foil-Strecke und -Zeit, Sessions, Läufe und wie viele Mitglieder aktiv waren.\nTeam gegen Team: In der Community vergleichen die Team-Bestenlisten alle freigegebenen Teams mit öffentlichen Bestenlisten, je Kennzahl mit der Summe der besten 3, 5 oder 10 Fahrer. Dort gilt für alle Teams dasselbe Maß, nicht die Filter der eigenen Bestenlisten.\nWer in zwei Teams ist, zählt für beide.",
+        "team.regeln.statistik.titel": "Teamsummen",
+        "team.regeln.titel": "Team-Regeln",
+    ]
+
+    private static let _de6: [String: String] = [
+        "team.regeln.was.text": "Eine feste Gruppe mit eigenen Bestenlisten, Events und einem Team-Chat.\nJeder kann Teams gründen, auch mehrere, und in mehreren Teams sein.\nEin neues Team funktioniert sofort, über Einladungslinks.",
+        "team.regeln.was.titel": "Was ist ein Team?",
         "team.rolle.leiter": "Leitung",
         "team.rolle.mitglied": "Mitglied",
         "team.rolle.moderator": "Moderator",
@@ -330,12 +366,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "nur mit Bewegungsdaten",
         "team.tafel.nurBrett": "nur Handy am Brett",
         "team.tafel.nurTeamspots": "nur Teamspots",
+        "team.tafel.strittig": "in Klärung",
+        "team.tafel.strittigHinweis": "{n} Sessions in Klärung",
+        "team.tafel.strittigHinweis1": "1 Session in Klärung",
+        "team.tafel.strittigTitel": "Eine Meldung gegen diese Session ist noch nicht entschieden. Sie zählt, bis entschieden ist.",
         "team.teilen": "Teilen",
         "team.uebergebenFrage": "Die Leitung an {name} übergeben? Du wirst dann Moderator.",
         "team.vergleich.ausFahrern": "aus {n} Fahrern",
-    ]
-
-    private static let _de6: [String: String] = [
         "team.vergleich.ausFahrern1": "aus 1 Fahrer",
         "team.vergleich.hinweis": "Je Team zählt die Summe seiner besten {n} Fahrer. {sport}, auch Läufe ohne Bewegungsdaten; nur Teams mit öffentlichen Bestenlisten.",
         "team.vergleich.leer": "In diesem Zeitraum hat noch kein Team eine Session.",
@@ -344,6 +381,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Längster Lauf",
         "team.vorlage.monat_strecke": "On-Foil-Kilometer im Monat",
         "team.vorlage.session_pumps": "Meiste Pumps in einer Session",
+    ]
+
+    private static let _de7: [String: String] = [
         "team.vorlage.top_speed": "Top-Speed",
         "team.vorlage.weitester_lauf": "Weitester Lauf",
         "team.vorlage.wochenende_laeufe": "Meiste Läufe am Wochenende",
@@ -514,6 +554,8 @@ enum LocTeam {
         "team.event.wertung": "Teamwärtig",
         "team.event.wertungAlle": "Summe vo allne Mitglieder",
         "team.event.wertungBeste": "Summe vo de beschte {n}",
+        "team.event.wertungSchnittAlle": "Durchschnitt vo allne Mitglieder",
+        "team.event.wertungSchnittBeste": "Durchschnitt vo de beschte {n}",
         "team.eventbild.entfernen": "Eventbild useneh",
         "team.eventbild.hinweis": "Breits Bild obe uf de Event-Siite, am beschte 1600 × 500 px (mindeschtens 800 px breit).",
         "team.eventbild.hochladen": "Eventbild ufelade",
@@ -540,11 +582,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Dis Team lauft sofort, über Iiladigslinks. Öffentlich glischtet wird's erscht, wenn mir Name, Beschriibig und Wappe eimal aagluegt händ.",
         "team.gruendenKnopf": "Gründe",
         "team.herkunft": "Land / Region",
-        "team.join.anfrage": "Dini Aafrog gaht a d Teamleitig, die entscheidet.",
-        "team.join.anfrageProfil": "Zum Prüefe gseht si, a wele Spots und i wele Sportarte du bis jetzt unterwägs gsi bisch (nur d Zahl vo de Sessions).",
     ]
 
     private static let _gsw4: [String: String] = [
+        "team.join.anfrage": "Dini Aafrog gaht a d Teamleitig, die entscheidet.",
+        "team.join.anfrageProfil": "Zum Prüefe gseht si, a wele Spots und i wele Sportarte du bis jetzt unterwägs gsi bisch (nur d Zahl vo de Sessions).",
         "team.join.anfragen": "Aafrog schicke",
         "team.join.angefragt": "Aafrog gschickt.",
         "team.join.beitreten": "Biitrete",
@@ -558,6 +600,10 @@ enum LocTeam {
         "team.join.title": "„{name}“ biitrete",
         "team.join.wartet": "Aafrog lauft",
         "team.k.best": "Beschte Wert",
+        "team.k.sprint_100m": "Schnällschti flügendi 100 m",
+        "team.k.sprint_200m": "Schnällschti flügendi 200 m",
+        "team.k.sprint_300m": "Schnällschti flügendi 300 m",
+        "team.k.sprint_60s": "Schnällschti flügendi Minute",
         "team.k.sum_distance": "On-Foil-Strecki total",
         "team.k.sum_pumps": "Pumps total",
         "team.k.sum_runs": "Läuf total",
@@ -584,15 +630,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} bricht „{was}“ mit {wert} (vorher {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} hät „{was}“ mit {wert}",
         "team.logbuchHinweis": "Wer wänn welle Teamrekord broche het. Wird jedi Nacht nachgfüehrt.",
+    ]
+
+    private static let _gsw5: [String: String] = [
         "team.logbuchLeer": "No kei Iiträg. De erscht Stand chunnt i de Nacht nach em Aalege vo de Bestelischte.",
         "team.logoHochladen": "Wappe uelade",
         "team.meine": "Mini Teams",
         "team.mitglieder": "Mitglieder",
         "team.mitgliederAnzahl": "{n} Mitglieder",
         "team.mitgliederAnzahl1": "1 Mitglied",
-    ]
-
-    private static let _gsw5: [String: String] = [
         "team.mitgliederSichtbar": "Wer gseht d Mitgliederlischte?",
         "team.name": "Teamname",
         "team.nichtGefunden": "Das Team gits nöd, oder es isch nöd öffentlich.",
@@ -605,8 +651,38 @@ enum LocTeam {
         "team.profilKnopf": "Team",
         "team.qr": "QR-Code",
         "team.qrTeilen": "QR-Code teile",
-        "team.regeln.events.text": "Es Event het es Ziitfänschter und eigeni Bestelischte, wenn mer will nume a bestimmte Spots.\nZuesätzlich oder statt Bestelischte cha en Event Gsamtsumme über alli Teilnähmer zeige, öppe d Pumps oder d Strecki vom ganze Team. Jede Event bruucht mindestens e Bestelischte oder e Summe.\nEs zähled nume Sessions, wo im Ziitfänschter aafanged.\nD Leitig cha pro Event feschtlege, dass vo Hand uegladeni Dateie (FIT, GPX, TCX) nöd zelled; Ufnahme vo Uhr, App und Kontoverchnüpfige zelled denn wiiter.\nNach em Änd cha mer no 24 Stund uelade, d Teamsiite zeigt denn „Uswärtig“. Drnoch isch s Resultat iigfrore, spöters Zueschniide oder Lösche ändered nüt meh.\nWer nach em Änd ustritt, blibt im Ergebnis; wer dänn biitritt, chunnt nüme drii.\nIigfrore wird znacht und zuesätzlich, sobald öpper d Teamsiite uftuet.\nD Ziite gälted i de Ziitzone, i dere s Event aagleit worde isch, und werded für alli so aazeigt.\nPlatz 1 bis 3 überchömed es Event-Abzeiche uf ihrere Foiler-Siite, aber nume bi Teams, wo de Uftritt freigä isch.",
+        "team.regeln.beitreten.text": "Lat es Team Aamäldige zue, staht uf sinere Siite en Chnopf „Biitrete“. Je nach Iistellig isch mer sofort Mitglied, oder d Leitig bzw. en Moderator entscheidet.\nEs git zwei Iiladigslinks: eine, mit dem mer sofort Mitglied isch, und eine, mit dem mer e Aafrog stellt. Beidi gits au als QR-Code.\nWer no kei Konto het, macht eis und isch drnoch grad im Team bzw. het aagfrogt.\nEn neue Link ersetzt de alt, de alt gilt denn nüm.\nMit jedem Biitritt bisch iiverstande, dass d Bestelischte vom Team öffentlich chönd sii, au wenn sie's grad nöd sind.\nBi ere Aafrog gsehnd d Leitig und d Moderatore, a wele Spots und i wele Sportarte du bis jetzt unterwägs gsi bisch (nur d Zahl vo de Sessions).",
+        "team.regeln.beitreten.titel": "Biitrete",
+        "team.regeln.bestenlisten.text": "Pro Person zählt nume ein Iitrag: de bescht Wert us einere Session, oder bi Summe alles im gwählte Ziitruum zäme.\nEs zähled alli Sessions vo de Mitglieder, au die vo vor em Biitritt. Wer uustritt, verschwindet sofort us de Lischte.\nBi Events gilt das nur bis zum Änd, lueg under „Events“.\nEs gälted die gliiche Filter wie bi de Community-Rekord: glöschti, gmeldeti, nöd zuegordneti und laufendi Ufnahme zähled nöd.\nJedi Bestelischte cha uf e Sportart, es Foil-Band, Ufnahme mit Bewegigsdate, s Handy am Brätt oder d Teamspots iigschränkt werde.\nIsch „Ort verberge“ aa, zählt d Session nie für en bestimmte Spot.\nBi Gliichstand isch vorne, wer de Wert zerscht gfahre isch.",
+        "team.regeln.bestenlisten.titel": "Bestelischte",
+        "team.regeln.chat.text": "De Team-Chat läsed und schriibed nume aktivi Mitglieder. Wer nume aagfrogt het, gseht ne nöd.\nEr taucht für anderi niene uf, au nöd under de aktive Chats.\nWer uustritt oder usegno wird, verlüürt de Zuegang sofort und überchunnt kei Benachrichtigunge meh.",
+        "team.regeln.chat.titel": "Team-Chat",
+        "team.regeln.events.text": "Es Event het es Ziitfänschter und eigeni Bestelischte, wenn mer will nume a bestimmte Spots.\nZuesätzlich oder statt Bestelischte cha en Event Gsamtsumme über alli Teilnähmer zeige, öppe d Pumps oder d Strecki vom ganze Team. Jede Event bruucht mindestens e Bestelischte oder e Summe.\nEs zähled nume Sessions, wo im Ziitfänschter aafanged.\nD Leitig cha pro Event feschtlege, dass vo Hand uegladeni Dateie (FIT, GPX, TCX) nöd zelled; Ufnahme vo Uhr, App und Kontoverchnüpfige zelled denn wiiter.\nNach em Änd cha mer no 4 Stund uelade, d Teamsiite zeigt denn „Uswärtig“. Drnoch isch s Resultat iigfrore, spöters Zueschniide oder Lösche ändered nüt meh.\nWer nach em Änd ustritt, blibt im Ergebnis; wer dänn biitritt, chunnt nüme drii.\nIigfrore wird znacht und zuesätzlich, sobald öpper d Teamsiite uftuet.\nD Ziite gälted i de Ziitzone, i dere s Event aagleit worde isch, und werded für alli so aazeigt.\nPlatz 1 bis 3 überchömed es Event-Abzeiche uf ihrere Foiler-Siite, aber nume bi Teams, wo de Uftritt freigä isch.",
+        "team.regeln.events.titel": "Events",
+        "team.regeln.global.text": "Globali Events veranstaltet pumpfoil.org sälber. Es zellt automatisch jede mit passende Sessions im Ziitfänschter, ohni Biitritt und ohni Aamäldig.\nWär nöd mitmache wott, schaltet das im Profil under „Privatsphäre“ ab („Nöd a globale Events teilneh“). Dänn fehlt er i Bestelischte, Team-Wärtige, Summe und Abzeiche, au i scho beändete Events.\nPro Bestelischte gits e Team-Wärtig: d Summe vo de beschte Mitglieder vo jedem Team, i de Regel 5. Debii sind freigäni Teams mit öffentliche Bestelischte; wär i zwei Teams isch, zellt für beidi.\nD Bestelischte sind au ohni Aamäldig über de Event-Link sichtbar: Platz, Aazeigname, Initiale und Wärt.\nSuscht gälted d Regle für Events: Ziitfänschter, Uswärtig, Iifriere und Abzeiche für Platz 1 bis 3, uf de Profilsiite mit „Global“ gchennzeichnet.",
+        "team.regeln.global.titel": "Globali Events",
+        "team.regeln.haftung.text": "Events veranstalted d Teams sälber. pumpfoil.org het kei Iifluss uf Events und uf Zuesage, wo drin gmacht wärded, ob finanziell oder andersch, und übernimmt dafür kei Verantwortig. De Rächtswäg isch usgschlosse. Zahlige und alli andere Abmachige regled Veranstalter und Teilnähmer unabhängig vo pumpfoil.org.\nGnau so übernimmt pumpfoil.org kei Verantwortig defür, dass gmässni Wärt und Date stimmed oder nöd manipuliert worde sind. Azeigt wird, was de öffentlich Quellcode uf GitHub us de ufeglade Date usrächnet; wiiteri Zuesage gits kei.",
+        "team.regeln.haftung.titel": "Haftig",
         "team.regeln.intro": "So funktioniered Teams uf pumpfoil.org: wer was gseht, wie gwertet wird und was bim Lösche passiert.",
+        "team.regeln.konto.text": "D Person verschwindet us allne Teams, Bestelischte und au us iigfrorene Event-Resultat. D Plätz drunder rucked uf.\nHet sie es Team gleitet, übernimmt de dienschtältischt Moderator, susch s dienschtältischt Mitglied. Isch niemer meh da, wird s Team glöscht.",
+        "team.regeln.konto.titel": "Wenn es Konto glöscht wird",
+        "team.regeln.link": "Team-Regle",
+        "team.regeln.loeschen.text": "Lösche cha nume d Teamleitig, und nume wenn sie de Teamname zum Bestätige iitippt.\nDenn isch s Team für alli wäg: Mitgliedschafte, Bestelischte, Logbuech, Events und de Team-Chat. D Date bhalted mir vorläufig, demit mer es us Versehe glöschts Team wieder härestelle chönd.\nD Adrässe vom Team blibt gsperrt und wird nie amne andere Team vergä.",
+        "team.regeln.loeschen.titel": "Team lösche",
+        "team.regeln.logbuch.text": "S Logbuech hebt fescht, wer wänn welle Teamrekord broche het. Es wird jedi Nacht nachgfüehrt.\nDe erscht Iitrag vo einere Bestelischte isch de Stand i de erschte Nacht nach em Aalege.\nBi Beschtwärt zählt jedi Steigerig, au di eige. Bi Summe zählt's nume, wenn öpper d Spitze übernimmt.\nSinkt en Rekord, will e Session glöscht worde isch oder öpper uustrete isch, wird das still nachzoge, ohni Iitrag.",
+        "team.regeln.logbuch.titel": "Logbuech",
+        "team.regeln.oeffentlich.text": "Intern dörf es Team alles. Gäge usse taucht's erscht uf, wenn mir Name, Adrässe, Beschriibig, Wappe und Farb eimal aagluegt und freigä händ.\nS Teambild gaht dur di glich Freigab wie s Wappe. Weli Usschnitt mer gseht, wählt d Leitig ohni neui Freigab; nimmt si s Bild use, isch es sofort au usse wäg.\nÄnderet es freigäs Team sin Uftritt, gilt das im Team sofort, gäge usse erscht nach erneuter Freigab.\nFreigäni Teams stönd uf de Siite „Alli Teams“. Ihri Events stönd uf de Teamsiite; i de Community stönd nur di globale Events vo pumpfoil.org.\nSchaltet d Leitig d Bestelischte öffentlich, gseht sie jede, au ohni Aamäldig, aber nume Platz, Aazeigname, Initiale und Wert. Sessions, Spots, Datum und Profilbilder gsehnd nume Aagmeldeti.\nSuechmaschine nämed Teamsiite nöd uf.\nWer d Mitgliederlischte gseht, bestimmt d Leitig: nume Mitglieder oder alli Aagmeldete.",
+        "team.regeln.oeffentlich.titel": "Was öffentlich isch",
+        "team.regeln.rollen.text": "D Teamleitig dörf alles: Iistellige, Bestelischte, Events, Moderatore bestimme, d Leitig übergä und s Team lösche.\nModeratore nämed Aafroge aa oder lehned sie ab, nämed Mitglieder use und leged Events aa. Susch ändered sie nüt.\nMitglieder gsehnd alles im Team und chönd jederziit uustrete.\nD Leitig cha erscht uustrete, wenn sie d Leitig übergä het.",
+        "team.regeln.rollen.titel": "Rolle",
+        "team.regeln.statistik.text": "Über de Bestelischte stönd d Summe vo allne Mitglieder im gwählte Ziitruum: Pumps, On-Foil-Strecki und -Ziit, Sessions, Läuf und wie vill Mitglieder aktiv gsi sind.\nTeam gäge Team: I de Community vergliichet d Team-Bestelischte alli freigäne Teams mit öffentliche Bestelischte, pro Kennzahl mit de Summe vo de beschte 3, 5 oder 10 Fahrer. Det gilt für alli Teams s gliiche Mass, nöd d Filter vo de eigete Bestelischte.\nWär i zwei Teams isch, zellt für beidi.",
+        "team.regeln.statistik.titel": "Teamsumme",
+        "team.regeln.titel": "Team-Regle",
+    ]
+
+    private static let _gsw6: [String: String] = [
+        "team.regeln.was.text": "E feschti Gruppe mit eigene Bestelischte, Events und emne Team-Chat.\nJede cha Teams gründe, au mehreri, und i mehrere Teams sii.\nEs neus Team lauft sofort, über Iiladigslinks.",
+        "team.regeln.was.titel": "Was isch es Team?",
         "team.rolle.leiter": "Leitig",
         "team.rolle.mitglied": "Mitglied",
         "team.rolle.moderator": "Moderator",
@@ -635,12 +711,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "nume mit Bewegigsdate",
         "team.tafel.nurBrett": "nume Handy am Brätt",
         "team.tafel.nurTeamspots": "nume Teamspots",
+        "team.tafel.strittig": "in Abklärig",
+        "team.tafel.strittigHinweis": "{n} Sessions in Abklärig",
+        "team.tafel.strittigHinweis1": "1 Session in Abklärig",
+        "team.tafel.strittigTitel": "E Mäldig gäge die Session isch no nöd entschiede. Si zellt, bis entschiede isch.",
         "team.teilen": "Teile",
         "team.uebergebenFrage": "D Leitig a {name} übergä? Du wirsch denn Moderator.",
         "team.vergleich.ausFahrern": "us {n} Fahrer",
-    ]
-
-    private static let _gsw6: [String: String] = [
         "team.vergleich.ausFahrern1": "us 1 Fahrer",
         "team.vergleich.hinweis": "Pro Team zellt d Summe vo sine beschte {n} Fahrer. {sport}, au Läuf ohni Bewegigsdate; nur Teams mit öffentliche Bestelischte.",
         "team.vergleich.leer": "I däm Ziitruum het no kes Team e Session.",
@@ -649,6 +726,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Längschte Lauf",
         "team.vorlage.monat_strecke": "On-Foil-Kilometer im Monet",
         "team.vorlage.session_pumps": "Meischti Pumps i einere Session",
+    ]
+
+    private static let _gsw7: [String: String] = [
         "team.vorlage.top_speed": "Top-Speed",
         "team.vorlage.weitester_lauf": "Wiitischte Lauf",
         "team.vorlage.wochenende_laeufe": "Meischti Läuf am Wuchenänd",
@@ -819,6 +899,8 @@ enum LocTeam {
         "team.event.wertung": "Teamwertung",
         "team.event.wertungAlle": "Summe aller Mitglieder",
         "team.event.wertungBeste": "Summe der besten {n}",
+        "team.event.wertungSchnittAlle": "Durchschnitt aller Mitglieder",
+        "team.event.wertungSchnittBeste": "Durchschnitt der besten {n}",
         "team.eventbild.entfernen": "Eventbild entfernen",
         "team.eventbild.hinweis": "Breites Bild oben auf der Event-Seite, am besten 1600 × 500 px (mindestens 800 px breit).",
         "team.eventbild.hochladen": "Eventbild hochladen",
@@ -845,11 +927,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Dei Team rennt sofort, über Einladungslinks. Öffentlich glistet wird's erst, wenn ma uns Nam, Beschreibung und Wappen amal ang'schaut ham.",
         "team.gruendenKnopf": "Gründen",
         "team.herkunft": "Land / Region",
-        "team.join.anfrage": "Deine Anfrage geht an die Teamleitung, die entscheidet.",
-        "team.join.anfrageProfil": "Zum Prüfen sieht sie, an welchen Spots und in welchen Sportarten du bisher unterwegs warst (nur die Zahl der Sessions).",
     ]
 
     private static let _de_AT4: [String: String] = [
+        "team.join.anfrage": "Deine Anfrage geht an die Teamleitung, die entscheidet.",
+        "team.join.anfrageProfil": "Zum Prüfen sieht sie, an welchen Spots und in welchen Sportarten du bisher unterwegs warst (nur die Zahl der Sessions).",
         "team.join.anfragen": "Anfrage schicken",
         "team.join.angefragt": "Anfrage g'schickt.",
         "team.join.beitreten": "Beitreten",
@@ -863,6 +945,10 @@ enum LocTeam {
         "team.join.title": "„{name}“ beitreten",
         "team.join.wartet": "Anfrage läuft",
         "team.k.best": "Bester Wert",
+        "team.k.sprint_100m": "Schnellste fliegende 100 m",
+        "team.k.sprint_200m": "Schnellste fliegende 200 m",
+        "team.k.sprint_300m": "Schnellste fliegende 300 m",
+        "team.k.sprint_60s": "Schnellste fliegende Minut'n",
         "team.k.sum_distance": "On-Foil-Strecke insgesamt",
         "team.k.sum_pumps": "Pumps insgesamt",
         "team.k.sum_runs": "Läufe insgesamt",
@@ -889,15 +975,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} bricht „{was}“ mit {wert} (vorher {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} hält „{was}“ mit {wert}",
         "team.logbuchHinweis": "Wer wann welchen Teamrekord brochen hat. Wird jede Nacht nachtragen.",
+    ]
+
+    private static let _de_AT5: [String: String] = [
         "team.logbuchLeer": "No ka Einträge. Der erste Stand kommt in der Nacht nachm Anlegen der Bestenlisten.",
         "team.logoHochladen": "Wappen raufladen",
         "team.meine": "Meine Teams",
         "team.mitglieder": "Mitglieder",
         "team.mitgliederAnzahl": "{n} Mitglieder",
         "team.mitgliederAnzahl1": "1 Mitglied",
-    ]
-
-    private static let _de_AT5: [String: String] = [
         "team.mitgliederSichtbar": "Wer sieht die Mitgliederliste?",
         "team.name": "Teamnam",
         "team.nichtGefunden": "Des Team gibt's ned, oder es is ned öffentlich.",
@@ -910,8 +996,38 @@ enum LocTeam {
         "team.profilKnopf": "Team",
         "team.qr": "QR-Code",
         "team.qrTeilen": "QR-Code teilen",
-        "team.regeln.events.text": "A Event hat a Zeitfenster und eigene Bestenlisten, wenn ma will nur an bestimmten Spots.\nZusätzlich oder statt Bestenlisten kann ein Event Gesamtsummen über alle Teilnehmer zeigen, etwa die Pumps oder die Strecke des ganzen Teams. Jedes Event braucht mindestens eine Bestenliste oder eine Summe.\nEs zählen nur Sessions, die im Zeitfenster anfangen.\nDie Leitung kann je Event festlegen, dass von Hand hochgeladene Dateien (FIT, GPX, TCX) nicht zählen; Aufnahmen von Uhr, App und Kontoverknüpfungen zählen dann weiter.\nNachm Ende kann ma no 24 Stunden raufladen, die Teamseite zeigt dann „Auswertung“. Danach is des Ergebnis eing'froren, späteres Zuschneiden oder Löschen ändert nix mehr.\nWer nach dem Ende austritt, bleibt im Ergebnis; wer danach beitritt, kommt nicht mehr hinein.\nEing'froren wird in der Nacht und zusätzlich, sobald wer die Teamseite aufmacht.\nDie Zeiten gelten in der Zeitzone, in der des Event ang'legt worden is, und werden für alle so anzeigt.\nPlatz 1 bis 3 kriegen a Event-Abzeichen auf ihrer Foiler-Seite, aber nur bei Teams, deren Auftritt freigeben is.",
+        "team.regeln.beitreten.text": "Lasst a Team Anmeldungen zu, steht auf seiner Seite a Knopf „Beitreten“. Je nach Einstellung is ma sofort Mitglied, oder die Leitung bzw. a Moderator entscheidet.\nEs gibt zwa Einladungslinks: an, mit dem ma sofort Mitglied is, und an, mit dem ma a Anfrage stellt. Beide gibt's a als QR-Code.\nWer no ka Konto hat, legt ans an und is dann gleich im Team bzw. hat ang'fragt.\nA neu g'machter Link ersetzt den alten, der alte gilt dann nimma.\nMit jedem Beitritt bist einverstanden, dass die Bestenlisten vom Team öffentlich sein können, a wenn s' es grad ned san.\nBei einer Anfrage sehen Leitung und Moderatoren, an welchen Spots und in welchen Sportarten du bisher unterwegs warst (nur die Zahl der Sessions).",
+        "team.regeln.beitreten.titel": "Beitreten",
+        "team.regeln.bestenlisten.text": "Pro Person zählt nur a Eintrag: der beste Wert aus aner Session, oder bei Summen alles im g'wählten Zeitraum z'samm.\nEs zählen alle Sessions der Mitglieder, a die von vorm Beitritt. Wer austritt, verschwindet sofort aus die Listen.\nBei Events gilt das nur bis zum Ende, siehe „Events“.\nEs gelten die gleichen Filter wie bei die Community-Rekorde: g'löschte, g'meldete, ned zug'ordnete und laufende Aufnahmen zählen ned.\nJede Bestenliste kann auf a Sportart, a Foil-Band, Aufnahmen mit Bewegungsdaten, des Handy am Brett oder die Teamspots eing'schränkt werden.\nIs „Ort verbergen“ an, zählt die Session nie für an bestimmten Spot.\nBei Gleichstand is vorn, wer den Wert zerst g'fahren is.",
+        "team.regeln.bestenlisten.titel": "Bestenlisten",
+        "team.regeln.chat.text": "Den Team-Chat lesen und schreiben nur aktive Mitglieder. Wer nur ang'fragt hat, sieht ihn ned.\nEr taucht für andere nirgends auf, a ned unter die aktiven Chats.\nWer austritt oder rausg'nommen wird, verliert den Zugang sofort und kriegt ka Benachrichtigungen mehr.",
+        "team.regeln.chat.titel": "Team-Chat",
+        "team.regeln.events.text": "A Event hat a Zeitfenster und eigene Bestenlisten, wenn ma will nur an bestimmten Spots.\nZusätzlich oder statt Bestenlisten kann ein Event Gesamtsummen über alle Teilnehmer zeigen, etwa die Pumps oder die Strecke des ganzen Teams. Jedes Event braucht mindestens eine Bestenliste oder eine Summe.\nEs zählen nur Sessions, die im Zeitfenster anfangen.\nDie Leitung kann je Event festlegen, dass von Hand hochgeladene Dateien (FIT, GPX, TCX) nicht zählen; Aufnahmen von Uhr, App und Kontoverknüpfungen zählen dann weiter.\nNachm Ende kann ma no 4 Stunden raufladen, die Teamseite zeigt dann „Auswertung“. Danach is des Ergebnis eing'froren, späteres Zuschneiden oder Löschen ändert nix mehr.\nWer nach dem Ende austritt, bleibt im Ergebnis; wer danach beitritt, kommt nicht mehr hinein.\nEing'froren wird in der Nacht und zusätzlich, sobald wer die Teamseite aufmacht.\nDie Zeiten gelten in der Zeitzone, in der des Event ang'legt worden is, und werden für alle so anzeigt.\nPlatz 1 bis 3 kriegen a Event-Abzeichen auf ihrer Foiler-Seite, aber nur bei Teams, deren Auftritt freigeben is.",
+        "team.regeln.events.titel": "Events",
+        "team.regeln.global.text": "Globale Events veranstaltet pumpfoil.org selbst. Es zählt automatisch jeder mit passenden Sessions im Zeitfenster, ohne Beitritt und ohne Anmeldung.\nWer ned mitmachen will, schaltet das im Profil unter „Privatsphäre“ ab („Nicht an globalen Events teilnehmen“). Dann fehlt er in Bestenlisten, Team-Wertungen, Summen und Abzeichen, auch in schon beendeten Events.\nJe Bestenliste gibt's a Team-Wertung: die Summe der besten Mitglieder jedes Teams, in der Regel 5. Dabei sind freigegebene Teams mit öffentlichen Bestenlisten; wer in zwei Teams is, zählt für beide.\nDie Bestenlisten sind auch ohne Anmeldung über den Event-Link sichtbar: Platz, Anzeigename, Initialen und Wert.\nSonst gelten die Regeln für Events: Zeitfenster, Auswertung, Einfrieren und Abzeichen für Platz 1 bis 3, auf der Profilseite mit „Global“ gekennzeichnet.",
+        "team.regeln.global.titel": "Globale Events",
+        "team.regeln.haftung.text": "Events veranstalten die Teams selbst. pumpfoil.org hat keinen Einfluss auf Events und darin gemachte Zusagen finanzieller oder anderer Art und übernimmt dafür keine Verantwortung. Der Rechtsweg ist ausgeschlossen. Zahlungen und alle anderen Absprachen regeln Veranstalter und Teilnehmer unabhängig von pumpfoil.org.\nEbenso übernimmt pumpfoil.org keine Verantwortung dafür, dass gemessene Werte und Daten korrekt sind oder nicht manipuliert wurden. Angezeigt wird, was der öffentliche Quellcode auf GitHub aus den hochgeladenen Daten berechnet; weitere Zusagen gibt es nicht.",
+        "team.regeln.haftung.titel": "Haftung",
         "team.regeln.intro": "So funktionieren Teams auf pumpfoil.org: wer was sieht, wie g'wertet wird und was beim Löschen passiert.",
+        "team.regeln.konto.text": "Die Person verschwindet aus allen Teams, Bestenlisten und a aus eing'frorenen Event-Ergebnissen. Die Plätze drunter rücken auf.\nHat s' a Team g'leitet, übernimmt der dienstälteste Moderator, sonst des dienstälteste Mitglied. Is niemand mehr da, wird des Team g'löscht.",
+        "team.regeln.konto.titel": "Wenn a Konto g'löscht wird",
+        "team.regeln.link": "Team-Regeln",
+        "team.regeln.loeschen.text": "Löschen kann nur die Teamleitung, und nur wenn s' den Teamnam zum Bestätigen eintippt.\nDann ist das Team für alle weg: Mitgliedschaften, Bestenlisten, Logbuch, Events und der Team-Chat. Die Daten heben wir vorerst auf, damit sich ein versehentlich gelöschtes Team wiederherstellen lässt.\nDie Adresse vom Team bleibt g'sperrt und wird nie an a anderes Team vergeben.",
+        "team.regeln.loeschen.titel": "Team löschen",
+        "team.regeln.logbuch.text": "Des Logbuch hält fest, wer wann welchen Teamrekord brochen hat. Es wird jede Nacht nachtragen.\nDer erste Eintrag von aner Bestenliste is der Stand in der ersten Nacht nachm Anlegen.\nBei Bestwerten zählt jede Steigerung, a die eigene. Bei Summen zählt's nur, wenn wer die Spitze übernimmt.\nSinkt a Rekord, weil a Session g'löscht worden oder wer ausgetreten is, wird des still nachzogen, ohne Eintrag.",
+        "team.regeln.logbuch.titel": "Logbuch",
+        "team.regeln.oeffentlich.text": "Intern darf a Team alles. Nach außen taucht's erst auf, wenn ma Nam, Adresse, Beschreibung, Wappen und Farb amal ang'schaut und freigeben ham.\nDas Teambild geht durch dieselbe Freigabe wie das Wappen. Welchen Ausschnitt man sieht, sucht sich die Leitung ohne neue Freigabe aus; nimmt sie das Bild raus, ist es sofort auch nach außen weg.\nÄndert a freigebenes Team sein' Auftritt, gilt des im Team sofort, nach außen erst nach neuer Freigabe.\nFreigegebene Teams stehen auf der Seite „Alle Teams“. Ihre Events stehen auf der Teamseite; in der Community stehen nur die globalen Events von pumpfoil.org.\nSchaltet die Leitung die Bestenlisten öffentlich, sieht s' jeder, a ohne Anmeldung, aber nur Platz, Anzeigenam, Initialen und Wert. Sessions, Spots, Datum und Profilbilder sehn nur Ang'meldete.\nSuchmaschinen nehmen Teamseiten ned auf.\nWer die Mitgliederliste sieht, bestimmt die Leitung: nur Mitglieder oder alle Ang'meldeten.",
+        "team.regeln.oeffentlich.titel": "Was öffentlich is",
+        "team.regeln.rollen.text": "Die Teamleitung darf alles: Einstellungen, Bestenlisten, Events, Moderatoren bestimmen, die Leitung übergeben und des Team löschen.\nModeratoren nehmen Anfragen an oder lehnen s' ab, nehmen Mitglieder raus und legen Events an. Sonst ändern s' nix.\nMitglieder sehn alles im Team und können jederzeit austreten.\nDie Leitung kann erst austreten, wenn s' die Leitung übergeben hat.",
+        "team.regeln.rollen.titel": "Rollen",
+        "team.regeln.statistik.text": "Über die Bestenlisten stehn die Summen von allen Mitgliedern im g'wählten Zeitraum: Pumps, On-Foil-Strecke und -Zeit, Sessions, Läufe und wie viele Mitglieder aktiv waren.\nTeam gegen Team: In der Community vergleichen die Team-Bestenlisten alle freigegebenen Teams mit öffentlichen Bestenlisten, je Kennzahl mit der Summe der besten 3, 5 oder 10 Fahrer. Dort gilt für alle Teams dasselbe Maß, ned die Filter der eigenen Bestenlisten.\nWer in zwei Teams is, zählt für beide.",
+        "team.regeln.statistik.titel": "Teamsummen",
+        "team.regeln.titel": "Team-Regeln",
+    ]
+
+    private static let _de_AT6: [String: String] = [
+        "team.regeln.was.text": "A fixe Partie mit eigenen Bestenlisten, Events und an Team-Chat.\nJeder kann Teams gründen, a mehrere, und in mehreren Teams sein.\nA neues Team rennt sofort, über Einladungslinks.",
+        "team.regeln.was.titel": "Was is a Team?",
         "team.rolle.leiter": "Leitung",
         "team.rolle.mitglied": "Mitglied",
         "team.rolle.moderator": "Moderator",
@@ -940,12 +1056,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "nur mit Bewegungsdaten",
         "team.tafel.nurBrett": "nur Handy am Brett",
         "team.tafel.nurTeamspots": "nur Teamspots",
+        "team.tafel.strittig": "in Klärung",
+        "team.tafel.strittigHinweis": "{n} Sessions in Klärung",
+        "team.tafel.strittigHinweis1": "1 Session in Klärung",
+        "team.tafel.strittigTitel": "Eine Meldung gegen diese Session ist noch nicht entschieden. Sie zählt, bis entschieden ist.",
         "team.teilen": "Teilen",
         "team.uebergebenFrage": "Die Leitung an {name} übergeben? Du wirst dann Moderator.",
         "team.vergleich.ausFahrern": "aus {n} Fahrern",
-    ]
-
-    private static let _de_AT6: [String: String] = [
         "team.vergleich.ausFahrern1": "aus 1 Fahrer",
         "team.vergleich.hinweis": "Je Team zählt die Summe seiner besten {n} Fahrer. {sport}, auch Läufe ohne Bewegungsdaten; nur Teams mit öffentlichen Bestenlisten.",
         "team.vergleich.leer": "In dem Zeitraum hat no ka Team a Session.",
@@ -954,6 +1071,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Längster Lauf",
         "team.vorlage.monat_strecke": "On-Foil-Kilometer im Monat",
         "team.vorlage.session_pumps": "Meiste Pumps in aner Session",
+    ]
+
+    private static let _de_AT7: [String: String] = [
         "team.vorlage.top_speed": "Top-Speed",
         "team.vorlage.weitester_lauf": "Weitester Lauf",
         "team.vorlage.wochenende_laeufe": "Meiste Läufe am Wochenend",
@@ -1124,6 +1244,8 @@ enum LocTeam {
         "team.event.wertung": "Team ranking",
         "team.event.wertungAlle": "Sum of all members",
         "team.event.wertungBeste": "Sum of the best {n}",
+        "team.event.wertungSchnittAlle": "Average of all members",
+        "team.event.wertungSchnittBeste": "Average of the best {n}",
         "team.eventbild.entfernen": "Remove event banner",
         "team.eventbild.hinweis": "Wide image at the top of the event page, ideally 1600 × 500 px (at least 800 px wide).",
         "team.eventbild.hochladen": "Upload event banner",
@@ -1150,11 +1272,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Your team works right away through invite links. It gets listed publicly once we've had a look at its name, description and crest.",
         "team.gruendenKnopf": "Start",
         "team.herkunft": "Country / region",
-        "team.join.anfrage": "Your request goes to the team lead, who decides.",
-        "team.join.anfrageProfil": "To review it, they see which spots and sports you have been out on so far (only the number of sessions).",
     ]
 
     private static let _en4: [String: String] = [
+        "team.join.anfrage": "Your request goes to the team lead, who decides.",
+        "team.join.anfrageProfil": "To review it, they see which spots and sports you have been out on so far (only the number of sessions).",
         "team.join.anfragen": "Send request",
         "team.join.angefragt": "Request sent.",
         "team.join.beitreten": "Join",
@@ -1168,6 +1290,10 @@ enum LocTeam {
         "team.join.title": "Join “{name}”",
         "team.join.wartet": "Request pending",
         "team.k.best": "Best value",
+        "team.k.sprint_100m": "Fastest flying 100 m",
+        "team.k.sprint_200m": "Fastest flying 200 m",
+        "team.k.sprint_300m": "Fastest flying 300 m",
+        "team.k.sprint_60s": "Fastest flying minute",
         "team.k.sum_distance": "Total on-foil distance",
         "team.k.sum_pumps": "Total pumps",
         "team.k.sum_runs": "Total runs",
@@ -1194,15 +1320,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} breaks “{was}” with {wert} (before: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} holds “{was}” with {wert}",
         "team.logbuchHinweis": "Who broke which team record, and when. Updated every night.",
+    ]
+
+    private static let _en5: [String: String] = [
         "team.logbuchLeer": "No entries yet. The first standings appear the night after the leaderboards are set up.",
         "team.logoHochladen": "Upload crest",
         "team.meine": "My teams",
         "team.mitglieder": "Members",
         "team.mitgliederAnzahl": "{n} members",
         "team.mitgliederAnzahl1": "1 member",
-    ]
-
-    private static let _en5: [String: String] = [
         "team.mitgliederSichtbar": "Who can see the member list?",
         "team.name": "Team name",
         "team.nichtGefunden": "This team doesn't exist or isn't public.",
@@ -1215,8 +1341,38 @@ enum LocTeam {
         "team.profilKnopf": "Team",
         "team.qr": "QR code",
         "team.qrTeilen": "Share QR code",
-        "team.regeln.events.text": "An event has a time window and its own leaderboards, optionally only at certain spots.\nIn addition to or instead of leaderboards, an event can show totals across all participants, such as the whole team's pumps or distance. Every event needs at least one leaderboard or one total.\nOnly sessions that start within the window count.\nFor each event the team lead can decide that manually uploaded files (FIT, GPX, TCX) don't count; recordings from watches, the app and linked accounts still count.\nAfter the end you can still upload for 24 hours; the team page then shows “results pending”. After that the result is frozen, and later trimming or deleting no longer changes anything.\nAnyone who leaves after the end stays in the result; anyone who joins afterwards is not added.\nResults are frozen at night and also as soon as someone opens the team page.\nTimes are in the time zone the event was created in and are shown that way to everyone.\nPlaces 1 to 3 get an event badge on their foiler page, but only for teams whose appearance is approved.",
+        "team.regeln.beitreten.text": "If a team allows sign-ups, its page shows a “Join” button. Depending on the setting you're in right away, or the lead or a moderator decides.\nThere are two invite links: one that makes you a member right away and one that sends a request. Both are also available as QR codes.\nAnyone without an account creates one and is then straight in the team, or has sent the request.\nA newly created link replaces the old one, which then stops working.\nEvery time you join, you agree that the team's leaderboards may be public, even if they aren't right now.\nWith a request, the team lead and moderators see which spots and sports you have been out on so far (only the number of sessions).",
+        "team.regeln.beitreten.titel": "Joining",
+        "team.regeln.bestenlisten.text": "Each person counts once: their best value from a single session, or for totals everything in the chosen period added up.\nAll of a member's sessions count, including those from before they joined. Anyone who leaves disappears from the lists right away.\nFor events this only applies until the end, see “Events”.\nThe same filters apply as for the community records: deleted, reported, unassigned and ongoing recordings don't count.\nEach leaderboard can be limited to one sport, a foil band, recordings with motion data, the phone on the board, or the team spots.\nIf “Hide location” is on, the session never counts for a particular spot.\nOn a tie, whoever rode the value first comes first.",
+        "team.regeln.bestenlisten.titel": "Leaderboards",
+        "team.regeln.chat.text": "Only active members can read and write in the team chat. Anyone who has only sent a request can't see it.\nIt never shows up for others, not even among the active chats.\nAnyone who leaves or is removed loses access right away and gets no more notifications.",
+        "team.regeln.chat.titel": "Team chat",
+        "team.regeln.events.text": "An event has a time window and its own leaderboards, optionally only at certain spots.\nIn addition to or instead of leaderboards, an event can show totals across all participants, such as the whole team's pumps or distance. Every event needs at least one leaderboard or one total.\nOnly sessions that start within the window count.\nFor each event the team lead can decide that manually uploaded files (FIT, GPX, TCX) don't count; recordings from watches, the app and linked accounts still count.\nAfter the end you can still upload for 4 hours; the team page then shows “results pending”. After that the result is frozen, and later trimming or deleting no longer changes anything.\nAnyone who leaves after the end stays in the result; anyone who joins afterwards is not added.\nResults are frozen at night and also as soon as someone opens the team page.\nTimes are in the time zone the event was created in and are shown that way to everyone.\nPlaces 1 to 3 get an event badge on their foiler page, but only for teams whose appearance is approved.",
+        "team.regeln.events.titel": "Events",
+        "team.regeln.global.text": "Global events are organised by pumpfoil.org itself. Everyone with matching sessions in the time window counts automatically, without joining and without signing up.\nAnyone who doesn't want to take part can turn it off in their profile under “Privacy” (“Don't take part in global events”). They then disappear from leaderboards, team rankings, totals and badges, including events that have already ended.\nEach leaderboard has a team ranking: the sum of each team's best members, usually 5. Approved teams with public leaderboards take part; anyone in two teams counts for both.\nThe leaderboards are also visible without logging in via the event link: rank, display name, initials and value.\nOtherwise the rules for events apply: time window, evaluation, freezing, and badges for places 1 to 3, marked “Global” on the profile page.",
+        "team.regeln.global.titel": "Global events",
+        "team.regeln.haftung.text": "Events are run by the teams themselves. pumpfoil.org has no influence on events or on any promises made in them, financial or otherwise, and accepts no responsibility for them. Recourse to the courts is excluded. Payments and all other arrangements are settled between organisers and participants, independently of pumpfoil.org.\nLikewise, pumpfoil.org accepts no responsibility for whether measured values and data are correct or have been manipulated. What is shown is what the public source code on GitHub calculates from the uploaded data; there are no further promises.",
+        "team.regeln.haftung.titel": "Liability",
         "team.regeln.intro": "How teams work on pumpfoil.org: who sees what, how things are scored, and what happens when something is deleted.",
+        "team.regeln.konto.text": "The person disappears from all teams and leaderboards, and from frozen event results too. Those below move up.\nIf they led a team, the longest-serving moderator takes over, otherwise the longest-serving member. If nobody is left, the team is deleted.",
+        "team.regeln.konto.titel": "When an account is deleted",
+        "team.regeln.link": "Team rules",
+        "team.regeln.loeschen.text": "Only the team lead can delete a team, and only by typing the team name to confirm.\nThe team is then gone for everyone: memberships, leaderboards, logbook, events and the team chat. We keep the data for now so a team deleted by mistake can be restored.\nThe team's address stays blocked and is never given to another team.",
+        "team.regeln.loeschen.titel": "Deleting a team",
+        "team.regeln.logbuch.text": "The logbook records who broke which team record, and when. It's updated every night.\nThe first entry of a leaderboard is the standing on the first night after it was set up.\nFor best values every improvement counts, including your own. For totals it only counts when someone takes the lead.\nIf a record drops because a session was deleted or someone left, it's adjusted quietly, without an entry.",
+        "team.regeln.logbuch.titel": "Logbook",
+        "team.regeln.oeffentlich.text": "Inside, a team can do anything. It only appears to others once we've looked at and approved its name, address, description, crest and colour.\nThe team banner goes through the same approval as the crest. The team lead chooses which part is visible without a new approval; if they remove the banner, it disappears from the public page right away too.\nIf an approved team changes its appearance, that applies inside the team right away, and to the public after a new approval.\nApproved teams are listed on the “All teams” page. Their events are on the team page; the community only shows the global events by pumpfoil.org.\nIf the lead makes the leaderboards public, everyone can see them, even without signing in, but only rank, display name, initials and value. Sessions, spots, dates and profile pictures are visible to signed-in users only.\nSearch engines don't index team pages.\nThe lead decides who sees the member list: members only, or all signed-in users.",
+        "team.regeln.oeffentlich.titel": "What is public",
+        "team.regeln.rollen.text": "The team lead can do everything: settings, leaderboards, events, naming moderators, handing over the lead and deleting the team.\nModerators accept or decline requests, remove members and create events. They can't change anything else.\nMembers see everything in the team and can leave at any time.\nThe lead can only leave after handing over the lead.",
+        "team.regeln.rollen.titel": "Roles",
+        "team.regeln.statistik.text": "Above the leaderboards are the totals of all members in the chosen period: pumps, on-foil distance and time, sessions, runs and how many members were active.\nTeam against team: in the community, the team leaderboards compare all approved teams with public leaderboards, per metric by the sum of the best 3, 5 or 10 riders. The same measure applies to all teams there, not the filters of their own leaderboards.\nAnyone in two teams counts for both.",
+        "team.regeln.statistik.titel": "Team totals",
+        "team.regeln.titel": "Team rules",
+    ]
+
+    private static let _en6: [String: String] = [
+        "team.regeln.was.text": "A fixed group with its own leaderboards, events and team chat.\nAnyone can start teams, several if they like, and be in several teams.\nA new team works right away, through invite links.",
+        "team.regeln.was.titel": "What is a team?",
         "team.rolle.leiter": "Lead",
         "team.rolle.mitglied": "Member",
         "team.rolle.moderator": "Moderator",
@@ -1245,12 +1401,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "motion data only",
         "team.tafel.nurBrett": "phone on board only",
         "team.tafel.nurTeamspots": "team spots only",
+        "team.tafel.strittig": "in dispute",
+        "team.tafel.strittigHinweis": "{n} sessions currently in dispute",
+        "team.tafel.strittigHinweis1": "1 session currently in dispute",
+        "team.tafel.strittigTitel": "A report against this session hasn't been decided yet. It counts until it is.",
         "team.teilen": "Share",
         "team.uebergebenFrage": "Hand the lead over to {name}? You'll become a moderator.",
         "team.vergleich.ausFahrern": "from {n} riders",
-    ]
-
-    private static let _en6: [String: String] = [
         "team.vergleich.ausFahrern1": "from 1 rider",
         "team.vergleich.hinweis": "Each team counts the sum of its best {n} riders. {sport}, including runs without motion data; only teams with public leaderboards.",
         "team.vergleich.leer": "No team has a session in this period yet.",
@@ -1259,6 +1416,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Longest run",
         "team.vorlage.monat_strecke": "On-foil kilometres this month",
         "team.vorlage.session_pumps": "Most pumps in one session",
+    ]
+
+    private static let _en7: [String: String] = [
         "team.vorlage.top_speed": "Top speed",
         "team.vorlage.weitester_lauf": "Farthest run",
         "team.vorlage.wochenende_laeufe": "Most runs this weekend",
@@ -1429,6 +1589,8 @@ enum LocTeam {
         "team.event.wertung": "Classement des équipes",
         "team.event.wertungAlle": "Somme de tous les membres",
         "team.event.wertungBeste": "Somme des {n} meilleurs",
+        "team.event.wertungSchnittAlle": "Moyenne de tous les membres",
+        "team.event.wertungSchnittBeste": "Moyenne des {n} meilleurs",
         "team.eventbild.entfernen": "Retirer la bannière",
         "team.eventbild.hinweis": "Image large en haut de la page de l'événement, idéalement 1600 × 500 px (au moins 800 px de large).",
         "team.eventbild.hochladen": "Importer la bannière",
@@ -1455,11 +1617,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Ton équipe fonctionne tout de suite, via des liens d'invitation. Elle n'apparaît publiquement qu'une fois que nous avons vérifié son nom, sa description et son blason.",
         "team.gruendenKnopf": "Créer",
         "team.herkunft": "Pays / région",
-        "team.join.anfrage": "Ta demande est envoyée au responsable de l'équipe, qui décide.",
-        "team.join.anfrageProfil": "Pour l'examiner, elle voit sur quels spots et dans quels sports tu as été actif jusqu'ici (seulement le nombre de sessions).",
     ]
 
     private static let _fr4: [String: String] = [
+        "team.join.anfrage": "Ta demande est envoyée au responsable de l'équipe, qui décide.",
+        "team.join.anfrageProfil": "Pour l'examiner, elle voit sur quels spots et dans quels sports tu as été actif jusqu'ici (seulement le nombre de sessions).",
         "team.join.anfragen": "Envoyer la demande",
         "team.join.angefragt": "Demande envoyée.",
         "team.join.beitreten": "Rejoindre",
@@ -1473,6 +1635,10 @@ enum LocTeam {
         "team.join.title": "Rejoindre « {name} »",
         "team.join.wartet": "Demande en cours",
         "team.k.best": "Meilleure valeur",
+        "team.k.sprint_100m": "100 m lancés les plus rapides",
+        "team.k.sprint_200m": "200 m lancés les plus rapides",
+        "team.k.sprint_300m": "300 m lancés les plus rapides",
+        "team.k.sprint_60s": "Minute lancée la plus rapide",
         "team.k.sum_distance": "Distance on-foil totale",
         "team.k.sum_pumps": "Pumps au total",
         "team.k.sum_runs": "Runs au total",
@@ -1499,15 +1665,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} bat « {was} » avec {wert} (avant : {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} détient « {was} » avec {wert}",
         "team.logbuchHinweis": "Qui a battu quel record de l'équipe, et quand. Mis à jour chaque nuit.",
+    ]
+
+    private static let _fr5: [String: String] = [
         "team.logbuchLeer": "Aucune entrée pour l'instant. Le premier état arrive la nuit qui suit la création des classements.",
         "team.logoHochladen": "Importer un blason",
         "team.meine": "Mes équipes",
         "team.mitglieder": "Membres",
         "team.mitgliederAnzahl": "{n} membres",
         "team.mitgliederAnzahl1": "1 membre",
-    ]
-
-    private static let _fr5: [String: String] = [
         "team.mitgliederSichtbar": "Qui voit la liste des membres ?",
         "team.name": "Nom de l'équipe",
         "team.nichtGefunden": "Cette équipe n'existe pas ou n'est pas publique.",
@@ -1520,8 +1686,38 @@ enum LocTeam {
         "team.profilKnopf": "Équipe",
         "team.qr": "QR code",
         "team.qrTeilen": "Partager le QR code",
-        "team.regeln.events.text": "Un événement a une fenêtre de temps et ses propres classements, si on le souhaite uniquement sur certains spots.\nEn plus des classements, ou à leur place, un événement peut afficher des totaux sur tous les participants, par exemple les pumps ou la distance de toute l'équipe. Chaque événement a besoin d'au moins un classement ou un total.\nSeules les sessions qui commencent dans la fenêtre comptent.\nPour chaque événement, les responsables peuvent décider que les fichiers importés à la main (FIT, GPX, TCX) ne comptent pas ; les enregistrements de montres, de l'app et des comptes liés comptent toujours.\nAprès la fin, on peut encore envoyer des sessions pendant 24 heures ; la page de l'équipe affiche alors « résultats en attente ». Ensuite le résultat est figé, et un découpage ou une suppression ultérieurs ne changent plus rien.\nQui quitte l'équipe après la fin reste dans le résultat ; qui la rejoint ensuite n'y est plus ajouté.\nLes résultats sont figés la nuit, et aussi dès que quelqu'un ouvre la page de l'équipe.\nLes heures sont celles du fuseau horaire dans lequel l'événement a été créé et s'affichent ainsi pour tout le monde.\nLes places 1 à 3 reçoivent un badge d'événement sur leur page foiler, mais seulement pour les équipes dont l'apparence est validée.",
+        "team.regeln.beitreten.text": "Si une équipe accepte les inscriptions, sa page affiche un bouton « Rejoindre ». Selon le réglage, tu es membre tout de suite, ou le responsable ou un modérateur décide.\nIl existe deux liens d'invitation : l'un te rend membre tout de suite, l'autre envoie une demande. Les deux existent aussi en QR code.\nSi tu n'as pas encore de compte, tu en crées un et tu es ensuite directement dans l'équipe, ou ta demande est envoyée.\nUn nouveau lien remplace l'ancien, qui ne fonctionne alors plus.\nÀ chaque adhésion, tu acceptes que les classements de l'équipe puissent être publics, même s'ils ne le sont pas en ce moment.\nLors d'une demande, les responsables et les modérateurs voient sur quels spots et dans quels sports tu as été actif jusqu'ici (seulement le nombre de sessions).",
+        "team.regeln.beitreten.titel": "Rejoindre",
+        "team.regeln.bestenlisten.text": "Chaque personne compte une seule fois : sa meilleure valeur sur une session, ou pour les totaux, tout ce qui a été fait sur la période choisie.\nToutes les sessions des membres comptent, y compris celles d'avant leur adhésion. Qui quitte l'équipe disparaît aussitôt des classements.\nPour les événements, cela ne vaut que jusqu'à la fin, voir « Événements ».\nLes mêmes filtres que pour les records de la communauté s'appliquent : les enregistrements supprimés, signalés, non attribués et en cours ne comptent pas.\nChaque classement peut être limité à un sport, une plage de foils, les enregistrements avec données de mouvement, le téléphone sur la planche ou les spots de l'équipe.\nSi « Masquer le lieu » est activé, la session ne compte jamais pour un spot précis.\nEn cas d'égalité, celui qui a réalisé la valeur en premier passe devant.",
+        "team.regeln.bestenlisten.titel": "Classements",
+        "team.regeln.chat.text": "Seuls les membres actifs peuvent lire et écrire dans le chat d'équipe. Qui a seulement envoyé une demande ne le voit pas.\nIl n'apparaît nulle part pour les autres, pas même parmi les chats actifs.\nQui quitte l'équipe ou en est retiré perd l'accès aussitôt et ne reçoit plus de notifications.",
+        "team.regeln.chat.titel": "Chat d'équipe",
+        "team.regeln.events.text": "Un événement a une fenêtre de temps et ses propres classements, si on le souhaite uniquement sur certains spots.\nEn plus des classements, ou à leur place, un événement peut afficher des totaux sur tous les participants, par exemple les pumps ou la distance de toute l'équipe. Chaque événement a besoin d'au moins un classement ou un total.\nSeules les sessions qui commencent dans la fenêtre comptent.\nPour chaque événement, les responsables peuvent décider que les fichiers importés à la main (FIT, GPX, TCX) ne comptent pas ; les enregistrements de montres, de l'app et des comptes liés comptent toujours.\nAprès la fin, on peut encore envoyer des sessions pendant 4 heures ; la page de l'équipe affiche alors « résultats en attente ». Ensuite le résultat est figé, et un découpage ou une suppression ultérieurs ne changent plus rien.\nQui quitte l'équipe après la fin reste dans le résultat ; qui la rejoint ensuite n'y est plus ajouté.\nLes résultats sont figés la nuit, et aussi dès que quelqu'un ouvre la page de l'équipe.\nLes heures sont celles du fuseau horaire dans lequel l'événement a été créé et s'affichent ainsi pour tout le monde.\nLes places 1 à 3 reçoivent un badge d'événement sur leur page foiler, mais seulement pour les équipes dont l'apparence est validée.",
+        "team.regeln.events.titel": "Événements",
+        "team.regeln.global.text": "Les événements globaux sont organisés par pumpfoil.org lui-même. Toute personne ayant des sessions correspondantes dans la période compte automatiquement, sans adhésion ni inscription.\nCelui qui ne veut pas participer le désactive dans son profil sous « Confidentialité » (« Ne pas participer aux événements globaux »). Il disparaît alors des classements, classements d'équipe, totaux et badges, y compris des événements déjà terminés.\nChaque classement a un classement d'équipe : la somme des meilleurs membres de chaque équipe, en général 5. Y participent les équipes validées aux classements publics ; quelqu'un qui est dans deux équipes compte pour les deux.\nLes classements sont aussi visibles sans connexion via le lien de l'événement : rang, nom affiché, initiales et valeur.\nSinon, les règles des événements s'appliquent : période, évaluation, gel et badges pour les places 1 à 3, marqués « Global » sur la page de profil.",
+        "team.regeln.global.titel": "Événements globaux",
+        "team.regeln.haftung.text": "Les événements sont organisés par les équipes elles-mêmes. pumpfoil.org n'a aucune influence sur les événements ni sur les promesses qui y sont faites, financières ou autres, et décline toute responsabilité. Tout recours juridique est exclu. Les paiements et tous les autres accords se règlent entre organisateurs et participants, indépendamment de pumpfoil.org.\nDe même, pumpfoil.org décline toute responsabilité quant à l'exactitude des valeurs et données mesurées ou à leur éventuelle manipulation. Ce qui s'affiche est ce que le code source public sur GitHub calcule à partir des données envoyées ; il n'y a aucune autre garantie.",
+        "team.regeln.haftung.titel": "Responsabilité",
         "team.regeln.intro": "Comment fonctionnent les équipes sur pumpfoil.org : qui voit quoi, comment on est classé et ce qui se passe lors d'une suppression.",
+        "team.regeln.konto.text": "La personne disparaît de toutes les équipes et de tous les classements, y compris des résultats d'événements figés. Les suivants remontent d'une place.\nSi elle dirigeait une équipe, le modérateur le plus ancien prend le relais, sinon le membre le plus ancien. S'il ne reste plus personne, l'équipe est supprimée.",
+        "team.regeln.konto.titel": "Quand un compte est supprimé",
+        "team.regeln.link": "Règles des équipes",
+        "team.regeln.loeschen.text": "Seul le responsable peut supprimer une équipe, et seulement en tapant le nom de l'équipe pour confirmer.\nL'équipe disparaît alors pour tout le monde : adhésions, classements, journal, événements et chat d'équipe. Nous gardons les données pour l'instant afin de pouvoir restaurer une équipe supprimée par erreur.\nL'adresse de l'équipe reste bloquée et n'est jamais attribuée à une autre équipe.",
+        "team.regeln.loeschen.titel": "Supprimer une équipe",
+        "team.regeln.logbuch.text": "Le journal note qui a battu quel record de l'équipe, et quand. Il est mis à jour chaque nuit.\nLa première entrée d'un classement est l'état lors de la première nuit après sa création.\nPour les meilleures valeurs, chaque amélioration compte, même la sienne propre. Pour les totaux, cela ne compte que lorsque quelqu'un prend la tête.\nSi un record baisse parce qu'une session a été supprimée ou que quelqu'un a quitté l'équipe, il est ajusté discrètement, sans entrée.",
+        "team.regeln.logbuch.titel": "Journal",
+        "team.regeln.oeffentlich.text": "En interne, une équipe peut tout faire. Elle n'apparaît à l'extérieur qu'une fois que nous avons vérifié et validé son nom, son adresse, sa description, son blason et sa couleur.\nLa bannière passe par la même validation que le blason. Les responsables choisissent la partie visible sans nouvelle validation ; s'ils retirent la bannière, elle disparaît aussitôt de la page publique aussi.\nSi une équipe validée modifie son apparence, cela s'applique tout de suite dans l'équipe, et en public après une nouvelle validation.\nLes équipes validées figurent sur la page « Toutes les équipes ». Leurs événements sont sur la page de l'équipe ; la communauté n'affiche que les événements globaux de pumpfoil.org.\nSi le responsable rend les classements publics, tout le monde les voit, même sans connexion, mais seulement le rang, le nom affiché, les initiales et la valeur. Les sessions, spots, dates et photos de profil ne sont visibles que pour les utilisateurs connectés.\nLes moteurs de recherche n'indexent pas les pages d'équipe.\nLe responsable décide qui voit la liste des membres : seulement les membres, ou tous les utilisateurs connectés.",
+        "team.regeln.oeffentlich.titel": "Ce qui est public",
+        "team.regeln.rollen.text": "Le responsable peut tout faire : paramètres, classements, événements, nommer des modérateurs, transmettre la responsabilité et supprimer l'équipe.\nLes modérateurs acceptent ou refusent les demandes, retirent des membres et créent des événements. Ils ne modifient rien d'autre.\nLes membres voient tout dans l'équipe et peuvent la quitter à tout moment.\nLe responsable ne peut quitter l'équipe qu'après avoir transmis la responsabilité.",
+        "team.regeln.rollen.titel": "Rôles",
+        "team.regeln.statistik.text": "Au-dessus des classements figurent les totaux de tous les membres sur la période choisie : pumps, distance et temps on-foil, sessions, runs et nombre de membres actifs.\nÉquipe contre équipe : dans la communauté, les classements d'équipes comparent toutes les équipes validées aux classements publics, pour chaque indicateur avec la somme des 3, 5 ou 10 meilleurs riders. La même mesure s'y applique à toutes les équipes, pas les filtres de leurs propres classements.\nQuelqu'un qui est dans deux équipes compte pour les deux.",
+        "team.regeln.statistik.titel": "Totaux de l'équipe",
+        "team.regeln.titel": "Règles des équipes",
+    ]
+
+    private static let _fr6: [String: String] = [
+        "team.regeln.was.text": "Un groupe fixe avec ses propres classements, événements et un chat d'équipe.\nTout le monde peut créer des équipes, même plusieurs, et faire partie de plusieurs équipes.\nUne nouvelle équipe fonctionne tout de suite, via des liens d'invitation.",
+        "team.regeln.was.titel": "Qu'est-ce qu'une équipe ?",
         "team.rolle.leiter": "Responsable",
         "team.rolle.mitglied": "Membre",
         "team.rolle.moderator": "Modérateur",
@@ -1550,12 +1746,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "avec données de mouvement uniquement",
         "team.tafel.nurBrett": "téléphone sur la planche uniquement",
         "team.tafel.nurTeamspots": "spots de l'équipe uniquement",
+        "team.tafel.strittig": "contestée",
+        "team.tafel.strittigHinweis": "{n} sessions contestées",
+        "team.tafel.strittigHinweis1": "1 session contestée",
+        "team.tafel.strittigTitel": "Un signalement contre cette session n'est pas encore tranché. Elle compte en attendant.",
         "team.teilen": "Partager",
         "team.uebergebenFrage": "Transmettre la responsabilité à {name} ? Tu deviendras modérateur.",
         "team.vergleich.ausFahrern": "sur {n} riders",
-    ]
-
-    private static let _fr6: [String: String] = [
         "team.vergleich.ausFahrern1": "sur 1 rider",
         "team.vergleich.hinweis": "Chaque équipe compte la somme de ses {n} meilleurs riders. {sport}, y compris les sorties sans données de mouvement ; seulement les équipes aux classements publics.",
         "team.vergleich.leer": "Aucune équipe n'a encore de session sur cette période.",
@@ -1564,6 +1761,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Run le plus durable",
         "team.vorlage.monat_strecke": "Kilomètres on-foil du mois",
         "team.vorlage.session_pumps": "Le plus de pumps en une session",
+    ]
+
+    private static let _fr7: [String: String] = [
         "team.vorlage.top_speed": "Vitesse max",
         "team.vorlage.weitester_lauf": "Run le plus long",
         "team.vorlage.wochenende_laeufe": "Le plus de runs ce week-end",
@@ -1734,6 +1934,8 @@ enum LocTeam {
         "team.event.wertung": "Classifica a squadre",
         "team.event.wertungAlle": "Somma di tutti i membri",
         "team.event.wertungBeste": "Somma dei migliori {n}",
+        "team.event.wertungSchnittAlle": "Media di tutti i membri",
+        "team.event.wertungSchnittBeste": "Media dei migliori {n}",
         "team.eventbild.entfernen": "Rimuovi immagine dell'evento",
         "team.eventbild.hinweis": "Immagine larga in cima alla pagina dell'evento, ideale 1600 × 500 px (almeno 800 px di larghezza).",
         "team.eventbild.hochladen": "Carica immagine dell'evento",
@@ -1760,11 +1962,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Il tuo team funziona subito, tramite link d'invito. Compare nell'elenco pubblico solo dopo che abbiamo dato un'occhiata a nome, descrizione e stemma.",
         "team.gruendenKnopf": "Crea",
         "team.herkunft": "Paese / regione",
-        "team.join.anfrage": "La tua richiesta va al responsabile del team, che decide.",
-        "team.join.anfrageProfil": "Per valutarla, vede in quali spot e in quali sport sei stato finora (solo il numero di sessioni).",
     ]
 
     private static let _it4: [String: String] = [
+        "team.join.anfrage": "La tua richiesta va al responsabile del team, che decide.",
+        "team.join.anfrageProfil": "Per valutarla, vede in quali spot e in quali sport sei stato finora (solo il numero di sessioni).",
         "team.join.anfragen": "Invia richiesta",
         "team.join.angefragt": "Richiesta inviata.",
         "team.join.beitreten": "Unisciti",
@@ -1778,6 +1980,10 @@ enum LocTeam {
         "team.join.title": "Unisciti a «{name}»",
         "team.join.wartet": "Richiesta in corso",
         "team.k.best": "Miglior valore",
+        "team.k.sprint_100m": "100 m lanciati più veloci",
+        "team.k.sprint_200m": "200 m lanciati più veloci",
+        "team.k.sprint_300m": "300 m lanciati più veloci",
+        "team.k.sprint_60s": "Minuto lanciato più veloce",
         "team.k.sum_distance": "Distanza on-foil totale",
         "team.k.sum_pumps": "Pump totali",
         "team.k.sum_runs": "Run totali",
@@ -1804,15 +2010,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} batte «{was}» con {wert} (prima: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} detiene «{was}» con {wert}",
         "team.logbuchHinweis": "Chi ha battuto quale record del team, e quando. Aggiornato ogni notte.",
+    ]
+
+    private static let _it5: [String: String] = [
         "team.logbuchLeer": "Ancora nessuna voce. Il primo stato arriva la notte dopo la creazione delle classifiche.",
         "team.logoHochladen": "Carica stemma",
         "team.meine": "I miei team",
         "team.mitglieder": "Membri",
         "team.mitgliederAnzahl": "{n} membri",
         "team.mitgliederAnzahl1": "1 membro",
-    ]
-
-    private static let _it5: [String: String] = [
         "team.mitgliederSichtbar": "Chi vede l'elenco dei membri?",
         "team.name": "Nome del team",
         "team.nichtGefunden": "Questo team non esiste o non è pubblico.",
@@ -1825,8 +2031,38 @@ enum LocTeam {
         "team.profilKnopf": "Team",
         "team.qr": "Codice QR",
         "team.qrTeilen": "Condividi codice QR",
-        "team.regeln.events.text": "Un evento ha una finestra di tempo e classifiche proprie, se si vuole solo in certi spot.\nOltre alle classifiche, o al loro posto, un evento può mostrare totali su tutti i partecipanti, come i pump o la distanza dell'intero team. Ogni evento richiede almeno una classifica o un totale.\nContano solo le sessioni che iniziano nella finestra.\nPer ogni evento il responsabile può decidere che i file caricati a mano (FIT, GPX, TCX) non contino; le registrazioni da orologi, app e account collegati contano comunque.\nDopo la fine si può ancora caricare per 24 ore; la pagina del team mostra allora «risultati in attesa». Poi il risultato è congelato, e ritagli o eliminazioni successivi non cambiano più nulla.\nChi esce dopo la fine resta nel risultato; chi entra dopo non viene più aggiunto.\nI risultati vengono congelati di notte e inoltre appena qualcuno apre la pagina del team.\nGli orari valgono nel fuso orario in cui è stato creato l'evento e vengono mostrati così a tutti.\nI posti da 1 a 3 ricevono un badge dell'evento sulla loro pagina foiler, ma solo nei team il cui aspetto è approvato.",
+        "team.regeln.beitreten.text": "Se un team consente le iscrizioni, la sua pagina mostra un pulsante «Unisciti». A seconda dell'impostazione sei subito membro, oppure decide il responsabile o un moderatore.\nCi sono due link d'invito: uno con cui diventi subito membro e uno con cui invii una richiesta. Entrambi sono disponibili anche come codice QR.\nChi non ha ancora un account ne crea uno e poi è subito nel team, oppure ha inviato la richiesta.\nUn nuovo link sostituisce quello vecchio, che da quel momento non funziona più.\nOgni volta che ti unisci, accetti che le classifiche del team possano essere pubbliche, anche se ora non lo sono.\nCon una richiesta, il responsabile e i moderatori vedono in quali spot e in quali sport sei stato finora (solo il numero di sessioni).",
+        "team.regeln.beitreten.titel": "Unirsi",
+        "team.regeln.bestenlisten.text": "Ogni persona conta una sola volta: il suo miglior valore in una sessione, oppure per i totali tutto quanto fatto nel periodo scelto, sommato.\nContano tutte le sessioni dei membri, anche quelle precedenti all'ingresso. Chi esce scompare subito dalle classifiche.\nPer gli eventi questo vale solo fino alla fine, vedi «Eventi».\nValgono gli stessi filtri dei record della community: le registrazioni eliminate, segnalate, non assegnate e in corso non contano.\nOgni classifica può essere limitata a uno sport, un intervallo di foil, le registrazioni con dati di movimento, il telefono sulla tavola o gli spot del team.\nSe «Nascondi il luogo» è attivo, la sessione non conta mai per uno spot specifico.\nIn caso di parità sta davanti chi ha ottenuto il valore per primo.",
+        "team.regeln.bestenlisten.titel": "Classifiche",
+        "team.regeln.chat.text": "Solo i membri attivi possono leggere e scrivere nella chat del team. Chi ha solo inviato una richiesta non la vede.\nNon compare da nessuna parte per gli altri, nemmeno tra le chat attive.\nChi esce o viene rimosso perde subito l'accesso e non riceve più notifiche.",
+        "team.regeln.chat.titel": "Chat del team",
+        "team.regeln.events.text": "Un evento ha una finestra di tempo e classifiche proprie, se si vuole solo in certi spot.\nOltre alle classifiche, o al loro posto, un evento può mostrare totali su tutti i partecipanti, come i pump o la distanza dell'intero team. Ogni evento richiede almeno una classifica o un totale.\nContano solo le sessioni che iniziano nella finestra.\nPer ogni evento il responsabile può decidere che i file caricati a mano (FIT, GPX, TCX) non contino; le registrazioni da orologi, app e account collegati contano comunque.\nDopo la fine si può ancora caricare per 4 ore; la pagina del team mostra allora «risultati in attesa». Poi il risultato è congelato, e ritagli o eliminazioni successivi non cambiano più nulla.\nChi esce dopo la fine resta nel risultato; chi entra dopo non viene più aggiunto.\nI risultati vengono congelati di notte e inoltre appena qualcuno apre la pagina del team.\nGli orari valgono nel fuso orario in cui è stato creato l'evento e vengono mostrati così a tutti.\nI posti da 1 a 3 ricevono un badge dell'evento sulla loro pagina foiler, ma solo nei team il cui aspetto è approvato.",
+        "team.regeln.events.titel": "Eventi",
+        "team.regeln.global.text": "Gli eventi globali li organizza pumpfoil.org stesso. Conta automaticamente chiunque abbia sessioni adatte nel periodo, senza entrare in un team e senza iscriversi.\nChi non vuole partecipare lo disattiva nel profilo sotto «Privacy» («Non partecipare agli eventi globali»). Allora sparisce da classifiche, classifiche dei team, totali e badge, anche negli eventi già conclusi.\nOgni classifica ha una classifica dei team: la somma dei migliori membri di ogni team, di solito 5. Partecipano i team approvati con classifiche pubbliche; chi è in due team conta per entrambi.\nLe classifiche sono visibili anche senza accesso tramite il link dell'evento: posizione, nome visualizzato, iniziali e valore.\nPer il resto valgono le regole degli eventi: periodo, valutazione, congelamento e badge per i posti da 1 a 3, contrassegnati con «Global» sulla pagina profilo.",
+        "team.regeln.global.titel": "Eventi globali",
+        "team.regeln.haftung.text": "Gli eventi sono organizzati dai team stessi. pumpfoil.org non ha alcuna influenza sugli eventi né sulle promesse fatte al loro interno, economiche o di altro tipo, e non se ne assume alcuna responsabilità. È escluso il ricorso alle vie legali. Pagamenti e ogni altro accordo si regolano tra organizzatori e partecipanti, indipendentemente da pumpfoil.org.\nAllo stesso modo, pumpfoil.org non si assume alcuna responsabilità sulla correttezza dei valori e dei dati misurati o sulla loro eventuale manipolazione. Viene mostrato ciò che il codice sorgente pubblico su GitHub calcola dai dati caricati; non ci sono altre garanzie.",
+        "team.regeln.haftung.titel": "Responsabilità",
         "team.regeln.intro": "Come funzionano i team su pumpfoil.org: chi vede cosa, come si viene classificati e cosa succede quando qualcosa viene eliminato.",
+        "team.regeln.konto.text": "La persona scompare da tutti i team e da tutte le classifiche, anche dai risultati degli eventi congelati. Chi sta sotto sale di posizione.\nSe guidava un team, subentra il moderatore con più anzianità, altrimenti il membro con più anzianità. Se non resta nessuno, il team viene eliminato.",
+        "team.regeln.konto.titel": "Quando un account viene eliminato",
+        "team.regeln.link": "Regole dei team",
+        "team.regeln.loeschen.text": "Solo il responsabile può eliminare un team, e solo digitando il nome del team per conferma.\nIl team sparisce allora per tutti: iscrizioni, classifiche, diario di bordo, eventi e chat del team. Per ora conserviamo i dati, così un team cancellato per errore si può ripristinare.\nL'indirizzo del team resta bloccato e non viene mai assegnato a un altro team.",
+        "team.regeln.loeschen.titel": "Eliminare un team",
+        "team.regeln.logbuch.text": "Il diario di bordo registra chi ha battuto quale record del team, e quando. Viene aggiornato ogni notte.\nLa prima voce di una classifica è la situazione nella prima notte dopo la sua creazione.\nPer i migliori valori conta ogni miglioramento, anche il proprio. Per i totali conta solo quando qualcuno passa in testa.\nSe un record scende perché è stata eliminata una sessione o qualcuno è uscito, viene adeguato in silenzio, senza una voce.",
+        "team.regeln.logbuch.titel": "Diario di bordo",
+        "team.regeln.oeffentlich.text": "All'interno un team può fare tutto. All'esterno compare solo dopo che abbiamo controllato e approvato nome, indirizzo, descrizione, stemma e colore.\nL'immagine del team passa per la stessa approvazione dello stemma. Quale parte si vede lo sceglie il responsabile senza nuova approvazione; se la rimuove, sparisce subito anche dalla pagina pubblica.\nSe un team approvato cambia il suo aspetto, la modifica vale subito all'interno del team, all'esterno solo dopo una nuova approvazione.\nI team approvati sono elencati nella pagina «Tutti i team». I loro eventi sono sulla pagina del team; nella community compaiono solo gli eventi globali di pumpfoil.org.\nSe il responsabile rende pubbliche le classifiche, tutti le vedono, anche senza accesso, ma solo posizione, nome visualizzato, iniziali e valore. Sessioni, spot, date e foto profilo sono visibili solo agli utenti che hanno effettuato l'accesso.\nI motori di ricerca non indicizzano le pagine dei team.\nIl responsabile decide chi vede l'elenco dei membri: solo i membri o tutti gli utenti con accesso.",
+        "team.regeln.oeffentlich.titel": "Cosa è pubblico",
+        "team.regeln.rollen.text": "Il responsabile può fare tutto: impostazioni, classifiche, eventi, nominare moderatori, cedere la guida ed eliminare il team.\nI moderatori accettano o rifiutano le richieste, rimuovono membri e creano eventi. Non modificano nient'altro.\nI membri vedono tutto nel team e possono uscire in qualsiasi momento.\nIl responsabile può uscire solo dopo aver ceduto la guida.",
+        "team.regeln.rollen.titel": "Ruoli",
+        "team.regeln.statistik.text": "Sopra le classifiche ci sono i totali di tutti i membri nel periodo scelto: pumps, distanza e tempo on-foil, sessioni, run e quanti membri sono stati attivi.\nTeam contro team: nella community le classifiche dei team confrontano tutti i team approvati con classifiche pubbliche, per ogni metrica con la somma dei migliori 3, 5 o 10 rider. Lì vale per tutti i team la stessa misura, non i filtri delle proprie classifiche.\nChi è in due team conta per entrambi.",
+        "team.regeln.statistik.titel": "Totali del team",
+        "team.regeln.titel": "Regole dei team",
+    ]
+
+    private static let _it6: [String: String] = [
+        "team.regeln.was.text": "Un gruppo fisso con classifiche proprie, eventi e una chat del team.\nChiunque può creare team, anche più di uno, e far parte di più team.\nUn nuovo team funziona subito, tramite link d'invito.",
+        "team.regeln.was.titel": "Cos'è un team?",
         "team.rolle.leiter": "Responsabile",
         "team.rolle.mitglied": "Membro",
         "team.rolle.moderator": "Moderatore",
@@ -1855,12 +2091,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "solo con dati di movimento",
         "team.tafel.nurBrett": "solo telefono sulla tavola",
         "team.tafel.nurTeamspots": "solo spot del team",
+        "team.tafel.strittig": "contestata",
+        "team.tafel.strittigHinweis": "{n} sessioni contestate",
+        "team.tafel.strittigHinweis1": "1 sessione contestata",
+        "team.tafel.strittigTitel": "Una segnalazione su questa sessione non è ancora decisa. Conta fino alla decisione.",
         "team.teilen": "Condividi",
         "team.uebergebenFrage": "Cedere la guida a {name}? Diventerai moderatore.",
         "team.vergleich.ausFahrern": "da {n} rider",
-    ]
-
-    private static let _it6: [String: String] = [
         "team.vergleich.ausFahrern1": "da 1 rider",
         "team.vergleich.hinweis": "Ogni squadra conta la somma dei suoi {n} migliori rider. {sport}, anche uscite senza dati di movimento; solo squadre con classifiche pubbliche.",
         "team.vergleich.leer": "Nessuna squadra ha ancora una sessione in questo periodo.",
@@ -1869,6 +2106,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Run più duraturo",
         "team.vorlage.monat_strecke": "Chilometri on-foil del mese",
         "team.vorlage.session_pumps": "Più pump in una sessione",
+    ]
+
+    private static let _it7: [String: String] = [
         "team.vorlage.top_speed": "Velocità max",
         "team.vorlage.weitester_lauf": "Run più lungo",
         "team.vorlage.wochenende_laeufe": "Più run nel weekend",
@@ -2039,6 +2279,8 @@ enum LocTeam {
         "team.event.wertung": "Clasificación por equipos",
         "team.event.wertungAlle": "Suma de todos los miembros",
         "team.event.wertungBeste": "Suma de los {n} mejores",
+        "team.event.wertungSchnittAlle": "Media de todos los miembros",
+        "team.event.wertungSchnittBeste": "Media de los {n} mejores",
         "team.eventbild.entfernen": "Quitar imagen del evento",
         "team.eventbild.hinweis": "Imagen ancha arriba en la página del evento, idealmente 1600 × 500 px (al menos 800 px de ancho).",
         "team.eventbild.hochladen": "Subir imagen del evento",
@@ -2065,11 +2307,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Tu equipo funciona desde ya, con enlaces de invitación. Aparece en la lista pública cuando hayamos revisado su nombre, descripción y escudo.",
         "team.gruendenKnopf": "Crear",
         "team.herkunft": "País / región",
-        "team.join.anfrage": "Tu solicitud llega al líder del equipo, que decide.",
-        "team.join.anfrageProfil": "Para revisarla, ve en qué spots y deportes has estado hasta ahora (solo el número de sesiones).",
     ]
 
     private static let _es4: [String: String] = [
+        "team.join.anfrage": "Tu solicitud llega al líder del equipo, que decide.",
+        "team.join.anfrageProfil": "Para revisarla, ve en qué spots y deportes has estado hasta ahora (solo el número de sesiones).",
         "team.join.anfragen": "Enviar solicitud",
         "team.join.angefragt": "Solicitud enviada.",
         "team.join.beitreten": "Unirse",
@@ -2083,6 +2325,10 @@ enum LocTeam {
         "team.join.title": "Unirse a «{name}»",
         "team.join.wartet": "Solicitud pendiente",
         "team.k.best": "Mejor valor",
+        "team.k.sprint_100m": "100 m lanzados más rápidos",
+        "team.k.sprint_200m": "200 m lanzados más rápidos",
+        "team.k.sprint_300m": "300 m lanzados más rápidos",
+        "team.k.sprint_60s": "Minuto lanzado más rápido",
         "team.k.sum_distance": "Distancia on-foil total",
         "team.k.sum_pumps": "Pumps en total",
         "team.k.sum_runs": "Runs en total",
@@ -2109,15 +2355,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} bate «{was}» con {wert} (antes: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} tiene «{was}» con {wert}",
         "team.logbuchHinweis": "Quién batió qué récord del equipo y cuándo. Se actualiza cada noche.",
+    ]
+
+    private static let _es5: [String: String] = [
         "team.logbuchLeer": "Aún no hay entradas. El primer estado aparece la noche después de crear las clasificaciones.",
         "team.logoHochladen": "Subir escudo",
         "team.meine": "Mis equipos",
         "team.mitglieder": "Miembros",
         "team.mitgliederAnzahl": "{n} miembros",
         "team.mitgliederAnzahl1": "1 miembro",
-    ]
-
-    private static let _es5: [String: String] = [
         "team.mitgliederSichtbar": "¿Quién ve la lista de miembros?",
         "team.name": "Nombre del equipo",
         "team.nichtGefunden": "Este equipo no existe o no es público.",
@@ -2130,8 +2376,38 @@ enum LocTeam {
         "team.profilKnopf": "Equipo",
         "team.qr": "Código QR",
         "team.qrTeilen": "Compartir código QR",
-        "team.regeln.events.text": "Un evento tiene una franja de tiempo y sus propias clasificaciones, si se quiere solo en ciertos spots.\nAdemás de las clasificaciones, o en su lugar, un evento puede mostrar totales de todos los participantes, como los pumps o la distancia de todo el equipo. Cada evento necesita al menos una clasificación o un total.\nSolo cuentan las sesiones que empiezan dentro de la franja.\nEn cada evento, el líder puede decidir que no cuenten los archivos subidos a mano (FIT, GPX, TCX); las grabaciones de relojes, la app y cuentas vinculadas siguen contando.\nTras el final aún se puede subir durante 24 horas; la página del equipo muestra entonces «resultados pendientes». Después el resultado queda congelado, y recortar o eliminar más tarde ya no cambia nada.\nQuien sale después del final sigue en el resultado; quien se une después ya no entra.\nLos resultados se congelan por la noche y además en cuanto alguien abre la página del equipo.\nLas horas valen en la zona horaria en la que se creó el evento y se muestran así a todos.\nLos puestos 1 a 3 reciben una insignia del evento en su página de foiler, pero solo en equipos cuya apariencia está aprobada.",
+        "team.regeln.beitreten.text": "Si un equipo admite solicitudes de ingreso, su página muestra un botón «Unirse». Según el ajuste, eres miembro al instante, o decide el líder o un moderador.\nHay dos enlaces de invitación: uno con el que eres miembro al instante y otro con el que envías una solicitud. Ambos existen también como código QR.\nQuien aún no tiene cuenta crea una y después ya está en el equipo o ha enviado la solicitud.\nUn enlace nuevo sustituye al anterior, que deja de funcionar.\nCada vez que te unes, aceptas que las clasificaciones del equipo puedan ser públicas, aunque ahora no lo sean.\nCon una solicitud, el líder y los moderadores ven en qué spots y deportes has estado hasta ahora (solo el número de sesiones).",
+        "team.regeln.beitreten.titel": "Unirse",
+        "team.regeln.bestenlisten.text": "Cada persona cuenta una sola vez: su mejor valor en una sesión o, en los totales, todo lo del periodo elegido sumado.\nCuentan todas las sesiones de los miembros, también las de antes de unirse. Quien sale desaparece al instante de las listas.\nEn los eventos esto solo vale hasta el final, ver «Eventos».\nSe aplican los mismos filtros que en los récords de la comunidad: no cuentan las grabaciones eliminadas, denunciadas, sin asignar ni en curso.\nCada clasificación puede limitarse a un deporte, un rango de foils, grabaciones con datos de movimiento, el teléfono en la tabla o los spots del equipo.\nSi «Ocultar el lugar» está activado, la sesión nunca cuenta para un spot concreto.\nEn caso de empate, va delante quien consiguió el valor primero.",
+        "team.regeln.bestenlisten.titel": "Clasificaciones",
+        "team.regeln.chat.text": "Solo los miembros activos pueden leer y escribir en el chat del equipo. Quien solo ha enviado una solicitud no lo ve.\nNo aparece en ningún sitio para los demás, ni siquiera entre los chats activos.\nQuien sale o es quitado pierde el acceso al instante y ya no recibe notificaciones.",
+        "team.regeln.chat.titel": "Chat del equipo",
+        "team.regeln.events.text": "Un evento tiene una franja de tiempo y sus propias clasificaciones, si se quiere solo en ciertos spots.\nAdemás de las clasificaciones, o en su lugar, un evento puede mostrar totales de todos los participantes, como los pumps o la distancia de todo el equipo. Cada evento necesita al menos una clasificación o un total.\nSolo cuentan las sesiones que empiezan dentro de la franja.\nEn cada evento, el líder puede decidir que no cuenten los archivos subidos a mano (FIT, GPX, TCX); las grabaciones de relojes, la app y cuentas vinculadas siguen contando.\nTras el final aún se puede subir durante 4 horas; la página del equipo muestra entonces «resultados pendientes». Después el resultado queda congelado, y recortar o eliminar más tarde ya no cambia nada.\nQuien sale después del final sigue en el resultado; quien se une después ya no entra.\nLos resultados se congelan por la noche y además en cuanto alguien abre la página del equipo.\nLas horas valen en la zona horaria en la que se creó el evento y se muestran así a todos.\nLos puestos 1 a 3 reciben una insignia del evento en su página de foiler, pero solo en equipos cuya apariencia está aprobada.",
+        "team.regeln.events.titel": "Eventos",
+        "team.regeln.global.text": "Los eventos globales los organiza el propio pumpfoil.org. Cuenta automáticamente cualquiera con sesiones adecuadas en el periodo, sin unirse ni inscribirse.\nQuien no quiera participar lo desactiva en su perfil, en «Privacidad» («No participar en eventos globales»). Entonces desaparece de clasificaciones, clasificaciones de equipo, totales e insignias, también en eventos ya terminados.\nCada clasificación tiene una clasificación de equipos: la suma de los mejores miembros de cada equipo, normalmente 5. Participan los equipos aprobados con clasificaciones públicas; quien está en dos equipos cuenta para ambos.\nLas clasificaciones también se ven sin iniciar sesión mediante el enlace del evento: puesto, nombre visible, iniciales y valor.\nPor lo demás se aplican las reglas de los eventos: periodo, evaluación, congelación e insignias para los puestos 1 a 3, marcadas con «Global» en la página de perfil.",
+        "team.regeln.global.titel": "Eventos globales",
+        "team.regeln.haftung.text": "Los eventos los organizan los propios equipos. pumpfoil.org no tiene ninguna influencia sobre los eventos ni sobre las promesas que se hagan en ellos, económicas o de otro tipo, y no asume ninguna responsabilidad. Queda excluida la vía judicial. Los pagos y cualquier otro acuerdo los resuelven organizadores y participantes, independientemente de pumpfoil.org.\nDel mismo modo, pumpfoil.org no asume ninguna responsabilidad sobre si los valores y datos medidos son correctos o han sido manipulados. Se muestra lo que el código fuente público en GitHub calcula a partir de los datos subidos; no hay más promesas.",
+        "team.regeln.haftung.titel": "Responsabilidad",
         "team.regeln.intro": "Así funcionan los equipos en pumpfoil.org: quién ve qué, cómo se puntúa y qué pasa al eliminar algo.",
+        "team.regeln.konto.text": "La persona desaparece de todos los equipos y clasificaciones, y también de los resultados de eventos congelados. Los puestos de debajo suben.\nSi lideraba un equipo, toma el relevo el moderador más antiguo y, si no hay, el miembro más antiguo. Si no queda nadie, el equipo se elimina.",
+        "team.regeln.konto.titel": "Cuando se elimina una cuenta",
+        "team.regeln.link": "Reglas de los equipos",
+        "team.regeln.loeschen.text": "Solo el líder puede eliminar un equipo, y solo escribiendo el nombre del equipo para confirmar.\nEntonces el equipo desaparece para todos: membresías, clasificaciones, bitácora, eventos y chat del equipo. De momento guardamos los datos para poder restaurar un equipo borrado por error.\nLa dirección del equipo queda bloqueada y nunca se asigna a otro equipo.",
+        "team.regeln.loeschen.titel": "Eliminar un equipo",
+        "team.regeln.logbuch.text": "La bitácora registra quién batió qué récord del equipo y cuándo. Se actualiza cada noche.\nLa primera entrada de una clasificación es el estado de la primera noche después de crearla.\nEn los mejores valores cuenta cada mejora, también la propia. En los totales solo cuenta cuando alguien pasa a liderar.\nSi un récord baja porque se eliminó una sesión o alguien salió, se ajusta en silencio, sin entrada.",
+        "team.regeln.logbuch.titel": "Bitácora",
+        "team.regeln.oeffentlich.text": "Dentro, un equipo puede hacer de todo. Hacia fuera solo aparece cuando hemos revisado y aprobado su nombre, dirección, descripción, escudo y color.\nLa imagen del equipo pasa por la misma aprobación que el escudo. Qué parte se ve lo elige el líder sin nueva aprobación; si la quita, desaparece al instante también de la página pública.\nSi un equipo aprobado cambia su apariencia, se aplica al instante dentro del equipo y, en público, tras una nueva aprobación.\nLos equipos aprobados aparecen en la página «Todos los equipos». Sus eventos están en la página del equipo; en la comunidad solo aparecen los eventos globales de pumpfoil.org.\nSi el líder hace públicas las clasificaciones, cualquiera las ve, incluso sin iniciar sesión, pero solo el puesto, el nombre visible, las iniciales y el valor. Las sesiones, los spots, las fechas y las fotos de perfil solo los ven los usuarios con sesión iniciada.\nLos buscadores no indexan las páginas de equipos.\nEl líder decide quién ve la lista de miembros: solo los miembros o todos los usuarios con sesión iniciada.",
+        "team.regeln.oeffentlich.titel": "Qué es público",
+        "team.regeln.rollen.text": "El líder puede hacerlo todo: ajustes, clasificaciones, eventos, nombrar moderadores, ceder el liderazgo y eliminar el equipo.\nLos moderadores aceptan o rechazan solicitudes, quitan miembros y crean eventos. No cambian nada más.\nLos miembros ven todo en el equipo y pueden salir en cualquier momento.\nEl líder solo puede salir después de ceder el liderazgo.",
+        "team.regeln.rollen.titel": "Roles",
+        "team.regeln.statistik.text": "Encima de las clasificaciones están los totales de todos los miembros en el periodo elegido: pumps, distancia y tiempo on-foil, sesiones, runs y cuántos miembros estuvieron activos.\nEquipo contra equipo: en la comunidad, las clasificaciones de equipos comparan todos los equipos aprobados con clasificaciones públicas, en cada métrica con la suma de los mejores 3, 5 o 10 riders. Allí se aplica la misma medida a todos los equipos, no los filtros de sus propias clasificaciones.\nQuien está en dos equipos cuenta para ambos.",
+        "team.regeln.statistik.titel": "Totales del equipo",
+        "team.regeln.titel": "Reglas de los equipos",
+    ]
+
+    private static let _es6: [String: String] = [
+        "team.regeln.was.text": "Un grupo fijo con sus propias clasificaciones, eventos y un chat del equipo.\nCualquiera puede crear equipos, también varios, y estar en varios equipos.\nUn equipo nuevo funciona al instante, con enlaces de invitación.",
+        "team.regeln.was.titel": "¿Qué es un equipo?",
         "team.rolle.leiter": "Líder",
         "team.rolle.mitglied": "Miembro",
         "team.rolle.moderator": "Moderador",
@@ -2160,12 +2436,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "solo con datos de movimiento",
         "team.tafel.nurBrett": "solo teléfono en la tabla",
         "team.tafel.nurTeamspots": "solo spots del equipo",
+        "team.tafel.strittig": "en revisión",
+        "team.tafel.strittigHinweis": "{n} sesiones en revisión",
+        "team.tafel.strittigHinweis1": "1 sesión en revisión",
+        "team.tafel.strittigTitel": "Hay una denuncia sobre esta sesión sin resolver. Cuenta hasta que se decida.",
         "team.teilen": "Compartir",
         "team.uebergebenFrage": "¿Ceder el liderazgo a {name}? Tú pasarás a ser moderador.",
         "team.vergleich.ausFahrern": "de {n} riders",
-    ]
-
-    private static let _es6: [String: String] = [
         "team.vergleich.ausFahrern1": "de 1 rider",
         "team.vergleich.hinweis": "Cada equipo suma a sus {n} mejores riders. {sport}, también tandas sin datos de movimiento; solo equipos con clasificaciones públicas.",
         "team.vergleich.leer": "Ningún equipo tiene aún una sesión en este periodo.",
@@ -2174,6 +2451,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Run más duradero",
         "team.vorlage.monat_strecke": "Kilómetros on-foil del mes",
         "team.vorlage.session_pumps": "Más pumps en una sesión",
+    ]
+
+    private static let _es7: [String: String] = [
         "team.vorlage.top_speed": "Velocidad máx.",
         "team.vorlage.weitester_lauf": "Run más largo",
         "team.vorlage.wochenende_laeufe": "Más runs este fin de semana",
@@ -2344,6 +2624,8 @@ enum LocTeam {
         "team.event.wertung": "Joukkuetulokset",
         "team.event.wertungAlle": "Kaikkien jäsenten summa",
         "team.event.wertungBeste": "{n} parhaan summa",
+        "team.event.wertungSchnittAlle": "Kaikkien jäsenten keskiarvo",
+        "team.event.wertungSchnittBeste": "Parhaan {n} keskiarvo",
         "team.eventbild.entfernen": "Poista tapahtuman banneri",
         "team.eventbild.hinweis": "Leveä kuva tapahtumasivun yläosassa, mieluiten 1600 × 500 px (vähintään 800 px leveä).",
         "team.eventbild.hochladen": "Lataa tapahtuman banneri",
@@ -2370,11 +2652,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Tiimisi toimii heti kutsulinkkien kautta. Se näkyy julkisesti vasta, kun olemme katsoneet sen nimen, kuvauksen ja tunnuksen.",
         "team.gruendenKnopf": "Perusta",
         "team.herkunft": "Maa / alue",
-        "team.join.anfrage": "Pyyntösi menee tiimin vetäjälle, joka päättää.",
-        "team.join.anfrageProfil": "Arviointia varten vetäjä näkee, millä spoteilla ja missä lajeissa olet tähän asti liikkunut (vain sessioiden määrän).",
     ]
 
     private static let _fi4: [String: String] = [
+        "team.join.anfrage": "Pyyntösi menee tiimin vetäjälle, joka päättää.",
+        "team.join.anfrageProfil": "Arviointia varten vetäjä näkee, millä spoteilla ja missä lajeissa olet tähän asti liikkunut (vain sessioiden määrän).",
         "team.join.anfragen": "Lähetä pyyntö",
         "team.join.angefragt": "Pyyntö lähetetty.",
         "team.join.beitreten": "Liity",
@@ -2388,6 +2670,10 @@ enum LocTeam {
         "team.join.title": "Liity tiimiin ”{name}”",
         "team.join.wartet": "Pyyntö odottaa",
         "team.k.best": "Paras tulos",
+        "team.k.sprint_100m": "Nopein lentävä 100 m",
+        "team.k.sprint_200m": "Nopein lentävä 200 m",
+        "team.k.sprint_300m": "Nopein lentävä 300 m",
+        "team.k.sprint_60s": "Nopein lentävä minuutti",
         "team.k.sum_distance": "Foil-matka yhteensä",
         "team.k.sum_pumps": "Pumppauksia yhteensä",
         "team.k.sum_runs": "Lenkkejä yhteensä",
@@ -2414,15 +2700,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} rikkoo ennätyksen ”{was}” tuloksella {wert} (aiemmin: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} pitää ennätystä ”{was}” tuloksella {wert}",
         "team.logbuchHinweis": "Kuka rikkoi minkäkin tiimiennätyksen ja milloin. Päivittyy joka yö.",
+    ]
+
+    private static let _fi5: [String: String] = [
         "team.logbuchLeer": "Ei vielä merkintöjä. Ensimmäinen tilanne tulee tulostaulukoiden luomista seuraavana yönä.",
         "team.logoHochladen": "Lataa tunnus",
         "team.meine": "Omat tiimit",
         "team.mitglieder": "Jäsenet",
         "team.mitgliederAnzahl": "Jäseniä: {n}",
         "team.mitgliederAnzahl1": "Jäseniä: 1",
-    ]
-
-    private static let _fi5: [String: String] = [
         "team.mitgliederSichtbar": "Kuka näkee jäsenluettelon?",
         "team.name": "Tiimin nimi",
         "team.nichtGefunden": "Tätä tiimiä ei ole, tai se ei ole julkinen.",
@@ -2435,8 +2721,38 @@ enum LocTeam {
         "team.profilKnopf": "Tiimi",
         "team.qr": "QR-koodi",
         "team.qrTeilen": "Jaa QR-koodi",
-        "team.regeln.events.text": "Tapahtumalla on aikaikkuna ja omat tulostaulukot, halutessa vain tietyillä spoteilla.\nTulostaulukoiden lisäksi tai sijaan tapahtuma voi näyttää kaikkien osallistujien yhteissummia, esimerkiksi koko tiimin pumppaukset tai matkan. Jokainen tapahtuma tarvitsee vähintään yhden tulostaulukon tai yhteissumman.\nMukaan lasketaan vain sessiot, jotka alkavat aikaikkunan sisällä.\nVetäjä voi päättää tapahtumakohtaisesti, ettei käsin ladattuja tiedostoja (FIT, GPX, TCX) lasketa; kellojen, sovelluksen ja yhdistettyjen tilien tallenteet lasketaan edelleen.\nLopun jälkeen voi vielä 24 tuntia ladata sessioita, ja tiimisivulla näkyy silloin ”tulokset tulossa”. Sen jälkeen tulos jäädytetään, eikä myöhempi rajaus tai poisto enää muuta mitään.\nLopun jälkeen eroava pysyy tuloksissa; myöhemmin liittyvä ei enää tule mukaan.\nJäädytys tehdään öisin ja lisäksi heti, kun joku avaa tiimisivun.\nAjat ovat sen aikavyöhykkeen mukaisia, jossa tapahtuma luotiin, ja ne näytetään kaikille samoin.\nSijat 1–3 saavat tapahtumamerkin foilaajasivulleen, mutta vain tiimeissä, joiden ulkoasu on hyväksytty.",
+        "team.regeln.beitreten.text": "Jos tiimi ottaa vastaan ilmoittautumisia, sen sivulla on ”Liity”-painike. Asetuksesta riippuen olet heti jäsen, tai vetäjä tai moderaattori päättää.\nKutsulinkkejä on kaksi: toisella pääset heti jäseneksi, toisella lähetät pyynnön. Molemmat ovat saatavilla myös QR-koodina.\nJos tiliä ei vielä ole, sen voi luoda, ja sen jälkeen on heti tiimissä tai on lähettänyt pyynnön.\nUusi luotu linkki korvaa vanhan, joka ei sen jälkeen enää toimi.\nJoka kerta liittyessäsi hyväksyt, että tiimin tulostaulukot voivat olla julkisia, vaikka ne eivät juuri nyt olisi.\nPyynnön yhteydessä vetäjä ja moderaattorit näkevät, millä spoteilla ja missä lajeissa olet tähän asti liikkunut (vain sessioiden määrän).",
+        "team.regeln.beitreten.titel": "Liittyminen",
+        "team.regeln.bestenlisten.text": "Jokaiselta lasketaan vain yksi merkintä: paras tulos yhdestä sessiosta tai summissa kaikki valitulta ajalta yhteensä.\nKaikki jäsenten sessiot lasketaan, myös ennen liittymistä ajetut. Tiimistä eroava katoaa taulukoista heti.\nTapahtumissa tämä pätee vain loppuun asti, katso ”Tapahtumat”.\nSamat suodattimet pätevät kuin yhteisön ennätyksissä: poistettuja, ilmiannettuja, lajiin luokittelemattomia ja käynnissä olevia tallennuksia ei lasketa.\nJokaisen tulostaulukon voi rajata yhteen lajiin, yhteen foilialueeseen, tallennuksiin, joissa on liiketiedot, puhelimeen laudalla tai tiimin spotteihin.\nJos ”Piilota paikka” on päällä, sessiota ei koskaan lasketa tietylle spotille.\nTasatilanteessa edellä on se, joka ajoi tuloksen ensin.",
+        "team.regeln.bestenlisten.titel": "Tulostaulukot",
+        "team.regeln.chat.text": "Tiimichattia lukevat ja siihen kirjoittavat vain aktiiviset jäsenet. Pelkän pyynnön lähettänyt ei näe sitä.\nMuille se ei näy missään, ei edes aktiivisten chattien joukossa.\nTiimistä eroava tai poistettu menettää pääsyn heti eikä saa enää ilmoituksia.",
+        "team.regeln.chat.titel": "Tiimichat",
+        "team.regeln.events.text": "Tapahtumalla on aikaikkuna ja omat tulostaulukot, halutessa vain tietyillä spoteilla.\nTulostaulukoiden lisäksi tai sijaan tapahtuma voi näyttää kaikkien osallistujien yhteissummia, esimerkiksi koko tiimin pumppaukset tai matkan. Jokainen tapahtuma tarvitsee vähintään yhden tulostaulukon tai yhteissumman.\nMukaan lasketaan vain sessiot, jotka alkavat aikaikkunan sisällä.\nVetäjä voi päättää tapahtumakohtaisesti, ettei käsin ladattuja tiedostoja (FIT, GPX, TCX) lasketa; kellojen, sovelluksen ja yhdistettyjen tilien tallenteet lasketaan edelleen.\nLopun jälkeen voi vielä 4 tuntia ladata sessioita, ja tiimisivulla näkyy silloin ”tulokset tulossa”. Sen jälkeen tulos jäädytetään, eikä myöhempi rajaus tai poisto enää muuta mitään.\nLopun jälkeen eroava pysyy tuloksissa; myöhemmin liittyvä ei enää tule mukaan.\nJäädytys tehdään öisin ja lisäksi heti, kun joku avaa tiimisivun.\nAjat ovat sen aikavyöhykkeen mukaisia, jossa tapahtuma luotiin, ja ne näytetään kaikille samoin.\nSijat 1–3 saavat tapahtumamerkin foilaajasivulleen, mutta vain tiimeissä, joiden ulkoasu on hyväksytty.",
+        "team.regeln.events.titel": "Tapahtumat",
+        "team.regeln.global.text": "Globaalit tapahtumat järjestää pumpfoil.org itse. Jokainen, jolla on sopivia sessioita aikaikkunassa, lasketaan automaattisesti mukaan, ilman liittymistä ja ilmoittautumista.\nJoka ei halua osallistua, kytkee sen pois profiilissa kohdassa ”Yksityisyys” (”Älä osallistu globaaleihin tapahtumiin”). Silloin hän puuttuu tulostauluilta, tiimipisteistä, summista ja merkeistä, myös jo päättyneistä tapahtumista.\nJokaisella tulostaululla on tiimipisteet: kunkin tiimin parhaiden jäsenten summa, yleensä 5. Mukana ovat hyväksytyt tiimit, joilla on julkiset tulostaulut; kahdessa tiimissä oleva lasketaan molempiin.\nTulostaulut näkyvät myös kirjautumatta tapahtumalinkin kautta: sija, näyttönimi, nimikirjaimet ja arvo.\nMuuten pätevät tapahtumien säännöt: aikaikkuna, tulosten laskenta, jäädytys ja merkit sijoille 1–3, profiilisivulla merkinnällä ”Global”.",
+        "team.regeln.global.titel": "Globaalit tapahtumat",
+        "team.regeln.haftung.text": "Tapahtumat järjestävät tiimit itse. pumpfoil.orgilla ei ole vaikutusvaltaa tapahtumiin eikä niissä annettuihin taloudellisiin tai muihin lupauksiin, eikä se ota niistä vastuuta. Oikeustie on suljettu pois. Maksut ja kaikki muut sopimukset järjestäjät ja osallistujat hoitavat keskenään, pumpfoil.orgista riippumatta.\nSamoin pumpfoil.org ei vastaa siitä, ovatko mitatut arvot ja tiedot oikeita tai onko niitä manipuloitu. Näytetään se, minkä GitHubissa oleva julkinen lähdekoodi laskee ladatuista tiedoista; muita lupauksia ei ole.",
+        "team.regeln.haftung.titel": "Vastuu",
         "team.regeln.intro": "Näin tiimit toimivat pumpfoil.orgissa: kuka näkee mitä, miten tulokset lasketaan ja mitä poistaessa tapahtuu.",
+        "team.regeln.konto.text": "Henkilö katoaa kaikista tiimeistä ja tulostaulukoista, myös jäädytetyistä tapahtumatuloksista. Alempana olevat nousevat sijan ylöspäin.\nJos hän veti tiimiä, vetovastuun ottaa pisimpään toiminut moderaattori, muuten pisimpään mukana ollut jäsen. Jos ketään ei ole jäljellä, tiimi poistetaan.",
+        "team.regeln.konto.titel": "Kun tili poistetaan",
+        "team.regeln.link": "Tiimien säännöt",
+        "team.regeln.loeschen.text": "Tiimin voi poistaa vain vetäjä, ja vain kirjoittamalla vahvistukseksi tiimin nimen.\nSilloin tiimi katoaa kaikilta: jäsenyydet, tulostaulukot, lokikirja, tapahtumat ja tiimichat. Säilytämme tiedot toistaiseksi, jotta vahingossa poistettu tiimi voidaan palauttaa.\nTiimin osoite pysyy varattuna eikä sitä koskaan anneta toiselle tiimille.",
+        "team.regeln.loeschen.titel": "Tiimin poistaminen",
+        "team.regeln.logbuch.text": "Lokikirja kirjaa, kuka rikkoi minkäkin tiimiennätyksen ja milloin. Se päivittyy joka yö.\nTulostaulukon ensimmäinen merkintä on tilanne ensimmäisenä yönä sen luomisen jälkeen.\nParhaissa tuloksissa lasketaan jokainen parannus, myös oma. Summissa lasketaan vain se, kun joku nousee kärkeen.\nJos ennätys laskee siksi, että sessio poistettiin tai joku erosi, se korjataan hiljaa ilman merkintää.",
+        "team.regeln.logbuch.titel": "Lokikirja",
+        "team.regeln.oeffentlich.text": "Sisäisesti tiimi saa tehdä mitä vain. Muille se näkyy vasta, kun olemme kerran katsoneet ja hyväksyneet sen nimen, osoitteen, kuvauksen, tunnuksen ja värin.\nTiimin banneri käy läpi saman hyväksynnän kuin tunnus. Näkyvän osan valitsee vetäjä ilman uutta hyväksyntää; jos banneri poistetaan, se katoaa heti myös julkiselta sivulta.\nJos hyväksytty tiimi muuttaa ulkoasuaan, muutos näkyy tiimissä heti ja muille vasta uuden hyväksynnän jälkeen.\nHyväksytyt tiimit näkyvät sivulla ”Kaikki tiimit”. Niiden tapahtumat ovat tiimisivulla; yhteisössä näkyvät vain pumpfoil.orgin globaalit tapahtumat.\nJos vetäjä avaa tulostaulukot julkisiksi, kuka tahansa näkee ne ilman kirjautumista, mutta vain sijan, näyttönimen, nimikirjaimet ja tuloksen. Sessiot, spotit, päivämäärät ja profiilikuvat näkyvät vain kirjautuneille.\nHakukoneet eivät indeksoi tiimisivuja.\nVetäjä päättää, kuka näkee jäsenluettelon: vain jäsenet vai kaikki kirjautuneet.",
+        "team.regeln.oeffentlich.titel": "Mikä on julkista",
+        "team.regeln.rollen.text": "Vetäjä saa tehdä kaiken: asetukset, tulostaulukot, tapahtumat, moderaattorien nimeämisen, vetovastuun luovuttamisen ja tiimin poistamisen.\nModeraattorit hyväksyvät tai hylkäävät pyyntöjä, poistavat jäseniä ja luovat tapahtumia. Muuta he eivät muuta.\nJäsenet näkevät tiimissä kaiken ja voivat erota milloin tahansa.\nVetäjä voi erota vasta luovutettuaan vetovastuun.",
+        "team.regeln.rollen.titel": "Roolit",
+        "team.regeln.statistik.text": "Tulostaulukoiden yläpuolella ovat kaikkien jäsenten summat valitulta ajalta: pumppaukset, foil-matka ja foil-aika, sessiot, lenkit ja montako jäsentä oli aktiivisia.\nTiimi vastaan tiimi: yhteisössä tiimien tulostaulut vertaavat kaikkia hyväksyttyjä tiimejä, joilla on julkiset tulostaulut, jokaisessa mittarissa parhaan 3, 5 tai 10 ajajan summalla. Siellä kaikkia tiimejä mitataan samalla tavalla, ei niiden omien tulostaulujen suodattimilla.\nKahdessa tiimissä oleva lasketaan molempiin.",
+        "team.regeln.statistik.titel": "Tiimin summat",
+        "team.regeln.titel": "Tiimien säännöt",
+    ]
+
+    private static let _fi6: [String: String] = [
+        "team.regeln.was.text": "Pysyvä ryhmä, jolla on omat tulostaulukot, tapahtumat ja tiimichat.\nKuka tahansa voi perustaa tiimejä, myös useita, ja kuulua useaan tiimiin.\nUusi tiimi toimii heti kutsulinkkien kautta.",
+        "team.regeln.was.titel": "Mikä on tiimi?",
         "team.rolle.leiter": "Vetäjä",
         "team.rolle.mitglied": "Jäsen",
         "team.rolle.moderator": "Moderaattori",
@@ -2465,12 +2781,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "vain liiketiedoilla",
         "team.tafel.nurBrett": "vain puhelin laudalla",
         "team.tafel.nurTeamspots": "vain tiimin spotit",
+        "team.tafel.strittig": "kiistanalainen",
+        "team.tafel.strittigHinweis": "{n} kiistanalaista sessiota",
+        "team.tafel.strittigHinweis1": "1 kiistanalainen sessio",
+        "team.tafel.strittigTitel": "Ilmoitusta tästä sessiosta ei ole vielä ratkaistu. Se lasketaan ratkaisuun asti.",
         "team.teilen": "Jaa",
         "team.uebergebenFrage": "Luovutetaanko vetovastuu käyttäjälle {name}? Sinusta tulee moderaattori.",
         "team.vergleich.ausFahrern": "{n} kuskista",
-    ]
-
-    private static let _fi6: [String: String] = [
         "team.vergleich.ausFahrern1": "1 kuskista",
         "team.vergleich.hinweis": "Jokaiselle tiimille lasketaan sen {n} parhaan kuskin summa. {sport}, myös laskut ilman liikedataa; vain tiimit, joiden tulostaulut ovat julkisia.",
         "team.vergleich.leer": "Millään tiimillä ei ole vielä sessiota tällä jaksolla.",
@@ -2479,6 +2796,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Pisin lenkki",
         "team.vorlage.monat_strecke": "Foil-kilometrit kuukaudessa",
         "team.vorlage.session_pumps": "Eniten pumppauksia yhdessä sessiossa",
+    ]
+
+    private static let _fi7: [String: String] = [
         "team.vorlage.top_speed": "Huippunopeus",
         "team.vorlage.weitester_lauf": "Pisin matka",
         "team.vorlage.wochenende_laeufe": "Eniten lenkkejä viikonloppuna",
@@ -2649,6 +2969,8 @@ enum LocTeam {
         "team.event.wertung": "Teamklassement",
         "team.event.wertungAlle": "Som van alle leden",
         "team.event.wertungBeste": "Som van de beste {n}",
+        "team.event.wertungSchnittAlle": "Gemiddelde van alle leden",
+        "team.event.wertungSchnittBeste": "Gemiddelde van de beste {n}",
         "team.eventbild.entfernen": "Eventbanner verwijderen",
         "team.eventbild.hinweis": "Brede afbeelding bovenaan de eventpagina, het liefst 1600 × 500 px (minstens 800 px breed).",
         "team.eventbild.hochladen": "Eventbanner uploaden",
@@ -2675,11 +2997,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Je team werkt meteen, via uitnodigingslinks. Openbaar vermeld wordt het pas als we naam, beschrijving en embleem even hebben bekeken.",
         "team.gruendenKnopf": "Oprichten",
         "team.herkunft": "Land / regio",
-        "team.join.anfrage": "Je verzoek gaat naar de teamleiding, die beslist.",
-        "team.join.anfrageProfil": "Om het te beoordelen, ziet zij op welke spots en in welke sporten je tot nu toe bent geweest (alleen het aantal sessies).",
     ]
 
     private static let _nl4: [String: String] = [
+        "team.join.anfrage": "Je verzoek gaat naar de teamleiding, die beslist.",
+        "team.join.anfrageProfil": "Om het te beoordelen, ziet zij op welke spots en in welke sporten je tot nu toe bent geweest (alleen het aantal sessies).",
         "team.join.anfragen": "Verzoek sturen",
         "team.join.angefragt": "Verzoek verstuurd.",
         "team.join.beitreten": "Lid worden",
@@ -2693,6 +3015,10 @@ enum LocTeam {
         "team.join.title": "Lid worden van „{name}”",
         "team.join.wartet": "Verzoek loopt",
         "team.k.best": "Beste waarde",
+        "team.k.sprint_100m": "Snelste vliegende 100 m",
+        "team.k.sprint_200m": "Snelste vliegende 200 m",
+        "team.k.sprint_300m": "Snelste vliegende 300 m",
+        "team.k.sprint_60s": "Snelste vliegende minuut",
         "team.k.sum_distance": "On-foil-afstand totaal",
         "team.k.sum_pumps": "Pumps totaal",
         "team.k.sum_runs": "Runs totaal",
@@ -2719,15 +3045,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} breekt „{was}” met {wert} (eerder: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} houdt „{was}” met {wert}",
         "team.logbuchHinweis": "Wie wanneer welk teamrecord heeft gebroken. Wordt elke nacht bijgewerkt.",
+    ]
+
+    private static let _nl5: [String: String] = [
         "team.logbuchLeer": "Nog geen vermeldingen. De eerste stand komt in de nacht nadat de ranglijsten zijn ingesteld.",
         "team.logoHochladen": "Embleem uploaden",
         "team.meine": "Mijn teams",
         "team.mitglieder": "Leden",
         "team.mitgliederAnzahl": "{n} leden",
         "team.mitgliederAnzahl1": "1 lid",
-    ]
-
-    private static let _nl5: [String: String] = [
         "team.mitgliederSichtbar": "Wie ziet de ledenlijst?",
         "team.name": "Teamnaam",
         "team.nichtGefunden": "Dit team bestaat niet of is niet openbaar.",
@@ -2740,8 +3066,38 @@ enum LocTeam {
         "team.profilKnopf": "Team",
         "team.qr": "QR-code",
         "team.qrTeilen": "QR-code delen",
-        "team.regeln.events.text": "Een event heeft een tijdvak en eigen ranglijsten, desgewenst alleen op bepaalde spots.\nNaast of in plaats van ranglijsten kan een event totalen over alle deelnemers tonen, zoals de pumps of de afstand van het hele team. Elk event heeft minstens één ranglijst of één totaal nodig.\nAlleen sessies die binnen het tijdvak starten tellen mee.\nPer event kan de leiding bepalen dat handmatig geüploade bestanden (FIT, GPX, TCX) niet tellen; opnames van horloges, de app en gekoppelde accounts tellen dan nog wel.\nNa het einde kun je nog 24 uur uploaden; de teampagina toont dan „uitslag volgt”. Daarna is de uitslag bevroren en verandert later bijsnijden of verwijderen niets meer.\nWie na het einde vertrekt, blijft in de uitslag; wie daarna lid wordt, komt er niet meer bij.\nUitslagen worden 's nachts bevroren en ook zodra iemand de teampagina opent.\nDe tijden gelden in de tijdzone waarin het event is aangemaakt en worden voor iedereen zo getoond.\nPlaats 1 tot 3 krijgen een event-badge op hun foilerpagina, maar alleen bij teams waarvan het uiterlijk is vrijgegeven.",
+        "team.regeln.beitreten.text": "Staat een team aanmeldingen toe, dan staat op de teampagina een knop „Lid worden”. Afhankelijk van de instelling ben je meteen lid, of beslist de leiding of een moderator.\nEr zijn twee uitnodigingslinks: een waarmee je meteen lid bent en een waarmee je een verzoek stuurt. Beide zijn er ook als QR-code.\nWie nog geen account heeft, maakt er een aan en zit daarna direct in het team of heeft het verzoek gestuurd.\nEen nieuw aangemaakte link vervangt de oude, die daarna niet meer werkt.\nBij elke keer dat je lid wordt, ga je ermee akkoord dat de ranglijsten van het team openbaar kunnen zijn, ook als ze dat nu niet zijn.\nBij een verzoek zien de leiding en de moderators op welke spots en in welke sporten je tot nu toe bent geweest (alleen het aantal sessies).",
+        "team.regeln.beitreten.titel": "Lid worden",
+        "team.regeln.bestenlisten.text": "Per persoon telt maar één vermelding: de beste waarde uit één sessie, of bij totalen alles in de gekozen periode bij elkaar.\nAlle sessies van de leden tellen mee, ook die van vóór het lidmaatschap. Wie vertrekt, verdwijnt meteen uit de lijsten.\nBij events geldt dat alleen tot het einde, zie „Events”.\nDezelfde filters gelden als bij de community-records: verwijderde, gemelde, niet toegewezen en lopende opnames tellen niet mee.\nElke ranglijst kan worden beperkt tot een sport, een foilbereik, opnames met bewegingsdata, de telefoon op de plank of de teamspots.\nStaat „Locatie verbergen” aan, dan telt de sessie nooit mee voor een bepaalde spot.\nBij gelijke stand staat voorop wie de waarde het eerst heeft gereden.",
+        "team.regeln.bestenlisten.titel": "Ranglijsten",
+        "team.regeln.chat.text": "Alleen actieve leden kunnen de teamchat lezen en erin schrijven. Wie alleen een verzoek heeft gestuurd, ziet hem niet.\nHij verschijnt voor anderen nergens, ook niet tussen de actieve chats.\nWie vertrekt of wordt verwijderd, verliest meteen de toegang en krijgt geen meldingen meer.",
+        "team.regeln.chat.titel": "Teamchat",
+        "team.regeln.events.text": "Een event heeft een tijdvak en eigen ranglijsten, desgewenst alleen op bepaalde spots.\nNaast of in plaats van ranglijsten kan een event totalen over alle deelnemers tonen, zoals de pumps of de afstand van het hele team. Elk event heeft minstens één ranglijst of één totaal nodig.\nAlleen sessies die binnen het tijdvak starten tellen mee.\nPer event kan de leiding bepalen dat handmatig geüploade bestanden (FIT, GPX, TCX) niet tellen; opnames van horloges, de app en gekoppelde accounts tellen dan nog wel.\nNa het einde kun je nog 4 uur uploaden; de teampagina toont dan „uitslag volgt”. Daarna is de uitslag bevroren en verandert later bijsnijden of verwijderen niets meer.\nWie na het einde vertrekt, blijft in de uitslag; wie daarna lid wordt, komt er niet meer bij.\nUitslagen worden 's nachts bevroren en ook zodra iemand de teampagina opent.\nDe tijden gelden in de tijdzone waarin het event is aangemaakt en worden voor iedereen zo getoond.\nPlaats 1 tot 3 krijgen een event-badge op hun foilerpagina, maar alleen bij teams waarvan het uiterlijk is vrijgegeven.",
+        "team.regeln.events.titel": "Events",
+        "team.regeln.global.text": "Globale events organiseert pumpfoil.org zelf. Iedereen met passende sessies in het tijdvak telt automatisch mee, zonder lid te worden en zonder aanmelding.\nWie niet mee wil doen, zet het uit in zijn profiel onder „Privacy” („Niet meedoen aan globale events”). Dan ontbreekt hij in ranglijsten, teamstanden, totalen en badges, ook in events die al voorbij zijn.\nElke ranglijst heeft een teamstand: de som van de beste leden van elk team, meestal 5. Vrijgegeven teams met openbare ranglijsten doen mee; wie in twee teams zit, telt voor allebei.\nDe ranglijsten zijn ook zonder inloggen zichtbaar via de eventlink: plaats, weergavenaam, initialen en waarde.\nVerder gelden de regels voor events: tijdvak, uitslag, bevriezen en badges voor plaats 1 tot 3, op de profielpagina gemarkeerd met „Global”.",
+        "team.regeln.global.titel": "Globale events",
+        "team.regeln.haftung.text": "Events worden door de teams zelf georganiseerd. pumpfoil.org heeft geen invloed op events of op toezeggingen die daarin worden gedaan, financieel of anderszins, en aanvaardt daarvoor geen verantwoordelijkheid. De gang naar de rechter is uitgesloten. Betalingen en alle andere afspraken regelen organisatoren en deelnemers onafhankelijk van pumpfoil.org.\nEvenmin is pumpfoil.org verantwoordelijk voor de juistheid van gemeten waarden en gegevens of voor eventuele manipulatie ervan. Getoond wordt wat de openbare broncode op GitHub uit de geüploade gegevens berekent; verdere toezeggingen zijn er niet.",
+        "team.regeln.haftung.titel": "Aansprakelijkheid",
         "team.regeln.intro": "Zo werken teams op pumpfoil.org: wie wat ziet, hoe er gerangschikt wordt en wat er gebeurt als iets wordt verwijderd.",
+        "team.regeln.konto.text": "De persoon verdwijnt uit alle teams en ranglijsten, en ook uit bevroren event-uitslagen. De plaatsen eronder schuiven op.\nLeidde die persoon een team, dan neemt de moderator die het langst lid is het over, anders het lid dat het langst lid is. Is er niemand meer, dan wordt het team verwijderd.",
+        "team.regeln.konto.titel": "Als een account wordt verwijderd",
+        "team.regeln.link": "Teamregels",
+        "team.regeln.loeschen.text": "Alleen de leiding kan een team verwijderen, en alleen door ter bevestiging de teamnaam in te typen.\nDan is het team voor iedereen weg: lidmaatschappen, ranglijsten, logboek, events en de teamchat. We bewaren de gegevens voorlopig, zodat een per ongeluk verwijderd team terug te halen is.\nHet adres van het team blijft geblokkeerd en wordt nooit aan een ander team gegeven.",
+        "team.regeln.loeschen.titel": "Team verwijderen",
+        "team.regeln.logbuch.text": "Het logboek houdt bij wie wanneer welk teamrecord heeft gebroken. Het wordt elke nacht bijgewerkt.\nDe eerste vermelding van een ranglijst is de stand in de eerste nacht na het aanmaken.\nBij beste waarden telt elke verbetering, ook die van jezelf. Bij totalen telt het alleen als iemand de leiding overneemt.\nDaalt een record omdat een sessie is verwijderd of iemand is vertrokken, dan wordt dat stil bijgewerkt, zonder vermelding.",
+        "team.regeln.logbuch.titel": "Logboek",
+        "team.regeln.oeffentlich.text": "Intern mag een team alles. Naar buiten verschijnt het pas als wij naam, adres, beschrijving, embleem en kleur hebben bekeken en vrijgegeven.\nDe teambanner gaat door dezelfde goedkeuring als het embleem. Welk deel zichtbaar is, kiest de leiding zonder nieuwe goedkeuring; haalt zij de banner weg, dan verdwijnt hij meteen ook van de openbare pagina.\nWijzigt een vrijgegeven team zijn uiterlijk, dan geldt dat binnen het team meteen, naar buiten pas na een nieuwe vrijgave.\nVrijgegeven teams staan op de pagina „Alle teams”. Hun events staan op de teampagina; in de community staan alleen de globale events van pumpfoil.org.\nZet de leiding de ranglijsten openbaar, dan ziet iedereen ze, ook zonder in te loggen, maar alleen plaats, weergavenaam, initialen en waarde. Sessies, spots, datums en profielfoto's zien alleen ingelogde gebruikers.\nZoekmachines nemen teampagina's niet op.\nDe leiding bepaalt wie de ledenlijst ziet: alleen leden of alle ingelogde gebruikers.",
+        "team.regeln.oeffentlich.titel": "Wat openbaar is",
+        "team.regeln.rollen.text": "De leiding mag alles: instellingen, ranglijsten, events, moderators aanwijzen, de leiding overdragen en het team verwijderen.\nModerators nemen verzoeken aan of wijzen ze af, verwijderen leden en maken events aan. Verder wijzigen ze niets.\nLeden zien alles in het team en kunnen op elk moment vertrekken.\nDe leiding kan pas vertrekken als ze de leiding heeft overgedragen.",
+        "team.regeln.rollen.titel": "Rollen",
+        "team.regeln.statistik.text": "Boven de ranglijsten staan de totalen van alle leden in de gekozen periode: pumps, on-foil-afstand en -tijd, sessies, runs en hoeveel leden actief waren.\nTeam tegen team: in de community vergelijken de teamranglijsten alle vrijgegeven teams met openbare ranglijsten, per kengetal met de som van de beste 3, 5 of 10 riders. Daar geldt voor alle teams dezelfde maat, niet de filters van hun eigen ranglijsten.\nWie in twee teams zit, telt voor allebei.",
+        "team.regeln.statistik.titel": "Teamtotalen",
+        "team.regeln.titel": "Teamregels",
+    ]
+
+    private static let _nl6: [String: String] = [
+        "team.regeln.was.text": "Een vaste groep met eigen ranglijsten, events en een teamchat.\nIedereen kan teams oprichten, ook meerdere, en in meerdere teams zitten.\nEen nieuw team werkt meteen, via uitnodigingslinks.",
+        "team.regeln.was.titel": "Wat is een team?",
         "team.rolle.leiter": "Leiding",
         "team.rolle.mitglied": "Lid",
         "team.rolle.moderator": "Moderator",
@@ -2770,12 +3126,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "alleen met bewegingsdata",
         "team.tafel.nurBrett": "alleen telefoon op de plank",
         "team.tafel.nurTeamspots": "alleen teamspots",
+        "team.tafel.strittig": "in behandeling",
+        "team.tafel.strittigHinweis": "{n} sessies in behandeling",
+        "team.tafel.strittigHinweis1": "1 sessie in behandeling",
+        "team.tafel.strittigTitel": "Een melding over deze sessie is nog niet beslist. Ze telt tot er beslist is.",
         "team.teilen": "Delen",
         "team.uebergebenFrage": "De leiding aan {name} overdragen? Je wordt dan moderator.",
         "team.vergleich.ausFahrern": "van {n} riders",
-    ]
-
-    private static let _nl6: [String: String] = [
         "team.vergleich.ausFahrern1": "van 1 rider",
         "team.vergleich.hinweis": "Elk team telt de som van zijn beste {n} riders. {sport}, ook runs zonder bewegingsdata; alleen teams met openbare ranglijsten.",
         "team.vergleich.leer": "Nog geen team heeft een sessie in deze periode.",
@@ -2784,6 +3141,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Langste run",
         "team.vorlage.monat_strecke": "On-foil-kilometers deze maand",
         "team.vorlage.session_pumps": "Meeste pumps in één sessie",
+    ]
+
+    private static let _nl7: [String: String] = [
         "team.vorlage.top_speed": "Topsnelheid",
         "team.vorlage.weitester_lauf": "Verste run",
         "team.vorlage.wochenende_laeufe": "Meeste runs in het weekend",
@@ -2954,6 +3314,8 @@ enum LocTeam {
         "team.event.wertung": "Pořadí týmů",
         "team.event.wertungAlle": "Součet všech členů",
         "team.event.wertungBeste": "Součet nejlepších {n}",
+        "team.event.wertungSchnittAlle": "Průměr všech členů",
+        "team.event.wertungSchnittBeste": "Průměr nejlepších {n}",
         "team.eventbild.entfernen": "Odebrat banner akce",
         "team.eventbild.hinweis": "Široký obrázek nahoře na stránce akce, ideálně 1600 × 500 px (aspoň 800 px na šířku).",
         "team.eventbild.hochladen": "Nahrát banner akce",
@@ -2980,11 +3342,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Tvůj tým funguje hned, přes odkazy s pozvánkou. Veřejně se zobrazí až poté, co si prohlédneme jeho název, popis a znak.",
         "team.gruendenKnopf": "Založit",
         "team.herkunft": "Země / region",
-        "team.join.anfrage": "Tvoje žádost půjde vedení týmu, které rozhodne.",
-        "team.join.anfrageProfil": "Pro posouzení vidí, na kterých spotech a v jakých sportech jsi dosud jezdil (jen počet sessions).",
     ]
 
     private static let _cs4: [String: String] = [
+        "team.join.anfrage": "Tvoje žádost půjde vedení týmu, které rozhodne.",
+        "team.join.anfrageProfil": "Pro posouzení vidí, na kterých spotech a v jakých sportech jsi dosud jezdil (jen počet sessions).",
         "team.join.anfragen": "Odeslat žádost",
         "team.join.angefragt": "Žádost odeslána.",
         "team.join.beitreten": "Přidat se",
@@ -2998,6 +3360,10 @@ enum LocTeam {
         "team.join.title": "Přidat se k „{name}“",
         "team.join.wartet": "Žádost čeká",
         "team.k.best": "Nejlepší hodnota",
+        "team.k.sprint_100m": "Nejrychlejších 100 m letmo",
+        "team.k.sprint_200m": "Nejrychlejších 200 m letmo",
+        "team.k.sprint_300m": "Nejrychlejších 300 m letmo",
+        "team.k.sprint_60s": "Nejrychlejší minuta letmo",
         "team.k.sum_distance": "Vzdálenost na foilu celkem",
         "team.k.sum_pumps": "Pumpnutí celkem",
         "team.k.sum_runs": "Jízdy celkem",
@@ -3024,15 +3390,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} překonává „{was}“ s hodnotou {wert} (předtím: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} drží „{was}“ s hodnotou {wert}",
         "team.logbuchHinweis": "Kdo kdy překonal který týmový rekord. Aktualizuje se každou noc.",
+    ]
+
+    private static let _cs5: [String: String] = [
         "team.logbuchLeer": "Zatím žádné záznamy. První stav přibude v noci po vytvoření žebříčků.",
         "team.logoHochladen": "Nahrát znak",
         "team.meine": "Moje týmy",
         "team.mitglieder": "Členové",
         "team.mitgliederAnzahl": "Členové: {n}",
         "team.mitgliederAnzahl1": "Členové: 1",
-    ]
-
-    private static let _cs5: [String: String] = [
         "team.mitgliederSichtbar": "Kdo vidí seznam členů?",
         "team.name": "Název týmu",
         "team.nichtGefunden": "Tento tým neexistuje nebo není veřejný.",
@@ -3045,8 +3411,38 @@ enum LocTeam {
         "team.profilKnopf": "Tým",
         "team.qr": "QR kód",
         "team.qrTeilen": "Sdílet QR kód",
-        "team.regeln.events.text": "Akce má časové okno a vlastní žebříčky, volitelně jen na vybraných spotech.\nNavíc nebo místo žebříčků může akce ukazovat součty za všechny účastníky, třeba pumpy nebo vzdálenost celého týmu. Každá akce potřebuje aspoň jeden žebříček nebo jeden součet.\nPočítají se jen vyjížďky, které v časovém okně začnou.\nU každé akce může vedoucí určit, že ručně nahrané soubory (FIT, GPX, TCX) se nepočítají; záznamy z hodinek, aplikace a propojených účtů se počítají dál.\nPo konci lze ještě 24 hodin nahrávat, stránka týmu pak ukazuje „vyhodnocování“. Potom je výsledek zmrazený a pozdější ořezání nebo smazání už nic nezmění.\nKdo odejde po konci, zůstává ve výsledku; kdo se přidá potom, už se nezapočítá.\nZmrazuje se v noci a navíc hned, jakmile někdo otevře stránku týmu.\nČasy platí v časovém pásmu, ve kterém byla akce vytvořena, a tak se zobrazují všem.\nMísta 1 až 3 dostanou odznak z akce na své stránce foilera, ale jen u týmů, jejichž vzhled je schválený.",
+        "team.regeln.beitreten.text": "Pokud tým přijímá přihlášky, je na jeho stránce tlačítko „Přidat se“. Podle nastavení jsi hned členem, nebo rozhodne vedoucí či moderátor.\nJsou dva odkazy s pozvánkou: jeden, se kterým jsi hned členem, a druhý, kterým pošleš žádost. Oba jsou i jako QR kód.\nKdo ještě nemá účet, založí si ho a pak je rovnou v týmu, případně má žádost odeslanou.\nNově vytvořený odkaz nahradí starý, který pak přestane platit.\nKaždým vstupem souhlasíš s tím, že žebříčky týmu můžou být veřejné, i když zrovna nejsou.\nU žádosti vidí vedoucí a moderátoři, na kterých spotech a v jakých sportech jsi dosud jezdil (jen počet sessions).",
+        "team.regeln.beitreten.titel": "Přidání do týmu",
+        "team.regeln.bestenlisten.text": "Za každého se počítá jen jeden záznam: nejlepší hodnota z jedné vyjížďky, nebo u součtů všechno ve zvoleném období dohromady.\nPočítají se všechny vyjížďky členů, i ty z doby před vstupem. Kdo odejde, hned ze žebříčků zmizí.\nU akcí to platí jen do konce, viz „Akce“.\nPlatí stejné filtry jako u komunitních rekordů: smazané, nahlášené, nezařazené a probíhající nahrávky se nepočítají.\nKaždý žebříček lze omezit na jeden sport, jeden rozsah foilů, nahrávky s pohybovými daty, telefon na desce nebo týmové spoty.\nKdyž je zapnuté „Skrýt místo“, vyjížďka se nikdy nezapočítá pro konkrétní spot.\nPři shodě je výš ten, kdo hodnotu zajel dřív.",
+        "team.regeln.bestenlisten.titel": "Žebříčky",
+        "team.regeln.chat.text": "Týmový chat čtou a píšou do něj jen aktivní členové. Kdo jen poslal žádost, nevidí ho.\nPro ostatní se nikde neobjeví, ani mezi aktivními chaty.\nKdo odejde nebo je odebrán, hned ztratí přístup a nedostává už žádná upozornění.",
+        "team.regeln.chat.titel": "Týmový chat",
+        "team.regeln.events.text": "Akce má časové okno a vlastní žebříčky, volitelně jen na vybraných spotech.\nNavíc nebo místo žebříčků může akce ukazovat součty za všechny účastníky, třeba pumpy nebo vzdálenost celého týmu. Každá akce potřebuje aspoň jeden žebříček nebo jeden součet.\nPočítají se jen vyjížďky, které v časovém okně začnou.\nU každé akce může vedoucí určit, že ručně nahrané soubory (FIT, GPX, TCX) se nepočítají; záznamy z hodinek, aplikace a propojených účtů se počítají dál.\nPo konci lze ještě 4 hodiny nahrávat, stránka týmu pak ukazuje „vyhodnocování“. Potom je výsledek zmrazený a pozdější ořezání nebo smazání už nic nezmění.\nKdo odejde po konci, zůstává ve výsledku; kdo se přidá potom, už se nezapočítá.\nZmrazuje se v noci a navíc hned, jakmile někdo otevře stránku týmu.\nČasy platí v časovém pásmu, ve kterém byla akce vytvořena, a tak se zobrazují všem.\nMísta 1 až 3 dostanou odznak z akce na své stránce foilera, ale jen u týmů, jejichž vzhled je schválený.",
+        "team.regeln.events.titel": "Akce",
+        "team.regeln.global.text": "Globální eventy pořádá samo pumpfoil.org. Automaticky se počítá každý s odpovídajícími sessions v časovém okně, bez vstupu do týmu a bez přihlašování.\nKdo se nechce účastnit, vypne to v profilu v části „Soukromí“ („Neúčastnit se globálních eventů“). Pak chybí v žebříčcích, týmových hodnoceních, součtech a odznacích, i v již skončených eventech.\nKaždý žebříček má týmové hodnocení: součet nejlepších členů každého týmu, obvykle 5. Účastní se schválené týmy s veřejnými žebříčky; kdo je ve dvou týmech, počítá se pro oba.\nŽebříčky jsou vidět i bez přihlášení přes odkaz na event: pořadí, zobrazované jméno, iniciály a hodnota.\nJinak platí pravidla pro eventy: časové okno, vyhodnocení, zmrazení a odznaky za místa 1 až 3, na profilové stránce označené „Global“.",
+        "team.regeln.global.titel": "Globální eventy",
+        "team.regeln.haftung.text": "Akce pořádají samy týmy. pumpfoil.org nemá žádný vliv na akce ani na sliby v nich dané, finanční či jiné, a nepřebírá za ně žádnou odpovědnost. Právní cesta je vyloučena. Platby a všechny další dohody si pořadatelé a účastníci řeší sami, nezávisle na pumpfoil.org.\nStejně tak pumpfoil.org nepřebírá žádnou odpovědnost za to, zda jsou naměřené hodnoty a data správné nebo zda nebyly zmanipulovány. Zobrazuje se to, co z nahraných dat spočítá veřejný zdrojový kód na GitHubu; žádné další záruky neexistují.",
+        "team.regeln.haftung.titel": "Odpovědnost",
         "team.regeln.intro": "Jak fungují týmy na pumpfoil.org: kdo co vidí, jak se hodnotí a co se stane při smazání.",
+        "team.regeln.konto.text": "Člověk zmizí ze všech týmů a žebříčků a také ze zmrazených výsledků akcí. Ti pod ním se posunou nahoru.\nPokud vedl tým, převezme ho nejdéle sloužící moderátor, jinak nejdéle sloužící člen. Pokud už nikdo nezbyl, tým se smaže.",
+        "team.regeln.konto.titel": "Když se smaže účet",
+        "team.regeln.link": "Pravidla týmů",
+        "team.regeln.loeschen.text": "Smazat tým může jen vedoucí, a jen když pro potvrzení napíše název týmu.\nTým pak zmizí pro všechny: členství, žebříčky, deník, akce i týmový chat. Data zatím uchováváme, aby šel omylem smazaný tým obnovit.\nAdresa týmu zůstane zablokovaná a nikdy se nepřidělí jinému týmu.",
+        "team.regeln.loeschen.titel": "Smazání týmu",
+        "team.regeln.logbuch.text": "Deník zaznamenává, kdo kdy překonal který týmový rekord. Aktualizuje se každou noc.\nPrvní záznam žebříčku je stav v první noci po jeho založení.\nU nejlepších hodnot se počítá každé zlepšení, i vlastní. U součtů se počítá jen to, když se někdo dostane do čela.\nKdyž rekord klesne, protože byla smazána vyjížďka nebo někdo odešel, upraví se to potichu, bez záznamu.",
+        "team.regeln.logbuch.titel": "Deník",
+        "team.regeln.oeffentlich.text": "Uvnitř smí tým všechno. Navenek se objeví, až když jsme si jednou prohlédli a schválili jeho název, adresu, popis, znak a barvu.\nBanner týmu prochází stejným schválením jako znak. Kterou část je vidět, volí vedoucí bez nového schválení; když banner odebere, zmizí hned i z veřejné stránky.\nKdyž schválený tým změní svůj vzhled, v týmu to platí hned, navenek až po novém schválení.\nSchválené týmy jsou na stránce „Všechny týmy“. Jejich eventy jsou na stránce týmu; v komunitě jsou jen globální eventy pumpfoil.org.\nKdyž vedoucí zveřejní žebříčky, vidí je každý, i bez přihlášení, ale jen pořadí, zobrazované jméno, iniciály a hodnotu. Vyjížďky, spoty, data a profilové fotky vidí jen přihlášení uživatelé.\nVyhledávače stránky týmů neindexují.\nKdo vidí seznam členů, určuje vedoucí: jen členové, nebo všichni přihlášení.",
+        "team.regeln.oeffentlich.titel": "Co je veřejné",
+        "team.regeln.rollen.text": "Vedoucí smí všechno: nastavení, žebříčky, akce, jmenování moderátorů, předání vedení a smazání týmu.\nModerátoři přijímají nebo odmítají žádosti, odebírají členy a zakládají akce. Nic jiného nemění.\nČlenové vidí v týmu všechno a můžou kdykoli odejít.\nVedoucí může odejít, až když předá vedení.",
+        "team.regeln.rollen.titel": "Role",
+        "team.regeln.statistik.text": "Nad žebříčky jsou součty všech členů ve zvoleném období: pumpnutí, vzdálenost a čas na foilu, vyjížďky, jízdy a kolik členů bylo aktivních.\nTým proti týmu: v komunitě týmové žebříčky porovnávají všechny schválené týmy s veřejnými žebříčky, u každé metriky součtem nejlepších 3, 5 nebo 10 jezdců. Platí tam pro všechny týmy stejné měřítko, ne filtry jejich vlastních žebříčků.\nKdo je ve dvou týmech, počítá se pro oba.",
+        "team.regeln.statistik.titel": "Týmové součty",
+        "team.regeln.titel": "Pravidla týmů",
+    ]
+
+    private static let _cs6: [String: String] = [
+        "team.regeln.was.text": "Pevná skupina s vlastními žebříčky, akcemi a týmovým chatem.\nKaždý může zakládat týmy, i víc najednou, a být ve více týmech.\nNový tým funguje hned, přes odkazy s pozvánkou.",
+        "team.regeln.was.titel": "Co je tým?",
         "team.rolle.leiter": "Vedoucí",
         "team.rolle.mitglied": "Člen",
         "team.rolle.moderator": "Moderátor",
@@ -3075,12 +3471,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "jen s pohybovými daty",
         "team.tafel.nurBrett": "jen telefon na desce",
         "team.tafel.nurTeamspots": "jen týmové spoty",
+        "team.tafel.strittig": "sporná",
+        "team.tafel.strittigHinweis": "Sporné sessions: {n}",
+        "team.tafel.strittigHinweis1": "1 sporná session",
+        "team.tafel.strittigTitel": "Hlášení k této session zatím není rozhodnuté. Do rozhodnutí se počítá.",
         "team.teilen": "Sdílet",
         "team.uebergebenFrage": "Předat vedení týmu {name}? Ty se pak staneš moderátorem.",
         "team.vergleich.ausFahrern": "z {n} jezdců",
-    ]
-
-    private static let _cs6: [String: String] = [
         "team.vergleich.ausFahrern1": "z 1 jezdce",
         "team.vergleich.hinweis": "Každý tým počítá součet svých {n} nejlepších jezdců. {sport}, i jízdy bez pohybových dat; jen týmy s veřejnými žebříčky.",
         "team.vergleich.leer": "V tomto období zatím žádný tým nemá session.",
@@ -3089,6 +3486,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Nejdelší jízda (čas)",
         "team.vorlage.monat_strecke": "Kilometry na foilu za měsíc",
         "team.vorlage.session_pumps": "Nejvíce pumpnutí za jednu vyjížďku",
+    ]
+
+    private static let _cs7: [String: String] = [
         "team.vorlage.top_speed": "Top rychlost",
         "team.vorlage.weitester_lauf": "Nejdelší jízda (vzdálenost)",
         "team.vorlage.wochenende_laeufe": "Nejvíce jízd o víkendu",
@@ -3259,6 +3659,8 @@ enum LocTeam {
         "team.event.wertung": "Ranking drużyn",
         "team.event.wertungAlle": "Suma wszystkich członków",
         "team.event.wertungBeste": "Suma najlepszych {n}",
+        "team.event.wertungSchnittAlle": "Średnia wszystkich członków",
+        "team.event.wertungSchnittBeste": "Średnia najlepszych {n}",
         "team.eventbild.entfernen": "Usuń baner wydarzenia",
         "team.eventbild.hinweis": "Szeroki obraz na górze strony wydarzenia, najlepiej 1600 × 500 px (co najmniej 800 px szerokości).",
         "team.eventbild.hochladen": "Prześlij baner wydarzenia",
@@ -3285,11 +3687,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Twoja drużyna działa od razu, przez linki z zaproszeniem. Publicznie pojawi się dopiero wtedy, gdy obejrzymy jej nazwę, opis i herb.",
         "team.gruendenKnopf": "Załóż",
         "team.herkunft": "Kraj / region",
-        "team.join.anfrage": "Twoja prośba trafi do lidera drużyny, który podejmie decyzję.",
-        "team.join.anfrageProfil": "Do oceny lider widzi, na jakich spotach i w jakich sportach do tej pory pływałeś (tylko liczbę sesji).",
     ]
 
     private static let _pl4: [String: String] = [
+        "team.join.anfrage": "Twoja prośba trafi do lidera drużyny, który podejmie decyzję.",
+        "team.join.anfrageProfil": "Do oceny lider widzi, na jakich spotach i w jakich sportach do tej pory pływałeś (tylko liczbę sesji).",
         "team.join.anfragen": "Wyślij prośbę",
         "team.join.angefragt": "Prośba wysłana.",
         "team.join.beitreten": "Dołącz",
@@ -3303,6 +3705,10 @@ enum LocTeam {
         "team.join.title": "Dołącz do „{name}”",
         "team.join.wartet": "Prośba oczekuje",
         "team.k.best": "Najlepsza wartość",
+        "team.k.sprint_100m": "Najszybsze 100 m lotne",
+        "team.k.sprint_200m": "Najszybsze 200 m lotne",
+        "team.k.sprint_300m": "Najszybsze 300 m lotne",
+        "team.k.sprint_60s": "Najszybsza minuta lotna",
         "team.k.sum_distance": "Dystans na foilu łącznie",
         "team.k.sum_pumps": "Pompy łącznie",
         "team.k.sum_runs": "Przejazdy łącznie",
@@ -3329,15 +3735,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} bije „{was}” wynikiem {wert} (wcześniej: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} prowadzi w „{was}” z wynikiem {wert}",
         "team.logbuchHinweis": "Kto i kiedy pobił który rekord drużyny. Aktualizowane co noc.",
+    ]
+
+    private static let _pl5: [String: String] = [
         "team.logbuchLeer": "Brak wpisów. Pierwszy stan pojawi się w nocy po utworzeniu rankingów.",
         "team.logoHochladen": "Wgraj herb",
         "team.meine": "Moje drużyny",
         "team.mitglieder": "Członkowie",
         "team.mitgliederAnzahl": "Członkowie: {n}",
         "team.mitgliederAnzahl1": "Członkowie: 1",
-    ]
-
-    private static let _pl5: [String: String] = [
         "team.mitgliederSichtbar": "Kto widzi listę członków?",
         "team.name": "Nazwa drużyny",
         "team.nichtGefunden": "Ta drużyna nie istnieje albo nie jest publiczna.",
@@ -3350,8 +3756,38 @@ enum LocTeam {
         "team.profilKnopf": "Drużyna",
         "team.qr": "Kod QR",
         "team.qrTeilen": "Udostępnij kod QR",
-        "team.regeln.events.text": "Wydarzenie ma okno czasowe i własne rankingi, w razie potrzeby tylko na wybranych spotach.\nOprócz rankingów lub zamiast nich wydarzenie może pokazywać sumy wszystkich uczestników, np. pumpy lub dystans całej drużyny. Każde wydarzenie potrzebuje co najmniej jednego rankingu lub jednej sumy.\nLiczą się tylko sesje rozpoczęte w tym oknie czasowym.\nDla każdego wydarzenia lider może ustalić, że ręcznie przesłane pliki (FIT, GPX, TCX) się nie liczą; nagrania z zegarków, aplikacji i połączonych kont nadal się liczą.\nPo zakończeniu można jeszcze przez 24 godziny wgrywać sesje, strona drużyny pokazuje wtedy „liczenie wyników”. Potem wynik zostaje zamrożony i późniejsze przycinanie czy usuwanie niczego już nie zmienia.\nKto odejdzie po zakończeniu, zostaje w wyniku; kto dołączy później, nie zostanie już dodany.\nWyniki są zamrażane w nocy, a dodatkowo, gdy tylko ktoś otworzy stronę drużyny.\nGodziny obowiązują w strefie czasowej, w której utworzono wydarzenie, i wszyscy widzą je właśnie tak.\nMiejsca od 1 do 3 dostają odznakę z wydarzenia na swojej stronie foilera, ale tylko w drużynach, których wygląd jest zatwierdzony.",
+        "team.regeln.beitreten.text": "Jeśli drużyna przyjmuje zgłoszenia, na jej stronie jest przycisk „Dołącz”. Zależnie od ustawienia od razu jesteś członkiem albo decyduje lider lub moderator.\nSą dwa linki z zaproszeniem: jeden, z którym od razu zostajesz członkiem, i drugi, który wysyła prośbę. Oba są też dostępne jako kod QR.\nKto nie ma jeszcze konta, zakłada je i od razu jest w drużynie albo ma już wysłaną prośbę.\nNowo utworzony link zastępuje stary, który wtedy przestaje działać.\nPrzy każdym dołączeniu zgadzasz się, że rankingi drużyny mogą być publiczne, nawet jeśli teraz nie są.\nPrzy prośbie lider i moderatorzy widzą, na jakich spotach i w jakich sportach do tej pory pływałeś (tylko liczbę sesji).",
+        "team.regeln.beitreten.titel": "Dołączanie",
+        "team.regeln.bestenlisten.text": "Każda osoba liczy się tylko raz: jej najlepsza wartość z jednej sesji, a przy sumach wszystko z wybranego okresu razem.\nLiczą się wszystkie sesje członków, także te sprzed dołączenia. Kto opuści drużynę, od razu znika z list.\nW wydarzeniach dotyczy to tylko czasu do końca, zob. „Wydarzenia”.\nObowiązują te same filtry co przy rekordach społeczności: usunięte, zgłoszone, nieprzypisane i trwające nagrania się nie liczą.\nKażdy ranking można ograniczyć do jednego sportu, jednego zakresu foili, nagrań z danymi ruchu, telefonu na desce albo spotów drużyny.\nJeśli włączone jest „Ukryj miejsce”, sesja nigdy nie liczy się dla konkretnego spotu.\nPrzy remisie wyżej jest ten, kto osiągnął wynik pierwszy.",
+        "team.regeln.bestenlisten.titel": "Rankingi",
+        "team.regeln.chat.text": "Czat drużyny czytają i piszą w nim tylko aktywni członkowie. Kto tylko wysłał prośbę, nie widzi go.\nDla innych nie pojawia się nigdzie, także wśród aktywnych czatów.\nKto opuści drużynę albo zostanie usunięty, od razu traci dostęp i nie dostaje już powiadomień.",
+        "team.regeln.chat.titel": "Czat drużyny",
+        "team.regeln.events.text": "Wydarzenie ma okno czasowe i własne rankingi, w razie potrzeby tylko na wybranych spotach.\nOprócz rankingów lub zamiast nich wydarzenie może pokazywać sumy wszystkich uczestników, np. pumpy lub dystans całej drużyny. Każde wydarzenie potrzebuje co najmniej jednego rankingu lub jednej sumy.\nLiczą się tylko sesje rozpoczęte w tym oknie czasowym.\nDla każdego wydarzenia lider może ustalić, że ręcznie przesłane pliki (FIT, GPX, TCX) się nie liczą; nagrania z zegarków, aplikacji i połączonych kont nadal się liczą.\nPo zakończeniu można jeszcze przez 4 godziny wgrywać sesje, strona drużyny pokazuje wtedy „liczenie wyników”. Potem wynik zostaje zamrożony i późniejsze przycinanie czy usuwanie niczego już nie zmienia.\nKto odejdzie po zakończeniu, zostaje w wyniku; kto dołączy później, nie zostanie już dodany.\nWyniki są zamrażane w nocy, a dodatkowo, gdy tylko ktoś otworzy stronę drużyny.\nGodziny obowiązują w strefie czasowej, w której utworzono wydarzenie, i wszyscy widzą je właśnie tak.\nMiejsca od 1 do 3 dostają odznakę z wydarzenia na swojej stronie foilera, ale tylko w drużynach, których wygląd jest zatwierdzony.",
+        "team.regeln.events.titel": "Wydarzenia",
+        "team.regeln.global.text": "Globalne eventy organizuje samo pumpfoil.org. Automatycznie liczy się każdy z pasującymi sesjami w okresie eventu, bez dołączania i bez zapisów.\nKto nie chce brać udziału, wyłącza to w profilu w „Prywatność” („Nie bierz udziału w globalnych eventach”). Wtedy znika z rankingów, klasyfikacji drużyn, sum i odznak, także w eventach, które już się skończyły.\nKażdy ranking ma klasyfikację drużyn: sumę najlepszych członków każdej drużyny, zwykle 5. Biorą w niej udział zatwierdzone drużyny z publicznymi rankingami; kto jest w dwóch drużynach, liczy się dla obu.\nRankingi są widoczne także bez logowania przez link do eventu: miejsce, nazwa wyświetlana, inicjały i wartość.\nPoza tym obowiązują zasady eventów: okres, ocena, zamrożenie i odznaki za miejsca 1–3, oznaczone na stronie profilu jako „Global”.",
+        "team.regeln.global.titel": "Globalne eventy",
+        "team.regeln.haftung.text": "Wydarzenia organizują same drużyny. pumpfoil.org nie ma żadnego wpływu na wydarzenia ani na składane w nich obietnice, finansowe lub inne, i nie ponosi za nie odpowiedzialności. Droga sądowa jest wykluczona. Płatności i wszelkie inne ustalenia organizatorzy i uczestnicy załatwiają między sobą, niezależnie od pumpfoil.org.\nTak samo pumpfoil.org nie ponosi odpowiedzialności za to, czy zmierzone wartości i dane są poprawne lub czy nie zostały zmanipulowane. Wyświetlane jest to, co publiczny kod źródłowy na GitHubie oblicza z przesłanych danych; innych obietnic nie ma.",
+        "team.regeln.haftung.titel": "Odpowiedzialność",
         "team.regeln.intro": "Jak działają drużyny na pumpfoil.org: kto co widzi, jak liczone są wyniki i co się dzieje przy usuwaniu.",
+        "team.regeln.konto.text": "Osoba znika ze wszystkich drużyn i rankingów, a także z zamrożonych wyników wydarzeń. Osoby poniżej przesuwają się w górę.\nJeśli prowadziła drużynę, przejmuje ją najdłużej działający moderator, a jeśli go nie ma, najdłużej należący członek. Jeśli nikt nie zostanie, drużyna jest usuwana.",
+        "team.regeln.konto.titel": "Gdy konto zostaje usunięte",
+        "team.regeln.link": "Zasady drużyny",
+        "team.regeln.loeschen.text": "Drużynę może usunąć tylko lider i tylko po wpisaniu nazwy drużyny dla potwierdzenia.\nWtedy drużyna znika dla wszystkich: członkostwa, rankingi, dziennik, wydarzenia i czat drużyny. Na razie przechowujemy dane, aby dało się przywrócić drużynę usuniętą przez pomyłkę.\nAdres drużyny pozostaje zablokowany i nigdy nie zostanie przydzielony innej drużynie.",
+        "team.regeln.loeschen.titel": "Usuwanie drużyny",
+        "team.regeln.logbuch.text": "Dziennik zapisuje, kto i kiedy pobił który rekord drużyny. Jest aktualizowany co noc.\nPierwszy wpis rankingu to stan z pierwszej nocy po jego utworzeniu.\nPrzy najlepszych wartościach liczy się każda poprawa, także własna. Przy sumach liczy się tylko objęcie prowadzenia.\nJeśli rekord spada, bo usunięto sesję albo ktoś opuścił drużynę, jest to po cichu korygowane, bez wpisu.",
+        "team.regeln.logbuch.titel": "Dziennik",
+        "team.regeln.oeffentlich.text": "Wewnątrz drużyna może wszystko. Na zewnątrz pojawia się dopiero wtedy, gdy obejrzymy i zatwierdzimy jej nazwę, adres, opis, herb i kolor.\nBaner drużyny przechodzi tę samą akceptację co herb. Którą część widać, wybiera lider bez nowej akceptacji; jeśli usunie baner, znika on od razu także ze strony publicznej.\nJeśli zatwierdzona drużyna zmieni swój wygląd, w drużynie obowiązuje to od razu, a na zewnątrz dopiero po ponownym zatwierdzeniu.\nZatwierdzone drużyny są na stronie „Wszystkie drużyny”. Ich eventy są na stronie drużyny; w społeczności są tylko globalne eventy pumpfoil.org.\nJeśli lider ustawi rankingi jako publiczne, widzi je każdy, także bez logowania, ale tylko miejsce, nazwę wyświetlaną, inicjały i wartość. Sesje, spoty, daty i zdjęcia profilowe widzą tylko zalogowani.\nWyszukiwarki nie indeksują stron drużyn.\nLider decyduje, kto widzi listę członków: tylko członkowie czy wszyscy zalogowani.",
+        "team.regeln.oeffentlich.titel": "Co jest publiczne",
+        "team.regeln.rollen.text": "Lider może wszystko: ustawienia, rankingi, wydarzenia, wyznaczanie moderatorów, przekazanie roli lidera i usunięcie drużyny.\nModeratorzy przyjmują lub odrzucają prośby, usuwają członków i tworzą wydarzenia. Niczego więcej nie zmieniają.\nCzłonkowie widzą wszystko w drużynie i mogą ją opuścić w każdej chwili.\nLider może opuścić drużynę dopiero po przekazaniu roli lidera.",
+        "team.regeln.rollen.titel": "Role",
+        "team.regeln.statistik.text": "Nad rankingami widać sumy wszystkich członków w wybranym okresie: pompy, dystans i czas na foilu, sesje, przejazdy oraz liczbę aktywnych członków.\nDrużyna kontra drużyna: w społeczności rankingi drużyn porównują wszystkie zatwierdzone drużyny z publicznymi rankingami, w każdej kategorii sumą najlepszych 3, 5 lub 10 riderów. Obowiązuje tam ta sama miara dla wszystkich drużyn, nie filtry ich własnych rankingów.\nKto jest w dwóch drużynach, liczy się dla obu.",
+        "team.regeln.statistik.titel": "Sumy drużyny",
+        "team.regeln.titel": "Zasady drużyny",
+    ]
+
+    private static let _pl6: [String: String] = [
+        "team.regeln.was.text": "Stała grupa z własnymi rankingami, wydarzeniami i czatem drużyny.\nKażdy może zakładać drużyny, także kilka, i należeć do kilku drużyn.\nNowa drużyna działa od razu, przez linki z zaproszeniem.",
+        "team.regeln.was.titel": "Czym jest drużyna?",
         "team.rolle.leiter": "Lider",
         "team.rolle.mitglied": "Członek",
         "team.rolle.moderator": "Moderator",
@@ -3380,12 +3816,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "tylko z danymi ruchu",
         "team.tafel.nurBrett": "tylko telefon na desce",
         "team.tafel.nurTeamspots": "tylko spoty drużyny",
+        "team.tafel.strittig": "sporna",
+        "team.tafel.strittigHinweis": "Sporne sesje: {n}",
+        "team.tafel.strittigHinweis1": "1 sesja sporna",
+        "team.tafel.strittigTitel": "Zgłoszenie dotyczące tej sesji nie zostało jeszcze rozstrzygnięte. Liczy się do czasu decyzji.",
         "team.teilen": "Udostępnij",
         "team.uebergebenFrage": "Przekazać rolę lidera {name}? Zostaniesz wtedy moderatorem.",
         "team.vergleich.ausFahrern": "z {n} riderów",
-    ]
-
-    private static let _pl6: [String: String] = [
         "team.vergleich.ausFahrern1": "z 1 ridera",
         "team.vergleich.hinweis": "Każda drużyna liczy sumę swoich {n} najlepszych riderów. {sport}, także przejazdy bez danych ruchu; tylko drużyny z publicznymi rankingami.",
         "team.vergleich.leer": "W tym okresie żadna drużyna nie ma jeszcze sesji.",
@@ -3394,6 +3831,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Najdłuższy przejazd",
         "team.vorlage.monat_strecke": "Kilometry na foilu w miesiącu",
         "team.vorlage.session_pumps": "Najwięcej pomp w jednej sesji",
+    ]
+
+    private static let _pl7: [String: String] = [
         "team.vorlage.top_speed": "Prędkość maks.",
         "team.vorlage.weitester_lauf": "Najdalszy przejazd",
         "team.vorlage.wochenende_laeufe": "Najwięcej przejazdów w weekend",
@@ -3564,6 +4004,8 @@ enum LocTeam {
         "team.event.wertung": "Classificação por equipes",
         "team.event.wertungAlle": "Soma de todos os membros",
         "team.event.wertungBeste": "Soma dos {n} melhores",
+        "team.event.wertungSchnittAlle": "Média de todos os membros",
+        "team.event.wertungSchnittBeste": "Média dos {n} melhores",
         "team.eventbild.entfernen": "Remover banner do evento",
         "team.eventbild.hinweis": "Imagem larga no topo da página do evento, de preferência 1600 × 500 px (pelo menos 800 px de largura).",
         "team.eventbild.hochladen": "Enviar banner do evento",
@@ -3590,11 +4032,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Sua equipe funciona na hora, por links de convite. Ela só aparece publicamente depois que olharmos o nome, a descrição e o emblema.",
         "team.gruendenKnopf": "Criar",
         "team.herkunft": "País / região",
-        "team.join.anfrage": "Seu pedido vai para a liderança da equipe, que decide.",
-        "team.join.anfrageProfil": "Para avaliar, ela vê em quais spots e esportes você já andou até agora (só o número de sessões).",
     ]
 
     private static let _pt4: [String: String] = [
+        "team.join.anfrage": "Seu pedido vai para a liderança da equipe, que decide.",
+        "team.join.anfrageProfil": "Para avaliar, ela vê em quais spots e esportes você já andou até agora (só o número de sessões).",
         "team.join.anfragen": "Enviar pedido",
         "team.join.angefragt": "Pedido enviado.",
         "team.join.beitreten": "Participar",
@@ -3608,6 +4050,10 @@ enum LocTeam {
         "team.join.title": "Participar de “{name}”",
         "team.join.wartet": "Pedido pendente",
         "team.k.best": "Melhor valor",
+        "team.k.sprint_100m": "100 m lançados mais rápidos",
+        "team.k.sprint_200m": "200 m lançados mais rápidos",
+        "team.k.sprint_300m": "300 m lançados mais rápidos",
+        "team.k.sprint_60s": "Minuto lançado mais rápido",
         "team.k.sum_distance": "Distância on-foil total",
         "team.k.sum_pumps": "Total de pumps",
         "team.k.sum_runs": "Total de voltas",
@@ -3634,15 +4080,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} bate “{was}” com {wert} (antes: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} tem “{was}” com {wert}",
         "team.logbuchHinweis": "Quem bateu qual recorde da equipe, e quando. Atualizado toda noite.",
+    ]
+
+    private static let _pt5: [String: String] = [
         "team.logbuchLeer": "Ainda sem registros. A primeira classificação aparece na noite depois de os rankings serem criados.",
         "team.logoHochladen": "Enviar emblema",
         "team.meine": "Minhas equipes",
         "team.mitglieder": "Membros",
         "team.mitgliederAnzahl": "{n} membros",
         "team.mitgliederAnzahl1": "1 membro",
-    ]
-
-    private static let _pt5: [String: String] = [
         "team.mitgliederSichtbar": "Quem vê a lista de membros?",
         "team.name": "Nome da equipe",
         "team.nichtGefunden": "Esta equipe não existe ou não é pública.",
@@ -3655,8 +4101,38 @@ enum LocTeam {
         "team.profilKnopf": "Equipe",
         "team.qr": "QR code",
         "team.qrTeilen": "Compartilhar QR code",
-        "team.regeln.events.text": "Um evento tem um período e rankings próprios, se quiser só em certos spots.\nAlém dos rankings, ou no lugar deles, um evento pode mostrar totais de todos os participantes, como os pumps ou a distância da equipe inteira. Todo evento precisa de pelo menos um ranking ou um total.\nSó contam as sessões que começam dentro do período.\nEm cada evento o líder pode definir que arquivos enviados à mão (FIT, GPX, TCX) não contam; gravações de relógios, do app e de contas vinculadas continuam contando.\nDepois do fim ainda dá para enviar por 24 horas; a página da equipe mostra então “apurando”. Depois disso o resultado fica congelado, e cortar ou excluir depois não muda mais nada.\nQuem sair depois do fim continua no resultado; quem entrar depois não é mais incluído.\nOs resultados são congelados à noite e também assim que alguém abre a página da equipe.\nOs horários valem no fuso horário em que o evento foi criado e aparecem assim para todo mundo.\nOs lugares 1 a 3 ganham uma medalha do evento na página de foiler, mas só em equipes com aparência aprovada.",
+        "team.regeln.beitreten.text": "Se uma equipe permite inscrições, a página dela mostra um botão “Participar”. Dependendo da configuração, você vira membro na hora, ou o líder ou um moderador decide.\nExistem dois links de convite: um com o qual você vira membro na hora e outro com o qual você envia um pedido. Os dois também existem como QR code.\nQuem ainda não tem conta cria uma e depois já está na equipe ou já enviou o pedido.\nUm link novo substitui o antigo, que deixa de funcionar.\nA cada entrada, você concorda que os rankings da equipe podem ser públicos, mesmo que não sejam agora.\nNum pedido, o líder e os moderadores veem em quais spots e esportes você já andou até agora (só o número de sessões).",
+        "team.regeln.beitreten.titel": "Entrar",
+        "team.regeln.bestenlisten.text": "Cada pessoa conta uma vez só: o melhor valor de uma sessão ou, nos totais, tudo do período escolhido somado.\nContam todas as sessões dos membros, inclusive as de antes de entrar. Quem sai some dos rankings na hora.\nNos eventos isso só vale até o fim, veja “Eventos”.\nValem os mesmos filtros dos recordes da comunidade: gravações excluídas, denunciadas, sem atribuição e em andamento não contam.\nCada ranking pode ser limitado a um esporte, uma faixa de foils, gravações com dados de movimento, telefone na prancha ou os spots da equipe.\nSe “Ocultar o local” estiver ativado, a sessão nunca conta para um spot específico.\nEm caso de empate, fica na frente quem fez o valor primeiro.",
+        "team.regeln.bestenlisten.titel": "Rankings",
+        "team.regeln.chat.text": "Só membros ativos leem e escrevem no chat da equipe. Quem só enviou um pedido não o vê.\nEle não aparece em lugar nenhum para os outros, nem entre os chats ativos.\nQuem sai ou é removido perde o acesso na hora e não recebe mais notificações.",
+        "team.regeln.chat.titel": "Chat da equipe",
+        "team.regeln.events.text": "Um evento tem um período e rankings próprios, se quiser só em certos spots.\nAlém dos rankings, ou no lugar deles, um evento pode mostrar totais de todos os participantes, como os pumps ou a distância da equipe inteira. Todo evento precisa de pelo menos um ranking ou um total.\nSó contam as sessões que começam dentro do período.\nEm cada evento o líder pode definir que arquivos enviados à mão (FIT, GPX, TCX) não contam; gravações de relógios, do app e de contas vinculadas continuam contando.\nDepois do fim ainda dá para enviar por 4 horas; a página da equipe mostra então “apurando”. Depois disso o resultado fica congelado, e cortar ou excluir depois não muda mais nada.\nQuem sair depois do fim continua no resultado; quem entrar depois não é mais incluído.\nOs resultados são congelados à noite e também assim que alguém abre a página da equipe.\nOs horários valem no fuso horário em que o evento foi criado e aparecem assim para todo mundo.\nOs lugares 1 a 3 ganham uma medalha do evento na página de foiler, mas só em equipes com aparência aprovada.",
+        "team.regeln.events.titel": "Eventos",
+        "team.regeln.global.text": "Os eventos globais são organizados pelo próprio pumpfoil.org. Conta automaticamente quem tem sessões adequadas no período, sem entrar em equipe e sem se inscrever.\nQuem não quiser participar desliga isso no perfil em “Privacidade” (“Não participar de eventos globais”). Aí some dos rankings, classificações de equipe, totais e selos, inclusive em eventos já encerrados.\nCada ranking tem uma classificação de equipes: a soma dos melhores membros de cada equipe, normalmente 5. Participam as equipes aprovadas com rankings públicos; quem está em duas equipes conta para as duas.\nOs rankings também ficam visíveis sem login pelo link do evento: posição, nome de exibição, iniciais e valor.\nNo mais, valem as regras de eventos: período, apuração, congelamento e selos para as posições 1 a 3, marcados com “Global” na página de perfil.",
+        "team.regeln.global.titel": "Eventos globais",
+        "team.regeln.haftung.text": "Os eventos são organizados pelas próprias equipes. O pumpfoil.org não tem influência sobre os eventos nem sobre promessas feitas neles, financeiras ou de outro tipo, e não assume nenhuma responsabilidade por elas. Fica excluída a via judicial. Pagamentos e todos os outros acordos são resolvidos entre organizadores e participantes, de forma independente do pumpfoil.org.\nDa mesma forma, o pumpfoil.org não assume nenhuma responsabilidade sobre se os valores e dados medidos estão corretos ou foram manipulados. É exibido o que o código-fonte público no GitHub calcula a partir dos dados enviados; não há outras promessas.",
+        "team.regeln.haftung.titel": "Responsabilidade",
         "team.regeln.intro": "Como as equipes funcionam no pumpfoil.org: quem vê o quê, como a pontuação funciona e o que acontece quando algo é excluído.",
+        "team.regeln.konto.text": "A pessoa some de todas as equipes e rankings, e também dos resultados congelados de eventos. Quem está abaixo sobe.\nSe ela liderava uma equipe, assume o moderador mais antigo, senão o membro mais antigo. Se não sobrar ninguém, a equipe é excluída.",
+        "team.regeln.konto.titel": "Quando uma conta é excluída",
+        "team.regeln.link": "Regras das equipes",
+        "team.regeln.loeschen.text": "Só o líder pode excluir uma equipe, e só digitando o nome da equipe para confirmar.\nAí a equipe some para todos: participações, classificações, diário de bordo, eventos e o chat da equipe. Por enquanto guardamos os dados para poder restaurar uma equipe excluída por engano.\nO endereço da equipe fica bloqueado e nunca é passado para outra equipe.",
+        "team.regeln.loeschen.titel": "Excluir uma equipe",
+        "team.regeln.logbuch.text": "O diário de bordo registra quem bateu qual recorde da equipe, e quando. Ele é atualizado toda noite.\nA primeira entrada de um ranking é a situação na primeira noite depois de ele ser criado.\nNos melhores valores, toda melhora conta, inclusive a própria. Nos totais, só conta quando alguém assume a liderança.\nSe um recorde cai porque uma sessão foi excluída ou alguém saiu, ele é ajustado em silêncio, sem entrada.",
+        "team.regeln.logbuch.titel": "Diário de bordo",
+        "team.regeln.oeffentlich.text": "Internamente, uma equipe pode fazer tudo. Para fora, ela só aparece depois que olhamos e aprovamos nome, endereço, descrição, emblema e cor.\nO banner da equipe passa pela mesma aprovação que o emblema. Qual parte aparece é a liderança que escolhe, sem nova aprovação; se ela remover o banner, ele some na hora também da página pública.\nSe uma equipe aprovada muda a aparência, isso vale na equipe na hora e para o público depois de uma nova aprovação.\nEquipes aprovadas aparecem na página “Todas as equipes”. Os eventos delas ficam na página da equipe; na comunidade aparecem só os eventos globais do pumpfoil.org.\nSe o líder deixa os rankings públicos, qualquer pessoa os vê, mesmo sem entrar, mas só posição, nome de exibição, iniciais e valor. Sessões, spots, datas e fotos de perfil só são visíveis para usuários conectados.\nBuscadores não indexam páginas de equipes.\nO líder decide quem vê a lista de membros: só os membros ou todos os usuários conectados.",
+        "team.regeln.oeffentlich.titel": "O que é público",
+        "team.regeln.rollen.text": "O líder pode fazer tudo: configurações, rankings, eventos, nomear moderadores, passar a liderança e excluir a equipe.\nOs moderadores aceitam ou recusam pedidos, removem membros e criam eventos. Não mudam mais nada.\nOs membros veem tudo na equipe e podem sair a qualquer momento.\nO líder só pode sair depois de passar a liderança.",
+        "team.regeln.rollen.titel": "Funções",
+        "team.regeln.statistik.text": "Acima dos rankings ficam os totais de todos os membros no período escolhido: pumps, distância e tempo on-foil, sessões, voltas e quantos membros estiveram ativos.\nEquipe contra equipe: na comunidade, os rankings de equipes comparam todas as equipes aprovadas com rankings públicos, em cada métrica pela soma dos 3, 5 ou 10 melhores riders. Ali vale a mesma medida para todas as equipes, não os filtros dos próprios rankings.\nQuem está em duas equipes conta para as duas.",
+        "team.regeln.statistik.titel": "Totais da equipe",
+        "team.regeln.titel": "Regras das equipes",
+    ]
+
+    private static let _pt6: [String: String] = [
+        "team.regeln.was.text": "Um grupo fixo com rankings próprios, eventos e um chat da equipe.\nQualquer pessoa pode criar equipes, até várias, e participar de várias equipes.\nUma equipe nova funciona na hora, por links de convite.",
+        "team.regeln.was.titel": "O que é uma equipe?",
         "team.rolle.leiter": "Líder",
         "team.rolle.mitglied": "Membro",
         "team.rolle.moderator": "Moderador",
@@ -3685,12 +4161,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "só com dados de movimento",
         "team.tafel.nurBrett": "só telefone na prancha",
         "team.tafel.nurTeamspots": "só spots da equipe",
+        "team.tafel.strittig": "em análise",
+        "team.tafel.strittigHinweis": "{n} sessões em análise",
+        "team.tafel.strittigHinweis1": "1 sessão em análise",
+        "team.tafel.strittigTitel": "Uma denúncia sobre esta sessão ainda não foi decidida. Ela conta até a decisão.",
         "team.teilen": "Compartilhar",
         "team.uebergebenFrage": "Passar a liderança para {name}? Você vira moderador.",
         "team.vergleich.ausFahrern": "de {n} riders",
-    ]
-
-    private static let _pt6: [String: String] = [
         "team.vergleich.ausFahrern1": "de 1 rider",
         "team.vergleich.hinweis": "Cada equipe soma seus {n} melhores riders. {sport}, inclusive voltas sem dados de movimento; só equipes com rankings públicos.",
         "team.vergleich.leer": "Nenhuma equipe tem sessão neste período ainda.",
@@ -3699,6 +4176,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Volta mais duradoura",
         "team.vorlage.monat_strecke": "Quilômetros on-foil no mês",
         "team.vorlage.session_pumps": "Mais pumps em uma sessão",
+    ]
+
+    private static let _pt7: [String: String] = [
         "team.vorlage.top_speed": "Vel. máxima",
         "team.vorlage.weitester_lauf": "Volta mais longa",
         "team.vorlage.wochenende_laeufe": "Mais voltas no fim de semana",
@@ -3869,6 +4349,8 @@ enum LocTeam {
         "team.event.wertung": "Classificação por equipas",
         "team.event.wertungAlle": "Soma de todos os membros",
         "team.event.wertungBeste": "Soma dos {n} melhores",
+        "team.event.wertungSchnittAlle": "Média de todos os membros",
+        "team.event.wertungSchnittBeste": "Média dos {n} melhores",
         "team.eventbild.entfernen": "Remover banner do evento",
         "team.eventbild.hinweis": "Imagem larga no topo da página do evento, de preferência 1600 × 500 px (pelo menos 800 px de largura).",
         "team.eventbild.hochladen": "Carregar banner do evento",
@@ -3895,11 +4377,11 @@ enum LocTeam {
         "team.gruendenHinweis": "A tua equipa funciona logo, através de links de convite. Só aparece publicamente depois de vermos o nome, a descrição e o emblema.",
         "team.gruendenKnopf": "Criar",
         "team.herkunft": "País / região",
-        "team.join.anfrage": "O teu pedido vai para a liderança da equipa, que decide.",
-        "team.join.anfrageProfil": "Para avaliar, vê em que spots e desportos já andaste até agora (só o número de sessões).",
     ]
 
     private static let _pt_PT4: [String: String] = [
+        "team.join.anfrage": "O teu pedido vai para a liderança da equipa, que decide.",
+        "team.join.anfrageProfil": "Para avaliar, vê em que spots e desportos já andaste até agora (só o número de sessões).",
         "team.join.anfragen": "Enviar pedido",
         "team.join.angefragt": "Pedido enviado.",
         "team.join.beitreten": "Aderir",
@@ -3913,6 +4395,10 @@ enum LocTeam {
         "team.join.title": "Aderir a «{name}»",
         "team.join.wartet": "Pedido pendente",
         "team.k.best": "Melhor valor",
+        "team.k.sprint_100m": "100 m lançados mais rápidos",
+        "team.k.sprint_200m": "200 m lançados mais rápidos",
+        "team.k.sprint_300m": "300 m lançados mais rápidos",
+        "team.k.sprint_60s": "Minuto lançado mais rápido",
         "team.k.sum_distance": "Distância on-foil total",
         "team.k.sum_pumps": "Total de pumps",
         "team.k.sum_runs": "Total de voltas",
@@ -3939,15 +4425,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} bate «{was}» com {wert} (antes: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} detém «{was}» com {wert}",
         "team.logbuchHinweis": "Quem bateu qual recorde da equipa, e quando. Atualizado todas as noites.",
+    ]
+
+    private static let _pt_PT5: [String: String] = [
         "team.logbuchLeer": "Ainda sem registos. A primeira classificação aparece na noite a seguir à criação dos rankings.",
         "team.logoHochladen": "Enviar emblema",
         "team.meine": "As minhas equipas",
         "team.mitglieder": "Membros",
         "team.mitgliederAnzahl": "{n} membros",
         "team.mitgliederAnzahl1": "1 membro",
-    ]
-
-    private static let _pt_PT5: [String: String] = [
         "team.mitgliederSichtbar": "Quem vê a lista de membros?",
         "team.name": "Nome da equipa",
         "team.nichtGefunden": "Esta equipa não existe ou não é pública.",
@@ -3960,8 +4446,38 @@ enum LocTeam {
         "team.profilKnopf": "Equipa",
         "team.qr": "Código QR",
         "team.qrTeilen": "Partilhar código QR",
-        "team.regeln.events.text": "Um evento tem um período e rankings próprios, se quiseres só em certos spots.\nAlém dos rankings, ou em vez deles, um evento pode mostrar totais de todos os participantes, como os pumps ou a distância da equipa inteira. Cada evento precisa de pelo menos um ranking ou um total.\nSó contam as sessões que começam dentro do período.\nEm cada evento o líder pode definir que ficheiros carregados à mão (FIT, GPX, TCX) não contam; gravações de relógios, da app e de contas ligadas continuam a contar.\nDepois do fim ainda é possível enviar durante 24 horas; a página da equipa mostra então «a apurar». A partir daí o resultado fica congelado, e cortar ou eliminar mais tarde já não muda nada.\nQuem sair depois do fim continua no resultado; quem aderir depois já não é incluído.\nOs resultados são congelados à noite e também assim que alguém abre a página da equipa.\nAs horas valem no fuso horário em que o evento foi criado e são mostradas assim a todos.\nOs lugares 1 a 3 recebem uma medalha do evento na sua página de foiler, mas só em equipas cuja aparência está aprovada.",
+        "team.regeln.beitreten.text": "Se uma equipa permite inscrições, a sua página mostra um botão «Aderir». Conforme a definição, passas logo a membro, ou decide o líder ou um moderador.\nHá dois links de convite: um com o qual passas logo a membro e outro com o qual envias um pedido. Ambos existem também como código QR.\nQuem ainda não tem conta cria uma e fica depois logo na equipa ou já enviou o pedido.\nUm link novo substitui o antigo, que deixa de funcionar.\nSempre que aderes, aceitas que os rankings da equipa possam ser públicos, mesmo que agora não o sejam.\nNum pedido, o líder e os moderadores veem em que spots e desportos já andaste até agora (só o número de sessões).",
+        "team.regeln.beitreten.titel": "Aderir",
+        "team.regeln.bestenlisten.text": "Cada pessoa conta só uma vez: o seu melhor valor numa sessão ou, nos totais, tudo o que fez no período escolhido somado.\nContam todas as sessões dos membros, incluindo as de antes da adesão. Quem sai desaparece logo das listas.\nNos eventos isto só vale até ao fim, ver «Eventos».\nAplicam-se os mesmos filtros dos recordes da comunidade: gravações eliminadas, denunciadas, não atribuídas e em curso não contam.\nCada ranking pode ser limitado a um desporto, uma faixa de foils, gravações com dados de movimento, telefone na prancha ou os spots da equipa.\nSe «Esconder o local» estiver ativo, a sessão nunca conta para um spot específico.\nEm caso de empate, fica à frente quem fez o valor primeiro.",
+        "team.regeln.bestenlisten.titel": "Rankings",
+        "team.regeln.chat.text": "Só os membros ativos leem e escrevem no chat da equipa. Quem só enviou um pedido não o vê.\nNão aparece em lado nenhum para os outros, nem sequer entre os chats ativos.\nQuem sai ou é removido perde logo o acesso e deixa de receber notificações.",
+        "team.regeln.chat.titel": "Chat da equipa",
+        "team.regeln.events.text": "Um evento tem um período e rankings próprios, se quiseres só em certos spots.\nAlém dos rankings, ou em vez deles, um evento pode mostrar totais de todos os participantes, como os pumps ou a distância da equipa inteira. Cada evento precisa de pelo menos um ranking ou um total.\nSó contam as sessões que começam dentro do período.\nEm cada evento o líder pode definir que ficheiros carregados à mão (FIT, GPX, TCX) não contam; gravações de relógios, da app e de contas ligadas continuam a contar.\nDepois do fim ainda é possível enviar durante 4 horas; a página da equipa mostra então «a apurar». A partir daí o resultado fica congelado, e cortar ou eliminar mais tarde já não muda nada.\nQuem sair depois do fim continua no resultado; quem aderir depois já não é incluído.\nOs resultados são congelados à noite e também assim que alguém abre a página da equipa.\nAs horas valem no fuso horário em que o evento foi criado e são mostradas assim a todos.\nOs lugares 1 a 3 recebem uma medalha do evento na sua página de foiler, mas só em equipas cuja aparência está aprovada.",
+        "team.regeln.events.titel": "Eventos",
+        "team.regeln.global.text": "Os eventos globais são organizados pelo próprio pumpfoil.org. Conta automaticamente quem tem sessões adequadas no período, sem aderir a uma equipa e sem se inscrever.\nQuem não quiser participar desliga isso no perfil em «Privacidade» («Não participar em eventos globais»). Nesse caso desaparece das classificações, classificações de equipa, totais e emblemas, também em eventos já terminados.\nCada classificação tem uma classificação de equipas: a soma dos melhores membros de cada equipa, normalmente 5. Participam as equipas aprovadas com classificações públicas; quem está em duas equipas conta para as duas.\nAs classificações também são visíveis sem iniciar sessão através da ligação do evento: posição, nome de apresentação, iniciais e valor.\nDe resto aplicam-se as regras dos eventos: período, apuramento, congelamento e emblemas para as posições 1 a 3, marcados com «Global» na página de perfil.",
+        "team.regeln.global.titel": "Eventos globais",
+        "team.regeln.haftung.text": "Os eventos são organizados pelas próprias equipas. O pumpfoil.org não tem influência sobre os eventos nem sobre promessas neles feitas, financeiras ou de outro tipo, e não assume qualquer responsabilidade por elas. Fica excluída a via judicial. Pagamentos e todos os outros acordos são resolvidos entre organizadores e participantes, de forma independente do pumpfoil.org.\nDa mesma forma, o pumpfoil.org não assume qualquer responsabilidade sobre se os valores e dados medidos estão corretos ou foram manipulados. É mostrado o que o código-fonte público no GitHub calcula a partir dos dados carregados; não há outras promessas.",
+        "team.regeln.haftung.titel": "Responsabilidade",
         "team.regeln.intro": "Como funcionam as equipas no pumpfoil.org: quem vê o quê, como se pontua e o que acontece quando algo é eliminado.",
+        "team.regeln.konto.text": "A pessoa desaparece de todas as equipas e rankings, e também dos resultados congelados de eventos. Quem está abaixo sobe.\nSe liderava uma equipa, assume o moderador mais antigo, caso contrário o membro mais antigo. Se não restar ninguém, a equipa é eliminada.",
+        "team.regeln.konto.titel": "Quando uma conta é eliminada",
+        "team.regeln.link": "Regras das equipas",
+        "team.regeln.loeschen.text": "Só o líder pode eliminar uma equipa, e só escrevendo o nome da equipa para confirmar.\nA equipa desaparece então para todos: inscrições, classificações, diário de bordo, eventos e o chat da equipa. Por agora guardamos os dados para se poder restaurar uma equipa apagada por engano.\nO endereço da equipa fica bloqueado e nunca é atribuído a outra equipa.",
+        "team.regeln.loeschen.titel": "Eliminar uma equipa",
+        "team.regeln.logbuch.text": "O diário de bordo regista quem bateu qual recorde da equipa, e quando. É atualizado todas as noites.\nA primeira entrada de um ranking é a situação na primeira noite depois de ter sido criado.\nNos melhores valores conta cada melhoria, incluindo a própria. Nos totais só conta quando alguém passa para a frente.\nSe um recorde desce porque uma sessão foi eliminada ou alguém saiu, é ajustado discretamente, sem entrada.",
+        "team.regeln.logbuch.titel": "Diário de bordo",
+        "team.regeln.oeffentlich.text": "Internamente, uma equipa pode fazer tudo. Para fora, só aparece depois de vermos e aprovarmos o nome, o endereço, a descrição, o emblema e a cor.\nO banner da equipa passa pela mesma aprovação que o emblema. Que parte se vê escolhe a liderança, sem nova aprovação; se o remover, desaparece de imediato também da página pública.\nSe uma equipa aprovada altera a sua aparência, isso vale logo dentro da equipa e para o público só depois de uma nova aprovação.\nAs equipas aprovadas aparecem na página «Todas as equipas». Os seus eventos estão na página da equipa; na comunidade só aparecem os eventos globais do pumpfoil.org.\nSe o líder torna os rankings públicos, qualquer pessoa os vê, mesmo sem iniciar sessão, mas só a posição, o nome de exibição, as iniciais e o valor. Sessões, spots, datas e fotos de perfil só são visíveis para utilizadores com sessão iniciada.\nOs motores de busca não indexam as páginas das equipas.\nO líder decide quem vê a lista de membros: só os membros ou todos os utilizadores com sessão iniciada.",
+        "team.regeln.oeffentlich.titel": "O que é público",
+        "team.regeln.rollen.text": "O líder pode fazer tudo: definições, rankings, eventos, nomear moderadores, passar a liderança e eliminar a equipa.\nOs moderadores aceitam ou recusam pedidos, removem membros e criam eventos. Não alteram mais nada.\nOs membros veem tudo na equipa e podem sair a qualquer momento.\nO líder só pode sair depois de passar a liderança.",
+        "team.regeln.rollen.titel": "Funções",
+        "team.regeln.statistik.text": "Por cima dos rankings estão os totais de todos os membros no período escolhido: pumps, distância e tempo on-foil, sessões, voltas e quantos membros estiveram ativos.\nEquipa contra equipa: na comunidade, as classificações de equipas comparam todas as equipas aprovadas com classificações públicas, em cada métrica pela soma dos 3, 5 ou 10 melhores riders. Aí aplica-se a mesma medida a todas as equipas, não os filtros das suas próprias classificações.\nQuem está em duas equipas conta para as duas.",
+        "team.regeln.statistik.titel": "Totais da equipa",
+        "team.regeln.titel": "Regras das equipas",
+    ]
+
+    private static let _pt_PT6: [String: String] = [
+        "team.regeln.was.text": "Um grupo fixo com rankings próprios, eventos e um chat da equipa.\nQualquer pessoa pode criar equipas, mesmo várias, e fazer parte de várias equipas.\nUma equipa nova funciona logo, através de links de convite.",
+        "team.regeln.was.titel": "O que é uma equipa?",
         "team.rolle.leiter": "Líder",
         "team.rolle.mitglied": "Membro",
         "team.rolle.moderator": "Moderador",
@@ -3990,12 +4506,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "só com dados de movimento",
         "team.tafel.nurBrett": "só telefone na prancha",
         "team.tafel.nurTeamspots": "só spots da equipa",
+        "team.tafel.strittig": "em análise",
+        "team.tafel.strittigHinweis": "{n} sessões em análise",
+        "team.tafel.strittigHinweis1": "1 sessão em análise",
+        "team.tafel.strittigTitel": "Uma denúncia sobre esta sessão ainda não foi decidida. Conta até haver decisão.",
         "team.teilen": "Partilhar",
         "team.uebergebenFrage": "Passar a liderança a {name}? Passas a ser moderador.",
         "team.vergleich.ausFahrern": "de {n} riders",
-    ]
-
-    private static let _pt_PT6: [String: String] = [
         "team.vergleich.ausFahrern1": "de 1 rider",
         "team.vergleich.hinweis": "Cada equipa soma os seus {n} melhores riders. {sport}, incluindo voltas sem dados de movimento; só equipas com classificações públicas.",
         "team.vergleich.leer": "Nenhuma equipa tem ainda uma sessão neste período.",
@@ -4004,6 +4521,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Volta mais duradoura",
         "team.vorlage.monat_strecke": "Quilómetros on-foil no mês",
         "team.vorlage.session_pumps": "Mais pumps numa sessão",
+    ]
+
+    private static let _pt_PT7: [String: String] = [
         "team.vorlage.top_speed": "Vel. máxima",
         "team.vorlage.weitester_lauf": "Volta mais longa",
         "team.vorlage.wochenende_laeufe": "Mais voltas no fim de semana",
@@ -4174,6 +4694,8 @@ enum LocTeam {
         "team.event.wertung": "チームランキング",
         "team.event.wertungAlle": "全メンバーの合計",
         "team.event.wertungBeste": "上位{n}人の合計",
+        "team.event.wertungSchnittAlle": "全メンバーの平均",
+        "team.event.wertungSchnittBeste": "上位 {n} 人の平均",
         "team.eventbild.entfernen": "イベントバナーを削除",
         "team.eventbild.hinweis": "イベントページ上部の横長画像。1600 × 500 px が理想です（幅 800 px 以上）。",
         "team.eventbild.hochladen": "イベントバナーをアップロード",
@@ -4200,11 +4722,11 @@ enum LocTeam {
         "team.gruendenHinweis": "チームは招待リンクですぐに使えます。名前・説明・エンブレムを私たちが確認した後に、公開リストに掲載されます。",
         "team.gruendenKnopf": "作成",
         "team.herkunft": "国・地域",
-        "team.join.anfrage": "申請はチームリーダーに届き、リーダーが判断します。",
-        "team.join.anfrageProfil": "審査のため、これまでにどのスポットでどの種目をしたか（セッション数のみ）がリーダーに表示されます。",
     ]
 
     private static let _ja4: [String: String] = [
+        "team.join.anfrage": "申請はチームリーダーに届き、リーダーが判断します。",
+        "team.join.anfrageProfil": "審査のため、これまでにどのスポットでどの種目をしたか（セッション数のみ）がリーダーに表示されます。",
         "team.join.anfragen": "申請を送信",
         "team.join.angefragt": "申請を送信しました。",
         "team.join.beitreten": "参加",
@@ -4218,6 +4740,10 @@ enum LocTeam {
         "team.join.title": "「{name}」に参加",
         "team.join.wartet": "申請中",
         "team.k.best": "ベスト値",
+        "team.k.sprint_100m": "最速フライング100 m",
+        "team.k.sprint_200m": "最速フライング200 m",
+        "team.k.sprint_300m": "最速フライング300 m",
+        "team.k.sprint_60s": "最速フライング1分",
         "team.k.sum_distance": "オンフォイル距離の合計",
         "team.k.sum_pumps": "ポンプ合計",
         "team.k.sum_runs": "ラン合計",
@@ -4244,15 +4770,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} が「{was}」を {wert} で更新（以前: {vorher}、{vorherWert}）",
         "team.logbuch.start": "{name} が「{was}」を {wert} で保持",
         "team.logbuchHinweis": "誰が、いつ、どのチーム記録を更新したか。毎晩更新されます。",
+    ]
+
+    private static let _ja5: [String: String] = [
         "team.logbuchLeer": "まだ記録はありません。最初の順位は、ランキングを設定した日の夜に表示されます。",
         "team.logoHochladen": "エンブレムをアップロード",
         "team.meine": "マイチーム",
         "team.mitglieder": "メンバー",
         "team.mitgliederAnzahl": "メンバー {n} 人",
         "team.mitgliederAnzahl1": "メンバー 1 人",
-    ]
-
-    private static let _ja5: [String: String] = [
         "team.mitgliederSichtbar": "メンバー一覧を見られるのは？",
         "team.name": "チーム名",
         "team.nichtGefunden": "このチームは存在しないか、公開されていません。",
@@ -4265,8 +4791,38 @@ enum LocTeam {
         "team.profilKnopf": "チーム",
         "team.qr": "QRコード",
         "team.qrTeilen": "QRコードを共有",
-        "team.regeln.events.text": "イベントには期間と独自のランキングがあり、特定のスポットに限定することもできます。\nランキングに加えて、またはその代わりに、イベントでは参加者全員の合計（チーム全体のパンプ数や距離など）を表示できます。各イベントにはランキングか合計が少なくとも1つ必要です。\n期間内に開始したセッションだけが集計されます。\nリーダーはイベントごとに、手動でアップロードしたファイル（FIT・GPX・TCX）を集計しないよう設定できます。ウォッチ、アプリ、連携アカウントの記録は引き続き集計されます。\n終了後も24時間はアップロードでき、その間チームページには「集計中」と表示されます。その後、結果は確定され、後からトリミングや削除をしても何も変わりません。\n終了後に退出した人は結果に残り、その後に参加した人は加わりません。\n結果は毎晩確定されるほか、誰かがチームページを開いた時点でも確定されます。\n時刻はイベントを作成したタイムゾーンのもので、全員にそのまま表示されます。\n1位から3位にはフォイラーページにイベントバッジが付きますが、外観が承認されたチームに限ります。",
+        "team.regeln.beitreten.text": "チームが参加を受け付けている場合、そのページに「参加」ボタンがあります。設定によって、すぐにメンバーになるか、リーダーまたはモデレーターが判断します。\n招待リンクは2つあります：すぐにメンバーになれるリンクと、申請を送るリンクです。どちらも QR コードとしても使えます。\nアカウントを持っていない人は作成すれば、そのままチームに入るか、申請が送られた状態になります。\n新しく作ったリンクは古いリンクに置き換わり、古いリンクは使えなくなります。\n参加するたびに、チームのランキングが公開される可能性があることに同意したことになります。今は公開されていなくても同じです。\n申請時には、これまでにどのスポットでどの種目をしたか（セッション数のみ）がリーダーとモデレーターに表示されます。",
+        "team.regeln.beitreten.titel": "参加",
+        "team.regeln.bestenlisten.text": "1人につき1件だけが集計されます：1つのセッションでのベスト値、または合計の場合は選択した期間内のすべての合算です。\nメンバーのすべてのセッションが対象で、参加前のものも含まれます。退出した人はすぐにランキングから消えます。\nイベントでは終了時点までに限ります（「イベント」を参照）。\nコミュニティの記録と同じフィルターが適用されます：削除された記録、報告された記録、競技が未設定の記録、記録中のものは集計されません。\n各ランキングは、1つの競技、1つのフォイルの範囲、モーションデータのある記録、スマホをボードに装着した記録、またはチームスポットに限定できます。\n「場所を隠す」がオンの場合、そのセッションが特定のスポットで集計されることはありません。\n同じ値の場合は、先にその値を出した人が上位になります。",
+        "team.regeln.bestenlisten.titel": "ランキング",
+        "team.regeln.chat.text": "チームチャットを読んだり書いたりできるのは、アクティブなメンバーだけです。申請しただけの人には表示されません。\n他の人にはどこにも表示されず、アクティブなチャットの一覧にも出てきません。\n退出した人や削除された人は、すぐにアクセスできなくなり、通知も届かなくなります。",
+        "team.regeln.chat.titel": "チームチャット",
+        "team.regeln.events.text": "イベントには期間と独自のランキングがあり、特定のスポットに限定することもできます。\nランキングに加えて、またはその代わりに、イベントでは参加者全員の合計（チーム全体のパンプ数や距離など）を表示できます。各イベントにはランキングか合計が少なくとも1つ必要です。\n期間内に開始したセッションだけが集計されます。\nリーダーはイベントごとに、手動でアップロードしたファイル（FIT・GPX・TCX）を集計しないよう設定できます。ウォッチ、アプリ、連携アカウントの記録は引き続き集計されます。\n終了後も4時間はアップロードでき、その間チームページには「集計中」と表示されます。その後、結果は確定され、後からトリミングや削除をしても何も変わりません。\n終了後に退出した人は結果に残り、その後に参加した人は加わりません。\n結果は毎晩確定されるほか、誰かがチームページを開いた時点でも確定されます。\n時刻はイベントを作成したタイムゾーンのもので、全員にそのまま表示されます。\n1位から3位にはフォイラーページにイベントバッジが付きますが、外観が承認されたチームに限ります。",
+        "team.regeln.events.titel": "イベント",
+        "team.regeln.global.text": "グローバルイベントはpumpfoil.org自身が主催します。期間内に条件に合うセッションがある人は、チーム参加や申し込みなしで自動的に対象になります。\n参加したくない人は、プロフィールの「プライバシー」で「グローバルイベントに参加しない」をオンにします。するとランキング、チーム順位、合計、バッジから外れ、終了済みのイベントからも消えます。\n各ランキングにはチーム順位があります：各チームの上位メンバー（通常5人）の合計です。対象はランキングを公開している承認済みのチームで、2つのチームに所属している人は両方に加算されます。\nランキングはイベントリンクからログインなしでも見られます：順位、表示名、イニシャル、値。\nそれ以外はイベントのルールが適用されます：期間、集計、確定、1〜3位のバッジ（プロフィールページに「Global」と表示）。",
+        "team.regeln.global.titel": "グローバルイベント",
+        "team.regeln.haftung.text": "イベントは各チームが自ら主催します。pumpfoil.org はイベントや、その中でなされる金銭的その他の約束に一切関与せず、責任を負いません。法的手段による請求はできません。支払いやその他の取り決めは、pumpfoil.org とは無関係に主催者と参加者の間で行ってください。\n同様に、pumpfoil.org は計測された数値やデータが正しいかどうか、改ざんされていないかについて一切責任を負いません。表示されるのは、GitHub で公開されているソースコードがアップロードされたデータから計算した結果であり、それ以上の保証はありません。",
+        "team.regeln.haftung.titel": "免責事項",
         "team.regeln.intro": "pumpfoil.org のチームの仕組み：誰が何を見られるか、どう集計されるか、削除するとどうなるか。",
+        "team.regeln.konto.text": "その人はすべてのチームとランキングから消え、確定済みのイベント結果からも消えます。下の順位の人が繰り上がります。\nその人がチームのリーダーだった場合は、最も古くからいるモデレーターが引き継ぎ、いなければ最も古くからいるメンバーが引き継ぎます。誰も残っていなければ、チームは削除されます。",
+        "team.regeln.konto.titel": "アカウントが削除されたとき",
+        "team.regeln.link": "チームのルール",
+        "team.regeln.loeschen.text": "チームを削除できるのはリーダーだけで、確認のためにチーム名を入力する必要があります。\n削除するとチームは全員から見えなくなります：メンバー、ランキング、ログブック、イベント、チームチャット。誤って削除したチームを復元できるよう、データは当面保管します。\nチームのアドレスはロックされたままで、他のチームに割り当てられることはありません。",
+        "team.regeln.loeschen.titel": "チームの削除",
+        "team.regeln.logbuch.text": "ログブックには、誰が、いつ、どのチーム記録を更新したかが残ります。毎晩更新されます。\nランキングの最初の記録は、作成後最初の夜の時点の状況です。\nベスト値では、自分の記録の更新も含めて、すべての向上が記録されます。合計では、誰かがトップに立ったときだけ記録されます。\nセッションが削除されたり誰かが退出したりして記録が下がった場合は、記録を残さずに静かに修正されます。",
+        "team.regeln.logbuch.titel": "ログブック",
+        "team.regeln.oeffentlich.text": "チーム内では何をしても構いません。外部に表示されるのは、名前、アドレス、説明、エンブレム、カラーを私たちが一度確認して承認した後です。\nチームバナーはエンブレムと同じ承認を通ります。どの部分を見せるかはリーダーが新たな承認なしで選べます。バナーを削除すると、公開ページからもすぐに消えます。\n承認済みのチームが外観を変更すると、チーム内ではすぐに反映され、外部には改めて承認された後に反映されます。\n承認済みのチームは「すべてのチーム」ページに掲載されます。チームのイベントはチームページにあり、コミュニティにはpumpfoil.orgのグローバルイベントだけが表示されます。\nリーダーがランキングを公開すると、ログインしていない人も含めて誰でも見られますが、表示されるのは順位、表示名、イニシャル、記録値だけです。セッション、スポット、日付、プロフィール写真はログイン中のユーザーにのみ表示されます。\nチームページは検索エンジンに登録されません。\nメンバー一覧を見られる人はリーダーが決めます：メンバーのみ、またはログイン中のユーザー全員です。",
+        "team.regeln.oeffentlich.titel": "公開されるもの",
+        "team.regeln.rollen.text": "リーダーはすべてを行えます：設定、ランキング、イベント、モデレーターの指名、リーダーの引き継ぎ、チームの削除。\nモデレーターは申請を承認または却下し、メンバーを削除し、イベントを作成します。それ以外は変更できません。\nメンバーはチーム内のすべてを見られ、いつでも退出できます。\nリーダーは、リーダーを引き継いだ後でなければ退出できません。",
+        "team.regeln.rollen.titel": "役割",
+        "team.regeln.statistik.text": "ランキングの上には、選択した期間内の全メンバーの合計が表示されます：ポンプ、オンフォイル距離と時間、セッション、ラン、そしてアクティブだったメンバーの数です。\nチーム対チーム：コミュニティのチームランキングでは、ランキングを公開している承認済みのすべてのチームを、指標ごとに上位3人・5人・10人の合計で比べます。そこではすべてのチームに同じ基準が適用され、各チームのランキングのフィルターは使われません。\n2つのチームに所属している人は、両方のチームに加算されます。",
+        "team.regeln.statistik.titel": "チームの合計",
+        "team.regeln.titel": "チームのルール",
+    ]
+
+    private static let _ja6: [String: String] = [
+        "team.regeln.was.text": "独自のランキング、イベント、チームチャットを持つ固定のグループです。\n誰でもチームを作成でき、複数作ることも、複数のチームに入ることもできます。\n新しいチームは招待リンクですぐに使えます。",
+        "team.regeln.was.titel": "チームとは？",
         "team.rolle.leiter": "リーダー",
         "team.rolle.mitglied": "メンバー",
         "team.rolle.moderator": "モデレーター",
@@ -4295,12 +4851,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "モーションデータありのみ",
         "team.tafel.nurBrett": "スマホをボードに装着したもののみ",
         "team.tafel.nurTeamspots": "チームスポットのみ",
+        "team.tafel.strittig": "確認中",
+        "team.tafel.strittigHinweis": "確認中のセッション {n} 件",
+        "team.tafel.strittigHinweis1": "確認中のセッション 1 件",
+        "team.tafel.strittigTitel": "このセッションへの報告はまだ判断されていません。判断されるまでは集計に含まれます。",
         "team.teilen": "共有",
         "team.uebergebenFrage": "リーダーを {name} に引き継ぎますか？あなたはモデレーターになります。",
         "team.vergleich.ausFahrern": "{n}人の合計",
-    ]
-
-    private static let _ja6: [String: String] = [
         "team.vergleich.ausFahrern1": "1人の合計",
         "team.vergleich.hinweis": "各チームの上位{n}人のライダーの合計で比べます。{sport}、モーションデータのない走行も含みます。ランキングを公開しているチームのみ。",
         "team.vergleich.leer": "この期間にセッションのあるチームはまだありません。",
@@ -4309,6 +4866,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "最長ラン",
         "team.vorlage.monat_strecke": "今月のオンフォイル距離（km）",
         "team.vorlage.session_pumps": "1セッションの最多ポンプ",
+    ]
+
+    private static let _ja7: [String: String] = [
         "team.vorlage.top_speed": "最高速度",
         "team.vorlage.weitester_lauf": "最遠ラン",
         "team.vorlage.wochenende_laeufe": "週末の最多ラン",
@@ -4479,6 +5039,8 @@ enum LocTeam {
         "team.event.wertung": "团队排名",
         "team.event.wertungAlle": "全体成员之和",
         "team.event.wertungBeste": "前{n}名之和",
+        "team.event.wertungSchnittAlle": "全体成员的平均值",
+        "team.event.wertungSchnittBeste": "最佳 {n} 人的平均值",
         "team.eventbild.entfernen": "移除活动横幅",
         "team.eventbild.hinweis": "活动页面顶部的宽幅图片，最好是 1600 × 500 px（宽度至少 800 px）。",
         "team.eventbild.hochladen": "上传活动横幅",
@@ -4505,11 +5067,11 @@ enum LocTeam {
         "team.gruendenHinweis": "你的团队通过邀请链接即可立即使用。我们查看过名称、简介和队徽后，它才会公开列出。",
         "team.gruendenKnopf": "创建",
         "team.herkunft": "国家/地区",
-        "team.join.anfrage": "你的申请将发送给团队负责人，由其决定。",
-        "team.join.anfrageProfil": "审核时，负责人会看到你目前去过哪些地点、从事过哪些运动（仅显示记录次数）。",
     ]
 
     private static let _zh4: [String: String] = [
+        "team.join.anfrage": "你的申请将发送给团队负责人，由其决定。",
+        "team.join.anfrageProfil": "审核时，负责人会看到你目前去过哪些地点、从事过哪些运动（仅显示记录次数）。",
         "team.join.anfragen": "发送申请",
         "team.join.angefragt": "申请已发送。",
         "team.join.beitreten": "加入",
@@ -4523,6 +5085,10 @@ enum LocTeam {
         "team.join.title": "加入“{name}”",
         "team.join.wartet": "申请处理中",
         "team.k.best": "最佳数值",
+        "team.k.sprint_100m": "最快飞行100米",
+        "team.k.sprint_200m": "最快飞行200米",
+        "team.k.sprint_300m": "最快飞行300米",
+        "team.k.sprint_60s": "最快飞行1分钟",
         "team.k.sum_distance": "上翼总距离",
         "team.k.sum_pumps": "泵动总数",
         "team.k.sum_runs": "航段总数",
@@ -4549,15 +5115,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} 以 {wert} 打破“{was}”（此前：{vorher}，{vorherWert}）",
         "team.logbuch.start": "{name} 以 {wert} 保持“{was}”",
         "team.logbuchHinweis": "谁在何时打破了哪项团队纪录。每晚更新。",
+    ]
+
+    private static let _zh5: [String: String] = [
         "team.logbuchLeer": "暂无记录。设置排行榜后的当晚会出现第一份排名。",
         "team.logoHochladen": "上传队徽",
         "team.meine": "我的团队",
         "team.mitglieder": "成员",
         "team.mitgliederAnzahl": "{n} 名成员",
         "team.mitgliederAnzahl1": "1 名成员",
-    ]
-
-    private static let _zh5: [String: String] = [
         "team.mitgliederSichtbar": "谁能看到成员列表？",
         "team.name": "团队名称",
         "team.nichtGefunden": "该团队不存在或未公开。",
@@ -4570,8 +5136,38 @@ enum LocTeam {
         "team.profilKnopf": "团队",
         "team.qr": "二维码",
         "team.qrTeilen": "分享二维码",
-        "team.regeln.events.text": "活动有一个时间窗口和自己的排行榜，也可以只限某些地点。\n除排行榜之外或代替排行榜，活动可以显示所有参与者的总计，例如整个团队的 pump 次数或距离。每个活动至少需要一个排行榜或一项总计。\n只有在时间窗口内开始的记录才计入。\n负责人可以为每个活动设定不统计手动上传的文件（FIT、GPX、TCX）；手表、App 和已关联账户的记录仍然计入。\n结束后仍可在 24 小时内上传，此时团队页面显示“结果统计中”。之后结果被冻结，之后再裁剪或删除都不会改变任何内容。\n结束后退出的人仍保留在结果中；之后加入的人不会再被计入。\n冻结在夜间进行，此外只要有人打开团队页面也会立即冻结。\n时间以创建活动时所在的时区为准，并以此向所有人显示。\n第 1 至 3 名会在自己的玩家主页上获得活动徽章，但仅限外观已获批准的团队。",
+        "team.regeln.beitreten.text": "如果团队开放报名，其页面上会有“加入”按钮。根据设置，你会立即成为成员，或者由负责人或管理员决定。\n邀请链接有两个：一个让你立即成为成员，另一个用于发送申请。两者也都提供二维码。\n还没有账号的人创建账号后，就会直接进入团队，或者已经发出了申请。\n新生成的链接会取代旧链接，旧链接随即失效。\n每次加入时，你都同意团队的排行榜可以公开，即使它们目前并未公开。\n提交申请时，负责人和管理员会看到你目前去过哪些地点、从事过哪些运动（仅显示记录次数）。",
+        "team.regeln.beitreten.titel": "加入",
+        "team.regeln.bestenlisten.text": "每人只计一次：取其单条记录中的最佳值，如果是总计，则把所选时间段内的全部相加。\n成员的所有记录都计入，包括加入之前的。退出的人会立即从榜单上消失。\n对活动而言，这只在结束前适用，见“活动”。\n适用与社区纪录相同的过滤规则：已删除、被举报、未归类和仍在进行中的记录不计入。\n每个排行榜都可以限定为某一项运动、某一水翼范围、带运动数据的记录、手机装在板上的记录或团队地点。\n如果开启了“隐藏地点”，该记录永远不会计入任何特定地点。\n数值相同时，先达到该数值的人排在前面。",
+        "team.regeln.bestenlisten.titel": "排行榜",
+        "team.regeln.chat.text": "只有活跃成员才能阅读和发送团队聊天消息。只发出申请的人看不到它。\n它不会在任何地方向其他人显示，在活跃聊天中也不会出现。\n退出或被移除的人会立即失去访问权限，也不会再收到通知。",
+        "team.regeln.chat.titel": "团队聊天",
+        "team.regeln.events.text": "活动有一个时间窗口和自己的排行榜，也可以只限某些地点。\n除排行榜之外或代替排行榜，活动可以显示所有参与者的总计，例如整个团队的 pump 次数或距离。每个活动至少需要一个排行榜或一项总计。\n只有在时间窗口内开始的记录才计入。\n负责人可以为每个活动设定不统计手动上传的文件（FIT、GPX、TCX）；手表、App 和已关联账户的记录仍然计入。\n结束后仍可在 4 小时内上传，此时团队页面显示“结果统计中”。之后结果被冻结，之后再裁剪或删除都不会改变任何内容。\n结束后退出的人仍保留在结果中；之后加入的人不会再被计入。\n冻结在夜间进行，此外只要有人打开团队页面也会立即冻结。\n时间以创建活动时所在的时区为准，并以此向所有人显示。\n第 1 至 3 名会在自己的玩家主页上获得活动徽章，但仅限外观已获批准的团队。",
+        "team.regeln.events.titel": "活动",
+        "team.regeln.global.text": "全球活动由 pumpfoil.org 自己举办。只要在活动时间内有符合条件的会话，就会自动计入，无需加入团队，也无需报名。\n不想参加的人，可以在个人资料的“隐私”中打开“不参加全球活动”。之后他会从排行榜、团队排名、汇总和徽章中消失，已结束的活动也一样。\n每个排行榜都有团队排名：每个团队最好的成员（通常 5 名）之和。参加的是排行榜公开且已获批准的团队；同时在两个团队的人，两个团队都计入。\n排行榜也可以通过活动链接在未登录时查看：名次、显示名、首字母和数值。\n其余适用活动规则：时间范围、结算、冻结，以及第 1 至 3 名的徽章，在个人主页上标为“Global”。",
+        "team.regeln.global.titel": "全球活动",
+        "team.regeln.haftung.text": "活动由各团队自行组织。pumpfoil.org 对活动及其中作出的任何经济或其他承诺没有任何影响，也不承担任何责任。不得诉诸法律途径。付款及其他一切约定由组织者与参与者自行处理，与 pumpfoil.org 无关。\n同样，pumpfoil.org 不对测得的数值和数据是否正确或是否被篡改承担任何责任。显示的内容即 GitHub 上的公开源代码根据上传的数据计算出的结果，除此之外不作任何承诺。",
+        "team.regeln.haftung.titel": "免责声明",
         "team.regeln.intro": "pumpfoil.org 上的团队是这样运作的：谁能看到什么、如何计分，以及删除时会发生什么。",
+        "team.regeln.konto.text": "此人会从所有团队和排行榜中消失，也会从已冻结的活动结果中消失。排在其后的人依次上移。\n如果此人是某个团队的负责人，由资历最久的管理员接任，否则由资历最久的成员接任。如果已经没有人了，团队就会被删除。",
+        "team.regeln.konto.titel": "账号被删除时",
+        "team.regeln.link": "团队规则",
+        "team.regeln.loeschen.text": "只有负责人可以删除团队，而且必须输入团队名称进行确认。\n之后团队对所有人消失：成员、排行榜、日志、活动和团队聊天。我们暂时保留数据，以便恢复误删的团队。\n团队的地址会保持锁定，永远不会分配给其他团队。",
+        "team.regeln.loeschen.titel": "删除团队",
+        "team.regeln.logbuch.text": "日志记录谁在何时打破了哪项团队纪录。每晚更新。\n排行榜的第一条日志是创建后第一个夜晚的状态。\n对于最佳值，每一次提升都会记录，包括刷新自己的纪录。对于总计，只有当有人登上榜首时才会记录。\n如果因为某条记录被删除或有人退出而导致纪录下降，会悄悄调整，不留日志。",
+        "team.regeln.logbuch.titel": "日志",
+        "team.regeln.oeffentlich.text": "在团队内部可以随意设置。只有在我们查看并批准了团队的名称、地址、简介、队徽和颜色之后，它才会对外显示。\n团队横幅与队徽经过同样的审核。显示哪一部分由负责人选择，无需重新审核；若移除横幅，它也会立即从公开页面消失。\n已获批准的团队如果更改外观，在团队内会立即生效，对外则要在重新批准后才生效。\n已获批准的团队列在“所有团队”页面。团队的活动在团队页面上；社区里只显示 pumpfoil.org 的全球活动。\n如果负责人将排行榜设为公开，所有人都能看到，即使未登录，但只显示名次、显示名称、姓名首字母和数值。记录、地点、日期和头像只有已登录用户才能看到。\n搜索引擎不会收录团队页面。\n谁能看到成员列表由负责人决定：仅成员，或所有已登录用户。",
+        "team.regeln.oeffentlich.titel": "哪些内容是公开的",
+        "team.regeln.rollen.text": "负责人可以做所有事：设置、排行榜、活动、任命管理员、移交负责人身份以及删除团队。\n管理员负责接受或拒绝申请、移除成员以及创建活动。除此之外不能更改任何内容。\n成员可以看到团队内的一切，并且随时可以退出。\n负责人只有在移交负责人身份之后才能退出。",
+        "team.regeln.rollen.titel": "角色",
+        "team.regeln.statistik.text": "排行榜上方显示所选时间段内全体成员的总计：泵动次数、上翼距离和时长、记录数、航段数以及有多少成员活跃。\n团队对团队：在社区中，团队排行榜比较所有排行榜公开且已获批准的团队，每项指标取最好的 3、5 或 10 名骑手之和。那里对所有团队采用同一标准，不使用各团队自己排行榜的筛选条件。\n同时在两个团队的人，两个团队都计入。",
+        "team.regeln.statistik.titel": "团队总计",
+        "team.regeln.titel": "团队规则",
+    ]
+
+    private static let _zh6: [String: String] = [
+        "team.regeln.was.text": "一个固定的小组，有自己的排行榜、活动和团队聊天。\n任何人都可以创建团队，也可以创建多个，并加入多个团队。\n新团队立即就能使用，通过邀请链接即可。",
+        "team.regeln.was.titel": "什么是团队？",
         "team.rolle.leiter": "负责人",
         "team.rolle.mitglied": "成员",
         "team.rolle.moderator": "管理员",
@@ -4600,12 +5196,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "仅含运动数据",
         "team.tafel.nurBrett": "仅手机放在板上",
         "team.tafel.nurTeamspots": "仅团队地点",
+        "team.tafel.strittig": "审核中",
+        "team.tafel.strittigHinweis": "{n} 个会话审核中",
+        "team.tafel.strittigHinweis1": "1 个会话审核中",
+        "team.tafel.strittigTitel": "针对此会话的举报尚未处理，在处理前仍计入排名。",
         "team.teilen": "分享",
         "team.uebergebenFrage": "将负责人移交给 {name}？你将成为管理员。",
         "team.vergleich.ausFahrern": "来自 {n} 名骑手",
-    ]
-
-    private static let _zh6: [String: String] = [
         "team.vergleich.ausFahrern1": "来自 1 名骑手",
         "team.vergleich.hinweis": "每个团队按其最佳 {n} 名骑手的总和计算。{sport}，也包括没有运动数据的滑行；仅限排行榜公开的团队。",
         "team.vergleich.leer": "此期间还没有团队有训练记录。",
@@ -4614,6 +5211,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "最长航段",
         "team.vorlage.monat_strecke": "本月上翼公里数",
         "team.vorlage.session_pumps": "单次记录最多泵动",
+    ]
+
+    private static let _zh7: [String: String] = [
         "team.vorlage.top_speed": "最高速度",
         "team.vorlage.weitester_lauf": "最远航段",
         "team.vorlage.wochenende_laeufe": "周末最多航段",
@@ -4784,6 +5384,8 @@ enum LocTeam {
         "team.event.wertung": "Рейтинг команд",
         "team.event.wertungAlle": "Сумма всех участников",
         "team.event.wertungBeste": "Сумма лучших {n}",
+        "team.event.wertungSchnittAlle": "Среднее всех участников",
+        "team.event.wertungSchnittBeste": "Среднее лучших {n}",
         "team.eventbild.entfernen": "Удалить баннер события",
         "team.eventbild.hinweis": "Широкое изображение вверху страницы события, лучше всего 1600 × 500 px (не меньше 800 px в ширину).",
         "team.eventbild.hochladen": "Загрузить баннер события",
@@ -4810,11 +5412,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Твоя команда работает сразу, через ссылки-приглашения. Публично она появится, только когда мы посмотрим её название, описание и эмблему.",
         "team.gruendenKnopf": "Создать",
         "team.herkunft": "Страна / регион",
-        "team.join.anfrage": "Твоя заявка уйдёт руководителю команды, он и решит.",
-        "team.join.anfrageProfil": "Для проверки руководитель видит, на каких спотах и в каких видах спорта ты катался до сих пор (только число сессий).",
     ]
 
     private static let _ru4: [String: String] = [
+        "team.join.anfrage": "Твоя заявка уйдёт руководителю команды, он и решит.",
+        "team.join.anfrageProfil": "Для проверки руководитель видит, на каких спотах и в каких видах спорта ты катался до сих пор (только число сессий).",
         "team.join.anfragen": "Отправить заявку",
         "team.join.angefragt": "Заявка отправлена.",
         "team.join.beitreten": "Вступить",
@@ -4828,6 +5430,10 @@ enum LocTeam {
         "team.join.title": "Вступить в «{name}»",
         "team.join.wartet": "Заявка на рассмотрении",
         "team.k.best": "Лучшее значение",
+        "team.k.sprint_100m": "Самые быстрые 100 м с ходу",
+        "team.k.sprint_200m": "Самые быстрые 200 м с ходу",
+        "team.k.sprint_300m": "Самые быстрые 300 м с ходу",
+        "team.k.sprint_60s": "Самая быстрая минута с ходу",
         "team.k.sum_distance": "Дистанция на фойле всего",
         "team.k.sum_pumps": "Помпинг всего",
         "team.k.sum_runs": "Заезды всего",
@@ -4854,15 +5460,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} бьёт «{was}» с результатом {wert} (раньше: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} держит «{was}» с результатом {wert}",
         "team.logbuchHinweis": "Кто и когда побил какой рекорд команды. Обновляется каждую ночь.",
+    ]
+
+    private static let _ru5: [String: String] = [
         "team.logbuchLeer": "Записей пока нет. Первые результаты появятся в ночь после создания таблиц лидеров.",
         "team.logoHochladen": "Загрузить эмблему",
         "team.meine": "Мои команды",
         "team.mitglieder": "Участники",
         "team.mitgliederAnzahl": "Участники: {n}",
         "team.mitgliederAnzahl1": "Участники: 1",
-    ]
-
-    private static let _ru5: [String: String] = [
         "team.mitgliederSichtbar": "Кто видит список участников?",
         "team.name": "Название команды",
         "team.nichtGefunden": "Такой команды нет, или она не публичная.",
@@ -4875,8 +5481,38 @@ enum LocTeam {
         "team.profilKnopf": "Команда",
         "team.qr": "QR-код",
         "team.qrTeilen": "Поделиться QR-кодом",
-        "team.regeln.events.text": "У события есть временное окно и свои таблицы лидеров, по желанию только на определённых спотах.\nПомимо таблиц лидеров или вместо них событие может показывать суммы по всем участникам, например пампы или дистанцию всей команды. Каждому событию нужна хотя бы одна таблица или одна сумма.\nУчитываются только сессии, начатые в этом окне.\nДля каждого события руководитель может решить, что вручную загруженные файлы (FIT, GPX, TCX) не учитываются; записи с часов, из приложения и привязанных аккаунтов по-прежнему учитываются.\nПосле окончания можно ещё 24 часа загружать записи, страница команды тогда показывает «подведение итогов». Затем результат замораживается, и последующая обрезка или удаление уже ничего не меняют.\nКто выходит после окончания, остаётся в результате; кто вступает позже, уже не добавляется.\nРезультаты замораживаются ночью, а также сразу, как только кто-то откроет страницу команды.\nВремя указано в часовом поясе, в котором создано событие, и так же показывается всем.\nМеста с 1 по 3 получают значок события на своей странице фойлера, но только в командах с одобренным оформлением.",
+        "team.regeln.beitreten.text": "Если команда принимает заявки, на её странице есть кнопка «Вступить». В зависимости от настройки ты сразу становишься участником, или решает руководитель либо модератор.\nЕсть две ссылки-приглашения: по одной ты сразу становишься участником, по другой отправляешь заявку. Обе есть и в виде QR-кода.\nУ кого ещё нет аккаунта, создаёт его и после этого сразу оказывается в команде или уже отправил заявку.\nНовая ссылка заменяет старую, и старая перестаёт действовать.\nПри каждом вступлении ты соглашаешься с тем, что таблицы лидеров команды могут быть публичными, даже если сейчас это не так.\nПри заявке руководитель и модераторы видят, на каких спотах и в каких видах спорта ты катался до сих пор (только число сессий).",
+        "team.regeln.beitreten.titel": "Вступление",
+        "team.regeln.bestenlisten.text": "Каждый человек учитывается только один раз: его лучшее значение из одной сессии, а для сумм — всё за выбранный период вместе.\nУчитываются все сессии участников, в том числе до вступления. Кто выходит из команды, сразу исчезает из таблиц.\nДля событий это действует только до конца, см. «События».\nДействуют те же фильтры, что и для рекордов сообщества: удалённые, отмеченные жалобой, не отнесённые к виду спорта и ещё идущие записи не учитываются.\nКаждую таблицу лидеров можно ограничить одним видом спорта, одним диапазоном фойлов, записями с данными движения, телефоном на доске или спотами команды.\nЕсли включено «Скрыть место», сессия никогда не учитывается для конкретного спота.\nПри равенстве выше тот, кто показал результат первым.",
+        "team.regeln.bestenlisten.titel": "Таблицы лидеров",
+        "team.regeln.chat.text": "Читать и писать в чат команды могут только активные участники. Кто только отправил заявку, его не видит.\nДля остальных он нигде не появляется, даже среди активных чатов.\nКто выходит из команды или кого убирают, сразу теряет доступ и больше не получает уведомлений.",
+        "team.regeln.chat.titel": "Чат команды",
+        "team.regeln.events.text": "У события есть временное окно и свои таблицы лидеров, по желанию только на определённых спотах.\nПомимо таблиц лидеров или вместо них событие может показывать суммы по всем участникам, например пампы или дистанцию всей команды. Каждому событию нужна хотя бы одна таблица или одна сумма.\nУчитываются только сессии, начатые в этом окне.\nДля каждого события руководитель может решить, что вручную загруженные файлы (FIT, GPX, TCX) не учитываются; записи с часов, из приложения и привязанных аккаунтов по-прежнему учитываются.\nПосле окончания можно ещё 4 часа загружать записи, страница команды тогда показывает «подведение итогов». Затем результат замораживается, и последующая обрезка или удаление уже ничего не меняют.\nКто выходит после окончания, остаётся в результате; кто вступает позже, уже не добавляется.\nРезультаты замораживаются ночью, а также сразу, как только кто-то откроет страницу команды.\nВремя указано в часовом поясе, в котором создано событие, и так же показывается всем.\nМеста с 1 по 3 получают значок события на своей странице фойлера, но только в командах с одобренным оформлением.",
+        "team.regeln.events.titel": "События",
+        "team.regeln.global.text": "Глобальные события проводит сам pumpfoil.org. Автоматически учитывается каждый с подходящими сессиями в рамках события, без вступления и без регистрации.\nКто не хочет участвовать, отключает это в профиле в разделе «Конфиденциальность» («Не участвовать в глобальных событиях»). Тогда он пропадает из таблиц, командного зачёта, сумм и значков, в том числе в уже завершённых событиях.\nУ каждой таблицы есть командный зачёт: сумма лучших участников каждой команды, обычно 5. В нём участвуют одобренные команды с публичными таблицами; кто состоит в двух командах, засчитывается за обе.\nТаблицы видны и без входа по ссылке на событие: место, отображаемое имя, инициалы и значение.\nВ остальном действуют правила событий: время события, подведение итогов, фиксация и значки за места с 1 по 3, отмеченные на странице профиля как «Global».",
+        "team.regeln.global.titel": "Глобальные события",
+        "team.regeln.haftung.text": "События проводят сами команды. pumpfoil.org не влияет на события и на данные в них обещания, финансовые или иные, и не несёт за них ответственности. Обращение в суд исключено. Платежи и все прочие договорённости организаторы и участники решают между собой, независимо от pumpfoil.org.\nТочно так же pumpfoil.org не несёт ответственности за то, верны ли измеренные значения и данные и не были ли они подделаны. Показывается то, что публичный исходный код на GitHub рассчитывает из загруженных данных; других обещаний нет.",
+        "team.regeln.haftung.titel": "Ответственность",
         "team.regeln.intro": "Как устроены команды на pumpfoil.org: кто что видит, как считаются результаты и что происходит при удалении.",
+        "team.regeln.konto.text": "Человек исчезает из всех команд и таблиц лидеров, а также из замороженных результатов событий. Те, кто ниже, поднимаются на место выше.\nЕсли он руководил командой, руководство переходит к модератору с самым большим стажем, иначе к участнику с самым большим стажем. Если никого не осталось, команда удаляется.",
+        "team.regeln.konto.titel": "Когда удаляется аккаунт",
+        "team.regeln.link": "Правила команд",
+        "team.regeln.loeschen.text": "Удалить команду может только руководитель, и только введя для подтверждения название команды.\nПосле этого команда пропадает для всех: участие, таблицы, журнал, события и чат команды. Данные мы пока сохраняем, чтобы случайно удалённую команду можно было восстановить.\nАдрес команды остаётся заблокированным и никогда не передаётся другой команде.",
+        "team.regeln.loeschen.titel": "Удаление команды",
+        "team.regeln.logbuch.text": "Журнал фиксирует, кто и когда побил какой рекорд команды. Он обновляется каждую ночь.\nПервая запись таблицы лидеров — это положение в первую ночь после её создания.\nДля лучших значений считается каждое улучшение, в том числе собственное. Для сумм — только когда кто-то выходит в лидеры.\nЕсли рекорд снижается, потому что сессию удалили или кто-то вышел из команды, это тихо исправляется, без записи.",
+        "team.regeln.logbuch.titel": "Журнал",
+        "team.regeln.oeffentlich.text": "Внутри команда может всё. Для остальных она появляется, только когда мы один раз посмотрели и одобрили её название, адрес, описание, эмблему и цвет.\nБаннер команды проходит ту же проверку, что и эмблема. Какую часть видно, руководитель выбирает без новой проверки; если баннер удалить, он сразу пропадает и с публичной страницы.\nЕсли одобренная команда меняет оформление, в команде это действует сразу, а для остальных — только после нового одобрения.\nОдобренные команды перечислены на странице «Все команды». Их события находятся на странице команды; в сообществе показаны только глобальные события pumpfoil.org.\nЕсли руководитель делает таблицы лидеров публичными, их видят все, даже без входа, но только место, отображаемое имя, инициалы и значение. Сессии, споты, даты и фото профиля видят только вошедшие пользователи.\nПоисковые системы не индексируют страницы команд.\nКто видит список участников, решает руководитель: только участники или все вошедшие пользователи.",
+        "team.regeln.oeffentlich.titel": "Что видно публично",
+        "team.regeln.rollen.text": "Руководитель может всё: настройки, таблицы лидеров, события, назначение модераторов, передачу руководства и удаление команды.\nМодераторы принимают или отклоняют заявки, убирают участников и создают события. Больше они ничего не меняют.\nУчастники видят в команде всё и могут выйти из неё в любой момент.\nРуководитель может выйти, только передав руководство.",
+        "team.regeln.rollen.titel": "Роли",
+        "team.regeln.statistik.text": "Над таблицами лидеров показаны суммы по всем участникам за выбранный период: помпинг, дистанция и время на фойле, сессии, заезды и сколько участников были активны.\nКоманда против команды: в сообществе таблицы команд сравнивают все одобренные команды с публичными таблицами, по каждому показателю суммой лучших 3, 5 или 10 райдеров. Там для всех команд действует одна мерка, а не фильтры их собственных таблиц.\nКто состоит в двух командах, засчитывается за обе.",
+        "team.regeln.statistik.titel": "Итоги команды",
+        "team.regeln.titel": "Правила команд",
+    ]
+
+    private static let _ru6: [String: String] = [
+        "team.regeln.was.text": "Постоянная группа со своими таблицами лидеров, событиями и чатом команды.\nЛюбой может создавать команды, в том числе несколько, и состоять в нескольких командах.\nНовая команда работает сразу, через ссылки-приглашения.",
+        "team.regeln.was.titel": "Что такое команда?",
         "team.rolle.leiter": "Руководитель",
         "team.rolle.mitglied": "Участник",
         "team.rolle.moderator": "Модератор",
@@ -4905,12 +5541,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "только с данными движения",
         "team.tafel.nurBrett": "только телефон на доске",
         "team.tafel.nurTeamspots": "только споты команды",
+        "team.tafel.strittig": "на проверке",
+        "team.tafel.strittigHinweis": "Сессий на проверке: {n}",
+        "team.tafel.strittigHinweis1": "1 сессия на проверке",
+        "team.tafel.strittigTitel": "Жалоба на эту сессию ещё не рассмотрена. До решения она засчитывается.",
         "team.teilen": "Поделиться",
         "team.uebergebenFrage": "Передать руководство участнику {name}? Ты станешь модератором.",
         "team.vergleich.ausFahrern": "из {n} райдеров",
-    ]
-
-    private static let _ru6: [String: String] = [
         "team.vergleich.ausFahrern1": "из 1 райдера",
         "team.vergleich.hinweis": "Для каждой команды считается сумма её {n} лучших райдеров. {sport}, включая заезды без данных движения; только команды с публичными рейтингами.",
         "team.vergleich.leer": "За этот период ни у одной команды пока нет сессий.",
@@ -4919,6 +5556,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Самый долгий заезд",
         "team.vorlage.monat_strecke": "Километры на фойле за месяц",
         "team.vorlage.session_pumps": "Больше всего помпинга за сессию",
+    ]
+
+    private static let _ru7: [String: String] = [
         "team.vorlage.top_speed": "Макс. скорость",
         "team.vorlage.weitester_lauf": "Самый дальний заезд",
         "team.vorlage.wochenende_laeufe": "Больше всего заездов за выходные",
@@ -5089,6 +5729,8 @@ enum LocTeam {
         "team.event.wertung": "Peringkat tim",
         "team.event.wertungAlle": "Jumlah semua anggota",
         "team.event.wertungBeste": "Jumlah {n} terbaik",
+        "team.event.wertungSchnittAlle": "Rata-rata semua anggota",
+        "team.event.wertungSchnittBeste": "Rata-rata {n} terbaik",
         "team.eventbild.entfernen": "Hapus banner event",
         "team.eventbild.hinweis": "Gambar lebar di bagian atas halaman event, idealnya 1600 × 500 px (minimal lebar 800 px).",
         "team.eventbild.hochladen": "Unggah banner event",
@@ -5115,11 +5757,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Timmu langsung bisa dipakai lewat tautan undangan. Tim baru tampil di daftar publik setelah kami memeriksa nama, deskripsi, dan lambangnya.",
         "team.gruendenKnopf": "Buat",
         "team.herkunft": "Negara / wilayah",
-        "team.join.anfrage": "Permintaanmu dikirim ke ketua tim, yang akan memutuskan.",
-        "team.join.anfrageProfil": "Untuk menilainya, ketua melihat di spot mana dan olahraga apa saja kamu pernah bermain sejauh ini (hanya jumlah sesi).",
     ]
 
     private static let _id4: [String: String] = [
+        "team.join.anfrage": "Permintaanmu dikirim ke ketua tim, yang akan memutuskan.",
+        "team.join.anfrageProfil": "Untuk menilainya, ketua melihat di spot mana dan olahraga apa saja kamu pernah bermain sejauh ini (hanya jumlah sesi).",
         "team.join.anfragen": "Kirim permintaan",
         "team.join.angefragt": "Permintaan terkirim.",
         "team.join.beitreten": "Gabung",
@@ -5133,6 +5775,10 @@ enum LocTeam {
         "team.join.title": "Gabung ke “{name}”",
         "team.join.wartet": "Permintaan diproses",
         "team.k.best": "Nilai terbaik",
+        "team.k.sprint_100m": "100 m terbang tercepat",
+        "team.k.sprint_200m": "200 m terbang tercepat",
+        "team.k.sprint_300m": "300 m terbang tercepat",
+        "team.k.sprint_60s": "Menit terbang tercepat",
         "team.k.sum_distance": "Total jarak on-foil",
         "team.k.sum_pumps": "Total pump",
         "team.k.sum_runs": "Total run",
@@ -5159,15 +5805,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} memecahkan “{was}” dengan {wert} (sebelumnya: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} memegang “{was}” dengan {wert}",
         "team.logbuchHinweis": "Siapa memecahkan rekor tim yang mana, dan kapan. Diperbarui setiap malam.",
+    ]
+
+    private static let _id5: [String: String] = [
         "team.logbuchLeer": "Belum ada entri. Klasemen pertama muncul pada malam setelah papan peringkat dibuat.",
         "team.logoHochladen": "Unggah lambang",
         "team.meine": "Tim saya",
         "team.mitglieder": "Anggota",
         "team.mitgliederAnzahl": "{n} anggota",
         "team.mitgliederAnzahl1": "1 anggota",
-    ]
-
-    private static let _id5: [String: String] = [
         "team.mitgliederSichtbar": "Siapa yang bisa melihat daftar anggota?",
         "team.name": "Nama tim",
         "team.nichtGefunden": "Tim ini tidak ada atau tidak publik.",
@@ -5180,8 +5826,38 @@ enum LocTeam {
         "team.profilKnopf": "Tim",
         "team.qr": "Kode QR",
         "team.qrTeilen": "Bagikan kode QR",
-        "team.regeln.events.text": "Event punya rentang waktu dan papan peringkat sendiri, kalau mau hanya di spot tertentu.\nSelain papan peringkat, atau sebagai gantinya, event dapat menampilkan total dari semua peserta, misalnya pump atau jarak seluruh tim. Setiap event memerlukan minimal satu papan peringkat atau satu total.\nHanya sesi yang dimulai dalam rentang waktu itu yang dihitung.\nUntuk setiap event, ketua dapat menetapkan bahwa file yang diunggah manual (FIT, GPX, TCX) tidak dihitung; rekaman dari jam, aplikasi, dan akun tertaut tetap dihitung.\nSetelah selesai, kamu masih bisa mengunggah selama 24 jam; halaman tim lalu menampilkan “menunggu hasil”. Setelah itu hasilnya dibekukan, dan memotong atau menghapus belakangan tidak mengubah apa pun lagi.\nYang keluar setelah selesai tetap ada di hasil; yang bergabung sesudahnya tidak ikut lagi.\nHasil dibekukan pada malam hari dan juga begitu seseorang membuka halaman tim.\nWaktunya mengikuti zona waktu tempat event dibuat dan ditampilkan begitu untuk semua orang.\nPeringkat 1 sampai 3 mendapat lencana event di halaman foiler mereka, tapi hanya untuk tim yang tampilannya sudah disetujui.",
+        "team.regeln.beitreten.text": "Jika tim menerima pendaftaran, halamannya menampilkan tombol “Gabung”. Tergantung pengaturan, kamu langsung jadi anggota, atau ketua tim atau moderator yang memutuskan.\nAda dua tautan undangan: satu yang langsung menjadikanmu anggota dan satu yang mengirim permintaan. Keduanya juga tersedia sebagai kode QR.\nYang belum punya akun membuat akun dulu, lalu langsung masuk tim atau permintaannya sudah terkirim.\nTautan yang baru dibuat menggantikan yang lama, dan yang lama tidak berlaku lagi.\nSetiap kali bergabung, kamu setuju bahwa papan peringkat tim boleh dibuat publik, meski saat ini tidak.\nSaat mengajukan permintaan, ketua dan moderator melihat di spot mana dan olahraga apa saja kamu pernah bermain sejauh ini (hanya jumlah sesi).",
+        "team.regeln.beitreten.titel": "Bergabung",
+        "team.regeln.bestenlisten.text": "Setiap orang dihitung sekali: nilai terbaiknya dari satu sesi, atau untuk total, semua yang dicapai dalam periode yang dipilih dijumlahkan.\nSemua sesi anggota dihitung, termasuk yang dari sebelum bergabung. Yang keluar langsung hilang dari daftar.\nUntuk event, ini hanya berlaku sampai selesai, lihat “Event”.\nFilternya sama dengan rekor komunitas: rekaman yang dihapus, dilaporkan, belum ditetapkan, dan masih berlangsung tidak dihitung.\nSetiap papan peringkat bisa dibatasi ke satu olahraga, rentang foil, rekaman dengan data gerak, ponsel di papan, atau spot tim.\nJika “Sembunyikan lokasi” aktif, sesi itu tidak pernah dihitung untuk spot tertentu.\nJika nilainya sama, yang lebih dulu mencapai nilai itu ada di depan.",
+        "team.regeln.bestenlisten.titel": "Papan peringkat",
+        "team.regeln.chat.text": "Hanya anggota aktif yang bisa membaca dan menulis di chat tim. Yang baru mengirim permintaan tidak bisa melihatnya.\nChat ini tidak muncul di mana pun bagi orang lain, bahkan tidak di daftar chat aktif.\nYang keluar atau dikeluarkan langsung kehilangan akses dan tidak lagi menerima notifikasi.",
+        "team.regeln.chat.titel": "Chat tim",
+        "team.regeln.events.text": "Event punya rentang waktu dan papan peringkat sendiri, kalau mau hanya di spot tertentu.\nSelain papan peringkat, atau sebagai gantinya, event dapat menampilkan total dari semua peserta, misalnya pump atau jarak seluruh tim. Setiap event memerlukan minimal satu papan peringkat atau satu total.\nHanya sesi yang dimulai dalam rentang waktu itu yang dihitung.\nUntuk setiap event, ketua dapat menetapkan bahwa file yang diunggah manual (FIT, GPX, TCX) tidak dihitung; rekaman dari jam, aplikasi, dan akun tertaut tetap dihitung.\nSetelah selesai, kamu masih bisa mengunggah selama 4 jam; halaman tim lalu menampilkan “menunggu hasil”. Setelah itu hasilnya dibekukan, dan memotong atau menghapus belakangan tidak mengubah apa pun lagi.\nYang keluar setelah selesai tetap ada di hasil; yang bergabung sesudahnya tidak ikut lagi.\nHasil dibekukan pada malam hari dan juga begitu seseorang membuka halaman tim.\nWaktunya mengikuti zona waktu tempat event dibuat dan ditampilkan begitu untuk semua orang.\nPeringkat 1 sampai 3 mendapat lencana event di halaman foiler mereka, tapi hanya untuk tim yang tampilannya sudah disetujui.",
+        "team.regeln.events.titel": "Event",
+        "team.regeln.global.text": "Event global diselenggarakan oleh pumpfoil.org sendiri. Siapa pun yang punya sesi yang cocok dalam rentang waktu otomatis dihitung, tanpa bergabung dan tanpa mendaftar.\nYang tidak ingin ikut bisa mematikannya di profil pada “Privasi” (“Jangan ikut event global”). Maka ia tidak muncul di papan peringkat, peringkat tim, total, dan lencana, juga di event yang sudah selesai.\nSetiap papan peringkat punya peringkat tim: jumlah anggota terbaik setiap tim, biasanya 5. Yang ikut adalah tim yang disetujui dengan papan peringkat publik; yang ada di dua tim dihitung untuk keduanya.\nPapan peringkat juga terlihat tanpa login lewat tautan event: peringkat, nama tampilan, inisial, dan nilai.\nSelebihnya berlaku aturan event: rentang waktu, penilaian, pembekuan, dan lencana untuk peringkat 1 sampai 3, ditandai “Global” di halaman profil.",
+        "team.regeln.global.titel": "Event global",
+        "team.regeln.haftung.text": "Event diselenggarakan oleh tim itu sendiri. pumpfoil.org tidak memiliki pengaruh atas event maupun janji yang dibuat di dalamnya, baik finansial maupun lainnya, dan tidak bertanggung jawab atasnya. Jalur hukum dikecualikan. Pembayaran dan semua kesepakatan lain diatur antara penyelenggara dan peserta, terlepas dari pumpfoil.org.\nBegitu pula, pumpfoil.org tidak bertanggung jawab atas benar tidaknya nilai dan data yang diukur atau apakah data tersebut dimanipulasi. Yang ditampilkan adalah hasil perhitungan kode sumber publik di GitHub dari data yang diunggah; tidak ada janji lain.",
+        "team.regeln.haftung.titel": "Tanggung jawab",
         "team.regeln.intro": "Begini cara kerja tim di pumpfoil.org: siapa melihat apa, bagaimana peringkat dihitung, dan apa yang terjadi saat sesuatu dihapus.",
+        "team.regeln.konto.text": "Orang itu hilang dari semua tim dan papan peringkat, juga dari hasil event yang sudah dibekukan. Yang di bawahnya naik peringkat.\nJika ia memimpin tim, moderator paling lama mengambil alih, jika tidak ada maka anggota paling lama. Jika tidak ada siapa pun lagi, tim dihapus.",
+        "team.regeln.konto.titel": "Saat akun dihapus",
+        "team.regeln.link": "Aturan tim",
+        "team.regeln.loeschen.text": "Hanya ketua tim yang bisa menghapus tim, dan hanya dengan mengetik nama tim sebagai konfirmasi.\nSetelah itu tim hilang untuk semua orang: keanggotaan, papan peringkat, buku log, event, dan chat tim. Untuk sementara kami menyimpan datanya agar tim yang terhapus tanpa sengaja bisa dipulihkan.\nAlamat tim tetap diblokir dan tidak pernah diberikan ke tim lain.",
+        "team.regeln.loeschen.titel": "Menghapus tim",
+        "team.regeln.logbuch.text": "Buku log mencatat siapa memecahkan rekor tim yang mana, dan kapan. Diperbarui setiap malam.\nEntri pertama sebuah papan peringkat adalah posisi pada malam pertama setelah papan itu dibuat.\nUntuk nilai terbaik, setiap peningkatan dihitung, termasuk milik sendiri. Untuk total, hanya dihitung saat seseorang mengambil alih posisi teratas.\nJika sebuah rekor turun karena sesi dihapus atau seseorang keluar, rekor itu disesuaikan diam-diam, tanpa entri.",
+        "team.regeln.logbuch.titel": "Buku log",
+        "team.regeln.oeffentlich.text": "Di dalam, tim boleh melakukan apa saja. Tim baru tampil ke luar setelah kami memeriksa dan menyetujui nama, alamat, deskripsi, lambang, dan warnanya.\nBanner tim melewati persetujuan yang sama dengan lambang. Bagian mana yang terlihat dipilih ketua tanpa persetujuan baru; jika banner dihapus, banner langsung hilang juga dari halaman publik.\nJika tim yang sudah disetujui mengubah tampilannya, perubahan langsung berlaku di dalam tim, dan untuk publik setelah disetujui lagi.\nTim yang sudah disetujui tercantum di halaman “Semua tim”. Event mereka ada di halaman tim; di komunitas hanya ada event global dari pumpfoil.org.\nJika ketua tim membuat papan peringkat publik, semua orang bisa melihatnya, bahkan tanpa masuk, tapi hanya peringkat, nama tampilan, inisial, dan nilai. Sesi, spot, tanggal, dan foto profil hanya terlihat oleh pengguna yang sudah masuk.\nMesin pencari tidak mengindeks halaman tim.\nKetua tim menentukan siapa yang melihat daftar anggota: hanya anggota atau semua pengguna yang sudah masuk.",
+        "team.regeln.oeffentlich.titel": "Apa yang publik",
+        "team.regeln.rollen.text": "Ketua tim boleh melakukan semuanya: pengaturan, papan peringkat, event, menunjuk moderator, menyerahkan kepemimpinan, dan menghapus tim.\nModerator menerima atau menolak permintaan, mengeluarkan anggota, dan membuat event. Selain itu mereka tidak mengubah apa pun.\nAnggota melihat semua hal di tim dan bisa keluar kapan saja.\nKetua tim baru bisa keluar setelah menyerahkan kepemimpinan.",
+        "team.regeln.rollen.titel": "Peran",
+        "team.regeln.statistik.text": "Di atas papan peringkat ada total semua anggota dalam periode yang dipilih: pump, jarak dan waktu on-foil, sesi, run, dan berapa anggota yang aktif.\nTim melawan tim: di komunitas, papan peringkat tim membandingkan semua tim yang disetujui dengan papan peringkat publik, per metrik dengan jumlah 3, 5, atau 10 rider terbaik. Di sana berlaku ukuran yang sama untuk semua tim, bukan filter papan peringkat mereka sendiri.\nYang ada di dua tim dihitung untuk keduanya.",
+        "team.regeln.statistik.titel": "Total tim",
+        "team.regeln.titel": "Aturan tim",
+    ]
+
+    private static let _id6: [String: String] = [
+        "team.regeln.was.text": "Kelompok tetap dengan papan peringkat, event, dan chat tim sendiri.\nSiapa pun bisa membuat tim, bahkan beberapa, dan bergabung di beberapa tim.\nTim baru langsung berfungsi, lewat tautan undangan.",
+        "team.regeln.was.titel": "Apa itu tim?",
         "team.rolle.leiter": "Ketua",
         "team.rolle.mitglied": "Anggota",
         "team.rolle.moderator": "Moderator",
@@ -5210,12 +5886,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "hanya dengan data gerak",
         "team.tafel.nurBrett": "hanya ponsel di papan",
         "team.tafel.nurTeamspots": "hanya spot tim",
+        "team.tafel.strittig": "dipersoalkan",
+        "team.tafel.strittigHinweis": "{n} sesi dipersoalkan",
+        "team.tafel.strittigHinweis1": "1 sesi dipersoalkan",
+        "team.tafel.strittigTitel": "Laporan tentang sesi ini belum diputuskan. Sesi tetap dihitung sampai ada keputusan.",
         "team.teilen": "Bagikan",
         "team.uebergebenFrage": "Serahkan posisi ketua kepada {name}? Kamu akan menjadi moderator.",
         "team.vergleich.ausFahrern": "dari {n} rider",
-    ]
-
-    private static let _id6: [String: String] = [
         "team.vergleich.ausFahrern1": "dari 1 rider",
         "team.vergleich.hinweis": "Setiap tim dihitung dari jumlah {n} rider terbaiknya. {sport}, termasuk run tanpa data gerak; hanya tim dengan papan peringkat publik.",
         "team.vergleich.leer": "Belum ada tim dengan sesi pada periode ini.",
@@ -5224,6 +5901,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Run terlama",
         "team.vorlage.monat_strecke": "Kilometer on-foil bulan ini",
         "team.vorlage.session_pumps": "Pump terbanyak dalam satu sesi",
+    ]
+
+    private static let _id7: [String: String] = [
         "team.vorlage.top_speed": "Kecepatan tertinggi",
         "team.vorlage.weitester_lauf": "Run terjauh",
         "team.vorlage.wochenende_laeufe": "Run terbanyak akhir pekan ini",
@@ -5394,6 +6074,8 @@ enum LocTeam {
         "team.event.wertung": "Lagrangering",
         "team.event.wertungAlle": "Sum av alle medlemmer",
         "team.event.wertungBeste": "Sum av de {n} beste",
+        "team.event.wertungSchnittAlle": "Snitt av alle medlemmer",
+        "team.event.wertungSchnittBeste": "Snitt av de beste {n}",
         "team.eventbild.entfernen": "Fjern arrangementsbanner",
         "team.eventbild.hinweis": "Bredt bilde øverst på arrangementssiden, helst 1600 × 500 px (minst 800 px bredt).",
         "team.eventbild.hochladen": "Last opp arrangementsbanner",
@@ -5420,11 +6102,11 @@ enum LocTeam {
         "team.gruendenHinweis": "Laget ditt fungerer med en gang via invitasjonslenker. Det blir oppført offentlig når vi har sett på navnet, beskrivelsen og våpenskjoldet.",
         "team.gruendenKnopf": "Start",
         "team.herkunft": "Land / region",
-        "team.join.anfrage": "Forespørselen din går til lagets leder, som bestemmer.",
-        "team.join.anfrageProfil": "For å vurdere den ser lederen hvilke spotter og idretter du har vært ute på så langt (bare antall økter).",
     ]
 
     private static let _nb4: [String: String] = [
+        "team.join.anfrage": "Forespørselen din går til lagets leder, som bestemmer.",
+        "team.join.anfrageProfil": "For å vurdere den ser lederen hvilke spotter og idretter du har vært ute på så langt (bare antall økter).",
         "team.join.anfragen": "Send forespørsel",
         "team.join.angefragt": "Forespørselen er sendt.",
         "team.join.beitreten": "Bli med",
@@ -5438,6 +6120,10 @@ enum LocTeam {
         "team.join.title": "Bli med i «{name}»",
         "team.join.wartet": "Forespørsel venter",
         "team.k.best": "Beste verdi",
+        "team.k.sprint_100m": "Raskeste flygende 100 m",
+        "team.k.sprint_200m": "Raskeste flygende 200 m",
+        "team.k.sprint_300m": "Raskeste flygende 300 m",
+        "team.k.sprint_60s": "Raskeste flygende minutt",
         "team.k.sum_distance": "Distanse på foil totalt",
         "team.k.sum_pumps": "Pumper totalt",
         "team.k.sum_runs": "Runs totalt",
@@ -5464,15 +6150,15 @@ enum LocTeam {
         "team.logbuch.gebrochen": "{name} slår «{was}» med {wert} (før: {vorher}, {vorherWert})",
         "team.logbuch.start": "{name} har «{was}» med {wert}",
         "team.logbuchHinweis": "Hvem som slo hvilken lagrekord, og når. Oppdateres hver natt.",
+    ]
+
+    private static let _nb5: [String: String] = [
         "team.logbuchLeer": "Ingen oppføringer ennå. Den første stillingen kommer natten etter at topplistene er satt opp.",
         "team.logoHochladen": "Last opp våpenskjold",
         "team.meine": "Mine lag",
         "team.mitglieder": "Medlemmer",
         "team.mitgliederAnzahl": "{n} medlemmer",
         "team.mitgliederAnzahl1": "1 medlem",
-    ]
-
-    private static let _nb5: [String: String] = [
         "team.mitgliederSichtbar": "Hvem ser medlemslisten?",
         "team.name": "Lagnavn",
         "team.nichtGefunden": "Dette laget finnes ikke, eller det er ikke offentlig.",
@@ -5485,8 +6171,38 @@ enum LocTeam {
         "team.profilKnopf": "Lag",
         "team.qr": "QR-kode",
         "team.qrTeilen": "Del QR-kode",
-        "team.regeln.events.text": "Et arrangement har et tidsvindu og egne topplister, om ønskelig bare på bestemte spots.\nI tillegg til eller i stedet for topplister kan et arrangement vise totaler for alle deltakere, for eksempel pumpene eller distansen til hele laget. Hvert arrangement trenger minst én toppliste eller én total.\nBare økter som starter i tidsvinduet, teller.\nFor hvert arrangement kan lederen bestemme at manuelt opplastede filer (FIT, GPX, TCX) ikke teller; opptak fra klokker, appen og koblede kontoer teller fortsatt.\nEtter slutt kan du laste opp i 24 timer til, og lagsiden viser da «resultat ventes». Deretter er resultatet fryst, og senere trimming eller sletting endrer ingenting lenger.\nDen som melder seg ut etter slutten, blir stående i resultatet; den som blir med etterpå, kommer ikke med.\nResultatene fryses om natten og i tillegg så snart noen åpner lagsiden.\nTidene gjelder i tidssonen arrangementet ble opprettet i, og vises slik for alle.\nPlass 1 til 3 får et arrangementsmerke på foilersiden sin, men bare i lag der utseendet er godkjent.",
+        "team.regeln.beitreten.text": "Tar et lag imot påmeldinger, finnes det en «Bli med»-knapp på siden. Avhengig av innstillingen er du medlem med en gang, eller lederen eller en moderator bestemmer.\nDet finnes to invitasjonslenker: én som gjør deg til medlem med en gang, og én som sender en forespørsel. Begge finnes også som QR-kode.\nDen som ikke har konto, oppretter en og er deretter rett i laget, eller har sendt forespørselen.\nEn nylaget lenke erstatter den gamle, som da slutter å virke.\nHver gang du blir med, godtar du at lagets topplister kan være offentlige, også om de ikke er det akkurat nå.\nVed en forespørsel ser lederen og moderatorene hvilke spotter og idretter du har vært ute på så langt (bare antall økter).",
+        "team.regeln.beitreten.titel": "Bli med",
+        "team.regeln.bestenlisten.text": "Hver person teller bare én gang: sin beste verdi fra én økt, eller ved summer alt i valgt periode lagt sammen.\nAlle øktene til medlemmene teller, også de fra før innmeldingen. Den som melder seg ut, forsvinner fra listene med en gang.\nFor arrangementer gjelder det bare til slutten, se «Arrangementer».\nDe samme filtrene gjelder som for fellesskapsrekordene: slettede, rapporterte, ikke tilordnede og pågående opptak teller ikke.\nHver toppliste kan begrenses til én sport, ett foilområde, opptak med bevegelsesdata, telefon på brettet eller lagspotsene.\nEr «Skjul stedet» slått på, teller økten aldri for en bestemt spot.\nVed likt resultat ligger den foran som kjørte verdien først.",
+        "team.regeln.bestenlisten.titel": "Topplister",
+        "team.regeln.chat.text": "Bare aktive medlemmer kan lese og skrive i lagchatten. Den som bare har sendt en forespørsel, ser den ikke.\nDen dukker ikke opp noe sted for andre, heller ikke blant de aktive chattene.\nDen som melder seg ut eller blir fjernet, mister tilgangen med en gang og får ingen flere varsler.",
+        "team.regeln.chat.titel": "Lagchat",
+        "team.regeln.events.text": "Et arrangement har et tidsvindu og egne topplister, om ønskelig bare på bestemte spots.\nI tillegg til eller i stedet for topplister kan et arrangement vise totaler for alle deltakere, for eksempel pumpene eller distansen til hele laget. Hvert arrangement trenger minst én toppliste eller én total.\nBare økter som starter i tidsvinduet, teller.\nFor hvert arrangement kan lederen bestemme at manuelt opplastede filer (FIT, GPX, TCX) ikke teller; opptak fra klokker, appen og koblede kontoer teller fortsatt.\nEtter slutt kan du laste opp i 4 timer til, og lagsiden viser da «resultat ventes». Deretter er resultatet fryst, og senere trimming eller sletting endrer ingenting lenger.\nDen som melder seg ut etter slutten, blir stående i resultatet; den som blir med etterpå, kommer ikke med.\nResultatene fryses om natten og i tillegg så snart noen åpner lagsiden.\nTidene gjelder i tidssonen arrangementet ble opprettet i, og vises slik for alle.\nPlass 1 til 3 får et arrangementsmerke på foilersiden sin, men bare i lag der utseendet er godkjent.",
+        "team.regeln.events.titel": "Arrangementer",
+        "team.regeln.global.text": "Globale eventer arrangeres av pumpfoil.org selv. Alle med passende økter i tidsvinduet teller automatisk, uten å bli med og uten påmelding.\nDen som ikke vil delta, slår det av i profilen under «Personvern» («Ikke delta i globale eventer»). Da mangler man i topplister, lagkonkurranser, summer og merker, også i eventer som allerede er over.\nHver toppliste har en lagkonkurranse: summen av de beste medlemmene i hvert lag, vanligvis 5. Godkjente lag med offentlige topplister er med; den som er med i to lag, teller for begge.\nTopplistene er også synlige uten innlogging via eventlenken: plass, visningsnavn, initialer og verdi.\nEllers gjelder reglene for eventer: tidsvindu, resultat, frysing og merker for plass 1 til 3, merket «Global» på profilsiden.",
+        "team.regeln.global.titel": "Globale eventer",
+        "team.regeln.haftung.text": "Arrangementene drives av lagene selv. pumpfoil.org har ingen innflytelse på arrangementer eller på løfter som gis i dem, økonomiske eller andre, og tar intet ansvar for dem. Rettslig prøving er utelukket. Betalinger og alle andre avtaler ordner arrangører og deltakere seg imellom, uavhengig av pumpfoil.org.\nLikeledes tar pumpfoil.org intet ansvar for om målte verdier og data er riktige eller har blitt manipulert. Det som vises, er det den offentlige kildekoden på GitHub beregner ut fra de opplastede dataene; det gis ingen andre løfter.",
+        "team.regeln.haftung.titel": "Ansvar",
         "team.regeln.intro": "Slik fungerer lag på pumpfoil.org: hvem som ser hva, hvordan det telles, og hva som skjer ved sletting.",
+        "team.regeln.konto.text": "Personen forsvinner fra alle lag og topplister, også fra frosne arrangementsresultater. De nedenfor rykker opp.\nLedet personen et lag, tar moderatoren med lengst fartstid over, ellers medlemmet med lengst fartstid. Er det ingen igjen, slettes laget.",
+        "team.regeln.konto.titel": "Når en konto slettes",
+        "team.regeln.link": "Lagregler",
+        "team.regeln.loeschen.text": "Bare lederen kan slette laget, og bare ved å skrive inn lagnavnet som bekreftelse.\nDa er laget borte for alle: medlemskap, lister, loggbok, arrangementer og lagchatten. Vi tar vare på dataene inntil videre, så et lag som er slettet ved en feil kan gjenopprettes.\nAdressen til laget forblir sperret og gis aldri til et annet lag.",
+        "team.regeln.loeschen.titel": "Slette laget",
+        "team.regeln.logbuch.text": "Loggboken holder rede på hvem som slo hvilken lagrekord, og når. Den oppdateres hver natt.\nDen første oppføringen i en toppliste er stillingen den første natten etter at den ble opprettet.\nFor beste verdier teller hver forbedring, også din egen. For summer teller det bare når noen tar ledelsen.\nSynker en rekord fordi en økt ble slettet eller noen meldte seg ut, rettes det stille, uten oppføring.",
+        "team.regeln.logbuch.titel": "Loggbok",
+        "team.regeln.oeffentlich.text": "Internt kan et lag gjøre alt. Utad vises det først når vi har sett på og godkjent navn, adresse, beskrivelse, våpenskjold og farge.\nLagbanneret går gjennom samme godkjenning som våpenskjoldet. Hvilken del som vises, velger lederen uten ny godkjenning; fjerner lederen banneret, forsvinner det straks også fra den offentlige siden.\nEndrer et godkjent lag utseendet sitt, gjelder det i laget med en gang, utad først etter ny godkjenning.\nGodkjente lag står på siden «Alle lag». Eventene deres står på lagsiden; i fellesskapet står bare de globale eventene fra pumpfoil.org.\nGjør lederen topplistene offentlige, ser alle dem, også uten innlogging, men bare plass, visningsnavn, initialer og verdi. Økter, spots, datoer og profilbilder ser bare innloggede brukere.\nSøkemotorer indekserer ikke lagsider.\nLederen bestemmer hvem som ser medlemslisten: bare medlemmer eller alle innloggede.",
+        "team.regeln.oeffentlich.titel": "Hva som er offentlig",
+        "team.regeln.rollen.text": "Lederen kan gjøre alt: innstillinger, topplister, arrangementer, utnevne moderatorer, overlate lederrollen og slette laget.\nModeratorer godtar eller avslår forespørsler, fjerner medlemmer og oppretter arrangementer. Ellers endrer de ingenting.\nMedlemmer ser alt i laget og kan melde seg ut når som helst.\nLederen kan først melde seg ut etter å ha overlatt lederrollen.",
+        "team.regeln.rollen.titel": "Roller",
+        "team.regeln.statistik.text": "Over topplistene står summene for alle medlemmer i valgt periode: pumper, distanse og tid på foil, økter, runs og hvor mange medlemmer som var aktive.\nLag mot lag: i fellesskapet sammenligner laglistene alle godkjente lag med offentlige topplister, per nøkkeltall med summen av de beste 3, 5 eller 10 rytterne. Der gjelder samme mål for alle lag, ikke filtrene i deres egne lister.\nDen som er med i to lag, teller for begge.",
+        "team.regeln.statistik.titel": "Lagsummer",
+        "team.regeln.titel": "Lagregler",
+    ]
+
+    private static let _nb6: [String: String] = [
+        "team.regeln.was.text": "En fast gruppe med egne topplister, arrangementer og lagchat.\nAlle kan starte lag, også flere, og være med i flere lag.\nEt nytt lag fungerer med en gang, via invitasjonslenker.",
+        "team.regeln.was.titel": "Hva er et lag?",
         "team.rolle.leiter": "Leder",
         "team.rolle.mitglied": "Medlem",
         "team.rolle.moderator": "Moderator",
@@ -5515,12 +6231,13 @@ enum LocTeam {
         "team.tafel.nurBewegung": "bare med bevegelsesdata",
         "team.tafel.nurBrett": "bare telefon på brettet",
         "team.tafel.nurTeamspots": "bare lagspots",
+        "team.tafel.strittig": "omstridt",
+        "team.tafel.strittigHinweis": "{n} omstridte økter",
+        "team.tafel.strittigHinweis1": "1 omstridt økt",
+        "team.tafel.strittigTitel": "En melding om denne økten er ikke avgjort ennå. Den teller til det er avgjort.",
         "team.teilen": "Del",
         "team.uebergebenFrage": "Overlate lederrollen til {name}? Du blir da moderator.",
         "team.vergleich.ausFahrern": "fra {n} ryttere",
-    ]
-
-    private static let _nb6: [String: String] = [
         "team.vergleich.ausFahrern1": "fra 1 rytter",
         "team.vergleich.hinweis": "Hvert lag teller summen av sine {n} beste ryttere. {sport}, også turer uten bevegelsesdata; bare lag med offentlige topplister.",
         "team.vergleich.leer": "Ingen lag har en økt i denne perioden ennå.",
@@ -5529,6 +6246,9 @@ enum LocTeam {
         "team.vorlage.laengster_lauf": "Lengste run (tid)",
         "team.vorlage.monat_strecke": "Kilometer på foil denne måneden",
         "team.vorlage.session_pumps": "Flest pumper i én økt",
+    ]
+
+    private static let _nb7: [String: String] = [
         "team.vorlage.top_speed": "Toppfart",
         "team.vorlage.weitester_lauf": "Lengste run",
         "team.vorlage.wochenende_laeufe": "Flest runs i helgen",

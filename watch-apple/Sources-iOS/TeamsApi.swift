@@ -60,12 +60,15 @@ extension Api {
         try await request(teamPfad(slug) + "/mitglieder", method: "GET", body: nil, auth: true)
     }
 
+    /// `mix=1` (08.11.2026): gemischte Event-Bestenlisten („Pumpfoil + Foil Scoot") mitliefern, `sprint=1` (09.11.2026)
+    /// die Sprint-Bestenlisten (fliegende 100/200/300 m, Minute) — ohne die Schalter laesst der Server sie fuer alte
+    /// App-Fassungen weg (wie web/src/lib/api.ts teamEvents).
     static func teamEvents(_ slug: String) async throws -> [TeamEvent] {
-        try await request(teamPfad(slug) + "/events", method: "GET", body: nil, auth: true)
+        try await request(teamPfad(slug) + "/events?mix=1&sprint=1", method: "GET", body: nil, auth: true)
     }
 
     static func teamEvent(_ slug: String, id: Int) async throws -> TeamEvent {
-        try await request(teamPfad(slug) + "/events/\(id)", method: "GET", body: nil, auth: true)
+        try await request(teamPfad(slug) + "/events/\(id)?mix=1&sprint=1", method: "GET", body: nil, auth: true)
     }
 
     /// Beitreten: `status` aktiv (automatisch akzeptiert) oder angefragt.

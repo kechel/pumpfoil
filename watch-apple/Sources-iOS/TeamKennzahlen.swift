@@ -30,6 +30,22 @@ private func teamStunden(_ s: Double) -> String {
     return String(format: "%.1f h", s / 3600)
 }
 
+/// Sprint ueber eine Strecke: „12.3 s · 29.3 km/h" (web sprintStrecke).
+private func teamSprintStrecke(_ m: Double, _ v: Double) -> String {
+    guard v > 0 else { return "—" }
+    return String(format: "%.1f s · %.1f km/h", m / v, v * 3.6)
+}
+
+/// Kennzahlen, deren Team-Wertung der Durchschnitt der besten N ist (web SPRINT_KENNZAHLEN) — Tempo addiert man nicht.
+let TEAM_SPRINT_KENNZAHLEN: Set<String> = ["sprint_100m", "sprint_200m", "sprint_300m", "sprint_60s"]
+
+/// Wie die Team-Wertung globaler Events zaehlt (web wertungText): Sprints als Durchschnitt der besten N, sonst Summe.
+func teamWertungText(_ kennzahl: String, _ n: Int, _ lang: String) -> String {
+    let schnitt: Bool = TEAM_SPRINT_KENNZAHLEN.contains(kennzahl)
+    if n == 0 { return Loc.t(schnitt ? "team.event.wertungSchnittAlle" : "team.event.wertungAlle", lang) }
+    return teamText(schnitt ? "team.event.wertungSchnittBeste" : "team.event.wertungBeste", lang, ["n": String(n)])
+}
+
 /// Beschriftung + Format einer Bestenlisten-Kennzahl.
 struct TeamKennzahl {
     let labelKey: String
@@ -50,6 +66,13 @@ func teamKennzahl(_ key: String) -> TeamKennzahl {
     case "sum_time": return TeamKennzahl(labelKey: "team.k.sum_time") { v, _ in teamStunden(v) }
     case "sum_pumps", "sum_runs", "sum_sessions", "sum_spots":
         return TeamKennzahl(labelKey: "team.k." + key) { v, l in teamGanz(v, l) }
+    // Fliegende Sprints (09.11.2026, web SPRINT_KENNZAHLEN): Wert = Tempo des besten Fensters in m/s. Strecken als Zeit,
+    // km/h dahinter; die Minute als km/h und die Strecke in dieser Minute. Eine Nachkommastelle, mehr gibt GPS nicht her.
+    case "sprint_100m": return TeamKennzahl(labelKey: "team.k.sprint_100m") { v, _ in teamSprintStrecke(100, v) }
+    case "sprint_200m": return TeamKennzahl(labelKey: "team.k.sprint_200m") { v, _ in teamSprintStrecke(200, v) }
+    case "sprint_300m": return TeamKennzahl(labelKey: "team.k.sprint_300m") { v, _ in teamSprintStrecke(300, v) }
+    case "sprint_60s":
+        return TeamKennzahl(labelKey: "team.k.sprint_60s") { v, _ in String(format: "%.1f km/h · %.0f m", v * 3.6, (v * 60).rounded()) }
     default: return TeamKennzahl(labelKey: key) { v, _ in String(format: "%g", v) }
     }
 }
@@ -178,10 +201,13 @@ struct TeamTafelKarte: View {
     var standText: String? = nil
     /// Als Bild teilen — Knopf „Teilen" rechts neben der Ueberschrift (web 6b9a6f0d); nil = kein Knopf.
     var onBild: (() -> Void)? = nil
+    /// Globale Events: Spalte mit den Team-Wappen je Fahrer (web 8fc88474, 07.11.2026).
+    var teamsZeigen: Bool = false
 
     private var k: TeamKennzahl { teamKennzahl(tf.kennzahl) }
     private var tfarbe: TeamFarbe { TeamFarbe(farbe) }
     private var titel: String { Loc.t(k.labelKey, lang) }
+    private var strittige: Int { tf.zeilen.filter { $0.strittig == true }.count }
     private var filter: String {
         var teile: [String] = []
         if tf.sportart != "pumpfoil" && !sportZeigen { teile.append(Loc.t("cls.sport." + tf.sportart, lang)) }
@@ -198,6 +224,7 @@ struct TeamTafelKarte: View {
             }
             if let st = standText { Text(st).font(.caption).foregroundStyle(.secondary) }
             zeilenBereich
+            TeamStrittigHinweis(anzahl: strittige, lang: lang)
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -226,7 +253,7 @@ struct TeamTafelKarte: View {
             VStack(spacing: 0) {
                 ForEach(Array(tf.zeilen.enumerated()), id: \.offset) { i, z in
                     if i > 0 { Divider() }
-                    TeamTafelZeile(z: z, wert: k.fmt(z.value, lang), farbe: farbe, lang: lang)
+                    TeamTafelZeile(z: z, wert: k.fmt(z.value, lang), farbe: farbe, lang: lang, teamsZeigen: teamsZeigen)
                 }
             }
         }
@@ -252,6 +279,7 @@ private struct TeamTafelZeile: View {
     let wert: String
     let farbe: String?
     let lang: String
+    var teamsZeigen: Bool = false
 
     private var tf: TeamFarbe { TeamFarbe(farbe) }
     private var rangFarbe: Color { z.rang <= 3 ? tf.akzent : Color.secondary }
@@ -269,8 +297,11 @@ private struct TeamTafelZeile: View {
                 .lineLimit(1).minimumScaleFactor(0.6).frame(width: 28, alignment: .trailing)
             bild
             LandFlagge(land: z.land)
+            if teamsZeigen { TeamWappenSpalte(teams: z.teams ?? []) }
             VStack(alignment: .leading, spacing: 1) {
                 Text(name).font(.subheadline).lineLimit(1)
+                SportAbzeichen(sportarten: z.sportarten, lang: lang)
+                if z.strittig == true { TeamStrittigMarke(lang: lang) }
                 if let u = unterzeile { Text(u).font(.caption2).foregroundStyle(.secondary).lineLimit(1) }
             }
             Spacer(minLength: 4)
@@ -298,5 +329,105 @@ private struct TeamTafelZeile: View {
         } else {
             Text(wert).font(.subheadline.weight(.semibold))
         }
+    }
+}
+
+// MARK: - Abzeichen, Wappen-Spalte, „in Klärung"
+
+/// Warnfarbe wie im Web (amber-700 hell / amber-300 dunkel), in beiden Modi lesbar.
+let teamAmberText: Color = Color(UIColor { tc in
+    tc.userInterfaceStyle == .dark ? UIColor(red: 0.988, green: 0.827, blue: 0.302, alpha: 1)
+                                   : UIColor(red: 0.706, green: 0.325, blue: 0.035, alpha: 1)
+})
+
+/// Abzeichen der Sportart in gemischten Ranglisten (web SportAbzeichen.tsx, 08.11.2026): nur dort, wo der Server
+/// `sportarten` mitschickt — das tut er ausschliesslich in gemischten Ansichten. Feste Farbe je Sportart, unbekannte grau.
+struct SportAbzeichen: View {
+    let sportarten: [String]?
+    let lang: String
+
+    private var sortiert: [String] {
+        let reihe: [String] = SPORTS
+        func pos(_ s: String) -> Int { reihe.firstIndex(of: s) ?? -1 }
+        return (sportarten ?? []).sorted { pos($0) < pos($1) }
+    }
+
+    var body: some View {
+        if !(sportarten ?? []).isEmpty {
+            HStack(spacing: 4) {
+                ForEach(sortiert, id: \.self) { sp in marke(sp) }
+            }
+        }
+    }
+
+    private func schrift(_ sp: String) -> Color {
+        switch sp {
+        case "pumpfoil": return TeamFarbe(nil).akzent
+        case "foil_scoot": return teamAmberText
+        default: return Color.secondary
+        }
+    }
+
+    private func flaeche(_ sp: String) -> Color {
+        switch sp {
+        case "pumpfoil": return TeamFarbe(nil).akzent.opacity(0.15)
+        case "foil_scoot": return Color.orange.opacity(0.15)
+        default: return Color(.tertiarySystemBackground)
+        }
+    }
+
+    private func marke(_ sp: String) -> some View {
+        Text(Loc.t("cls.sport." + sp, lang)).font(.system(size: 10, weight: .medium)).foregroundStyle(schrift(sp))
+            .lineLimit(1)
+            .padding(.horizontal, 6).padding(.vertical, 2)
+            .background(flaeche(sp), in: RoundedRectangle(cornerRadius: 4))
+    }
+}
+
+/// „in Klärung" an einer Zeile (web 08.11.2026): offene Meldung, noch nicht entschieden — zaehlt, aber mit Vermerk.
+struct TeamStrittigMarke: View {
+    let lang: String
+
+    var body: some View {
+        Text(Loc.t("team.tafel.strittig", lang)).font(.system(size: 11, weight: .medium)).foregroundStyle(teamAmberText)
+            .lineLimit(1)
+            .accessibilityHint(Loc.t("team.tafel.strittigTitel", lang))
+    }
+}
+
+/// „2 Sessions in Klärung" unter der Liste (web Team.tsx Tafel); nichts bei 0.
+struct TeamStrittigHinweis: View {
+    let anzahl: Int
+    let lang: String
+
+    private var text: String {
+        let key: String = anzahl == 1 ? "team.tafel.strittigHinweis1" : "team.tafel.strittigHinweis"
+        return teamText(key, lang, ["n": String(anzahl)])
+    }
+
+    var body: some View {
+        if anzahl > 0 {
+            Text(text).font(.caption).foregroundStyle(teamAmberText).padding(.top, 4)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+/// Globale Events: Team-Wappen eines Fahrers (hoechstens zwei, leicht ueberlappend; web 8fc88474). Fester Platz, damit
+/// die Namen buendig stehen; Tipp fuehrt zum Team.
+struct TeamWappenSpalte: View {
+    let teams: [TeamEventTeam]
+
+    var body: some View {
+        HStack(spacing: -8) {
+            ForEach(Array(teams.prefix(2)), id: \.slug) { x in
+                NavigationLink { TeamView(slug: x.slug) } label: {
+                    TeamWappen(name: x.name, logo: x.logo_url, farbe: x.farbe, size: 20)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(x.name)
+            }
+        }
+        .frame(width: 28, alignment: .leading)
     }
 }
