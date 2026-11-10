@@ -88,6 +88,8 @@ fun TeamEventScreen(
     var wahl by remember(slug, eventId) { mutableIntStateOf(0) }
     var laedt by remember { mutableStateOf(false) }
     var teilBild by remember { mutableStateOf<TeamBildDaten?>(null) }
+    // Event-Uebersicht als Bild (Web c0d044a2): Summen + die ersten 3 je Kategorie.
+    var uebersicht by remember { mutableStateOf(false) }
     // Globale Events: eigene (aktive) Teams, fuer ihre Zeilen hinter Platz 10 und die Hervorhebung im Bild.
     var meineTeams by remember { mutableStateOf<Set<String>>(emptySet()) }
     val scope = rememberCoroutineScope()
@@ -258,13 +260,23 @@ fun TeamEventScreen(
                         // hoechstens alle 2 min neu).
                         val idx = wahl.coerceIn(0, maxOf(0, e.tafeln.size - 1))
                         val neuLadenMoeglich = e.status == "laeuft" || e.status == "auswertung"
-                        if (e.tafeln.size > 1 || neuLadenMoeglich) {
+                        // Event-Uebersicht als Bild (Web c0d044a2, 07.11.2026), sobald es Bestenlisten oder Summen gibt.
+                        val uebersichtMoeglich = e.tafeln.size + e.summenAuswahl.size > 0
+                        if (e.tafeln.size > 1 || neuLadenMoeglich || uebersichtMoeglich) {
+                            if (e.tafeln.size > 1) {
+                                // Mehrere Sportarten (z. B. Pumpfoil und Foil Scoot getrennt): Sportart mit in die Auswahl (Web d6b52f77).
+                                AuswahlFeld(idx.toString(), e.tafeln.mapIndexed { i, tf -> Option(i.toString(), tafelTitel(tf, e)) },
+                                    onWahl = { wahl = it.toIntOrNull() ?: 0 }, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
+                            }
                             Row(Modifier.fillMaxWidth().padding(bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                if (e.tafeln.size > 1) {
-                                    // Mehrere Sportarten (z. B. Pumpfoil und Foil Scoot getrennt): Sportart mit in die Auswahl (Web d6b52f77).
-                                    AuswahlFeld(idx.toString(), e.tafeln.mapIndexed { i, tf -> Option(i.toString(), tafelTitel(tf, e)) },
-                                        onWahl = { wahl = it.toIntOrNull() ?: 0 }, modifier = Modifier.weight(1f))
-                                } else Spacer(Modifier.weight(1f))
+                                if (uebersichtMoeglich) {
+                                    OutlinedButton(onClick = { uebersicht = true }, contentPadding = PaddingValues(horizontal = 12.dp)) {
+                                        Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(Modifier.width(6.dp))
+                                        Text(I18n.t("team.event.uebersichtTeilen"), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    }
+                                }
+                                Spacer(Modifier.weight(1f))
                                 if (neuLadenMoeglich) {
                                     Spacer(Modifier.width(8.dp))
                                     OutlinedButton(enabled = !laedt, onClick = {
@@ -288,6 +300,8 @@ fun TeamEventScreen(
                             val tf = if (e.global) tf0.copy(zeilen = tf0.zeilen.take(10) + listOfNotNull(eig)) else tf0
                             val standText = standFuer(tf0)
                             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                // Siegertreppchen ueber der Bestenliste, nur beendete Events (Web EventPodest, 09.11.2026).
+                                if (e.status == "beendet") EventPodest(e.id, tf0, e.global, f, onOpenTeam)
                                 TeamTafelKarte(tf, f, onOpenSession, ohneFilter = true,
                                     sportZeigen = e.tafeln.map { x -> x.sportart }.distinct().size > 1, standText = standText,
                                     teamsZeigen = e.global, onOpenTeam = onOpenTeam,
@@ -380,6 +394,12 @@ fun TeamEventScreen(
         TeamEventBearbeitenDialog(t.slug, t.farbe, evB, onZu = { bearbeiten = false; evLaden++ }, offiziell = t.offiziell)
     }
     teilBild?.let { TeamBildDialog(it, onClose = { teilBild = null }) }
+    val evU = ev
+    if (uebersicht && t != null && evU != null) {
+        // Stand wie im Web: der der ersten Bestenliste.
+        EventUebersichtDialog(evU, t, evU.tafeln.firstOrNull()?.let { standFuer(it) }, bildAbzeichen,
+            onClose = { uebersicht = false })
+    }
 }
 
 /** Name einer Event-Bestenliste; hat das Event Bestenlisten verschiedener Sportarten, steht die Sportart dabei (Web tafelTitel). */

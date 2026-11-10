@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
@@ -203,7 +204,25 @@ internal class TeamBildDaten(val titel: String, val unter: String, val zeilen: L
                              // Text, wenn die Liste leer ist (Team-Rangliste eines Events ohne Teams)
                              val leer: String? = null,
                              // Die eigene Zeile (hinter Platz 10) ist ein Team — dann heisst der Schalter „Mein Team zeigen".
-                             val eigenesTeam: Boolean = false)
+                             val eigenesTeam: Boolean = false,
+                             // Event-Uebersicht (Web c0d044a2, 07.11.2026): statt `zeilen` Summen-Kacheln (Wert, Beschriftung) und je
+                             // Kategorie die ersten Plaetze; die Hoehe waechst mit (uebersichtHoehe).
+                             val summen: List<Pair<String, String>> = emptyList(),
+                             val gruppen: List<BildGruppe>? = null,
+                             val hoehe: Int = 1080,
+                             // Platz fuer ein Wappen auch in Zeilen ohne (globale Events, Namen buendig; Web wappenPlatz)
+                             val wappenPlatz: Boolean = false) {
+    /** Alle Zeilen, deren Logos und Flaggen geladen werden muessen (auch die der Uebersicht). */
+    val alleZeilen: List<BildZeile> get() = zeilen + gruppen.orEmpty().flatMap { it.zeilen }
+}
+
+/** Eine Kategorie der Event-Uebersicht: Titel und die ersten (hoechstens 3) Plaetze. */
+internal class BildGruppe(val titel: String, val zeilen: List<BildZeile>)
+
+/** Hoehe der Event-Uebersicht (Web uebersichtHoehe): Kopf, Summen, je Kategorie Titel + 3 Zeilen, Fuss — zwischen
+ *  quadratisch und 9:16. */
+internal fun uebersichtHoehe(summen: Int, gruppen: Int): Int =
+    maxOf(1080, minOf(1920, 360 + (if (summen > 0) 190 else 0) + gruppen * 262 + 200))
 
 /** Alle Uhren, Konten und Wege, mit denen man aufnehmen kann — in JEDEM Teilen-Bild statt der Quellen der einzelnen Liste
  *  (Web lib/bestenlisteBild.ts plattformZeile, 07.11.2026). Herstellernamen unuebersetzt, nur Handy und Datei-Upload. */
@@ -214,9 +233,9 @@ internal fun plattformZeile(): String = listOf("Garmin", "Apple Watch", "Wear OS
 private const val BILD_MIT_MIR_PREF = "foil_bild_mit_mir"
 
 // Dieselben Farben wie web/src/lib/bestenlisteBild.ts (DUNKEL/HELL, wie die Session-Karte sharecard.py), je Fassung.
-private class BildFarben(val grund: Int, val flaeche: Int, val linie: Int, val akzent: Int, val text: Int, val leise: Int)
-private val BILD_DUNKEL = BildFarben(0xFF020617.toInt(), 0xFF0C1426.toInt(), 0xFF1E293B.toInt(), 0xFF22D3EE.toInt(), 0xFFFFFFFF.toInt(), 0xFF94A3B8.toInt())
-private val BILD_HELL = BildFarben(0xFFF8FAFC.toInt(), 0xFFE0F2FE.toInt(), 0xFFE2E8F0.toInt(), 0xFF0E7490.toInt(), 0xFF0F172A.toInt(), 0xFF64748B.toInt())
+private class BildFarben(val grund: Int, val flaeche: Int, val linie: Int, val akzent: Int, val text: Int, val leise: Int, val sek: Int)
+private val BILD_DUNKEL = BildFarben(0xFF020617.toInt(), 0xFF0C1426.toInt(), 0xFF1E293B.toInt(), 0xFF22D3EE.toInt(), 0xFFFFFFFF.toInt(), 0xFF94A3B8.toInt(), 0xFFCBD5E1.toInt())
+private val BILD_HELL = BildFarben(0xFFF8FAFC.toInt(), 0xFFE0F2FE.toInt(), 0xFFE2E8F0.toInt(), 0xFF0E7490.toInt(), 0xFF0F172A.toInt(), 0xFF64748B.toInt(), 0xFF475569.toInt())
 
 /** Hell/Dunkel des Bildes merkt sich die App (wie der Browser `foil_bild_hell` im Web, nur Komfort). */
 private const val BILD_HELL_PREF = "foil_bild_hell"
@@ -257,10 +276,11 @@ private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, 
                             flaggen: Map<String, android.graphics.Bitmap>, marke: android.graphics.Bitmap?,
                             mitMir: Boolean = true): android.graphics.Bitmap {
     val F = if (hell) BILD_HELL else BILD_DUNKEL
-    val zeilen = d.zeilen.take(10)
-    val eigene = if (mitMir) d.zeilen.drop(10).firstOrNull { it.ich } else null
-    val B = 1080f; val X = 90f
-    val b = android.graphics.Bitmap.createBitmap(1080, 1080, android.graphics.Bitmap.Config.ARGB_8888)
+    val zeilen = if (d.gruppen != null) emptyList() else d.zeilen.take(10)
+    val eigene = if (mitMir && d.gruppen == null) d.zeilen.drop(10).firstOrNull { it.ich } else null
+    // H = Hoehe; nur die Event-Uebersicht ist hoeher als quadratisch.
+    val B = 1080f; val X = 90f; val H = d.hoehe.toFloat()
+    val b = android.graphics.Bitmap.createBitmap(1080, d.hoehe, android.graphics.Bitmap.Config.ARGB_8888)
     val g = android.graphics.Canvas(b)
     g.drawColor(F.grund)
     val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG or android.graphics.Paint.FILTER_BITMAP_FLAG)
@@ -286,10 +306,10 @@ private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, 
     schrift(58f, true); g.drawText(kuerzen(d.titel, rechts - X), X, 118f, p)
     schrift(30f, true); g.drawText(kuerzen(d.unter, B - 2 * X), X, 156f, p)
 
-    val oben = 215f; val unten = B - 150f
+    val oben = 215f; val unten = H - 150f
     val n = maxOf(zeilen.size, 1) + (if (eigene != null && zeilen.isNotEmpty()) 1.4f else 0f)
-    val zh = minOf(110f, kotlin.math.floor((unten - oben) / n))
-    val gross = Math.round(zh * 0.5f).toFloat()
+    var zh = minOf(110f, kotlin.math.floor((unten - oben) / n))
+    var gross = Math.round(zh * 0.5f).toFloat()
     fun mitteText(y: Float) = y - (p.descent() + p.ascent()) / 2f
     fun zeile(z: BildZeile, y: Float, hinterlegt: Boolean) {
         val mitte = y + zh / 2
@@ -317,7 +337,7 @@ private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, 
         }
         g.restore()
         nx += ws + 16
-        }
+        } else if (d.wappenPlatz) nx += Math.round(gross * 1.25f) + 16
         // Flagge 4:3 vor dem Namen, mit feinem Rand (weisse Flaggen verschwaenden sonst auf hellem Grund).
         val fh = Math.round(gross * 0.8f).toFloat(); val fw = Math.round(fh * 4 / 3).toFloat()
         // Kontinent/Erde je nach Hell/Dunkel des Bildes (die vorab geladenen Flaggen kennen nur die dunkle Fassung).
@@ -338,7 +358,46 @@ private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, 
         p.textAlign = android.graphics.Paint.Align.LEFT; p.color = F.text
         g.drawText(kuerzen(z.name, B - X - wb - 30 - nx), nx, mitteText(mitte), p)
     }
-    if (zeilen.isEmpty()) d.leer?.let { l ->
+    d.gruppen?.let { gruppen ->
+        // Event-Uebersicht (Web c0d044a2): Summen-Kacheln nebeneinander, darunter je Kategorie Titel + die ersten Plaetze.
+        var y = oben
+        if (d.summen.isNotEmpty()) {
+            val su = d.summen
+            val gap = 18f; val kb = (B - 2 * X - gap * (su.size - 1)) / su.size; val kh = 150f
+            su.forEachIndexed { i, (wert, label) ->
+                val kx = X + i * (kb + gap)
+                p.color = F.flaeche; g.drawRoundRect(kx, y, kx + kb, y + kh, 22f, 22f, p)
+                p.style = android.graphics.Paint.Style.STROKE; p.strokeWidth = 3f; p.color = F.akzent
+                g.drawRoundRect(kx, y, kx + kb, y + kh, 22f, 22f, p)
+                p.style = android.graphics.Paint.Style.FILL
+                p.textAlign = android.graphics.Paint.Align.CENTER; p.color = F.akzent
+                var px = if (su.size > 3) 46f else 56f
+                schrift(px, true)
+                while (px > 28f && p.measureText(wert) > kb - 24) { px -= 2f; schrift(px, true) }
+                g.drawText(wert, kx + kb / 2, y + 82, p)
+                p.color = F.sek; schrift(if (su.size > 3) 20f else 24f, true)
+                g.drawText(kuerzen(label, kb - 20), kx + kb / 2, y + 122, p)
+            }
+            y += kh + 40
+        }
+        zh = 62f; gross = 31f
+        for (gr in gruppen) {
+            if (y + 44 + 3 * zh > H - 170) break
+            p.textAlign = android.graphics.Paint.Align.LEFT; p.color = F.text; schrift(30f, true)
+            g.drawText(kuerzen(gr.titel, B - 2 * X), X, y + 30, p)
+            y += 44
+            gr.zeilen.take(3).forEachIndexed { i, z ->
+                if (i > 0) { p.color = F.linie; g.drawRect(X, y + i * zh, B - X, y + i * zh + 2, p) }
+                zeile(z, y + i * zh, false)
+            }
+            if (gr.zeilen.isEmpty()) {
+                p.color = F.sek; schrift(26f, false); p.textAlign = android.graphics.Paint.Align.LEFT
+                g.drawText(d.leer ?: "—", X, mitteText(y + zh / 2), p)
+            }
+            y += gr.zeilen.size.coerceIn(1, 3) * zh + 30
+        }
+    }
+    if (zeilen.isEmpty() && d.gruppen == null) d.leer?.let { l ->
         p.color = F.leise; schrift(34f, false); p.textAlign = android.graphics.Paint.Align.LEFT
         g.drawText(kuerzen(l, B - 2 * X), X, oben + 60f, p)
     }
@@ -355,14 +414,14 @@ private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, 
     // Fuss wie bei der Session-Karte: Schriftzug unten rechts (Hoehe 54, 90 vom Rand), Motto links.
     if (marke != null) {
         val lh = 54f; val lw = marke.width * lh / marke.height
-        g.drawBitmap(marke, null, android.graphics.RectF(B - X - lw, B - X, B - X, B - X + lh), p)
+        g.drawBitmap(marke, null, android.graphics.RectF(B - X - lw, H - X, B - X, H - X + lh), p)
     } else {
         p.color = F.akzent; schrift(34f, true); p.textAlign = android.graphics.Paint.Align.RIGHT
-        g.drawText("pumpfoil.org", B - X, B - X + 38, p)
+        g.drawText("pumpfoil.org", B - X, H - X + 38, p)
     }
     // Motto in unserem Cyan (Web 272ade79, 07.11.2026), nicht in der Teamfarbe; hell die dunklere Stufe wegen des Kontrasts.
     p.color = F.akzent; schrift(26f, true); p.textAlign = android.graphics.Paint.Align.LEFT
-    g.drawText("Have fun, keep pumping!", X, B - X + 38, p)
+    g.drawText("Have fun, keep pumping!", X, H - X + 38, p)
     // Plattform-Liste zwischen Liste und Fuss, klein wie unter der Liste (Web bestenlisteBild.ts): immer die volle Liste,
     // notfalls bis 15 px kleiner, damit sie ganz drauf passt.
     p.color = F.leise
@@ -370,7 +429,7 @@ private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, 
     var px = 20f
     schrift(px, false)
     while (px > 15f && p.measureText(quelle) > B - 2 * X) { px -= 1f; schrift(px, false) }
-    g.drawText(kuerzen(quelle, B - 2 * X), X, B - X - 22, p)
+    g.drawText(kuerzen(quelle, B - 2 * X), X, H - X - 22, p)
     return b
 }
 
@@ -380,7 +439,9 @@ private fun zeichneTeamBild(d: TeamBildDaten, hell: Boolean, logos: Map<String, 
  */
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
-internal fun TeamBildDialog(d: TeamBildDaten, onClose: () -> Unit) {
+internal fun TeamBildDialog(d: TeamBildDaten, onClose: () -> Unit, titel: String = I18n.t("team.bild.titel"),
+                            /** Zusaetzliche Einstellungen ueber Hell/Dunkel, z. B. die Kategorie-Auswahl der Event-Uebersicht. */
+                            extra: (@Composable () -> Unit)? = null) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val prefs = remember { ctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE) }
@@ -397,18 +458,19 @@ internal fun TeamBildDialog(d: TeamBildDaten, onClose: () -> Unit) {
     LaunchedEffect(d) {
         val loader = coil.ImageLoader(ctx)
         val m = mutableMapOf<String, android.graphics.Bitmap>()
-        d.zeilen.mapNotNull { Api.mediaUrl(it.logoUrl) }.distinct().forEach { url ->
+        d.alleZeilen.mapNotNull { Api.mediaUrl(it.logoUrl) }.distinct().forEach { url ->
             runCatching {
                 val r = loader.execute(coil.request.ImageRequest.Builder(ctx).data(url).allowHardware(false).build())
                 ((r as? coil.request.SuccessResult)?.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap?.let { m[url] = it }
             }
         }
         flaggen = withContext(Dispatchers.Default) {
-            d.zeilen.mapNotNull { it.land?.uppercase() }.distinct().mapNotNull { c -> flaggeBild(c)?.let { c to it } }.toMap()
+            d.alleZeilen.mapNotNull { it.land?.uppercase() }.distinct().mapNotNull { c -> flaggeBild(c)?.let { c to it } }.toMap()
         }
         logos = m
     }
-    LaunchedEffect(hell, logos, mitMir) {
+    // `d` mit als Schluessel: bei der Uebersicht aendert die Kategorie-Auswahl die Daten, die Logos bleiben oft gleich.
+    LaunchedEffect(d, hell, logos, mitMir) {
         val l = logos ?: return@LaunchedEffect
         bmp = withContext(Dispatchers.Default) {
             val marke = runCatching {
@@ -430,17 +492,19 @@ internal fun TeamBildDialog(d: TeamBildDaten, onClose: () -> Unit) {
     }
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onClose,
-        title = { Text(I18n.t("team.bild.titel")) },
+        title = { Text(titel) },
         text = {
-            Column {
+            // Scrollbar: die Event-Uebersicht ist bis 9:16 hoch und hat darunter noch die Kategorie-Auswahl.
+            Column(Modifier.verticalScroll(rememberScrollState())) {
                 val b = bmp
                 if (b != null) {
                     androidx.compose.foundation.Image(b.asImageBitmap(), contentDescription = null,
-                        modifier = Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(12.dp)))
+                        modifier = Modifier.fillMaxWidth().aspectRatio(b.width.toFloat() / b.height).clip(RoundedCornerShape(12.dp)))
                 } else {
-                    Box(Modifier.fillMaxWidth().aspectRatio(1f), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                    Box(Modifier.fillMaxWidth().aspectRatio(1080f / d.hoehe), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                 }
                 Spacer(Modifier.height(10.dp))
+                extra?.invoke()
                 if (hatEigene) {
                     Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable {
                         mitMir = !mitMir

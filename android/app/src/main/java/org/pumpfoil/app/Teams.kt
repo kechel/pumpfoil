@@ -210,6 +210,7 @@ data class TeamWertungZeile(
     val value: Double = 0.0,
     val fahrer: Int = 0,
     val teilnehmer: Int = 0,
+    val mitglieder: Int? = null,                // Groesse des Teams (Koepfe im Siegertreppchen, 09.11.2026)
     val strittig: Boolean = false,              // ein mitgezaehltes Mitglied hat eine offene Meldung (08.11.2026)
     val sportarten: List<String>? = null,       // gemischte Ansicht: Sportart(en) dieser Zeile fuers Abzeichen
 )
