@@ -450,7 +450,7 @@ Fuer das uebernaechste globale Event (nach dem Sprint-Wochenende). Nur festgehal
 
 - **Einreichen:** Jeder waehlt eine eigene Session, trimmt sie selbst (von/bis, mit Vorschau des Tracks) und darf das
   Bild rotieren.
-- **Bewertung durch die Community**, aber **anonym**: nur der Track, weiss auf weissem Grund bzw. Linie auf leerem
+- **Bewertung durch die Community**, aber **anonym**: nur der Track als Linie auf weissem
   Grund — keine Karte, kein See, kein Name, kein Team. Damit Teams nicht nur sich selbst hochvoten; nebenbei verraet
   ein nackter Track keinen Heimatspot.
 - **Moderation (Jan, entschieden):** Humor bleibt, auch wenn ein Penis gewinnt. Nur wirklich Verbotenes
