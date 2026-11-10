@@ -349,7 +349,10 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.101",   # LIVE 2026-11-06: am Tag der Einreichung freigegeben (Jans Meldung, Store-Seite „November 6, 2026",
+        "latest": "1.0.102",   # LIVE 2026-11-10: am Tag der Einreichung freigegeben (Jans Meldung, aus dem Store auf fenix 7X Pro
+        # und FR55 installiert, Testsessions #21096 -> #21098 (in der Garmin-Connect-Session aufgegangen) und #21097). Inhalt:
+        # Fortsetzen vorausgewaehlt, V-max wie der Server. .iq aus 7b71999b, 222 Varianten. Changelog 979/980 + Ereignis 981.
+        # ALT: "latest": "1.0.101",   # LIVE 2026-11-06: am Tag der Einreichung freigegeben (Jans Meldung, Store-Seite „November 6, 2026",
         # per curl latestExternalVersion 1.0.101). Inhalt: Aufnahme startet bei vollem Speicher immer. .iq aus 9bd83fd1, 222
         # Varianten; watch/bin aus a25d6218 (133 Builds). Changelog 940 + Ereignis 942.
         # ALT: "latest": "1.0.100",   # LIVE 2026-11-05: am Tag der Einreichung freigegeben (Jans Meldung ~19:00, aus dem Store installiert,
@@ -947,14 +950,7 @@ IN_REVIEW: list[dict] = [
          "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
      ]},
     # 06.11.2026 (Jan: „fortsetzen vorauswaehlen ist gut"): Pausen-Menue mit Vorauswahl.
-    # EINGEREICHT 10.11.2026 (Jans Meldung), .iq aus 7b71999b, 222 Geraete, release-staging/garmin-1.0.102/.
-    {"name": "Garmin", "version": "1.0.102",
-     "eingereicht": "2026-11-10",
-     "items": [
-         "In the pause menu, Resume is preselected, so pressing START twice continues your recording.",
-         # 10.11.2026: V-max wie der Server (0e878a78)
-         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
-     ]},
+    # Garmin 1.0.102 am 10.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkte 979/980 im Changelog mit garmin 1.0.102.
     # EINGEREICHT 10.11.2026 11:47 (Jans Meldung, ASC „Warten auf Pruefung“, Uebermittlung
     # 39a85ee1-84c4-4cad-b03f-2e8a6107a2a6). 1.1.63 nie eingereicht, 1.1.64 (74) traegt den Event-Port (7cd19783, d493f81f, 4809e2e5), die
     # Kachel (bd8c20dc), das Kalender-Abo als Menue (6eb20f5a) und die V-max (f3426467, 90e47c9b).
