@@ -14,6 +14,7 @@ import { TEAM_FARBEN } from "../lib/teamFarben";
 import type { TeamWertungZeile } from "../lib/api";
 import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
 import { Card } from "../components/ui";
+import EventMeinTeam from "../components/EventMeinTeam";
 import EventPodest from "../components/EventPodest";
 import TeamWappen from "../components/TeamWappen";
 import { bildAbzeichen, dateiTeil, uebersichtHoehe, type BildZeile } from "../lib/bestenlisteBild";
@@ -401,6 +402,11 @@ export default function TeamEventSeite() {
       {!gast && team.mein_status === "angefragt" && <p className="mb-4 text-sm text-slate-300">{t("team.join.wartet")}</p>}
 
       <h3 className="mb-2 text-lg font-bold text-slate-100">{t(eventStandKey(ev.status))}</h3>
+      {/* Teamwahl globaler Events (10.11.2026): schon vor dem Start, bis 6 h vor dem Ende */}
+      {ev.global && ev.mein_team && !gast && (ev.status === "kommend" || ev.status === "laeuft") && (
+        <EventMeinTeam slug={team.slug} evId={ev.id} mt={ev.mein_team} t={t}
+          onGeaendert={() => api.teamEvent(slug, id).then(setEv).catch(() => {})} />
+      )}
       {ev.status === "kommend" ? (
         <Countdown ev={ev} lang={lang} t={t} />
       ) : (

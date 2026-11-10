@@ -962,3 +962,81 @@ def test_event_kachel_bild(client, monkeypatch):
     assert (liste[eig]["banner_url"], liste[eig]["banner_fokus"]) == ("/media/teams/event.webp", "60,40")
     assert (liste[team]["banner_url"], liste[team]["banner_fokus"]) == ("/media/teams/team.webp", "20,30")
     assert liste[ohne]["banner_url"] is None
+
+
+def test_primaeres_team_und_wahl_je_event(client, monkeypatch):
+    """Primaeres Team (10.11.2026): wer in zwei Teams ist, zaehlt in globalen Events nur fuer eines — ohne Wahl das
+    groessere, sonst das primaere, je Event ueberschreibbar bis zum Ende."""
+    from app import models
+    from app.db import SessionLocal
+    db = SessionLocal()
+    db.query(models.RateEvent).delete()                       # Registrieren ist begrenzt
+    db.commit()
+    db.close()
+    adm = _admin(client, "prim-adm@t.de")
+    (_io, ko) = _konto(client, "prim-off@t.de")
+    db = SessionLocal()
+    db.query(models.RateEvent).delete()
+    db.commit()
+    db.close()
+    (ia, ka), (ib, kb), (ic, kc), (id_, kd) = (_konto(client, "prim-a@t.de", "Pia A"), _konto(client, "prim-b@t.de"),
+                                               _konto(client, "prim-c@t.de"), _konto(client, "prim-d@t.de"))
+    offiziell = _team(client, ko, "Prim Offiziell")
+    monkeypatch.setenv("TEAM_GLOBAL", offiziell)
+    _freigeben(client, adm, ko, offiziell)
+    gross, _l = _team_mit(client, kb, ka, "Prim Gross")      # B leitet, A ist drin
+    client.post(f"/api/teams/einladung/{client.get(f'/api/teams/{gross}/einladungen', headers=kb).json()['join']}",
+                headers=kc)                                    # 3 Mitglieder
+    klein, _l2 = _team_mit(client, kd, ka, "Prim Klein")      # 2 Mitglieder, A auch hier
+    _freigeben(client, adm, kb, gross)
+    _freigeben(client, adm, kd, klein)
+    _session(ia, 300, tage=1)
+    jetzt = datetime.now(timezone.utc)
+    ev = client.post(f"/api/teams/{offiziell}/events", headers=ko, json={
+        "titel": "Prim-Event", "start": (jetzt - timedelta(days=2)).isoformat(), "ende": (jetzt + timedelta(days=1)).isoformat(),
+        "tafeln": [{"kennzahl": "sum_pumps", "accel_only": False}], "global_event": True, "team_wertung_n": 1}).json()
+    eid = ev["id"]
+
+    def teams_mit_a():
+        tf = client.get(f"/api/teams/{offiziell}/events/{eid}", headers=ka).json()["tafeln"][0]
+        return sorted(x["slug"] for x in tf["teams"] if x["slug"] in (gross, klein) and x["value"] == 300)
+
+    # ohne Wahl: das groessere Team
+    assert teams_mit_a() == [gross]
+    mine = {x["slug"]: x for x in client.get("/api/teams/mine", headers=ka).json()}
+    assert mine[gross]["primaer"] and not mine[klein]["primaer"] and mine[klein]["wertbar"]
+    # primaeres Team setzen
+    assert client.put(f"/api/teams/{klein}/primaer", headers=ka).status_code == 200
+    assert teams_mit_a() == [klein]
+    # Wahl fuer dieses Event schlaegt das primaere Team
+    mt = client.get(f"/api/teams/{offiziell}/events/{eid}", headers=ka).json()["mein_team"]
+    tid_gross = next(x["id"] for x in mt["auswahl"] if x["slug"] == gross)
+    assert mt["effektiv"] != tid_gross and mt["aenderbar"]
+    r = client.put(f"/api/teams/{offiziell}/events/{eid}/mein-team", headers=ka, json={"team_id": tid_gross})
+    assert r.status_code == 200 and r.json()["effektiv"] == tid_gross
+    assert teams_mit_a() == [gross]
+    # zurueck auf das primaere
+    client.put(f"/api/teams/{offiziell}/events/{eid}/mein-team", headers=ka, json={"team_id": None})
+    assert teams_mit_a() == [klein]
+    # das primaere Team verlassen -> automatisch wieder das andere (Jan, 10.11.2026)
+    assert client.post(f"/api/teams/{klein}/austreten", headers=ka).status_code == 200
+    assert teams_mit_a() == [gross]
+    assert {x["slug"]: x["primaer"] for x in client.get("/api/teams/mine", headers=ka).json()}[gross]
+    # fremdes Team geht nicht
+    fremd = _team(client, kc, "Prim Fremd")
+    tid_fremd = client.get(f"/api/teams/{fremd}", headers=kc).json()["id"]
+    assert client.put(f"/api/teams/{offiziell}/events/{eid}/mein-team", headers=ka,
+                      json={"team_id": tid_fremd}).status_code == 409
+    # 6 h vor dem Ende nicht mehr aenderbar (Jan, 10.11.2026) — auch nicht ueber das primaere Team
+    db = SessionLocal()
+    e = db.get(models.TeamEvent, eid)
+    e.ende = jetzt + timedelta(hours=5)
+    db.commit()
+    db.close()
+    r = client.put(f"/api/teams/{offiziell}/events/{eid}/mein-team", headers=ka, json={"team_id": tid_gross})
+    assert r.status_code == 409 and r.json()["detail"] == "teamwahl_geschlossen"
+    # wieder in Klein, primaeres Team auf Klein: dieses Event bleibt bei Gross (festgeschrieben)
+    client.post(f"/api/teams/einladung/{_l2['join']}", headers=ka)
+    assert client.put(f"/api/teams/{klein}/primaer", headers=ka).status_code == 200
+    assert teams_mit_a() == [gross]
+    assert client.get(f"/api/teams/{offiziell}/events/{eid}", headers=ka).json()["mein_team"]["aenderbar"] is False

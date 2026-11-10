@@ -2213,6 +2213,9 @@ export const api = {
     req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events?sprint=1`, { method: "POST", body: JSON.stringify(body) }),
   teamEventAendern: (slug: string, id: number, body: TeamEventIn) =>
     req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events/${id}?sprint=1`, { method: "PUT", body: JSON.stringify(body) }),
+  teamPrimaer: (slug: string) => req<{ primaer: string }>(`/api/teams/${encodeURIComponent(slug)}/primaer`, { method: "PUT" }),
+  teamEventMeinTeam: (slug: string, id: number, teamId: number | null) =>
+    req<EventMeinTeam>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/mein-team`, { method: "PUT", body: JSON.stringify({ team_id: teamId }) }),
   teamEventLoeschen: (slug: string, id: number) =>
     req<{ ok: boolean }>(`/api/teams/${encodeURIComponent(slug)}/events/${id}`, { method: "DELETE" }),
   teamMitglieder: (slug: string) =>
@@ -2256,7 +2259,9 @@ export const api = {
 // ---- Teams ----
 export type TeamRolle = "leiter" | "moderator" | "mitglied";
 export interface TeamAuftritt { name: string; slug: string; beschreibung: string | null; logo_url: string | null; farbe: string | null; banner_url?: string | null; banner_fokus?: string | null; sportarten?: string[]; land?: string | null }
-export interface TeamKurz extends TeamAuftritt { id: number; rolle: TeamRolle; status: "aktiv" | "angefragt"; anfragen: number; freigabe: string | null }
+export interface TeamKurz extends TeamAuftritt { id: number; rolle: TeamRolle; status: "aktiv" | "angefragt"; anfragen: number; freigabe: string | null;
+  /** Primaeres Team (10.11.2026): zaehlt in globalen Events / ist das Team, fuer das man dort antritt / selbst gewaehlt */
+  wertbar?: boolean; primaer?: boolean; primaer_gewaehlt?: boolean }
 /** Team-Bestenlisten der Community (03.11.2026): je Kennzahl Summe der besten `top` Fahrer, `<k>_fahrer` = wie viele davon. */
 export type TeamVergleichKennzahl = "pumps" | "distance_m" | "time_s" | "sessions" | "runs";
 export type TeamVergleichZeile = Pick<TeamAuftritt, "name" | "slug" | "logo_url" | "farbe" | "land"> & { mitglieder: number; aktive: number; sportarten?: string[] }
@@ -2359,6 +2364,12 @@ export interface TeamEvent {
   summen_sportart?: string; summen_accel_only?: boolean;
   /** Globales Event (06.11.2026) und Teamwertung (beste N, 0 = alle) */
   global?: boolean; team_wertung_n?: number;
+  /** Globale Events (10.11.2026): fuer welches seiner Teams der Betrachter antritt — nur, wenn er in einem zaehlt */
+  mein_team?: EventMeinTeam | null;
+}
+export interface EventMeinTeam {
+  auswahl: { id: number; slug: string; name: string; logo_url: string | null; farbe: string | null }[];
+  gewaehlt: number | null; primaer: number | null; effektiv: number | null; aenderbar: boolean;
 }
 export interface TeamAbzeichen {
   rang: number; event: string; team: string; team_slug: string; farbe: string | null; kennzahl: string; wert: number; datum: string;

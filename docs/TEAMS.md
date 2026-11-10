@@ -468,8 +468,15 @@ Team-Event (`team_events.global_event`, `team_wertung_n`), Rechnung in `app/team
   Bestenlisten (versteckte/gesperrte Konten fehlen). Opt-out im Profil › Privatsphaere „Nicht an globalen Events
   teilnehmen" (`settings.global_events_aus`, `teams.global_aus`): fehlt dann in Bestenlisten, Team-Wertung, Summen
   und Abzeichen, auch in schon beendeten (dort nur in der Ausgabe, Raenge rutschen nach).
-- **Team-Rangliste** je Bestenliste: Summe der besten N Mitglieder (Standard 5, 0 = alle), nur freigegebene Teams
-  mit oeffentlichen Bestenlisten (wie der Team-Vergleich); Mitglied in zwei Teams zaehlt fuer beide.
+- **Team-Rangliste** je Bestenliste: Summe der besten N Mitglieder (Standard 5, 0 = alle; Sprints: Durchschnitt), nur
+  freigegebene Teams mit oeffentlichen Bestenlisten (wie der Team-Vergleich).
+- **Primaeres Team (10.11.2026):** wer in mehreren solchen Teams ist, zaehlt nur fuer EINES (bis dahin fuer alle):
+  die Wahl fuer dieses Event (`team_event_teamwahl`, Eventseite, `PUT …/events/{id}/mein-team`), sonst das primaere
+  Team (`team_mitglieder.primaer`, „Meine Teams" ★, `PUT /api/teams/{slug}/primaer`), sonst das groesste (aktive
+  Mitglieder), bei Gleichstand das frueher beigetretene (`teams.team_fuer`). Kein einmaliges Nachtragen in der DB —
+  die Regel „groesstes Team" ist der Standard. Verlaesst man das primaere Team, gilt automatisch das naechste.
+  Aenderbar bis 6 h vor Event-Ende (`TEAMWAHL_SCHLUSS`); wer in den letzten 6 h das primaere Team wechselt, behaelt in
+  laufenden Events das bisherige (`teamwahl_festhalten`). Regeltext `team.regeln.global.text` (18 Sprachen).
 - **Filter „mein Team"** (`GET …/events/{id}?team=<slug>`): nur dessen Mitglieder, mit dem Rang der Gesamtwertung.
 - **Sichtbar:** fuer jeden Angemeldeten und als Gast-Link, auch wenn das offizielle Team nicht oeffentlich ist.
   Eingefroren wird mit allen Zeilen (bis 5000 je Bestenliste), damit Team-Wertung und Team-Filter danach stimmen.

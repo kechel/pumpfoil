@@ -784,6 +784,8 @@ EINFRIEREN_NACH = timedelta(hours=4)   # 24 h -> 4 h am 09.11.2026 (Jan)
 EVENT_MAX_DAUER = timedelta(days=62)
 EVENT_MAX_OFFEN = 20             # kommende + laufende Events je Team
 EVENT_VORSCHAU = timedelta(days=7)  # Community-Seite: kommende Events, die so bald beginnen (01.11.: 3 Tage, 09.11.: 7 Tage)
+# Teamwahl je globalem Event (Jan, 10.11.2026): „man darf sein team fuer ein event nur bis 6h vor event-ende noch aendern"
+TEAMWAHL_SCHLUSS = timedelta(hours=6)
 EVENT_MAX_TAFELN = 10   # 6 -> 10 am 09.11.2026 (Jan: Ranglisten ans Limit gestossen), nach dem Einfrieren von Event 4
 ABZEICHEN_PLAETZE = 3
 
@@ -838,32 +840,101 @@ def wertung_n(e: models.TeamEvent) -> int:
     return WERTUNG_N_STANDARD if n is None else max(0, int(n))
 
 
-def team_zuordnung(db: Session, ausser_team_id: int | None = None) -> dict:
+def team_zuordnung(db: Session, ausser_team_id: int | None = None, event_id: int | None = None) -> dict:
     """Wer jetzt fuer welches Team zaehlt — dieselben Teams wie im Team-Vergleich (freigegeben, Bestenlisten
     oeffentlich, nicht geloescht), ohne `ausser_team_id`. Mit dem freigegebenen Auftritt jedes Teams (Name, Logo,
     Farbe, Land), damit ein festgehaltener Stand auch spaetere Umbenennungen uebersteht.
     Form: {"mitglieder": {"<uid>": [team_id, ...]}, "teams": {"<team_id>": {slug, name, logo_url, farbe, land}}}"""
     M, Tm = models.TeamMitglied, models.Team
-    mitglieder: dict[str, list[int]] = {}
+    kandidaten: dict[str, list[tuple]] = {}
     teams: dict[str, dict] = {}
-    for t, uid in (db.query(Tm, M.user_id).join(M, M.team_id == Tm.id)
-                   .filter(M.status == "aktiv", Tm.frei_am.isnot(None), Tm.geloescht_am.is_(None),
-                           Tm.oeffentlich.is_(True)).order_by(Tm.id, M.user_id).all()):
+    for t, m in (db.query(Tm, M).join(M, M.team_id == Tm.id)
+                 .filter(M.status == "aktiv", Tm.frei_am.isnot(None), Tm.geloescht_am.is_(None),
+                         Tm.oeffentlich.is_(True)).order_by(Tm.id, M.user_id).all()):
         if t.id == ausser_team_id:
             continue
-        mitglieder.setdefault(str(uid), []).append(t.id)
+        kandidaten.setdefault(str(m.user_id), []).append((t.id, bool(m.primaer), m.seit))
         if str(t.id) not in teams:
             a = auftritt(t, False)
             # banner_* seit 09.11.2026 (Siegertreppchen); aeltere festgehaltene Staende haben sie nicht.
             teams[str(t.id)] = {k: a[k] for k in ("slug", "name", "logo_url", "farbe", "land", "banner_url", "banner_fokus")}
+    # Genau EIN Team je Fahrer (Jan, 10.11.2026: „dann zaehlt man … nur fuer genau ein team auch wenn man in mehreren
+    # dabei ist"): die Wahl fuer dieses Event, sonst das primaere Team, sonst das groesste (aktive Mitglieder), bei
+    # Gleichstand das frueher beigetretene. Vorher zaehlte man fuer alle Teams. Die Form bleibt eine Liste, damit
+    # festgehaltene Staende von vorher (mehrere Teams je Fahrer) weiter gelesen werden.
+    wahl = {}
+    if event_id is not None:
+        W = models.TeamEventTeamWahl
+        wahl = {str(u): tid for u, tid in db.query(W.user_id, W.team_id).filter(W.event_id == event_id).all()}
+    groesse = groessen(db, [int(x) for x in teams]) if any(len(v) > 1 for v in kandidaten.values()) else {}
+    mitglieder = {uid: [team_fuer(liste, wahl.get(uid), groesse)] for uid, liste in kandidaten.items()}
     return {"mitglieder": mitglieder, "teams": teams}
+
+
+def meine_wertbaren(db: Session, uid: int, event_id: int | None = None) -> dict:
+    """Primaeres Team eines Nutzers (10.11.2026): seine Teams, die in globalen Events zaehlen, und fuer welches er
+    antritt — allgemein (`event_id` None) oder in einem Event. -> {"teams": [team_id …], "primaer": id|None,
+    "gewaehlt": id|None (nur Event), "effektiv": id|None}"""
+    M, Tm = models.TeamMitglied, models.Team
+    og = offizielles_team_id(db)
+    zeilen = (db.query(M).join(Tm, Tm.id == M.team_id)
+              .filter(M.user_id == uid, M.status == "aktiv", Tm.frei_am.isnot(None), Tm.geloescht_am.is_(None),
+                      Tm.oeffentlich.is_(True)).order_by(M.team_id).all())
+    kand = [(m.team_id, bool(m.primaer), m.seit) for m in zeilen if m.team_id != og]
+    gewaehlt = None
+    if event_id is not None:
+        W = models.TeamEventTeamWahl
+        gewaehlt = db.query(W.team_id).filter(W.event_id == event_id, W.user_id == uid).scalar()
+    eff = team_fuer(kand, gewaehlt, groessen(db, [k[0] for k in kand]) if len(kand) > 1 else {}) if kand else None
+    prim = next((k[0] for k in kand if k[1]), None)
+    return {"teams": [k[0] for k in kand], "primaer": prim, "gewaehlt": gewaehlt if gewaehlt in [k[0] for k in kand] else None,
+            "effektiv": eff}
+
+
+def teamwahl_offen(e: models.TeamEvent, jetzt: datetime | None = None) -> bool:
+    """Darf man sein Team fuer dieses globale Event noch aendern? Bis TEAMWAHL_SCHLUSS vor dem Ende."""
+    return (jetzt or _jetzt()) < _aware(e.ende) - TEAMWAHL_SCHLUSS
+
+
+def teamwahl_festhalten(db: Session, uid: int, jetzt: datetime | None = None) -> None:
+    """VOR einer Aenderung des primaeren Teams: in globalen Events, deren Teamwahl schon geschlossen ist (letzte 6 h
+    bis Ende), das bisher effektive Team als Wahl festschreiben — sonst wechselte man dort ueber den Umweg."""
+    j = jetzt or _jetzt()
+    E, W = models.TeamEvent, models.TeamEventTeamWahl
+    for e in (db.query(E).filter(E.global_event.is_(True), E.geloescht_am.is_(None), E.ende > j,
+                                 E.ende <= j + TEAMWAHL_SCHLUSS).all()):
+        if db.query(W.id).filter(W.event_id == e.id, W.user_id == uid).first():
+            continue
+        eff = meine_wertbaren(db, uid, e.id)["effektiv"]
+        if eff is not None:
+            db.add(W(event_id=e.id, user_id=uid, team_id=eff))
+
+
+def groessen(db: Session, team_ids: list[int]) -> dict[int, int]:
+    """Aktive Mitglieder je Team."""
+    if not team_ids:
+        return {}
+    M = models.TeamMitglied
+    return {tid: int(n) for tid, n in db.query(M.team_id, func.count(M.id))
+            .filter(M.team_id.in_(team_ids), M.status == "aktiv").group_by(M.team_id).all()}
+
+
+def team_fuer(kandidaten: list[tuple], gewaehlt: int | None, groesse: dict[int, int]) -> int:
+    """Rein: [(team_id, primaer, seit)] -> das Team, fuer das jemand antritt (s. team_zuordnung)."""
+    ids = [k[0] for k in kandidaten]
+    if gewaehlt in ids:
+        return gewaehlt
+    prim = [k[0] for k in kandidaten if k[1]]
+    if prim:
+        return prim[0]
+    return min(kandidaten, key=lambda k: (-groesse.get(k[0], 0), k[2] or datetime.max.replace(tzinfo=timezone.utc), k[0]))[0]
 
 
 def event_zuordnung(db: Session, e: models.TeamEvent) -> dict:
     """Teamzugehoerigkeit fuer ein globales Event: festgehalten zum Ende (`team_zuordnung_json`), sonst die aktuelle."""
     if e.team_zuordnung_json:
         return json.loads(e.team_zuordnung_json)
-    return team_zuordnung(db, e.team_id)
+    return team_zuordnung(db, e.team_id, e.id)
 
 
 def events_zuordnung_sichern(db: Session, jetzt: datetime | None = None) -> None:
@@ -876,7 +947,7 @@ def events_zuordnung_sichern(db: Session, jetzt: datetime | None = None) -> None
     offen = (db.query(E).filter(E.ende <= j, E.eingefroren_am.is_(None), E.geloescht_am.is_(None),
                                 E.team_zuordnung_json.is_(None), E.global_event.is_(True)).all())
     for e in offen:
-        e.team_zuordnung_json = json.dumps(team_zuordnung(db, e.team_id))
+        e.team_zuordnung_json = json.dumps(team_zuordnung(db, e.team_id, e.id))
 
 
 def team_wertung(db: Session, zeilen: list[dict], n: int, ausser_team_id: int | None,
@@ -1176,7 +1247,7 @@ def event_einfrieren(db: Session, e: models.TeamEvent, jetzt: datetime | None = 
     for k in [k for k in _cache if k and k[0] == t.id]:
         _cache.pop(k, None)
     if ist_global(e) and not e.team_zuordnung_json:
-        e.team_zuordnung_json = json.dumps(team_zuordnung(db, e.team_id))   # keine Aenderung seit dem Ende
+        e.team_zuordnung_json = json.dumps(team_zuordnung(db, e.team_id, e.id))   # keine Aenderung seit dem Ende
     voll = _event_voll(db, t, e)
     if ist_global(e):
         # Wappen je Zeile mit festschreiben (sonst kaemen sie beim Abruf aus der aktuellen Mitgliedschaft).

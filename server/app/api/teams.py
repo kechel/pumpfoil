@@ -186,13 +186,79 @@ def meine(user: models.User = Depends(current_user), db: Session = Depends(get_d
     zeilen = (db.query(M, models.Team).join(models.Team, models.Team.id == M.team_id)
               .filter(M.user_id == user.id, models.Team.geloescht_am.is_(None)).order_by(M.seit.asc()).all())
     sp = T.sportarten(db, [t.id for _m, t in zeilen])
+    w = T.meine_wertbaren(db, user.id)    # primaeres Team (10.11.2026)
     for m, t in zeilen:
         offen = 0
         if T.darf_verwalten(m):
             offen = int(db.query(func.count(M.id)).filter_by(team_id=t.id, status="angefragt").scalar() or 0)
         out.append({**_kurz(t, True, db, sp[t.id]), "rolle": m.rolle, "status": m.status, "anfragen": offen,
-                    "freigabe": t.freigabe if T.ist_leiter(m) else None})
+                    "freigabe": t.freigabe if T.ist_leiter(m) else None,
+                    # zaehlt in globalen Events (freigegeben, oeffentlich) — und ist das Team, fuer das man antritt
+                    "wertbar": t.id in w["teams"], "primaer": t.id == w["effektiv"],
+                    "primaer_gewaehlt": t.id == w["primaer"]})
     return out
+
+
+@router.put("/{slug}/primaer")
+def primaer_setzen(slug: str, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Primaeres Team (Jan, 10.11.2026): fuer dieses Team tritt man in globalen Events an, solange man im Event nichts
+    anderes waehlt. Nur fuer Teams, die dort zaehlen."""
+    t, _m = _team_fuer(db, slug, user)
+    w = T.meine_wertbaren(db, user.id)
+    if t.id not in w["teams"]:
+        raise HTTPException(status.HTTP_409_CONFLICT, "team_nicht_wertbar")
+    T.events_zuordnung_sichern(db)   # beendete, noch offene Events behalten die alte Zuordnung
+    T.teamwahl_festhalten(db, user.id)   # Events in den letzten 6 h behalten das bisherige Team
+    M = models.TeamMitglied
+    for m in db.query(M).filter(M.user_id == user.id).all():
+        m.primaer = m.team_id == t.id
+    db.commit()
+    return {"primaer": t.slug}
+
+
+class MeinTeamIn(BaseModel):
+    team_id: int | None = None
+
+
+@router.put("/{slug}/events/{event_id}/mein-team")
+def event_mein_team(slug: str, event_id: int, body: MeinTeamIn, user: models.User = Depends(current_user),
+                    db: Session = Depends(get_db)) -> dict:
+    """Fuer welches Team man in DIESEM globalen Event antritt (10.11.2026); `team_id` null = wieder das primaere.
+    Aenderbar bis zum Ende — danach steht die Zuordnung (events_zuordnung_sichern)."""
+    t, _m = _team_fuer(db, slug, user)
+    e = _event(db, t, event_id)
+    if not T.ist_global(e):
+        raise HTTPException(status.HTTP_409_CONFLICT, "kein_globales_event")
+    if not T.teamwahl_offen(e):
+        raise HTTPException(status.HTTP_409_CONFLICT, "teamwahl_geschlossen")   # 6 h vor Ende (10.11.2026)
+    W = models.TeamEventTeamWahl
+    alt = db.query(W).filter(W.event_id == e.id, W.user_id == user.id).first()
+    if body.team_id is None:
+        if alt:
+            db.delete(alt)
+    else:
+        if body.team_id not in T.meine_wertbaren(db, user.id)["teams"]:
+            raise HTTPException(status.HTTP_409_CONFLICT, "team_nicht_wertbar")
+        if alt:
+            alt.team_id = body.team_id
+        else:
+            db.add(W(event_id=e.id, user_id=user.id, team_id=body.team_id))
+    db.commit()
+    return _mein_team(db, e, user.id)
+
+
+def _mein_team(db: Session, e: models.TeamEvent, uid: int) -> dict | None:
+    """Teamwahl des Betrachters fuer ein globales Event: Auswahl (seine wertbaren Teams), Wahl, effektives Team."""
+    w = T.meine_wertbaren(db, uid, e.id)
+    if not w["teams"]:
+        return None
+    teams = {x.id: x for x in db.query(models.Team).filter(models.Team.id.in_(w["teams"])).all()}
+    def kurz(tid):
+        a = T.auftritt(teams[tid], True)
+        return {"id": tid, "slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"]}
+    return {"auswahl": [kurz(i) for i in w["teams"]], "gewaehlt": w["gewaehlt"], "primaer": w["primaer"],
+            "effektiv": w["effektiv"], "aenderbar": T.teamwahl_offen(e),
+            "schluss": (T._aware(e.ende) - T.TEAMWAHL_SCHLUSS).isoformat()}
 
 
 @router.get("/liste")
@@ -585,8 +651,11 @@ def event_einzeln(slug: str, event_id: int, team: str | None = None, mix: bool =
         _darf_tafeln(t, m)
     if T.event_einfrieren(db, e):
         db.commit()
-    return T.event_out(db, t, e, nur_team_ids=_nur_team(db, team, user) if T.ist_global(e) else None,
-                       betrachter=user.id, mix=mix, sprint=sprint)
+    out = T.event_out(db, t, e, nur_team_ids=_nur_team(db, team, user) if T.ist_global(e) else None,
+                      betrachter=user.id, mix=mix, sprint=sprint)
+    if T.ist_global(e):
+        out["mein_team"] = _mein_team(db, e, user.id)   # primaeres Team / Wahl je Event (10.11.2026)
+    return out
 
 
 class FokusIn(BaseModel):

@@ -2052,6 +2052,24 @@ class TeamMitglied(Base):
     seit: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     # Zustimmung zur moeglichen Oeffentlichkeit der Bestenlisten (Jan, 31.10.2026: bei JEDEM Beitritt).
     zustimmung_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Primaeres Team (Jan, 10.11.2026): wer in mehreren Teams ist, zaehlt in globalen Events nur fuer EIN Team — das
+    # primaere, je Event ueberschreibbar (TeamEventTeamWahl). Hoechstens eines je Nutzer (teams.primaer_setzen).
+    # Ohne Wahl gilt das groesste Team (teams.team_zuordnung).
+    primaer: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class TeamEventTeamWahl(Base):
+    """Fuer welches Team jemand in EINEM globalen Event antritt (Jan, 10.11.2026: „je event auch anders einstellen …
+    auf der event-seite"). Gilt vor dem primaeren Team; aenderbar bis zum Ende des Events."""
+
+    __tablename__ = "team_event_teamwahl"
+    __table_args__ = (UniqueConstraint("event_id", "user_id", name="uq_event_teamwahl"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_id: Mapped[int] = mapped_column(ForeignKey("team_events.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"))
+    am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
 class TeamEinladung(Base):
