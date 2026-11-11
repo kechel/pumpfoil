@@ -374,7 +374,7 @@ struct EventPodest: View {
     private var fahrerRaster: some View {
         HStack(alignment: .bottom, spacing: 8) {
             ForEach(podestTreppe(zeilen), id: \.platz) { e in
-                PodestFahrerPlatz(z: e.x, platz: e.platz, wert: k.fmt(e.x.value, lang))
+                PodestFahrerPlatz(z: e.x, platz: e.platz, wert: k.fmt(e.x.value, lang), sprintKz: tf.kennzahl.hasPrefix("sprint_") ? tf.kennzahl : nil)
                     .frame(maxWidth: .infinity)
             }
         }
@@ -406,6 +406,8 @@ private struct PodestFahrerPlatz: View {
     let z: TeamZeile
     let platz: Int
     let wert: String
+    /// Sprint-Kennzahl: dann markiert die Session den gewerteten Abschnitt (wie die Bestenlisten-Zeile, 11.11.2026)
+    var sprintKz: String? = nil
 
     @State private var profil = false
 
@@ -447,7 +449,7 @@ private struct PodestFahrerPlatz: View {
     /// Wert aus einer Session bzw. einem Lauf -> dorthin, der Lauf vorausgewaehlt (web 713147c3).
     @ViewBuilder private var wertFeld: some View {
         if z.user_id != nil, let sid = z.session_id {
-            NavigationLink { SessionDetailView(id: sid, vorwahlLauf: z.run_idx) } label: { wertText(true) }
+            NavigationLink { SessionDetailView(id: sid, vorwahlLauf: z.run_idx, sprintKz: sprintKz) } label: { wertText(true) }
                 .buttonStyle(.plain)
         } else {
             wertText(false)

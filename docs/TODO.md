@@ -1730,7 +1730,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - [x] Event-Seite merkt Bestenliste + Klasse je Event (Android `EventAuswahlMerker`, iOS `EventWahlSpeicher`).
   - [x] Bestenlisten-Zeile ganz antippbar: `run_idx` -> Lauf, `session_id` -> Session, sonst Profil; Sprint-Kennzahl
         geht mit (Android-Route `session/{id}?v&run&sprint`, iOS `SessionDetailView(vorwahlLauf:sprintKz:)`).
-        Siegertreppchen: Wert -> Session/Lauf (Android gibt dort auch die Sprint-Kennzahl mit, Web/iOS nicht).
+        Siegertreppchen: Wert -> Session/Lauf mit Sprint-Kennzahl (Android 1.1.49; Web 11.11. nachgezogen, iOS ab 1.1.66).
   - [x] Sprint-Hervorhebung auf der Session-Karte aus `analysis.sprints` (Lauf ueber die Zeit, weisses Band unter der
         Spur, magenta Punkte, Schild, Hinweis „Label · Wert · +m:ss"); SessionCache SCHEMA 13 -> 14 in beiden Apps.
   - [x] Primaeres Team: Stern auch bei einem Team, Knopf an `waehlbar`-Teams ab zwei, oben rechts in den Zeilen

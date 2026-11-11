@@ -73,7 +73,7 @@ function treppe<T>(l: T[]): { x: T; platz: number }[] {
   return mit.length === 3 ? [mit[1], mit[0], mit[2]] : mit.length === 2 ? [mit[1], mit[0]] : mit;
 }
 
-function FahrerPlatz({ z, platz, fmt }: { z: TeamZeile; platz: number; fmt: (v: number) => string }) {
+function FahrerPlatz({ z, platz, fmt, kz }: { z: TeamZeile; platz: number; fmt: (v: number) => string; kz: string }) {
   const hoch = platz === 1 ? "pb-14" : platz === 2 ? "pb-6" : "pb-0";
   const breite = platz === 1 ? 230 : platz === 2 ? 180 : 160;
   const w = z.teams?.[0];
@@ -91,9 +91,10 @@ function FahrerPlatz({ z, platz, fmt }: { z: TeamZeile; platz: number; fmt: (v: 
         <TeamHerkunft land={z.land} kuerzel={false} />
         {w && <><TeamWappen name={w.name} logo={w.logo_url} farbe={w.farbe} size={20} /><span className="hidden max-w-[10rem] truncate sm:inline">{w.name}</span></>}
       </span>
-      {/* Wert aus einer Session bzw. einem Lauf: dorthin (11.11.2026, wie die Bestenlisten-Zeilen); Name -> Profil. */}
+      {/* Wert aus einer Session bzw. einem Lauf: dorthin (11.11.2026, wie die Bestenlisten-Zeilen), bei Sprints mit
+          Hervorhebung des gewerteten Abschnitts (Jan: wie in Android); Name -> Profil. */}
       {z.user_id && z.session_id ? (
-        <Link to={`/sessions/${z.session_id}${z.run_idx != null ? `?run=${z.run_idx}` : ""}`}
+        <Link to={`/sessions/${z.session_id}${z.run_idx != null ? `?run=${z.run_idx}${kz.startsWith("sprint_") ? `&sprint=${kz}` : ""}` : ""}`}
           className={`font-extrabold tabular-nums text-slate-100 hover:underline ${platz === 1 ? "text-base sm:text-2xl" : "text-sm sm:text-lg"}`}>{fmt(z.value)}</Link>
       ) : (
         <span className={`font-extrabold tabular-nums text-slate-100 ${platz === 1 ? "text-base sm:text-2xl" : "text-sm sm:text-lg"}`}>{fmt(z.value)}</span>
@@ -210,7 +211,7 @@ export default function EventPodest({ evId, tf, global, t }: { evId: number; tf:
         </div>
       ) : (
         <div className="mt-2 grid grid-cols-3 items-end gap-2 sm:gap-4 pb-5">
-          {treppe(zeilen).map(({ x, platz }) => <FahrerPlatz key={x.user_id ?? x.rang} z={x} platz={platz} fmt={k.fmt} />)}
+          {treppe(zeilen).map(({ x, platz }) => <FahrerPlatz key={x.user_id ?? x.rang} z={x} platz={platz} fmt={k.fmt} kz={tf.kennzahl} />)}
         </div>
       )}
     </Card>
