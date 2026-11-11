@@ -12279,3 +12279,11 @@ Offen daraus:
   jede Aufnahme bis zur Quittung jedes Teils, zeigt „open app on phone", setzt beim Oeffnen der App selbst fort.
   Watch 3/4: Code bleibt, wird nicht beworben/eingereicht. Offen fuer Watch 5: Release-Zertifikat + Profil (Jan),
   signierter Build, AppGallery-Eintrag (Texte, Screenshots aus screenshots/watch/huawei-arkts-emulator).
+
+- **📥 Inbox 11.11. (Jan) — Sprint-Team-Wertung: Teams mit weniger als N Fahrern.** Frage: „was passiert bei flying
+  sprints mit teams mit weniger als 3 fahrern in einer der kategorien … die sollten dann garnicht gezaehlt werden
+  oder?" Ist-Stand: `teams.team_wertung(schnitt=True)` mittelt ueber die TATSAECHLICH mitgezaehlten (`fahrer`), ein Team
+  mit nur einem schnellen Fahrer steht also mit dessen Wert oben — bei Summen (Strecke/Zeit) benachteiligt Unterzahl,
+  beim Durchschnitt bevorteilt sie. Vorschlag: bei `schnitt` und n > 0 nur Teams mit `fahrer >= n` ranken, die
+  anderen darunter „nicht gewertet (x/n Fahrer)". Eingefrorene Ergebnisse (ergebnis_json) bleiben unberuehrt. Wartet
+  auf Jans OK.
