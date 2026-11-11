@@ -1263,6 +1263,17 @@ struct Analysis: Codable {
     let best_distance_m: Double?
     // Zusatzzahlen je Sportart (19.10.2026, server/app/sportzahlen.py), nur Wind/Motor.
     var sport_zahlen: SportZahlen? = nil
+    // Fliegende Sprints (11.11.2026, server _sprints_out): je Kennzahl bester Wert, Lauf und Lage des Fensters —
+    // fuer die Hervorhebung, wenn man aus einer Sprint-Bestenliste kommt. Nur Detailansicht.
+    var sprints: SessionSprints? = nil
+}
+
+/// `analysis.sprints` (web f8927f95): `best` m/s, `lauf` Index der normalen Laeufe, `fenster` [Start-ms, Ende-ms] in
+/// Session-ms (wie `t_start_session_ms` der Segmente). Je Kennzahl ("sprint_100m" …); fehlende Teile = leer.
+struct SessionSprints: Codable {
+    var best: [String: Double]? = nil
+    var lauf: [String: Int]? = nil
+    var fenster: [String: [Double]]? = nil
 }
 
 struct Fahrt: Codable {

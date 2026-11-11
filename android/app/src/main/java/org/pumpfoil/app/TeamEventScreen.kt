@@ -22,6 +22,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.FilterChip
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -84,8 +87,13 @@ fun TeamEventScreen(
     var meldung by remember { mutableStateOf<String?>(null) }
     var bearbeiten by remember { mutableStateOf(false) }
     var evLaden by remember { mutableIntStateOf(0) }
-    // Eine Bestenliste zur Zeit, per Auswahl wie die Community-Bestenliste (Web 06.11.2026).
-    var wahl by remember(slug, eventId) { mutableIntStateOf(0) }
+    // Eine Bestenliste zur Zeit, per Auswahl wie die Community-Bestenliste (Web 06.11.2026). Bestenliste und Wertungsklasse
+    // je Event gemerkt (Web f8927f95, 11.11.2026): zurueck aus einer Session steht dieselbe Auswahl wieder da.
+    val merkKey = "$slug/$eventId"
+    var wahl by remember(slug, eventId) { mutableIntStateOf(EventAuswahlMerker.wahl[merkKey]?.first ?: 0) }
+    // Wertungsklasse (Web a2081ec0, 10.11.2026): "" = alle, sonst w/m/nb; der Server bietet nur Klassen an, die es gibt.
+    var klasse by remember(slug, eventId) { mutableStateOf(EventAuswahlMerker.wahl[merkKey]?.second ?: "") }
+    LaunchedEffect(merkKey, wahl, klasse) { EventAuswahlMerker.wahl[merkKey] = wahl to klasse }
     var laedt by remember { mutableStateOf(false) }
     var teilBild by remember { mutableStateOf<TeamBildDaten?>(null) }
     // Event-Uebersicht als Bild (Web c0d044a2): Summen + die ersten 3 je Kategorie.
@@ -99,8 +107,8 @@ fun TeamEventScreen(
     LaunchedEffect(slug, neuLaden) {
         try { team = Api.team(slug) } catch (_: Exception) { if (team == null) fehlt = true }
     }
-    LaunchedEffect(slug, eventId, evLaden) {
-        try { ev = Api.teamEvent(slug, eventId) } catch (_: Exception) {
+    LaunchedEffect(slug, eventId, evLaden, klasse) {
+        try { ev = Api.teamEvent(slug, eventId, klasse) } catch (_: Exception) {
             // Nach dem Loeschen im Popup gibt es das Event nicht mehr -> zurueck (Web: zur Teamseite).
             if (evLaden > 0) onBack() else fehlt = true
         }
@@ -226,7 +234,7 @@ fun TeamEventScreen(
                     val mt = e.meinTeam
                     if (e.global && mt != null && (e.status == "kommend" || e.status == "laeuft")) {
                         EventMeinTeamWahl(slug, e.id, mt) {
-                            scope.launch { runCatching { Api.teamEvent(slug, eventId) }.getOrNull()?.let { ev = it } }
+                            scope.launch { runCatching { Api.teamEvent(slug, eventId, klasse) }.getOrNull()?.let { ev = it } }
                         }
                     }
                     if (e.status == "kommend") {
@@ -262,12 +270,30 @@ fun TeamEventScreen(
                         val neuLadenMoeglich = e.status == "laeuft" || e.status == "auswertung"
                         // Event-Uebersicht als Bild (Web c0d044a2, 07.11.2026), sobald es Bestenlisten oder Summen gibt.
                         val uebersichtMoeglich = e.tafeln.size + e.summenAuswahl.size > 0
-                        if (e.tafeln.size > 1 || neuLadenMoeglich || uebersichtMoeglich) {
-                            if (e.tafeln.size > 1) {
-                                // Mehrere Sportarten (z. B. Pumpfoil und Foil Scoot getrennt): Sportart mit in die Auswahl (Web d6b52f77).
-                                AuswahlFeld(idx.toString(), e.tafeln.mapIndexed { i, tf -> Option(i.toString(), tafelTitel(tf, e)) },
-                                    onWahl = { wahl = it.toIntOrNull() ?: 0 }, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
+                        // Wertungsklasse-Knoepfe (Web 5278f851): ohne Beschriftung in derselben Zeile wie die Auswahl der
+                        // Bestenliste; ein Knopf je angebotener Klasse (der Server liefert nur die, die es gibt).
+                        val klassenKnoepfe = if (e.klassen.isEmpty()) emptyList() else listOf("") + listOf("w", "m", "nb").filter { it in e.klassen }
+                        if (e.tafeln.size > 1 || klassenKnoepfe.isNotEmpty()) {
+                            FlowRow(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                if (e.tafeln.size > 1) {
+                                    // Mehrere Sportarten (z. B. Pumpfoil und Foil Scoot getrennt): Sportart mit in die Auswahl (Web d6b52f77).
+                                    AuswahlFeld(idx.toString(), e.tafeln.mapIndexed { i, tf -> Option(i.toString(), tafelTitel(tf, e)) },
+                                        onWahl = { wahl = it.toIntOrNull() ?: 0 },
+                                        modifier = Modifier.widthIn(min = 200.dp).weight(1f).align(Alignment.CenterVertically))
+                                }
+                                klassenKnoepfe.forEach { k ->
+                                    FilterChip(
+                                        selected = (e.klasse ?: "") == k,
+                                        onClick = { if (k != (e.klasse ?: "")) klasse = k },
+                                        label = { Text(if (k.isEmpty()) I18n.t("wk.alle") else "${I18n.t("wk.$k")} (${e.klassen[k]})") },
+                                        colors = cyanChipColors(),
+                                        modifier = Modifier.align(Alignment.CenterVertically),
+                                    )
+                                }
                             }
+                        }
+                        if (neuLadenMoeglich || uebersichtMoeglich) {
                             Row(Modifier.fillMaxWidth().padding(bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                                 if (uebersichtMoeglich) {
                                     OutlinedButton(onClick = { uebersicht = true }, contentPadding = PaddingValues(horizontal = 12.dp)) {
@@ -282,7 +308,7 @@ fun TeamEventScreen(
                                     OutlinedButton(enabled = !laedt, onClick = {
                                         laedt = true
                                         scope.launch {
-                                            runCatching { Api.teamEvent(slug, eventId) }.getOrNull()?.let { ev = it }
+                                            runCatching { Api.teamEvent(slug, eventId, klasse) }.getOrNull()?.let { ev = it }
                                             laedt = false
                                         }
                                     }, contentPadding = PaddingValues(horizontal = 12.dp)) {
@@ -465,7 +491,11 @@ private fun TeamWertungKarte(tf: TeamTafel, n: Int, f: TeamFarbe, eigeneSlugs: S
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun EventMeinTeamWahl(slug: String, evId: Int, mt: EventMeinTeam, onGeaendert: () -> Unit) {
-    if (mt.auswahl.size < 2) return
+    // Ab zwei eigenen Teams sichtbar — auch wenn nur eines zaehlt (Web ff225d2e, 11.11.2026); die nicht zaehlenden stehen
+    // ausgegraut mit Grund dabei, damit niemand die Wahl vergeblich sucht.
+    val nicht = mt.nichtZaehlend
+    if (mt.auswahl.size + nicht.size < 2) return
+    val stern = mt.markiert ?: mt.primaer
     var busy by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     fun waehle(id: Int) {
@@ -499,13 +529,43 @@ private fun EventMeinTeamWahl(slug: String, evId: Int, mt: EventMeinTeam, onGeae
                             fontWeight = if (an) FontWeight.SemiBold else FontWeight.Normal,
                             color = if (an) tf.aufFlaeche else MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.widthIn(max = 192.dp))
-                        if (x.id == mt.primaer) {
+                        if (x.id == stern) {
                             Spacer(Modifier.width(4.dp))
                             Text("★", style = MaterialTheme.typography.labelSmall,
                                 color = (if (an) tf.aufFlaeche else MaterialTheme.colorScheme.onSurface).copy(alpha = 0.8f))
                         }
                     }
                 }
+                // Nicht zaehlende Teams: gestrichelt umrandet, ausgegraut, nicht antippbar.
+                nicht.forEach { x ->
+                    val grau = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                    Row(
+                        Modifier.clip(RoundedCornerShape(50))
+                            .drawBehind {
+                                val r = size.height / 2
+                                drawRoundRect(color = grau, cornerRadius = androidx.compose.ui.geometry.CornerRadius(r, r),
+                                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.dp.toPx(),
+                                        pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx()))))
+                            }
+                            .alpha(0.6f)
+                            .padding(horizontal = 12.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        TeamWappen(x.name, x.logoUrl, x.farbe, 16.dp)
+                        Spacer(Modifier.width(6.dp))
+                        Text(x.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            color = grau, modifier = Modifier.widthIn(max = 192.dp))
+                        if (x.id == mt.markiert) {
+                            Spacer(Modifier.width(4.dp))
+                            Text("★", style = MaterialTheme.typography.labelSmall, color = grau)
+                        }
+                    }
+                }
+            }
+            if (nicht.isNotEmpty()) {
+                Text(I18n.t("team.event.zaehltNicht") + ": " + nicht.joinToString(", ") { it.name },
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp))
             }
             Text(I18n.t(if (mt.aenderbar) "team.event.meinTeamHinweis" else "team.event.meinTeamFest"),
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -554,4 +614,9 @@ private fun EventUhr(ziel: String, f: TeamFarbe, klein: Boolean) {
             }
         }
     }
+}
+
+/** Gewaehlte Bestenliste + Wertungsklasse je Event ("slug/id"), fuer die App-Sitzung (Web: sessionStorage je Tab). */
+internal object EventAuswahlMerker {
+    val wahl = HashMap<String, Pair<Int, String>>()
 }

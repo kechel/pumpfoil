@@ -92,7 +92,8 @@ struct OnboardingView: View {
             Section { ProgressView() }
         } else {
             switch schritte[i] {
-            case "lang": sprachSection; LandSection(lang: lang, assistent: true); nameSection
+            // Wertungsklasse direkt unter der Nationalitaet (web dc21a3ca, 11.11.2026).
+            case "lang": sprachSection; LandSection(lang: lang, assistent: true); WertungsklasseSection(lang: lang); nameSection
             case "level": koennenSection; gewichtSection
             case "sport": sportSection
             case "foil": foilSection

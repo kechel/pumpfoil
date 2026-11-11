@@ -327,6 +327,15 @@ data class SportZahlen(
     val wellen: Wellen? = null,
 )
 
+/** analysis.sprints (11.11.2026): `fenster` in Session-ms wie t_start_session_ms der Segmente. `lauf` zaehlt die normalen
+ *  Laeufe — die Anzeige ordnet das Fenster deshalb ueber die ZEIT einem Lauf zu (Empfindlichkeits-Presets). */
+@Serializable
+data class SprintLagen(
+    val best: Map<String, Double> = emptyMap(),
+    val lauf: Map<String, Int> = emptyMap(),
+    val fenster: Map<String, List<Double>> = emptyMap(),
+)
+
 @Serializable
 data class Analysis(
     @SerialName("total_distance_m") val totalDistanceM: Double? = null,
@@ -345,6 +354,9 @@ data class Analysis(
     @SerialName("best_distance_m") val bestDistanceM: Double? = null,
     // Zusatzzahlen je Sportart (19.10.2026, server/app/sportzahlen.py), nur Wind/Motor.
     @SerialName("sport_zahlen") val sportZahlen: SportZahlen? = null,
+    // Fliegende Sprints (Server 11.11.2026): je Kennzahl bester Wert (m/s), Lauf und Fenster [Start, Ende] in Session-ms —
+    // fuer die Hervorhebung, wenn man aus einer Sprint-Bestenliste kommt. Nur Detailansicht.
+    val sprints: SprintLagen? = null,
     @SerialName("track_geojson") val trackGeojson: JsonElement? = null,
     // Foiling-Läufe (Index-Bereiche in track_geojson.coordinates) — nur diese werden gezeichnet.
     // Nullable: die schlanke Listen-Analyse liefert "segments": null (nicht nur fehlend).

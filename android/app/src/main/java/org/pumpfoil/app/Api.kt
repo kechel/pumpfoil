@@ -1799,10 +1799,12 @@ object Api {
     suspend fun teamEvents(slug: String): List<TeamEvent> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(TeamEvent.serializer()), http("GET", slugPfad(slug) + "/events?mix=1&sprint=1", null, auth = true))
     }
-    suspend fun teamEvent(slug: String, id: Int): TeamEvent = withContext(Dispatchers.IO) {
-        json.decodeFromString(TeamEvent.serializer(), http("GET", slugPfad(slug) + "/events/$id?mix=1&sprint=1", null, auth = true))
+    /** `klasse` (10.11.2026): Wertungsklasse w/m/nb — nur die Zeilen dieser Klasse, `rang` in der Klasse; null/leer = alle. */
+    suspend fun teamEvent(slug: String, id: Int, klasse: String? = null): TeamEvent = withContext(Dispatchers.IO) {
+        val k = klasse?.takeIf { it.isNotEmpty() }?.let { "&klasse=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: ""
+        json.decodeFromString(TeamEvent.serializer(), http("GET", slugPfad(slug) + "/events/$id?mix=1&sprint=1$k", null, auth = true))
     }
-    /** Primaeres Team setzen (10.11.2026): dafuer tritt man in globalen Events an (409 team_nicht_wertbar). */
+    /** Primaeres Team setzen (10.11.2026, ab 11.11. jedes aktive Team ausser dem offiziellen; 409 team_nicht_waehlbar). */
     suspend fun teamPrimaer(slug: String): Unit = withContext(Dispatchers.IO) {
         http("PUT", slugPfad(slug) + "/primaer", null, auth = true); Unit
     }

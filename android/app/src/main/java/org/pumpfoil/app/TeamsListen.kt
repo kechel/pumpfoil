@@ -367,8 +367,8 @@ fun MeineTeamsScreen(onBack: () -> Unit, onOpenTeam: (String) -> Unit, onAlleTea
     val uri = LocalUriHandler.current
     val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) { meine = try { Api.teamsMine() } catch (_: Exception) { emptyList() } }
-    // Primaeres Team (Web Teams.tsx, 10.11.2026): nur sinnvoll, wenn man in mehr als einem Team ist, das in globalen Events zaehlt.
-    val mehrereWertbar = (meine ?: emptyList()).count { it.wertbar } > 1
+    // Primaeres Team (Web TeamPrimaer, 11.11.2026): Stern immer am primaeren, Knopf erst ab zwei waehlbaren Teams.
+    val mehrereWertbar = (meine ?: emptyList()).count { it.primaerWaehlbar } > 1
     val primaerSetzen: (String) -> Unit = { slug ->
         scope.launch { try { Api.teamPrimaer(slug); meine = Api.teamsMine() } catch (_: Exception) {} }
     }
@@ -399,8 +399,9 @@ fun MeineTeamsScreen(onBack: () -> Unit, onOpenTeam: (String) -> Unit, onAlleTea
                                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 if (m.sportarten.isNotEmpty()) Text(sportartenText(m.sportarten), style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                PrimaerTeamMarke(m, mehrereWertbar) { primaerSetzen(m.slug) }
                             }
+                            // oben rechts in der Zeile (Web c9fcd70b)
+                            PrimaerTeamMarke(m, mehrereWertbar, Modifier.align(Alignment.Top).padding(start = 6.dp)) { primaerSetzen(m.slug) }
                             if (m.anfragen > 0) {
                                 Text(m.anfragen.toString(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onPrimary,
@@ -422,26 +423,30 @@ fun MeineTeamsScreen(onBack: () -> Unit, onOpenTeam: (String) -> Unit, onAlleTea
     }
 }
 
-/** „★ Primaeres Team" bzw. „☆ Zum primaeren Team machen" (Web Teams.tsx, 10.11.2026) — nur bei mehreren wertbaren Teams. */
+/**
+ * „★ Primaeres Team" bzw. „☆ Als primaeres Team festlegen" (Web components/TeamPrimaer.tsx, 11.11.2026): der Stern steht am
+ * primaeren Team auch dann, wenn es nur ein solches gibt; der Knopf an jedem waehlbaren Team (aktive Mitgliedschaft, nicht
+ * das offizielle), sobald es mehr als eines davon gibt. Team-Listen, Home › Team und Kopf der Teamseite.
+ */
 @Composable
-private fun PrimaerTeamMarke(m: TeamKurz, mehrereWertbar: Boolean, onSetzen: () -> Unit) {
-    if (!mehrereWertbar) return
+internal fun PrimaerTeamMarke(m: TeamKurz, mehrere: Boolean, modifier: Modifier = Modifier, onSetzen: () -> Unit) {
     if (m.primaer) {
         Text("★ " + I18n.t("team.primaer"), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(top = 2.dp).clip(CircleShape)
+            color = MaterialTheme.colorScheme.primary, maxLines = 1, softWrap = false,
+            modifier = modifier.clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)).padding(horizontal = 8.dp, vertical = 2.dp))
-    } else if (m.wertbar) {
+    } else if (mehrere && m.primaerWaehlbar) {
         Text("☆ " + I18n.t("team.primaerSetzen"), style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 2.dp).clip(CircleShape)
-                .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape).clickable(onClick = onSetzen)
+            color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2,
+            // schmal halten, damit der Teamname daneben Platz behaelt (bricht notfalls um)
+            modifier = modifier.widthIn(max = 150.dp).clip(RoundedCornerShape(12.dp))
+                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp)).clickable(onClick = onSetzen)
                 .padding(horizontal = 8.dp, vertical = 2.dp))
     }
 }
 
 @Composable
-private fun PrimaerHinweis() {
+internal fun PrimaerHinweis() {
     Text(I18n.t("team.primaerHinweis"), style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 4.dp))
 }
@@ -506,8 +511,8 @@ fun MeineTeamsInhalt(onOpenTeam: (String) -> Unit, onAlleTeams: () -> Unit, onTe
     val uri = LocalUriHandler.current
     val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) { meine = try { Api.teamsMine() } catch (_: Exception) { emptyList() } }
-    // Primaeres Team (Web Teams.tsx, 10.11.2026): nur sinnvoll, wenn man in mehr als einem Team ist, das in globalen Events zaehlt.
-    val mehrereWertbar = (meine ?: emptyList()).count { it.wertbar } > 1
+    // Primaeres Team (Web TeamPrimaer, 11.11.2026): Stern immer am primaeren, Knopf erst ab zwei waehlbaren Teams.
+    val mehrereWertbar = (meine ?: emptyList()).count { it.primaerWaehlbar } > 1
     val primaerSetzen: (String) -> Unit = { slug ->
         scope.launch { try { Api.teamPrimaer(slug); meine = Api.teamsMine() } catch (_: Exception) {} }
     }
@@ -530,8 +535,9 @@ fun MeineTeamsInhalt(onOpenTeam: (String) -> Unit, onAlleTeams: () -> Unit, onTe
                             }
                             Text(if (m.status == "angefragt") I18n.t("team.join.wartet") else I18n.t("team.rolle.${m.rolle}"),
                                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            PrimaerTeamMarke(m, mehrereWertbar) { primaerSetzen(m.slug) }
                         }
+                        // oben rechts in der Zeile (Web c9fcd70b)
+                        PrimaerTeamMarke(m, mehrereWertbar, Modifier.align(Alignment.Top).padding(start = 6.dp)) { primaerSetzen(m.slug) }
                         if (m.anfragen > 0) {
                             Text(m.anfragen.toString(), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimary,

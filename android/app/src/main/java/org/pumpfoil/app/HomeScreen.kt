@@ -593,6 +593,8 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
                     // Gruenden gleich hier, nativ (04.11.2026) — danach geht es in die Verwaltung.
                     TeamGruendenKarte(onTeamGegruendet)
                 } else {
+                    // Primaeres Team (Web a1a19272/c9fcd70b, 11.11.2026): Stern oben rechts, Knopf ab zwei waehlbaren Teams.
+                    val mehrereWaehlbar = meineTeams.count { it.primaerWaehlbar } > 1
                     Card(Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(6.dp)) {
                             meineTeams.forEach { tm ->
@@ -610,6 +612,11 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
                                         Text(I18n.t("team.rolle.${tm.rolle}"), style = MaterialTheme.typography.labelMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
+                                    PrimaerTeamMarke(tm, mehrereWaehlbar, Modifier.align(Alignment.Top).padding(start = 6.dp)) {
+                                        scope.launch {
+                                            try { Api.teamPrimaer(tm.slug); meineTeams = Api.teamsMine().filter { it.status == "aktiv" } } catch (_: Exception) {}
+                                        }
+                                    }
                                     if (tm.anfragen > 0) Text(tm.anfragen.toString(), style = MaterialTheme.typography.labelMedium,
                                         fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary,
                                         modifier = Modifier.clip(androidx.compose.foundation.shape.CircleShape)
@@ -618,6 +625,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
                             }
                         }
                     }
+                    if (mehrereWaehlbar) Box(Modifier.padding(top = 6.dp)) { PrimaerHinweis() }
                     // Events der eigenen Teams als Kacheln (Web TeamEventsListe, 06.11.2026), laufende zuerst.
                     TeamEventsListe(onOpenEvent, Modifier.padding(top = 12.dp))
                     // Die letzten Sessions der Teammitglieder unter der Teamliste (Web PersonalHome TeamLetzteMitWahl).

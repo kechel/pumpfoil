@@ -27,6 +27,9 @@ struct TeamView: View {
     @State private var busy = false
     @State private var meldung: String?
     @State private var austretenFragen = false
+    /// Eigene Teams (web e91a9cc8, 11.11.2026): Stern bzw. „Als primaeres Team festlegen" im Kopf; `primaer`/`waehlbar`
+    /// kommen aus `teamsMine`.
+    @State private var meine: [TeamKurz]?
     // Reiter der Teamseite (wie ReiterSpeicher ueberall: gilt fuer die App-Sitzung).
     @State private var tteil: String = ReiterSpeicher.von("team", "rekorde")
     @Environment(\.dismiss) private var dismiss
@@ -70,7 +73,8 @@ struct TeamView: View {
     private func oberteil(_ k: TeamInfo) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             if let u = Api.mediaURL(k.banner_url) { TeamBanner(url: u, fokus: k.banner_fokus).padding(.top, 8) }
-            TeamKopf(k: k, lang: lang, geloescht: { teamGeloescht() })
+            TeamKopf(k: k, lang: lang, geloescht: { teamGeloescht() }, ich: ichImTeam(k), mehrere: teamPrimaerMehrere(meine ?? []),
+                     primaerGeaendert: { Task { await meineLaden() } })
             Reiterleiste(reiter: reiter(k), aktiv: Binding(get: { aktiverReiter(k) }, set: { tteil = $0; ReiterSpeicher.setze("team", $0) }))
             if let m = meldung { meldungsBox(m) }
             beitrittBereich(k)
@@ -274,11 +278,22 @@ struct TeamView: View {
 
     // MARK: Laden
 
+    /// Nur fuer aktive Mitglieder (web Team.tsx: `kopf.mein_status === "aktiv"`).
+    private func ichImTeam(_ k: TeamInfo) -> TeamKurz? {
+        guard k.mein_status == "aktiv" else { return nil }
+        return meine?.first { $0.slug == k.slug }
+    }
+
+    private func meineLaden() async {
+        if let l = try? await Api.teamsMine() { meine = l }
+    }
+
     private func laden() async {
         do {
             let k = try await Api.team(slug)
             kopf = k
             fehlt = false
+            if k.mein_status == "aktiv" { await meineLaden() }
             if k.darf_mitglieder == true {
                 mitglieder = (try? await Api.teamMitglieder(slug))?.mitglieder
             } else {
@@ -356,6 +371,10 @@ private struct TeamKopf: View {
     let k: TeamInfo
     let lang: String
     let geloescht: () -> Void
+    /// Eigener Eintrag aus „Meine Teams" (nur aktive Mitglieder) fuer die Primaer-Marke; nil = keine Marke.
+    var ich: TeamKurz? = nil
+    var mehrere: Bool = false
+    var primaerGeaendert: () -> Void = {}
 
     private var tf: TeamFarbe { TeamFarbe(k.farbe) }
     private var infoZeile: String {
@@ -403,6 +422,8 @@ private struct TeamKopf: View {
 
     private var knopfZeile: some View {
         FoilerFliessReihe(abstand: 8) {
+            // Primaeres Team im Kopf (web e91a9cc8, 11.11.2026)
+            if let m = ich { TeamPrimaerMarke(tm: m, mehrere: mehrere, lang: lang, geaendert: primaerGeaendert) }
             if (k.anfragen_offen ?? 0) > 0 {
                 NavigationLink { verwaltung } label: {
                     Text(anfragenText).font(.subheadline.weight(.semibold))

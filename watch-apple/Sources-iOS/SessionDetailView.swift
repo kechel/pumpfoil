@@ -9,6 +9,11 @@ import UIKit
 struct SessionDetailView: View {
     let id: Int
     var dataVersion: Int? = nil   // aus der Liste: erlaubt Cache-Treffer ohne Netz (nil -> immer laden)
+    /// Aus einer Bestenliste (web `?run=`, 713147c3): diesen Lauf (Index in den Segmenten) einmal vorauswaehlen.
+    var vorwahlLauf: Int? = nil
+    /// Aus einer Sprint-Bestenliste (web `?sprint=`, f8927f95): Kennzahl wie "sprint_100m". Der Lauf wird dann ueber die
+    /// ZEIT des besten Fensters bestimmt (web 587a99d7) und das Fenster hervorgehoben, solange er ausgewaehlt ist.
+    var sprintKz: String? = nil
     // Welche Session gerade GEZEIGT wird. „Älter"/„Neuer" TAUSCHEN sie hier aus, statt eine weitere
     // Detailansicht auf den Navigations-Stack zu legen. Vorher tat genau das der NavigationLink im
     // neighborNav -- mit der Folge, dass der Zurueck-Button oben links durch die Kette der
@@ -79,6 +84,7 @@ struct SessionDetailView: View {
     @AppStorage("sd_show_attempts") private var showAttempts = true
     @State private var attempts: [AttemptLine]?   // nil = noch nicht geholt
     @State private var selectedRun: Int?     // ausgewählter Lauf -> nur dieser farbig, Karte zoomt
+    @State private var vorwahlErledigt = false   // vorwahlLauf/sprintKz nur EINMAL anwenden (web appliedRunRef)
     // Wind-Sportarten (Profil karte="ganz"): ganze Fahrt grau unter den Laeufen, umschaltbar auf
     // „nur on-foil". Bewusst NICHT gemerkt (wie im Web) — jede Session startet mit der ganzen Fahrt.
     @State private var ganzeFahrt = true
@@ -1158,6 +1164,8 @@ struct SessionDetailView: View {
     /// unterscheiden sich nur in der Hoehe (nil = fuellt den verfuegbaren Platz).
     private func trackMap(_ track: TrackGeo, _ segs: [Segment], _ v: TrackVals, hoehe: CGFloat?) -> some View {
         let arcs: [[[Double]]] = colorMode == .turns ? (carve?.arcs ?? []) : []
+        let band: [[Double]] = sprintBand(track)
+        let schild: String = sprintSchildText
         return TrackMap(points: track.geometry.coordinates, speedsMps: v.speeds, hr: v.hr, pumpHz: v.pumpHz,
                         segments: segs, mode: colorMode, hrRange: v.hrRange, pumpRange: v.pumpRange,
                         showPumps: showPumps && (pumpzahlen || session?.sport_class == "sup"), showGlides: showGlides && pumpzahlen && session?.sport_class != "sup_paddle" && hatGleitphasen, selectedRun: selectedRun,
@@ -1169,7 +1177,8 @@ struct SessionDetailView: View {
                         sprints: (paddel?.versuche ?? []).map { $0.linie ?? [] },
                         // Nur in den gezeigten Abschnitten: ganze Fahrt alle, „nur Foil" nur die Sprintschlaege (20.10.2026).
                         schlaege: (karteGanzMoeglich && ganzeFahrt) ? (paddel?.schlag_pkt ?? []) : (paddel?.versuche ?? []).flatMap { $0.schlag_pkt ?? [] },
-                        wellen: wellePumpen?.linien ?? [])
+                        wellen: wellePumpen?.linien ?? [],
+                        sprintBand: band, sprintSchild: schild)
             .frame(height: hoehe).frame(maxWidth: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: hoehe == nil ? 0 : 12))
             .mitKartenUmschalter()
@@ -1210,11 +1219,122 @@ struct SessionDetailView: View {
 
     @ViewBuilder private var selectedRunRow: some View {
         if let sel = selectedRun {
-            HStack {
+            // Hinweis zum gewerteten Sprint-Fenster neben der Laufauswahl (web f8927f95); bricht auf schmalen Geraeten um.
+            FoilerFliessReihe(abstand: 8) {
                 Text(runLabel(sel)).font(.subheadline).foregroundStyle(Color.accentColor)
                 Button(Loc.t("sd.clearSelection", lang)) { selectedRun = nil }.font(.caption).buttonStyle(.borderless)
+                if let hl = sprintHL { SprintHinweis(text: sprintHinweisText(hl)) }
             }
         }
+    }
+
+    // MARK: Vorauswahl aus Bestenlisten + Sprint-Hervorhebung (web 713147c3, f8927f95, 587a99d7, 5d1f97df, 35833cc5)
+
+    /// Lauf einmal vorauswaehlen: bei einer Sprint-Kennzahl der Lauf, in dem das beste Fenster liegt, sonst `vorwahlLauf`.
+    /// Nur fuer die Session, mit der die Ansicht geoeffnet wurde (nicht nach „Älter"/„Neuer").
+    private func vorwahlAnwenden(_ s: SessionDetail) {
+        guard !vorwahlErledigt, s.id == id else { return }
+        let segs: [Segment] = s.analysis?.segments ?? []
+        guard !segs.isEmpty else { return }
+        vorwahlErledigt = true
+        let ziel: Int? = sprintLauf(s)?.i ?? vorwahlLauf
+        if let i = ziel, segs.indices.contains(i) { selectedRun = i }
+    }
+
+    struct SprintLauf {
+        let kz: String
+        let i: Int
+        let a: Double
+        let b: Double
+        let wert: Double
+    }
+
+    /// Lauf ueber die ZEIT: Mitte des Fensters in [t_start_session_ms, t_end_session_ms] — die Laufnummern unterscheiden
+    /// sich zwischen den normalen Laeufen und einem Empfindlichkeits-Preset des Besitzers (web 587a99d7).
+    private func sprintLauf(_ s: SessionDetail) -> SprintLauf? {
+        guard sid == id, let kz = sprintKz, let f = s.analysis?.sprints?.fenster?[kz], f.count >= 2 else { return nil }
+        let mitte: Double = (f[0] + f[1]) / 2
+        let segs: [Segment] = s.analysis?.segments ?? []
+        let treffer: Int? = segs.firstIndex { (g: Segment) -> Bool in
+            guard let a = g.t_start_session_ms, let b = g.t_end_session_ms else { return false }
+            return a <= mitte && mitte <= b
+        }
+        guard let i = treffer else { return nil }
+        let wert: Double = s.analysis?.sprints?.best?[kz] ?? 0
+        return SprintLauf(kz: kz, i: i, a: f[0], b: f[1], wert: wert)
+    }
+
+    /// Hervorhebung nur, solange der Sprint-Lauf ausgewaehlt ist (web sprintHL).
+    private var sprintHL: SprintLauf? {
+        guard let s = session, let sl = sprintLauf(s), selectedRun == sl.i else { return nil }
+        return sl
+    }
+
+    /// „Schnellste fliegende 100 m · 12.3 s · 29.3 km/h · +1:05" — Wert wie in der Bestenliste, dahinter die Lage im Lauf.
+    private func sprintHinweisText(_ hl: SprintLauf) -> String {
+        let k: TeamKennzahl = teamKennzahl(hl.kz)
+        var text: String = Loc.t(k.labelKey, lang) + " · " + k.fmt(hl.wert, lang)
+        let segs: [Segment] = session?.analysis?.segments ?? []
+        let start: Double = segs.indices.contains(hl.i) ? (segs[hl.i].t_start_session_ms ?? hl.a) : hl.a
+        let ab: Double = hl.a - start
+        if ab > 0 {
+            let minuten: Int = Int((ab / 60000).rounded(.down))
+            let sek: Int = Int((ab / 1000).rounded()) % 60
+            text += " · +" + String(minuten) + ":" + String(format: "%02d", sek)
+        }
+        return text
+    }
+
+    /// Schild in der Mitte des Bands: „100 m" bzw. „60 s".
+    private var sprintSchildText: String {
+        guard let kz = sprintHL?.kz else { return "" }
+        if kz == "sprint_60s" { return "60 s" }
+        return kz.replacingOccurrences(of: "sprint_", with: "").replacingOccurrences(of: "m", with: "") + " m"
+    }
+
+    /// Spurpunkte im Fenster (±0,5 s) — leer ohne Hervorhebung.
+    private func sprintBand(_ track: TrackGeo) -> [[Double]] {
+        guard let hl = sprintHL, let s = session else { return [] }
+        let pts: [[Double]] = track.geometry.coordinates
+        let zeiten: [Double] = punktZeiten(s, pts.count)
+        var out: [[Double]] = []
+        for i in 0..<min(pts.count, zeiten.count) {
+            let tm: Double = zeiten[i]
+            if tm >= hl.a - 500 && tm <= hl.b + 500 { out.append(pts[i]) }
+        }
+        return out
+    }
+
+    /// Session-ms je Spurpunkt (web indexZuSessionMs): die echten Zeiten vom Server, wenn sie Punkt fuer Punkt passen;
+    /// sonst zwischen den Laufgrenzen (i_start/i_end mit ihrer Session-Zeit) linear, ausserhalb 1 s je Punkt.
+    private func punktZeiten(_ s: SessionDetail, _ n: Int) -> [Double] {
+        if let z = passendeZeiten(s) { return z.map { Double($0) } }
+        var anker: [(i: Int, t: Double)] = []
+        for g in s.analysis?.segments ?? [] {
+            if let a = g.t_start_session_ms { anker.append((i: g.i_start, t: a)) }
+            if let b = g.t_end_session_ms { anker.append((i: g.i_end, t: b)) }
+        }
+        anker.sort { $0.i < $1.i }
+        let off: Double = Double(s.trim_start_ms ?? 0)
+        var out: [Double] = []
+        out.reserveCapacity(n)
+        for idx in 0..<max(n, 0) { out.append(SessionDetailView.zeitAusAnkern(idx, anker, off)) }
+        return out
+    }
+
+    private static func zeitAusAnkern(_ idx: Int, _ anker: [(i: Int, t: Double)], _ off: Double) -> Double {
+        guard let erster = anker.first, let letzter = anker.last else { return off + Double(idx) * 1000 }
+        if idx <= erster.i { return erster.t - Double(erster.i - idx) * 1000 }
+        if idx >= letzter.i { return letzter.t + Double(idx - letzter.i) * 1000 }
+        for k in 0..<(anker.count - 1) {
+            let a = anker[k], b = anker[k + 1]
+            if idx >= a.i && idx <= b.i {
+                if b.i == a.i { return a.t }
+                let anteil: Double = Double(idx - a.i) / Double(b.i - a.i)
+                return a.t + anteil * (b.t - a.t)
+            }
+        }
+        return off + Double(idx) * 1000
     }
 
     private func runLabel(_ idx: Int) -> String {
@@ -1877,6 +1997,7 @@ struct SessionDetailView: View {
                 SessionCache.store(s)
             }
             session = s
+            vorwahlAnwenden(s)
             carve = try? await Api.sessionCarves(sid)   // Carve-Bögen (nur Anzeige)
             // Fehlt die Antwort, fehlen nur die zwei Pulsabfall-Spalten — nichts sonst haengt daran.
             trackZeiten = try? await Api.sessionTrackTimes(sid)
@@ -2419,6 +2540,34 @@ private struct WindKarte: View {
 
 /// Start- bzw. Endpunkt der Spur — nur, wenn keine Laeufe erkannt wurden (dann gibt es keine
 /// andere Orientierung auf der Karte).
+/// Sprint-Fenster: Start/Ende (`schild` nil) bzw. das Schild „100 m" in der Mitte (web 5d1f97df).
+private class SprintMarke: NSObject, MKAnnotation {
+    let coordinate: CLLocationCoordinate2D
+    let schild: String?
+    init(_ c: CLLocationCoordinate2D, schild: String?) { coordinate = c; self.schild = schild }
+}
+
+/// Hinweis neben der Laufauswahl: Farbstreifen + „Kennzahl · Wert · +m:ss", magenta umrandet (web f8927f95).
+private struct SprintHinweis: View {
+    let text: String
+
+    private static let rand = Color(red: 0xd9 / 255.0, green: 0x46 / 255.0, blue: 0xef / 255.0)
+    private static let schrift = Color(UIColor { tc in
+        tc.userInterfaceStyle == .dark ? UIColor(red: 0xf0 / 255.0, green: 0xab / 255.0, blue: 0xfc / 255.0, alpha: 1)
+                                       : UIColor(red: 0xa2 / 255.0, green: 0x1c / 255.0, blue: 0xaf / 255.0, alpha: 1)
+    })
+
+    var body: some View {
+        HStack(spacing: 6) {
+            RoundedRectangle(cornerRadius: 2).fill(SprintHinweis.rand).frame(width: 16, height: 8)
+            Text(text).font(.caption.weight(.semibold)).foregroundStyle(SprintHinweis.schrift)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 8).padding(.vertical, 4)
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(SprintHinweis.rand, lineWidth: 2))
+    }
+}
+
 private class EndPunkt: NSObject, MKAnnotation {
     let coordinate: CLLocationCoordinate2D
     let start: Bool
@@ -2518,6 +2667,10 @@ struct TrackMap: UIViewRepresentable {
     var schlaege: [[Double]] = []
     /// Wake thief: Wellenstuecke als breites fuchsia Band.
     var wellen: [[[Double]]] = []
+    /// Gewertetes Sprint-Fenster (web 5d1f97df/7cc47a32/35833cc5): Spurpunkte [lon,lat] als weisses, halbtransparentes Band
+    /// UNTER der farbigen Spur, Start/Ende als magenta Punkte, `sprintSchild` („100 m") in der Mitte. Leer = nichts.
+    var sprintBand: [[Double]] = []
+    var sprintSchild: String = ""
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -2559,6 +2712,26 @@ struct TrackMap: UIViewRepresentable {
         let a: [Double] = points.first ?? [], b: [Double] = points.last ?? []
         return "\(ebene)|\(points.count)|\(a)|\(b)|\(segs)|\(mode)|\(hrRange.0)-\(hrRange.1)|\(pumpRange.0)-\(pumpRange.1)|"
             + "\(showPumps)|\(showGlides)|\(ganzeFahrt)|\(tempoSkala.0)-\(tempoSkala.1)|\(manoever.count)|\(sprints.count)|\(schlaege.count)|\(wellen.count)|\(selectedRun ?? -1)|\(attempts.count)|\(carveArcs.count)|\(carveGMax)|\(speedsMps.count)|\(hr.count)|\(pumpHz.count)"
+            + "|\(sprintBand.count)|\(sprintSchild)"
+    }
+
+    /// Sprint-Band vor den Laeufen auf die Karte = darunter (die gewaehlte Faerbung bleibt sichtbar).
+    private func zeichneSprintBand(_ map: MKMapView, _ co: Coordinator) {
+        let cs: [CLLocationCoordinate2D] = sprintBand.compactMap { $0.count >= 2 ? CLLocationCoordinate2D(latitude: $0[1], longitude: $0[0]) : nil }
+        guard cs.count >= 2 else { return }
+        let pl = MKPolyline(coordinates: cs, count: cs.count)
+        co.colors[ObjectIdentifier(pl)] = UIColor(white: 1, alpha: 0.85)
+        co.widths[ObjectIdentifier(pl)] = 11
+        map.addOverlay(pl)
+    }
+
+    /// Start/Ende und Schild ueber der Spur (Annotationen liegen immer ueber den Linien).
+    private func zeichneSprintMarken(_ map: MKMapView) {
+        let cs: [CLLocationCoordinate2D] = sprintBand.compactMap { $0.count >= 2 ? CLLocationCoordinate2D(latitude: $0[1], longitude: $0[0]) : nil }
+        guard let erste = cs.first, let letzte = cs.last, cs.count >= 2 else { return }
+        map.addAnnotation(SprintMarke(erste, schild: nil))
+        map.addAnnotation(SprintMarke(letzte, schild: nil))
+        if !sprintSchild.isEmpty { map.addAnnotation(SprintMarke(cs[cs.count / 2], schild: sprintSchild)) }
     }
 
     /// Gleitphasen in Marken-Cyan ueber den Laeufen, nur fuer nicht gedimmte Laeufe (wie PWA).
@@ -2723,6 +2896,8 @@ struct TrackMap: UIViewRepresentable {
             }
         }
         striche += basis   // ganze Fahrt obendrauf, s. oben
+        zeichneSprintBand(map, co)   // vor den Laeufen = darunter
+        zeichneSprintMarken(map)
         // Wenden/Halsen als Marken (nur ohne ausgewaehlten Lauf).
         if selectedRun == nil {
             for mv in manoever where points.indices.contains(mv.i) {
@@ -2857,6 +3032,7 @@ struct TrackMap: UIViewRepresentable {
                 v.isEnabled = false
                 return v
             }
+            if let m = annotation as? SprintMarke { return sprintAnsicht(mapView, m) }
             if let n = annotation as? NummerPunkt {
                 let id = "nummer"
                 let v = mapView.dequeueReusableAnnotationView(withIdentifier: id)
@@ -2886,6 +3062,42 @@ struct TrackMap: UIViewRepresentable {
             v.layer.borderColor = UIColor(white: 0.06, alpha: 1).cgColor
             v.layer.borderWidth = 1.5
             v.isEnabled = false
+            return v
+        }
+
+        /// Sprint-Start/-Ende: kleiner magenta Punkt mit weissem Rand; Schild: weisse Schrift auf magenta, ueber dem Punkt.
+        private func sprintAnsicht(_ mapView: MKMapView, _ m: SprintMarke) -> MKAnnotationView {
+            let id: String = m.schild == nil ? "sprintPunkt" : "sprintSchild"
+            let v = mapView.dequeueReusableAnnotationView(withIdentifier: id)
+                ?? MKAnnotationView(annotation: m, reuseIdentifier: id)
+            v.annotation = m
+            v.subviews.forEach { $0.removeFromSuperview() }
+            v.layer.borderColor = UIColor.white.cgColor
+            v.isEnabled = false
+            v.displayPriority = .required
+            if let text = m.schild {
+                let l = UILabel()
+                l.text = text
+                l.font = .systemFont(ofSize: 12, weight: .bold)
+                l.textColor = .white
+                l.textAlignment = .center
+                let g: CGSize = l.intrinsicContentSize
+                let w: CGFloat = g.width + 12
+                let h: CGFloat = g.height + 4
+                v.frame = CGRect(x: 0, y: 0, width: w, height: h)
+                l.frame = v.bounds
+                v.addSubview(l)
+                v.backgroundColor = UIColor(red: 0xa2 / 255.0, green: 0x1c / 255.0, blue: 0xaf / 255.0, alpha: 1)
+                v.layer.cornerRadius = 6
+                v.layer.borderWidth = 2
+                v.centerOffset = CGPoint(x: 0, y: -(h / 2 + 8))
+            } else {
+                v.frame = CGRect(x: 0, y: 0, width: 10, height: 10)
+                v.backgroundColor = UIColor(red: 0xc0 / 255.0, green: 0x26 / 255.0, blue: 0xd3 / 255.0, alpha: 1)
+                v.layer.cornerRadius = 5
+                v.layer.borderWidth = 2
+                v.centerOffset = .zero
+            }
             return v
         }
 

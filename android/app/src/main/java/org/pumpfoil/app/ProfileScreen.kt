@@ -149,18 +149,18 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoilStats
             dismissButton = { TextButton(onClick = { editing = false }) { Text(I18n.t("common.cancel")) } },
         )
     }
-    // Einstellungen mit Reitern wie im Web (Settings.tsx, docs/UX-IA.md App-Port Phase 6): Uebersicht · Uhren · Freunde ·
-    // Team · Sportarten · Ausruestung · Ich · Fahren · Privatsphaere · Darstellung · Konto. Die Kacheln der Uebersicht schalten auf
+    // Einstellungen mit Reitern wie im Web (Settings.tsx, docs/UX-IA.md App-Port Phase 6): Uebersicht · Ich · Uhren · Freunde ·
+    // Team · Sportarten · Ausruestung · Fahren · Privatsphaere · Darstellung · Konto. Die Kacheln der Uebersicht schalten auf
     // den jeweiligen Reiter (keine eigenen Seiten). Freunde gibt es unter 13 nicht (Server: 403), wie bisher.
     val z = rememberEinstellungenStand()
     val reiter = listOfNotNull(
         ReiterDef("uebersicht", I18n.t("tab.overview")),
+        ReiterDef("ich", I18n.t("ptab.me")),   // „Ich" an zweiter Stelle (Web c40c8424, 11.11.2026)
         ReiterDef("konten", I18n.t("ptab.watches")),
         if (profile?.socialAllowed != false) ReiterDef("freunde", I18n.t("friends.title")) else null,
         ReiterDef("team", I18n.t("tab.team")),
         ReiterDef("sportarten", I18n.t("mySpots.sports")),
         ReiterDef("ausruestung", I18n.t("gear.title")),
-        ReiterDef("ich", I18n.t("ptab.me")),
         ReiterDef("fahren", I18n.t("ptab.riding")),
         ReiterDef("privat", I18n.t("ptab.privacy")),
         ReiterDef("darstellung", I18n.t("ptab.display")),
@@ -364,6 +364,8 @@ fun ProfileScreen(onLogout: () -> Unit, onFoilCalc: () -> Unit = {}, onFoilStats
                 Spacer(Modifier.height(20.dp))
                 // Nationalitaet direkt unter dem Namen (Web Settings.tsx, 02.11.2026).
                 LandKarteProfil(onSaved = { z.flashSaved() })
+                // Wertungsklasse unter der Nationalitaet (Web a2081ec0, 10.11.2026): nur fuer den Filter der Event-Bestenlisten.
+                WertungsklasseKarte(onSaved = { z.flashSaved() })
                 EinstellungenTeil(z, "ich")
             }
             "fahren" -> EinstellungenTeil(z, "fahren")   // Handy-Recorder seit 05.11.2026 in der Uebersicht

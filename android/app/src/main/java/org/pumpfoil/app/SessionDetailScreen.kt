@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -145,7 +146,10 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                         onKommentare: (Int, Boolean) -> Unit = { _, _ -> }, onKommentareEinschalten: () -> Unit = {},
                         // Zusammengefuehrt (Garmin, 05.11.2026): der Server leitet die alte ID auf die neue Session weiter
                         // (307, HttpURLConnection folgt selbst) -> auf die neue ID umsteigen, wie die PWA die Adresse umstellt.
-                        onWeitergeleitet: (Int) -> Unit = {}) {
+                        onWeitergeleitet: (Int) -> Unit = {},
+                        // Aus einer Bestenliste (11.11.2026, Web ?run= / ?sprint=): diesen Lauf vorauswaehlen bzw. bei einer
+                        // Sprint-Kennzahl den Lauf ueber die Zeit des Fensters bestimmen und den Abschnitt hervorheben.
+                        startLauf: Int? = null, sprintKennzahl: String? = null) {
     var session by remember { mutableStateOf<SessionDetail?>(null) }
     var neighbors by remember(id) { mutableStateOf<Neighbors?>(null) }
     var loading by remember { mutableStateOf(true) }
@@ -471,7 +475,7 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
                         showTrim = true
                     },
                     onDelete = { confirmDelete = true },
-                    onRunSelected = { shareRun = it })
+                    onRunSelected = { shareRun = it }, startLauf = startLauf, sprintKennzahl = sprintKennzahl)
             }
         }
     }
@@ -482,7 +486,8 @@ fun SessionDetailScreen(id: Int, onBack: () -> Unit, onLabel: (Int) -> Unit = {}
 private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpenSession: (Int) -> Unit = {}, onReload: () -> Unit = {},
                           canTrim: Boolean = false, onTrim: () -> Unit = {}, onDelete: () -> Unit = {},
                           onRunSelected: (Int?) -> Unit = {}, social: Boolean = true,
-                          onKommentare: () -> Unit = {}, onKommentareEinschalten: () -> Unit = {}) {
+                          onKommentare: () -> Unit = {}, onKommentareEinschalten: () -> Unit = {},
+                          startLauf: Int? = null, sprintKennzahl: String? = null) {
     val scope = rememberCoroutineScope()
     var liked by remember(s.id) { mutableStateOf(s.liked) }
     var likeCount by remember(s.id) { mutableStateOf(s.likeCount) }
@@ -557,6 +562,21 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     val tempoSkala = s.sportProfil?.tempoSkala?.takeIf { it.size == 2 && it[1] > it[0] }?.let { it[0] to it[1] } ?: (8.0 to 25.0)
     var selectedRun by remember(s.id) { mutableStateOf<Int?>(null) }   // ausgewählter Lauf -> nur dieser farbig
     LaunchedEffect(selectedRun) { onRunSelected(selectedRun) }   // hoch melden -> Teilen-Vorauswahl (#37)
+    // Aus einer Sprint-Bestenliste (Web f8927f95/587a99d7, 11.11.2026): Lauf ueber die ZEIT bestimmen — Mitte des Fensters in
+    // [t_start_session_ms, t_end_session_ms] —, denn die Laufnummern unterscheiden sich zwischen den normalen Laeufen und
+    // einem Empfindlichkeits-Preset des Besitzers.
+    // Schluessel bewusst schmal: SessionDetail per equals zu vergleichen hiesse, die ganze Spur bei jeder Recomposition zu vergleichen.
+    val sprintLauf = remember(s.id, s.dataVersion, s.analysis?.sprints, sprintKennzahl) { sprintLaufFuer(s, sprintKennzahl) }
+    // Lauf vorauswaehlen (Bestenlisten-Zeile mit run_idx), einmal je Session.
+    var laufAngewandt by remember(s.id) { mutableStateOf(false) }
+    LaunchedEffect(s.id, sprintLauf, startLauf) {
+        if (laufAngewandt) return@LaunchedEffect
+        val n = s.analysis?.segments?.size ?: 0
+        val i = sprintLauf?.lauf ?: startLauf
+        if (i != null && i in 0 until n) { selectedRun = i; laufAngewandt = true }
+    }
+    // Hervorhebung nur, solange genau dieser Lauf ausgewaehlt ist (Web sprintHL).
+    val sprintHL = sprintLauf?.takeIf { selectedRun == it.lauf }
     var weightKg by remember { mutableStateOf(0.0) }
     var caption by remember(s.id) { mutableStateOf(s.caption ?: "") }
     var allFoils by remember(s.id) { mutableStateOf<List<Foil>>(emptyList()) }
@@ -937,6 +957,13 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         }
         trackForRuns?.let { track ->
             val segs = a?.segments.orEmpty()
+            // Gewerteter Sprint-Abschnitt (s. sprintHL): die Spurpunkte im Fenster (±0,5 s, wie Web), Schild „100 m"/„60 s".
+            val sprintIdx = remember(track, sprintHL, zeitenFuerLaeufe) {
+                val hl = sprintHL ?: return@remember emptyList<Int>()
+                val ms = indexZuSessionMs(track.points.size, segs, zeitenFuerLaeufe)
+                track.points.indices.filter { val t = ms(it); t >= hl.a - 500 && t <= hl.b + 500 }
+            }
+            val sprintSchild = sprintHL?.let { if (it.kz == "sprint_60s") "60 s" else it.kz.removePrefix("sprint_").removeSuffix("m") + " m" }
             // Karte auch OHNE erkannte Laeufe zeigen: die PWA macht das laengst (dort wird dann
             // die komplette Spur gezeichnet), Android und iOS blendeten sie ganz aus. Fuer wen das
             // wichtig ist: wer prueft, ob seine Uhr ueberhaupt ortet, sieht sonst NICHTS und haelt
@@ -1051,7 +1078,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                             selectedRun, { selectedRun = if (selectedRun == it) null else it },
                             if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
-                            Modifier.fillMaxWidth().height(300.dp), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty(), sprints = paddel?.versuche?.map { it.linie }.orEmpty(), schlaege = (if (zeigeGanz) paddel?.schlagPkt else paddel?.versuche?.flatMap { it.schlagPkt }).orEmpty(), wellen = wellePumpen?.linien.orEmpty())
+                            Modifier.fillMaxWidth().height(300.dp), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty(), sprints = paddel?.versuche?.map { it.linie }.orEmpty(), schlaege = (if (zeigeGanz) paddel?.schlagPkt else paddel?.versuche?.flatMap { it.schlagPkt }).orEmpty(), wellen = wellePumpen?.linien.orEmpty(), sprintIdx = sprintIdx, sprintSchild = sprintSchild)
                         // Vollbild-Karte (PWA-Paritaet: dort ein Knopf "Vollbild" ueber der Karte
                         // bzw. die Taste F). Hier ein Knopf IN der Kartenecke — dasselbe Muster,
                         // das die Vergleichskarte dieser App schon nutzt.
@@ -1075,7 +1102,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                 if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                                 selectedRun, { selectedRun = if (selectedRun == it) null else it },
                                 if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
-                                Modifier.fillMaxSize(), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty(), sprints = paddel?.versuche?.map { it.linie }.orEmpty(), schlaege = (if (zeigeGanz) paddel?.schlagPkt else paddel?.versuche?.flatMap { it.schlagPkt }).orEmpty(), wellen = wellePumpen?.linien.orEmpty())
+                                Modifier.fillMaxSize(), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty(), sprints = paddel?.versuche?.map { it.linie }.orEmpty(), schlaege = (if (zeigeGanz) paddel?.schlagPkt else paddel?.versuche?.flatMap { it.schlagPkt }).orEmpty(), wellen = wellePumpen?.linien.orEmpty(), sprintIdx = sprintIdx, sprintSchild = sprintSchild)
                             IconButton(
                                 onClick = { mapFull = false },
                                 // Karte bleibt randlos, das X nicht — sonst liegt es unter der Statusleiste.
@@ -1125,6 +1152,20 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                     label = { Text(I18n.t("sd.allRuns")) },
                                     colors = cyanChipColors(),
                                 )
+                            }
+                            // Sprint aus der Bestenliste (Web f8927f95): Kennzahl · Wert · Lage im Lauf (+m:ss).
+                            sprintHL?.let { hl ->
+                                val ab = hl.a - (segs.getOrNull(hl.lauf)?.tStartSessionMs ?: hl.a)
+                                val lage = if (ab > 0) " · +${(ab / 60000).toInt()}:" + ((Math.round(ab / 1000.0) % 60).toString().padStart(2, '0')) else ""
+                                Row(Modifier.align(Alignment.CenterVertically).clip(RoundedCornerShape(8.dp))
+                                        .border(1.dp, SPRINT_HINWEIS.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
+                                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically) {
+                                    Box(Modifier.size(width = 14.dp, height = 7.dp).clip(RoundedCornerShape(2.dp)).background(SPRINT_HINWEIS))
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("${kennzahlLabel(hl.kz)} · ${kennzahlWert(hl.kz, hl.wert)}$lage",
+                                        style = MaterialTheme.typography.bodySmall)
+                                }
                             }
                         }
                     }
@@ -1446,6 +1487,42 @@ private fun pumpDot(): android.graphics.drawable.Drawable {
     return android.graphics.drawable.BitmapDrawable(null, bmp)
 }
 
+/** Start/Ende des gewerteten Sprint-Abschnitts (Web circleMarker radius 5, weisser Rand 2, #c026d3). */
+private fun sprintPunkt(ctx: android.content.Context, dens: Float): android.graphics.drawable.BitmapDrawable {
+    val r = 5f * dens
+    val rand = 2f * dens
+    val size = ((r + rand) * 2f).toInt().coerceAtLeast(6)
+    val bmp = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
+    val c = android.graphics.Canvas(bmp)
+    val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+    p.color = 0xFFC026D3.toInt()
+    c.drawCircle(size / 2f, size / 2f, r, p)
+    p.style = android.graphics.Paint.Style.STROKE
+    p.strokeWidth = rand
+    p.color = android.graphics.Color.WHITE
+    c.drawCircle(size / 2f, size / 2f, r, p)
+    return android.graphics.drawable.BitmapDrawable(ctx.resources, bmp)
+}
+
+/** Schild des Sprint-Abschnitts (Web .sprint-schild): magenta, weisser Rand, weisse fette Schrift. */
+private fun sprintSchildIcon(ctx: android.content.Context, text: String, dens: Float): android.graphics.drawable.BitmapDrawable {
+    val tp = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        color = android.graphics.Color.WHITE; textSize = 12 * dens; typeface = android.graphics.Typeface.DEFAULT_BOLD
+    }
+    val rand = 2f * dens
+    val w = (tp.measureText(text) + 12 * dens + 2 * rand).toInt()
+    val h = (tp.descent() - tp.ascent() + 4 * dens + 2 * rand).toInt()
+    val bmp = android.graphics.Bitmap.createBitmap(w, h, android.graphics.Bitmap.Config.ARGB_8888)
+    val c = android.graphics.Canvas(bmp)
+    val rect = android.graphics.RectF(rand / 2, rand / 2, w - rand / 2, h - rand / 2)
+    val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFA21CAF.toInt() }
+    c.drawRoundRect(rect, 6 * dens, 6 * dens, p)
+    p.style = android.graphics.Paint.Style.STROKE; p.strokeWidth = rand; p.color = android.graphics.Color.WHITE
+    c.drawRoundRect(rect, 6 * dens, 6 * dens, p)
+    c.drawText(text, (w - tp.measureText(text)) / 2f, h / 2f - (tp.descent() + tp.ascent()) / 2f, tp)
+    return android.graphics.drawable.BitmapDrawable(ctx.resources, bmp)
+}
+
 /** Runde bernsteinfarbene Marke mit der Versuchsnummer (SUP-Sprints, wie PWA). */
 private fun nummerIcon(ctx: android.content.Context, nr: Int, dens: Float): android.graphics.drawable.BitmapDrawable {
     val size = (18 * dens).toInt().coerceAtLeast(8)
@@ -1484,6 +1561,10 @@ private fun TrackMap(
     schlaege: List<List<Double>> = emptyList(),
     /** Wake thief: Wellenstuecke als breites, halbdurchsichtiges Band. */
     wellen: List<List<List<Double>>> = emptyList(),
+    /** Gewerteter Sprint-Abschnitt aus einer Sprint-Bestenliste (11.11.2026): Indizes der Spurpunkte; leer = keiner. */
+    sprintIdx: List<Int> = emptyList(),
+    /** Schild in der Mitte des Sprint-Abschnitts („100 m", „60 s"). */
+    sprintSchild: String? = null,
 ) {
     val pts = track.points
     val speeds = track.speedsFor(win)
@@ -1556,6 +1637,19 @@ private fun TrackMap(
                         map.overlays.add(punktMarker(map, GeoPoint(pts.last().second, pts.last().first),
                             Color(0xFFEF4444), dens, hohl = false))
                     }
+                }
+                // Gewerteter Sprint-Abschnitt als weisses, halbtransparentes Band UNTER dem Lauf (Web 5d1f97df/7cc47a32/35833cc5):
+                // die gewaehlte Faerbung (Tempo, Puls …) bleibt sichtbar. Vor den Laeufen eingehaengt = darunter gezeichnet.
+                val sprintPkte = sprintIdx.mapNotNull { pts.getOrNull(it)?.let { p -> GeoPoint(p.second, p.first) } }
+                if (sprintPkte.size >= 2) {
+                    map.overlays.add(Polyline(map).apply {
+                        setPoints(sprintPkte)
+                        outlinePaint.color = Color.White.copy(alpha = 0.85f).toArgb()
+                        outlinePaint.strokeWidth = 11f * dens
+                        outlinePaint.strokeCap = android.graphics.Paint.Cap.ROUND
+                        outlinePaint.strokeJoin = android.graphics.Paint.Join.ROUND
+                        infoWindow = null
+                    })
                 }
                 segments.forEachIndexed { runIdx, seg ->
                     val dim = selectedRun != null && runIdx != selectedRun   // anderer Lauf -> ausgegraut
@@ -1730,6 +1824,28 @@ private fun TrackMap(
                             })
                             allPts.add(g0); allPts.add(g1)
                         }
+                    }
+                }
+                // Start/Ende des Sprint-Abschnitts (kleine magenta Punkte, weisser Rand) und das Schild UEBER dem Track.
+                if (sprintPkte.size >= 2) {
+                    for (gp in listOf(sprintPkte.first(), sprintPkte.last())) {
+                        map.overlays.add(Marker(map).apply {
+                            position = gp
+                            icon = sprintPunkt(map.context, dens)
+                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                            setInfoWindow(null)
+                            setOnMarkerClickListener { _, _ -> true }
+                        })
+                    }
+                    sprintSchild?.let { txt ->
+                        map.overlays.add(Marker(map).apply {
+                            position = sprintPkte[sprintPkte.size / 2]
+                            icon = sprintSchildIcon(map.context, txt, dens)
+                            // unten mittig verankert und etwas hoeher: das Schild steht ueber der Spur (Web offset -10 px)
+                            setAnchor(Marker.ANCHOR_CENTER, 1.35f)
+                            setInfoWindow(null)
+                            setOnMarkerClickListener { _, _ -> true }
+                        })
                     }
                 }
                 // Auf den ausgewählten Lauf zoomen, sonst auf alle Foiling-Läufe.
@@ -3175,6 +3291,52 @@ private fun SessionKommentareAbschnitt(s: SessionDetail, onOeffnen: () -> Unit, 
                 modifier = Modifier.fillMaxWidth()) {
                 Text(I18n.t("comments.placeholder"), Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+/** Farbe des Sprint-Hinweises neben der Laufauswahl (Web fuchsia-500, seit 11.11.). */
+private val SPRINT_HINWEIS = Color(0xFFD946EF)
+
+/** Gewerteter Sprint-Abschnitt einer Session: Kennzahl, Lauf (Index in den Segmenten), Fenster in Session-ms, Wert (m/s). */
+internal data class SprintLauf(val kz: String, val lauf: Int, val a: Double, val b: Double, val wert: Double)
+
+/** Lauf zum Sprint-Fenster ueber die Zeit (Web sprintLauf): Fenstermitte in [t_start_session_ms, t_end_session_ms]. */
+internal fun sprintLaufFuer(s: SessionDetail, kz: String?): SprintLauf? {
+    if (kz == null) return null
+    val sp = s.analysis?.sprints ?: return null
+    val f = sp.fenster[kz]?.takeIf { it.size >= 2 } ?: return null
+    val mitte = (f[0] + f[1]) / 2
+    val i = s.analysis.segments.orEmpty().indexOfFirst { g ->
+        val a = g.tStartSessionMs; val b = g.tEndSessionMs
+        a != null && b != null && a <= mitte && mitte <= b
+    }
+    return if (i >= 0) SprintLauf(kz, i, f[0], f[1], sp.best[kz] ?: 0.0) else null
+}
+
+/**
+ * Spurindex -> Session-ms (Web indexZuSessionMs): erste Wahl die echten Zeiten vom Server (nur bei passender Anzahl), sonst
+ * linear zwischen den Laufgrenzen (i_start/i_end mit t_start/t_end_session_ms), ausserhalb mit 1 Hz fortgeschrieben.
+ */
+internal fun indexZuSessionMs(n: Int, segs: List<Segment>, zeiten: List<Long>?): (Int) -> Double {
+    if (zeiten != null && zeiten.size == n && n > 0) return { i -> zeiten[i.coerceIn(0, n - 1)].toDouble() }
+    val anker = ArrayList<Pair<Int, Double>>()
+    for (g in segs) {
+        g.tStartSessionMs?.let { anker.add(g.iStart to it) }
+        g.tEndSessionMs?.let { anker.add(g.iEnd to it) }
+    }
+    anker.sortBy { it.first }
+    return { i ->
+        when {
+            anker.isEmpty() -> i * 1000.0
+            i <= anker.first().first -> anker.first().second - (anker.first().first - i) * 1000.0
+            i >= anker.last().first -> anker.last().second + (i - anker.last().first) * 1000.0
+            else -> {
+                var k = 0
+                while (k < anker.size - 2 && i > anker[k + 1].first) k++
+                val (ia, ta) = anker[k]; val (ib, tb) = anker[k + 1]
+                if (ib == ia) ta else ta + (i - ia).toDouble() / (ib - ia) * (tb - ta)
             }
         }
     }

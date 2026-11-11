@@ -315,7 +315,11 @@ fun MainScaffold(onLogout: () -> Unit) {
         // gilt es fuer jede Karte, Zeile und Chat-Nachricht darunter.
         androidx.compose.runtime.CompositionLocalProvider(LocalOpenFoiler provides { uid: Int -> nav.navigate("foiler/$uid") },
             LocalOpenTeam provides { sl: String -> nav.navigate("team/${Uri.encode(sl)}") },
-            LocalOpenTeamEvent provides { sl: String, id: Int -> nav.navigate("teamevent/${Uri.encode(sl)}/$id") }) {
+            LocalOpenTeamEvent provides { sl: String, id: Int -> nav.navigate("teamevent/${Uri.encode(sl)}/$id") },
+            LocalOpenSessionLauf provides { sid: Int, lauf: Int?, sprint: String? ->
+                nav.navigate("session/$sid" + listOfNotNull(lauf?.let { "run=$it" }, sprint?.let { "sprint=${Uri.encode(it)}" })
+                    .takeIf { it.isNotEmpty() }?.joinToString("&", prefix = "?").orEmpty())
+            }) {
         androidx.compose.runtime.CompositionLocalProvider(LocalFeedbackUrl provides feedbackUrl(backEntry)) {
         NavHost(nav, startDestination = "home", modifier = Modifier.padding(pad)) {
             composable("home") { HomeScreen(onOpen = { id, v -> nav.navigate("session/$id" + (v?.let { "?v=$it" } ?: "")) }, onOpenSessions = { nav.switchTab("sessions") }, onOpenCommunity = { nav.switchTab("community") }, onRecord = { nav.navigate("record") }, onOpenSortedOut = { SessionsWunsch.setzeFilter("other"); nav.switchTab("sessions") }, onOnboarding = { nav.navigate("onboarding") }, social = social,
@@ -421,15 +425,20 @@ fun MainScaffold(onLogout: () -> Unit) {
             composable("impressum") { ImpressumScreen(onBack = { nav.popBackStack() }) }
             composable("changelog") { ChangelogScreen(onBack = { nav.popBackStack() }) }
             composable(
-                "session/{id}?v={v}",
+                // `run`/`sprint` (11.11.2026, Bestenlisten): Lauf vorauswaehlen bzw. den gewerteten Sprint-Abschnitt hervorheben.
+                "session/{id}?v={v}&run={run}&sprint={sprint}",
                 arguments = listOf(
                     navArgument("id") { type = NavType.IntType },
                     navArgument("v") { type = NavType.StringType; nullable = true; defaultValue = null },
+                    navArgument("run") { type = NavType.StringType; nullable = true; defaultValue = null },
+                    navArgument("sprint") { type = NavType.StringType; nullable = true; defaultValue = null },
                 ),
             ) { entry ->
                 SessionDetailScreen(
                     id = entry.arguments?.getInt("id") ?: 0,
                     dataVersion = entry.arguments?.getString("v")?.toLongOrNull(),
+                    startLauf = entry.arguments?.getString("run")?.toIntOrNull(),
+                    sprintKennzahl = entry.arguments?.getString("sprint")?.takeIf { it.startsWith("sprint_") },
                     onBack = { nav.popBackStack() },
                     onLabel = { sid -> nav.navigate("labeling/$sid") },
                     onOpenSession = { sid -> nav.navigate("session/$sid") },
@@ -439,7 +448,7 @@ fun MainScaffold(onLogout: () -> Unit) {
                     onKommentare = { sid, inhaber -> nav.navigate("kommentare/$sid?inhaber=$inhaber") },
                     onKommentareEinschalten = { nav.zuEinstellungen("privat") },
                     // Alte ID einer zusammengefuehrten Session: durch die neue ersetzen (kein Zurueck auf die alte).
-                    onWeitergeleitet = { neu -> nav.navigate("session/$neu") { popUpTo("session/{id}?v={v}") { inclusive = true } } },
+                    onWeitergeleitet = { neu -> nav.navigate("session/$neu") { popUpTo("session/{id}?v={v}&run={run}&sprint={sprint}") { inclusive = true } } },
                 )
             }
             // Kommentare einer Session (Chat-Raum session:<id>, ChatScreen.kt SessionKommentareRaum).

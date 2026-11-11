@@ -30,6 +30,9 @@ struct TeamKurz: Codable, Identifiable {
     var wertbar: Bool? = nil
     var primaer: Bool? = nil
     var primaer_gewaehlt: Bool? = nil
+    /// Als primaer markierbar (11.11.2026, web 47ff8457): aktive Mitgliedschaft, nicht das offizielle Team — unabhaengig
+    /// davon, ob das Team in globalen Events zaehlt. Aeltere Server: fehlt, dann gilt `wertbar`.
+    var waehlbar: Bool? = nil
 }
 
 /// Eintrag der Seite „Alle Teams" (`GET /api/teams/liste`).
@@ -109,6 +112,11 @@ struct TeamZeile: Codable, Identifiable {
     var teams: [TeamEventTeam]? = nil
     /// Gemischte Ansicht (z. B. Pumpfoil + Foil Scoot, 08.11.2026): Sportart(en) dieser Zeile fuers Abzeichen.
     var sportarten: [String]? = nil
+    /// Bestenlisten aus EINEM Lauf (Strecke, Dauer, Tempo, Gleiten, Sprints): Lauf in der Session (Index in den Segmenten,
+    /// web 713147c3, 11.11.2026). Fehlt bei Session-Kennzahlen und Summen.
+    var run_idx: Int? = nil
+    /// Gefiltert nach Wertungsklasse (10.11.2026): `rang` ist der Rang in der Klasse, hier der in der Gesamtwertung.
+    var rang_gesamt: Int? = nil
     var id: String { "\(rang)-\(user_id ?? 0)-\(name ?? "")" }
 }
 
@@ -235,6 +243,10 @@ struct TeamEvent: Codable, Identifiable {
     var team_wertung_n: Int? = nil
     /// Globale Events (10.11.2026): fuer welches seiner Teams der Betrachter antritt — nur, wenn er in einem zaehlt.
     var mein_team: EventMeinTeam? = nil
+    /// Filter „Wertungsklasse" (10.11.2026, web a2081ec0): angebotene Klassen ("w"/"m"/"nb") mit Anzahl, leer/nil = kein
+    /// Filter; `klasse` = die aktive (nil = alle).
+    var klassen: [String: Int]? = nil
+    var klasse: String? = nil
 
     var istGlobal: Bool { global == true }
 
@@ -266,6 +278,10 @@ struct EventMeinTeam: Codable {
     let effektiv: Int?
     let aenderbar: Bool
     var schluss: String? = nil
+    /// Eigene Teams, die in globalen Events nicht auftauchen (ausgegraut), und das markierte primaere Team (11.11.2026,
+    /// web ff225d2e). Aeltere Server: fehlen.
+    var nicht_zaehlend: [Wahl]? = nil
+    var markiert: Int? = nil
 }
 
 /// Team-Kopf in der Kurzform eines Events.

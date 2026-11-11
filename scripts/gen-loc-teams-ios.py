@@ -19,7 +19,8 @@ DATEIEN = ["TeamModels.swift", "TeamsApi.swift", "TeamFarben.swift", "TeamEventK
 # team.regeln.* (10.11.2026): die Team-Regeln werden aus zusammengesetzten Schluesseln gelesen (TeamRegelnInhalt) und
 # standen bisher nur in LocPort.swift — hier vollstaendig und aktuell (Abschnitt „global", web 9ed3e55c). LocTeam wird
 # fuer team.* zuerst gefragt, ueberdeckt also den alten Stand in LocPort.
-PRAEFIXE = ["team.event.status.", "team.err.", "team.rolle.", "team.k.", "team.adresseTeilen.", "fw.", "team.regeln."]
+# wk.* (11.11.2026): Wertungsklasse (Einstellungen › Ich, Einrichtungs-Assistent, Filter der Event-Bestenlisten).
+PRAEFIXE = ["team.event.status.", "team.err.", "team.rolle.", "team.k.", "team.adresseTeilen.", "fw.", "team.regeln.", "wk."]
 EXTRA = ["sd.avgHrFoil", "leader.totalDistance", "leader.totalTime"]
 
 def lies(code):

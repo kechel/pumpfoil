@@ -113,6 +113,9 @@ fun TeamScreen(
             if (kopf == null || neuLaden > 0) { kopf = null; fehlt = true }
         }
     }
+    // Primaeres Team im Kopf (Web e91a9cc8, 11.11.2026): Stand aus „Meine Teams" (primaer/waehlbar kommen von dort).
+    var meine by remember(slug) { mutableStateOf<List<TeamKurz>?>(null) }
+    LaunchedEffect(slug, neuLaden) { meine = try { Api.teamsMine() } catch (_: Exception) { null } }
     val darf = kopf?.darfBestenlisten == true
     LaunchedEffect(slug, period, darf) {
         if (!darf) { tafeln = null; stat = null; return@LaunchedEffect }
@@ -177,6 +180,12 @@ fun TeamScreen(
                                 ).joinToString(" · "),
                                 style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                            val ich = meine?.firstOrNull { it.slug == k.slug }
+                            if (ich != null && k.meinStatus == "aktiv") {
+                                PrimaerTeamMarke(ich, meine.orEmpty().count { it.primaerWaehlbar } > 1, Modifier.padding(top = 6.dp)) {
+                                    scope.launch { try { Api.teamPrimaer(k.slug); meine = Api.teamsMine() } catch (_: Exception) {} }
+                                }
+                            }
                         }
                     }
                     k.beschreibung?.takeIf { it.isNotBlank() }?.let {

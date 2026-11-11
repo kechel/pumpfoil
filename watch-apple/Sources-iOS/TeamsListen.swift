@@ -362,6 +362,56 @@ struct TeamAnfragenZahl: View {
     }
 }
 
+/// Primaeres Team als Marke in den Team-Listen und im Kopf der Teamseite (web TeamPrimaer.tsx, 11.11.2026): der Stern
+/// steht am Team mit `primaer` — auch wenn es nur eines gibt —, der Knopf „Als primaeres Team festlegen" an jedem
+/// `waehlbar`-Team, sobald es mehr als eines davon gibt (`mehrere`, s. `teamPrimaerMehrere`).
+struct TeamPrimaerMarke: View {
+    let tm: TeamKurz
+    let mehrere: Bool
+    let lang: String
+    let geaendert: () -> Void
+    @State private var busy = false
+
+    private var sternText: String { "★ " + Loc.t("team.primaer", lang) }
+    private var knopfText: String { "☆ " + Loc.t("team.primaerSetzen", lang) }
+    private var waehlbar: Bool { (tm.waehlbar ?? tm.wertbar) == true }
+
+    var body: some View {
+        if tm.primaer == true {
+            Text(sternText)
+                .font(.caption.weight(.semibold)).foregroundStyle(Color.accentColor)
+                .lineLimit(1).fixedSize()
+                .padding(.horizontal, 8).padding(.vertical, 2)
+                .background(Color.accentColor.opacity(0.15), in: Capsule())
+                .accessibilityHint(Loc.t("team.primaerHinweis", lang))
+        } else if mehrere && waehlbar {
+            Button { setzen() } label: {
+                Text(knopfText).font(.caption).foregroundStyle(.secondary)
+                    .lineLimit(1).fixedSize()
+                    .padding(.horizontal, 8).padding(.vertical, 2)
+                    .overlay(Capsule().stroke(Color.secondary.opacity(0.5), lineWidth: 1))
+            }
+            .buttonStyle(.borderless)
+            .disabled(busy)
+            .accessibilityHint(Loc.t("team.primaerHinweis", lang))
+        }
+    }
+
+    private func setzen() {
+        busy = true
+        Task {
+            let ok: Bool = (try? await Api.teamPrimaer(tm.slug)) != nil
+            busy = false
+            if ok { geaendert() }
+        }
+    }
+}
+
+/// Mehr als ein Team, das man als primaer markieren kann (web: `waehlbar ?? wertbar`).
+func teamPrimaerMehrere(_ teams: [TeamKurz]) -> Bool {
+    teams.filter { ($0.waehlbar ?? $0.wertbar) == true }.count > 1
+}
+
 /// Home › Team (App-Port Phase 3, 04.11.2026, wie Web): die eigenen Teams als Zeilen, darunter der Weg zu allen Teams
 /// (dort mit Suche). Ohne Team der Hinweis aus dem Web und gleich die Teamsuche + „Team gruenden" (Phase 6).
 struct HomeTeamsListe: View {
@@ -383,10 +433,13 @@ struct HomeTeamsListe: View {
                 TeamGruendenKarte(lang: lang) { s in neuSlug = s; zeigeNeu = true }
             } else if let t = teams {
                 VStack(spacing: 0) {
-                    ForEach(t) { tm in zeile(tm) }
+                    ForEach(t) { tm in zeile(tm, mehrere: teamPrimaerMehrere(t)) }
                 }
                 .padding(6)
                 .background(RoundedRectangle(cornerRadius: 12).fill(Color(.secondarySystemBackground)))
+                if teamPrimaerMehrere(t) {
+                    Text(Loc.t("team.primaerHinweis", lang)).font(.footnote).foregroundStyle(.secondary)
+                }
                 // Events der eigenen Teams als Kacheln (web 03fd4574, 06.11.2026), vor den letzten Sessions wie im Web.
                 if !teamEvents.isEmpty { HomeTeamEventsListe(lang: lang, events: teamEvents) }
                 // Die letzten Sessions der Teammitglieder (PWA TeamLetzteMitWahl).
@@ -396,24 +449,32 @@ struct HomeTeamsListe: View {
                 Text(Loc.t("team.alle", lang) + " →").font(.subheadline)
             }
         }
-        .task(id: neuLadenTick) { teams = ((try? await Api.teamsMine()) ?? teams ?? []).filter { $0.status == "aktiv" } }
+        .task(id: neuLadenTick) { await teamsLaden() }
         .navigationDestination(isPresented: $zeigeNeu) {
             if let s = neuSlug { TeamVerwaltungView(slug: s, start: "einstellungen") }
         }
     }
 
-    private func zeile(_ tm: TeamKurz) -> some View {
+    private func teamsLaden() async {
+        teams = ((try? await Api.teamsMine()) ?? teams ?? []).filter { $0.status == "aktiv" }
+    }
+
+    /// Primaer-Marke oben rechts in der Zeile (web c9fcd70b).
+    private func zeile(_ tm: TeamKurz, mehrere: Bool) -> some View {
         NavigationLink { TeamView(slug: tm.slug) } label: {
             HStack(spacing: 10) {
                 TeamWappen(name: tm.name, logo: tm.logo_url, farbe: tm.farbe, size: 40)
                 VStack(alignment: .leading, spacing: 2) {
+                    // Primaer-Marke oben rechts in der Zeile (web c9fcd70b)
                     HStack(spacing: 5) {
                         Text(tm.name).font(.subheadline.weight(.semibold)).foregroundStyle(TeamFarbe(tm.farbe).akzent).lineLimit(1)
                         TeamHerkunftMarke(land: tm.land)
+                        Spacer(minLength: 4)
+                        TeamPrimaerMarke(tm: tm, mehrere: mehrere, lang: lang) { Task { await teamsLaden() } }
                     }
                     Text(Loc.t("team.rolle." + tm.rolle, lang)).font(.caption).foregroundStyle(.secondary)
                 }
-                Spacer(minLength: 4)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 if tm.anfragen > 0 { TeamAnfragenZahl(n: tm.anfragen) }
             }
             .padding(8)

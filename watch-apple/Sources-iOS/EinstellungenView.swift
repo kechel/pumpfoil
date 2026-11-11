@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 // Einstellungen mit Reitern (App-Port Phase 6, docs/UX-IA.md, 04.11.2026), wie web/src/pages/Settings.tsx:
-// Uebersicht · Uhren · Freunde · Team · Ausruestung · Ich · Fahren · Privatsphaere · Darstellung · Konto.
+// Uebersicht · Ich · Uhren · Freunde · Team · Sportarten · Ausruestung · Fahren · Privatsphaere · Darstellung · Konto.
 // Die Kacheln der Uebersicht schalten auf den Reiter (keine eigene Seite); Uhren, Freunde, Team und Ausruestung sind die
 // vorhandenen Ansichten eingebettet, Ich/Fahren/Privatsphaere/Darstellung/Konto die Abschnitte von `SettingsView`.
 // Ohne eigenen NavigationStack: die Zahnrad-Seite (`ProfileView`) legt ihn darum, Home › Profil schiebt sie mit
@@ -19,14 +19,15 @@ struct EinstellungenView: View {
     private var socialOK: Bool { session.profile?.social_allowed != false }
 
     private var reiter: [ReiterDef] {
+        // „Ich" an zweiter Stelle direkt nach der Uebersicht (web c40c8424, Jan 11.11.2026).
         var r: [ReiterDef] = [ReiterDef(id: "uebersicht", label: Loc.t("tab.overview", lang)),
+                              ReiterDef(id: "ich", label: Loc.t("ptab.me", lang)),
                               ReiterDef(id: "konten", label: Loc.t("ptab.watches", lang))]
         // Unter 13 keine Freunde (Server: 403), wie Chat und Community.
         if socialOK { r.append(ReiterDef(id: "freunde", label: Loc.t("friends.title", lang))) }
         r.append(ReiterDef(id: "team", label: Loc.t("tab.team", lang)))
         r.append(ReiterDef(id: "sportarten", label: Loc.t("mySpots.sports", lang)))
         r.append(ReiterDef(id: "ausruestung", label: Loc.t("gear.title", lang)))
-        r.append(ReiterDef(id: "ich", label: Loc.t("ptab.me", lang)))
         r.append(ReiterDef(id: "fahren", label: Loc.t("ptab.riding", lang)))
         r.append(ReiterDef(id: "privat", label: Loc.t("ptab.privacy", lang)))
         r.append(ReiterDef(id: "darstellung", label: Loc.t("ptab.display", lang)))
@@ -394,31 +395,12 @@ struct EinstellungenTeamView: View {
         }
     }
 
-    // Primaeres Team (web Teams.tsx, 10.11.2026): nur sinnvoll, wenn man in mehr als einem Team ist, das in globalen
-    // Events zaehlt.
-    private var mehrereWertbar: Bool { (teams ?? []).filter { $0.wertbar == true }.count > 1 }
+    // Primaeres Team (web TeamPrimaer.tsx, 11.11.2026): Stern am primaeren Team auch bei nur einem, Knopf ab zwei
+    // markierbaren (`waehlbar`) Teams — gemeinsame Marke `TeamPrimaerMarke` (TeamsListen.swift).
+    private var mehrereWertbar: Bool { teamPrimaerMehrere(teams ?? []) }
 
-    private func primaerSetzen(_ slug: String) {
-        Task {
-            guard (try? await Api.teamPrimaer(slug)) != nil else { return }
-            teams = (try? await Api.teamsMine()) ?? teams
-        }
-    }
-
-    @ViewBuilder private func primaerMarke(_ tm: TeamKurz) -> some View {
-        if mehrereWertbar && tm.primaer == true {
-            Text("★ " + Loc.t("team.primaer", lang))
-                .font(.caption.weight(.semibold)).foregroundStyle(Color.accentColor)
-                .padding(.horizontal, 8).padding(.vertical, 2)
-                .background(Color.accentColor.opacity(0.15), in: Capsule())
-        } else if mehrereWertbar && tm.wertbar == true {
-            Button { primaerSetzen(tm.slug) } label: {
-                Text("☆ " + Loc.t("team.primaerSetzen", lang)).font(.caption).foregroundStyle(.secondary)
-                    .padding(.horizontal, 8).padding(.vertical, 2)
-                    .overlay(Capsule().stroke(Color.secondary.opacity(0.5), lineWidth: 1))
-            }
-            .buttonStyle(.borderless)
-        }
+    private func neuLaden() {
+        Task { teams = (try? await Api.teamsMine()) ?? teams }
     }
 
     private func rolleText(_ tm: TeamKurz) -> String {
@@ -433,16 +415,18 @@ struct EinstellungenTeamView: View {
             HStack(spacing: 10) {
                 TeamWappen(name: tm.name, logo: tm.logo_url, farbe: tm.farbe, size: 40)
                 VStack(alignment: .leading, spacing: 2) {
+                    // Primaer-Marke oben rechts in der Zeile (web c9fcd70b)
                     HStack(spacing: 5) {
                         Text(tm.name).font(.subheadline.weight(.semibold)).foregroundStyle(TeamFarbe(tm.farbe).akzent).lineLimit(1)
                         TeamHerkunftMarke(land: tm.land)
+                        Spacer(minLength: 4)
+                        TeamPrimaerMarke(tm: tm, mehrere: mehrereWertbar, lang: lang) { neuLaden() }
                     }
                     Text(rolleText(tm)).font(.caption).foregroundStyle(.secondary)
                     let sp: String = teamSportartenText(tm.sportarten, lang)
                     if !sp.isEmpty { Text(sp).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
-                    primaerMarke(tm)
                 }
-                Spacer(minLength: 4)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 if tm.anfragen > 0 { TeamAnfragenZahl(n: tm.anfragen) }
                 Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
             }

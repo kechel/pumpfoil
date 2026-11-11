@@ -253,7 +253,8 @@ struct TeamTafelKarte: View {
             VStack(spacing: 0) {
                 ForEach(Array(tf.zeilen.enumerated()), id: \.offset) { i, z in
                     if i > 0 { Divider() }
-                    TeamTafelZeile(z: z, wert: k.fmt(z.value, lang), farbe: farbe, lang: lang, teamsZeigen: teamsZeigen)
+                    TeamTafelZeile(z: z, wert: k.fmt(z.value, lang), farbe: farbe, lang: lang, teamsZeigen: teamsZeigen,
+                                   kennzahl: tf.kennzahl)
                 }
             }
         }
@@ -274,12 +275,17 @@ struct TeamTeilenKnopf: View {
     }
 }
 
+/// Eine Zeile einer Bestenliste. Die GANZE Zeile ist antippbar (web 713147c3, Jan 11.11.2026): mit Lauf -> die Session
+/// mit diesem Lauf ausgewaehlt (bei Sprints dazu die Kennzahl fuer die Hervorhebung), nur Session -> die Session, sonst
+/// (Summen) -> das Profil des Fahrers. Profilbild und Wappen behalten ihre eigenen Ziele (liegen als eigene Knoepfe darin).
 private struct TeamTafelZeile: View {
     let z: TeamZeile
     let wert: String
     let farbe: String?
     let lang: String
     var teamsZeigen: Bool = false
+    var kennzahl: String = ""
+    @State private var profil = false
 
     private var tf: TeamFarbe { TeamFarbe(farbe) }
     private var rangFarbe: Color { z.rang <= 3 ? tf.akzent : Color.secondary }
@@ -290,8 +296,26 @@ private struct TeamTafelZeile: View {
         guard let sp = z.spot, !sp.isEmpty else { return datum }
         return datum + " · " + sp
     }
+    /// Sprint-Kennzahl nur zusammen mit einem Lauf (web: `?run=…&sprint=…`).
+    private var sprintKz: String? {
+        guard z.run_idx != nil, kennzahl.hasPrefix("sprint_") else { return nil }
+        return kennzahl
+    }
 
-    var body: some View {
+    @ViewBuilder var body: some View {
+        if let sid = z.session_id, z.user_id != nil {
+            NavigationLink { SessionDetailView(id: sid, vorwahlLauf: z.run_idx, sprintKz: sprintKz) } label: { inhalt }
+                .buttonStyle(.plain)
+        } else if let uid = z.user_id {
+            Button { profil = true } label: { inhalt }
+                .buttonStyle(.plain)
+                .sheet(isPresented: $profil) { FoilerSheet(userId: uid) }
+        } else {
+            inhalt
+        }
+    }
+
+    private var inhalt: some View {
         HStack(spacing: 8) {
             Text("\(z.rang)").font(.subheadline.weight(.bold)).foregroundStyle(rangFarbe)
                 .lineLimit(1).minimumScaleFactor(0.6).frame(width: 28, alignment: .trailing)
@@ -305,9 +329,10 @@ private struct TeamTafelZeile: View {
                 if let u = unterzeile { Text(u).font(.caption2).foregroundStyle(.secondary).lineLimit(1) }
             }
             Spacer(minLength: 4)
-            wertBereich
+            Text(wert).font(.subheadline.weight(.semibold))
         }
         .padding(.vertical, 6)
+        .contentShape(Rectangle())
     }
 
     @ViewBuilder private var bild: some View {
@@ -317,17 +342,6 @@ private struct TeamTafelZeile: View {
             Text(z.initialen ?? teamInitialen(z.name)).font(.caption2.weight(.semibold))
                 .frame(width: 28, height: 28)
                 .background(tf.flaeche.opacity(0.35), in: Circle())
-        }
-    }
-
-    @ViewBuilder private var wertBereich: some View {
-        if let sid = z.session_id {
-            NavigationLink { SessionDetailView(id: sid) } label: {
-                Text(wert).font(.subheadline.weight(.semibold)).underline()
-            }
-            .buttonStyle(.plain)
-        } else {
-            Text(wert).font(.subheadline.weight(.semibold))
         }
     }
 }

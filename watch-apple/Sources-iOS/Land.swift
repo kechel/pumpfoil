@@ -136,3 +136,67 @@ struct LandSection: View {
         speichern(Laender.zurSprache(neu))
     }
 }
+
+/// Wertungsklasse (web WertungsklasseWahl.tsx, 10./11.11.2026): freiwillig, selbst gewaehlt, nie geprueft — nur fuer den
+/// Filter in Event-Bestenlisten. "" = keine Angabe (Standard), "w" Frauen, "m" Maenner, "nb" nicht-binaer/divers.
+/// Einstellungen › Ich direkt unter der Nationalitaet und im Einrichtungs-Assistenten unter der Nationalitaet.
+/// Eine Zeile je Wahl mit Haken (eine tippbare Flaeche je Listenzeile, Memory swiftui-listenzeile-mehrere-knoepfe);
+/// speichert sofort (PUT /api/settings {wertungsklasse}).
+struct WertungsklasseSection: View {
+    let lang: String
+    @State private var wert: String? = nil
+    @State private var busy = false
+
+    private struct Option: Identifiable {
+        let id: String
+        let key: String
+    }
+
+    private static let optionen: [Option] = [Option(id: "", key: "wk.none"), Option(id: "w", key: "wk.w"),
+                                             Option(id: "m", key: "wk.m"), Option(id: "nb", key: "wk.nb")]
+
+    var body: some View {
+        Section {
+            if let w = wert {
+                ForEach(WertungsklasseSection.optionen) { o in zeile(o.id, o.key, an: w == o.id) }
+            } else {
+                // Ohne sichtbaren Inhalt laeuft `.task` nie (Memory swiftui-leere-group-laedt-nicht).
+                ProgressView()
+            }
+        } header: {
+            Text(Loc.t("wk.title", lang))
+        } footer: {
+            Text(Loc.t("wk.hint", lang))
+        }
+        .task { await laden() }
+    }
+
+    private func zeile(_ k: String, _ key: String, an: Bool) -> some View {
+        Button { speichern(k) } label: {
+            HStack {
+                Text(Loc.t(key, lang)).foregroundStyle(Color.primary)
+                Spacer(minLength: 8)
+                if an { Image(systemName: "checkmark").foregroundStyle(Color.accentColor) }
+            }
+            .contentShape(Rectangle())
+        }
+        .disabled(busy)
+    }
+
+    private func speichern(_ k: String) {
+        guard k != wert else { return }
+        let alt: String? = wert
+        wert = k
+        busy = true
+        Task {
+            do { try await Api.saveSettings(["wertungsklasse": k]) } catch { wert = alt }
+            busy = false
+        }
+    }
+
+    private func laden() async {
+        guard wert == nil else { return }
+        let s: [String: Any] = (try? await Api.settings()) ?? [:]
+        wert = (s["wertungsklasse"] as? String) ?? ""
+    }
+}

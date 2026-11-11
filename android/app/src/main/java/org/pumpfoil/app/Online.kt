@@ -156,6 +156,10 @@ val LocalOpenFoiler = staticCompositionLocalOf<((Int) -> Unit)?> { null }
 /** Weg zur Teamseite (05.11.2026, Teams auf der Profilseite) — wie LocalOpenFoiler einmal in MainActivity gesetzt. */
 val LocalOpenTeam = staticCompositionLocalOf<((String) -> Unit)?> { null }
 
+/** Session mit vorausgewaehltem Lauf (11.11.2026, Bestenlisten-Zeilen): Session-ID, Lauf-Index in den Segmenten, und bei
+ *  Sprint-Bestenlisten die Kennzahl (sprint_100m …) fuer die Hervorhebung des gewerteten Abschnitts. */
+val LocalOpenSessionLauf = staticCompositionLocalOf<((Int, Int?, String?) -> Unit)?> { null }
+
 /** Weg zur Event-Seite (10.11.2026, Event-Abzeichen auf der Profilseite): slug + Event-ID. */
 val LocalOpenTeamEvent = staticCompositionLocalOf<((String, Int) -> Unit)?> { null }
 

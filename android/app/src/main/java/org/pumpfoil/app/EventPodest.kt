@@ -182,6 +182,8 @@ private fun rangGroesse(platz: Int) = when (platz) { 1 -> 30.sp; 2 -> 24.sp; els
 @Composable
 private fun FahrerPlatz(z: TeamZeile, platz: Int, kennzahl: String, modifier: Modifier) {
     val oeffneFoiler = LocalOpenFoiler.current
+    val oeffneLauf = LocalOpenSessionLauf.current
+    val oeffneSession = oeffneLauf?.let { f -> { sid: Int -> f(sid, null, null) } }
     val w = z.teams?.firstOrNull()
     val uid = z.userId
     Column(modifier.padding(bottom = when (platz) { 1 -> 56.dp; 2 -> 24.dp; else -> 0.dp }),
@@ -199,8 +201,14 @@ private fun FahrerPlatz(z: TeamZeile, platz: Int, kennzahl: String, modifier: Mo
                 w?.let { TeamWappen(it.name, it.logoUrl, it.farbe, 20.dp) }
             }
         }
+        // Wert aus einer Session bzw. einem Lauf: dorthin (Web 713147c3, 11.11.2026); der Name fuehrt aufs Profil.
+        val sid = z.sessionId
+        val ziel: (() -> Unit)? = if (uid == null || sid == null) null
+            else if (z.runIdx != null && oeffneLauf != null) { { oeffneLauf(sid, z.runIdx, kennzahl.takeIf { it.startsWith("sprint_") }) } }
+            else if (oeffneSession != null) { { oeffneSession(sid) } } else null
         Text(kennzahlWert(kennzahl, z.value), fontSize = nameGr, fontWeight = FontWeight.ExtraBold, maxLines = 1,
-            overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+            overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center,
+            modifier = if (ziel != null) Modifier.clip(RoundedCornerShape(4.dp)).clickable(onClick = ziel) else Modifier)
     }
 }
 

@@ -1721,11 +1721,24 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
         auf die ID der Antwort um (Android `onWeitergeleitet` -> neue Route, iOS `showSession`). **Nicht geprueft:** ob
         HttpURLConnection/URLSession beim Weiterleiten den Authorization-Kopf mitschicken (gleicher Host, sollte). Test geht NICHT
         mit Jans Konto: Admins bekommen die geloeschte Session statt der Weiterleitung (sessions.py `not user.is_admin`).
-  **Wertungsklasse (10.11., Web a2081ec0; Apps offen):**
-  - [ ] Profil: Karte „Wertungsklasse" (Keine Angabe / Frauen / Maenner / Nicht-binaer, `settings.wertungsklasse`
-        "" | w | m | nb), Schluessel `wk.*` (18 Sprachen in den Web-Locales).
-  - [ ] Event-Seite: Filterzeile „Wertung: Alle | Frauen (n) | …" aus `event.klassen` (Server bietet nur Klassen mit
-        >= 3 Teilnehmenden an und nur bei >= 2 Klassen), Abruf mit `?klasse=`; Rang in der Klasse, `rang_gesamt` bleibt.
+  **Wertungsklasse + Neuerungen vom 11.11. (Apps 11.11. portiert, ungetestet: Android kompiliert, iOS nur Parse-Check):**
+  - [x] Profil: Karte „Wertungsklasse" unter „Ich" (`settings.wertungsklasse` "" | w | m | nb), im Assistenten unter der
+        Nationalitaet. Android LandWahl.kt/ProfileScreen/OnboardingScreen, iOS Land.swift `WertungsklasseSection`.
+  - [x] Event-Seite: Knoepfe „Alle | Frauen (n) | …" aus `event.klassen` ohne Beschriftung in der Zeile der
+        Bestenlisten-Auswahl, `?klasse=` (Server-Grenze seit 11.11.: 1 Person, und nur bei >= 2 Klassen).
+  - [x] Event-Seite merkt Bestenliste + Klasse je Event (Android `EventAuswahlMerker`, iOS `EventWahlSpeicher`).
+  - [x] Bestenlisten-Zeile ganz antippbar: `run_idx` -> Lauf, `session_id` -> Session, sonst Profil; Sprint-Kennzahl
+        geht mit (Android-Route `session/{id}?v&run&sprint`, iOS `SessionDetailView(vorwahlLauf:sprintKz:)`).
+        Siegertreppchen: Wert -> Session/Lauf (Android gibt dort auch die Sprint-Kennzahl mit, Web/iOS nicht).
+  - [x] Sprint-Hervorhebung auf der Session-Karte aus `analysis.sprints` (Lauf ueber die Zeit, weisses Band unter der
+        Spur, magenta Punkte, Schild, Hinweis „Label · Wert · +m:ss"); SessionCache SCHEMA 13 -> 14 in beiden Apps.
+  - [x] Primaeres Team: Stern auch bei einem Team, Knopf an `waehlbar`-Teams ab zwei, oben rechts in den Zeilen
+        (Home › Team, Meine Teams, Einstellungen › Team) und im Kopf der Teamseite; Event-Kasten „Mein Team" mit
+        `nicht_zaehlend` ausgegraut (`team.event.zaehltNicht`).
+  - [x] Einstellungen: „Ich" als zweiter Reiter.
+  **Testen (Jan, Simulator/Geraet):** Tipp auf Profilbild/Wappen in einer Bestenlisten-Zeile oeffnet NUR deren Ziel;
+  Primaer-Knopf in einer Listenzeile setzt nur (springt nicht ins Team); Sprint-Band unter der Faerbung, verschwindet
+  bei anderem Lauf; Klasse/Bestenliste bleiben nach Session und zurueck.
   **Globale Events (06.11.; Apps 06.11. abends fuer Android 1.1.48 / iOS 1.1.62, 4346348a / e9af6c75):**
   - [x] Community-Abschnitt heisst „Globale Events" (`team.eventsGlobal`, `team.event.keineGlobalen`), Karten mit
         Abzeichen „Global" (`global` am Event); die Liste liefert der Server schon nur noch globale.

@@ -279,6 +279,8 @@ private fun SprachKarte(ctx: Context) {
             }
             // Nationalitaet direkt unter der Sprache (Web LandKarte, 03.11.2026).
             LandKarteAssistent(lang)
+            // Wertungsklasse direkt darunter (Web dc21a3ca, 11.11.2026).
+            WertungsklasseAbschnitt()
         }
     }
 }

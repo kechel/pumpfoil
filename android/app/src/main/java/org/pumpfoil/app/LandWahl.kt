@@ -138,3 +138,62 @@ fun LandKarteAssistent(lang: String) {
         LandWahl(l, onChange = { speichern(it) })
     }
 }
+
+/*
+ * Wertungsklasse (Web components/WertungsklasseWahl.tsx, 10./11.11.2026): freiwillig, selbst gewaehlt, nur fuer den Filter
+ * der Event-Bestenlisten. settings.wertungsklasse "" (keine Angabe, Standard) | w | m | nb; jede Wahl sofort gespeichert.
+ * In den Einstellungen (› Ich) als eigene Karte, im Einrichtungs-Assistenten als Abschnitt unter der Nationalitaet.
+ */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun WertungsklasseKnoepfe(onSaved: () -> Unit = {}) {
+    val scope = rememberCoroutineScope()
+    var wert by remember { mutableStateOf<String?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        wert = try { Api.settings()["wertungsklasse"]?.jsonPrimitive?.contentOrNull ?: "" } catch (_: Exception) { "" }
+    }
+    val w = wert ?: return
+    val optionen = listOf("" to "wk.none", "w" to "wk.w", "m" to "wk.m", "nb" to "wk.nb")
+    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+        optionen.forEach { (k, key) ->
+            androidx.compose.material3.FilterChip(
+                selected = w == k, enabled = !busy,
+                onClick = {
+                    if (k == w) return@FilterChip
+                    busy = true
+                    scope.launch {
+                        try { Api.saveSettings(buildJsonObject { put("wertungsklasse", k) }); wert = k; onSaved() } catch (_: Exception) {}
+                        busy = false
+                    }
+                },
+                label = { Text(I18n.t(key)) },
+                colors = cyanChipColors(),
+            )
+        }
+    }
+}
+
+/** Eigene Karte (Einstellungen › Ich). */
+@Composable
+fun WertungsklasseKarte(onSaved: () -> Unit = {}) {
+    Card(Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+        Column(Modifier.padding(14.dp)) {
+            Text(I18n.t("wk.title"), style = MaterialTheme.typography.titleMedium)
+            Text(I18n.t("wk.hint"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp, bottom = 8.dp))
+            WertungsklasseKnoepfe(onSaved)
+        }
+    }
+}
+
+/** Abschnitt im Einrichtungs-Assistenten, direkt unter der Nationalitaet (Web WertungsklasseAbschnitt). */
+@Composable
+fun WertungsklasseAbschnitt() {
+    Column(Modifier.padding(top = 16.dp)) {
+        Text(I18n.t("wk.title"), fontWeight = FontWeight.Bold)
+        Text(I18n.t("wk.hint"), style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 8.dp))
+        WertungsklasseKnoepfe()
+    }
+}

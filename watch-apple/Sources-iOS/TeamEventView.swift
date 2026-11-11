@@ -23,11 +23,27 @@ struct TeamEventView: View {
     @State private var meldung: String?
     @State private var editor: TeamEventEntwurf?
     /// Gewaehlte Bestenliste (Index in `tafeln`), wie die Auswahl der Community-Bestenliste.
-    @State private var wahl = 0
+    @State private var wahl: Int
+    /// Wertungsklasse (10.11.2026, web a2081ec0): "" = alle, sonst "w"/"m"/"nb" (nur was der Server in `klassen` anbietet).
+    @State private var klasse: String
     @State private var laedt = false
     /// Eigene aktive Teams (globale Events: eigene Teams hinter Platz 10 bleiben in der Team-Rangliste sichtbar).
     @State private var meineSlugs: [String] = []
     @Environment(\.dismiss) private var dismiss
+
+    /// Bestenliste und Wertungsklasse je Event gemerkt (web f8927f95, Jan 11.11.2026: „wenn ich mir eine session anschaue
+    /// und zurueck gehe muss ich den filter wieder neu anwaehlen") — fuer die App-Sitzung (EventWahlSpeicher).
+    init(slug: String, eventId: Int) {
+        self.slug = slug
+        self.eventId = eventId
+        let g: EventWahlSpeicher.Wahl? = EventWahlSpeicher.von(slug, eventId)
+        _wahl = State(initialValue: g?.wahl ?? 0)
+        _klasse = State(initialValue: g?.klasse ?? "")
+    }
+
+    private func wahlMerken() {
+        EventWahlSpeicher.setze(slug, eventId, EventWahlSpeicher.Wahl(wahl: wahl, klasse: klasse))
+    }
 
     private var feedbackPfad: String { "/teams/" + slug + "/events/" + String(eventId) }
 
@@ -41,6 +57,13 @@ struct TeamEventView: View {
             .sheet(isPresented: $dialog) { beitrittSheet }
             .toolbar { zahnrad }
             .sheet(item: $editor) { e in editorSheet(e) }
+            .onChange(of: wahl) { _ in wahlMerken() }
+            .onChange(of: klasse) { _ in klasseGewechselt() }
+    }
+
+    private func klasseGewechselt() {
+        wahlMerken()
+        Task { await neuLaden() }
     }
 
     // Zahnrad fuer Leitung/Moderatoren: derselbe Editor wie in der Verwaltung, fuer genau dieses Event.
@@ -154,9 +177,14 @@ struct TeamEventView: View {
 
     // MARK: Teamwahl globaler Events (10.11.2026)
 
-    /// Wie web TeamEventSeite: schon vor dem Start, bis 6 h vor dem Ende; nur wer in mehr als einem wertbaren Team ist.
+    /// Wie web TeamEventSeite: schon vor dem Start, bis 6 h vor dem Ende; ab zwei eigenen Teams — auch wenn nur eines zaehlt,
+    /// die nicht zaehlenden stehen ausgegraut dabei (web ff225d2e, 11.11.2026).
+    private func meinTeamZeigen(_ mt: EventMeinTeam) -> Bool {
+        mt.auswahl.count + (mt.nicht_zaehlend ?? []).count >= 2
+    }
+
     @ViewBuilder private func meinTeamBereich(_ t: TeamInfo, _ e: TeamEvent) -> some View {
-        if e.istGlobal, let mt = e.mein_team, mt.auswahl.count >= 2, e.status == "kommend" || e.status == "laeuft" {
+        if e.istGlobal, let mt = e.mein_team, meinTeamZeigen(mt), e.status == "kommend" || e.status == "laeuft" {
             EventMeinTeamKarte(slug: t.slug, evId: e.id, mt: mt, lang: lang) { Task { await neuLaden() } }
         }
     }
@@ -209,12 +237,44 @@ struct TeamEventView: View {
     /// Bestenlisten oder Summen vorhanden — dann gibt es die Event-Uebersicht als Bild (web c0d044a2).
     private func uebersichtMoeglich(_ e: TeamEvent) -> Bool { e.tafeln.count + (e.summen_auswahl ?? []).count > 0 }
 
-    /// Auswahl der Bestenliste (ab zwei), „Übersicht teilen" und „Aktualisieren" (solange sich noch etwas aendern kann);
-    /// bricht auf schmalen Geraeten um wie die Zeile im Web (flex-wrap).
+    /// Angebotene Wertungsklassen in fester Reihenfolge, davor „Alle" (""); leer = kein Filter (web 5278f851).
+    private func klassenKnoepfe(_ e: TeamEvent) -> [String] {
+        let k: [String: Int] = e.klassen ?? [:]
+        guard !k.isEmpty else { return [] }
+        return [""] + ["w", "m", "nb"].filter { k[$0] != nil }
+    }
+
+    private func klassenText(_ e: TeamEvent, _ k: String) -> String {
+        guard !k.isEmpty else { return Loc.t("wk.alle", lang) }
+        let n: Int = e.klassen?[k] ?? 0
+        return Loc.t("wk." + k, lang) + " (" + String(n) + ")"
+    }
+
+    /// Ein Knopf der Wertungsklasse — ohne Beschriftung davor, „die Knoepfe sind eindeutig" (Jan, 11.11.2026).
+    private func klassenKnopf(_ e: TeamEvent, _ k: String) -> some View {
+        let an: Bool = (e.klasse ?? "") == k
+        let tf = TeamFarbe(nil)
+        return Button { if !an { klasse = k } } label: {
+            Text(klassenText(e, k)).font(.subheadline.weight(an ? .semibold : .regular)).lineLimit(1)
+                .foregroundStyle(an ? tf.aufFlaeche : Color.primary)
+                .padding(.horizontal, 12).padding(.vertical, 6)
+                .background(RoundedRectangle(cornerRadius: 10).fill(an ? tf.flaeche : Color.clear))
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(an ? Color.clear : Color.secondary.opacity(0.5), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .disabled(laedt)
+        .accessibilityAddTraits(an ? .isSelected : [])
+    }
+
+    /// Auswahl der Bestenliste (ab zwei), Wertungsklasse (wenn angeboten), „Übersicht teilen" und „Aktualisieren"
+    /// (solange sich noch etwas aendern kann); bricht auf schmalen Geraeten um wie die Zeile im Web (flex-wrap).
     @ViewBuilder private func auswahlZeile(_ t: TeamInfo, _ e: TeamEvent) -> some View {
-        if e.tafeln.count > 1 || laeuftNoch(e) || uebersichtMoeglich(e) {
+        let klassen: [String] = klassenKnoepfe(e)
+        if e.tafeln.count > 1 || laeuftNoch(e) || uebersichtMoeglich(e) || !klassen.isEmpty {
             FoilerFliessReihe(abstand: 8) {
                 if e.tafeln.count > 1 { tafelAuswahl(e) }
+                // Wertungsklasse in derselben Zeile wie die Auswahl (web 5278f851)
+                ForEach(klassen, id: \.self) { k in klassenKnopf(e, k) }
                 if uebersichtMoeglich(e) { uebersichtKnopf(t, e) }
                 if laeuftNoch(e) { neuLadenKnopf }
             }
@@ -416,7 +476,7 @@ struct TeamEventView: View {
     private func laden() async {
         async let t: TeamInfo? = try? Api.team(slug)
         do {
-            let e = try await Api.teamEvent(slug, id: eventId)
+            let e = try await Api.teamEvent(slug, id: eventId, klasse: klasse)
             ev = e
             team = await t
             fehlt = team == nil
@@ -431,7 +491,7 @@ struct TeamEventView: View {
     private func neuLaden() async {
         laedt = true
         defer { laedt = false }
-        if let e = try? await Api.teamEvent(slug, id: eventId) { ev = e }
+        if let e = try? await Api.teamEvent(slug, id: eventId, klasse: klasse) { ev = e }
     }
 
     private func meineTeamsLaden() async {
@@ -478,6 +538,13 @@ struct EventMeinTeamKarte: View {
         }
     }
 
+    /// Stern am markierten primaeren Team (auch wenn es nicht zaehlt), aeltere Server: am primaeren (web ff225d2e).
+    private var sternId: Int? { mt.markiert ?? mt.primaer }
+    private var nicht: [EventMeinTeam.Wahl] { mt.nicht_zaehlend ?? [] }
+    private var nichtText: String {
+        Loc.t("team.event.zaehltNicht", lang) + ": " + nicht.map { $0.name }.joined(separator: ", ")
+    }
+
     private func chip(_ x: EventMeinTeam.Wahl) -> some View {
         let an: Bool = x.id == mt.effektiv
         let tf = TeamFarbe(x.farbe)
@@ -485,7 +552,7 @@ struct EventMeinTeamKarte: View {
             HStack(spacing: 6) {
                 TeamWappen(name: x.name, logo: x.logo_url, farbe: x.farbe, size: 16)
                 Text(x.name).font(.subheadline.weight(an ? .semibold : .regular)).lineLimit(1)
-                if x.id == mt.primaer { Text("★").font(.caption).opacity(0.8) }
+                if x.id == sternId { Text("★").font(.caption).opacity(0.8) }
             }
             .foregroundStyle(an ? tf.aufFlaeche : Color.primary)
             .padding(.horizontal, 12).padding(.vertical, 5)
@@ -496,11 +563,30 @@ struct EventMeinTeamKarte: View {
         .disabled(busy || (!mt.aenderbar && !an))
     }
 
+    /// Team, das in globalen Events nicht auftaucht: ausgegraut, gestrichelt, nicht antippbar (web ff225d2e).
+    private func grauChip(_ x: EventMeinTeam.Wahl) -> some View {
+        HStack(spacing: 6) {
+            TeamWappen(name: x.name, logo: x.logo_url, farbe: x.farbe, size: 16).opacity(0.5)
+            Text(x.name).font(.subheadline).lineLimit(1)
+            if x.id == mt.markiert { Text("★").font(.caption) }
+        }
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 12).padding(.vertical, 5)
+        .overlay(Capsule().stroke(Color.secondary.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [4, 3])))
+        .accessibilityHint(Loc.t("team.event.zaehltNicht", lang))
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(Loc.t("team.event.meinTeam", lang)).font(.subheadline.weight(.semibold))
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) { ForEach(mt.auswahl) { x in chip(x) } }
+                HStack(spacing: 6) {
+                    ForEach(mt.auswahl) { x in chip(x) }
+                    ForEach(nicht) { x in grauChip(x) }
+                }
+            }
+            if !nicht.isEmpty {
+                Text(nichtText).font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             Text(Loc.t(mt.aenderbar ? "team.event.meinTeamHinweis" : "team.event.meinTeamFest", lang))
                 .font(.footnote).foregroundStyle(.secondary)
@@ -818,4 +904,21 @@ private struct TeamWertungKarte: View {
         }
         .buttonStyle(.plain)
     }
+}
+
+/// Gemerkte Bestenliste + Wertungsklasse je Event (web f8927f95: sessionStorage `foil_event_wahl_<slug>_<id>`) — nur im
+/// Speicher, gilt fuer die App-Sitzung: zurueck aus einer Session steht wieder dieselbe Auswahl.
+enum EventWahlSpeicher {
+    struct Wahl {
+        let wahl: Int
+        let klasse: String
+    }
+
+    private static var gemerkt: [String: Wahl] = [:]
+
+    private static func schluessel(_ slug: String, _ id: Int) -> String { slug + "#" + String(id) }
+
+    static func von(_ slug: String, _ id: Int) -> Wahl? { gemerkt[schluessel(slug, id)] }
+
+    static func setze(_ slug: String, _ id: Int, _ w: Wahl) { gemerkt[schluessel(slug, id)] = w }
 }

@@ -67,11 +67,16 @@ extension Api {
         try await request(teamPfad(slug) + "/events?mix=1&sprint=1", method: "GET", body: nil, auth: true)
     }
 
-    static func teamEvent(_ slug: String, id: Int) async throws -> TeamEvent {
-        try await request(teamPfad(slug) + "/events/\(id)?mix=1&sprint=1", method: "GET", body: nil, auth: true)
+    /// `klasse` (10.11.2026, web a2081ec0): nur die Zeilen dieser Wertungsklasse ("w"/"m"/"nb"), neu durchnummeriert;
+    /// nil/leer = alle. Der Server nimmt nur Klassen an, die er in `klassen` anbietet.
+    static func teamEvent(_ slug: String, id: Int, klasse: String? = nil) async throws -> TeamEvent {
+        var pfad: String = teamPfad(slug) + "/events/\(id)?mix=1&sprint=1"
+        if let k = klasse, !k.isEmpty { pfad += "&klasse=" + periodeQuery(k) }
+        return try await request(pfad, method: "GET", body: nil, auth: true)
     }
 
-    /// Primaeres Team setzen (10.11.2026): dafuer tritt man in globalen Events an. 409 `team_nicht_wertbar`.
+    /// Primaeres Team setzen (10.11.2026): dafuer tritt man in globalen Events an. Seit 11.11.2026 fuer jedes Team mit
+    /// aktiver Mitgliedschaft ausser dem offiziellen (`waehlbar`), sonst 409 `team_nicht_waehlbar`.
     static func teamPrimaer(_ slug: String) async throws {
         struct A: Decodable { let primaer: String }
         let _: A = try await request(teamPfad(slug) + "/primaer", method: "PUT", body: nil, auth: true)

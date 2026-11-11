@@ -104,7 +104,12 @@ data class TeamKurz(
     val wertbar: Boolean = false,
     val primaer: Boolean = false,
     @SerialName("primaer_gewaehlt") val primaerGewaehlt: Boolean = false,
-)
+    // 11.11.2026: als primaeres Team waehlbar = jede aktive Mitgliedschaft ausser im offiziellen Team. null = alter Server
+    // (dann gilt `wertbar` wie im Web `waehlbar ?? wertbar`).
+    val waehlbar: Boolean? = null,
+) {
+    val primaerWaehlbar: Boolean get() = waehlbar ?: wertbar
+}
 
 /** GET /api/teams/liste — freigegebene Teams in ihrer freigegebenen Fassung. */
 @Serializable
@@ -177,6 +182,10 @@ data class TeamZeile(
     val teams: List<TeamEventTeam>? = null,
     // Gemischte Ansicht (z. B. Pumpfoil + Foil Scoot, 08.11.2026): Sportart(en) dieser Zeile fuers Abzeichen.
     val sportarten: List<String>? = null,
+    // Bestenlisten aus EINEM Lauf (Strecke, Dauer, Tempo, Gleiten, Sprints): Index des Laufs in den Segmenten (11.11.2026).
+    @SerialName("run_idx") val runIdx: Int? = null,
+    // Gefiltert nach Wertungsklasse (10.11.2026): `rang` ist der Rang in der Klasse, dies der in der Gesamtwertung.
+    @SerialName("rang_gesamt") val rangGesamt: Int? = null,
 )
 
 /** Eine Bestenliste samt Zeilen (Team und Event). */
@@ -304,6 +313,9 @@ data class TeamEvent(
     @SerialName("team_wertung_n") val teamWertungN: Int? = null,
     // Globale Events (10.11.2026): fuer welches seiner Teams der Betrachter antritt — nur, wenn er in einem zaehlt
     @SerialName("mein_team") val meinTeam: EventMeinTeam? = null,
+    // Filter „Wertungsklasse" (10.11.2026): angebotene Klassen (w/m/nb) mit Anzahl, leer = kein Filter; `klasse` = aktive.
+    val klassen: Map<String, Int> = emptyMap(),
+    val klasse: String? = null,
 ) {
     /** Sportarten: die der Bestenlisten, ohne Bestenliste die der Gesamtsummen (wie Web eventSportarten). */
     val sportarten: List<String> get() = (if (tafeln.isNotEmpty()) tafeln.map { it.sportart } else listOf(summenSportart)).distinct()
@@ -313,8 +325,12 @@ data class TeamEvent(
 @Serializable
 data class EventMeinTeam(
     val auswahl: List<EventMeinTeamWahl> = emptyList(),
+    // Eigene Teams, die in globalen Events nicht zaehlen (11.11.2026): ausgegraut mit Grund.
+    @SerialName("nicht_zaehlend") val nichtZaehlend: List<EventMeinTeamWahl> = emptyList(),
     val gewaehlt: Int? = null,
     val primaer: Int? = null,
+    // Markiertes primaeres Team (auch wenn es nicht zaehlt); der Stern steht an markiert ?: primaer.
+    val markiert: Int? = null,
     val effektiv: Int? = null,
     val aenderbar: Boolean = false,
     val schluss: String? = null,
@@ -976,8 +992,9 @@ fun TeamKnopf(text: String, farbe: TeamFarbe, onClick: () -> Unit, enabled: Bool
 }
 
 /**
- * Eine Bestenliste (Web Tafel). Name -> Profilseite (LocalOpenFoiler), Wert -> Session. Ohne `user_id` (Gastform)
- * nur Initialen und kein Link. `ohneFilter`: die Filterzeile weglassen (Event-Seite).
+ * Eine Bestenliste (Web Tafel). Die GANZE Zeile ist antippbar (Web 713147c3, 11.11.2026): Lauf (`run_idx`, bei Sprints mit
+ * Hervorhebung), sonst Session, sonst Profil des Fahrers; Profilbild und Wappen behalten ihre eigenen Ziele. Ohne `user_id`
+ * (Gastform) nur Initialen und kein Link. `ohneFilter`: die Filterzeile weglassen (Event-Seite).
  */
 @Composable
 fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit, ohneFilter: Boolean = false,
@@ -991,6 +1008,7 @@ fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit
                    teamsZeigen: Boolean = false,
                    onOpenTeam: ((String) -> Unit)? = null) {
     val oeffneFoiler = LocalOpenFoiler.current
+    val oeffneLauf = LocalOpenSessionLauf.current
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -1021,7 +1039,10 @@ fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit
             }
             tf.zeilen.forEachIndexed { i, z ->
                 if (i > 0) HorizontalDivider()
-                Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                val ziel = bestenlistenZiel(z, tf.kennzahl, onOpenSession, oeffneLauf, oeffneFoiler)
+                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp))
+                        .then(if (ziel != null) Modifier.clickable(onClick = ziel) else Modifier).padding(vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
                     Text("${z.rang}", Modifier.width(32.dp), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false,
                         color = if (z.rang <= 3) farbe.akzent else MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = androidx.compose.ui.text.style.TextAlign.End)
@@ -1054,8 +1075,7 @@ fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit
                         Spacer(Modifier.width(6.dp))
                     }
                     Column(Modifier.weight(1f)) {
-                        Text(z.name ?: "—", style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                            modifier = if (uid != null && oeffneFoiler != null) Modifier.clickable { oeffneFoiler(uid) } else Modifier)
+                        Text(z.name ?: "—", style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         if (!z.sportarten.isNullOrEmpty()) Box(Modifier.padding(top = 2.dp)) { SportAbzeichen(z.sportarten) }
                         // Offene Meldung, noch nicht entschieden: zaehlt, aber mit Vermerk direkt an der Zeile (Web 08.11.2026).
                         if (z.strittig) StrittigVermerk()
@@ -1064,9 +1084,7 @@ fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit
                             maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     Spacer(Modifier.width(8.dp))
-                    val sid = z.sessionId
-                    Text(kennzahlWert(tf.kennzahl, z.value), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
-                        modifier = if (sid != null) Modifier.clickable { onOpenSession(sid) }.padding(vertical = 4.dp) else Modifier)
+                    Text(kennzahlWert(tf.kennzahl, z.value), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                 }
             }
             val strittig = tf.zeilen.count { it.strittig }
@@ -1075,6 +1093,21 @@ fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit
                     style = MaterialTheme.typography.bodySmall, color = strittigFarbe(), modifier = Modifier.padding(top = 8.dp))
             }
         }
+    }
+}
+
+/** Ziel einer Bestenlisten-Zeile (Web Tafel `ziel`): Lauf in der Session (bei Sprint-Bestenlisten mit der Kennzahl fuer die
+ *  Hervorhebung), sonst die Session, sonst das Profil. Ohne `user_id` (Gastform) keins. */
+internal fun bestenlistenZiel(z: TeamZeile, kennzahl: String, onOpenSession: (Int) -> Unit,
+                              oeffneLauf: ((Int, Int?, String?) -> Unit)?, oeffneFoiler: ((Int) -> Unit)?): (() -> Unit)? {
+    val uid = z.userId ?: return null
+    val sid = z.sessionId
+    val lauf = z.runIdx
+    return when {
+        sid != null && lauf != null && oeffneLauf != null -> { { oeffneLauf(sid, lauf, kennzahl.takeIf { it.startsWith("sprint_") }) } }
+        sid != null -> { { onOpenSession(sid) } }
+        oeffneFoiler != null -> { { oeffneFoiler(uid) } }
+        else -> null
     }
 }
 

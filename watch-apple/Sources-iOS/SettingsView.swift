@@ -91,6 +91,8 @@ struct SettingsView: View {
         if teil != nil { ProfilKopfSection(lang: lang) }
         // Nationalitaet (web LandWahl, 02.11.2026) — Flagge in den Bestenlisten.
         LandSection(lang: lang)
+        // Wertungsklasse direkt unter der Nationalitaet (web a2081ec0/dc21a3ca, 10./11.11.2026).
+        WertungsklasseSection(lang: lang)
         weightSection
         homespotSection
         socialKanalSection

@@ -407,6 +407,8 @@ private struct PodestFahrerPlatz: View {
     let platz: Int
     let wert: String
 
+    @State private var profil = false
+
     private var abstandUnten: CGFloat { platz == 1 ? 56 : platz == 2 ? 24 : 0 }
     private var foilBreite: CGFloat { platz == 1 ? 230 : platz == 2 ? 180 : 160 }
     private var name: String { z.name ?? z.initialen ?? "—" }
@@ -416,11 +418,40 @@ private struct PodestFahrerPlatz: View {
             PodestFoil(platz: platz).frame(maxWidth: foilBreite)
             Text(String(platz) + ".").font(podestRangSchrift(platz)).monospacedDigit()
                 .foregroundStyle(PodestMetall.fuer(platz).rand)
-            Text(name).font(podestNameSchrift(platz)).lineLimit(1).truncationMode(.tail)
+            nameFeld
             herkunft
-            Text(wert).font(podestNameSchrift(platz)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+            wertFeld
         }
         .padding(.bottom, abstandUnten)
+    }
+
+    private var nameText: some View {
+        Text(name).font(podestNameSchrift(platz)).lineLimit(1).truncationMode(.tail)
+    }
+
+    private func wertText(_ linie: Bool) -> some View {
+        Text(wert).font(podestNameSchrift(platz)).monospacedDigit().underline(linie).lineLimit(1).minimumScaleFactor(0.7)
+    }
+
+    /// Name -> Profil des Fahrers (web EventPodest, 11.11.2026), als Sheet wie die Profilbilder.
+    @ViewBuilder private var nameFeld: some View {
+        if let uid = z.user_id {
+            Button { profil = true } label: { nameText }
+                .buttonStyle(.plain)
+                .sheet(isPresented: $profil) { FoilerSheet(userId: uid) }
+        } else {
+            nameText
+        }
+    }
+
+    /// Wert aus einer Session bzw. einem Lauf -> dorthin, der Lauf vorausgewaehlt (web 713147c3).
+    @ViewBuilder private var wertFeld: some View {
+        if z.user_id != nil, let sid = z.session_id {
+            NavigationLink { SessionDetailView(id: sid, vorwahlLauf: z.run_idx) } label: { wertText(true) }
+                .buttonStyle(.plain)
+        } else {
+            wertText(false)
+        }
     }
 
     /// Flagge und Wappen des (ersten) Teams; der Teamname steht im Web erst ab Tablet-Breite — auf dem Handy nicht.
