@@ -30,7 +30,7 @@ const SportartenTeil = lazy(() => import("./Foils").then((m) => ({ default: m.Sp
 
 export default function Settings() {
   const { t } = useI18n();
-  const [ptab, setPtab] = useReiter("profil", ["uebersicht", "konten", "freunde", "team", "sportarten", "ausruestung", "ich", "fahren", "privat", "darstellung", "konto"], "uebersicht");
+  const [ptab, setPtab] = useReiter("profil", ["uebersicht", "ich", "konten", "freunde", "team", "sportarten", "ausruestung", "fahren", "privat", "darstellung", "konto"], "uebersicht");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -169,13 +169,14 @@ export default function Settings() {
           nicht gemerkt: wer die Seite oeffnet, landet immer bei der Sprache (s. unten). */}
       <Reiterleiste reiter={[
         { id: "uebersicht", label: t("tab.overview") },
+        // „Ich" an zweiter Stelle (Jan, 11.11.2026)
+        { id: "ich", label: t("ptab.me") },
         { id: "konten", label: t("ptab.watches") },
         { id: "freunde", label: t("friends.title") },
         { id: "team", label: t("tab.team") },
         // Sportarten eine Ebene hoeher, vorher Unterreiter von Ausruestung (Jan, 05.11.2026).
         { id: "sportarten", label: t("mySpots.sports") },
         { id: "ausruestung", label: t("gear.title") },
-        { id: "ich", label: t("ptab.me") },
         { id: "fahren", label: t("ptab.riding") },
         { id: "privat", label: t("ptab.privacy") },
         { id: "darstellung", label: t("ptab.display") },
