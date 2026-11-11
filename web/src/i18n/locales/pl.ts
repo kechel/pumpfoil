@@ -2953,6 +2953,7 @@ const pl: Record<string, string> = {
   "team.primaerHinweis": "W wydarzeniach globalnych liczysz się tylko dla jednej drużyny: głównej, chyba że na stronie wydarzenia wybierzesz inną.",
   "team.event.meinTeam": "Startujesz dla",
   "team.event.meinTeamHinweis": "Należysz do kilku drużyn i w tym wydarzeniu liczysz się dla jednej z nich. Możesz to zmienić do 6 godzin przed końcem wydarzenia.",
+  "team.event.zaehltNicht": "Nie liczy się w wydarzeniach globalnych (drużyna niezatwierdzona lub rankingi niepubliczne)",
   "team.event.meinTeamFest": "Zostało mniej niż 6 godzin — ten wybór jest ostateczny.",
   "team.feed30": "Sesje członków drużyny z ostatnich 30 dni.",
   "period.yesterday": "Wczoraj",

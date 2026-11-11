@@ -2378,6 +2378,9 @@ export interface TeamEvent {
 export interface EventMeinTeam {
   auswahl: { id: number; slug: string; name: string; logo_url: string | null; farbe: string | null }[];
   gewaehlt: number | null; primaer: number | null; effektiv: number | null; aenderbar: boolean;
+  /** eigene Teams, die in globalen Events nicht auftauchen (ausgegraut), und das markierte primaere Team (11.11.2026) */
+  nicht_zaehlend?: { id: number; slug: string; name: string; logo_url: string | null; farbe: string | null }[];
+  markiert?: number | null;
 }
 export interface TeamAbzeichen {
   rang: number; event: string; team: string; team_slug: string; farbe: string | null; kennzahl: string; wert: number; datum: string;

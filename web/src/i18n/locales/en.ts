@@ -3079,6 +3079,7 @@ const en: Record<string, string> = {
   "team.primaerHinweis": "In global events you count for one team only: your primary team, unless you pick another one on the event page.",
   "team.event.meinTeam": "You ride for",
   "team.event.meinTeamHinweis": "You are in several teams and count for one of them in this event. You can change it until 6 hours before the event ends.",
+  "team.event.zaehltNicht": "Doesn’t count in global events (team not approved or leaderboards not public)",
   "team.event.meinTeamFest": "Less than 6 hours to go — this choice is final.",
   "team.feed30": "Sessions of team members from the last 30 days.",
   "period.yesterday": "Yesterday",

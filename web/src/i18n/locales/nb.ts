@@ -2945,6 +2945,7 @@ const nb: Record<string, string> = {
   "team.primaerHinweis": "I globale eventer teller du bare for ett lag: primærlaget ditt, med mindre du velger et annet på eventsiden.",
   "team.event.meinTeam": "Du kjører for",
   "team.event.meinTeamHinweis": "Du er med i flere lag og teller for ett av dem i dette eventet. Du kan endre det til 6 timer før eventet slutter.",
+  "team.event.zaehltNicht": "Teller ikke i globale arrangementer (laget er ikke godkjent eller resultatlistene er ikke offentlige)",
   "team.event.meinTeamFest": "Mindre enn 6 timer igjen — valget står fast.",
   "team.feed30": "Økter fra lagmedlemmer de siste 30 dagene.",
   "period.yesterday": "I går",

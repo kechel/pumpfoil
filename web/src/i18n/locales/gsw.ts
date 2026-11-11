@@ -2859,6 +2859,7 @@ const gsw: Record<string, string> = {
   "team.primaerHinweis": "I globale Events zellsch du nur für eis Team: dis primäre, usser du wählsch uf de Eventsiite es anders.",
   "team.event.meinTeam": "Du trittsch aa für",
   "team.event.meinTeamHinweis": "Du bisch i mehrere Teams und zellsch i dem Event für eis devo. Ändere chasch das bis 6 Stund vor em Event-Änd.",
+  "team.event.zaehltNicht": "Zellt nöd i globale Events (Team nöd freigäh oder Bestelischte nöd öffentlich)",
   "team.event.meinTeamFest": "Weniger als 6 Stund bis zum Änd — die Zueornig staht fescht.",
   "team.feed30": "Sessions vo de Team-Mitglieder us de letschte 30 Täg.",
   "period.yesterday": "Geschter",

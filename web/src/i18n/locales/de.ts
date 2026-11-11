@@ -3133,6 +3133,7 @@ const de: Record<string, string> = {
   "team.primaerHinweis": "In globalen Events zählst du nur für ein Team: dein primäres, außer du wählst auf der Eventseite ein anderes.",
   "team.event.meinTeam": "Du trittst an für",
   "team.event.meinTeamHinweis": "Du bist in mehreren Teams und zählst in diesem Event für eines davon. Ändern kannst du das bis 6 Stunden vor Event-Ende.",
+  "team.event.zaehltNicht": "Zählt nicht in globalen Events (Team nicht freigegeben oder Bestenlisten nicht öffentlich)",
   "team.event.meinTeamFest": "Weniger als 6 Stunden bis zum Ende — diese Zuordnung steht fest.",
   "team.feed30": "Sessions der Team-Mitglieder aus den letzten 30 Tagen.",
   "period.yesterday": "Gestern",

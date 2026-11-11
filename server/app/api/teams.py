@@ -254,15 +254,23 @@ def event_mein_team(slug: str, event_id: int, body: MeinTeamIn, user: models.Use
 
 
 def _mein_team(db: Session, e: models.TeamEvent, uid: int) -> dict | None:
-    """Teamwahl des Betrachters fuer ein globales Event: Auswahl (seine wertbaren Teams), Wahl, effektives Team."""
+    """Teamwahl des Betrachters fuer ein globales Event: Auswahl (seine wertbaren Teams), Wahl, effektives Team.
+    `nicht_zaehlend` (11.11.2026): seine uebrigen Teams (aktiv, nicht das offizielle), die in globalen Events nicht
+    auftauchen — die Seite zeigt sie ausgegraut mit Grund, damit niemand die Wahl vergeblich sucht."""
     w = T.meine_wertbaren(db, uid, e.id)
-    if not w["teams"]:
+    M = models.TeamMitglied
+    og = T.offizielles_team_id(db)
+    uebrige = [tid for (tid,) in db.query(M.team_id).join(models.Team, models.Team.id == M.team_id)
+               .filter(M.user_id == uid, M.status == "aktiv", models.Team.geloescht_am.is_(None)).order_by(M.team_id).all()
+               if tid != og and tid not in w["teams"]]
+    if not w["teams"] and not uebrige:
         return None
-    teams = {x.id: x for x in db.query(models.Team).filter(models.Team.id.in_(w["teams"])).all()}
+    teams = {x.id: x for x in db.query(models.Team).filter(models.Team.id.in_(w["teams"] + uebrige)).all()}
     def kurz(tid):
         a = T.auftritt(teams[tid], True)
         return {"id": tid, "slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"]}
-    return {"auswahl": [kurz(i) for i in w["teams"]], "gewaehlt": w["gewaehlt"], "primaer": w["primaer"],
+    return {"auswahl": [kurz(i) for i in w["teams"]], "nicht_zaehlend": [kurz(i) for i in uebrige],
+            "gewaehlt": w["gewaehlt"], "primaer": w["primaer"], "markiert": w["primaer_alle"],
             "effektiv": w["effektiv"], "aenderbar": T.teamwahl_offen(e),
             "schluss": (T._aware(e.ende) - T.TEAMWAHL_SCHLUSS).isoformat()}
 
