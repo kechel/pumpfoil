@@ -1478,8 +1478,8 @@ export default function SessionDetail() {
         if (tm >= sprintHL.a - 500 && tm <= sprintHL.b + 500) sprintPkte.push(coords[i]);
       }
       if (sprintPkte.length >= 2) {
-        L.polyline(sprintPkte, { color: "#0f172a", weight: 19, opacity: 0.55, interactive: false }).addTo(lg);
-        L.polyline(sprintPkte, { color: "#d946ef", weight: 15, opacity: 1, interactive: false }).addTo(lg);
+        // Leichter (Jan, 11.11.2026: „etwas zu dick/viel"): ohne dunklen Rand, schmaler, halbtransparent.
+        L.polyline(sprintPkte, { color: "#d946ef", weight: 11, opacity: 0.5, interactive: false, lineCap: "round" }).addTo(lg);
       }
     }
     segs.forEach((seg: any, idx: number) => {
@@ -1630,7 +1630,7 @@ export default function SessionDetail() {
     // Gewerteter Sprint-Abschnitt (s. sprintHL): Start/Ende-Punkte + Schild UEBER dem Track (das Band liegt darunter).
     if (sprintPkte.length >= 2) {
       for (const pt of [sprintPkte[0], sprintPkte[sprintPkte.length - 1]])
-        L.circleMarker(pt, { radius: 7, color: "#ffffff", weight: 2.5, fillColor: "#a21caf", fillOpacity: 1 }).addTo(lg);
+        L.circleMarker(pt, { radius: 5, color: "#ffffff", weight: 2, fillColor: "#c026d3", fillOpacity: 1 }).addTo(lg);
       L.tooltip({ permanent: true, direction: "top", className: "sprint-schild", offset: [0, -10] })
         .setLatLng(sprintPkte[Math.floor(sprintPkte.length / 2)])
         .setContent(sprintHL!.kz === "sprint_60s" ? "60 s" : `${sprintHL!.kz.replace("sprint_", "").replace("m", "")} m`)
