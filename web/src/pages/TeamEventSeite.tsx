@@ -437,6 +437,14 @@ export default function TeamEventSeite() {
               {ev.tafeln.map((tf, i) => <option key={i} value={i}>{tafelTitel(tf, ev, t)}</option>)}
             </select>
           )}
+          {/* Wertungsklasse (10.11.2026) in derselben Zeile, ohne Beschriftung (Jan, 11.11.2026: „die buttons sind ja eindeutig"). */}
+          {!gast && ev.klassen && Object.keys(ev.klassen).length > 0 &&
+            (["", ...["w", "m", "nb"].filter((k) => k in ev.klassen!)] as string[]).map((k) => (
+              <button key={k || "alle"} onClick={() => setKlasse(k)}
+                className={`rounded-xl border px-3 py-1 text-sm ${(ev.klasse ?? "") === k ? "border-brand-500 bg-brand-500 font-semibold text-slate-950" : "border-slate-700 text-slate-200 hover:bg-slate-800"}`}>
+                {k ? `${t(`wk.${k}`)} (${ev.klassen![k]})` : t("wk.alle")}
+              </button>
+            ))}
           {/* Event-Uebersicht als Bild (07.11.2026): Summen + die ersten 3 je Kategorie. */}
           {!gast && ev.tafeln.length + (ev.summen_auswahl ?? []).length > 0 && (
             <button onClick={() => setUebersicht(true)}
@@ -468,17 +476,6 @@ export default function TeamEventSeite() {
             <>
             {/* Siegertreppchen ueber der Bestenliste, nur beendete Events. Gleiche Rechte wie die Eventseite (Jan, 09.11.2026):
                 es zeigt nur, was die Seite ohnehin geladen hat — Gaeste also in Gastform (Rang, Name, Wert, Wappen). */}
-            {!gast && ev.klassen && Object.keys(ev.klassen).length > 0 && (
-              <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
-                <span className="text-slate-400">{t("wk.filter")}:</span>
-                {(["", ...["w", "m", "nb"].filter((k) => ev.klassen![k])] as string[]).map((k) => (
-                  <button key={k || "alle"} onClick={() => setKlasse(k)}
-                    className={`rounded-lg border px-3 py-1 ${(ev.klasse ?? "") === k ? "border-brand-500 bg-brand-500 font-semibold text-slate-950" : "border-slate-600 text-slate-200 hover:bg-slate-800"}`}>
-                    {k ? `${t(`wk.${k}`)} (${ev.klassen![k]})` : t("wk.alle")}
-                  </button>
-                ))}
-              </div>
-            )}
             {ev.status === "beendet" && <EventPodest evId={ev.id} tf={tf0} global={!!ev.global} t={t} />}
             <div className={`grid grid-cols-1 gap-3 ${ev.global ? "sm:grid-cols-2" : ""}`}>
               <Tafel tf={tf} gast={gast} t={t} teamsZeigen={!!ev.global} ohneFilter sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} standText={standText} />
