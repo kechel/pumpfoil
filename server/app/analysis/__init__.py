@@ -568,6 +568,16 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
     gps_samples = storage.load_gps(session.session_uuid)
     gps_roh = gps_samples   # ungeschnitten, Session-ms — fuer die Sportart-Regel (sportregel.py)
     accel = storage.load_accel(session.session_uuid)
+    # OHNE ROH-DATEN NIE UEBERSCHREIBEN (Jan, 11.11.2026: „wichtiger ist das es nicht ausversehen oder ungewollt passiert"):
+    # Fehlt der Roh-Daten-Ordner (verschwunden, geloescht, nie angekommen), haette eine Neuauswertung eine vorhandene
+    # Auswertung mit „keine Position" ersetzt — so geschehen bei 8 Sessions in der Neuauswertung vom 11.11. Eine NEUE
+    # Session ohne Daten (noch kein Chunk da) rechnet weiter wie bisher, weil es dort nichts zu verlieren gibt.
+    if not gps_samples and getattr(accel, "shape", (0,))[0] == 0:
+        vorhanden = db.query(models.AnalysisResult).filter_by(session_id=session.id).first()
+        if vorhanden is not None and (vorhanden.track_geojson or vorhanden.num_runs):
+            logging.getLogger(__name__).warning(
+                "Session %s: keine Roh-Daten — vorhandene Auswertung bleibt (nicht neu gerechnet)", session.id)
+            return vorhanden
     accel_roh = accel   # ungeschnitten, vor dem Raster — fuer die Startversuche (startversuche.py)
 
     # Autofahrten aus den ROHEN Punkten (ganze Aufnahme), bevor irgendetwas zugeschnitten wird —

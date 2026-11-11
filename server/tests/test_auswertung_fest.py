@@ -18,3 +18,18 @@ def test_festgehaltene_auswertung_bleibt(client):   # client: App-Start legt die
     r = run_analysis(db, s)
     assert r.id == ar.id and r.num_runs == 5 and r.algo_version == "gps-mvp-3"     # nichts neu gerechnet
     db.close()
+
+
+def test_ohne_rohdaten_bleibt_vorhandene_auswertung(client):
+    """Fehlen die Roh-Daten, ueberschreibt run_analysis eine vorhandene Auswertung nicht (11.11.2026)."""
+    db = SessionLocal()
+    u = models.User(email=f"ohne-roh-{datetime.now().timestamp()}@example.org", password_hash="x")
+    db.add(u); db.flush()
+    s = models.Session(user_id=u.id, session_uuid=f"ohne-roh-{u.id}", started_at=datetime.now(timezone.utc))
+    db.add(s); db.flush()
+    ar = models.AnalysisResult(session_id=s.id, algo_version="v2-windows-1", num_runs=3,
+                               track_geojson='{"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[9, 47], [9.001, 47]]}}')
+    db.add(ar); db.commit()
+    r = run_analysis(db, s)
+    assert r.id == ar.id and r.num_runs == 3                    # keine Roh-Daten -> nichts ueberschrieben
+    db.close()
