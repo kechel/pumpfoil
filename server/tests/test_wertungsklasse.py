@@ -1,6 +1,7 @@
 """Wertungsklasse (10.11.2026): Profilfeld + Filter der Event-Bestenlisten nach Frauen/Maenner/nicht-binaer.
 
-Regeln (Jan): eine Klasse wird nur angeboten, wenn mindestens 3 Teilnehmende sie haben; bleibt danach nur eine Klasse
+Regeln (Jan): eine Klasse wird angeboten, sobald mindestens KLASSE_MIN Teilnehmende sie haben (seit 11.11.2026: 1,
+vorher 3); bleibt danach nur eine Klasse
 uebrig (z. B. reines Frauen-Event), gibt es gar keinen Filter. Gefiltert wird mit Rang in der Klasse.
 """
 from __future__ import annotations
@@ -83,15 +84,17 @@ def test_globales_event_filter_nach_wertungsklasse(client, monkeypatch):
     assert ev.status_code == 200, ev.text
     eid = ev.json()["id"]
     alle = client.get(f"/api/teams/{slug}/events/{eid}", headers=ko).json()
-    # nb hat nur 1 Person -> nicht im Angebot; w (4) und m (3) schon
-    assert alle["klassen"] == {"w": 4, "m": 3} and alle["klasse"] is None
+    # Grenze 1 (Jan, 11.11.2026): auch nb mit 1 Person ist im Angebot
+    assert alle["klassen"] == {"w": 4, "m": 3, "nb": 1} and alle["klasse"] is None
     frauen = client.get(f"/api/teams/{slug}/events/{eid}?klasse=w", headers=ko).json()
     z = [r for r in frauen["tafeln"][0]["zeilen"] if r["user_id"] in namen]
     assert [namen[r["user_id"]] for r in z] == [("w", 400), ("w", 300), ("w", 200), ("w", 100)]
     assert [r["rang"] for r in z] == [1, 2, 3, 4] and frauen["klasse"] == "w"
     assert all(r["rang_gesamt"] >= r["rang"] for r in z)                       # Gesamtrang bleibt sichtbar
     nb = client.get(f"/api/teams/{slug}/events/{eid}?klasse=nb", headers=ko).json()
-    assert nb["klasse"] is None and len(nb["tafeln"][0]["zeilen"]) >= len(leute)   # nicht angeboten -> kein Filter
+    assert nb["klasse"] == "nb" and [namen[r["user_id"]] for r in nb["tafeln"][0]["zeilen"] if r["user_id"] in namen] == [("nb", 500)]
+    unbekannt = client.get(f"/api/teams/{slug}/events/{eid}?klasse=xy", headers=ko).json()
+    assert unbekannt["klasse"] is None and len(unbekannt["tafeln"][0]["zeilen"]) >= len(leute)   # unbekannt -> kein Filter
     # Gaeste-Link: kein Filter
     assert client.get(f"/api/public/teams/{slug}/events/{eid}?klasse=w").json().get("klassen") in ({}, None)
     db = SessionLocal()

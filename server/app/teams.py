@@ -863,10 +863,10 @@ def global_aus(db: Session) -> frozenset:
 
 
 # Wertungsklassen (10.11.2026, Jan): Filter der Event-Bestenlisten nach Frauen/Maenner/nicht-binaer. Eine Klasse wird nur
-# angeboten, wenn mindestens KLASSE_MIN Teilnehmende sie haben (eine einzelne Person waere sonst erkennbar); bleibt danach
+# angeboten, wenn mindestens KLASSE_MIN Teilnehmende sie haben (frueher 3, damit niemand einzeln erkennbar ist); bleibt danach
 # nur eine Klasse uebrig (z. B. ein reines Frauen-Event), gibt es gar keinen Filter.
 WERTUNGSKLASSEN = ("w", "m", "nb")
-KLASSE_MIN = 3
+KLASSE_MIN = 1   # Jan, 11.11.2026: „grenze bitte auf 1 setzen und dann so lassen" (vorher 3)
 _KLASSEN = {"zeit": 0.0, "map": {}}
 
 

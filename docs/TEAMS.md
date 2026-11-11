@@ -523,7 +523,7 @@ Team-Event (`team_events.global_event`, `team_wertung_n`), Rechnung in `app/team
 Jan: Profilfeld „m/w/divers/nicht eingetragen", um Event-Bestenlisten nach Geschlecht zu filtern; Name „Wertungsklasse"
 (Sportwertung, keine Identitaetsangabe). `settings.wertungsklasse`: "" keine Angabe (Standard) | `w` | `m` | `nb`,
 freiwillig, selbst gewaehlt, nie geprueft (wie Strava/Laufserien). Filter auf der Eventseite (`?klasse=`, `teams.
-klassen_angebot`/`nach_klasse`): eine Klasse erscheint nur ab **3 Teilnehmenden** (sonst waere eine Person erkennbar);
+klassen_angebot`/`nach_klasse`): eine Klasse erscheint ab **1 Teilnehmenden** (`KLASSE_MIN`; Jan 11.11.2026, vorher 3);
 bleibt danach nur **eine** Klasse uebrig (z. B. reines Frauen-Event), gibt es **keinen** Filter (Jan). Gefiltert auf den
 vollen Zeilen, Rang in der Klasse, `rang_gesamt` bleibt; Gaeste ohne Filter; „keine Angabe" steht nur unter „Alle".
 Community-Ranglisten haben den Filter noch nicht; Apps: Port-Liste in docs/TODO.md.
