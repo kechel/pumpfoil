@@ -1469,6 +1469,19 @@ export default function SessionDetail() {
         L.circleMarker(coords[coords.length - 1], { radius: 5, color: "#450a0a", weight: 1.5, fillColor: "#ef4444", fillOpacity: 1 }).addTo(lg);
       }
     }
+    // Gewerteter Sprint-Abschnitt als breites Magenta-Band UNTER dem Track (Jan, 11.11.2026: die gewaehlte Faerbung —
+    // Tempo, Puls … — soll nicht ueberdeckt werden). Vor den Laeufen gezeichnet = darunter.
+    const sprintPkte: L.LatLngExpression[] = [];
+    if (sprintHL) {
+      for (let i = 0; i < coords.length; i++) {
+        const tm = indexZuSessionMs(i);
+        if (tm >= sprintHL.a - 500 && tm <= sprintHL.b + 500) sprintPkte.push(coords[i]);
+      }
+      if (sprintPkte.length >= 2) {
+        L.polyline(sprintPkte, { color: "#0f172a", weight: 19, opacity: 0.55, interactive: false }).addTo(lg);
+        L.polyline(sprintPkte, { color: "#d946ef", weight: 15, opacity: 1, interactive: false }).addTo(lg);
+      }
+    }
     segs.forEach((seg: any, idx: number) => {
       // Inaktive Läufe nur grau + transparent (nicht farbig), wenn einer aktiv ist.
       const dim = selectedRun != null && idx !== selectedRun;
@@ -1614,26 +1627,14 @@ export default function SessionDetail() {
         L.circleMarker(p, { radius: 5, color: farbe, weight: 2, fillColor: farbe, fillOpacity: mv.durch ? 0.95 : 0, interactive: false }).addTo(lg);
       });
     }
-    // Gewerteter Sprint-Abschnitt (s. sprintHL): weiss umrandet in Bernstein ueber dem Lauf, Start/Ende als Punkte.
-    if (sprintHL) {
-      const pkte: L.LatLngExpression[] = [];
-      for (let i = 0; i < coords.length; i++) {
-        const tm = indexZuSessionMs(i);
-        if (tm >= sprintHL.a - 500 && tm <= sprintHL.b + 500) pkte.push(coords[i]);
-      }
-      if (pkte.length >= 2) {
-        // Magenta statt Bernstein (Jan, 11.11.2026: „ich sehe es nicht") — Orange steckt schon in der Tempo-Farbskala.
-        // Dunkler Rand + weisser Saum + Magenta, Start/Ende als Punkte, dazu ein festes Schild mit der Strecke.
-        L.polyline(pkte, { color: "#0f172a", weight: 14, opacity: 0.85, interactive: false }).addTo(lg);
-        L.polyline(pkte, { color: "#ffffff", weight: 10, opacity: 1, interactive: false }).addTo(lg);
-        L.polyline(pkte, { color: "#d946ef", weight: 6, opacity: 1, interactive: false }).addTo(lg);
-        for (const pt of [pkte[0], pkte[pkte.length - 1]])
-          L.circleMarker(pt, { radius: 7, color: "#ffffff", weight: 2.5, fillColor: "#a21caf", fillOpacity: 1 }).addTo(lg);
-        L.tooltip({ permanent: true, direction: "top", className: "sprint-schild", offset: [0, -6] })
-          .setLatLng(pkte[Math.floor(pkte.length / 2)])
-          .setContent(sprintHL.kz === "sprint_60s" ? "60 s" : `${sprintHL.kz.replace("sprint_", "").replace("m", "")} m`)
-          .addTo(lg);
-      }
+    // Gewerteter Sprint-Abschnitt (s. sprintHL): Start/Ende-Punkte + Schild UEBER dem Track (das Band liegt darunter).
+    if (sprintPkte.length >= 2) {
+      for (const pt of [sprintPkte[0], sprintPkte[sprintPkte.length - 1]])
+        L.circleMarker(pt, { radius: 7, color: "#ffffff", weight: 2.5, fillColor: "#a21caf", fillOpacity: 1 }).addTo(lg);
+      L.tooltip({ permanent: true, direction: "top", className: "sprint-schild", offset: [0, -10] })
+        .setLatLng(sprintPkte[Math.floor(sprintPkte.length / 2)])
+        .setContent(sprintHL!.kz === "sprint_60s" ? "60 s" : `${sprintHL!.kz.replace("sprint_", "").replace("m", "")} m`)
+        .addTo(lg);
     }
     // Carves als feine 25-Hz-Bögen (Catmull-Rom-geglättet) über dem grauen Basis-Track.
     // Jedes Teilstück nach seiner Kurvenlage-g eingefärbt -> Verlauf feiner als GPS-Punkt.
