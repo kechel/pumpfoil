@@ -1737,6 +1737,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
         (Home › Team, Meine Teams, Einstellungen › Team) und im Kopf der Teamseite; Event-Kasten „Mein Team" mit
         `nicht_zaehlend` ausgegraut (`team.event.zaehltNicht`).
   - [x] Einstellungen: „Ich" als zweiter Reiter.
+  - [x] Event-Kasten „Mein Team" nur als Zeile, Erklaerung erst beim Tipp auf ein deaktiviertes Team (Web 15f9dea5):
+        Android 1.1.49 ja, iOS erst 1.1.66.
   **Testen (Jan, Simulator/Geraet):** Tipp auf Profilbild/Wappen in einer Bestenlisten-Zeile oeffnet NUR deren Ziel;
   Primaer-Knopf in einer Listenzeile setzt nur (springt nicht ins Team); Sprint-Band unter der Faerbung, verschwindet
   bei anderem Lauf; Klasse/Bestenliste bleiben nach Session und zurueck.

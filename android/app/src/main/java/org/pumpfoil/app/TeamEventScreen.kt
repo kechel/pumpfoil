@@ -497,6 +497,9 @@ private fun EventMeinTeamWahl(slug: String, evId: Int, mt: EventMeinTeam, onGeae
     if (mt.auswahl.size + nicht.size < 2) return
     val stern = mt.markiert ?: mt.primaer
     var busy by remember { mutableStateOf(false) }
+    // Erklaerung nur beim Tipp auf ein deaktiviertes Team (Web 15f9dea5, Jan 11.11.2026: „die ganzen erklaerungen
+    // weglassen … nur einblenden wenn man auf ein deaktiviertes klickt"); die Regeln stehen ohnehin in den Event-Regeln.
+    var hinweis by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     fun waehle(id: Int) {
         if (busy || !mt.aenderbar || id == mt.effektiv) return
@@ -509,17 +512,19 @@ private fun EventMeinTeamWahl(slug: String, evId: Int, mt: EventMeinTeam, onGeae
     }
     Card(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
         Column(Modifier.padding(12.dp)) {
-            Text(I18n.t("team.event.meinTeam"), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-            FlowRow(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(I18n.t("team.event.meinTeam"), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.align(Alignment.CenterVertically).padding(end = 4.dp))
                 mt.auswahl.forEach { x ->
                     val an = x.id == mt.effektiv
                     val tf = teamFarbe(x.farbe)
-                    val aktiv = !busy && (mt.aenderbar || an)
                     Row(
                         Modifier.clip(RoundedCornerShape(50))
                             .then(if (an) Modifier.background(tf.flaeche)
                                   else Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(50)))
-                            .clickable(enabled = aktiv && mt.aenderbar && !an) { waehle(x.id) }
+                            .clickable(enabled = !busy && !an) {
+                                if (mt.aenderbar) waehle(x.id) else hinweis = I18n.t("team.event.meinTeamFest")
+                            }
                             .padding(horizontal = 12.dp, vertical = 5.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -548,6 +553,7 @@ private fun EventMeinTeamWahl(slug: String, evId: Int, mt: EventMeinTeam, onGeae
                                         pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx()))))
                             }
                             .alpha(0.6f)
+                            .clickable { hinweis = I18n.t("team.event.zaehltNicht") }
                             .padding(horizontal = 12.dp, vertical = 5.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -562,14 +568,10 @@ private fun EventMeinTeamWahl(slug: String, evId: Int, mt: EventMeinTeam, onGeae
                     }
                 }
             }
-            if (nicht.isNotEmpty()) {
-                Text(I18n.t("team.event.zaehltNicht") + ": " + nicht.joinToString(", ") { it.name },
-                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            hinweis?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp))
             }
-            Text(I18n.t(if (mt.aenderbar) "team.event.meinTeamHinweis" else "team.event.meinTeamFest"),
-                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp))
         }
     }
 }
