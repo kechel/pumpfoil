@@ -25,7 +25,8 @@ import math
 
 import numpy as np
 
-VERSION = 2   # 2: nur Uhr-Tempo (roh), ohne aus Positionen aufgefuelltes (09.11.2026)
+VERSION = 3   # 3: dazu Lage des besten Fensters je Kennzahl (`fenster`, Session-ms), Werte unveraendert (11.11.2026)
+# 2: nur Uhr-Tempo (roh), ohne aus Positionen aufgefuelltes (09.11.2026)
 STRECKEN_M = (100, 200, 300)
 DAUERN_S = (60,)
 LUECKE_S = 3.0
@@ -43,8 +44,9 @@ def _strecke_pos(lat: np.ndarray, lon: np.ndarray) -> np.ndarray:
 
 
 def _fenster(t: np.ndarray, cd: np.ndarray, cp: np.ndarray, luecken: np.ndarray, *,
-             strecke: float | None = None, dauer: float | None = None) -> float | None:
-    """Bestes gueltiges Fenster (m/s) ueber eine Strecke ODER eine Dauer; None, wenn keines passt.
+             strecke: float | None = None, dauer: float | None = None) -> tuple[float, float, float] | None:
+    """Bestes gueltiges Fenster ueber eine Strecke ODER eine Dauer -> (m/s, Start s, Ende s); None, wenn keines passt.
+    Gleichstand: das fruehere Fenster (argmax).
 
     `cd`/`cp` = kumulierte Doppler- bzw. Positionsstrecke, `luecken[k]` = Anzahl Luecken bis Punkt k."""
     n = t.size
@@ -79,11 +81,13 @@ def _fenster(t: np.ndarray, cd: np.ndarray, cp: np.ndarray, luecken: np.ndarray,
     if not gut.any():
         return None
     v = dd[gut] / dt[gut]
-    return float(v.max())
+    k = int(np.argmax(v))
+    return float(v[k]), float(t[i[gut][k]]), float(t[i[gut][k]] + dt[gut][k])
 
 
-def lauf_sprints(gps: list, a_ms: float, b_ms: float) -> dict[str, float] | None:
-    """Beste Fenster eines Laufs [a_ms, b_ms] (Session-ms) -> {kennzahl: m/s}; None ohne brauchbares Uhr-Tempo."""
+def lauf_sprints(gps: list, a_ms: float, b_ms: float, fenster: dict | None = None) -> dict[str, float] | None:
+    """Beste Fenster eines Laufs [a_ms, b_ms] (Session-ms) -> {kennzahl: m/s}; None ohne brauchbares Uhr-Tempo.
+    `fenster` (optional): bekommt je Kennzahl [Start-ms, Ende-ms] des besten Fensters (Session-ms, fuer die Anzeige)."""
     from .detect_v2 import _clean_speed
     pkt = [p for p in gps if a_ms <= float(p[0]) <= b_ms and p[1] is not None and p[2] is not None]
     if len(pkt) < 5:
@@ -108,23 +112,23 @@ def lauf_sprints(gps: list, a_ms: float, b_ms: float) -> dict[str, float] | None
     cd = np.concatenate([[0.0], np.cumsum(seg)])
     cp = _strecke_pos(lat, lon)
     out: dict[str, float] = {}
-    for m in STRECKEN_M:
-        w = _fenster(t, cd, cp, luecke, strecke=float(m))
+    for kz, w in ([(f"sprint_{m}m", _fenster(t, cd, cp, luecke, strecke=float(m))) for m in STRECKEN_M]
+                  + [(f"sprint_{s}s", _fenster(t, cd, cp, luecke, dauer=float(s))) for s in DAUERN_S]):
         if w is not None:
-            out[f"sprint_{m}m"] = round(w, 3)
-    for s in DAUERN_S:
-        w = _fenster(t, cd, cp, luecke, dauer=float(s))
-        if w is not None:
-            out[f"sprint_{s}s"] = round(w, 3)
+            out[kz] = round(w[0], 3)
+            if fenster is not None:
+                fenster[kz] = [round(w[1] * 1000), round(w[2] * 1000)]
     return out
 
 
 def session_sprints(gps: list, segmente: list, trim_start_ms: int = 0) -> dict:
     """Je Kennzahl das beste Fenster der Session und je Lauf alle Werte.
 
-    -> {"v": VERSION, "best": {kennzahl: m/s}, "lauf": {kennzahl: Laufindex}, "laeufe": [{…} | None je Lauf]}"""
+    -> {"v": VERSION, "best": {kennzahl: m/s}, "lauf": {kennzahl: Laufindex}, "fenster": {kennzahl: [Start-ms, Ende-ms]},
+        "laeufe": [{…} | None je Lauf]}   (Fenster in Session-ms, wie `t_start_session_ms` der Laeufe)"""
     best: dict[str, float] = {}
     lauf: dict[str, int] = {}
+    fenster: dict[str, list] = {}
     laeufe: list = []
     for k, g in enumerate(segmente or []):
         a = g.get("t_start_session_ms")
@@ -134,12 +138,13 @@ def session_sprints(gps: list, segmente: list, trim_start_ms: int = 0) -> dict:
                 laeufe.append(None)
                 continue
             a, b = float(g["t_start_ms"]) + trim_start_ms, float(g["t_end_ms"]) + trim_start_ms
-        w = lauf_sprints(gps, float(a), float(b))
+        fl: dict = {}
+        w = lauf_sprints(gps, float(a), float(b), fl)
         laeufe.append(w)
         for kz, x in (w or {}).items():
             if x > best.get(kz, 0.0):
-                best[kz], lauf[kz] = x, k
-    return {"v": VERSION, "best": best, "lauf": lauf, "laeufe": laeufe}
+                best[kz], lauf[kz], fenster[kz] = x, k, fl[kz]
+    return {"v": VERSION, "best": best, "lauf": lauf, "fenster": fenster, "laeufe": laeufe}
 
 
 def setzen(session, result) -> bool:

@@ -246,9 +246,16 @@ export default function TeamEventSeite() {
   const [meineTeams, setMeineTeams] = useState<{ slug: string; name: string }[]>([]);
   const teamFilter = "";   // Filter „Bestenliste fuer" entfernt (06.11.2026); der Server kennt ?team= weiter
   // Wertungsklasse (10.11.2026): "" = alle; der Server bietet nur Klassen mit >= 3 Teilnehmenden an, und nur wenn es >= 2 gibt.
-  const [klasse, setKlasse] = useState("");
+  // Bestenliste + Wertungsklasse je Event merken (Jan, 11.11.2026: „wenn ich mir eine session anschaue und zurueck gehe
+  // muss ich den filter wieder neu anwaehlen"). sessionStorage: gilt im Tab, bis er zu ist.
+  const merkKey = `foil_event_wahl_${slug}_${id}`;
+  const gemerkt = (() => { try { return JSON.parse(sessionStorage.getItem(merkKey) || "null") as { wahl?: number; klasse?: string } | null; } catch { return null; } })();
+  const [klasse, setKlasse] = useState(gemerkt?.klasse ?? "");
   // Eine Bestenliste zur Zeit, per Auswahl wie die Community-Bestenliste (Jan, 06.11.2026).
-  const [wahl, setWahl] = useState(0);
+  const [wahl, setWahl] = useState(gemerkt?.wahl ?? 0);
+  useEffect(() => {
+    try { sessionStorage.setItem(merkKey, JSON.stringify({ wahl, klasse })); } catch { /* privates Fenster */ }
+  }, [merkKey, wahl, klasse]);
   const [laedt, setLaedt] = useState(false);
   const [bildTeams, setBildTeams] = useState<TeamTafelMitZeilen | null>(null);
   const [dialog, setDialog] = useState(false);
@@ -280,7 +287,7 @@ export default function TeamEventSeite() {
   // Vorauswahl nach der Standard-Ansicht im Profil (08.11.2026): wer „Pumpfoil + Foil Scoot" eingestellt hat, sieht
   // zuerst die gemischte Bestenliste, sofern das Event eine hat. Nur beim ersten Laden dieses Events.
   useEffect(() => {
-    if (!ev) return;
+    if (!ev || gemerkt) return;   // eine gemerkte Wahl geht vor
     const i = ev.tafeln.findIndex((x) => x.sportart === ranglistenSportart());
     if (i > 0) setWahl(i);
   }, [ev?.id]);   // eslint-disable-line react-hooks/exhaustive-deps

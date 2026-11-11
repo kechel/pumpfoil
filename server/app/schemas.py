@@ -274,6 +274,10 @@ class AnalysisOut(BaseModel):
     # Fahrzeit in Bewegung, Tempo ueber die ganze Fahrt, On-Foil-Anteil. Nur Detailansicht, nur
     # Wind/Motor; sonst None. Aeltere Apps ignorieren das Feld.
     sport_zahlen: dict | None = None
+    # Fliegende Sprints (11.11.2026): je Kennzahl bester Wert (m/s), Lauf und Lage des Fensters (Session-ms) —
+    # fuer die Hervorhebung, wenn man aus einer Sprint-Bestenliste kommt. Nur zu den normalen Laeufen (nicht bei
+    # Empfindlichkeits-Presets, deren Laufnummern andere sind).
+    sprints: dict | None = None
 
 
 class SessionOut(BaseModel):

@@ -222,7 +222,7 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
           {tf.zeilen.map((z) => {
             const wert = k.fmt(z.value);
             const ziel = gast || !z.user_id ? null
-              : z.session_id ? `/sessions/${z.session_id}${z.run_idx != null ? `?run=${z.run_idx}` : ""}`
+              : z.session_id ? `/sessions/${z.session_id}${z.run_idx != null ? `?run=${z.run_idx}${tf.kennzahl.startsWith("sprint_") ? `&sprint=${tf.kennzahl}` : ""}` : ""}`
               : `/foiler/${z.user_id}`;
             return (
               <li key={`${z.rang}-${z.user_id ?? z.name}`} className={`relative flex items-center gap-2 border-t border-slate-800 py-1.5 first:border-t-0 ${ziel ? "rounded-lg hover:bg-slate-800/60" : ""}`}>

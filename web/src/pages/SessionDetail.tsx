@@ -68,6 +68,7 @@ function kmh(mps: number | null | undefined) {
 
 import { ladeSessionView, merkeSessionView, type ColorMode } from "../lib/sessionViewPrefs";
 import { minMax } from "../lib/minmax";
+import { kennzahl } from "../lib/teamKennzahlen";
 
 // YouTube-Video-ID aus einer URL ziehen (watch?v=, youtu.be/, shorts/, embed/).
 function ytId(url: string | null | undefined): string {
@@ -830,6 +831,15 @@ export default function SessionDetail() {
       }
     }).catch(() => {});
   }, []);
+
+  // Aus einer Sprint-Bestenliste (?sprint=sprint_100m, 11.11.2026): den gewerteten Abschnitt hervorheben, solange
+  // sein Lauf ausgewaehlt ist. Fenster in Session-ms (wie indexZuSessionMs) aus analysis.sprints.
+  const sprintHL = useMemo(() => {
+    const kz = searchParams.get("sprint");
+    const sp = session?.analysis?.sprints;
+    if (!kz || !sp || selectedRun == null || sp.lauf?.[kz] !== selectedRun || !sp.fenster?.[kz]) return null;
+    return { kz, a: sp.fenster[kz][0], b: sp.fenster[kz][1], wert: sp.best?.[kz] ?? 0 };
+  }, [searchParams, session, selectedRun]);
 
   // Beim Aufruf über einen Rekord-Link (?run=N) den Lauf vorauswählen (einmal je Session).
   const appliedRunRef = useRef<string | null>(null);
@@ -1598,6 +1608,20 @@ export default function SessionDetail() {
         L.circleMarker(p, { radius: 5, color: farbe, weight: 2, fillColor: farbe, fillOpacity: mv.durch ? 0.95 : 0, interactive: false }).addTo(lg);
       });
     }
+    // Gewerteter Sprint-Abschnitt (s. sprintHL): weiss umrandet in Bernstein ueber dem Lauf, Start/Ende als Punkte.
+    if (sprintHL) {
+      const pkte: L.LatLngExpression[] = [];
+      for (let i = 0; i < coords.length; i++) {
+        const tm = indexZuSessionMs(i);
+        if (tm >= sprintHL.a - 500 && tm <= sprintHL.b + 500) pkte.push(coords[i]);
+      }
+      if (pkte.length >= 2) {
+        L.polyline(pkte, { color: "#ffffff", weight: 11, opacity: 0.9, interactive: false }).addTo(lg);
+        L.polyline(pkte, { color: "#f59e0b", weight: 6, opacity: 1, interactive: false }).addTo(lg);
+        L.circleMarker(pkte[0], { radius: 5, color: "#78350f", weight: 1.5, fillColor: "#fbbf24", fillOpacity: 1 }).addTo(lg);
+        L.circleMarker(pkte[pkte.length - 1], { radius: 5, color: "#78350f", weight: 1.5, fillColor: "#fbbf24", fillOpacity: 1 }).addTo(lg);
+      }
+    }
     // Carves als feine 25-Hz-Bögen (Catmull-Rom-geglättet) über dem grauen Basis-Track.
     // Jedes Teilstück nach seiner Kurvenlage-g eingefärbt -> Verlauf feiner als GPS-Punkt.
     if (colorMode === "turns" && carveData?.arcs) {
@@ -1704,7 +1728,7 @@ export default function SessionDetail() {
       map.fitBounds(L.latLngBounds(coords.slice(seg.i_start, seg.i_end + 1)), { padding: [40, 40] });
     }
     lastFitRun.current = selectedRun;
-  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, showGlides, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData, zeigeGanz, pumpzahlen, gleitenMoeglich, manoever, wellePumpen, paddel]);
+  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, showGlides, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData, zeigeGanz, pumpzahlen, gleitenMoeglich, manoever, wellePumpen, paddel, sprintHL, indexZuSessionMs]);
 
   // Play-Animation: zeichnet die Timeline progressiv (wie beim Fahren). Beim (Wieder-)
   // Eintritt komplett bis zum aktuellen Kopf neu zeichnen (mit aktuellen Farben), dann —
@@ -2547,6 +2571,16 @@ export default function SessionDetail() {
                   {t("sd.allRuns")}
                 </button>
               )}
+              {sprintHL && (() => {
+                const k = kennzahl(sprintHL.kz);
+                const ab = sprintHL.a - ((segs[selectedRun!] as any)?.t_start_session_ms ?? sprintHL.a);
+                return (
+                  <span className="ml-1 inline-flex items-center gap-1.5 rounded-lg border border-amber-500/60 px-2 py-1 text-xs text-amber-700 dark:text-amber-300">
+                    <span className="inline-block h-2 w-4 rounded-sm" style={{ background: "#f59e0b" }} />
+                    {t(k.labelKey)} · {k.fmt(sprintHL.wert)}{ab > 0 ? ` · +${Math.floor(ab / 60000)}:${String(Math.round(ab / 1000) % 60).padStart(2, "0")}` : ""}
+                  </span>
+                );
+              })()}
             </div>
           );
 

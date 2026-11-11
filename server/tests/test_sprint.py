@@ -37,6 +37,19 @@ def test_fliegend_schnellstes_stueck():
     assert "sprint_300m" in w and w["sprint_300m"] < w["sprint_200m"]
 
 
+def test_fenster_liegt_im_spurt():
+    """v3 (11.11.2026): Lage des besten Fensters fuer die Anzeige — 100 m liegen ganz im Spurt (30-60 s)."""
+    from app.analysis import sprint as SP
+    gps = _spur([4.0] * 30 + [6.0] * 30 + [4.0] * 30)
+    f: dict = {}
+    w = SP.lauf_sprints(gps, 0, 89_000, f)
+    a, b = f["sprint_100m"]
+    assert 29_000 <= a and b <= 61_000 and math.isclose((b - a) / 1000, 100 / w["sprint_100m"], abs_tol=0.3)
+    assert math.isclose((f["sprint_60s"][1] - f["sprint_60s"][0]) / 1000, 60, abs_tol=0.01)
+    erg = SP.session_sprints(gps, [{"t_start_session_ms": 0, "t_end_session_ms": 89_000}])
+    assert erg["fenster"]["sprint_100m"] == [a, b] and erg["lauf"]["sprint_100m"] == 0
+
+
 def test_zu_kurz_kein_wert():
     from app.analysis import sprint as SP
     w = SP.lauf_sprints(_spur([5.0] * 15), 0, 14_000)    # 70 m, 14 s

@@ -294,6 +294,8 @@ export interface Analysis {
   algo_version: string;
   total_distance_m: number | null;
   // Zusatzzahlen je Sportart (19.10.2026, server/app/sportzahlen.py), nur Wind/Motor, nur Detail.
+  /** Fliegende Sprints (11.11.2026): bester Wert (m/s), Lauf und Fenster [Start, Ende] in Session-ms je Kennzahl. */
+  sprints?: null | { best: Record<string, number>; lauf: Record<string, number>; fenster: Record<string, [number, number]> };
   sport_zahlen?: null | {
     fahrzeit_s?: number; tempo_kmh?: number; foil_anteil?: number; fahrt_pause_s?: number;
     fahrten?: { laeufe: number; lauf_von: number; lauf_bis: number; t_start_ms: number; dauer_s: number; strecke_m: number; foil_m: number; foil_s: number;

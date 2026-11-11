@@ -356,7 +356,18 @@ def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens
         num_runs=(p["num_runs"] if (p and p.get("num_runs") is not None) else result.num_runs),
         best_distance_m=result.best_distance_m,
         sport_zahlen=(None if slim or session is None else _sport_zahlen(session, result, segments, ft)),
+        sprints=None if (slim or p) else _sprints_out(result),
     )
+
+
+def _sprints_out(result: models.AnalysisResult) -> dict | None:
+    try:
+        j = json.loads(result.sprint_json or "null")
+    except ValueError:
+        return None
+    if not isinstance(j, dict) or not j.get("fenster"):
+        return None
+    return {k: j.get(k) or {} for k in ("best", "lauf", "fenster")}
 
 
 def _sport_zahlen(session, result, segments, foil_s):
