@@ -1535,8 +1535,8 @@ Bei der Neuauswertung (Empfindlichkeit) fiel auf: 10 nicht geloeschte Sessions h
 Alle angelegt 30.07.–03.09.; im Snapshot 01.10. schon weg. Code (merge/split-Rueckgaengig, Kontoloeschung) loescht nur
 eigene Ordner — Verursacher nicht gefunden. Die 8 davon, die neu ausgewertet wurden, sind aus der Sicherung
 `manuell-20261111-empfindlichkeit` zurueckgeholt und festgehalten (`scripts/auswertung-zurueckholen.py`).
-Offen: (1) Ursache finden, (2) die 4 Ordner aus dem Snapshot zurueckkopieren (Jans OK), (3) Schutz in `run_analysis`:
-ohne Roh-Daten eine vorhandene Auswertung nie ueberschreiben.
+ERLEDIGT 11.11.: die 4 Ordner aus den Snapshots zurueckkopiert (1309, 3091, 3192, 3113); Schutz in `run_analysis`:
+ohne Roh-Daten bleibt eine vorhandene Auswertung stehen. Ursache: laut Jan nicht so wichtig, offen mit niedriger Prioritaet.
 
 - **🔲 08.11. Gruene Spots: versehentlicher Stopp meldet den Fahrer ab (andermal ueberlegen).** Versehentlich
   gestoppte Uhr-Aufnahme (3 min, 0 Laeufe) kam nach der Positionsmeldung hoch; nach der Regel vom 15.10. heisst
