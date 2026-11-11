@@ -897,6 +897,11 @@ def klassen_angebot(db: Session, tafeln_: list[dict]) -> dict:
             k = km.get(z.get("user_id"))
             if k:
                 je[k].add(z["user_id"])
+    # Pruefschalter (Jan, 11.11.2026: „zum testen … auf 0 setzen, damit ich alle filter einmal sehen kann"):
+    # WERTUNGSKLASSE_ALLE=1 in server/.env bietet jede Klasse an, auch leere. Nur voruebergehend setzen.
+    import os
+    if os.environ.get("WERTUNGSKLASSE_ALLE") == "1":
+        return {k: len(v) for k, v in je.items()}
     angebot = {k: len(v) for k, v in je.items() if len(v) >= KLASSE_MIN}
     return angebot if len(angebot) >= 2 else {}
 
