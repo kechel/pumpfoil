@@ -466,9 +466,8 @@ Fuer das uebernaechste globale Event (nach dem Sprint-Wochenende). Nur festgehal
   Track metrisch projizieren und auf ein gemeinsames Format normalisieren (sonst gestaucht je Breitengrad, und der
   grosse See haette mehr Platz als der Weiher); Melde-Knopf plus Admin-Blick vor dem Ende; nach Voting-Schluss die
   Aufloesung mit Namen, Teams und Spots als Siegerehrung.
-- **Zeitplan (Jan, 10.11.2026):** die App-Teile (Einreichen mit Trimmen/Rotieren, Abstimmen) moeglichst noch ins
-  Android-Release **1.1.49** (1.1.48 ging am 10.11. wegen des Sprint-Events ohne GPS-Kunst raus) — es folgt nach der Freigabe von 1.1.48 und
-  koennte dann rechtzeitig zum Event freigegeben sein. Vor dem naechsten Android-Release daran erinnern; iOS entsprechend.
+- **Zeitplan (Jan, 11.11.2026):** erst in der PWA entwickeln, danach in die nativen Apps — NICHT in Android 1.1.49
+  (das traegt nur die Neuerungen vom 10./11.11.).
 
 ## Stufen
 
