@@ -12308,8 +12308,9 @@ Offen daraus:
   Tag zeigen" (fuer andere erst nach Mitternacht, eigene Zeitzone; Events mit Zeitfenster zaehlen trotzdem; Live-Freunde
   sehen weiter „unterwegs"); je Nutzer im Profil einstellbar (Jan). (2) Statt Spalten-Verschluesselung: eigener,
   eingeschraenkter DB-Zugang fuer den KI-Assistenten (nur lesend, ohne E-Mail/Passwort-Hash/Token), Schreiben nur ueber
-  enge Einzelfunktionen (z. B. Changelog). **u146 am 11.11. 22:14: „1) Zeit verbergen glaub passt so".** Zu (2) noch
-  keine Antwort. Nicht gebaut — wartet auf Jans Go fuer (1) und auf die Antwort zu (2).
+  enge Einzelfunktionen (z. B. Changelog). **u146 am 11.11. 22:14: „1) Zeit verbergen glaub passt so".** Jan dazu
+  (11.11. spaet): er will GENAU Punkt 1 — die Uhrzeit verbergen; Punkt 2 ist ihm nicht wichtig (entfaellt). Nicht
+  gebaut — wartet auf Jans Go fuer (1).
 
 - **📥 Inbox 11.11. (Detektor) — Session an Land bekam Laeufe.** #8538 (Wien, an Land, Tempo zwischen den „Laeufen"
   ~18 km/h) hatte aus einer aelteren Auswertung 0 Laeufe; die Neuauswertung mit dem heutigen Stand (v2+v3) fand vier
