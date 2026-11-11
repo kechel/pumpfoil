@@ -1757,6 +1757,11 @@ ohne Roh-Daten bleibt eine vorhandene Auswertung stehen. Ursache: laut Jan nicht
   - [x] „Du bist angetreten für <Team>" nach dem Ende bzw. bei geschlossener Teamwahl (`event.angetreten`,
         `angetreten_mit_werten`, Schluessel `team.event.angetreten`): Web + Android 1.1.49; iOS im Code fuer 1.1.66
         (TeamEventView `EventAngetretenKarte`, dazu der vereinfachte Kasten „Mein Team"), nur Parse-Check.
+  - [x] iPhone-Anmeldung: „Mit Google anmelden" ueber den Systembrowser (wie Facebook, kein Google-SDK), offizielle
+        Knopf-Fassung (Asset `GoogleG`); bisher ausgefiltert. Anlass: Nutzerin hatte sich im Web mit Google registriert
+        und kam in der iPhone-App nicht hinein (11.11., Antwort ueber u230 verspricht es fuers naechste Update).
+        Nur iOS 1.1.66 (Android hat Google nativ). Nur Parse-Check — **Testen (Jan):** Knopf hell/dunkel, Google-Login
+        im Systembrowser, Ruecksprung in die App.
   **Testen (Jan, Simulator/Geraet):** Tipp auf Profilbild/Wappen in einer Bestenlisten-Zeile oeffnet NUR deren Ziel;
   Primaer-Knopf in einer Listenzeile setzt nur (springt nicht ins Team); Sprint-Band unter der Faerbung, verschwindet
   bei anderem Lauf; Klasse/Bestenliste bleiben nach Session und zurueck.

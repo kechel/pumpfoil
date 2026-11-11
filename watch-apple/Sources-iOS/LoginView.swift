@@ -124,18 +124,51 @@ struct LoginView: View {
         anbieterBlock
     }
 
-    /// Weitere Anbieter (Facebook & Co.) ueber den SYSTEMBROWSER — kein fremdes SDK in der App,
-    /// also auch keine App-Ereignisse an Meta. Google und Apple fallen raus: Apple hat hier
-    /// seinen nativen Knopf, Google gehoert auf iOS nicht in die Reihe.
+    /// Weitere Anbieter (Google, Facebook & Co.) ueber den SYSTEMBROWSER — kein fremdes SDK in der
+    /// App, also auch keine App-Ereignisse an Meta oder Google. Apple faellt raus, es hat hier seinen
+    /// nativen Knopf. Google war bis 11.11.2026 ebenfalls ausgefiltert — Nutzerfeedback: wer sich im
+    /// Web mit Google registriert hat, kam in der iPhone-App nicht mehr hinein (und haette mit Apple
+    /// ein zweites Konto angelegt). Knopf in Googles offizieller Fassung wie im Web (Login.tsx).
     ///
     /// Was der Server ausblendet (OAUTH_<P>_HIDDEN), kommt gar nicht erst an — die Freischaltung
     /// nach Metas Freigabe braucht deshalb KEIN neues App-Release.
     @ViewBuilder private var anbieterBlock: some View {
-        ForEach(anbieter.filter { $0.id != "google" && $0.id != "apple" }, id: \.id) { p in
+        ForEach(anbieter.filter { $0.id != "apple" }, id: \.id) { p in
             if let hinweis = p.note {
                 Text(hinweis).font(.footnote).foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
+            if p.id == "google" {
+                googleKnopf
+            } else {
+                andererKnopf(p)
+            }
+        }
+    }
+
+    /// Google in der offiziellen Fassung: hell weiss, Rahmen #747775, Text #1F1F1F; dunkel #131314,
+    /// Rahmen #8E918F, Text #E3E3E3 — das „G" bleibt vierfarbig.
+    private var googleKnopf: some View {
+        let dunkel = farbschema == .dark
+        return Button {
+            starteAnbieter("google")
+        } label: {
+            HStack(spacing: 10) {
+                Image("GoogleG").resizable().renderingMode(.original).frame(width: 18, height: 18)
+                Text(Loc.t("login.google", lang))
+                    .foregroundStyle(dunkel ? Color(red: 0.89, green: 0.89, blue: 0.89) : Color(red: 0.12, green: 0.12, blue: 0.12))
+            }
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .background(dunkel ? Color(red: 0.075, green: 0.075, blue: 0.078) : .white)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10)
+                .stroke(dunkel ? Color(red: 0.557, green: 0.569, blue: 0.561) : Color(red: 0.455, green: 0.467, blue: 0.459), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .disabled(busy)
+    }
+
+    @ViewBuilder private func andererKnopf(_ p: Api.OAuthProvider) -> some View {
             Button {
                 starteAnbieter(p.id)
             } label: {
@@ -155,7 +188,6 @@ struct LoginView: View {
             .tint(p.id == "facebook" ? Color(red: 0.094, green: 0.467, blue: 0.949) : .accentColor)
             .frame(height: 44)
             .disabled(busy)
-        }
     }
 
     /// Anmeldung im Systembrowser oeffnen und auf den Ruecksprung warten.
