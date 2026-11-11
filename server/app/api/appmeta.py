@@ -592,7 +592,8 @@ _APP_META: dict[str, dict[str, str]] = {
         # store_url bleibt LEER, und das aendert sich nicht mehr: fuer die Pumpfoil-App im
         # Zepp-Store existiert keine Web-Adresse (Jan, 07.08.) — man kommt nur ueber die
         # Zepp-Handy-App dran, die auf /uhr verlinkt ist (ZeppAppBadges -> App Store / Play).
-        "latest": "1.0.14",  # FREIGEGEBEN 2026-10-22 (Zepp-Mail „The application Pumpfoil (1.0.14) you submitted has been approved", Jans Meldung; eingereicht 18.10., vier Tage). Changelog: 596/597/598/628 + zepp, Ereignis.
+        "latest": "1.0.15",  # FREIGEGEBEN 2026-11-11 (Zepp-Mail „The application Pumpfoil (1.0.15) you submitted has been approved and added to the ZEPP app store", Jans Meldung; eingereicht 10.11., ein Tag). Changelog: 2 neue Punkte zepp 1.0.15 + 990 (V-max) um zepp ergaenzt, Ereignis.
+        # ALT: "latest": "1.0.14",  # FREIGEGEBEN 2026-10-22 (Zepp-Mail „The application Pumpfoil (1.0.14) you submitted has been approved", Jans Meldung; eingereicht 18.10., vier Tage). Changelog: 596/597/598/628 + zepp, Ereignis.
         # ALT: "latest": "1.0.13",  # FREIGEGEBEN 2026-10-10 (Zepp-Mail „The application Pumpfoil (1.0.13) you submitted has been approved", Jans Meldung; eingereicht 01.10., neun Tage).
         # ALT: "latest": "1.0.12",  # FREIGEGEBEN 2026-09-30 (Zepp-Mail: „The application Pumpfoil
         # (1.0.12) you submitted has been approved and added to the ZEPP app store", Jans Meldung).
@@ -951,17 +952,7 @@ IN_REVIEW: list[dict] = [
     # an den Server melden" (ohne eigenen Punkt, reine Diagnose).
     # 19.10.2026: Sportart-Wahl auf der Uhr (Jan: „bitte umsetzen auf alle uhren und in coming next").
     # Version wird erst beim Einreichen gebumpt (1.0.14 liegt im Review).
-    # EINGEREICHT 10.11.2026 (Jans Meldung, Zepp-Konsole appId 1118995 „Under Review (Can be Withdrawn)“, Paket mit
-    # node zepp.mjs build + pruefe gebaut und nachgeprueft).
-    {"name": "Amazfit", "version": "1.0.15",
-     "eingereicht": "2026-11-10",
-     "items": [
-         "You can pick the sport before you start, on the Foil & Alarm page, and a sport other than your default shows under the title on the start screen.",
-         # 22.10.2026: Pause-Erinnerung (cdbe2cfc)
-         "While a recording is paused, the watch vibrates every 10 minutes and shows the resume screen, so an accidental pause does not go unnoticed.",
-         # 10.11.2026: V-max wie der Server (dcd42773)
-         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
-     ]},
+    # Amazfit 1.0.15 am 11.11. FREIGEGEBEN -> raus (s. _APP_META["zepp"]); Punkte zepp 1.0.15 im Changelog.
     # 06.11.2026 (Jan: „fortsetzen vorauswaehlen ist gut"): Pausen-Menue mit Vorauswahl.
     # Garmin 1.0.102 am 10.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkte 979/980 im Changelog mit garmin 1.0.102.
     # EINGEREICHT 11.11.2026 09:34 (Jans Meldung, ASC „Warten auf Pruefung", 1.1.65 (75),
