@@ -549,12 +549,22 @@ def _brett_regeln_schreiben(db: DbSession, session, result, sens: str) -> None:
     db.commit()
 
 
-def run_analysis(db: DbSession, session: "models.Session", final: bool = True) -> "models.AnalysisResult":
+def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
+                 erzwingen: bool = False) -> "models.AnalysisResult":
     """Lädt die Rohdaten der Session, rechnet die Analyse und persistiert das Ergebnis.
 
     final=False: Zwischenanalyse während noch laufender Aufnahme -> Status 'live'
     (Session wächst noch, kann mehrfach neu gerechnet werden). final=True: abgeschlossen.
+
+    `session.auswertung_fest` (von Hand gesetzter Sonderfall, Jan 11.11.2026): vorhandene Auswertung bleibt, es wird
+    NICHTS neu gerechnet — ausser `erzwingen=True` (Admin). Anlass: zurueckgeholte Laeufe eines Kindes (alte Erkennung),
+    die jede Neuauswertung, z. B. nach einer Umstellung der Empfindlichkeit, wieder entfernt haette.
     """
+    if getattr(session, "auswertung_fest", False) and not erzwingen:
+        vorhanden = db.query(models.AnalysisResult).filter_by(session_id=session.id).first()
+        if vorhanden is not None:
+            logging.getLogger(__name__).info("Session %s: Auswertung festgehalten — nicht neu gerechnet", session.id)
+            return vorhanden
     gps_samples = storage.load_gps(session.session_uuid)
     gps_roh = gps_samples   # ungeschnitten, Session-ms — fuer die Sportart-Regel (sportregel.py)
     accel = storage.load_accel(session.session_uuid)

@@ -565,6 +565,12 @@ class Session(Base):
     # Fremdkraft-Erkennung NICHT mehr — der Besitzer hat gesagt „der zählt doch". Bewusst dieselbe
     # Zeit-statt-Index-Mechanik wie oben (Läufe werden bei jeder Neuanalyse neu nummeriert).
     fremdkraft_keep: Mapped[str | None] = mapped_column(Text)
+    # „Auswertung festgehalten" (Jan, 11.11.2026): von Hand gesetzter Sonderfall — z. B. Laeufe, die wir nach
+    # Pruefung zurueckgeholt haben (Kind/Anfaenger, die das Modell uebersieht). `run_analysis` rechnet solche Sessions
+    # NICHT neu (Empfindlichkeit, Hintergrund-Neuauswertung, Detektor-Laeufe, Nutzer-Aktionen); nur ein Admin mit
+    # `erzwingen`. Gesetzt per scripts/auswertung-festhalten.py, Grund in der Notiz.
+    auswertung_fest: Mapped[bool | None] = mapped_column(Boolean, default=False)
+    auswertung_fest_notiz: Mapped[str | None] = mapped_column(Text)
     # Automatisch erkannte Autofahrten [[start_ms, end_ms, spitze_kmh], …] (Session-ms), von
     # run_analysis aus den Roh-GPS-Punkten gesetzt (analysis/autofahrt.py). Wirken wie aussortierte
     # Fenster, ausser der Nutzer hat sie per `fremdkraft_keep` zurueckgeholt (04.10.2026).

@@ -656,6 +656,8 @@ def _migrate_add_columns() -> None:
     want.setdefault("analysis_results", {}).update({"lauf_start_at": "TIMESTAMP WITH TIME ZONE",   # app/laufzeiten.py
                                                     "lauf_ende_at": "TIMESTAMP WITH TIME ZONE"})
     want.setdefault("device_tokens", {})["app_closed_at"] = "TIMESTAMP WITH TIME ZONE"
+    # Auswertung festhalten (11.11.2026, s. models.Session.auswertung_fest)
+    want.setdefault("sessions", {}).update({"auswertung_fest": "BOOLEAN DEFAULT FALSE", "auswertung_fest_notiz": "TEXT"})
     insp = inspect(engine)
     with engine.begin() as conn:
         conn.execute(text("SET LOCAL lock_timeout = '10s'"))   # nie unbegrenzt hinter einer fremden Transaktion warten

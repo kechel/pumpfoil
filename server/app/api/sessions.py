@@ -3151,7 +3151,7 @@ def reanalyze(
         lm = storage.gps_last_ms(s.session_uuid)
         if lm:
             s.ended_at = s.started_at + timedelta(milliseconds=lm + gesamt_pause_ms(s))
-    run_analysis(db, s)
+    run_analysis(db, s, erzwingen=bool(user.is_admin))   # festgehaltene Auswertung: nur ein Admin rechnet neu
     _spot_nachziehen(db, s)
     db.refresh(s)
     return _session_out(s, with_analysis=True)
