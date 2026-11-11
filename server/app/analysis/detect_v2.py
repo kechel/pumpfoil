@@ -285,8 +285,19 @@ def _puls_lebt(t: np.ndarray, hr: np.ndarray) -> bool:
     return laengste < PULS_EINGEFROREN_S
 
 
+# Gegenbeweis ohne Accel (11.11.2026, s. app/analysis/revier.py): liegt ein Lauf zu mindestens REVIER_ANTEIL auf
+# Pumpfoil-Heatmap-Zellen anderer Sessions UND im Schnitt hoechstens im Pumpfoil-Tempo, ist er kein Auto/Zug — die
+# Puls-Regel greift dann nicht. Das Tempo: 99-%-Wert echter Pumpfoil-Laeufe (sportauto.py, 18,6 km/h); darueber kann
+# auf dem Wasser Schlepp/Motor/Wind sein. Regressionstest 11.11.2026 ueber den Bestand: von 540 per Puls aussortierten
+# Laeufen kaemen 61 zurueck (38 Sessions, 9 Nutzer, 138 km, alle 9-18 km/h), keine bestaetigte Autofahrt.
+REVIER_ANTEIL = 0.8
+REVIER_MAX_KMH = 18.6
+
+
 def _fremdkraft_laeufe(segments: list, t_ms: np.ndarray, hr: np.ndarray,
-                       gerade: np.ndarray, keep: list | None = None) -> tuple[list, list]:
+                       gerade: np.ndarray, keep: list | None = None, lat: np.ndarray | None = None,
+                       lon: np.ndarray | None = None, session_id: int | None = None,
+                       mit_modell: bool = False) -> tuple[list, list]:
     """Trennt Läufe ab, die keine eigene Kraft gekostet haben (Auto, Zug, Schleppen, Motor).
 
     WARUM JE LAUF und nicht je Fenster: der Puls ist das einzige Signal, das in allen geprüften
@@ -342,6 +353,13 @@ def _fremdkraft_laeufe(segments: list, t_ms: np.ndarray, hr: np.ndarray,
             q["puls_eingefroren"] = True
             behalten.append(q)
             continue
+        # Mit Accel hat das Modell den Lauf gesehen: im Pumpfoil-Tempo entscheidet es (11.11.2026). Schneller pruefen wir
+        # weiter ueber den Puls — Regressionstest: eine Session mit abgeschnittenen 3,9-Hz-Daten (#17722) haette sonst einen
+        # 24-km/h-Lauf zurueckbekommen, neben sieben Laeufen mit 32-33 km/h.
+        if mit_modell and (q.get("avg_speed_mps") or 99) * 3.6 <= REVIER_MAX_KMH:
+            q["fremdkraft_entschieden"] = "modell"
+            behalten.append(q)
+            continue
         # Grundlinie: die 90 s vor dem Lauf, aber NUR Samples außerhalb aller Läufe. Fehlt das,
         # nimmt die Ruhe der ganzen Session ihren Platz ein.
         vor = hr[(t_ms >= a - VORLAUF_MS) & (t_ms < a) & ~drin]
@@ -351,6 +369,16 @@ def _fremdkraft_laeufe(segments: list, t_ms: np.ndarray, hr: np.ndarray,
         nach = nach[~np.isnan(nach)]
         antwort = (float(np.median(nach)) - basis) if (nach.size >= 5 and basis is not None) else None
         q["puls_antwort_bpm"] = None if antwort is None else round(antwort, 1)
+        if antwort is not None and antwort < MAX_PULS_ANTWORT and lat is not None \
+                and (q.get("avg_speed_mps") or 99) * 3.6 <= REVIER_MAX_KMH:
+            from .revier import anteil_auf_revier
+            anteil = anteil_auf_revier(lat[sel], lon[sel], session_id)
+            if anteil is not None:
+                q["revier_anteil"] = round(anteil, 2)
+            if anteil is not None and anteil >= REVIER_ANTEIL:
+                q["fremdkraft_entschieden"] = "revier"
+                behalten.append(q)       # auf einem Pumpfoil-Revier im Pumpfoil-Tempo -> kein Auto, Puls hin oder her
+                continue
         if antwort is not None and antwort < MAX_PULS_ANTWORT:
             fremd.append({
                 "t_start_ms": int(a), "t_end_ms": int(b),
@@ -472,6 +500,7 @@ def detect_v2(
     use_model: bool = True, keep_windows: list | None = None, judge_fremdkraft: bool = True,
     max_foil_speed: float = v1.MAX_FOIL_SPEED, run_max_kmh: float = v1.RUN_MAX_PLAUSIBLE_KMH,
     exit_dwell_s: float = v1.EXIT_DWELL_S, move_floor_mps: float = v1.MOVE_FLOOR_MPS,
+    session_id: int | None = None,
 ) -> dict:
     """Rechnet die Erkennung v2 auf einer fertigen Zeitachse. Alle Zeiten im Ergebnis sind
     SESSION-Millisekunden. Schreibt nichts, liest nichts nach."""
@@ -545,6 +574,10 @@ def detect_v2(
     # Verundet man beides (Fenster UND Modell), wird es zu streng — zwei Detektoren zu schneiden
     # verliert jeden Lauf, über den sie uneins sind (gemessen an #1310: 113 s -> 46 s).
     modell = model_mask_on_timebase(tb) if use_model else None
+    # Hat das Modell (Accel) die Laeufe bestimmt, entscheidet es im Pumpfoil-Tempo auch ueber Fremdkraft (Jan 11.11.2026:
+    # „rein gps anders behandeln als mit accel-daten … dann koennte das pump-model pruefen und entscheiden ohne die anderen
+    # regeln"): es sieht die Bewegung selbst, ein Auto pumpt nicht. Details in `_fremdkraft_laeufe`.
+    mit_modell = modell is not None and modell.size == mask.size
     if modell is not None and modell.size == mask.size:
         # Kurze Modell-Lücken schließen wie in v1 (gps.py:331) — eine Gleitpause zerteilt keinen
         # Lauf. Ohne das zerfällt die Maske und die Bruchstücke fallen unter MIN_SEGMENT_S:
@@ -611,7 +644,8 @@ def detect_v2(
     # Auswertung, stehen aber vollständig in `metrics["fremdkraft_laeufe"]` samt Messwerten.
     if judge_fremdkraft:
         segments, fremd_laeufe = _fremdkraft_laeufe(segments, t_ms, hr, gerade_je_sample(lat, lon),
-                                                    keep=keep_windows)
+                                                    keep=keep_windows, lat=lat, lon=lon, session_id=session_id,
+                                                    mit_modell=mit_modell)
     else:
         # Session ist menschlich einer anderen Sportart zugeordnet -> Fremdkraft-Frage ist
         # beantwortet, alle Laeufe zaehlen fuer IHRE Sportart.
@@ -766,7 +800,7 @@ def analyze_session_v2(session, *, gps=None, accel=None, rebase: bool = True,
     _band, _spitze = v1.grenzen_fuer(getattr(session, "sport_class", None))
     preset.setdefault("max_foil_speed", _band)
     preset.setdefault("run_max_kmh", _spitze)
-    res = detect_v2(tb, gps_hz=session.gps_hz or 1, keep_windows=keep or None,
+    res = detect_v2(tb, gps_hz=session.gps_hz or 1, keep_windows=keep or None, session_id=getattr(session, "id", None),
                     judge_fremdkraft=judge_fremdkraft, **preset)
     for seg in res["segments"]:
         seg["t_start_session_ms"] = int(seg["t_start_ms"])
