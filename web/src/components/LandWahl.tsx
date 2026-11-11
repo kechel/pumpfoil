@@ -1,3 +1,4 @@
+import { WertungsklasseAbschnitt } from "./WertungsklasseWahl";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../lib/api";
 import { LAENDER, flaggeUrl, landName } from "../lib/laender";
@@ -64,6 +65,8 @@ export function LandKarte() {
       <h3 className="mb-1 mt-5 font-semibold">{t("profile.land")}</h3>
       <p className="mb-3 text-sm text-slate-300">{t("profile.landHint")}</p>
       <LandWahl land={land} onChange={speichern} />
+      {/* Wertungsklasse direkt darunter (Jan, 11.11.2026). LandKarte steht nur im Einrichtungs-Assistenten. */}
+      <WertungsklasseAbschnitt />
     </>
   );
 }

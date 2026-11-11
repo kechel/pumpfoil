@@ -1,3 +1,4 @@
+import { WertungsklasseCard } from "../components/WertungsklasseWahl";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { api, clearToken, SocialChannelState } from "../lib/api";
 import { Card, Button, Avatar, NewBadge } from "../components/ui";
@@ -808,32 +809,6 @@ function OnlinePunktCard({ onSaved }: { onSaved?: () => void }) {
 
 // Wertungsklasse (Jan, 10.11.2026): Frauen / Maenner / nicht-binaer / keine Angabe (Standard). Filtert nur Event-
 // Bestenlisten; angeboten wird eine Klasse dort erst ab 3 Teilnehmenden (Server, teams.klassen_angebot).
-function WertungsklasseCard({ onSaved }: { onSaved?: () => void }) {
-  const t = useT();
-  const [wert, setWert] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  useEffect(() => {
-    api.getSettings().then((s) => setWert((s.wertungsklasse as string) ?? "")).catch(() => setWert(""));
-  }, []);
-  if (wert === null) return null;
-  const optionen: [string, string][] = [["", t("wk.none")], ["w", t("wk.w")], ["m", t("wk.m")], ["nb", t("wk.nb")]];
-  return (
-    <Card className="mt-4 p-5">
-      <h3 className="mb-1 font-semibold">{t("wk.title")}</h3>
-      <p className="mb-3 text-sm text-slate-300">{t("wk.hint")}</p>
-      <div className="flex flex-wrap gap-2">
-        {optionen.map(([k, label]) => (
-          <button key={k} disabled={busy}
-            onClick={() => { setBusy(true); api.saveSettings({ wertungsklasse: k }).then(() => { setWert(k); onSaved?.(); }).catch(() => {}).finally(() => setBusy(false)); }}
-            className={`rounded-lg border px-3 py-1.5 text-sm ${wert === k ? "border-brand-500 bg-brand-500 font-semibold text-slate-950" : "border-slate-600 text-slate-200 hover:bg-slate-800"}`}>
-            {label}
-          </button>
-        ))}
-      </div>
-    </Card>
-  );
-}
-
 // Opt-out globale Events (Jan, 06.11.2026): wer nicht automatisch in den Bestenlisten der globalen Events stehen will.
 function GlobaleEventsCard({ onSaved }: { onSaved?: () => void }) {
   const t = useT();
