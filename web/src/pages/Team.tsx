@@ -18,7 +18,8 @@ import TeamQr from "../components/TeamQr";
 import { Reiterleiste, useReiter } from "../components/Reiter";
 import { openChatOverlay } from "../components/DmWidget";
 import TeamRegeln from "./TeamRegeln";
-import type { TeamAuftritt, TeamEvent, TeamEventKurz } from "../lib/api";
+import type { TeamAuftritt, TeamEvent, TeamEventKurz, TeamKurz } from "../lib/api";
+import { TeamPrimaer } from "../components/TeamPrimaer";
 import EventKurzKachel from "../components/EventKurzKachel";
 import TeamWappen from "../components/TeamWappen";
 import { TeamHerkunft } from "../components/TeamHerkunft";
@@ -293,6 +294,10 @@ export default function Team() {
   const [logbuch, setLogbuch] = useState<TeamLogbuchEintrag[] | null>(null);
   const [bild, setBild] = useState<{ tf: TeamTafelMitZeilen; zeile: string } | null>(null);
   const [events, setEvents] = useState<TeamEvent[] | null>(null);
+  // Primaeres Team auch auf der Teamseite (Jan, 11.11.2026: „ich klicke auf Test und will das dann als mein primaeres
+  // festlegen"): Stand aus „Meine Teams" (wertbar/primaer kommen von dort).
+  const [meine, setMeine] = useState<TeamKurz[] | null>(null);
+  const meineLaden = () => api.teamsMine().then(setMeine).catch(() => setMeine(null));
 
   const laden = () => {
     if (gast) return;
@@ -303,6 +308,7 @@ export default function Team() {
     }).catch(() => setFehlt(true));
   };
   useEffect(laden, [slug]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!gast) meineLaden(); }, [slug, gast]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (gast) {
@@ -363,6 +369,12 @@ export default function Team() {
           )}
         </div>
         <div className="col-span-2 flex flex-wrap items-center gap-x-3 gap-y-2">
+          {(() => {
+            const ich = meine?.find((m) => m.slug === kopf.slug);
+            return ich && kopf.mein_status === "aktiv"
+              ? <TeamPrimaer m={ich} mehrere={(meine ?? []).filter((m) => m.wertbar).length > 1} onGeaendert={meineLaden} />
+              : null;
+          })()}
           <p className="text-sm text-slate-400">
             {t(kopf.mitglieder_anzahl === 1 ? "team.mitgliederAnzahl1" : "team.mitgliederAnzahl", { n: String(kopf.mitglieder_anzahl) })}
             {kopf.bestenlisten_oeffentlich && <> · {t("team.oeffentlichBadge")}</>}
