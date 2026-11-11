@@ -53,7 +53,11 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.64",   # FREIGEGEBEN 2026-11-11 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.64 for iOS
+        "latest": "1.1.65",   # FREIGEGEBEN 2026-11-11 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.65 for iOS
+        # (Submission ffa9a803-b55d-4e6a-ba16-7f56f6bfbd15, Build 75); Store-Lookup de/us/nl zweimal hintereinander 1.1.65
+        # (currentVersionReleaseDate 2026-11-11T18:55:07Z) erst gegen 22 Uhr — der de-Store hing laenger auf 1.1.64.
+        # Inhalt: Wertungsklasse, Bestenlisten-Zeile antippbar mit Sprint-Hervorhebung, primaeres Team, Event-Seite.
+        # ALT: "latest": "1.1.64",   # FREIGEGEBEN 2026-11-11 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.64 for iOS
         # (Submission 39a85ee1-84c4-4cad-b03f-2e8a6107a2a6, eingereicht 10.11. 02:47 PST = 11:47, Build 74; 1.1.63 nie eingereicht).
         # Inhalt: Event-Port (Sprints, gemischte Bestenlisten, primaeres Team, Siegertreppchen, Teilenbild, Kalender-Abo,
         # Abzeichen), einheitliche Event-Kachel, V-max wie der Server. Changelog 983-990 + Ereignis 991.
@@ -515,7 +519,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.64",   # FREIGEGEBEN 2026-11-11 — dieselbe Einreichung wie "ios" (ein Bundle; V-max wie der Server).
+        "latest": "1.1.65",   # FREIGEGEBEN 2026-11-11 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.64",   # FREIGEGEBEN 2026-11-11 — dieselbe Einreichung wie "ios" (ein Bundle; V-max wie der Server).
         # ALT: "latest": "1.1.62",   # FREIGEGEBEN 2026-11-07 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.61",   # FREIGEGEBEN 2026-11-07 — dieselbe Einreichung wie "ios" (ein Bundle; Store nennt sie 1.0.61).
         # ALT: "latest": "1.1.60",   # FREIGEGEBEN 2026-11-06 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -955,17 +960,7 @@ IN_REVIEW: list[dict] = [
     # Amazfit 1.0.15 am 11.11. FREIGEGEBEN -> raus (s. _APP_META["zepp"]); Punkte zepp 1.0.15 im Changelog.
     # 06.11.2026 (Jan: „fortsetzen vorauswaehlen ist gut"): Pausen-Menue mit Vorauswahl.
     # Garmin 1.0.102 am 10.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkte 979/980 im Changelog mit garmin 1.0.102.
-    # EINGEREICHT 11.11.2026 09:34 (Jans Meldung, ASC „Warten auf Pruefung", 1.1.65 (75),
-    # Kennung ffa9a803-b55d-4e6a-ba16-7f56f6bfbd15). Port der Web-Neuerungen vom 10./11.11. (85b9c58f, 1616b5ec).
-    {"name": "iPhone + Apple Watch", "version": "1.1.65",
-     "eingereicht": "2026-11-11",
-     "items": [
-         "Tap any leaderboard row to jump straight to the ranked run, and for flying sprints the exact stretch that counted is highlighted on the map.",
-         "Pick your competition category (women, men, non-binary) in your profile and filter event leaderboards by it.",
-         "Mark any of your teams as your primary team; on global event pages you can see which of your teams counts.",
-         "The event page remembers your leaderboard and category when you come back from a session.",
-         "Settings: Me is now the second tab.",
-     ]},
+    # iPhone + Apple Watch 1.1.65 am 11.11. 09:34 eingereicht, am 11.11. FREIGEGEBEN (s. _APP_META["ios"]); 6 Punkte im Changelog mit ios 1.1.65.
     # iPhone + Apple Watch 1.1.64 am 10.11. 11:47 eingereicht, am 11.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 983-990 im Changelog.
     # iPhone + Apple Watch 1.1.62 am 07.11. 01:26 eingereicht, am 07.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 954-960 im Changelog.
     # iPhone + Apple Watch 1.1.61 am 06.11. eingereicht, am 07.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 945-951 im Changelog.
