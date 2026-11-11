@@ -989,9 +989,19 @@ async def upload_fit(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Empty file")
     if len(data) > MAX_FIT_BYTES:
         raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "File too large")
+    # Entpacken, Parsen, Import und Analyse sind synchron und dauern Sekunden. Im Event-Loop legten sie den
+    # ganzen Worker lahm (11.11.2026: ein Federation-Knoten mit einem Worker beantwortete waehrend eines
+    # Uploads keine Anfrage mehr, der Partner brach ab) -> im Threadpool, der Loop bleibt frei.
+    from starlette.concurrency import run_in_threadpool
+    return await run_in_threadpool(_upload_fit_sync, data, file.filename, user, db, min_start, water_only,
+                                   rueckfrage, ersetzen)
 
+
+def _upload_fit_sync(data: bytes, filename: str | None, user: models.User, db: Session, min_start: str | None,
+                     water_only: bool, rueckfrage: bool, ersetzen: int | None):
+    """Der synchrone Teil von `upload_fit` (laeuft im Threadpool)."""
     # Gepackt? Dann zuerst entpacken; ab hier sieht alles die ungepackte Datei und ihren Namen.
-    data, dateiname = _gzip_entpacken(data, file.filename)
+    data, dateiname = _gzip_entpacken(data, filename)
 
     # Format erkennen: TCX/GPX (XML) vs. FIT/ZIP.
     name = (dateiname or "").lower()
