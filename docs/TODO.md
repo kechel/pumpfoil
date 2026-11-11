@@ -1760,8 +1760,7 @@ ohne Roh-Daten bleibt eine vorhandene Auswertung stehen. Ursache: laut Jan nicht
   - [x] iPhone-Anmeldung: „Mit Google anmelden" ueber den Systembrowser (wie Facebook, kein Google-SDK), offizielle
         Knopf-Fassung (Asset `GoogleG`); bisher ausgefiltert. Anlass: Nutzerin hatte sich im Web mit Google registriert
         und kam in der iPhone-App nicht hinein (11.11., Antwort ueber u230 verspricht es fuers naechste Update).
-        Nur iOS 1.1.66 (Android hat Google nativ). Nur Parse-Check — **Testen (Jan):** Knopf hell/dunkel, Google-Login
-        im Systembrowser, Ruecksprung in die App.
+        Nur iOS 1.1.66 (Android hat Google nativ). **Von Jan im iOS-Simulator getestet (11.11.): Google-Login geht.**
   **Testen (Jan, Simulator/Geraet):** Tipp auf Profilbild/Wappen in einer Bestenlisten-Zeile oeffnet NUR deren Ziel;
   Primaer-Knopf in einer Listenzeile setzt nur (springt nicht ins Team); Sprint-Band unter der Faerbung, verschwindet
   bei anderem Lauf; Klasse/Bestenliste bleiben nach Session und zurueck.
