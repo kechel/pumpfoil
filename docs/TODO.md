@@ -1528,6 +1528,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 11.11.2026 — 🔴 Roh-Daten von 10 Sessions verschwunden (Ursache offen)
+Bei der Neuauswertung (Empfindlichkeit) fiel auf: 10 nicht geloeschte Sessions haben keinen Roh-Daten-Ordner mehr in
+`server/data` (2 Nutzer mit je mehreren, 2 einzelne). Bei 4 liegen die Daten noch in einem Monats-Snapshot
+(`hardlink-snapshots/20260801` bzw. `20260901`), bei 6 in keinem (zwischen zwei Snapshots entstanden und verschwunden).
+Alle angelegt 30.07.–03.09.; im Snapshot 01.10. schon weg. Code (merge/split-Rueckgaengig, Kontoloeschung) loescht nur
+eigene Ordner — Verursacher nicht gefunden. Die 8 davon, die neu ausgewertet wurden, sind aus der Sicherung
+`manuell-20261111-empfindlichkeit` zurueckgeholt und festgehalten (`scripts/auswertung-zurueckholen.py`).
+Offen: (1) Ursache finden, (2) die 4 Ordner aus dem Snapshot zurueckkopieren (Jans OK), (3) Schutz in `run_analysis`:
+ohne Roh-Daten eine vorhandene Auswertung nie ueberschreiben.
+
 - **🔲 08.11. Gruene Spots: versehentlicher Stopp meldet den Fahrer ab (andermal ueberlegen).** Versehentlich
   gestoppte Uhr-Aufnahme (3 min, 0 Laeufe) kam nach der Positionsmeldung hoch; nach der Regel vom 15.10. heisst
   „Upload mit 0 Laeufen" fertig, also faellt der Fahrer aus „gerade am Pumpen", der Spot wird nicht gruen. Die neu
