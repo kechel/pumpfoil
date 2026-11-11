@@ -795,15 +795,28 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
             from .paddellauf import SCHWELLEN as _paddel_sw, v2_parameter as _paddel_param
             _wind_sw = dict(_paddel_sw)
             _v2_kw = _paddel_param()
-        res = analyze_session_v2(session, judge_fremdkraft=_judge, **_v2_kw)
         # Erkennung v3 (Jans OK 30.09.2026, docs/DETECTION-V3.md): Nachbearbeitung der Laeufe mit
         # dem Erkennungsmodell — nur in der FINALEN Analyse, nur fuer Modell-Sessions am
         # Handgelenk, hinter dem Schalter DETECTOR_V3. Vom Nutzer Aussortiertes/Zurueckgeholtes
         # gewinnt immer; was v3 wegnimmt, steht mit Grund in metrics.fremdkraft_laeufe (quelle v3)
         # und laesst sich dort zurueckholen. Faellt bei jedem Fehler auf das v2-Ergebnis zurueck.
         from .v3.nachbearbeitung import anwenden as _v3_anwenden, detector_v3_enabled
-        if final and accel_usable and detector_v3_enabled() and not _wind and not _paddel:
-            res = _v3_anwenden(res, session, _judge, _sens)
+        _v3_an = final and accel_usable and detector_v3_enabled() and not _wind and not _paddel
+        if _preset_kw and not _wind and not _paddel:
+            # EMPFINDLICHKEIT OHNE EINFLUSS AUF DIE LAUFLAENGE (Jan 11.11.2026, analysis/empfindlichkeit.py): Grenzen
+            # aus der Standard-Erkennung, die Empfindlichkeit fuegt nur Laeufe hinzu, die Standard gar nicht findet.
+            from .empfindlichkeit import zusammenfuehren as _zusammen
+            _std_kw = {k: v for k, v in _v2_kw.items() if k not in _preset_kw}
+            res = analyze_session_v2(session, judge_fremdkraft=_judge, **_std_kw)
+            res_e = analyze_session_v2(session, judge_fremdkraft=_judge, **_v2_kw)
+            if _v3_an:
+                res = _v3_anwenden(res, session, _judge, "normal")
+                res_e = _v3_anwenden(res_e, session, _judge, _sens)
+            res = _zusammen(res, res_e)
+        else:
+            res = analyze_session_v2(session, judge_fremdkraft=_judge, **_v2_kw)
+            if _v3_an:
+                res = _v3_anwenden(res, session, _judge, _sens)
         if _wind_sw is not None:
             res.setdefault("metrics", {})["paddel_erkennung" if _paddel else "wind_erkennung"] = _wind_sw
         res.pop("windows", None)
