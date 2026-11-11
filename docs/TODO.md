@@ -12297,3 +12297,11 @@ Offen daraus:
   Stimmen; Vorschlagende bekommt eine Nachricht bei Uebernahme. Alters-Tor/Moderation wie andere soziale Flaechen
   (Melden blendet aus). Federation spaeter: Vorschlaege + Stimmen netzweit (S1), uebernehmen nur der Betreiber, der
   das globale Event dann ausrichtet.
+
+- **📥 Inbox 11.11. (Nutzerfeedback u146, Datenschutz-Konzept) — Antwort auf Punkt 1 da.** Konzept vom Assistentenkonto
+  (11.11. 11:31, dm u146): (1) Startzeit fuer andere grob statt minutengenau + Schalter „Neue Sessions erst am naechsten
+  Tag zeigen" (fuer andere erst nach Mitternacht, eigene Zeitzone; Events mit Zeitfenster zaehlen trotzdem; Live-Freunde
+  sehen weiter „unterwegs"); je Nutzer im Profil einstellbar (Jan). (2) Statt Spalten-Verschluesselung: eigener,
+  eingeschraenkter DB-Zugang fuer den KI-Assistenten (nur lesend, ohne E-Mail/Passwort-Hash/Token), Schreiben nur ueber
+  enge Einzelfunktionen (z. B. Changelog). **u146 am 11.11. 22:14: „1) Zeit verbergen glaub passt so".** Zu (2) noch
+  keine Antwort. Nicht gebaut — wartet auf Jans Go fuer (1) und auf die Antwort zu (2).
