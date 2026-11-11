@@ -12287,3 +12287,13 @@ Offen daraus:
   beim Durchschnitt bevorteilt sie. Vorschlag: bei `schnitt` und n > 0 nur Teams mit `fahrer >= n` ranken, die
   anderen darunter „nicht gewertet (x/n Fahrer)". Eingefrorene Ergebnisse (ergebnis_json) bleiben unberuehrt. Wartet
   auf Jans OK.
+
+- **📥 Inbox 11.11. (Jan) — Events vorschlagen + Community-Voting.** „nutzer sollen events vorschlagen koennen die ich
+  dann als admin einfach uebernehmen kann (nicht federation, aber da dann spaeter auch), und ggf. mit einem voting durch
+  die community in einer eigenen ansicht 'vorgeschlagene events'". Skizze: Formular mit denselben Feldern wie ein
+  globales Event (Titel, Zeitraum, Kennzahlen/Bestenlisten, Sportart, optional Spots) -> Tabelle `event_vorschlag`
+  (Status offen/uebernommen/abgelehnt); Admin-Knopf „uebernehmen" legt daraus ein globales Event an (vorbefuellt,
+  vor dem Speichern noch editierbar); Ansicht „Vorgeschlagene Events" mit Daumen hoch je Nutzer (1x), sortiert nach
+  Stimmen; Vorschlagende bekommt eine Nachricht bei Uebernahme. Alters-Tor/Moderation wie andere soziale Flaechen
+  (Melden blendet aus). Federation spaeter: Vorschlaege + Stimmen netzweit (S1), uebernehmen nur der Betreiber, der
+  das globale Event dann ausrichtet.
