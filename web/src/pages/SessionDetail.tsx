@@ -1479,7 +1479,8 @@ export default function SessionDetail() {
       }
       if (sprintPkte.length >= 2) {
         // Leichter (Jan, 11.11.2026: „etwas zu dick/viel"): ohne dunklen Rand, schmaler, halbtransparent.
-        L.polyline(sprintPkte, { color: "#d946ef", weight: 11, opacity: 0.5, interactive: false, lineCap: "round" }).addTo(lg);
+        // Weiss statt Lila (Jan, 11.11.2026: „probier mal weiss").
+        L.polyline(sprintPkte, { color: "#ffffff", weight: 11, opacity: 0.85, interactive: false, lineCap: "round" }).addTo(lg);
       }
     }
     segs.forEach((seg: any, idx: number) => {
