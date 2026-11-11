@@ -1739,6 +1739,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   - [x] Einstellungen: „Ich" als zweiter Reiter.
   - [x] Event-Kasten „Mein Team" nur als Zeile, Erklaerung erst beim Tipp auf ein deaktiviertes Team (Web 15f9dea5):
         Android 1.1.49 ja, iOS erst 1.1.66.
+  - [x] „Du bist angetreten für <Team>" nach dem Ende bzw. bei geschlossener Teamwahl (`event.angetreten`,
+        `angetreten_mit_werten`, Schluessel `team.event.angetreten`): Web + Android 1.1.49; iOS-Ansicht offen (1.1.66,
+        Schluessel schon in LocTeams.swift).
   **Testen (Jan, Simulator/Geraet):** Tipp auf Profilbild/Wappen in einer Bestenlisten-Zeile oeffnet NUR deren Ziel;
   Primaer-Knopf in einer Listenzeile setzt nur (springt nicht ins Team); Sprint-Band unter der Faerbung, verschwindet
   bei anderem Lauf; Klasse/Bestenliste bleiben nach Session und zurueck.

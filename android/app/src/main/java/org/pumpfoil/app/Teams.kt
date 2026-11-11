@@ -313,6 +313,9 @@ data class TeamEvent(
     @SerialName("team_wertung_n") val teamWertungN: Int? = null,
     // Globale Events (10.11.2026): fuer welches seiner Teams der Betrachter antritt — nur, wenn er in einem zaehlt
     @SerialName("mein_team") val meinTeam: EventMeinTeam? = null,
+    // „Du bist angetreten für …" (11.11.2026): Team(s) laut Zuordnung des Events, und ob der Betrachter Werte hat.
+    val angetreten: List<EventMeinTeamWahl> = emptyList(),
+    @SerialName("angetreten_mit_werten") val angetretenMitWerten: Boolean = false,
     // Filter „Wertungsklasse" (10.11.2026): angebotene Klassen (w/m/nb) mit Anzahl, leer = kein Filter; `klasse` = aktive.
     val klassen: Map<String, Int> = emptyMap(),
     val klasse: String? = null,

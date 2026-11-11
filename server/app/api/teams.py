@@ -673,6 +673,15 @@ def event_einzeln(slug: str, event_id: int, team: str | None = None, mix: bool =
                       betrachter=user.id, mix=mix, sprint=sprint, klasse=klasse)
     if T.ist_global(e):
         out["mein_team"] = _mein_team(db, e, user.id)   # primaeres Team / Wahl je Event (10.11.2026)
+        # „Du bist angetreten für …" (Jan, 11.11.2026): nach dem Ende bzw. wenn die Teamwahl zu ist. Aus der Zuordnung des
+        # Events (festgehalten zum Ende, sonst aktuell) — bei Events vor dem 10.11. koennen das mehrere Teams sein.
+        z_ = T.event_zuordnung(db, e)
+        tids = z_.get("mitglieder", {}).get(str(user.id), [])
+        if tids:
+            out["angetreten"] = [{k: (z_.get("teams", {}).get(str(tid)) or {}).get(k) for k in ("slug", "name", "logo_url", "farbe")}
+                                 for tid in tids if str(tid) in z_.get("teams", {})]
+            out["angetreten_mit_werten"] = any(
+                tf.get("eigene") or any(r.get("user_id") == user.id for r in tf.get("zeilen", [])) for tf in out.get("tafeln", []))
     return out
 
 

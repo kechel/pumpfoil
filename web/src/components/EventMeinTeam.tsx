@@ -50,3 +50,25 @@ export default function EventMeinTeam({ slug, evId, mt, t, onGeaendert }: {
     </div>
   );
 }
+
+/** „Du bist angetreten für …" (Jan, 11.11.2026): nach dem Ende bzw. wenn die Teamwahl zu ist (letzte 6 h). Bei Events
+ *  vor dem 10.11.2026 koennen das mehrere Teams sein (damals zaehlte man fuer alle). */
+export function EventAngetreten({ teams, t }: {
+  teams: { slug: string | null; name: string | null; logo_url: string | null; farbe: string | null }[];
+  t: (k: string, p?: Record<string, string>) => string;
+}) {
+  if (!teams.length) return null;
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-1.5 rounded-2xl border border-slate-800 bg-slate-900/60 p-3">
+      <span className="mr-1 text-sm font-semibold text-slate-100">{t("team.event.angetreten")}</span>
+      {teams.map((x) => (
+        <a key={x.slug ?? x.name} href={x.slug ? `/teams/${x.slug}` : undefined}
+          className="team-farbe team-knopf inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold"
+          style={teamFarbStil(x.farbe)}>
+          <TeamWappen name={x.name ?? ""} logo={x.logo_url} farbe={x.farbe} size={16} />
+          <span className="max-w-[12rem] truncate">{x.name}</span>
+        </a>
+      ))}
+    </div>
+  );
+}

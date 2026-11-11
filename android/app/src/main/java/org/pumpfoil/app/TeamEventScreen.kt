@@ -232,10 +232,13 @@ fun TeamEventScreen(
                         modifier = Modifier.padding(bottom = 8.dp))
                     // Teamwahl globaler Events (Web EventMeinTeam, 10.11.2026): schon vor dem Start, bis 6 h vor dem Ende.
                     val mt = e.meinTeam
-                    if (e.global && mt != null && (e.status == "kommend" || e.status == "laeuft")) {
+                    if (e.global && mt != null && mt.aenderbar && (e.status == "kommend" || e.status == "laeuft")) {
                         EventMeinTeamWahl(slug, e.id, mt) {
                             scope.launch { runCatching { Api.teamEvent(slug, eventId, klasse) }.getOrNull()?.let { ev = it } }
                         }
+                    } else if (e.global && e.angetreten.isNotEmpty() && (e.status == "laeuft" || e.angetretenMitWerten)) {
+                        // Nach dem Ende bzw. wenn die Teamwahl zu ist: „Du bist angetreten für …" (Web, 11.11.2026)
+                        EventAngetreten(e.angetreten)
                     }
                     if (e.status == "kommend") {
                         EventCountdown(e, f)
@@ -571,6 +574,29 @@ private fun EventMeinTeamWahl(slug: String, evId: Int, mt: EventMeinTeam, onGeae
             hinweis?.let {
                 Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp))
+            }
+        }
+    }
+}
+
+/** „Du bist angetreten für …" (Jan, 11.11.2026): Team(s) aus der Zuordnung des Events, nur Anzeige. Bei Events vor dem
+ *  10.11.2026 koennen es mehrere sein (damals zaehlte man fuer alle Teams). */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun EventAngetreten(teams: List<EventMeinTeamWahl>) {
+    Card(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+        FlowRow(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(I18n.t("team.event.angetreten"), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.align(Alignment.CenterVertically).padding(end = 4.dp))
+            teams.forEach { x ->
+                val tf = teamFarbe(x.farbe)
+                Row(Modifier.clip(RoundedCornerShape(50)).background(tf.flaeche).padding(horizontal = 12.dp, vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    TeamWappen(x.name, x.logoUrl, x.farbe, 16.dp)
+                    Spacer(Modifier.width(6.dp))
+                    Text(x.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = tf.aufFlaeche,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 192.dp))
+                }
             }
         }
     }

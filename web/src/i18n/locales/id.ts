@@ -2973,6 +2973,7 @@ const id: Record<string, string> = {
   "team.primaerSetzen": "Jadikan tim utama",
   "team.primaerHinweis": "Di event global kamu hanya dihitung untuk satu tim: tim utamamu, kecuali kamu memilih tim lain di halaman event.",
   "team.event.meinTeam": "Kamu mewakili",
+  "team.event.angetreten": "Kamu bertanding untuk",
   "team.event.meinTeamHinweis": "Kamu ada di beberapa tim dan dihitung untuk salah satunya di event ini. Kamu bisa mengubahnya sampai 6 jam sebelum event berakhir.",
   "team.event.zaehltNicht": "Tidak dihitung di event global (tim belum disetujui atau papan peringkat tidak publik)",
   "team.event.meinTeamFest": "Kurang dari 6 jam lagi — pilihan ini sudah tetap.",

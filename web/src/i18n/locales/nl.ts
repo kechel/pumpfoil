@@ -3027,6 +3027,7 @@ const nl: Record<string, string> = {
   "team.primaerSetzen": "Als primair team instellen",
   "team.primaerHinweis": "Bij globale events tel je maar voor één team: je primaire team, tenzij je op de eventpagina een ander kiest.",
   "team.event.meinTeam": "Je rijdt voor",
+  "team.event.angetreten": "Je reed voor",
   "team.event.meinTeamHinweis": "Je zit in meerdere teams en telt in dit event voor één ervan. Je kunt dit wijzigen tot 6 uur voor het einde van het event.",
   "team.event.zaehltNicht": "Telt niet mee in globale events (team niet goedgekeurd of ranglijsten niet openbaar)",
   "team.event.meinTeamFest": "Nog minder dan 6 uur — deze keuze staat vast.",

@@ -2970,6 +2970,7 @@ const zh: Record<string, string> = {
   "team.primaerSetzen": "设为主队",
   "team.primaerHinweis": "在全球活动中你只为一个队伍计分：你的主队，除非你在活动页面选择其他队伍。",
   "team.event.meinTeam": "你代表",
+  "team.event.angetreten": "你代表的队伍",
   "team.event.meinTeamHinweis": "你在多个队伍中，本次活动只为其中一个计分。活动结束前6小时之前都可以更改。",
   "team.event.zaehltNicht": "不计入全球活动（团队未获批准或排行榜未公开）",
   "team.event.meinTeamFest": "距结束不到6小时 — 此选择已确定。",

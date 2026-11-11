@@ -2969,6 +2969,7 @@ const ja: Record<string, string> = {
   "team.primaerSetzen": "メインチームに設定",
   "team.primaerHinweis": "グローバルイベントでは1つのチームにのみカウントされます。イベントページで別のチームを選ばない限り、メインチームです。",
   "team.event.meinTeam": "参加チーム",
+  "team.event.angetreten": "あなたの出場チーム",
   "team.event.meinTeamHinweis": "複数のチームに所属しているため、このイベントではそのうち1つにカウントされます。イベント終了の6時間前まで変更できます。",
   "team.event.zaehltNicht": "グローバルイベントでは集計されません（チーム未承認、またはランキング非公開）",
   "team.event.meinTeamFest": "終了まで6時間を切りました — この選択は確定です。",

@@ -509,6 +509,8 @@ Team-Event (`team_events.global_event`, `team_wertung_n`), Rechnung in `app/team
   globalen Events die Standardregel. Stern auch auf der Teamseite und in Home › Team.
   Aenderbar bis 6 h vor Event-Ende (`TEAMWAHL_SCHLUSS`); wer in den letzten 6 h das primaere Team wechselt, behaelt in
   laufenden Events das bisherige (`teamwahl_festhalten`). Regeltext `team.regeln.global.text` (18 Sprachen).
+  Nach dem Ende bzw. bei geschlossener Teamwahl zeigt die Eventseite „Du bist angetreten für <Team>" aus der Zuordnung des
+  Events (`event.angetreten`; Events vor dem 10.11. koennen mehrere Teams zeigen, Jan 11.11.: nicht rueckwirkend aendern).
 - **Filter „mein Team"** (`GET …/events/{id}?team=<slug>`): nur dessen Mitglieder, mit dem Rang der Gesamtwertung.
 - **Sichtbar:** fuer jeden Angemeldeten und als Gast-Link, auch wenn das offizielle Team nicht oeffentlich ist.
   Eingefroren wird mit allen Zeilen (bis 5000 je Bestenliste), damit Team-Wertung und Team-Filter danach stimmen.

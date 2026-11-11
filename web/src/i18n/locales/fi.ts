@@ -3008,6 +3008,7 @@ const fi: Record<string, string> = {
   "team.primaerSetzen": "Aseta ensisijaiseksi tiimiksi",
   "team.primaerHinweis": "Globaaleissa tapahtumissa lasket vain yhteen tiimiin: ensisijaiseen tiimiisi, ellet valitse toista tapahtuman sivulla.",
   "team.event.meinTeam": "Edustat tiimiä",
+  "team.event.angetreten": "Kilpailit tiimissä",
   "team.event.meinTeamHinweis": "Olet useassa tiimissä ja lasket tässä tapahtumassa yhteen niistä. Voit vaihtaa sitä 6 tuntiin asti ennen tapahtuman loppua.",
   "team.event.zaehltNicht": "Ei lasketa globaaleissa tapahtumissa (tiimiä ei ole hyväksytty tai tulostaulut eivät ole julkisia)",
   "team.event.meinTeamFest": "Alle 6 tuntia jäljellä — valinta on lopullinen.",

@@ -2856,6 +2856,7 @@ const it: Record<string, string> = {
   "team.primaerSetzen": "Imposta come team principale",
   "team.primaerHinweis": "Negli eventi globali conti per un solo team: il tuo team principale, a meno che tu non ne scelga un altro nella pagina dell’evento.",
   "team.event.meinTeam": "Gareggi per",
+  "team.event.angetreten": "Hai gareggiato per",
   "team.event.meinTeamHinweis": "Sei in più team e in questo evento conti per uno di essi. Puoi cambiarlo fino a 6 ore prima della fine dell’evento.",
   "team.event.zaehltNicht": "Non conta negli eventi globali (team non approvato o classifiche non pubbliche)",
   "team.event.meinTeamFest": "Mancano meno di 6 ore — questa scelta è definitiva.",

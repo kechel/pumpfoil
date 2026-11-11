@@ -2973,6 +2973,7 @@ const pt: Record<string, string> = {
   "team.primaerSetzen": "Definir como equipe principal",
   "team.primaerHinweis": "Nos eventos globais você conta para uma equipe só: a sua equipe principal, a menos que escolha outra na página do evento.",
   "team.event.meinTeam": "Você compete por",
+  "team.event.angetreten": "Você competiu por",
   "team.event.meinTeamHinweis": "Você está em várias equipes e conta para uma delas neste evento. Dá para mudar até 6 horas antes do fim do evento.",
   "team.event.zaehltNicht": "Não conta nos eventos globais (equipe não aprovada ou rankings não públicos)",
   "team.event.meinTeamFest": "Faltam menos de 6 horas — esta escolha é definitiva.",

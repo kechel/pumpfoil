@@ -2859,6 +2859,7 @@ const deAT: Record<string, string> = {
   "team.primaerSetzen": "Als primäres Team festlegen",
   "team.primaerHinweis": "In globalen Events zählst du nur für ein Team: dein primäres, außer du wählst auf der Eventseite ein anderes.",
   "team.event.meinTeam": "Du trittst an für",
+  "team.event.angetreten": "Du bist angetreten für",
   "team.event.meinTeamHinweis": "Du bist in mehreren Teams und zählst in diesem Event für eines davon. Ändern kannst du das bis 6 Stunden vor Event-Ende.",
   "team.event.zaehltNicht": "Zählt nicht in globalen Events (Team nicht freigegeben oder Bestenlisten nicht öffentlich)",
   "team.event.meinTeamFest": "Weniger als 6 Stunden bis zum Ende — diese Zuordnung steht fest.",

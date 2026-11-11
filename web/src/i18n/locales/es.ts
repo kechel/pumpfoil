@@ -2855,6 +2855,7 @@ const es: Record<string, string> = {
   "team.primaerSetzen": "Fijar como equipo principal",
   "team.primaerHinweis": "En los eventos globales solo cuentas para un equipo: tu equipo principal, salvo que elijas otro en la página del evento.",
   "team.event.meinTeam": "Compites por",
+  "team.event.angetreten": "Competiste por",
   "team.event.meinTeamHinweis": "Estás en varios equipos y en este evento cuentas para uno de ellos. Puedes cambiarlo hasta 6 horas antes del final del evento.",
   "team.event.zaehltNicht": "No cuenta en los eventos globales (equipo no aprobado o clasificaciones no públicas)",
   "team.event.meinTeamFest": "Quedan menos de 6 horas — esta elección es definitiva.",

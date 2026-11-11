@@ -3026,6 +3026,7 @@ const cs: Record<string, string> = {
   "team.primaerSetzen": "Nastavit jako primární tým",
   "team.primaerHinweis": "V globálních akcích se počítáš jen za jeden tým: svůj primární, pokud na stránce akce nevybereš jiný.",
   "team.event.meinTeam": "Jezdíš za",
+  "team.event.angetreten": "Závodil(a) jsi za",
   "team.event.meinTeamHinweis": "Jsi v několika týmech a v této akci se počítáš za jeden z nich. Změnit to můžeš do 6 hodin před koncem akce.",
   "team.event.zaehltNicht": "Nepočítá se v globálních událostech (tým není schválen nebo žebříčky nejsou veřejné)",
   "team.event.meinTeamFest": "Zbývá méně než 6 hodin — tato volba je konečná.",

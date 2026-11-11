@@ -2374,6 +2374,9 @@ export interface TeamEvent {
   global?: boolean; team_wertung_n?: number;
   /** Globale Events (10.11.2026): fuer welches seiner Teams der Betrachter antritt — nur, wenn er in einem zaehlt */
   mein_team?: EventMeinTeam | null;
+  /** „Du bist angetreten für …" (11.11.2026): Team(s) des Betrachters laut Zuordnung des Events, und ob er Werte hat */
+  angetreten?: { slug: string | null; name: string | null; logo_url: string | null; farbe: string | null }[];
+  angetreten_mit_werten?: boolean;
 }
 export interface EventMeinTeam {
   auswahl: { id: number; slug: string; name: string; logo_url: string | null; farbe: string | null }[];
