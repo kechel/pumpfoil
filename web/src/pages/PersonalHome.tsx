@@ -742,8 +742,9 @@ function MeineTeams({ teams, onGeaendert }: { teams: TeamKurz[]; onGeaendert: ()
               <span className="min-w-0 flex-1">
                 <span className="flex min-w-0 items-center gap-1.5"><span className="team-akzent truncate font-medium">{m.name}</span><TeamHerkunft land={m.land} /></span>
                 <span className="block text-xs text-slate-400">{t(`team.rolle.${m.rolle}`)}</span>
-                <TeamPrimaer m={m} mehrere={mehrereWertbar} onGeaendert={onGeaendert} />
               </span>
+              {/* oben rechts in der Zeile (Jan, 11.11.2026) */}
+              <TeamPrimaer m={m} mehrere={mehrereWertbar} onGeaendert={onGeaendert} />
               {m.anfragen > 0 && <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-bold text-slate-950">{m.anfragen}</span>}
             </Link>
           ))}

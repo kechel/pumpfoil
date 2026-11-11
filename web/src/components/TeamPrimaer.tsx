@@ -9,14 +9,14 @@ export function TeamPrimaer({ m, mehrere, onGeaendert }: { m: TeamKurz; mehrere:
   const t = useT();
   if (m.primaer) {
     return (
-      <span className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-brand-500/15 px-2 py-0.5 text-xs font-semibold text-brand-700 dark:text-brand-300"
+      <span className="inline-flex shrink-0 items-center gap-1 self-start whitespace-nowrap rounded-full bg-brand-500/15 px-2 py-0.5 text-xs font-semibold text-brand-700 dark:text-brand-300"
         title={t("team.primaerHinweis")}>★ {t("team.primaer")}</span>
     );
   }
   if (mehrere && (m.waehlbar ?? m.wertbar)) {
     return (
       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); api.teamPrimaer(m.slug).then(onGeaendert).catch(() => {}); }}
-        className="mt-0.5 rounded-full border border-slate-700 px-2 py-0.5 text-xs text-slate-300 hover:border-slate-500"
+        className="shrink-0 self-start whitespace-nowrap rounded-full border border-slate-700 px-2 py-0.5 text-xs text-slate-300 hover:border-slate-500"
         title={t("team.primaerHinweis")}>☆ {t("team.primaerSetzen")}</button>
     );
   }
