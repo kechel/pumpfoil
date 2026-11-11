@@ -501,6 +501,10 @@ Team-Event (`team_events.global_event`, `team_wertung_n`), Rechnung in `app/team
   Team (`team_mitglieder.primaer`, „Meine Teams" ★, `PUT /api/teams/{slug}/primaer`), sonst das groesste (aktive
   Mitglieder), bei Gleichstand das frueher beigetretene (`teams.team_fuer`). Kein einmaliges Nachtragen in der DB —
   die Regel „groesstes Team" ist der Standard. Verlaesst man das primaere Team, gilt automatisch das naechste.
+  **Gespeichert statt neu bestimmt (11.11.2026):** `T.primaer_festhalten` speichert das Team, fuer das man gerade antritt,
+  sobald es eine Rolle spielt — VOR Beitritt/Annahme/Freigabe/Sichtbarkeit (das bisherige bleibt), NACH Austritt/
+  Entfernen/Loeschen (das groesste der verbleibenden). „Groesstes Team" gilt nur noch im Moment des Speicherns; vorher
+  wurde es bei jedem Abruf neu bestimmt und konnte mitten im Event still wechseln. Am 11.11. fuer 5 Fahrer nachgetragen.
   Markieren (★) laesst sich JEDES Team mit aktiver Mitgliedschaft ausser dem offiziellen (`waehlbar`, 11.11.2026, Jan:
   „es geht doch nur um die markierung"); zaehlt das markierte nicht (nicht freigegeben/nicht oeffentlich), gilt in
   globalen Events die Standardregel. Stern auch auf der Teamseite und in Home › Team.

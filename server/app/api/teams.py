@@ -463,6 +463,7 @@ def _beitreten(db: Session, t: models.Team, user: models.User, ziel: str,
     m = T.mitglied(db, t.id, user.id)
     if ziel == "aktiv":
         T.events_teilnehmer_sichern(db, t.id)
+        T.primaer_festhalten(db, [user.id])   # bisheriges Team bleibt das primaere (11.11.2026)
     if m is not None:
         if m.status == "angefragt" and ziel == "aktiv":
             m.status, m.seit, m.zustimmung_am = "aktiv", T._jetzt(), T._jetzt()
@@ -502,6 +503,8 @@ def austreten(slug: str, user: models.User = Depends(current_user), db: Session 
         raise HTTPException(status.HTTP_409_CONFLICT, "leiter_erst_uebergeben")
     T.events_teilnehmer_sichern(db, t.id)
     db.delete(m)
+    db.flush()
+    T.primaer_festhalten(db, [user.id])   # war es das primaere: jetzt das groesste der verbleibenden, fest (11.11.2026)
     T.chat_raus(db, t.id, user.id)
     db.commit()
     return {"ok": True}
@@ -805,6 +808,7 @@ def annehmen(slug: str, uid: int, user: models.User = Depends(current_user), db:
         raise _404()
     if z.status == "angefragt":
         T.events_teilnehmer_sichern(db, t.id)
+        T.primaer_festhalten(db, [uid])   # bisheriges Team bleibt das primaere (11.11.2026)
         z.status, z.seit = "aktiv", T._jetzt()
         db.commit()
     return {"ok": True}
@@ -821,6 +825,8 @@ def entfernen(slug: str, uid: int, user: models.User = Depends(current_user), db
         raise HTTPException(status.HTTP_403_FORBIDDEN, "nicht_erlaubt")
     T.events_teilnehmer_sichern(db, t.id)
     db.delete(z)
+    db.flush()
+    T.primaer_festhalten(db, [uid])   # s. austreten (11.11.2026)
     T.chat_raus(db, t.id, uid)
     db.commit()
     return {"ok": True}
@@ -865,6 +871,8 @@ def einstellen(slug: str, body: EinstellungenIn, user: models.User = Depends(cur
                db: Session = Depends(get_db)) -> dict:
     t = _leiter(db, slug, user)
     T.events_zuordnung_sichern(db)   # Sichtbarkeit/Land aendern die Team-Wertung globaler Events
+    if body.oeffentlich is not None and bool(body.oeffentlich) != bool(t.oeffentlich):
+        T.primaer_festhalten(db, T.mitglieder_ids(db, t.id))   # ein neu zaehlendes Team uebernimmt nicht still
     if body.name is not None:
         t.name = _name_pruefen(db, body.name, t.id)
     if body.slug is not None and body.slug != t.slug:
@@ -1044,7 +1052,10 @@ def loeschen(slug: str, body: LoeschenIn, user: models.User = Depends(current_us
     if " ".join(body.name.split()).lower() != t.name.lower():
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "name_falsch")
     T.events_zuordnung_sichern(db)
+    betroffen = T.mitglieder_ids(db, t.id)
     T.team_weich_loeschen(t, user.id)
+    db.flush()
+    T.primaer_festhalten(db, betroffen)   # war es deren primaeres: das groesste der verbleibenden, fest (11.11.2026)
     db.commit()
     return {"ok": True}
 
@@ -1119,6 +1130,7 @@ def admin_entscheiden(team_id: int, body: FreigabeIn, _a: models.User = Depends(
         raise _404()
     weg: list[str] = []
     T.events_zuordnung_sichern(db)   # Freigabe aendert Auftritt und Team-Wertung globaler Events
+    T.primaer_festhalten(db, T.mitglieder_ids(db, t.id))   # ein neu zaehlendes Team uebernimmt nicht still (11.11.2026)
     if body.ok:
         weg = T.freigeben(db, t)
     else:

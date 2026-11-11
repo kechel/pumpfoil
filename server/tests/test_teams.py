@@ -1075,3 +1075,69 @@ def test_primaer_markierung_auch_fuer_nicht_zaehlende_teams(client, monkeypatch)
     finally:
         db.close()
     assert client.put(f"/api/teams/{offiziell}/primaer", headers=ka).status_code == 409
+
+
+def test_primaer_wird_gespeichert_und_wechselt_nicht_still(client, monkeypatch):
+    """Jan, 11.11.2026: das primaere Team wird gespeichert, sobald es eine Rolle spielt — wird waehrend eines laufenden
+    Events ein anderes Team groesser oder tritt man einem groesseren bei, bleibt die Zuordnung."""
+    from app import models
+    from app.db import SessionLocal
+    import secrets as _s
+    _z = _s.token_hex(3)
+    db = SessionLocal()
+    db.query(models.RateEvent).delete()
+    db.commit()
+    db.close()
+    adm = _admin(client, f"fest{_z}-adm@t.de")
+    (_io, ko) = _konto(client, f"fest{_z}-off@t.de")
+    db = SessionLocal()
+    db.query(models.RateEvent).delete()
+    db.commit()
+    db.close()
+    (ia, ka), (ib, kb), (ic, kc) = _konto(client, f"fest{_z}-a@t.de"), _konto(client, f"fest{_z}-b@t.de"), _konto(client, f"fest{_z}-c@t.de")
+    offiziell = _team(client, ko, f"Fest Offiziell {_z}")
+    monkeypatch.setenv("TEAM_GLOBAL", offiziell)
+    _freigeben(client, adm, ko, offiziell)
+    erst, _l = _team_mit(client, kb, ka, f"Fest Erst {_z}")          # A ist in „Erst" (2 Mitglieder)
+    _freigeben(client, adm, kb, erst)
+    _session(ia, 300, tage=1)
+    jetzt = datetime.now(timezone.utc)
+    ev = client.post(f"/api/teams/{offiziell}/events", headers=ko, json={
+        "titel": "Fest-Event", "start": (jetzt - timedelta(days=2)).isoformat(), "ende": (jetzt + timedelta(days=2)).isoformat(),
+        "tafeln": [{"kennzahl": "sum_pumps", "accel_only": False}], "global_event": True, "team_wertung_n": 1}).json()
+    eid = ev["id"]
+    eigene: set = {erst}
+
+    def team_von_a():
+        tf = client.get(f"/api/teams/{offiziell}/events/{eid}", headers=ka).json()["tafeln"][0]
+        return [x["slug"] for x in tf["teams"] if x["value"] == 300 and x["slug"] in eigene]
+
+    assert team_von_a() == [erst]
+    # 1. A tritt mitten im Event einem GROESSEREN, freigegebenen Team bei -> bleibt bei „Erst" (gespeichert)
+    db = SessionLocal()
+    db.query(models.RateEvent).delete()
+    db.commit()
+    db.close()
+    (_id, kd), (_ie, ke) = _konto(client, f"fest{_z}-d@t.de"), _konto(client, f"fest{_z}-e@t.de")
+    gross = _team(client, kc, f"Fest Gross {_z}")
+    eigene.add(gross)
+    for k in (kd, ke):
+        client.post(f"/api/teams/einladung/{client.get(f'/api/teams/{gross}/einladungen', headers=kc).json()['join']}", headers=k)
+    _freigeben(client, adm, kc, gross)                          # 3 Mitglieder
+    client.post(f"/api/teams/einladung/{client.get(f'/api/teams/{gross}/einladungen', headers=kc).json()['join']}", headers=ka)
+    mine = {x["slug"]: x for x in client.get("/api/teams/mine", headers=ka).json()}
+    assert mine[erst]["primaer_gewaehlt"] and not mine[gross]["primaer"]
+    assert team_von_a() == [erst]
+    # 2. „Gross" waechst weiter -> nichts aendert sich
+    db = SessionLocal()
+    db.query(models.RateEvent).delete()
+    db.commit()
+    db.close()
+    (_if, kf) = _konto(client, f"fest{_z}-f@t.de")
+    client.post(f"/api/teams/einladung/{client.get(f'/api/teams/{gross}/einladungen', headers=kc).json()['join']}", headers=kf)
+    assert team_von_a() == [erst]
+    # 3. „Erst" verlassen -> das groesste der verbleibenden wird gespeichert
+    assert client.post(f"/api/teams/{erst}/austreten", headers=ka).status_code == 200
+    mine = {x["slug"]: x for x in client.get("/api/teams/mine", headers=ka).json()}
+    assert mine[gross]["primaer_gewaehlt"]
+    assert team_von_a() == [gross]

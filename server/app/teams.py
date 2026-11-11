@@ -997,6 +997,26 @@ def teamwahl_festhalten(db: Session, uid: int, jetzt: datetime | None = None) ->
             db.add(W(event_id=e.id, user_id=uid, team_id=eff))
 
 
+def primaer_festhalten(db: Session, uids) -> int:
+    """Primaeres Team SPEICHERN, sobald es eine Rolle spielt (Jan, 11.11.2026: „nicht das jemand mitten im event ohne es
+    zu wissen das team wechselt nur weil ein anderes team groesser geworden ist"). Wer noch kein Team markiert hat und
+    in globalen Events fuer eines zaehlt, bekommt das Team gespeichert, fuer das er gerade antritt — „das groesste"
+    gilt damit nur noch EINMAL, im Moment des Speicherns. Aufzurufen VOR Beitritt/Annahme/Freigabe/Sichtbarkeit (dann
+    bleibt das bisherige) und NACH Austritt/Entfernen/Loeschen (dann das groesste der verbleibenden). -> Anzahl gesetzt."""
+    M = models.TeamMitglied
+    n = 0
+    for uid in set(uids):
+        w = meine_wertbaren(db, uid)
+        if w["primaer_alle"] is not None or w["effektiv"] is None:
+            continue
+        m = db.query(M).filter(M.user_id == uid, M.team_id == w["effektiv"], M.status == "aktiv").first()
+        if m is not None:
+            m.primaer = True
+            n += 1
+    db.flush()
+    return n
+
+
 def groessen(db: Session, team_ids: list[int]) -> dict[int, int]:
     """Aktive Mitglieder je Team."""
     if not team_ids:
