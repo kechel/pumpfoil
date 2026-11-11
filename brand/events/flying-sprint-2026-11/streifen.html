@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* Short-Overlay 1080x480 (1/4 von 1920) aus banner-clean.html, Massstab ~1,6; ?stufe=1..4&weiss=1 */
+@font-face{font-family:M;src:local("Montserrat Black");font-weight:900}
+@font-face{font-family:M;src:local("Montserrat ExtraBold");font-weight:800}
+html,body{margin:0;background:transparent}
+#b{position:relative;width:1080px;height:480px;overflow:hidden;font-family:M,sans-serif;color:#fff}
+.t{position:absolute;left:64px;top:34px;text-shadow:0 3px 22px rgba(2,6,23,.8),0 2px 5px rgba(2,6,23,.65)}
+.k{font-weight:800;font-size:27px;letter-spacing:.14em;opacity:.95}
+.h{font-weight:900;font-size:99px;line-height:.95;letter-spacing:-.01em;margin-top:10px}
+.h span{color:#22d3ee}
+.tag{display:inline-block;margin-top:22px;background:#22d3ee;color:#020617;font-weight:900;font-size:42px;padding:9px 26px;transform:skewX(-10deg);text-shadow:none}
+.tag i{display:inline-block;transform:skewX(10deg);font-style:normal}
+.d{display:table;margin-top:24px;text-shadow:none;font-weight:800;font-size:35px;letter-spacing:.06em;background:rgba(2,6,23,.78);padding:12px 22px;border-radius:16px}
+.d b{color:#22d3ee}
+.aus{visibility:hidden}
+body.weiss #b{background:#fff;color:#020617}
+body.weiss .t{text-shadow:none}
+body.weiss .h span{color:#0891b2}
+body.weiss .d{color:#fff;background:#020617}
+</style></head><body><div id="b">
+<div class="t"><div class="k">GLOBAL EVENT</div><div class="h">FLYING SPRINT<br><span id="s2">WEEKEND</span></div><div class="tag" id="s3"><i>100 m &amp; 1 MINUTE</i></div><div class="d" id="s4">14–15 NOV 2026 · <b>NO SIGN-UP</b></div></div>
+</div><script>
+const q = new URLSearchParams(location.search), st = +(q.get("stufe") || 4);
+if (q.get("weiss")) document.body.classList.add("weiss");
+for (const i of [2, 3, 4]) if (st < i) document.getElementById("s" + i).classList.add("aus");
+</script></body></html>
