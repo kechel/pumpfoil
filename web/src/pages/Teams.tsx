@@ -13,6 +13,7 @@ import { TeamHerkunft } from "../components/TeamHerkunft";
 import { fehlerCode, sportartenText } from "../lib/teamKennzahlen";
 import { RegelnLink } from "./TeamRegeln";
 import { useI18n } from "../i18n";
+import { TeamPrimaer } from "../components/TeamPrimaer";
 
 export default function Teams({ eingebettet = false }: { eingebettet?: boolean } = {}) {   // eingebettet: Reiter in den Einstellungen
   const { t } = useI18n();
@@ -28,7 +29,6 @@ export default function Teams({ eingebettet = false }: { eingebettet?: boolean }
   useEffect(() => { api.teamsMine().then(setMeine).catch(() => setMeine([])); }, []);
   // Primaeres Team (Jan, 10.11.2026): nur sinnvoll, wenn man in mehr als einem Team ist, das in globalen Events zaehlt.
   const mehrereWertbar = (meine ?? []).filter((m) => m.wertbar).length > 1;
-  const primaerSetzen = (slug: string) => api.teamPrimaer(slug).then(() => api.teamsMine().then(setMeine)).catch(() => {});
 
   // Adress-Vorschlag aus dem Namen, solange der Nutzer sie nicht selbst geaendert hat.
   useEffect(() => {
@@ -72,15 +72,7 @@ export default function Teams({ eingebettet = false }: { eingebettet?: boolean }
                   {m.freigabe && m.freigabe !== "frei" && <> · {t(`team.freigabe.${m.freigabe}`)}</>}
                 </span>
                 {!!m.sportarten?.length && <span className="block truncate text-xs text-slate-400">{sportartenText(m.sportarten, t)}</span>}
-                {mehrereWertbar && m.primaer && (
-                  <span className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-brand-500/15 px-2 py-0.5 text-xs font-semibold text-brand-700 dark:text-brand-300"
-                    title={t("team.primaerHinweis")}>★ {t("team.primaer")}</span>
-                )}
-                {mehrereWertbar && m.wertbar && !m.primaer && (
-                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); primaerSetzen(m.slug); }}
-                    className="mt-0.5 rounded-full border border-slate-700 px-2 py-0.5 text-xs text-slate-300 hover:border-slate-500"
-                    title={t("team.primaerHinweis")}>☆ {t("team.primaerSetzen")}</button>
-                )}
+                <TeamPrimaer m={m} mehrere={mehrereWertbar} onGeaendert={() => api.teamsMine().then(setMeine)} />
               </span>
               {m.anfragen > 0 && <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-bold text-slate-950">{m.anfragen}</span>}
               <ChevronIcon className="h-5 w-5 text-slate-400" />

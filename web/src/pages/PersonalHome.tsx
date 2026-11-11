@@ -23,6 +23,7 @@ import { TeamSuche } from "./Teams";
 import LinkedAccounts from "./LinkedAccounts";
 import { Reiterleiste, useReiter, useWischleiste, type ReiterDef } from "../components/Reiter";
 import { TeamWahl, useTeamWahl } from "../components/TeamWahl";
+import { TeamPrimaer } from "../components/TeamPrimaer";
 import { InstallPwa } from "../components/InstallPwa";
 import { WelcomeBanner } from "../components/WelcomeBanner";
 import { GarminBeidesBanner } from "../components/GarminBeides";
@@ -635,7 +636,8 @@ export default function PersonalHome() {
       </>}
 
       {/* Events der eigenen Teams als Kacheln (laufende zuerst) — ersetzt die einzelne „Team-Event laeuft"-Zeile. */}
-      {tab === "team" && <MeineTeams teams={meineTeams} />}
+      {tab === "team" && <MeineTeams teams={meineTeams}
+        onGeaendert={() => api.teamsMine().then((l) => setMeineTeams(l.filter((x) => x.status === "aktiv"))).catch(() => {})} />}
 
       {tab === "spots" && <SpotsBereich homespotId={homespotId} homespotName={homespot} liste={meineSpots} />}
 
@@ -722,8 +724,9 @@ function BrettErklaerung() {
 }
 
 /** Reiter „Team": die eigenen Teams (ersetzt die kleinen Links neben den letzten Sessions, 02.11.2026). */
-function MeineTeams({ teams }: { teams: TeamKurz[] }) {
+function MeineTeams({ teams, onGeaendert }: { teams: TeamKurz[]; onGeaendert: () => void }) {
   const t = useT();
+  const mehrereWertbar = teams.filter((m) => m.wertbar).length > 1;
   return (
     <>
       {teams.length === 0 ? (
@@ -739,6 +742,7 @@ function MeineTeams({ teams }: { teams: TeamKurz[] }) {
               <span className="min-w-0 flex-1">
                 <span className="flex min-w-0 items-center gap-1.5"><span className="team-akzent truncate font-medium">{m.name}</span><TeamHerkunft land={m.land} /></span>
                 <span className="block text-xs text-slate-400">{t(`team.rolle.${m.rolle}`)}</span>
+                <TeamPrimaer m={m} mehrere={mehrereWertbar} onGeaendert={onGeaendert} />
               </span>
               {m.anfragen > 0 && <span className="rounded-full bg-brand-500 px-2 py-0.5 text-xs font-bold text-slate-950">{m.anfragen}</span>}
             </Link>
@@ -753,6 +757,7 @@ function MeineTeams({ teams }: { teams: TeamKurz[] }) {
           {t("team.gruenden")} →
         </Link>
       </>}
+      {mehrereWertbar && <p className="-mt-2 mb-4 text-sm text-slate-400">{t("team.primaerHinweis")}</p>}
       {teams.length > 0 && <TeamEventsListe />}
       {teams.length > 0 && <TeamLetzteMitWahl teams={teams} />}
     </>
