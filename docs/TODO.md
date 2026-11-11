@@ -1761,6 +1761,7 @@ ohne Roh-Daten bleibt eine vorhandene Auswertung stehen. Ursache: laut Jan nicht
         Knopf-Fassung (Asset `GoogleG`); bisher ausgefiltert. Anlass: Nutzerin hatte sich im Web mit Google registriert
         und kam in der iPhone-App nicht hinein (11.11., Antwort ueber u230 verspricht es fuers naechste Update).
         Nur iOS 1.1.66 (Android hat Google nativ). **Von Jan im iOS-Simulator getestet (11.11.): Google-Login geht.**
+  **iOS 1.1.66 (76) komplett von Jan getestet (11.11. spaet): „alles getestet, geht"** — bereit zur Einreichung.
   **Testen (Jan, Simulator/Geraet):** Tipp auf Profilbild/Wappen in einer Bestenlisten-Zeile oeffnet NUR deren Ziel;
   Primaer-Knopf in einer Listenzeile setzt nur (springt nicht ins Team); Sprint-Band unter der Faerbung, verschwindet
   bei anderem Lauf; Klasse/Bestenliste bleiben nach Session und zurueck.
