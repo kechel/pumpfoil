@@ -2263,7 +2263,9 @@ export type TeamRolle = "leiter" | "moderator" | "mitglied";
 export interface TeamAuftritt { name: string; slug: string; beschreibung: string | null; logo_url: string | null; farbe: string | null; banner_url?: string | null; banner_fokus?: string | null; sportarten?: string[]; land?: string | null }
 export interface TeamKurz extends TeamAuftritt { id: number; rolle: TeamRolle; status: "aktiv" | "angefragt"; anfragen: number; freigabe: string | null;
   /** Primaeres Team (10.11.2026): zaehlt in globalen Events / ist das Team, fuer das man dort antritt / selbst gewaehlt */
-  wertbar?: boolean; primaer?: boolean; primaer_gewaehlt?: boolean }
+  wertbar?: boolean; primaer?: boolean; primaer_gewaehlt?: boolean;
+  /** als primaer markierbar: aktive Mitgliedschaft, nicht das offizielle Team (11.11.2026) */
+  waehlbar?: boolean }
 /** Team-Bestenlisten der Community (03.11.2026): je Kennzahl Summe der besten `top` Fahrer, `<k>_fahrer` = wie viele davon. */
 export type TeamVergleichKennzahl = "pumps" | "distance_m" | "time_s" | "sessions" | "runs";
 export type TeamVergleichZeile = Pick<TeamAuftritt, "name" | "slug" | "logo_url" | "farbe" | "land"> & { mitglieder: number; aktive: number; sportarten?: string[] }

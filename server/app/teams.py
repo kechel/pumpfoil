@@ -964,6 +964,9 @@ def meine_wertbaren(db: Session, uid: int, event_id: int | None = None) -> dict:
     zeilen = (db.query(M).join(Tm, Tm.id == M.team_id)
               .filter(M.user_id == uid, M.status == "aktiv", Tm.frei_am.isnot(None), Tm.geloescht_am.is_(None),
                       Tm.oeffentlich.is_(True)).order_by(M.team_id).all())
+    # Markiertes Team unabhaengig davon, ob es zaehlt (Anzeige, 11.11.2026)
+    prim_alle = (db.query(M.team_id).join(Tm, Tm.id == M.team_id)
+                 .filter(M.user_id == uid, M.status == "aktiv", M.primaer.is_(True), Tm.geloescht_am.is_(None)).scalar())
     kand = [(m.team_id, bool(m.primaer), m.seit) for m in zeilen if m.team_id != og]
     gewaehlt = None
     if event_id is not None:
@@ -972,7 +975,7 @@ def meine_wertbaren(db: Session, uid: int, event_id: int | None = None) -> dict:
     eff = team_fuer(kand, gewaehlt, groessen(db, [k[0] for k in kand]) if len(kand) > 1 else {}) if kand else None
     prim = next((k[0] for k in kand if k[1]), None)
     return {"teams": [k[0] for k in kand], "primaer": prim, "gewaehlt": gewaehlt if gewaehlt in [k[0] for k in kand] else None,
-            "effektiv": eff}
+            "effektiv": eff, "primaer_alle": prim_alle if prim_alle != og else None}
 
 
 def teamwahl_offen(e: models.TeamEvent, jetzt: datetime | None = None) -> bool:

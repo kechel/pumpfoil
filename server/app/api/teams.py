@@ -187,6 +187,7 @@ def meine(user: models.User = Depends(current_user), db: Session = Depends(get_d
               .filter(M.user_id == user.id, models.Team.geloescht_am.is_(None)).order_by(M.seit.asc()).all())
     sp = T.sportarten(db, [t.id for _m, t in zeilen])
     w = T.meine_wertbaren(db, user.id)    # primaeres Team (10.11.2026)
+    og = T.offizielles_team_id(db)
     for m, t in zeilen:
         offen = 0
         if T.darf_verwalten(m):
@@ -194,19 +195,24 @@ def meine(user: models.User = Depends(current_user), db: Session = Depends(get_d
         out.append({**_kurz(t, True, db, sp[t.id]), "rolle": m.rolle, "status": m.status, "anfragen": offen,
                     "freigabe": t.freigabe if T.ist_leiter(m) else None,
                     # zaehlt in globalen Events (freigegeben, oeffentlich) — und ist das Team, fuer das man antritt
-                    "wertbar": t.id in w["teams"], "primaer": t.id == w["effektiv"],
-                    "primaer_gewaehlt": t.id == w["primaer"]})
+                    "wertbar": t.id in w["teams"],
+                    # Markierung (Jan, 11.11.2026: „es geht doch nur um die markierung, mit welchem team ich per default an
+                    # events teilnehme"): waehlbar ist JEDES Team mit aktiver Mitgliedschaft ausser dem offiziellen; der Stern
+                    # steht am gewaehlten, ohne Wahl am Team, fuer das man tatsaechlich antritt.
+                    "waehlbar": m.status == "aktiv" and t.id != og,
+                    "primaer": t.id == (w["primaer_alle"] or w["effektiv"]),
+                    "primaer_gewaehlt": t.id == w["primaer_alle"]})
     return out
 
 
 @router.put("/{slug}/primaer")
 def primaer_setzen(slug: str, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     """Primaeres Team (Jan, 10.11.2026): fuer dieses Team tritt man in globalen Events an, solange man im Event nichts
-    anderes waehlt. Nur fuer Teams, die dort zaehlen."""
-    t, _m = _team_fuer(db, slug, user)
-    w = T.meine_wertbaren(db, user.id)
-    if t.id not in w["teams"]:
-        raise HTTPException(status.HTTP_409_CONFLICT, "team_nicht_wertbar")
+    anderes waehlt. Waehlbar ist jedes Team mit aktiver Mitgliedschaft ausser dem offiziellen (11.11.2026); zaehlt das
+    gewaehlte in globalen Events nicht (nicht freigegeben / Bestenlisten nicht oeffentlich), gilt dort die Standardregel."""
+    t, m_ = _team_fuer(db, slug, user)
+    if m_ is None or m_.status != "aktiv" or t.id == T.offizielles_team_id(db):
+        raise HTTPException(status.HTTP_409_CONFLICT, "team_nicht_waehlbar")
     T.events_zuordnung_sichern(db)   # beendete, noch offene Events behalten die alte Zuordnung
     T.teamwahl_festhalten(db, user.id)   # Events in den letzten 6 h behalten das bisherige Team
     M = models.TeamMitglied

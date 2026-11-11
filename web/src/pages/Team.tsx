@@ -372,7 +372,7 @@ export default function Team() {
           {(() => {
             const ich = meine?.find((m) => m.slug === kopf.slug);
             return ich && kopf.mein_status === "aktiv"
-              ? <TeamPrimaer m={ich} mehrere={(meine ?? []).filter((m) => m.wertbar).length > 1} onGeaendert={meineLaden} />
+              ? <TeamPrimaer m={ich} mehrere={(meine ?? []).filter((m) => m.waehlbar ?? m.wertbar).length > 1} onGeaendert={meineLaden} />
               : null;
           })()}
           <p className="text-sm text-slate-400">

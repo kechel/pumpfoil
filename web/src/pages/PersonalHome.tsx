@@ -726,7 +726,7 @@ function BrettErklaerung() {
 /** Reiter „Team": die eigenen Teams (ersetzt die kleinen Links neben den letzten Sessions, 02.11.2026). */
 function MeineTeams({ teams, onGeaendert }: { teams: TeamKurz[]; onGeaendert: () => void }) {
   const t = useT();
-  const mehrereWertbar = teams.filter((m) => m.wertbar).length > 1;
+  const mehrereWertbar = teams.filter((m) => m.waehlbar ?? m.wertbar).length > 1;
   return (
     <>
       {teams.length === 0 ? (

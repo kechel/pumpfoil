@@ -501,6 +501,9 @@ Team-Event (`team_events.global_event`, `team_wertung_n`), Rechnung in `app/team
   Team (`team_mitglieder.primaer`, „Meine Teams" ★, `PUT /api/teams/{slug}/primaer`), sonst das groesste (aktive
   Mitglieder), bei Gleichstand das frueher beigetretene (`teams.team_fuer`). Kein einmaliges Nachtragen in der DB —
   die Regel „groesstes Team" ist der Standard. Verlaesst man das primaere Team, gilt automatisch das naechste.
+  Markieren (★) laesst sich JEDES Team mit aktiver Mitgliedschaft ausser dem offiziellen (`waehlbar`, 11.11.2026, Jan:
+  „es geht doch nur um die markierung"); zaehlt das markierte nicht (nicht freigegeben/nicht oeffentlich), gilt in
+  globalen Events die Standardregel. Stern auch auf der Teamseite und in Home › Team.
   Aenderbar bis 6 h vor Event-Ende (`TEAMWAHL_SCHLUSS`); wer in den letzten 6 h das primaere Team wechselt, behaelt in
   laufenden Events das bisherige (`teamwahl_festhalten`). Regeltext `team.regeln.global.text` (18 Sprachen).
 - **Filter „mein Team"** (`GET …/events/{id}?team=<slug>`): nur dessen Mitglieder, mit dem Rang der Gesamtwertung.

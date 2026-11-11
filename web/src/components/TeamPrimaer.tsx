@@ -1,6 +1,7 @@
 // Primaeres Team (10.11.2026) als Marke in den Team-Listen („Meine Teams" und Home › Team). Jan, 11.11.2026: der Stern
 // soll auch dann am zaehlenden Team stehen, wenn es nur EIN solches gibt (das offizielle Team zaehlt nicht) — vorher war
-// er dann unsichtbar und man suchte die Einstellung vergeblich. Waehlen kann man nur, wenn es mehrere gibt.
+// er dann unsichtbar und man suchte die Einstellung vergeblich. Waehlbar ist jedes Team mit aktiver Mitgliedschaft ausser
+// dem offiziellen (`waehlbar`); der Knopf erscheint, sobald es mehr als eines davon gibt.
 import { api, type TeamKurz } from "../lib/api";
 import { useT } from "../i18n";
 
@@ -12,7 +13,7 @@ export function TeamPrimaer({ m, mehrere, onGeaendert }: { m: TeamKurz; mehrere:
         title={t("team.primaerHinweis")}>★ {t("team.primaer")}</span>
     );
   }
-  if (mehrere && m.wertbar) {
+  if (mehrere && (m.waehlbar ?? m.wertbar)) {
     return (
       <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); api.teamPrimaer(m.slug).then(onGeaendert).catch(() => {}); }}
         className="mt-0.5 rounded-full border border-slate-700 px-2 py-0.5 text-xs text-slate-300 hover:border-slate-500"

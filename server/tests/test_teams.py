@@ -1040,3 +1040,38 @@ def test_primaeres_team_und_wahl_je_event(client, monkeypatch):
     assert client.put(f"/api/teams/{klein}/primaer", headers=ka).status_code == 200
     assert teams_mit_a() == [gross]
     assert client.get(f"/api/teams/{offiziell}/events/{eid}", headers=ka).json()["mein_team"]["aenderbar"] is False
+
+
+def test_primaer_markierung_auch_fuer_nicht_zaehlende_teams(client, monkeypatch):
+    """Jan, 11.11.2026: der Stern ist nur eine Markierung — waehlbar an jedem Team mit aktiver Mitgliedschaft ausser dem
+    offiziellen. Zaehlt das markierte in globalen Events nicht (nicht freigegeben), gilt dort weiter die Standardregel."""
+    from app import models
+    from app.db import SessionLocal
+    db = SessionLocal()
+    db.query(models.RateEvent).delete()
+    db.commit()
+    db.close()
+    adm = _admin(client, "mark-adm@t.de")
+    (_io, ko) = _konto(client, "mark-off@t.de")
+    (ia, ka), (ib, kb) = _konto(client, "mark-a@t.de"), _konto(client, "mark-b@t.de")
+    offiziell = _team(client, ko, "Mark Offiziell")
+    monkeypatch.setenv("TEAM_GLOBAL", offiziell)
+    _freigeben(client, adm, ko, offiziell)
+    client.post(f"/api/teams/einladung/{client.get(f'/api/teams/{offiziell}/einladungen', headers=ko).json()['join']}",
+                headers=ka)
+    frei, _l = _team_mit(client, kb, ka, "Mark Frei")
+    _freigeben(client, adm, kb, frei)
+    privat = _team(client, ka, "Mark Privat")                 # nicht freigegeben -> zaehlt nicht
+    mine = {x["slug"]: x for x in client.get("/api/teams/mine", headers=ka).json()}
+    assert mine[frei]["primaer"] and mine[privat]["waehlbar"] and not mine[privat]["wertbar"]
+    assert not mine[offiziell]["waehlbar"]
+    assert client.put(f"/api/teams/{privat}/primaer", headers=ka).status_code == 200
+    mine = {x["slug"]: x for x in client.get("/api/teams/mine", headers=ka).json()}
+    assert mine[privat]["primaer"] and not mine[frei]["primaer"]
+    db = SessionLocal()
+    try:
+        from app.teams import meine_wertbaren
+        assert meine_wertbaren(db, ia)["effektiv"] == db.query(models.Team.id).filter_by(slug=frei).scalar()
+    finally:
+        db.close()
+    assert client.put(f"/api/teams/{offiziell}/primaer", headers=ka).status_code == 409

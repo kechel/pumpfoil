@@ -28,7 +28,7 @@ export default function Teams({ eingebettet = false }: { eingebettet?: boolean }
 
   useEffect(() => { api.teamsMine().then(setMeine).catch(() => setMeine([])); }, []);
   // Primaeres Team (Jan, 10.11.2026): nur sinnvoll, wenn man in mehr als einem Team ist, das in globalen Events zaehlt.
-  const mehrereWertbar = (meine ?? []).filter((m) => m.wertbar).length > 1;
+  const mehrereWertbar = (meine ?? []).filter((m) => m.waehlbar ?? m.wertbar).length > 1;
 
   // Adress-Vorschlag aus dem Namen, solange der Nutzer sie nicht selbst geaendert hat.
   useEffect(() => {
