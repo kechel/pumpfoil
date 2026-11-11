@@ -184,8 +184,11 @@ struct TeamEventView: View {
     }
 
     @ViewBuilder private func meinTeamBereich(_ t: TeamInfo, _ e: TeamEvent) -> some View {
-        if e.istGlobal, let mt = e.mein_team, meinTeamZeigen(mt), e.status == "kommend" || e.status == "laeuft" {
+        if e.istGlobal, let mt = e.mein_team, mt.aenderbar, meinTeamZeigen(mt), e.status == "kommend" || e.status == "laeuft" {
             EventMeinTeamKarte(slug: t.slug, evId: e.id, mt: mt, lang: lang) { Task { await neuLaden() } }
+        } else if e.istGlobal, let at = e.angetreten, !at.isEmpty, e.status == "laeuft" || e.angetreten_mit_werten == true {
+            // Nach dem Ende bzw. wenn die Teamwahl zu ist: „Du bist angetreten für …" (web, 11.11.2026)
+            EventAngetretenKarte(teams: at, lang: lang)
         }
     }
 
@@ -525,6 +528,8 @@ struct EventMeinTeamKarte: View {
     let lang: String
     let geaendert: () -> Void
     @State private var busy = false
+    /// Erklaerung nur beim Tipp auf ein deaktiviertes Team (web 15f9dea5, Jan 11.11.2026)
+    @State private var hinweis: String? = nil
 
     private func waehle(_ id: Int) {
         guard !busy, mt.aenderbar, id != mt.effektiv else { return }
@@ -541,14 +546,13 @@ struct EventMeinTeamKarte: View {
     /// Stern am markierten primaeren Team (auch wenn es nicht zaehlt), aeltere Server: am primaeren (web ff225d2e).
     private var sternId: Int? { mt.markiert ?? mt.primaer }
     private var nicht: [EventMeinTeam.Wahl] { mt.nicht_zaehlend ?? [] }
-    private var nichtText: String {
-        Loc.t("team.event.zaehltNicht", lang) + ": " + nicht.map { $0.name }.joined(separator: ", ")
-    }
 
     private func chip(_ x: EventMeinTeam.Wahl) -> some View {
         let an: Bool = x.id == mt.effektiv
         let tf = TeamFarbe(x.farbe)
-        return Button { waehle(x.id) } label: {
+        return Button {
+            if mt.aenderbar || an { waehle(x.id) } else { hinweis = Loc.t("team.event.meinTeamFest", lang) }
+        } label: {
             HStack(spacing: 6) {
                 TeamWappen(name: x.name, logo: x.logo_url, farbe: x.farbe, size: 16)
                 Text(x.name).font(.subheadline.weight(an ? .semibold : .regular)).lineLimit(1)
@@ -560,11 +564,15 @@ struct EventMeinTeamKarte: View {
             .overlay(Capsule().stroke(an ? Color.clear : Color.secondary.opacity(0.5), lineWidth: 1))
         }
         .buttonStyle(.plain)
-        .disabled(busy || (!mt.aenderbar && !an))
+        .disabled(busy)
     }
 
     /// Team, das in globalen Events nicht auftaucht: ausgegraut, gestrichelt, nicht antippbar (web ff225d2e).
     private func grauChip(_ x: EventMeinTeam.Wahl) -> some View {
+        Button { hinweis = Loc.t("team.event.zaehltNicht", lang) } label: { grauInhalt(x) }.buttonStyle(.plain)
+    }
+
+    private func grauInhalt(_ x: EventMeinTeam.Wahl) -> some View {
         HStack(spacing: 6) {
             TeamWappen(name: x.name, logo: x.logo_url, farbe: x.farbe, size: 16).opacity(0.5)
             Text(x.name).font(.subheadline).lineLimit(1)
@@ -577,19 +585,47 @@ struct EventMeinTeamKarte: View {
     }
 
     var body: some View {
+        // Nur „Du trittst an für" + Knoepfe in einer Zeile (web 15f9dea5)
         VStack(alignment: .leading, spacing: 8) {
-            Text(Loc.t("team.event.meinTeam", lang)).font(.subheadline.weight(.semibold))
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
+                    Text(Loc.t("team.event.meinTeam", lang)).font(.subheadline.weight(.semibold)).padding(.trailing, 4)
                     ForEach(mt.auswahl) { x in chip(x) }
                     ForEach(nicht) { x in grauChip(x) }
                 }
             }
-            if !nicht.isEmpty {
-                Text(nichtText).font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            if let h = hinweis {
+                Text(h).font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
-            Text(Loc.t(mt.aenderbar ? "team.event.meinTeamHinweis" : "team.event.meinTeamFest", lang))
-                .font(.footnote).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
+    }
+}
+
+/// „Du bist angetreten für …" (web EventAngetreten, 11.11.2026): nur Anzeige; bei Events vor dem 10.11.2026 auch mehrere Teams.
+struct EventAngetretenKarte: View {
+    let teams: [AngetretenTeam]
+    let lang: String
+
+    private func chip(_ x: AngetretenTeam) -> some View {
+        let tf = TeamFarbe(x.farbe)
+        return HStack(spacing: 6) {
+            TeamWappen(name: x.name ?? "", logo: x.logo_url, farbe: x.farbe, size: 16)
+            Text(x.name ?? "").font(.subheadline.weight(.semibold)).lineLimit(1)
+        }
+        .foregroundStyle(tf.aufFlaeche)
+        .padding(.horizontal, 12).padding(.vertical, 5)
+        .background(Capsule().fill(tf.flaeche))
+    }
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                Text(Loc.t("team.event.angetreten", lang)).font(.subheadline.weight(.semibold)).padding(.trailing, 4)
+                ForEach(teams) { x in chip(x) }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)

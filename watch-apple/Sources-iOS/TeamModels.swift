@@ -243,6 +243,9 @@ struct TeamEvent: Codable, Identifiable {
     var team_wertung_n: Int? = nil
     /// Globale Events (10.11.2026): fuer welches seiner Teams der Betrachter antritt — nur, wenn er in einem zaehlt.
     var mein_team: EventMeinTeam? = nil
+    /// „Du bist angetreten für …" (11.11.2026): Team(s) laut Zuordnung des Events, und ob der Betrachter Werte hat.
+    var angetreten: [AngetretenTeam]? = nil
+    var angetreten_mit_werten: Bool? = nil
     /// Filter „Wertungsklasse" (10.11.2026, web a2081ec0): angebotene Klassen ("w"/"m"/"nb") mit Anzahl, leer/nil = kein
     /// Filter; `klasse` = die aktive (nil = alle).
     var klassen: [String: Int]? = nil
@@ -261,6 +264,15 @@ struct TeamEvent: Codable, Identifiable {
         var gesehen = Set<String>()
         return aus.filter { gesehen.insert($0).inserted }
     }
+}
+
+/// Team aus der Zuordnung eines globalen Events (`angetreten`, 11.11.2026) — ohne ID, nur Auftritt.
+struct AngetretenTeam: Codable, Identifiable {
+    var slug: String? = nil
+    var name: String? = nil
+    var logo_url: String? = nil
+    var farbe: String? = nil
+    var id: String { (slug ?? "") + "|" + (name ?? "") }
 }
 
 /// Teamwahl des Betrachters fuer ein globales Event (Server `_mein_team`, 10.11.2026): Auswahl = seine wertbaren Teams.
