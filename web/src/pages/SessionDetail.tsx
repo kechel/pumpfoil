@@ -834,18 +834,24 @@ export default function SessionDetail() {
 
   // Aus einer Sprint-Bestenliste (?sprint=sprint_100m, 11.11.2026): den gewerteten Abschnitt hervorheben, solange
   // sein Lauf ausgewaehlt ist. Fenster in Session-ms (wie indexZuSessionMs) aus analysis.sprints.
-  const sprintHL = useMemo(() => {
+  // Lauf ueber die ZEIT (Mitte des Fensters in [t_start_session_ms, t_end_session_ms]) — die Laufnummern unterscheiden sich
+  // zwischen den normalen Laeufen und einem Empfindlichkeits-Preset des Besitzers.
+  const sprintLauf = useMemo(() => {
     const kz = searchParams.get("sprint");
-    const sp = session?.analysis?.sprints;
-    if (!kz || !sp || selectedRun == null || sp.lauf?.[kz] !== selectedRun || !sp.fenster?.[kz]) return null;
-    return { kz, a: sp.fenster[kz][0], b: sp.fenster[kz][1], wert: sp.best?.[kz] ?? 0 };
-  }, [searchParams, session, selectedRun]);
+    const f = kz ? session?.analysis?.sprints?.fenster?.[kz] : null;
+    if (!kz || !f) return null;
+    const mitte = (f[0] + f[1]) / 2;
+    const i = ((session?.analysis?.segments ?? []) as any[]).findIndex((g) =>
+      g.t_start_session_ms != null && g.t_start_session_ms <= mitte && mitte <= g.t_end_session_ms);
+    return i >= 0 ? { kz, i, a: f[0], b: f[1], wert: session?.analysis?.sprints?.best?.[kz] ?? 0 } : null;
+  }, [searchParams, session]);
+  const sprintHL = useMemo(() => (sprintLauf && selectedRun === sprintLauf.i ? sprintLauf : null), [sprintLauf, selectedRun]);
 
   // Beim Aufruf über einen Rekord-Link (?run=N) den Lauf vorauswählen (einmal je Session).
   const appliedRunRef = useRef<string | null>(null);
   useEffect(() => {
     const sgs = session?.analysis?.segments;
-    const runParam = searchParams.get("run");
+    const runParam = sprintLauf ? String(sprintLauf.i) : searchParams.get("run");
     if (!sgs || runParam == null) return;
     const key = `${session!.id}:${runParam}`;
     if (appliedRunRef.current === key) return;
@@ -854,7 +860,7 @@ export default function SessionDetail() {
       setSelectedRun(i);
       appliedRunRef.current = key;
     }
-  }, [session, searchParams]);
+  }, [session, searchParams, sprintLauf]);
 
   // Auto-Skala (Checkbox): folgt der Session bzw. Lauf-Auswahl/Glättung, solange aktiv.
   useEffect(() => {

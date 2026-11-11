@@ -356,7 +356,9 @@ def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens
         num_runs=(p["num_runs"] if (p and p.get("num_runs") is not None) else result.num_runs),
         best_distance_m=result.best_distance_m,
         sport_zahlen=(None if slim or session is None else _sport_zahlen(session, result, segments, ft)),
-        sprints=None if (slim or p) else _sprints_out(result),
+        # Auch mit Empfindlichkeits-Preset (Besitzer mit „light"/„sensitiv", 11.11.2026): die Anzeige ordnet das Fenster
+        # ueber die ZEIT einem Lauf zu, nicht ueber die Laufnummer der normalen Laeufe.
+        sprints=None if slim else _sprints_out(result),
     )
 
 
