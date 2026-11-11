@@ -62,6 +62,36 @@ EVENT_KENNZAHLEN = KENNZAHLEN + SPRINT
 
 def _sprint_col(kennzahl: str):
     return getattr(models.AnalysisResult, kennzahl + "_mps")
+# Bestenlisten, deren Wert aus EINEM Lauf stammt (11.11.2026, Jan: „bei bestenlisten die sich auf einen einzelnen run
+# beziehen der run ausgewaehlt"): die Zeile bekommt `run_idx` (Index in segments_json = `?run=` der Session-Seite).
+# Ganze Session (runs, session_*): nur `session_id`. Summen ueber mehrere Sessions: keins von beiden -> Profil.
+LAUF_IDX = {"distance": "best_distance_idx", "duration": "best_duration_idx", "speed": "best_speed_idx",
+            "glide": "best_glide_idx"}
+
+
+def lauf_dazu(db: Session, kennzahl: str, zeilen: list[dict]) -> None:
+    """`run_idx` in Zeilen mit `session_id` nachtragen (live und eingefroren). Ohne Lauf (alte Analyse): fehlt."""
+    if kennzahl not in LAUF_IDX and kennzahl not in SPRINT:
+        return
+    sids = {z["session_id"] for z in zeilen if z.get("session_id") and "run_idx" not in z}
+    if not sids:
+        return
+    AR = models.AnalysisResult
+    col = AR.sprint_json if kennzahl in SPRINT else getattr(AR, LAUF_IDX[kennzahl])
+    idx: dict[int, int] = {}
+    for sid, v in db.query(AR.session_id, col).filter(AR.session_id.in_(list(sids))).all():
+        if kennzahl in SPRINT:
+            try:
+                v = (json.loads(v or "{}").get("lauf") or {}).get(kennzahl)
+            except (ValueError, AttributeError):
+                v = None
+        if isinstance(v, int) and v >= 0:
+            idx[sid] = v
+    for z in zeilen:
+        if z.get("session_id") in idx and "run_idx" not in z:
+            z["run_idx"] = idx[z["session_id"]]
+
+
 # Gesamtsummen eines Events ueber alle Teilnehmer (Jan, 01.11.2026) — dieselben Groessen wie die Teamstatistik.
 EVENT_SUMMEN = ("sessions", "runs", "pumps", "distance_m", "time_s", "spots", "aktive")
 
@@ -536,6 +566,7 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
         # Summen: alle gefahrenen. Steht in der Zeile und wird mit eingefroren.
         nq = filtern(C._community(db.query(S.user_id, S.sport_class), None, tf.accel_only, tf.sportart))
         C.mix_abzeichen(db, tf.sportart, out, nq)
+    lauf_dazu(db, tf.kennzahl, out)
     _cache_setzen(key, out)
     return out
 
@@ -1177,6 +1208,9 @@ def _event_voll(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
                 for x in tf.get("teams") or []:
                     if "mitglieder" not in x and x.get("slug") in groesse:
                         x["mitglieder"] = groesse[x["slug"]]
+        # Endstaende von vor dem 11.11.2026 haben keinen Lauf: aus der Analyse ergaenzen (nur ein Verweis, kein Wert).
+        for tf in voll:
+            lauf_dazu(db, tf.get("kennzahl") or "", tf.get("zeilen") or [])
         return voll
     ids = event_teilnehmer(db, t, e)
     glob = ist_global(e)

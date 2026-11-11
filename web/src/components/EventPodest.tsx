@@ -91,7 +91,13 @@ function FahrerPlatz({ z, platz, fmt }: { z: TeamZeile; platz: number; fmt: (v: 
         <TeamHerkunft land={z.land} kuerzel={false} />
         {w && <><TeamWappen name={w.name} logo={w.logo_url} farbe={w.farbe} size={20} /><span className="hidden max-w-[10rem] truncate sm:inline">{w.name}</span></>}
       </span>
-      <span className={`font-extrabold tabular-nums text-slate-100 ${platz === 1 ? "text-base sm:text-2xl" : "text-sm sm:text-lg"}`}>{fmt(z.value)}</span>
+      {/* Wert aus einer Session bzw. einem Lauf: dorthin (11.11.2026, wie die Bestenlisten-Zeilen); Name -> Profil. */}
+      {z.user_id && z.session_id ? (
+        <Link to={`/sessions/${z.session_id}${z.run_idx != null ? `?run=${z.run_idx}` : ""}`}
+          className={`font-extrabold tabular-nums text-slate-100 hover:underline ${platz === 1 ? "text-base sm:text-2xl" : "text-sm sm:text-lg"}`}>{fmt(z.value)}</Link>
+      ) : (
+        <span className={`font-extrabold tabular-nums text-slate-100 ${platz === 1 ? "text-base sm:text-2xl" : "text-sm sm:text-lg"}`}>{fmt(z.value)}</span>
+      )}
     </div>
   );
 }

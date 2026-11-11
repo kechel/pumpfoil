@@ -221,15 +221,21 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
         <ol className="mt-2">
           {tf.zeilen.map((z) => {
             const wert = k.fmt(z.value);
+            const ziel = gast || !z.user_id ? null
+              : z.session_id ? `/sessions/${z.session_id}${z.run_idx != null ? `?run=${z.run_idx}` : ""}`
+              : `/foiler/${z.user_id}`;
             return (
-              <li key={`${z.rang}-${z.user_id ?? z.name}`} className="flex items-center gap-2 border-t border-slate-800 py-1.5 first:border-t-0">
+              <li key={`${z.rang}-${z.user_id ?? z.name}`} className={`relative flex items-center gap-2 border-t border-slate-800 py-1.5 first:border-t-0 ${ziel ? "rounded-lg hover:bg-slate-800/60" : ""}`}>
+                {/* Ganze Zeile klickbar (Jan, 11.11.2026): Lauf (?run=), Session oder Profil — je nachdem, worauf sich die
+                    Bestenliste bezieht. Ein Link UEBER der Zeile, Profilbild und Wappen liegen darueber (eigene Links). */}
+                {ziel && <Link to={ziel} state={zurueck} aria-label={`${z.name ?? "—"} · ${wert}`} className="absolute inset-0 z-0 rounded-lg" />}
                 <span className={`w-6 shrink-0 text-right text-sm font-bold ${z.rang <= 3 ? "team-akzent" : "text-slate-400"}`}>{z.rang}</span>
                 {gast || !z.user_id ? (
                   <span className="team-farbe team-flaeche inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-slate-200">{z.initialen}</span>
-                ) : <Avatar name={z.name} url={z.avatar_url} seed={z.user_id} userId={z.user_id} size={28} linkState={zurueck} />}
+                ) : <span className="relative z-10 shrink-0"><Avatar name={z.name} url={z.avatar_url} seed={z.user_id} userId={z.user_id} size={28} linkState={zurueck} /></span>}
                 <Flagge land={z.land} />
                 {teamsZeigen && (
-                  <span className="flex w-7 shrink-0 -space-x-2" title={(z.teams ?? []).map((x) => x.name).join(", ") || undefined}>
+                  <span className="relative z-10 flex w-7 shrink-0 -space-x-2" title={(z.teams ?? []).map((x) => x.name).join(", ") || undefined}>
                     {(z.teams ?? []).slice(0, 2).map((x) => (
                       <Link key={x.slug} to={`/teams/${x.slug}`} className="shrink-0" aria-label={x.name}>
                         <TeamWappen name={x.name} logo={x.logo_url} farbe={x.farbe} size={20} />
@@ -239,7 +245,7 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
                 )}
                 <span className="min-w-0 flex-1">
                   {gast || !z.user_id ? <span className="block truncate text-sm text-slate-100">{z.name ?? "—"}</span>
-                    : <Link to={`/foiler/${z.user_id}`} state={zurueck} className="pf-name block truncate text-sm text-slate-100 hover:text-brand-400">{z.name ?? "—"}</Link>}
+                    : <span className="pf-name block truncate text-sm text-slate-100">{z.name ?? "—"}</span>}
                   {z.sportarten && <span className="mt-0.5 block"><SportAbzeichen sportarten={z.sportarten} klein /></span>}
                   {/* Offene Meldung, noch nicht entschieden: zaehlt, aber mit Vermerk direkt an der Zeile (Jan, 08.11.2026). */}
                   {z.strittig && (
@@ -253,9 +259,7 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
                     </span>
                   )}
                 </span>
-                {!gast && z.session_id
-                  ? <Link to={`/sessions/${z.session_id}`} state={zurueck} className="shrink-0 text-sm font-semibold text-slate-100 hover:underline">{wert}</Link>
-                  : <span className="shrink-0 text-sm font-semibold text-slate-100">{wert}</span>}
+                <span className="shrink-0 text-sm font-semibold text-slate-100">{wert}</span>
               </li>
             );
           })}

@@ -2305,6 +2305,8 @@ export interface TeamTafel {
 export interface TeamZeile {
   rang: number; name: string | null; initialen: string; value: number;
   user_id?: number; avatar_url?: string | null; session_id?: number; started_at?: string | null; spot?: string | null;
+  /** Bestenlisten aus EINEM Lauf (Strecke, Dauer, Tempo, Gleiten, Sprints): Lauf in der Session (`?run=`), 11.11.2026 */
+  run_idx?: number;
   /** Nationalitaet (ISO), nur fuer Eingeloggte */
   land?: string | null;
   /** Offene Meldung „nicht Pumpfoil" gegen (eine der) Sessions dieser Zeile, noch nicht entschieden (08.11.2026). */
