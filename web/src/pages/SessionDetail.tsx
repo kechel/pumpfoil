@@ -1616,10 +1616,17 @@ export default function SessionDetail() {
         if (tm >= sprintHL.a - 500 && tm <= sprintHL.b + 500) pkte.push(coords[i]);
       }
       if (pkte.length >= 2) {
-        L.polyline(pkte, { color: "#ffffff", weight: 11, opacity: 0.9, interactive: false }).addTo(lg);
-        L.polyline(pkte, { color: "#f59e0b", weight: 6, opacity: 1, interactive: false }).addTo(lg);
-        L.circleMarker(pkte[0], { radius: 5, color: "#78350f", weight: 1.5, fillColor: "#fbbf24", fillOpacity: 1 }).addTo(lg);
-        L.circleMarker(pkte[pkte.length - 1], { radius: 5, color: "#78350f", weight: 1.5, fillColor: "#fbbf24", fillOpacity: 1 }).addTo(lg);
+        // Magenta statt Bernstein (Jan, 11.11.2026: „ich sehe es nicht") — Orange steckt schon in der Tempo-Farbskala.
+        // Dunkler Rand + weisser Saum + Magenta, Start/Ende als Punkte, dazu ein festes Schild mit der Strecke.
+        L.polyline(pkte, { color: "#0f172a", weight: 14, opacity: 0.85, interactive: false }).addTo(lg);
+        L.polyline(pkte, { color: "#ffffff", weight: 10, opacity: 1, interactive: false }).addTo(lg);
+        L.polyline(pkte, { color: "#d946ef", weight: 6, opacity: 1, interactive: false }).addTo(lg);
+        for (const pt of [pkte[0], pkte[pkte.length - 1]])
+          L.circleMarker(pt, { radius: 7, color: "#ffffff", weight: 2.5, fillColor: "#a21caf", fillOpacity: 1 }).addTo(lg);
+        L.tooltip({ permanent: true, direction: "top", className: "sprint-schild", offset: [0, -6] })
+          .setLatLng(pkte[Math.floor(pkte.length / 2)])
+          .setContent(sprintHL.kz === "sprint_60s" ? "60 s" : `${sprintHL.kz.replace("sprint_", "").replace("m", "")} m`)
+          .addTo(lg);
       }
     }
     // Carves als feine 25-Hz-Bögen (Catmull-Rom-geglättet) über dem grauen Basis-Track.
@@ -2575,8 +2582,8 @@ export default function SessionDetail() {
                 const k = kennzahl(sprintHL.kz);
                 const ab = sprintHL.a - ((segs[selectedRun!] as any)?.t_start_session_ms ?? sprintHL.a);
                 return (
-                  <span className="ml-1 inline-flex items-center gap-1.5 rounded-lg border border-amber-500/60 px-2 py-1 text-xs text-amber-700 dark:text-amber-300">
-                    <span className="inline-block h-2 w-4 rounded-sm" style={{ background: "#f59e0b" }} />
+                  <span className="ml-1 inline-flex items-center gap-1.5 rounded-lg border-2 border-fuchsia-500 px-2 py-1 text-xs font-semibold text-fuchsia-700 dark:text-fuchsia-300">
+                    <span className="inline-block h-2 w-4 rounded-sm" style={{ background: "#d946ef" }} />
                     {t(k.labelKey)} · {k.fmt(sprintHL.wert)}{ab > 0 ? ` · +${Math.floor(ab / 60000)}:${String(Math.round(ab / 1000) % 60).padStart(2, "0")}` : ""}
                   </span>
                 );

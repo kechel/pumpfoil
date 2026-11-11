@@ -247,3 +247,7 @@ html.theme-light .team-farbe { --ta: var(--ta-h, #0e7490); --ta-f: var(--ta-hf, 
 @media (prefers-reduced-motion: reduce) {
   .event-puls { animation: none; }
 }
+
+/* Schild am gewerteten Sprint-Abschnitt (SessionDetail, 11.11.2026) */
+.leaflet-tooltip.sprint-schild { background: #a21caf; color: #fff; border: 2px solid #fff; font-weight: 700; font-size: 12px; padding: 2px 6px; border-radius: 6px; box-shadow: 0 1px 4px rgb(0 0 0 / .4); }
+.leaflet-tooltip.sprint-schild::before { border-top-color: #fff; }
