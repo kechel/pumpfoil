@@ -1169,6 +1169,11 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
 - ~~Garmin CIQ-Store-Listing „Pump Foil" → „Pumpfoil"~~ — ERLEDIGT: Store zeigt „Pumpfoil – Track
   Every Pump" (Titel + App-Name), kein „Pump Foil" mehr (bestätigt 2026-07-22).
 - **Muttersprachler-Review** der Übersetzungen fr/it/es/fi (best-effort erzeugt).
+- **Systemzustand für andere Installationen konfigurierbar** (Jan, 11.11.2026, erst bauen, wenn gebraucht):
+  `server/app/api/health.py` hat Dienstliste (`foil-server`, `postgresql`), Backup-Timer und `BACKUP_PFAD` fest auf
+  pumpfoil.org verdrahtet. Auf einer anderen Installation (anderer Dienstname, eigener Backup-Weg) zeigt der Admin-Reiter
+  System dann Unsinn, und die Push-Warnungen an die Admins prüfen Backup/Dienste gar nicht. Werte per Env (z. B.
+  `HEALTH_DIENSTE`, `HEALTH_TIMER`, `HEALTH_BACKUP_PFAD`) mit den heutigen als Vorgabe, und Dienste/Backup auch bewerten.
 
 ## 🔌 Integrationen (credential-gated / extern)
 - **COROS** — Workout-Push-Import gebaut + live, aber credential-gated; aktiv erst nach Freigabe.
