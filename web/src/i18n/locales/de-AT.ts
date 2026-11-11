@@ -393,6 +393,8 @@ const deAT: Record<string, string> = {
   "stat.foilingTime": "Foiling-Zeit",
   "stat.pumps": "Pumps",
   "sd.glides": "Gleiten",
+  "sd.glidesAll": "Alle {n} herzeigen",
+  "sd.glidesTop": "Nur die 10 längsten",
   "sd.glide": "Gleitphase",
   "sd.showAttempts": "Startversuche",
   "sd.showAttemptsHint": "De Anläufe, aus denen ka Lauf wordn is — gstrichlt auf da Kartn.",

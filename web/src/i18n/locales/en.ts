@@ -395,6 +395,8 @@ const en: Record<string, string> = {
   "stat.foilingTime": "Foiling time",
   "stat.pumps": "Pumps",
   "sd.glides": "Glides",
+  "sd.glidesAll": "Show all {n}",
+  "sd.glidesTop": "Only the 10 longest",
   "sd.glide": "Glide",
   "sd.showAttempts": "Start attempts",
   "sd.showAttemptsHint": "The tries that did not become a run — dashed on the map.",

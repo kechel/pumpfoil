@@ -404,6 +404,8 @@ const de: Record<string, string> = {
   "stat.foilingTime": "Foiling-Zeit",
   "stat.pumps": "Pumps",
   "sd.glides": "Gleiten",
+  "sd.glidesAll": "Alle {n} anzeigen",
+  "sd.glidesTop": "Nur die 10 längsten",
   "sd.glide": "Gleitphase",
   "sd.showAttempts": "Startversuche",
   "sd.showAttemptsHint": "Die Anläufe, aus denen kein Lauf wurde — gestrichelt auf der Karte.",

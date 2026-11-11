@@ -448,6 +448,8 @@ const nb: Record<string, string> = {
   "stat.foilingTime": "Foiling-tid",
   "stat.pumps": "Pumper",
   "sd.glides": "Glid",
+  "sd.glidesAll": "Vis alle {n}",
+  "sd.glidesTop": "Bare de 10 lengste",
   "sd.glide": "Glid",
   "sd.showAttempts": "Startforsøk",
   "sd.showAttemptsHint": "Forsøkene som ikke ble en tur — stiplet på kartet.",

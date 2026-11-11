@@ -538,6 +538,9 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
   );
 }
 
+// Gleitphasen-Liste unter der Karte: so viele (die laengsten) ohne Aufklappen.
+const GLIDES_KURZ = 10;
+
 export default function SessionDetail() {
   const t = useT();
   const pf = usePumpFmt();   // Pump-Kadenz-Einheit (Hz | /min) aus dem Profil
@@ -625,6 +628,7 @@ export default function SessionDetail() {
   const [showAttempts, setShowAttempts] = useState(gemerkt.showAttempts);
   // Gleitphasen einblenden (Jan, 03.10.2026) — wie die Pump-Marker, Daten aus `seg.glides`.
   const [showGlides, setShowGlides] = useState(gemerkt.showGlides);
+  const [alleGlides, setAlleGlides] = useState(false);   // Gleitphasen-Liste: alle statt der GLIDES_KURZ laengsten
   // Startversuche gibt es NUR beim Pumpfoilen. Anlass: Feedback von u43 zu Session 5272
   // (08.09.2026, "Hi, this is wingfoiling, but still, my first long run is recognized as long
   // start attempt"). Beim Wingfoilen, Efoilen oder am Seil ist ein Start etwas voellig anderes —
@@ -2717,10 +2721,16 @@ export default function SessionDetail() {
           const liste = selectedRun != null ? alle.filter((x) => x.lauf === selectedRun) : alle;
           if (!alle.length) return null;
           const startMs = new Date(session!.started_at).getTime();
+          // Mehr als GLIDES_KURZ: nur die laengsten zeigen, Rest auf Knopfdruck (Nutzerhinweis 11.11.2026: „eine ellenlange
+          // Liste mit glides … das braucht doch keiner"). Reihenfolge der gezeigten bleibt zeitlich.
+          const lang = liste.length > GLIDES_KURZ && !alleGlides;
+          const grenze = lang ? [...liste].sort((a, b) => b.d - a.d)[GLIDES_KURZ - 1].d : -1;
+          let rest = GLIDES_KURZ;
+          const gezeigt = lang ? liste.filter((x) => x.d >= grenze && rest-- > 0) : liste;
           return (
             <div className="mt-2 flex flex-wrap items-center gap-1.5 px-1">
-              <span className="mr-1 text-xs text-slate-400">{t("sd.glides")} ({liste.length})</span>
-              {liste.map((x, i) => (
+              <span className="mr-1 text-xs text-slate-400">{t("sd.glides")} ({liste.length}){lang ? ` · ${t("sd.glidesTop")}` : ""}</span>
+              {gezeigt.map((x, i) => (
                 <button key={i}
                   onClick={() => { setSelectedRun(x.lauf); setShowGlides(true); }}
                   className="rounded-lg bg-slate-800 px-2.5 py-1 text-xs tabular-nums text-slate-200 hover:bg-slate-700">
@@ -2730,6 +2740,11 @@ export default function SessionDetail() {
                   <span className="font-semibold"> · {x.d.toFixed(1)} s</span>
                 </button>
               ))}
+              {liste.length > GLIDES_KURZ && (
+                <button onClick={() => setAlleGlides(!alleGlides)} className="px-1 text-xs text-slate-400 underline hover:text-slate-200">
+                  {alleGlides ? t("sd.glidesTop") : t("sd.glidesAll", { n: String(liste.length) })}
+                </button>
+              )}
             </div>
           );
         })()}

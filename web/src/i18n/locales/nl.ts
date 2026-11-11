@@ -441,6 +441,8 @@ const nl: Record<string, string> = {
   "stat.foilingTime": "Foiling-tijd",
   "stat.pumps": "Pumps",
   "sd.glides": "Glides",
+  "sd.glidesAll": "Alle {n} tonen",
+  "sd.glidesTop": "Alleen de 10 langste",
   "sd.glide": "Glide",
   "sd.showAttempts": "Startpogingen",
   "sd.showAttemptsHint": "De pogingen die geen run werden — gestippeld op de kaart.",

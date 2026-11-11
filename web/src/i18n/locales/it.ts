@@ -396,6 +396,8 @@ const it: Record<string, string> = {
   "stat.foilingTime": "Tempo di foiling",
   "stat.pumps": "Pumps",
   "sd.glides": "Planate",
+  "sd.glidesAll": "Mostra tutte le {n}",
+  "sd.glidesTop": "Solo le 10 più lunghe",
   "sd.glide": "Planata",
   "sd.showAttempts": "Tentativi",
   "sd.showAttemptsHint": "I tentativi che non sono diventati un run — tratteggiati sulla mappa.",

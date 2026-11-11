@@ -431,6 +431,8 @@ const id: Record<string, string> = {
   "stat.foilingTime": "Waktu foiling",
   "stat.pumps": "Pump",
   "sd.glides": "Meluncur",
+  "sd.glidesAll": "Tampilkan semua {n}",
+  "sd.glidesTop": "Hanya 10 terlama",
   "sd.glide": "Meluncur",
   "sd.showAttempts": "Percobaan start",
   "sd.showAttemptsHint": "Percobaan yang tidak menjadi run — putus-putus di peta.",

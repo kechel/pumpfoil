@@ -441,6 +441,8 @@ const cs: Record<string, string> = {
   "stat.foilingTime": "Čas na foilu",
   "stat.pumps": "Pumpnutí",
   "sd.glides": "Klouzání",
+  "sd.glidesAll": "Zobrazit všech {n}",
+  "sd.glidesTop": "Jen 10 nejdelších",
   "sd.glide": "Klouzání",
   "sd.showAttempts": "Pokusy o start",
   "sd.showAttemptsHint": "Pokusy, ze kterých nevznikla jízda — na mapě čárkovaně.",

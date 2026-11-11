@@ -427,6 +427,8 @@ const fi: Record<string, string> = {
   "stat.foilingTime": "Foiling-aika",
   "stat.pumps": "Pumps",
   "sd.glides": "Liu'ut",
+  "sd.glidesAll": "Näytä kaikki {n}",
+  "sd.glidesTop": "Vain 10 pisintä",
   "sd.glide": "Liuku",
   "sd.showAttempts": "Lähtöyritykset",
   "sd.showAttemptsHint": "Yritykset, joista ei tullut vetoa — kartalla katkoviivalla.",

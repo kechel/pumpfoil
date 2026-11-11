@@ -397,6 +397,8 @@ const gsw: Record<string, string> = {
   "stat.foilingTime": "Foiling-Ziit",
   "stat.pumps": "Pumps",
   "sd.glides": "Glite",
+  "sd.glidesAll": "Alli {n} aazeige",
+  "sd.glidesTop": "Nume di 10 längschte",
   "sd.glide": "Glitphase",
   "sd.showAttempts": "Startversuech",
   "sd.showAttemptsHint": "D Aaläuf, wo kein Lauf drus worde isch — gstricheled uf de Charte.",

@@ -431,6 +431,8 @@ const ru: Record<string, string> = {
   "stat.foilingTime": "Время на фойле",
   "stat.pumps": "Помпинг",
   "sd.glides": "Глайды",
+  "sd.glidesAll": "Показать все {n}",
+  "sd.glidesTop": "Только 10 самых длинных",
   "sd.glide": "Глайд",
   "sd.showAttempts": "Попытки старта",
   "sd.showAttemptsHint": "Попытки, из которых не вышло прохода — на карте пунктиром.",

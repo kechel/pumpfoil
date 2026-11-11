@@ -431,6 +431,8 @@ const zh: Record<string, string> = {
   "stat.foilingTime": "水翼滑行时长",
   "stat.pumps": "泵动次数",
   "sd.glides": "滑翔",
+  "sd.glidesAll": "显示全部 {n} 个",
+  "sd.glidesTop": "只显示最长的 10 个",
   "sd.glide": "滑翔",
   "sd.showAttempts": "起步尝试",
   "sd.showAttemptsHint": "没有成为滑行的尝试，在地图上以虚线显示。",

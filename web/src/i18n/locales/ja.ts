@@ -431,6 +431,8 @@ const ja: Record<string, string> = {
   "stat.foilingTime": "フォイリング時間",
   "stat.pumps": "ポンプ",
   "sd.glides": "グライド",
+  "sd.glidesAll": "全{n}件を表示",
+  "sd.glidesTop": "長い順に10件のみ",
   "sd.glide": "グライド",
   "sd.showAttempts": "スタート試行",
   "sd.showAttemptsHint": "ランにならなかった試行です。地図では破線で表示します。",
