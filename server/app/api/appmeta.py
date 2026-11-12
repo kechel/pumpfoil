@@ -981,9 +981,9 @@ IN_REVIEW: list[dict] = [
          "A short GPS dropout during a run, for example when your arm dips under water, no longer splits the run in two, and after a fall the run ends at the last GPS position.",
      ],
      "bilder": [
-         {"src": "/changelog/gps-luecke-apple-1-luecke.webp", "alt": "Apple Watch simulator: 8 s without GPS, the run timer keeps going"},
-         {"src": "/changelog/gps-luecke-apple-2-weiter.webp", "alt": "After the gap the same run continues"},
-         {"src": "/changelog/gps-luecke-apple-3-ergebnis.webp", "alt": "Result: one run of 1:50 instead of two"},
+         {"src": "/changelog/gps-luecke-apple-1-luecke.webp?v=2", "alt": "Apple Watch simulator: 8 s without GPS, the run timer keeps going"},
+         {"src": "/changelog/gps-luecke-apple-2-weiter.webp?v=2", "alt": "After the gap the same run continues"},
+         {"src": "/changelog/gps-luecke-apple-3-ergebnis.webp?v=2", "alt": "Result: one run of 1:50 instead of two"},
      ]},
     # iPhone + Apple Watch 1.1.65 am 11.11. 09:34 eingereicht, am 11.11. FREIGEGEBEN (s. _APP_META["ios"]); 5 Punkte im Changelog mit ios 1.1.65
     # (1005-1009; 1004 war ein kaputter Uebernahme-Rest und ist seit 12.11. Entwurf).
