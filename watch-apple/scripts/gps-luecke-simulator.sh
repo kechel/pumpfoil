@@ -34,9 +34,10 @@ luecke() {     # $1 = Sekunden ohne jede Position
 }
 
 echo "Watch-Simulator: $DEV — Fall: $FALL"
-xcrun simctl location "$DEV" set "$LAT0,$LON"
-echo "Stehe am Start. JETZT in der Watch-App die Aufnahme starten (GPS bereit abwarten). Weiter in 25 s ..."
-sleep 25
+# Kein `set`: das liefert EINE Position, danach nichts mehr -> die App meldet nach 5 s zu Recht „GPS suchen".
+# Stattdessen langsam treiben (0,3 m/s), dann kommt jede Sekunde ein Fix.
+echo "Treibe am Start (40 s). JETZT in der Watch-App die Aufnahme starten, sobald GPS bereit ist ..."
+LAT0=$(fahren "$LAT0" 40 0.3)
 
 case "$FALL" in
   sturz)
