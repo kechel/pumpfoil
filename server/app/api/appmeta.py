@@ -53,7 +53,9 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.65",   # FREIGEGEBEN 2026-11-11 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.65 for iOS
+        "latest": "1.1.66",   # FREIGEGEBEN 2026-11-12 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.66 for iOS
+        # (Submission 4151a892-5045-49ff-ba41-57e9369963ae, Build 77 mit GPS-Luecken-Fix).
+        # ALT: "latest": "1.1.65",   # FREIGEGEBEN 2026-11-11 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.65 for iOS
         # (Submission ffa9a803-b55d-4e6a-ba16-7f56f6bfbd15, Build 75); Store-Lookup de/us/nl zweimal hintereinander 1.1.65
         # (currentVersionReleaseDate 2026-11-11T18:55:07Z) erst gegen 22 Uhr — der de-Store hing laenger auf 1.1.64.
         # Inhalt: Wertungsklasse, Bestenlisten-Zeile antippbar mit Sprint-Hervorhebung, primaeres Team, Event-Seite.
@@ -522,7 +524,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.65",   # FREIGEGEBEN 2026-11-11 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.66",   # FREIGEGEBEN 2026-11-12 — dieselbe Einreichung wie "ios" (ein Bundle; GPS-Luecke am Lauf-Ende).
+        # ALT: "latest": "1.1.65",   # FREIGEGEBEN 2026-11-11 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.64",   # FREIGEGEBEN 2026-11-11 — dieselbe Einreichung wie "ios" (ein Bundle; V-max wie der Server).
         # ALT: "latest": "1.1.62",   # FREIGEGEBEN 2026-11-07 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.61",   # FREIGEGEBEN 2026-11-07 — dieselbe Einreichung wie "ios" (ein Bundle; Store nennt sie 1.0.61).
@@ -959,25 +962,7 @@ IN_REVIEW: list[dict] = [
     # Amazfit 1.0.15 am 11.11. FREIGEGEBEN -> raus (s. _APP_META["zepp"]); Punkte zepp 1.0.15 im Changelog.
     # 06.11.2026 (Jan: „fortsetzen vorauswaehlen ist gut"): Pausen-Menue mit Vorauswahl.
     # Garmin 1.0.102 am 10.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkte 979/980 im Changelog mit garmin 1.0.102.
-    # EINGEREICHT 12.11.2026 06:32 (Jans Meldung, ASC „Warten auf Pruefung", 1.1.66 (76),
-    # Kennung 1dee31a4-be50-489e-8dfa-37b5adf8752d). Aus 65809cf4; von Jan komplett getestet.
-    # NEU EINGEREICHT 12.11.2026 08:30 als 1.1.66 (77) mit dem Luecken-Fix (Kennung 4151a892-5045-49ff-ba41-57e9369963ae),
-    # Build 76 aus der Pruefung genommen. Watch-Simulator: 8 s Luecke = ein Lauf (c49a3c86).
-    {"name": "iPhone + Apple Watch", "version": "1.1.66",
-     "eingereicht": "2026-11-12",
-     "items": [
-         "Sign in with Google on the iPhone, for everyone who created their account with Google on the website.",
-         "On global event pages, My team is now a single row; tap a greyed-out team to see why it does not count.",
-         "After an event, its page shows which team you competed for.",
-         "Tap a sprint value on the podium to open the run, with the stretch that counted highlighted on the map.",
-         # 12.11.2026: Build 77 mit dem Luecken-Fix (7ac3e1c6), im Simulator bestaetigt, 08:30 eingereicht.
-         "A short GPS dropout during a run, for example when your arm dips under water, no longer splits the run in two, and after a fall the run ends at the last GPS position.",
-     ],
-     "bilder": [
-         {"src": "/changelog/gps-luecke-apple-1-luecke.webp?v=2", "alt": "Apple Watch simulator: 8 s without GPS, the run timer keeps going"},
-         {"src": "/changelog/gps-luecke-apple-2-weiter.webp?v=2", "alt": "After the gap the same run continues"},
-         {"src": "/changelog/gps-luecke-apple-3-ergebnis.webp?v=2", "alt": "Result: one run of 1:50 instead of two"},
-     ]},
+    # iPhone + Apple Watch 1.1.66 (Build 77) am 12.11. 08:30 eingereicht, am 12.11. FREIGEGEBEN (s. _APP_META["ios"]); 5 Punkte im Changelog mit ios 1.1.66.
     # iPhone + Apple Watch 1.1.65 am 11.11. 09:34 eingereicht, am 11.11. FREIGEGEBEN (s. _APP_META["ios"]); 5 Punkte im Changelog mit ios 1.1.65
     # (1005-1009; 1004 war ein kaputter Uebernahme-Rest und ist seit 12.11. Entwurf).
     # iPhone + Apple Watch 1.1.64 am 10.11. 11:47 eingereicht, am 11.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 983-990 im Changelog.
