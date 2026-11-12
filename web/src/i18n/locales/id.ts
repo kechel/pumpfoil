@@ -3012,6 +3012,16 @@ const id: Record<string, string> = {
   "comments.settingHint": "Orang lain bisa mengomentari sesimu. Kamu bisa menghapus komentar orang lain di sesimu. Jika dimatikan, komentar disembunyikan untuk semua orang, termasuk yang sudah ditulis.",
   "comments.settingSwitch": "Izinkan komentar di sesiku",
   "notif.typeComment": "Komentar di sesiku",
+  // Medien melden (12.11.2026)
+  "media.report": "Laporkan media",
+  "media.reportConfirm": "Laporkan foto/video ini sebagai spam atau tidak pantas? Setelah beberapa laporan, akan disembunyikan.",
+  "media.reported": "Dilaporkan",
+  "sd.blockedMedia": "Media diblokir: {n}",
+  "adm.mediaReports": "Media dilaporkan",
+  "adm.mediaReports.melder": "{n} laporan",
+  "adm.mediaReports.erledigt": "Selesai",
+  "adm.blockMedia": "Blokir",
+  "adm.unblockMedia": "Buka blokir",
 };
 
 export default id;

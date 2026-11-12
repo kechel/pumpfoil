@@ -298,6 +298,8 @@ function SocialBar({ sessionId, owned, isPublic = false, publicPhotos = [], publ
 
   return (
     <div className="space-y-2">
+      {/* Gesperrte Medien (gemeldet bzw. vom Admin gesperrt): Hinweis statt stillem Verschwinden — Jan, 12.11.2026 */}
+      {!!s.blocked_media && <p className="text-sm text-slate-400">{t("sd.blockedMedia", { n: s.blocked_media })}</p>}
       {/* Angehängte Medien (Fotos + ggf. Videos) */}
       {(s.photos.length > 0 || videos.length > 0) && (
         <div className="flex flex-wrap items-center gap-2">

@@ -2991,6 +2991,16 @@ const pl: Record<string, string> = {
   "comments.settingHint": "Inni mogą komentować twoje sesje. Możesz usuwać cudze komentarze pod swoimi sesjami. Po wyłączeniu komentarze są ukryte dla wszystkich, także te już napisane.",
   "comments.settingSwitch": "Zezwalaj na komentarze pod moimi sesjami",
   "notif.typeComment": "Komentarze do moich sesji",
+  // Medien melden (12.11.2026)
+  "media.report": "Zgłoś media",
+  "media.reportConfirm": "Zgłosić to zdjęcie/wideo jako spam lub nieodpowiednie? Po kilku zgłoszeniach zostanie ukryte.",
+  "media.reported": "Zgłoszono",
+  "sd.blockedMedia": "Zablokowane media: {n}",
+  "adm.mediaReports": "Zgłoszone media",
+  "adm.mediaReports.melder": "{n} zgłoszeń",
+  "adm.mediaReports.erledigt": "Załatwione",
+  "adm.blockMedia": "Zablokuj",
+  "adm.unblockMedia": "Odblokuj",
 };
 
 export default pl;

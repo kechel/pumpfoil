@@ -3012,6 +3012,16 @@ const ru: Record<string, string> = {
   "comments.settingHint": "Другие могут комментировать твои сессии. Ты можешь удалять чужие комментарии под своими сессиями. Если отключить, комментарии скрыты для всех, включая уже написанные.",
   "comments.settingSwitch": "Разрешить комментарии к моим сессиям",
   "notif.typeComment": "Комментарии к моим сессиям",
+  // Medien melden (12.11.2026)
+  "media.report": "Пожаловаться на медиа",
+  "media.reportConfirm": "Пожаловаться на это фото/видео как на спам или неуместное? После нескольких жалоб оно скрывается.",
+  "media.reported": "Жалоба отправлена",
+  "sd.blockedMedia": "Заблокированные медиа: {n}",
+  "adm.mediaReports": "Медиа с жалобами",
+  "adm.mediaReports.melder": "Жалоб: {n}",
+  "adm.mediaReports.erledigt": "Обработано",
+  "adm.blockMedia": "Заблокировать",
+  "adm.unblockMedia": "Разблокировать",
 };
 
 export default ru;

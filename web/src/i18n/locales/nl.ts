@@ -3066,6 +3066,16 @@ const nl: Record<string, string> = {
   "comments.settingHint": "Anderen kunnen op je sessies reageren. Je kunt reacties van anderen onder je sessies verwijderen. Uitgeschakeld zijn reacties voor iedereen verborgen, ook de al geschreven.",
   "comments.settingSwitch": "Reacties op mijn sessies toestaan",
   "notif.typeComment": "Reacties op mijn sessies",
+  // Medien melden (12.11.2026)
+  "media.report": "Media melden",
+  "media.reportConfirm": "Deze foto/video melden als spam of ongepast? Na meerdere meldingen wordt hij verborgen.",
+  "media.reported": "Gemeld",
+  "sd.blockedMedia": "Geblokkeerde media: {n}",
+  "adm.mediaReports": "Gemelde media",
+  "adm.mediaReports.melder": "{n} meldingen",
+  "adm.mediaReports.erledigt": "Afgehandeld",
+  "adm.blockMedia": "Blokkeren",
+  "adm.unblockMedia": "Deblokkeren",
 };
 
 export default nl;

@@ -3009,6 +3009,16 @@ const zh: Record<string, string> = {
   "comments.settingHint": "其他人可以评论你的训练记录。你可以删除他人在你记录下的评论。关闭后,所有评论(包括已写的)对所有人隐藏。",
   "comments.settingSwitch": "允许评论我的训练记录",
   "notif.typeComment": "对我训练记录的评论",
+  // Medien melden (12.11.2026)
+  "media.report": "举报媒体",
+  "media.reportConfirm": "将此照片/视频举报为垃圾内容或不当内容？多次举报后将被隐藏。",
+  "media.reported": "已举报",
+  "sd.blockedMedia": "已屏蔽媒体：{n}",
+  "adm.mediaReports": "被举报的媒体",
+  "adm.mediaReports.melder": "{n} 次举报",
+  "adm.mediaReports.erledigt": "已处理",
+  "adm.blockMedia": "屏蔽",
+  "adm.unblockMedia": "取消屏蔽",
 };
 
 export default zh;

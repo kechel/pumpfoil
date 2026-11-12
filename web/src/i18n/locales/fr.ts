@@ -2895,6 +2895,16 @@ const fr: Record<string, string> = {
   "comments.settingHint": "Les autres peuvent commenter tes sessions. Tu peux supprimer les commentaires des autres sous tes sessions. Désactivés, les commentaires sont masqués pour tout le monde, y compris ceux déjà écrits.",
   "comments.settingSwitch": "Autoriser les commentaires sous mes sessions",
   "notif.typeComment": "Commentaires sur mes sessions",
+  // Medien melden (12.11.2026)
+  "media.report": "Signaler le média",
+  "media.reportConfirm": "Signaler cette photo/vidéo comme spam ou inappropriée ? Après plusieurs signalements, elle est masquée.",
+  "media.reported": "Signalé",
+  "sd.blockedMedia": "Médias bloqués : {n}",
+  "adm.mediaReports": "Médias signalés",
+  "adm.mediaReports.melder": "{n} signalements",
+  "adm.mediaReports.erledigt": "Traité",
+  "adm.blockMedia": "Bloquer",
+  "adm.unblockMedia": "Débloquer",
 };
 
 export default fr;

@@ -686,6 +686,7 @@ export interface SessionSocial {
   my_inappropriate: boolean;
   photos: { id: number; url: string; thumb_url?: string | null }[];
   videos: SessionVideo[];
+  blocked_media?: number;   // gesperrte Fotos + Videos (Hinweis, 12.11.2026)
 }
 
 export interface SessionVideo {
@@ -693,11 +694,18 @@ export interface SessionVideo {
   youtube_url: string;
 }
 
+export interface AdminMediaReport {
+  art: "photo" | "video"; id: number; session_id: number; url: string | null; youtube_url: string | null;
+  blocked: boolean; report_count: number; zuletzt: string | null; besitzer: { id: number; name: string | null };
+  spot: string | null; melder: { name: string | null; at: string | null }[];
+}
+
 export interface CommunityPhoto {
   user_id?: number | null;   // fuer den Online-Punkt am Profilbild (Server additiv seit 01.10.2026)
   tz?: string | null;   // IANA-Zeitzone des Spots — Uhrzeiten in Spot-Ortszeit anzeigen
   kind?: "photo" | "video";
   photo_id?: number;
+  video_id?: number;   // fuer „Medium melden" (12.11.2026)
   url: string | null;
   thumb_url?: string | null;
   youtube_url?: string | null;
@@ -1849,6 +1857,9 @@ export const api = {
   communityRegionen: (period: string, sport: string) =>
     req<{ regionen: { key: string; fahrer: number; teams: number }[]; ich: string | null }>(
       `/api/community/regionen?period=${period}&sport=${encodeURIComponent(sport)}`),
+  reportMedia: (art: "photo" | "video", id: number) =>
+    req<{ reported: boolean; report_count: number; hidden: boolean }>(`/api/community/media/${art}/${id}/report`, { method: "POST" }),
+  sessionBlockedMedia: (id: number) => req<{ photos: number; videos: number; total: number }>(`/api/sessions/${id}/blocked-media`),
   communityLatestPhotos: (limit = 5) => req<CommunityPhoto[]>(`/api/community/latest-photos?limit=${limit}`),
   topLiked: (period = "all") => req<CommunitySession[]>(`/api/community/top-liked?period=${period}`),
   topCommented: (period = "all") => req<CommunitySession[]>(`/api/community/top-commented?period=${period}`),
@@ -2149,6 +2160,11 @@ export const api = {
   adminPhotos: (limit = 60, offset = 0) => req<AdminPhoto[]>(`/api/admin/photos?limit=${limit}&offset=${offset}`),
   adminBlockPhoto: (id: number, blocked: boolean) =>
     req<{ blocked: boolean }>(`/api/admin/photos/${id}/block?blocked=${blocked}`, { method: "POST" }),
+  adminMediaReports: () => req<AdminMediaReport[]>(`/api/admin/media-reports`),
+  adminBlockMedia: (art: "photo" | "video", id: number, blocked: boolean) =>
+    req<{ blocked: boolean }>(`/api/admin/media/${art}/${id}/block?blocked=${blocked}`, { method: "POST" }),
+  adminDismissMedia: (art: "photo" | "video", id: number) =>
+    req<{ erledigt: number }>(`/api/admin/media/${art}/${id}/dismiss`, { method: "POST" }),
   adminDeletePhoto: (id: number) => req<{ ok: boolean }>(`/api/admin/photos/${id}`, { method: "DELETE" }),
   adminAudit: (limit = 100) => req<AdminAuditEntry[]>(`/api/admin/audit?limit=${limit}`),
   adminFeedback: (limit = 200) => req<AdminFeedback[]>(`/api/admin/feedback?limit=${limit}`),

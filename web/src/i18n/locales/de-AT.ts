@@ -2898,6 +2898,16 @@ const deAT: Record<string, string> = {
   "comments.settingHint": "Andere können unter deinen Sessions kommentieren. Du kannst fremde Kommentare unter deinen Sessions löschen. Ausg'schaltet sind Kommentare für alle ausgeblendet, a schon geschriebene.",
   "comments.settingSwitch": "Kommentare unter meinen Sessions erlauben",
   "notif.typeComment": "Kommentare zu meinen Sessions",
+  // Medien melden (12.11.2026)
+  "media.report": "Medium melden",
+  "media.reportConfirm": "Des Foto/Video als Spam oder unpassend melden? Nach a paar Meldungen wird's ausblendet.",
+  "media.reported": "Gmeldet",
+  "sd.blockedMedia": "Gsperrte Medien: {n}",
+  "adm.mediaReports": "Gmeldete Medien",
+  "adm.mediaReports.melder": "{n} Meldungen",
+  "adm.mediaReports.erledigt": "Erledigt",
+  "adm.blockMedia": "Sperren",
+  "adm.unblockMedia": "Entsperren",
 };
 
 export default deAT

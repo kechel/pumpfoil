@@ -421,6 +421,21 @@ class ChatReport(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class MediaReport(Base):
+    """Meldung eines Fotos oder verlinkten Videos einer Session (1x je Nutzer und Medium), 12.11.2026 —
+    api/medienmeldung.py. Ab 3 Meldungen wird das Medium gesperrt (blocked); erledigt_at setzt ein Admin."""
+
+    __tablename__ = "media_reports"
+    __table_args__ = (UniqueConstraint("art", "media_id", "user_id", name="uq_mediareport"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    art: Mapped[str] = mapped_column(String(8))                 # photo | video
+    media_id: Mapped[int] = mapped_column(Integer, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    erledigt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
 class ChatLike(Base):
     """👍 auf eine Chat-Nachricht (1× je Nutzer). Zählung on-the-fly."""
 

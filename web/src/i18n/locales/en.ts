@@ -3117,6 +3117,16 @@ const en: Record<string, string> = {
   "comments.settingHint": "Others can comment on your sessions. You can delete other people's comments on your sessions. When switched off, comments are hidden for everyone, including those already written.",
   "comments.settingSwitch": "Allow comments on my sessions",
   "notif.typeComment": "Comments on my sessions",
+  // Medien melden (12.11.2026)
+  "media.report": "Report media",
+  "media.reportConfirm": "Report this photo/video as spam or inappropriate? After several reports it is hidden.",
+  "media.reported": "Reported",
+  "sd.blockedMedia": "Blocked media: {n}",
+  "adm.mediaReports": "Reported media",
+  "adm.mediaReports.melder": "{n} reports",
+  "adm.mediaReports.erledigt": "Done",
+  "adm.blockMedia": "Block",
+  "adm.unblockMedia": "Unblock",
 };
 
 export default en;

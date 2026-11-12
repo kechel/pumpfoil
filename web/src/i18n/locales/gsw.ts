@@ -2897,6 +2897,16 @@ const gsw: Record<string, string> = {
   "comments.settingHint": "Anderi chönd under dine Sessions kommentiere. Du chasch frömdi Kommentär under dine Sessions lösche. Abgschaltet sind Kommentär für alli usbländet, au die, wo scho gschribe sind.",
   "comments.settingSwitch": "Kommentär under mine Sessions erlaube",
   "notif.typeComment": "Kommentär zu mine Sessions",
+  // Medien melden (12.11.2026)
+  "media.report": "Medium mälde",
+  "media.reportConfirm": "Das Foti/Video als Spam oder unpassend mälde? Nach mehrere Mäldige wirds usblendet.",
+  "media.reported": "Gmäldet",
+  "sd.blockedMedia": "Gsperrti Medie: {n}",
+  "adm.mediaReports": "Gmäldeti Medie",
+  "adm.mediaReports.melder": "{n} Mäldige",
+  "adm.mediaReports.erledigt": "Erledigt",
+  "adm.blockMedia": "Sperre",
+  "adm.unblockMedia": "Entsperre",
 };
 
 export default gsw

@@ -3012,6 +3012,16 @@ const pt: Record<string, string> = {
   "comments.settingHint": "Outras pessoas podem comentar suas sessões. Você pode apagar comentários de outros nas suas sessões. Desativados, os comentários ficam ocultos para todos, inclusive os já escritos.",
   "comments.settingSwitch": "Permitir comentários nas minhas sessões",
   "notif.typeComment": "Comentários nas minhas sessões",
+  // Medien melden (12.11.2026)
+  "media.report": "Denunciar mídia",
+  "media.reportConfirm": "Denunciar esta foto/vídeo como spam ou impróprio? Após várias denúncias, ela é ocultada.",
+  "media.reported": "Denunciado",
+  "sd.blockedMedia": "Mídias bloqueadas: {n}",
+  "adm.mediaReports": "Mídias denunciadas",
+  "adm.mediaReports.melder": "{n} denúncias",
+  "adm.mediaReports.erledigt": "Resolvido",
+  "adm.blockMedia": "Bloquear",
+  "adm.unblockMedia": "Desbloquear",
 };
 
 export default pt;

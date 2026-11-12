@@ -1740,7 +1740,7 @@ def latest_photos(
     # Videos: je Session das neueste verlinkte YouTube-Video, nach Verlink-Zeit.
     V = models.SessionVideo
     vrows = (
-        db.query(V.youtube_url, V.created_at, V.session_id, S.started_at, NAME, U.avatar_url, S.place_name, S.caption,
+        db.query(V.youtube_url, V.created_at, V.session_id, V.id, S.started_at, NAME, U.avatar_url, S.place_name, S.caption,
                  S.place_lat, S.place_lon, U.id, S.ort_sichtbarkeit)
         .select_from(V).join(S, V.session_id == S.id).join(U, S.user_id == U.id)
         # Nur YouTube im „Neueste Medien"-Feed: nur die haben ein einbettbares Vorschaubild
@@ -1750,11 +1750,11 @@ def latest_photos(
         .order_by(V.id.desc()).limit(80).all()
     )
     seenv: set[int] = set()
-    for yturl, cts, sid, sts, name, avatar, place, caption, lat, lon, uid, sicht in vrows:
+    for yturl, cts, sid, vid, sts, name, avatar, place, caption, lat, lon, uid, sicht in vrows:
         if sid in seenv:
             continue
         seenv.add(sid)
-        items.append({"kind": "video", "_ts": cts or sts, "url": None, "youtube_url": yturl,
+        items.append({"kind": "video", "_ts": cts or sts, "video_id": vid, "url": None, "youtube_url": yturl,
                       "session_id": sid, "started_at": sts.isoformat() if sts else None, "name": name,
                       "avatar_url": avatar, "user_id": uid, "caption": caption or None,
                       **dict(zip(("spot", "tz"), _ort(db, sicht, uid, place, lat, lon)))})
@@ -3425,6 +3425,10 @@ def session_social(session_id: int, request: Request, user: models.User = Depend
         "photos": [{"id": pid, "url": url, "thumb_url": _thumb(url)} for pid, url in photos],
         # IG/TikTok nur an anzeige-fähige Clients (Web/App>=Min) — sonst nur YouTube.
         "videos": filter_videos([{"id": vid, "youtube_url": vurl} for vid, vurl in videos], request),
+        # Hinweis „1 gesperrtes Medium" statt stillem Verschwinden (Jan, 12.11.2026; api/medienmeldung.py)
+        "blocked_media": int(
+            (db.query(func.count(models.SessionPhoto.id)).filter_by(session_id=session_id, blocked=True).scalar() or 0)
+            + (db.query(func.count(models.SessionVideo.id)).filter_by(session_id=session_id, blocked=True).scalar() or 0)),
     }
 
 

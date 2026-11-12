@@ -3065,6 +3065,16 @@ const cs: Record<string, string> = {
   "comments.settingHint": "Ostatní mohou komentovat tvé sessions. Cizí komentáře pod svými sessions můžeš smazat. Když je vypneš, komentáře jsou skryté pro všechny, i ty už napsané.",
   "comments.settingSwitch": "Povolit komentáře pod mými sessions",
   "notif.typeComment": "Komentáře k mým sessions",
+  // Medien melden (12.11.2026)
+  "media.report": "Nahlásit médium",
+  "media.reportConfirm": "Nahlásit tuto fotku/video jako spam nebo nevhodné? Po několika nahlášeních se skryje.",
+  "media.reported": "Nahlášeno",
+  "sd.blockedMedia": "Zablokovaná média: {n}",
+  "adm.mediaReports": "Nahlášená média",
+  "adm.mediaReports.melder": "{n} nahlášení",
+  "adm.mediaReports.erledigt": "Vyřízeno",
+  "adm.blockMedia": "Zablokovat",
+  "adm.unblockMedia": "Odblokovat",
 };
 
 export default cs;

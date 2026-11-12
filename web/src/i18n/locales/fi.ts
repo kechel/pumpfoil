@@ -3047,6 +3047,16 @@ const fi: Record<string, string> = {
   "comments.settingHint": "Muut voivat kommentoida sessioitasi. Voit poistaa muiden kommentteja sessioidesi alta. Kun ne ovat pois päältä, kommentit on piilotettu kaikilta, myös jo kirjoitetut.",
   "comments.settingSwitch": "Salli kommentit sessioihini",
   "notif.typeComment": "Kommentit sessioihini",
+  // Medien melden (12.11.2026)
+  "media.report": "Ilmoita mediasta",
+  "media.reportConfirm": "Ilmoitetaanko tämä kuva/video roskapostiksi tai sopimattomaksi? Useiden ilmoitusten jälkeen se piilotetaan.",
+  "media.reported": "Ilmoitettu",
+  "sd.blockedMedia": "Estetyt mediat: {n}",
+  "adm.mediaReports": "Ilmoitetut mediat",
+  "adm.mediaReports.melder": "{n} ilmoitusta",
+  "adm.mediaReports.erledigt": "Käsitelty",
+  "adm.blockMedia": "Estä",
+  "adm.unblockMedia": "Poista esto",
 };
 
 export default fi;

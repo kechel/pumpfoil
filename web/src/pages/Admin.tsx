@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { SupporterBadge } from "../components/SupporterBadge";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket, AdminBewertung, BewertungStatus, AdminTeamFreigabe } from "../lib/api";
+import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket, AdminBewertung, BewertungStatus, AdminTeamFreigabe, AdminMediaReport } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import { teamFarbStil } from "../lib/teamFarben";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
@@ -1602,6 +1602,45 @@ function UserRow({ u, upd, onRemove }: { u: AdminUser; upd: (p: Partial<AdminUse
   );
 }
 
+// Gemeldete Medien (12.11.2026): Fotos UND verlinkte Videos, die Nutzer gemeldet haben; ab 3 Meldungen schon
+// automatisch gesperrt. Hier sperren/entsperren und die Meldungen als erledigt markieren.
+function MediaReports() {
+  const t = useT();
+  const { data, setData } = useAsync(() => api.adminMediaReports(), []);
+  if (!data || data.length === 0) return null;
+  const upd = (r: AdminMediaReport, patch: Partial<AdminMediaReport>) =>
+    setData((d) => (d || []).map((x) => (x.art === r.art && x.id === r.id ? { ...x, ...patch } : x)));
+  return (
+    <Card className="mb-4 p-4">
+      <h3 className="mb-2 font-bold">{t("adm.mediaReports")} ({data.length})</h3>
+      <div className="space-y-2">
+        {data.map((r) => (
+          <div key={`${r.art}-${r.id}`} className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-700 p-2 text-sm">
+            <Link to={`/sessions/${r.session_id}`} className="shrink-0">
+              {r.art === "photo" && r.url
+                ? <img src={r.url} alt="" className={`h-14 w-14 rounded object-cover ${r.blocked ? "opacity-30 grayscale" : ""}`} />
+                : <span className="flex h-14 w-14 items-center justify-center rounded bg-slate-800 text-xs">Video</span>}
+            </Link>
+            <div className="min-w-0 flex-1">
+              <div className="truncate">{r.besitzer.name || "—"}{r.spot ? ` · ${r.spot}` : ""}</div>
+              {r.youtube_url && <a href={r.youtube_url} target="_blank" rel="noopener noreferrer" className="block truncate text-slate-400 underline">{r.youtube_url}</a>}
+              <div className="text-slate-400">{t("adm.mediaReports.melder", { n: r.report_count })}: {r.melder.map((m) => m.name || "—").join(", ")}</div>
+            </div>
+            <div className="flex gap-1.5">
+              <Act tone={r.blocked ? "green" : "amber"} onClick={() => api.adminBlockMedia(r.art, r.id, !r.blocked).then((x) => upd(r, { blocked: x.blocked }))}>
+                {r.blocked ? t("adm.unblockMedia") : t("adm.blockMedia")}
+              </Act>
+              <Act tone="slate" onClick={() => api.adminDismissMedia(r.art, r.id).then(() => setData((d) => (d || []).filter((x) => !(x.art === r.art && x.id === r.id))))}>
+                {t("adm.mediaReports.erledigt")}
+              </Act>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 // ------------------------------------------------------------------ Fotos ----
 function PhotosTab() {
   const t = useT();
@@ -1611,6 +1650,7 @@ function PhotosTab() {
     setItems((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   return (
     <div>
+      <MediaReports />
       {items.length === 0 && !loading ? <Card className="p-8 text-center text-slate-300">{t("adm.noPhotos")}</Card> : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {items.map((p) => (

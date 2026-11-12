@@ -2983,6 +2983,16 @@ const nb: Record<string, string> = {
   "comments.settingHint": "Andre kan kommentere øktene dine. Du kan slette andres kommentarer under øktene dine. Når de er slått av, er kommentarer skjult for alle, også de som allerede er skrevet.",
   "comments.settingSwitch": "Tillat kommentarer på øktene mine",
   "notif.typeComment": "Kommentarer på øktene mine",
+  // Medien melden (12.11.2026)
+  "media.report": "Rapporter medie",
+  "media.reportConfirm": "Rapportere dette bildet/videoen som spam eller upassende? Etter flere rapporter skjules det.",
+  "media.reported": "Rapportert",
+  "sd.blockedMedia": "Blokkerte medier: {n}",
+  "adm.mediaReports": "Rapporterte medier",
+  "adm.mediaReports.melder": "{n} rapporter",
+  "adm.mediaReports.erledigt": "Ferdig",
+  "adm.blockMedia": "Blokker",
+  "adm.unblockMedia": "Opphev blokkering",
 };
 
 export default nb;

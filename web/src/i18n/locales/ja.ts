@@ -3008,6 +3008,16 @@ const ja: Record<string, string> = {
   "comments.settingHint": "他の人があなたのセッションにコメントできます。自分のセッションに付いた他の人のコメントは削除できます。オフにすると、すでに書かれたものも含めてコメントは全員に非表示になります。",
   "comments.settingSwitch": "自分のセッションへのコメントを許可する",
   "notif.typeComment": "自分のセッションへのコメント",
+  // Medien melden (12.11.2026)
+  "media.report": "メディアを報告",
+  "media.reportConfirm": "この写真/動画をスパムまたは不適切として報告しますか？複数の報告があると非表示になります。",
+  "media.reported": "報告済み",
+  "sd.blockedMedia": "ブロックされたメディア: {n}",
+  "adm.mediaReports": "報告されたメディア",
+  "adm.mediaReports.melder": "報告 {n} 件",
+  "adm.mediaReports.erledigt": "対応済み",
+  "adm.blockMedia": "ブロック",
+  "adm.unblockMedia": "ブロック解除",
 };
 
 export default ja;

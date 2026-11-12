@@ -3171,6 +3171,16 @@ const de: Record<string, string> = {
   "comments.settingHint": "Andere können unter deinen Sessions kommentieren. Du kannst fremde Kommentare unter deinen Sessions löschen. Ausgeschaltet sind Kommentare für alle ausgeblendet, auch schon geschriebene.",
   "comments.settingSwitch": "Kommentare unter meinen Sessions erlauben",
   "notif.typeComment": "Kommentare zu meinen Sessions",
+  // Medien melden (12.11.2026)
+  "media.report": "Medium melden",
+  "media.reportConfirm": "Dieses Foto/Video als Spam oder unangemessen melden? Nach mehreren Meldungen wird es ausgeblendet.",
+  "media.reported": "Gemeldet",
+  "sd.blockedMedia": "Gesperrte Medien: {n}",
+  "adm.mediaReports": "Gemeldete Medien",
+  "adm.mediaReports.melder": "{n} Meldungen",
+  "adm.mediaReports.erledigt": "Erledigt",
+  "adm.blockMedia": "Sperren",
+  "adm.unblockMedia": "Entsperren",
 };
 
 export default de;

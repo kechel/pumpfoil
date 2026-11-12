@@ -365,6 +365,7 @@ function LatestMedia() {
   const [vid, setVid] = useState<string | null>(null);
   // Lokaler Like-/Melde-Status je session_id (initial aus der API).
   const [soc, setSoc] = useState<Record<number, { liked: boolean; like_count: number; my_inappropriate: boolean }>>({});
+  const [gemeldet, setGemeldet] = useState<Set<string>>(new Set());
   useEffect(() => {
     api.communityLatestPhotos(30).then((ps) => {
       setMedia(ps);
@@ -375,6 +376,16 @@ function LatestMedia() {
   }, []);
   if (!media || media.length === 0) return null;
 
+  const mkey = (p: CommunityPhoto) => `${p.kind}-${p.kind === "video" ? p.video_id : p.photo_id}`;
+  const melden = (p: CommunityPhoto) => {
+    const art = p.kind === "video" ? "video" : "photo";
+    const id = art === "video" ? p.video_id : p.photo_id;
+    if (id == null || gemeldet.has(mkey(p)) || !confirm(t("media.reportConfirm"))) return;
+    api.reportMedia(art, id).then((r) => {
+      setGemeldet((g) => new Set(g).add(mkey(p)));
+      if (r.hidden) setMedia((m) => (m || []).filter((x) => mkey(x) !== mkey(p)));
+    }).catch(() => {});
+  };
   const like = (sid: number) =>
     api.toggleLike(sid).then((r) => setSoc((s) => ({ ...s, [sid]: { ...s[sid], liked: r.liked, like_count: r.like_count } }))).catch(() => {});
 
@@ -417,6 +428,13 @@ function LatestMedia() {
                   className={`flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs ${st.liked ? "text-rose-400" : "text-slate-400 hover:text-slate-200"}`}>
                   <HeartIcon className="h-3.5 w-3.5" filled={st.liked} />{st.like_count > 0 && <span className="tabular-nums">{st.like_count}</span>}
                 </button>
+                {/* Medium melden (12.11.2026, Anlass: Werbe-Link als Video): das MEDIUM, nicht die Session */}
+                {(isVideo ? p.video_id : p.photo_id) != null && (
+                  <button onClick={() => melden(p)} title={gemeldet.has(mkey(p)) ? t("media.reported") : t("media.report")}
+                    className={`ml-auto rounded-md px-1.5 py-0.5 text-xs ${gemeldet.has(mkey(p)) ? "text-red-400" : "text-slate-500 hover:text-slate-200"}`}>
+                    <FlagIcon className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
             </div>
           );
