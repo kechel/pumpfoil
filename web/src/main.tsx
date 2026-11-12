@@ -54,8 +54,19 @@ import App from "./App";
 // App in EINER index.js (5,26 MB), das riss die Precache-Grenze des Service Workers. Der Service Worker
 // cacht die Teile weiterhin alle (globPatterns js), offline aendert sich also nichts — nur der erste
 // Seitenaufruf laedt weniger. Ladefehler nach einem Deploy faengt `vite:preloadError` oben ab.
+// Nach einem Deploy kann der alte Chunk fehlen bzw. der Import ohne Modul zurueckkommen ("reading 'default'",
+// Jan 12.11.2026). Dann startet der Watchdog hart neu (asynchron: SW abmelden, Caches leeren) — bis dahin den
+// Spinner stehen lassen statt kurz die Fehlerseite zu zeigen. Nur wenn kein Neustart mehr erlaubt ist (2 in 5 min),
+// geht der Fehler an die Fehlerseite.
+function ohneAufblitzen<T>(grund: unknown): Promise<T> {
+  const neustart = (window as { pfNeustart?: (grund: string) => boolean }).pfNeustart;
+  if (neustart && neustart("chunk")) return new Promise<T>(() => {});
+  return Promise.reject(grund instanceof Error ? grund : new Error("Seite konnte nicht geladen werden"));
+}
 function seite(laden: () => Promise<{ default: React.ComponentType }>) {
-  const Teil = React.lazy(laden);
+  const Teil = React.lazy(() => laden().then(
+    (m) => (m && m.default ? m : ohneAufblitzen<{ default: React.ComponentType }>(undefined)),
+    (e) => ohneAufblitzen<{ default: React.ComponentType }>(e)));
   return function Seite() {
     return (
       <React.Suspense fallback={<div className="flex justify-center py-16"><div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-400 border-t-transparent" /></div>}>
