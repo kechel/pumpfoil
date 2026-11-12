@@ -18,6 +18,7 @@ struct CommunityView: View {
     @State private var records: [String: PeriodRecords]?
     @State private var leaders: Leaders?
     @State private var media: [MediaItem] = []
+    @State private var meldeMedium: MediaItem?
     @State private var topLiked: [CommunityItem] = []
     @State private var topKommentiert: [CommunityItem] = []
     // Uhr-Layouts der Community (Top 5) — wie der Abschnitt auf der Community-Seite der PWA (Home.tsx).
@@ -93,6 +94,11 @@ struct CommunityView: View {
                 }
             }
             .listStyle(.plain)   // .insetGrouped hatte großen Top-Inset -> zu viel Padding oben
+            .alert(Loc.t("media.report", lang), isPresented: Binding(get: { meldeMedium != nil }, set: { if !$0 { meldeMedium = nil } }),
+                   presenting: meldeMedium) { m in
+                Button(Loc.t("media.report", lang), role: .destructive) { melden(m) }
+                Button(Loc.t("common.cancel", lang), role: .cancel) {}
+            } message: { _ in Text(Loc.t("media.reportConfirm", lang)) }
             // Vollbild des Social-Feeds — an der LIST, nicht an der Zeile (s. oben).
             .fullScreenCover(isPresented: Binding(
                 get: { social.offen != nil },
@@ -460,6 +466,14 @@ struct CommunityView: View {
                         ForEach(media) { m in
                             Button { navPath.append(SessionDest(id: m.session_id)) } label: { mediaThumb(m) }
                                 .buttonStyle(.plain)
+                                // Medium melden per langem Druck (iOS-ueblich), 12.11.2026 — Web: Fahne an der Kachel
+                                .contextMenu {
+                                    if (m.kind == "video" ? m.video_id : m.photo_id) != nil {
+                                        Button(role: .destructive) { meldeMedium = m } label: {
+                                            Label(Loc.t("media.report", lang), systemImage: "flag")
+                                        }
+                                    }
+                                }
                         }
                     }
                 }
@@ -595,6 +609,15 @@ struct CommunityView: View {
             WatchLayoutPreview(elements: l.elements ?? [], bgColor: l.bg_color ?? 0, shape: l.shape ?? "round",
                                w: w, h: h, px: 96, pageCount: 1, pageIndex: 0, lang: lang)
             Text(l.name).font(.caption).lineLimit(1).frame(maxWidth: 96)
+        }
+    }
+
+    private func melden(_ m: MediaItem) {
+        let art: String = m.kind == "video" ? "video" : "photo"
+        guard let mid: Int = art == "video" ? m.video_id : m.photo_id else { return }
+        Task {
+            let weg: Bool = (try? await Api.reportMedia(art: art, id: mid)) ?? false
+            if weg { media.removeAll { $0.id == m.id } }
         }
     }
 

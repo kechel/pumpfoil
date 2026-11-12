@@ -622,6 +622,8 @@ struct MediaItem: Codable, Identifiable {
     let caption: String?
     let tz: String?            // IANA-Zeitzone des Spots — Uhrzeiten in Ortszeit anzeigen
     let user_id: Int?          // Besitzer (Server additiv seit 01.10.2026); die Kachel zeigt kein Profilbild
+    let photo_id: Int?         // „Medium melden" (12.11.2026)
+    let video_id: Int?
     var id: String {
         // Schrittweise und explizit typisiert: die Kombination aus ??-Kette, "+"-Verkettung und
         // Interpolation in EINEM Ausdruck ist der Fall, an dem der Swift-Solver exponentiell wird.

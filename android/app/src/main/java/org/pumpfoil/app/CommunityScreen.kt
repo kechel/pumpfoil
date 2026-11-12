@@ -3,6 +3,7 @@ package org.pumpfoil.app
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Surfing
 import androidx.compose.material.icons.filled.Share
@@ -33,6 +35,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -129,6 +132,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
     var records by remember { mutableStateOf<Map<String, PeriodRecords>?>(null) }
     var leaders by remember { mutableStateOf<Leaders?>(null) }
     var media by remember { mutableStateOf<List<MediaItem>>(emptyList()) }
+    var meldeMedium by remember { mutableStateOf<MediaItem?>(null) }
     var topLiked by remember { mutableStateOf<List<CommunityItem>>(emptyList()) }
     var topKommentiert by remember { mutableStateOf<List<CommunityItem>>(emptyList()) }
     var cstats by remember { mutableStateOf<Api.CommunityStats?>(null) }
@@ -216,6 +220,24 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
         }
         mediaOwner.lifecycle.addObserver(obs)
         onDispose { mediaOwner.lifecycle.removeObserver(obs) }
+    }
+    meldeMedium?.let { m ->
+        val art = if (m.kind == "video") "video" else "photo"
+        val mid = if (art == "video") m.videoId else m.photoId
+        AlertDialog(
+            onDismissRequest = { meldeMedium = null },
+            text = { Text(I18n.t("media.reportConfirm")) },
+            confirmButton = {
+                TextButton(onClick = {
+                    meldeMedium = null
+                    if (mid != null) scope.launch {
+                        val weg = try { Api.reportMedia(art, mid) } catch (_: Exception) { false }
+                        if (weg) media = media.filterNot { it.kind == m.kind && (if (art == "video") it.videoId else it.photoId) == mid }
+                    }
+                }) { Text(I18n.t("media.report")) }
+            },
+            dismissButton = { TextButton(onClick = { meldeMedium = null }) { Text(I18n.t("common.cancel")) } },
+        )
     }
     // Zeitraum- + accel-abhängig: Bestenliste, Best bewertet.
     // Die Auswahl rechnet der Server immer ueber Allzeit (05.11.2026) — ein Zeitraumwechsel laedt sie nicht neu.
@@ -363,13 +385,23 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                         val m = media[idx]
                                         val thumb = if (m.kind == "video") ytId(m.youtubeUrl)?.let { "${Api.BASE}/api/public/video-thumb/$it" }
                                                     else Api.mediaUrl(m.url)
-                                        AsyncImage(
-                                            model = thumb, contentDescription = m.caption,
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier.size(width = 150.dp, height = 100.dp)
-                                                .clip(RoundedCornerShape(10.dp))
-                                                .clickable { onOpen(m.sessionId) },
-                                        )
+                                        val mid = if (m.kind == "video") m.videoId else m.photoId
+                                        Box {
+                                            AsyncImage(
+                                                model = thumb, contentDescription = m.caption,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier.size(width = 150.dp, height = 100.dp)
+                                                    .clip(RoundedCornerShape(10.dp))
+                                                    .clickable { onOpen(m.sessionId) },
+                                            )
+                                            // Medium melden (12.11.2026, Web Home.tsx): Fahne oben rechts, mit Rueckfrage
+                                            if (mid != null) {
+                                                IconButton(onClick = { meldeMedium = m }, modifier = Modifier.align(Alignment.TopEnd).size(32.dp)) {
+                                                    Icon(Icons.Filled.Flag, contentDescription = I18n.t("media.report"), tint = Color.White,
+                                                        modifier = Modifier.size(18.dp).background(Color.Black.copy(alpha = 0.45f), CircleShape).padding(2.dp))
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }

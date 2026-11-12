@@ -788,7 +788,12 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 s.youtubeUrl?.let { listOf(SessionVideo(0, it)) } ?: emptyList()
             }
         }
-        LaunchedEffect(s.id) { reloadPhotos(); reloadVideos() }
+        // Gesperrte Medien: Hinweis statt stillem Verschwinden (Jan, 12.11.2026; Web SessionDetail)
+        var gesperrteMedien by remember(s.id) { mutableStateOf(0) }
+        LaunchedEffect(s.id) {
+            reloadPhotos(); reloadVideos()
+            gesperrteMedien = try { Api.sessionVotes(s.id).blocked_media } catch (_: Exception) { 0 }
+        }
         val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) scope.launch {
                 val bytes = withContext(Dispatchers.IO) {
@@ -841,6 +846,10 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         if (s.owned) ClassificationNotice(s, scope, onReload)
         if (s.owned && s.windVorschlag != null) WindHinweis(s, scope, onReload)
 
+        if (gesperrteMedien > 0) {
+            Text(I18n.t("sd.blockedMedia").replace("{n}", "$gesperrteMedien"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         // Festes 2-spaltiges Grid: Videos (falls verlinkt) + Fotos, alle Kacheln gleich groß (16:9).
         val shownVideos = videos.filter { youtubeId(it.youtubeUrl) != null }
         val total = shownVideos.size + photos.size

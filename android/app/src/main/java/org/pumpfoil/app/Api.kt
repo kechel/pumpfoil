@@ -678,7 +678,15 @@ object Api {
     data class VoteState(
         val fake_count: Int = 0, val my_fake: Boolean = false,
         val inappropriate_count: Int = 0, val my_inappropriate: Boolean = false,
+        val blocked_media: Int = 0,   // gesperrte Fotos + Videos (Hinweis, 12.11.2026; nur GET social)
     )
+
+    // Medium melden (12.11.2026, Web Home.tsx): das Foto/Video, nicht die Session. Ab 3 Meldungen gesperrt.
+    // Rueckgabe: ist es jetzt ausgeblendet?
+    suspend fun reportMedia(art: String, id: Int): Boolean = withContext(Dispatchers.IO) {
+        val r = json.parseToJsonElement(http("POST", "/api/community/media/$art/$id/report", null, auth = true)).jsonObject
+        r["hidden"]?.jsonPrimitive?.booleanOrNull ?: false
+    }
 
     suspend fun sessionVotes(id: Int): VoteState = withContext(Dispatchers.IO) {
         json.decodeFromString(VoteState.serializer(), http("GET", "/api/community/sessions/$id/social", null, auth = true))

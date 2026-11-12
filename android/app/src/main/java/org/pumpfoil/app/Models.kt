@@ -553,6 +553,8 @@ data class MediaItem(
     val spot: String? = null,
     val caption: String? = null,
     val tz: String? = null,               // IANA-Zeitzone des Spots — Anzeige in Ortszeit
+    @SerialName("photo_id") val photoId: Int? = null,   // fuer „Medium melden" (12.11.2026)
+    @SerialName("video_id") val videoId: Int? = null,
 )
 
 @Serializable

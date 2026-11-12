@@ -56,6 +56,7 @@ struct SessionDetailView: View {
     @State private var likeCount = 0
     @State private var kommentareOffen = false   // Kommentar-Thread (ChatRoomView, scope "session:<id>")
     @State private var photos: [SessionPhoto] = []
+    @State private var gesperrteMedien: Int = 0   // Hinweis „Gesperrte Medien: n" (12.11.2026, wie Web)
     @State private var videos: [SessionVideo] = []
     @State private var videoDialog = false
     @State private var videoUrl = ""
@@ -859,6 +860,10 @@ struct SessionDetailView: View {
 
     // Medien als EIN 2-Spalten-Grid (Videos zuerst, dann Fotos) — gleich große 16:9-Kacheln, wie PWA/Android.
     @ViewBuilder private func mediaSection(_ s: SessionDetail) -> some View {
+        if gesperrteMedien > 0 {
+            Text(Loc.t("sd.blockedMedia", lang).replacingOccurrences(of: "{n}", with: String(gesperrteMedien)))
+                .font(.body).foregroundStyle(.secondary)
+        }
         if !videos.isEmpty || !photos.isEmpty { mediaGrid(s) }
         if s.owned == true { mediaAddRow(s) }
     }
@@ -2014,6 +2019,7 @@ struct SessionDetailView: View {
             caption = s.caption ?? ""
             photos = (try? await Api.sessionPhotos(sid)) ?? []
             videos = await loadVideos(s)
+            gesperrteMedien = (try? await Api.sessionVotes(sid))?.blocked_media ?? 0
             let settings = (try? await Api.settings()) ?? [:]
             // Fahrergewicht fuer die Leistungsrechnung: das des BESITZERS hat Vorrang. Sonst
             // rechnet man die Session eines anderen mit seinem eigenen Gewicht — die Leistung

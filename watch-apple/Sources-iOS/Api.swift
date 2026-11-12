@@ -898,6 +898,14 @@ enum Api {
         let my_fake: Bool?
         let inappropriate_count: Int?
         let my_inappropriate: Bool?
+        let blocked_media: Int?    // gesperrte Fotos + Videos (nur GET social, 12.11.2026)
+    }
+
+    // Medium melden (12.11.2026, Web Home.tsx): das Foto/Video, nicht die Session. Ab 3 Meldungen gesperrt.
+    struct MedienMeldung: Decodable { let hidden: Bool? }
+    static func reportMedia(art: String, id: Int) async throws -> Bool {
+        let r: MedienMeldung = try await request("/api/community/media/\(art)/\(id)/report", method: "POST", body: nil, auth: true)
+        return r.hidden ?? false
     }
 
     static func sessionVotes(_ id: Int) async throws -> VoteState {

@@ -94,6 +94,8 @@ SCHLUESSEL = [
     "account.recordModeMoved",
     # Android 11.11.2026: Wertungsklasse (Einstellungen › Ich, Assistent, Event-Filter), Mein-Team-Kasten (nicht zaehlende)
     "wk.title", "wk.hint", "wk.none", "wk.w", "wk.m", "wk.nb", "wk.alle", "team.event.zaehltNicht",
+    # 12.11.2026: Medien melden (Feed-Kachel), Hinweis gesperrte Medien (Session-Details)
+    "media.report", "media.reportConfirm", "media.reported", "sd.blockedMedia", "common.cancel",
 ]
 
 

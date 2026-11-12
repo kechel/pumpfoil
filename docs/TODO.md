@@ -1824,6 +1824,9 @@ ohne Roh-Daten bleibt eine vorhandene Auswertung stehen. Ursache: laut Jan nicht
   - [x] GPS-Luecke am Lauf-Ende (Phone-Recorder + Wear, LaufLuecke.kt, JVM-Tests gruen). **Vor der Einreichung: Wear-Emulator Fall 3+4.**
   - [x] Sprint-Teamwertung: nicht gewertete Teams grau unter der Rangliste (`teams_ungewertet`).
   - [x] Glides als eigene Faerbung wie Carves, Gleitphasen in der Tempo-Farbe, aus bei Sprint-Links (iOS im Code fuer nach 1.1.66).
+  - [x] Medien melden (12.11. nachmittags, Web 3e544745): Fahne an der Kachel „Neueste Medien" (Android; iOS per langem
+        Druck, Code fuer nach 1.1.66), ab 3 Meldungen gesperrt; Session-Details zeigen „Gesperrte Medien: n" (`blocked_media`
+        aus /social). Kompiliert, ungetestet.
   **iOS 1.1.66 (76) komplett von Jan getestet (11.11. spaet): „alles getestet, geht"** — EINGEREICHT 12.11. 06:32.
   **Testen (Jan, Simulator/Geraet):** Tipp auf Profilbild/Wappen in einer Bestenlisten-Zeile oeffnet NUR deren Ziel;
   Primaer-Knopf in einer Listenzeile setzt nur (springt nicht ins Team); Sprint-Band unter der Faerbung, verschwindet
