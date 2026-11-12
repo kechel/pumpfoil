@@ -1535,7 +1535,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 Ergebnisse/Rankings echter Foil-Wettbewerbe (z. B. Surf Foil World Tour, surffoilworldtour.com/ranking) bei uns mit
 anzeigen bzw. verknüpfen — etwa Fahrer-Profil „fährt auch die SFWT", Event-Kacheln für reale Termine. Offen: ob es eine
 Datenquelle mit Erlaubnis gibt (API/Export statt Abschreiben), ob es zu Pumpfoil passt (SFWT ist überwiegend
-Surf-/Wing-Foil) und was der Mehrwert gegenüber einem Link ist. Nicht anfangen, bis Jan es aufgreift.
+Surf-/Wing-Foil). **Mehrwert (Jan):** „wenn auch andere veranstalter von pumpfoil events in rl das nutzen, globale
+bestenlisten ist das thema" — Veranstalter realer Pumpfoil-Wettkämpfe tragen ihre Ergebnisse ein und sie erscheinen
+neben den Werten aus den Aufnahmen (gekennzeichnet als Wettkampf-Ergebnis). Nicht anfangen, bis Jan es aufgreift.
 
 ### 12.11.2026 — Apps: Puls-Streifen je Lauf nachziehen (Backlog fuer die App-Releases naechste Woche, Jan)
 Web zeigt auf der Session-Seite und unter „Laengste Laeufe" je Lauf einen Puls-Streifen (`CompareHrStrips.tsx`:
