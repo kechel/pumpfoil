@@ -968,6 +968,8 @@ IN_REVIEW: list[dict] = [
     # Garmin 1.0.102 am 10.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkte 979/980 im Changelog mit garmin 1.0.102.
     # EINGEREICHT 12.11.2026 06:32 (Jans Meldung, ASC „Warten auf Pruefung", 1.1.66 (76),
     # Kennung 1dee31a4-be50-489e-8dfa-37b5adf8752d). Aus 65809cf4; von Jan komplett getestet.
+    # NEU EINGEREICHT 12.11.2026 08:30 als 1.1.66 (77) mit dem Luecken-Fix (Kennung 4151a892-5045-49ff-ba41-57e9369963ae),
+    # Build 76 aus der Pruefung genommen. Watch-Simulator: 8 s Luecke = ein Lauf (c49a3c86).
     {"name": "iPhone + Apple Watch", "version": "1.1.66",
      "eingereicht": "2026-11-12",
      "items": [
@@ -975,7 +977,7 @@ IN_REVIEW: list[dict] = [
          "On global event pages, My team is now a single row; tap a greyed-out team to see why it does not count.",
          "After an event, its page shows which team you competed for.",
          "Tap a sprint value on the podium to open the run, with the stretch that counted highlighted on the map.",
-         # 12.11.2026: Build 77 mit dem Luecken-Fix (7ac3e1c6), im Simulator bestaetigt — Neueinreichung steht an.
+         # 12.11.2026: Build 77 mit dem Luecken-Fix (7ac3e1c6), im Simulator bestaetigt, 08:30 eingereicht.
          "A short GPS dropout during a run, for example when your arm dips under water, no longer splits the run in two, and after a fall the run ends at the last GPS position.",
      ],
      "bilder": [
