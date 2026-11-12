@@ -106,6 +106,11 @@ export const SPRACHEN = [["English", 3], ["Deutsch", 0], ["Schwiizerdütsch", 1]
 
 export function mainJs(debug = false) {
   const lauf = alsVar(ohneExport(fs.readFileSync(path.join(R, "watch-huawei/common/lauf.js"), "utf8")));
+  // GPS-Luecke am Lauf-Ende (12.11.2026): haengt sich an Stand.prototype; `meter` liefert schon lauf.js.
+  const luecke = ohneExport(fs.readFileSync(path.join(R, "watch-huawei/common/luecke.js"), "utf8"))
+    .replace(/^\/\*[\s\S]*?\*\/\n/, "").replace(/^import .*\n/m, "").replace(/^function meter\([\s\S]*?\n\}\n/m, "")
+    .replace("L.Stand.prototype", "Stand.prototype");
+  if (/^(import|function )/m.test(luecke)) throw new Error("luecke.js: import/function uebrig");
   const seitenSrc = fs.readFileSync(path.join(R, "watch-huawei/common/seiten.js"), "utf8");
   // Zeichner wie auf den Huawei-Uhren; `punkte` kommt aus quelle/anzeige.js (ein Befehl statt 12 Rechtecke)
   const seiten = variablen(seitenSrc, ["PALETTE", "ZONEN", "AUTO_WERT", "TINTE_280"]) + "\n" +
@@ -115,6 +120,7 @@ export function mainJs(debug = false) {
   const kopf = "// ERZEUGT von watch-suunto/bau.mjs — nicht von Hand aendern, Quellen in watch-suunto/quelle/.\n";
   return kopf + [
     "// ---- watch-huawei/common/lauf.js ----", lauf,
+    "// ---- watch-huawei/common/luecke.js ----", luecke,
     "// ---- watch-huawei/common/seiten.js (Felder, Seiten) ----", seiten,
     "// ---- quelle/kompakt.js ----", alsVar(lies("quelle/kompakt.js")),
     "// ---- quelle/anzeige.js ----", alsVar(lies("quelle/anzeige.js")),

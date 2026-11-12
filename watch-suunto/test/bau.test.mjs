@@ -65,3 +65,25 @@ test("SuuntoPlus-Pruefer nimmt app/ und app-debug/ an (main.js + Projekt)", { sk
     assert.ok(await tools.validateProject(path.join(WURZEL, dir)), dir);
   }
 });
+
+// GPS-Luecke (12.11.2026): luecke.js haengt sich im gebauten main.js an Stand (Reihenfolge, `meter` aus lauf.js).
+test("main.js: GPS-Luecke wirkt im gebauten Stand (Arm 8 s = ein Lauf, Sturz endet am letzten guten Fix)", async () => {
+  const quelle = (await import("node:fs")).readFileSync(new URL("../app/main.js", import.meta.url), "utf8");
+  const bis = quelle.indexOf("// ---- watch-huawei/common/seiten.js");
+  const vm = await import("node:vm");
+  const ctx = vm.createContext({ Math });
+  vm.runInContext(quelle.slice(0, bis) + "\nthis.Stand = Stand;", ctx);
+  const fahrt = (plan) => {
+    const s = new ctx.Stand();
+    let lat = 47.65, t = 0;
+    for (const [n, v, gps] of plan) for (let i = 0; i < n; i++, t++) {
+      lat += v / 111320;
+      s.tick(t * 1000, 1e12 + t * 1000, gps !== false, lat, 9.18, v, 120);
+    }
+    return s;
+  };
+  const arm = fahrt([[5, 0], [50, 3.4], [8, 3.4, false], [50, 3.4], [20, 0.3]]);
+  assert.equal(arm.runCount, 1);
+  const sturz = fahrt([[5, 0], [69, 3.4], [36, 0, false], [40, 0.3]]);
+  assert.ok(Math.abs(sturz.lastRunDurMs - 69000) <= 2000, `Sturz ${sturz.lastRunDurMs}`);
+});

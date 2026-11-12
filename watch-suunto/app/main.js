@@ -67,8 +67,8 @@ Stand.prototype.tick = function (el, jetzt, fix, lat, lon, speed, hr) {
       if (dt > 0) v = meter(p[0], p[1], lat, lon) / dt;
     }
     this.vorher = [lat, lon, jetzt];
-  } else {
-    this.vorher = null;
+  } else if (!this.foiling) {
+    this.vorher = null;   // im Lauf behalten: nach einer Luecke Tempo ueber die Luftlinie statt 0
   }
   if (v < 0 || v > MAX_SPRUNG_MPS) { v = 0; sprung = true; }
   if (hr > 0) { this.hr = hr; this.hrSum += hr; this.hrN++; if (hr > this.hrMax) this.hrMax = hr; }
@@ -84,6 +84,7 @@ Stand.prototype.tick = function (el, jetzt, fix, lat, lon, speed, hr) {
     var a = this.c1, b = this.c2;
     this.c1 = b; this.c2 = this.spdMaxClean;
     this.spdMaxGlatt = Math.max(Math.min(a, b), Math.min(Math.max(a, b), this.c2));
+    if (this.luecke) this.luecke(el, lat, lon, v, hr);   // luecke.js (nicht auf Lite)
   }
   this.median(this.cur, el, fix);
   var vorher = this.foiling;
@@ -93,6 +94,8 @@ Stand.prototype.tick = function (el, jetzt, fix, lat, lon, speed, hr) {
   return vorher !== this.foiling;
 };
 Stand.prototype.median = function (mps, t, fix) {
+  // GPS-Luecke (luecke.js): im Lauf haelt eine Luecke bis 15 s das Tempo; auf Lite ist lT undefiniert.
+  if (!fix && this.lT >= 0 && this.foiling && t - this.lT <= 15000) return;
   if (fix) this.spWin.push([t, mps]);
   while (this.spWin.length && t - this.spWin[0][0] > SPEED_WIN_S * 1000) this.spWin.shift();
   var v = [];
@@ -133,11 +136,15 @@ Stand.prototype.lauf = function (v3, vInst, dist, t) {
   if (s.spdMaxGlatt > s.runMaxMps) s.runMaxMps = s.spdMaxGlatt;
   if (s.hr > s.runMaxHr) s.runMaxHr = s.hr;
   s.exitStreak = (v3 < RUN_EXIT_MPS) ? s.exitStreak + 1 : 0;
-  if (s.exitStreak < RUN_EXIT_DWELL) return;
+  var trenn = s.trenn;
+  s.trenn = false;
+  if (s.exitStreak < RUN_EXIT_DWELL && !trenn) return;
   s.foiling = false; s.enterStreak = 0;
   var durMs = Math.max(0, t - RUN_EXIT_DWELL * 1000 - s.runStartMs);
   var distM = Math.max(0, dist - s.runStartDist);
   s.minSpeedSeitEnde = 99; s.runEndedMs = t;
+  var e = s.ende ? s.ende(t, trenn) : null;        // luecke.js: Ende am letzten guten Fix
+  if (e) { durMs = e[0]; distM = e[1]; }
   var schnell = durMs > 0 && (distM / (durMs / 1000)) >= MIN_RUN_AVG_MPS;
   if (!s.runIstFortsetzung && (durMs < MIN_RUN_MS || !schnell)) {
     s.runMaxHr = 0; s.runIstFortsetzung = false; return;
@@ -264,6 +271,47 @@ Alarm.prototype.pruefe = function (k, a, kmh, hr, s, el, jetzt) {
   if (k.runTimeS > 0 && (this.zeitN === 0 || k.runTimeMode === "every") &&
       (el * 1000 - s.runStartMs) / 1000 >= (this.zeitN + 1) * k.runTimeS) { this.zeitN++; aus.push(k.patTime); }
   return aus;
+};
+
+
+// ---- watch-huawei/common/luecke.js ----
+
+var P = Stand.prototype, neu0 = P.neu;
+// lT letzter Fix, gT/gD/gHr letzter guter (>= 2,5 m/s), aT/bT/aV letzte geschlossene Luecke (Beginn, Ende, Tempo
+// ueber die Luftlinie), pT/pD/pHr guter Fix davor, trenn = Luecke > 15 s im Lauf geschlossen.
+P.neu = function () {
+  neu0.call(this);
+  this.lT = -1; this.lLa = 0; this.lLo = 0; this.gT = -1; this.gD = 0; this.gHr = 0;
+  this.aT = -1; this.bT = -1; this.aV = 0; this.pT = -1; this.pD = 0; this.pHr = 0; this.trenn = false;
+};
+/** Je Fix waehrend der Aufnahme (nach der Strecke). */
+P.luecke = function (t, la, lo, v, hr) {
+  var s = this, d = t - s.lT;
+  if (s.lT >= 0 && d > 3000) {
+    s.aT = s.lT; s.bT = t; s.aV = meter(s.lLa, s.lLo, la, lo) / (d / 1000);
+    s.pT = s.gT; s.pD = s.gD; s.pHr = s.gHr;
+    if (s.foiling && d > 15000) s.trenn = true;
+  }
+  s.lT = t; s.lLa = la; s.lLo = lo;
+  if (v >= 2.5) { s.gT = t; s.gD = s.dist; s.gHr = Math.max(s.runMaxHr, hr); }
+};
+/** null = nichts zu korrigieren, sonst [Zeit, Strecke, Max-Puls] des letzten guten Fixes. */
+P.schnitt = function (t, start) {
+  var s = this;
+  if (s.lT >= 0 && t - s.lT > 3000) return s.gT >= 0 && s.gT >= start ? [s.gT, s.gD, s.gHr] : null;
+  if (s.aT < 0 || s.gT > s.bT + 3000 || s.pT < 0 || s.pT < start) return null;
+  if (s.bT - s.aT <= 15000 && s.aV >= 2.5) return null;   // ueber die Luecke durchgefahren
+  return [s.pT, s.pD, s.pHr];
+};
+/** Beim Lauf-Ende (lauf.js): null oder [Dauer, Strecke] ab Laufbeginn bis zum letzten guten Fix. */
+P.ende = function (t, trenn) {
+  var s = this, sn = s.schnitt(t, s.runStartMs);
+  if (!sn) return null;
+  if (sn[2] > 0) s.runMaxHr = sn[2];
+  s.minSpeedSeitEnde = 0;                          // keine Fortsetzung ueber die Luecke
+  // Getrennt oder Luecke laeuft noch: keine Sperre — kommt GPS zurueck und er pumpt, beginnt sofort ein neuer Lauf.
+  if (trenn || t - s.lT > 3000) s.runEndedMs = t - 25000;
+  return [sn[0] - s.runStartMs, sn[1] - s.runStartDist];
 };
 
 
