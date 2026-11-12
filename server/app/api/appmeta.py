@@ -975,6 +975,13 @@ IN_REVIEW: list[dict] = [
          "On global event pages, My team is now a single row; tap a greyed-out team to see why it does not count.",
          "After an event, its page shows which team you competed for.",
          "Tap a sprint value on the podium to open the run, with the stretch that counted highlighted on the map.",
+         # 12.11.2026: Build 77 mit dem Luecken-Fix (7ac3e1c6), im Simulator bestaetigt — Neueinreichung steht an.
+         "A short GPS dropout during a run, for example when your arm dips under water, no longer splits the run in two, and after a fall the run ends at the last GPS position.",
+     ],
+     "bilder": [
+         {"src": "/changelog/gps-luecke-apple-1-luecke.webp", "alt": "Apple Watch simulator: 8 s without GPS, the run timer keeps going"},
+         {"src": "/changelog/gps-luecke-apple-2-weiter.webp", "alt": "After the gap the same run continues"},
+         {"src": "/changelog/gps-luecke-apple-3-ergebnis.webp", "alt": "Result: one run of 1:50 instead of two"},
      ]},
     # iPhone + Apple Watch 1.1.65 am 11.11. 09:34 eingereicht, am 11.11. FREIGEGEBEN (s. _APP_META["ios"]); 5 Punkte im Changelog mit ios 1.1.65
     # (1005-1009; 1004 war ein kaputter Uebernahme-Rest und ist seit 12.11. Entwurf).
