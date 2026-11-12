@@ -2914,11 +2914,14 @@ const deAT: Record<string, string> = {
   "adm.mediaPending.seit": "Konto seit {d}",
   "adm.mediaPending.versteckt": "versteckt",
   "adm.mediaPending.gesperrt": "gsperrt",
-  "adm.mediaPending.freigeben": "Freigeben",
-  "adm.mediaPending.verstecken": "Nutzer verstecken",
+  "adm.mediaPending.freigeben": "Freigeben (für alle sichtbar)",
+  "adm.mediaPending.verstecken": "Verstecken (Shadow-Ban)",
   "adm.mediaPending.versteckenConfirm": "Nutzer verstecken (Shadow-Ban)? Seine Inhalte siacht dann koaner mehr außer eahm selber.",
-  "adm.mediaPending.sperren": "Nutzer sperren",
+  "adm.mediaPending.sperren": "Sperren (ka Login mehr)",
   "adm.mediaPending.sperrenConfirm": "Nutzer sperren? Er kann si dann nimmer anmelden.",
+  "adm.mediaPending.zeileMedium": "Medium:",
+  "adm.mediaPending.zeileKonto": "Konto:",
+  "adm.mediaPending.mediumSperren": "Nur des sperren",
 };
 
 export default deAT

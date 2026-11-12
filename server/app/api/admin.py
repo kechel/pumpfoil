@@ -694,8 +694,17 @@ def pending(_a: models.User = Depends(current_admin), db: Session = Depends(get_
     # Teams, die auf Freigabe ihres Auftritts nach aussen warten (docs/TEAMS.md).
     teams = int(db.query(func.count()).select_from(models.Team)
                 .filter(models.Team.freigabe == "wartet", models.Team.geloescht_am.is_(None)).scalar() or 0)
+    # Fotos (12.11.2026): Medien neuer Konten im Warteraum (medienfreigabe.py) + offene Medien-Meldungen.
+    photos = sum(int(db.query(func.count()).select_from(M).filter(M.freigabe_offen.is_(True), M.blocked.isnot(True)).scalar() or 0)
+                 for M in (models.SessionPhoto, models.SessionVideo))
+    photos += int(db.query(func.count(func.distinct(func.concat(models.MediaReport.art, models.MediaReport.media_id))))
+                  .filter(models.MediaReport.erledigt_at.is_(None)).scalar() or 0)
+    # Bewertungen („Rate this analysis"): noch offene (status offen) — Jan 12.11.2026: „bei ratings fehlt das auch".
+    bewertungen = int(db.query(func.count()).select_from(models.SessionBewertung)
+                      .filter(models.SessionBewertung.status == "offen").scalar() or 0)
     return {"flagged": flagged, "fake": fake, "suspect": suspect, "chat": chat,
             "social": social, "feedback": feedback, "spots": spots, "teams": teams,
+            "photos": photos, "bewertungen": bewertungen,
             # `suspect` zaehlt NICHT mehr mit (Jan, 12.10.2026): das Physik-Gate nimmt die Laeufe ueber
             # 40 km/h ohnehin aus Rekorden und Statistik, und ob eine Session ueberhaupt Pumpfoil
             # ist, klaert der Knopf „sieht nicht nach Pumpfoil aus" beim Besitzer. Der Reiter bleibt

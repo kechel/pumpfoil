@@ -3187,11 +3187,14 @@ const de: Record<string, string> = {
   "adm.mediaPending.seit": "Konto seit {d}",
   "adm.mediaPending.versteckt": "versteckt",
   "adm.mediaPending.gesperrt": "gesperrt",
-  "adm.mediaPending.freigeben": "Freigeben",
-  "adm.mediaPending.verstecken": "Nutzer verstecken",
+  "adm.mediaPending.freigeben": "Freigeben (für alle sichtbar)",
+  "adm.mediaPending.verstecken": "Verstecken (Shadow-Ban)",
   "adm.mediaPending.versteckenConfirm": "Nutzer verstecken (Shadow-Ban)? Seine Inhalte sieht dann niemand mehr außer ihm selbst.",
-  "adm.mediaPending.sperren": "Nutzer sperren",
+  "adm.mediaPending.sperren": "Sperren (kein Login mehr)",
   "adm.mediaPending.sperrenConfirm": "Nutzer sperren? Er kann sich dann nicht mehr anmelden.",
+  "adm.mediaPending.zeileMedium": "Medium:",
+  "adm.mediaPending.zeileKonto": "Konto:",
+  "adm.mediaPending.mediumSperren": "Nur dieses sperren",
 };
 
 export default de;

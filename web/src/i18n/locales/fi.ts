@@ -3063,11 +3063,14 @@ const fi: Record<string, string> = {
   "adm.mediaPending.seit": "Tili {d} alkaen",
   "adm.mediaPending.versteckt": "piilotettu",
   "adm.mediaPending.gesperrt": "estetty",
-  "adm.mediaPending.freigeben": "Hyväksy",
-  "adm.mediaPending.verstecken": "Piilota käyttäjä",
+  "adm.mediaPending.freigeben": "Hyväksy (näkyy kaikille)",
+  "adm.mediaPending.verstecken": "Piilota (shadow ban)",
   "adm.mediaPending.versteckenConfirm": "Piilotetaanko käyttäjä (shadow ban)? Kukaan muu ei näe hänen sisältöään.",
-  "adm.mediaPending.sperren": "Estä käyttäjä",
+  "adm.mediaPending.sperren": "Estä (ei kirjautumista)",
   "adm.mediaPending.sperrenConfirm": "Estetäänkö käyttäjä? Hän ei voi enää kirjautua.",
+  "adm.mediaPending.zeileMedium": "Media:",
+  "adm.mediaPending.zeileKonto": "Tili:",
+  "adm.mediaPending.mediumSperren": "Estä vain tämä",
 };
 
 export default fi;

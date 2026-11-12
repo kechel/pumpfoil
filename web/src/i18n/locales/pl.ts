@@ -3007,11 +3007,14 @@ const pl: Record<string, string> = {
   "adm.mediaPending.seit": "Konto od {d}",
   "adm.mediaPending.versteckt": "ukryty",
   "adm.mediaPending.gesperrt": "zablokowany",
-  "adm.mediaPending.freigeben": "Zatwierdź",
-  "adm.mediaPending.verstecken": "Ukryj użytkownika",
+  "adm.mediaPending.freigeben": "Zatwierdź (widoczne dla wszystkich)",
+  "adm.mediaPending.verstecken": "Ukryj (shadow ban)",
   "adm.mediaPending.versteckenConfirm": "Ukryć tego użytkownika (shadow ban)? Nikt poza nim nie zobaczy jego treści.",
-  "adm.mediaPending.sperren": "Zablokuj użytkownika",
+  "adm.mediaPending.sperren": "Zablokuj (bez logowania)",
   "adm.mediaPending.sperrenConfirm": "Zablokować tego użytkownika? Nie będzie mógł się zalogować.",
+  "adm.mediaPending.zeileMedium": "Media:",
+  "adm.mediaPending.zeileKonto": "Konto:",
+  "adm.mediaPending.mediumSperren": "Zablokuj tylko to",
 };
 
 export default pl;

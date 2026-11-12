@@ -3025,11 +3025,14 @@ const zh: Record<string, string> = {
   "adm.mediaPending.seit": "注册于 {d}",
   "adm.mediaPending.versteckt": "已隐藏",
   "adm.mediaPending.gesperrt": "已封禁",
-  "adm.mediaPending.freigeben": "批准",
-  "adm.mediaPending.verstecken": "隐藏用户",
+  "adm.mediaPending.freigeben": "批准（所有人可见）",
+  "adm.mediaPending.verstecken": "隐藏（影子封禁）",
   "adm.mediaPending.versteckenConfirm": "隐藏此用户（影子封禁）？除本人外无人能看到其内容。",
-  "adm.mediaPending.sperren": "封禁用户",
+  "adm.mediaPending.sperren": "封禁（无法登录）",
   "adm.mediaPending.sperrenConfirm": "封禁此用户？对方将无法登录。",
+  "adm.mediaPending.zeileMedium": "媒体：",
+  "adm.mediaPending.zeileKonto": "账号：",
+  "adm.mediaPending.mediumSperren": "仅屏蔽此项",
 };
 
 export default zh;

@@ -3081,11 +3081,14 @@ const cs: Record<string, string> = {
   "adm.mediaPending.seit": "Účet od {d}",
   "adm.mediaPending.versteckt": "skrytý",
   "adm.mediaPending.gesperrt": "zablokovaný",
-  "adm.mediaPending.freigeben": "Schválit",
-  "adm.mediaPending.verstecken": "Skrýt uživatele",
+  "adm.mediaPending.freigeben": "Schválit (vidí všichni)",
+  "adm.mediaPending.verstecken": "Skrýt (shadow ban)",
   "adm.mediaPending.versteckenConfirm": "Skrýt tohoto uživatele (shadow ban)? Jeho obsah nikdo jiný neuvidí.",
-  "adm.mediaPending.sperren": "Zablokovat uživatele",
+  "adm.mediaPending.sperren": "Zablokovat (bez přihlášení)",
   "adm.mediaPending.sperrenConfirm": "Zablokovat tohoto uživatele? Už se nebude moci přihlásit.",
+  "adm.mediaPending.zeileMedium": "Médium:",
+  "adm.mediaPending.zeileKonto": "Účet:",
+  "adm.mediaPending.mediumSperren": "Zablokovat jen toto",
 };
 
 export default cs;

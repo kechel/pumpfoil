@@ -3028,11 +3028,14 @@ const id: Record<string, string> = {
   "adm.mediaPending.seit": "Akun sejak {d}",
   "adm.mediaPending.versteckt": "disembunyikan",
   "adm.mediaPending.gesperrt": "diblokir",
-  "adm.mediaPending.freigeben": "Setujui",
-  "adm.mediaPending.verstecken": "Sembunyikan pengguna",
+  "adm.mediaPending.freigeben": "Setujui (terlihat semua)",
+  "adm.mediaPending.verstecken": "Sembunyikan (shadow ban)",
   "adm.mediaPending.versteckenConfirm": "Sembunyikan pengguna ini (shadow ban)? Tidak ada orang lain yang akan melihat kontennya.",
-  "adm.mediaPending.sperren": "Blokir pengguna",
+  "adm.mediaPending.sperren": "Blokir (tidak bisa masuk)",
   "adm.mediaPending.sperrenConfirm": "Blokir pengguna ini? Ia tidak bisa masuk lagi.",
+  "adm.mediaPending.zeileMedium": "Media:",
+  "adm.mediaPending.zeileKonto": "Akun:",
+  "adm.mediaPending.mediumSperren": "Blokir ini saja",
 };
 
 export default id;

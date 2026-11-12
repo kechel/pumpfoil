@@ -2999,11 +2999,14 @@ const nb: Record<string, string> = {
   "adm.mediaPending.seit": "Konto siden {d}",
   "adm.mediaPending.versteckt": "skjult",
   "adm.mediaPending.gesperrt": "blokkert",
-  "adm.mediaPending.freigeben": "Godkjenn",
-  "adm.mediaPending.verstecken": "Skjul bruker",
+  "adm.mediaPending.freigeben": "Godkjenn (synlig for alle)",
+  "adm.mediaPending.verstecken": "Skjul (shadow ban)",
   "adm.mediaPending.versteckenConfirm": "Skjule denne brukeren (shadow ban)? Ingen andre vil se innholdet.",
-  "adm.mediaPending.sperren": "Blokker bruker",
+  "adm.mediaPending.sperren": "Blokker (ingen innlogging)",
   "adm.mediaPending.sperrenConfirm": "Blokkere denne brukeren? Vedkommende kan ikke lenger logge inn.",
+  "adm.mediaPending.zeileMedium": "Medie:",
+  "adm.mediaPending.zeileKonto": "Konto:",
+  "adm.mediaPending.mediumSperren": "Blokker bare dette",
 };
 
 export default nb;

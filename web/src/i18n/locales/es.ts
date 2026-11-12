@@ -2910,11 +2910,14 @@ const es: Record<string, string> = {
   "adm.mediaPending.seit": "Cuenta desde {d}",
   "adm.mediaPending.versteckt": "oculto",
   "adm.mediaPending.gesperrt": "bloqueado",
-  "adm.mediaPending.freigeben": "Aprobar",
-  "adm.mediaPending.verstecken": "Ocultar usuario",
+  "adm.mediaPending.freigeben": "Aprobar (visible para todos)",
+  "adm.mediaPending.verstecken": "Ocultar (shadow ban)",
   "adm.mediaPending.versteckenConfirm": "¿Ocultar a este usuario (shadow ban)? Nadie más verá su contenido.",
-  "adm.mediaPending.sperren": "Bloquear usuario",
+  "adm.mediaPending.sperren": "Bloquear (sin acceso)",
   "adm.mediaPending.sperrenConfirm": "¿Bloquear a este usuario? Ya no podrá iniciar sesión.",
+  "adm.mediaPending.zeileMedium": "Medio:",
+  "adm.mediaPending.zeileKonto": "Cuenta:",
+  "adm.mediaPending.mediumSperren": "Bloquear solo este",
 };
 
 export default es;

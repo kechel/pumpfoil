@@ -3022,11 +3022,14 @@ const ptPT: Record<string, string> = {
   "adm.mediaPending.seit": "Conta desde {d}",
   "adm.mediaPending.versteckt": "oculto",
   "adm.mediaPending.gesperrt": "bloqueado",
-  "adm.mediaPending.freigeben": "Aprovar",
-  "adm.mediaPending.verstecken": "Ocultar utilizador",
+  "adm.mediaPending.freigeben": "Aprovar (visível a todos)",
+  "adm.mediaPending.verstecken": "Ocultar (shadow ban)",
   "adm.mediaPending.versteckenConfirm": "Ocultar este utilizador (shadow ban)? Mais ninguém verá o conteúdo.",
-  "adm.mediaPending.sperren": "Bloquear utilizador",
+  "adm.mediaPending.sperren": "Bloquear (sem início de sessão)",
   "adm.mediaPending.sperrenConfirm": "Bloquear este utilizador? Deixará de poder entrar.",
+  "adm.mediaPending.zeileMedium": "Multimédia:",
+  "adm.mediaPending.zeileKonto": "Conta:",
+  "adm.mediaPending.mediumSperren": "Bloquear só este",
 };
 
 export default ptPT;

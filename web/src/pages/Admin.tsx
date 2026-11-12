@@ -11,6 +11,7 @@ import { useT, useNumberFormat, LANGS } from "../i18n";
 import { DATA_QUALITY, SPORTS, sortiereSports } from "../lib/sportClass";
 import { demoGewuenscht, demoSetzen, demoAnzahl, demoBeobachten } from "../lib/demoNames";
 import { maxVon } from "../lib/minmax";
+import { ytId } from "../components/VideoModal";
 
 type Tab = "overview" | "classify" | "sportregel" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "teams" | "audit" | "feedback" | "bewertungen" | "supporter" | "news" | "promo" | "blocks" | "social" | "system";
 const TABS: [Tab, string][] = [
@@ -59,6 +60,8 @@ export default function Admin() {
     social: pending?.social ?? 0, feedback: pending?.feedback ?? 0,
     spots: pending?.spots ?? 0,
     teams: pending?.teams ?? 0,
+    // Seit 12.11.2026 doch: Fotos zaehlt den Warteraum neuer Konten + offene Medien-Meldungen (nicht `blocked`).
+    photos: pending?.photos ?? 0, bewertungen: pending?.bewertungen ?? 0,
   };
   return (
     <div>
@@ -1621,16 +1624,22 @@ function MediaPending() {
             <Link to={`/sessions/${r.session_id}`}>
               {r.art === "photo" && r.url
                 ? <img src={r.url} alt="" className="h-40 w-full rounded object-cover" />
+                : ytId(r.youtube_url) ? <img src={`/api/public/video-thumb/${ytId(r.youtube_url)}`} alt="" className="h-40 w-full rounded object-cover" />
                 : <span className="flex h-40 w-full items-center justify-center rounded bg-slate-800">Video</span>}
             </Link>
             {r.youtube_url && <a href={r.youtube_url} target="_blank" rel="noopener noreferrer" className="mt-1 block truncate text-slate-400 underline">{r.youtube_url}</a>}
             <div className="mt-1 truncate">{r.besitzer.name || "—"}{r.spot ? ` · ${r.spot}` : ""}</div>
             <div className="text-slate-400">{t("adm.mediaPending.seit", { d: fmtDate(r.besitzer.seit) })}{r.besitzer.hidden ? ` · ${t("adm.mediaPending.versteckt")}` : ""}{r.besitzer.blocked ? ` · ${t("adm.mediaPending.gesperrt")}` : ""}</div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            {/* Jan 12.11.2026: „schreib dazu ob es um den account oder nur das medium geht" — zwei beschriftete Zeilen */}
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="w-16 text-slate-400">{t("adm.mediaPending.zeileMedium")}</span>
               <Act tone="green" onClick={() => api.adminApproveMedia(r.art, r.id).then(() => weg(r))}>{t("adm.mediaPending.freigeben")}</Act>
+              <Act tone="slate" onClick={() => api.adminBlockMedia(r.art, r.id, true).then(() => weg(r))}>{t("adm.mediaPending.mediumSperren")}</Act>
+            </div>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              <span className="w-16 text-slate-400">{t("adm.mediaPending.zeileKonto")}</span>
               {!r.besitzer.hidden && <Act tone="amber" confirm={t("adm.mediaPending.versteckenConfirm")} onClick={() => api.adminHideUser(r.besitzer.id, true).then(() => nutzer(r.besitzer.id, { hidden: true }))}>{t("adm.mediaPending.verstecken")}</Act>}
               {!r.besitzer.blocked && <Act tone="red" confirm={t("adm.mediaPending.sperrenConfirm")} onClick={() => api.adminBlockUser(r.besitzer.id, true).then(() => nutzer(r.besitzer.id, { blocked: true }))}>{t("adm.mediaPending.sperren")}</Act>}
-              <Act tone="slate" onClick={() => api.adminBlockMedia(r.art, r.id, true).then(() => weg(r))}>{t("adm.blockMedia")}</Act>
             </div>
           </div>
         ))}

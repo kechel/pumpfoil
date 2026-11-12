@@ -65,6 +65,8 @@ def test_neues_konto_nur_uploader_sieht_bis_freigabe(client):
     assert any(x["session_id"] == sid for x in client.get("/api/community/latest-photos?limit=40", headers=hn).json())
     # Admin: Liste, Freigabe
     assert client.get("/api/admin/media-pending", headers=ha).status_code == 403
+    pend = client.get("/api/admin/pending", headers=hadm).json()
+    assert pend["photos"] >= 2 and "bewertungen" in pend        # Reiter-Zahl Fotos/Ratings (12.11.2026)
     offen = [x for x in client.get("/api/admin/media-pending", headers=hadm).json() if x["session_id"] == sid]
     assert {x["art"] for x in offen} == {"photo", "video"}
     for x in offen:

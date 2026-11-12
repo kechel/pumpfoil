@@ -3024,11 +3024,14 @@ const ja: Record<string, string> = {
   "adm.mediaPending.seit": "登録 {d}",
   "adm.mediaPending.versteckt": "非表示",
   "adm.mediaPending.gesperrt": "ブロック済み",
-  "adm.mediaPending.freigeben": "承認",
-  "adm.mediaPending.verstecken": "ユーザーを非表示",
+  "adm.mediaPending.freigeben": "承認（全員に表示）",
+  "adm.mediaPending.verstecken": "非表示（シャドウバン）",
   "adm.mediaPending.versteckenConfirm": "このユーザーを非表示（シャドウバン）にしますか？本人以外には内容が見えなくなります。",
-  "adm.mediaPending.sperren": "ユーザーをブロック",
+  "adm.mediaPending.sperren": "ブロック（ログイン不可）",
   "adm.mediaPending.sperrenConfirm": "このユーザーをブロックしますか？ログインできなくなります。",
+  "adm.mediaPending.zeileMedium": "メディア:",
+  "adm.mediaPending.zeileKonto": "アカウント:",
+  "adm.mediaPending.mediumSperren": "これだけブロック",
 };
 
 export default ja;

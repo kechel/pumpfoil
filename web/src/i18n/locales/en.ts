@@ -3133,11 +3133,14 @@ const en: Record<string, string> = {
   "adm.mediaPending.seit": "Account since {d}",
   "adm.mediaPending.versteckt": "hidden",
   "adm.mediaPending.gesperrt": "blocked",
-  "adm.mediaPending.freigeben": "Approve",
-  "adm.mediaPending.verstecken": "Hide user",
+  "adm.mediaPending.freigeben": "Approve (visible to all)",
+  "adm.mediaPending.verstecken": "Hide (shadow ban)",
   "adm.mediaPending.versteckenConfirm": "Hide this user (shadow ban)? Nobody but them will see their content.",
-  "adm.mediaPending.sperren": "Block user",
+  "adm.mediaPending.sperren": "Block (no more login)",
   "adm.mediaPending.sperrenConfirm": "Block this user? They will no longer be able to log in.",
+  "adm.mediaPending.zeileMedium": "Media:",
+  "adm.mediaPending.zeileKonto": "Account:",
+  "adm.mediaPending.mediumSperren": "Block only this",
 };
 
 export default en;

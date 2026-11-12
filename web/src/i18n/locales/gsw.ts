@@ -2913,11 +2913,14 @@ const gsw: Record<string, string> = {
   "adm.mediaPending.seit": "Konto sit {d}",
   "adm.mediaPending.versteckt": "versteckt",
   "adm.mediaPending.gesperrt": "gsperrt",
-  "adm.mediaPending.freigeben": "Freigäh",
-  "adm.mediaPending.verstecken": "Nutzer verstecke",
+  "adm.mediaPending.freigeben": "Freigäh (für alli sichtbar)",
+  "adm.mediaPending.verstecken": "Verstecke (Shadow-Ban)",
   "adm.mediaPending.versteckenConfirm": "Nutzer verstecke (Shadow-Ban)? Sini Inhalt gseht denn niemer meh usser er sälber.",
-  "adm.mediaPending.sperren": "Nutzer sperre",
+  "adm.mediaPending.sperren": "Sperre (kei Login meh)",
   "adm.mediaPending.sperrenConfirm": "Nutzer sperre? Er cha sich denn nümm aamälde.",
+  "adm.mediaPending.zeileMedium": "Medium:",
+  "adm.mediaPending.zeileKonto": "Konto:",
+  "adm.mediaPending.mediumSperren": "Nume das sperre",
 };
 
 export default gsw

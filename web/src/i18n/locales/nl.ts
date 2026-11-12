@@ -3082,11 +3082,14 @@ const nl: Record<string, string> = {
   "adm.mediaPending.seit": "Account sinds {d}",
   "adm.mediaPending.versteckt": "verborgen",
   "adm.mediaPending.gesperrt": "geblokkeerd",
-  "adm.mediaPending.freigeben": "Goedkeuren",
-  "adm.mediaPending.verstecken": "Gebruiker verbergen",
+  "adm.mediaPending.freigeben": "Goedkeuren (voor iedereen zichtbaar)",
+  "adm.mediaPending.verstecken": "Verbergen (shadow ban)",
   "adm.mediaPending.versteckenConfirm": "Deze gebruiker verbergen (shadow ban)? Niemand anders ziet nog zijn inhoud.",
-  "adm.mediaPending.sperren": "Gebruiker blokkeren",
+  "adm.mediaPending.sperren": "Blokkeren (geen login meer)",
   "adm.mediaPending.sperrenConfirm": "Deze gebruiker blokkeren? Hij kan niet meer inloggen.",
+  "adm.mediaPending.zeileMedium": "Media:",
+  "adm.mediaPending.zeileKonto": "Account:",
+  "adm.mediaPending.mediumSperren": "Alleen dit blokkeren",
 };
 
 export default nl;

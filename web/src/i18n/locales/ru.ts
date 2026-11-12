@@ -3028,11 +3028,14 @@ const ru: Record<string, string> = {
   "adm.mediaPending.seit": "Аккаунт с {d}",
   "adm.mediaPending.versteckt": "скрыт",
   "adm.mediaPending.gesperrt": "заблокирован",
-  "adm.mediaPending.freigeben": "Одобрить",
-  "adm.mediaPending.verstecken": "Скрыть пользователя",
+  "adm.mediaPending.freigeben": "Одобрить (видно всем)",
+  "adm.mediaPending.verstecken": "Скрыть (теневой бан)",
   "adm.mediaPending.versteckenConfirm": "Скрыть пользователя (теневой бан)? Его контент не увидит никто, кроме него.",
-  "adm.mediaPending.sperren": "Заблокировать",
+  "adm.mediaPending.sperren": "Заблокировать (без входа)",
   "adm.mediaPending.sperrenConfirm": "Заблокировать пользователя? Он больше не сможет войти.",
+  "adm.mediaPending.zeileMedium": "Медиа:",
+  "adm.mediaPending.zeileKonto": "Аккаунт:",
+  "adm.mediaPending.mediumSperren": "Заблокировать только это",
 };
 
 export default ru;

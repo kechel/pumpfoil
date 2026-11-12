@@ -902,6 +902,7 @@ export interface AdminPending {
   // nichts ab. `social` = wartende Kanaele + gemeldete Videos. `spots` = ausgeblendete
   // Spot-Beschreibungen, die auf eine Entscheidung warten.
   social?: number; feedback?: number; spots?: number;
+  photos?: number; bewertungen?: number;   // 12.11.2026: Warteraum + Medien-Meldungen, offene Bewertungen
   teams?: number;   // Teams, die auf Freigabe ihres Auftritts warten (31.10.2026)
   total: number;
 }
