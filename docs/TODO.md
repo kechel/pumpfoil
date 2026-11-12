@@ -1531,6 +1531,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 12.11.2026 — Idee: reale Wettkämpfe abbilden (nur Idee, Jan: „weiss aber nicht ob das sinn macht")
+Ergebnisse/Rankings echter Foil-Wettbewerbe (z. B. Surf Foil World Tour, surffoilworldtour.com/ranking) bei uns mit
+anzeigen bzw. verknüpfen — etwa Fahrer-Profil „fährt auch die SFWT", Event-Kacheln für reale Termine. Offen: ob es eine
+Datenquelle mit Erlaubnis gibt (API/Export statt Abschreiben), ob es zu Pumpfoil passt (SFWT ist überwiegend
+Surf-/Wing-Foil) und was der Mehrwert gegenüber einem Link ist. Nicht anfangen, bis Jan es aufgreift.
+
 ### 12.11.2026 — Apps: Puls-Streifen je Lauf nachziehen (Backlog fuer die App-Releases naechste Woche, Jan)
 Web zeigt auf der Session-Seite und unter „Laengste Laeufe" je Lauf einen Puls-Streifen (`CompareHrStrips.tsx`:
 Zeit ab Laufbeginn, Faerbung nach Puls bzw. Anstieg, Maus-Anzeige mit Strecke/Tempo). Android und iOS haben ihn nicht.
