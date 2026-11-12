@@ -3036,6 +3036,8 @@ const id: Record<string, string> = {
   "adm.mediaPending.zeileMedium": "Media:",
   "adm.mediaPending.zeileKonto": "Akun:",
   "adm.mediaPending.mediumSperren": "Blokir ini saja",
+  "adm.vorschau.verdeckt": "Tidak terlihat oleh orang lain — klik untuk menampilkan",
+  "adm.mediaPending.erledigt": "{n} lagi dari akun tersembunyi atau diblokir (tak ada yang melihat) — tampilkan",
 };
 
 export default id;

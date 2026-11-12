@@ -3030,6 +3030,8 @@ const ptPT: Record<string, string> = {
   "adm.mediaPending.zeileMedium": "Multimédia:",
   "adm.mediaPending.zeileKonto": "Conta:",
   "adm.mediaPending.mediumSperren": "Bloquear só este",
+  "adm.vorschau.verdeckt": "Não visível para outros — clique para mostrar",
+  "adm.mediaPending.erledigt": "Mais {n} de contas ocultas ou bloqueadas (ninguém vê) — mostrar",
 };
 
 export default ptPT;

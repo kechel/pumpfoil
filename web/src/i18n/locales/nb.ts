@@ -3007,6 +3007,8 @@ const nb: Record<string, string> = {
   "adm.mediaPending.zeileMedium": "Medie:",
   "adm.mediaPending.zeileKonto": "Konto:",
   "adm.mediaPending.mediumSperren": "Blokker bare dette",
+  "adm.vorschau.verdeckt": "Ikke synlig for andre — klikk for å vise",
+  "adm.mediaPending.erledigt": "{n} til fra skjulte eller blokkerte kontoer (ingen ser dem) — vis",
 };
 
 export default nb;

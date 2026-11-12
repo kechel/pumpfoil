@@ -699,7 +699,11 @@ def pending(_a: models.User = Depends(current_admin), db: Session = Depends(get_
     teams = int(db.query(func.count()).select_from(models.Team)
                 .filter(models.Team.freigabe == "wartet", models.Team.geloescht_am.is_(None)).scalar() or 0)
     # Fotos (12.11.2026): Medien neuer Konten im Warteraum (medienfreigabe.py) + offene Medien-Meldungen.
-    photos = sum(int(db.query(func.count()).select_from(M).filter(M.freigabe_offen.is_(True), M.blocked.isnot(True)).scalar() or 0)
+    # Nur was noch fuer jemanden sichtbar werden koennte: Konten, die schon versteckt/gesperrt sind, zaehlen nicht
+    # (Jan 12.11.2026: „die zahl sollte nur die anzahl der aktuell noch sichtbaren medien anzeigen").
+    photos = sum(int(db.query(func.count()).select_from(M).join(models.User, models.User.id == M.user_id)
+                     .filter(M.freigabe_offen.is_(True), M.blocked.isnot(True), models.User.hidden.isnot(True),
+                             models.User.blocked.isnot(True)).scalar() or 0)
                  for M in (models.SessionPhoto, models.SessionVideo))
     photos += int(db.query(func.count(func.distinct(func.concat(models.MediaReport.art, models.MediaReport.media_id))))
                   .filter(models.MediaReport.erledigt_at.is_(None)).scalar() or 0)

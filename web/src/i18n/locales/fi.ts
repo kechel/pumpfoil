@@ -3071,6 +3071,8 @@ const fi: Record<string, string> = {
   "adm.mediaPending.zeileMedium": "Media:",
   "adm.mediaPending.zeileKonto": "Tili:",
   "adm.mediaPending.mediumSperren": "Estä vain tämä",
+  "adm.vorschau.verdeckt": "Ei näy muille — näytä klikkaamalla",
+  "adm.mediaPending.erledigt": "{n} lisää piilotetuilta tai estetyiltä tileiltä (kukaan ei näe) — näytä",
 };
 
 export default fi;

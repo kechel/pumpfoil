@@ -3036,6 +3036,8 @@ const ru: Record<string, string> = {
   "adm.mediaPending.zeileMedium": "Медиа:",
   "adm.mediaPending.zeileKonto": "Аккаунт:",
   "adm.mediaPending.mediumSperren": "Заблокировать только это",
+  "adm.vorschau.verdeckt": "Не видно другим — нажмите, чтобы показать",
+  "adm.mediaPending.erledigt": "Ещё {n} от скрытых или заблокированных аккаунтов (никто не видит) — показать",
 };
 
 export default ru;

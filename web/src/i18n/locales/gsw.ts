@@ -2921,6 +2921,8 @@ const gsw: Record<string, string> = {
   "adm.mediaPending.zeileMedium": "Medium:",
   "adm.mediaPending.zeileKonto": "Konto:",
   "adm.mediaPending.mediumSperren": "Nume das sperre",
+  "adm.vorschau.verdeckt": "Für anderi nöd sichtbar — zum Aazeige klicke",
+  "adm.mediaPending.erledigt": "{n} wiiteri vo versteckte oder gsperrte Konte (gseht niemer) — aazeige",
 };
 
 export default gsw

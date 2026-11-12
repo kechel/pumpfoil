@@ -67,6 +67,11 @@ def test_neues_konto_nur_uploader_sieht_bis_freigabe(client):
     assert client.get("/api/admin/media-pending", headers=ha).status_code == 403
     pend = client.get("/api/admin/pending", headers=hadm).json()
     assert pend["photos"] >= 2 and "bewertungen" in pend and pend["users"] >= 1   # Reiter-Zahlen (12.11.2026)
+    # versteckter Uploader zaehlt nicht mehr mit (sieht ohnehin niemand), Jan 12.11.2026
+    vorher = pend["photos"]
+    assert client.post(f"/api/admin/users/{neu}/hide?hidden=true", headers=hadm).status_code == 200
+    assert client.get("/api/admin/pending", headers=hadm).json()["photos"] == vorher - 2
+    assert client.post(f"/api/admin/users/{neu}/hide?hidden=false", headers=hadm).status_code == 200
     offen = [x for x in client.get("/api/admin/media-pending", headers=hadm).json() if x["session_id"] == sid]
     assert {x["art"] for x in offen} == {"photo", "video"}
     for x in offen:

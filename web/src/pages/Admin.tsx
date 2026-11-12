@@ -1606,45 +1606,73 @@ function UserRow({ u, upd, onRemove }: { u: AdminUser; upd: (p: Partial<AdminUse
   );
 }
 
+// Vorschau, die fuer die Oeffentlichkeit NICHT sichtbar ist (Medium gesperrt, im Warteraum, Konto versteckt/gesperrt):
+// verschwommen, erst ein Klick zeigt sie (Jan 12.11.2026: „nicht sichtbare bilder auch in der vorschau ausblenden und
+// nur bei klick drauf einblenden"). Sichtbare Vorschauen fuehren wie bisher per Klick zur Session.
+function Vorschau({ src, verdeckt, sessionId, hoehe = "h-40" }: { src: string | null; verdeckt: boolean; sessionId: number; hoehe?: string }) {
+  const t = useT();
+  const [zeigen, setZeigen] = useState(false);
+  const bild = src ? <img src={src} alt="" className={`${hoehe} w-full rounded object-cover ${verdeckt && !zeigen ? "scale-110 blur-xl" : ""}`} />
+    : <span className={`flex ${hoehe} w-full items-center justify-center rounded bg-slate-800`}>Video</span>;
+  if (verdeckt && !zeigen) {
+    return (
+      <button onClick={() => setZeigen(true)} className={`relative block ${hoehe} w-full overflow-hidden rounded`}>
+        {bild}
+        <span className="absolute inset-0 flex items-center justify-center bg-slate-900/40 px-2 text-center text-sm font-semibold text-white">{t("adm.vorschau.verdeckt")}</span>
+      </button>
+    );
+  }
+  return <Link to={`/sessions/${sessionId}`} className="block">{bild}</Link>;
+}
+
 // Medien-Uploads neuer Nutzer (Jan, 12.11.2026; server/app/medienfreigabe.py): Konten juenger als 7 Tage — ihre Fotos
 // und Videos sieht nur der Uploader selbst, bis hier jemand freigibt. Direkt daneben: Nutzer verstecken (Shadow-Ban) oder sperren.
+// Medien von schon versteckten/gesperrten Konten zaehlen nicht (die sieht ohnehin niemand) und stehen zugeklappt darunter.
 function MediaPending() {
   const t = useT();
   const { data, setData } = useAsync(() => api.adminMediaPending(), []);
+  const [erledigteZeigen, setErledigteZeigen] = useState(false);
   if (!data || data.length === 0) return null;
   const weg = (r: AdminMediaPending) => setData((d) => (d || []).filter((x) => !(x.art === r.art && x.id === r.id)));
   const nutzer = (uid: number, patch: Partial<AdminMediaPending["besitzer"]>) =>
     setData((d) => (d || []).map((x) => (x.besitzer.id === uid ? { ...x, besitzer: { ...x.besitzer, ...patch } } : x)));
+  const tot = (r: AdminMediaPending) => r.besitzer.hidden || r.besitzer.blocked;
+  const offen = data.filter((r) => !tot(r)), erledigt = data.filter(tot);
+  const karte = (r: AdminMediaPending) => (
+    <div key={`${r.art}-${r.id}`} className="rounded-lg border border-slate-700 p-2 text-sm">
+      <Vorschau src={r.art === "photo" ? r.url : ytId(r.youtube_url) ? `/api/public/video-thumb/${ytId(r.youtube_url)}` : null}
+        verdeckt={tot(r)} sessionId={r.session_id} />
+      {r.youtube_url && <a href={r.youtube_url} target="_blank" rel="noopener noreferrer" className="mt-1 block truncate text-slate-400 underline">{r.youtube_url}</a>}
+      <div className="mt-1 truncate">{r.besitzer.name || "—"}{r.spot ? ` · ${r.spot}` : ""}</div>
+      <div className="text-slate-400">{t("adm.mediaPending.seit", { d: fmtDate(r.besitzer.seit) })}{r.besitzer.hidden ? ` · ${t("adm.mediaPending.versteckt")}` : ""}{r.besitzer.blocked ? ` · ${t("adm.mediaPending.gesperrt")}` : ""}</div>
+      {/* Jan 12.11.2026: „schreib dazu ob es um den account oder nur das medium geht" — zwei beschriftete Zeilen */}
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        <span className="w-16 text-slate-400">{t("adm.mediaPending.zeileMedium")}</span>
+        <Act tone="green" onClick={() => api.adminApproveMedia(r.art, r.id).then(() => weg(r))}>{t("adm.mediaPending.freigeben")}</Act>
+        <Act tone="slate" onClick={() => api.adminBlockMedia(r.art, r.id, true).then(() => weg(r))}>{t("adm.mediaPending.mediumSperren")}</Act>
+      </div>
+      {(!r.besitzer.hidden || !r.besitzer.blocked) && (
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+          <span className="w-16 text-slate-400">{t("adm.mediaPending.zeileKonto")}</span>
+          {!r.besitzer.hidden && <Act tone="amber" confirm={t("adm.mediaPending.versteckenConfirm")} onClick={() => api.adminHideUser(r.besitzer.id, true).then(() => nutzer(r.besitzer.id, { hidden: true }))}>{t("adm.mediaPending.verstecken")}</Act>}
+          {!r.besitzer.blocked && <Act tone="red" confirm={t("adm.mediaPending.sperrenConfirm")} onClick={() => api.adminBlockUser(r.besitzer.id, true).then(() => nutzer(r.besitzer.id, { blocked: true }))}>{t("adm.mediaPending.sperren")}</Act>}
+        </div>
+      )}
+    </div>
+  );
   return (
     <Card className="mb-4 p-4">
-      <h3 className="font-bold">{t("adm.mediaPending")} ({data.length})</h3>
+      <h3 className="font-bold">{t("adm.mediaPending")} ({offen.length})</h3>
       <p className="mb-2 text-sm text-slate-400">{t("adm.mediaPending.hint")}</p>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {data.map((r) => (
-          <div key={`${r.art}-${r.id}`} className="rounded-lg border border-slate-700 p-2 text-sm">
-            <Link to={`/sessions/${r.session_id}`}>
-              {r.art === "photo" && r.url
-                ? <img src={r.url} alt="" className="h-40 w-full rounded object-cover" />
-                : ytId(r.youtube_url) ? <img src={`/api/public/video-thumb/${ytId(r.youtube_url)}`} alt="" className="h-40 w-full rounded object-cover" />
-                : <span className="flex h-40 w-full items-center justify-center rounded bg-slate-800">Video</span>}
-            </Link>
-            {r.youtube_url && <a href={r.youtube_url} target="_blank" rel="noopener noreferrer" className="mt-1 block truncate text-slate-400 underline">{r.youtube_url}</a>}
-            <div className="mt-1 truncate">{r.besitzer.name || "—"}{r.spot ? ` · ${r.spot}` : ""}</div>
-            <div className="text-slate-400">{t("adm.mediaPending.seit", { d: fmtDate(r.besitzer.seit) })}{r.besitzer.hidden ? ` · ${t("adm.mediaPending.versteckt")}` : ""}{r.besitzer.blocked ? ` · ${t("adm.mediaPending.gesperrt")}` : ""}</div>
-            {/* Jan 12.11.2026: „schreib dazu ob es um den account oder nur das medium geht" — zwei beschriftete Zeilen */}
-            <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="w-16 text-slate-400">{t("adm.mediaPending.zeileMedium")}</span>
-              <Act tone="green" onClick={() => api.adminApproveMedia(r.art, r.id).then(() => weg(r))}>{t("adm.mediaPending.freigeben")}</Act>
-              <Act tone="slate" onClick={() => api.adminBlockMedia(r.art, r.id, true).then(() => weg(r))}>{t("adm.mediaPending.mediumSperren")}</Act>
-            </div>
-            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <span className="w-16 text-slate-400">{t("adm.mediaPending.zeileKonto")}</span>
-              {!r.besitzer.hidden && <Act tone="amber" confirm={t("adm.mediaPending.versteckenConfirm")} onClick={() => api.adminHideUser(r.besitzer.id, true).then(() => nutzer(r.besitzer.id, { hidden: true }))}>{t("adm.mediaPending.verstecken")}</Act>}
-              {!r.besitzer.blocked && <Act tone="red" confirm={t("adm.mediaPending.sperrenConfirm")} onClick={() => api.adminBlockUser(r.besitzer.id, true).then(() => nutzer(r.besitzer.id, { blocked: true }))}>{t("adm.mediaPending.sperren")}</Act>}
-            </div>
-          </div>
-        ))}
-      </div>
+      {offen.length > 0 && <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{offen.map(karte)}</div>}
+      {erledigt.length > 0 && (
+        <div className="mt-3">
+          <button className="text-sm underline" onClick={() => setErledigteZeigen(!erledigteZeigen)}>
+            {t("adm.mediaPending.erledigt", { n: erledigt.length })}
+          </button>
+          {erledigteZeigen && <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">{erledigt.map(karte)}</div>}
+        </div>
+      )}
     </Card>
   );
 }
@@ -1703,9 +1731,8 @@ function PhotosTab() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {items.map((p) => (
             <Card key={p.id} className="overflow-hidden p-0">
-              <Link to={`/sessions/${p.session_id}`}>
-                <img src={p.url} alt="" className={`h-36 w-full object-cover ${p.blocked ? "opacity-30 grayscale" : ""}`} />
-              </Link>
+              <Vorschau src={p.url} sessionId={p.session_id} hoehe="h-36"
+                verdeckt={!!(p.blocked || p.freigabe_offen || p.user_hidden || p.user_blocked)} />
               <div className="p-2 text-sm">
                 <div className="truncate text-slate-300">{p.name || "—"}{p.spot ? ` · ${p.spot}` : ""}</div>
                 <div className="text-slate-400">{[p.freigabe_offen && t("adm.mediaPending"), p.user_hidden && t("adm.mediaPending.versteckt"), p.user_blocked && t("adm.mediaPending.gesperrt")].filter(Boolean).join(" · ")}</div>

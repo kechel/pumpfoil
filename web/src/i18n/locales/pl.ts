@@ -3015,6 +3015,8 @@ const pl: Record<string, string> = {
   "adm.mediaPending.zeileMedium": "Media:",
   "adm.mediaPending.zeileKonto": "Konto:",
   "adm.mediaPending.mediumSperren": "Zablokuj tylko to",
+  "adm.vorschau.verdeckt": "Niewidoczne dla innych — kliknij, aby pokazać",
+  "adm.mediaPending.erledigt": "{n} więcej z ukrytych lub zablokowanych kont (nikt ich nie widzi) — pokaż",
 };
 
 export default pl;

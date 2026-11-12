@@ -3089,6 +3089,8 @@ const cs: Record<string, string> = {
   "adm.mediaPending.zeileMedium": "Médium:",
   "adm.mediaPending.zeileKonto": "Účet:",
   "adm.mediaPending.mediumSperren": "Zablokovat jen toto",
+  "adm.vorschau.verdeckt": "Ostatním neviditelné — kliknutím zobrazit",
+  "adm.mediaPending.erledigt": "Dalších {n} ze skrytých nebo zablokovaných účtů (nikdo je nevidí) — zobrazit",
 };
 
 export default cs;

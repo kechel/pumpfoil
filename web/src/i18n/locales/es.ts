@@ -2918,6 +2918,8 @@ const es: Record<string, string> = {
   "adm.mediaPending.zeileMedium": "Medio:",
   "adm.mediaPending.zeileKonto": "Cuenta:",
   "adm.mediaPending.mediumSperren": "Bloquear solo este",
+  "adm.vorschau.verdeckt": "No visible para otros — clic para mostrar",
+  "adm.mediaPending.erledigt": "{n} más de cuentas ocultas o bloqueadas (nadie los ve) — mostrar",
 };
 
 export default es;

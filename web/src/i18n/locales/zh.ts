@@ -3033,6 +3033,8 @@ const zh: Record<string, string> = {
   "adm.mediaPending.zeileMedium": "媒体：",
   "adm.mediaPending.zeileKonto": "账号：",
   "adm.mediaPending.mediumSperren": "仅屏蔽此项",
+  "adm.vorschau.verdeckt": "其他人不可见 — 点击显示",
+  "adm.mediaPending.erledigt": "另有 {n} 项来自已隐藏或已封禁的账号（无人可见）— 显示",
 };
 
 export default zh;

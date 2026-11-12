@@ -2922,6 +2922,8 @@ const deAT: Record<string, string> = {
   "adm.mediaPending.zeileMedium": "Medium:",
   "adm.mediaPending.zeileKonto": "Konto:",
   "adm.mediaPending.mediumSperren": "Nur des sperren",
+  "adm.vorschau.verdeckt": "Für andere ned sichtbar — zum Anzeigen klicken",
+  "adm.mediaPending.erledigt": "{n} weitere von versteckten oder gsperrten Konten (siacht koaner) — anzeigen",
 };
 
 export default deAT
