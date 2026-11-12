@@ -5,6 +5,7 @@ import { FlagIcon, BellIcon, BellOffIcon, EyeIcon, EyeOffIcon, MuteIcon, EditIco
 import { FotoStapel } from "./FotoStapel";
 import { useT } from "../i18n";
 import { MicButton } from "./MicButton";
+import { maxVon } from "../lib/minmax";
 
 // URLs im Text klickbar machen (öffnen in neuem Tab).
 function linkify(text: string) {
@@ -136,7 +137,7 @@ export function Chat({ scope, fill = false, kommentare = false, inhaber = false 
     const pollNachrichten = () => api.chatList(scope, lastId.current).then((rows) => {
       if (!alive || rows.length === 0) return;
       const stick = atBottom();
-      lastId.current = Math.max(lastId.current, ...rows.map((r) => r.id));
+      lastId.current = Math.max(lastId.current, maxVon(rows.map((r) => r.id)));
       setMsgs((prev) => {
         const next = [...prev, ...rows];
         if (next.length > CAP) { setCapped(true); return next.slice(next.length - CAP); }  // nur letzte 100

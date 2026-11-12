@@ -8,6 +8,7 @@ import { SpotProgression } from "../components/SpotProgression";
 import { HrProgress } from "../components/HrProgress";
 import { useT, useNumberFormat } from "../i18n";
 import { fmtLaufDauerEinheit } from "../lib/dauer";
+import { maxVon, minVon } from "../lib/minmax";
 
 export type Mode = "cumulative" | "window7" | "window30";
 export type Pt = { t: number; v: number; sid: number; run: number | null };
@@ -162,7 +163,7 @@ function SportErfolgSection({ mode, onPick }: { mode: Mode; onPick: (p: Pt) => v
       <div className="space-y-4">
         {je.map(([sp, liste]) => {
           const zeiten = liste.map((d) => new Date(d.started_at).getTime());
-          const dom: [number, number] = [Math.min(...zeiten), Math.max(...zeiten)];
+          const dom: [number, number] = [minVon(zeiten), maxVon(zeiten)];
           return (
             <div key={sp}>
               <div className="mb-2 inline-flex rounded bg-amber-500/15 px-2 py-0.5 text-sm text-amber-700 dark:text-amber-300">{t(`cls.sport.${sp}`)}</div>
@@ -201,7 +202,7 @@ export default function History({ eingebettet = false }: { eingebettet?: boolean
   // gleich dargestellt werden und das Fenster-Raster auch außerhalb der jeweiligen
   // Metrik-Daten auf 0 fällt (z. B. Glide nur in Accel-Sessions).
   const times = data.map((d) => new Date(d.started_at).getTime());
-  const domain: [number, number] = times.length ? [Math.min(...times), Math.max(...times)] : [0, 1];
+  const domain: [number, number] = times.length ? [minVon(times), maxVon(times)] : [0, 1];
 
   return (
     <div>
@@ -321,7 +322,7 @@ export function LineChart({ pts, color, fmt, onPick, domain, vmin: vminProp }: {
   const W = 320, H = 120, pad = 8, padB = 18, padL = 4;
   if (pts.length < 2) return <div className="h-[120px] text-xs text-slate-400">{t("history.tooFewData")}</div>;
   const tmin = domain ? domain[0] : pts[0].t, tmax = domain ? domain[1] : pts[pts.length - 1].t;
-  const vmax = Math.max(...pts.map((p) => p.v)) * 1.05 || 1;
+  const vmax = maxVon(pts.map((p) => p.v)) * 1.05 || 1;
   const vmin = vminProp ?? 0;
   const vspan = Math.max(vmax - vmin, 1e-6);
   const x = (t: number) => padL + ((t - tmin) / Math.max(tmax - tmin, 1)) * (W - pad - padL);

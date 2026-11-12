@@ -11,6 +11,7 @@ import {
   RiderParams, MastParams, PumpParams,
 } from "../lib/foilPhysics";
 import { useT } from "../i18n";
+import { minVon } from "../lib/minmax";
 
 const SPEEDS = [10, 12, 14, 16, 18, 20];
 
@@ -257,7 +258,7 @@ function PowerTable({ foils, rider, mast, pump, t }: {
   // Niedrigste (beste) Leistung je Spalte hervorheben.
   const best = SPEEDS.map((_, ci) => {
     const vals = rows.map((r) => r.cells[ci]).filter((v): v is number => v != null);
-    return vals.length ? Math.min(...vals) : null;
+    return vals.length ? minVon(vals) : null;
   });
 
   return (

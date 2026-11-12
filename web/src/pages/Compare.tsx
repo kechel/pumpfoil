@@ -15,6 +15,7 @@ import { setLastSession } from "../lib/lastSession";
 import { usePumpFmt } from "../lib/pumpRate";
 import { useT } from "../i18n";
 import { KorrekturUmschalter, LAUF_GRUPPE, LAUF_HOVER, LaufLegende, LaufPhasenZeilen, PhasenKopf } from "../components/TechnikTabelle";
+import { maxVon, minVon } from "../lib/minmax";
 
 // Farben zur Zuordnung Wert -> markiertes Element (Legende oben + Punkt je Wert).
 const COLORS = ["#2dd4bf", "#f59e0b", "#a78bfa", "#f472b6"];
@@ -358,7 +359,7 @@ export default function Compare() {
               let bestVal: number | null = null;
               const nums = vals.filter((v): v is number => v != null);
               if (mt.dir && nums.length >= 2) {
-                bestVal = mt.dir === "max" ? Math.max(...nums) : Math.min(...nums);
+                bestVal = mt.dir === "max" ? maxVon(nums) : minVon(nums);
               }
               return (
                 <Card key={mt.key} className="p-2">
@@ -424,7 +425,7 @@ function AllRunsTable({ items, win, weight }: { items: Item[]; win: "1" | "3" | 
     return v != null ? (v * 3.6).toFixed(1) : "–";
   };
   // Bestwerte über alle Zeilen für dezente Hervorhebung.
-  const bestDist = Math.max(...rows.map((r) => r.seg.distance_m ?? 0));
+  const bestDist = maxVon(rows.map((r) => r.seg.distance_m ?? 0));
 
   return (
     <div className="mt-8">

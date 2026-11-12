@@ -4,6 +4,7 @@
 // auch wenn nur wenige Fahrer in der Liste stehen. Keine Profilbilder: sie sollen nicht ungefragt in geteilten
 // Bildern landen (wie die Gast-Ansicht, teams.fuer_gast). Die Initialen-Kreise stattdessen sind seit 03.11.2026 auch
 // weg (Jan: „unsinnig wenn es garkeine bilder gibt") — Rang, Flagge, Name, Wert.
+import { maxVon } from "./minmax";
 
 export const BILD_B = 1080, BILD_H = 1080;
 const SCHRIFT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
@@ -219,10 +220,10 @@ export function zeichneBestenliste(g: CanvasRenderingContext2D, d: BildDaten) {
     if (z.abzeichen?.length) {
       const pp = Math.max(16, Math.round(gross * 0.62)), ph = Math.round(pp * 1.5), pg = 8;
       g.font = `700 ${pp}px ${SCHRIFT}`;
-      const pw = Math.max(ph, ...Object.values(kurz).map((k) => g.measureText(k).width + Math.round(pp * 0.9)));
+      const pw = Math.max(ph, maxVon(Object.values(kurz).map((k) => g.measureText(k).width + Math.round(pp * 0.9))));
       // Am breitesten Wert ausrichten, damit die Pillen buendig vor der Wertespalte stehen.
       g.font = `700 ${gross}px ${SCHRIFT}`;
-      const wMax = Math.max(wb, ...alleZeilen.map((x) => g.measureText(x.wert).width));
+      const wMax = Math.max(wb, maxVon(alleZeilen.map((x) => g.measureText(x.wert).width)));
       g.font = `700 ${pp}px ${SCHRIFT}`;
       // Keine festen Spalten je Sportart (Jan, 09.11.2026: „meistens hat jeder nur eine sportart, nur eins weiter links
       // wenn noetig"): die Pillen dicht von rechts, eine zweite links daneben.

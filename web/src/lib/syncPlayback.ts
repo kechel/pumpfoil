@@ -1,4 +1,5 @@
 import { SessionSummary } from "./api";
+import { maxVon, minVon } from "./minmax";
 
 // Synchrones Abspielen mehrerer Sessions auf EINER Uhrzeit-Achse (Jans Wunsch 31.08.:
 // „wenn zwei Sessions sich zeitlich überschneiden … einfach alles zeitlich synchron abspielen,
@@ -234,8 +235,8 @@ export function syncPlan(auswahl: SyncAuswahl[]): SyncPlan | null {
   }
   // Die größte Gruppe gewinnt; bei Gleichstand die mit der längeren gemeinsamen Zeit.
   gruppen.sort((a, b) => b.length - a.length ||
-    (Math.max(...b.map((x) => x.a.bis)) - Math.min(...b.map((x) => x.a.von))) -
-    (Math.max(...a.map((x) => x.a.bis)) - Math.min(...a.map((x) => x.a.von))));
+    (maxVon(b.map((x) => x.a.bis)) - minVon(b.map((x) => x.a.von))) -
+    (maxVon(a.map((x) => x.a.bis)) - minVon(a.map((x) => x.a.von))));
   const beste = gruppen[0] ?? [];
   if (beste.length < 2) return null;
 

@@ -67,7 +67,7 @@ function kmh(mps: number | null | undefined) {
 }
 
 import { ladeSessionView, merkeSessionView, type ColorMode } from "../lib/sessionViewPrefs";
-import { minMax } from "../lib/minmax";
+import { maxVon, minMax } from "../lib/minmax";
 import { kennzahl } from "../lib/teamKennzahlen";
 
 // YouTube-Video-ID aus einer URL ziehen (watch?v=, youtu.be/, shorts/, embed/).
@@ -626,8 +626,9 @@ export default function SessionDetail() {
   // stehen nicht in der Session-Antwort — Gespeichert sind nur ihre Distanzen; die Linien holt
   // ein eigener, rein lesender Endpunkt, und zwar erst beim ersten Einschalten.
   const [showAttempts, setShowAttempts] = useState(gemerkt.showAttempts);
-  // Gleitphasen einblenden (Jan, 03.10.2026) — wie die Pump-Marker, Daten aus `seg.glides`.
-  const [showGlides, setShowGlides] = useState(gemerkt.showGlides);
+  // Gleitphasen (Jan, 03.10.2026; Daten aus `seg.glides`) — seit 12.11.2026 eine eigene Faerbung wie Carves statt
+  // ein Schalter, der sich mit Tempo/Puls kombinierte (Jan: „entweder schaue ich mir puls an oder carves oder glides").
+  const showGlides = colorMode === "glides";
   const [alleGlides, setAlleGlides] = useState(false);   // Gleitphasen-Liste: alle statt der GLIDES_KURZ laengsten
   // Startversuche gibt es NUR beim Pumpfoilen. Anlass: Feedback von u43 zu Session 5272
   // (08.09.2026, "Hi, this is wingfoiling, but still, my first long run is recognized as long
@@ -850,6 +851,16 @@ export default function SessionDetail() {
     return i >= 0 ? { kz, i, a: f[0], b: f[1], wert: session?.analysis?.sprints?.best?.[kz] ?? 0 } : null;
   }, [searchParams, session]);
   const sprintHL = useMemo(() => (sprintLauf && selectedRun === sprintLauf.i ? sprintLauf : null), [sprintLauf, selectedRun]);
+  // Aus einer Sprint-Bestenliste: Glides-Faerbung aus (Jan 12.11.2026), sonst ist der Track grau und vom gewerteten
+  // Abschnitt bleiben nur die weissen Raender. Einmal je Session/Sprint, danach darf man zurueckschalten.
+  const sprintFarbeRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!sprintLauf || !session) return;
+    const key = `${session.id}:${sprintLauf.kz}`;
+    if (sprintFarbeRef.current === key) return;
+    sprintFarbeRef.current = key;
+    if (colorMode === "glides") setColorMode("speed");
+  }, [sprintLauf, session, colorMode]);
 
   // Beim Aufruf über einen Rekord-Link (?run=N) den Lauf vorauswählen (einmal je Session).
   const appliedRunRef = useRef<string | null>(null);
@@ -922,8 +933,8 @@ export default function SessionDetail() {
     // Sportarten ohne Pump-Zahlen (Wind) merken NICHTS: ihr Rueckfall von „Pump-Faerbung" auf Tempo
     // soll die Ansicht der naechsten Pumpfoil-Session nicht verstellen (19.10.2026).
     if (!pumpzahlen) return;
-    merkeSessionView({ colorMode, win, showPumps, showAttempts, showGlides });
-  }, [colorMode, win, showPumps, showAttempts, showGlides, pumpzahlen]);
+    merkeSessionView({ colorMode, win, showPumps, showAttempts, showGlides: false });
+  }, [colorMode, win, showPumps, showAttempts, pumpzahlen]);
 
   // Startversuche erst holen, wenn der Schalter das erste Mal angeht (die Rechnung laeuft
   // serverseitig ueber die Roh-GPS-Punkte — nichts, was man ungefragt bei jedem Aufruf machen will).
@@ -1046,6 +1057,10 @@ export default function SessionDetail() {
   useEffect(() => {
     if (colorMode === "turns" && !hasTurns) setColorMode("speed");
   }, [colorMode, hasTurns]);
+  // Glides ohne Gleitphasen in dieser Session -> Tempo (wie Carves; erst wenn die Session geladen ist).
+  useEffect(() => {
+    if (colorMode === "glides" && session?.analysis && !gleitenMoeglich) setColorMode("speed");
+  }, [colorMode, session, gleitenMoeglich]);
 
   // Optimale Geschwindigkeit (km/h) für das Foil dieser Session beim Gewicht des Nutzers.
   const optimalKmh = useMemo(() => {
@@ -1570,7 +1585,7 @@ export default function SessionDetail() {
         if (selectedRun != null) color = "#64748b";
         else if (colorMode === "optimal") color = optimalColor((speeds[i + 1] ?? 0) * 3.6, optimalKmh ?? 0);
         else if (colorMode === "hr") color = hrColor(hr[i + 1], hrRange);
-        else if (colorMode === "turns") color = "#334155";
+        else if (colorMode === "turns" || colorMode === "glides") color = "#334155";
         else color = speedColor((speeds[i + 1] ?? 0) * 3.6, speedMin, speedMax);
         if (color !== farbe || !linie.length) {
           zeichnen();
@@ -1604,7 +1619,7 @@ export default function SessionDetail() {
               const j = idx[k + 1];
               const color = colorMode === "optimal" ? optimalColor((speeds[j] ?? 0) * 3.6, optimalKmh ?? 0)
                 : colorMode === "hr" ? hrColor(hr[j], hrRange)
-                : colorMode === "turns" ? "#334155"
+                : colorMode === "turns" || colorMode === "glides" ? "#334155"
                 : speedColor((speeds[j] ?? 0) * 3.6, speedMin, speedMax);
               L.polyline([ln[k], ln[k + 1]], { color, weight: 6, opacity: 0.95, interactive: false }).addTo(lg);
             }
@@ -2440,6 +2455,9 @@ export default function SessionDetail() {
           {hasTurns && (
             <ModeButton active={colorMode === "turns"} onClick={() => setColorMode("turns")}>Carves</ModeButton>
           )}
+          {gleitenMoeglich && (
+            <ModeButton active={colorMode === "glides"} onClick={() => setColorMode("glides")}>{t("sd.glides")}</ModeButton>
+          )}
           {(colorMode === "speed" || colorMode === "optimal") && (
             <>
               <span className="ml-2 text-xs text-slate-400">{t("sd.smoothing")}</span>
@@ -2469,15 +2487,6 @@ export default function SessionDetail() {
             {/* SUP (Jan, 20.10.2026): dort sind es Paddelschlaege, keine Pumps. */}
             <span className="inline-flex items-center gap-1">{schlagSport ? t("sd.strokes") : t("stat.pumps")} {showPumps ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
           </button>
-          )}
-          {/* Nur, wenn die Analyse Gleitphasen geliefert hat (ab der Fassung vom 03.10.2026). */}
-          {gleitenMoeglich && (session?.analysis?.segments ?? []).some((g: any) => g.glides?.length) && (
-            <button
-              onClick={() => setShowGlides((v) => !v)}
-              className={`ml-2 rounded-lg px-2.5 py-1 text-xs ${showGlides ? "bg-brand-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}
-            >
-              <span className="inline-flex items-center gap-1">{t("sd.glides")} {showGlides ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
-            </button>
           )}
           {/* Nur zeigen, wenn es wirklich etwas zu zeigen gibt: mehr Versuche als Läufe heißt,
               dass Anläufe dabei waren, aus denen kein Lauf wurde. Beides steht schon in der
@@ -2685,6 +2694,11 @@ export default function SessionDetail() {
               <span className={carveData?.counts.m ? "font-bold text-slate-100" : "text-slate-500"}>180–360°: {carveData?.counts.m ?? 0}</span>
               <span className={carveData?.counts.l ? "font-bold text-slate-100" : "text-slate-500"}>&gt;360°: {carveData?.counts.l ?? 0}</span>
             </span>
+          ) : colorMode === "glides" ? (
+            <span className="inline-flex items-center gap-1.5 text-xs text-slate-300">
+              <span className="inline-block h-2.5 w-8 rounded" style={{ background: "#22d3ee" }} />
+              {t("sd.glides")}
+            </span>
           ) : (
             <Legend mode={colorMode} hrRange={hrRange} speedRange={[speedMin, speedMax]} pumpRange={pumpRange} optimal={optimalKmh} />
           )}
@@ -2732,7 +2746,7 @@ export default function SessionDetail() {
               <span className="mr-1 text-xs text-slate-400">{t("sd.glides")} ({liste.length}){lang ? ` · ${t("sd.glidesTop")}` : ""}</span>
               {gezeigt.map((x, i) => (
                 <button key={i}
-                  onClick={() => { setSelectedRun(x.lauf); setShowGlides(true); }}
+                  onClick={() => { setSelectedRun(x.lauf); setColorMode("glides"); }}
                   className="rounded-lg bg-slate-800 px-2.5 py-1 text-xs tabular-nums text-slate-200 hover:bg-slate-700">
                   #{x.lauf + 1}
                   {x.t != null && <span className="opacity-70"> · {fmtTime(new Date(startMs + wanduhrMs(session!.pause_windows, x.t)).toISOString(), session!.tz,
@@ -3780,7 +3794,7 @@ function RunsTable({
     return ms == null ? "–" : uhr(ms);
   };
   const showPower = !!powerFor && segments.some((s) => powerFor(s.avg_speed_mps, s.avg_pump_hz) != null);
-  const bestDist = Math.max(...segments.map((s) => s.distance_m ?? 0));
+  const bestDist = maxVon(segments.map((s) => s.distance_m ?? 0));
   const hasPump = segments.some((s) => s.avg_pump_hz != null && (s.pumps ?? 0) > 0);
   // Hoechstpuls im Lauf (Wunsch ThermikDreher, 15.08.: „max Heartrate pro Lauf").
   const maxHr = (s: any): number | null => {

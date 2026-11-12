@@ -7,6 +7,7 @@ import { abstandM, lageText, MAX_NACHBARN, warumKeine, routenVorschlagen, type R
 import { Card } from "./ui";
 import { rampColor } from "../lib/trackColors";
 import { useT } from "../i18n";
+import { maxVon, minVon } from "../lib/minmax";
 
 // Heatmap EINES Spots auf seiner Sessions-Seite, zwischen Rekord-Kacheln und Wetter (Jan,
 // 16.10.2026: „einfach die heatmap ganz normal so wie in spots … passend eingezoomt und nur die
@@ -112,8 +113,8 @@ export function SpotHeatmap({ spotId, sport = "all" }: { spotId: number; sport?:
         if (r.z == null || !r.cells.length) { setOhneDaten(true); setBereit(true); return; }
         const { lon, lat } = zellKanten(r.z);
         const xs = r.cells.map((c) => c[0]), ys = r.cells.map((c) => c[1]);
-        m.fitBounds([[lat(Math.max(...ys) + 1), lon(Math.min(...xs))],
-                     [lat(Math.min(...ys)), lon(Math.max(...xs) + 1)]],
+        m.fitBounds([[lat(maxVon(ys) + 1), lon(minVon(xs))],
+                     [lat(minVon(ys)), lon(maxVon(xs) + 1)]],
                     { padding: [16, 16], maxZoom: 17, animate: false });
         setBereit(true);
       })
@@ -327,7 +328,7 @@ export function platzName(i: number): string {
 /** Abschnitte einer Punktfolge mit Laenge und Farbe (blau = kuerzester, rot = laengster). */
 function abschnitte(pts: Punkt[], namen: string[]) {
   const ab = pts.slice(1).map((b, k) => ({ a: pts[k], b, von: namen[k], nach: namen[k + 1], meter: abstandM(pts[k], b) }));
-  const lo = Math.min(...ab.map((x) => x.meter)), hi = Math.max(...ab.map((x) => x.meter));
+  const lo = minVon(ab.map((x) => x.meter)), hi = maxVon(ab.map((x) => x.meter));
   return ab.map((x) => ({ ...x, farbe: rampColor(hi > lo ? (x.meter - lo) / (hi - lo) : 0.5) }));
 }
 
@@ -368,7 +369,7 @@ export function gemerktKurz(g: Gemerkt) {
   const pts = g.punkte.map(([lat, lon]) => ({ lat, lon }));
   const rund = pts.length > 2 && abstandM(pts[0], pts[pts.length - 1]) < 1;
   const legs = pts.slice(1).map((b, k) => abstandM(pts[k], b));
-  return { starts: rund ? pts.length - 1 : pts.length, maxM: Math.round(Math.max(...legs)), pts };
+  return { starts: rund ? pts.length - 1 : pts.length, maxM: Math.round(maxVon(legs)), pts };
 }
 
 function Abschnitte({ pts, namen }: { pts: Punkt[]; namen: string[] }) {

@@ -10,6 +10,7 @@ import { TimeChart } from "../components/TimeChart";
 import { useT, useNumberFormat, LANGS } from "../i18n";
 import { DATA_QUALITY, SPORTS, sortiereSports } from "../lib/sportClass";
 import { demoGewuenscht, demoSetzen, demoAnzahl, demoBeobachten } from "../lib/demoNames";
+import { maxVon } from "../lib/minmax";
 
 type Tab = "overview" | "classify" | "sportregel" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "teams" | "audit" | "feedback" | "bewertungen" | "supporter" | "news" | "promo" | "blocks" | "social" | "system";
 const TABS: [Tab, string][] = [
@@ -499,7 +500,7 @@ function VerlaufKachel({ titel, color, achse, werte, domain, ticks, fmtTick, zus
   const vPlot = idx.map(([, i]) => werte[i]);
   const zahl = (v: number) => (kommastelle ? v.toFixed(1) : nf(Math.round(v)));
   const kopf = vPlot.length ? vPlot[vPlot.length - 1] : 0;
-  const max = vPlot.length ? Math.max(...vPlot) : 0;
+  const max = vPlot.length ? maxVon(vPlot) : 0;
   const vmax = Math.max(max, 1);
   return (
     <Card className="p-3">
@@ -776,7 +777,7 @@ function VerlaufsDiagramme() {
             const werte = punkte.map((p) => (p[r.key] as number | null));
             const zahlen = werte.filter((x): x is number => x !== null);
             const jetzt = [...zahlen].pop() ?? 0;
-            const max = zahlen.length ? Math.max(...zahlen) : 0;
+            const max = zahlen.length ? maxVon(zahlen) : 0;
             const vmax = r.fest100 ? 100 : Math.max(max, 1);
             const vmin = 0;
             // Feste Skala vmin..vmax bekommt der Chart per `yRange` gesagt. Frueher hingen

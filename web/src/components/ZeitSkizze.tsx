@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
+import { maxVon, minVon } from "../lib/minmax";
 
 /**
  * Kleine Skizze der GANZEN Spur (ohne Zuschnitt) mit den Stellen, die gerade an einem Regler stehen —
@@ -31,7 +32,7 @@ export function ZeitSkizze({ sessionId, farbe, marken }: {
     const lat0 = punkte.reduce((s, p) => s + p[1], 0) / punkte.length;
     const k = Math.cos((lat0 * Math.PI) / 180);
     const xs = punkte.map((p) => p[2] * k), ys = punkte.map((p) => -p[1]);
-    const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+    const x0 = minVon(xs), x1 = maxVon(xs), y0 = minVon(ys), y1 = maxVon(ys);
     const s = Math.min((W - 2 * R) / Math.max(1e-9, x1 - x0), (H - 2 * R) / Math.max(1e-9, y1 - y0));
     const ox = (W - (x1 - x0) * s) / 2, oy = (H - (y1 - y0) * s) / 2;
     return punkte.map((p, i) => ({ t: p[0], x: ox + (xs[i] - x0) * s, y: oy + (ys[i] - y0) * s }));

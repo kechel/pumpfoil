@@ -10,7 +10,9 @@
 // Nicht gemerkt wird die Skala (`autoScale`, Min/Max): die hängt an der EINZELNEN Session
 // (Auto-Skala passt sie an deren Spanne an), ein Übertrag wäre dort eher störend.
 
-export type ColorMode = "speed" | "hr" | "pump" | "optimal" | "turns";
+// "glides" (12.11.2026, Jan: „glides wie carves eine der optionen … entweder puls oder carves oder glides"):
+// vorher ein eigener Schalter `showGlides`, der sich mit jeder Faerbung kombinierte.
+export type ColorMode = "speed" | "hr" | "pump" | "optimal" | "turns" | "glides";
 export type SmoothWin = "1" | "3" | "5";
 
 export type SessionView = {
@@ -18,7 +20,7 @@ export type SessionView = {
   win: SmoothWin;
   showPumps: boolean;
   showAttempts: boolean;
-  showGlides: boolean;
+  showGlides: boolean;   // veraltet (12.11.2026), immer false — s. ColorMode "glides"
 };
 
 const KEY = "foil_sd_view";
@@ -33,7 +35,7 @@ export const SESSION_VIEW_DEFAULT: SessionView = {
   showGlides: false,
 };
 
-const MODES: ColorMode[] = ["speed", "hr", "pump", "optimal", "turns"];
+const MODES: ColorMode[] = ["speed", "hr", "pump", "optimal", "turns", "glides"];
 const WINS: SmoothWin[] = ["1", "3", "5"];
 
 /** Gemerkte Ansicht lesen. Unbekannte/kaputte Werte fallen einzeln auf den Standard zurück. */
@@ -43,7 +45,9 @@ export function ladeSessionView(): SessionView {
     if (!roh) return SESSION_VIEW_DEFAULT;
     const v = JSON.parse(roh) as Partial<SessionView>;
     return {
-      colorMode: MODES.includes(v.colorMode as ColorMode) ? (v.colorMode as ColorMode) : SESSION_VIEW_DEFAULT.colorMode,
+      // Alter Schalter `showGlides: true` -> Faerbung „glides" (einmal; geschrieben wird er nur noch als false).
+      colorMode: v.showGlides === true ? "glides"
+        : MODES.includes(v.colorMode as ColorMode) ? (v.colorMode as ColorMode) : SESSION_VIEW_DEFAULT.colorMode,
       win: WINS.includes(v.win as SmoothWin) ? (v.win as SmoothWin) : SESSION_VIEW_DEFAULT.win,
       showPumps: typeof v.showPumps === "boolean" ? v.showPumps : SESSION_VIEW_DEFAULT.showPumps,
       showAttempts: typeof v.showAttempts === "boolean" ? v.showAttempts : SESSION_VIEW_DEFAULT.showAttempts,

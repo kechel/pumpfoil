@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { useT } from "../i18n";
 import { Card } from "./ui";
+import { maxVon } from "../lib/minmax";
 
 /**
  * Windfenster des Spots (19.10.2026, Stand-Buch: windfenster): aus welcher Richtung der Wind bei den
@@ -13,7 +14,7 @@ export default function SpotWindfenster({ spotId }: { spotId: number }) {
   const [d, setD] = useState<Awaited<ReturnType<typeof api.spotWindfenster>> | null>(null);
   useEffect(() => { api.spotWindfenster(spotId).then(setD).catch(() => setD(null)); }, [spotId]);
   if (!d || d.sessions < 3) return null;
-  const max = Math.max(...d.sektoren.map((s) => s.sessions), 1);
+  const max = Math.max(maxVon(d.sektoren.map((s) => s.sessions)), 1);
   const R = 46;
   const keil = (richtung: number, anteil: number) => {
     // Keil zeigt in die Richtung, AUS der der Wind kommt (Norden oben), 40 Grad breit

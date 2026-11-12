@@ -13,3 +13,7 @@ export function minMax(werte: readonly number[]): [number, number] {
   }
   return [lo, hi];
 }
+
+/** Kleinster bzw. groesster Wert ohne Spread (leer: Infinity bzw. -Infinity, wie Math.min()/Math.max()). */
+export const minVon = (werte: readonly number[]): number => minMax(werte)[0];
+export const maxVon = (werte: readonly number[]): number => minMax(werte)[1];

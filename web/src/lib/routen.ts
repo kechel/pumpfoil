@@ -9,6 +9,7 @@
 // unten (Jan: „die 35-Grad-Regel muss nicht hart sein, aber die Sortierung beeinflussen"). Bei
 // gleicher Punktzahl liegt so oben die Route, die am Ufer entlang fuehrt statt quer hinueber. Positionen kommen vom Server (GET /api/community/spot/{id}/
 // startpositionen), die Rechnung ist hier — bei einer Handvoll Punkte ist sie trivial.
+import { minVon } from "./minmax";
 
 // eigen: selbst gesetzter Punkt („+" auf der Karte), nicht aus echten Starts — rechnet wie jeder andere.
 // vom_spot: mit Umkreis — false = Startplatz eines Nachbarspots.
@@ -186,7 +187,7 @@ export function warumKeine(pos: Startposition[], start: number, minM: number, ma
   const andere = pos.map((_, j) => j).filter((j) => j !== start && !aus.has(j));
   const abst = andere.map((j) => abstandM(pos[start], pos[j]));
   if (!abst.some((m) => m >= minM && m <= maxM)) {
-    return { grund: "nachbar", naechsterM: abst.length ? Math.round(Math.min(...abst)) : null };
+    return { grund: "nachbar", naechsterM: abst.length ? Math.round(minVon(abst)) : null };
   }
   const geht = (o: Partial<RoutenOptionen>) =>
     routenVorschlagen(pos, start, minM, maxM, { ...opt, ...o, jeRichtung: 1 }).routen.length > 0;

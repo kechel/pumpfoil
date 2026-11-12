@@ -11,7 +11,7 @@ import { usePumpFmt } from "../lib/pumpRate";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
 import { syncPlan } from "../lib/syncPlayback";
 import { fmtTime } from "../lib/time";
-import { minMax } from "../lib/minmax";
+import { maxVon, minMax, minVon } from "../lib/minmax";
 
 export interface CompareMapItem {
   key: string;
@@ -168,8 +168,8 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
   // Wie viel Leerlauf faellt weg — das ist die Zahl, die den Nutzen erklaert.
   const uebersprungenMin = useMemo(() => {
     if (!plan) return 0;
-    const von = Math.min(...plan.sessions.map((s) => plan.achsen.get(s.id)!.von));
-    const bis = Math.max(...plan.sessions.map((s) => plan.achsen.get(s.id)!.bis));
+    const von = minVon(plan.sessions.map((s) => plan.achsen.get(s.id)!.von));
+    const bis = maxVon(plan.sessions.map((s) => plan.achsen.get(s.id)!.bis));
     return Math.max(0, (bis - von) - plan.dauerMs) / 60000;
   }, [plan]);
   const [spielt, setSpielt] = useState(false);
