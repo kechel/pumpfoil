@@ -944,6 +944,22 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # 12.11.2026: GPS-Luecke am Lauf-Ende (LaufLuecke.mc, baf2244d/bddabe64), im Simulator auf fenix 7X Pro, FR55 und
+    # Instinct 2 getestet. Version 1.0.103 fuer die Einreichung gebumpt.
+    # EINGEREICHT 12.11.2026 ~07:45 (Jans Meldung), .iq 222/222 Geraete aus ba53bfcb, /home/jan/release-staging/garmin-1.0.103/.
+    {"name": "Garmin", "version": "1.0.103",
+     "eingereicht": "2026-11-12",
+     "items": [
+         "If GPS drops out at the end of a run, for example after a fall with the watch under water, the run now ends at the last GPS position instead of counting on.",
+     ],
+     # Simulator-Test 12.11. (fenix 7X Pro), beide Fenster wie aufgenommen. `bilder` zeigt nur das Web.
+     "bilder": [
+         {"src": "/changelog/gps-luecke-1-vorher.webp", "alt": "Before: 10 s without GPS at the end, the last run shows 1:03"},
+         {"src": "/changelog/gps-luecke-2-luecke.webp", "alt": "During the gap the run timer keeps going"},
+         {"src": "/changelog/gps-luecke-3-nachher.webp", "alt": "After: the last run ends at the last GPS position, 0:50"},
+         {"src": "/changelog/gps-luecke-4-sturz-luecke.webp", "alt": "Fall with 36 s without GPS: the timer keeps going"},
+         {"src": "/changelog/gps-luecke-5-sturz-nachher.webp", "alt": "After the fall: the last run shows 0:36 instead of about 0:58"},
+     ]},
     # 10.11.2026: V-max wie der Server (9718cafb); 1.0.4 ist seit 09.11. live.
     # EINGEREICHT 10.11.2026 12:26 (Jans Meldung, AppGallery Connect „Under pre-review“, arkts-default-signed.app
     # 1.0.5 (1000005), 0,11 MB). Emulator-Test #21099 mit v=1.0.5 hochgeladen (0 Laeufe im Emulator, ungeklaert).
@@ -1172,20 +1188,7 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
-    # 12.11.2026: GPS-Luecke am Lauf-Ende (LaufLuecke.mc, baf2244d/bddabe64), im Simulator auf fenix 7X Pro, FR55 und
-    # Instinct 2 getestet. Version 1.0.103 fuer die Einreichung gebumpt.
-    {"name": "Garmin", "version": "1.0.103",
-     "items": [
-         "If GPS drops out at the end of a run, for example after a fall with the watch under water, the run now ends at the last GPS position instead of counting on.",
-     ],
-     # Simulator-Test 12.11. (fenix 7X Pro), beide Fenster wie aufgenommen. `bilder` zeigt nur das Web.
-     "bilder": [
-         {"src": "/changelog/gps-luecke-1-vorher.webp", "alt": "Before: 10 s without GPS at the end, the last run shows 1:03"},
-         {"src": "/changelog/gps-luecke-2-luecke.webp", "alt": "During the gap the run timer keeps going"},
-         {"src": "/changelog/gps-luecke-3-nachher.webp", "alt": "After: the last run ends at the last GPS position, 0:50"},
-         {"src": "/changelog/gps-luecke-4-sturz-luecke.webp", "alt": "Fall with 36 s without GPS: the timer keeps going"},
-         {"src": "/changelog/gps-luecke-5-sturz-nachher.webp", "alt": "After the fall: the last run shows 0:36 instead of about 0:58"},
-     ]},
+    # Garmin 1.0.103 am 12.11. eingereicht -> IN_REVIEW.
     # Garmin 1.0.99 am 03.11. eingereicht -> IN_REVIEW.
     # Huawei Watch 5 1.0.4 am 04.11. eingereicht -> IN_REVIEW.
     # Android 1.1.47 / Wear 1.2.47 am 05.11. eingereicht -> IN_REVIEW.
