@@ -5,6 +5,7 @@ import { useT } from "../i18n";
 import { fmtTime } from "../lib/time";
 import { wanduhrMs } from "../lib/clock";
 import { Drauf, FrontAnsicht, SeitenAnsicht } from "./FoilRig";
+import { minMax as minMaxWerte } from "../lib/minmax";
 
 /**
  * Lage des Bretts über die Zeit: Nicken, Rollen, Gieren.
@@ -161,7 +162,7 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, 
   // Im Ausschnitt Tiefst- und Hoechstwert je Reihe zeigen — dafuer ist der Zoom da.
   const minMax = (werte: number[], einheit: string) => {
     if (!gezoomt || !werte.length) return null;
-    const lo = Math.min(...werte), hi = Math.max(...werte);
+    const [lo, hi] = minMaxWerte(werte);   // ohne Spread: lange Laeufe sprengen sonst den Stack
     const f = (v: number) => `${v > 0 ? "+" : ""}${v.toFixed(1)}${einheit}`;
     return <span className="mr-2 tabular-nums text-slate-300">min {f(lo)} · max {f(hi)}</span>;
   };
@@ -170,7 +171,8 @@ function Kurven({ reihen, t_ms, pos, zusammen, uhrzeit, auswahlVon, auswahlBis, 
   // (Jans „sehr ruckelig", 21.09.). Jetzt einmal, und die Wiedergabe bewegt nur noch Linie
   // und Punkte.
   const gerechnet = useMemo(() => reihen.map((r) => {
-    const max = Math.max(1, ...r.werte.map((v) => Math.abs(v)));
+    const [lo, hi] = minMaxWerte(r.werte);
+    const max = Math.max(1, Math.abs(lo), Math.abs(hi));   // ohne Spread (Stack, s. lib/minmax)
     return {
       max,
       punkte: r.werte

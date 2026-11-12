@@ -3,6 +3,7 @@ import { api, SessionSummary } from "../lib/api";
 import { CloseIcon } from "./Icons";
 import { useT } from "../i18n";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
+import { minMax as minMaxWerte } from "../lib/minmax";
 
 // „Anfang/Ende kürzen" für EINEN Lauf (Wunsch u836, Jan 23.10.2026: „erstmal nur kuerzen, eigenes popup und
 // nur web erstmal"). Seltener Fall, deshalb im „⋯"-Menü der Lauf-Tabelle versteckt.
@@ -46,9 +47,10 @@ export function LaufKuerzen({ sessionId, nr, vonMs, bisMs, zeiten, speeds, hr, o
   const t0 = vonMs - RAND_MS, t1 = bisMs + RAND_MS;
   const W = 600, H = 90;
   const x = (z: number) => ((z - t0) / (t1 - t0)) * W;
-  const vMax = Math.max(5, ...pts.map((p) => p.v ?? 0));
+  const vMax = Math.max(5, minMaxWerte(pts.map((p) => p.v ?? 0))[1]);
   const hVals = pts.map((p) => p.h).filter((h): h is number => h != null);
-  const hMin = hVals.length ? Math.min(...hVals) - 5 : 0, hMax = hVals.length ? Math.max(...hVals) + 5 : 1;
+  const [hLo, hHi] = minMaxWerte(hVals);
+  const hMin = hVals.length ? hLo - 5 : 0, hMax = hVals.length ? hHi + 5 : 1;
   // Linie mit Luecken: fehlende Werte unterbrechen sie (keine Null zeichnen, wo nichts gemessen ist).
   const linie = (wert: (p: typeof pts[number]) => number | null, y: (v: number) => number) => {
     let d = "", offen = false, letzt = -Infinity;

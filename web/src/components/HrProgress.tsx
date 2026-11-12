@@ -3,6 +3,7 @@ import { api, type HrProgress as HrProgressData } from "../lib/api";
 import { useT } from "../i18n";
 import { Card } from "./ui";
 import { LineChart, DAY_MS, type Mode, type Pt } from "../pages/History";
+import { minMax as minMaxWerte } from "../lib/minmax";
 
 // Trainingskurve: Höchstpuls nach 30 s, 1, 2 und 5 Minuten Lauf, über die Sessions hinweg.
 //
@@ -199,7 +200,7 @@ function MarkChart({ mark, reihe, mode, domain, onPick, wert, anzahl, titel, ans
   // Beim Anstieg darf die Achse unter 0 gehen — ein Lauf, in dem der Puls fällt, ist ein echtes
   // Ergebnis und keine Null.
   const vmin = !werte.length ? 0
-    : anstieg ? Math.min(...werte) - 4 : Math.max(0, Math.min(...werte) - 8);
+    : anstieg ? minMaxWerte(werte)[0] - 4 : Math.max(0, minMaxWerte(werte)[0] - 8);
 
   return (
     <div>
