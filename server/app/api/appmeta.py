@@ -1172,6 +1172,20 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    # 12.11.2026: GPS-Luecke am Lauf-Ende (LaufLuecke.mc, baf2244d/bddabe64), im Simulator auf fenix 7X Pro, FR55 und
+    # Instinct 2 getestet. Version 1.0.103 fuer die Einreichung gebumpt.
+    {"name": "Garmin", "version": "1.0.103",
+     "items": [
+         "If GPS drops out at the end of a run, for example after a fall with the watch under water, the run now ends at the last GPS position instead of counting on.",
+     ],
+     # Simulator-Test 12.11. (fenix 7X Pro), beide Fenster wie aufgenommen. `bilder` zeigt nur das Web.
+     "bilder": [
+         {"src": "/changelog/gps-luecke-1-vorher.webp", "alt": "Before: 10 s without GPS at the end, the last run shows 1:03"},
+         {"src": "/changelog/gps-luecke-2-luecke.webp", "alt": "During the gap the run timer keeps going"},
+         {"src": "/changelog/gps-luecke-3-nachher.webp", "alt": "After: the last run ends at the last GPS position, 0:50"},
+         {"src": "/changelog/gps-luecke-4-sturz-luecke.webp", "alt": "Fall with 36 s without GPS: the timer keeps going"},
+         {"src": "/changelog/gps-luecke-5-sturz-nachher.webp", "alt": "After the fall: the last run shows 0:36 instead of about 0:58"},
+     ]},
     # Garmin 1.0.99 am 03.11. eingereicht -> IN_REVIEW.
     # Huawei Watch 5 1.0.4 am 04.11. eingereicht -> IN_REVIEW.
     # Android 1.1.47 / Wear 1.2.47 am 05.11. eingereicht -> IN_REVIEW.
@@ -1417,9 +1431,13 @@ def changelog(plattform: str = "", version: str = "",
         if (z.art or "punkt") != "punkt":
             punkt["art"] = z.art
         if z.img:
-            punkt["img"] = z.img
+            # Mehrere Bilder: ein Pfad je Zeile (12.11.2026). `img` bleibt das erste — die Apps zeigen nur eins.
+            pfade = [x.strip() for x in z.img.splitlines() if x.strip()]
+            punkt["img"] = pfade[0] if pfade else z.img
             if z.img_alt:
                 punkt["img_alt"] = z.img_alt
+            if len(pfade) > 1:
+                punkt["bilder"] = [{"src": x, **({"alt": z.img_alt} if z.img_alt else {})} for x in pfade]
         # Welche Plattform braucht welche Version fuer diesen Punkt? IMMER mitschicken, nicht nur
         # bei einer Anfrage mit `plattform` — sonst steht auf /changelog ein Punkt, den nur eine
         # Uhr kann, ohne jeden Hinweis darauf (Jans Befund 11.09.2026). Leer = gilt ueberall

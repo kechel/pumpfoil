@@ -6,6 +6,31 @@ import { api } from "../lib/api";
 import { ScrollToTop } from "../components/ScrollToTop";
 import { CHANGELOG_SEEN_KEY } from "../lib/changelogLatest";
 import { ChevronIcon } from "../components/Icons";
+import { Lightbox } from "../components/Lightbox";
+
+// Mehrere Bilder an einem Punkt (Jan, 12.11.2026: „die screenshots … als kleinere thumbnails und bei klick drauf
+// groesser machen"): kleine Vorschauen nebeneinander, ein Tipp oeffnet die Galerie (Lightbox ohne Like/Melden).
+type Bild = { src: string; alt?: string };
+function BilderReihe({ bilder }: { bilder: Bild[] }) {
+  const [offen, setOffen] = useState<number | null>(null);
+  if (!bilder.length) return null;
+  return (
+    <>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {bilder.map((b, i) => (
+          <button key={b.src} type="button" onClick={() => setOffen(i)}
+            className="overflow-hidden rounded-lg border border-slate-800 hover:border-brand-400">
+            <img src={b.src} alt={b.alt ?? ""} loading="lazy" className="h-24 w-auto sm:h-28" />
+          </button>
+        ))}
+      </div>
+      {offen !== null && (
+        <Lightbox readOnly index={offen} onClose={() => setOffen(null)}
+          photos={bilder.map((b) => ({ url: b.src, session_id: 0, caption: b.alt ?? null }))} />
+      )}
+    </>
+  );
+}
 
 // Inline-Links in Changelog-Items: [label](/interner-pfad) oder [label](https://extern).
 function ItemText({ text }: { text: string }): ReactNode {
@@ -40,7 +65,7 @@ function ItemText({ text }: { text: string }): ReactNode {
  */
 // Eine Zeile = eine Einreichung. Handy und Uhr stehen deshalb zusammen in `name`,
 // ihre Versionen in `version` ("1.1.25 / 1.2.25") — s. `appmeta.GRUPPEN`.
-type Release = { name: string; version: string; note?: string; store_url?: string; items?: string[] };
+type Release = { name: string; version: string; note?: string; store_url?: string; items?: string[]; bilder?: Bild[] };
 
 /** Aufklappbare Punkteliste einer Fassung — zu, bis man sie aufmacht.
  *
@@ -178,6 +203,7 @@ function ReleaseStatus() {
                       <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
                         {r.items.map((txt, i) => <li key={i}>{txt}</li>)}
                       </ul>
+                      <BilderReihe bilder={r.bilder ?? []} />
                     </Details>
                   </div>
                 )}
@@ -242,6 +268,7 @@ function Ideen({ ideen }: { ideen: string[] }) {
 // Ein Punkt kann ein Bild tragen (`img`), das UNTER ihm gerendert wird.
 type Item = {
   text: string; img?: string; img_alt?: string; mit_update?: string;
+  bilder?: Bild[];   // mehrere Bilder (Server: `img` mit einem Pfad je Zeile); `img` bleibt das erste fuer alte Apps
   // "ereignis" = ein Schritt im Store-Lauf (eingereicht / freigegeben), kein Funktionspunkt.
   // Fehlt das Feld, ist es ein normaler Punkt — der Server schickt nur die Ausnahme mit.
   art?: string;
@@ -432,7 +459,7 @@ export default function Changelog() {
                       {p.version ? `${p.name} ${p.version}` : p.name}
                     </span>
                   ))}
-                  {it.img && (
+                  {it.bilder && it.bilder.length > 1 ? <BilderReihe bilder={it.bilder} /> : it.img && (
                     <img src={it.img} alt={it.img_alt ?? ""} loading="lazy"
                       className="mt-2 w-full max-w-[260px] rounded-lg border border-slate-800" />
                   )}
