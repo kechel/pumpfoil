@@ -357,7 +357,10 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.102",   # LIVE 2026-11-10: am Tag der Einreichung freigegeben (Jans Meldung, aus dem Store auf fenix 7X Pro
+        "latest": "1.0.103",   # LIVE 2026-11-12: am Tag der Einreichung freigegeben (Jans Meldung, aus dem Store auf beiden Uhren
+        # installiert, Testsessions #21457-#21459; Store-Seite zweimal 1.0.103). Inhalt: GPS-Luecke am Lauf-Ende (LaufLuecke.mc).
+        # .iq aus ba53bfcb, 222 Varianten. Changelog-Punkt mit den Simulator-Screenshots + Ereignis.
+        # ALT: "latest": "1.0.102",   # LIVE 2026-11-10: am Tag der Einreichung freigegeben (Jans Meldung, aus dem Store auf fenix 7X Pro
         # und FR55 installiert, Testsessions #21096 -> #21098 (in der Garmin-Connect-Session aufgegangen) und #21097). Inhalt:
         # Fortsetzen vorausgewaehlt, V-max wie der Server. .iq aus 7b71999b, 222 Varianten. Changelog 979/980 + Ereignis 981.
         # ALT: "latest": "1.0.101",   # LIVE 2026-11-06: am Tag der Einreichung freigegeben (Jans Meldung, Store-Seite „November 6, 2026",
@@ -946,20 +949,7 @@ ABGELEHNT: list[dict] = [
 IN_REVIEW: list[dict] = [
     # 12.11.2026: GPS-Luecke am Lauf-Ende (LaufLuecke.mc, baf2244d/bddabe64), im Simulator auf fenix 7X Pro, FR55 und
     # Instinct 2 getestet. Version 1.0.103 fuer die Einreichung gebumpt.
-    # EINGEREICHT 12.11.2026 ~07:45 (Jans Meldung), .iq 222/222 Geraete aus ba53bfcb, /home/jan/release-staging/garmin-1.0.103/.
-    {"name": "Garmin", "version": "1.0.103",
-     "eingereicht": "2026-11-12",
-     "items": [
-         "If GPS drops out at the end of a run, for example after a fall with the watch under water, the run now ends at the last GPS position instead of counting on.",
-     ],
-     # Simulator-Test 12.11. (fenix 7X Pro), beide Fenster wie aufgenommen. `bilder` zeigt nur das Web.
-     "bilder": [
-         {"src": "/changelog/gps-luecke-1-vorher.webp", "alt": "Before: 10 s without GPS at the end, the last run shows 1:03"},
-         {"src": "/changelog/gps-luecke-2-luecke.webp", "alt": "During the gap the run timer keeps going"},
-         {"src": "/changelog/gps-luecke-3-nachher.webp", "alt": "After: the last run ends at the last GPS position, 0:50"},
-         {"src": "/changelog/gps-luecke-4-sturz-luecke.webp", "alt": "Fall with 36 s without GPS: the timer keeps going"},
-         {"src": "/changelog/gps-luecke-5-sturz-nachher.webp", "alt": "After the fall: the last run shows 0:36 instead of about 0:58"},
-     ]},
+    # Garmin 1.0.103 am 12.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt mit 5 Bildern im Changelog mit garmin 1.0.103.
     # 10.11.2026: V-max wie der Server (9718cafb); 1.0.4 ist seit 09.11. live.
     # EINGEREICHT 10.11.2026 12:26 (Jans Meldung, AppGallery Connect „Under pre-review“, arkts-default-signed.app
     # 1.0.5 (1000005), 0,11 MB). Emulator-Test #21099 mit v=1.0.5 hochgeladen (0 Laeufe im Emulator, ungeklaert).
