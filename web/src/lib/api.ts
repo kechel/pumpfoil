@@ -2338,6 +2338,8 @@ export interface TeamWertungZeile extends Pick<TeamAuftritt, "name" | "slug" | "
   sportarten?: string[];
 }
 export interface TeamTafelMitZeilen extends TeamTafel { zeilen: TeamZeile[]; teams?: TeamWertungZeile[];
+  /** Sprints: Teams mit weniger als N Fahrern (Event-Einstellung), ohne Rang (12.11.2026) */
+  teams_ungewertet?: Omit<TeamWertungZeile, "rang">[];
   /** globale Events: die eigene Zeile, auch hinter den gezeigten Plaetzen */
   eigene?: TeamZeile | null;
   /** Events: wann die Bestenliste gerechnet wurde (ISO) */

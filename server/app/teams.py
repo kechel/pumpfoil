@@ -1101,8 +1101,18 @@ def team_wertung(db: Session, zeilen: list[dict], n: int, ausser_team_id: int | 
                     **({"sportarten": list(dict.fromkeys(sp for _, u in beste for sp in sp_je.get(u, [])))}
                        if sp_je else {})})
     out.sort(key=lambda x: (-x["value"], (x["name"] or "").lower()))
-    for i, x in enumerate(out):
-        x["rang"] = i + 1
+    # Sprints (Jan 12.11.2026): „in die teamwertung kommen nur teams … mit mindestens 3 personen die in der jeweiligen
+    # kategorie auch 3 sprints erkannt haben … die einstellung des events sollte da ausschlaggebend sein". Beim
+    # Durchschnitt bevorteilte Unterzahl (ein schneller Fahrer allein stand vorne) -> nur Teams mit `fahrer >= n` bekommen
+    # einen Rang, die anderen tragen `ungewertet` und stehen hinten (der Aufrufer legt sie unter `teams_ungewertet` ab,
+    # damit alte Apps, die nur `teams` kennen, keine Zeile ohne Rang sehen). n = 0 („alle") hat keine Mindestzahl.
+    if schnitt and n > 0:
+        out = [x for x in out if x["fahrer"] >= n] + [{**x, "ungewertet": True} for x in out if x["fahrer"] < n]
+    rang = 0
+    for x in out:
+        if not x.get("ungewertet"):
+            rang += 1
+            x["rang"] = rang
     return out
 
 
@@ -1252,7 +1262,10 @@ def _event_voll(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
                                  stand=zeiten)
         x = {**tafel_out(tf), "zeilen": zeilen}
         if glob:
-            x["teams"] = team_wertung(db, zeilen, wertung_n(e), t.id, zuordnung, schnitt=tf.kennzahl in SPRINT)
+            tw = team_wertung(db, zeilen, wertung_n(e), t.id, zuordnung, schnitt=tf.kennzahl in SPRINT)
+            x["teams"] = [z for z in tw if not z.get("ungewertet")]
+            if len(x["teams"]) < len(tw):
+                x["teams_ungewertet"] = [z for z in tw if z.get("ungewertet")]
         # Stand dieser Bestenliste: wann gerechnet (aus dem 2-Minuten-Cache ggf. etwas frueher).
         x["stand"] = datetime.fromtimestamp(min(zeiten[-1:] or [time.time()]), timezone.utc).isoformat()
         out.append(x)

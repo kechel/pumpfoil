@@ -155,6 +155,24 @@ function TeamWertung({ tf, n, t, eigeneSlugs, standText, onBild }: { tf: TeamTaf
           </li>
         ))}
       </ol>
+      {/* Sprints (Jan 12.11.2026): Teams mit weniger als N Fahrern bekommen keinen Rang. */}
+      {(tf.teams_ungewertet ?? []).length > 0 && (
+        <>
+          <p className="mt-3 text-sm text-slate-400">{t("team.event.ungewertet", { n: String(n) })}</p>
+          <ul className="mt-1">
+            {(tf.teams_ungewertet ?? []).map((x) => (
+              <li key={x.slug ?? x.name} className="flex items-center gap-2 border-t border-slate-800 py-1.5 first:border-t-0 opacity-70">
+                <span className="w-6 shrink-0 text-right text-sm text-slate-400">–</span>
+                <TeamWappen name={x.name} logo={x.logo_url} farbe={x.farbe} size={24} />
+                <span className="flex w-[18px] shrink-0"><TeamHerkunft land={x.land} kuerzel={false} /></span>
+                <Link to={`/teams/${x.slug}`} className="min-w-0 flex-1 truncate text-sm text-slate-300 hover:text-brand-400">{x.name}</Link>
+                <span className="text-xs text-slate-400">{x.fahrer}/{n}</span>
+                <span className="text-sm tabular-nums text-slate-400">{k.fmt(x.value)}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </Card>
   );
 }

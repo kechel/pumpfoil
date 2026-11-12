@@ -150,8 +150,16 @@ def test_team_wertung_sprint_durchschnitt():
     summe = {x["slug"]: x for x in T.team_wertung(None, zeilen, 2, None, zuordnung)}
     assert summe["a"]["value"] == 11.0 and summe["a"]["rang"] == 1
     schnitt = {x["slug"]: x for x in T.team_wertung(None, zeilen, 2, None, zuordnung, schnitt=True)}
-    assert schnitt["a"]["value"] == 5.5 and schnitt["a"]["fahrer"] == 2
-    assert schnitt["b"]["value"] == 5.8 and schnitt["b"]["rang"] == 1
+    assert schnitt["a"]["value"] == 5.5 and schnitt["a"]["fahrer"] == 2 and schnitt["a"]["rang"] == 1
+    # Unterzahl (Jan 12.11.2026): B hat nur 1 von 2 Fahrern -> kein Rang, obwohl 5,8 > 5,5.
+    assert schnitt["b"]["value"] == 5.8 and schnitt["b"].get("ungewertet") and "rang" not in schnitt["b"]
+    # Summe: keine Mindestzahl (Unterzahl kostet dort ohnehin). n = 0 (alle): keine Mindestzahl.
+    assert summe["b"]["rang"] == 2 and not summe["b"].get("ungewertet")
+    alle = {x["slug"]: x for x in T.team_wertung(None, zeilen, 0, None, zuordnung, schnitt=True)}
+    assert alle["b"]["rang"] == 1 and not alle["b"].get("ungewertet")
+    # Genau n Fahrer reichen: n = 1 -> beide gewertet.
+    eins = {x["slug"]: x for x in T.team_wertung(None, zeilen, 1, None, zuordnung, schnitt=True)}
+    assert eins["a"]["rang"] == 1 and eins["b"]["rang"] == 2
     # Siegertreppchen: Teamgroesse aus der Zuordnung (alle Mitglieder, nicht nur die mit Wert).
     assert summe["a"]["mitglieder"] == 3 and summe["b"]["mitglieder"] == 1 and summe["a"]["teilnehmer"] == 3
 

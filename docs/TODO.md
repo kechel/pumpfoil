@@ -12335,8 +12335,11 @@ Offen daraus:
   oder?" Ist-Stand: `teams.team_wertung(schnitt=True)` mittelt ueber die TATSAECHLICH mitgezaehlten (`fahrer`), ein Team
   mit nur einem schnellen Fahrer steht also mit dessen Wert oben — bei Summen (Strecke/Zeit) benachteiligt Unterzahl,
   beim Durchschnitt bevorteilt sie. Vorschlag: bei `schnitt` und n > 0 nur Teams mit `fahrer >= n` ranken, die
-  anderen darunter „nicht gewertet (x/n Fahrer)". Eingefrorene Ergebnisse (ergebnis_json) bleiben unberuehrt. Wartet
-  auf Jans OK.
+  anderen darunter „nicht gewertet (x/n Fahrer)". Eingefrorene Ergebnisse (ergebnis_json) bleiben unberuehrt.
+  **✅ 12.11. umgesetzt** (Jan: „nur teams … mit mindestens 3 personen … die einstellung des events sollte da
+  ausschlaggebend sein"): N = `team_wertung_n` des Events (0 = alle: keine Mindestzahl), nur bei Sprints. Rein
+  serverseitig: `teams` enthaelt nur noch gewertete Teams (alle Apps sofort), die anderen stehen in `teams_ungewertet`
+  (Web zeigt sie grau darunter; iOS/Android zeigen sie nicht — bei Bedarf nachziehen).
 
 - **📥 Inbox 11.11. (Jan) — Events vorschlagen + Community-Voting.** „nutzer sollen events vorschlagen koennen die ich
   dann als admin einfach uebernehmen kann (nicht federation, aber da dann spaeter auch), und ggf. mit einem voting durch

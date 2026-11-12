@@ -2776,6 +2776,7 @@ const ru: Record<string, string> = {
   "team.event.neuLaden": "Обновить",
   "team.event.standUm": "По состоянию на {zeit}",
   "team.event.endstand": "Итоговые результаты",
+  "team.event.ungewertet": "Без места: меньше {n} райдеров со спринтом",
   "team.event.keineTeams": "В этом событии пока нет участников команд.",
   "team.event.teamFilter": "Рейтинг для",
   "team.event.alle": "Все",

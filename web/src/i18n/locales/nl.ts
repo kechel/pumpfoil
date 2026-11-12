@@ -2830,6 +2830,7 @@ const nl: Record<string, string> = {
   "team.event.neuLaden": "Vernieuwen",
   "team.event.standUm": "Stand {zeit}",
   "team.event.endstand": "Eindstand",
+  "team.event.ungewertet": "Niet gerangschikt: minder dan {n} riders met een sprint",
   "team.event.keineTeams": "Nog geen teamlid in dit event.",
   "team.event.teamFilter": "Klassement voor",
   "team.event.alle": "Iedereen",

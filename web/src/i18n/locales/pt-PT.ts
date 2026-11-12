@@ -2770,6 +2770,7 @@ const ptPT: Record<string, string> = {
   "team.event.neuLaden": "Atualizar",
   "team.event.standUm": "Atualizado às {zeit}",
   "team.event.endstand": "Classificação final",
+  "team.event.ungewertet": "Sem classificação: menos de {n} riders com sprint",
   "team.event.keineTeams": "Ainda nenhum membro de equipa neste evento.",
   "team.event.teamFilter": "Classificação de",
   "team.event.alle": "Todos",

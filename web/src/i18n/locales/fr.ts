@@ -2659,6 +2659,7 @@ const fr: Record<string, string> = {
   "team.event.neuLaden": "Actualiser",
   "team.event.standUm": "État à {zeit}",
   "team.event.endstand": "Classement final",
+  "team.event.ungewertet": "Non classé : moins de {n} riders avec un sprint",
   "team.event.keineTeams": "Aucun membre d'équipe dans cet événement pour l'instant.",
   "team.event.teamFilter": "Classement pour",
   "team.event.alle": "Tous",

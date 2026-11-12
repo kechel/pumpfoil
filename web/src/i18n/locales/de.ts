@@ -2933,6 +2933,7 @@ const de: Record<string, string> = {
   "team.event.neuLaden": "Aktualisieren",
   "team.event.standUm": "Stand {zeit}",
   "team.event.endstand": "Endstand",
+  "team.event.ungewertet": "Nicht gewertet: weniger als {n} Fahrer mit Sprint",
   "team.event.keineTeams": "Noch kein Mitglied eines Teams in diesem Event.",
   "team.event.teamFilter": "Bestenliste für",
   "team.event.alle": "Alle",

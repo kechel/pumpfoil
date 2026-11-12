@@ -2773,6 +2773,7 @@ const zh: Record<string, string> = {
   "team.event.neuLaden": "刷新",
   "team.event.standUm": "截至 {zeit}",
   "team.event.endstand": "最终排名",
+  "team.event.ungewertet": "未排名：有冲刺成绩的骑手少于 {n} 人",
   "team.event.keineTeams": "此活动中还没有团队成员。",
   "team.event.teamFilter": "排行榜：",
   "team.event.alle": "所有人",
