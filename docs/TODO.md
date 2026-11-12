@@ -1529,6 +1529,24 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 12.11.2026 — Uhr zaehlt nach Sturz weiter (GPS-Luecke am Lauf-Ende)
+Nutzermeldung: Uhr zeigte 1:34 als laengsten Lauf, Server 1:09. Ursache: nach dem Sturz 36 s kein GPS (Uhr unter
+Wasser); Garmin haelt die letzte Geschwindigkeit, die Lauferkennung zaehlte ~25 s weiter, bis die Fix-Qualitaet absank
+(`gpsPoor` greift erst nach 60 s ohne Position — die Grenze gehoert zu „GPS suchen"/Speicher sparen, FR55 liefert im
+Stehen nur alle bis zu 50 s eine Position, und bleibt). Konzept mit Jan abgestimmt, Regel + Edge Cases in
+`docs/PARITY-AUDIT.md` Punkt 9 (angeglichen an den Server, `GAP_SPLIT_S = 15`).
+- [x] Garmin VOLL + ENG: `watch/source/LaufLuecke.mc`, Aufrufe in `SessionRecorder.mc`; Node-Test
+      `watch/test/laufluecke.test.mjs`. LITE bekommt einen leeren Ersatz (Korrektur ~1,1 KB, Lite darf nicht wachsen;
+      LITE waechst trotzdem um 272 B durch den gemeinsamen `_updateRun`). Version NICHT gebumpt.
+- [ ] Jan: Simulator mit den Test-GPX aus einer eigenen Session (4 Laeufe, je 60 s davor/danach) und Testbuild
+      `1.0.102-ta` (fenix 7X Pro, FR55). Erwartung laut Node-Nachbau mit denselben Verlaeufen (Server / Uhr alt / neu):
+      1 s mitten 37 / 38 / 38 s · 2 s mitten 46 / 45 / 45 s · 10 s ab 1 s vor Ende 51 / 62 / 51 s ·
+      36 s ab 5 s vor Ende (Sturz) 42 / 58 / 37 s (der Server wuerde dort ebenfalls bei ~37 s enden).
+      Offen: ob der Simulator fehlende GPX-Punkte als Luecke abspielt oder interpoliert.
+- [ ] Apple Watch, danach Wear OS + Handy-Recorder Android/iOS, dann Zepp, Huawei, Suunto (Tabelle in PARITY-AUDIT).
+- Nebenbefund KORRIGIERT: `watch/test/lite-minimal.test.mjs` „Lite-Fassungen stehen im Quelltext" schlug schon auf HEAD fehl
+  (verbot auch den SensorLogger, den 8ec18c47 am 05.11. absichtlich fuer Accel-in-FIT eingebaut hat) -> Test prueft jetzt: kein eigener Listener, SensorLogger nur hinter `Wege.fitAccel`.
+
 ### 11.11.2026 — 🔴 Roh-Daten von 10 Sessions verschwunden (Ursache offen)
 Bei der Neuauswertung (Empfindlichkeit) fiel auf: 10 nicht geloeschte Sessions haben keinen Roh-Daten-Ordner mehr in
 `server/data` (2 Nutzer mit je mehreren, 2 einzelne). Bei 4 liegen die Daten noch in einem Monats-Snapshot

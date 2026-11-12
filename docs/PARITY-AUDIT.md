@@ -38,6 +38,29 @@ einer Uhr baut, geht diese Liste fuer ALLE VIER durch und traegt das Ergebnis in
    Ohne GPS: Tempo „--" statt 0, sichtbarer Hinweis „GPS suchen" in der Aufnahme, Zeit laeuft weiter,
    und keine Logik darf ohne GPS Daten verwerfen.
 
+9. **Lauf-Ende nach GPS-Luecke** (12.11.2026, Uhr 1:34 / Server 1:09 als laengster Lauf: Sturz, Uhr 36 s
+   unter Wasser, Garmin hielt die letzte Geschwindigkeit, die Lauferkennung zaehlte ~25 s weiter). Regel wie der
+   Server (`server/app/analysis/gps.py` `GAP_SPLIT_S = 15`), Vorlage `watch/source/LaufLuecke.mc`:
+   - **Guter Fix** = brauchbare Qualitaet + Tempo >= Ende-Schwelle (2,5 m/s); dort Zeit, eigene Strecke, Max-Puls
+     merken. **Luecke** = > 3 s ohne brauchbaren Fix.
+   - **Waehrend des Laufs nie unterbrechen** (Luecke <= 15 s): der Timer laeuft weiter, kommt der Fix schnell zurueck,
+     aendert sich nichts.
+   - **Beim Lauf-Ende** zurueckschauen: lag direkt davor eine Luecke (danach kein weiterer guter Fix) oder laeuft sie
+     noch, entscheidet die Luftlinie letzter Fix davor -> erster Fix danach / Dauer: >= 2,5 m/s = durchgefahren,
+     alles zaehlt; sonst endet der Lauf am guten Fix vor der Luecke (Dauer, Strecke, Max-Puls von dort) und gilt als
+     echter Stopp (ein Neustart ist keine Fortsetzung).
+   - **Luecke > 15 s im Lauf**: Lauf endet rueckwirkend am guten Fix davor, auch wenn es danach schnell weitergeht
+     (dann neuer Lauf, ohne Cooldown, keine Fortsetzung) — wie der Server.
+   - Strecke aus dem eigenen Merker, nicht aus der Differenz am Ende (die Plattform schreibt in der Luecke evtl. weiter).
+   - Pause: Merker beim Fortsetzen zuruecksetzen (eine Luecke ueber die Pause ist keine).
+   - Bekannt und hingenommen: Live-Timer und Strecken-Summer laufen in der Luecke weiter, ein ausgeloester Summer
+     bleibt ausgeloest. Stop/Pause mitten im Lauf schliessen ihn auf keiner Uhr ab (unveraendert).
+   - Test: Nachbau in Node (`watch/test/laufluecke.test.mjs`) mit 1 s / 2 s / 8 s / 10 s-am-Ende / 20 s / 36 s.
+
+| Lauf-Ende nach GPS-Luecke (12.11.) | Garmin | Apple Watch | Wear OS | Handy Android | Handy iOS | Zepp | Huawei | Suunto |
+|---|---|---|---|---|---|---|---|---|
+| Lauf endet am letzten guten Fix, Trennung > 15 s | ✅ 12.11. VOLL + ENG (LITE nicht: darf nicht wachsen) | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ |
+
 | GPS nach Frische (Stand 25.10.; Zepp/Huawei/Suunto aus Code-Durchsicht, unveraendert) | Garmin | Zepp | Wear OS | Apple Watch | Huawei | Handy Android | Handy iOS |
 |---|---|---|---|---|---|---|---|
 | Start-Screen „bereit" nur mit frischem Fix | ✅ 92eeb429 | ✅ (3 s) | ✅ (10 s) | ✅ (10 s) | ✅ (5 s) | ✅ (10 s) | ✅ (10 s) |

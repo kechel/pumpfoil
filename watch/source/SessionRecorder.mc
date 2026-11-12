@@ -1477,6 +1477,7 @@ class SessionRecorder {
         // Lauferkennung zurücksetzen.
         _foiling = false; _enterStreak = 0; _exitStreak = 0; _runCount = 0;
         _runEndedMs = -100000;
+        LaufLuecke.reset();
         _runStartMs = 0; _runStartDist = 0.0; _runMaxSpeed = 0.0;
         _lastRunDurMs = 0; _lastRunDistM = 0.0; _lastRunMaxSpeed = 0.0; _lastRunAvgSpeed = 0.0;
         _lastRunStartMs = 0; _lastRunStartDist = 0.0; _minSpeedSeitEnde = 99.0; _runIstFortsetzung = false;
@@ -1678,6 +1679,7 @@ class SessionRecorder {
         _pausedMs += dauer;
         if (dauer > 0) { _pauseListe.add([_pauseBeiMs, dauer]); }
         _paused = false;
+        LaufLuecke.reset();            // eine Luecke ueber die Pause hinweg ist keine (s. LaufLuecke.mc)
         Uploader.setPauseSync(false);  // Teil-Upload der laufenden Session beenden
         Uploader.setRecording(true);   // Aufnahme laeuft wieder -> kein Sync (s. pause())
         enableGps();
@@ -1966,6 +1968,7 @@ class SessionRecorder {
     // Gibt true zurück, wenn gerade ein Lauf zu Ende ging.
     hidden function _updateRun(v3, vInst, dist, tMs) {
         if (!_foiling) {
+            LaufLuecke.trennen = false;   // nur im Lauf von Bedeutung (s. LaufLuecke.mc)
             // Kleinsten Wert seit dem Lauf-Ende IMMER mitfuehren — auch waehrend des Cooldowns.
             // Genau dort zeigt sich ein echter Stopp (absinken/stehen), und genau dort hat die
             // Uhr bisher weggeschaut.
@@ -2024,16 +2027,32 @@ class SessionRecorder {
             if (_spdMaxClean[3] > _runMaxSpeed) { _runMaxSpeed = _spdMaxClean[3]; }
             if (_currentHr != null && _currentHr > _runMaxHr) { _runMaxHr = _currentHr; }
             _exitStreak = (v3 < RUN_EXIT_MPS) ? _exitStreak + 1 : 0;
-            if (_exitStreak >= RUN_EXIT_DWELL) {
+            // GPS-Luecke > 15 s mitten im Lauf (Uhr unter Wasser): Lauf endet am letzten guten Fix davor,
+            // wie auf dem Server (LaufLuecke.mc). Geht es danach schnell weiter, ist das ein neuer Lauf.
+            var trennen = LaufLuecke.trennen;
+            LaufLuecke.trennen = false;
+            if (_exitStreak >= RUN_EXIT_DWELL || trennen) {
                 _foiling = false;
                 _enterStreak = 0;
                 // Ende rückdatieren auf den ersten langsamen Tick.
                 var durMs = tMs - RUN_EXIT_DWELL * 1000 - _runStartMs;
-                if (durMs < 0) { durMs = 0; }
                 var distM = dist - _runStartDist;
-                if (distM < 0.0) { distM = 0.0; }
                 _minSpeedSeitEnde = 99.0;
                 _runEndedMs = tMs;   // Re-Arm-Cooldown starten
+                // Lag vor dem Ende eine GPS-Luecke, ueber die er nicht weitergefahren ist (Sturz, Uhr unter
+                // Wasser), hat die Uhr dort mit der eingefrorenen letzten Geschwindigkeit weitergezaehlt:
+                // Lauf endet am letzten guten Fix (12.11.2026, Uhr 1:34 / Server 1:09).
+                var sn = LaufLuecke.schnitt(tMs, _runStartMs);
+                if (sn != null) {
+                    durMs = sn[0] - _runStartMs;
+                    distM = sn[1] - _runStartDist;
+                    if (sn[2] > 0) { _runMaxHr = sn[2]; }
+                    _minSpeedSeitEnde = 0.0;   // echter Stopp -> ein Neustart ist keine Fortsetzung
+                    // Getrennt, aber es geht schnell weiter: kein Cooldown gegen den neuen Lauf.
+                    if (trennen) { _runEndedMs = tMs - RUN_REARM_COOLDOWN_MS; }
+                }
+                if (durMs < 0) { durMs = 0; }
+                if (distM < 0.0) { distM = 0.0; }
                 // Zu kurz oder zu langsam -> war kein Lauf: weder zaehlen noch anzeigen.
                 // Eine Fortsetzung ist ausgenommen (sie verlaengert einen schon gueltigen Lauf).
                 var schnellGenug = (durMs > 0) && ((distM / (durMs / 1000.0)) >= MIN_RUN_AVG_MPS);
@@ -2228,6 +2247,7 @@ class SessionRecorder {
             var deg = info.position.toDegrees();
             var spd = info.speed == null ? 0.0 : info.speed;
             _gpsPunkt([_elapsedMs(), deg[0], deg[1], spd, _currentHr, info.accuracy], spd);
+            LaufLuecke.fix(elapsedTimeMs(), distanceM(), deg[0], deg[1], spd, info.accuracy, _runMaxHr, _foiling);
         } catch (e) {
             // Einzelnen Punkt verwerfen, Aufnahme läuft weiter.
         }

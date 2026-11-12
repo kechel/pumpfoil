@@ -34,7 +34,10 @@ test('Lite-Fassungen stehen im Quelltext', () => {
   assert.match(rec, /\(:lite\) function gpsPoor\(\) \{ return _gpsQuality < Position\.QUALITY_USABLE; \}/);
   assert.match(rec, /\(:lite\) function hasGpsFix\(\) \{ return _hasGpsFix; \}/);
   const st = rumpf(rec, '(:lite) function start(');
-  assert.doesNotMatch(st, /SensorLogg|registerSensorDataListener/);
+  // Kein eigener Accel-Puffer (kein Listener). Accel in der FIT per SensorLogger ist seit 05.11. (8ec18c47) gewollt,
+  // aber nur, wenn der Server es schaltet (Garmin-Verknuepfung, Wege.fitAccel) — die Firmware schreibt, nicht unser Heap.
+  assert.doesNotMatch(st, /registerSensorDataListener/);
+  assert.match(st, /if \(Wege\.fitAccel\(false\) && Toybox has :SensorLogging\) \{/);
   assert.match(rumpf(rec, '(:lite) hidden function _gpsPunkt('), /if \(!z\[6\] \|\| gpsPoor\(\)\) \{/);
   const pr = lies('PhoneRec.mc');
   assert.match(pr, /\(:lite\) function meldeAppZu\(\) as Void \{\}/);
