@@ -641,8 +641,8 @@ _APP_META: dict[str, dict[str, str]] = {
     # Die Watch 5 schickt `p=huawei` (1.0.2 ist so eingereicht) -> devices._plat_fuer_hinweis
     # bildet das auf "huawei-watch5" ab. `latest` erst bei bestaetigter Freigabe setzen.
     "huawei-watch5": {      # watch-huawei/arkts, HarmonyOS 5/6, laedt selbst hoch (seit 1.0.2)
-        "latest": "1.0.4",  # FREIGEGEBEN 2026-11-09 (Jans Meldung, AppGallery-Mail: Einreichung 04.11. 17:42:06 Pekinger Zeit
-        # approved and released). 1.0.3 am 04.11. als erste Huawei-Fassung freigegeben; davor 1.0.2 abgelehnt 22.10./28.10.,
+        "latest": "1.0.5",  # FREIGEGEBEN 2026-11-12 (Jans Meldung, AppGallery-Mail: Einreichung 10.11. 19:28:02 Pekinger Zeit
+        # approved and released). 1.0.4 am 09.11. freigegeben (Einreichung 04.11. 17:42:06 Pekinger Zeit). 1.0.3 am 04.11. als erste Huawei-Fassung freigegeben; davor 1.0.2 abgelehnt 22.10./28.10.,
         # 1.0.3 abgelehnt 02.11.
         "min_supported": "",
         # Ueber den Paketnamen (von Jan im Browser bestaetigt 04.11.); die Form /app/C<App-ID> zeigte NICHTS.
@@ -950,14 +950,7 @@ IN_REVIEW: list[dict] = [
     # 12.11.2026: GPS-Luecke am Lauf-Ende (LaufLuecke.mc, baf2244d/bddabe64), im Simulator auf fenix 7X Pro, FR55 und
     # Instinct 2 getestet. Version 1.0.103 fuer die Einreichung gebumpt.
     # Garmin 1.0.103 am 12.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt mit 5 Bildern im Changelog mit garmin 1.0.103.
-    # 10.11.2026: V-max wie der Server (9718cafb); 1.0.4 ist seit 09.11. live.
-    # EINGEREICHT 10.11.2026 12:26 (Jans Meldung, AppGallery Connect „Under pre-review“, arkts-default-signed.app
-    # 1.0.5 (1000005), 0,11 MB). Emulator-Test #21099 mit v=1.0.5 hochgeladen (0 Laeufe im Emulator, ungeklaert).
-    {"name": "Huawei Watch 5", "version": "1.0.5",
-     "eingereicht": "2026-11-10",
-     "items": [
-         "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
-     ]},
+    # Huawei Watch 5 1.0.5 am 12.11. FREIGEGEBEN (s. _APP_META["huawei-watch5"]); Punkt im Changelog mit huawei-watch5 1.0.5.
     # 15.10.2026 (Jan: „alle immer moeglichst auf dem gleichen stand"): Garmin-1.0.93-Uhrseite
     # nach Zepp portiert. Nicht gebumpt (1.0.13 ist live). Dazu wartet seit fc953a91 „Speicher voll
     # an den Server melden" (ohne eigenen Punkt, reine Diagnose).
