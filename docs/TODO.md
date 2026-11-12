@@ -1531,6 +1531,12 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 12.11.2026 — Apps: Puls-Streifen je Lauf nachziehen (Backlog fuer die App-Releases naechste Woche, Jan)
+Web zeigt auf der Session-Seite und unter „Laengste Laeufe" je Lauf einen Puls-Streifen (`CompareHrStrips.tsx`:
+Zeit ab Laufbeginn, Faerbung nach Puls bzw. Anstieg, Maus-Anzeige mit Strecke/Tempo). Android und iOS haben ihn nicht.
+Beim Port gleich richtig: Zeitachse aus der Laufdauer (`duration_s`), NICHT Punkt = Sekunde — Uhren mit intelligenter
+Aufzeichnung speichern nur etwa alle 2 s (Nutzer-Feedback 12.11., Web-Fix a707ccb2). Mit dem naechsten Android-/iOS-Release.
+
 ### 12.11.2026 — Idee: Luftdruck-/Wassersensor gegen GPS-Luecken (nur notiert, nicht heute)
 Vorschlag aus dem Community-Chat: auf Uhren mit Drucksensor (Barometer/Tiefe) oder eingebauter Wassererkennung das
 Untertauchen direkt messen, statt es aus der GPS-Luecke zu schliessen — Sturz/Uhr unter Wasser waere damit ein Signal,
