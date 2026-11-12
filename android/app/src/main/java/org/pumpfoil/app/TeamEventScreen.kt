@@ -485,6 +485,30 @@ private fun TeamWertungKarte(tf: TeamTafel, n: Int, f: TeamFarbe, eigeneSlugs: S
                     Text(kennzahlWert(tf.kennzahl, x.value), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                 }
             }
+            // Sprints (Web 4408065d, Jan 12.11.2026): Teams mit weniger als N Fahrern, grau und ohne Rang.
+            val ungewertet = tf.teamsUngewertet.orEmpty()
+            if (ungewertet.isNotEmpty()) {
+                Text(I18n.t("team.event.ungewertet").replace("{n}", n.toString()), style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 12.dp, bottom = 2.dp))
+                ungewertet.forEachIndexed { i, x ->
+                    if (i > 0) HorizontalDivider()
+                    Row(Modifier.fillMaxWidth().alpha(0.7f).clip(RoundedCornerShape(8.dp)).clickable { onOpenTeam(x.slug) }
+                        .padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text("–", Modifier.width(24.dp), style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.End)
+                        Spacer(Modifier.width(8.dp))
+                        TeamWappen(x.name, x.logoUrl, x.farbe, 24.dp)
+                        Spacer(Modifier.width(6.dp))
+                        Box(Modifier.width(18.dp), contentAlignment = Alignment.Center) { TeamHerkunftZeichen(x.land, kuerzel = false) }
+                        Spacer(Modifier.width(6.dp))
+                        Text(x.name, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("${x.fahrer}/$n", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.width(8.dp))
+                        Text(kennzahlWert(tf.kennzahl, x.value), style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
         }
     }
 }

@@ -202,6 +202,8 @@ data class TeamTafel(
     // Nur bei Events (06.11.2026): Team-Rangliste eines globalen Events, die eigene Zeile (auch hinter Platz 10) und
     // wann die Liste gerechnet wurde (ISO, UTC).
     val teams: List<TeamWertungZeile>? = null,
+    // Sprints (Web 4408065d, 12.11.2026): Teams mit weniger als N Fahrern, ohne Rang (rang bleibt 0).
+    @SerialName("teams_ungewertet") val teamsUngewertet: List<TeamWertungZeile>? = null,
     val eigene: TeamZeile? = null,
     val stand: String? = null,
 )

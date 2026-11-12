@@ -876,6 +876,7 @@ private struct TeamWertungKarte: View {
             kopf
             Text(unterzeile).font(.caption).foregroundStyle(.secondary)
             liste
+            ungewertet
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -903,6 +904,42 @@ private struct TeamWertungKarte: View {
                 }
             }
         }
+    }
+
+    /// Sprints (web 4408065d, 12.11.2026): Teams mit weniger als N Fahrern, grau und ohne Rang.
+    @ViewBuilder private var ungewertet: some View {
+        let u: [TeamUngewertetZeile] = tf.teams_ungewertet ?? []
+        if !u.isEmpty {
+            Text(teamText("team.event.ungewertet", lang, ["n": String(n)]))
+                .font(.subheadline).foregroundStyle(.secondary).padding(.top, 8)
+            VStack(spacing: 0) {
+                ForEach(Array(u.enumerated()), id: \.element.slug) { i, z in
+                    if i > 0 { Divider() }
+                    ungewerteteZeile(z)
+                }
+            }
+        }
+    }
+
+    private func ungewerteteZeile(_ z: TeamUngewertetZeile) -> some View {
+        NavigationLink { TeamView(slug: z.slug) } label: {
+            HStack(spacing: 8) {
+                Text("–").font(.subheadline).foregroundStyle(.secondary).frame(width: 28, alignment: .trailing)
+                TeamWappen(name: z.name, logo: z.logo_url, farbe: z.farbe, size: 24)
+                ZStack {
+                    Color.clear.frame(width: 18, height: 12)
+                    TeamHerkunftMarke(land: z.land, kuerzel: false)
+                }
+                Text(z.name).font(.subheadline).lineLimit(1)
+                Spacer(minLength: 4)
+                Text(String(z.fahrer) + "/" + String(n)).font(.caption).foregroundStyle(.secondary).monospacedDigit()
+                Text(k.fmt(z.value, lang)).font(.subheadline).foregroundStyle(.secondary).monospacedDigit()
+            }
+            .padding(.vertical, 6)
+            .opacity(0.7)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     private func rangFarbe(_ rang: Int) -> Color { rang <= 3 ? tfarbe.akzent : Color.secondary }

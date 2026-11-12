@@ -12339,7 +12339,7 @@ Offen daraus:
   **✅ 12.11. umgesetzt** (Jan: „nur teams … mit mindestens 3 personen … die einstellung des events sollte da
   ausschlaggebend sein"): N = `team_wertung_n` des Events (0 = alle: keine Mindestzahl), nur bei Sprints. Rein
   serverseitig: `teams` enthaelt nur noch gewertete Teams (alle Apps sofort), die anderen stehen in `teams_ungewertet`
-  (Web zeigt sie grau darunter; iOS/Android zeigen sie nicht — bei Bedarf nachziehen).
+  (Web, iOS und Android zeigen sie grau darunter; Apps ab der naechsten Fassung, Android 1.1.49 / iOS nach 1.1.66).
 
 - **📥 Inbox 11.11. (Jan) — Events vorschlagen + Community-Voting.** „nutzer sollen events vorschlagen koennen die ich
   dann als admin einfach uebernehmen kann (nicht federation, aber da dann spaeter auch), und ggf. mit einem voting durch

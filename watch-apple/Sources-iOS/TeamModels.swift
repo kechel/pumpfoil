@@ -132,6 +132,8 @@ struct TeamTafel: Codable {
     var zeilen: [TeamZeile]
     /// Globale Events (06.11.2026): Team-Rangliste dieser Bestenliste (Summe der besten N Mitglieder je Team).
     var teams: [TeamWertungZeile]? = nil
+    /// Sprints (web 4408065d, 12.11.2026): Teams mit weniger als N Fahrern, ohne Rang.
+    var teams_ungewertet: [TeamUngewertetZeile]? = nil
     /// Globale Events: die eigene Zeile aus der vollen Liste, auch hinter den gezeigten Plaetzen.
     var eigene: TeamZeile? = nil
     /// Events: wann die Bestenliste gerechnet wurde (ISO; der Server rechnet hoechstens alle 2 min neu).
@@ -156,6 +158,18 @@ struct TeamWertungZeile: Codable, Identifiable {
     var strittig: Bool? = nil
     /// Gemischte Ansicht (08.11.2026): Sportart(en) dieser Zeile fuers Abzeichen.
     var sportarten: [String]? = nil
+    var id: String { slug }
+}
+
+/// Nicht gewertetes Team einer Sprint-Rangliste (zu wenige Fahrer, Server teams.team_wertung): wie oben, ohne Rang.
+struct TeamUngewertetZeile: Codable, Identifiable {
+    let slug: String
+    let name: String
+    var logo_url: String? = nil
+    var farbe: String? = nil
+    var land: String? = nil
+    let value: Double
+    let fahrer: Int
     var id: String { slug }
 }
 

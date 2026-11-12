@@ -43,7 +43,7 @@ SCHLUESSEL = [
     "team.eventsGlobal", "eventHinweis.live", "eventHinweis.bald", "eventHinweis.teamLive", "team.eventsMeineTeams",
     "team.event.keineGlobalen", "team.event.global", "team.event.globalHaken", "team.event.globalHinweis",
     "team.event.globalOptOut", "team.event.wertung", "team.event.wertungBeste", "team.event.wertungAlle",
-    "team.mitgliederAnzahl1", "team.event.teams", "team.event.neuLaden", "team.event.standUm", "team.event.endstand", "team.event.keineTeams",
+    "team.mitgliederAnzahl1", "team.event.teams", "team.event.neuLaden", "team.event.standUm", "team.event.endstand", "team.event.keineTeams", "team.event.ungewertet",
     # 05.11.2026: Garmin Connect (Karte unter Uhr & Konten) und Quellenzeile unter Rekorden/Bestenlisten
     "settings.garmin.hint", "settings.garmin.connect", "settings.garmin.connected", "settings.garmin.unlink",
     "settings.garmin.noExport", "settings.garmin.help1", "settings.garmin.help2", "settings.garmin.help3",
