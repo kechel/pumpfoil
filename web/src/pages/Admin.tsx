@@ -62,6 +62,7 @@ export default function Admin() {
     teams: pending?.teams ?? 0,
     // Seit 12.11.2026 doch: Fotos zaehlt den Warteraum neuer Konten + offene Medien-Meldungen (nicht `blocked`).
     photos: pending?.photos ?? 0, bewertungen: pending?.bewertungen ?? 0,
+    users: pending?.users ?? 0,   // als NEU markierte Konten (< 24 h), Jan 12.11.2026
   };
   return (
     <div>

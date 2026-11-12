@@ -702,7 +702,10 @@ def pending(_a: models.User = Depends(current_admin), db: Session = Depends(get_
     # Bewertungen („Rate this analysis"): noch offene (status offen) — Jan 12.11.2026: „bei ratings fehlt das auch".
     bewertungen = int(db.query(func.count()).select_from(models.SessionBewertung)
                       .filter(models.SessionBewertung.status == "offen").scalar() or 0)
-    return {"flagged": flagged, "fake": fake, "suspect": suspect, "chat": chat,
+    # Nutzer (Jan 12.11.2026): wie viele als NEU markiert sind (angelegt < 24 h, accounts.is_new_account).
+    neue = int(db.query(func.count()).select_from(models.User)
+               .filter(models.User.created_at >= datetime.now(timezone.utc) - timedelta(seconds=NEW_ACCOUNT_AGE_S)).scalar() or 0)
+    return {"flagged": flagged, "fake": fake, "suspect": suspect, "chat": chat, "users": neue,
             "social": social, "feedback": feedback, "spots": spots, "teams": teams,
             "photos": photos, "bewertungen": bewertungen,
             # `suspect` zaehlt NICHT mehr mit (Jan, 12.10.2026): das Physik-Gate nimmt die Laeufe ueber
