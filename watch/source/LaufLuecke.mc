@@ -69,9 +69,10 @@ module LaufLuecke {
         if (fT >= 0 && jetzt - fT > LUECKE_MS) {
             return (gT >= 0 && gT >= start) ? [gT, gD, gHr] : null;
         }
-        // Sonst zaehlt nur eine Luecke, die das Letzte im Lauf war: nach ihrem Ende kein weiterer guter Fix
-        // (ausser dem ersten danach). Ist er danach weitergefahren, endet der Lauf normal.
-        if (aT < 0 || gT > bT || pT < 0 || pT < start) { return null; }
+        // Sonst zaehlt nur eine Luecke, die das Letzte im Lauf war: weitergefahren ist er erst, wenn danach noch
+        // laenger als 3 s gute Fixe kamen. Einzelne Ausreisser im Ausgleiten zaehlen nicht (Simulator 12.11.:
+        // nach der Luecke 3,8 / 0,6 / 2,54 / 0 m/s — die 2,54 hatten den Schnitt verhindert).
+        if (aT < 0 || gT > bT + LUECKE_MS || pT < 0 || pT < start) { return null; }
         if (bT - aT <= TRENN_MS && aV >= FAHR_MPS) { return null; }      // ueber die Luecke durchgefahren
         return [pT, pD, pHr];
     }

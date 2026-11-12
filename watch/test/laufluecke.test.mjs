@@ -18,7 +18,7 @@ test('tragende Zeilen stehen im Quelltext', () => {
   assert.match(ll, /const TRENN_MS = 15000;/);
   assert.match(ll, /const FAHR_MPS = 2\.5;/);
   assert.match(ll, /if \(bT - aT <= TRENN_MS && aV >= FAHR_MPS\) \{ return null; \}/);
-  assert.match(ll, /if \(aT < 0 \|\| gT > bT \|\| pT < 0 \|\| pT < start\) \{ return null; \}/);
+  assert.match(ll, /if \(aT < 0 \|\| gT > bT \+ LUECKE_MS \|\| pT < 0 \|\| pT < start\) \{ return null; \}/);
   assert.match(ll, /pT = gT; pD = gD; pHr = gHr;/);
   assert.match(ll, /if \(laeuft && t - fT > TRENN_MS\) \{ trennen = true; \}/);
   assert.match(rec, /if \(_exitStreak >= RUN_EXIT_DWELL \|\| trennen\) \{/);
@@ -48,7 +48,7 @@ function laufLuecke() {
   };
   L.schnitt = (jetzt, start) => {
     if (L.fT >= 0 && jetzt - L.fT > 3000) return L.gT >= 0 && L.gT >= start ? [L.gT, L.gD, L.gHr] : null;
-    if (L.aT < 0 || L.gT > L.bT || L.pT < 0 || L.pT < start) return null;
+    if (L.aT < 0 || L.gT > L.bT + 3000 || L.pT < 0 || L.pT < start) return null;
     if (L.bT - L.aT <= 15000 && L.aV >= 2.5) return null;
     return [L.pT, L.pD, L.pHr];
   };
@@ -197,4 +197,19 @@ test('ohne Luecke: genau wie bisher', () => {
   const opt = { sekunden: 400, wahr: (s) => (s >= 20 && s < 90) || (s >= 150 && s < 260) ? 3.4 : 0.3 };
   assert.deepEqual(spiele(opt).laeufe, spiele({ ...opt, mitFix: false }).laeufe);
   assert.equal(spiele(opt).laeufe.length, 2);
+});
+
+test('Ausreisser nach der Luecke (Simulator 12.11.: 3,8 / 0,6 / 2,54 / 0 m/s) verhindert den Schnitt nicht', () => {
+  const nach = [3.8, 0.6, 2.54, 0.0, 0.3];
+  const wahr = (s) => (s >= 20 && s < 120 ? 3.6 : s >= 130 && s < 135 ? nach[s - 130] : 0.3);
+  const r = spiele({ sekunden: 220, wahr, ohneGps: (s) => s >= 120 && s < 130 });
+  assert.equal(r.laeufe.length, 1);
+  assert.ok(r.laeufe[0].dauer <= 101, `${r.laeufe[0].dauer} s`);
+});
+
+test('nach der Luecke wirklich weitergefahren (> 3 s schnell), dann normal ausgeglitten: nichts geschnitten', () => {
+  const wahr = (s) => (s >= 20 && s < 125 ? 3.4 : s >= 125 && s < 140 ? 3.4 : 0.3);
+  const r = spiele({ sekunden: 220, wahr, ohneGps: (s) => s >= 110 && s < 120 });
+  assert.equal(r.laeufe.length, 1);
+  assert.ok(r.laeufe[0].dauer >= 115, `${r.laeufe[0].dauer} s`);
 });

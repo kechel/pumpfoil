@@ -1542,7 +1542,10 @@ Stehen nur alle bis zu 50 s eine Position, und bleibt). Konzept mit Jan abgestim
       `1.0.102-ta` (fenix 7X Pro, FR55). Erwartung laut Node-Nachbau mit denselben Verlaeufen (Server / Uhr alt / neu):
       1 s mitten 37 / 38 / 38 s · 2 s mitten 46 / 45 / 45 s · 10 s ab 1 s vor Ende 51 / 62 / 51 s ·
       36 s ab 5 s vor Ende (Sturz) 42 / 58 / 37 s (der Server wuerde dort ebenfalls bei ~37 s enden).
-      Offen: ob der Simulator fehlende GPX-Punkte als Luecke abspielt oder interpoliert.
+      Simulator 12.11. (1.0.102-ta, fenix 7X Pro): spielt fehlende Punkte als echte Luecke ab. Fall 1: 0:39 / 170 m ok.
+      Fall 3: 1:03 = alter Fehler — ein Tempo-Ausreisser (2,54 m/s) nach der Luecke galt als „weitergefahren“.
+      Korrigiert (weitergefahren erst bei > 3 s guten Fixen danach); Nachbau mit den Simulator-Punkten: alt 1:03 wie
+      im Simulator, neu 0:50. Neuer Testbuild 1.0.102-tb.
 - [ ] Apple Watch, danach Wear OS + Handy-Recorder Android/iOS, dann Zepp, Huawei, Suunto (Tabelle in PARITY-AUDIT).
 - Nebenbefund KORRIGIERT: `watch/test/lite-minimal.test.mjs` „Lite-Fassungen stehen im Quelltext" schlug schon auf HEAD fehl
   (verbot auch den SensorLogger, den 8ec18c47 am 05.11. absichtlich fuer Accel-in-FIT eingebaut hat) -> Test prueft jetzt: kein eigener Listener, SensorLogger nur hinter `Wege.fitAccel`.

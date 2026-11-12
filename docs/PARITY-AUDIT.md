@@ -48,7 +48,9 @@ einer Uhr baut, geht diese Liste fuer ALLE VIER durch und traegt das Ergebnis in
    - **Beim Lauf-Ende** zurueckschauen: lag direkt davor eine Luecke (danach kein weiterer guter Fix) oder laeuft sie
      noch, entscheidet die Luftlinie letzter Fix davor -> erster Fix danach / Dauer: >= 2,5 m/s = durchgefahren,
      alles zaehlt; sonst endet der Lauf am guten Fix vor der Luecke (Dauer, Strecke, Max-Puls von dort) und gilt als
-     echter Stopp (ein Neustart ist keine Fortsetzung).
+     echter Stopp (ein Neustart ist keine Fortsetzung). „Danach weitergefahren“ heisst: laenger als 3 s gute Fixe nach
+     der Luecke — einzelne Ausreisser im Ausgleiten zaehlen nicht (Simulator 12.11.: 3,8 / 0,6 / 2,54 / 0 m/s nach
+     der Luecke, die 2,54 hatten im ersten Testbuild den Schnitt verhindert, Uhr 1:03 statt ~0:51).
    - **Luecke > 15 s im Lauf**: Lauf endet rueckwirkend am guten Fix davor, auch wenn es danach schnell weitergeht
      (dann neuer Lauf, ohne Cooldown, keine Fortsetzung) — wie der Server.
    - Strecke aus dem eigenen Merker, nicht aus der Differenz am Ende (die Plattform schreibt in der Luecke evtl. weiter).
