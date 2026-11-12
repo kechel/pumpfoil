@@ -960,7 +960,18 @@ IN_REVIEW: list[dict] = [
     # Amazfit 1.0.15 am 11.11. FREIGEGEBEN -> raus (s. _APP_META["zepp"]); Punkte zepp 1.0.15 im Changelog.
     # 06.11.2026 (Jan: „fortsetzen vorauswaehlen ist gut"): Pausen-Menue mit Vorauswahl.
     # Garmin 1.0.102 am 10.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkte 979/980 im Changelog mit garmin 1.0.102.
-    # iPhone + Apple Watch 1.1.65 am 11.11. 09:34 eingereicht, am 11.11. FREIGEGEBEN (s. _APP_META["ios"]); 6 Punkte im Changelog mit ios 1.1.65.
+    # EINGEREICHT 12.11.2026 06:32 (Jans Meldung, ASC „Warten auf Pruefung", 1.1.66 (76),
+    # Kennung 1dee31a4-be50-489e-8dfa-37b5adf8752d). Aus 65809cf4; von Jan komplett getestet.
+    {"name": "iPhone + Apple Watch", "version": "1.1.66",
+     "eingereicht": "2026-11-12",
+     "items": [
+         "Sign in with Google on the iPhone, for everyone who created their account with Google on the website.",
+         "On global event pages, My team is now a single row; tap a greyed-out team to see why it does not count.",
+         "After an event, its page shows which team you competed for.",
+         "Tap a sprint value on the podium to open the run, with the stretch that counted highlighted on the map.",
+     ]},
+    # iPhone + Apple Watch 1.1.65 am 11.11. 09:34 eingereicht, am 11.11. FREIGEGEBEN (s. _APP_META["ios"]); 5 Punkte im Changelog mit ios 1.1.65
+    # (1005-1009; 1004 war ein kaputter Uebernahme-Rest und ist seit 12.11. Entwurf).
     # iPhone + Apple Watch 1.1.64 am 10.11. 11:47 eingereicht, am 11.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 983-990 im Changelog.
     # iPhone + Apple Watch 1.1.62 am 07.11. 01:26 eingereicht, am 07.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 954-960 im Changelog.
     # iPhone + Apple Watch 1.1.61 am 06.11. eingereicht, am 07.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte 945-951 im Changelog.
