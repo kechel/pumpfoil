@@ -78,7 +78,10 @@ struct SessionDetailView: View {
     @AppStorage("sd_smooth_win") private var win = 3
     @AppStorage("sd_show_pumps") private var showPumps = false   // Pump-Marker default aus
     // Gleitphasen einblenden (wie PWA seit 03.10.2026), Daten aus `seg.glides`; default aus.
-    @AppStorage("sd_show_glides") private var showGlides = false
+    /// Alter Gleit-Schalter (bis 12.11.2026): wird einmal in die Faerbung `.glides` uebernommen, dann false (web ad4dbfe3).
+    @AppStorage("sd_show_glides") private var altGleitSchalter = false
+    /// Gleitphasen sind seit 12.11.2026 eine eigene Faerbung wie Carves (Jan: „entweder puls oder carves oder glides").
+    private var showGlides: Bool { colorMode == .glides }
     // Startversuche standardmaessig AN (Jans Vorgabe): sie erklaeren die Luecken zwischen den
     // Laeufen, und der Schalter erscheint ohnehin nur, wenn es misslungene Versuche gibt.
     @AppStorage("sd_show_attempts") private var showAttempts = true
@@ -1043,9 +1046,10 @@ struct SessionDetailView: View {
         // Der gemerkte Farbmodus kann in DIESER Session fehlen (Puls ohne Gurt, Carves ohne
         // Accel) — dann gibt es weder Auswahlknopf noch Farben, die Karte waere grau. Zurueck
         // auf Speed, und zwar gemerkt: die PWA macht es genauso.
-        .task(id: "\(sid)-\(v.hasHr)-\(v.hasPump)-\(v.hasCarves)-\(colorMode.rawValue)") {
+        .task(id: "\(sid)-\(v.hasHr)-\(v.hasPump)-\(v.hasCarves)-\(gleitMoeglich)-\(colorMode.rawValue)") {
+            if altGleitSchalter { altGleitSchalter = false; colorMode = .glides }
             if (colorMode == .hr && !v.hasHr) || (colorMode == .pump && (!v.hasPump || !pumpzahlen))
-                || (colorMode == .turns && !v.hasCarves) { colorMode = .speed }
+                || (colorMode == .turns && !v.hasCarves) || (colorMode == .glides && !gleitMoeglich) { colorMode = .speed }
         })
     }
 
@@ -1110,15 +1114,13 @@ struct SessionDetailView: View {
         let segs: [Segment] = session?.analysis?.segments ?? []
         return segs.contains(where: { !($0.glides ?? []).isEmpty })
     }
+    /// SUP: keine Gleitphasen (Pumpfoil-Begriff, Jan 20.10.2026).
+    private var gleitMoeglich: Bool { pumpzahlen && session?.sport_class != "sup_paddle" && hatGleitphasen }
 
     @ViewBuilder private func kartenSchalter(_ s: SessionDetail) -> some View {
         // SUP ohne Foil (25.10.2026): keine Pump-Zahlen, aber Paddelschlaege -> Schalter trotzdem anbieten.
         if (pumpzahlen && (s.analysis?.pump_count ?? 0) > 0) || (s.sport_class == "sup" && !(paddel?.schlag_pkt ?? []).isEmpty) {
             Toggle(Loc.t(session?.sport_class == "sup_paddle" || session?.sport_class == "sup" ? "sd.strokes" : "sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
-        }
-        // SUP: kein Gleit-Schalter (Pumpfoil-Begriff, Jan 20.10.2026)
-        if pumpzahlen && s.sport_class != "sup_paddle" && (s.analysis?.segments ?? []).contains(where: { !($0.glides ?? []).isEmpty }) {
-            Toggle(Loc.t("sd.glides", lang), isOn: $showGlides).font(.caption).fixedSize()
         }
         // Nur zeigen, wenn es etwas zu zeigen gibt: `nil` = noch nicht geholt (dann darf
         // der Schalter stehen, sonst koennte man ihn nie einschalten), leer = keine.
@@ -1135,6 +1137,7 @@ struct SessionDetailView: View {
             if v.hasHr { Text(Loc.t("sd.colorPuls", lang)).tag(TrackColorMode.hr) }
             if v.hasPump && pumpzahlen { Text(Loc.t("sd.colorPump", lang)).tag(TrackColorMode.pump) }
             if v.hasCarves { Text("Carves").tag(TrackColorMode.turns) }
+            if gleitMoeglich { Text(Loc.t("sd.glides", lang)).tag(TrackColorMode.glides) }
         }
         .pickerStyle(.segmented)
     }
@@ -1168,7 +1171,7 @@ struct SessionDetailView: View {
         let schild: String = sprintSchildText
         return TrackMap(points: track.geometry.coordinates, speedsMps: v.speeds, hr: v.hr, pumpHz: v.pumpHz,
                         segments: segs, mode: colorMode, hrRange: v.hrRange, pumpRange: v.pumpRange,
-                        showPumps: showPumps && (pumpzahlen || session?.sport_class == "sup"), showGlides: showGlides && pumpzahlen && session?.sport_class != "sup_paddle" && hatGleitphasen, selectedRun: selectedRun,
+                        showPumps: showPumps && (pumpzahlen || session?.sport_class == "sup"), showGlides: showGlides && gleitMoeglich, selectedRun: selectedRun,
                         onSelectRun: { selectedRun = (selectedRun == $0) ? nil : $0 },
                         attempts: showAttempts && pumpzahlen ? (attempts ?? []) : [],
                         carveArcs: arcs, carveGMax: v.carveGMax,
@@ -1214,6 +1217,13 @@ struct SessionDetailView: View {
 
     @ViewBuilder private func legendRow(_ v: TrackVals) -> some View {
         if colorMode == .turns { carveLegend(counts: carve?.counts, gMax: v.carveGMax) }
+        else if colorMode == .glides {
+            HStack(spacing: 6) {
+                RoundedRectangle(cornerRadius: 4).fill(Color(red: 0x22 / 255, green: 0xd3 / 255, blue: 0xee / 255))
+                    .frame(width: 32, height: 10)
+                Text(Loc.t("sd.glides", lang)).font(.caption).foregroundStyle(.secondary)
+            }
+        }
         else { colorLegend(mode: colorMode, hrRange: v.hrRange, pumpRange: v.pumpRange) }
     }
 
@@ -1237,6 +1247,9 @@ struct SessionDetailView: View {
         let segs: [Segment] = s.analysis?.segments ?? []
         guard !segs.isEmpty else { return }
         vorwahlErledigt = true
+        // Aus einer Sprint-Bestenliste: Glides-Faerbung aus (web ad4dbfe3) — sonst ist der Track grau und vom gewerteten
+        // Abschnitt bleibt nur der Rand. Einmal; danach darf man zurueckschalten.
+        if sprintLauf(s) != nil && colorMode == .glides { colorMode = .speed }
         let ziel: Int? = sprintLauf(s)?.i ?? vorwahlLauf
         if let i = ziel, segs.indices.contains(i) { selectedRun = i }
     }
@@ -1348,7 +1361,7 @@ struct SessionDetailView: View {
         case .hr: return ("\(hrRange.0)", "\(hrRange.1) bpm")
         case .pump: return (PumpUnit.fmtLegend(pumpRange.0, lang, withUnit: false),
                             PumpUnit.fmtLegend(pumpRange.1, lang, withUnit: true))
-        case .turns: return ("", "")   // TURNS nutzt carveLegend
+        case .turns, .glides: return ("", "")   // eigene Legenden (carveLegend bzw. Glides-Zeile)
         }
     }
 
@@ -2144,7 +2157,7 @@ private struct SessionReportRow: View {
     }
 }
 
-enum TrackColorMode: String { case speed, hr, pump, turns }
+enum TrackColorMode: String { case speed, hr, pump, turns, glides }
 
 // Kurvenlage-g -> Farbe (wie Web/turns.ts). Untere Hälfte fix (grün 0,1 → gelb 0,35 → rot 0,6),
 // darüber bis gMax (gedeckelt 1,0) rot → magenta → weiß. g<=0.02 = kein Carve (grau).
@@ -2698,8 +2711,8 @@ struct TrackMap: UIViewRepresentable {
         case .pump:
             guard let v = (pumpHz.indices.contains(i) ? pumpHz[i] : nil) else { return .systemGray }
             return uiRampColor((v - pumpRange.0) / max(pumpRange.1 - pumpRange.0, 1e-6))
-        case .turns:
-            return .systemGray   // Basis-Track grau; die Carve-Bögen kommen farbig darüber
+        case .turns, .glides:
+            return .systemGray   // Basis-Track grau; Carve-Bögen bzw. Gleitphasen kommen farbig darüber
         }
     }
 

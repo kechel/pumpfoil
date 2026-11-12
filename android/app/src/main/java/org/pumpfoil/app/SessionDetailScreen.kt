@@ -530,8 +530,9 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     // Vollbild-Karte, s. unten beim TrackMap.
     var mapFull by remember(s.id) { mutableStateOf(false) }
     var showPumps by remember(s.id) { mutableStateOf(SessionViewPrefs.zeigePumps(ctxPrefs)) }
-    // Gleitphasen einblenden (wie PWA seit 03.10.2026), Daten aus `seg.glides`.
-    var showGlides by remember(s.id) { mutableStateOf(SessionViewPrefs.zeigeGleiten(ctxPrefs)) }
+    // Gleitphasen (wie PWA seit 03.10.2026, Daten aus `seg.glides`) — seit 12.11.2026 eine eigene Faerbung wie Carves
+    // statt ein Schalter neben Tempo/Puls (Web ad4dbfe3, Jan: „entweder puls oder carves oder glides").
+    val showGlides = colorMode == ColorMode.GLIDES
     // Startversuche: die Anlaeufe, aus denen KEIN Lauf wurde. Standardmaessig an; die Linien holt
     // ein eigener Endpunkt, und zwar erst wenn der Schalter das erste Mal an ist.
     var showAttempts by remember(s.id) { mutableStateOf(SessionViewPrefs.zeigeVersuche(ctxPrefs)) }
@@ -542,11 +543,11 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         }
     }
     // Jede Aenderung merken — sie gilt dann auch fuer die naechste Session.
-    LaunchedEffect(colorMode, win, showPumps, showAttempts, showGlides) {
+    LaunchedEffect(colorMode, win, showPumps, showAttempts) {
         // Wind (ohne Pump-Zahlen) merkt nichts: der Rueckfall von Pump-Faerbung auf Tempo soll die
         // naechste Pumpfoil-Session nicht verstellen (wie im Web).
         if (s.sportProfil?.pumpzahlen != false)
-            SessionViewPrefs.merke(ctxPrefs, colorMode, win, showPumps, showAttempts, showGlides)
+            SessionViewPrefs.merke(ctxPrefs, colorMode, win, showPumps, showAttempts)
     }
     // Anzeige-Profil der Sportart (19.10.2026). Ohne Profil oder bei Pumpfoil alles wie bisher.
     // Wind: ganze Fahrt grau unter den Laeufen (umschaltbar, nicht gemerkt), Gesamtstrecke + Dauer
@@ -577,6 +578,14 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     }
     // Hervorhebung nur, solange genau dieser Lauf ausgewaehlt ist (Web sprintHL).
     val sprintHL = sprintLauf?.takeIf { selectedRun == it.lauf }
+    // Aus einer Sprint-Bestenliste: Glides-Faerbung aus (Web ad4dbfe3) — sonst ist der Track grau und vom gewerteten
+    // Abschnitt bleibt nur der Rand. Einmal je Session, danach darf man zurueckschalten.
+    var sprintFarbeAngewandt by remember(s.id) { mutableStateOf(false) }
+    LaunchedEffect(s.id, sprintLauf) {
+        if (sprintLauf == null || sprintFarbeAngewandt) return@LaunchedEffect
+        sprintFarbeAngewandt = true
+        if (colorMode == ColorMode.GLIDES) colorMode = ColorMode.SPEED
+    }
     var weightKg by remember { mutableStateOf(0.0) }
     var caption by remember(s.id) { mutableStateOf(s.caption ?: "") }
     var allFoils by remember(s.id) { mutableStateOf<List<Foil>>(emptyList()) }
@@ -983,10 +992,13 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 // ohne Accel) — dann gibt es weder Chip noch Farben, die Karte waere grau.
                 // Zurueck auf Speed, und zwar gemerkt (der Effekt unten schreibt mit); die PWA
                 // macht es genauso.
-                LaunchedEffect(hasHr, hasPump, hasCarves, colorMode) {
+                // SUP: keine Gleitphasen (Pumpfoil-Begriff, Jan 20.10.2026)
+                val gleitMoeglich = pumpzahlen && s.sportClass != "sup_paddle" && segs.any { it.glides.isNotEmpty() }
+                LaunchedEffect(hasHr, hasPump, hasCarves, gleitMoeglich, colorMode) {
                     if ((colorMode == ColorMode.HR && !hasHr) ||
                         (colorMode == ColorMode.PUMP && (!hasPump || !pumpzahlen)) ||
-                        (colorMode == ColorMode.TURNS && !hasCarves)) colorMode = ColorMode.SPEED
+                        (colorMode == ColorMode.TURNS && !hasCarves) ||
+                        (colorMode == ColorMode.GLIDES && !gleitMoeglich)) colorMode = ColorMode.SPEED
                 }
                 // Die Bedienzeilen ueber der Karte in EINEM Block mit engem Abstand: als
                 // einzelne Kinder der Seiten-Column lagen 12 dp dazwischen, plus je 16 dp
@@ -994,13 +1006,14 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 Kompakt {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         // Farbmodus (Speed/Puls/Pump) + Marker-Umschalter in DERSELBEN Zeile (rechts).
-                        if (hasHr || hasPump || hasCarves) {
+                        if (hasHr || hasPump || hasCarves || gleitMoeglich) {
                             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 FilterChip(selected = colorMode == ColorMode.SPEED, onClick = { colorMode = ColorMode.SPEED }, label = { Text(I18n.t("sd.colorSpeed")) }, colors = cyanChipColors())
                                 if (hasHr) FilterChip(selected = colorMode == ColorMode.HR, onClick = { colorMode = ColorMode.HR }, label = { Text(I18n.t("sd.colorPuls")) }, colors = cyanChipColors())
                                 if (hasPump && pumpzahlen) FilterChip(selected = colorMode == ColorMode.PUMP, onClick = { colorMode = ColorMode.PUMP }, label = { Text(I18n.t("sd.colorPump")) }, colors = cyanChipColors())
                                 if (hasCarves) FilterChip(selected = colorMode == ColorMode.TURNS, onClick = { colorMode = ColorMode.TURNS }, label = { Text("Carves") }, colors = cyanChipColors())
+                                if (gleitMoeglich) FilterChip(selected = colorMode == ColorMode.GLIDES, onClick = { colorMode = ColorMode.GLIDES }, label = { Text(I18n.t("sd.glides")) }, colors = cyanChipColors())
                             }
                         }
                         // Zweite Zeile: links die Glättung (nur im Speed-Modus), rechts die
@@ -1022,8 +1035,6 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         // Bereich, Versuche vor dem Zuschnitt kommen dort nicht vor.
                         // Startversuche nur beim Pumpen — bei Wind (ohne Pump-Zahlen) kein Schalter, wie im Web.
                         val zeigeVersuchsSchalter = pumpzahlen && (attempts == null || attempts!!.isNotEmpty())
-                        // SUP: kein Gleit-Schalter (Pumpfoil-Begriff, Jan 20.10.2026)
-                        val zeigeGleitSchalter = pumpzahlen && s.sportClass != "sup_paddle" && segs.any { it.glides.isNotEmpty() }
                         // Wind: Schalter „nur on-foil / ganze Fahrt" (Standard ganze Fahrt).
                         if (karteGanzMoeglich) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -1031,7 +1042,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                 FilterChip(selected = ganzeFahrt, onClick = { ganzeFahrt = true }, label = { Text(I18n.t("sd.mapWhole")) }, colors = cyanChipColors())
                             }
                         }
-                        if (colorMode == ColorMode.SPEED || zeigeMarker || zeigeVersuchsSchalter || zeigeGleitSchalter) {
+                        if (colorMode == ColorMode.SPEED || zeigeMarker || zeigeVersuchsSchalter) {
                             FlowRow(
                                 Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1054,13 +1065,6 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                         Switch(checked = showPumps, onCheckedChange = { showPumps = it })
                                         Spacer(Modifier.width(12.dp))
                                     }
-                                    if (zeigeGleitSchalter) {
-                                        Text(I18n.t("sd.glides"), style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        Spacer(Modifier.width(4.dp))
-                                        Switch(checked = showGlides, onCheckedChange = { showGlides = it })
-                                        Spacer(Modifier.width(12.dp))
-                                    }
                                     if (zeigeVersuchsSchalter) {
                                         Text(I18n.t("sd.showAttempts"), style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -1074,7 +1078,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 }
                 Card(Modifier.fillMaxWidth()) {
                     Box {
-                        TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && (pumpzahlen || s.sportClass == "sup"), showGlides && pumpzahlen && s.sportClass != "sup_paddle" && segs.any { it.glides.isNotEmpty() }, win,
+                        TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && (pumpzahlen || s.sportClass == "sup"), showGlides && gleitMoeglich, win,
                         if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                             selectedRun, { selectedRun = if (selectedRun == it) null else it },
                             if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
@@ -1098,7 +1102,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     Dialog(onDismissRequest = { mapFull = false },
                            properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
                         Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-                            TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && (pumpzahlen || s.sportClass == "sup"), showGlides && pumpzahlen && s.sportClass != "sup_paddle" && segs.any { it.glides.isNotEmpty() }, win,
+                            TrackMap(track, segs, colorMode, hrRange, pumpRange, showPumps && (pumpzahlen || s.sportClass == "sup"), showGlides && gleitMoeglich, win,
                                 if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                                 selectedRun, { selectedRun = if (selectedRun == it) null else it },
                                 if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
@@ -1172,6 +1176,11 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 }
                 // Farb-Legende (min→max) für den gewählten Modus — wie PWA.
                 if (colorMode == ColorMode.TURNS) CarveLegend(carve?.counts, carveGMax)
+                else if (colorMode == ColorMode.GLIDES) Row(Modifier.padding(top = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.width(32.dp).height(10.dp).clip(RoundedCornerShape(5.dp)).background(Color(0xFF22D3EE)))
+                    Spacer(Modifier.width(6.dp))
+                    Text(I18n.t("sd.glides"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
                 else ColorLegend(colorMode, hrRange, pumpRange, tempoSkala)
             }
         }
@@ -1363,7 +1372,7 @@ class Track(
 }
 
 // internal statt private: die gemerkte Karten-Ansicht (SessionViewPrefs) speichert den Modus.
-internal enum class ColorMode { SPEED, HR, PUMP, TURNS }
+internal enum class ColorMode { SPEED, HR, PUMP, TURNS, GLIDES }
 
 // Kurvenlage-g -> Farbe (wie Web/turns.ts). Untere Hälfte an ABSOLUTE g gebunden (grün 0,1 →
 // gelb 0,35 → rot 0,6); oberhalb 0,6 g bis zum Lauf-Max (gMax, gedeckelt 1,0) rot → magenta → weiß.
@@ -1392,7 +1401,7 @@ private fun ColorLegend(mode: ColorMode, hrRange: Pair<Int, Int>, pumpRange: Pai
         ColorMode.SPEED -> "${tempoSkala.first.toInt()} km/h" to "${tempoSkala.second.toInt()} km/h"   // wie speedColor
         ColorMode.HR -> "${hrRange.first}" to "${hrRange.second} bpm"
         ColorMode.PUMP -> PumpUnit.fmtLegend(pumpRange.first, false) to PumpUnit.fmtLegend(pumpRange.second, true)
-        ColorMode.TURNS -> "" to ""   // TURNS nutzt CarveLegend, nicht diese Funktion
+        ColorMode.TURNS, ColorMode.GLIDES -> "" to ""   // eigene Legenden (CarveLegend bzw. Glides-Zeile)
     }
     val ramp = remember { (0..12).map { rampColor(it / 12.0) } }
     Column(Modifier.fillMaxWidth().padding(top = 2.dp)) {
@@ -1583,6 +1592,7 @@ private fun TrackMap(
             if (v == null) GRAY else rampColor((v - lo) / (hi - lo).coerceAtLeast(1e-6))
         }
         ColorMode.TURNS -> GRAY   // Basis-Track grau; die Carve-Bögen kommen farbig darüber
+        ColorMode.GLIDES -> GRAY  // wie im Web: Track grau, nur die Gleitphasen cyan darueber
     }
     MapTiles.MitUmschalter(modifier) { ebene ->
         AndroidView(

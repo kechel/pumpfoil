@@ -19,8 +19,10 @@ internal object SessionViewPrefs {
 
     private fun p(ctx: Context) = ctx.getSharedPreferences(DATEI, Context.MODE_PRIVATE)
 
+    /** Faerbung. Alter Schalter „Gleitphasen an" (bis 12.11.2026) -> Faerbung GLIDES (wie Web sessionViewPrefs). */
     internal fun modus(ctx: Context): ColorMode =
-        runCatching { ColorMode.valueOf(p(ctx).getString(K_MODUS, null) ?: "SPEED") }
+        if (p(ctx).getBoolean(K_GLEIT, false)) ColorMode.GLIDES
+        else runCatching { ColorMode.valueOf(p(ctx).getString(K_MODUS, null) ?: "SPEED") }
             .getOrDefault(ColorMode.SPEED)
 
     /** Glaettungsfenster in Sekunden (1|3|5). */
@@ -33,13 +35,9 @@ internal object SessionViewPrefs {
     /** Startversuche: standardmaessig AN (wie im Web, Jans Vorgabe). */
     fun zeigeVersuche(ctx: Context): Boolean = p(ctx).getBoolean(K_VERSUCHE, true)
 
-    /** Gleitphasen: standardmaessig AUS (wie im Web). */
-    fun zeigeGleiten(ctx: Context): Boolean = p(ctx).getBoolean(K_GLEIT, false)
-
-    internal fun merke(ctx: Context, modus: ColorMode, glaettung: Int, pumps: Boolean, versuche: Boolean,
-                       gleiten: Boolean = false) {
+    internal fun merke(ctx: Context, modus: ColorMode, glaettung: Int, pumps: Boolean, versuche: Boolean) {
         p(ctx).edit()
-            .putBoolean(K_GLEIT, gleiten)
+            .putBoolean(K_GLEIT, false)   // veraltet, s. modus()
             .putString(K_MODUS, modus.name)
             .putInt(K_GLAETTUNG, glaettung)
             .putBoolean(K_PUMPS, pumps)
