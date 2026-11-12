@@ -3076,6 +3076,17 @@ const nl: Record<string, string> = {
   "adm.mediaReports.erledigt": "Afgehandeld",
   "adm.blockMedia": "Blokkeren",
   "adm.unblockMedia": "Deblokkeren",
+  // Medien neuer Nutzer pruefen (12.11.2026)
+  "adm.mediaPending": "Media-uploads van nieuwe gebruikers",
+  "adm.mediaPending.hint": "Foto’s en video’s van accounts jonger dan 7 dagen. Tot goedkeuring ziet alleen de uploader ze — zonder het te merken.",
+  "adm.mediaPending.seit": "Account sinds {d}",
+  "adm.mediaPending.versteckt": "verborgen",
+  "adm.mediaPending.gesperrt": "geblokkeerd",
+  "adm.mediaPending.freigeben": "Goedkeuren",
+  "adm.mediaPending.verstecken": "Gebruiker verbergen",
+  "adm.mediaPending.versteckenConfirm": "Deze gebruiker verbergen (shadow ban)? Niemand anders ziet nog zijn inhoud.",
+  "adm.mediaPending.sperren": "Gebruiker blokkeren",
+  "adm.mediaPending.sperrenConfirm": "Deze gebruiker blokkeren? Hij kan niet meer inloggen.",
 };
 
 export default nl;

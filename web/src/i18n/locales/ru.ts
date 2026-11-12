@@ -3022,6 +3022,17 @@ const ru: Record<string, string> = {
   "adm.mediaReports.erledigt": "Обработано",
   "adm.blockMedia": "Заблокировать",
   "adm.unblockMedia": "Разблокировать",
+  // Medien neuer Nutzer pruefen (12.11.2026)
+  "adm.mediaPending": "Медиа новых пользователей",
+  "adm.mediaPending.hint": "Фото и видео аккаунтов младше 7 дней. До одобрения их видит только автор — и не замечает этого.",
+  "adm.mediaPending.seit": "Аккаунт с {d}",
+  "adm.mediaPending.versteckt": "скрыт",
+  "adm.mediaPending.gesperrt": "заблокирован",
+  "adm.mediaPending.freigeben": "Одобрить",
+  "adm.mediaPending.verstecken": "Скрыть пользователя",
+  "adm.mediaPending.versteckenConfirm": "Скрыть пользователя (теневой бан)? Его контент не увидит никто, кроме него.",
+  "adm.mediaPending.sperren": "Заблокировать",
+  "adm.mediaPending.sperrenConfirm": "Заблокировать пользователя? Он больше не сможет войти.",
 };
 
 export default ru;

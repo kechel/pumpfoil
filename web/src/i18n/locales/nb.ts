@@ -2993,6 +2993,17 @@ const nb: Record<string, string> = {
   "adm.mediaReports.erledigt": "Ferdig",
   "adm.blockMedia": "Blokker",
   "adm.unblockMedia": "Opphev blokkering",
+  // Medien neuer Nutzer pruefen (12.11.2026)
+  "adm.mediaPending": "Medier fra nye brukere",
+  "adm.mediaPending.hint": "Bilder og videoer fra kontoer yngre enn 7 dager. Til de godkjennes ser bare opplasteren dem — uten å merke noe.",
+  "adm.mediaPending.seit": "Konto siden {d}",
+  "adm.mediaPending.versteckt": "skjult",
+  "adm.mediaPending.gesperrt": "blokkert",
+  "adm.mediaPending.freigeben": "Godkjenn",
+  "adm.mediaPending.verstecken": "Skjul bruker",
+  "adm.mediaPending.versteckenConfirm": "Skjule denne brukeren (shadow ban)? Ingen andre vil se innholdet.",
+  "adm.mediaPending.sperren": "Blokker bruker",
+  "adm.mediaPending.sperrenConfirm": "Blokkere denne brukeren? Vedkommende kan ikke lenger logge inn.",
 };
 
 export default nb;

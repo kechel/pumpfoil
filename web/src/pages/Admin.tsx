@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { SupporterBadge } from "../components/SupporterBadge";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket, AdminBewertung, BewertungStatus, AdminTeamFreigabe, AdminMediaReport } from "../lib/api";
+import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket, AdminBewertung, BewertungStatus, AdminTeamFreigabe, AdminMediaReport, AdminMediaPending } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import { teamFarbStil } from "../lib/teamFarben";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
@@ -1602,6 +1602,43 @@ function UserRow({ u, upd, onRemove }: { u: AdminUser; upd: (p: Partial<AdminUse
   );
 }
 
+// Medien-Uploads neuer Nutzer (Jan, 12.11.2026; server/app/medienfreigabe.py): Konten juenger als 7 Tage — ihre Fotos
+// und Videos sieht nur der Uploader selbst, bis hier jemand freigibt. Direkt daneben: Nutzer verstecken (Shadow-Ban) oder sperren.
+function MediaPending() {
+  const t = useT();
+  const { data, setData } = useAsync(() => api.adminMediaPending(), []);
+  if (!data || data.length === 0) return null;
+  const weg = (r: AdminMediaPending) => setData((d) => (d || []).filter((x) => !(x.art === r.art && x.id === r.id)));
+  const nutzer = (uid: number, patch: Partial<AdminMediaPending["besitzer"]>) =>
+    setData((d) => (d || []).map((x) => (x.besitzer.id === uid ? { ...x, besitzer: { ...x.besitzer, ...patch } } : x)));
+  return (
+    <Card className="mb-4 p-4">
+      <h3 className="font-bold">{t("adm.mediaPending")} ({data.length})</h3>
+      <p className="mb-2 text-sm text-slate-400">{t("adm.mediaPending.hint")}</p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {data.map((r) => (
+          <div key={`${r.art}-${r.id}`} className="rounded-lg border border-slate-700 p-2 text-sm">
+            <Link to={`/sessions/${r.session_id}`}>
+              {r.art === "photo" && r.url
+                ? <img src={r.url} alt="" className="h-40 w-full rounded object-cover" />
+                : <span className="flex h-40 w-full items-center justify-center rounded bg-slate-800">Video</span>}
+            </Link>
+            {r.youtube_url && <a href={r.youtube_url} target="_blank" rel="noopener noreferrer" className="mt-1 block truncate text-slate-400 underline">{r.youtube_url}</a>}
+            <div className="mt-1 truncate">{r.besitzer.name || "—"}{r.spot ? ` · ${r.spot}` : ""}</div>
+            <div className="text-slate-400">{t("adm.mediaPending.seit", { d: fmtDate(r.besitzer.seit) })}{r.besitzer.hidden ? ` · ${t("adm.mediaPending.versteckt")}` : ""}{r.besitzer.blocked ? ` · ${t("adm.mediaPending.gesperrt")}` : ""}</div>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <Act tone="green" onClick={() => api.adminApproveMedia(r.art, r.id).then(() => weg(r))}>{t("adm.mediaPending.freigeben")}</Act>
+              {!r.besitzer.hidden && <Act tone="amber" confirm={t("adm.mediaPending.versteckenConfirm")} onClick={() => api.adminHideUser(r.besitzer.id, true).then(() => nutzer(r.besitzer.id, { hidden: true }))}>{t("adm.mediaPending.verstecken")}</Act>}
+              {!r.besitzer.blocked && <Act tone="red" confirm={t("adm.mediaPending.sperrenConfirm")} onClick={() => api.adminBlockUser(r.besitzer.id, true).then(() => nutzer(r.besitzer.id, { blocked: true }))}>{t("adm.mediaPending.sperren")}</Act>}
+              <Act tone="slate" onClick={() => api.adminBlockMedia(r.art, r.id, true).then(() => weg(r))}>{t("adm.blockMedia")}</Act>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 // Gemeldete Medien (12.11.2026): Fotos UND verlinkte Videos, die Nutzer gemeldet haben; ab 3 Meldungen schon
 // automatisch gesperrt. Hier sperren/entsperren und die Meldungen als erledigt markieren.
 function MediaReports() {
@@ -1650,6 +1687,7 @@ function PhotosTab() {
     setItems((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   return (
     <div>
+      <MediaPending />
       <MediaReports />
       {items.length === 0 && !loading ? <Card className="p-8 text-center text-slate-300">{t("adm.noPhotos")}</Card> : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">

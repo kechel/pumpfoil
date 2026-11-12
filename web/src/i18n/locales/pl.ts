@@ -3001,6 +3001,17 @@ const pl: Record<string, string> = {
   "adm.mediaReports.erledigt": "Załatwione",
   "adm.blockMedia": "Zablokuj",
   "adm.unblockMedia": "Odblokuj",
+  // Medien neuer Nutzer pruefen (12.11.2026)
+  "adm.mediaPending": "Media nowych użytkowników",
+  "adm.mediaPending.hint": "Zdjęcia i filmy kont młodszych niż 7 dni. Do zatwierdzenia widzi je tylko autor — nie zauważając tego.",
+  "adm.mediaPending.seit": "Konto od {d}",
+  "adm.mediaPending.versteckt": "ukryty",
+  "adm.mediaPending.gesperrt": "zablokowany",
+  "adm.mediaPending.freigeben": "Zatwierdź",
+  "adm.mediaPending.verstecken": "Ukryj użytkownika",
+  "adm.mediaPending.versteckenConfirm": "Ukryć tego użytkownika (shadow ban)? Nikt poza nim nie zobaczy jego treści.",
+  "adm.mediaPending.sperren": "Zablokuj użytkownika",
+  "adm.mediaPending.sperrenConfirm": "Zablokować tego użytkownika? Nie będzie mógł się zalogować.",
 };
 
 export default pl;

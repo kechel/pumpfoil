@@ -3022,6 +3022,17 @@ const id: Record<string, string> = {
   "adm.mediaReports.erledigt": "Selesai",
   "adm.blockMedia": "Blokir",
   "adm.unblockMedia": "Buka blokir",
+  // Medien neuer Nutzer pruefen (12.11.2026)
+  "adm.mediaPending": "Media dari pengguna baru",
+  "adm.mediaPending.hint": "Foto dan video dari akun berusia kurang dari 7 hari. Sampai disetujui, hanya pengunggah yang melihatnya — tanpa menyadarinya.",
+  "adm.mediaPending.seit": "Akun sejak {d}",
+  "adm.mediaPending.versteckt": "disembunyikan",
+  "adm.mediaPending.gesperrt": "diblokir",
+  "adm.mediaPending.freigeben": "Setujui",
+  "adm.mediaPending.verstecken": "Sembunyikan pengguna",
+  "adm.mediaPending.versteckenConfirm": "Sembunyikan pengguna ini (shadow ban)? Tidak ada orang lain yang akan melihat kontennya.",
+  "adm.mediaPending.sperren": "Blokir pengguna",
+  "adm.mediaPending.sperrenConfirm": "Blokir pengguna ini? Ia tidak bisa masuk lagi.",
 };
 
 export default id;

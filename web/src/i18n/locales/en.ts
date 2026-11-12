@@ -3127,6 +3127,17 @@ const en: Record<string, string> = {
   "adm.mediaReports.erledigt": "Done",
   "adm.blockMedia": "Block",
   "adm.unblockMedia": "Unblock",
+  // Medien neuer Nutzer pruefen (12.11.2026)
+  "adm.mediaPending": "Media uploads from new users",
+  "adm.mediaPending.hint": "Photos and videos from accounts younger than 7 days. Until approved, only the uploader sees them — without noticing anything.",
+  "adm.mediaPending.seit": "Account since {d}",
+  "adm.mediaPending.versteckt": "hidden",
+  "adm.mediaPending.gesperrt": "blocked",
+  "adm.mediaPending.freigeben": "Approve",
+  "adm.mediaPending.verstecken": "Hide user",
+  "adm.mediaPending.versteckenConfirm": "Hide this user (shadow ban)? Nobody but them will see their content.",
+  "adm.mediaPending.sperren": "Block user",
+  "adm.mediaPending.sperrenConfirm": "Block this user? They will no longer be able to log in.",
 };
 
 export default en;

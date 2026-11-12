@@ -2907,6 +2907,17 @@ const gsw: Record<string, string> = {
   "adm.mediaReports.erledigt": "Erledigt",
   "adm.blockMedia": "Sperre",
   "adm.unblockMedia": "Entsperre",
+  // Medien neuer Nutzer pruefen (12.11.2026)
+  "adm.mediaPending": "Medie-Uploads vo neue Nutzer",
+  "adm.mediaPending.hint": "Fotis und Videos vo Konte, wo jünger als 7 Täg sind. Bis zur Freigab gseht si nume de Uploader sälber — er merkt nüt dervo.",
+  "adm.mediaPending.seit": "Konto sit {d}",
+  "adm.mediaPending.versteckt": "versteckt",
+  "adm.mediaPending.gesperrt": "gsperrt",
+  "adm.mediaPending.freigeben": "Freigäh",
+  "adm.mediaPending.verstecken": "Nutzer verstecke",
+  "adm.mediaPending.versteckenConfirm": "Nutzer verstecke (Shadow-Ban)? Sini Inhalt gseht denn niemer meh usser er sälber.",
+  "adm.mediaPending.sperren": "Nutzer sperre",
+  "adm.mediaPending.sperrenConfirm": "Nutzer sperre? Er cha sich denn nümm aamälde.",
 };
 
 export default gsw

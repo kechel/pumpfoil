@@ -101,6 +101,9 @@ def _migrate_add_indexes() -> None:
         # (eigene Nachricht, DSGVO) darf nie an einer Antwort haengen bleiben; fehlt das Original,
         # zeigt die Antwort „nicht mehr verfuegbar".
         "ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS reply_to_id INTEGER",
+        # Medien neuer Konten erst nach Freigabe fuer alle (12.11.2026, medienfreigabe.py)
+        "ALTER TABLE session_photos ADD COLUMN IF NOT EXISTS freigabe_offen BOOLEAN NOT NULL DEFAULT false",
+        "ALTER TABLE session_videos ADD COLUMN IF NOT EXISTS freigabe_offen BOOLEAN NOT NULL DEFAULT false",
         # Bewertungen: Bearbeitungsstand (22.10.2026, s. models.SessionBewertung).
         "ALTER TABLE session_bewertungen ADD COLUMN IF NOT EXISTS status VARCHAR(12) DEFAULT 'offen'",
         "ALTER TABLE session_bewertungen ADD COLUMN IF NOT EXISTS status_notiz TEXT",

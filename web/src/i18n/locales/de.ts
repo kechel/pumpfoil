@@ -3181,6 +3181,17 @@ const de: Record<string, string> = {
   "adm.mediaReports.erledigt": "Erledigt",
   "adm.blockMedia": "Sperren",
   "adm.unblockMedia": "Entsperren",
+  // Medien neuer Nutzer pruefen (12.11.2026)
+  "adm.mediaPending": "Medien-Uploads neuer Nutzer",
+  "adm.mediaPending.hint": "Fotos und Videos von Konten, die jünger als 7 Tage sind. Bis zur Freigabe sieht sie nur der Uploader selbst — er merkt davon nichts.",
+  "adm.mediaPending.seit": "Konto seit {d}",
+  "adm.mediaPending.versteckt": "versteckt",
+  "adm.mediaPending.gesperrt": "gesperrt",
+  "adm.mediaPending.freigeben": "Freigeben",
+  "adm.mediaPending.verstecken": "Nutzer verstecken",
+  "adm.mediaPending.versteckenConfirm": "Nutzer verstecken (Shadow-Ban)? Seine Inhalte sieht dann niemand mehr außer ihm selbst.",
+  "adm.mediaPending.sperren": "Nutzer sperren",
+  "adm.mediaPending.sperrenConfirm": "Nutzer sperren? Er kann sich dann nicht mehr anmelden.",
 };
 
 export default de;

@@ -80,6 +80,8 @@ app.add_middleware(GZipMiddleware, minimum_size=500)
 # Ansicht „Freunde" (?friends=1) fuer alle /api/community-Abfragen, s. app/freunde.py.
 from .freunde import FreundeFilter  # noqa: E402
 app.add_middleware(FreundeFilter)
+from .medienfreigabe import BetrachterKontext  # noqa: E402
+app.add_middleware(BetrachterKontext)   # wer schaut: Medien neuer Konten nur fuer den Uploader (12.11.2026)
 
 
 # Standard-Sicherheits-Header auf alle Antworten.

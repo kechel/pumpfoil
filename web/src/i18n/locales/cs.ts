@@ -3075,6 +3075,17 @@ const cs: Record<string, string> = {
   "adm.mediaReports.erledigt": "Vyřízeno",
   "adm.blockMedia": "Zablokovat",
   "adm.unblockMedia": "Odblokovat",
+  // Medien neuer Nutzer pruefen (12.11.2026)
+  "adm.mediaPending": "Média nových uživatelů",
+  "adm.mediaPending.hint": "Fotky a videa účtů mladších 7 dnů. Do schválení je vidí jen autor — aniž by si toho všiml.",
+  "adm.mediaPending.seit": "Účet od {d}",
+  "adm.mediaPending.versteckt": "skrytý",
+  "adm.mediaPending.gesperrt": "zablokovaný",
+  "adm.mediaPending.freigeben": "Schválit",
+  "adm.mediaPending.verstecken": "Skrýt uživatele",
+  "adm.mediaPending.versteckenConfirm": "Skrýt tohoto uživatele (shadow ban)? Jeho obsah nikdo jiný neuvidí.",
+  "adm.mediaPending.sperren": "Zablokovat uživatele",
+  "adm.mediaPending.sperrenConfirm": "Zablokovat tohoto uživatele? Už se nebude moci přihlásit.",
 };
 
 export default cs;

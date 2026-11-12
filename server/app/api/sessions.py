@@ -60,6 +60,7 @@ from .. import ortverbergen, sportprofil, teilen
 from .. import pumpgleit_anzeige as PA
 from ..tzlookup import tz_name
 from ..videos import client_wants_all_videos, filter_videos
+from ..medienfreigabe import braucht_freigabe, sichtbar
 from .community import _ab, _community, _spot_cond
 from .deps import current_user, require_social
 
@@ -1246,7 +1247,8 @@ def list_sessions(
         count: dict[int, int] = {}
         for sid, url in (
             db.query(models.SessionPhoto.session_id, models.SessionPhoto.url)
-            .filter(models.SessionPhoto.session_id.in_(ids), models.SessionPhoto.blocked.isnot(True))
+            .filter(models.SessionPhoto.session_id.in_(ids), models.SessionPhoto.blocked.isnot(True),
+                    sichtbar(models.SessionPhoto))
             .order_by(models.SessionPhoto.id.desc()).all()
         ):
             count[sid] = count.get(sid, 0) + 1
@@ -1257,7 +1259,8 @@ def list_sessions(
             vfirst: dict[int, str] = {}
             for sid, vurl in (
                 db.query(models.SessionVideo.session_id, models.SessionVideo.youtube_url)
-                .filter(models.SessionVideo.session_id.in_(ids), models.SessionVideo.blocked.isnot(True))
+                .filter(models.SessionVideo.session_id.in_(ids), models.SessionVideo.blocked.isnot(True),
+                        sichtbar(models.SessionVideo))
                 .order_by(models.SessionVideo.id).all()
             ):
                 vfirst.setdefault(sid, vurl)
@@ -2896,13 +2899,13 @@ def public_shared_session(token: str, request: Request, db: Session = Depends(ge
     out.owner_id = None      # kein Link auf die Foiler-Seite: die verlangt eine Anmeldung
     photos = [{"id": p.id, "url": p.url, "thumb_url": media.thumb_url(p.url)}
               for p in db.query(models.SessionPhoto)
-              .filter_by(session_id=s.id, blocked=False).order_by(models.SessionPhoto.id).all()]
+              .filter_by(session_id=s.id, blocked=False, freigabe_offen=False).order_by(models.SessionPhoto.id).all()]
     data = out.model_dump(mode="json")
     data["photos"] = photos
     data["videos"] = filter_videos(
         [{"id": v.id, "youtube_url": v.youtube_url}
          for v in db.query(models.SessionVideo)
-         .filter_by(session_id=s.id, blocked=False).order_by(models.SessionVideo.id).all()],
+         .filter_by(session_id=s.id, blocked=False, freigabe_offen=False).order_by(models.SessionVideo.id).all()],
         request)
     return data
 
@@ -3642,7 +3645,8 @@ def set_meta(
             if first is not None:
                 db.delete(first)
         elif first is None:
-            db.add(models.SessionVideo(session_id=s.id, user_id=user.id, youtube_url=newyt))
+            db.add(models.SessionVideo(session_id=s.id, user_id=user.id, youtube_url=newyt,
+                                       freigabe_offen=braucht_freigabe(user)))
         elif first.youtube_url != newyt:
             first.youtube_url = newyt
             first.created_at = datetime.now(timezone.utc)
@@ -4589,7 +4593,7 @@ def list_photos(
     _readable(db, session_id, _user)
     rows = (
         db.query(models.SessionPhoto)
-        .filter_by(session_id=session_id, blocked=False).order_by(models.SessionPhoto.id).all()
+        .filter_by(session_id=session_id, blocked=False).filter(sichtbar(models.SessionPhoto)).order_by(models.SessionPhoto.id).all()
     )
     from ..media import thumb_url
     return [{"id": p.id, "url": p.url, "thumb_url": thumb_url(p.url)} for p in rows]
@@ -4614,7 +4618,7 @@ async def upload_photo(
         url = save_image(raw, subdir="photos", max_dim=1600, thumb_dim=480)
     except ImageError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
-    photo = models.SessionPhoto(session_id=session_id, user_id=user.id, url=url)
+    photo = models.SessionPhoto(session_id=session_id, user_id=user.id, url=url, freigabe_offen=braucht_freigabe(user))
     db.add(photo)
     # Session „zuletzt geändert" bumpen -> App-Cache lädt das Detail (mit neuem Foto) nach.
     db.query(models.Session).filter_by(id=session_id).update({models.Session.updated_at: func.now()})
@@ -4654,7 +4658,7 @@ def list_videos(
     _readable(db, session_id, _user)
     rows = (
         db.query(models.SessionVideo)
-        .filter_by(session_id=session_id, blocked=False).order_by(models.SessionVideo.id).all()
+        .filter_by(session_id=session_id, blocked=False).filter(sichtbar(models.SessionVideo)).order_by(models.SessionVideo.id).all()
     )
     # IG/TikTok nur an Clients, die sie anzeigen können (Web/App>=Min) — sonst nur YouTube.
     return filter_videos([{"id": v.id, "youtube_url": v.youtube_url} for v in rows], request)
@@ -4677,7 +4681,7 @@ def add_video(
     dup = db.query(models.SessionVideo).filter_by(session_id=session_id, youtube_url=url).first()
     if dup is not None:
         return {"id": dup.id, "youtube_url": dup.youtube_url}
-    video = models.SessionVideo(session_id=session_id, user_id=user.id, youtube_url=url)
+    video = models.SessionVideo(session_id=session_id, user_id=user.id, youtube_url=url, freigabe_offen=braucht_freigabe(user))
     db.add(video)
     db.flush()
     _sync_video_mirror(db, s)

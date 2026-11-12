@@ -828,6 +828,8 @@ class SessionVideo(Base):
     merged_from_session_id: Mapped[int | None] = mapped_column(Integer)
     # Vom Admin geblockt -> aus Anzeige/Feed raus (Eintrag bleibt, kann freigegeben werden).
     blocked: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    # Konto juenger als 7 Tage beim Anlegen -> nur der Uploader sieht es, bis ein Admin freigibt (medienfreigabe.py)
+    freigabe_offen: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
@@ -870,6 +872,8 @@ class SessionPhoto(Base):
     merged_from_session_id: Mapped[int | None] = mapped_column(Integer)
     # Vom Admin geblockt -> aus Anzeige/Feed raus (Datei bleibt, kann freigegeben werden).
     blocked: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    # Konto juenger als 7 Tage beim Anlegen -> nur der Uploader sieht es, bis ein Admin freigibt (medienfreigabe.py)
+    freigabe_offen: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 

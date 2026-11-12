@@ -2908,6 +2908,17 @@ const deAT: Record<string, string> = {
   "adm.mediaReports.erledigt": "Erledigt",
   "adm.blockMedia": "Sperren",
   "adm.unblockMedia": "Entsperren",
+  // Medien neuer Nutzer pruefen (12.11.2026)
+  "adm.mediaPending": "Medien-Uploads neuer Nutzer",
+  "adm.mediaPending.hint": "Fotos und Videos von Konten, die jünger als 7 Tag sind. Bis zur Freigabe siacht's nur der Uploader selber — der merkt nix davon.",
+  "adm.mediaPending.seit": "Konto seit {d}",
+  "adm.mediaPending.versteckt": "versteckt",
+  "adm.mediaPending.gesperrt": "gsperrt",
+  "adm.mediaPending.freigeben": "Freigeben",
+  "adm.mediaPending.verstecken": "Nutzer verstecken",
+  "adm.mediaPending.versteckenConfirm": "Nutzer verstecken (Shadow-Ban)? Seine Inhalte siacht dann koaner mehr außer eahm selber.",
+  "adm.mediaPending.sperren": "Nutzer sperren",
+  "adm.mediaPending.sperrenConfirm": "Nutzer sperren? Er kann si dann nimmer anmelden.",
 };
 
 export default deAT

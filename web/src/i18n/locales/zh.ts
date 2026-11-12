@@ -3019,6 +3019,17 @@ const zh: Record<string, string> = {
   "adm.mediaReports.erledigt": "已处理",
   "adm.blockMedia": "屏蔽",
   "adm.unblockMedia": "取消屏蔽",
+  // Medien neuer Nutzer pruefen (12.11.2026)
+  "adm.mediaPending": "新用户上传的媒体",
+  "adm.mediaPending.hint": "注册不足 7 天的账号的照片和视频。批准前只有上传者本人能看到，且本人不会察觉。",
+  "adm.mediaPending.seit": "注册于 {d}",
+  "adm.mediaPending.versteckt": "已隐藏",
+  "adm.mediaPending.gesperrt": "已封禁",
+  "adm.mediaPending.freigeben": "批准",
+  "adm.mediaPending.verstecken": "隐藏用户",
+  "adm.mediaPending.versteckenConfirm": "隐藏此用户（影子封禁）？除本人外无人能看到其内容。",
+  "adm.mediaPending.sperren": "封禁用户",
+  "adm.mediaPending.sperrenConfirm": "封禁此用户？对方将无法登录。",
 };
 
 export default zh;

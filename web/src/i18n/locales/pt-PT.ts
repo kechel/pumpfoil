@@ -3016,6 +3016,17 @@ const ptPT: Record<string, string> = {
   "adm.mediaReports.erledigt": "Resolvido",
   "adm.blockMedia": "Bloquear",
   "adm.unblockMedia": "Desbloquear",
+  // Medien neuer Nutzer pruefen (12.11.2026)
+  "adm.mediaPending": "Multimédia de utilizadores novos",
+  "adm.mediaPending.hint": "Fotos e vídeos de contas com menos de 7 dias. Até à aprovação, só quem os enviou os vê — sem notar.",
+  "adm.mediaPending.seit": "Conta desde {d}",
+  "adm.mediaPending.versteckt": "oculto",
+  "adm.mediaPending.gesperrt": "bloqueado",
+  "adm.mediaPending.freigeben": "Aprovar",
+  "adm.mediaPending.verstecken": "Ocultar utilizador",
+  "adm.mediaPending.versteckenConfirm": "Ocultar este utilizador (shadow ban)? Mais ninguém verá o conteúdo.",
+  "adm.mediaPending.sperren": "Bloquear utilizador",
+  "adm.mediaPending.sperrenConfirm": "Bloquear este utilizador? Deixará de poder entrar.",
 };
 
 export default ptPT;

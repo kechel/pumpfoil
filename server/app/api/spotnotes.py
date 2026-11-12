@@ -245,7 +245,8 @@ def my_session_photos(spot_id: int, user: models.User = Depends(current_user),
     rows = (db.query(models.SessionPhoto.id, models.SessionPhoto.url, models.Session.started_at)
             .join(models.Session, models.Session.id == models.SessionPhoto.session_id)
             .filter(models.Session.user_id == user.id, models.Session.spot_id == spot_id,
-                    models.Session.deleted.isnot(True), models.SessionPhoto.blocked.is_(False))
+                    models.Session.deleted.isnot(True), models.SessionPhoto.blocked.is_(False),
+                    models.SessionPhoto.freigabe_offen.is_(False))   # ungeprueft nicht in oeffentliche Spot-Texte
             .order_by(models.Session.started_at.desc(), models.SessionPhoto.id).all())
     return [{"id": pid, "url": url, "thumb_url": thumb_url(url),
              "started_at": st.isoformat() if st else None} for pid, url, st in rows]

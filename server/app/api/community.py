@@ -32,6 +32,7 @@ from .. import pumpgleit_anzeige as PA
 from ..freunde import freund_ids, nur_freunde
 from ..tzlookup import tz_name, tz_of
 from ..videos import client_wants_all_videos, filter_videos
+from ..medienfreigabe import sichtbar
 from ..weather import spot_water_temp, spot_weather
 from .deps import current_user, require_social
 
@@ -415,7 +416,8 @@ def _attach_first_video(db: Session, items: list[dict], request: Request) -> lis
     ids = [it["session_id"] for it in items]
     first: dict[int, str] = {}
     for sid, vurl in (db.query(models.SessionVideo.session_id, models.SessionVideo.youtube_url)
-                      .filter(models.SessionVideo.session_id.in_(ids), models.SessionVideo.blocked.isnot(True))
+                      .filter(models.SessionVideo.session_id.in_(ids), models.SessionVideo.blocked.isnot(True),
+                              sichtbar(models.SessionVideo))
                       .order_by(models.SessionVideo.id).all()):
         first.setdefault(sid, vurl)
     for it in items:
@@ -1717,7 +1719,7 @@ def latest_photos(
         db.query(P.id, P.url, P.created_at, P.session_id, S.started_at, NAME, U.avatar_url, S.place_name, S.caption,
                  S.place_lat, S.place_lon, U.id, S.ort_sichtbarkeit)
         .select_from(P).join(S, P.session_id == S.id).join(U, S.user_id == U.id)
-        .filter(P.blocked.isnot(True), *_vis)
+        .filter(P.blocked.isnot(True), sichtbar(P), *_vis)
         .order_by(P.id.desc()).limit(80).all()
     )
     seenp: set[int] = set()
@@ -1746,7 +1748,7 @@ def latest_photos(
         # Nur YouTube im „Neueste Medien"-Feed: nur die haben ein einbettbares Vorschaubild
         # (img.youtube.com). Instagram/TikTok werden auf der Session verlinkt, aber nicht als
         # Feed-Kachel gezeigt (kein Thumbnail ohne Dritt-Skript). *_vis + blocked wie gehabt.
-        .filter(V.blocked.isnot(True), V.youtube_url.op("~*")("youtube|youtu\\.be"), *_vis)
+        .filter(V.blocked.isnot(True), sichtbar(V), V.youtube_url.op("~*")("youtube|youtu\\.be"), *_vis)
         .order_by(V.id.desc()).limit(80).all()
     )
     seenv: set[int] = set()
@@ -3012,7 +3014,7 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                                                  models.Session.started_at)
                                         .select_from(P)
                                         .join(models.Session, P.session_id == models.Session.id)
-                                        .filter(P.blocked.isnot(True), *sicht_s)
+                                        .filter(P.blocked.isnot(True), sichtbar(P), *sicht_s)
                                         .order_by(P.id.desc()).limit(200).all()):
             medien.append({"kind": "photo", "_ts": cts or sts, "url": url,
                            "thumb_url": _thumb(url), "youtube_url": None, "session_id": sid,
@@ -3021,7 +3023,7 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                                               models.Session.started_at)
                                      .select_from(V)
                                      .join(models.Session, V.session_id == models.Session.id)
-                                     .filter(V.blocked.isnot(True),
+                                     .filter(V.blocked.isnot(True), sichtbar(V),
                                              V.youtube_url.op("~*")("youtube|youtu\\.be"), *sicht_s)
                                      .order_by(V.id.desc()).limit(200).all()):
             medien.append({"kind": "video", "_ts": cts or sts, "url": None, "thumb_url": None,
@@ -3073,14 +3075,14 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
             anzahl: dict[int, int] = {}
             for sid, url in (db.query(models.SessionPhoto.session_id, models.SessionPhoto.url)
                              .filter(models.SessionPhoto.session_id.in_(ids),
-                                     models.SessionPhoto.blocked.isnot(True))
+                                     models.SessionPhoto.blocked.isnot(True), sichtbar(models.SessionPhoto))
                              .order_by(models.SessionPhoto.id.desc()).all()):
                 anzahl[sid] = anzahl.get(sid, 0) + 1
                 thumb.setdefault(sid, _thumb(url))
             videos: dict[int, str] = {}
             for sid, vurl in (db.query(models.SessionVideo.session_id, models.SessionVideo.youtube_url)
                               .filter(models.SessionVideo.session_id.in_(ids),
-                                      models.SessionVideo.blocked.isnot(True))
+                                      models.SessionVideo.blocked.isnot(True), sichtbar(models.SessionVideo))
                               .order_by(models.SessionVideo.id).all()):
                 videos.setdefault(sid, vurl)
             likes = dict(db.query(models.SessionLike.session_id, func.count())
@@ -3243,7 +3245,8 @@ def _attach_social(db: Session, user: models.User, briefs: list[dict]) -> list[d
     thumb: dict[int, str] = {}
     for sid, url in (
         db.query(models.SessionPhoto.session_id, models.SessionPhoto.url)
-        .filter(models.SessionPhoto.session_id.in_(ids), models.SessionPhoto.blocked.isnot(True))
+        .filter(models.SessionPhoto.session_id.in_(ids), models.SessionPhoto.blocked.isnot(True),
+                sichtbar(models.SessionPhoto))
         .order_by(models.SessionPhoto.id).all()
     ):
         pc[sid] = pc.get(sid, 0) + 1
@@ -3413,11 +3416,11 @@ def session_social(session_id: int, request: Request, user: models.User = Depend
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
     photos = (
         db.query(models.SessionPhoto.id, models.SessionPhoto.url)
-        .filter_by(session_id=session_id, blocked=False).order_by(models.SessionPhoto.id).all()
+        .filter_by(session_id=session_id, blocked=False).filter(sichtbar(models.SessionPhoto)).order_by(models.SessionPhoto.id).all()
     )
     videos = (
         db.query(models.SessionVideo.id, models.SessionVideo.youtube_url)
-        .filter_by(session_id=session_id, blocked=False).order_by(models.SessionVideo.id).all()
+        .filter_by(session_id=session_id, blocked=False).filter(sichtbar(models.SessionVideo)).order_by(models.SessionVideo.id).all()
     )
     return {
         **_like_state(db, session_id, user),

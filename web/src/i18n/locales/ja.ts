@@ -3018,6 +3018,17 @@ const ja: Record<string, string> = {
   "adm.mediaReports.erledigt": "対応済み",
   "adm.blockMedia": "ブロック",
   "adm.unblockMedia": "ブロック解除",
+  // Medien neuer Nutzer pruefen (12.11.2026)
+  "adm.mediaPending": "新規ユーザーのメディア",
+  "adm.mediaPending.hint": "登録7日未満のアカウントの写真と動画。承認されるまで本人にしか表示されず、本人は気づきません。",
+  "adm.mediaPending.seit": "登録 {d}",
+  "adm.mediaPending.versteckt": "非表示",
+  "adm.mediaPending.gesperrt": "ブロック済み",
+  "adm.mediaPending.freigeben": "承認",
+  "adm.mediaPending.verstecken": "ユーザーを非表示",
+  "adm.mediaPending.versteckenConfirm": "このユーザーを非表示（シャドウバン）にしますか？本人以外には内容が見えなくなります。",
+  "adm.mediaPending.sperren": "ユーザーをブロック",
+  "adm.mediaPending.sperrenConfirm": "このユーザーをブロックしますか？ログインできなくなります。",
 };
 
 export default ja;

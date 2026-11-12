@@ -122,3 +122,32 @@ def admin_erledigt(art: str, mid: int, admin: models.User = Depends(current_admi
     db.add(models.AdminAudit(admin_id=admin.id, action="media_reports_dismiss", target_type=art, target_id=mid, detail=str(n)))
     db.commit()
     return {"ok": True, "erledigt": n}
+
+
+# ------------------------------------------------------------------ Freigabe: Medien neuer Konten (12.11.2026)
+@router.get("/admin/media-pending")
+def admin_offen(admin: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> list[dict]:
+    """„Medien-Uploads neuer Nutzer": was nur der Uploader sieht, bis es freigegeben ist (medienfreigabe.py)."""
+    out = []
+    for art, M in ARTEN.items():
+        for m in db.query(M).filter(M.freigabe_offen.is_(True), M.blocked.isnot(True)).order_by(M.id.desc()).limit(200):
+            u = db.get(models.User, m.user_id)
+            s = db.get(models.Session, m.session_id)
+            out.append({"art": art, "id": m.id, "session_id": m.session_id, "url": getattr(m, "url", None),
+                        "youtube_url": getattr(m, "youtube_url", None),
+                        "created_at": m.created_at.isoformat() if m.created_at else None,
+                        "besitzer": {"id": m.user_id, "name": u.display_name if u else None,
+                                     "seit": u.created_at.isoformat() if u and u.created_at else None,
+                                     "hidden": bool(u.hidden) if u else False, "blocked": bool(u.blocked) if u else False},
+                        "spot": s.place_name if s else None})
+    out.sort(key=lambda x: x["created_at"] or "", reverse=True)
+    return out
+
+
+@router.post("/admin/media/{art}/{mid}/approve")
+def admin_freigeben(art: str, mid: int, admin: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> dict:
+    m = _medium(db, art, mid)
+    m.freigabe_offen = False
+    db.add(models.AdminAudit(admin_id=admin.id, action=f"{art}_approve", target_type=art, target_id=mid))
+    db.commit()
+    return {"ok": True}

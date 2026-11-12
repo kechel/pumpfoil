@@ -2905,6 +2905,17 @@ const fr: Record<string, string> = {
   "adm.mediaReports.erledigt": "Traité",
   "adm.blockMedia": "Bloquer",
   "adm.unblockMedia": "Débloquer",
+  // Medien neuer Nutzer pruefen (12.11.2026)
+  "adm.mediaPending": "Médias des nouveaux utilisateurs",
+  "adm.mediaPending.hint": "Photos et vidéos de comptes de moins de 7 jours. Avant approbation, seul l’auteur les voit — sans s’en rendre compte.",
+  "adm.mediaPending.seit": "Compte depuis le {d}",
+  "adm.mediaPending.versteckt": "masqué",
+  "adm.mediaPending.gesperrt": "bloqué",
+  "adm.mediaPending.freigeben": "Approuver",
+  "adm.mediaPending.verstecken": "Masquer l’utilisateur",
+  "adm.mediaPending.versteckenConfirm": "Masquer cet utilisateur (shadow ban) ? Personne d’autre ne verra son contenu.",
+  "adm.mediaPending.sperren": "Bloquer l’utilisateur",
+  "adm.mediaPending.sperrenConfirm": "Bloquer cet utilisateur ? Il ne pourra plus se connecter.",
 };
 
 export default fr;

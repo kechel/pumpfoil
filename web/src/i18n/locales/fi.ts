@@ -3057,6 +3057,17 @@ const fi: Record<string, string> = {
   "adm.mediaReports.erledigt": "Käsitelty",
   "adm.blockMedia": "Estä",
   "adm.unblockMedia": "Poista esto",
+  // Medien neuer Nutzer pruefen (12.11.2026)
+  "adm.mediaPending": "Uusien käyttäjien mediat",
+  "adm.mediaPending.hint": "Alle 7 päivää vanhojen tilien kuvat ja videot. Ennen hyväksyntää vain lataaja näkee ne huomaamatta mitään.",
+  "adm.mediaPending.seit": "Tili {d} alkaen",
+  "adm.mediaPending.versteckt": "piilotettu",
+  "adm.mediaPending.gesperrt": "estetty",
+  "adm.mediaPending.freigeben": "Hyväksy",
+  "adm.mediaPending.verstecken": "Piilota käyttäjä",
+  "adm.mediaPending.versteckenConfirm": "Piilotetaanko käyttäjä (shadow ban)? Kukaan muu ei näe hänen sisältöään.",
+  "adm.mediaPending.sperren": "Estä käyttäjä",
+  "adm.mediaPending.sperrenConfirm": "Estetäänkö käyttäjä? Hän ei voi enää kirjautua.",
 };
 
 export default fi;
