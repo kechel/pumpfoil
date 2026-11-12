@@ -3197,6 +3197,8 @@ const de: Record<string, string> = {
   "adm.mediaPending.mediumSperren": "Nur dieses sperren",
   "adm.vorschau.verdeckt": "Für andere nicht sichtbar — zum Anzeigen klicken",
   "adm.mediaPending.erledigt": "{n} weitere von versteckten oder gesperrten Konten (sieht niemand) — anzeigen",
+  "adm.medium.warteraum": "im Warteraum",
+  "adm.medium.gesperrt": "Medium gesperrt",
 };
 
 export default de;

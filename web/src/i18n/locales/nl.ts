@@ -3092,6 +3092,8 @@ const nl: Record<string, string> = {
   "adm.mediaPending.mediumSperren": "Alleen dit blokkeren",
   "adm.vorschau.verdeckt": "Niet zichtbaar voor anderen — klik om te tonen",
   "adm.mediaPending.erledigt": "{n} meer van verborgen of geblokkeerde accounts (niemand ziet ze) — tonen",
+  "adm.medium.warteraum": "in wachtkamer",
+  "adm.medium.gesperrt": "media geblokkeerd",
 };
 
 export default nl;

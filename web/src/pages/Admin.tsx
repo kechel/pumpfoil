@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { SupporterBadge } from "../components/SupporterBadge";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminPhoto, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket, AdminBewertung, BewertungStatus, AdminTeamFreigabe, AdminMediaReport, AdminMediaPending } from "../lib/api";
+import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket, AdminBewertung, BewertungStatus, AdminTeamFreigabe, AdminMediaReport, AdminMediaPending, AdminMedium } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import { teamFarbStil } from "../lib/teamFarben";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
@@ -1719,10 +1719,14 @@ function MediaReports() {
 // ------------------------------------------------------------------ Fotos ----
 function PhotosTab() {
   const t = useT();
-  const { items, setItems, loading, sentinel } = useInfinite<AdminPhoto>(
-    (off) => api.adminPhotos(30, off), []);
-  const upd = (id: number, patch: Partial<AdminPhoto>) =>
-    setItems((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  // Fotos UND Videos (Jan 12.11.2026: „unten nur bilder und keine videos"), neueste zuerst
+  const { items, setItems, loading, sentinel } = useInfinite<AdminMedium>(
+    (off) => api.adminMediaList(30, off), []);
+  const k = (m: AdminMedium) => `${m.art}-${m.id}`;
+  const upd = (m: AdminMedium, patch: Partial<AdminMedium>) =>
+    setItems((prev) => prev.map((x) => (k(x) === k(m) ? { ...x, ...patch } : x)));
+  const nutzer = (uid: number, patch: Partial<AdminMedium>) =>
+    setItems((prev) => prev.map((x) => (x.user_id === uid ? { ...x, ...patch } : x)));
   return (
     <div>
       <MediaPending />
@@ -1730,25 +1734,28 @@ function PhotosTab() {
       {items.length === 0 && !loading ? <Card className="p-8 text-center text-slate-300">{t("adm.noPhotos")}</Card> : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {items.map((p) => (
-            <Card key={p.id} className="overflow-hidden p-0">
-              <Vorschau src={p.url} sessionId={p.session_id} hoehe="h-36"
+            <Card key={k(p)} className="overflow-hidden p-0">
+              <Vorschau src={p.art === "photo" ? p.url : ytId(p.youtube_url) ? `/api/public/video-thumb/${ytId(p.youtube_url)}` : null}
+                sessionId={p.session_id} hoehe="h-36"
                 verdeckt={!!(p.blocked || p.freigabe_offen || p.user_hidden || p.user_blocked)} />
               <div className="p-2 text-sm">
+                {p.youtube_url && <a href={p.youtube_url} target="_blank" rel="noopener noreferrer" className="block truncate text-slate-400 underline">{p.youtube_url}</a>}
                 <div className="truncate text-slate-300">{p.name || "—"}{p.spot ? ` · ${p.spot}` : ""}</div>
-                <div className="text-slate-400">{[p.freigabe_offen && t("adm.mediaPending"), p.user_hidden && t("adm.mediaPending.versteckt"), p.user_blocked && t("adm.mediaPending.gesperrt")].filter(Boolean).join(" · ")}</div>
+                <div className="text-slate-400">{[p.freigabe_offen && t("adm.medium.warteraum"), p.blocked && t("adm.medium.gesperrt"), p.user_hidden && t("adm.mediaPending.versteckt"), p.user_blocked && t("adm.mediaPending.gesperrt")].filter(Boolean).join(" · ")}</div>
                 {/* Wie im Warteraum (Jan 12.11.2026): Zeile „Medium" und Zeile „Konto", damit klar ist, was gesperrt wird */}
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   <span className="w-16 text-slate-400">{t("adm.mediaPending.zeileMedium")}</span>
-                  <Act tone={p.blocked ? "green" : "slate"} onClick={() => api.adminBlockPhoto(p.id, !p.blocked).then((r) => upd(p.id, { blocked: r.blocked }))}>
-                    {p.blocked ? t("adm.unblockPhoto") : t("adm.mediaPending.mediumSperren")}
+                  {p.freigabe_offen && !p.blocked && <Act tone="green" onClick={() => api.adminApproveMedia(p.art, p.id).then(() => upd(p, { freigabe_offen: false }))}>{t("adm.mediaPending.freigeben")}</Act>}
+                  <Act tone={p.blocked ? "green" : "slate"} onClick={() => api.adminBlockMedia(p.art, p.id, !p.blocked).then((r) => upd(p, { blocked: r.blocked }))}>
+                    {p.blocked ? t("adm.unblockMedia") : t("adm.mediaPending.mediumSperren")}
                   </Act>
-                  <Act tone="red" confirm={t("adm.deletePhotoConfirm")} onClick={() => api.adminDeletePhoto(p.id).then(() => setItems((prev) => prev.filter((x) => x.id !== p.id)))}>{t("adm.delete")}</Act>
+                  {p.art === "photo" && <Act tone="red" confirm={t("adm.deletePhotoConfirm")} onClick={() => api.adminDeletePhoto(p.id).then(() => setItems((prev) => prev.filter((x) => k(x) !== k(p))))}>{t("adm.delete")}</Act>}
                 </div>
-                {p.user_id != null && (!p.user_hidden || !p.user_blocked) && (
+                {(!p.user_hidden || !p.user_blocked) && (
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                     <span className="w-16 text-slate-400">{t("adm.mediaPending.zeileKonto")}</span>
-                    {!p.user_hidden && <Act tone="amber" confirm={t("adm.mediaPending.versteckenConfirm")} onClick={() => api.adminHideUser(p.user_id!, true).then(() => setItems((prev) => prev.map((x) => (x.user_id === p.user_id ? { ...x, user_hidden: true } : x))))}>{t("adm.mediaPending.verstecken")}</Act>}
-                    {!p.user_blocked && <Act tone="red" confirm={t("adm.mediaPending.sperrenConfirm")} onClick={() => api.adminBlockUser(p.user_id!, true).then(() => setItems((prev) => prev.map((x) => (x.user_id === p.user_id ? { ...x, user_blocked: true } : x))))}>{t("adm.mediaPending.sperren")}</Act>}
+                    {!p.user_hidden && <Act tone="amber" confirm={t("adm.mediaPending.versteckenConfirm")} onClick={() => api.adminHideUser(p.user_id, true).then(() => nutzer(p.user_id, { user_hidden: true }))}>{t("adm.mediaPending.verstecken")}</Act>}
+                    {!p.user_blocked && <Act tone="red" confirm={t("adm.mediaPending.sperrenConfirm")} onClick={() => api.adminBlockUser(p.user_id, true).then(() => nutzer(p.user_id, { user_blocked: true }))}>{t("adm.mediaPending.sperren")}</Act>}
                   </div>
                 )}
               </div>

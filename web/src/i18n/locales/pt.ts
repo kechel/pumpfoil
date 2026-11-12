@@ -3038,6 +3038,8 @@ const pt: Record<string, string> = {
   "adm.mediaPending.mediumSperren": "Bloquear só esta",
   "adm.vorschau.verdeckt": "Não visível para outros — clique para mostrar",
   "adm.mediaPending.erledigt": "Mais {n} de contas ocultas ou bloqueadas (ninguém vê) — mostrar",
+  "adm.medium.warteraum": "aguardando",
+  "adm.medium.gesperrt": "mídia bloqueada",
 };
 
 export default pt;

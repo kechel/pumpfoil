@@ -151,3 +151,31 @@ def admin_freigeben(art: str, mid: int, admin: models.User = Depends(current_adm
     db.add(models.AdminAudit(admin_id=admin.id, action=f"{art}_approve", target_type=art, target_id=mid))
     db.commit()
     return {"ok": True}
+
+
+@router.get("/admin/media-list")
+def admin_medien(limit: int = 30, offset: int = 0, admin: models.User = Depends(current_admin),
+                 db: Session = Depends(get_db)) -> list[dict]:
+    """Admin › Fotos, Liste unter dem Warteraum: Fotos UND verlinkte Videos, neueste zuerst (Jan 12.11.2026: „unten nur
+    bilder und keine videos"). Je Eintrag Besitzer-Zustand fuer die Konto-Knoepfe."""
+    from sqlalchemy import literal, union_all
+    P, V = models.SessionPhoto, models.SessionVideo
+    q = union_all(
+        db.query(literal("photo").label("art"), P.id, P.created_at).statement,
+        db.query(literal("video").label("art"), V.id, V.created_at).statement,
+    ).subquery()
+    zeilen = (db.query(q.c.art, q.c.id).order_by(q.c.created_at.desc(), q.c.id.desc())
+              .offset(max(offset, 0)).limit(min(max(limit, 1), 200)).all())
+    out = []
+    for art, mid in zeilen:
+        m = db.get(ARTEN[art], mid)
+        if m is None:
+            continue
+        s = db.get(models.Session, m.session_id)
+        u = db.get(models.User, m.user_id)
+        out.append({"art": art, "id": m.id, "session_id": m.session_id, "url": getattr(m, "url", None),
+                    "youtube_url": getattr(m, "youtube_url", None), "blocked": bool(m.blocked),
+                    "freigabe_offen": bool(m.freigabe_offen), "name": u.display_name if u else None,
+                    "spot": s.place_name if s else None, "user_id": m.user_id,
+                    "user_hidden": bool(u.hidden) if u else False, "user_blocked": bool(u.blocked) if u else False})
+    return out

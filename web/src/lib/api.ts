@@ -694,6 +694,12 @@ export interface SessionVideo {
   youtube_url: string;
 }
 
+export interface AdminMedium {
+  art: "photo" | "video"; id: number; session_id: number; url: string | null; youtube_url: string | null;
+  blocked: boolean; freigabe_offen: boolean; name: string | null; spot: string | null;
+  user_id: number; user_hidden: boolean; user_blocked: boolean;
+}
+
 export interface AdminMediaPending {
   art: "photo" | "video"; id: number; session_id: number; url: string | null; youtube_url: string | null;
   created_at: string | null; spot: string | null;
@@ -2168,6 +2174,7 @@ export const api = {
   adminPhotos: (limit = 60, offset = 0) => req<AdminPhoto[]>(`/api/admin/photos?limit=${limit}&offset=${offset}`),
   adminBlockPhoto: (id: number, blocked: boolean) =>
     req<{ blocked: boolean }>(`/api/admin/photos/${id}/block?blocked=${blocked}`, { method: "POST" }),
+  adminMediaList: (limit = 30, offset = 0) => req<AdminMedium[]>(`/api/admin/media-list?limit=${limit}&offset=${offset}`),
   adminMediaPending: () => req<AdminMediaPending[]>(`/api/admin/media-pending`),
   adminApproveMedia: (art: "photo" | "video", id: number) =>
     req<{ ok: boolean }>(`/api/admin/media/${art}/${id}/approve`, { method: "POST" }),

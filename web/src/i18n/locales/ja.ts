@@ -3034,6 +3034,8 @@ const ja: Record<string, string> = {
   "adm.mediaPending.mediumSperren": "これだけブロック",
   "adm.vorschau.verdeckt": "他の人には非表示 — クリックで表示",
   "adm.mediaPending.erledigt": "非表示・ブロック済みアカウントの {n} 件（誰にも見えません）— 表示",
+  "adm.medium.warteraum": "承認待ち",
+  "adm.medium.gesperrt": "メディアはブロック済み",
 };
 
 export default ja;

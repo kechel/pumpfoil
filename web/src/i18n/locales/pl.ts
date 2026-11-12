@@ -3017,6 +3017,8 @@ const pl: Record<string, string> = {
   "adm.mediaPending.mediumSperren": "Zablokuj tylko to",
   "adm.vorschau.verdeckt": "Niewidoczne dla innych — kliknij, aby pokazać",
   "adm.mediaPending.erledigt": "{n} więcej z ukrytych lub zablokowanych kont (nikt ich nie widzi) — pokaż",
+  "adm.medium.warteraum": "w poczekalni",
+  "adm.medium.gesperrt": "media zablokowane",
 };
 
 export default pl;

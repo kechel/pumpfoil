@@ -2921,6 +2921,8 @@ const fr: Record<string, string> = {
   "adm.mediaPending.mediumSperren": "Bloquer ce média seulement",
   "adm.vorschau.verdeckt": "Invisible pour les autres — cliquer pour afficher",
   "adm.mediaPending.erledigt": "{n} autres de comptes masqués ou bloqués (personne ne les voit) — afficher",
+  "adm.medium.warteraum": "en attente",
+  "adm.medium.gesperrt": "média bloqué",
 };
 
 export default fr;

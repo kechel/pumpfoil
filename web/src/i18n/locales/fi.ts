@@ -3073,6 +3073,8 @@ const fi: Record<string, string> = {
   "adm.mediaPending.mediumSperren": "Estä vain tämä",
   "adm.vorschau.verdeckt": "Ei näy muille — näytä klikkaamalla",
   "adm.mediaPending.erledigt": "{n} lisää piilotetuilta tai estetyiltä tileiltä (kukaan ei näe) — näytä",
+  "adm.medium.warteraum": "odottaa",
+  "adm.medium.gesperrt": "media estetty",
 };
 
 export default fi;

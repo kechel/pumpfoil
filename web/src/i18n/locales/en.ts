@@ -3143,6 +3143,8 @@ const en: Record<string, string> = {
   "adm.mediaPending.mediumSperren": "Block only this",
   "adm.vorschau.verdeckt": "Not visible to others — click to show",
   "adm.mediaPending.erledigt": "{n} more from hidden or blocked accounts (nobody sees them) — show",
+  "adm.medium.warteraum": "in waiting room",
+  "adm.medium.gesperrt": "media blocked",
 };
 
 export default en;
