@@ -1530,6 +1530,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 12.11.2026 — Idee: Luftdruck-/Wassersensor gegen GPS-Luecken (nur notiert, nicht heute)
+Vorschlag aus dem Community-Chat: auf Uhren mit Drucksensor (Barometer/Tiefe) oder eingebauter Wassererkennung das
+Untertauchen direkt messen, statt es aus der GPS-Luecke zu schliessen — Sturz/Uhr unter Wasser waere damit ein Signal,
+kein Rueckschluss. Ansatzpunkte: Garmin `Toybox.SensorHistory`/`Activity.Info.ambientPressure` (je Modell pruefen),
+Apple Watch `CMWaterSubmersionManager` (nur Ultra/Series 9+, eigene Berechtigung), Wear OS je Hersteller. Waere eine
+Ergaenzung zu `LaufLuecke` (docs/PARITY-AUDIT.md Punkt 9), nicht Ersatz: viele Uhren haben keinen solchen Sensor.
+Uhren-Apps nicht ausbauen (CLAUDE.md) — nur auf Jans ausdrueckliches Wort.
+
 ### 12.11.2026 — Uhr zaehlt nach Sturz weiter (GPS-Luecke am Lauf-Ende)
 Nutzermeldung: Uhr zeigte 1:34 als laengsten Lauf, Server 1:09. Ursache: nach dem Sturz 36 s kein GPS (Uhr unter
 Wasser); Garmin haelt die letzte Geschwindigkeit, die Lauferkennung zaehlte ~25 s weiter, bis die Fix-Qualitaet absank
