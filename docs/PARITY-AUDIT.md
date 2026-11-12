@@ -61,7 +61,7 @@ einer Uhr baut, geht diese Liste fuer ALLE VIER durch und traegt das Ergebnis in
 
 | Lauf-Ende nach GPS-Luecke (12.11.) | Garmin | Apple Watch | Wear OS | Handy Android | Handy iOS | Zepp | Huawei | Suunto |
 |---|---|---|---|---|---|---|---|---|
-| Lauf endet am letzten guten Fix, Trennung > 15 s | ✅ 12.11. VOLL + ENG (LITE nicht: darf nicht wachsen), Simulator fenix 7X Pro + FR55 | ✅ 12.11. (nur Parse-Check, Struktur unter Linux kompiliert) | ✅ 12.11. (kompiliert, JVM-Test) | ✅ 12.11. (kompiliert, JVM-Test) | ✅ 12.11. (nur Parse-Check) | ⏳ | ⏳ | ⏳ |
+| Lauf endet am letzten guten Fix, Trennung > 15 s | ✅ 12.11. VOLL + ENG (LITE nicht: darf nicht wachsen), Simulator fenix 7X Pro + FR55 | ✅ 12.11. Simulator Build 77: 8 s Luecke mitten im Lauf = ein Lauf (vorher zwei) | ✅ 12.11. (kompiliert, JVM-Test) | ✅ 12.11. (kompiliert, JVM-Test) | ✅ 12.11. (nur Parse-Check) | ⏳ | ⏳ | ⏳ |
 | Verhalten vorher | zaehlte mit eingefrorenem Tempo ~20 s weiter | Lauf endete bei jeder Luecke > 3 s (Tempo 0) und zerfiel beim Weiterpumpen in zwei | Erkennung nur bei Fixen: die GANZE Luecke zaehlte mit | wie Wear | wie Wear | | | |
 
 | GPS nach Frische (Stand 25.10.; Zepp/Huawei/Suunto aus Code-Durchsicht, unveraendert) | Garmin | Zepp | Wear OS | Apple Watch | Huawei | Handy Android | Handy iOS |

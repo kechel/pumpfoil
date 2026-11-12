@@ -1563,7 +1563,11 @@ Stehen nur alle bis zu 50 s eine Position, und bleibt). Konzept mit Jan abgestim
       (`PhoneRecorder.swift`), Wear + Android-Handy (`LaufLuecke.kt` je Modul, JVM-Test `LaufLueckeTest`). Bei den
       Recordern mit Erkennung nur bei Fixen (Wear, beide Handys) zaehlte bisher die GANZE Luecke mit. Nicht gebumpt.
       Swift nur Parse-Check (Typpruefung in Xcode bei Jan), Kotlin kompiliert + Tests gruen.
-- [ ] Jan: Apple-Watch-Simulator und Wear-Emulator mit den Test-GPX (Fall 3 + 4).
+- [x] Apple-Watch-Simulator 12.11. (Build 77, `watch-apple/scripts/gps-luecke-simulator.sh arm8` per `simctl location`;
+      Xcodes GPX-Simulation erreicht die Watch-App nicht): 8 s Luecke mitten im Lauf -> EIN Lauf 1:50 / 354 m / 12,2 km/h,
+      Timer lief in der Luecke weiter, „GPS searching…“ sichtbar. Vorher waeren es zwei Laeufe gewesen.
+      Schoenheitsfehler (alt): das orange „GPS searching…“ liegt auf der Lauf-Seite ueber „on foil“.
+- [ ] Jan: Wear-Emulator (Fall 3 + 4), optional Apple `sturz`/`ende10`.
 - [ ] Zepp, Huawei, Suunto (Tabelle in PARITY-AUDIT).
 - Nebenbefund KORRIGIERT: `watch/test/lite-minimal.test.mjs` „Lite-Fassungen stehen im Quelltext" schlug schon auf HEAD fehl
   (verbot auch den SensorLogger, den 8ec18c47 am 05.11. absichtlich fuer Accel-in-FIT eingebaut hat) -> Test prueft jetzt: kein eigener Listener, SensorLogger nur hinter `Wege.fitAccel`.
