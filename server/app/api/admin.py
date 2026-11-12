@@ -612,7 +612,8 @@ def list_photos(
     _a: models.User = Depends(current_admin), db: Session = Depends(get_db),
 ) -> list[dict]:
     rows = (
-        db.query(models.SessionPhoto, models.User.display_name, models.Session.place_name)
+        db.query(models.SessionPhoto, models.User.display_name, models.Session.place_name,
+                 models.User.hidden, models.User.blocked)
         .join(models.Session, models.SessionPhoto.session_id == models.Session.id)
         .join(models.User, models.SessionPhoto.user_id == models.User.id)
         .order_by(models.SessionPhoto.id.desc())
@@ -621,7 +622,10 @@ def list_photos(
     return [{
         "id": p.id, "url": p.url, "session_id": p.session_id,
         "blocked": bool(p.blocked), "name": name, "spot": place or None,
-    } for p, name, place in rows]
+        # Besitzer (12.11.2026): Konto-Knoepfe wie im Warteraum (verstecken / sperren)
+        "user_id": p.user_id, "user_hidden": bool(u_hidden), "user_blocked": bool(u_blocked),
+        "freigabe_offen": bool(p.freigabe_offen),
+    } for p, name, place, u_hidden, u_blocked in rows]
 
 
 @router.post("/photos/{photo_id}/block")

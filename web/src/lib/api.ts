@@ -885,6 +885,7 @@ export interface AdminPhoto {
   url: string;
   session_id: number;
   blocked: boolean;
+  user_id?: number; user_hidden?: boolean; user_blocked?: boolean; freigabe_offen?: boolean;   // 12.11.2026
   name: string | null;
   spot: string | null;
 }

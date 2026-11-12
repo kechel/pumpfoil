@@ -1706,14 +1706,24 @@ function PhotosTab() {
               <Link to={`/sessions/${p.session_id}`}>
                 <img src={p.url} alt="" className={`h-36 w-full object-cover ${p.blocked ? "opacity-30 grayscale" : ""}`} />
               </Link>
-              <div className="p-2">
-                <div className="truncate text-[11px] text-slate-300">{p.name || "—"}{p.spot ? ` · ${p.spot}` : ""}</div>
-                <div className="mt-1.5 flex gap-1.5">
-                  <Act tone={p.blocked ? "green" : "amber"} onClick={() => api.adminBlockPhoto(p.id, !p.blocked).then((r) => upd(p.id, { blocked: r.blocked }))}>
-                    {p.blocked ? t("adm.unblockPhoto") : t("adm.blockPhoto")}
+              <div className="p-2 text-sm">
+                <div className="truncate text-slate-300">{p.name || "—"}{p.spot ? ` · ${p.spot}` : ""}</div>
+                <div className="text-slate-400">{[p.freigabe_offen && t("adm.mediaPending"), p.user_hidden && t("adm.mediaPending.versteckt"), p.user_blocked && t("adm.mediaPending.gesperrt")].filter(Boolean).join(" · ")}</div>
+                {/* Wie im Warteraum (Jan 12.11.2026): Zeile „Medium" und Zeile „Konto", damit klar ist, was gesperrt wird */}
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  <span className="w-16 text-slate-400">{t("adm.mediaPending.zeileMedium")}</span>
+                  <Act tone={p.blocked ? "green" : "slate"} onClick={() => api.adminBlockPhoto(p.id, !p.blocked).then((r) => upd(p.id, { blocked: r.blocked }))}>
+                    {p.blocked ? t("adm.unblockPhoto") : t("adm.mediaPending.mediumSperren")}
                   </Act>
                   <Act tone="red" confirm={t("adm.deletePhotoConfirm")} onClick={() => api.adminDeletePhoto(p.id).then(() => setItems((prev) => prev.filter((x) => x.id !== p.id)))}>{t("adm.delete")}</Act>
                 </div>
+                {p.user_id != null && (!p.user_hidden || !p.user_blocked) && (
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    <span className="w-16 text-slate-400">{t("adm.mediaPending.zeileKonto")}</span>
+                    {!p.user_hidden && <Act tone="amber" confirm={t("adm.mediaPending.versteckenConfirm")} onClick={() => api.adminHideUser(p.user_id!, true).then(() => setItems((prev) => prev.map((x) => (x.user_id === p.user_id ? { ...x, user_hidden: true } : x))))}>{t("adm.mediaPending.verstecken")}</Act>}
+                    {!p.user_blocked && <Act tone="red" confirm={t("adm.mediaPending.sperrenConfirm")} onClick={() => api.adminBlockUser(p.user_id!, true).then(() => setItems((prev) => prev.map((x) => (x.user_id === p.user_id ? { ...x, user_blocked: true } : x))))}>{t("adm.mediaPending.sperren")}</Act>}
+                  </div>
+                )}
               </div>
             </Card>
           ))}
