@@ -1042,13 +1042,13 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                 FilterChip(selected = ganzeFahrt, onClick = { ganzeFahrt = true }, label = { Text(I18n.t("sd.mapWhole")) }, colors = cyanChipColors())
                             }
                         }
-                        if (colorMode == ColorMode.SPEED || zeigeMarker || zeigeVersuchsSchalter) {
+                        if (colorMode == ColorMode.SPEED || colorMode == ColorMode.GLIDES || zeigeMarker || zeigeVersuchsSchalter) {
                             FlowRow(
                                 Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalArrangement = Arrangement.Center,
                             ) {
-                                if (colorMode == ColorMode.SPEED) {
+                                if (colorMode == ColorMode.SPEED || colorMode == ColorMode.GLIDES) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         listOf(1, 3, 5).forEach { w ->
                                             FilterChip(selected = win == w, onClick = { win = w }, label = { Text("${w}s") },
@@ -1176,12 +1176,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 }
                 // Farb-Legende (min→max) für den gewählten Modus — wie PWA.
                 if (colorMode == ColorMode.TURNS) CarveLegend(carve?.counts, carveGMax)
-                else if (colorMode == ColorMode.GLIDES) Row(Modifier.padding(top = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Box(Modifier.width(32.dp).height(10.dp).clip(RoundedCornerShape(5.dp)).background(Color(0xFF22D3EE)))
-                    Spacer(Modifier.width(6.dp))
-                    Text(I18n.t("sd.glides"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                else ColorLegend(colorMode, hrRange, pumpRange, tempoSkala)
+                // Glides: Gleitphasen in der Tempo-Farbe -> Tempo-Legende.
+                else ColorLegend(if (colorMode == ColorMode.GLIDES) ColorMode.SPEED else colorMode, hrRange, pumpRange, tempoSkala)
             }
         }
         // Leistungs-Karte (theoretische Pump-Leistung bei Ø-/Top-Speed). hasSpecs: Katalog-Einträge
@@ -1678,21 +1674,22 @@ private fun TrackMap(
                         allPts.add(pa); allPts.add(pb)
                         if (!dim) { selPts.add(pa); selPts.add(pb) }
                     }
-                    // Gleitphasen in Marken-Cyan, UNTER den Pump-Markern (wie PWA), nur fuer nicht gedimmte Laeufe.
+                    // Gleitphasen UNTER den Pump-Markern (wie PWA), nur fuer nicht gedimmte Laeufe — in der TEMPO-Farbe
+                    // (Web 12.11.2026, Jan: „dann sieht man wie man langsamer wird im glide, und nicht fix blau").
                     if (showGlides && !dim) {
                         for (g in seg.glides) {
                             if (g.size < 2) continue
                             val i0 = g[0].toInt().coerceIn(0, pts.size - 1)
                             val i1 = maxOf(g[1].toInt(), i0 + 1).coerceIn(0, pts.size - 1)
-                            val gp = (i0..i1).map { GeoPoint(pts[it].second, pts[it].first) }
-                            if (gp.size < 2) continue
-                            map.overlays.add(Polyline(map).apply {
-                                setPoints(gp)
-                                outlinePaint.color = Color(0xFF22D3EE).toArgb()
-                                outlinePaint.strokeWidth = 6f * dens
-                                outlinePaint.strokeCap = android.graphics.Paint.Cap.ROUND
-                                setOnClickListener { _, _, _ -> onSelectRun(runIdx); true }
-                            })
+                            for (i in i0 until i1) {
+                                map.overlays.add(Polyline(map).apply {
+                                    setPoints(listOf(GeoPoint(pts[i].second, pts[i].first), GeoPoint(pts[i + 1].second, pts[i + 1].first)))
+                                    outlinePaint.color = speedColor((speeds.getOrNull(i + 1) ?: 0.0) * 3.6, tempoSkala).toArgb()
+                                    outlinePaint.strokeWidth = 6f * dens
+                                    outlinePaint.strokeCap = android.graphics.Paint.Cap.ROUND
+                                    setOnClickListener { _, _, _ -> onSelectRun(runIdx); true }
+                                })
+                            }
                         }
                     }
                     // Pump-Marker nur für den (ggf. ausgewählten) Lauf, nicht für gedimmte. Bei SUP stattdessen

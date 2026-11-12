@@ -1145,7 +1145,7 @@ struct SessionDetailView: View {
     // Zweite Zeile: links die Glaettung (nur bei Speed), rechts die Schalter.
     private func smoothingRow(_ s: SessionDetail) -> some View {
         HStack(spacing: 12) {
-            if colorMode == .speed {
+            if colorMode == .speed || colorMode == .glides {
                 Picker("", selection: $win) {
                     Text("1s").tag(1); Text("3s").tag(3); Text("5s").tag(5)
                 }
@@ -1217,14 +1217,8 @@ struct SessionDetailView: View {
 
     @ViewBuilder private func legendRow(_ v: TrackVals) -> some View {
         if colorMode == .turns { carveLegend(counts: carve?.counts, gMax: v.carveGMax) }
-        else if colorMode == .glides {
-            HStack(spacing: 6) {
-                RoundedRectangle(cornerRadius: 4).fill(Color(red: 0x22 / 255, green: 0xd3 / 255, blue: 0xee / 255))
-                    .frame(width: 32, height: 10)
-                Text(Loc.t("sd.glides", lang)).font(.caption).foregroundStyle(.secondary)
-            }
-        }
-        else { colorLegend(mode: colorMode, hrRange: v.hrRange, pumpRange: v.pumpRange) }
+        // Glides: Gleitphasen in der Tempo-Farbe -> Tempo-Legende.
+        else { colorLegend(mode: colorMode == .glides ? .speed : colorMode, hrRange: v.hrRange, pumpRange: v.pumpRange) }
     }
 
     @ViewBuilder private var selectedRunRow: some View {
@@ -2747,22 +2741,27 @@ struct TrackMap: UIViewRepresentable {
         if !sprintSchild.isEmpty { map.addAnnotation(SprintMarke(cs[cs.count / 2], schild: sprintSchild)) }
     }
 
-    /// Gleitphasen in Marken-Cyan ueber den Laeufen, nur fuer nicht gedimmte Laeufe (wie PWA).
+    /// Gleitphasen ueber den Laeufen, nur fuer nicht gedimmte Laeufe (wie PWA) — in der TEMPO-Farbe (web 12.11.2026,
+    /// Jan: „dann sieht man wie man langsamer wird im glide, und nicht fix blau").
     private func zeichneGleiten(_ map: MKMapView, _ co: Coordinator) {
         guard showGlides, !points.isEmpty else { return }
         let n: Int = points.count
-        let cyan = UIColor(red: 0x22 / 255.0, green: 0xD3 / 255.0, blue: 0xEE / 255.0, alpha: 0.98)
         for (runIdx, seg) in segments.enumerated() {
             if selectedRun != nil && runIdx != selectedRun { continue }
             for g in seg.glides ?? [] where g.count >= 2 {
                 let i0: Int = min(max(Int(g[0]), 0), n - 1)
                 let i1: Int = min(max(Int(g[1]), i0 + 1), n - 1)
                 guard i1 > i0 else { continue }
-                let cs: [CLLocationCoordinate2D] = (i0...i1).map { CLLocationCoordinate2D(latitude: points[$0][1], longitude: points[$0][0]) }
-                let pl = MKPolyline(coordinates: cs, count: cs.count)
-                co.colors[ObjectIdentifier(pl)] = cyan
-                co.widths[ObjectIdentifier(pl)] = 6
-                map.addOverlay(pl)
+                for i in i0..<i1 {
+                    let cs: [CLLocationCoordinate2D] = [
+                        CLLocationCoordinate2D(latitude: points[i][1], longitude: points[i][0]),
+                        CLLocationCoordinate2D(latitude: points[i + 1][1], longitude: points[i + 1][0])]
+                    let pl = MKPolyline(coordinates: cs, count: 2)
+                    let v: Double = speedsMps.indices.contains(i + 1) ? speedsMps[i + 1] : 0
+                    co.colors[ObjectIdentifier(pl)] = uiSpeedColor(v * 3.6, tempoSkala)
+                    co.widths[ObjectIdentifier(pl)] = 6
+                    map.addOverlay(pl)
+                }
             }
         }
     }

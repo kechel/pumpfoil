@@ -1457,7 +1457,7 @@ export default function SessionDetail() {
     if (playMode) return;   // im Wiedergabe-Modus übernimmt der Play-Effekt das Zeichnen
     // Autoskala hinkt beim Laufwechsel einen Render hinterher (State) → diesen Stale-Pass
     // überspringen; der Folge-Render zeichnet direkt mit der korrekten Skala (kein Farb-Blitzer).
-    if (autoScaleOn && colorMode === "speed") {
+    if (autoScaleOn && (colorMode === "speed" || colorMode === "glides")) {
       const r = computeAutoRange();
       if (r && (r[0] !== speedMin || r[1] !== speedMax)) return;
     }
@@ -1717,16 +1717,19 @@ export default function SessionDetail() {
       });
     }
     // Gleitphasen (1,5-10 s ohne Pump, auch letzter Pump -> Laufende; server-seitig in `seg.glides`
-    // als [Start-Index, End-Index, Dauer s, Start]) in Marken-Cyan auf grauem Track, UNTER den Pump-Markern.
+    // als [Start-Index, End-Index, Dauer s, Start]) auf grauem Track, UNTER den Pump-Markern. In der TEMPO-Farbe
+    // (Jan 12.11.2026: „dann sieht man wie man langsamer wird im glide, und nicht fix blau"), Skala wie bei „Tempo".
     if (showGlides && gleitenMoeglich) {
       segs.forEach((seg: any, idx: number) => {
         if (selectedRun != null && idx !== selectedRun) return;
         for (const [i0, i1, d] of (seg.glides ?? []) as number[][]) {
-          const pts = coords.slice(i0, Math.max(i1, i0 + 1) + 1).filter(Boolean);
-          if (pts.length < 2) continue;
-          L.polyline(pts, { color: "#22d3ee", weight: 6, opacity: 0.98, lineCap: "round" })
-            .bindTooltip(`${t("sd.glide")} ${d.toFixed(1)} s`, { sticky: true })
-            .addTo(lg);
+          const bis = Math.min(Math.max(i1, i0 + 1), coords.length - 1);
+          for (let i = i0; i < bis; i++) {
+            if (!coords[i] || !coords[i + 1]) continue;
+            L.polyline([coords[i], coords[i + 1]], {
+              color: speedColor((speeds[i + 1] ?? 0) * 3.6, speedMin, speedMax), weight: 6, opacity: 0.98, lineCap: "round",
+            }).bindTooltip(`${t("sd.glide")} ${d.toFixed(1)} s`, { sticky: true }).addTo(lg);
+          }
         }
       });
     }
@@ -2458,7 +2461,7 @@ export default function SessionDetail() {
           {gleitenMoeglich && (
             <ModeButton active={colorMode === "glides"} onClick={() => setColorMode("glides")}>{t("sd.glides")}</ModeButton>
           )}
-          {(colorMode === "speed" || colorMode === "optimal") && (
+          {(colorMode === "speed" || colorMode === "optimal" || colorMode === "glides") && (
             <>
               <span className="ml-2 text-xs text-slate-400">{t("sd.smoothing")}</span>
               {(["1", "3", "5"] as const).map((w) => (
@@ -2694,15 +2697,11 @@ export default function SessionDetail() {
               <span className={carveData?.counts.m ? "font-bold text-slate-100" : "text-slate-500"}>180–360°: {carveData?.counts.m ?? 0}</span>
               <span className={carveData?.counts.l ? "font-bold text-slate-100" : "text-slate-500"}>&gt;360°: {carveData?.counts.l ?? 0}</span>
             </span>
-          ) : colorMode === "glides" ? (
-            <span className="inline-flex items-center gap-1.5 text-xs text-slate-300">
-              <span className="inline-block h-2.5 w-8 rounded" style={{ background: "#22d3ee" }} />
-              {t("sd.glides")}
-            </span>
           ) : (
-            <Legend mode={colorMode} hrRange={hrRange} speedRange={[speedMin, speedMax]} pumpRange={pumpRange} optimal={optimalKmh} />
+            // Glides: Gleitphasen in der Tempo-Farbe -> dieselbe Tempo-Legende samt Skala (s. unten).
+            <Legend mode={colorMode === "glides" ? "speed" : colorMode} hrRange={hrRange} speedRange={[speedMin, speedMax]} pumpRange={pumpRange} optimal={optimalKmh} />
           )}
-          {colorMode === "speed" && (
+          {(colorMode === "speed" || colorMode === "glides") && (
             <span className="flex items-center gap-1 text-xs text-slate-300">
               <label className="mr-1 flex items-center gap-1" title={t("sd.autoScaleTitle")}>
                 <input type="checkbox" checked={autoScaleOn} onChange={(e) => toggleAuto(e.target.checked)} className="accent-brand-500" />
