@@ -12,6 +12,7 @@
 # Erwartung (letzter Lauf): sturz ~1:09 statt ~1:15+, ende10 ~0:51, arm8 ein Lauf ~1:40 (vorher zwei Laeufe).
 # Bewegung: geradeaus nach Norden mit 3,4 m/s; Ort ist beliebig (Bodensee), es zaehlt nur das Tempo.
 set -euo pipefail
+export LC_ALL=C   # awk sonst mit deutschem Dezimalkomma (47,65) -> simctl: „Invalid latitude,longitude pair"
 
 FALL="${1:-sturz}"
 DEV="${WATCH_UDID:-$(xcrun simctl list devices booted | grep -i 'watch' | grep -oE '[0-9A-F-]{36}' | head -1)}"
