@@ -123,6 +123,7 @@ object Recorder {
     private val maxGlattWin = ArrayList<DoubleArray>()
     private var spdMaxGlatt = 0.0
     private var minSpeedSeitEnde = 99.0
+    private var luecke = LaufLuecke()       // GPS-Luecke am Lauf-Ende (LaufLuecke.kt)
     private var lastRunStartMs = 0L         // Start des zuletzt beendeten Laufs (fuer Fortsetzungen)
     private var lastRunStartDist = 0.0
     private var runIstFortsetzung = false
@@ -139,6 +140,7 @@ object Recorder {
 
     private fun updateFoilingRun(sp3Kmh: Double, tMs: Long, dist: Double, spMps: Double): Boolean {
         if (!foiling) {
+            luecke.trennen = false   // nur im Lauf von Bedeutung
             // Minimum IMMER mitfuehren (auch im Cooldown) — dort zeigt sich ein echter Stopp.
             if (spMps < minSpeedSeitEnde) minSpeedSeitEnde = spMps
             // Cooldown nur nach echtem Stopp; sonst ist es die Fortsetzung desselben Laufs.
@@ -177,12 +179,22 @@ object Recorder {
         } else {
             if (spdMaxGlatt > runMaxMps) runMaxMps = spdMaxGlatt
             foilExitStreak = if (sp3Kmh < 9.0) foilExitStreak + 1 else 0
-            if (foilExitStreak >= RUN_EXIT_DWELL) {
+            val trennen = luecke.trennen
+            luecke.trennen = false
+            if (foilExitStreak >= RUN_EXIT_DWELL || trennen) {
                 foiling = false; foilEnterStreak = 0
-                val durMs = (tMs - RUN_EXIT_DWELL * 1000L - runStartMs).coerceAtLeast(0)
-                val distM = (dist - runStartDist).coerceAtLeast(0.0)
+                var durMs = (tMs - RUN_EXIT_DWELL * 1000L - runStartMs).coerceAtLeast(0)
+                var distM = (dist - runStartDist).coerceAtLeast(0.0)
                 minSpeedSeitEnde = 99.0
                 runEndedMs = tMs
+                // GPS-Luecke direkt vor dem Ende, ueber die nicht weitergefahren wurde (Sturz, Uhr unter Wasser): Lauf
+                // endet am letzten guten Fix davor (LaufLuecke, wie Garmin, 12.11.2026).
+                luecke.schnitt(tMs, runStartMs)?.let { sn ->
+                    durMs = (sn.t - runStartMs).coerceAtLeast(0)
+                    distM = (sn.d - runStartDist).coerceAtLeast(0.0)
+                    minSpeedSeitEnde = 0.0    // echter Stopp -> Neustart ist keine Fortsetzung
+                    if (trennen) runEndedMs = tMs - RUN_REARM_COOLDOWN_MS
+                }
                 val schnellGenug = durMs > 0 && distM / (durMs / 1000.0) >= MIN_RUN_AVG_MPS
                 if (!runIstFortsetzung && (durMs < MIN_RUN_MS || !schnellGenug)) return false
                 lastRunStartMs = runStartMs
@@ -302,6 +314,7 @@ object Recorder {
         runCount = 0; runStartMs = 0; runStartDist = 0.0; runMaxMps = 0.0
         lastRunDurMs = 0; lastRunDistM = 0.0; lastRunAvgMps = 0.0; lastRunMaxMps = 0.0
         lastRunStartMs = 0L; lastRunStartDist = 0.0; minSpeedSeitEnde = 99.0; runIstFortsetzung = false
+        luecke = LaufLuecke()
         laeufeListe.clear(); distVerlauf.clear()
         _state.value = State(recording = true, status = "recording",
             pendingCount = RecStore.pendingCount(ctx))
@@ -606,6 +619,7 @@ object Recorder {
         val sp3 = if (spWin.isEmpty()) sp else spWin.map { it[1] }.sorted()[spWin.size / 2]
         distVerlauf.addLast(tMs.toLong() to distM)
         while (distVerlauf.size > 1 && tMs - distVerlauf.first().first > 8000) distVerlauf.removeFirst()
+        luecke.fix(tMs.toLong(), distM, lat, lon, sp, accuracyM <= 20.0, 0, foiling)
         val nowFoiling = updateFoilingRun(sp3 * 3.6, tMs.toLong(), distM, sp)
         val runDur = if (nowFoiling) (tMs.toLong() - runStartMs).coerceAtLeast(0) else lastRunDurMs
         val runDist = if (nowFoiling) (distM - runStartDist).coerceAtLeast(0.0) else lastRunDistM

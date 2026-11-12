@@ -161,6 +161,7 @@ object Recorder {
     private val maxGlattWin = ArrayList<DoubleArray>()
     private var spdMaxGlatt = 0.0
     private var minSpeedSeitEnde = 99.0     // kleinster Speed seit dem letzten Lauf-Ende
+    private var luecke = LaufLuecke()       // GPS-Luecke am Lauf-Ende (LaufLuecke.kt)
     private var runIstFortsetzung = false   // setzt den vorigen Lauf fort -> nicht neu zaehlen
     private var lastRunStartMs = 0L         // Start des zuletzt beendeten Laufs (fuer Fortsetzungen)
     private var lastRunStartDist = 0.0
@@ -227,6 +228,7 @@ object Recorder {
     // Lauf-Erkennung mit Hysterese; pflegt bei Flanken die Lauf-Metriken (tMs/dist/sp in SI).
     private fun updateFoilingRun(sp3Kmh: Double, tMs: Long, dist: Double, spMps: Double): Boolean {
         if (!foiling) {
+            luecke.trennen = false   // nur im Lauf von Bedeutung
             // Minimum seit dem Lauf-Ende IMMER mitfuehren — auch waehrend des Cooldowns; genau
             // dort zeigt sich ein echter Stopp.
             if (spMps < minSpeedSeitEnde) minSpeedSeitEnde = spMps
@@ -275,13 +277,24 @@ object Recorder {
             if (spdMaxGlatt > runMaxMps) runMaxMps = spdMaxGlatt
             if (lastHr > runMaxHr && tMs - lastHrMs <= PULS_ALT_MS) runMaxHr = lastHr
             foilExitStreak = if (sp3Kmh < 9.0) foilExitStreak + 1 else 0
-            if (foilExitStreak >= RUN_EXIT_DWELL) {
+            val trennen = luecke.trennen
+            luecke.trennen = false
+            if (foilExitStreak >= RUN_EXIT_DWELL || trennen) {
                 foiling = false; foilEnterStreak = 0
                 // Lauf-Ende auf den Dwell-Beginn zurückdatieren; Kennzahlen festhalten.
-                val durMs = (tMs - RUN_EXIT_DWELL * 1000L - runStartMs).coerceAtLeast(0)
-                val distM = (dist - runStartDist).coerceAtLeast(0.0)
+                var durMs = (tMs - RUN_EXIT_DWELL * 1000L - runStartMs).coerceAtLeast(0)
+                var distM = (dist - runStartDist).coerceAtLeast(0.0)
                 minSpeedSeitEnde = 99.0
                 runEndedMs = tMs   // Re-Arm-Cooldown starten
+                // GPS-Luecke direkt vor dem Ende, ueber die nicht weitergefahren wurde (Sturz, Uhr unter Wasser): Lauf
+                // endet am letzten guten Fix davor (LaufLuecke, wie Garmin, 12.11.2026).
+                luecke.schnitt(tMs, runStartMs)?.let { sn ->
+                    durMs = (sn.t - runStartMs).coerceAtLeast(0)
+                    distM = (sn.d - runStartDist).coerceAtLeast(0.0)
+                    if (sn.hr > 0) runMaxHr = sn.hr
+                    minSpeedSeitEnde = 0.0    // echter Stopp -> Neustart ist keine Fortsetzung
+                    if (trennen) runEndedMs = tMs - RUN_REARM_COOLDOWN_MS
+                }
                 // Zu kurz/zu langsam = kein Lauf (Server: MIN_SEGMENT_S 5 s, Floor 2,0 m/s).
                 val schnellGenug = durMs > 0 && distM / (durMs / 1000.0) >= MIN_RUN_AVG_MPS
                 if (!runIstFortsetzung && (durMs < MIN_RUN_MS || !schnellGenug)) {
@@ -427,6 +440,7 @@ object Recorder {
         markDistN = 0; markTimeN = 0
         lastRunDurMs = 0; lastRunDistM = 0.0; lastRunAvgMps = 0.0; lastRunMaxMps = 0.0
         lastRunStartMs = 0L; lastRunStartDist = 0.0; minSpeedSeitEnde = 99.0; runIstFortsetzung = false
+        luecke = LaufLuecke()
         laufSumme.reset()
         runMaxHr = 0; lastRunMaxHr = 0
         paused = false; pausedMs = 0L; pauseStartMs = 0L; pauseBeiMs = 0; pauseListe.clear()
@@ -464,6 +478,7 @@ object Recorder {
             pauseListe.add(pauseBeiMs to dauer.toInt())
         }
         paused = false
+        luecke = LaufLuecke()   // eine Luecke ueber die Pause hinweg ist keine
         LocalStore.setzeLaufMarke(ctx)
         _state.value = _state.value.copy(paused = false, status = I18n.t("rec.recording"), pauseMahnung = 0)
     }
@@ -888,6 +903,7 @@ object Recorder {
         // (SMOOTH_WINDOW_S + _running_median). Ein einzelner Ausreisser haelt den Mittelwert
         // drei Sekunden lang oben und kann so einen Phantom-Lauf starten.
         val sp3 = if (spWin.isEmpty()) sp else spWin.map { it[1] }.sorted()[spWin.size / 2]
+        luecke.fix(tMs.toLong(), distM, lat, lon, sp, !poor, runMaxHr, foiling)
         val nowFoiling = updateFoilingRun(sp3 * 3.6, tMs.toLong(), distM, sp)
         if (nowFoiling) pruefeMarken(tMs.toLong(), distM)
         // aktueller Lauf live (solange foilend), sonst letzter Lauf

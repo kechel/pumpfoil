@@ -1548,7 +1548,14 @@ Stehen nur alle bis zu 50 s eine Position, und bleibt). Konzept mit Jan abgestim
       im Simulator, neu 0:50. Neuer Testbuild 1.0.102-tb.
       **Simulator 1.0.102-tb (Jan, 12.11.): Fall 3 0:50 / 226 m (Server 51 s), Fall 4 Sturz 0:36 / 182 m (alt ~0:58) —
       Garmin-Teil abgenommen.** Live-Timer laeuft in der Luecke weiter (gewollt), LAST RUN rechnet beim Ende zurueck.
-- [ ] Apple Watch, danach Wear OS + Handy-Recorder Android/iOS, dann Zepp, Huawei, Suunto (Tabelle in PARITY-AUDIT).
+- [x] FR55 (ENG) im Simulator 12.11.: Fall 4 Sturz 0:36 / 187 m, Speicher 97,7 / 123,8 KB.
+- [x] Apple Watch (`Recorder.swift`, private `LaufLuecke`; im Lauf haelt `gpsFrischePruefen` das 3-s-Tempo bis 15 s statt
+      es nach 3 s auf 0 zu setzen — vorher zerfiel ein Lauf bei jeder Luecke > 3 s in zwei), iPhone-Recorder
+      (`PhoneRecorder.swift`), Wear + Android-Handy (`LaufLuecke.kt` je Modul, JVM-Test `LaufLueckeTest`). Bei den
+      Recordern mit Erkennung nur bei Fixen (Wear, beide Handys) zaehlte bisher die GANZE Luecke mit. Nicht gebumpt.
+      Swift nur Parse-Check (Typpruefung in Xcode bei Jan), Kotlin kompiliert + Tests gruen.
+- [ ] Jan: Apple-Watch-Simulator und Wear-Emulator mit den Test-GPX (Fall 3 + 4).
+- [ ] Zepp, Huawei, Suunto (Tabelle in PARITY-AUDIT).
 - Nebenbefund KORRIGIERT: `watch/test/lite-minimal.test.mjs` „Lite-Fassungen stehen im Quelltext" schlug schon auf HEAD fehl
   (verbot auch den SensorLogger, den 8ec18c47 am 05.11. absichtlich fuer Accel-in-FIT eingebaut hat) -> Test prueft jetzt: kein eigener Listener, SensorLogger nur hinter `Wege.fitAccel`.
 

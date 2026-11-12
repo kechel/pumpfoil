@@ -134,6 +134,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     private var maxGlattWin: [[Double]] = []
     private var spdMaxGlatt = 0.0
     private var minSpeedSeitEnde = 99.0
+    private var luecke = LaufLuecke()   // GPS-Luecke am Lauf-Ende (s. LaufLuecke unten)
     private var lastRunStartMs = 0.0, lastRunStartDist = 0.0   // Start des zuletzt beendeten Laufs
     private let MAX_PLAUSIBLE_MPS = 32.0 / 3.6   // darueber ist es kein Pumpfoil
     private let SPRUNG_MPS = 80.0 / 3.6          // Live-Strecke: schneller = GPS-Sprung, fuer jede Sportart
@@ -197,6 +198,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         runCnt = 0; runStartMs = 0; runStartDist = 0; runMaxMps = 0
         lastRunDurMs = 0; lastRunDistM = 0; lastRunMaxMps = 0
         lastRunStartMs = 0; lastRunStartDist = 0; minSpeedSeitEnde = 99.0; runIstFortsetzung = false
+        luecke = LaufLuecke()
         laeufeListe = []; distVerlauf = []
         var meta: [String: Any] = [
             "session_uuid": uuid, "started_at": Self.nowIso(), "sport": "pumpfoil",
@@ -486,6 +488,8 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         let sp3 = sortiert.isEmpty ? sp : sortiert[sortiert.count / 2]
         distVerlauf.append((t: Double(tMs), d: distM))
         while distVerlauf.count > 1, let f = distVerlauf.first, Double(tMs) - f.t > 8000 { distVerlauf.removeFirst() }
+        luecke.fix(t: tMs, d: distM, lat: l.coordinate.latitude, lon: l.coordinate.longitude, spd: sp,
+                   gut: l.horizontalAccuracy >= 0 && l.horizontalAccuracy <= 20, hr: 0, laeuft: foiling)
         let nowFoiling = updateFoilingRun(sp3 * 3.6, Double(tMs), distM, sp)
         gpsFix = true
         speedKmh = sp * 3.6; speed3sKmh = sp3 * 3.6
@@ -511,6 +515,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
 
     private func updateFoilingRun(_ sp3Kmh: Double, _ tMs: Double, _ dist: Double, _ spMps: Double) -> Bool {
         if !foiling {
+            luecke.trennen = false   // nur im Lauf von Bedeutung
             // Minimum IMMER mitfuehren (auch im Cooldown) — dort zeigt sich ein echter Stopp.
             if spMps < minSpeedSeitEnde { minSpeedSeitEnde = spMps }
             // Cooldown nur nach echtem Stopp; sonst Fortsetzung desselben Laufs.
@@ -544,12 +549,23 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
         } else {
             if spdMaxGlatt > runMaxMps { runMaxMps = spdMaxGlatt }
             foilExit = sp3Kmh < 9 ? foilExit + 1 : 0
-            if foilExit >= RUN_EXIT_DWELL {
+            let trennen = luecke.trennen
+            luecke.trennen = false
+            if foilExit >= RUN_EXIT_DWELL || trennen {
                 foiling = false; foilEnter = 0
-                let durMs = max(0, tMs - Double(RUN_EXIT_DWELL) * 1000 - runStartMs)
-                let distM = max(0, dist - runStartDist)
+                var durMs = max(0, tMs - Double(RUN_EXIT_DWELL) * 1000 - runStartMs)
+                var distM = max(0, dist - runStartDist)
                 minSpeedSeitEnde = 99.0
                 runEndedMs = tMs
+                // GPS-Luecke direkt vor dem Ende, ueber die nicht weitergefahren wurde: Lauf endet am letzten guten
+                // Fix davor (wie Garmin LaufLuecke.mc, 12.11.2026). Ohne das zaehlte hier die GANZE Luecke mit, weil
+                // die Erkennung nur bei eintreffenden Fixen laeuft.
+                if let sn = luecke.schnitt(jetzt: Int(tMs), start: Int(runStartMs)) {
+                    durMs = max(0, Double(sn.t) - runStartMs)
+                    distM = max(0, sn.d - runStartDist)
+                    minSpeedSeitEnde = 0      // echter Stopp -> Neustart ist keine Fortsetzung
+                    if trennen { runEndedMs = tMs - RUN_REARM_COOLDOWN_MS }
+                }
                 // Zu kurz/zu langsam = kein Lauf (dieselbe Regel wie am Server).
                 let schnellGenug = durMs > 0 && distM / (durMs / 1000.0) >= MIN_RUN_AVG_MPS
                 if runIstFortsetzung || (durMs >= MIN_RUN_MS && schnellGenug) {
@@ -741,4 +757,44 @@ struct LiveLauf: Equatable {
     let distM: Double
     let avgKmh: Double
     let maxKmh: Double
+}
+
+/// GPS-Luecke am Lauf-Ende (12.11.2026, Vorlage Garmin `watch/source/LaufLuecke.mc`, Regel in docs/PARITY-AUDIT.md
+/// Punkt 9). Waehrend des Laufs wird bis 15 s nie unterbrochen; endet der Lauf und lag direkt davor eine Luecke (> 3 s
+/// ohne guten Fix, danach nicht laenger als 3 s schnell) oder laeuft sie noch, entscheidet die Luftlinie ueber die
+/// Luecke: ab 2,5 m/s durchgefahren, sonst endet der Lauf am guten Fix davor. Luecke > 15 s im Lauf trennt (Server
+/// GAP_SPLIT_S). Zeiten in ms der Aufnahme-Achse (elapsedMs), Strecke = distAccum.
+private struct LaufLuecke {
+    static let lueckeMs = 3000
+    static let trennMs = 15000
+    static let fahrMps = 2.5            // = Ende-Schwelle 9 km/h
+
+    var gT = -1, gD = 0.0, gHr = 0      // letzter guter Fix (gut + Tempo >= 2,5 m/s)
+    var fT = -1, fLat = 0.0, fLon = 0.0 // letzter guter Fix ueberhaupt
+    var aT = -1, bT = -1, aV = 0.0      // letzte geschlossene Luecke: Beginn, Ende, Tempo ueber die Luftlinie
+    var pT = -1, pD = 0.0, pHr = 0      // guter Fix VOR dieser Luecke
+    var trennen = false
+
+    mutating func fix(t: Int, d: Double, lat: Double, lon: Double, spd: Double, gut: Bool, hr: Int, laeuft: Bool) {
+        guard gut else { return }       // schlechter Fix zaehlt als Luecke
+        if fT >= 0 && t - fT > Self.lueckeMs {
+            let dla = (lat - fLat) * .pi / 180
+            let dlo = (lon - fLon) * .pi / 180 * cos((lat + fLat) / 2 * .pi / 180)
+            let m = 6371000 * (dla * dla + dlo * dlo).squareRoot()
+            aT = fT; bT = t; aV = m / (Double(t - fT) / 1000)
+            pT = gT; pD = gD; pHr = gHr
+            if laeuft && t - fT > Self.trennMs { trennen = true }
+        }
+        fT = t; fLat = lat; fLon = lon
+        if spd >= Self.fahrMps { gT = t; gD = d; gHr = hr }
+    }
+
+    func schnitt(jetzt: Int, start: Int) -> (t: Int, d: Double, hr: Int)? {
+        if fT >= 0 && jetzt - fT > Self.lueckeMs {
+            return gT >= 0 && gT >= start ? (gT, gD, gHr) : nil
+        }
+        if aT < 0 || gT > bT + Self.lueckeMs || pT < 0 || pT < start { return nil }
+        if bT - aT <= Self.trennMs && aV >= Self.fahrMps { return nil }
+        return (pT, pD, pHr)
+    }
 }
