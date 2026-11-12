@@ -2489,7 +2489,7 @@ function SportregelRow({ r }: { r: Record<string, any> }) {
   return (
     <Card className="p-3 text-sm">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <Link to={`/session/${r.session_id}`} className="font-semibold text-brand-700 hover:underline dark:text-brand-300">#{r.session_id}</Link>
+        <Link to={`/sessions/${r.session_id}`} className="font-semibold text-brand-700 hover:underline dark:text-brand-300">#{r.session_id}</Link>
         <span className="text-slate-200">{r.name ?? "—"}</span>
         <span className="text-slate-400">{r.ort ?? "—"} · {r.started_at?.slice(0, 10)}</span>
         <span className="text-slate-300">{t("adm.sr.now", { sport: t(`cls.sport.${r.sport_class}`), src: r.sport_source })}</span>
