@@ -149,9 +149,20 @@ export function CompareHrStrips({ items, markiert, onKlick, vergleich, sortierun
           const v = spdMps[von + k];
           spd.push(v != null && isFinite(v) ? v * 3.6 : null);
         }
-        const basis = werte.find((v) => v != null) ?? null;
-        const delta = werte.map((v) => (v != null && basis != null ? v - basis : null));
-        out.push({ key: `${it.key}:${ri}`, item: it.key, label: it.label, nr: ri + 1, hr: werte, dist, spd, delta });
+        // Ein Punkt ist NICHT immer eine Sekunde (Nutzer-Feedback 12.11.2026): Uhren mit „intelligenter Aufzeichnung"
+        // (z. B. Garmin Instinct ueber Garmin Connect) speichern nur etwa alle 2 s einen Punkt — die Zeitachse war dann
+        // halb so lang wie der Lauf. Generisch aus den Daten: weichen Punktzahl und Laufdauer (Server, `duration_s`)
+        // um mehr als 2 s ab, wird auf die echte Dauer umgerechnet — je Sekunde der zeitlich naechste Punkt
+        // (gleichmaessige Abstaende angenommen; Zeiten je Punkt gibt es nur in der eigenen Ansicht).
+        const dauer = typeof s.duration_s === "number" ? Math.round(s.duration_s) : null;
+        const n = werte.length;
+        const umrechnen = dauer != null && n > 1 && Math.abs(dauer - (n - 1)) > 2;
+        const jeSek = <T,>(a: T[]): T[] => (!umrechnen ? a
+          : Array.from({ length: dauer! + 1 }, (_, sek) => a[Math.min(n - 1, Math.round((sek * (n - 1)) / dauer!))]));
+        const hrS = jeSek(werte), distS = jeSek(dist), spdS = jeSek(spd);
+        const basis = hrS.find((v) => v != null) ?? null;
+        const delta = hrS.map((v) => (v != null && basis != null ? v - basis : null));
+        out.push({ key: `${it.key}:${ri}`, item: it.key, label: it.label, nr: ri + 1, hr: hrS, dist: distS, spd: spdS, delta });
       }
     }
     return out;
