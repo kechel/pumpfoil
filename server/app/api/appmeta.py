@@ -1222,7 +1222,7 @@ NAECHSTES: list[dict] = [
     # 05.11.2026 (Jan): Text nachgezogen — die Watch 5 ist seit 04.11. im Store, der Wear-Engine-Antrag fuer GT/Fit/D
     # ist am 04.11. eingereicht (docs/TODO.md Protokoll).
     # Version wie auf der Uhr (watch-huawei/lite konfig.js APP_VERSION, Jan 05.11.: „statt later auch die aktuelle versionsnummer").
-    {"name": "Huawei Watch GT / Fit / D", "version": "1.0.5",
+    {"name": "Huawei Watch GT / Fit / D", "version": "1.0.6",
      "spaeter": "waiting for Huawei's approval",
      "items": [
          "These watches have no internet of their own and send your sessions through the Pumpfoil phone app, which needs a separate approval from Huawei; we applied for it on 4 November 2026.",
@@ -1253,8 +1253,20 @@ NAECHSTES: list[dict] = [
      "items": [
          "The watch tells the phone which Suunto sport mode you started; under Linked accounts you set which sport each mode counts as.",
          "Max speed on the watch now matches the website: it only counts your runs and ignores short GPS spikes.",
+         "A short GPS dropout during a run, for example when your arm dips under water, no longer splits the run in two, and after a fall the run ends at the last GPS position.",
      ]},
     # Amazfit 1.0.15 am 10.11. eingereicht -> IN_REVIEW.
+    # 12.11.2026 (Jan: „3. koennten wir direkt bauen und releasen"): GPS-Luecke am Lauf-Ende wie Garmin 1.0.103 /
+    # iOS 1.1.66 — Huawei fd3896b9 (Watch 5 Seiten.ets; Watch 3/4 luecke.js; Lite ohne, 48-KB-Heap), Zepp cc767beb,
+    # Suunto d605f4c9. Versionen gebumpt: Huawei 1.0.6 (1000006), Amazfit 1.0.16 (19); Suunto bleibt 1.01 (nie eingereicht).
+    {"name": "Huawei Watch 5", "version": "1.0.6",
+     "items": [
+         "A short GPS dropout during a run, for example when your arm dips under water, no longer splits the run in two, and after a fall the run ends at the last GPS position.",
+     ]},
+    {"name": "Amazfit", "version": "1.0.16",
+     "items": [
+         "A short GPS dropout during a run, for example when your arm dips under water, no longer splits the run in two, and after a fall the run ends at the last GPS position.",
+     ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 

@@ -3,8 +3,8 @@
     "bundleName": "org.pumpfoil.huawei",
     "vendor": "pumpfoil",
     "version": {
-      "code": 1000005,
-      "name": "1.0.5"
+      "code": 1000006,
+      "name": "1.0.6"
     }
   },
   "deviceConfig": {},

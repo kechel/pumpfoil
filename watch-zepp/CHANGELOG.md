@@ -10,7 +10,15 @@ This changelog covers the Zepp OS watch app only.
 > and possibly after the upload — it is listed under 1.0.7. **Keep this file current with every
 > bump**, then nobody has to dig through commits again.
 
-## 1.0.15 — eingereicht am 10.11.2026 (code 18)
+## 1.0.16 — gebaut am 12.11.2026 (code 19), Einreichung bei Jan
+
+- **GPS-Luecke am Lauf-Ende** (cc767beb, wie Garmin 1.0.103 `LaufLuecke.mc`): Uhr unter Wasser liefert keine
+  Positionen. Vorher lief das 3-s-Fenster nach 3 s leer und der Lauf endete — ein 8-s-Eintauchen des Arms teilte den
+  Lauf in zwei. Jetzt haelt `_pushSpeed` im Lauf bis 15 s das Tempo; am Ende schneidet `_schnitt` auf den letzten
+  guten Fix (Luecke laeuft noch) bzw. den guten Fix vor einer nicht durchfahrenen Luecke; > 15 s trennt wie der
+  Server (GAP_SPLIT_S). Test tests/laufluecke.test.mjs (gegen den alten Code: Arm-Fall teilte). Nicht im Simulator.
+
+## 1.0.15 — eingereicht am 10.11.2026 (code 18) — FREIGEGEBEN 11.11.
 
 - **Sportart vor dem Start waehlen** (19.10.2026): Knopf „Sportart: …" auf der Seite „Foil & Alarm"
   (nur wenn der Server mehr als eine Sportart liefert, `/config?sp=1` -> `sports`), Tippen schaltet
