@@ -1812,6 +1812,10 @@ ohne Roh-Daten bleibt eine vorhandene Auswertung stehen. Ursache: laut Jan nicht
         Knopf-Fassung (Asset `GoogleG`); bisher ausgefiltert. Anlass: Nutzerin hatte sich im Web mit Google registriert
         und kam in der iPhone-App nicht hinein (11.11., Antwort ueber u230 verspricht es fuers naechste Update).
         Nur iOS 1.1.66 (Android hat Google nativ). **Von Jan im iOS-Simulator getestet (11.11.): Google-Login geht.**
+  **Neuerungen vom 12.11. fuer Android 1.1.49 / Wear 1.2.49 (Wear dafuer auf 1.2.49/1060 gebumpt; ungetestet, nur kompiliert):**
+  - [x] GPS-Luecke am Lauf-Ende (Phone-Recorder + Wear, LaufLuecke.kt, JVM-Tests gruen). **Vor der Einreichung: Wear-Emulator Fall 3+4.**
+  - [x] Sprint-Teamwertung: nicht gewertete Teams grau unter der Rangliste (`teams_ungewertet`).
+  - [x] Glides als eigene Faerbung wie Carves, Gleitphasen in der Tempo-Farbe, aus bei Sprint-Links (iOS im Code fuer nach 1.1.66).
   **iOS 1.1.66 (76) komplett von Jan getestet (11.11. spaet): „alles getestet, geht"** — EINGEREICHT 12.11. 06:32.
   **Testen (Jan, Simulator/Geraet):** Tipp auf Profilbild/Wappen in einer Bestenlisten-Zeile oeffnet NUR deren Ziel;
   Primaer-Knopf in einer Listenzeile setzt nur (springt nicht ins Team); Sprint-Band unter der Faerbung, verschwindet

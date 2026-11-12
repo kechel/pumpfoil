@@ -1256,6 +1256,17 @@ NAECHSTES: list[dict] = [
          "A short GPS dropout during a run, for example when your arm dips under water, no longer splits the run in two, and after a fall the run ends at the last GPS position.",
      ]},
     # Amazfit 1.0.15 am 10.11. eingereicht -> IN_REVIEW.
+    # 12.11.2026: Android 1.1.49 (64) / Wear 1.2.49 (1060) gebaut, wird eingereicht, sobald 1.1.48 freigegeben ist
+    # (Memory android-1-1-49-mitnehmen). Inhalt wie iOS 1.1.66 (ohne Google-Login, den hat Android nativ) plus die
+    # Web-Neuerungen vom 12.11.; Port-Liste docs/TODO.md. Vor der Einreichung: Wear-Emulator Fall 3+4 (GPS-Luecke).
+    {"name": "Android phone + Wear OS", "version": "1.1.49 / 1.2.49",
+     "items": [
+         "On global event pages, My team is now a single row; tap a greyed-out team to see why it does not count.",
+         "After an event, its page shows which team you competed for.",
+         "Tap a sprint value on the podium to open the run, with the stretch that counted highlighted on the map.",
+         "A short GPS dropout during a run, for example when your arm dips under water, no longer splits the run in two, and after a fall the run ends at the last GPS position.",
+         "Glides is now its own map colouring next to Carves and shows each glide in the speed colours, so you can see how you slow down.",
+     ]},
     # 12.11.2026 (Jan: „3. koennten wir direkt bauen und releasen"): GPS-Luecke am Lauf-Ende wie Garmin 1.0.103 /
     # iOS 1.1.66 — Huawei fd3896b9 (Watch 5 Seiten.ets; Watch 3/4 luecke.js; Lite ohne, 48-KB-Heap), Zepp cc767beb,
     # Suunto d605f4c9. Versionen gebumpt: Huawei 1.0.6 (1000006), Amazfit 1.0.16 (19); Suunto bleibt 1.01 (nie eingereicht).
