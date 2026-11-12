@@ -91,6 +91,20 @@ export class Stand {
   lastRunMaxHr: number = 0;
   runsSumDurMs: number = 0;
   runsSumDistM: number = 0;
+  // GPS-Luecke (wie common/lauf.js, Garmin LaufLuecke.mc, 12.11.2026).
+  lT: number = -1;
+  lLa: number = 0;
+  lLo: number = 0;
+  gT: number = -1;
+  gD: number = 0;
+  gHr: number = 0;
+  aT: number = -1;
+  bT: number = -1;
+  aV: number = 0;
+  pT: number = -1;
+  pD: number = 0;
+  pHr: number = 0;
+  trenn: boolean = false;
 
   /** Ein Takt je Sekunde; speed = GPS-Tempo in m/s oder -1. true = Lauf begonnen/beendet. */
   tick(el: number, jetzt: number, fix: boolean, lat: number, lon: number, speed: number, hr: number): boolean {
@@ -107,8 +121,8 @@ export class Stand {
         }
       }
       this.vorher = [lat, lon, jetzt];
-    } else {
-      this.vorher = null;
+    } else if (!this.foiling) {
+      this.vorher = null;   // im Lauf behalten: nach einer Luecke Tempo ueber die Luftlinie statt 0
     }
     if (v < 0 || v > MAX_SPRUNG_MPS) {
       v = 0;
@@ -140,6 +154,7 @@ export class Stand {
       this.c1 = b;
       this.c2 = this.spdMaxClean;
       this.spdMaxGlatt = Math.max(Math.min(a, b), Math.min(Math.max(a, b), this.c2));
+      this.luecke(el, lat, lon, v, hr);
     }
     this.median(this.cur, el, fix);
     const vorher: boolean = this.foiling;
@@ -150,7 +165,49 @@ export class Stand {
     return vorher !== this.foiling;
   }
 
+  /** GPS-Luecke: > 3 s ohne Fix (Uhr unter Wasser). */
+  luecke(t: number, la: number, lo: number, v: number, hr: number): void {
+    const d: number = t - this.lT;
+    if (this.lT >= 0 && d > 3000) {
+      this.aT = this.lT;
+      this.bT = t;
+      this.aV = meter(this.lLa, this.lLo, la, lo) / (d / 1000);
+      this.pT = this.gT;
+      this.pD = this.gD;
+      this.pHr = this.gHr;
+      if (this.foiling && d > 15000) {
+        this.trenn = true;
+      }
+    }
+    this.lT = t;
+    this.lLa = la;
+    this.lLo = lo;
+    if (v >= RUN_EXIT_MPS) {
+      this.gT = t;
+      this.gD = this.dist;
+      this.gHr = Math.max(this.runMaxHr, hr);
+    }
+  }
+
+  /** Beim Lauf-Ende: null = nichts zu korrigieren, sonst [Zeit, Strecke, Max-Puls] des letzten guten Fixes. */
+  schnitt(t: number, start: number): number[] | null {
+    if (this.lT >= 0 && t - this.lT > 3000) {
+      return this.gT >= 0 && this.gT >= start ? [this.gT, this.gD, this.gHr] : null;
+    }
+    if (this.aT < 0 || this.gT > this.bT + 3000 || this.pT < 0 || this.pT < start) {
+      return null;
+    }
+    if (this.bT - this.aT <= 15000 && this.aV >= RUN_EXIT_MPS) {
+      return null;
+    }
+    return [this.pT, this.pD, this.pHr];
+  }
+
   median(mps: number, t: number, fix: boolean): void {
+    // Im Lauf haelt eine Luecke bis 15 s das Tempo; das Ende prueft schnitt().
+    if (!fix && this.foiling && this.lT >= 0 && t - this.lT <= 15000) {
+      return;
+    }
     if (fix) {
       this.spWin.push([t, mps]);
     }
@@ -218,15 +275,29 @@ export class Stand {
       this.runMaxHr = this.hr;
     }
     this.exitStreak = (v3 < RUN_EXIT_MPS) ? this.exitStreak + 1 : 0;
-    if (this.exitStreak < RUN_EXIT_DWELL) {
+    const trenn: boolean = this.trenn;
+    this.trenn = false;
+    if (this.exitStreak < RUN_EXIT_DWELL && !trenn) {
       return;
     }
     this.foiling = false;
     this.enterStreak = 0;
-    const durMs: number = Math.max(0, t - RUN_EXIT_DWELL * 1000 - this.runStartMs);
-    const distM: number = Math.max(0, dist - this.runStartDist);
+    let durMs: number = Math.max(0, t - RUN_EXIT_DWELL * 1000 - this.runStartMs);
+    let distM: number = Math.max(0, dist - this.runStartDist);
     this.minSpeedSeitEnde = 99;
     this.runEndedMs = t;
+    const sn: number[] | null = this.schnitt(t, this.runStartMs);
+    if (sn !== null) {
+      durMs = sn[0] - this.runStartMs;
+      distM = sn[1] - this.runStartDist;
+      if (sn[2] > 0) {
+        this.runMaxHr = sn[2];
+      }
+      this.minSpeedSeitEnde = 0;
+      if (trenn || t - this.lT > 3000) {
+        this.runEndedMs = t - RUN_REARM_COOLDOWN_MS;
+      }
+    }
     const schnell: boolean = durMs > 0 && (distM / (durMs / 1000)) >= MIN_RUN_AVG_MPS;
     if (!this.runIstFortsetzung && (durMs < MIN_RUN_MS || !schnell)) {
       this.runMaxHr = 0;

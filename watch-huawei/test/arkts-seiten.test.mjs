@@ -9,6 +9,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import J0 from "../common/seiten.js";
 import JL from "../common/lauf.js";
+import "../common/luecke.js";   // GPS-Luecke (Watch 3/4; Watch 5 in Seiten.ets)
 const J = { ...J0, ...JL };   // Stand/Konfig liegen seit 08.10. in lauf.js
 
 const hier = dirname(fileURLToPath(import.meta.url));
@@ -143,4 +144,27 @@ test("ArkTS-Seiten: Sportart-Wahl vor dem Start (nur Watch 5, /devices/config?sp
   assert.equal(new A.Auswahl(null).sportId(k2), "wingfoil");
   // Konfig nimmt nur id + name
   assert.deepEqual(new A.Konfig({ sports: [{ id: "x", name: "X", extra: 1 }, sports[0]] }).sports, [{ id: "x", name: "X" }, sports[0]]);
+});
+
+// GPS-Luecken (12.11.2026, test/laufluecke.test.mjs): Sturz 36 s, Arm 8 s, 20 s im Lauf — ArkTS rechnet wie JS.
+test("Seiten.ets: GPS-Luecken (Sturz, Arm, Trennung) gleich", { skip: ohneTsc }, async () => {
+  const A = await arkts();
+  const plan = [[5, 0], [69, 3.4], [36, 0, false], [40, 0.3], [50, 3.4], [8, 3.4, false], [50, 3.4], [20, 0.3],
+    [40, 4], [20, 4, false], [40, 4], [51, 3.4], [10, 0.5, false], [40, 0.3]];
+  for (const mitTempo of [false, true]) {
+    const lauf = (S) => {
+      const s = new S.Stand();
+      let lat = 47.65, t = 0;
+      const w = [];
+      for (const [n, v, gps] of plan) for (let i = 0; i < n; i++, t++) {
+        lat += v / 111320;
+        if (s.tick(t * 1000, 1e12 + t * 1000, gps !== false, lat, 9.18, mitTempo ? v : -1, 120)) w.push(t);
+      }
+      return { s, w };
+    };
+    const a = lauf(J), b = lauf(A);
+    assert.ok(a.s.runCount >= 4, `Laeufe ${a.s.runCount}`);
+    assert.deepEqual(b.w, a.w);
+    assert.equal(JSON.stringify(b.s), JSON.stringify(a.s));
+  }
 });

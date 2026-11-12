@@ -65,8 +65,8 @@ Stand.prototype.tick = function (el, jetzt, fix, lat, lon, speed, hr) {
       if (dt > 0) v = meter(p[0], p[1], lat, lon) / dt;
     }
     this.vorher = [lat, lon, jetzt];
-  } else {
-    this.vorher = null;
+  } else if (!this.foiling) {
+    this.vorher = null;   // im Lauf behalten: nach einer Luecke Tempo ueber die Luftlinie statt 0
   }
   if (v < 0 || v > MAX_SPRUNG_MPS) { v = 0; sprung = true; }
   if (hr > 0) { this.hr = hr; this.hrSum += hr; this.hrN++; if (hr > this.hrMax) this.hrMax = hr; }
@@ -82,6 +82,7 @@ Stand.prototype.tick = function (el, jetzt, fix, lat, lon, speed, hr) {
     var a = this.c1, b = this.c2;
     this.c1 = b; this.c2 = this.spdMaxClean;
     this.spdMaxGlatt = Math.max(Math.min(a, b), Math.min(Math.max(a, b), this.c2));
+    if (this.luecke) this.luecke(el, lat, lon, v, hr);   // luecke.js (nicht auf Lite)
   }
   this.median(this.cur, el, fix);
   var vorher = this.foiling;
@@ -91,6 +92,8 @@ Stand.prototype.tick = function (el, jetzt, fix, lat, lon, speed, hr) {
   return vorher !== this.foiling;
 };
 Stand.prototype.median = function (mps, t, fix) {
+  // GPS-Luecke (luecke.js): im Lauf haelt eine Luecke bis 15 s das Tempo; auf Lite ist lT undefiniert.
+  if (!fix && this.lT >= 0 && this.foiling && t - this.lT <= 15000) return;
   if (fix) this.spWin.push([t, mps]);
   while (this.spWin.length && t - this.spWin[0][0] > SPEED_WIN_S * 1000) this.spWin.shift();
   var v = [];
@@ -131,11 +134,15 @@ Stand.prototype.lauf = function (v3, vInst, dist, t) {
   if (s.spdMaxGlatt > s.runMaxMps) s.runMaxMps = s.spdMaxGlatt;
   if (s.hr > s.runMaxHr) s.runMaxHr = s.hr;
   s.exitStreak = (v3 < RUN_EXIT_MPS) ? s.exitStreak + 1 : 0;
-  if (s.exitStreak < RUN_EXIT_DWELL) return;
+  var trenn = s.trenn;
+  s.trenn = false;
+  if (s.exitStreak < RUN_EXIT_DWELL && !trenn) return;
   s.foiling = false; s.enterStreak = 0;
   var durMs = Math.max(0, t - RUN_EXIT_DWELL * 1000 - s.runStartMs);
   var distM = Math.max(0, dist - s.runStartDist);
   s.minSpeedSeitEnde = 99; s.runEndedMs = t;
+  var e = s.ende ? s.ende(t, trenn) : null;        // luecke.js: Ende am letzten guten Fix
+  if (e) { durMs = e[0]; distM = e[1]; }
   var schnell = durMs > 0 && (distM / (durMs / 1000)) >= MIN_RUN_AVG_MPS;
   if (!s.runIstFortsetzung && (durMs < MIN_RUN_MS || !schnell)) {
     s.runMaxHr = 0; s.runIstFortsetzung = false; return;

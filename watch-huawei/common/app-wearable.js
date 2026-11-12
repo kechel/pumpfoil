@@ -5,6 +5,7 @@
  * passt jedes Buendel; nebenbei lebt der Recorder so so lange wie die App, nicht wie die Seite.
  */
 import R from "./common/recorder.js";
+import "./common/luecke.js";   // GPS-Luecke am Lauf-Ende (12.11.2026); nicht auf Lite (48-KB-Heap)
 // Nur Watch 3/4 (dieses Buendel kopiert sync-common.sh als wearable/…/app.js): Direkt-Upload ohne Handy.
 // Lite hat kein Netz und keinen Platz dafuer — dort steht die Lite-app.js ohne diese Zeilen.
 import D from "./common/direkt.js";
