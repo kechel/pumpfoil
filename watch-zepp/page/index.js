@@ -206,6 +206,9 @@ const RUN_ENTER_DWELL = 4, RUN_EXIT_DWELL = 3, RUN_REARM_COOLDOWN_MS = 25000;
 // (SessionRecorder.speed3sMed). Ohne GPS-Fix läuft das Fenster nach 3 s leer -> sp3 = 0 -> ein
 // laufender Lauf endet regulär über den Exit-Dwell (statt bei stehengebliebenem Speed weiterzulaufen).
 const SPEED_WIN_S = 3;
+// GPS-Luecke (12.11.2026, _luecke): so lange ohne Fix = Luecke; bis zur Trenngrenze haelt das Fenster im Lauf
+// das Tempo (Uhr unter Wasser), darueber trennt der Server (gps.py GAP_SPLIT_S = 15) und die Uhr auch.
+const LUECKE_MS = 3000, LUECKE_TRENN_MS = 15000;
 // Max-Speed saeubern — dieselben zwei Regeln wie der Server (analysis/gps.py):
 //   1) BURST: mehr als 5 m/s ueber dem 15-s-Median UND absolut ueber 28 km/h -> mehrsekuendiger
 //      Doppler-Burst, es gilt der Median.
@@ -2466,6 +2469,8 @@ Page(
     // altert das Fenster weg und ein laufender Lauf endet regulär, statt am letzten Speed zu kleben.
     _pushSpeed(mps, tMs, hasFix) {
       const s = this.state;
+      // GPS-Luecke (s. _luecke): im Lauf haelt eine Luecke bis 15 s das Tempo — nie mittendrin unterbrechen.
+      if (!hasFix && s.foiling && s.lT >= 0 && tMs - s.lT <= LUECKE_TRENN_MS) return;
       if (hasFix) s.spWin.push([tMs, mps]);
       while (s.spWin.length && tMs - s.spWin[0][0] > SPEED_WIN_S * 1000) s.spWin.shift();
       const v = [];
@@ -2474,6 +2479,34 @@ Page(
       v.sort((a, b) => a - b);
       const h = v.length >> 1;
       s.sp3 = (v.length % 2) ? v[h] : (v[h - 1] + v[h]) / 2;
+    },
+    // GPS-Luecke am Lauf-Ende (12.11.2026, wie Garmin watch/source/LaufLuecke.mc, Apple/Wear/Android/Huawei).
+    // Uhr unter Wasser (Sturz, Arm) = keine Positionen; vorher endete der Lauf 3 s nach Beginn der Luecke (Fenster
+    // leer), ein 8-s-Eintauchen teilte den Lauf. Regel, angeglichen an den Server (gps.py GAP_SPLIT_S = 15):
+    //   - Luecke = > 3 s ohne Fix. Im Lauf haelt sie bis 15 s das Tempo (_pushSpeed).
+    //   - Lauf-Ende mit noch laufender Luecke: Ende am letzten guten Fix (>= 2,5 m/s): Dauer, Strecke, Max-Puls.
+    //   - War die geschlossene Luecke das Letzte im Lauf und nicht durchgefahren (Luftlinie < 2,5 m/s oder > 15 s):
+    //     Ende am guten Fix davor.
+    //   - Luecke > 15 s im Lauf: Lauf endet rueckwirkend dort; geht es schnell weiter, beginnt ein neuer.
+    // lT letzter Fix, gT/gD/gHr letzter guter, aT/bT/aV letzte geschlossene Luecke (Beginn, Ende, Tempo Luftlinie),
+    // pT/pD/pHr guter Fix davor, trenn = Luecke > 15 s im Lauf geschlossen. Zeiten = aktive ms wie _updateRun.
+    _luecke(t, la, lo, v, hr) {
+      const s = this.state, d = t - s.lT;
+      if (s.lT >= 0 && d > LUECKE_MS) {
+        s.aT = s.lT; s.bT = t; s.aV = distM(s.lLa, s.lLo, la, lo) / (d / 1000);
+        s.pT = s.gT; s.pD = s.gD; s.pHr = s.gHr;
+        if (s.foiling && d > LUECKE_TRENN_MS) s.trenn = true;
+      }
+      s.lT = t; s.lLa = la; s.lLo = lo;
+      if (v >= RUN_EXIT_MPS) { s.gT = t; s.gD = s.dist; s.gHr = Math.max(s.runMaxHr, hr); }
+    },
+    // Beim Lauf-Ende: null = nichts zu korrigieren, sonst [Zeit, Strecke, Max-Puls] des letzten guten Fixes.
+    _schnitt(t, start) {
+      const s = this.state;
+      if (s.lT >= 0 && t - s.lT > LUECKE_MS) return s.gT >= 0 && s.gT >= start ? [s.gT, s.gD, s.gHr] : null;
+      if (s.aT < 0 || s.gT > s.bT + LUECKE_MS || s.pT < 0 || s.pT < start) return null;
+      if (s.bT - s.aT <= LUECKE_TRENN_MS && s.aV >= RUN_EXIT_MPS) return null;   // ueber die Luecke durchgefahren
+      return [s.pT, s.pD, s.pHr];
     },
     // Zustands-Automat, 1:1 aus SessionRecorder.mc:_updateRun / Recorder.kt:updateFoilingRun.
     // tMs = verstrichene Aufnahmezeit (nicht Wall-Clock), v3 = geglättete m/s, vInst = Rohwert.
@@ -2527,14 +2560,25 @@ Page(
         if (s.spdMaxGlatt > s.runMaxMps) s.runMaxMps = s.spdMaxGlatt;
         if (s.hr > s.runMaxHr) s.runMaxHr = s.hr;
         s.exitStreak = (v3 < RUN_EXIT_MPS) ? s.exitStreak + 1 : 0;
-        if (s.exitStreak >= RUN_EXIT_DWELL) {
+        const trenn = s.trenn;
+        s.trenn = false;
+        if (s.exitStreak >= RUN_EXIT_DWELL || trenn) {
           s.foiling = false; s.enterStreak = 0;
           // Ende auf den ersten langsamen Tick zurückdatieren; Kennzahlen festhalten.
           let durMs = tMs - RUN_EXIT_DWELL * 1000 - s.runStartMs;
           if (durMs < 0) durMs = 0;
-          const distM = Math.max(0, dist - s.runStartDist);
+          let distM = Math.max(0, dist - s.runStartDist);
           s.minSpeedSeitEnde = 99;
           s.runEndedMs = tMs;   // Re-Arm-Sperre starten
+          // GPS-Luecke: Ende am letzten guten Fix (s. _luecke).
+          const sn = this._schnitt(tMs, s.runStartMs);
+          if (sn) {
+            durMs = sn[0] - s.runStartMs; distM = sn[1] - s.runStartDist;
+            if (sn[2] > 0) s.runMaxHr = sn[2];
+            s.minSpeedSeitEnde = 0;   // keine Fortsetzung ueber die Luecke
+            // Getrennt oder Luecke laeuft noch: keine Sperre — kommt GPS zurueck und er pumpt, gleich ein neuer Lauf.
+            if (trenn || tMs - s.lT > LUECKE_MS) s.runEndedMs = tMs - RUN_REARM_COOLDOWN_MS;
+          }
           // Zu kurz/zu langsam = kein Lauf: weder zaehlen noch anzeigen.
           const schnellGenug = durMs > 0 && (distM / (durMs / 1000)) >= MIN_RUN_AVG_MPS;
           if (!s.runIstFortsetzung && (durMs < MIN_RUN_MS || !schnellGenug)) {
@@ -2592,6 +2636,8 @@ Page(
       s.lastRunStartMs = 0; s.lastRunStartDist = 0;
       s.lastRunDurMs = 0; s.lastRunDistM = 0; s.lastRunAvgMps = 0; s.lastRunMaxMps = 0;
       s.runsSumDurMs = 0; s.runsSumDistM = 0;
+      s.lT = -1; s.lLa = 0; s.lLo = 0; s.gT = -1; s.gD = 0; s.gHr = 0;   // GPS-Luecke (_luecke)
+      s.aT = -1; s.bT = -1; s.aV = 0; s.pT = -1; s.pD = 0; s.pHr = 0; s.trenn = false;
       s._ringKey = null;
     },
 
@@ -3303,8 +3349,8 @@ Page(
           }
         }
         s.geoSpeedPrev = [lat, lon, sampleNow];
-      } else if (!fix) {
-        s.geoSpeedPrev = null;
+      } else if (!fix && !s.foiling) {
+        s.geoSpeedPrev = null;   // im Lauf behalten: nach einer GPS-Luecke Tempo ueber die Luftlinie statt 0
       }
       if (speed < 0 || speed > MAX_SANE_MPS) { speed = 0; jump = true; }   // wie Garmin _saneSpeed
       else if (speed > MAX_PLAUSIBLE_MPS) { speed = 0; jump = true; }      // Positionssprung, kein Fahrer
@@ -3344,6 +3390,7 @@ Page(
           while (gw.length && sampleNow - gw[0][0] > SPEED_WIN_S * 1000) gw.shift();
           const gs = gw.map((x) => x[1]).sort((a, b) => a - b);
           s.spdMaxGlatt = gs[gs.length >> 1];
+          this._luecke(el, lat, lon, speed, hr);
           if (s.almOn) this._checkAlarm(speed * 3.6);   // Vibrationsalarm bei Speed-Grenzen
           // Alle zehn Punkte an die Datei anhaengen und die (winzigen) Kopfdaten sichern.
           if (s.gpsFile) {

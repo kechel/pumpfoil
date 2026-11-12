@@ -21,13 +21,13 @@ function schneide(name) {
   throw new Error(name + " nicht abgeschlossen");
 }
 // Konstanten der Lauf-Erkennung ebenfalls aus der Quelle (Modul-Gueltigkeitsbereich).
-const konst = ["RUN_ENTER_MPS", "RUN_ENTER_DWELL", "MAX_FOIL_MPS", "NOSTOP_MPS", "MIN_RUN_MS"].map((n) => {
+const konst = ["RUN_ENTER_MPS", "RUN_ENTER_DWELL", "MAX_FOIL_MPS", "NOSTOP_MPS", "MIN_RUN_MS", "LUECKE_MS"].map((n) => {
   const m = new RegExp(`^const ${n} = [^\\n]*$`, "m").exec(quelle);
   if (!m) throw new Error(n + " nicht gefunden");
   return m[0];
 }).join("\n");
 
-const teile = ["_updateRun", "_runsSum", "_resetRun"].map(schneide).join(",\n");
+const teile = ["_updateRun", "_runsSum", "_resetRun", "_schnitt"].map(schneide).join(",\n");
 const uhr = new Function(`${konst}
   return { state: null, ${teile} };`)();
 const RUN_ENTER_DWELL = Number(/const RUN_ENTER_DWELL = (\d+)/.exec(quelle)[1]);
