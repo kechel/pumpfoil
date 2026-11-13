@@ -1821,6 +1821,12 @@ ohne Roh-Daten bleibt eine vorhandene Auswertung stehen. Ursache: laut Jan nicht
         und kam in der iPhone-App nicht hinein (11.11., Antwort ueber u230 verspricht es fuers naechste Update).
         Nur iOS 1.1.66 (Android hat Google nativ). **Von Jan im iOS-Simulator getestet (11.11.): Google-Login geht.**
   **Neuerungen vom 12.11. fuer Android 1.1.49 / Wear 1.2.49 (Wear dafuer auf 1.2.49/1060 gebumpt; ungetestet, nur kompiliert):**
+  **Release-Checks 13.11. (vor der Einreichung):** Wear-Emulator Fall 3+4 bestanden (s. unten). Wear **R8-Release** 1.2.49
+  (debug-signiert) im Emulator: mit ALLEN Rechten (Health-Services-Weg, Falle von 1.2.40) Start → Pause („Tauolla",
+  Pausen-Seiten) → Fortsetzen → Stopp, gespeichert — kein FATAL/ANR; OHNE Rechte: alle Dialoge abgelehnt, App verweigert
+  die Aufnahme sichtbar („Standort-Recht fehlt") und fuehrt zu den Rechten — kein FATAL/ANR. Phone `assembleRelease`
+  1.1.49 (64) mit R8 gebaut (Wear-Engine-Keep-Regeln greifen). Offen nur noch: Signieren + Einreichen (Jan), sobald
+  1.1.48/1.2.48 durch ist.
   - [x] GPS-Luecke am Lauf-Ende (Phone-Recorder + Wear, LaufLuecke.kt, JVM-Tests gruen). Wear-Emulator Fall 3+4 **bestanden 13.11.** (0:49 / 1:08, Server 46 / 63 s).
   - [x] Sprint-Teamwertung: nicht gewertete Teams grau unter der Rangliste (`teams_ungewertet`).
   - [x] Glides als eigene Faerbung wie Carves, Gleitphasen in der Tempo-Farbe, aus bei Sprint-Links (iOS im Code fuer nach 1.1.66).
