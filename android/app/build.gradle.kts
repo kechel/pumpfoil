@@ -47,7 +47,11 @@ android {
         buildConfigField("String", "HUAWEI_WATCH_PKG", "\"org.pumpfoil.huawei\"")
         // Mehrere durch Komma: die ArkTS-Linie (Watch 5, watch-huawei/arkts) kann anders signiert
         // sein als Lite/JS-FA — dann beide eintragen, die Bruecke meldet sich fuer jeden an.
-        buildConfigField("String", "HUAWEI_WATCH_FP", "\"HUAWEI_WATCH_FINGERPRINT_EINTRAGEN\"")
+        // Lite-Uhren-App (GT/Fit/D), 13.11.2026: Format laut Huawei „Obtaining a Signing Certificate Fingerprint on the
+        // Wearable Device" = <Paketname>_<Base64 des ROHEN oeffentlichen Schluessels> (EC-Punkt 0x04…, nicht die DER-Huelle)
+        // aus dem Release-Zertifikat pumpfoil-release.cer (P-384). Oeffentlich, kein Geheimnis. Laenge 152 Zeichen —
+        // Huawei nennt fuer Lite „127 bits"; ob die Uhr das ablehnt/abschneidet, erst auf echter GT pruefbar.
+        buildConfigField("String", "HUAWEI_WATCH_FP", "\"org.pumpfoil.huawei_BFonZBpw0jsN/xxNsthh5fn6VgSGuUviJZza7BlL8AtSNkFr7agh1psBZRSvecyl4jPLPcld1VV4e4rzfGSTt0guTdUwq7wdpaRzAcHM+AwNJIBwjJv8A3nOpDh8dcbwkQ==\"")
         versionCode = 64
         versionName = "1.1.49"
     }
