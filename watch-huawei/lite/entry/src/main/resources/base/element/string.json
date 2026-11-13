@@ -11,6 +11,18 @@
     {
       "name": "MainAbility_label",
       "value": "Pumpfoil GT"
+    },
+    {
+      "name": "perm_accel",
+      "value": "Detects your pumping motion and runs on the foil during the session."
+    },
+    {
+      "name": "perm_location",
+      "value": "Records the GPS track and speed of your pump foiling session."
+    },
+    {
+      "name": "perm_health",
+      "value": "Records your heart rate during the session."
     }
   ]
 }

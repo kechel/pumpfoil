@@ -19,13 +19,19 @@
     },
     "reqPermissions": [
       {
-        "name": "ohos.permission.ACCELEROMETER"
+        "name": "ohos.permission.ACCELEROMETER",
+        "reason": "$string:perm_accel",
+        "usedScene": { "ability": [".MainAbility"], "when": "inuse" }
       },
       {
-        "name": "ohos.permission.LOCATION"
+        "name": "ohos.permission.LOCATION",
+        "reason": "$string:perm_location",
+        "usedScene": { "ability": [".MainAbility"], "when": "inuse" }
       },
       {
-        "name": "ohos.permission.READ_HEALTH_DATA"
+        "name": "ohos.permission.READ_HEALTH_DATA",
+        "reason": "$string:perm_health",
+        "usedScene": { "ability": [".MainAbility"], "when": "inuse" }
       }
     ],
     "abilities": [
