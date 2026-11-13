@@ -662,14 +662,15 @@ export default function SessionDetail() {
   const hauptGesamt = profil?.hauptzahl === "gesamt";
   // SUP mit und ohne Foil (ohne seit 25.10.2026): Paddelschlaege statt Pumps (server/app/paddel.py).
   const schlagSport = session?.sport_class === "sup_paddle" || session?.sport_class === "sup";
-  // Wind am Spot (Stand-Buch wind_am_spot, 19.10.2026): nur fuer Wind-Sportarten abrufen.
+  // Wind am Spot (Stand-Buch wind_am_spot, 19.10.2026): Wind-Sportarten, seit 13.11.2026 auch Pumpfoil (Jan: „eine
+  // anzeige der windstaerke und richtung bei pumpfoil-sessions" — Wind ist dort Fairness-Kontext, z. B. bei Sprints).
   const [wind, setWind] = useState<Awaited<ReturnType<typeof api.sessionWind>>["wind"]>(null);
   const [windVergleich, setWindVergleich] = useState<Awaited<ReturnType<typeof api.sessionWind>>["vergleich"]>(null);
   useEffect(() => {
     setWind(null); setWindVergleich(null);
-    if (profil?.gruppe !== "wind" || !session?.id) return;
+    if ((profil?.gruppe !== "wind" && !istPumpfoil) || !session?.id) return;
     api.sessionWind(session.id).then((r) => { setWind(r.wind); setWindVergleich(r.vergleich ?? null); }).catch(() => {});
-  }, [session?.id, profil?.gruppe]);
+  }, [session?.id, profil?.gruppe, istPumpfoil]);
   // Wenden/Halsen (nur Anzeige, wie Carves): Zaehler in der Wind-Box, Marken auf der Karte.
   const [manoever, setManoever] = useState<Awaited<ReturnType<typeof api.sessionManoever>> | null>(null);
   useEffect(() => {
@@ -2370,7 +2371,7 @@ export default function SessionDetail() {
         {owned && !isPublic && <SessionBewertungKachel sessionId={session.id} />}
       </div>
 
-      {/* Wind am Spot (Wind-Sportarten): Modellwerte, ausdruecklich keine Messung am Wasser. Der Pfeil
+      {/* Wind am Spot (Wind-Sportarten + Pumpfoil): Modellwerte, ausdruecklich keine Messung am Wasser. Der Pfeil
           zeigt, WOHIN der Wind weht (Richtung + 180), die Gradzahl, woher er kommt (Konvention). */}
       {wind?.mittel && (
         <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/40 px-3 py-2 text-sm">

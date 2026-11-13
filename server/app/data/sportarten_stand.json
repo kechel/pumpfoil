@@ -1065,6 +1065,23 @@
             "ios"
           ],
           "notiz": "pg-1 (analysis/pumpgleit, docs/PUMP-GLEIT.md), Weg B pg_*-Felder, Schalter PUMPGLEIT_ANZEIGE."
+        },
+        "wind_am_spot": {
+          "status": "live",
+          "en": "Wind speed, gusts and direction at the spot during the session (weather model, hourly, not measured on the water)",
+          "seit": "2026-11-13",
+          "wo": [
+            "server",
+            "web",
+            "android",
+            "ios"
+          ],
+          "plattformen": {
+            "web": "2026-11-13",
+            "android": "1.1.49",
+            "ios": "1.1.66"
+          },
+          "notiz": "13.11.2026 Jan: Windanzeige auch bei Pumpfoil (Fairness-Kontext bei Sprints, ohne das Event zu beeinflussen). Nur Anzeige, kein Vergleich Tempo je Wind (_tempo_je_wind nur gruppe wind), keine Wenden/Halsen."
         }
       }
     },
@@ -1663,6 +1680,19 @@
     }
   ],
   "verlauf": [
+    {
+      "datum": "2026-11-13",
+      "sport": [
+        "pumpfoil"
+      ],
+      "merkmal": "wind_am_spot",
+      "was": "Wind am Spot (Modell, stuendlich) jetzt auch auf Pumpfoil-Sessions: Staerke, Boeen, Richtung. Nur Anzeige.",
+      "wo": [
+        "web",
+        "android",
+        "ios"
+      ]
+    },
     {
       "datum": "2026-11-04",
       "sport": [

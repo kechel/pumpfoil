@@ -1966,10 +1966,13 @@ struct SessionDetailView: View {
     /// Wind am Spot + Wenden/Halsen holen — nur fuer Wind-Sportarten (Profil gruppe=wind).
     private func ladeWind() async {
         windInfo = nil; manoever = nil; windHinweisWeg = false
-        guard session?.sport_profil?.gruppe == "wind" else { return }
+        // Seit 13.11.2026 auch Pumpfoil: nur der Wind (Fairness-Kontext), keine Wenden/Halsen.
+        let istWind = session?.sport_profil?.gruppe == "wind"
+        let istPump = (session?.sport_class ?? "pumpfoil") == "pumpfoil"
+        guard istWind || istPump else { return }
         let wa = try? await Api.sessionWind(sid)
         windInfo = wa?.wind; windVergleich = wa?.vergleich
-        manoever = try? await Api.sessionManoever(sid)
+        if istWind { manoever = try? await Api.sessionManoever(sid) }
     }
 
     /// Misslungene Startversuche fuer die Karte. Nur einmal je Session, und nur wenn der

@@ -504,12 +504,14 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     var windInfo by remember(s.id) { mutableStateOf<SessionWindInfo?>(null) }
     var windVergleich by remember(s.id) { mutableStateOf<WindVergleich?>(null) }
     var manoever by remember(s.id) { mutableStateOf<ManoeverAntwort?>(null) }
-    LaunchedEffect(s.id, istWind) {
-        if (istWind) {
+    // Seit 13.11.2026 auch Pumpfoil: nur der Wind (Fairness-Kontext), keine Wenden/Halsen.
+    val windAuchPump = (s.sportClass ?: "pumpfoil") == "pumpfoil"
+    LaunchedEffect(s.id, istWind, windAuchPump) {
+        if (istWind || windAuchPump) {
             val wa = try { Api.sessionWind(s.id) } catch (_: Exception) { null }
             windInfo = wa?.wind; windVergleich = wa?.vergleich
-            manoever = try { Api.sessionManoever(s.id) } catch (_: Exception) { null }
         }
+        if (istWind) manoever = try { Api.sessionManoever(s.id) } catch (_: Exception) { null }
     }
     // Wake thief: Welle gegen gepumpt (20.10.2026).
     var wellePumpen by remember(s.id) { mutableStateOf<WellePumpen?>(null) }
