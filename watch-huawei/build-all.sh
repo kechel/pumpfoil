@@ -47,7 +47,10 @@ for m in release; do
     # 44000 unten faengt also nicht alles; die eigentliche Pruefung ist jerry-snapshot oben.
     GR=46000; [ "$m" = debug ] && GR=48800
     [ "$G" -le "$GR" ] || { echo "FEHLER: $f ($m) ist $G Byte — ueber 49152 laedt die Uhr die Datei nicht (Grenze hier $GR)"; rm -f "$BC"; exit 1; }
-    [ "${H:-99999}" -le 44000 ] || { echo "FEHLER: $f braucht beim Uebersetzen zu viel Heap (Grenze 44000 = 90 %) — verkleinern oder aufteilen"; rm -f "$BC"; exit 1; }
+    # 13.11.2026: Jans DevEco (Mac) ist STRENGER als jerry-snapshot hier: app.js mit Heap-Spitze 39216 (Text-Kuerzung)
+    # lief hier durch, dort „Failed to convert the app.js file to a snapshot"; ohne die Kuerzung (39088) keine Warnung.
+    # Darum harte Grenze 39100 je Buendel — mehr Code fuer Lite nur nach Zuschneiden (docs/TODO.md) + Jans Mac-Bau.
+    [ "${H:-99999}" -le 39100 ] || { echo "FEHLER: $f Heap-Spitze $H > 39100 — auf Jans DevEco (Mac) scheiterte 39216 am Snapshot"; rm -f "$BC"; exit 1; }
   done
 done
 rm -f "$BC"
