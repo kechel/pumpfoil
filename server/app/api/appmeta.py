@@ -1368,6 +1368,12 @@ IDEEN: list[str] = [
     # Vorschlag eines Team-Kapitaens im 1:1-Chat mit Jan (09.11.2026): Events weit im Voraus sehen, um sich
     # vorzubereiten. Heute zeigt /events nur kommende Events innerhalb von `EVENT_VORSCHAU`. Jan: „erstmal merken".
     "An event calendar, so you can see upcoming events well ahead and prepare for them.",
+    # Feedback-Formular 13.11.2026 (ein Fahrer, /einstellungen): Startversuche auf den Datenseiten der Uhr neben den
+    # Laeufen (heute zaehlt sie nur der Server, start_attempts_json), und ein Alarm, wenn der Puls wieder UNTER einen
+    # Wert faellt (heute gibt es nur hrHigh). Jan: „mit aufnehmen in ideas / future development".
+    "See your start attempts on the watch data screens, next to your runs.",
+    "A heart-rate alarm that tells you when your pulse has dropped back below a value you choose, so you know you are "
+    "ready for the next run.",
     # Heart Rate Recovery (ThermikDreher, 14.10.) stand hier ein paar Stunden — am selben Tag als
     # Pulsabfall 60/120 s in der Lauftabelle gebaut, steht im Changelog. Nicht wieder eintragen.
     # Der „private Modus" (Feedback #146) stand hier bis 25.09. — gebaut als „Ort verbergen",
