@@ -517,3 +517,27 @@ u38, 2 Laeufe -> 0) und #12509 (s. unten). Brett-Parallelfahrten: Uhr-Laeufe bes
 Offen fuer Jan: #12509 (u752) wird bei r7 zu einem 587-s-Lauf bei 0 Pumps (vorher 4 Laeufe, 378 s) — genau der Fall,
 in dem r4 die Mitte verwarf; #14868 (Pixel Watch 5, „attempts") verliert 16 von 81 Laeufen und damit den
 Laeufe-Rekord. Empfehlung, wenn ueberhaupt: r7a als Vorschau ansehen; live nur nach Sichtpruefung der Beispiele.
+
+## r8b: Accel in echtem g (13.11.2026) — gebaut und gemessen, NICHT live (Jan: „nicht live schalten")
+
+Anlass: die Garmin-App liefert milli-g (1000 je g) mit Etikett `accel_scale = 2048`, alle anderen Quellen 2048 je g
+(Huawei Ultimate 2: 512); r4 hat gemischt gelernt. `app/analysis/skala.py` rechnet beim LESEN auf echtes g um
+(Schalter `ACCEL_NORM`, aus), Einheit je Quelle (Weg|Plattform|Modell) aus `app/data/einheiten.json`
+(`scripts/einheiten-bestimmen.py`, 155 Quellen, drei Schaetzer: Median, Schwerkraft-Vektor, p10). r8b = Rezept r7s auf
+Datensaetzen in echtem g (`data/ml/v3/r8b/bauen.sh`, `stufe_a_r8b.pkl`).
+
+Faire Messung (Fahrer herausgehalten, Live-Weg, `messen_r7.py --kandidat "r4@norm,r7s,r8b@norm" --nur-b`):
+
+| | r4 (live) | r4+Umrechnung | r7s | r8b+Umrechnung |
+|---|---|---|---|---|
+| Brett alle Praez./Treffer | 0,848/0,926 | 0,854/0,924 | 0,855/0,922 | 0,863/0,916 |
+| Uhr-Laeufe bestaetigt | 91/104 | 91/104 | 91/101 | 91/99 |
+| u350 Fortsetzung (s/771) | 289 | 289 | 230 | 255 |
+| Land-Laeufe noch da (/82) | 21 | 21 | 22 | 19 |
+| Label-Wahrheit F1 (132 FIT) | 0,898 | 0,898 | – | 0,899 |
+| 300 Garmin-App-Sessions, Laeufe | 3473 | 3343 | – | 3357 |
+
+Bewertung: r8b+Umrechnung etwas praeziser, etwas weniger Treffer; die Umrechnung allein aendert gegen die Wahrheit
+nichts. Vorschlag fuer NACH dem Event (Jan entscheidet): r8b + ACCEL_NORM zusammen live, Ankuendigung, Reanalyse
+blockweise, danach `accel_scale` der Garmin-Connect-Sessions von 4194 zurueck auf 2048 (Sicherung
+analyse-notizen/2026-11-13-garmin-skala/). Federation: Einheit + Modell gehoeren zum Analyse-Stichtag.
