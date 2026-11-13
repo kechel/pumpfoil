@@ -1554,11 +1554,24 @@ Ergaenzung zu `LaufLuecke` (docs/PARITY-AUDIT.md Punkt 9), nicht Ersatz: viele U
 Uhren-Apps nicht ausbauen (CLAUDE.md) — nur auf Jans ausdrueckliches Wort.
 
 ### 13.11.2026 — Meldung: Lauf in zwei geteilt (Session #21487) + Idee Wind-Fairness bei Sprints
-- [ ] **#21487** (Nutzer 993, Vater eines Community-Nutzers; Meldung per DM 12.11. 23:23: „Lauf 7 und 8 gehoeren zusammen als
-      ein lauf"): zusammengefuehrte Session (`merge-…`, 50 Hz), Lauf 7 26 s / 127 m (Ende 2029 s), Lauf 8 18 s / 103 m
-      (Start 2033 s), dazwischen 4 s. Die gespeicherte Tempo-Spalte zeigt dort nur 0,5–0,7 m/s (2036–2037 s: 0) — passt
-      nicht zu Laeufen mit 3,9/4,9 m/s; Vermutung: Tempo aus der anderen Quelle der Zusammenfuehrung. Ungeprueft;
-      Erkennung nur mit Jans OK aendern. Kein Drama laut Meldung.
+- [ ] **#21487 — GROUND TRUTH „ein Lauf, in zwei geteilt"** (Nutzer 993; Meldung per DM 12.11. 23:23: „Lauf 7 und 8
+      gehoeren zusammen als ein lauf"). Zusammengefuehrt aus zwei Handy-Aufnahmen (#21473, #21478, placement phone,
+      Accel gemessen 35,5 Hz, `exact_chunks`). **Ursache geklaert 13.11. (rein lesend, Nachrechnung in READ-ONLY-Transaktion):**
+      - **GPS-Aussetzer des Handys:** 2029 s Positionssprung 14,8 m/s; **2030–2034 s Doppler-Tempo exakt 0**, Position
+        kaum bewegt (0,6–2,2 m/s); 2035 s Aufholsprung 12,6 m/s, 2036–2039 s Positions-Tempo 7–10 m/s ueber Doppler.
+        Luftlinie 2028,1 -> 2035,1 s ~28 m / 7 s = **~4 m/s — durchgefahren**.
+      - **Beschleunigung gleichmaessig:** RMS 0,60–0,67 g, Grundfrequenz 1,5–1,75 Hz durch die ganze Luecke (kein Sturz).
+      - **v3-Modell sicher auf dem Foil:** p 0,94–1,0, geglaettet 0,97–0,99 (Schwelle theta 0,4).
+      - **Getrennt hat v2 (GPS):** v2 UND der „tief"-Kandidat enden bei 2029,114 und beginnen bei 2033,111 s. v3 schliesst
+        Loecher nur INNERHALB eines Kandidaten (`_teil`, bis LUECKE_S+1 = 4 s), verbindet aber nie zwei Kandidaten;
+        `_merge_no_stop` sieht im Doppler 0 einen echten Stopp (< 1,5 m/s).
+      **Verbesserungswege (nicht gebaut, Analyse-Pipeline nur mit Jans OK):**
+      (a) v2/`_merge_no_stop`: „eingefrorenes" GPS (Doppler exakt 0, danach Aufholsprung) nicht als Stopp werten —
+          Luftlinie ueber die Luecke entscheidet wie auf den Uhren (LaufLuecke: >= 2,5 m/s = durchgefahren).
+      (b) v3: benachbarte Kandidaten-Laeufe verbinden, wenn die Luecke <= LUECKE_S+1 ist und p (geglaettet) durchgehend
+          >= theta bleibt — dieselbe Lochregel wie in `_teil`, nur ueber die Kandidatengrenze.
+      Vor einer Aenderung: zaehlen, wie oft das vorkommt (benachbarte Laeufe, Luecke <= 5 s, Doppler 0 in der Luecke,
+      Luftlinie >= 2,5 m/s) und gegen Gegenbeispiele pruefen (echte kurze Stopps mit Wiederanfahren).
 - [ ] **Idee Jan (13.11., Wind beim Sprint-Event):** Wertung, die Rueckenwind ausgleicht — z. B. „zwei Sprints in
       entgegengesetzter Richtung, hoechstens 100 m auseinander und hoechstens 10–20° Abweichung; der langsamere zaehlt".
       Jan: „das sind die herausforderungen sowas ohne schiedsrichter vor ort oder direktem vergleich". Nicht gebaut.
