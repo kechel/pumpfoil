@@ -1594,6 +1594,16 @@ Rein lesend geprueft (Sessions seit 05.11.):
   (Sicherung data/analyse-notizen/2026-11-13-garmin-skala/). Dazu: von Hand Eingestelltes geht beim Verknuepfen nie
   verloren, egal in welcher Richtung (sessions.manuell_json, app/manuell.py, b274e1e5). OFFEN bleiben Punkt 1 (andere
   Plattformen, Neu-Eichung) und 3 (Huawei).
+- **Plan Normierung (Jan 13.11.: „laesst sich das nicht serverseitig umrechnen bevor es in das model laeuft? in betracht
+  der federation muessen wir doch eh alles, egal wie es reinkommt, auf das identische model anpassen") — NACH DEM EVENT:**
+  1. EINE Stelle, an der die Analyse die Skala liest (heute ~15 Stellen lesen `session.accel_scale` direkt):
+     `analyse_skala(session)` -> echtes g. Garmin-App (alle Fassungen) = 1000/g, Garmin Connect zurueck auf 2048,
+     Huawei nach Klaerung; Plausibilitaet je Session: |a| in Ruhe ~1 g, sonst Warnung im Log.
+  2. Modelle haben GEMISCHT gelernt: foil_rf aus FIT-Labels (fēnix 7X Pro, data/fit-*, richtig skaliert = 1 g),
+     v3 stufe_a aus allen Plattformen (Garmin-App 0,49 g + Rest 1 g) -> nach der Normierung neu trainieren.
+  3. Gegenprobe je Plattform rein lesend: Brett-Paare (Handy am Brett) + die Garmin-Connect-Paare als natuerlicher A/B-Test.
+  4. Dann Reanalyse des Bestands (blockweise, Sicherung vorher). Federation: Normierung + Modellversion gehoeren zum
+     Analyse-Stichtag, den alle Knoten gleich haben muessen.
 
 ### 13.11.2026 — Meldung: Lauf in zwei geteilt (Session #21487) + Idee Wind-Fairness bei Sprints
 - [ ] **#21487 — GROUND TRUTH „ein Lauf, in zwei geteilt"** (Nutzer 993; Meldung per DM 12.11. 23:23: „Lauf 7 und 8
