@@ -221,7 +221,9 @@ function layout(e, c) {
       if (ay <= dh * 0.2 && (ob < 0 || ay < vorne[ob].y)) ob = vorne.length;
       var q = tq(ax, ay, groesse(st, dw), col, a, txt, typ === 1);
       // Platz bis zum Rand: Lite kennt nur 30/38 px und kuerzt damit selbst (maler.js, 13.11.2026)
-      q.mw = a === "l" ? dw - ax : (a === "r" ? ax : 2 * Math.min(ax, dw - ax));
+      // rund: die Zeile ist auf Hoehe ay nur so breit wie die Sehne des Kreises
+      var h = c.rund ? Math.sqrt(Math.max(0, dw * dw / 4 - (ay - dh / 2) * (ay - dh / 2))) : dw / 2, li = dw / 2 - h, re = dw / 2 + h;
+      q.mw = a === "l" ? re - ax : (a === "r" ? ax - li : 2 * Math.min(ax - li, re - ax));
       vorne.push(q);
     }
   }

@@ -16,7 +16,7 @@ function malen(c, befehle, lite) {
       else if (b.k === "t") {
         var px = lite ? (b.s >= 34 ? 38 : 30) : b.s, txt = b.txt;
         // zu breit (b.mw): 30 px + kuerzen
-        if (lite && b.mw && txt.length * 18 > b.mw) { px = 30; txt = txt.substring(0, (b.mw / 18 | 0) - 1) + "."; }
+        if (lite && b.mw) { if (txt.length * 24 > b.mw) px = 30; var n = b.mw / 21 | 0; if (txt.length > n) txt = txt.substring(0, n - 1) + "."; }
         c.fillStyle = b.c; c.font = px + "px";
         c.textAlign = b.a === "l" ? "left" : (b.a === "r" ? "right" : "center");
         // Lite setzt den Text mit der OBERKANTE auf y (Simulator 08.10.2026: alles ~0,85 × Groesse zu

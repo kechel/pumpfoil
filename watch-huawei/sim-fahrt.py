@@ -25,6 +25,7 @@ from datetime import datetime
 
 HIER = pathlib.Path(__file__).resolve().parent
 MAX_ZEICHEN = 200   # Obergrenze; was wirklich passt, prueft `snapshot_ok` (13.11.: je nach app.js 100-200 Zeichen)
+OHNE_PRUEFUNG = 90  # ohne jerry-snapshot: so viel ging am 13.11. sicher (106 ok, 133 nicht)
 CLT = pathlib.Path(os.environ.get("CLT_HOME", pathlib.Path.home() / "harmonyos/command-line-tools"))
 
 
@@ -147,8 +148,10 @@ def main():
             (z / "sim-gps.js").write_text(VORLAGE.format(quelle=p.name, n=len(kmh), ab=a.ab, r=r,
                                                            daten=daten.replace("\\", "\\\\")))
         ok = snapshot_ok()
+        if ok is None and zeichen > OHNE_PRUEFUNG:
+            zeichen = OHNE_PRUEFUNG; continue          # ohne Werkzeug (Mac: DevEco) nur, was sicher passt
         if ok is None:
-            print("Hinweis: HarmonyOS-Werkzeug fehlt — nicht geprueft, ob die Seite laedt (CLT_HOME)"); break
+            print(f"Hinweis: HarmonyOS-Werkzeug fehlt (CLT_HOME) — ungeprueft, sicherheitshalber {zeichen} Zeichen"); break
         if ok:
             break
         if zeichen <= 30:
