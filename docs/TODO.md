@@ -1565,6 +1565,16 @@ Rein lesend geprueft (Sessions seit 05.11.):
   oder die 100-Hz-Daten bzw. das Garmin-GPS (Smart Recording?) treffen die Erkennung schlechter. Vor einer Aenderung
   an der Regel (z. B. eigene bleibt primaer, wenn sie selbst schon volle Rate hat) mit der Kette ohne Speichern beide
   Seiten nachrechnen (wie scripts/v3/regression-eingefroren.py) und mit Jan entscheiden. Analyse-Regel: nur mit Jans OK.
+- **Nachgerechnet 13.11. (scripts/v3/regression-garmin-primaer.py, rein lesend, heutige Kette beidseitig):** eigene 325,
+  Garmin 303 Laeufe (-22); Foil-Zeit 296 vs. 299 min, Strecke 69.2 vs. 69.9 km — also kein alter Algo-Stand (der erklaert
+  nur #20313: gespeichert 35, heute 18 vs. 19), sondern echt: 28 eigene Laeufe fehlen bei Garmin ganz, fast alle KURZ
+  (3–8 s, drei 14–18 s), 6 kommen bei Garmin dazu (5–26 s). 53/64 gleiche Laufzahl. Deutlich: #20836 11->5 (fenix 7 Pro),
+  #21164 18->13, #21349 34->30, #20857 6->4 (FR55, beide 25 Hz). VERMUTUNG: Modell/Schwellen sind auf ~25 Hz der eigenen
+  App geeicht; Garmins 100-Hz-Daten (bzw. Garmin-GPS) schneiden knappe kurze Laeufe ab. „Mehr Hz gewinnt" bringt der
+  Erkennung also nichts.
+- Vorschlag (Jan entscheidet, NICHT vor dem Event): eigene bleibt primaer, wenn sie nicht `duenn` ist und selbst ~volle
+  Rate hat (>= 20 Hz) — Garmin-Datei wird nur angehaengt. Die 64 Altfaelle bleiben, wie sie sind, ausser Jan will sie
+  zurueckdrehen (DB-Schreiben, Fahrer-sichtbar).
 
 ### 13.11.2026 — Meldung: Lauf in zwei geteilt (Session #21487) + Idee Wind-Fairness bei Sprints
 - [ ] **#21487 — GROUND TRUTH „ein Lauf, in zwei geteilt"** (Nutzer 993; Meldung per DM 12.11. 23:23: „Lauf 7 und 8
