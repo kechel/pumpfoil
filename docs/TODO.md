@@ -1589,6 +1589,11 @@ Rein lesend geprueft (Sessions seit 05.11.):
      Sofort machbar ohne Analyse-Umbau: Garmin-Connect-Import auf die Einheit unserer App bringen, dann ist „Garmin
      primaer" unschaedlich.
   3. Huawei-Faktor 4 vor der GT-Freigabe klaeren (ArkTS rechnet m/s² / G * 2048 — Sensor liefert offenbar andere Einheit).
+- **ERLEDIGT 13.11. (Jans OK, vor dem Event):** Garmin-Connect-Import bekommt `accel_scale` 4194 (fitimport.GARMIN_APP_SKALA,
+  23f8c958); Bestand: 156 Garmin-Sessions umgestellt, 71 sichtbare neu ausgewertet, Laeufe 421 -> 443, Pumps 20598 -> 20945
+  (Sicherung data/analyse-notizen/2026-11-13-garmin-skala/). Dazu: von Hand Eingestelltes geht beim Verknuepfen nie
+  verloren, egal in welcher Richtung (sessions.manuell_json, app/manuell.py, b274e1e5). OFFEN bleiben Punkt 1 (andere
+  Plattformen, Neu-Eichung) und 3 (Huawei).
 
 ### 13.11.2026 — Meldung: Lauf in zwei geteilt (Session #21487) + Idee Wind-Fairness bei Sprints
 - [ ] **#21487 — GROUND TRUTH „ein Lauf, in zwei geteilt"** (Nutzer 993; Meldung per DM 12.11. 23:23: „Lauf 7 und 8
