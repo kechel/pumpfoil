@@ -1582,7 +1582,7 @@ Stehen nur alle bis zu 50 s eine Position, und bleibt). Konzept mit Jan abgestim
       Xcodes GPX-Simulation erreicht die Watch-App nicht): 8 s Luecke mitten im Lauf -> EIN Lauf 1:50 / 354 m / 12,2 km/h,
       Timer lief in der Luecke weiter, „GPS searching…“ sichtbar. Vorher waeren es zwei Laeufe gewesen.
       Das orange „GPS searching…“ liegt auf der Lauf-Seite ueber „on foil“ — so lassen (Jan: „das ist doch perfekt“).
-- [ ] Jan: Wear-Emulator (Fall 3 + 4), optional Apple `sturz`/`ende10`.
+- [x] Wear-Emulator Fall 3 + 4 (13.11., Wear 1.2.49 Debug, `android/wear/scripts/gps-luecke-emulator.py`): Fall 3 (10 s Luecke am Ende) Uhr **0:49 / 153 m**, Server 45,9 s / 153 m (#21520); Fall 4 (Sturz, 36 s) Uhr **1:08 / 218 m**, Server 63 s / 214 m (#21521). Erster Versuch ohne echte Luecke (#21519, Uhr 1:01): der Emulator wiederholt den letzten Fix mit Tempo — Luecke jetzt per abgeschalteter Ortung. Optional noch Apple `sturz`/`ende10`.
 - [ ] Zepp, Huawei, Suunto (Tabelle in PARITY-AUDIT).
 - Nebenbefund KORRIGIERT: `watch/test/lite-minimal.test.mjs` „Lite-Fassungen stehen im Quelltext" schlug schon auf HEAD fehl
   (verbot auch den SensorLogger, den 8ec18c47 am 05.11. absichtlich fuer Accel-in-FIT eingebaut hat) -> Test prueft jetzt: kein eigener Listener, SensorLogger nur hinter `Wege.fitAccel`.
@@ -1821,7 +1821,7 @@ ohne Roh-Daten bleibt eine vorhandene Auswertung stehen. Ursache: laut Jan nicht
         und kam in der iPhone-App nicht hinein (11.11., Antwort ueber u230 verspricht es fuers naechste Update).
         Nur iOS 1.1.66 (Android hat Google nativ). **Von Jan im iOS-Simulator getestet (11.11.): Google-Login geht.**
   **Neuerungen vom 12.11. fuer Android 1.1.49 / Wear 1.2.49 (Wear dafuer auf 1.2.49/1060 gebumpt; ungetestet, nur kompiliert):**
-  - [x] GPS-Luecke am Lauf-Ende (Phone-Recorder + Wear, LaufLuecke.kt, JVM-Tests gruen). **Vor der Einreichung: Wear-Emulator Fall 3+4.**
+  - [x] GPS-Luecke am Lauf-Ende (Phone-Recorder + Wear, LaufLuecke.kt, JVM-Tests gruen). Wear-Emulator Fall 3+4 **bestanden 13.11.** (0:49 / 1:08, Server 46 / 63 s).
   - [x] Sprint-Teamwertung: nicht gewertete Teams grau unter der Rangliste (`teams_ungewertet`).
   - [x] Glides als eigene Faerbung wie Carves, Gleitphasen in der Tempo-Farbe, aus bei Sprint-Links (iOS im Code fuer nach 1.1.66).
   - [x] Medien melden (12.11. nachmittags, Web 3e544745): Fahne an der Kachel „Neueste Medien" (Android; iOS per langem
