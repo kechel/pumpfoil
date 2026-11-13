@@ -580,6 +580,9 @@ class Session(Base):
     # Fremdkraft-Erkennung NICHT mehr — der Besitzer hat gesagt „der zählt doch". Bewusst dieselbe
     # Zeit-statt-Index-Mechanik wie oben (Läufe werden bei jeder Neuanalyse neu nummeriert).
     fremdkraft_keep: Mapped[str | None] = mapped_column(Text)
+    # Was der Fahrer (oder ein Admin) VON HAND eingestellt hat: {gruppe: ISO-Zeit} (app/manuell.py, 13.11.2026). Beim
+    # Verknuepfen zweier Aufnahmen derselben Fahrt gewinnt je Gruppe die juengere Aenderung von Hand.
+    manuell_json: Mapped[str | None] = mapped_column(Text)
     # „Auswertung festgehalten" (Jan, 11.11.2026): von Hand gesetzter Sonderfall — z. B. Laeufe, die wir nach
     # Pruefung zurueckgeholt haben (Kind/Anfaenger, die das Modell uebersieht). `run_analysis` rechnet solche Sessions
     # NICHT neu (Empfindlichkeit, Hintergrund-Neuauswertung, Detektor-Laeufe, Nutzer-Aktionen); nur ein Admin mit

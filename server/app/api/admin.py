@@ -1524,6 +1524,8 @@ def keep_pumpfoil(
     s.sport_class = "pumpfoil"
     s.data_quality = "ok"
     s.sport_source = "admin"
+    from .. import manuell
+    manuell.merken(s, "sportart")
     s.needs_classification = False
     s.appeal_text = None
     s.appeal_at = None
@@ -1727,6 +1729,8 @@ def resolve_open_classifications(
     for s in rows:
         s.sport_class = sport
         s.sport_source = "admin"
+        from .. import manuell
+        manuell.merken(s, "sportart")
         s.needs_classification = False
         s.appeal_text = None
         s.appeal_at = None
@@ -1769,6 +1773,8 @@ def set_all_sessions_sport(
     for s in rows:
         s.sport_class = sport
         s.sport_source = "admin"
+        from .. import manuell
+        manuell.merken(s, "sportart")
         s.needs_classification = False
         s.appeal_text = None
         s.appeal_at = None

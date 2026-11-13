@@ -876,10 +876,18 @@ def in_garmin_session_aufgehen(db: Session, eigene: models.Session, g: models.Se
     von der Uhr, alles Nutzergemachte, dann zeigt sie per merged_into auf die Garmin-Session und wird ausgeblendet.
     Danach neu auswerten (Sportart und Foil bestimmen die Auswertung)."""
     from ..analysis import run_analysis
+    from .. import manuell
     for feld in UEBERNEHMEN:
+        # Hat der Fahrer das an der Garmin-Session schon von Hand gesetzt (juenger als an unserer), bleibt es
+        # (13.11.2026, Jan: „manuelle eintraege des fahrers immer uebernommen … egal in welcher richtung").
+        gruppe = manuell.gruppe_von(feld)
+        if gruppe and manuell.neuer(g, eigene, gruppe):
+            continue
         wert = getattr(eigene, feld, None)
         if wert is not None:
             setattr(g, feld, wert)
+    # Und alles, was an unserer Aufnahme von Hand eingestellt wurde (Zuschnitt, aussortierte Laeufe … mit Startversatz).
+    manuell.uebernehmen(eigene, g)
     # Tanz-App (06.11.2026, #20252): `sport` ist sonst Garmins Rohwert („training"), die Tanz-Auswertung haengt aber an
     # sport == "dance" — und die Tanz-Abschnitte der Uhr muessen mit (app/tanz.py, nur fuer Tanz-Sessions).
     if (eigene.sport or "") == "dance":
@@ -1013,6 +1021,9 @@ def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
                              "von_session": g.id, "von_uuid": g.session_uuid},
                             praefix="fit-upload" if g.session_uuid.startswith("fit-") else "garmin-connect")
             nutzerinhalte_uebertragen(db, g, eigene)
+            # Von Hand an der Garmin-/FIT-Session Eingestelltes (Sportart, Foil, Stab, Zuschnitt …) kommt mit (13.11.2026).
+            from .. import manuell
+            manuell.uebernehmen(g, eigene)
             g.deleted = True
             g.merged_into = eigene.id      # alte Links leiten weiter (sessions.get_session)
             g.share_token = None

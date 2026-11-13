@@ -240,6 +240,8 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS trim_auto BOOLEAN",
         # Automatisch erkannte Autofahrten (analysis/autofahrt.py, 04.10.2026).
         "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS auto_fahrten TEXT",
+        # Aenderungen von Hand je Gruppe (app/manuell.py, 13.11.2026) — beim Verknuepfen mit Garmin/FIT nie verlieren.
+        "ALTER TABLE sessions ADD COLUMN IF NOT EXISTS manuell_json TEXT",
         # Garmin Connect: letztes Verbinden (verspaetete Abmeldung der alten Verbindung, app/api/garmin.py, 05.11.2026).
         "ALTER TABLE garmin_links ADD COLUMN IF NOT EXISTS verbunden_am TIMESTAMPTZ",
         # Polar: nicht bestaetigte Exercise-Transaktionen zaehlen (app/api/polar.py).

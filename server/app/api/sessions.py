@@ -3361,6 +3361,8 @@ def set_trim(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "trim_end_ms must be > trim_start_ms")
     s.trim_start_ms = a
     s.trim_end_ms = b
+    from .. import manuell
+    manuell.merken(s, "trim")
     # Vom NUTZER gesetzt: ab jetzt zaehlen Startversuche nur innerhalb dieses Fensters
     # (s. models.trim_auto). Beim Aufheben (null/null) wieder offen fuer die Automatik.
     s.trim_auto = None if (a is None and b is None) else False
@@ -3411,6 +3413,8 @@ def _save_excluded(db: Session, s: models.Session, wins: list[tuple[int, int]],
                    owned: bool = True) -> SessionOut:
     """Fenster speichern + dieselbe Session neu analysieren (wie beim Trim)."""
     s.excluded_ranges = dump_excluded_windows(wins)
+    from .. import manuell
+    manuell.merken(s, "excluded_ranges")
     db.commit()
     run_analysis(db, s)
     _spot_nachziehen(db, s)
@@ -3488,6 +3492,8 @@ def keep_powered_run(
     else:
         wins = [(ka, kb) for ka, kb in wins if not (ka < b and kb > a)]
     s.fremdkraft_keep = json.dumps(sorted(wins)) if wins else None
+    from .. import manuell
+    manuell.merken(s, "fremdkraft_keep")
     db.commit()
     run_analysis(db, s)
     _spot_nachziehen(db, s)
@@ -3686,6 +3692,13 @@ def set_meta(
         if v is not None and not 20 <= int(v) <= 300:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Gewicht 20-300 kg")
         s.rider_weight_kg = int(v) if v is not None else None
+    # Von Hand gesetzt (app/manuell.py): geht beim Verknuepfen mit Garmin/FIT nie verloren.
+    from .. import manuell
+    manuell.merken(s, *[f for f in ("foil_id", "stab_id", "board_id", "mast_len_cm", "shim_deg", "rider_weight_kg")
+                        if f in body.model_fields_set],
+                   *(["placement"] if body.placement is not None else []),
+                   *(["ort_sichtbarkeit"] if body.ort_sichtbarkeit is not None else []),
+                   *(["attitude_rot_deg"] if body.attitude_rot_deg is not None else []))
     db.commit()
     # „Am Brett" entscheidet den Erkennungsweg (am Brett kein Handgelenk-Modell, keine Pumps) —
     # wer es NACH der Auswertung umstellt, braucht eine neue Auswertung. Ohne das blieb der alte
@@ -4861,6 +4874,8 @@ def set_classification(
     if dq is not None:
         s.data_quality = dq
     s.sport_source = "admin" if is_admin else "owner"
+    from .. import manuell
+    manuell.merken(s, "sportart")
     # Zugeordnet heißt: die Frage ist beantwortet, der Widerspruch damit erledigt.
     s.needs_classification = False
     s.appeal_text = None

@@ -2,6 +2,7 @@
 apis.garmin.com, keine Doppelten zu eigenen Aufnahmen, Trennen und Abmelden bei Garmin."""
 import base64
 import hashlib
+import json
 import secrets
 from datetime import datetime, timedelta, timezone
 from urllib.parse import parse_qs, urlsplit
@@ -939,3 +940,94 @@ def test_garmin_connect_bekommt_die_skala_unserer_app(client, garmin, monkeypatc
             assert s is not None and s.session_uuid.startswith(praefix) and s.accel_scale == skala
     finally:
         db.close()
+
+
+def test_von_hand_an_der_garmin_session_kommt_zur_eigenen(client, garmin, monkeypatch, tmp_path):
+    # 13.11.2026, Jan: „manuelle eintraege des fahrers immer uebernommen werden, egal in welcher richtung". Garmin ist
+    # zuerst da, der Fahrer ordnet sie ein, stellt den Mast ein und schneidet zu; dann kommt unsere Aufnahme (2 min
+    # spaeter gestartet) und bleibt die Session -> alles kommt mit, der Zuschnitt um den Startversatz verschoben.
+    uid, kopf = _konto(client)
+    from app import models, storage
+    from app.db import SessionLocal
+    import app.api.sessions as sess
+    monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
+    monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(parents=True, exist_ok=True) or tmp_path / u)
+    monkeypatch.setattr(sess, "run_analysis", lambda db, s: None)
+    start = datetime(2026, 11, 4, 9, 0, tzinfo=timezone.utc)
+    db = SessionLocal()
+    try:
+        g = models.Session(session_uuid="garmin-" + secrets.token_hex(8), user_id=uid, started_at=start,
+                           ended_at=start + timedelta(minutes=40), status="analyzed", sport_class="wingfoil")
+        db.add(g); db.commit()
+        gid_s, guuid = g.id, g.session_uuid
+    finally:
+        db.close()
+    (tmp_path / guuid).mkdir(parents=True)
+    (tmp_path / guuid / "original.fit").write_bytes(b"VON-GARMIN")
+    assert client.put(f"/api/sessions/{gid_s}/classification", json={"sport": "pumpfoil"}, headers=kopf).status_code == 200
+    assert client.put(f"/api/sessions/{gid_s}/meta", json={"mast_len_cm": 85}, headers=kopf).status_code == 200
+    assert client.put(f"/api/sessions/{gid_s}/trim", json={"trim_start_ms": 300000, "trim_end_ms": 900000},
+                      headers=kopf).status_code == 200
+    sid, _ = _eigene_session(uid, start + timedelta(minutes=2))
+    db = SessionLocal()
+    try:
+        e = db.get(models.Session, sid)
+        e.sport_class, e.mast_len_cm = "wingfoil", 70          # Stand der Uhr (Standard-Sportart), nicht von Hand
+        db.commit()
+        assert garmin.nach_eigener_aufnahme(db, e) == 1
+        e = db.get(models.Session, sid)
+        assert e.sport_class == "pumpfoil" and e.sport_source == "owner" and e.mast_len_cm == 85
+        assert (e.trim_start_ms, e.trim_end_ms) == (180000, 780000)
+        assert {"sportart", "mast_len_cm", "trim"} <= set(json.loads(e.manuell_json))
+    finally:
+        db.close()
+
+
+def test_von_hand_bleibt_wenn_garmin_die_session_wird(client, garmin, monkeypatch):
+    # Andere Richtung: unsere Aufnahme geht in der Garmin-Session auf. Was an der Garmin-Session JUENGER von Hand steht,
+    # bleibt; was an unserer von Hand steht, kommt mit; der Stand der Uhr verdraengt nichts von Hand Gesetztes.
+    uid, kopf = _konto(client)
+    from app import models
+    from app.db import SessionLocal
+    import app.analysis as an
+    import app.api.sessions as sess
+    monkeypatch.setattr(an, "run_analysis", lambda db, s: None)
+    monkeypatch.setattr(sess, "run_analysis", lambda db, s: None)
+    start = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
+    sid, _ = _eigene_session(uid, start)
+    assert client.put(f"/api/sessions/{sid}/meta", json={"shim_deg": 1.5}, headers=kopf).status_code == 200
+    db = SessionLocal()
+    try:
+        e = db.get(models.Session, sid)
+        e.sport_class = "wingfoil"                               # von der Uhr
+        g = models.Session(session_uuid="garmin-" + secrets.token_hex(8), user_id=uid, started_at=start,
+                           ended_at=start + timedelta(minutes=40), status="analyzed", sport_class="pumpfoil")
+        db.add(g); db.commit()
+        gid_s = g.id
+    finally:
+        db.close()
+    assert client.put(f"/api/sessions/{gid_s}/classification", json={"sport": "sup_paddle"}, headers=kopf).status_code == 200
+    db = SessionLocal()
+    try:
+        garmin.in_garmin_session_aufgehen(db, db.get(models.Session, sid), db.get(models.Session, gid_s))
+        g = db.get(models.Session, gid_s)
+        assert g.sport_class == "sup_paddle"                     # von Hand an Garmin, juenger -> bleibt
+        assert g.shim_deg == 1.5                                 # von Hand an unserer -> kommt mit
+        assert db.get(models.Session, sid).merged_into == gid_s
+    finally:
+        db.close()
+
+
+def test_manuell_juengere_hand_gewinnt():
+    from types import SimpleNamespace as NS
+    from app import manuell
+    t = datetime(2026, 11, 4, 9, 0, tzinfo=timezone.utc)
+    a = NS(started_at=t, manuell_json=json.dumps({"stab_id": "2026-11-05T10:00:00+00:00"}), stab_id=7,
+           excluded_ranges="[[10000, 20000]]")
+    b = NS(started_at=t + timedelta(seconds=5), manuell_json=json.dumps({"stab_id": "2026-11-06T10:00:00+00:00"}),
+           stab_id=9, excluded_ranges=None)
+    assert manuell.uebernehmen(a, b) == [] and b.stab_id == 9            # b ist juenger von Hand
+    manuell.merken(a, "excluded_ranges")
+    assert manuell.uebernehmen(a, b) == ["excluded_ranges"]
+    assert json.loads(b.excluded_ranges) == [[5000, 15000]]              # 5 s Startversatz
+    assert manuell.uebernehmen(b, NS(started_at=t, manuell_json=None, stab_id=None)) == ["stab_id", "excluded_ranges"]
