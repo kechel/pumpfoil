@@ -1609,6 +1609,14 @@ Stehen nur alle bis zu 50 s eine Position, und bleibt). Konzept mit Jan abgestim
       Timer lief in der Luecke weiter, „GPS searching…“ sichtbar. Vorher waeren es zwei Laeufe gewesen.
       Das orange „GPS searching…“ liegt auf der Lauf-Seite ueber „on foil“ — so lassen (Jan: „das ist doch perfekt“).
 - [x] Wear-Emulator Fall 3 + 4 (13.11., Wear 1.2.49 Debug, `android/wear/scripts/gps-luecke-emulator.py`): Fall 3 (10 s Luecke am Ende) Uhr **0:49 / 153 m**, Server 45,9 s / 153 m (#21520); Fall 4 (Sturz, 36 s) Uhr **1:08 / 218 m**, Server 63 s / 214 m (#21521). Erster Versuch ohne echte Luecke (#21519, Uhr 1:01): der Emulator wiederholt den letzten Fix mit Tempo — Luecke jetzt per abgeschalteter Ortung. Optional noch Apple `sturz`/`ende10`.
+- [x] **Handy-Recorder Android gegen echte Daten (13.11.):** `RecorderReplayTest` (nur mit `PUMPFOIL_REPLAY`, Daten aus der
+      Prod-DB, nie im Repo) spielt 117 Android-Handy-Sessions mit 789 echten GPS-Luecken (> 3 s aus Fahrt >= 2,5 m/s)
+      durch die ECHTE Lauferkennung (`updateFoilingRun` + `LaufLuecke` per Reflection). 311 Laeufe aendern sich, **285
+      naeher am Server, 26 weiter weg** (bis 22 s zu kurz, wo nach einer Luecke langsam weitergefahren wurde). Beispiel
+      #10038: Anzeige bisher 2422 s „Lauf", jetzt 33 s (Server 35 s). Laufzahl: Abweichung je Session zum Server
+      375 -> 254 (52 Sessions besser, 26 schlechter); insgesamt jetzt eher mehr Laeufe als der Server (pumpfoil 1275 vs
+      1062 — Luecken > 15 s trennen, der Server fuehrt mit Accel/v3 teils wieder zusammen). Jans Emulator-Test #21523 mit
+      GPX hatte keine Luecke erreicht (GPX-Wiedergabe interpoliert: 6,7 m / 11 s = 0,61 m/s).
 - [ ] Zepp, Huawei, Suunto (Tabelle in PARITY-AUDIT).
 - Nebenbefund KORRIGIERT: `watch/test/lite-minimal.test.mjs` „Lite-Fassungen stehen im Quelltext" schlug schon auf HEAD fehl
   (verbot auch den SensorLogger, den 8ec18c47 am 05.11. absichtlich fuer Accel-in-FIT eingebaut hat) -> Test prueft jetzt: kein eigener Listener, SensorLogger nur hinter `Wege.fitAccel`.
