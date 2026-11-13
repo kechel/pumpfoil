@@ -1,6 +1,7 @@
 """Analyse-Pipeline: GPS-Foile-Erkennung (MVP) + Accel-Pump-Analyse (Phase 2)."""
 from __future__ import annotations
 
+from .skala import fuer_session as _skala  # Einheit fuer die Analyse (ACCEL_NORM, skala.py), 13.11.2026
 import json
 from datetime import datetime, timezone
 
@@ -635,6 +636,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
             trim_start_ms=lo, trim_end_ms=hi, excluded_ranges=None,
             accel_luecken=storage.accel_luecken(session.session_uuid),
             t1_by_index=storage.load_accel_t1(session.session_uuid),
+            uuid=session.session_uuid,
         )
         timebase_source = _tb.source
         if _tb.has_accel and _tb.accel_hz and _tb.accel_hz > 0:
@@ -730,10 +732,10 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
 
     if accel_usable:
         mask_override = predict_foiling_mask(
-            gps_samples, accel, accel_hz, session.accel_scale
+            gps_samples, accel, accel_hz, _skala(session, accel)
         )
         # Präziser Start: nur starke Aufsprung-Impulse (Jump) zum Snappen verwenden.
-        impulses = detect_jumps(accel, accel_hz, session.accel_scale)
+        impulses = detect_jumps(accel, accel_hz, _skala(session, accel))
         detection = "model"
     elif am_brett or _gps_only_ok(session.sport, session.sport_class) or _mensch_sagt_pumpfoil(session):
         # Wassersport-FIT ohne Beschleunigung (z. B. Surf-Modus): nur grobe GPS-
@@ -953,14 +955,14 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
     if accel_usable or (am_brett and accel.shape[0] > 0 and accel_hz >= MODEL_MIN_ACCEL_HZ):
         fs = accel_hz
         mask = _foiling_mask_for_accel(res["segments"], accel.shape[0], accel_hz)
-        accel_res = analyze_accel(accel, session.accel_scale, fs, foiling_mask=mask)
+        accel_res = analyze_accel(accel, _skala(session, accel), fs, foiling_mask=mask)
         # Pumps + Gleitphasen pro Segment (Glide = Lücke zwischen zwei Pump-Impulsen).
         # v3: Pump-Peaks auf dem VERTIKALEN Signal gegen die Schwerkraft, KADENZ-geführt
         # (find_pumps_cadence): pro lokaler Pump-Periode ein echter Peak. Gegen echte
         # Wahrheit (App-run_pumps + Jans Video-Taps) kalibriert; die alte Amplituden-
         # Schwelle (find_pumps_local) unter-erkannte ~2x (verschluckte kleine Pumps).
-        mag = magnitude_g(accel, session.accel_scale)
-        vsig = bandpass_fft(vertical_against_gravity(accel, session.accel_scale, fs), fs, *FILTER_BAND)
+        mag = magnitude_g(accel, _skala(session, accel))
+        vsig = bandpass_fft(vertical_against_gravity(accel, _skala(session, accel), fs), fs, *FILTER_BAND)
         t_ms = np.arange(mag.size) / fs * 1000.0
         gps_t = np.array([g[0] for g in gps_samples], dtype=float)  # gps-Zeit je Track-Punkt
         # Pro Trackpunkt eine lokale Pump-Frequenz (Hz) für die Karten-Einfärbung;

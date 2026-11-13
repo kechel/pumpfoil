@@ -164,7 +164,7 @@ def anlaeufe_session(session, gps_roh: list, accel_roh: np.ndarray) -> list[tupl
                         chunk_counts=_accel_chunk_counts(session.session_uuid),
                         t0_by_index=storage.load_accel_t0(session.session_uuid),
                         accel_luecken=storage.accel_luecken(session.session_uuid),
-                        t1_by_index=storage.load_accel_t1(session.session_uuid))
+                        t1_by_index=storage.load_accel_t1(session.session_uuid), uuid=session.session_uuid)
     if not (tb.has_accel and tb.accel_hz and tb.accel_hz > 0 and tb.t_accel_ms.size):
         return None
     hz = float(tb.accel_hz)

@@ -61,7 +61,7 @@ def uhr_daten(s) -> dict | None:
                         t0_by_index=storage.load_accel_t0(s.session_uuid),
                         trim_start_ms=lo, trim_end_ms=hi, excluded_ranges=None,
                         accel_luecken=storage.accel_luecken(s.session_uuid),
-                        t1_by_index=storage.load_accel_t1(s.session_uuid))
+                        t1_by_index=storage.load_accel_t1(s.session_uuid), uuid=s.session_uuid)
     if not (tb.has_accel and tb.accel_hz and tb.accel_hz > 0):
         return None
     fs = round(float(tb.accel_hz), 3)
@@ -72,7 +72,7 @@ def uhr_daten(s) -> dict | None:
     links = src[np.clip(pick - 1, 0, src.size - 1)]
     abst = np.minimum(np.abs(src[pick] - grid), np.abs(links - grid))
     return {"fs": fs, "lo": float(lo), "t": grid + float(lo),
-            "acc": tb.accel[pick].astype(np.float32) / float(s.accel_scale or 2048),
+            "acc": tb.accel[pick].astype(np.float32) / float(tb.accel_scale or 2048),   # Einheit wie die Achse (skala.py)
             "echt": abst <= max(2000.0 / fs, 250.0),
             "gps": np.asarray([[g[0], g[1], g[2], (g[3] if g[3] is not None else np.nan)] for g in gps], float),
             "gyro": None}

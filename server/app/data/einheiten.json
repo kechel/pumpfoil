@@ -1,0 +1,1405 @@
+{
+ "quellen": {
+  "app|-|*": {
+   "einheit": 2048.0,
+   "einig": 0.997,
+   "gemeldet": {
+    "2048": 369
+   },
+   "n": 328,
+   "ohne_schaetzung": 41
+  },
+  "app|-|-": {
+   "einheit": 2048.0,
+   "einig": 0.929,
+   "gemeldet": {
+    "2048": 17
+   },
+   "n": 14,
+   "ohne_schaetzung": 3
+  },
+  "app|-|Fairphone 6": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 5
+   },
+   "n": 5,
+   "ohne_schaetzung": 0
+  },
+  "app|-|Google Pixel 7a": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 23
+   },
+   "n": 23,
+   "ohne_schaetzung": 0
+  },
+  "app|-|Google Pixel 9a": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 13
+   },
+   "n": 9,
+   "ohne_schaetzung": 4
+  },
+  "app|-|Google sdk_gphone64_x86_64": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 4
+   },
+   "n": 4,
+   "ohne_schaetzung": 0
+  },
+  "app|-|HUAWEI VOG-L29": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 4
+   },
+   "n": 4,
+   "ohne_schaetzung": 0
+  },
+  "app|-|Motorola moto g(9) play": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 12
+   },
+   "n": 12,
+   "ohne_schaetzung": 0
+  },
+  "app|-|OPPO CPH2067": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 4
+   },
+   "n": 4,
+   "ohne_schaetzung": 0
+  },
+  "app|-|OPPO CPH2797": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 10
+   },
+   "n": 9,
+   "ohne_schaetzung": 1
+  },
+  "app|-|Samsung SM-A166B": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 17
+   },
+   "n": 15,
+   "ohne_schaetzung": 2
+  },
+  "app|-|Samsung SM-A266B": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 21
+   },
+   "n": 19,
+   "ohne_schaetzung": 2
+  },
+  "app|-|Samsung SM-A336B": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 3
+   },
+   "n": 3,
+   "ohne_schaetzung": 0
+  },
+  "app|-|Samsung SM-A556B": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 21
+   },
+   "n": 21,
+   "ohne_schaetzung": 0
+  },
+  "app|-|Samsung SM-A705FN": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 3
+   },
+   "n": 3,
+   "ohne_schaetzung": 0
+  },
+  "app|-|Samsung SM-F731B": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 38
+   },
+   "n": 36,
+   "ohne_schaetzung": 2
+  },
+  "app|-|Samsung SM-G781B": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 20
+   },
+   "n": 20,
+   "ohne_schaetzung": 0
+  },
+  "app|-|Samsung SM-S911B": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 12
+   },
+   "n": 11,
+   "ohne_schaetzung": 1
+  },
+  "app|-|Samsung SM-S921B": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 14
+   },
+   "n": 13,
+   "ohne_schaetzung": 1
+  },
+  "app|-|Samsung SM-S926U": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 7
+   },
+   "n": 6,
+   "ohne_schaetzung": 1
+  },
+  "app|-|Samsung SM-S926U1": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 5
+   },
+   "n": 5,
+   "ohne_schaetzung": 0
+  },
+  "app|-|Samsung SM-S928B": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 7
+   },
+   "n": 7,
+   "ohne_schaetzung": 0
+  },
+  "app|-|Samsung SM-S931B": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 3
+   },
+   "n": 3,
+   "ohne_schaetzung": 0
+  },
+  "app|-|Samsung SM-S948B": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 3
+   },
+   "n": 3,
+   "ohne_schaetzung": 0
+  },
+  "app|-|Xiaomi 23124RA7EO": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 5
+   },
+   "n": 5,
+   "ohne_schaetzung": 0
+  },
+  "app|-|Xiaomi 2312DRA50G": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 29
+   },
+   "n": 24,
+   "ohne_schaetzung": 5
+  },
+  "app|-|Xiaomi 25028RN03Y": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 21
+   },
+   "n": 20,
+   "ohne_schaetzung": 1
+  },
+  "app|-|motorola edge 50 fusion": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 10
+   },
+   "n": 10,
+   "ohne_schaetzung": 0
+  },
+  "app|-|motorola edge 70 fusion": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 3
+   },
+   "n": 3,
+   "ohne_schaetzung": 0
+  },
+  "app|apple|*": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 794
+   },
+   "n": 695,
+   "ohne_schaetzung": 99
+  },
+  "app|apple|-": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 218
+   },
+   "n": 186,
+   "ohne_schaetzung": 32
+  },
+  "app|apple|Watch5,10": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 34
+   },
+   "n": 31,
+   "ohne_schaetzung": 3
+  },
+  "app|apple|Watch6,11": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 4
+   },
+   "n": 3,
+   "ohne_schaetzung": 1
+  },
+  "app|apple|Watch6,13": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 16
+   },
+   "n": 14,
+   "ohne_schaetzung": 2
+  },
+  "app|apple|Watch6,14": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 33
+   },
+   "n": 27,
+   "ohne_schaetzung": 6
+  },
+  "app|apple|Watch6,18": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 47
+   },
+   "n": 44,
+   "ohne_schaetzung": 3
+  },
+  "app|apple|Watch6,7": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 21
+   },
+   "n": 15,
+   "ohne_schaetzung": 6
+  },
+  "app|apple|Watch6,8": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 4
+   },
+   "n": 4,
+   "ohne_schaetzung": 0
+  },
+  "app|apple|Watch6,9": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 18
+   },
+   "n": 17,
+   "ohne_schaetzung": 1
+  },
+  "app|apple|Watch7,12": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 143
+   },
+   "n": 129,
+   "ohne_schaetzung": 14
+  },
+  "app|apple|Watch7,13": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 4
+   },
+   "n": 3,
+   "ohne_schaetzung": 1
+  },
+  "app|apple|Watch7,14": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 12
+   },
+   "n": 11,
+   "ohne_schaetzung": 1
+  },
+  "app|apple|Watch7,18": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 12
+   },
+   "n": 8,
+   "ohne_schaetzung": 4
+  },
+  "app|apple|Watch7,2": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 17
+   },
+   "n": 16,
+   "ohne_schaetzung": 1
+  },
+  "app|apple|Watch7,4": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 3
+   },
+   "n": 3,
+   "ohne_schaetzung": 0
+  },
+  "app|apple|Watch7,5": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 121
+   },
+   "n": 113,
+   "ohne_schaetzung": 8
+  },
+  "app|apple|Watch7,8": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 43
+   },
+   "n": 35,
+   "ohne_schaetzung": 8
+  },
+  "app|apple|Watch7,9": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 13
+   },
+   "n": 13,
+   "ohne_schaetzung": 0
+  },
+  "app|apple|Watch8,1": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 11
+   },
+   "n": 10,
+   "ohne_schaetzung": 1
+  },
+  "app|garmin|*": {
+   "einheit": 1000.0,
+   "einig": 0.999,
+   "gemeldet": {
+    "2048": 3594
+   },
+   "n": 2738,
+   "ohne_schaetzung": 856
+  },
+  "app|garmin|006-B2544-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 11
+   },
+   "n": 9,
+   "ohne_schaetzung": 2
+  },
+  "app|garmin|006-B2604-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 22
+   },
+   "n": 16,
+   "ohne_schaetzung": 6
+  },
+  "app|garmin|006-B2691-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 25
+   },
+   "n": 10,
+   "ohne_schaetzung": 15
+  },
+  "app|garmin|006-B2697-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 58
+   },
+   "n": 20,
+   "ohne_schaetzung": 38
+  },
+  "app|garmin|006-B3076-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 63
+   },
+   "n": 34,
+   "ohne_schaetzung": 29
+  },
+  "app|garmin|006-B3077-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 20
+   },
+   "n": 20,
+   "ohne_schaetzung": 0
+  },
+  "app|garmin|006-B3110-00": {
+   "einheit": 1000.0,
+   "einig": 0.923,
+   "gemeldet": {
+    "2048": 20
+   },
+   "n": 13,
+   "ohne_schaetzung": 7
+  },
+  "app|garmin|006-B3111-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 13
+   },
+   "n": 13,
+   "ohne_schaetzung": 0
+  },
+  "app|garmin|006-B3113-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 66
+   },
+   "n": 56,
+   "ohne_schaetzung": 10
+  },
+  "app|garmin|006-B3225-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 29
+   },
+   "n": 17,
+   "ohne_schaetzung": 12
+  },
+  "app|garmin|006-B3258-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 24
+   },
+   "n": 14,
+   "ohne_schaetzung": 10
+  },
+  "app|garmin|006-B3288-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 54
+   },
+   "n": 46,
+   "ohne_schaetzung": 8
+  },
+  "app|garmin|006-B3289-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 4
+   },
+   "n": 3,
+   "ohne_schaetzung": 1
+  },
+  "app|garmin|006-B3290-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 63
+   },
+   "n": 49,
+   "ohne_schaetzung": 14
+  },
+  "app|garmin|006-B3291-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 241
+   },
+   "n": 226,
+   "ohne_schaetzung": 15
+  },
+  "app|garmin|006-B3589-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 30
+   },
+   "n": 29,
+   "ohne_schaetzung": 1
+  },
+  "app|garmin|006-B3599-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 9
+   },
+   "n": 8,
+   "ohne_schaetzung": 1
+  },
+  "app|garmin|006-B3704-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 7
+   },
+   "n": 5,
+   "ohne_schaetzung": 2
+  },
+  "app|garmin|006-B3851-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 9
+   },
+   "n": 3,
+   "ohne_schaetzung": 6
+  },
+  "app|garmin|006-B3905-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 92
+   },
+   "n": 73,
+   "ohne_schaetzung": 19
+  },
+  "app|garmin|006-B3906-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 220
+   },
+   "n": 198,
+   "ohne_schaetzung": 22
+  },
+  "app|garmin|006-B3907-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 205
+   },
+   "n": 180,
+   "ohne_schaetzung": 25
+  },
+  "app|garmin|006-B3908-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 4
+   },
+   "n": 4,
+   "ohne_schaetzung": 0
+  },
+  "app|garmin|006-B3943-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 130
+   },
+   "n": 80,
+   "ohne_schaetzung": 50
+  },
+  "app|garmin|006-B3990-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 4
+   },
+   "n": 4,
+   "ohne_schaetzung": 0
+  },
+  "app|garmin|006-B3992-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 38
+   },
+   "n": 21,
+   "ohne_schaetzung": 17
+  },
+  "app|garmin|006-B4024-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 70
+   },
+   "n": 63,
+   "ohne_schaetzung": 7
+  },
+  "app|garmin|006-B4105-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 54
+   },
+   "n": 46,
+   "ohne_schaetzung": 8
+  },
+  "app|garmin|006-B4257-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 124
+   },
+   "n": 115,
+   "ohne_schaetzung": 9
+  },
+  "app|garmin|006-B4258-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 18
+   },
+   "n": 17,
+   "ohne_schaetzung": 1
+  },
+  "app|garmin|006-B4261-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 6
+   },
+   "n": 3,
+   "ohne_schaetzung": 3
+  },
+  "app|garmin|006-B4312-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 39
+   },
+   "n": 33,
+   "ohne_schaetzung": 6
+  },
+  "app|garmin|006-B4313-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 60
+   },
+   "n": 52,
+   "ohne_schaetzung": 8
+  },
+  "app|garmin|006-B4314-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 46
+   },
+   "n": 26,
+   "ohne_schaetzung": 20
+  },
+  "app|garmin|006-B4315-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 21
+   },
+   "n": 17,
+   "ohne_schaetzung": 4
+  },
+  "app|garmin|006-B4341-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 27
+   },
+   "n": 25,
+   "ohne_schaetzung": 2
+  },
+  "app|garmin|006-B4375-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 154
+   },
+   "n": 131,
+   "ohne_schaetzung": 23
+  },
+  "app|garmin|006-B4376-00": {
+   "einheit": 1000.0,
+   "einig": 0.994,
+   "gemeldet": {
+    "2048": 182
+   },
+   "n": 170,
+   "ohne_schaetzung": 12
+  },
+  "app|garmin|006-B4426-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 13
+   },
+   "n": 7,
+   "ohne_schaetzung": 6
+  },
+  "app|garmin|006-B4432-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 14
+   },
+   "n": 8,
+   "ohne_schaetzung": 6
+  },
+  "app|garmin|006-B4532-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 28
+   },
+   "n": 23,
+   "ohne_schaetzung": 5
+  },
+  "app|garmin|006-B4533-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 17
+   },
+   "n": 11,
+   "ohne_schaetzung": 6
+  },
+  "app|garmin|006-B4534-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 11
+   },
+   "n": 8,
+   "ohne_schaetzung": 3
+  },
+  "app|garmin|006-B4536-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 359
+   },
+   "n": 310,
+   "ohne_schaetzung": 49
+  },
+  "app|garmin|006-B4565-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 192
+   },
+   "n": 173,
+   "ohne_schaetzung": 19
+  },
+  "app|garmin|006-B4575-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 11
+   },
+   "n": 9,
+   "ohne_schaetzung": 2
+  },
+  "app|garmin|006-B4584-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 20
+   },
+   "n": 20,
+   "ohne_schaetzung": 0
+  },
+  "app|garmin|006-B4585-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 118
+   },
+   "n": 97,
+   "ohne_schaetzung": 21
+  },
+  "app|garmin|006-B4586-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 84
+   },
+   "n": 71,
+   "ohne_schaetzung": 13
+  },
+  "app|garmin|006-B4587-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 32
+   },
+   "n": 31,
+   "ohne_schaetzung": 1
+  },
+  "app|garmin|006-B4588-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 13
+   },
+   "n": 13,
+   "ohne_schaetzung": 0
+  },
+  "app|garmin|006-B4603-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 18
+   },
+   "n": 11,
+   "ohne_schaetzung": 7
+  },
+  "app|garmin|006-B4625-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 24
+   },
+   "n": 24,
+   "ohne_schaetzung": 0
+  },
+  "app|garmin|006-B4678-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 23
+   },
+   "n": 14,
+   "ohne_schaetzung": 9
+  },
+  "app|garmin|006-B4815-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 35
+   },
+   "n": 30,
+   "ohne_schaetzung": 5
+  },
+  "app|garmin|006-B4838-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 65
+   },
+   "n": 6,
+   "ohne_schaetzung": 59
+  },
+  "app|garmin|006-B4953-00": {
+   "einheit": 1000.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 3
+   },
+   "n": 3,
+   "ohne_schaetzung": 0
+  },
+  "app|ios|*": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 138
+   },
+   "n": 132,
+   "ohne_schaetzung": 6
+  },
+  "app|ios|-": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 3
+   },
+   "n": 3,
+   "ohne_schaetzung": 0
+  },
+  "app|ios|iPhone11,2": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 3
+   },
+   "n": 3,
+   "ohne_schaetzung": 0
+  },
+  "app|ios|iPhone11,8": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 22
+   },
+   "n": 22,
+   "ohne_schaetzung": 0
+  },
+  "app|ios|iPhone12,1": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 16
+   },
+   "n": 16,
+   "ohne_schaetzung": 0
+  },
+  "app|ios|iPhone14,4": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 26
+   },
+   "n": 26,
+   "ohne_schaetzung": 0
+  },
+  "app|ios|iPhone14,6": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 4
+   },
+   "n": 4,
+   "ohne_schaetzung": 0
+  },
+  "app|ios|iPhone16,1": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 17
+   },
+   "n": 15,
+   "ohne_schaetzung": 2
+  },
+  "app|ios|iPhone16,2": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 16
+   },
+   "n": 15,
+   "ohne_schaetzung": 1
+  },
+  "app|ios|iPhone17,1": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 22
+   },
+   "n": 20,
+   "ohne_schaetzung": 2
+  },
+  "app|wear|*": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 524
+   },
+   "n": 419,
+   "ohne_schaetzung": 105
+  },
+  "app|wear|-": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 257
+   },
+   "n": 197,
+   "ohne_schaetzung": 60
+  },
+  "app|wear|Google Pixel Watch 2": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 13
+   },
+   "n": 10,
+   "ohne_schaetzung": 3
+  },
+  "app|wear|OPWWE251": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 16
+   },
+   "n": 16,
+   "ohne_schaetzung": 0
+  },
+  "app|wear|Pixel Watch 4": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 6
+   },
+   "n": 6,
+   "ohne_schaetzung": 0
+  },
+  "app|wear|SM-L300": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 10
+   },
+   "n": 9,
+   "ohne_schaetzung": 1
+  },
+  "app|wear|SM-L310": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 14
+   },
+   "n": 12,
+   "ohne_schaetzung": 2
+  },
+  "app|wear|SM-L315F": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 27
+   },
+   "n": 25,
+   "ohne_schaetzung": 2
+  },
+  "app|wear|SM-L330": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 37
+   },
+   "n": 33,
+   "ohne_schaetzung": 4
+  },
+  "app|wear|SM-L705F": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 51
+   },
+   "n": 45,
+   "ohne_schaetzung": 6
+  },
+  "app|wear|SM-L715F": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 9
+   },
+   "n": 6,
+   "ohne_schaetzung": 3
+  },
+  "app|wear|SM-L715U": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 9
+   },
+   "n": 9,
+   "ohne_schaetzung": 0
+  },
+  "app|wear|SM-R910": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 6
+   },
+   "n": 5,
+   "ohne_schaetzung": 1
+  },
+  "app|wear|SM-R920": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 5
+   },
+   "n": 4,
+   "ohne_schaetzung": 1
+  },
+  "app|wear|SM-R925F": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 4
+   },
+   "n": 3,
+   "ohne_schaetzung": 1
+  },
+  "app|wear|Xiaomi Watch 2 Pro": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 10
+   },
+   "n": 10,
+   "ohne_schaetzung": 0
+  },
+  "app|wear|sdk_gwear_x86_64": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 18
+   },
+   "n": 13,
+   "ohne_schaetzung": 5
+  },
+  "fit|*|*": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 693
+   },
+   "n": 149,
+   "ohne_schaetzung": 544
+  },
+  "fit|-|*": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 691
+   },
+   "n": 147,
+   "ohne_schaetzung": 544
+  },
+  "fit|-|-": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 691
+   },
+   "n": 147,
+   "ohne_schaetzung": 544
+  },
+  "garmin|*|*": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 9,
+    "4194": 72
+   },
+   "n": 31,
+   "ohne_schaetzung": 50
+  },
+  "garmin|garmin|*": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 5,
+    "4194": 31
+   },
+   "n": 31,
+   "ohne_schaetzung": 5
+  },
+  "garmin|garmin|006-B3291-00": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "4194": 6
+   },
+   "n": 6,
+   "ohne_schaetzung": 0
+  },
+  "garmin|garmin|006-B4375-00": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "4194": 3
+   },
+   "n": 3,
+   "ohne_schaetzung": 0
+  },
+  "garmin|garmin|006-B4376-00": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 2,
+    "4194": 9
+   },
+   "n": 11,
+   "ohne_schaetzung": 0
+  },
+  "hw|*|*": {
+   "einheit": 512.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 11
+   },
+   "n": 3,
+   "ohne_schaetzung": 8
+  },
+  "hw|huawei|*": {
+   "einheit": 512.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 11
+   },
+   "n": 3,
+   "ohne_schaetzung": 8
+  },
+  "hw|huawei|HUAWEI WATCH Ultimate 2": {
+   "einheit": 512.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 11
+   },
+   "n": 3,
+   "ohne_schaetzung": 8
+  },
+  "imp|*|*": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 471
+   },
+   "n": 42,
+   "ohne_schaetzung": 429
+  },
+  "imp|-|*": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 471
+   },
+   "n": 42,
+   "ohne_schaetzung": 429
+  },
+  "imp|-|-": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 471
+   },
+   "n": 42,
+   "ohne_schaetzung": 429
+  },
+  "zepp|*|*": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 71
+   },
+   "n": 42,
+   "ohne_schaetzung": 29
+  },
+  "zepp|zepp|*": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 71
+   },
+   "n": 42,
+   "ohne_schaetzung": 29
+  },
+  "zepp|zepp|Active 2 (Round) (8913155)": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 10
+   },
+   "n": 3,
+   "ohne_schaetzung": 7
+  },
+  "zepp|zepp|Active 2 NFC (Round) (10092801)": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 4
+   },
+   "n": 4,
+   "ohne_schaetzung": 0
+  },
+  "zepp|zepp|Active 3 Premium (10944769)": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 9
+   },
+   "n": 8,
+   "ohne_schaetzung": 1
+  },
+  "zepp|zepp|Amazfit GTR 4 (7930113)": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 23
+   },
+   "n": 18,
+   "ohne_schaetzung": 5
+  },
+  "zepp|zepp|Amazfit%20Bip%206%20(10158337)": {
+   "einheit": 2048.0,
+   "einig": 1.0,
+   "gemeldet": {
+    "2048": 4
+   },
+   "n": 3,
+   "ohne_schaetzung": 1
+  }
+ },
+ "regel": "Mehrheit >= 90% bei >= 3 geschaetzten Sessions",
+ "stand": "2026-11-13T12:32:55.452924+00:00",
+ "version": "skala-2"
+}

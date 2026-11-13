@@ -196,11 +196,16 @@ def build_timebase(
     excluded_ranges: list | None = None,
     accel_luecken: bool = False,
     t1_by_index: dict[int, int] | None = None,
+    uuid: str | None = None,
 ) -> TimeBase:
     """Baut die Session-Zeitachse. `gps` sind die ROHEN Samples (Session-ms, ungetrimmt),
     `accel` das rohe (N,3)-int16-Array. Trim und Ausschluss wirken NUR hier."""
     gps = list(gps or [])
     accel = accel if accel is not None else np.empty((0, 3), dtype=np.int16)
+    # Einheit fuer die Analyse (app/analysis/skala.py): ohne Schalter ACCEL_NORM die gemeldete, unveraendert.
+    # `uuid` bestimmt die Quelle (Weg/Plattform/Modell) und damit die Einheit; ohne uuid schaetzt die Session selbst.
+    from .skala import fuer_analyse
+    accel_scale = fuer_analyse(accel, accel_scale, tagged_accel_hz, uuid)
     gps_end_ms = float(gps[-1][0]) if gps else 0.0
     notes: list[str] = []
 
@@ -297,6 +302,7 @@ def build_timebase_for_session(session, *, gps=None, accel=None) -> TimeBase:
         excluded_ranges=analyse_ausschluss(session),
         accel_luecken=storage.accel_luecken(uuid),
         t1_by_index=storage.load_accel_t1(uuid),
+        uuid=uuid,
     )
 
 

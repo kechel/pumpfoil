@@ -68,6 +68,9 @@ def _spalten(auswahl):
     return list(M.NAMEN)
 
 
+# Basis-Datensatz (ds + ds_h); mit --ds-basis/--ds-h-basis ersetzbar (r8, 13.11.2026: Accel in echtem g, skala.py).
+DS_BASIS = (ML / "v3" / "ds", ML / "v3" / "ds_h")
+
 GEWICHT = {"fremd": 3.0, "brett": 5.0, "fortsetzung": 5.0, "sicht": 5.0, "fit_neg": 2.0}
 
 
@@ -78,7 +81,7 @@ def laden(namen, ohne=(), rand_s=0, brett=None, lauf_nur_wasser=False, ds_extra=
     if baseline_extra:
         for s in json.load(gzip.open(baseline_extra)):
             b.setdefault(s["id"], s)
-    verzeichnisse = [(ML / "v3" / "ds", ML / "v3" / "ds_h")] + [(pathlib.Path(x), pathlib.Path(y)) for x, y in ds_extra]
+    verzeichnisse = [DS_BASIS] + [(pathlib.Path(x), pathlib.Path(y)) for x, y in ds_extra]
     sp = [alle.index(n) for n in namen]
     mit_h = any(n in HA.NAMEN for n in namen)
     Xs, ys, qs, gs, ls, ss = [], [], [], [], [], []
@@ -184,6 +187,8 @@ def main():
     ap.add_argument("--lauf-nur-wasser", dest="lauf_nur_wasser", action="store_true")
     ap.add_argument("--haltung", action="store_true", help="Haltung relativ zur Session (ds_h/, s. datensatz_haltung.py)")
     ap.add_argument("--haltung3", action="store_true")
+    ap.add_argument("--ds-basis", dest="ds_basis", default="", help="statt data/ml/v3/ds (r8: in echtem g)")
+    ap.add_argument("--ds-h-basis", dest="ds_h_basis", default="", help="statt data/ml/v3/ds_h")
     ap.add_argument("--ds-extra", dest="ds_extra", default="")
     ap.add_argument("--ds-h-extra", dest="ds_h_extra", default="")
     ap.add_argument("--baseline-extra", dest="baseline_extra", default="")
@@ -207,6 +212,9 @@ def main():
         brett = {d["paar"][1]: (np.asarray(d["t"], float), np.asarray(d["z"])) for d in roh}
         brett_gew = {d["paar"][1]: float(d.get("gewicht", GEWICHT["brett"])) for d in roh}
         print(f"Brett-Paare im Training: {sorted(brett)}", flush=True)
+    global DS_BASIS
+    if a.ds_basis:
+        DS_BASIS = (pathlib.Path(a.ds_basis), pathlib.Path(a.ds_h_basis or a.ds_basis + "_h"))
     ds_extra = list(zip([x for x in a.ds_extra.split(",") if x], [x for x in a.ds_h_extra.split(",") if x]))
     X, y, q, g, heute, sid = laden(namen, ohne, a.rand, brett, a.lauf_nur_wasser, ds_extra, a.baseline_extra)
     w = np.ones(y.size, np.float32)
