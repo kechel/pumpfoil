@@ -1575,6 +1575,20 @@ Rein lesend geprueft (Sessions seit 05.11.):
 - Vorschlag (Jan entscheidet, NICHT vor dem Event): eigene bleibt primaer, wenn sie nicht `duenn` ist und selbst ~volle
   Rate hat (>= 20 Hz) — Garmin-Datei wird nur angehaengt. Die 64 Altfaelle bleiben, wie sie sind, ausser Jan will sie
   zurueckdrehen (DB-Schreiben, Fahrer-sichtbar).
+- **URSACHE GEFUNDEN 13.11. (rein lesend): Accel-Einheit.** Unsere Garmin-App schickt `accelerometerData` roh in
+  **milli-g** (SDK: „1000 Milli G = 1 G"), etikettiert aber `accel_scale = 2048` (watch/source/SessionRecorder.mc:34) ->
+  auf dem Server ruht sie bei **0,49 g** (alle Versionen 0.1–1.0.103). Garmin-Connect-FIT, FIT-Importe, Apple Watch,
+  Wear OS, Handys, Zepp liegen richtig bei ~1,0 g (Garmin/eigene je Paar exakt 2,05). Huawei Ultimate 2 (nur Pruefkonto)
+  sogar 0,25 g. Gegenprobe `regression-garmin-primaer.py --garmin-skala` (Garmin-Datei auf die Einheit unserer App
+  gerechnet): **eigene 325, Garmin 326 Laeufe** (vorher 303), Foil-Zeit 296 vs. 305 min — die Luecke ist weg (Rest:
+  #20836 11->7, #20857 FR55 6->4). Folgen, die Jan entscheiden muss (NICHT vor dem Event):
+  1. Erkennung/Modell sind auf die halbierte Garmin-Skala geeicht — alle anderen Plattformen laufen mit doppelt so
+     starken Werten durch dieselbe Kette. Pruefen, ob dort Laeufe verloren gehen (gleiche Gegenprobe je Plattform).
+  2. Fix-Varianten: (a) Server normiert beim Lesen auf echte g (scale-Korrektur je Quelle) + Modell/Schwellen neu eichen;
+     (b) Garmin-App sendet `accel_scale = 1000` (alte Fassungen im Feld bleiben 2048 -> Server muss sie trotzdem erkennen).
+     Sofort machbar ohne Analyse-Umbau: Garmin-Connect-Import auf die Einheit unserer App bringen, dann ist „Garmin
+     primaer" unschaedlich.
+  3. Huawei-Faktor 4 vor der GT-Freigabe klaeren (ArkTS rechnet m/s² / G * 2048 — Sensor liefert offenbar andere Einheit).
 
 ### 13.11.2026 — Meldung: Lauf in zwei geteilt (Session #21487) + Idee Wind-Fairness bei Sprints
 - [ ] **#21487 — GROUND TRUTH „ein Lauf, in zwei geteilt"** (Nutzer 993; Meldung per DM 12.11. 23:23: „Lauf 7 und 8

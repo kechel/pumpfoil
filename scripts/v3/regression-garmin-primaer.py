@@ -60,6 +60,9 @@ def kette(db, s, sport_class):
     return {"v3": v3, "laeufe": _laeufe(segs)}
 
 
+SKALA = False
+
+
 def eine(paar):
     oid, gid = paar
     import logging
@@ -77,6 +80,9 @@ def eine(paar):
                "gespeichert_eigene": o.result.num_runs if o.result else None,
                "gespeichert_garmin": g.result.num_runs if g.result else None,
                "algo_eigene": o.result.algo_version if o.result else None}
+        if SKALA:
+            # Experiment: Garmin-Datei in die Einheit der eigenen Garmin-App bringen (die liefert milli-g, etikettiert 2048/g)
+            g.accel_scale = int(round((g.accel_scale or 2048) * 2048 / 1000))
         for name, s in (("e", o), ("g", g)):
             try:
                 out[name] = kette(db, s, sc)
@@ -118,7 +124,9 @@ if __name__ == "__main__":
     ap.add_argument("--jobs", type=int, default=4)
     ap.add_argument("--aus")
     ap.add_argument("--bericht")
+    ap.add_argument("--garmin-skala", action="store_true", help="Garmin-Accel wie unsere Garmin-App skalieren (Experiment)")
     a = ap.parse_args()
+    SKALA = a.garmin_skala
     if a.bericht:
         bericht(a.bericht); sys.exit(0)
     from sqlalchemy import text
