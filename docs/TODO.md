@@ -1553,6 +1553,16 @@ Apple Watch `CMWaterSubmersionManager` (nur Ultra/Series 9+, eigene Berechtigung
 Ergaenzung zu `LaufLuecke` (docs/PARITY-AUDIT.md Punkt 9), nicht Ersatz: viele Uhren haben keinen solchen Sensor.
 Uhren-Apps nicht ausbauen (CLAUDE.md) — nur auf Jans ausdrueckliches Wort.
 
+### 13.11.2026 — Meldung: Lauf in zwei geteilt (Session #21487) + Idee Wind-Fairness bei Sprints
+- [ ] **#21487** (Nutzer 993, Vater eines Community-Nutzers; Meldung per DM 12.11. 23:23: „Lauf 7 und 8 gehoeren zusammen als
+      ein lauf"): zusammengefuehrte Session (`merge-…`, 50 Hz), Lauf 7 26 s / 127 m (Ende 2029 s), Lauf 8 18 s / 103 m
+      (Start 2033 s), dazwischen 4 s. Die gespeicherte Tempo-Spalte zeigt dort nur 0,5–0,7 m/s (2036–2037 s: 0) — passt
+      nicht zu Laeufen mit 3,9/4,9 m/s; Vermutung: Tempo aus der anderen Quelle der Zusammenfuehrung. Ungeprueft;
+      Erkennung nur mit Jans OK aendern. Kein Drama laut Meldung.
+- [ ] **Idee Jan (13.11., Wind beim Sprint-Event):** Wertung, die Rueckenwind ausgleicht — z. B. „zwei Sprints in
+      entgegengesetzter Richtung, hoechstens 100 m auseinander und hoechstens 10–20° Abweichung; der langsamere zaehlt".
+      Jan: „das sind die herausforderungen sowas ohne schiedsrichter vor ort oder direktem vergleich". Nicht gebaut.
+
 ### 12.11.2026 — Uhr zaehlt nach Sturz weiter (GPS-Luecke am Lauf-Ende)
 Nutzermeldung: Uhr zeigte 1:34 als laengsten Lauf, Server 1:09. Ursache: nach dem Sturz 36 s kein GPS (Uhr unter
 Wasser); Garmin haelt die letzte Geschwindigkeit, die Lauferkennung zaehlte ~25 s weiter, bis die Fix-Qualitaet absank
