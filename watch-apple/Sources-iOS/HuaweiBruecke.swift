@@ -48,7 +48,9 @@ final class HuaweiBruecke: ObservableObject {
 
     // --- Kennungen (Platzhalter `…_EINTRAGEN` liefert Jan nach, s. watch-huawei/README.md) ---
     static let uhrPkg = "org.pumpfoil.gt"   // GT/Fit/D-App seit 13.11.2026 (eigene AppGallery-App)
-    static let uhrFp = "HUAWEI_WATCH_FINGERPRINT_EINTRAGEN"
+    // Erster Kandidat wie Android (HUAWEI_WATCH_FP, 13.11.2026): Huawei-Format <Paket>_<Base64 roher EC-Punkt> aus
+    // pumpfoil-release.cer. Welcher Kandidat stimmt, zeigt erst die echte GT am Android-Log.
+    static let uhrFp = "org.pumpfoil.gt_BFonZBpw0jsN/xxNsthh5fn6VgSGuUviJZza7BlL8AtSNkFr7agh1psBZRSvecyl4jPLPcld1VV4e4rzfGSTt0guTdUwq7wdpaRzAcHM+AwNJIBwjJv8A3nOpDh8dcbwkQ=="
     /// iOS-Apps haben laut Huawei keinen Fingerabdruck („enter any text") — die Uhr schickt an
     /// genau diesen Wert (watch-huawei/common/konfig.js IOS_FP), beide Seiten muessen gleich sein.
     static let eigenesPkg = "org.pumpfoil.coolwatch"
@@ -167,11 +169,11 @@ final class HuaweiBruecke: ObservableObject {
 
     #if canImport(WearEngineSDK)
     /// Gekoppelte Uhren. UNGEPRUEFT: der Methodenname stammt aus dem Android-SDK
-    /// (`getBondedDevices`); die iOS-Signatur steht in WearEngineSDK.h bzw. in der Doku-Seite
-    /// „Querying Available Wearable Devices" (check-availabla-dev-ios-0000001921237861). Falls
-    /// der Build hier stolpert, nur diese Funktion anpassen.
+    /// Geprueft 13.11.2026 gegen die Header des iOS-SDK 1.0.0.305 (WESDeviceClient.h): `getCommonDevices:` mit
+    /// `WESGetDeviceCallback(WearEngineServerErrorCode status, NSArray<WESDevice *> *deviceArr)` — das Android-
+    /// `getBondedDevices` gibt es auf iOS nicht. Ungeprueft bleibt nur der Swift-Name des Status-Falls (Xcode).
     private func geraeteLaden(_ weiter: @escaping ([WESDevice]) -> Void) {
-        HiWear.getDeviceClient().getBondedDevices { [weak self] status, geraete in
+        HiWear.getDeviceClient().getCommonDevices { [weak self] status, geraete in
             if status != .WESErrorCodeSuccess {
                 Task { @MainActor in self?.stand.fehler = "geraete \(status.rawValue)" }
                 weiter([])

@@ -133,6 +133,11 @@ Geraete-UDID. (Die `client_id` fuer `arkts/…/module.json5` entfaellt seit 13.1
 
 ## iOS-App (`watch-apple/Sources-iOS/HuaweiBruecke.swift`)
 
+**iOS-SDK 1.0.0.305** (Jan, 13.11.2026) liegt NUR lokal: VM `~/iOS_WearEngineSDK_1.0.0.305.zip` (sha256 5f3da987…732f1),
+entpackt `~/huawei-ios-wearengine-sdk/WearEngineSDK.xcframework` — NIE ins oeffentliche Repo (`watch-apple/.gitignore`
+schliesst WearEngineSDK.framework/.bundle/.xcframework aus). Achtung: Huawei Health auf dem iPhone hat keinen App-Store
+fuer Sport-Uhren (docs/HUAWEI.md) — die Bruecke hat heute keine Nutzer.
+
 Noch nie gebaut (kein Xcode/SDK auf der VM). Baut OHNE Framework unveraendert (`#if canImport
 (WearEngineSDK)`), die Karte erscheint dann nicht. Einbau:
 1. Wear Engine SDK fuer iOS (1.0.0.304, Huawei Health ≥ 15.0.10.315) herunterladen, `WearEngineSDK.
