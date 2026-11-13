@@ -28,12 +28,24 @@ this that with mal gerade jetzt eigentlich irgendwie vielleicht machen mach bau 
 nochmal einmal einmalig danke klar super prima perfekt okay alles immer etwas sehr viel mehr weiter gleich""".split())
 
 
+# Eingefuegter Chat/Feedback (Zeitstempel wie „13.11., 17:50", oder Worte dazu): Namen stehen darin, und genau dann
+# rutschten sie dreimal in Code und Commits (zuletzt 13.11.2026, Jan: „sich immer auf die sperre verlassen ist mir zu
+# gefaehrlich"). Erinnerung in den Kontext, unabhaengig von der Atlas-Suche.
+CHAT = re.compile(r"\b\d{1,2}\.\d{1,2}\.,?\s+\d{1,2}:\d{2}\b|feedback|chat|nachricht|gemeldet|meldung|vorschlag|"
+                  r"wunsch|schreibt|schrieb|suggestion", re.I)
+ERINNERUNG = ("ERINNERUNG (Nutzermeldung in dieser Nachricht?): Repo oeffentlich — in Code, Kommentare, Doku, Tests, "
+              "Commit-Nachrichten KEINE Namen/Anzeigenamen, nur u<id> oder „ein Nutzer\", schon beim Schreiben. "
+              "Supporter-Beitrag: scripts/feedback-beitraege.py --nachtragen --git --echt (sonst --add).")
+
+
 def main() -> None:
     try:
         daten = json.load(sys.stdin)
     except ValueError:
         return
     text = str(daten.get("prompt") or "")
+    if CHAT.search(text):
+        print(ERINNERUNG)
     # eingefuegte Bloecke und Pfade zu Bildern nicht mitsuchen, Laenge deckeln
     text = re.sub(r"\[Image[^\]]*\]|/tmp/\S+|https?://\S+", " ", text)[:600]
     woerter = [w for w in re.findall(r"[\wäöüÄÖÜß.-]{3,}", text.lower()) if w not in STOPP]

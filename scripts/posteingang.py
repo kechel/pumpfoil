@@ -17,6 +17,11 @@ import os
 import sys
 
 ASSISTENT = 230          # Konto „Claude Code AI"
+# Steht am Ende jeder Ausgabe, damit es im Kontext liegt, wenn aus einer Meldung Code/Doku/Commit wird (Jan, 13.11.2026:
+# „sich immer auf die sperre verlassen ist mir zu gefaehrlich"; Memory no-real-names-in-repo, dritter Rueckfall).
+ERINNERUNG = ("ERINNERUNG Repo oeffentlich: in Code, Kommentare, Doku, Tests, Commit-Nachrichten KEINE Namen/Anzeigenamen —\n"
+              "nur u<id> oder „ein Nutzer\". Schon beim Schreiben, nicht erst beim Commit. Beitrag fuer den Supporter-Badge:\n"
+              "scripts/feedback-beitraege.py --nachtragen --git --echt")
 # Antworten, die keine sind. Endet ein Chat damit, ist er erledigt.
 SCHLUSSWORTE = ("danke", "thanks", "merci", "grazie", "gracias", "thank you", "perfekt",
                 "perfect", "ok", "super", "top", "cheers", "bedankt", "dank je")
@@ -99,6 +104,7 @@ def main() -> int:
           "&direction=desc&per_page=20")
     print("  (liefert Issues UND Pull Requests · comments=0 heisst: nie beantwortet)")
     print("=" * 78)
+    print(ERINNERUNG)
     return 0
 
 
