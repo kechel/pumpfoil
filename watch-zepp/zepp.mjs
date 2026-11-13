@@ -49,12 +49,14 @@ const FLAGS = join(WURZEL, "page", "devflags.js");
 
 /** Schreibt `page/devflags.js`. Die Datei ist gitignoriert und wird bei JEDEM Lauf neu erzeugt —
  *  im Arbeitsbaum bleibt damit nichts stehen, was jemand vergessen koennte. */
-function schalter(wert) {
+function schalter(wert, luecke = false) {
   writeFileSync(FLAGS,
     "// ERZEUGT von zepp.mjs — nicht von Hand aendern, nicht versionieren (s. .gitignore).\n" +
     "// true = synthetische GPS-Spur fuer den Simulator, false = echte Ortung.\n" +
-    `export const DEV_FAKE_GPS = ${wert};\n`, "utf8");
-  console.log(`page/devflags.js: DEV_FAKE_GPS = ${wert}`);
+    `export const DEV_FAKE_GPS = ${wert};\n` +
+    "// true = die synthetische Spur setzt aus (GPS-Luecken-Test, 13.11.2026), nur mit DEV_FAKE_GPS.\n" +
+    `export const DEV_FAKE_LUECKE = ${luecke};\n`, "utf8");
+  console.log(`page/devflags.js: DEV_FAKE_GPS = ${wert}, DEV_FAKE_LUECKE = ${luecke}`);
 }
 
 /** Alle Dateien unter einem Verzeichnis (fuer die Nachpruefung des Pakets). */
@@ -136,8 +138,9 @@ function versionPruefen() {
 }
 
 const modus = process.argv[2];
-if (!["dev", "dev-echt", "build", "pruefe"].includes(modus)) {
-  console.error("Aufruf: node zepp.mjs dev | dev-echt | build | pruefe");
+if (!["dev", "dev-luecke", "dev-echt", "build", "pruefe"].includes(modus)) {
+  console.error("Aufruf: node zepp.mjs dev | dev-luecke | dev-echt | build | pruefe");
+  console.error("  dev-luecke wie dev, die Spur setzt aus: 8 s mitten im Lauf (ein Lauf), 20 s am Ende (Sturz)");
   console.error("  dev      Simulator, DEV_FAKE_GPS = true  (Screenshots)");
   console.error("  dev-echt Simulator, DEV_FAKE_GPS = false (echter Ortungs-Pfad, s. Testplan)");
   console.error("  build    Store-Paket, DEV_FAKE_GPS = false, mit Nachpruefung");
@@ -147,11 +150,11 @@ if (!["dev", "dev-echt", "build", "pruefe"].includes(modus)) {
 
 if (modus === "pruefe") process.exit(paketPruefen() ? 0 : 1);
 
-if (modus === "dev" || modus === "dev-echt") {
+if (modus === "dev" || modus === "dev-echt" || modus === "dev-luecke") {
   // Kein Aufraeumen noetig: `devflags.js` ist gitignoriert und wird beim naechsten `npm run build`
   // ohnehin ueberschrieben. Im VERSIONIERTEN Code steht nie ein `true`.
-  const fake = modus === "dev";
-  schalter(fake);
+  const fake = modus !== "dev-echt";
+  schalter(fake, modus === "dev-luecke");
   if (!fake) {
     console.log("dev-echt: die Uhr liest die ECHTE Ortung des Simulators. Liefert der keine,");
     console.log("          bleibt die Anzeige auf \"GPS suche…\" — das ist dann der Befund.");

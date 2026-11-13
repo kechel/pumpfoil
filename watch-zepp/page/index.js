@@ -249,7 +249,7 @@ const MIN_RUN_MS = 5000, MIN_RUN_AVG_MPS = 2.0;
 // Wert gar nicht versioniert; ein `true` kann nicht mehr committet oder vergessen werden,
 // und `git status` bleibt sauber. Fehlt sie, bricht der Build ab — genau richtig, dann hat
 // jemand `zeus build` direkt aufgerufen statt `npm run build`.
-import { DEV_FAKE_GPS } from "./devflags.js";
+import { DEV_FAKE_GPS, DEV_FAKE_LUECKE } from "./devflags.js";
 // MUSS mit version.name in ../app.json übereinstimmen — beides beim Bump ändern. (Zur Laufzeit
 // aus dem Paket lesen ginge nur über einen weiteren @zos-Import; die sind hier ungetestet und
 // können beim Laden crashen, deshalb bewusst eine Konstante.) Der Bump auf 1.0.4 hatte nur
@@ -3311,6 +3311,13 @@ Page(
         if (s._flat == null) { s._flat = 47.66; s._flon = 9.355; }
         if (s.recording) { s._fi = (s._fi || 0) + 1; speed = (19 + 5 * Math.sin(s._fi / 6)) / 3.6; s._flat += (speed / 111320) * 0.7; s._flon += (speed / (111320 * 0.673)) * 0.4; }
         lat = s._flat; lon = s._flon;
+        if (DEV_FAKE_LUECKE && s.recording) {
+          // 120-s-Zyklus (npm run dev-luecke): 0-60 s Lauf mit 8 s Luecke ab 25 s (bleibt EIN Lauf), 60-75 s langsam
+          // zurueck (Laufende), 75-120 s Lauf mit 20 s Luecke ab 100 s (Sturz: Lauf endet am letzten Fix vor 100 s).
+          const p = s._fi % 120;
+          if (p >= 60 && p < 75) speed = 2 / 3.6;
+          if ((p >= 25 && p < 33) || p >= 100) { fix = false; lat = null; lon = null; speed = 0; }
+        }
       } else if (s.geo) {
         try {
           const st = s.geo.getStatus ? s.geo.getStatus() : "A";
