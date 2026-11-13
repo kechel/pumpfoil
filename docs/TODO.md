@@ -1587,6 +1587,11 @@ Uhren-Apps nicht ausbauen (CLAUDE.md) — nur auf Jans ausdrueckliches Wort.
       analysis_results-vorher.dump`): geaendert 3 — **#21487 15 -> 14 Laeufe** (gemeldeter Fall), #10947 9 -> 8,
       #8109 Laufgrenze (Pumps 70 -> 76); #2781/#17671/#19754 unveraendert. Neue Sessions rechnen automatisch so.
       Nebenbefund behoben: `reanalyse-alle.py --dry` hat geschrieben (run_analysis committet selbst) — bricht jetzt ab.
+      **Nur gemerkt (Jan 13.11., Screenshot #21487 nach dem Zusammenfuehren):** (1) GPS-Spur sieht sehr wackelig/zackig aus
+      (Handy, Genauigkeit fest 5 m gemeldet) — mehr glaetten? Jan: „weiss nicht ob wir da mehr glaetten muessten".
+      (2) Lauf 7 zeigt jetzt „Min. Tempo (5 s) 0,0 km/h" — das eingefrorene GPS (Doppler 0) liegt jetzt mitten im Lauf
+      und druckt die Min-Werte. Wenn wir eingefrorene Fixe erkennen (Weg a), sollten sie auch bei Min-Tempo/Kurven nicht
+      zaehlen. Nichts geaendert.
 - [ ] **Idee Jan (13.11., Wind beim Sprint-Event):** Wertung, die Rueckenwind ausgleicht — z. B. „zwei Sprints in
       entgegengesetzter Richtung, hoechstens 100 m auseinander und hoechstens 10–20° Abweichung; der langsamere zaehlt".
       Jan: „das sind die herausforderungen sowas ohne schiedsrichter vor ort oder direktem vergleich". Nicht gebaut.
