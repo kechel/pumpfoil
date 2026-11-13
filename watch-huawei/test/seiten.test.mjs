@@ -176,3 +176,17 @@ test("Alarm: Tempo ueber/unter (Foil oder fest), einmal oder wiederholt, Puls, M
   a.alarm = false;
   assert.deepEqual(al.pruefe(k, a, 40, 200, st, 0, 9000), [], "Alarm aus: nichts");
 });
+
+test("Lite kuerzt zu breite Texte selbst (nur 30/38 px, 13.11.2026)", async () => {
+  const M = (await import("../common/maler.js")).default;
+  const gemalt = [];
+  const c = { fillRect() {}, beginPath() {}, moveTo() {}, lineTo() {}, stroke() {}, arc() {},
+    fillText(txt) { gemalt.push(txt); } };
+  M.malen(c, [{ k: "t", x: 125, y: 250, s: 30, c: "#fff", a: "c", txt: "km all runs dist", b: false, mw: 200 },
+              { k: "t", x: 233, y: 100, s: 60, c: "#fff", a: "c", txt: "12.3", b: true, mw: 466 }], true);
+  assert.equal(gemalt[0], "km all r.");           // 200 px / 21 = 9 Zeichen (8 + Punkt), in 30 px
+  assert.equal(gemalt[1], "12.3");                // passt -> unveraendert
+  gemalt.length = 0;
+  M.malen(c, [{ k: "t", x: 125, y: 250, s: 30, c: "#fff", a: "c", txt: "km all runs dist", b: false, mw: 200 }], false);
+  assert.equal(gemalt[0], "km all runs dist");    // Watch 3/4 zeichnet echte Groessen, kuerzt nicht
+});
