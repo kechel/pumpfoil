@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""GPS-Luecke am Lauf-Ende im Wear-Emulator (13.11.2026, Gegenstueck zu watch-apple/scripts/gps-luecke-simulator.sh).
+"""GPS-Luecke am Lauf-Ende im Wear- ODER Handy-Emulator (13.11.2026, Gegenstueck zu watch-apple/scripts/gps-luecke-simulator.sh).
+Laeuft auch auf dem Mac (adb aus dem PATH); bei mehreren Geraeten vorher ANDROID_SERIAL=emulator-5554 setzen.
+NICHT die GPX-Wiedergabe des Emulators nehmen: sie fuellt Luecken durch Interpolation (13.11.: Handy-Test #21523 —
+statt „keine Fixe" 10 s Treiben mit 0,61 m/s, die Luecken-Regel wurde gar nicht erreicht).
 
     python3 android/wear/scripts/gps-luecke-emulator.py ende10   # Fall 3: 51 s fahren, 10 s Luecke, treiben
     python3 android/wear/scripts/gps-luecke-emulator.py sturz    # Fall 4: 69 s fahren, 36 s Luecke, treiben
@@ -9,8 +12,9 @@ FALLEN (13.11.): (1) Mit Berechtigung „Koerperliche Aktivitaet" holt die App G
 auf geo fix (0 Punkte); fuer den Test `adb shell pm revoke org.pumpfoil.app android.permission.ACTIVITY_RECOGNITION`.
 (2) Der Emulator wiederholt den letzten geo fix jede Sekunde als frischen Fix MIT Tempo — eine Luecke entsteht nur,
 wenn die Ortung abgeschaltet wird (macht luecke() hier)."""
-import subprocess, sys, time
-ADB = "/home/jan/android-sdk/platform-tools/adb"
+import os, shutil, subprocess, sys, time
+# adb aus $ADB, sonst aus dem PATH, sonst Standardort auf der VM (auch fuer den Handy-Emulator auf dem Mac)
+ADB = os.environ.get("ADB") or shutil.which("adb") or "/home/jan/android-sdk/platform-tools/adb"
 LON, GRAD_PRO_M, V = 9.18, 0.000008993, 3.4
 lat = 47.65
 def fix(v):
