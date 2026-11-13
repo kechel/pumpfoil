@@ -44,7 +44,9 @@ android {
         // Play-Signatur, Upload, Debug Mac, Debug VM). HMS erwartet das Praefix „appid=". Das zugehoerige
         // GEHEIMNIS braucht die App nicht und gehoert NICHT ins Repo.
         manifestPlaceholders["huaweiAppId"] = "appid=119274989"
-        buildConfigField("String", "HUAWEI_WATCH_PKG", "\"org.pumpfoil.huawei\"")
+        // Uhren-App GT/Fit/D (Lite) seit 13.11.2026 org.pumpfoil.gt: AppGallery verlangt einen eigenen Paketnamen, weil
+        // org.pumpfoil.huawei die Watch-5-App (HarmonyOS NEXT, Direkt-Upload ohne Bruecke) belegt.
+        buildConfigField("String", "HUAWEI_WATCH_PKG", "\"org.pumpfoil.gt\"")
         // Mehrere durch Komma: die ArkTS-Linie (Watch 5, watch-huawei/arkts) kann anders signiert
         // sein als Lite/JS-FA — dann beide eintragen, die Bruecke meldet sich fuer jeden an.
         // Lite-Uhren-App (GT/Fit/D), 13.11.2026 — KANDIDATEN, durch Komma, wahrscheinlichster zuerst (Jan: „moeglichst
@@ -54,7 +56,7 @@ android {
         //  3. <Paket>_<Base64 DER-Schluessel> (Ausgabe von openssl x509 -pubkey)
         //  4. roher Schluessel ohne Paket
         // Alles aus pumpfoil-release.cer (P-384) — oeffentlich, kein Geheimnis.
-        buildConfigField("String", "HUAWEI_WATCH_FP", "\"org.pumpfoil.huawei_BFonZBpw0jsN/xxNsthh5fn6VgSGuUviJZza7BlL8AtSNkFr7agh1psBZRSvecyl4jPLPcld1VV4e4rzfGSTt0guTdUwq7wdpaRzAcHM+AwNJIBwjJv8A3nOpDh8dcbwkQ==,DF21A3C09F7954579305F85C64F80CAD86F79853EE3A887C1DEC95D218DF3A37,org.pumpfoil.huawei_MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEWidkGnDSOw3/HE2y2GHl+fpWBIa5S+IlnNrsGUvwC1I2QWvtqCHWmwFlFK95zKXiM8s9yV3VVXh7ivN8ZJO3SC5N1TCrvB2lpHMBwcz4DA0kgHCMm/wDec6kOHx1xvCR,BFonZBpw0jsN/xxNsthh5fn6VgSGuUviJZza7BlL8AtSNkFr7agh1psBZRSvecyl4jPLPcld1VV4e4rzfGSTt0guTdUwq7wdpaRzAcHM+AwNJIBwjJv8A3nOpDh8dcbwkQ==\"")
+        buildConfigField("String", "HUAWEI_WATCH_FP", "\"org.pumpfoil.gt_BFonZBpw0jsN/xxNsthh5fn6VgSGuUviJZza7BlL8AtSNkFr7agh1psBZRSvecyl4jPLPcld1VV4e4rzfGSTt0guTdUwq7wdpaRzAcHM+AwNJIBwjJv8A3nOpDh8dcbwkQ==,DF21A3C09F7954579305F85C64F80CAD86F79853EE3A887C1DEC95D218DF3A37,org.pumpfoil.gt_MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEWidkGnDSOw3/HE2y2GHl+fpWBIa5S+IlnNrsGUvwC1I2QWvtqCHWmwFlFK95zKXiM8s9yV3VVXh7ivN8ZJO3SC5N1TCrvB2lpHMBwcz4DA0kgHCMm/wDec6kOHx1xvCR,BFonZBpw0jsN/xxNsthh5fn6VgSGuUviJZza7BlL8AtSNkFr7agh1psBZRSvecyl4jPLPcld1VV4e4rzfGSTt0guTdUwq7wdpaRzAcHM+AwNJIBwjJv8A3nOpDh8dcbwkQ==\"")
         versionCode = 64
         versionName = "1.1.49"
     }
