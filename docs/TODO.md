@@ -1581,6 +1581,12 @@ Uhren-Apps nicht ausbauen (CLAUDE.md) — nur auf Jans ausdrueckliches Wort.
       Eingefrorenes GPS (Doppler 0) nur bei #21487 (+ Quell-Aufnahme). Anomalie: #18980 mit p_min 0,35 < theta trotzdem
       verbunden — vor einem Einbau klaeren. **Fazit:** sehr selten; (b) allein verbindet auch zweifelhafte Faelle.
       Enger: (b) + Luftlinie >= 2,5 m/s -> 6 Verbindungen (#10947, #21487, #17671, #2781, #8109, #19754).
+      **UMGESETZT 13.11.2026 mit Jans OK (vor dem Event-Wochenende):** v3 `_bruecken` (Luecke <= 4 s, p >= theta,
+      Luftlinie 1 s vor bis 2 s nach >= 2,5 m/s), VERSION v3-r4-mild-3, Tests, volle Suite 958 gruen, foil-server neu
+      gestartet. Die 6 Sessions neu gerechnet (Sicherung `server/data/analyse-notizen/2026-11-13-bruecke/
+      analysis_results-vorher.dump`): geaendert 3 — **#21487 15 -> 14 Laeufe** (gemeldeter Fall), #10947 9 -> 8,
+      #8109 Laufgrenze (Pumps 70 -> 76); #2781/#17671/#19754 unveraendert. Neue Sessions rechnen automatisch so.
+      Nebenbefund behoben: `reanalyse-alle.py --dry` hat geschrieben (run_analysis committet selbst) — bricht jetzt ab.
 - [ ] **Idee Jan (13.11., Wind beim Sprint-Event):** Wertung, die Rueckenwind ausgleicht — z. B. „zwei Sprints in
       entgegengesetzter Richtung, hoechstens 100 m auseinander und hoechstens 10–20° Abweichung; der langsamere zaehlt".
       Jan: „das sind die herausforderungen sowas ohne schiedsrichter vor ort oder direktem vergleich". Nicht gebaut.

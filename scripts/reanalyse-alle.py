@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """Reanalysiert alle nicht geloeschten Sessions und protokolliert Vorher/Nachher.
 
-    cd server && .venv/bin/python ../scripts/reanalyse-alle.py [--dry] [--limit N]
+    cd server && .venv/bin/python ../scripts/reanalyse-alle.py [--limit N]
     cd server && .venv/bin/python ../scripts/reanalyse-alle.py --session 9484 --session 9473
 
 Mit `--session` nur diese IDs — fuer eine eng begrenzte Aenderung, die nachweislich nur wenige
 Sessions betrifft. Dann ist ein Lauf ueber den ganzen Bestand reine Last ohne Erkenntnis, und
 jedes Wegwerf-Skript daneben waere genau das, was dieses hier ersetzen soll.
 
-SCHREIBT in die DB (ausser mit --dry). Vorher `analysis_results` sichern:
+SCHREIBT IMMER in die DB. Es gibt KEINEN Trockenlauf: `run_analysis` committet selbst, ein Rollback danach aendert
+nichts (13.11.2026: `--dry` ueber 6 Sessions hat geschrieben — harmlos, weil genau diese freigegeben waren; ueber den
+ganzen Bestand waere es eine ungewollte Massen-Reanalyse gewesen). Rein lesend vorab: scripts/v3/regression*.py.
+Vorher `analysis_results` sichern:
     pg_dump -t analysis_results -Fc -f <datei>
 
 Sequenziell und mit kleiner Pause, damit die live laufende Seite nicht leidet.
@@ -39,7 +42,7 @@ def kennzahlen(metrics: dict, segs: list) -> dict:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--dry", action="store_true", help="nichts schreiben")
+    ap.add_argument("--dry", action="store_true", help="GIBT ES NICHT MEHR (run_analysis committet selbst) — bricht ab")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--pause", type=float, default=0.05)
     ap.add_argument("--log", default=LOG, help="JSONL-Protokoll (vorher/nachher je Session)")
@@ -47,6 +50,9 @@ def main() -> None:
     ap.add_argument("--session", type=int, action="append", default=[],
                     help="nur diese Session-IDs (mehrfach angebbar)")
     args = ap.parse_args()
+    if args.dry:
+        sys.exit("--dry gibt es nicht: run_analysis committet selbst, ein Trockenlauf wuerde SCHREIBEN. "
+                 "Rein lesend vorab: scripts/v3/regression*.py (Live-Funktionen ohne run_analysis).")
 
     if not os.path.exists(".env"):
         sys.exit("Bitte aus server/ starten.")
