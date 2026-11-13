@@ -29,6 +29,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.draw.shadow
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.gestures.animateScrollBy
 
 /**
  * Reiter oben auf einer Seite — dieselbe Leiste wie im Web (web/src/components/Reiter.tsx, Plan docs/UX-IA.md):
@@ -42,6 +55,36 @@ data class ReiterDef(val id: String, val label: String,
                      /** Abzeichen hinter dem Text (Web ReiterDef.badge, 06.11.2026: LIVE bzw. Zahl der kommenden Events). */
                      val badge: (@Composable () -> Unit)? = null)
 
+/**
+ * Pfeile am Rand, solange die Leiste in diese Richtung weitergeht (wie Web `useWischleiste`, Jan 13.11.2026: „mir fehlen
+ * diese pfeil-indicatoren in den tabs-zeilen wenn man scrollen kann, das ist manchmal nicht erkennbar"). Schneidet der
+ * Rand genau zwischen zwei Reitern ab, sieht man sonst nicht, dass man wischen kann. Tippen rollt ~70 % weiter.
+ */
+@Composable
+private fun RandPfeile(liste: LazyListState, modifier: Modifier = Modifier) {
+    val scope = rememberCoroutineScope()
+    val farben = MaterialTheme.colorScheme
+    Box(modifier.fillMaxWidth()) {
+        for (rechts in listOf(false, true)) {
+            val zeigen = if (rechts) liste.canScrollForward else liste.canScrollBackward
+            if (!zeigen) continue
+            Box(Modifier.align(if (rechts) Alignment.CenterEnd else Alignment.CenterStart)
+                .padding(horizontal = 4.dp).size(28.dp)
+                .shadow(3.dp, CircleShape).clip(CircleShape).background(farben.surface)
+                .border(BorderStroke(1.dp, farben.outlineVariant), CircleShape)
+                .clickable {
+                    scope.launch {
+                        val breite = liste.layoutInfo.viewportSize.width
+                        liste.animateScrollBy((if (rechts) 1 else -1) * breite * 0.7f)
+                    }
+                }, contentAlignment = Alignment.Center) {
+                Icon(if (rechts) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = null, tint = farben.onSurfaceVariant, modifier = Modifier.size(18.dp))
+            }
+        }
+    }
+}
+
 @Composable
 fun Reiterleiste(reiter: List<ReiterDef>, aktiv: String, onWahl: (String) -> Unit,
                  modifier: Modifier = Modifier, stufe: Int = 1, unter: Boolean = false) {
@@ -51,7 +94,8 @@ fun Reiterleiste(reiter: List<ReiterDef>, aktiv: String, onWahl: (String) -> Uni
     val farben = MaterialTheme.colorScheme
     val flaeche = farben.surfaceVariant
     if (stufe == 2) {
-        LazyRow(state = liste, modifier = modifier.fillMaxWidth()
+        Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        LazyRow(state = liste, modifier = Modifier.fillMaxWidth()
             .clip(RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp)).background(flaeche),
             contentPadding = PaddingValues(6.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             itemsIndexed(reiter) { _, r ->
@@ -64,9 +108,12 @@ fun Reiterleiste(reiter: List<ReiterDef>, aktiv: String, onWahl: (String) -> Uni
                         .clickable { onWahl(r.id) }.padding(horizontal = 12.dp, vertical = 6.dp))
             }
         }
+        RandPfeile(liste, Modifier.align(Alignment.Center))
+        }
         return
     }
     Column(modifier.fillMaxWidth()) {
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         LazyRow(state = liste, modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(horizontal = 8.dp)) {
             itemsIndexed(reiter) { _, r ->
                 val an = r.id == aktiv
@@ -85,6 +132,8 @@ fun Reiterleiste(reiter: List<ReiterDef>, aktiv: String, onWahl: (String) -> Uni
                         .background(if (an && !unter) farben.primary else androidx.compose.ui.graphics.Color.Transparent))
                 }
             }
+        }
+        RandPfeile(liste, Modifier.align(Alignment.Center))
         }
         HorizontalDivider(color = farben.surfaceVariant)
     }

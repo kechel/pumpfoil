@@ -23,20 +23,63 @@ struct Reiterleiste: View {
     var stufe: Int = 1
     var unter: Bool = false
 
+    /// Lage jedes Reiters im sichtbaren Bereich der Leiste (fuer die Rand-Pfeile).
+    @State private var lagen: [String: CGRect] = [:]
+    @State private var breite: CGFloat = 0
+
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: stufe == 2 ? 4 : 0) {
-                    ForEach(reiter) { r in knopf(r) }
+                    ForEach(reiter) { r in
+                        knopf(r).background(GeometryReader { g in
+                            Color.clear.preference(key: ReiterLagen.self, value: [r.id: g.frame(in: .named("reiterleiste"))])
+                        })
+                    }
                 }
                 .padding(stufe == 2 ? 6 : 0)
             }
+            .coordinateSpace(name: "reiterleiste")
+            .background(GeometryReader { g in Color.clear.onAppear { breite = g.size.width }
+                .onChange(of: g.size.width) { breite = $0 } })
+            .onPreferenceChange(ReiterLagen.self) { lagen = $0 }
             .background(stufe == 2 ? AnyView(RoundedRectangle(cornerRadius: 12)
                 .fill(Color(.secondarySystemBackground))) : AnyView(Color.clear))
+            .overlay(alignment: .leading) { if kannLinks { pfeil(rechts: false, proxy) } }
+            .overlay(alignment: .trailing) { if kannRechts { pfeil(rechts: true, proxy) } }
             .onChange(of: aktiv) { neu in withAnimation { proxy.scrollTo(neu, anchor: .center) } }
             .onAppear { proxy.scrollTo(aktiv, anchor: .center) }
         }
         .overlay(alignment: .bottom) { if stufe == 1 { Divider() } }
+    }
+
+    // Pfeile am Rand, solange die Leiste in diese Richtung weitergeht (wie Web `useWischleiste` und Android
+    // `RandPfeile`, Jan 13.11.2026: „mir fehlen diese pfeil-indicatoren in den tabs-zeilen wenn man scrollen kann").
+    // iOS 16 kennt kein scrollBy: Tippen rollt den ersten halb verdeckten Reiter an den Rand.
+    private var kannLinks: Bool { lagen.values.contains { $0.minX < -2 } }
+    private var kannRechts: Bool { breite > 0 && lagen.values.contains { $0.maxX > breite + 2 } }
+
+    private func pfeil(rechts: Bool, _ proxy: ScrollViewProxy) -> some View {
+        Button {
+            let ziel: String?
+            if rechts {
+                ziel = reiter.first { (lagen[$0.id]?.maxX ?? 0) > breite + 2 }?.id
+            } else {
+                ziel = reiter.last { (lagen[$0.id]?.minX ?? 0) < -2 }?.id
+            }
+            if let ziel { withAnimation { proxy.scrollTo(ziel, anchor: rechts ? .leading : .trailing) } }
+        } label: {
+            Image(systemName: rechts ? "chevron.right" : "chevron.left")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Color.secondary)
+                .frame(width: 28, height: 28)
+                .background(Circle().fill(Color(.systemBackground)))
+                .overlay(Circle().stroke(Color(.separator), lineWidth: 1))
+                .shadow(color: .black.opacity(0.15), radius: 2, y: 1)
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 4)
+        .accessibilityHidden(true)
     }
 
     @ViewBuilder private func knopf(_ r: ReiterDef) -> some View {
@@ -66,6 +109,13 @@ struct Reiterleiste: View {
                 .foregroundStyle(an ? Color.primary : Color.secondary)
             if let a = r.abzeichen { EventReiterAbzeichen(live: a.live, bald: a.bald, lang: Api.uiLang) }
         }
+    }
+}
+
+private struct ReiterLagen: PreferenceKey {
+    static var defaultValue: [String: CGRect] = [:]
+    static func reduce(value: inout [String: CGRect], nextValue: () -> [String: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { $1 })
     }
 }
 

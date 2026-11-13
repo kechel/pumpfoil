@@ -1867,6 +1867,10 @@ ohne Roh-Daten bleibt eine vorhandene Auswertung stehen. Ursache: laut Jan nicht
   - [x] Medien melden (12.11. nachmittags, Web 3e544745): Fahne an der Kachel „Neueste Medien" (Android; iOS per langem
         Druck, Code fuer nach 1.1.66), ab 3 Meldungen gesperrt; Session-Details zeigen „Gesperrte Medien: n" (`blocked_media`
         aus /social). Kompiliert, ungetestet.
+  - [x] **Pfeile in den Reiterzeilen** (Jan 13.11.: „mir fehlen diese pfeil-indicatoren in den tabs-zeilen wenn man scrollen
+        kann"), wie Web `useWischleiste`: runder Knopf mit Chevron am Rand, nur solange es in die Richtung weitergeht,
+        Tippen rollt ~70 % weiter. Android `Reiter.kt` (`RandPfeile`, beide Stufen) — im Emulator geprueft (rechts sichtbar,
+        Tipp rollt ans Ende, dann links). iOS `Reiter.swift` mitgezogen (Code fuer nach 1.1.66, nur Parse-Check).
   - [x] **HUAWEI GT/Fit/D (Wear Engine freigegeben 13.11.):** Fingerabdruck der Lite-Uhren-App eingetragen — 4 Kandidaten
         (Huawei-Format `Paket_Base64 roher Schluessel` zuerst, dann SHA-256 hex, DER, ohne Paket); die Bruecke probiert sie
         beim Senden nacheinander mit frischem P2P-Client, merkt den funktionierenden (kuenftig zuerst) und schiebt
