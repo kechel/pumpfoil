@@ -47,7 +47,7 @@ final class HuaweiBruecke: ObservableObject {
     @Published var stand = Stand()
 
     // --- Kennungen (Platzhalter `…_EINTRAGEN` liefert Jan nach, s. watch-huawei/README.md) ---
-    static let uhrPkg = "org.pumpfoil.huawei"
+    static let uhrPkg = "org.pumpfoil.gt"   // GT/Fit/D-App seit 13.11.2026 (eigene AppGallery-App)
     static let uhrFp = "HUAWEI_WATCH_FINGERPRINT_EINTRAGEN"
     /// iOS-Apps haben laut Huawei keinen Fingerabdruck („enter any text") — die Uhr schickt an
     /// genau diesen Wert (watch-huawei/common/konfig.js IOS_FP), beide Seiten muessen gleich sein.
