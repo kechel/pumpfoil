@@ -1827,6 +1827,14 @@ ohne Roh-Daten bleibt eine vorhandene Auswertung stehen. Ursache: laut Jan nicht
   - [x] Medien melden (12.11. nachmittags, Web 3e544745): Fahne an der Kachel „Neueste Medien" (Android; iOS per langem
         Druck, Code fuer nach 1.1.66), ab 3 Meldungen gesperrt; Session-Details zeigen „Gesperrte Medien: n" (`blocked_media`
         aus /social). Kompiliert, ungetestet.
+  - [x] **HUAWEI GT/Fit/D (Wear Engine freigegeben 13.11.):** Fingerabdruck der Lite-Uhren-App eingetragen — 4 Kandidaten
+        (Huawei-Format `Paket_Base64 roher Schluessel` zuerst, dann SHA-256 hex, DER, ohne Paket); die Bruecke probiert sie
+        beim Senden nacheinander mit frischem P2P-Client, merkt den funktionierenden (kuenftig zuerst) und schiebt
+        abgelehnte nach hinten (naechste Verbindung beginnt mit dem naechsten). Kompiliert, Unit-Tests gruen; echte GT
+        noetig. Log-Zeilen „Fingerabdruck-Kandidat n angenommen/abgelehnt" zeigen beim ersten Test, welches Format gilt.
+        **Reihenfolge Release:** Android 1.1.49 LIVE in Play, DANN Lite 1.0.6 bei AppGallery einreichen (Pruefer brauchen
+        die Handy-App als Gegenstelle). Danach Test: Huawei-Pruefer (Konto 881) und/oder der GT-Interessent aus der
+        Community (Jan fragt, sobald beides live ist).
   **iOS 1.1.66 (76) komplett von Jan getestet (11.11. spaet): „alles getestet, geht"** — EINGEREICHT 12.11. 06:32.
   **Testen (Jan, Simulator/Geraet):** Tipp auf Profilbild/Wappen in einer Bestenlisten-Zeile oeffnet NUR deren Ziel;
   Primaer-Knopf in einer Listenzeile setzt nur (springt nicht ins Team); Sprint-Band unter der Faerbung, verschwindet

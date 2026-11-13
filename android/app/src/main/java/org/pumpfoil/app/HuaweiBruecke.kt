@@ -49,6 +49,8 @@ import java.io.File
 object HuaweiBruecke {
     private const val TAG = "HuaweiBruecke"
     private const val PREF_AN = "huawei_an"
+    private const val PREF_FP_GUT = "huawei_fp_gut"
+    private const val PREF_FP_ABGELEHNT = "huawei_fp_abgelehnt"
     private const val HEALTH = "com.huawei.health"
     private const val MAX_DATEI = 5L * 1024 * 1024
     private val ID = Regex("^[A-Za-z0-9_-]{1,80}$")
@@ -102,6 +104,39 @@ object HuaweiBruecke {
     /** HUAWEI_WATCH_FP, durch Komma getrennt (app/build.gradle.kts). */
     internal fun fingerabdruecke(roh: String = BuildConfig.HUAWEI_WATCH_FP): List<String> =
         roh.split(',').map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+
+    /**
+     * Reihenfolge der Fingerabdruck-Kandidaten (13.11.2026, Jan: „moeglichst mehrere probieren, und wenn es abgelehnt
+     * wurde merken und bei einer neuen verbindung dann mit dem 2ten anfangen"): zuerst der, der zuletzt FUNKTIONIERT hat,
+     * dann die noch nicht abgelehnten in der Reihenfolge aus build.gradle.kts, zuletzt die abgelehnten — der zuletzt
+     * abgelehnte ganz hinten. Reine Funktion, damit testbar.
+     */
+    internal fun reihenfolge(alle: List<String>, gut: String?, abgelehnt: List<String>): List<String> {
+        val vorn = listOfNotNull(gut?.takeIf { it in alle })
+        val offen = alle.filter { it !in vorn && it !in abgelehnt }
+        val hinten = abgelehnt.filter { it in alle && it !in vorn }
+        return vorn + offen + hinten
+    }
+
+    private fun kandidaten(app: Context): List<String> {
+        val p = prefs(app)
+        return reihenfolge(fingerabdruecke(), p.getString(PREF_FP_GUT, null),
+            p.getString(PREF_FP_ABGELEHNT, "").orEmpty().split('\n').filter { it.isNotEmpty() })
+    }
+
+    private fun merkeGut(app: Context, fp: String) {
+        val p = prefs(app)
+        val ab = p.getString(PREF_FP_ABGELEHNT, "").orEmpty().split('\n').filter { it.isNotEmpty() && it != fp }
+        p.edit().putString(PREF_FP_GUT, fp).putString(PREF_FP_ABGELEHNT, ab.joinToString("\n")).apply()
+    }
+
+    private fun merkeAbgelehnt(app: Context, fp: String) {
+        val p = prefs(app)
+        val ab = p.getString(PREF_FP_ABGELEHNT, "").orEmpty().split('\n').filter { it.isNotEmpty() && it != fp } + fp
+        val e = p.edit().putString(PREF_FP_ABGELEHNT, ab.joinToString("\n"))
+        if (p.getString(PREF_FP_GUT, null) == fp) e.remove(PREF_FP_GUT)
+        e.apply()
+    }
 
     /** Kennungen aus AppGallery Connect eingetragen? (app/build.gradle.kts) */
     fun konfiguriert(): Boolean = !BuildConfig.HUAWEI_WATCH_FP.contains("EINTRAGEN")
@@ -168,7 +203,8 @@ object HuaweiBruecke {
                     // Je Fingerabdruck einmal anmelden (Lite/JS-FA und ArkTS koennen verschieden
                     // signiert sein). UNGEPRUEFT, ob das SDK den Fingerabdruck bei registerReceiver
                     // uebernimmt — bei EINEM Eintrag aendert sich gegenueber vorher nichts.
-                    for (fp in fingerabdruecke()) {
+                    // Bevorzugter Kandidat ZULETZT: falls das SDK nur die letzte Anmeldung behaelt, gilt der bewaehrte.
+                    for (fp in kandidaten(app).reversed()) {
                         p2p.setPeerFingerPrint(fp)
                         for (d in uhren) {
                             p2p.registerReceiver(d, r).addOnFailureListener { e ->
@@ -319,26 +355,51 @@ object HuaweiBruecke {
         return (0 until n).map { i -> "PF1|$KONFIG|$i|$n|1|" + t.substring(i * max, minOf(t.length, (i + 1) * max)) }
     }
 
-    /** Teile nacheinander an die Uhr; ein Fehlschlag bricht ab (die Uhr fragt halbstuendlich neu). */
+    /** Ein Teil senden; Ergebnis-Code (207 = zugestellt), -1 = Fehler, null = Zeitueberschreitung. */
+    private suspend fun teilSenden(p2p: com.huawei.wearengine.p2p.P2pClient, uhr: Device, teil: String): Int? {
+        val msg = Message.Builder().setPayload(teil.toByteArray(Charsets.US_ASCII)).build()
+        return withTimeoutOrNull(30_000) {
+            suspendCancellableCoroutine<Int> { weiter ->
+                p2p.send(uhr, msg, object : SendCallback {
+                    override fun onSendResult(resultCode: Int) { if (weiter.isActive) weiter.resume(resultCode) }
+                    override fun onSendProgress(progress: Long) {}
+                }).addOnFailureListener { if (weiter.isActive) weiter.resume(-1) }
+            }
+        }
+    }
+
+    /**
+     * Teile nacheinander an die Uhr. Der ERSTE Teil prueft den Fingerabdruck: wird er nicht zugestellt, kommt der naechste
+     * Kandidat dran — jeweils mit FRISCHEM P2P-Client (falls ein Fehlversuch den alten „beschaedigt"). Was geht, wird
+     * gemerkt und kuenftig zuerst genommen; was scheitert, rutscht nach hinten. Bricht ein spaeterer Teil ab: Ende (die
+     * Uhr fragt halbstuendlich neu).
+     */
     private suspend fun konfigSenden(app: Context, teile: List<String>) {
         val uhr = geraete.firstOrNull { it.isConnected } ?: return
-        val p2p = HiWear.getP2pClient(app)
-        p2p.setPeerPkgName(BuildConfig.HUAWEI_WATCH_PKG)
-        p2p.setPeerFingerPrint(fingerabdruecke().firstOrNull() ?: return)
-        for (teil in teile) {
-            val msg = Message.Builder().setPayload(teil.toByteArray(Charsets.US_ASCII)).build()
-            val code = withTimeoutOrNull(30_000) {
-                suspendCancellableCoroutine<Int> { weiter ->
-                    p2p.send(uhr, msg, object : SendCallback {
-                        override fun onSendResult(resultCode: Int) { if (weiter.isActive) weiter.resume(resultCode) }
-                        override fun onSendProgress(progress: Long) {}
-                    }).addOnFailureListener { if (weiter.isActive) weiter.resume(-1) }
+        if (teile.isEmpty()) return
+        val liste = kandidaten(app)
+        for ((nr, fp) in liste.withIndex()) {
+            val p2p = HiWear.getP2pClient(app)
+            p2p.setPeerPkgName(BuildConfig.HUAWEI_WATCH_PKG)
+            p2p.setPeerFingerPrint(fp)
+            val code = teilSenden(p2p, uhr, teile[0])
+            if (code != 207) {
+                Log.w(TAG, "Fingerabdruck-Kandidat ${fingerabdruecke().indexOf(fp) + 1} abgelehnt: ${code ?: "timeout"}")
+                merkeAbgelehnt(app, fp)
+                setze { it.copy(fehler = "konfig senden ${code ?: "timeout"} (fp ${nr + 1}/${liste.size})") }
+                continue
+            }
+            merkeGut(app, fp)
+            Log.i(TAG, "Fingerabdruck-Kandidat ${fingerabdruecke().indexOf(fp) + 1} angenommen")
+            for (teil in teile.drop(1)) {
+                val c = teilSenden(p2p, uhr, teil)
+                if (c != 207) {
+                    setze { it.copy(fehler = "konfig senden ${c ?: "timeout"}") }
+                    return
                 }
             }
-            if (code != 207) {
-                setze { it.copy(fehler = "konfig senden ${code ?: "timeout"}") }
-                return
-            }
+            setze { it.copy(fehler = "") }
+            return
         }
     }
 

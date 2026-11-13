@@ -60,6 +60,22 @@ class HuaweiBrueckeTest {
         assertEquals(listOf("A", "B"), HuaweiBruecke.fingerabdruecke(" A , B,A,"))
     }
 
+    @Test
+    fun fingerabdruckReihenfolgeMerktGutUndAbgelehnt() {
+        val alle = listOf("A", "B", "C", "D")
+        // nichts bekannt: wie eingetragen
+        assertEquals(alle, HuaweiBruecke.reihenfolge(alle, null, emptyList()))
+        // A abgelehnt: naechste Verbindung beginnt mit B, A ganz hinten
+        assertEquals(listOf("B", "C", "D", "A"), HuaweiBruecke.reihenfolge(alle, null, listOf("A")))
+        // A, dann B abgelehnt: C zuerst, der zuletzt abgelehnte (B) ganz hinten
+        assertEquals(listOf("C", "D", "A", "B"), HuaweiBruecke.reihenfolge(alle, null, listOf("A", "B")))
+        // C hat funktioniert: immer zuerst
+        assertEquals(listOf("C", "D", "A", "B"), HuaweiBruecke.reihenfolge(alle, "C", listOf("A", "B")))
+        assertEquals(listOf("C", "A", "B", "D"), HuaweiBruecke.reihenfolge(alle, "C", emptyList()))
+        // gemerkter Wert, der nicht mehr eingetragen ist (neuer Build), zaehlt nicht
+        assertEquals(alle, HuaweiBruecke.reihenfolge(alle, "X", listOf("Y")))
+    }
+
     /** Antwort an die Uhr: nur die Seiten-Schluessel, Teile im Uhren-Format, Nicht-ASCII maskiert. */
     @Test fun konfigFuerDieUhr() {
         val roh = """{"views":[[1,2,0]],"pages":[[1,4,[[3,500,500,2,0,0,"Läufe"]]]],"latestVersion":"9","foils":[1,2]}"""
