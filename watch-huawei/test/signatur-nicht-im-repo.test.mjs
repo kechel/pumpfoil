@@ -12,7 +12,8 @@ const hier = path.dirname(fileURLToPath(import.meta.url));
 
 for (const linie of ['lite', 'wearable', 'arkts']) {
   test(`${linie}/build-profile.json5: signingConfigs leer`, () => {
-    const datei = path.join(hier, '..', linie, 'build-profile.json5');
+    // lite: die eingecheckte Datei ist die Vorlage (build-profile.json5 selbst ist gitignored, 13.11.2026)
+    const datei = path.join(hier, '..', linie, linie === 'lite' ? 'build-profile.example.json5' : 'build-profile.json5');
     const text = readFileSync(datei, 'utf-8');
     // fehlt der Schluessel ganz (lite, wearable), ist das genauso sicher
     if (/"signingConfigs"/.test(text)) {
@@ -21,6 +22,11 @@ for (const linie of ['lite', 'wearable', 'arkts']) {
     assert.doesNotMatch(text, /storePassword|keyPassword|\.p12"|\.p7b"/, `${datei}: Signatur-Material im Repo`);
   });
 }
+
+test('lite/build-profile.json5 ist NICHT im Repo (dort steht lokal die Signatur)', () => {
+  const drin = execFileSync('git', ['ls-files', '--', path.join(hier, '..', 'lite', 'build-profile.json5')], { encoding: 'utf-8' });
+  assert.equal(drin.trim(), '');
+});
 
 test('keine Schluessel-/Zertifikatsdateien im Repo', () => {
   const dateien = execFileSync('git', ['ls-files', '--', path.join(hier, '..')], { encoding: 'utf-8' }).split('\n');

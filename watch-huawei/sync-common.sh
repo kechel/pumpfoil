@@ -5,6 +5,8 @@
 # Nach jeder Aenderung an common/ oder lite/.../pages|i18n: ./sync-common.sh
 # test/kern.test.mjs prueft, dass die Kopien stimmen.
 cd "$(dirname "$0")"
+# Lite: build-profile.json5 ist nicht im Repo (Signatur, s. .gitignore) — aus der Vorlage anlegen, nie ueberschreiben
+[ -f lite/build-profile.json5 ] || cp lite/build-profile.example.json5 lite/build-profile.json5
 for p in lite wearable; do
   z="$p/entry/src/main/js/MainAbility"
   [ -d "$p/entry" ] || continue

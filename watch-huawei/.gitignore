@@ -27,3 +27,7 @@ local.properties
 *.cer
 *.csr
 signing.json
+
+# Lite: DevEco schreibt die Signatur (samt Passwoertern) in build-profile.json5 — die Datei liegt deshalb NICHT im
+# Repo (Jan, 13.11.2026). Vorlage: lite/build-profile.example.json5; build-all.sh/sync-common.sh legen sie an, wenn sie fehlt.
+lite/build-profile.json5
