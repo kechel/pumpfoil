@@ -34,8 +34,8 @@ def test_schaetzung_je_session(monkeypatch):
 def test_quelle_und_sichere_session(monkeypatch):
     monkeypatch.setenv("ACCEL_NORM", "1")
     _ohne_db(monkeypatch, {"app|garmin|*": {"einheit": 1000.0}})
-    wild = _ruhe(1000)[:800].copy(); wild[:, 0] = 1700                    # kurz + wild: Schaetzung unsicher
-    assert skala.fuer_analyse(wild, 2048, 25, "123-4") == 1000             # -> Quelle (Weg+Plattform) gilt
+    kurz = _ruhe(2048)[:400]                                               # zu kurz fuer eine Schaetzung
+    assert skala.fuer_analyse(kurz, 2048, 25, "123-4") == 1000             # -> Quelle (Weg+Plattform) gilt
     assert skala.fuer_analyse(_ruhe(2048, 5000), 2048, 25, "123-4") == 2048  # sicher anders -> Session gilt (#516)
 
 
@@ -43,3 +43,14 @@ def test_quelle_aus():
     assert skala.quelle_aus("1794143439-590810561", "garmin", "006-B4536-00") == "app|garmin|006-B4536-00"
     assert skala.quelle_aus("garmin-abc", None, "Garmin Forerunner 245") == "garmin|-|Garmin Forerunner 245"
     assert skala.quelle_aus("A06EA035-1", "apple", "Watch7,5 · watchOS 26.6") == "app|apple|Watch7,5"
+
+
+def test_kraeftiger_fahrer_bleibt_bei_der_quelle(monkeypatch):
+    # #10256: milli-g, aber Median 1,8 g und Schwerkraft-Vektor ~2 g -> Median und Vektor sagen 2048, p10 sagt 1000.
+    monkeypatch.setenv("ACCEL_NORM", "1")
+    _ohne_db(monkeypatch, {"app|garmin|*": {"einheit": 1000.0}})
+    rng = np.random.default_rng(2)
+    a = np.zeros((6000, 3)); a[:, 2] = 1000
+    a[1200:, 2] = 2000 + rng.normal(0, 150, 4800)                         # 80 % der Zeit kraeftig belastet
+    assert skala.schaetzen(a.astype(np.int16), 25) is None
+    assert skala.fuer_analyse(a.astype(np.int16), 2048, 25, "123-4") == 1000

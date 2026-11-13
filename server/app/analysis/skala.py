@@ -37,7 +37,7 @@ log = logging.getLogger(__name__)
 EINHEITEN = (2048.0, 1000.0, 512.0)     # bekannte Einheiten je g (int16-2048, milli-g, Huawei)
 TOLERANZ = 0.25                          # |log(Schaetzung/Einheit)| darunter gilt als „passt" (~ ±28 %)
 MIN_WERTE = 500
-SICHER_WERTE = 3000      # ab so vielen Werten sticht eine einige Schaetzung die Quelle (kurze wilde Sessions irren)
+SICHER_WERTE = 500       # drei einige Schaetzer stechen die Quelle (mit zweien irrten kraeftige Fahrer, #10256)
 TABELLE = pathlib.Path(__file__).resolve().parents[1] / "data" / "einheiten.json"   # im Repo: gleich auf allen Knoten
 IMPORT_WEGE = ("garmin", "fit", "suunto", "polar", "coros", "imp", "strava", "merge", "split", "zepp", "hw")
 
@@ -74,10 +74,19 @@ def naechste(v: float | None) -> float | None:
     return e if abs(math.log(v / e)) <= TOLERANZ else None
 
 
+def p10_betrag(accel: np.ndarray) -> float | None:
+    """10. Perzentil des Betrags: Bewegung macht den Betrag fast nur GROESSER, das untere Ende bleibt nahe 1 g.
+    Trennt kraeftige Fahrer (#10256: Median 1,8 g, aber p10 0,85 g in milli-g) von echten 2048er-Daten (#516: p10 1700)."""
+    if accel is None or len(accel) < MIN_WERTE:
+        return None
+    a = np.asarray(accel[:: max(1, len(accel) // 20000)], dtype=np.float64)
+    return float(np.percentile(np.sqrt((a * a).sum(axis=1)), 10))
+
+
 def schaetzen(accel: np.ndarray, hz: float | None) -> float | None:
-    """Einheit dieser Session, nur wenn beide Schaetzer uebereinstimmen; sonst None."""
-    a, b = naechste(median_betrag(accel)), naechste(schwere(accel, hz))
-    return a if a is not None and a == b else None
+    """Einheit dieser Session, nur wenn ALLE DREI Schaetzer (Median, Schwerkraft-Vektor, p10) uebereinstimmen."""
+    a, b, c = naechste(median_betrag(accel)), naechste(schwere(accel, hz)), naechste(p10_betrag(accel))
+    return a if a is not None and a == b == c else None
 
 
 # --- Quelle + Tabelle ---------------------------------------------------------------------------------------------

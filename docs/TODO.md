@@ -1608,6 +1608,20 @@ Rein lesend geprueft (Sessions seit 05.11.):
      nur beim Lesen fuer die Analyse (on demand, im Speicher). Dazu `sessions.accel_scale` der Garmin-Connect-Sessions
      wieder auf das gemeldete 2048 zuruecksetzen (Stand vorher: analyse-notizen/2026-11-13-garmin-skala/
      sessions-accel_scale-vorher.json) und die Korrektur je Quelle in `analyse_skala()` legen.
+- **Stand 13.11. abends (nichts live, Schalter ACCEL_NORM aus):** `app/analysis/skala.py` (Einheit je Quelle, Tabelle
+  `app/data/einheiten.json` aus `scripts/einheiten-bestimmen.py`, drei Schaetzer, 45f5ae18). r8b = r7s-Rezept auf echtem g
+  (data/ml/v3/r8b/, stufe_a_r8b.pkl). Faire Messung, Fahrer herausgehalten, Live-Weg (`messen_r7.py --kandidat
+  "r4@norm,r7s,r8b@norm" --nur-b`, r7/messung-r4-r4_norm-r7s-r8b_norm-b.json):
+  | | r4 (live) | r4+Umrechnung | r7s | r8b+Umrechnung |
+  | Brett alle Praez/Treffer | 0,848/0,926 | 0,854/0,924 | 0,855/0,922 | 0,863/0,916 |
+  | Uhr-Laeufe bestaetigt | 91/104 | 91/104 | 91/101 | 91/99 |
+  | Brett-Laeufe gefunden | 94/129 | 94/129 | 94/129 | 94/129 |
+  | u350 Fortsetzung (s von 771) | 289 | 289 | 230 | 255 |
+  | Land-Laeufe noch da (von 82) | 21 | 21 | 22 | 19 |
+  | Negativbeispiele | 0 | 0 | 0 | 0 |
+  Label-Wahrheit (132 FIT-Sessions) bei allen gleich (F1 0,898/0,899). 300 Garmin-App-Sessions: r4 3473 Laeufe, r4+Umr.
+  3343, r8b+Umr. 3357. Ergebnis: Umrechnung + r8b etwas praeziser (weniger falsche Uhr-Laeufe, weniger Land), etwas
+  weniger Treffer und Fortsetzung als r4; Garmin-App ~ -3,4 % Laeufe. Entscheidung Jan.
 
 ### 13.11.2026 — Meldung: Lauf in zwei geteilt (Session #21487) + Idee Wind-Fairness bei Sprints
 - [ ] **#21487 — GROUND TRUTH „ein Lauf, in zwei geteilt"** (Nutzer 993; Meldung per DM 12.11. 23:23: „Lauf 7 und 8

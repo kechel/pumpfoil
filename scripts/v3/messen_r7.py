@@ -111,7 +111,7 @@ MOD = {}
 def _init_b(namen):
     MOD["r3"] = falten_mit_gesamt("r3")
     for n in namen:
-        MOD[n] = falten_mit_gesamt(n)
+        MOD[n] = falten_mit_gesamt(n.split("@")[0])
     MOD["_namen"] = namen
 
 
@@ -122,14 +122,24 @@ def eine_b(sid):
     from app.db import SessionLocal
     db = SessionLocal()
     try:
-        ctx = G.kontext(db, sid)
-        if ctx is None or ctx.get("X") is None:
+        # 13.11.2026: Name „<modell>@norm" = Kontext mit ACCEL_NORM=1 (Accel in echtem g, app/analysis/skala.py),
+        # sonst mit den gemeldeten Einheiten wie bisher. Je Einheit EIN Kontext.
+        kx = {}
+        for norm in sorted({n.endswith("@norm") for n in MOD["_namen"]}):
+            os.environ["ACCEL_NORM"] = "1" if norm else ""
+            kx[norm] = G.kontext(db, sid)
+        os.environ["ACCEL_NORM"] = ""
+        ctx = next(iter(kx.values()))
+        if ctx is None or ctx.get("X") is None or any(c is None or c.get("X") is None for c in kx.values()):
             return {"id": sid, "fehler": "keine Daten"}
         s = ctx["s"]
         out = {"id": sid, "user": s.user_id, "t0": s.started_at.timestamp() * 1000.0}
         for n in MOD["_namen"]:
-            p, info = G.p_fuer(ctx, MOD[n], MOD["r3"], fahrer=s.user_id)
-            segs, verw = G.v3_segmente(ctx, p)
+            c = kx[n.endswith("@norm")]
+            os.environ["ACCEL_NORM"] = "1" if n.endswith("@norm") else ""
+            p, info = G.p_fuer(c, MOD[n], MOD["r3"], fahrer=s.user_id)
+            segs, verw = G.v3_segmente(c, p)
+            os.environ["ACCEL_NORM"] = ""
             out[n] = {"laeufe": [(float(x["t_start_session_ms"]), float(x["t_end_session_ms"])) for x in segs],
                       "herausgehalten": info}
         return out
@@ -257,7 +267,7 @@ def main():
         teil_a(modelle, erg)
     if not a.nur_a:
         teil_b(modelle, erg, a.jobs)
-    p = R7 / f"messung-{'-'.join(modelle)}{'-a' if a.nur_a else ''}{'-b' if a.nur_b else ''}.json"
+    p = R7 / f"messung-{'-'.join(m.replace('@', '_') for m in modelle)}{'-a' if a.nur_a else ''}{'-b' if a.nur_b else ''}.json"
     p.write_text(json.dumps(erg, indent=1, default=str))
     print("geschrieben:", p)
 
