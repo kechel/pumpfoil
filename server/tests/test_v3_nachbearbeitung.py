@@ -60,3 +60,45 @@ def test_ohne_randschnitt_verlaengert_nur_die_raender():
     out = ganze_v2_laeufe(v3, v2)
     assert [(x["t_start_session_ms"], x["t_end_session_ms"]) for x in out] == \
         [(0, 20000), (100000, 105000), (200000, 210000), (300000, 340000), (360000, 400000)]
+
+
+def _gps_strecke(abschnitte):
+    """1-Hz-GPS [t_ms, lat, lon, v, 0, 5] aus (von_s, bis_s, m_pro_s, doppler); Luecken = fehlende Sekunden."""
+    from math import cos, radians
+    out, lat, t = [], 47.0, 0
+    for von, bis, mps, v in abschnitte:
+        for s in range(von, bis):
+            lat += mps / 111320.0
+            out.append([s * 1000.0, lat, 9.0, v, 0, 5.0])
+    return out
+
+
+def test_bruecke_eingefrorenes_gps_durchgefahren_verbindet():
+    """#21487: GPS steht 4 s (Doppler 0, kaum Bewegung), danach Aufholsprung — Luftlinie ~4 m/s, p hoch -> ein Lauf."""
+    import numpy as np
+    from app.analysis.v3 import nachbearbeitung as N
+    gps = _gps_strecke([(0, 30, 4.0, 4.0), (30, 34, 0.1, 0.0), (34, 36, 14.0, 8.0), (36, 60, 4.0, 4.0)])
+    t = np.array([g[0] for g in gps]); pg = np.full(t.size, 0.97)
+    L = N._bruecken([(5000.0, 29000.0), (33000.0, 55000.0)], t, pg, 0.4, gps)
+    assert L == [(5000.0, 55000.0)]
+
+
+def test_bruecke_echter_stopp_bleibt_getrennt():
+    """Kurzer echter Stopp (Luftlinie < 2,5 m/s) wird NICHT verbunden, auch wenn p hoch bleibt."""
+    import numpy as np
+    from app.analysis.v3 import nachbearbeitung as N
+    gps = _gps_strecke([(0, 30, 4.0, 4.0), (30, 37, 0.3, 0.3), (37, 60, 4.0, 4.0)])
+    t = np.array([g[0] for g in gps]); pg = np.full(t.size, 0.9)
+    L = N._bruecken([(5000.0, 29000.0), (33000.0, 55000.0)], t, pg, 0.4, gps)
+    assert len(L) == 2
+
+
+def test_bruecke_p_faellt_oder_luecke_zu_lang():
+    import numpy as np
+    from app.analysis.v3 import nachbearbeitung as N
+    gps = _gps_strecke([(0, 60, 4.0, 4.0)])
+    t = np.array([g[0] for g in gps])
+    pg = np.full(t.size, 0.97); pg[(t > 29000) & (t < 33000)] = 0.2          # Modell sagt in der Luecke: nicht auf dem Foil
+    assert len(N._bruecken([(5000.0, 29000.0), (33000.0, 55000.0)], t, pg, 0.4, gps)) == 2
+    pg = np.full(t.size, 0.97)
+    assert len(N._bruecken([(5000.0, 29000.0), (35000.0, 55000.0)], t, pg, 0.4, gps)) == 2   # 6 s > LUECKE_S + 1

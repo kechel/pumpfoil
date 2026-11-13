@@ -39,12 +39,13 @@ import logging
 import os
 from contextvars import ContextVar
 from pathlib import Path
+import math
 
 import numpy as np
 
 log = logging.getLogger(__name__)
 
-VERSION = "v3-r4-mild-2"
+VERSION = "v3-r4-mild-3"   # mild-3 (13.11.2026): Kandidaten ueber kurze Luecken mit Luftlinien-Bruecke verbinden
 # Die Live-Modelle liegen IM REPO neben dem Code (wie `foil_rf.pkl`), nicht unter data/ (Jan, 30.09.:
 # „bitte ins repo committen, nicht dass das verloren geht"). Sie enthalten nur Baeume und
 # Bin-Grenzen, keine Sessions. Neue Fassung: unter neuem Namen trainieren, pruefen, HIER ablegen,
@@ -123,6 +124,43 @@ def _teil(L, t, pg, theta):
     return out
 
 
+BRUECKE_MPS = 2.5            # Luftlinie ueber die Luecke: ab hier „durchgefahren" (wie LaufLuecke auf den Uhren)
+
+
+def _bruecken(L, t, pg, theta, gps):
+    """Zwei aufeinanderfolgende Kandidaten-Laeufe verbinden, wenn (1) die Luecke <= LUECKE_S + 1 s ist, (2) p
+    (geglaettet) in der Luecke nirgends unter theta faellt und (3) die Luftlinie von 1 s vor bis 2 s nach der Luecke
+    >= BRUECKE_MPS ist (13.11.2026, #21487: Handy-GPS fror 5 s ein, Doppler 0 — v2 und tief trennten, das Modell sagte
+    p 0,97; `_teil` schliesst Loecher nur innerhalb eines Kandidaten). (3) haelt echte kurze Stopps getrennt: in der
+    Regression ueber 4881 Sessions verband (1)+(2) allein 31 Stellen, davon 5 mit < 1,5 m/s — mit (3) bleiben 6.
+    Das Fenster reicht ueber die Luecke hinaus, weil beim eingefrorenen GPS die Fixe direkt an der Luecke selbst
+    eingefroren sind (#21487: 0,04 m/s direkt daneben, 3,95 m/s im Fenster)."""
+    if len(L) < 2 or not gps:
+        return L
+    tg = np.array([float(q[0]) for q in gps])
+    L = sorted(L)
+    out = [list(L[0])]
+    for a, b in L[1:]:
+        pb = out[-1][1]
+        gap_s = (a - pb) / 1000
+        verbinden = False
+        if 0 <= gap_s <= LUECKE_S + 1:
+            m = (t > pb) & (t < a)
+            if not m.any() or bool((pg[m] >= theta).all()):
+                iv = np.flatnonzero(tg <= pb - 1000)
+                inach = np.flatnonzero(tg >= a + 2000)
+                if iv.size and inach.size:
+                    x, y = gps[int(iv[-1])], gps[int(inach[0])]
+                    dt = (y[0] - x[0]) / 1000
+                    dla = math.radians(y[1] - x[1]); dlo = math.radians(y[2] - x[2]) * math.cos(math.radians(x[1]))
+                    verbinden = dt > 0 and 6371000 * math.hypot(dla, dlo) / dt >= BRUECKE_MPS
+        if verbinden:
+            out[-1][1] = max(pb, b)
+        else:
+            out.append([a, b])
+    return [(float(x), float(y)) for x, y in out]
+
+
 def _mittel(t, p, a, b):
     m = (t >= a) & (t <= b)
     return float(p[m].mean()) if m.any() else None
@@ -147,6 +185,7 @@ def laeufe(tb, v2_segmente, tief_segmente, sens: str, keep=None):
                  if not any(iv(s)[0] < iv(g)[1] and iv(s)[1] > iv(g)[0] for g in geschuetzt)]
     theta, tau = TEIL.get(sens, TEIL["normal"])
     L = _teil(_vereinigung(frei_v2, frei_tief), t, pg, theta)
+    L = _bruecken(L, t, pg, theta, getattr(tb, "gps", None))
     L = [(a, b) for a, b in L if (_mittel(t, pg, a, b) or 0) >= tau]
     k = KURZ.get(sens, KURZ["normal"])
     L = [(a, b) for a, b in L if b - a >= KURZ_S * 1000 or (_mittel(t, p, a, b) or 0) >= k]
