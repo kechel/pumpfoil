@@ -950,6 +950,14 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # Huawei Watch 5 1.0.6 am 13.11.2026 ~16:40 eingereicht (Jans Meldung, AppGallery „Under pre-review"). GT/Fit/D (Lite)
+    # liess sich in dieser App nicht auswaehlen („Unavailable") -> eigene App noetig, offen.
+    {"name": "Huawei Watch 5", "version": "1.0.6",
+     "eingereicht": "2026-11-13",
+     "items": [
+         "After a short GPS dropout at the end of a run, for example after a fall, the run now ends at the last good GPS fix.",
+         "You can swipe down from the settings list to return to the start screen, not only with the crown.",
+     ]},
     # 12.11.2026: GPS-Luecke am Lauf-Ende (LaufLuecke.mc, baf2244d/bddabe64), im Simulator auf fenix 7X Pro, FR55 und
     # Instinct 2 getestet. Version 1.0.103 fuer die Einreichung gebumpt.
     # Garmin 1.0.103 am 12.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt mit 5 Bildern im Changelog mit garmin 1.0.103.
