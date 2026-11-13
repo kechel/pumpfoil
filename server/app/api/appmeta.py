@@ -950,6 +950,12 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # Amazfit 1.0.16 am 13.11.2026 ~19:00 eingereicht (Jans Meldung, Zepp-Konsole „Under Review").
+    {"name": "Amazfit", "version": "1.0.16",
+     "eingereicht": "2026-11-13",
+     "items": [
+         "A short GPS dropout during a run, for example when your arm dips under water, no longer splits the run in two, and after a fall the run ends at the last GPS position.",
+     ]},
     # Huawei Watch 5 1.0.6 am 13.11.2026 ~16:40 eingereicht (Jans Meldung, AppGallery „Under pre-review"). GT/Fit/D (Lite)
     # liess sich in dieser App nicht auswaehlen („Unavailable") -> eigene App noetig, offen.
     # Pumpfoil GT (HUAWEI WATCH GT/Fit/D, Lite, org.pumpfoil.gt, eigene AppGallery-App 6917621717624935972) 1.0.6 am
@@ -1267,10 +1273,7 @@ NAECHSTES: list[dict] = [
     # iOS 1.1.66 — Huawei fd3896b9 (Watch 5 Seiten.ets; Watch 3/4 luecke.js; Lite ohne, 48-KB-Heap), Zepp cc767beb,
     # Suunto d605f4c9. Versionen gebumpt: Huawei 1.0.6 (1000006), Amazfit 1.0.16 (19); Suunto bleibt 1.01 (nie eingereicht).
     # Huawei Watch 5 1.0.6 am 13.11. eingereicht -> IN_REVIEW.
-    {"name": "Amazfit", "version": "1.0.16",
-     "items": [
-         "A short GPS dropout during a run, for example when your arm dips under water, no longer splits the run in two, and after a fall the run ends at the last GPS position.",
-     ]},
+    # Amazfit 1.0.16 am 13.11. eingereicht -> IN_REVIEW.
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 
