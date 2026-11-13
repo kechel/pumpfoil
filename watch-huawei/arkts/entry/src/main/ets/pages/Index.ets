@@ -112,6 +112,7 @@ struct Index {
   @State versatz: number = 0;
   @State deckkraft: number = 1;
   private seite: number = 2;
+  private listeObenBeimStart: boolean = false;   // Einstellungsliste: Wischen begann ganz oben (einstellungsListe)
   private mahnungVorher: number = 0;   // Recorder.pauseMahnung beim letzten Zeichnen
   private zustandVorher: string = '';
   private texte: Map<string, string> = new Map<string, string>();
@@ -652,6 +653,18 @@ struct Index {
     .edgeEffect(EdgeEffect.Spring)
     .backgroundColor('#000000')
     .focusable(false)   // die Krone faehrt die Wurzel (krone), sonst scrollte die Liste doppelt
+    // Zurueck zum Start per Wischen (AppGallery-Pruefung 1.0.5, Watch 6 Pro: „unable to swipe up to return to the first
+    // screen"): der Scroll schluckt die Wisch-Geste der Wurzel. Steht die Liste beim Ansetzen ganz oben und der Finger
+    // zieht nach unten, geht es zurueck wie mit der Krone; mitten in der Liste scrollt sie normal.
+    .parallelGesture(PanGesture({ direction: PanDirection.Vertical })
+      .onActionStart(() => {
+        this.listeObenBeimStart = this.scroller.currentOffset().yOffset <= 1;
+      })
+      .onActionEnd((e: GestureEvent) => {
+        if (this.listeObenBeimStart && e.offsetY > 30) {
+          this.blaettern(false);
+        }
+      }))
   }
 
   /** Koppel-Ansicht: Code anzeigen und alle 5 s nachfragen, ob er auf pumpfoil.org eingeloest wurde. */
