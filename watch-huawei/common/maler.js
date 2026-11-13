@@ -14,16 +14,14 @@ function malen(c, befehle, lite) {
     try {
       if (b.k === "r") { c.fillStyle = b.c; c.fillRect(b.x, b.y, b.w, b.h); }
       else if (b.k === "t") {
-        var px = lite ? (b.s >= 34 ? 38 : 30) : b.s, txt = b.txt;
-        // zu breit (b.mw): 30 px + kuerzen
-        if (lite && b.mw) { if (txt.length * 24 > b.mw) px = 30; var n = b.mw / 21 | 0; if (txt.length > n) txt = txt.substring(0, n - 1) + "."; }
+        var px = lite ? (b.s >= 34 ? 38 : 30) : b.s;
         c.fillStyle = b.c; c.font = px + "px";
         c.textAlign = b.a === "l" ? "left" : (b.a === "r" ? "right" : "center");
         // Lite setzt den Text mit der OBERKANTE auf y (Simulator 08.10.2026: alles ~0,85 × Groesse zu
         // tief, Jans Screenshot), Watch 3/4 (volle Canvas) mit der Grundlinie. b.y ist die Mitte.
         // Im Simulator mit Hilfslinien nachgemessen: Ziffern lagen bei -0,5 × Groesse noch ~0,1 × Groesse
         // unter der Soll-Mitte (Platz fuer Unterlaengen im Textfeld) — daher -0,6.
-        c.fillText(txt, b.x, lite ? b.y - Math.round(px * 0.6) : b.y + Math.round(px * 0.35));
+        c.fillText(b.txt, b.x, lite ? b.y - Math.round(px * 0.6) : b.y + Math.round(px * 0.35));
       } else if (b.k === "l") {
         c.strokeStyle = b.c; c.lineWidth = b.w; c.beginPath(); c.moveTo(b.x1, b.y1); c.lineTo(b.x2, b.y2); c.stroke();
       } else if (b.k === "a") {
