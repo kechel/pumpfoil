@@ -3311,16 +3311,17 @@ Page(
         if (s._flat == null) { s._flat = 47.66; s._flon = 9.355; }
         if (s.recording) {
           s._fi = (s._fi || 0) + 1; speed = (19 + 5 * Math.sin(s._fi / 6)) / 3.6;
-          // 120-s-Zyklus (npm run dev-luecke): 0-60 s Lauf mit 8 s Luecke ab 25 s (bleibt EIN Lauf), 60-75 s langsam
-          // zurueck (Laufende), 75-120 s Lauf mit 20 s Luecke ab 100 s (Sturz: Lauf endet am letzten Fix vor 100 s).
+          // 160-s-Zyklus (npm run dev-luecke): 0-60 s Lauf mit 8 s Luecke ab 25 s (bleibt EIN Lauf), 60-95 s langsam
+          // zurueck (Laufende; laenger als RUN_REARM_COOLDOWN_MS), 95-160 s Lauf mit 25 s Luecke ab 135 s (Sturz: Lauf
+          // endet am letzten Fix vor 135 s, ~35 s).
           // Das Tempo VOR dem Weiterschieben setzen: die Uhr rechnet es aus den Positionen.
-          if (DEV_FAKE_LUECKE && s._fi % 120 >= 60 && s._fi % 120 < 75) speed = 2 / 3.6;
+          if (DEV_FAKE_LUECKE && s._fi % 160 >= 60 && s._fi % 160 < 95) speed = 2 / 3.6;
           s._flat += (speed / 111320) * 0.7; s._flon += (speed / (111320 * 0.673)) * 0.4;
         }
         lat = s._flat; lon = s._flon;
         if (DEV_FAKE_LUECKE && s.recording) {
-          const p = s._fi % 120;
-          if ((p >= 25 && p < 33) || p >= 100) { fix = false; lat = null; lon = null; speed = 0; }
+          const p = s._fi % 160;
+          if ((p >= 25 && p < 33) || p >= 135) { fix = false; lat = null; lon = null; speed = 0; }
         }
       } else if (s.geo) {
         try {

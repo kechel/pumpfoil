@@ -140,7 +140,7 @@ function versionPruefen() {
 const modus = process.argv[2];
 if (!["dev", "dev-luecke", "dev-echt", "build", "pruefe"].includes(modus)) {
   console.error("Aufruf: node zepp.mjs dev | dev-luecke | dev-echt | build | pruefe");
-  console.error("  dev-luecke wie dev, die Spur setzt aus: 8 s mitten im Lauf (ein Lauf), 20 s am Ende (Sturz)");
+  console.error("  dev-luecke wie dev, die Spur setzt aus: 8 s mitten im Lauf (ein Lauf), 25 s am Ende (Sturz), Zyklus 160 s");
   console.error("  dev      Simulator, DEV_FAKE_GPS = true  (Screenshots)");
   console.error("  dev-echt Simulator, DEV_FAKE_GPS = false (echter Ortungs-Pfad, s. Testplan)");
   console.error("  build    Store-Paket, DEV_FAKE_GPS = false, mit Nachpruefung");
