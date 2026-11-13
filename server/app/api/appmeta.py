@@ -1385,6 +1385,10 @@ IDEEN: list[str] = [
     "See your start attempts on the watch data screens, next to your runs.",
     "A heart-rate alarm that tells you when your pulse has dropped back below a value you choose, so you know you are "
     "ready for the next run.",
+    # Vorschlag u244 (1:1-Chat mit Jan, 13.11.2026); Jan: „Disable run detection for Wingfoil makes sense".
+    # Der zweite Wunsch (Zuschneiden) gibt es schon unten auf der Session-Seite, Jan hat darauf verwiesen.
+    "Choose per sport whether a session is split into runs, for example to keep a wing foil session as one "
+    "continuous ride.",
     # Vorschlag eines Fahrers im Chat (12./13.11.2026, nach Testlaeufen fuer das Sprint-Event): Datenfeld mit der
     # schnellsten 100 m und der schnellsten Minute im letzten Lauf, einbaubar ueber ein Community-Layout. Jan daraus:
     # ein „Event-Modus", der die Wertungen des laufenden Events automatisch auf einer eigenen Datenseite zeigt.
