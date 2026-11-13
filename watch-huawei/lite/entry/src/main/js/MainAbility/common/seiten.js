@@ -219,7 +219,10 @@ function layout(e, c) {
       var col = farbe(ci, typ === 1 ? AUTO_WERT : AUTO_LABEL);
       if (typ === 1 && (fl & 4)) col = wertFarbe(c.k, fid, feldZahl(c.s, fid, c.el)) || col;
       if (ay <= dh * 0.2 && (ob < 0 || ay < vorne[ob].y)) ob = vorne.length;
-      vorne.push(tq(ax, ay, groesse(st, dw), col, a, txt, typ === 1));
+      var q = tq(ax, ay, groesse(st, dw), col, a, txt, typ === 1);
+      // Platz bis zum Rand: Lite kennt nur 30/38 px und kuerzt damit selbst (maler.js, 13.11.2026)
+      q.mw = a === "l" ? dw - ax : (a === "r" ? ax : 2 * Math.min(ax, dw - ax));
+      vorne.push(q);
     }
   }
   // Ohne Pause-Element ersetzt „Paused" den obersten Text der oberen 20 % (wie Seiten.ets pauseEinsetzen, 04.11.2026)

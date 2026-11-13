@@ -168,6 +168,13 @@ SDK API 24) unter `~/harmonyos/command-line-tools` (ausserhalb des Repos, NIE co
 `CLT_HOME`). Baut alle drei Linien unsigniert, vorher sync + Node-Tests. Die Lite-/JS-FA-Linien
 brauchen das lokale Wear-Engine-SDK (`wearengine.js`, s. „SDK holen"). Signieren bleibt DevEco.
 
+**Simulator im Build-Modus RELEASE** (13.11.2026): zeigt genau, was auf die Uhr geht; `build-all.sh` prueft nur noch
+Release (der unminifizierte Debug-Bau sprengte die 48-KB-Grenzen). **Echte Fahrt im GT-Simulator:** `./sim.sh an`, dann
+`./sim-fahrt.py fahrt.gpx` (oder `.fit`, `--ab <s>` fuer eine andere Stelle) — echtes Tempo je Sekunde als GPS-Attrappe,
+das Skript baut selbst und waehlt das Raster so, dass der Snapshot noch passt (~100 Zeichen frei: 530 s bei 5 s Raster).
+GPX einer Session: Web › Session › Export › GPX; FIT -> GPX: `gpsbabel -i garmin_fit -f x.fit -o gpx -F x.gpx`.
+Watch 5 (ArkTS-Emulator) braucht das nicht: Seitenfenster › GPS emulation › Replay mit der GPX-Datei.
+
 **Simulator (DevEco):** dort fehlt `@system.wearengine`, schon der Import scheitert und die Seite
 bleibt schwarz. `./sim.sh an` laesst die Seite eine Attrappe laden (Senden scheitert sichtbar mit
 Code -2), `./sim.sh aus` stellt die echte Wear Engine wieder her — NIE im Zustand „an" committen.

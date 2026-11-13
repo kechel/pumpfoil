@@ -28,7 +28,9 @@ done
 # Debug. Nur lite/: die Watch-3/4-Linie (wearable/) laeuft auf einer vollen JS-Engine ohne Snapshot.
 JB="$CLT/sdk/default/openharmony/js/build-tools/ace-loader/bin"
 BC=$(mktemp)
-for m in release debug; do
+# Nur RELEASE (13.11.2026, Jan: „warum ueberhaupt debug build?"): Simulator laeuft im Build-Modus release, damit er
+# zeigt, was auf die Uhr geht. Der unminifizierte Debug-Bau sprengte die 48-KB-Grenzen schon bei ~100 Byte mehr.
+for m in release; do
   (cd lite && hvigorw assembleHap --mode module -p product=default -p buildMode=$m --no-daemon) | grep -E "ERROR" || true
   # app.js und JEDE Seite (jede Seite ist ein eigenes Buendel mit eigenen Grenzen)
   for f in lite/entry/build/default/intermediates/loader_out_lite/default/js/MainAbility/app.js \
@@ -49,4 +51,4 @@ for m in release debug; do
   done
 done
 rm -f "$BC"
-echo "Snapshot-Pruefung ok (lite, release + debug)"
+echo "Snapshot-Pruefung ok (lite, release)"

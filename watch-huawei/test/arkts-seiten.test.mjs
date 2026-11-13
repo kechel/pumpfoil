@@ -78,7 +78,9 @@ test("Seiten.ets: Felder, Ring und Zeichenbefehle bytegleich", { skip: ohneTsc }
         for (const [pausiert, form] of [[false, 0], [true, 0], [false, 1]]) {
           const cj = { dw: form ? 336 : 466, dh: form ? 480 : 466, rund: !form, s: sj, el: 899, t, jetzt, k: kj, idx, anzahl: rj.length, pausiert };
           const ca = { ...cj, s: sa, k: ka };
-          assert.equal(JSON.stringify(A.zeichne(seite, ca)), JSON.stringify(J.zeichne(seite, cj)), `Seite ${z}/${idx}`);
+          // `mw` (Platz bis zum Rand) braucht nur Lite zum Kuerzen (maler.js, 13.11.2026) — Watch 5 zeichnet echte Groessen
+          const ohneMw = (l) => JSON.stringify(l, (k, v) => (k === "mw" ? undefined : v));
+          assert.equal(JSON.stringify(A.zeichne(seite, ca)), ohneMw(J.zeichne(seite, cj)), `Seite ${z}/${idx}`);
         }
       });
     }
