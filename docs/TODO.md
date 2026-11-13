@@ -1604,6 +1604,10 @@ Rein lesend geprueft (Sessions seit 05.11.):
   3. Gegenprobe je Plattform rein lesend: Brett-Paare (Handy am Brett) + die Garmin-Connect-Paare als natuerlicher A/B-Test.
   4. Dann Reanalyse des Bestands (blockweise, Sicherung vorher). Federation: Normierung + Modellversion gehoeren zum
      Analyse-Stichtag, den alle Knoten gleich haben muessen.
+  5. **Jan 13.11.: „nie das original aendern"** — Rohdaten UND gemeldete Skala bleiben, wie sie kamen; umgerechnet wird
+     nur beim Lesen fuer die Analyse (on demand, im Speicher). Dazu `sessions.accel_scale` der Garmin-Connect-Sessions
+     wieder auf das gemeldete 2048 zuruecksetzen (Stand vorher: analyse-notizen/2026-11-13-garmin-skala/
+     sessions-accel_scale-vorher.json) und die Korrektur je Quelle in `analyse_skala()` legen.
 
 ### 13.11.2026 — Meldung: Lauf in zwei geteilt (Session #21487) + Idee Wind-Fairness bei Sprints
 - [ ] **#21487 — GROUND TRUTH „ein Lauf, in zwei geteilt"** (Nutzer 993; Meldung per DM 12.11. 23:23: „Lauf 7 und 8
