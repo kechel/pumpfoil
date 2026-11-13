@@ -952,6 +952,13 @@ ABGELEHNT: list[dict] = [
 IN_REVIEW: list[dict] = [
     # Huawei Watch 5 1.0.6 am 13.11.2026 ~16:40 eingereicht (Jans Meldung, AppGallery „Under pre-review"). GT/Fit/D (Lite)
     # liess sich in dieser App nicht auswaehlen („Unavailable") -> eigene App noetig, offen.
+    # Pumpfoil GT (HUAWEI WATCH GT/Fit/D, Lite, org.pumpfoil.gt, eigene AppGallery-App 6917621717624935972) 1.0.6 am
+    # 13.11.2026 ~17:10 eingereicht (Jans Meldung, „Under pre-review"). Upload ueber Android 1.1.49 (noch nicht eingereicht).
+    {"name": "Huawei Watch GT / Fit / D", "version": "1.0.6",
+     "eingereicht": "2026-11-13",
+     "items": [
+         "New: HUAWEI WATCH GT, Fit and D record pump foiling sessions and upload them through the Pumpfoil app for Android.",
+     ]},
     {"name": "Huawei Watch 5", "version": "1.0.6",
      "eingereicht": "2026-11-13",
      "items": [
