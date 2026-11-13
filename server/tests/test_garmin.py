@@ -910,3 +910,32 @@ def test_fit_zuerst_dann_eigene_aufnahme(client, garmin, monkeypatch, tmp_path):
         assert ergebnisse == [(True, True, False), (False, False, False)]
     finally:
         db.close()
+
+
+def test_garmin_connect_bekommt_die_skala_unserer_app(client, garmin, monkeypatch, tmp_path):
+    # 13.11.2026: unsere Garmin-App liefert milli-g mit Etikett 2048/g, Erkennung + Modell sind darauf geeicht. Die FIT
+    # aus Garmin Connect ist richtig skaliert -> ihre Session traegt accel_scale 4194, damit dieselbe Bewegung gleich stark
+    # aussieht (vorher 303 statt 325 Laeufe in 64 Fahrten). Andere Importe bleiben bei 2048.
+    from app import models, storage
+    from app.db import SessionLocal
+    import app.api.sessions as sess
+    import app.analysis as an
+    from app.fitimport import GARMIN_APP_SKALA
+    assert GARMIN_APP_SKALA == 4194
+    uid, _ = _konto(client)
+    monkeypatch.setattr(storage, "DATA_DIR", tmp_path, raising=False)
+    monkeypatch.setattr(an, "run_analysis", lambda db, s: None)
+    monkeypatch.setattr(sess, "run_analysis", lambda db, s: None, raising=False)
+    monkeypatch.setattr(sess, "maybe_auto_trim", lambda db, s: False, raising=False)
+    monkeypatch.setattr(sess, "_spot_nachziehen", lambda db, s: None, raising=False)
+    db = SessionLocal()
+    try:
+        user = db.get(models.User, uid)
+        for i, (praefix, skala) in enumerate((("garmin-", 4194), ("fit-", 2048))):
+            start = datetime(2026, 11, 2, 10 + i, 0, tzinfo=timezone.utc)
+            p = {**_parsed(start), "accel_bytes": b"\1\0\2\0\3\0" * 50, "accel_hz": 25, "dauer_ms": 600_000}
+            s = sess.import_parsed_session(db, user, b"FIT%d" % i, p, src_label="t", uuid_prefix=praefix,
+                                           filename="garmin.fit")
+            assert s is not None and s.session_uuid.startswith(praefix) and s.accel_scale == skala
+    finally:
+        db.close()

@@ -26,7 +26,7 @@ from ..suche import bedingung_oder_alles as _such_alles, wort_bedingung as _such
 from ..analysis import EXCLUDE_MARGIN_MS, dump_excluded_windows, excluded_windows, maybe_auto_trim, run_analysis
 from ..analysis import lage
 from ..db import SessionLocal, get_db
-from ..fitimport import parse_fit_bytes
+from ..fitimport import GARMIN_APP_SKALA, parse_fit_bytes
 from ..clockmap import gesamt_pause_ms, pausen as _pausen, segmente_mit_uhrzeit
 from ..naming import geraete_label, ist_gattung, owner_label
 
@@ -907,6 +907,9 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
         ended_at=started_at + _ms(last_ms),
         gps_hz=1,
         accel_hz=accel_hz,
+        # Garmin Connect: auf die Skala unserer Garmin-App (fitimport.GARMIN_APP_SKALA, 13.11.2026). Andere Importe
+        # (FIT-Upload, Suunto, COROS, Polar …) bleiben bei 2048 — die Frage stellt sich dort erst mit einer Neu-Eichung.
+        **({"accel_scale": GARMIN_APP_SKALA} if uuid_prefix == "garmin-" else {}),
         status="complete",
         total_chunks=1,
         # Standard-Foil + Stab/Board/Mast/Shim fest zuordnen (s. setup_snapshot), angepasst an die

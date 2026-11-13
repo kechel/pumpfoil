@@ -19,6 +19,12 @@ _SEMI_TO_DEG = 180.0 / (2 ** 31)
 # calibrated_accel ist in milli-g -> g; unser int16-Format skaliert mit 2048 pro g.
 ACCEL_SCALE = 2048
 _MG_TO_INT16 = ACCEL_SCALE / 1000.0
+# Skala, mit der die Analyse Garmin-Connect-Dateien liest (13.11.2026): unsere Connect-IQ-App schickt die Beschleunigung
+# roh in milli-g, etikettiert aber 2048/g — Erkennung und Modell sind auf genau diese Werte geeicht (1 g ruht bei 0,49).
+# Die FIT aus Garmin Connect ist richtig skaliert (1 g = 2048) und sah fuer die Erkennung doppelt so stark aus: in 64
+# verknuepften Fahrten 303 statt 325 Laeufe, mit dieser Skala 326 (scripts/v3/regression-garmin-primaer.py --garmin-skala).
+# Die Rohbytes bleiben unveraendert; nur `sessions.accel_scale` der Garmin-Connect-Session sagt „4194 Einheiten je g".
+GARMIN_APP_SKALA = round(ACCEL_SCALE * ACCEL_SCALE / 1000)   # 4194
 
 
 # --- Reparatur kaputter Feld-Deklarationen (Xiaomi / Mi Fitness ueber Suunto) -------------
