@@ -1566,8 +1566,11 @@ Uhren-Apps nicht ausbauen (CLAUDE.md) — nur auf Jans ausdrueckliches Wort.
         Loecher nur INNERHALB eines Kandidaten (`_teil`, bis LUECKE_S+1 = 4 s), verbindet aber nie zwei Kandidaten;
         `_merge_no_stop` sieht im Doppler 0 einen echten Stopp (< 1,5 m/s).
       **Verbesserungswege (nicht gebaut, Analyse-Pipeline nur mit Jans OK):**
-      (a) v2/`_merge_no_stop`: „eingefrorenes" GPS (Doppler exakt 0, danach Aufholsprung) nicht als Stopp werten —
-          Luftlinie ueber die Luecke entscheidet wie auf den Uhren (LaufLuecke: >= 2,5 m/s = durchgefahren).
+      (a) „Eingefrorene" Fixe (Doppler exakt 0 bei kaum Bewegung, danach Aufholsprung mit Positions-Tempo >> Doppler)
+          als FEHLEND behandeln — dann greift die vorhandene Server-Regel von selbst (Luecke <= GAP_SPLIT_S 15 s trennt
+          nicht). Abgrenzung zur Uhren-Regel vom 12.11. (LaufLuecke): die betraf FEHLENDE Fixe und nur die Live-Anzeige
+          der Uhren (Angleich an den Server); hier sind die Fixe da, aber falsch, und es trennt der Server selbst.
+          Fix-Alter (Wear-Stale-Erkennung) hilft nicht: das Handy lieferte frische Fixe mit falschem Inhalt.
       (b) v3: benachbarte Kandidaten-Laeufe verbinden, wenn die Luecke <= LUECKE_S+1 ist und p (geglaettet) durchgehend
           >= theta bleibt — dieselbe Lochregel wie in `_teil`, nur ueber die Kandidatengrenze.
       Vor einer Aenderung: zaehlen, wie oft das vorkommt (benachbarte Laeufe, Luecke <= 5 s, Doppler 0 in der Luecke,
