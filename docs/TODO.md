@@ -1573,8 +1573,14 @@ Uhren-Apps nicht ausbauen (CLAUDE.md) — nur auf Jans ausdrueckliches Wort.
           Fix-Alter (Wear-Stale-Erkennung) hilft nicht: das Handy lieferte frische Fixe mit falschem Inhalt.
       (b) v3: benachbarte Kandidaten-Laeufe verbinden, wenn die Luecke <= LUECKE_S+1 ist und p (geglaettet) durchgehend
           >= theta bleibt — dieselbe Lochregel wie in `_teil`, nur ueber die Kandidatengrenze.
-      Vor einer Aenderung: zaehlen, wie oft das vorkommt (benachbarte Laeufe, Luecke <= 5 s, Doppler 0 in der Luecke,
-      Luftlinie >= 2,5 m/s) und gegen Gegenbeispiele pruefen (echte kurze Stopps mit Wiederanfahren).
+      **Regression (b) 13.11. ueber 4881 v3-Sessions** (`scripts/v3/regression-kandidatenluecke.py`, rein lesend, READ-ONLY-
+      Transaktion; Nachbau trifft 4862/4881 — die 19 Abweichungen vermutlich Zepp ohne Randschnitt, im Skript nicht
+      nachgebaut): **31 Verbindungen in 29 Sessions**, Laeufe 41681 -> 41672 (-9), Foil-Zeit +0,01 %. Luftlinie ueber die
+      Luecke: 6 >= 2,5 m/s (durchgefahren, darunter #21487), 20 bei 1,5–2,5 (unklar: stark verlangsamt — echter
+      Beinahe-Stopp oder nur langsam?), 5 < 1,5 (sieht nach echtem Stopp aus: #18980, #20513, #971, #9388, #10932).
+      Eingefrorenes GPS (Doppler 0) nur bei #21487 (+ Quell-Aufnahme). Anomalie: #18980 mit p_min 0,35 < theta trotzdem
+      verbunden — vor einem Einbau klaeren. **Fazit:** sehr selten; (b) allein verbindet auch zweifelhafte Faelle.
+      Enger: (b) + Luftlinie >= 2,5 m/s -> 6 Verbindungen (#10947, #21487, #17671, #2781, #8109, #19754).
 - [ ] **Idee Jan (13.11., Wind beim Sprint-Event):** Wertung, die Rueckenwind ausgleicht — z. B. „zwei Sprints in
       entgegengesetzter Richtung, hoechstens 100 m auseinander und hoechstens 10–20° Abweichung; der langsamere zaehlt".
       Jan: „das sind die herausforderungen sowas ohne schiedsrichter vor ort oder direktem vergleich". Nicht gebaut.
