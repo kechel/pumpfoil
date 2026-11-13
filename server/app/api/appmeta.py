@@ -1374,6 +1374,13 @@ IDEEN: list[str] = [
     "See your start attempts on the watch data screens, next to your runs.",
     "A heart-rate alarm that tells you when your pulse has dropped back below a value you choose, so you know you are "
     "ready for the next run.",
+    # Vorschlag eines Fahrers im Chat (12./13.11.2026, nach Testlaeufen fuer das Sprint-Event): Datenfeld mit der
+    # schnellsten 100 m und der schnellsten Minute im letzten Lauf, einbaubar ueber ein Community-Layout. Jan daraus:
+    # ein „Event-Modus", der die Wertungen des laufenden Events automatisch auf einer eigenen Datenseite zeigt.
+    "Watch data fields for your fastest 100 m and fastest minute in the last run, to add to your own or a community "
+    "layout.",
+    "An event mode on the watch that shows the stats of the event you are taking part in on their own data page, "
+    "automatically while the event runs.",
     # Heart Rate Recovery (ThermikDreher, 14.10.) stand hier ein paar Stunden — am selben Tag als
     # Pulsabfall 60/120 s in der Lauftabelle gebaut, steht im Changelog. Nicht wieder eintragen.
     # Der „private Modus" (Feedback #146) stand hier bis 25.09. — gebaut als „Ort verbergen",
