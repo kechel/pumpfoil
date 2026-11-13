@@ -1553,6 +1553,19 @@ Apple Watch `CMWaterSubmersionManager` (nur Ultra/Series 9+, eigene Berechtigung
 Ergaenzung zu `LaufLuecke` (docs/PARITY-AUDIT.md Punkt 9), nicht Ersatz: viele Uhren haben keinen solchen Sensor.
 Uhren-Apps nicht ausbauen (CLAUDE.md) — nur auf Jans ausdrueckliches Wort.
 
+### 13.11.2026 — Garmin Connect: Bilanz seit Start + Garmin-Datei verliert Laeufe (nur gemerkt, nach dem Event)
+
+Rein lesend geprueft (Sessions seit 05.11.):
+- 154 Garmin-Sessions angelegt; 69 sichtbar (neue Fahrten, 22 Fahrer), 32 ausgeblendet, weil die eigene Aufnahme danach kam.
+- Eigene Aufnahme bleibt primaer, Garmin-Datei angehaengt: 6 (garmin-connect-*.fit im Session-Ordner).
+- Garmin-Datei wird primaer, eigene geht darin auf: 64 (15 Fahrer; meist fenix 7 Pro, FR245, FR55). Grund fast immer die
+  Accel-Rate (`garmin_besser`, RATE_VORSPRUNG 1.2): eigene im Median 24.7 Hz, Garmin 100 Hz; 1x `duenn`.
+- **Auffaellig:** Laufzahl eigene 344 -> Garmin 309; in 13 von 64 anders, meist weniger (#20313 35->19, #20836 11->5,
+  #21164 18->13, #21349 34->30). VERMUTUNG, ungeprueft: die eigene Auswertung kann aelter sein (anderer Algo-Stand),
+  oder die 100-Hz-Daten bzw. das Garmin-GPS (Smart Recording?) treffen die Erkennung schlechter. Vor einer Aenderung
+  an der Regel (z. B. eigene bleibt primaer, wenn sie selbst schon volle Rate hat) mit der Kette ohne Speichern beide
+  Seiten nachrechnen (wie scripts/v3/regression-eingefroren.py) und mit Jan entscheiden. Analyse-Regel: nur mit Jans OK.
+
 ### 13.11.2026 — Meldung: Lauf in zwei geteilt (Session #21487) + Idee Wind-Fairness bei Sprints
 - [ ] **#21487 — GROUND TRUTH „ein Lauf, in zwei geteilt"** (Nutzer 993; Meldung per DM 12.11. 23:23: „Lauf 7 und 8
       gehoeren zusammen als ein lauf"). Zusammengefuehrt aus zwei Handy-Aufnahmen (#21473, #21478, placement phone,
