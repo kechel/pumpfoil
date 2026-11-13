@@ -1,4 +1,5 @@
 import { SessionBewertungKachel } from "../components/SessionBewertung";
+import { glatteSpur } from "../lib/spurGlatt";
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { LaufKuerzen } from "../components/LaufKuerzen";
 import { createPortal } from "react-dom";
@@ -1418,8 +1419,8 @@ export default function SessionDetail() {
   // Karte initialisieren (einmal je Session).
   useEffect(() => {
     if (!session?.analysis?.track_geojson || !mapRef.current) return;
-    const coords: [number, number][] =
-      session.analysis.track_geojson.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]]);
+    const coords: [number, number][] = glatteSpur(
+      session.analysis.track_geojson.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]]));
     if (coords.length === 0) return;
     if (!mapObj.current) {
       mapObj.current = L.map(mapRef.current, { zoomControl: false, maxZoom: 22 });
@@ -1465,7 +1466,8 @@ export default function SessionDetail() {
     }
     lg.clearLayers();
     const gj = session.analysis.track_geojson;
-    const coords: [number, number][] = gj.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]]);
+    // nur fuer die Anzeige geglaettet, gleiche Laenge/Index (lib/spurGlatt.ts)
+    const coords: [number, number][] = glatteSpur(gj.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]]));
     const speeds: number[] = gj.properties?.speeds?.[win] ?? gj.properties?.speeds_mps ?? [];
     const hr: (number | null)[] = gj.properties?.hr ?? [];
     const phz: (number | null)[] = gj.properties?.pump_hz ?? [];
@@ -1778,7 +1780,8 @@ export default function SessionDetail() {
     const gj = session?.analysis?.track_geojson;
     if (!map || !lg || !gj || !playMode || playTimeline.length < 2) return;
 
-    const coords: [number, number][] = gj.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]]);
+    // nur fuer die Anzeige geglaettet, gleiche Laenge/Index (lib/spurGlatt.ts)
+    const coords: [number, number][] = glatteSpur(gj.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]]));
     const speeds: number[] = gj.properties?.speeds?.[win] ?? gj.properties?.speeds_mps ?? [];
     const hr: (number | null)[] = gj.properties?.hr ?? [];
     const phz: (number | null)[] = gj.properties?.pump_hz ?? [];
