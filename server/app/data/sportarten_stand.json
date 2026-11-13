@@ -1079,7 +1079,7 @@
           "plattformen": {
             "web": "2026-11-13",
             "android": "1.1.49",
-            "ios": "1.1.66"
+            "ios": "1.1.67"
           },
           "notiz": "13.11.2026 Jan: Windanzeige auch bei Pumpfoil (Fairness-Kontext bei Sprints, ohne das Event zu beeinflussen). Nur Anzeige, kein Vergleich Tempo je Wind (_tempo_je_wind nur gruppe wind), keine Wenden/Halsen."
         }
