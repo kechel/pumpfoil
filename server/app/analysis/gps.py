@@ -13,6 +13,8 @@ Alle Schwellen sind hier zentral als Konstanten — Tuning erfolgt mit echten Se
 """
 from __future__ import annotations
 
+import math
+
 import numpy as np
 
 from .geo import haversine_m, step_distances_m
@@ -269,6 +271,77 @@ def _heuristic_mask(speed_s, cv, quality_ok, gps_hz: int,
             else:
                 mask[i] = True
     return mask
+
+
+FROST_MAX_S = 20.0          # laengster eingefrorener Abschnitt, der repariert wird
+FROST_MIN_LUFTLINIE = 1.5   # darunter (m/s ueber die ganze Luecke) ist es ein echter Stopp -> nichts anfassen
+
+
+def eingefroren_reparieren(samples: list) -> tuple[list, int]:
+    """NOCH NICHT EINGEHAENGT (13.11.2026): Regression `scripts/v3/regression-eingefroren.py` — 145 Sessions betroffen,
+    nur in detect_v2 eingehaengt aendern sich 7; v3 vermisst geaenderte Laeufe aber aus der UNreparierten Zeitachse
+    (Min-Tempo 0,0). Richtig waere die Zeitachse selbst — die speist auch die v3-Merkmale -> eigene Pruefung, nach dem
+    Event. Kurz eingefrorenes GPS reparieren (13.11.2026, Ground Truth #21487): mindestens 2 Fixe mit Doppler EXAKT 0 bei
+    kaum Bewegung (< 2,5 m/s aus der Position), kurz davor Fahrt (Doppler >= 2 m/s), direkt danach ein Aufholsprung
+    (Positions-Tempo >= 5 m/s und >= 1,5 x Doppler; bis zu 3 Fixe mit stehender Position duerfen davor liegen). Dazwischen liegen Fixe, die das Handy nicht gemessen, sondern
+    wiederholt hat — sie sahen aus wie ein Stopp, trennten den Lauf und drueckten das Mindesttempo auf 0.
+
+    Repariert statt geloescht (Indizes bleiben — Segmente zeigen per Index in den Track): zwischen dem letzten guten Fix
+    VOR dem Abschnitt und dem Aufholfix werden die Positionen zeitlich gleichmaessig verteilt, das Tempo ist die
+    Luftlinie ueber die Luecke. Liegt die Luftlinie unter FROST_MIN_LUFTLINIE, war es ein echter Stopp: nichts anfassen.
+    Nur fuer Geraete MIT Doppler (sonst gibt es keine „exakt 0"-Werte). -> (Samples, Zahl reparierter Abschnitte)."""
+    n = len(samples)
+    if n < 6:
+        return samples, 0
+
+    def v(i):
+        x = samples[i][3] if len(samples[i]) > 3 else None
+        return None if x is None else float(x)
+
+    def m(i, j):
+        a, b = samples[i], samples[j]
+        dla = math.radians(b[1] - a[1]); dlo = math.radians(b[2] - a[2]) * math.cos(math.radians(a[1]))
+        return 6371000.0 * math.hypot(dla, dlo)
+
+    def vpos(i):            # Tempo aus der Position zum vorigen Fix
+        dt = (samples[i][0] - samples[i - 1][0]) / 1000.0
+        return m(i - 1, i) / dt if dt > 0 else 0.0
+
+    out, rep, i = None, 0, 1
+    while i < n - 1:
+        if v(i) != 0.0 or vpos(i) >= 2.5:
+            i += 1
+            continue
+        j = i
+        while j + 1 < n and v(j + 1) == 0.0 and vpos(j + 1) < 2.5:
+            j += 1
+        # Aufholfix: bis zu 3 Fixe nach dem 0-Block darf die POSITION noch stehen (dort hat `load_gps` das fehlende
+        # Tempo oft schon aus den Nachbarn aufgefuellt — #21487: 2033/2034 s Doppler 3,6/5,2 bei stehender Position)
+        k = j + 1
+        while k < n and k - j <= 3 and vpos(k) < 2.5:
+            k += 1
+        ok = (j > i and k < n and (samples[k][0] - samples[i][0]) / 1000.0 <= FROST_MAX_S
+              and vpos(k) >= 5.0 and vpos(k) >= 1.5 * (v(k) or 0.0))
+        a = i - 1                                           # letzter guter Fix davor (kein Sprung, Fahrt)
+        while ok and a > 0 and vpos(a) > 2.0 * max(v(a) or 0.0, 1.0) + 2.0 and i - a < 3:
+            a -= 1
+        ok = ok and (v(a) or 0.0) >= 2.0 and (samples[i][0] - samples[a][0]) / 1000.0 <= 3.0
+        if ok:
+            dt = (samples[k][0] - samples[a][0]) / 1000.0
+            luft = m(a, k) / dt if dt > 0 else 0.0
+            if luft >= FROST_MIN_LUFTLINIE:
+                if out is None:
+                    out = [list(x) for x in samples]
+                pa, pk = samples[a], samples[k]
+                for q in range(a + 1, k):
+                    f = (samples[q][0] - pa[0]) / (pk[0] - pa[0])
+                    out[q][1] = pa[1] + f * (pk[1] - pa[1])
+                    out[q][2] = pa[2] + f * (pk[2] - pa[2])
+                    if len(out[q]) > 3:
+                        out[q][3] = luft
+                rep += 1
+        i = k + 1
+    return (out if out is not None else samples), rep
 
 
 def eingefrorene_ortung(samples: list) -> tuple[float, bool]:

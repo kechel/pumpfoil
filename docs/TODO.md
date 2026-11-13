@@ -1592,6 +1592,14 @@ Uhren-Apps nicht ausbauen (CLAUDE.md) — nur auf Jans ausdrueckliches Wort.
       (2) Lauf 7 zeigt jetzt „Min. Tempo (5 s) 0,0 km/h" — das eingefrorene GPS (Doppler 0) liegt jetzt mitten im Lauf
       und druckt die Min-Werte. Wenn wir eingefrorene Fixe erkennen (Weg a), sollten sie auch bei Min-Tempo/Kurven nicht
       zaehlen. Nichts geaendert.
+      **13.11. gebaut, NICHT eingehaengt:** (1) `gps.eingefroren_reparieren` (Doppler 0 bei stehender Position + Aufholsprung
+      -> Positionen gleichmaessig, Tempo = Luftlinie; Indizes bleiben; echte Stopps < 1,5 m/s unberuehrt), Tests
+      `test_gps_eingefroren.py`. Regression `scripts/v3/regression-eingefroren.py`: 145 von 15197 Sessions haben solche
+      Abschnitte (243); nur in detect_v2 eingehaengt aendern sich 7, eine Laufzahl (-1) — aber v3 vermisst geaenderte
+      Laeufe aus der UNreparierten Zeitachse -> Min-Tempo 0,0 (#10190, #15013, #19751, #20499). Richtig: in der
+      Zeitachse reparieren; die speist auch die v3-Merkmale -> eigene Pruefung inkl. p-Vergleich, NACH dem Event.
+      (2a) LIVE: Web-Session-Karte glaettet die Spur nur fuer die Anzeige (`web/src/lib/spurGlatt.ts`, 1-2-1, gleiche
+      Laenge/Index, nicht ueber Spruenge > 30 m). Apps (Android/iOS) zeichnen weiter roh.
 - [ ] **Idee Jan (13.11., Wind beim Sprint-Event):** Wertung, die Rueckenwind ausgleicht — z. B. „zwei Sprints in
       entgegengesetzter Richtung, hoechstens 100 m auseinander und hoechstens 10–20° Abweichung; der langsamere zaehlt".
       Jan: „das sind die herausforderungen sowas ohne schiedsrichter vor ort oder direktem vergleich". Nicht gebaut.
