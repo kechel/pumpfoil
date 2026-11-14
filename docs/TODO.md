@@ -1542,6 +1542,10 @@ Fenster liegen (Vorschlag: im Fenster BEGONNEN), egal wann die Session startet/e
 (Laeufe, Strecke, Zeit, Pumps) und Bestwerte je Lauf/Sprint -> je Lauf aus `segments_json` statt je Session rechnen;
 Einfrieren (Ende + 4 h) und Verweise (`run_idx`) mitziehen, alte Apps/Endstaende unberuehrt lassen. Das WE-Event
 14./15.11. laeuft bewusst noch nach alter Regel.
+**Einfachere Alternative / Uebergang (Jan):** Sessions, die eine Eventgrenze ueberspannen, per Knopf „An Eventgrenzen
+teilen" in zwei Sessions schneiden — ein Teil vor, einer ab genau Eventstart (bzw. bis Eventende). Dann bleibt die
+Wertung je Session unveraendert, und wem es wichtig ist, teilt selbst. Aufsetzen auf das vorhandene Teilen
+(`sessions.split_from`). Knopf nur zeigen, wenn die Session wirklich eine Grenze eines Events kreuzt, an dem man teilnimmt.
 
 ### 14.11.2026 — Amazfit GTR 4: GPS in Stuecken, Aufnahme gilt nicht als Sportaktivitaet (nach dem Event ansehen)
 Session #21670 (u352, GTR 4, Zepp-App 1.0.15, 28 min Pumpfoil): vollstaendig hochgeladen, aber nur **250 GPS-Punkte statt
