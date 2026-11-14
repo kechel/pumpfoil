@@ -1546,6 +1546,10 @@ Einfrieren (Ende + 4 h) und Verweise (`run_idx`) mitziehen, alte Apps/Endstaende
 teilen" in zwei Sessions schneiden — ein Teil vor, einer ab genau Eventstart (bzw. bis Eventende). Dann bleibt die
 Wertung je Session unveraendert, und wem es wichtig ist, teilt selbst. Aufsetzen auf das vorhandene Teilen
 (`sessions.split_from`). Knopf nur zeigen, wenn die Session wirklich eine Grenze eines Events kreuzt, an dem man teilnimmt.
+**Gegenrichtung sperren (Jan):** nachtraegliches Zusammenfuehren (merge.py) darf keine Session von NACH dem Eventende
+in eine Session im Fenster holen — die zusammengefuehrte startet beim fruehesten Teil und zaehlt dann komplett. Beim
+Merge pruefen: kreuzt das Ergebnis eine Grenze eines laufenden/nicht eingefrorenen Events des Fahrers -> verhindern oder
+nur den Teil im Fenster werten. Automatisches Garmin-/FIT-Zusammenfuehren derselben Fahrt ist nicht gemeint.
 
 ### 14.11.2026 — Amazfit GTR 4: GPS in Stuecken, Aufnahme gilt nicht als Sportaktivitaet (nach dem Event ansehen)
 Session #21670 (u352, GTR 4, Zepp-App 1.0.15, 28 min Pumpfoil): vollstaendig hochgeladen, aber nur **250 GPS-Punkte statt
