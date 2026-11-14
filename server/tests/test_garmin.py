@@ -1031,3 +1031,49 @@ def test_manuell_juengere_hand_gewinnt():
     assert manuell.uebernehmen(a, b) == ["excluded_ranges"]
     assert json.loads(b.excluded_ranges) == [[5000, 15000]]              # 5 s Startversatz
     assert manuell.uebernehmen(b, NS(started_at=t, manuell_json=None, stab_id=None)) == ["stab_id", "excluded_ranges"]
+
+
+def test_weniger_laeufe_in_der_garmin_datei_eigene_bleibt(client, garmin, monkeypatch, tmp_path):
+    # 14.11.2026: FR55-Fahrt, unsere Aufnahme 4 Laeufe, Garmins Datei (hoehere Accel-Rate) nach der Neuauswertung 0 ->
+    # Jan: „wir nehmen jetzt das, wo halt mehr Laeufe sind, bis wir das Modell neu trainiert haben".
+    from app import models, storage
+    from app.db import SessionLocal
+    import app.analysis as an
+    monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
+    monkeypatch.setattr(storage, "ensure_session_dir", lambda u: (tmp_path / u).mkdir(parents=True, exist_ok=True) or tmp_path / u)
+    uid, _ = _konto(client)
+    for garmin_laeufe, garmin_bleibt in ((0, False), (4, True), (6, True)):
+        laeufe = {}
+
+        def _analyse(db, s, laeufe=laeufe):
+            a = db.query(models.AnalysisResult).filter_by(session_id=s.id).first()
+            if a is None:
+                a = models.AnalysisResult(session_id=s.id, algo_version="t"); db.add(a)
+            a.num_runs = laeufe.get(s.id, a.num_runs)
+            db.commit()
+        monkeypatch.setattr(an, "run_analysis", _analyse)
+        start = datetime(2026, 11, 14, 9, garmin_laeufe, tzinfo=timezone.utc)
+        sid, suuid = _eigene_session(uid, start)
+        db = SessionLocal()
+        try:
+            eigene = db.get(models.Session, sid)
+            eigene.share_token = "tok" + secrets.token_hex(4)
+            tok = eigene.share_token
+            db.add(models.AnalysisResult(session_id=sid, algo_version="t", num_runs=4))
+            g = models.Session(session_uuid="garmin-" + secrets.token_hex(6), user_id=uid, started_at=start,
+                               ended_at=start + timedelta(minutes=40), status="analyzed")
+            db.add(g); db.commit()
+            (tmp_path / g.session_uuid).mkdir(parents=True, exist_ok=True)
+            (tmp_path / g.session_uuid / "original.fit").write_bytes(b"FIT")
+            laeufe[g.id] = garmin_laeufe
+            bleibt = garmin.in_garmin_session_aufgehen(db, eigene, g)
+            db.expire_all()
+            eigene, g = db.get(models.Session, sid), db.get(models.Session, g.id)
+            if garmin_bleibt:
+                assert bleibt.id == g.id and eigene.deleted and eigene.merged_into == g.id
+            else:
+                assert bleibt.id == sid and not eigene.deleted and eigene.merged_into is None
+                assert g.deleted and g.merged_into == sid and eigene.share_token == tok
+                assert (tmp_path / suuid / f"garmin-connect-{g.session_uuid}.fit").exists()
+        finally:
+            db.close()

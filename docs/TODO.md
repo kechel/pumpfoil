@@ -1558,6 +1558,14 @@ Uhren-Apps nicht ausbauen (CLAUDE.md) — nur auf Jans ausdrueckliches Wort.
 
 ### 13.11.2026 — Garmin Connect: Bilanz seit Start + Garmin-Datei verliert Laeufe (nur gemerkt, nach dem Event)
 
+**Entscheidung Jan 14.11.2026 (live):** bis das Modell neu trainiert ist, gewinnt beim Zusammenfuehren die Aufnahme mit
+MEHR Laeufen. `in_garmin_session_aufgehen` wertet die Garmin-/FIT-Session wie bisher neu aus; hat sie danach weniger
+Laeufe als die eigene Aufnahme, dreht `zurueck_zur_eigenen` es um (eigene bleibt, Garmin-Datei haengt daran). Anlass: eine
+FR55-Fahrt, eigene 4 (vollstaendig 9) Laeufe, Garmin-Datei 0 -> Session verschwand aus der Liste. Gleichstand: Garmin
+bleibt. Grenze: kommt unsere Aufnahme NACH Garmin (nach_eigener_aufnahme), ist sie noch nicht final ausgewertet —
+dann vergleicht die Regel gegen die Zwischenauswertung bzw. greift ohne Auswertung nicht. Altbestand (7 von 40 mit
+weniger Laeufen bei Garmin) noch nicht umgedreht.
+
 Rein lesend geprueft (Sessions seit 05.11.):
 - 154 Garmin-Sessions angelegt; 69 sichtbar (neue Fahrten, 22 Fahrer), 32 ausgeblendet, weil die eigene Aufnahme danach kam.
 - Eigene Aufnahme bleibt primaer, Garmin-Datei angehaengt: 6 (garmin-connect-*.fit im Session-Ordner).
