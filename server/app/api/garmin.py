@@ -880,6 +880,8 @@ def in_garmin_session_aufgehen(db: Session, eigene: models.Session, g: models.Se
     unsere Aufnahme, wird das wieder umgedreht (zurueck_zur_eigenen). Gibt die Session zurueck, die die Fahrt bleibt."""
     from ..analysis import run_analysis
     from .. import manuell
+    if _schon_verknuepft(db, eigene, g):
+        return eigene if not eigene.deleted else g
     laeufe_eigene = _laeufe(db, eigene)
     share_token = eigene.share_token
     for feld in UEBERNEHMEN:
@@ -915,6 +917,21 @@ def in_garmin_session_aufgehen(db: Session, eigene: models.Session, g: models.Se
     if laeufe_eigene is not None and (_laeufe(db, g) or 0) < laeufe_eigene:
         return zurueck_zur_eigenen(db, g, eigene, share_token)
     return g
+
+
+def _schon_verknuepft(db: Session, eigene: models.Session, g: models.Session) -> bool:
+    """Beide Zeilen sperren (FOR UPDATE, nach id geordnet) und frisch lesen: ist eine schon ausgeblendet oder
+    verknuepft, hat der andere Weg gewonnen und hier passiert nichts. 14.11.2026: Garmins Push entschied „Garmin wird
+    die Session", waehrend der Import lief schloss unsere App ab und haengte die Garmin-Session in unsere — danach
+    haengte der Push unsere in die Garmin-Session; beide zeigten aufeinander, die Fahrt war weg. Die Sperre gilt bis
+    zum naechsten commit."""
+    S = models.Session
+    ids = sorted({eigene.id, g.id})
+    (db.query(S).filter(S.id.in_(ids)).order_by(S.id).with_for_update().populate_existing().all())
+    if eigene.deleted or eigene.merged_into or g.deleted or g.merged_into:
+        log.warning("garmin: #%s/#%s schon verknuepft (anderer Weg war schneller) — nichts getan", eigene.id, g.id)
+        return True
+    return False
 
 
 def _laeufe(db: Session, s: models.Session) -> int | None:
@@ -1072,6 +1089,8 @@ def nach_eigener_aufnahme(db: Session, eigene: models.Session) -> int:
                 in_garmin_session_aufgehen(db, eigene, g)
                 return 1
             if not originale:
+                continue
+            if _schon_verknuepft(db, eigene, g):
                 continue
             garmin_in_eigene_aufgehen(db, g, eigene)
             n += 1

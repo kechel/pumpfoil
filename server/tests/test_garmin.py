@@ -1077,3 +1077,37 @@ def test_weniger_laeufe_in_der_garmin_datei_eigene_bleibt(client, garmin, monkey
                 assert (tmp_path / suuid / f"garmin-connect-{g.session_uuid}.fit").exists()
         finally:
             db.close()
+
+
+def test_schon_verknuepft_wird_nicht_nochmal_umgehaengt(client, garmin, monkeypatch, tmp_path):
+    # 14.11.2026 (u1106): Push-Import und Abschluss unserer App liefen gleichzeitig — erst haengte der Abschluss die
+    # Garmin-Session in unsere, dann der Push unsere in die Garmin-Session; beide zeigten aufeinander.
+    from app import models, storage
+    from app.db import SessionLocal
+    import app.analysis as an
+    monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
+    monkeypatch.setattr(an, "run_analysis", lambda db, s: None)
+    uid, _ = _konto(client)
+    start = datetime(2026, 11, 14, 13, 0, tzinfo=timezone.utc)
+    sid, _u = _eigene_session(uid, start)
+    db = SessionLocal()
+    try:
+        g = models.Session(session_uuid="garmin-" + secrets.token_hex(6), user_id=uid, started_at=start,
+                           ended_at=start + timedelta(minutes=40), status="analyzed")
+        db.add(g); db.commit()
+        gid = g.id
+        eigene = db.get(models.Session, sid)            # der Push haelt die Objekte schon (veralteter Stand)
+        andere = SessionLocal()                          # derweil: Abschluss unserer App verknuepft andersherum
+        try:
+            g2 = andere.get(models.Session, gid)
+            g2.deleted, g2.merged_into = True, sid
+            andere.commit()
+        finally:
+            andere.close()
+        bleibt = garmin.in_garmin_session_aufgehen(db, eigene, g)
+        db.expire_all()
+        assert bleibt.id == sid
+        e, g = db.get(models.Session, sid), db.get(models.Session, gid)
+        assert not e.deleted and e.merged_into is None and g.merged_into == sid
+    finally:
+        db.close()
