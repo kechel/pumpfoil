@@ -1534,6 +1534,14 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 14.11.2026 — Sprints: alle Sprints einer Session anzeigbar (nach dem Event)
+Heute zeigt die Session-Seite nur den Sprint aus dem Event-Link (`?run=…&sprint=<kennzahl>`: Wert + Lage auf der Karte,
+`sprint_json` haelt je Kennzahl nur das beste Fenster). Jan: unten in der Session ALLE Sprints auflisten (je Kennzahl
+und Lauf, z. B. bestes 100-m-/200-m-/300-m-/60-s-Fenster je Lauf), Klick blendet den gewaehlten auf Karte/Verlauf ein.
+Nur fuer Sessions im Fenster eines Events (mit Sprint-Kennzahl), an dem der Fahrer teilnimmt. Kommt der Parameter
+`sprint=` mit, ist der schnellste vorausgewaehlt (wie heute). Dafuer `analysis/sprint.py` je Lauf rechnen lassen
+(neue sprint-VERSION, Werte der Bestenliste unveraendert) — Analyse-Pipeline, also mit Jans OK.
+
 ### 14.11.2026 — Events: Laeufe am Eventschluss abschneiden (naechste Woche, laufendes WE-Event bleibt wie es ist)
 Heute zaehlt eine Session, wenn sie im Fenster GESTARTET ist — komplett, auch mit Laeufen nach dem Eventschluss
 (`teams.py` Filter auf `started_at`, Werte aus der Auswertung der ganzen Session); wer vor dem Start beginnt, zaehlt gar
