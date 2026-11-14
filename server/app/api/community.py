@@ -2986,8 +2986,17 @@ def foiler_profil(user_id: int, user: models.User = Depends(current_user),
         # Nutzers. Mit `accel_only=True` sahen Konto-Importe fast leer aus — luk kam auf 27
         # von 741 Sessions, weil Suunto/FIT-Importe keine Beschleunigungsdaten mitbringen.
         # Zeitfenster fest 12 Monate (Vorgabe Jan, 08.09.2026), kein Umschalter auf der Seite.
+        # Nur die Standardsportart des Fahrers (Jan, 14.11.2026: „oben bitte nur pumpfoil zaehlen (bzw. gem.
+        # eingestellter standardsportart), weil genau die fehlt ja unten unter 'andere sportarten'") — vorher alle
+        # Sportarten, dann stand z. B. ein Kite-Mountainboard-Lauf als „Weitester Lauf". Die anderen Sportarten zeigt
+        # `sport_rekorde` darunter.
+        try:
+            std_sport = (json.loads(u.settings_json or "{}") or {}).get("default_sport_class") or "pumpfoil"
+        except (ValueError, TypeError):
+            std_sport = "pumpfoil"
         raus["rekorde"] = compute_overall_stats(
-            db, u.id, False, sens=(u.foil_sensitivity or "normal"), period="365d")
+            db, u.id, False, sens=(u.foil_sensitivity or "normal"), period="365d", sport=std_sport)
+        raus["rekorde_sport"] = std_sport
         # Bestwerte je Sportart (20.10.2026), gleiches Zeitfenster.
         from .. import sportrekorde
         raus["sport_rekorde"] = sportrekorde.persoenlich(db, u.id, _cutoff("365d"))
