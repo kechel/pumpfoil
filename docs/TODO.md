@@ -1544,6 +1544,15 @@ in `sprint_json.laeufe` (v3); es fehlen nur die Fenster (Start-/Ende-ms) je Lauf
 `analysis/sprint.py` die Fenster je Lauf mitspeichern lassen (neue sprint-VERSION, Werte der Bestenliste unveraendert)
 — Analyse-Pipeline, also mit Jans OK.
 
+### 14.11.2026 — Globale Events: Teilnahme nach dem Eventschluss nicht mehr umschaltbar (nach diesem WE)
+Heute liest die Rangliste `global_events_aus` (Profil › Privatsphaere) bei jeder Berechnung frisch, auch beim
+Einfrieren (`teams.event_einfrieren`, ende + 4 h). Wer bis dahin einschaltet, taucht nach dem Schluss noch auf. Jan:
+„das sollten wir nicht zulassen … dann kann man ja auch garnichts mehr kontrollieren und 10 rider ueberfallen das
+event in der letzten minute am ende". Vorschlag: beim Eventschluss die Menge der Abgemeldeten je Event festhalten
+(wie `team_zuordnung_json`/`events_teilnehmer_sichern`), danach zaehlt fuer dieses Event nur noch dieser Stand.
+Abschalten nach dem Schluss (sich zurueckziehen) duerfte weiter wirken, Datenschutz geht vor. Anlass: u1015 hatte am
+14.11. die Teilnahme aus (vielleicht versehentlich). Fuer das laufende WE nichts aendern.
+
 ### 14.11.2026 — Events: Laeufe am Eventschluss abschneiden (naechste Woche, laufendes WE-Event bleibt wie es ist)
 Heute zaehlt eine Session, wenn sie im Fenster GESTARTET ist — komplett, auch mit Laeufen nach dem Eventschluss
 (`teams.py` Filter auf `started_at`, Werte aus der Auswertung der ganzen Session); wer vor dem Start beginnt, zaehlt gar
