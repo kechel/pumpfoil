@@ -1534,6 +1534,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 14.11.2026 — Events: Laeufe am Eventschluss abschneiden (naechste Woche, laufendes WE-Event bleibt wie es ist)
+Heute zaehlt eine Session, wenn sie im Fenster GESTARTET ist — komplett, auch mit Laeufen nach dem Eventschluss
+(`teams.py` Filter auf `started_at`, Werte aus der Auswertung der ganzen Session); wer vor dem Start beginnt, zaehlt gar
+nicht, auch nicht mit Laeufen im Fenster. Jan: „fuer andere events ist es sicher wichtig" — Ziel: nur Laeufe, die im
+Fenster liegen (Vorschlag: im Fenster BEGONNEN), egal wann die Session startet/endet/gespeichert wird. Betrifft Summen
+(Laeufe, Strecke, Zeit, Pumps) und Bestwerte je Lauf/Sprint -> je Lauf aus `segments_json` statt je Session rechnen;
+Einfrieren (Ende + 4 h) und Verweise (`run_idx`) mitziehen, alte Apps/Endstaende unberuehrt lassen. Das WE-Event
+14./15.11. laeuft bewusst noch nach alter Regel.
+
 ### 14.11.2026 — Amazfit GTR 4: GPS in Stuecken, Aufnahme gilt nicht als Sportaktivitaet (nach dem Event ansehen)
 Session #21670 (u352, GTR 4, Zepp-App 1.0.15, 28 min Pumpfoil): vollstaendig hochgeladen, aber nur **250 GPS-Punkte statt
 ~1680** — Stuecke mit 1 Hz, dazwischen bis zu **5 min ohne Fix** (7:47–13:13, 23:00–27:58); Accel vollstaendig (~10 Hz).
