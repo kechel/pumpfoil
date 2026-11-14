@@ -5055,6 +5055,46 @@
     "aliases": null
   },
   {
+    "brand": "Indiana",
+    "model": "Hawk",
+    "size": "S",
+    "span_cm": 95.0,
+    "area_cm2": 533,
+    "thickness_mm": 11.2,
+    "is_baseline": false,
+    "aliases": "MB Hawk"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Hawk",
+    "size": "M",
+    "span_cm": 105.0,
+    "area_cm2": 651,
+    "thickness_mm": 12.8,
+    "is_baseline": false,
+    "aliases": "MB Hawk"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Hawk",
+    "size": "L",
+    "span_cm": 128.6,
+    "area_cm2": 980,
+    "thickness_mm": 12.0,
+    "is_baseline": false,
+    "aliases": "MB Hawk"
+  },
+  {
+    "brand": "Indiana",
+    "model": "Albatross",
+    "size": "L",
+    "span_cm": 149.6,
+    "area_cm2": 1298,
+    "thickness_mm": 15.9,
+    "is_baseline": false,
+    "aliases": "Trinity Albatross"
+  },
+  {
     "brand": "Duotone",
     "model": "Crest D/LAB",
     "size": "550",
