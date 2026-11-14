@@ -1539,8 +1539,10 @@ Heute zeigt die Session-Seite nur den Sprint aus dem Event-Link (`?run=…&sprin
 `sprint_json` haelt je Kennzahl nur das beste Fenster). Jan: unten in der Session ALLE Sprints auflisten (je Kennzahl
 und Lauf, z. B. bestes 100-m-/200-m-/300-m-/60-s-Fenster je Lauf), Klick blendet den gewaehlten auf Karte/Verlauf ein.
 Nur fuer Sessions im Fenster eines Events (mit Sprint-Kennzahl), an dem der Fahrer teilnimmt. Kommt der Parameter
-`sprint=` mit, ist der schnellste vorausgewaehlt (wie heute). Dafuer `analysis/sprint.py` je Lauf rechnen lassen
-(neue sprint-VERSION, Werte der Bestenliste unveraendert) — Analyse-Pipeline, also mit Jans OK.
+`sprint=` mit, ist der schnellste vorausgewaehlt (wie heute). Korrektur 14.11. abends: die WERTE je Lauf stehen schon
+in `sprint_json.laeufe` (v3); es fehlen nur die Fenster (Start-/Ende-ms) je Lauf und Kennzahl fuer die Karte. Dafuer
+`analysis/sprint.py` die Fenster je Lauf mitspeichern lassen (neue sprint-VERSION, Werte der Bestenliste unveraendert)
+— Analyse-Pipeline, also mit Jans OK.
 
 ### 14.11.2026 — Events: Laeufe am Eventschluss abschneiden (naechste Woche, laufendes WE-Event bleibt wie es ist)
 Heute zaehlt eine Session, wenn sie im Fenster GESTARTET ist — komplett, auch mit Laeufen nach dem Eventschluss
