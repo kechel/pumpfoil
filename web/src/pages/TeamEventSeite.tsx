@@ -20,6 +20,7 @@ import TeamWappen from "../components/TeamWappen";
 import { bildAbzeichen, dateiTeil, uebersichtHoehe, type BildZeile } from "../lib/bestenlisteBild";
 import { TeamHerkunft } from "../components/TeamHerkunft";
 import TeamBanner from "../components/TeamBanner";
+import { HINWEIS_KLASSE, OPTOUT_LINK, useGlobalAus } from "../components/GlobalAusHinweis";
 import TeamTafelBild, { wappenVon } from "../components/TeamTafelBild";
 import { teamFarbStil } from "../lib/teamFarben";
 import { EVENT_SUMMEN, eventGemessen, kennzahl, wertungText } from "../lib/teamKennzahlen";
@@ -257,6 +258,7 @@ export default function TeamEventSeite() {
   const { slug = "", id = "" } = useParams();
   const { t, lang } = useI18n();
   const gast = !getToken();
+  const globalAus = useGlobalAus();
   const [team, setTeam] = useState<(TeamAuftritt & { id: number; bestenlisten_oeffentlich?: boolean; meine_rolle?: TeamRolle | null;
     anmeldungen_zulassen?: boolean; automatisch_akzeptieren?: boolean; oeffentlich?: boolean; mein_status?: string | null;
     offiziell?: boolean }) | null>(null);
@@ -403,12 +405,19 @@ export default function TeamEventSeite() {
           {ev.spots.length > 0 && <> · {ev.spots.map((s) => s.name ?? `#${s.id}`).join(", ")}</>}
         </p>
         {ev.beschreibung && <p className="mt-2 whitespace-pre-line text-sm font-semibold text-slate-200">{ev.beschreibung}</p>}
-        {ev.global && (
+        {ev.global && !globalAus && (
           <p className="mt-2 text-sm text-slate-300">
             {t("team.event.globalHinweis")}{" "}
             {/* Opt-out (Jan, 06.11.2026): Einstellungen › Privatsphaere, Karte „Globale Events". */}
             {gast ? t("team.event.globalOptOut")
-              : <Link to="/einstellungen?tab=privat" className="text-brand-600 underline dark:text-brand-300">{t("team.event.globalOptOut")}</Link>}
+              : <Link to={OPTOUT_LINK} className="text-brand-600 underline dark:text-brand-300">{t("team.event.globalOptOut")}</Link>}
+          </p>
+        )}
+        {/* Selbst abgemeldet: derselbe Satz, angepasst und hervorgehoben, mit Link zum Aendern (Jan, 15.11.2026). */}
+        {ev.global && globalAus && (
+          <p className={`${HINWEIS_KLASSE} mt-2 px-3 py-2 text-sm font-semibold`}>
+            {t("team.event.globalHinweisAus")}{" "}
+            <Link to={OPTOUT_LINK} className="underline">{t("team.event.globalOptIn")}</Link>
           </p>
         )}
       </div>

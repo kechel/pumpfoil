@@ -5,6 +5,7 @@ import { EventIcon } from "../components/Icons";
 import { useEffect, useRef, useState } from "react";
 import { api, TeamEventKurz } from "../lib/api";
 import EventKurzKachel from "../components/EventKurzKachel";
+import { GlobalAusBadge } from "../components/GlobalAusHinweis";
 import { useI18n } from "../i18n";
 
 const SEITE = 20;
@@ -45,6 +46,8 @@ export default function EventsAlle() {
   return (
     <div className="w-full">
       <h2 className="mb-3 flex items-center gap-2 text-xl font-bold text-slate-100"><EventIcon className="h-5 w-5 text-brand-400" />{t("team.alleEvents")}</h2>
+      {/* Selbst abgemeldet? Badge mit Link zum Aendern (Jan, 15.11.2026). */}
+      <div className="-mt-1 mb-3 empty:hidden"><GlobalAusBadge /></div>
       {events === null ? <p className="text-sm text-slate-400">{t("common.loading")}</p>
         : events.length === 0 ? <p className="text-sm text-slate-400">{t("team.alleEventsLeer")}</p> : (
           <div className="grid gap-3 lg:grid-cols-2">

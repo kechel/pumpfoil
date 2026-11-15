@@ -27,6 +27,7 @@ import { CommunityIcon, PlayIcon, HeartIcon, LocationIcon, FoilIcon, WatchIcon, 
 import { CommunityStats } from "../components/CommunityStats";
 import { useAccelDefault } from "../lib/useAccelDefault";
 import { useI18n, useT } from "../i18n";
+import { GlobalAusBadge } from "../components/GlobalAusHinweis";
 import { landName } from "../lib/laender";
 import { MOTOR_SPORTS, PADDEL_SPORTS, SPORTS, WIND_SPORTS, ranglistenSportart, sortiereNachSport, sportLabel } from "../lib/sportClass";
 import { fmtLaufDauer } from "../lib/dauer";
@@ -984,6 +985,8 @@ function TeamsSection() {
         <FlagIcon className="h-5 w-5 text-brand-400" />
         {/* Seit 06.11.2026 nur globale Events (jeder nimmt teil); Team-Events stehen auf der Teamseite (Jan). */}
         <h3 className="text-lg font-bold">{t("team.eventsGlobal")}</h3>
+        {/* Selbst abgemeldet? Badge mit Link zum Aendern (Jan, 15.11.2026). */}
+        <GlobalAusBadge />
       </div>
       {/* Keine Teams mehr direkt hier (eigene Seite /teams/liste, Jan 01.11.2026) — nur laufende und in den naechsten
           3 Tagen beginnende Events, alle (vorerst ohne Grenze). Kachel wie auf der Teamseite. */}
