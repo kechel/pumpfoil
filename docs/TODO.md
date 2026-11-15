@@ -1585,6 +1585,13 @@ Merge pruefen: kreuzt das Ergebnis eine Grenze eines laufenden/nicht eingefroren
 nur den Teil im Fenster werten. Automatisches Garmin-/FIT-Zusammenfuehren derselben Fahrt ist nicht gemeint.
 
 ### 14.11.2026 — Amazfit GTR 4: GPS in Stuecken, Aufnahme gilt nicht als Sportaktivitaet (nach dem Event ansehen)
+**15.11.2026 — Befund + erster Schritt:** KEIN Einzelfall. Wasser-Sessions seit 01.10. (>= 10 min, Handgelenk), je
+Nutzer: GPS-Abdeckung Amazfit Median 41 % (8 von 8 Fahrern unter 56 %; u352 21 %), Garmin 92 %, Apple 97 %, Wear 98 %;
+Luecken > 60 s: Amazfit 6/h, sonst 0. Luecken beginnen/enden meist im Stillstand, Accel zeigt darin Fahrt; Accel kommt
+lueckenlos -> App lebt, der Sensor liefert keinen Fix. Die App startete GPS nur einmal -> 92b10435: Neustart nach 20 s
+ohne Fix + Diagnose `messweg` (gps_neustart, gps_aus_s, gps_aus_max_s, gps_modus). Naechstes: Fassung bauen/einreichen
+(Jan), Eimer-Test auf der Balance 2 (Handgelenk 10 s ins Wasser, Zeit bis zum Fix: unsere App vs. Workout der Uhr),
+danach anhand `messweg` entscheiden, ob die Workout Extension (eigene App, Zepp API 3.6+) noetig ist.
 Session #21670 (u352, GTR 4, Zepp-App 1.0.15, 28 min Pumpfoil): vollstaendig hochgeladen, aber nur **250 GPS-Punkte statt
 ~1680** — Stuecke mit 1 Hz, dazwischen bis zu **5 min ohne Fix** (7:47–13:13, 23:00–27:58); Accel vollstaendig (~10 Hz).
 Ergebnis 0 Laeufe, nicht Pumpfoil. Seine Fahrt vom 27.10. (1.0.14) hatte auch Luecken bis 4 min, aber 1218 Punkte/69 min.
