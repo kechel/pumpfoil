@@ -127,7 +127,7 @@ const de: Record<string, string> = {
   "globalev.title": "Globale Events",
   "globalev.hint": "Globale Events von pumpfoil.org werten automatisch alle, die passende Sessions haben – ohne Anmeldung. Hier kannst du das für dich abschalten; dann fehlst du in deren Bestenlisten, Team-Wertungen und Summen.",
   "globalev.switch": "Nicht an globalen Events teilnehmen",
-  "globalev.ausBadge": "Du nimmst nicht teil",
+  "globalev.ausBadge": "Du hast dich abgemeldet",
   "globalev.ausAendern": "ändern",
   "wk.title": "Wertungsklasse",
   "wk.hint": "Freiwillig und nur für den Filter in Event-Bestenlisten (z. B. Frauen-Wertung). Wer eine Klasse wählt, steht sichtbar in der gefilterten Liste; mit „Keine Angabe“ nur in der Gesamtwertung.",

@@ -9,7 +9,7 @@ const nb: Record<string, string> = {
   "globalev.title": "Globale eventer",
   "globalev.hint": "Globale eventer fra pumpfoil.org rangerer automatisk alle med passende økter – uten påmelding. Her kan du slå det av for deg selv; da vises du ikke i topplistene, lagrangeringene eller summene deres.",
   "globalev.switch": "Ikke delta i globale eventer",
-  "globalev.ausBadge": "Du deltar ikke",
+  "globalev.ausBadge": "Du har reservert deg",
   "globalev.ausAendern": "endre",
   "wk.title": "Klasse",
   "wk.hint": "Valgfritt, brukes bare til å filtrere resultatlister for arrangementer (f.eks. kvinneklasse). Velger du en klasse, vises du i den filtrerte listen; med «Ikke oppgitt» bare i totalen.",

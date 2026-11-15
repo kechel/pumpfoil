@@ -9,7 +9,7 @@ const pl: Record<string, string> = {
   "globalev.title": "Globalne eventy",
   "globalev.hint": "Globalne eventy pumpfoil.org automatycznie uwzględniają wszystkich z pasującymi sesjami – bez zapisów. Tutaj możesz to dla siebie wyłączyć; wtedy nie pojawisz się w ich rankingach, rankingach drużyn ani sumach.",
   "globalev.switch": "Nie bierz udziału w globalnych eventach",
-  "globalev.ausBadge": "Nie bierzesz udziału",
+  "globalev.ausBadge": "Zrezygnowałeś",
   "globalev.ausAendern": "zmień",
   "wk.title": "Kategoria klasyfikacji",
   "wk.hint": "Opcjonalnie, tylko do filtrowania rankingów wydarzeń (np. klasyfikacja kobiet). Jeśli wybierzesz kategorię, pojawisz się na przefiltrowanej liście; przy „Nie podano” tylko w klasyfikacji ogólnej.",

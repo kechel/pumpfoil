@@ -10,7 +10,7 @@ const gsw: Record<string, string> = {
   "globalev.title": "Globali Events",
   "globalev.hint": "Globali Events vo pumpfoil.org wärted automatisch alli, wo passendi Sessions händ – ohni Aamäldig. Do chasch das für di abschalte; dänn fehlsch i dene ihrne Beschtelischte, Teamwärtige und Summe.",
   "globalev.switch": "Nöd a globale Events teilneh",
-  "globalev.ausBadge": "Du machsch nöd mit",
+  "globalev.ausBadge": "Du häsch di abgmäldet",
   "globalev.ausAendern": "ändere",
   "wk.title": "Wertigsklass",
   "wk.hint": "Freiwillig und nur für de Filter i de Event-Bestelischte (z. B. Fraue-Wertig). Wer e Klass wählt, staht sichtbar i de gfilterete Lischte; mit „Kei Aagab“ nur i de Gsamtwertig.",

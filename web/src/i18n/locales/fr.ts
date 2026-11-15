@@ -9,7 +9,7 @@ const fr: Record<string, string> = {
   "globalev.title": "Événements globaux",
   "globalev.hint": "Les événements globaux de pumpfoil.org classent automatiquement tous ceux qui ont des sessions correspondantes – sans inscription. Tu peux le désactiver pour toi ici ; tu n'apparais alors plus dans leurs classements, classements d'équipes ni totaux.",
   "globalev.switch": "Ne pas participer aux événements globaux",
-  "globalev.ausBadge": "Tu ne participes pas",
+  "globalev.ausBadge": "Tu t'es désinscrit",
   "globalev.ausAendern": "modifier",
   "wk.title": "Catégorie de classement",
   "wk.hint": "Facultatif, sert uniquement à filtrer les classements des événements (p. ex. classement féminin). Si tu choisis une catégorie, tu apparais dans la liste filtrée ; avec « Non précisé », seulement dans le classement général.",

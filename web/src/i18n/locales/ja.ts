@@ -9,7 +9,7 @@ const ja: Record<string, string> = {
   "globalev.title": "グローバルイベント",
   "globalev.hint": "pumpfoil.org のグローバルイベントは、該当するセッションがある全員を登録なしで自動的にランキングします。ここで自分だけオフにできます。その場合、ランキング・チームランキング・合計に表示されません。",
   "globalev.switch": "グローバルイベントに参加しない",
-  "globalev.ausBadge": "参加していません",
+  "globalev.ausBadge": "参加をオフにしています",
   "globalev.ausAendern": "変更",
   "wk.title": "競技区分",
   "wk.hint": "任意。イベントのランキングを絞り込むためだけに使います（例：女子ランキング）。区分を選ぶと絞り込み後のリストに表示され、「未設定」の場合は総合ランキングにのみ表示されます。",

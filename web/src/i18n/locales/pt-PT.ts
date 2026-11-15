@@ -21,7 +21,7 @@ const ptPT: Record<string, string> = {
   "globalev.title": "Eventos globais",
   "globalev.hint": "Os eventos globais do pumpfoil.org classificam automaticamente todos com sessões correspondentes – sem inscrição. Aqui podes desativar isso para ti; deixas de aparecer nas classificações, classificações por equipas e totais.",
   "globalev.switch": "Não participar em eventos globais",
-  "globalev.ausBadge": "Não estás a participar",
+  "globalev.ausBadge": "Saíste",
   "globalev.ausAendern": "alterar",
   "wk.title": "Categoria de classificação",
   "wk.hint": "Opcional, serve apenas para filtrar as classificações de eventos (p. ex. classificação feminina). Se escolheres uma categoria, apareces na lista filtrada; com “Não indicado”, só na classificação geral.",

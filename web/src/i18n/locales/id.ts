@@ -9,7 +9,7 @@ const id: Record<string, string> = {
   "globalev.title": "Event global",
   "globalev.hint": "Event global pumpfoil.org otomatis memeringkat semua orang yang punya sesi yang cocok – tanpa mendaftar. Di sini kamu bisa mematikannya untuk dirimu; kamu lalu tidak muncul di papan peringkat, peringkat tim, atau totalnya.",
   "globalev.switch": "Jangan ikut event global",
-  "globalev.ausBadge": "Kamu tidak ikut",
+  "globalev.ausBadge": "Kamu sudah keluar",
   "globalev.ausAendern": "ubah",
   "wk.title": "Kategori peringkat",
   "wk.hint": "Opsional, hanya untuk memfilter papan peringkat acara (mis. peringkat wanita). Jika memilih kategori, kamu tampil di daftar yang difilter; dengan “Tidak diisi” hanya di peringkat keseluruhan.",

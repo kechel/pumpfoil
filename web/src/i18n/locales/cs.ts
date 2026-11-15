@@ -11,7 +11,7 @@ const cs: Record<string, string> = {
   "globalev.title": "Globální eventy",
   "globalev.hint": "Globální eventy pumpfoil.org automaticky hodnotí všechny s odpovídajícími sessiony – bez přihlášení. Tady to můžeš pro sebe vypnout; pak nebudeš v jejich žebříčcích, pořadí týmů ani součtech.",
   "globalev.switch": "Neúčastnit se globálních eventů",
-  "globalev.ausBadge": "Neúčastníš se",
+  "globalev.ausBadge": "Odhlásil ses",
   "globalev.ausAendern": "změnit",
   "wk.title": "Kategorie hodnocení",
   "wk.hint": "Nepovinné, slouží jen k filtrování žebříčků akcí (např. hodnocení žen). Když zvolíš kategorii, zobrazíš se ve filtrovaném seznamu; s „Neuvedeno“ jen v celkovém pořadí.",

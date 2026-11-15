@@ -9,7 +9,7 @@ const zh: Record<string, string> = {
   "globalev.title": "全球活动",
   "globalev.hint": "pumpfoil.org 的全球活动会自动为所有有相应记录的人排名，无需报名。你可以在这里为自己关闭；之后你不会出现在其排行榜、团队排名和总计中。",
   "globalev.switch": "不参加全球活动",
-  "globalev.ausBadge": "你未参加",
+  "globalev.ausBadge": "你已退出",
   "globalev.ausAendern": "更改",
   "wk.title": "竞赛组别",
   "wk.hint": "可选，仅用于筛选活动排行榜（例如女子榜）。选择组别后你会出现在筛选后的列表中；选择“未填写”则只出现在总榜。",

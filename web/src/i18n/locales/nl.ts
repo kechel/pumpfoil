@@ -11,7 +11,7 @@ const nl: Record<string, string> = {
   "globalev.title": "Globale events",
   "globalev.hint": "Globale events van pumpfoil.org rangschikken automatisch iedereen met passende sessies – zonder aanmelden. Hier kun je dat voor jezelf uitzetten; je staat dan niet meer in hun klassementen, teamklassementen en totalen.",
   "globalev.switch": "Niet meedoen aan globale events",
-  "globalev.ausBadge": "Je doet niet mee",
+  "globalev.ausBadge": "Je hebt je afgemeld",
   "globalev.ausAendern": "wijzigen",
   "wk.title": "Klassementscategorie",
   "wk.hint": "Optioneel, alleen om eventklassementen te filteren (bijv. een vrouwenklassement). Kies je een categorie, dan sta je in de gefilterde lijst; met „Niet opgegeven” alleen in het algemeen klassement.",

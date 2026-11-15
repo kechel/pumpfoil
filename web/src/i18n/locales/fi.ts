@@ -9,7 +9,7 @@ const fi: Record<string, string> = {
   "globalev.title": "Globaalit tapahtumat",
   "globalev.hint": "pumpfoil.orgin globaalit tapahtumat listaavat automaattisesti kaikki, joilla on sopivia sessioita – ilman ilmoittautumista. Voit poistaa sen käytöstä itseltäsi täällä; et silloin näy niiden tulostauluissa, joukkuetuloksissa etkä summissa.",
   "globalev.switch": "Älä osallistu globaaleihin tapahtumiin",
-  "globalev.ausBadge": "Et osallistu",
+  "globalev.ausBadge": "Olet jättäytynyt pois",
   "globalev.ausAendern": "muuta",
   "wk.title": "Sarja",
   "wk.hint": "Vapaaehtoinen, käytetään vain tapahtumien tulostaulukoiden suodattamiseen (esim. naisten sarja). Jos valitset sarjan, näyt suodatetussa listassa; valinnalla ”Ei ilmoitettu” vain yleisessä tulostaulukossa.",

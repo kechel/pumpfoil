@@ -126,7 +126,7 @@ const en: Record<string, string> = {
   "globalev.title": "Global events",
   "globalev.hint": "Global events from pumpfoil.org automatically rank everyone with matching sessions – no signing up. You can switch this off for yourself here; you then won't appear in their leaderboards, team rankings or totals.",
   "globalev.switch": "Don't take part in global events",
-  "globalev.ausBadge": "You're not taking part",
+  "globalev.ausBadge": "You have opted out",
   "globalev.ausAendern": "change",
   "wk.title": "Competition category",
   "wk.hint": "Optional, used only to filter event leaderboards (e.g. a women's ranking). If you pick a category, you appear in the filtered list; with “Not specified” you only appear in the overall ranking.",
