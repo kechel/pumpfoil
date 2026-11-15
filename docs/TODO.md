@@ -1544,6 +1544,20 @@ in `sprint_json.laeufe` (v3); es fehlen nur die Fenster (Start-/Ende-ms) je Lauf
 `analysis/sprint.py` die Fenster je Lauf mitspeichern lassen (neue sprint-VERSION, Werte der Bestenliste unveraendert)
 — Analyse-Pipeline, also mit Jans OK.
 
+### 15.11.2026 — Garmin Connect ohne Handy: wartende Uploads auf der Uhr (offen, Jans Entscheidung)
+Anlass: u963 (Forerunner 245, synct nur per Garmin Express) — Fahrten kommen seit 665de6b3 automatisch ueber Garmin
+Connect, aber unsere App zeigt sie weiter als „nicht hochgeladen": sie liegen im eigenen Connect-IQ-Speicher der App
+(nicht im Activities-Ordner, Loeschen der FIT dort aendert nichts) und belegen Platz, bis die Uhr einmal ein Handy sieht.
+Ideen: (a) Status-Abfrage einer wartenden Session: hat der Server zur selben Startzeit schon eine garmin-/fit-Session,
+antwortet er „erledigt" und die Uhr loescht ohne Upload (nur Server). (b) Uhren ab 128 KB bei Garmin-Verknuepfung wie
+die speicherarmen nur duenn puffern (`devices._datenwege`, `UHR_LOWMEM_GC_NUR_FIT` auf alle) — Nachteil: wer mit Handy
+faehrt, sieht die Fahrt erst, wenn Garmin liefert. Beides braucht einmal eine Handy-Verbindung, damit die Uhr es lernt.
+
+### 15.11.2026 — Uhren-Auswertung: Mindestzahl fuer Garmin-Connect-Zeilen (offen)
+Seit 0f139248 zaehlen dort nur Dateien unserer App mit Beschleunigung; mit MIN_SESSIONS = 8 bleibt nur fēnix 7 Pro
+(14 Fahrten). 13 Modelle haben Dateien, meist 1–2 (fēnix 6 Pro 7, MARQ Athlete 4). Frage an Jan: Grenze dort auf 3
+senken (mit „wenig Daten") oder warten.
+
 ### 14.11.2026 — Globale Events: Teilnahme nach dem Eventschluss nicht mehr umschaltbar (nach diesem WE)
 Heute liest die Rangliste `global_events_aus` (Profil › Privatsphaere) bei jeder Berechnung frisch, auch beim
 Einfrieren (`teams.event_einfrieren`, ende + 4 h). Wer bis dahin einschaltet, taucht nach dem Schluss noch auf. Jan:
