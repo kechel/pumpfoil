@@ -59,7 +59,9 @@ function QualiZeile({ r, unter, wegZeigen }: { r: WatchQualityRow; unter: boolea
   const duenn = r.nutzer <= WENIG_NUTZER;
   const weg = r.weg === "gc" ? t("watchQuality.viaGc") : t("watchQuality.viaApp");
   const gps = r.guete_gut != null ? t("watchQuality.gpsGood", { pct: r.guete_gut.toFixed(0) })
-            : r.hacc_m != null ? `${r.hacc_m.toFixed(1)} m` : "–";
+            : r.hacc_m != null ? `${r.hacc_m.toFixed(1)} m`
+            // Ohne Guete/Meter (Garmin-Connect-Datei): Anteil eingefrorener Punkte in Fahrt — sonst sah „–" aus wie „kein GPS".
+            : r.ortung_steht != null ? t("watchQuality.gpsStale", { pct: r.ortung_steht.toFixed(1) }) : "–";
   return (
     <tr className={unter ? "border-t border-slate-800/50" : "border-t border-slate-800"}>
       {/* Schmaler als der Rest: die Garmin-Namen sind lang, duerfen aber umbrechen statt die Tabelle zu sprengen. */}

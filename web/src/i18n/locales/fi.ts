@@ -1771,6 +1771,7 @@ const fi: Record<string, string> = {
   "watchQuality.viaApp": "Sovellus",
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "vain GPS",
+  "watchQuality.gpsStale": "{pct} % aukkoja",
   "watchQuality.pumpShare": "{pct} % pumppaustiedoin",
   "watchQuality.noteWays": "”Garmin Connect” tarkoittaa kellon omaa tiedostoa, joka tuodaan tililinkityksen kautta — sovelluksemme kanssa tai ilman. Pumppaustiedot tulevat vain, jos sovelluksemme tallensi ja kello kirjoittaa kiihtyvyyden tiedostoon. ”Täydelliset” laskee tallenteet, jotka saapuivat ilman puuttuvia osia ja ilman yli 3 minuutin GPS-katkoja liikkeessä.",
   "friends.title": "Kaverit",

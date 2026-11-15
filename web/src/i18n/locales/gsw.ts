@@ -1293,6 +1293,7 @@ const gsw: Record<string, string> = {
   "watchQuality.viaApp": "App",
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "nume GPS",
+  "watchQuality.gpsStale": "{pct} % Lugge",
   "watchQuality.pumpShare": "{pct} % mit Pump-Date",
   "watchQuality.noteWays": "„Garmin Connect“ heisst: d Datei vo de Uhr, über d Kontoverchnüpfig importiert — mit oder ohni üsi App ufgnoh. Pump-Date chömed nume aa, wenn üsi App ufgnoh het und d Uhr d Beschleunigung i d Datei schriibt. „Vollständig“ zellt Ufnahme, wo ohni fehlendi Teil und ohni GPS-Lugge über 3 Minute während em Fahre aachoh sind.",
   "friends.title": "Fründe",

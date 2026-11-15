@@ -1076,6 +1076,7 @@ data class WatchQualityModel(
     @SerialName("guete_gut") val gueteGut: Double? = null,   // nur Garmin: Anteil "GOOD"
     @SerialName("hacc_m") val haccM: Double? = null,         // nur Apple/Wear/Handy: Meter
     @SerialName("puls_wechsel") val pulsWechsel: Double? = null,
+    @SerialName("ortung_steht") val ortungSteht: Double? = null,   // % eingefrorene Punkte in Fahrt
     // 15.11.2026: Weg ("app" | "gc" = Garmin-Connect-Import), Anteil ganz angekommener Sessions und Anteil mit
     // brauchbarer Beschleunigung (>= 15 Hz), je in Prozent.
     val weg: String = "app",

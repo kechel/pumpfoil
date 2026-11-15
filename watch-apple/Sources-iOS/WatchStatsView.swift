@@ -107,6 +107,10 @@ struct WatchStatsView: View {
                     .replacingOccurrences(of: "{pct}", with: String(Int(g.rounded())))
             }
             if let h = m.hacc_m { return String(format: "%.1f m", h) }
+            // ohne Guete/Meter (Garmin-Connect-Datei): Anteil eingefrorener Punkte, sonst saehe es nach „kein GPS" aus
+            if let o = m.ortung_steht {
+                return Loc.t("watchQuality.gpsStale", lang).replacingOccurrences(of: "{pct}", with: String(format: "%.1f", o))
+            }
             return "–"
         }()
         let puls: String = m.puls_wechsel.map {

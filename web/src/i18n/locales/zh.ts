@@ -1682,6 +1682,7 @@ const zh: Record<string, string> = {
   "watchQuality.viaApp": "应用",
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "仅 GPS",
+  "watchQuality.gpsStale": "缺失 {pct}%",
   "watchQuality.pumpShare": "{pct}% 含泵动数据",
   "watchQuality.noteWays": "“Garmin Connect”指通过账号关联导入的手表自身文件，无论是否使用我们的应用。只有当我们的应用在记录且手表把加速度写入文件时，才会有泵动数据。“完整”统计没有缺失部分、也没有行进中超过 3 分钟的 GPS 中断的记录。",
   "friends.title": "好友",

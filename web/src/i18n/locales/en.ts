@@ -1934,6 +1934,7 @@ const en: Record<string, string> = {
   "watchQuality.viaApp": "App",
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "GPS only",
+  "watchQuality.gpsStale": "{pct}% gaps",
   "watchQuality.pumpShare": "{pct}% with pump data",
   "watchQuality.noteWays": "“Garmin Connect” means the watch's own file, imported through the account link — whether or not our app was running. Pump data only arrives if our app was recording and the watch writes acceleration into the file. “Complete” counts recordings that arrived without missing parts or GPS gaps longer than 3 minutes while moving.",
   "friends.title": "Friends",

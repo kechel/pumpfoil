@@ -893,6 +893,7 @@ struct WatchQualityModel: Codable, Identifiable {
     let guete_gut: Double?      // nur Garmin: Anteil "GOOD"
     let hacc_m: Double?         // nur Apple/Wear/Handy: Meter
     let puls_wechsel: Double?
+    let ortung_steht: Double?   // % eingefrorene Punkte in Fahrt
     // 15.11.2026: Weg ("app" | "gc" = Garmin-Connect-Import), % ganz angekommener Sessions, % mit Beschleunigung >= 15 Hz.
     let weg: String?
     let vollstaendig: Double?

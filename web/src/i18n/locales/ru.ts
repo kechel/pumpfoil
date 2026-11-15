@@ -1682,6 +1682,7 @@ const ru: Record<string, string> = {
   "watchQuality.viaApp": "Приложение",
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "только GPS",
+  "watchQuality.gpsStale": "{pct}% пропусков",
   "watchQuality.pumpShare": "{pct}% с данными о пампах",
   "watchQuality.noteWays": "«Garmin Connect» — это собственный файл часов, импортированный через привязку аккаунта, с нашим приложением или без него. Данные о пампах приходят, только если записывало наше приложение и часы пишут ускорение в файл. «Полные» — записи, пришедшие без пропавших частей и без пропусков GPS дольше 3 минут во время движения.",
   "friends.title": "Друзья",

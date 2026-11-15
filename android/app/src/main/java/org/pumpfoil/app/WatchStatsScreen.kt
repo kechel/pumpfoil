@@ -204,7 +204,9 @@ private fun qualiCard(modell: String, rs: List<WatchQualityModel>, wegZeigen: Bo
                     // Garmin meldet eine Guete-Stufe, die anderen Meter — nie in EINE Zahl mischen.
                     wMetric(
                         m.gueteGut?.let { I18n.t("watchQuality.gpsGood").replace("{pct}", "%.0f".format(it)) }
-                            ?: m.haccM?.let { "%.1f m".format(it) } ?: "–",
+                            ?: m.haccM?.let { "%.1f m".format(it) }
+                            // ohne Guete/Meter (Garmin-Connect-Datei): Anteil eingefrorener Punkte, sonst saehe es nach „kein GPS" aus
+                            ?: m.ortungSteht?.let { I18n.t("watchQuality.gpsStale").replace("{pct}", "%.1f".format(it)) } ?: "–",
                         I18n.t("watchQuality.colGps"),
                     )
                     wMetric(
