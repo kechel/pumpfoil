@@ -1,0 +1,47 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* Short-Overlay Endstand 1080x480, Stil wie streifen.html. Namen/Werte kommen per URL (render-ergebnis.py liest sie aus
+   der Bestenliste) — nie ins Repo schreiben. ?art=titel|tafel&kz=100 M&p1=Name|27.0&p2=…&p3=…&weiss=1 */
+@font-face{font-family:M;src:local("Montserrat Black");font-weight:900}
+@font-face{font-family:M;src:local("Montserrat ExtraBold");font-weight:800}
+html,body{margin:0;background:transparent}
+#b{position:relative;width:1080px;height:480px;overflow:hidden;font-family:M,sans-serif;color:#fff}
+.t{position:absolute;left:64px;top:34px;right:64px;text-shadow:0 3px 22px rgba(2,6,23,.8),0 2px 5px rgba(2,6,23,.65)}
+.k{font-weight:800;font-size:27px;letter-spacing:.14em;opacity:.95}
+.h{font-weight:900;font-size:99px;line-height:.95;letter-spacing:-.01em;margin-top:10px}
+.h span{color:#22d3ee}
+.tag{display:inline-block;margin-top:22px;background:#22d3ee;color:#020617;font-weight:900;font-size:42px;padding:9px 26px;transform:skewX(-10deg);text-shadow:none}
+.tag i{display:inline-block;transform:skewX(10deg);font-style:normal}
+.d{display:table;margin-top:24px;text-shadow:none;font-weight:800;font-size:35px;letter-spacing:.06em;background:rgba(2,6,23,.78);padding:12px 22px;border-radius:16px}
+.d b{color:#22d3ee}
+/* Tafel */
+.kopf{display:flex;align-items:center;gap:22px}
+.kopf .tag{margin-top:0;font-size:40px}
+.kopf .k2{font-weight:900;font-size:44px;letter-spacing:.02em}
+.z{display:flex;align-items:center;margin-top:16px;text-shadow:none;background:rgba(2,6,23,.78);border-radius:18px;padding:10px 26px 10px 14px;width:fit-content;min-width:760px}
+.z .r{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:38px;color:#020617;background:#22d3ee;margin-right:22px;flex:none}
+.z .n{font-weight:900;font-size:50px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:560px}
+.z .w{font-weight:800;font-size:44px;margin-left:30px;white-space:nowrap}
+.z .w small{font-size:28px;opacity:.85;margin-left:6px}
+.z.p1 .r{background:#facc15}.z.p2 .r{background:#cbd5e1}.z.p3 .r{background:#d97706}
+body.weiss #b{background:#fff;color:#020617}
+body.weiss .t{text-shadow:none}
+body.weiss .h span{color:#0891b2}
+body.weiss .d,body.weiss .z{color:#fff;background:#020617}
+</style></head><body><div id="b"><div class="t" id="inhalt"></div></div><script>
+const q = new URLSearchParams(location.search);
+if (q.get("weiss")) document.body.classList.add("weiss");
+const el = document.getElementById("inhalt"), esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+if ((q.get("art") || "titel") === "titel") {
+  el.innerHTML = `<div class="k">GLOBAL EVENT · ${esc(q.get("k") || "FINAL RESULTS")}</div><div class="h">FLYING SPRINT<br><span>WEEKEND</span></div>`
+    + `<div class="tag"><i>${esc(q.get("tag") || "THE WINNERS")}</i></div>`
+    + (q.get("d") ? `<div class="d">${esc(q.get("d")).replace(/\*(.+?)\*/g, "<b>$1</b>")}</div>` : "");
+} else {
+  let html = `<div class="kopf"><div class="tag"><i>${esc(q.get("kz") || "")}</i></div><div class="k2">${esc(q.get("k") || "FLYING SPRINT · FINAL")}</div></div>`;
+  for (const i of [1, 2, 3]) {
+    const v = q.get("p" + i); if (!v) continue;
+    const [n, w] = v.split("|");
+    html += `<div class="z p${i}"><div class="r">${i}</div><div class="n">${esc(n)}</div><div class="w">${esc(w)}<small>km/h</small></div></div>`;
+  }
+  el.innerHTML = html;
+}
+</script></body></html>
