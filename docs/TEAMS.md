@@ -509,6 +509,10 @@ Team-Event (`team_events.global_event`, `team_wertung_n`), Rechnung in `app/team
   Bestenlisten (versteckte/gesperrte Konten fehlen). Opt-out im Profil › Privatsphaere „Nicht an globalen Events
   teilnehmen" (`settings.global_events_aus`, `teams.global_aus`): fehlt dann in Bestenlisten, Team-Wertung, Summen
   und Abzeichen, auch in schon beendeten (dort nur in der Ausgabe, Raenge rutschen nach).
+  **Hinweis fuer Abgemeldete (15.11.2026):** wer das Opt-out gesetzt hat, sieht unter „Global events" (Community,
+  Alle Events) ein Badge und auf der Eventseite statt „Alle nehmen automatisch teil …" hervorgehoben „Du hast dich von
+  globalen Events abgemeldet. Aendern unter …" (Web `GlobalAusHinweis.tsx`, Android/iOS nur Eventseite). Anlass: ein
+  Fahrer fehlte im Sprint-Ranking und wusste nichts vom eigenen Opt-out.
 - **Team-Rangliste** je Bestenliste: Summe der besten N Mitglieder (Standard 5, 0 = alle; Sprints: Durchschnitt), nur
   freigegebene Teams mit oeffentlichen Bestenlisten (wie der Team-Vergleich).
 - **Primaeres Team (10.11.2026):** wer in mehreren solchen Teams ist, zaehlt nur fuer EINES (bis dahin fuer alle):
