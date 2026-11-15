@@ -1911,9 +1911,15 @@ def _spot_eintraege(db: Session, viewer_id: int | None, accel_only: bool, sport:
     # Name UND Gewaesser: viele Spots heissen nach der Ortschaft und bekommen bei mehreren
     # Stellen am selben Ort einen Zaehler („Berlin 3", „Berlin 4"). Im Dropdown sind die nicht
     # auseinanderzuhalten — mit dem Gewaesser als zweiter Zeile schon (Jan, 24.08.).
-    stamm = {sid: (nm, wa, ar) for sid, nm, wa, ar in db.query(
-        models.Spot.id, models.Spot.name, models.Spot.water_name, models.Spot.area_name)
-        .filter(models.Spot.id.in_([sid for sid, *_ in mit_id])).all()} if mit_id else {}
+    stamm, marker = {}, {}
+    if mit_id:
+        for sid, nm, wa, ar, mla, mlo in db.query(
+                models.Spot.id, models.Spot.name, models.Spot.water_name, models.Spot.area_name,
+                models.Spot.marker_lat, models.Spot.marker_lon).filter(models.Spot.id.in_([sid for sid, *_ in mit_id])).all():
+            stamm[sid] = (nm, wa, ar)
+            if mla is not None and mlo is not None:
+                marker[sid] = (mla, mlo)   # von Hand gesetzt (models.Spot.marker_lat)
+        mit_id = [(sid, *marker.get(sid, (lat, lon)), n) for sid, lat, lon, n in mit_id]
     # Beschriftung: Spot-Name, sonst Gewaesser, sonst Ortslage. Ohne diesen Rueckfall fielen
     # Spots, die vom Geocoder KEINEN Ortsnamen bekommen haben, komplett aus der Karte — sie
     # wurden unten per `namen.get(sid)` weggefiltert. Real betroffen am 26.08.: Spot 339

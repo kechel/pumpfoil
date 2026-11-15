@@ -1010,6 +1010,10 @@ class Spot(Base):
     # von Nominatim ("Tegel", "Wannsee") und genau so benennt ihn auch ein Einheimischer.
     # BEWUSST nicht im Spot-NAMEN (places.py, "Paris-Lektion": Mikro-Viertel als Name ist Muell).
     area_name: Mapped[str | None] = mapped_column(String(120))
+    # Marker auf der Karte von Hand gesetzt (15.11.2026, Wunsch eines Nutzers: der Spot liegt an der Mole, die Starts
+    # am Strand). Leer = Mittel der Session-Startpunkte wie bisher (community._spot_eintraege).
+    marker_lat: Mapped[float | None] = mapped_column(Float)
+    marker_lon: Mapped[float | None] = mapped_column(Float)
     merged_into: Mapped[int | None] = mapped_column(Integer, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 

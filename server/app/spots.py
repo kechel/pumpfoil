@@ -919,6 +919,20 @@ def spot_nach_strecke(db, spots_, g, lat0, ohne: int | None = None):
     return None
 
 
+def _spot_am_start(db, start):
+    """Der eine aktive, benannte Spot, dessen Polygon den Startpunkt enthaelt — sonst None (keiner oder mehrere)."""
+    from shapely.geometry import Point
+    from . import models
+    lat0 = start[0]
+    p = Point(_project([start], lat0)[0])
+    treffer = [sp for sp in (db.query(models.Spot)
+                             .filter(models.Spot.merged_into.is_(None), models.Spot.name.isnot(None),
+                                     models.Spot.poly_wkt.isnot(None), models.Spot.lat.between(lat0 - 0.25, lat0 + 0.25))
+                             .all())
+               if _wkt_to_m(sp.poly_wkt, lat0).contains(p)]
+    return treffer[0] if len(treffer) == 1 else None
+
+
 def assign_one(db, s, erzwingen: bool = False):
     """Laufende Zuordnung einer EINZELNEN (neu analysierten) Session zu einem Spot.
     Setzt spot_id + place_name + place_water. Legt bei Bedarf einen neuen Spot an.
@@ -932,7 +946,10 @@ def assign_one(db, s, erzwingen: bool = False):
     # Spot nur fuer echte Pumpfoil-Sessions mit On-Foil. Sonst: nur Name (kein Spot).
     r = s.result
     if not erzwingen and not (r and spot_berechtigt(s, r.num_runs)):
-        name, src, water = name_for(*g.start, land=land)
+        # Startet sie IN einem bestehenden Spot, traegt sie dessen Namen (15.11.2026: eine Session ohne Laeufe mitten in
+        # einem Spot bekam den Geocoder-Namen des Nachbarorts und stand als eigener Marker auf der Karte). Kein spot_id.
+        heim = _spot_am_start(db, g.start)
+        name, src, water = (heim.name, None, heim.water_name) if heim is not None else name_for(*g.start, land=land)
         s.spot_id = None
         if name:
             s.place_name = name

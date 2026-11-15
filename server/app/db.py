@@ -125,6 +125,9 @@ def _migrate_add_indexes() -> None:
         "ALTER TABLE stabs ADD COLUMN IF NOT EXISTS aliases VARCHAR(300)",
         # Stadtteil als Unterscheidungs-Label fuer Spots mit Zaehler-Namen (s. models.Spot).
         "ALTER TABLE spots ADD COLUMN IF NOT EXISTS area_name VARCHAR(120)",
+        # Marker-Position von Hand (15.11.2026), sonst Mittel der Session-Starts (s. models.Spot).
+        "ALTER TABLE spots ADD COLUMN IF NOT EXISTS marker_lat DOUBLE PRECISION",
+        "ALTER TABLE spots ADD COLUMN IF NOT EXISTS marker_lon DOUBLE PRECISION",
         # Puls-Anstieg je Session (Median des Hoechstpulses bis Minute 1/2/5), lazy gefuellt.
         "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS hr_by_min_json TEXT",
         "ALTER TABLE analysis_results ADD COLUMN IF NOT EXISTS hr_foil_json TEXT",
