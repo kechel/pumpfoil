@@ -1541,6 +1541,8 @@ prueft aber ohnehin Doppler- gegen Positionsstrecke (<= 10 %), Fenster mit Tempo
 Watch 2 Pro, Tempo nur 43–75 % je Lauf): ohne Laufregel 100 m 15,1 km/h aus einem voll abgedeckten Fenster. Im Event 11 betraf es
 nur ihn (5 weitere Sessions ohne Uhr-Tempo bleiben ohne Wert). Einzelfall 21668 von Hand gerechnet + festgehalten (Jans OK).
 Fuer alle: Regel je Lauf raus, neue sprint-VERSION, Bestand nachrechnen (Analyse, Jans OK), vorher Verschiebung zeigen.
+Dazu (Jan 15.11.): Luecken im Uhr-Tempo bis 8 s aus den Tempowerten davor/danach ueberbruecken (nicht aus Positionen),
+Fensterpruefung bleibt. 21668 so gerechnet: 100 m 16,2, 200 m 15,2, 1 min 14,9 km/h (Lauf 2, Luecken <= 3 s).
 
 ### 15.11.2026 — v3 schneidet Laufenden vor dem Absetzen zu frueh ab (5-s-Glaettung), Minutenfenster scheitert knapp
 Befund u1117, Session 21890 Lauf 3 (Flying Sprint): v2 65 s (4351,3–4416,3), v3 59,997 s — `_glaetten` (5 s, zentriert) zieht die
