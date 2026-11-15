@@ -1535,6 +1535,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 15.11.2026 — Lob sammeln und als Zitate aufbereiten (Shorts, oeffentliche Seite) — bei Gelegenheit (Jan)
+Jan: „soviel lob und freude ueberall … raussuchen und als 'zitate' aufbereiten fuer shorts und public seite". Quellen: alle
+Chatnachrichten (vollstaendig gespeichert, nur Anzeige auf 100 begrenzt; oeffentlicher Chat, DMs an Jan/Assistent,
+Session-Kommentare), markierte Feedbacks (Lob-Archiv), Store-Bewertungen. Ablauf: Kandidaten lesend suchen (Sprachen
+uebersetzen), Liste an Jan; vor jeder oeffentlichen Nutzung den Autor fragen (DM ueber Konto 230, Vorlage von Jan), Name nur
+mit OK, sonst „ein Fahrer aus <Land>". Liste mit Namen NIE ins Repo (ausserhalb, z. B. server/data/), nur Vorlagen/Skript.
+
 ### 15.11.2026 — Sprints: 80-%-Uhr-Tempo-Regel je LAUF streichen, nur Fensterpruefung behalten (Jan: Einzelfall erledigt)
 `sprint.lauf_sprints` verwirft einen Lauf ganz, wenn < 80 % seiner GPS-Punkte Uhr-Tempo tragen (MIN_TEMPO_ANTEIL). Jedes Fenster
 prueft aber ohnehin Doppler- gegen Positionsstrecke (<= 10 %), Fenster mit Tempoluecken fallen dort durch. Befund u171 (Xiaomi
