@@ -1535,7 +1535,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-### 15.11.2026 — Ø Speed zaehlt vom Modell verworfene Lauf-Kandidaten mit (fuer die Woche ab 16.11., Jans OK steht)
+### 15.11.2026 — Ø Speed zaehlt vom Modell verworfene Lauf-Kandidaten mit (fuer die Woche ab 16.11.; vor dem Umbau Zahlen zeigen, Jan gibt frei)
 
 Befund (Session ohne Laeufe, 14.11., fēnix 7X): Ø Speed 13,0 km/h und 203 W theoretische Leistung bei 0 Laeufen, Max/Min „–".
 `metrics.avg_speed_mps` wird in `server/app/analysis/gps.py:696` ueber die Maske der ersten Stufe gerechnet; v3 verwirft danach
