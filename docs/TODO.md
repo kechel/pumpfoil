@@ -1535,6 +1535,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 15.11.2026 — Sprints: 80-%-Uhr-Tempo-Regel je LAUF streichen, nur Fensterpruefung behalten (Jan: Einzelfall erledigt)
+`sprint.lauf_sprints` verwirft einen Lauf ganz, wenn < 80 % seiner GPS-Punkte Uhr-Tempo tragen (MIN_TEMPO_ANTEIL). Jedes Fenster
+prueft aber ohnehin Doppler- gegen Positionsstrecke (<= 10 %), Fenster mit Tempoluecken fallen dort durch. Befund u171 (Xiaomi
+Watch 2 Pro, Tempo nur 43–75 % je Lauf): ohne Laufregel 100 m 15,1 km/h aus einem voll abgedeckten Fenster. Im Event 11 betraf es
+nur ihn (5 weitere Sessions ohne Uhr-Tempo bleiben ohne Wert). Einzelfall 21668 von Hand gerechnet + festgehalten (Jans OK).
+Fuer alle: Regel je Lauf raus, neue sprint-VERSION, Bestand nachrechnen (Analyse, Jans OK), vorher Verschiebung zeigen.
+
 ### 15.11.2026 — v3 schneidet Laufenden vor dem Absetzen zu frueh ab (5-s-Glaettung), Minutenfenster scheitert knapp
 Befund u1117, Session 21890 Lauf 3 (Flying Sprint): v2 65 s (4351,3–4416,3), v3 59,997 s — `_glaetten` (5 s, zentriert) zieht die
 niedrigen p nach dem Absetzen vor: 4413 s roh p 0,43 >= theta 0,4 bei 18 km/h, geglaettet 0,36 -> Schnitt. 60-s-Fenster braucht
