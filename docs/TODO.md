@@ -1535,6 +1535,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 15.11.2026 — v3 schneidet Laufenden vor dem Absetzen zu frueh ab (5-s-Glaettung), Minutenfenster scheitert knapp
+Befund u1117, Session 21890 Lauf 3 (Flying Sprint): v2 65 s (4351,3–4416,3), v3 59,997 s — `_glaetten` (5 s, zentriert) zieht die
+niedrigen p nach dem Absetzen vor: 4413 s roh p 0,43 >= theta 0,4 bei 18 km/h, geglaettet 0,36 -> Schnitt. 60-s-Fenster braucht
+>= 60,000 s im Lauf -> kein Wert. Einzelfall von Hand behoben (Jans OK, Ende 4413,3 s, `auswertung_fest`, Notiz an der Session).
+Ideen fuer danach (Analyse, Jans OK): Glaettung an den Raendern einseitig / Rand mit rohem p; oder Minutenfenster mit Toleranz
+0,5 s (Probe 15.11.: im Event nur dieser eine Lauf betroffen). Erst Regression ueber den Bestand (Laufdauern, Strecken).
+
 ### 15.11.2026 — Globale Events von Teams vorschlagen lassen („promote as public event", gemerkt, Jan)
 Jeder Team-Leiter kann ein Team-Event als globales vorschlagen, Jan prueft in Admin und uebernimmt es mit allen Einstellungen
 und Bannern, Anzeige „promoted by <Team>". Skizze und offene Fragen: docs/TEAMS.md › „Globale Events vorschlagen". Erst Entwurf.
