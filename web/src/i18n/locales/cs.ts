@@ -1820,7 +1820,7 @@ const cs: Record<string, string> = {
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "jen GPS",
   "watchQuality.gpsStale": "{pct} % mezer",
-  "watchQuality.pumpShare": "{pct} % s daty pumpování",
+  "watchQuality.pumpShare": "{pct} % s daty pohybu",
   "watchQuality.noteWays": "„Garmin Connect“ je soubor hodinek importovaný přes propojení účtu — s naší aplikací i bez ní. Data pumpování dorazí jen tehdy, když nahrávala naše aplikace a hodinky zapisují zrychlení do souboru. „Úplné“ počítá záznamy, které dorazily bez chybějících částí a bez výpadku GPS delšího než 3 minuty za jízdy.",
   "friends.title": "Přátelé",
   "act.title": "Nové komentáře & lajky",

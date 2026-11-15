@@ -2072,7 +2072,7 @@ const de: Record<string, string> = {
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "nur GPS",
   "watchQuality.gpsStale": "{pct} % Lücken",
-  "watchQuality.pumpShare": "{pct} % mit Pump-Daten",
+  "watchQuality.pumpShare": "{pct} % mit Bewegungsdaten",
   "watchQuality.noteWays": "„Garmin Connect“ heißt: die Datei der Uhr, über die Kontoverknüpfung importiert — mit oder ohne unsere App aufgenommen. Pump-Daten kommen nur an, wenn unsere App aufgenommen hat und die Uhr Beschleunigung in die Datei schreibt. „Vollständig“ zählt Aufnahmen, die ohne fehlende Teile und ohne GPS-Lücke über 3 Minuten während der Fahrt angekommen sind.",
   "friends.title": "Freunde",
   "act.title": "Neue Kommentare & Likes",

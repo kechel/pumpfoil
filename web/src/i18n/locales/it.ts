@@ -1380,7 +1380,7 @@ const it: Record<string, string> = {
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "solo GPS",
   "watchQuality.gpsStale": "{pct}% buchi",
-  "watchQuality.pumpShare": "{pct}% con dati di pompata",
+  "watchQuality.pumpShare": "{pct}% con dati di movimento",
   "watchQuality.noteWays": "“Garmin Connect” è il file dell'orologio, importato tramite il collegamento dell'account, con o senza la nostra app. I dati di pompata arrivano solo se la nostra app registrava e l'orologio scrive l'accelerazione nel file. “Complete” conta le registrazioni arrivate senza parti mancanti né buchi GPS oltre 3 minuti in movimento.",
   "friends.title": "Amici",
   "act.title": "Nuovi commenti & mi piace",

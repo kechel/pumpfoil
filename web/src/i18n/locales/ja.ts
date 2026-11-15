@@ -1683,7 +1683,7 @@ const ja: Record<string, string> = {
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "GPSのみ",
   "watchQuality.gpsStale": "欠落 {pct}%",
-  "watchQuality.pumpShare": "パンプデータあり {pct}%",
+  "watchQuality.pumpShare": "モーションデータあり {pct}%",
   "watchQuality.noteWays": "「Garmin Connect」は、アカウント連携で取り込んだウォッチ自身のファイルです（当アプリの使用有無を問いません）。パンプデータは、当アプリで記録し、ウォッチが加速度をファイルに書き込む場合のみ届きます。「完全」は、欠けた部分や走行中の3分を超えるGPSの途切れなしに届いた記録の割合です。",
   "friends.title": "友だち",
   "act.title": "新着コメントといいね",
