@@ -119,7 +119,9 @@ struct WatchStatsView: View {
         } ?? "–"
         // Rate UND Anteil der Sessions mit brauchbarer Beschleunigung (ueber Garmin Connect oft nur ein Teil).
         let anteil: Double = m.mit_accel ?? max(0, 100 - (m.gps_only ?? 0))
-        let accel: String = m.accel_hz.map { String(format: "%.0f Hz · %.0f %%", $0, anteil) }
+        // Garmin Connect zaehlt nur Dateien MIT Beschleunigung — der Anteil waere dort immer 100 %.
+        let accel: String = m.accel_hz.map { m.weg == "gc" ? String(format: "%.0f Hz", $0)
+                                                           : String(format: "%.0f Hz · %.0f %%", $0, anteil) }
             ?? Loc.t("watchQuality.gpsOnly", lang)
         let voll: String = m.vollstaendig.map { String(format: "%.0f %%", $0) } ?? "–"
         if wegZeigen {

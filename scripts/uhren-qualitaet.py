@@ -67,6 +67,9 @@ anzeigen zu koennen". Neben den App-Aufnahmen (oben) werden Garmin-Connect-Impor
 GETRENNT gemessen: das Modell kommt aus `sessions.device_model` (Garmins Geraetename), auf den Namen der App-Zeile
 abgebildet, wenn er passt (`gc_label`). Sie landen in `modelle_konto`, NIE in `modelle` — alte Apps lesen nur
 `modelle` und zeigten sonst dasselbe Modell zweimal ohne Kennzeichen. Suunto/Polar/COROS speichern kein Modell.
+NUR DATEIEN UNSERER APP MIT BESCHLEUNIGUNG (Profilname „Pumpfoil"/„Dance" in der FIT, `aus_unserer_app_datei`):
+Aktivitaeten mit Garmins eigenen Profilen (SUP, Laufen …) oder ohne SensorLogger bewerten nicht den Weg ueber Garmin
+Connect, sondern das Profil bzw. die Einstellung. Gezeigt wird, was ankommt, wenn richtig aufgezeichnet wurde.
 Die Gueteangabe fehlt in der Garmin-Datei (Spalte bleibt leer); Puls und Beschleunigung kommen so, wie die Uhr sie
 in die Datei schreibt (Puls je Sekunde, Beschleunigung nur, wenn unsere App mitlief und die Uhr sie schreibt).
 
@@ -166,6 +169,23 @@ def gc_label(device_model: str, app_labels: list) -> str:
     if len(anfang) == 1:
         return anfang[0]
     return re.sub(r"^Garmin\s+", "", (device_model or "").strip())
+
+
+def aus_unserer_app_datei(storage, uuid: str) -> bool:
+    """Stammt die Garmin-Datei aus UNSERER App (Profilname „Pumpfoil"/„Dance" in der FIT) und traegt Beschleunigung? Nur die zaehlen in der
+    Garmin-Connect-Zeile (Jan, 15.11.2026): Garmins eigene Profile schreiben nie Beschleunigung — mitgezaehlt mass die
+    Zeile sonst, welche Sportarten jemand mit Garmins Profilen aufnimmt (fēnix 6 Pro: eine SUP-Fahrt -> „50 %")."""
+    from app.fitimport import parse_fit_bytes
+    try:
+        roh = (storage.session_dir(uuid) / "original.fit").read_bytes()
+        p = parse_fit_bytes(roh) or {}
+        # UND mit Beschleunigung (Jan, 15.11.2026: „keine motion data in der aktivitaet ueberhaupt interessiert uns doch
+        # nicht"): fehlt sie, hatte die Uhr den SensorLogger nicht an (Einstellung noch nicht bei ihr) — das bewertet
+        # nicht den Weg, sondern die Aufnahme-Einstellung. Bewertet wird, was ankommt, wenn richtig aufgezeichnet wurde.
+        return (str(p.get("sport_name") or "").strip().lower() in ("pumpfoil", "dance")
+                and len(p.get("accel_bytes") or b"") > 0)
+    except Exception:                           # noqa: BLE001 — ohne lesbare Datei nicht zuordenbar
+        return False
 
 
 def ohne_platzhalter(werte: list) -> list:
@@ -268,7 +288,7 @@ def main() -> None:
             FROM sessions s LEFT JOIN analysis_results a ON a.session_id = s.id
             WHERE s.deleted = false AND s.merged_into IS NULL AND s.session_uuid LIKE 'garmin-%'
               AND coalesce(s.device_model, '') NOT IN ('', 'Garmin')
-        """)).fetchall()]
+        """)).fetchall() if aus_unserer_app_datei(storage, u)]
         warn = {(r[0], r[1] or "?"): (r[2], r[3]) for r in c.execute(text("""
             SELECT platform, label, sum(coalesce(storage_full_count,0)),
                    sum(coalesce(crash_count,0))

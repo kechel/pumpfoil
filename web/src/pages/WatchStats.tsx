@@ -78,7 +78,8 @@ function QualiZeile({ r, unter, wegZeigen }: { r: WatchQualityRow; unter: boolea
           mitlief und die Uhr Beschleunigung in die Datei schreibt — die Rate allein fuehrte dort in die Irre. */}
       <td className="px-4 py-3 text-right tabular-nums">
         {r.accel_hz != null ? `${r.accel_hz.toFixed(0)} Hz` : t("watchQuality.gpsOnly")}
-        {r.accel_hz != null && (
+        {/* Garmin Connect zaehlt nur Dateien MIT Beschleunigung (scripts/uhren-qualitaet.py) — dort waere es immer 100 %. */}
+        {r.accel_hz != null && r.weg !== "gc" && (
           <div className="text-xs font-normal text-slate-400">
             {t("watchQuality.pumpShare", { pct: (r.mit_accel ?? Math.max(0, 100 - r.gps_only)).toFixed(0) })}
           </div>

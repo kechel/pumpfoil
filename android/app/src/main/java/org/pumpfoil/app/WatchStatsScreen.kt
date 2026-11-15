@@ -197,7 +197,9 @@ private fun qualiCard(modell: String, rs: List<WatchQualityModel>, wegZeigen: Bo
                     wMetric("${m.sessions}", I18n.t("nav.sessions"))
                     // Rate UND Anteil der Sessions mit brauchbarer Beschleunigung (ueber Garmin Connect oft nur ein Teil).
                     val anteil = m.mitAccel ?: (100.0 - m.gpsOnly).coerceAtLeast(0.0)
-                    wMetric(m.accelHz?.let { "%.0f Hz · %.0f %%".format(it, anteil) } ?: I18n.t("watchQuality.gpsOnly"),
+                    // Garmin Connect zaehlt nur Dateien MIT Beschleunigung — der Anteil waere dort immer 100 %.
+                    wMetric(m.accelHz?.let { if (m.weg == "gc") "%.0f Hz".format(it) else "%.0f Hz · %.0f %%".format(it, anteil) }
+                        ?: I18n.t("watchQuality.gpsOnly"),
                         I18n.t("watchQuality.colPump"))
                 }
                 Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
