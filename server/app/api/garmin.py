@@ -475,7 +475,12 @@ def aktivitaet_importieren(db: Session, link: models.GarminLink, eintrag: dict) 
     # Profilname („Andere: Foil", „Andere: Snowkite" … Jan, 05.11.2026). Neue Namen erben die Wahl ihres Profils.
     modus, label = modus_schluessel(profil, parsed.get("sport_name"))
     standard = importsports.erlaubt(db, user.id, "garmin", profil) if modus != profil else True
-    if not importsports.merken(db, user.id, "garmin", modus, label=label, standard=standard).importieren:
+    # Aufnahmen UNSERER App kommen immer (Jan, 15.11.2026: „dateien die erkennbar aus unserer app kommen _immer_
+    # importieren"). Unsere Uhr-App zeichnet als Garmin-Profil „Other" auf; wer „Other" abwaehlt, um fremde Aktivitaeten
+    # draussen zu halten, verlor sonst seine eigenen Fahrten (ein Nutzer, 14.11.: vier Fahrten mit Beschleunigung
+    # verworfen, er lud sie von Hand hoch). Die Wahl wird trotzdem gemerkt (Zaehler „gesehen").
+    gewaehlt = importsports.merken(db, user.id, "garmin", modus, label=label, standard=standard).importieren
+    if not gewaehlt and not aus_unserer_app(eintrag):
         return "abgewaehlt"
     grund = importsports.konto_import_grund(parsed)
     if grund:

@@ -391,6 +391,30 @@ def test_eigene_aufnahme_bekommt_datei_auch_bei_abgewaehltem_profil(client, garm
     assert not (tmp_path / suuid / "garmin-connect-99-file.fit").exists()
 
 
+def test_aufnahme_unserer_app_kommt_auch_bei_abgewaehltem_profil(client, garmin, monkeypatch):
+    # 15.11.2026: „Other" abgewaehlt, keine eigene Aufnahme da (Uhr nie mit dem Handy verbunden) — die Datei unserer App
+    # (Profilname „Pumpfoil") wird trotzdem eine Session; eine fremde „Other"-Aktivitaet bleibt draussen.
+    uid, _ = _konto(client)
+    gid = _link(uid)
+    from app import importsports
+    from app.db import SessionLocal
+    db = SessionLocal()
+    importsports.merken(db, uid, "garmin", "OTHER", standard=False)   # vom Nutzer abgewaehlt
+    db.close()
+    monkeypatch.setattr(garmin.httpx, "get", lambda u, **k: _Antwort(content=b"CIQ-FIT"))
+    import app.fitimport as fi
+    import app.api.sessions as sess
+    monkeypatch.setattr(fi, "parse_fit_bytes", lambda b: _parsed(datetime(2026, 11, 14, 14, 16, tzinfo=timezone.utc)))
+    importiert = []
+    monkeypatch.setattr(sess, "import_parsed_session", lambda *a, **k: importiert.append(1) or object())
+    url = "https://apis.garmin.com/wellness-api/rest/activityFile?id=7"
+    basis = {"userId": gid, "fileType": "FIT", "activityType": "OTHER", "callbackURL": url}
+    client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [
+        {**basis, "summaryId": "71-file", "activityName": "Pumpfoil"},
+        {**basis, "summaryId": "72-file", "activityName": "Yoga"}]})
+    assert len(importiert) == 1
+
+
 def test_naechster_start_gewinnt(client, garmin):
     # 05.11.2026: eine 7-s-Aufnahme ohne eingetragenes Ende galt als „laeuft noch" und bekam die Datei der Fahrt danach.
     from app.db import SessionLocal
