@@ -1,6 +1,8 @@
 """Endstand-Overlays (1080x480) fuer Shorts aus ergebnis.html.
 
-    python render-ergebnis.py <zielordner> [--stand "PROVISIONAL"]
+    python render-ergebnis.py <zielordner> [--stand "PROVISIONAL"] [--d "TEXT · *BETONT*"]
+
+Ohne --d: „<Teilnehmende> RIDERS · THANK YOU!“ mit der Zahl der Eventseite (summen.aktive).
 
 Liest die Top 3 je Bestenliste (100 m, 1 Minute) aus der oeffentlichen Event-API und rendert je transparent + weiss:
 Titel, 100 m, 1 Minute. Namen und Werte stehen nur in den PNGs, nie im Repo.
@@ -20,7 +22,9 @@ for t in ev["tafeln"]:
     tafeln.setdefault(t.get("kennzahl"), t)
 def top3(kz):
     return [f"{z['name']}|{z['value'] * 3.6:.1f}" for z in tafeln[kz]["zeilen"][:3]]
-n = len({z["name"] for kz in ("sprint_100m", "sprint_60s") for z in tafeln[kz]["zeilen"]})
+n = (ev.get("summen") or {}).get("aktive") or 0      # Teilnehmende wie auf der Eventseite („Participants")
+if not d and n:
+    d = f"{n} RIDERS · *THANK YOU!*"
 
 bilder = {
     "1-titel": {"art": "titel", "k": stand, "tag": "THE WINNERS", **({"d": d} if d else {})},
@@ -38,4 +42,4 @@ with sync_playwright() as p:
             pg.locator("#b").screenshot(path=str(out / f"endstand-{name}-{'weiss' if weiss else 'transparent'}.png"),
                                         omit_background=not weiss)
     b.close()
-print(f"mind. {n} Fahrer in den angezeigten Zeilen;", sorted(x.name for x in out.iterdir()))
+print(f"{n} Teilnehmende;", sorted(x.name for x in out.iterdir()))
