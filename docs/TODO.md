@@ -1535,6 +1535,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 15.11.2026 — Zwei Aufnahmen derselben Fahrt: Puls aus der Uhr auch in der „besseren" Session (gemerkt, Jan)
+
+Jan: „wenn wir sessions von uhr und phone kombinieren, und phone 'besser' ist, dann sollte trotzdem der puls aus der
+uhr-session zusammen in der phone-session anzeigbar werden, also daten aus unterschiedlichen sessions kombiniert im prinzip".
+Heute gewinnt eine Aufnahme ganz (Garmin-Connect-Verknuepfung: mehr Laeufe gewinnt, `server/app/api/garmin.py`; Brett-Paare
+Handy am Brett + Uhr), die andere haengt nur daran; `merge.py` haengt nur GPS + Accel aneinander (s. Eintrag 25.10.
+„Zusammenfuehren nimmt … Puls-Kanal nicht mit"). Ziel: je Kanal die beste Quelle — Spur/Laeufe aus der Gewinnerin, Puls aus
+der Aufnahme, die Puls hat (Uhr am Handgelenk), auf die gemeinsame Wanduhr gelegt (Zeitversatz pruefen wie bei Brett-Paaren).
+Offen vor dem Bau: nur Anzeige (Pulsstreifen, Puls je Lauf) oder auch Analyse (Puls-Gegenbeweis Fremdkraft — dann
+Analyse-Aenderung, Jans OK); woher „besser" kommt; was die Apps zeigen (Paritaet). Erst Entwurf, dann bauen.
+
 ### 15.11.2026 — Ø Speed zaehlt vom Modell verworfene Lauf-Kandidaten mit (fuer die Woche ab 16.11.; vor dem Umbau Zahlen zeigen, Jan gibt frei)
 
 Befund (Session ohne Laeufe, 14.11., fēnix 7X): Ø Speed 13,0 km/h und 203 W theoretische Leistung bei 0 Laeufen, Max/Min „–".
