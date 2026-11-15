@@ -1535,6 +1535,22 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 15.11.2026 — Doppelte Laeufe aus paralleler Aufnahme nur einmal zaehlen, je LAUF (gemerkt, Jan)
+
+Jan: „doppelte runs, z.b. weil mit mehreren uhren und/oder phone gleichzeitig aufgezeichnet wird, sollten immer nur einmal
+zaehlen und das irgendwie kenntlich machen, bewusst nicht nur session-basiert sondern run-basiert".
+Heute gibt es Doppel-Erkennung nur je Session (Garmin-Connect-Datei haengt an der eigenen Aufnahme; `merge.py` lehnt
+ueberlappende Teile ab). Bestand 15.11. (Abfrage nur lesend): **77 Paare** sichtbarer Sessions mit Laeufen desselben Nutzers,
+die sich > 5 min zeitlich ueberlappen, **24 Nutzer**, bis zu ~490 Laeufe doppelt (Obergrenze: min. Laufzahl je Paar; Brett-Paare
+Handy am Brett + Uhr sind darin, die sind gewollt parallel).
+Idee: Laeufe desselben Nutzers, die sich zeitlich decken (Start/Ende innerhalb weniger Sekunden, gleicher Ort), bilden eine
+Gruppe; je Gruppe zaehlt EIN Lauf (Regel offen: bester Wert je Wertung? Aufnahme mit besserer Datenlage?) fuer Statistik,
+Bestwerte, Rankings, Events, Sprints. Die anderen bleiben sichtbar, aber markiert („auch aufgenommen mit …, zaehlt einmal").
+Teilweise Ueberlappung (eine Aufnahme startet spaeter) muss gehen, deshalb je Lauf und nicht je Session.
+Offen vor dem Bau: Zuordnungsregel und Toleranzen am Bestand eichen; welcher Lauf zaehlt; Events/Rankings sind Wertung
+(Aenderung erst nach einem Event-WE, Jans OK); Anzeige Web + Apps. Haengt mit dem Eintrag „Puls aus der Uhr auch in der
+besseren Session" zusammen (beides: mehrere Aufnahmen derselben Fahrt). Erst Entwurf mit Zahlen, dann bauen.
+
 ### 15.11.2026 — Zwei Aufnahmen derselben Fahrt: Puls aus der Uhr auch in der „besseren" Session (gemerkt, Jan)
 
 Jan: „wenn wir sessions von uhr und phone kombinieren, und phone 'besser' ist, dann sollte trotzdem der puls aus der
