@@ -1535,6 +1535,18 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 15.11.2026 — Ø Speed zaehlt vom Modell verworfene Lauf-Kandidaten mit (fuer die Woche ab 16.11., Jans OK steht)
+
+Befund (Session ohne Laeufe, 14.11., fēnix 7X): Ø Speed 13,0 km/h und 203 W theoretische Leistung bei 0 Laeufen, Max/Min „–".
+`metrics.avg_speed_mps` wird in `server/app/analysis/gps.py:696` ueber die Maske der ersten Stufe gerechnet; v3 verwirft danach
+Kandidaten (hier 3, p 0,10/0,24/0,54), der Durchschnitt bleibt. Max/Min kommen aus den fertigen Laeufen und stimmen.
+Betroffen: 38 von 1364 Pumpfoil-Sessions ohne Laeufe zeigen einen Ø; 575 Sessions mit Laeufen haben mind. einen verworfenen
+Kandidaten (Ausmass der Verschiebung noch nicht gerechnet).
+
+**Plan (Jan 15.11.: „jetzt nix aendern … fuer naechste woche merken"):** Ø nach v3 ueber die fertigen Laeufe rechnen, vorher
+die Verschiebung in den 575 Sessions auswerten und Jan zeigen, dann betroffene Sessions neu auswerten (Ist-Zustand sichern,
+blockweise). Laeufe, Rankings, Sprints aendern sich nicht (Ø geht in keine Wertung). Bis dahin weder Anzeige noch Analyse anfassen.
+
 ### 14.11.2026 — Sprints: alle Sprints einer Session anzeigbar (nach dem Event)
 Heute zeigt die Session-Seite nur den Sprint aus dem Event-Link (`?run=…&sprint=<kennzahl>`: Wert + Lage auf der Karte,
 `sprint_json` haelt je Kennzahl nur das beste Fenster). Jan: unten in der Session ALLE Sprints auflisten (je Kennzahl
