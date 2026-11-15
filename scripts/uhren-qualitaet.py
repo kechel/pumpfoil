@@ -104,6 +104,7 @@ from statistics import median
 
 BASIS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 MIN_SESSIONS = 8
+MIN_SESSIONS_KONTO = 3      # Garmin-Connect-Zeilen (Jan, 15.11.2026: untergrenze auf drei mit dem hinweis)
 MIN_PUNKTE = 120
 PULS_STARR_PUNKTE = 60      # >= so viele gleiche Werte am Stueck = eingefroren
 PULS_TOT_PRO_MIN = 1.0      # weniger als ein neuer Wert je Minute = die Messung steht
@@ -376,7 +377,7 @@ def main() -> None:
     aus = []
     for (plattform, label, weg), N in je_modell.items():
         L = N                                   # eine Zeile je NUTZER, nicht je Session
-        if sum(n["sessions"] for n in N) < MIN_SESSIONS:
+        if sum(n["sessions"] for n in N) < (MIN_SESSIONS if weg == "app" else MIN_SESSIONS_KONTO):
             continue
         voll, crash = warn.get((plattform, label), (0, 0)) if weg == "app" else (0, 0)
         st = stand[(plattform, label, weg)]
