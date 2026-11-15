@@ -7,21 +7,27 @@ Ohne --d: „<Teilnehmende> RIDERS · THANK YOU!“ mit der Zahl der Eventseite 
 Liest die Top 3 je Bestenliste (100 m, 1 Minute) aus der oeffentlichen Event-API und rendert je transparent + weiss:
 Titel, 100 m, 1 Minute. Namen und Werte stehen nur in den PNGs, nie im Repo.
 """
-import json, pathlib, sys, urllib.parse, urllib.request
+import importlib.util, json, os, pathlib, sys, urllib.parse, urllib.request
 from playwright.sync_api import sync_playwright
 
 API = "http://localhost:8090/api/public/teams/pumpfoil/events/11?mix=1&sprint=1"
 hier = pathlib.Path(__file__).resolve().parent / "ergebnis.html"
-out = pathlib.Path(sys.argv[1]); out.mkdir(parents=True, exist_ok=True)
+out = pathlib.Path(sys.argv[1]).resolve(); out.mkdir(parents=True, exist_ok=True)
 stand = sys.argv[sys.argv.index("--stand") + 1] if "--stand" in sys.argv else "FINAL RESULTS"
 d = sys.argv[sys.argv.index("--d") + 1] if "--d" in sys.argv else ""
 
-ev = json.load(urllib.request.urlopen(API, timeout=30))["event"]
+# Angemeldet (Assistenten-Konto) lesen: nur so liefert die API das Land je Zeile (Gaeste bekommen es nicht).
+REPO = pathlib.Path(__file__).resolve().parents[3]
+os.chdir(REPO / "server")
+_spec = importlib.util.spec_from_file_location("bp", REPO / "scripts" / "bot-post.py")
+bp = importlib.util.module_from_spec(_spec); _spec.loader.exec_module(bp)
+_e, _p = bp.lade_zugang(); _t = bp.anfrage("/api/auth/login", {"email": _e, "password": _p}, methode="POST")
+ev = bp.anfrage("/api/teams/pumpfoil/events/11?mix=1&sprint=1", token=_t.get("access_token") or _t.get("token"))
 tafeln = {}
 for t in ev["tafeln"]:
     tafeln.setdefault(t.get("kennzahl"), t)
 def top3(kz):
-    return [f"{z['name']}|{z['value'] * 3.6:.1f}" for z in tafeln[kz]["zeilen"][:3]]
+    return [f"{z['name']}|{z['value'] * 3.6:.1f}|{(z.get('land') or '').lower()}" for z in tafeln[kz]["zeilen"][:3]]
 n = (ev.get("summen") or {}).get("aktive") or 0      # Teilnehmende wie auf der Eventseite („Participants")
 if not d and n:
     d = f"{n} RIDERS · *THANK YOU!*"
