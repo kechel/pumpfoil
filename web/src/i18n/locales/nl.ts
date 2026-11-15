@@ -1821,7 +1821,7 @@ const nl: Record<string, string> = {
   "watchQuality.gpsOnly": "alleen GPS",
   "watchQuality.gpsStale": "{pct}% gaten",
   "watchQuality.pumpShare": "{pct}% met bewegingsdata",
-  "watchQuality.noteWays": "„Garmin Connect” is het bestand van het horloge zelf, geïmporteerd via de accountkoppeling — met of zonder onze app. Pompdata komen alleen mee als onze app opnam en het horloge versnelling in het bestand schrijft. „Volledig” telt opnames die zonder ontbrekende delen en zonder GPS-gat van meer dan 3 minuten tijdens het varen zijn aangekomen.",
+  "watchQuality.noteWays": "„Garmin Connect” zijn opnames met onze app die als bestand van het horloge via de accountkoppeling binnenkomen. Alleen bestanden met versnelling tellen — wat binnenkomt als alles goed is opgenomen. „Volledig” telt opnames die zonder ontbrekende delen en zonder GPS-gat van meer dan 3 minuten tijdens het varen zijn aangekomen.",
   "friends.title": "Vrienden",
   "act.title": "Nieuwe reacties & likes",
   "act.comment": "heeft gereageerd",

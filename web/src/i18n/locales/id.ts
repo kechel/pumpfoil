@@ -1684,7 +1684,7 @@ const id: Record<string, string> = {
   "watchQuality.gpsOnly": "hanya GPS",
   "watchQuality.gpsStale": "{pct}% celah",
   "watchQuality.pumpShare": "{pct}% dengan data gerak",
-  "watchQuality.noteWays": "“Garmin Connect” berarti file milik jam itu sendiri, diimpor lewat tautan akun — dengan atau tanpa aplikasi kami. Data pump hanya masuk jika aplikasi kami merekam dan jam menulis akselerasi ke file. “Lengkap” menghitung rekaman yang tiba tanpa bagian hilang dan tanpa celah GPS lebih dari 3 menit saat bergerak.",
+  "watchQuality.noteWays": "“Garmin Connect” berarti rekaman dengan aplikasi kami yang tiba sebagai file milik jam lewat tautan akun. Hanya file dengan akselerasi yang dihitung — yang tiba bila semuanya direkam dengan benar. “Lengkap” menghitung rekaman yang tiba tanpa bagian hilang dan tanpa celah GPS lebih dari 3 menit saat bergerak.",
   "friends.title": "Teman",
   "act.title": "Komentar & suka baru",
   "act.comment": "berkomentar",

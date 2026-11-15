@@ -1843,7 +1843,7 @@ const pl: Record<string, string> = {
   "watchQuality.gpsOnly": "tylko GPS",
   "watchQuality.gpsStale": "{pct}% luk",
   "watchQuality.pumpShare": "{pct}% z danymi ruchu",
-  "watchQuality.noteWays": "„Garmin Connect” to plik zegarka zaimportowany przez połączenie konta — z naszą aplikacją lub bez niej. Dane pompowania docierają tylko wtedy, gdy nagrywała nasza aplikacja, a zegarek zapisuje przyspieszenie w pliku. „Kompletne” liczy nagrania, które dotarły bez brakujących części i bez przerw GPS dłuższych niż 3 minuty w ruchu.",
+  "watchQuality.noteWays": "„Garmin Connect” to nagrania naszą aplikacją, które docierają jako plik zegarka przez połączenie konta. Liczą się tylko pliki z przyspieszeniem — czyli to, co dociera, gdy wszystko zostało nagrane poprawnie. „Kompletne” liczy nagrania, które dotarły bez brakujących części i bez przerw GPS dłuższych niż 3 minuty w ruchu.",
   "friends.title": "Znajomi",
   "act.title": "Nowe komentarze i polubienia",
   "act.comment": "skomentował(a)",

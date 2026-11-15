@@ -1734,7 +1734,7 @@ const nb: Record<string, string> = {
   "watchQuality.gpsOnly": "bare GPS",
   "watchQuality.gpsStale": "{pct} % hull",
   "watchQuality.pumpShare": "{pct} % med bevegelsesdata",
-  "watchQuality.noteWays": "«Garmin Connect» betyr klokkens egen fil, importert via kontokoblingen — med eller uten appen vår. Pumpedata kommer bare hvis appen vår tok opp og klokken skriver akselerasjon i filen. «Komplette» teller opptak som kom fram uten manglende deler og uten GPS-hull over 3 minutter i fart.",
+  "watchQuality.noteWays": "«Garmin Connect» betyr opptak med appen vår som kommer som klokkens egen fil via kontokoblingen. Bare filer med akselerasjon teller — det som kommer når alt ble tatt opp riktig. «Komplette» teller opptak som kom fram uten manglende deler og uten GPS-hull over 3 minutter i fart.",
   "friends.title": "Venner",
   "act.title": "Nye kommentarer og likes",
   "act.comment": "kommenterte",

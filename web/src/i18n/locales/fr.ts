@@ -1383,7 +1383,7 @@ const fr: Record<string, string> = {
   "watchQuality.gpsOnly": "GPS seul",
   "watchQuality.gpsStale": "{pct} % de trous",
   "watchQuality.pumpShare": "{pct} % avec données de mouvement",
-  "watchQuality.noteWays": "« Garmin Connect » désigne le fichier de la montre, importé via la liaison de compte, que notre app ait tourné ou non. Les données de pump n'arrivent que si notre app enregistrait et que la montre écrit l'accélération dans le fichier. « Complètes » compte les enregistrements arrivés sans parties manquantes ni trou GPS de plus de 3 minutes en mouvement.",
+  "watchQuality.noteWays": "« Garmin Connect » désigne les enregistrements faits avec notre app qui nous arrivent comme fichier de la montre via la liaison de compte. Seuls les fichiers contenant l'accélération comptent — ce qui arrive quand tout a été bien enregistré. « Complètes » compte les enregistrements arrivés sans parties manquantes ni trou GPS de plus de 3 minutes en mouvement.",
   "friends.title": "Amis",
   "act.title": "Nouveaux commentaires & j'aime",
   "act.comment": "a commenté",

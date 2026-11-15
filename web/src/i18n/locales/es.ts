@@ -1381,7 +1381,7 @@ const es: Record<string, string> = {
   "watchQuality.gpsOnly": "solo GPS",
   "watchQuality.gpsStale": "{pct}% huecos",
   "watchQuality.pumpShare": "{pct}% con datos de movimiento",
-  "watchQuality.noteWays": "“Garmin Connect” es el archivo del propio reloj, importado mediante la vinculación de cuenta, con o sin nuestra app. Los datos de bombeo solo llegan si nuestra app estaba grabando y el reloj escribe la aceleración en el archivo. “Completas” cuenta las grabaciones que llegaron sin partes perdidas ni huecos de GPS de más de 3 minutos en movimiento.",
+  "watchQuality.noteWays": "“Garmin Connect” son grabaciones hechas con nuestra app que nos llegan como archivo del propio reloj mediante la vinculación de cuenta. Solo cuentan los archivos con aceleración: lo que llega cuando todo se grabó correctamente. “Completas” cuenta las grabaciones que llegaron sin partes perdidas ni huecos de GPS de más de 3 minutos en movimiento.",
   "friends.title": "Amigos",
   "act.title": "Nuevos comentarios y me gusta",
   "act.comment": "ha comentado",
