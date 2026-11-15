@@ -10,7 +10,7 @@ This changelog covers the Zepp OS watch app only.
 > and possibly after the upload — it is listed under 1.0.7. **Keep this file current with every
 > bump**, then nobody has to dig through commits again.
 
-## Naechste Fassung (nach 1.0.16, noch ohne Versionsnummer)
+## 1.0.17 — gebaut am 15.11.2026 (code 20), Einreichung bei Jan (1.0.16 noch im Review)
 
 - **GPS-Neustart nach Funkstille** (15.11.2026): Die App startete den GPS-Sensor genau einmal beim Oeffnen der Seite.
   Auf dem Wasser lag die GPS-Abdeckung aller acht Amazfit-Fahrer seit Oktober bei 21-56 % (Garmin 92 %, Apple 97 %,

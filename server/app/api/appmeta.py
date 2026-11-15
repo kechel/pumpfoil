@@ -1237,6 +1237,11 @@ NAECHSTES: list[dict] = [
     # iPhone + Apple Watch 1.1.62 am 07.11. 01:26 eingereicht -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.64 am 10.11. 11:47 eingereicht -> IN_REVIEW.
     # Huawei Watch 5 1.0.5 am 10.11. eingereicht -> IN_REVIEW.
+    # Amazfit 1.0.17 (code 20) am 15.11.2026 gebaut, 1.0.16 liegt noch im Review. Bei Einreichung -> IN_REVIEW.
+    {"name": "Amazfit", "version": "1.0.17",
+     "items": [
+         "If the watch loses its GPS position, for example after a fall into the water, the app now restarts positioning on its own instead of waiting, so runs after a fall are recorded again.",
+     ]},
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
      "items": [
