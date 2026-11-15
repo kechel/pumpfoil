@@ -1543,6 +1543,10 @@ nur ihn (5 weitere Sessions ohne Uhr-Tempo bleiben ohne Wert). Einzelfall 21668 
 Fuer alle: Regel je Lauf raus, neue sprint-VERSION, Bestand nachrechnen (Analyse, Jans OK), vorher Verschiebung zeigen.
 Dazu (Jan 15.11.): Luecken im Uhr-Tempo bis 8 s aus den Tempowerten davor/danach ueberbruecken (nicht aus Positionen),
 Fensterpruefung bleibt. 21668 so gerechnet: 100 m 16,2, 200 m 15,2, 1 min 14,9 km/h (Lauf 2, Luecken <= 3 s).
+Vorschlag Kriterien je FENSTER (Jan 15.11.: „der ganze lauf interessiert nicht“): Luecken nur bis ~3 s ueberbruecken (laenger ->
+Fenster ungueltig), mind. ~2/3 der Punkte mit echtem Uhr-Tempo (21668: 74/77/75 %, bei 80 % waere er raus), Gegenprobe
+Position <= 10 % bleibt. Keine strengere Formel fuer Top 5 — gleiche Regel fuer alle, Spitze per Event-Wache ansehen; optional
+Datenlage je Sprint anzeigen („Uhr-Tempo 75 %“). Vor Live: Bestand nachrechnen (neue Werte, Verschiebungen, Spitzenplaetze).
 
 ### 15.11.2026 — v3 schneidet Laufenden vor dem Absetzen zu frueh ab (5-s-Glaettung), Minutenfenster scheitert knapp
 Befund u1117, Session 21890 Lauf 3 (Flying Sprint): v2 65 s (4351,3–4416,3), v3 59,997 s — `_glaetten` (5 s, zentriert) zieht die
