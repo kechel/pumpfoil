@@ -259,6 +259,18 @@ durch **denselben** Parser.
   `time_base: none`.
 - Zeitbasis: `Date.now() − startedAtMs` (Wanduhr, ms).
 
+### 3.2 Puls fehlt, weil die Uhr über dem Neopren sitzt
+
+Viele Pumpfoiler tragen die Uhr **über** dem Ärmel des Neoprenanzugs, damit sie sie beim Fahren
+sehen. Dann hat der optische Sensor keinen Hautkontakt, und es kommt kein Puls (oder nur einzelne
+Werte). GPS und Beschleunigung laufen normal, die Aufnahme taugt sonst voll (Feldtest 14.11.2026:
+gut ablesbar, gut nutzbar, wenn man auf den Puls verzichtet). Bei einer Session ohne oder fast ohne
+Puls ist das die erste Vermutung, kein Defekt der Uhr oder der App. Folgen:
+
+- Alles, was Puls braucht, fällt weg (Pulsstreifen, Puls je Lauf, Puls-Gegenbeweis bei Fremdkraft).
+  Regeln dürfen fehlenden Puls nie als Hinweis werten.
+- Wer Puls will: Uhr unter den Ärmel oder einen Brustgurt koppeln.
+
 ---
 
 ## 4. Was auf der Platte liegt
