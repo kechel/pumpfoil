@@ -7587,6 +7587,18 @@
   {
     "brand": "Gong",
     "model": "Veloce HDW V3",
+    "size": "M",
+    "span_cm": 109.0,
+    "area_cm2": 900.0,
+    "thickness_mm": 13.2,
+    "thickness_estimated": false,
+    "specs_estimated": false,
+    "is_baseline": false,
+    "aliases": null
+  },
+  {
+    "brand": "Gong",
+    "model": "Veloce HDW V3",
     "size": "L",
     "span_cm": 118.0,
     "area_cm2": 1050.0,
