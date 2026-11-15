@@ -384,6 +384,8 @@ enum LocTeam {
     ]
 
     private static let _de7: [String: String] = [
+        "team.event.globalHinweisAus": "Du hast dich von globalen Events abgemeldet.",
+        "team.event.globalOptIn": "Ändern unter Einstellungen › Privatsphäre.",
         "team.tab.grunddaten": "Grundeinstellungen",
         "team.tab.verwalten": "Verwaltung",
         "team.tafel.alleFoils": "Alle Foils",
@@ -762,6 +764,8 @@ enum LocTeam {
     ]
 
     private static let _gsw7: [String: String] = [
+        "team.event.globalHinweisAus": "Du häsch di vo de globale Events abgmäldet.",
+        "team.event.globalOptIn": "Ändere under Iistellige › Privatsphäre.",
         "team.tab.grunddaten": "Grundiistellige",
         "team.tab.verwalten": "Verwaltig",
         "team.tafel.alleFoils": "Alli Foils",
@@ -1140,6 +1144,8 @@ enum LocTeam {
     ]
 
     private static let _de_AT7: [String: String] = [
+        "team.event.globalHinweisAus": "Du hast dich von globalen Events abgemeldet.",
+        "team.event.globalOptIn": "Ändern unter Einstellungen › Privatsphäre.",
         "team.tab.grunddaten": "Grundeinstellungen",
         "team.tab.verwalten": "Verwaltung",
         "team.tafel.alleFoils": "Alle Foils",
@@ -1518,6 +1524,8 @@ enum LocTeam {
     ]
 
     private static let _en7: [String: String] = [
+        "team.event.globalHinweisAus": "You have opted out of global events.",
+        "team.event.globalOptIn": "Change under Settings › Privacy.",
         "team.tab.grunddaten": "Basic settings",
         "team.tab.verwalten": "Management",
         "team.tafel.alleFoils": "All foils",
@@ -1896,6 +1904,8 @@ enum LocTeam {
     ]
 
     private static let _fr7: [String: String] = [
+        "team.event.globalHinweisAus": "Tu t'es désinscrit des événements globaux.",
+        "team.event.globalOptIn": "Modifier dans Réglages › Confidentialité.",
         "team.tab.grunddaten": "Réglages de base",
         "team.tab.verwalten": "Gestion",
         "team.tafel.alleFoils": "Tous les foils",
@@ -2274,6 +2284,8 @@ enum LocTeam {
     ]
 
     private static let _it7: [String: String] = [
+        "team.event.globalHinweisAus": "Hai rinunciato agli eventi globali.",
+        "team.event.globalOptIn": "Modifica in Impostazioni › Privacy.",
         "team.tab.grunddaten": "Impostazioni di base",
         "team.tab.verwalten": "Gestione",
         "team.tafel.alleFoils": "Tutti i foil",
@@ -2652,6 +2664,8 @@ enum LocTeam {
     ]
 
     private static let _es7: [String: String] = [
+        "team.event.globalHinweisAus": "Te diste de baja de los eventos globales.",
+        "team.event.globalOptIn": "Cámbialo en Ajustes › Privacidad.",
         "team.tab.grunddaten": "Ajustes básicos",
         "team.tab.verwalten": "Gestión",
         "team.tafel.alleFoils": "Todos los foils",
@@ -3030,6 +3044,8 @@ enum LocTeam {
     ]
 
     private static let _fi7: [String: String] = [
+        "team.event.globalHinweisAus": "Olet jättäytynyt pois globaaleista tapahtumista.",
+        "team.event.globalOptIn": "Muuta kohdassa Asetukset › Yksityisyys.",
         "team.tab.grunddaten": "Perusasetukset",
         "team.tab.verwalten": "Hallinta",
         "team.tafel.alleFoils": "Kaikki siivet",
@@ -3408,6 +3424,8 @@ enum LocTeam {
     ]
 
     private static let _nl7: [String: String] = [
+        "team.event.globalHinweisAus": "Je hebt je afgemeld voor globale events.",
+        "team.event.globalOptIn": "Wijzig onder Instellingen › Privacy.",
         "team.tab.grunddaten": "Basisinstellingen",
         "team.tab.verwalten": "Beheer",
         "team.tafel.alleFoils": "Alle foils",
@@ -3786,6 +3804,8 @@ enum LocTeam {
     ]
 
     private static let _cs7: [String: String] = [
+        "team.event.globalHinweisAus": "Odhlásil ses z globálních eventů.",
+        "team.event.globalOptIn": "Změň v Nastavení › Soukromí.",
         "team.tab.grunddaten": "Základní nastavení",
         "team.tab.verwalten": "Správa",
         "team.tafel.alleFoils": "Všechny foily",
@@ -4164,6 +4184,8 @@ enum LocTeam {
     ]
 
     private static let _pl7: [String: String] = [
+        "team.event.globalHinweisAus": "Zrezygnowałeś z globalnych eventów.",
+        "team.event.globalOptIn": "Zmień w Ustawienia › Prywatność.",
         "team.tab.grunddaten": "Ustawienia podstawowe",
         "team.tab.verwalten": "Zarządzanie",
         "team.tafel.alleFoils": "Wszystkie foile",
@@ -4542,6 +4564,8 @@ enum LocTeam {
     ]
 
     private static let _pt7: [String: String] = [
+        "team.event.globalHinweisAus": "Você saiu dos eventos globais.",
+        "team.event.globalOptIn": "Altere em Configurações › Privacidade.",
         "team.tab.grunddaten": "Configurações básicas",
         "team.tab.verwalten": "Gerenciamento",
         "team.tafel.alleFoils": "Todos os foils",
@@ -4920,6 +4944,8 @@ enum LocTeam {
     ]
 
     private static let _pt_PT7: [String: String] = [
+        "team.event.globalHinweisAus": "Saíste dos eventos globais.",
+        "team.event.globalOptIn": "Altera em Definições › Privacidade.",
         "team.tab.grunddaten": "Definições básicas",
         "team.tab.verwalten": "Gestão",
         "team.tafel.alleFoils": "Todos os foils",
@@ -5298,6 +5324,8 @@ enum LocTeam {
     ]
 
     private static let _ja7: [String: String] = [
+        "team.event.globalHinweisAus": "グローバルイベントへの参加をオフにしています。",
+        "team.event.globalOptIn": "設定 › プライバシーで変更できます。",
         "team.tab.grunddaten": "基本設定",
         "team.tab.verwalten": "管理",
         "team.tafel.alleFoils": "すべてのフォイル",
@@ -5676,6 +5704,8 @@ enum LocTeam {
     ]
 
     private static let _zh7: [String: String] = [
+        "team.event.globalHinweisAus": "你已退出全球活动。",
+        "team.event.globalOptIn": "可在 设置 › 隐私 中更改。",
         "team.tab.grunddaten": "基本设置",
         "team.tab.verwalten": "管理",
         "team.tafel.alleFoils": "全部前翼",
@@ -6054,6 +6084,8 @@ enum LocTeam {
     ]
 
     private static let _ru7: [String: String] = [
+        "team.event.globalHinweisAus": "Вы отказались от глобальных событий.",
+        "team.event.globalOptIn": "Изменить: Настройки › Конфиденциальность.",
         "team.tab.grunddaten": "Основные настройки",
         "team.tab.verwalten": "Управление",
         "team.tafel.alleFoils": "Все фойлы",
@@ -6432,6 +6464,8 @@ enum LocTeam {
     ]
 
     private static let _id7: [String: String] = [
+        "team.event.globalHinweisAus": "Kamu sudah keluar dari event global.",
+        "team.event.globalOptIn": "Ubah di Pengaturan › Privasi.",
         "team.tab.grunddaten": "Pengaturan dasar",
         "team.tab.verwalten": "Kelola",
         "team.tafel.alleFoils": "Semua foil",
@@ -6810,6 +6844,8 @@ enum LocTeam {
     ]
 
     private static let _nb7: [String: String] = [
+        "team.event.globalHinweisAus": "Du har reservert deg mot globale eventer.",
+        "team.event.globalOptIn": "Endre under Innstillinger › Personvern.",
         "team.tab.grunddaten": "Grunninnstillinger",
         "team.tab.verwalten": "Administrasjon",
         "team.tafel.alleFoils": "Alle foiler",

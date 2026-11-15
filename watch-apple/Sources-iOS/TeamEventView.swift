@@ -824,22 +824,49 @@ private struct EventGlobalHinweis: View {
     let lang: String
     private var marke: TeamFarbe { TeamFarbe(nil) }
 
+    // Selbst abgemeldet (`global_events_aus`)? Dann neutral „abgemeldet" + Weg zum Aendern, hervorgehoben (Web 15.11.2026).
+    @State private var aus = false
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(Loc.t("team.event.globalHinweis", lang)).font(.subheadline)
-                .fixedSize(horizontal: false, vertical: true)
-            NavigationLink {
-                EinstellungenView(start: "privat")
-                    .brandToolbar(Loc.t("nav.settings", lang), feedbackUrl: "/einstellungen")
-            } label: {
-                Text(Loc.t("team.event.globalOptOut", lang)).font(.subheadline).underline()
-                    .foregroundStyle(marke.akzent)
-                    .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true)
+        Group {
+            if aus {
+                NavigationLink {
+                    EinstellungenView(start: "privat")
+                        .brandToolbar(Loc.t("nav.settings", lang), feedbackUrl: "/einstellungen")
+                } label: {
+                    (Text(Loc.t("team.event.globalHinweisAus", lang)) + Text(" ")
+                        + Text(Loc.t("team.event.globalOptIn", lang)).underline())
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.orange)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, 12).padding(.vertical, 8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(Loc.t("team.event.globalHinweis", lang)).font(.subheadline)
+                        .fixedSize(horizontal: false, vertical: true)
+                    NavigationLink {
+                        EinstellungenView(start: "privat")
+                            .brandToolbar(Loc.t("nav.settings", lang), feedbackUrl: "/einstellungen")
+                    } label: {
+                        Text(Loc.t("team.event.globalOptOut", lang)).font(.subheadline).underline()
+                            .foregroundStyle(marke.akzent)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
-            .buttonStyle(.plain)
         }
         .padding(.top, 2)
+        .task {
+            let s = (try? await Api.settings()) ?? [:]
+            aus = (s["global_events_aus"] as? Bool) == true
+        }
     }
 }
 
