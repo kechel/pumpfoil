@@ -154,6 +154,7 @@ async function handle(req) {
     // ein Wiederholungsversuch ohne sie ankommt.
     const body = { ended_at: iso(req.ended_at_ms), total_chunks: req.total_chunks };
     if (req.pauses && req.pauses.length) body.pauses = req.pauses;
+    if (req.messweg) body.messweg = req.messweg;   // GPS-Diagnose (Neustarts, Zeit ohne Fix, Ortungsmodus), 15.11.2026
     const r = await authPost(req.token, `/api/ingest/session/${req.session_uuid}/complete`, body);
     return { ok: true, http: r.status };
   }

@@ -10,6 +10,18 @@ This changelog covers the Zepp OS watch app only.
 > and possibly after the upload — it is listed under 1.0.7. **Keep this file current with every
 > bump**, then nobody has to dig through commits again.
 
+## Naechste Fassung (nach 1.0.16, noch ohne Versionsnummer)
+
+- **GPS-Neustart nach Funkstille** (15.11.2026): Die App startete den GPS-Sensor genau einmal beim Oeffnen der Seite.
+  Auf dem Wasser lag die GPS-Abdeckung aller acht Amazfit-Fahrer seit Oktober bei 21-56 % (Garmin 92 %, Apple 97 %,
+  Wear 98 %), mit Luecken bis 7 min nach dem Eintauchen, obwohl die Beschleunigung lueckenlos weiterlief. Jetzt: 20 s
+  ohne gueltigen Fix in der Aufnahme -> `stop()`/`start()`, Rueckruf neu angemeldet, fruehestens wieder nach 30 s
+  (`GEO_NEUSTART_NACH_MS`, `_geoWache`, `_geoNeustart`). VERMUTUNG, nicht belegt, dass der Sensor danach schneller
+  einen Fix findet — deshalb mit Diagnose: `/complete` traegt `messweg` mit `gps_neustart` (Anzahl), `gps_aus_s`
+  (Sekunden ohne Fix), `gps_aus_max_s` (laengste Funkstille) und `gps_modus` (eingestellter Ortungsmodus der Uhr,
+  `Geolocation.getSetting()`, 0 Genauigkeit … 4 Extrem stromsparend). Server nimmt die Felder an (ingest.py).
+  Test tests/geoneustart.test.mjs. Nicht im Simulator/auf der Uhr gelaufen.
+
 ## 1.0.16 — gebaut am 12.11.2026 (code 19), Einreichung bei Jan
 
 - **GPS-Luecke am Lauf-Ende** (cc767beb, wie Garmin 1.0.103 `LaufLuecke.mc`): Uhr unter Wasser liefert keine

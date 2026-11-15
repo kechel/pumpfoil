@@ -56,6 +56,14 @@ const AUTOSTART_SPEED = 7 / 3.6, AUTOSTART_TICKS = 3;
 // um eine flackernde Statusabfrage zu ueberbruecken, kurz genug, dass eine echte Funkluecke eine
 // Luecke bleibt. Bei 1 Hz Abtastung heisst das hoechstens zwei uebersprungene Sekunden.
 const GEO_CACHE_MS = 3000;
+// GPS-NEUSTART (15.11.2026, Jan: „vielleicht wird ein abgerissenes gps dann nicht wieder neu gestartet“). Die App
+// startete den Sensor genau einmal beim Oeffnen der Seite. Auf dem Wasser lag die GPS-Abdeckung aller Amazfit-Fahrer bei
+// 21-56 % (Garmin 92 %, Apple 97 %, Wear 98 %), mit Luecken bis 7 min nach dem Eintauchen — obwohl die Beschleunigung
+// lueckenlos weiterlief, die App also lebte. Kommt waehrend der Aufnahme so lange kein gueltiger Fix, wird der Sensor
+// neu gestartet (stop/start, Rueckruf neu angemeldet), danach fruehestens wieder nach GEO_NEUSTART_ABSTAND_MS.
+// Ob es hilft, zeigt `messweg.gps_neustart`/`gps_aus_s` am Server.
+const GEO_NEUSTART_NACH_MS = 20000;
+const GEO_NEUSTART_ABSTAND_MS = 30000;
 
 // Wie lange die Touch-Sperre nach dem Entsperren offen bleibt — und ab JEDER Bedienung neu
 // (s. `_unlockFrisch`).
@@ -3301,6 +3309,47 @@ Page(
       }
     },
 
+    // ---- GPS-Neustart (s. GEO_NEUSTART_NACH_MS) ----
+    /** Je Takt in der Aufnahme: Zeit ohne Fix zaehlen und den Sensor nach zu langer Funkstille neu starten. */
+    _geoWache(fix, jetzt) {
+      const s = this.state;
+      if (fix) { s.geoFixMs = jetzt; s.geoAusLauf = 0; return; }
+      s.geoAusS = (s.geoAusS || 0) + 1;                      // 1-Hz-Takt: ein Takt = eine Sekunde
+      s.geoAusLauf = (s.geoAusLauf || 0) + 1;
+      if (s.geoAusLauf > (s.geoAusMaxS || 0)) s.geoAusMaxS = s.geoAusLauf;
+      if (jetzt - (s.geoFixMs || s.startedAtMs) >= GEO_NEUSTART_NACH_MS
+          && jetzt - (s.geoNeustartMs || 0) >= GEO_NEUSTART_ABSTAND_MS) this._geoNeustart(jetzt);
+    },
+
+    _geoNeustart(jetzt) {
+      const s = this.state;
+      if (!s.geo) return;
+      s.geoNeustartMs = jetzt;
+      s.geoNeustarts = (s.geoNeustarts || 0) + 1;
+      // Jeder Schritt einzeln abgesichert: ein Fehler darf nie die laufende Aufnahme kosten.
+      try { s.geoCallback && s.geo.offChange && s.geo.offChange(s.geoCallback); } catch (e) {}
+      try { s.geo.stop && s.geo.stop(); } catch (e) {}
+      try { s.geo.start(); } catch (e) {}
+      try { s.geoCallback && s.geo.onChange && s.geo.onChange(s.geoCallback); } catch (e) {}
+    },
+
+    /** Eingestellter Ortungsmodus der Uhr (API 3.0, nur lesbar): 0 Genauigkeit, 1 Automatisch, 2 Ausgewogen,
+     *  3 Stromsparen, 4 Extrem stromsparend, 5 Benutzerdefiniert; -1 = nicht lesbar. */
+    _geoModus() {
+      try {
+        const r = this.state.geo && this.state.geo.getSetting && this.state.geo.getSetting();
+        const m = r && typeof r.mode === "number" ? r.mode : -1;
+        return m >= 0 && m <= 9 ? m : -1;
+      } catch (e) { return -1; }
+    },
+
+    /** Diagnose fuer `/complete` (Server: ingest.py, `messweg`). */
+    _geoMessweg() {
+      const s = this.state;
+      return { gps_neustart: s.geoNeustarts || 0, gps_aus_s: Math.round(s.geoAusS || 0),
+               gps_aus_max_s: Math.round(s.geoAusMaxS || 0), gps_modus: s.geoModusStart == null ? -1 : s.geoModusStart };
+    },
+
     // ---- Sampling ----
     sample() {
       const s = this.state;
@@ -3335,6 +3384,7 @@ Page(
           lat = s.geoLast[0]; lon = s.geoLast[1]; fix = true;
         }
       }
+      if (!DEV_FAKE_GPS && s.recording && !s.paused) this._geoWache(fix, sampleNow);
       // Geolocation has no documented getSpeed() method. Derive m/s from consecutive WGS-84
       // positions instead; this is also consistent with the distance accumulated below.
       //
@@ -3550,6 +3600,8 @@ Page(
       s.paused = false; s.pausedMs = 0; s.pauseStartMs = 0; s.pauseBeiMs = 0;
       s.pauseListe = []; s._teilUploadLaeuft = false;
       s._fi = 0;
+      s.geoNeustarts = 0; s.geoAusS = 0; s.geoAusMaxS = 0; s.geoAusLauf = 0; s.geoFixMs = now; s.geoNeustartMs = 0;
+      s.geoModusStart = this._geoModus();
       // Ueberleben bei Bildschirm-Aus: beim Aufwachen wieder DIESE App oeffnen. In try/catch wie
       // alles Ungetestete auf Hardware — schlaegt es fehl, laeuft die Aufnahme normal weiter.
       try { setWakeUpRelaunch({ relaunch: true }); } catch (e) {}
@@ -3762,7 +3814,7 @@ Page(
         const eintrag = { uuid: s.uuid, startedAtMs: s.startedAtMs, endedAtMs: now,
           foilId: s.foilId, sportClass: s.recSport, accelFile: s.accelFile, accelSamples: s.accelSamples,
           accelHz: this._accelHz(), accelChunkT0: s.accelChunkT0.slice(),
-          pauses: s.pauseListe.slice() };
+          pauses: s.pauseListe.slice(), messweg: this._geoMessweg() };
         if (s.gpsFile) { eintrag.gpsFile = s.gpsFile; eintrag.gpsCount = s.gpsCount; }
         else eintrag.gps = s.gps.slice();
         const list = loadPending(); list.push(eintrag); savePending(list);
@@ -3949,7 +4001,7 @@ Page(
           ? req({ method: "ANALYZE", token: tok, session_uuid: sess.uuid })
           : req({ method: "COMPLETE", token: tok, session_uuid: sess.uuid,
                   ended_at_ms: sess.endedAtMs, total_chunks: dataChunkCount,
-                  pauses: sess.pauses || [] }))).then(bump);
+                  pauses: sess.pauses || [], messweg: sess.messweg || null }))).then(bump);
     },
     flushPending() {
       const s = this.state;

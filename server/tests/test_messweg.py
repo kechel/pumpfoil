@@ -76,3 +76,21 @@ def test_config_schickt_die_notschalter(client):
     _, dev = _geraet(client, "messweg3@b.de")
     c = client.get("/api/devices/config?p=wear", headers=dev).json()
     assert c["accelBatch"] == "on" and c["gpsHs"] == "on"
+
+
+def test_amazfit_meldet_gps_neustarts_und_ortungsmodus(client):
+    """Amazfit ab 1.0.17 (15.11.2026): Neustarts des GPS-Sensors nach Funkstille + eingestellter Ortungsmodus."""
+    from app import models
+    from app.db import SessionLocal
+    _, dev = _geraet(client, "messweg-zepp@b.de")
+    uuid = "messweg-uuid-zepp"
+    client.post("/api/ingest/session", headers=dev, json={"session_uuid": uuid, "started_at": "2026-11-15T09:00:00Z"})
+    r = client.post(f"/api/ingest/session/{uuid}/complete", headers=dev, json={
+        "total_chunks": 0, "messweg": {"gps_neustart": 7, "gps_aus_s": 340, "gps_aus_max_s": 61, "gps_modus": 2}})
+    assert r.status_code == 200, r.text
+    db = SessionLocal()
+    try:
+        mw = json.loads(db.query(models.Session).filter_by(session_uuid=uuid).one().messweg_json)
+    finally:
+        db.close()
+    assert mw == {"gps_neustart": 7, "gps_aus_s": 340, "gps_aus_max_s": 61, "gps_modus": 2}
