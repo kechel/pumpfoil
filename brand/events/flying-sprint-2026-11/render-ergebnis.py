@@ -26,8 +26,21 @@ ev = bp.anfrage("/api/teams/pumpfoil/events/11?mix=1&sprint=1", token=_t.get("ac
 tafeln = {}
 for t in ev["tafeln"]:
     tafeln.setdefault(t.get("kennzahl"), t)
+# Genauer Wert aus der Auswertung der gewerteten Session (die API rundet m/s auf 2 Stellen — bei 100 m macht das
+# in der Zeit schon eine Zehntel aus).
+import psycopg
+_db = psycopg.connect(dict(l.strip().split("=", 1) for l in open(".env") if "=" in l and not l.startswith("#"))
+                      ["DATABASE_URL"].strip('"').replace("+psycopg", ""))
+def genau(z, kz):
+    r = _db.execute(f"select {kz}_mps from analysis_results where session_id=%s", (z["session_id"],)).fetchone()
+    return float(r[0]) if r and r[0] else float(z["value"])
 def top3(kz):
-    return [f"{z['name']}|{z['value'] * 3.6:.1f}|{(z.get('land') or '').lower()}" for z in tafeln[kz]["zeilen"][:3]]
+    out = []
+    for z in tafeln[kz]["zeilen"][:3]:
+        v = genau(z, kz)
+        extra = f"{100 / v:.1f} s" if kz == "sprint_100m" else f"{v * 60:.0f} m"
+        out.append(f"{z['name']}|{v * 3.6:.1f}|{(z.get('land') or '').lower()}|{extra}")
+    return out
 n = (ev.get("summen") or {}).get("aktive") or 0      # Teilnehmende wie auf der Eventseite („Participants")
 if not d and n:
     d = f"{n} RIDERS · *THANK YOU!*"

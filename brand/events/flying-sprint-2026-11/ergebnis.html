@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset="utf-8"><style>
 /* Short-Overlay Endstand 1080x480, Stil wie streifen.html. Namen/Werte kommen per URL (render-ergebnis.py liest sie aus
-   der Bestenliste) — nie ins Repo schreiben. ?art=titel|tafel&kz=100 M&p1=Name|27.0|us&p2=…&p3=…&weiss=1 */
+   der Bestenliste) — nie ins Repo schreiben. ?art=titel|tafel&kz=100 M&p1=Name|27.0|us|13.3 s&p2=…&p3=…&weiss=1 */
 @font-face{font-family:M;src:local("Montserrat Black");font-weight:900}
 @font-face{font-family:M;src:local("Montserrat ExtraBold");font-weight:800}
 html,body{margin:0;background:transparent}
@@ -17,18 +17,20 @@ html,body{margin:0;background:transparent}
 .kopf{display:flex;align-items:center;gap:22px}
 .kopf .tag{margin-top:0;font-size:40px}
 .kopf .k2{font-weight:900;font-size:44px;letter-spacing:.02em}
-.z{display:flex;align-items:center;margin-top:16px;text-shadow:none;background:rgba(2,6,23,.78);border-radius:18px;padding:10px 26px 10px 14px;width:fit-content;min-width:760px}
+.z{display:flex;align-items:center;margin-top:16px;text-shadow:none;background:rgba(2,6,23,.78);border-radius:18px;padding:10px 26px 10px 14px;width:fit-content;min-width:900px}
 .z .r{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:38px;color:#020617;background:#22d3ee;margin-right:22px;flex:none}
 .z .f{width:66px;height:44px;border-radius:6px;object-fit:cover;margin-right:20px;flex:none;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
 .z .f.leer{box-shadow:none}
-.z .n{font-weight:900;font-size:50px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:480px}
-.z .w{font-weight:800;font-size:44px;margin-left:30px;white-space:nowrap}
+.z .n{font-weight:900;font-size:50px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px}
+.z .x{font-weight:800;font-size:40px;color:#22d3ee;margin-left:24px;white-space:nowrap;width:170px;text-align:right}
+.z .w{font-weight:800;font-size:44px;margin-left:30px;white-space:nowrap;width:200px;text-align:right}
 .z .w small{font-size:28px;opacity:.85;margin-left:6px}
 .z.p1 .r{background:#facc15}.z.p2 .r{background:#cbd5e1}.z.p3 .r{background:#d97706}
 body.weiss #b{background:#fff;color:#020617}
 body.weiss .t{text-shadow:none}
 body.weiss .h span{color:#0891b2}
 body.weiss .d,body.weiss .z{color:#fff;background:#020617}
+body.weiss .z .x{color:#22d3ee}
 </style></head><body><div id="b"><div class="t" id="inhalt"></div></div><script>
 const q = new URLSearchParams(location.search);
 if (q.get("weiss")) document.body.classList.add("weiss");
@@ -41,9 +43,9 @@ if ((q.get("art") || "titel") === "titel") {
   let html = `<div class="kopf"><div class="tag"><i>${esc(q.get("kz") || "")}</i></div><div class="k2">${esc(q.get("k") || "FLYING SPRINT · FINAL")}</div></div>`;
   for (const i of [1, 2, 3]) {
     const v = q.get("p" + i); if (!v) continue;
-    const [n, w, land] = v.split("|");
+    const [n, w, land, x] = v.split("|");
     const fl = /^[a-z]{2}$/.test(land || "") ? `<img class="f" src="../../../web/public/flags/${land}.svg" alt="">` : `<span class="f leer"></span>`;
-    html += `<div class="z p${i}"><div class="r">${i}</div>${fl}<div class="n">${esc(n)}</div><div class="w">${esc(w)}<small>km/h</small></div></div>`;
+    html += `<div class="z p${i}"><div class="r">${i}</div>${fl}<div class="n">${esc(n)}</div>${x ? `<div class="x">${esc(x)}</div>` : ""}<div class="w">${esc(w)}<small>km/h</small></div></div>`;
   }
   el.innerHTML = html;
 }
