@@ -1587,6 +1587,13 @@ Nur fuer Sessions im Fenster eines Events (mit Sprint-Kennzahl), an dem der Fahr
 in `sprint_json.laeufe` (v3); es fehlen nur die Fenster (Start-/Ende-ms) je Lauf und Kennzahl fuer die Karte. Dafuer
 `analysis/sprint.py` die Fenster je Lauf mitspeichern lassen (neue sprint-VERSION, Werte der Bestenliste unveraendert)
 — Analyse-Pipeline, also mit Jans OK.
+**Erweitert 15.11. (Jan):** „sessions die an einem event teilnehmen kennzeichnen, und die event-spezifischen rekorde
+highlighten/anzeigbar machen, wie z.b. die 100m sprints, vielleicht auch garnicht immer bei allen sessions sondern halt nur
+bei sessions die wirklich in einem entsprechenden event liegen". Also: (1) Kennzeichen an der Session (Liste, Kopf der
+Session-Seite, Apps) „zaehlt fuer <Event>" mit Link zum Event, gern mit Platz; (2) die Kennzahlen DIESES Events (Sprint
+100 m/200 m/300 m/60 s, Laeufe, Strecke …) hervorgehoben, inkl. welcher Lauf/welches Stueck zaehlte — nur fuer Sessions,
+die in einem Event liegen, sonst nicht. Gehoert zum je-Lauf-Umbau (Eintraege „Laeufe am Eventschluss abschneiden" und
+„Doppelte Laeufe … nur einmal zaehlen"): ob eine Session/ein Lauf zaehlt, muss dieselbe Regel liefern wie das Ranking.
 
 ### 15.11.2026 — Garmin Connect ohne Handy: wartende Uploads auf der Uhr (offen, Jans Entscheidung)
 Anlass: u963 (Forerunner 245, synct nur per Garmin Express) — Fahrten kommen seit 665de6b3 automatisch ueber Garmin
