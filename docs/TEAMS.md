@@ -564,6 +564,32 @@ daten". Erster Einsatz: Flying Sprint Weekend (Event 11, Sa 14.11. 05:00 bis So 
 3. **Bestenlisten** auf der Eventseite gegen die Daten: Spitzenwerte unplausibel (100 m unter ~11,5 s = ueber 32 km/h)?
    Haengende Uploads (`status` recording/complete ohne Analyse) der Teilnehmer?
 
+**Ablauf, der sich bewaehrt hat (Flying Sprint, 15.11.2026; Jan: „das hat gut funktioniert, plan und vorgehen merken"):**
+
+1. *Letzte Stunden bis zum Einfrieren (Ende + 4 h)*: **Event-Wache** als Monitor (je Zeile eine Meldung, alle 2 min, nur
+   lesend; ein Monitor laeuft max. 30 min, dann neu starten):
+   `cd server && DATABASE_URL="$(sed -n 's/^DATABASE_URL=//p' .env)" .venv/bin/python -u ../scripts/event-wache.py --event <id>`
+   Meldet jede neue/geaenderte Session im Fenster (zaehlt ja/nein, Werte) und jeden Top-5-Wechsel; AUFFAELLIG bei fremder
+   Aufnahme-Sportart (surfing, windsurfing …), Schnitt > 18, max > 30, 100 m > 25, 1 min > 22 km/h, Konto < 2 Tage.
+   Am 15.11. stand eine Wingfoil-Session (Aufnahme „surfing", 24,8 km/h ueber 1 min) kurz auf Platz 1, bis Jan sie per
+   „sieht nicht nach Pumpfoilen aus" aussortierte. Aussortieren macht Jan selbst, ich melde nur.
+2. *Schiedsrichter-Faelle* (Meldungen im Chat): erst die Daten (Laufgrenzen, Tempo je Sekunde, p des Modells, Abdeckung
+   mit Uhr-Tempo), dann Jan einen Vorschlag mit Zahlen. Bei klarem Analysefehler und Jans OK nur die EINE Session
+   korrigieren: Sicherung nach `server/data/sicherung/`, Trockenlauf, schreiben, danach
+   `scripts/auswertung-festhalten.py <id> --notiz … --echt` (sonst ueberschreibt die naechste Analyse die Korrektur;
+   `scripts/sprints-nachrechnen.py` beachtet das Festhalten NICHT, waehrend eines Events nicht starten). Die allgemeine
+   Loesung kommt nach dem Event in docs/TODO.md. Faelle am 15.11.: Lauf 3 ms unter 60 s (v3-Glaettung), Uhr ohne
+   durchgehendes Tempo, Opt-out ohne Absicht (Einstellung erst nach ausdruecklichem OK des Fahrers umgestellt), doppelte
+   Aufnahmen (es zaehlt nur der beste Wert je Fahrer). Ein Spitzenwert ist plausibel, wenn das Uhr-Tempo je Sekunde
+   gleichmaessig ist und Position/Doppler passen (100-m-Spitze am 15.11.: Doppler 25,7, Wertung 26,3 km/h). Zwei gleiche
+   Uhren an einer Person streuen je 100-m-Lauf um ±1 km/h, Abstaende darunter sind Rauschen.
+3. *Endstand-Banner fuer Shorts* VOR dem Einfrieren vorbereiten (Jan schneidet das Video parallel):
+   `server/.venv/bin/python brand/events/flying-sprint-2026-11/render-ergebnis.py <zielordner>`: Titel mit Teilnehmenden
+   (Zahl wie die Eventseite, `summen.aktive`), Top 3 je Bestenliste mit Flagge, Zeit (100 m) bzw. Strecke (1 min), Werte
+   genau aus der Auswertung. Namen nur in den PNGs. Fuer das naechste Event Vorlage kopieren und Kennzahlen anpassen.
+4. *Nach dem Einfrieren* (Timer `foil-events-einfrieren`, alle 5 min): warten bis `team_events.eingefroren_am` gesetzt ist,
+   Top 3 der eingefrorenen Wertung mit den Bannern vergleichen, Banner neu rendern (am 15.11. byte-gleich), Jan melden.
+
 Nach dem Event mit diesen Zahlen entscheiden, ob die Grenzen fuer Sprint-Events hochgehen (Nachrechnung 30/40 km/h:
 `scripts/bandgrenze-regression.py`, kein Bestwert betroffen; Recherche 10.11.: Weltspitze vermutlich 11-13 s auf 100 m).
 
