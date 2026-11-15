@@ -1535,6 +1535,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 15.11.2026 — Globale Events von Teams vorschlagen lassen („promote as public event", gemerkt, Jan)
+Jeder Team-Leiter kann ein Team-Event als globales vorschlagen, Jan prueft in Admin und uebernimmt es mit allen Einstellungen
+und Bannern, Anzeige „promoted by <Team>". Skizze und offene Fragen: docs/TEAMS.md › „Globale Events vorschlagen". Erst Entwurf.
+
 ### 15.11.2026 — Doppelte Laeufe aus paralleler Aufnahme nur einmal zaehlen, je LAUF (gemerkt, Jan)
 
 Jan: „doppelte runs, z.b. weil mit mehreren uhren und/oder phone gleichzeitig aufgezeichnet wird, sollten immer nur einmal

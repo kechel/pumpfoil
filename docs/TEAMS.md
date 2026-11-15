@@ -469,6 +469,22 @@ Fuer das uebernaechste globale Event (nach dem Sprint-Wochenende). Nur festgehal
 - **Zeitplan (Jan, 11.11.2026):** erst in der PWA entwickeln, danach in die nativen Apps — NICHT in Android 1.1.49
   (das traegt nur die Neuerungen vom 10./11.11.).
 
+### Globale Events vorschlagen: „Promote as public event" (Jan, 15.11.2026; NOCH NICHT BAUEN)
+
+Jan: „ich will das jeder globale events vorschlagen kann, vielleicht indem man ein team gruendet, ein event anlegt, und dann
+sowas wie 'promote as public event' anklickt, bei mir dann zum review auftaucht und ich das dann freischalten kann /
+uebernehmen kann inkl. allen einstellungen, bannern, etc., und einen kleinen 'promoted by team x' oder so mit anzeigt".
+Skizze, an Bestehendes angelehnt:
+- **Vorschlagen:** Leitung eines freigegebenen Teams legt ein normales Team-Event an (alle Einstellungen, Banner, Fenster,
+  Kennzahlen) und klickt „Als globales Event vorschlagen". Status am Event: vorgeschlagen / angenommen / abgelehnt.
+- **Pruefen:** Vorschlag erscheint bei Jan in Admin (wie die Team-Freigabe-Pruefliste); ansehen, anpassen, annehmen oder mit
+  kurzer Begruendung ablehnen. Annehmen = Event wird global (heute: nur im offiziellen Team `TEAM_GLOBAL`, `global_event`),
+  mit allen Einstellungen und Bannern uebernommen — Kopie ins offizielle Team oder Umhaengen, offen.
+- **Anzeigen:** kleines „promoted by <Team>" mit Link zum Team auf Karte und Eventseite (auch Apps).
+- **Offen:** Kopie vs. Umhaengen (was passiert mit dem Team-Event, Teilnehmer-Zusagen?); wer danach aendern darf (Team oder
+  nur Admin); Vorlauf (Vorschlag mind. X Tage vor Start, damit Review rechtzeitig); Ueberschneidung mit anderen globalen
+  Events; Push/Benachrichtigung an das vorschlagende Team bei Entscheidung; Texte in allen Sprachen; Apps-Port.
+
 ## Stufen
 
 1. **Kern (Web):** Teams, Rollen, Beitritt (zwei Schalter + join/apply-Links mit QR-Code), Registrierung
