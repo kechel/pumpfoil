@@ -2737,7 +2737,7 @@ const nb: Record<string, string> = {
   "team.event.globalHaken": "Globalt event – alle deltar automatisk, uten å bli med",
   "team.event.globalHinweis": "Alle deltar automatisk – du trenger ikke melde deg på noe sted.",
   "team.event.globalOptOut": "Du kan reservere deg under Innstillinger › Personvern.",
-  "team.event.globalHinweisAus": "Alle deltar automatisk – unntatt deg: du har reservert deg mot globale eventer, så du vises ikke på resultatlistene.",
+  "team.event.globalHinweisAus": "Du har reservert deg mot globale eventer.",
   "team.event.globalOptIn": "Endre under Innstillinger › Personvern.",
   "team.event.wertung": "Lagrangering",
   "team.event.wertungBeste": "Sum av de {n} beste",

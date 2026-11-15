@@ -2762,7 +2762,7 @@ const ja: Record<string, string> = {
   "team.event.globalHaken": "グローバルイベント – 参加登録なしで全員が自動的に参加",
   "team.event.globalHinweis": "全員が自動的に参加します。どこにも登録する必要はありません。",
   "team.event.globalOptOut": "設定 › プライバシーで参加をオフにできます。",
-  "team.event.globalHinweisAus": "全員が自動的に参加します。ただしあなたはグローバルイベントへの参加をオフにしているため、ランキングに表示されません。",
+  "team.event.globalHinweisAus": "グローバルイベントへの参加をオフにしています。",
   "team.event.globalOptIn": "設定 › プライバシーで変更できます。",
   "team.event.wertung": "チームランキング",
   "team.event.wertungBeste": "上位{n}人の合計",

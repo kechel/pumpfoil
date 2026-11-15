@@ -2766,7 +2766,7 @@ const ru: Record<string, string> = {
   "team.event.globalHaken": "Глобальное событие – участвуют все автоматически, без вступления",
   "team.event.globalHinweis": "Участвуют все автоматически – нигде не нужно регистрироваться.",
   "team.event.globalOptOut": "Отказаться можно в Настройки › Конфиденциальность.",
-  "team.event.globalHinweisAus": "Все участвуют автоматически – кроме вас: вы отказались от глобальных событий, поэтому вас нет в рейтингах.",
+  "team.event.globalHinweisAus": "Вы отказались от глобальных событий.",
   "team.event.globalOptIn": "Изменить: Настройки › Конфиденциальность.",
   "team.event.wertung": "Рейтинг команд",
   "team.event.wertungBeste": "Сумма лучших {n}",

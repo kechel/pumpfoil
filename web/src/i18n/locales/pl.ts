@@ -2745,7 +2745,7 @@ const pl: Record<string, string> = {
   "team.event.globalHaken": "Globalny event – wszyscy biorą udział automatycznie, bez dołączania",
   "team.event.globalHinweis": "Wszyscy biorą udział automatycznie – nigdzie nie musisz się zapisywać.",
   "team.event.globalOptOut": "Możesz zrezygnować w Ustawienia › Prywatność.",
-  "team.event.globalHinweisAus": "Wszyscy biorą udział automatycznie – oprócz ciebie: zrezygnowałeś z globalnych eventów, więc nie pojawiasz się w rankingach.",
+  "team.event.globalHinweisAus": "Zrezygnowałeś z globalnych eventów.",
   "team.event.globalOptIn": "Zmień w Ustawienia › Prywatność.",
   "team.event.wertung": "Ranking drużyn",
   "team.event.wertungBeste": "Suma najlepszych {n}",

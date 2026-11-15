@@ -2819,7 +2819,7 @@ const cs: Record<string, string> = {
   "team.event.globalHaken": "Globální event – účastní se automaticky všichni, bez přihlášení",
   "team.event.globalHinweis": "Účastní se automaticky všichni – nikde se nemusíš přihlašovat.",
   "team.event.globalOptOut": "Odhlásit se můžeš v Nastavení › Soukromí.",
-  "team.event.globalHinweisAus": "Účastní se automaticky všichni – kromě tebe: odhlásil ses z globálních eventů, proto se v žebříčcích neobjevíš.",
+  "team.event.globalHinweisAus": "Odhlásil ses z globálních eventů.",
   "team.event.globalOptIn": "Změň v Nastavení › Soukromí.",
   "team.event.wertung": "Pořadí týmů",
   "team.event.wertungBeste": "Součet nejlepších {n}",

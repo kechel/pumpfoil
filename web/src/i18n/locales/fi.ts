@@ -2801,7 +2801,7 @@ const fi: Record<string, string> = {
   "team.event.globalHaken": "Globaali tapahtuma – kaikki osallistuvat automaattisesti, ilman liittymistä",
   "team.event.globalHinweis": "Kaikki osallistuvat automaattisesti – sinun ei tarvitse ilmoittautua mihinkään.",
   "team.event.globalOptOut": "Voit jättäytyä pois kohdassa Asetukset › Yksityisyys.",
-  "team.event.globalHinweisAus": "Kaikki osallistuvat automaattisesti – paitsi sinä: olet jättäytynyt pois globaaleista tapahtumista, joten et näy tulostauluilla.",
+  "team.event.globalHinweisAus": "Olet jättäytynyt pois globaaleista tapahtumista.",
   "team.event.globalOptIn": "Muuta kohdassa Asetukset › Yksityisyys.",
   "team.event.wertung": "Joukkuetulokset",
   "team.event.wertungBeste": "{n} parhaan summa",

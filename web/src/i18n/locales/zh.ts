@@ -2763,7 +2763,7 @@ const zh: Record<string, string> = {
   "team.event.globalHaken": "全球活动 – 所有人自动参加，无需加入",
   "team.event.globalHinweis": "所有人自动参加 – 你不需要在任何地方报名。",
   "team.event.globalOptOut": "可在 设置 › 隐私 中退出。",
-  "team.event.globalHinweisAus": "所有人都会自动参加——除了你：你已退出全球活动，因此不会出现在排行榜中。",
+  "team.event.globalHinweisAus": "你已退出全球活动。",
   "team.event.globalOptIn": "可在 设置 › 隐私 中更改。",
   "team.event.wertung": "团队排名",
   "team.event.wertungBeste": "前{n}名之和",

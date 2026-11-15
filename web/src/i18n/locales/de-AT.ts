@@ -2651,7 +2651,7 @@ const deAT: Record<string, string> = {
   "team.event.globalHaken": "Globales Event – alle nehmen automatisch teil, ohne Beitritt",
   "team.event.globalHinweis": "Alle nehmen automatisch teil – du musst di nirgends anmelden.",
   "team.event.globalOptOut": "Du kannst dich unter Einstellungen › Privatsphäre abmelden.",
-  "team.event.globalHinweisAus": "Alle nehmen automatisch teil – außer dir: Du hast dich von globalen Events abgemeldet und scheinst deshalb nicht in den Ranglisten auf.",
+  "team.event.globalHinweisAus": "Du hast dich von globalen Events abgemeldet.",
   "team.event.globalOptIn": "Ändern unter Einstellungen › Privatsphäre.",
   "team.event.wertung": "Teamwertung",
   "team.event.wertungBeste": "Summe der besten {n}",

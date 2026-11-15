@@ -40,6 +40,8 @@ internal fun teamsText(key: String, lang: String): String? {
 }
 
 private fun texteDE(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "Du hast dich von globalen Events abgemeldet.",
+    "team.event.globalOptIn" to "Ändern unter Einstellungen › Privatsphäre.",
     "sd.avgHrFoil" to "Ø Puls auf dem Foil",
     "sd.avgHrGesamt" to "gesamt {n}",
     "team.ablehnen" to "Ablehnen",
@@ -350,6 +352,8 @@ private fun texteDE(): Map<String, String> = mapOf(
 )
 
 private fun texteGSW(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "Du häsch di vo de globale Events abgmäldet.",
+    "team.event.globalOptIn" to "Ändere under Iistellige › Privatsphäre.",
     "sd.avgHrFoil" to "Ø Puls uf em Foil",
     "sd.avgHrGesamt" to "total {n}",
     "team.ablehnen" to "Ablehne",
@@ -660,6 +664,8 @@ private fun texteGSW(): Map<String, String> = mapOf(
 )
 
 private fun texteDEAT(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "Du hast dich von globalen Events abgemeldet.",
+    "team.event.globalOptIn" to "Ändern unter Einstellungen › Privatsphäre.",
     "sd.avgHrFoil" to "Ø Puls auf dem Foil",
     "sd.avgHrGesamt" to "gesamt {n}",
     "team.ablehnen" to "Ablehnen",
@@ -970,6 +976,8 @@ private fun texteDEAT(): Map<String, String> = mapOf(
 )
 
 private fun texteEN(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "You have opted out of global events.",
+    "team.event.globalOptIn" to "Change under Settings › Privacy.",
     "sd.avgHrFoil" to "Ø heart rate on foil",
     "sd.avgHrGesamt" to "overall {n}",
     "team.ablehnen" to "Decline",
@@ -1280,6 +1288,8 @@ private fun texteEN(): Map<String, String> = mapOf(
 )
 
 private fun texteFR(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "Tu t'es désinscrit des événements globaux.",
+    "team.event.globalOptIn" to "Modifier dans Réglages › Confidentialité.",
     "sd.avgHrFoil" to "Ø fréq. card. sur le foil",
     "sd.avgHrGesamt" to "total {n}",
     "team.ablehnen" to "Refuser",
@@ -1590,6 +1600,8 @@ private fun texteFR(): Map<String, String> = mapOf(
 )
 
 private fun texteIT(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "Hai rinunciato agli eventi globali.",
+    "team.event.globalOptIn" to "Modifica in Impostazioni › Privacy.",
     "sd.avgHrFoil" to "Ø battito sul foil",
     "sd.avgHrGesamt" to "totale {n}",
     "team.ablehnen" to "Rifiuta",
@@ -1900,6 +1912,8 @@ private fun texteIT(): Map<String, String> = mapOf(
 )
 
 private fun texteES(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "Te diste de baja de los eventos globales.",
+    "team.event.globalOptIn" to "Cámbialo en Ajustes › Privacidad.",
     "sd.avgHrFoil" to "Ø pulso en el foil",
     "sd.avgHrGesamt" to "total {n}",
     "team.ablehnen" to "Rechazar",
@@ -2210,6 +2224,8 @@ private fun texteES(): Map<String, String> = mapOf(
 )
 
 private fun texteFI(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "Olet jättäytynyt pois globaaleista tapahtumista.",
+    "team.event.globalOptIn" to "Muuta kohdassa Asetukset › Yksityisyys.",
     "sd.avgHrFoil" to "Ø syke foililla",
     "sd.avgHrGesamt" to "koko {n}",
     "team.ablehnen" to "Hylkää",
@@ -2520,6 +2536,8 @@ private fun texteFI(): Map<String, String> = mapOf(
 )
 
 private fun texteNL(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "Je hebt je afgemeld voor globale events.",
+    "team.event.globalOptIn" to "Wijzig onder Instellingen › Privacy.",
     "sd.avgHrFoil" to "Ø hartslag op de foil",
     "sd.avgHrGesamt" to "totaal {n}",
     "team.ablehnen" to "Afwijzen",
@@ -2830,6 +2848,8 @@ private fun texteNL(): Map<String, String> = mapOf(
 )
 
 private fun texteCS(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "Odhlásil ses z globálních eventů.",
+    "team.event.globalOptIn" to "Změň v Nastavení › Soukromí.",
     "sd.avgHrFoil" to "Ø tep na foilu",
     "sd.avgHrGesamt" to "celkem {n}",
     "team.ablehnen" to "Odmítnout",
@@ -3140,6 +3160,8 @@ private fun texteCS(): Map<String, String> = mapOf(
 )
 
 private fun textePL(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "Zrezygnowałeś z globalnych eventów.",
+    "team.event.globalOptIn" to "Zmień w Ustawienia › Prywatność.",
     "sd.avgHrFoil" to "Ø tętno na foilu",
     "sd.avgHrGesamt" to "łącznie {n}",
     "team.ablehnen" to "Odrzuć",
@@ -3450,6 +3472,8 @@ private fun textePL(): Map<String, String> = mapOf(
 )
 
 private fun textePT(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "Você saiu dos eventos globais.",
+    "team.event.globalOptIn" to "Altere em Configurações › Privacidade.",
     "sd.avgHrFoil" to "FC Ø no foil",
     "sd.avgHrGesamt" to "total {n}",
     "team.ablehnen" to "Recusar",
@@ -3760,6 +3784,8 @@ private fun textePT(): Map<String, String> = mapOf(
 )
 
 private fun textePTPT(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "Saíste dos eventos globais.",
+    "team.event.globalOptIn" to "Altera em Definições › Privacidade.",
     "sd.avgHrFoil" to "FC Ø no foil",
     "sd.avgHrGesamt" to "total {n}",
     "team.ablehnen" to "Recusar",
@@ -4070,6 +4096,8 @@ private fun textePTPT(): Map<String, String> = mapOf(
 )
 
 private fun texteJA(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "グローバルイベントへの参加をオフにしています。",
+    "team.event.globalOptIn" to "設定 › プライバシーで変更できます。",
     "sd.avgHrFoil" to "Ø 心拍数（フォイル上）",
     "sd.avgHrGesamt" to "全体 {n}",
     "team.ablehnen" to "拒否",
@@ -4380,6 +4408,8 @@ private fun texteJA(): Map<String, String> = mapOf(
 )
 
 private fun texteZH(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "你已退出全球活动。",
+    "team.event.globalOptIn" to "可在 设置 › 隐私 中更改。",
     "sd.avgHrFoil" to "Ø 心率（水翼上）",
     "sd.avgHrGesamt" to "全程 {n}",
     "team.ablehnen" to "拒绝",
@@ -4690,6 +4720,8 @@ private fun texteZH(): Map<String, String> = mapOf(
 )
 
 private fun texteRU(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "Вы отказались от глобальных событий.",
+    "team.event.globalOptIn" to "Изменить: Настройки › Конфиденциальность.",
     "sd.avgHrFoil" to "Ø пульс на фойле",
     "sd.avgHrGesamt" to "всего {n}",
     "team.ablehnen" to "Отклонить",
@@ -5000,6 +5032,8 @@ private fun texteRU(): Map<String, String> = mapOf(
 )
 
 private fun texteID(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "Kamu sudah keluar dari event global.",
+    "team.event.globalOptIn" to "Ubah di Pengaturan › Privasi.",
     "sd.avgHrFoil" to "Ø detak jantung di foil",
     "sd.avgHrGesamt" to "total {n}",
     "team.ablehnen" to "Tolak",
@@ -5310,6 +5344,8 @@ private fun texteID(): Map<String, String> = mapOf(
 )
 
 private fun texteNB(): Map<String, String> = mapOf(
+    "team.event.globalHinweisAus" to "Du har reservert deg mot globale eventer.",
+    "team.event.globalOptIn" to "Endre under Innstillinger › Personvern.",
     "sd.avgHrFoil" to "Ø puls på foilen",
     "sd.avgHrGesamt" to "totalt {n}",
     "team.ablehnen" to "Avslå",

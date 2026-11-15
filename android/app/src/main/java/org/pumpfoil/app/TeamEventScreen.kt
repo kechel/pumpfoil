@@ -57,10 +57,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.jsonPrimitive
 
 /*
  * Event-Seite (01.11.2026, docs/TEAMS.md „Native-Port"), nativ aus web/src/pages/TeamEventSeite.tsx: Bild, Titel und
@@ -140,6 +144,12 @@ fun TeamEventScreen(
         return null
     }
     // Pille im geteilten Bild, solange das Event nicht final ist („LIVE" bzw. „Auswertung").
+    // Selbst von globalen Events abgemeldet (`global_events_aus`)? Dann statt des Satzes „alle nehmen teil" ein
+    // hervorgehobener Hinweis mit Weg zum Aendern (Web 15.11.2026).
+    var globalAus by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        globalAus = try { Api.settings()["global_events_aus"]?.jsonPrimitive?.booleanOrNull ?: false } catch (_: Exception) { false }
+    }
     val bildAbzeichen = e?.status?.takeIf { it == "laeuft" || it == "auswertung" }?.let { I18n.t("team.event.status.$it") }
     Scaffold(
         topBar = {
@@ -207,7 +217,18 @@ fun TeamEventScreen(
                     }
                     // Globale Events (Web 06.11.2026): jeder nimmt automatisch teil; darunter der Weg zum Opt-out
                     // (Einstellungen › Privatsphaere, Karte „Globale Events") als Link.
-                    if (e.global) {
+                    if (e.global && globalAus) {
+                        val dunkel = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                        val fg = if (dunkel) Color(0xFFFCD34D) else Color(0xFF92400E)   // amber-300 / amber-800
+                        Column(Modifier.padding(top = 8.dp).fillMaxWidth().clip(RoundedCornerShape(8.dp))
+                            .background(Color(0x1AF59E0B)).clickable(onClick = onPrivacy).padding(horizontal = 12.dp, vertical = 8.dp)) {
+                            Text(I18n.t("team.event.globalHinweisAus"), style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold, color = fg)
+                            Text(I18n.t("team.event.globalOptIn"), style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold, color = fg, textDecoration = TextDecoration.Underline,
+                                modifier = Modifier.padding(top = 2.dp))
+                        }
+                    } else if (e.global) {
                         Text(I18n.t("team.event.globalHinweis"), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 8.dp))
                         Text(I18n.t("team.event.globalOptOut"), style = MaterialTheme.typography.bodyMedium, color = markenAkzent(),
                             textDecoration = TextDecoration.Underline,

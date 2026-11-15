@@ -2766,7 +2766,7 @@ const id: Record<string, string> = {
   "team.event.globalHaken": "Event global – semua orang otomatis ikut, tanpa bergabung",
   "team.event.globalHinweis": "Semua orang otomatis ikut – kamu tidak perlu mendaftar di mana pun.",
   "team.event.globalOptOut": "Kamu bisa keluar di Pengaturan › Privasi.",
-  "team.event.globalHinweisAus": "Semua orang ikut otomatis – kecuali kamu: kamu sudah keluar dari event global, jadi kamu tidak muncul di peringkat.",
+  "team.event.globalHinweisAus": "Kamu sudah keluar dari event global.",
   "team.event.globalOptIn": "Ubah di Pengaturan › Privasi.",
   "team.event.wertung": "Peringkat tim",
   "team.event.wertungBeste": "Jumlah {n} terbaik",

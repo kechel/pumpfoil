@@ -2760,7 +2760,7 @@ const ptPT: Record<string, string> = {
   "team.event.globalHaken": "Evento global – todos participam automaticamente, sem inscrição",
   "team.event.globalHinweis": "Todos participam automaticamente – não precisas de te inscrever em lado nenhum.",
   "team.event.globalOptOut": "Podes sair em Definições › Privacidade.",
-  "team.event.globalHinweisAus": "Todos participam automaticamente – exceto tu: saíste dos eventos globais, por isso não apareces nas classificações.",
+  "team.event.globalHinweisAus": "Saíste dos eventos globais.",
   "team.event.globalOptIn": "Altera em Definições › Privacidade.",
   "team.event.wertung": "Classificação por equipas",
   "team.event.wertungBeste": "Soma dos {n} melhores",

@@ -2820,7 +2820,7 @@ const nl: Record<string, string> = {
   "team.event.globalHaken": "Globaal event – iedereen doet automatisch mee, zonder aanmelden",
   "team.event.globalHinweis": "Iedereen doet automatisch mee – je hoeft je nergens aan te melden.",
   "team.event.globalOptOut": "Je kunt je afmelden onder Instellingen › Privacy.",
-  "team.event.globalHinweisAus": "Iedereen doet automatisch mee – behalve jij: je hebt je afgemeld voor globale events, dus je staat niet in de ranglijsten.",
+  "team.event.globalHinweisAus": "Je hebt je afgemeld voor globale events.",
   "team.event.globalOptIn": "Wijzig onder Instellingen › Privacy.",
   "team.event.wertung": "Teamklassement",
   "team.event.wertungBeste": "Som van de beste {n}",
