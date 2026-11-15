@@ -65,11 +65,31 @@ struct WatchStatsView: View {
                 Text(qualiLead(q)).font(.subheadline).foregroundStyle(.secondary)
                 Text(Loc.t("watchQuality.new", lang)).font(.subheadline)
             }
-            ForEach(q.modelle.sorted { $0.sessions > $1.sessions }) { m in
-                Section(m.modell) { qualiRows(m) }
+            // Je Modell eine Section mit beiden Wegen (App, Garmin Connect; 15.11.2026, wie WatchStats.tsx).
+            ForEach(qualiGruppen(q), id: \.modell) { g in
+                Section(g.modell) {
+                    ForEach(g.zeilen) { m in qualiRows(m, wegZeigen: g.zeilen.count > 1 || m.weg == "gc") }
+                }
             }
-            Section { Text(Loc.t("watchQuality.note", lang)).font(.footnote).foregroundStyle(.secondary) }
+            Section {
+                Text(Loc.t("watchQuality.note", lang)).font(.footnote).foregroundStyle(.secondary)
+                if !(q.modelle_konto ?? []).isEmpty {
+                    Text(Loc.t("watchQuality.noteWays", lang)).font(.footnote).foregroundStyle(.secondary)
+                }
+            }
         }
+    }
+
+    private struct QualiGruppe { let modell: String; let zeilen: [WatchQualityModel] }
+
+    private func qualiGruppen(_ q: WatchQuality) -> [QualiGruppe] {
+        let alle: [WatchQualityModel] = q.modelle + (q.modelle_konto ?? [])
+        let nach: [String: [WatchQualityModel]] = Dictionary(grouping: alle, by: { $0.modell })
+        let gruppen: [QualiGruppe] = nach.map { (k, v) in
+            QualiGruppe(modell: k, zeilen: v.sorted { ($0.weg == "gc" ? 1 : 0) < ($1.weg == "gc" ? 1 : 0) })
+        }
+        func summe(_ g: QualiGruppe) -> Int { g.zeilen.reduce(0) { $0 + $1.sessions } }
+        return gruppen.sorted { summe($0) > summe($1) }
     }
 
     private func qualiLead(_ q: WatchQuality) -> String {
@@ -79,7 +99,7 @@ struct WatchStatsView: View {
             .replacingOccurrences(of: "{date}", with: q.stand)
     }
 
-    @ViewBuilder private func qualiRows(_ m: WatchQualityModel) -> some View {
+    @ViewBuilder private func qualiRows(_ m: WatchQualityModel, wegZeigen: Bool) -> some View {
         // Garmin meldet eine Guete-Stufe, die anderen Meter -- nie in EINE Zahl mischen.
         let gps: String = {
             if let g = m.guete_gut {
@@ -93,7 +113,15 @@ struct WatchStatsView: View {
             Loc.t("watchQuality.hrRate", lang)
                 .replacingOccurrences(of: "{n}", with: String(Int($0.rounded())))
         } ?? "–"
-        let accel: String = m.accel_hz.map { String(format: "%.0f Hz", $0) } ?? "–"
+        // Rate UND Anteil der Sessions mit brauchbarer Beschleunigung (ueber Garmin Connect oft nur ein Teil).
+        let anteil: Double = m.mit_accel ?? max(0, 100 - (m.gps_only ?? 0))
+        let accel: String = m.accel_hz.map { String(format: "%.0f Hz · %.0f %%", $0, anteil) }
+            ?? Loc.t("watchQuality.gpsOnly", lang)
+        let voll: String = m.vollstaendig.map { String(format: "%.0f %%", $0) } ?? "–"
+        if wegZeigen {
+            Text(m.weg == "gc" ? Loc.t("watchQuality.viaGc", lang) : Loc.t("watchQuality.viaApp", lang))
+                .font(.footnote).foregroundStyle(.secondary)
+        }
         // Aufbau wie die Kennzahl-Zeilen darueber: `metric` statt eigener Zeilenart.
         HStack {
             metric(String(m.nutzer), Loc.t("watchStats.users", lang))
@@ -103,7 +131,7 @@ struct WatchStatsView: View {
         HStack {
             metric(gps, Loc.t("watchQuality.colGps", lang))
             Spacer(); metric(puls, Loc.t("watchQuality.colHr", lang))
-            Spacer(); Spacer()
+            Spacer(); metric(voll, Loc.t("watchQuality.colComplete", lang))
         }
         if m.nutzer <= 3 {
             Text(Loc.t("watchQuality.few", lang)).font(.footnote).foregroundStyle(.orange)

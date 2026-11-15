@@ -148,12 +148,17 @@ fun WatchStatsScreen(onBack: () -> Unit, onFoilStats: () -> Unit = {}) {
                         )
                     }
                 }
-                items(q.modelle.sortedByDescending { it.sessions }, key = { "q-" + it.modell }) { m ->
-                    qualiCard(m)
+                // Je Modell eine Karte mit beiden Wegen (App, Garmin Connect; 15.11.2026, wie WatchStats.tsx).
+                val gruppen = (q.modelle + q.modelleKonto).groupBy { it.modell }.toList()
+                    .sortedByDescending { (_, rs) -> rs.sumOf { it.sessions } }
+                val mitKonto = q.modelleKonto.isNotEmpty()
+                items(gruppen, key = { "q-" + it.first }) { (modell, rs) ->
+                    qualiCard(modell, rs.sortedBy { if (it.weg == "gc") 1 else 0 }, mitKonto)
                 }
                 item {
                     Text(
-                        I18n.t("watchQuality.note"),
+                        I18n.t("watchQuality.note") +
+                            (if (q.modelleKonto.isNotEmpty()) "\n\n" + I18n.t("watchQuality.noteWays") else ""),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp, bottom = 16.dp),
@@ -164,36 +169,50 @@ fun WatchStatsScreen(onBack: () -> Unit, onFoilStats: () -> Unit = {}) {
     }
 }
 
-// Eine Zeile der Uhren-Auswertung. Ab drei Fahrern abwaerts steht der Hinweis dabei, dass
-// die Datenbasis duenn ist — die Zahlen bleiben aber stehen (s. Web-Fassung).
+// Eine Karte der Uhren-Auswertung: das Modell, darunter je Weg (App / Garmin Connect) die Werte. Ab drei Fahrern
+// abwaerts steht der Hinweis dabei, dass die Datenbasis duenn ist — die Zahlen bleiben aber stehen (s. Web-Fassung).
 @Composable
-private fun qualiCard(m: WatchQualityModel) {
+private fun qualiCard(modell: String, rs: List<WatchQualityModel>, wegZeigen: Boolean) {
     Card(Modifier.fillMaxWidth().padding(bottom = 10.dp)) {
         Column(Modifier.padding(12.dp)) {
-            Text(m.modell, fontWeight = FontWeight.SemiBold)
-            if (m.nutzer <= 3) {
-                Text(
-                    I18n.t("watchQuality.few"),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.tertiary,
-                )
-            }
-            Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                wMetric("${m.nutzer}", I18n.t("watchStats.users"))
-                wMetric("${m.sessions}", I18n.t("nav.sessions"))
-                wMetric(m.accelHz?.let { "%.0f Hz".format(it) } ?: "–", I18n.t("watchQuality.colPump"))
-            }
-            Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                // Garmin meldet eine Guete-Stufe, die anderen Meter — nie in EINE Zahl mischen.
-                wMetric(
-                    m.gueteGut?.let { I18n.t("watchQuality.gpsGood").replace("{pct}", "%.0f".format(it)) }
-                        ?: m.haccM?.let { "%.1f m".format(it) } ?: "–",
-                    I18n.t("watchQuality.colGps"),
-                )
-                wMetric(
-                    m.pulsWechsel?.let { I18n.t("watchQuality.hrRate").replace("{n}", "%.0f".format(it)) } ?: "–",
-                    I18n.t("watchQuality.colHr"),
-                )
+            Text(modell, fontWeight = FontWeight.SemiBold)
+            rs.forEachIndexed { i, m ->
+                if (rs.size > 1 || m.weg == "gc") {   // Kennzeichen nur, wo es unterscheidet (fast alles ist App)
+                    Text(
+                        if (m.weg == "gc") I18n.t("watchQuality.viaGc") else I18n.t("watchQuality.viaApp"),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = if (i == 0) 4.dp else 12.dp),
+                    )
+                }
+                if (m.nutzer <= 3) {
+                    Text(
+                        I18n.t("watchQuality.few"),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.tertiary,
+                    )
+                }
+                Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                    wMetric("${m.nutzer}", I18n.t("watchStats.users"))
+                    wMetric("${m.sessions}", I18n.t("nav.sessions"))
+                    // Rate UND Anteil der Sessions mit brauchbarer Beschleunigung (ueber Garmin Connect oft nur ein Teil).
+                    val anteil = m.mitAccel ?: (100.0 - m.gpsOnly).coerceAtLeast(0.0)
+                    wMetric(m.accelHz?.let { "%.0f Hz · %.0f %%".format(it, anteil) } ?: I18n.t("watchQuality.gpsOnly"),
+                        I18n.t("watchQuality.colPump"))
+                }
+                Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                    // Garmin meldet eine Guete-Stufe, die anderen Meter — nie in EINE Zahl mischen.
+                    wMetric(
+                        m.gueteGut?.let { I18n.t("watchQuality.gpsGood").replace("{pct}", "%.0f".format(it)) }
+                            ?: m.haccM?.let { "%.1f m".format(it) } ?: "–",
+                        I18n.t("watchQuality.colGps"),
+                    )
+                    wMetric(
+                        m.pulsWechsel?.let { I18n.t("watchQuality.hrRate").replace("{n}", "%.0f".format(it)) } ?: "–",
+                        I18n.t("watchQuality.colHr"),
+                    )
+                    wMetric(m.vollstaendig?.let { "%.0f %%".format(it) } ?: "–", I18n.t("watchQuality.colComplete"))
+                }
             }
         }
     }

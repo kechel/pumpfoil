@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { passtZu } from "../lib/suche";
 import { Link } from "react-router-dom";
-import { api } from "../lib/api";
+import { api, type WatchQualityRow } from "../lib/api";
 import { usePumpFmt } from "../lib/pumpRate";
 import { Card, Spinner } from "../components/ui";
 import { WatchIcon, FoilIcon } from "../components/Icons";
@@ -52,15 +52,67 @@ function Herkunft({ ab, alt }: { ab?: string | null; alt?: boolean }) {
   return null;
 }
 
+/** Eine Tabellenzeile der Auswertung. `unter` = Unterzeile eines Modells mit beiden Wegen (Name steht in der
+ *  Kopfzeile darueber, hier nur der Weg); sonst steht der Name hier, mit dem Weg als Kennzeichen darunter. */
+function QualiZeile({ r, unter, wegZeigen }: { r: WatchQualityRow; unter: boolean; wegZeigen: boolean }) {
+  const t = useT();
+  const duenn = r.nutzer <= WENIG_NUTZER;
+  const weg = r.weg === "gc" ? t("watchQuality.viaGc") : t("watchQuality.viaApp");
+  const gps = r.guete_gut != null ? t("watchQuality.gpsGood", { pct: r.guete_gut.toFixed(0) })
+            : r.hacc_m != null ? `${r.hacc_m.toFixed(1)} m` : "–";
+  return (
+    <tr className={unter ? "border-t border-slate-800/50" : "border-t border-slate-800"}>
+      {/* Schmaler als der Rest: die Garmin-Namen sind lang, duerfen aber umbrechen statt die Tabelle zu sprengen. */}
+      <td className={unter ? "max-w-[11rem] py-2 pl-6 pr-3 text-slate-300" : "max-w-[11rem] px-3 py-3 font-semibold leading-snug"}>
+        {unter ? weg : r.modell}
+        {!unter && wegZeigen && <div className="text-xs font-normal text-slate-400">{weg}</div>}
+      </td>
+      <td className="px-4 py-3 text-right tabular-nums">
+        {r.nutzer}
+        {duenn && <div className="text-xs font-normal text-amber-700 dark:text-amber-400">{t("watchQuality.few")}</div>}
+      </td>
+      <td className="px-4 py-3 text-right tabular-nums">{r.sessions}</td>
+      {/* Pump-Erkennung: Rate UND Anteil auswertbarer Sessions. Ueber Garmin Connect haengt das daran, ob unsere App
+          mitlief und die Uhr Beschleunigung in die Datei schreibt — die Rate allein fuehrte dort in die Irre. */}
+      <td className="px-4 py-3 text-right tabular-nums">
+        {r.accel_hz != null ? `${r.accel_hz.toFixed(0)} Hz` : t("watchQuality.gpsOnly")}
+        {r.accel_hz != null && (
+          <div className="text-xs font-normal text-slate-400">
+            {t("watchQuality.pumpShare", { pct: (r.mit_accel ?? Math.max(0, 100 - r.gps_only)).toFixed(0) })}
+          </div>
+        )}
+        {r.accel_hz != null && <Herkunft ab={r.accel_ab} alt={r.accel_alt} />}
+      </td>
+      <td className="px-4 py-3 text-right tabular-nums">{gps}</td>
+      {/* Puls als WERTWECHSEL je Minute. Der Anteil fehlender Werte taugte nicht: bis App 1.1.29 schrieb die Apple
+          Watch den letzten bekannten Wert in jeden Punkt. Ein Wechsel entsteht nur bei einer echten neuen Messung. */}
+      <td className="px-4 py-3 text-right tabular-nums">
+        {r.puls_wechsel == null ? "–" : t("watchQuality.hrRate", { n: r.puls_wechsel.toFixed(0) })}
+        {r.puls_wechsel != null && <Herkunft ab={r.puls_ab} alt={r.puls_alt} />}
+      </td>
+      <td className="px-4 py-3 text-right tabular-nums">
+        {r.vollstaendig != null ? `${r.vollstaendig.toFixed(0)} %` : "–"}
+      </td>
+    </tr>
+  );
+}
+
 function Uhrenqualitaet({ d, suche }: { d: Qualitaet; suche: string }) {
   const t = useT();
   if (!d || !d.modelle?.length) return null;
 
-  // Nach Sessions sortiert. Frueher stand hier eine Urteilsspalte und die Reihenfolge folgte
-  // ihr -- das Urteil ist weg (Jan, 05.09.: das sollen Nutzer selbst entscheiden), also
-  // entscheidet jetzt die Datenmenge ueber die Reihenfolge.
-  const zeilen = passend(d.modelle, (m) => m.modell, suche)
-    .sort((a, b) => b.sessions - a.sessions);
+  // Je Modell beide Wege (App, Garmin Connect, 15.11.2026) untereinander. Nach Sessions sortiert -- das Urteil ist
+  // weg (Jan, 05.09.: das sollen Nutzer selbst entscheiden), also entscheidet die Datenmenge ueber die Reihenfolge.
+  const alle = [...d.modelle.map((r) => ({ ...r, weg: r.weg ?? "app" })), ...(d.modelle_konto ?? [])];
+  // Kennzeichen nur, wo es unterscheidet: Unterzeilen und reine Garmin-Connect-Zeilen (fast alles ist App).
+  const mitKonto = (d.modelle_konto?.length ?? 0) > 0;
+  const gruppen = new Map<string, WatchQualityRow[]>();
+  for (const r of passend(alle, (m) => m.modell, suche)) {
+    gruppen.set(r.modell, [...(gruppen.get(r.modell) ?? []), r]);
+  }
+  const zeilen = [...gruppen.entries()]
+    .map(([modell, rs]) => ({ modell, rs: rs.sort((a, b) => (a.weg === "gc" ? 1 : 0) - (b.weg === "gc" ? 1 : 0)) }))
+    .sort((a, b) => b.rs.reduce((n, r) => n + r.sessions, 0) - a.rs.reduce((n, r) => n + r.sessions, 0));
 
   return (
     <section id="wie-gut">
@@ -78,7 +130,7 @@ function Uhrenqualitaet({ d, suche }: { d: Qualitaet; suche: string }) {
         <Card className="p-6 text-center text-slate-300">{t("watchStats.noMatch")}</Card>
       ) : (
       <div className="overflow-x-auto rounded-2xl border border-slate-800">
-        <table className="w-full min-w-[560px] border-collapse text-sm">
+        <table className="w-full min-w-[640px] border-collapse text-sm">
           <thead>
             <tr className="bg-slate-900/70 text-left text-slate-300">
               <th className="max-w-[11rem] px-3 py-3">{t("watchStats.colWatch")}</th>
@@ -87,49 +139,27 @@ function Uhrenqualitaet({ d, suche }: { d: Qualitaet; suche: string }) {
               <th className="px-4 py-3 text-right">{t("watchQuality.colPump")}</th>
               <th className="px-4 py-3 text-right">{t("watchQuality.colGps")}</th>
               <th className="px-4 py-3 text-right">{t("watchQuality.colHr")}</th>
+              <th className="px-4 py-3 text-right">{t("watchQuality.colComplete")}</th>
             </tr>
           </thead>
           <tbody>
-            {zeilen.map((r) => {
-              const duenn = r.nutzer <= WENIG_NUTZER;
-              const gps = r.guete_gut != null ? t("watchQuality.gpsGood", { pct: r.guete_gut.toFixed(0) })
-                        : r.hacc_m != null ? `${r.hacc_m.toFixed(1)} m` : "–";
-              return (
-                <tr key={`${r.plattform}-${r.modell}`} className="border-t border-slate-800">
-                  {/* Schmaler als der Rest: die Garmin-Namen sind lang, duerfen aber
-                      umbrechen statt die Tabelle zu sprengen. */}
-                  <td className="max-w-[11rem] px-3 py-3 font-semibold leading-snug">{r.modell}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {r.nutzer}
-                    {duenn && (
-                      <div className="text-xs font-normal text-amber-700 dark:text-amber-400">
-                        {t("watchQuality.few")}
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.sessions}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {r.accel_hz != null ? `${r.accel_hz.toFixed(0)} Hz` : "–"}
-                    {r.accel_hz != null && <Herkunft ab={r.accel_ab} alt={r.accel_alt} />}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">{gps}</td>
-                  {/* Puls als WERTWECHSEL je Minute. Der Anteil fehlender Werte taugte nicht:
-                      bis App 1.1.29 schrieb die Apple Watch den letzten bekannten Wert in jeden
-                      Punkt — 99,5 % der Punkte trugen einen Wert, er war nur alt. Ein Wechsel
-                      entsteht dagegen nur bei einer echten neuen Messung. */}
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {r.puls_wechsel == null ? "–"
-                      : t("watchQuality.hrRate", { n: r.puls_wechsel.toFixed(0) })}
-                    {r.puls_wechsel != null && <Herkunft ab={r.puls_ab} alt={r.puls_alt} />}
-                  </td>
+            {zeilen.map(({ modell, rs }) => rs.length === 1 ? (
+              <QualiZeile key={modell} r={rs[0]} unter={false} wegZeigen={rs[0].weg === "gc"} />
+            ) : (
+              <Fragment key={modell}>
+                {/* Kopfzeile nur mit dem Namen: Nutzer lassen sich nicht addieren (dieselben fahren oft beide Wege). */}
+                <tr className="border-t border-slate-800">
+                  <td colSpan={7} className="px-3 pb-1 pt-3 font-semibold leading-snug">{modell}</td>
                 </tr>
-              );
-            })}
+                {rs.map((r) => <QualiZeile key={`${modell}-${r.weg}`} r={r} unter wegZeigen />)}
+              </Fragment>
+            ))}
           </tbody>
         </table>
       </div>
       )}
       <p className="mt-3 text-sm text-slate-400">{t("watchQuality.note")}</p>
+      {mitKonto && <p className="mt-2 text-sm text-slate-400">{t("watchQuality.noteWays")}</p>}
     </section>
   );
 }

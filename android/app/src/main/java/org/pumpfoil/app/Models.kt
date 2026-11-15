@@ -1076,6 +1076,11 @@ data class WatchQualityModel(
     @SerialName("guete_gut") val gueteGut: Double? = null,   // nur Garmin: Anteil "GOOD"
     @SerialName("hacc_m") val haccM: Double? = null,         // nur Apple/Wear/Handy: Meter
     @SerialName("puls_wechsel") val pulsWechsel: Double? = null,
+    // 15.11.2026: Weg ("app" | "gc" = Garmin-Connect-Import), Anteil ganz angekommener Sessions und Anteil mit
+    // brauchbarer Beschleunigung (>= 15 Hz), je in Prozent.
+    val weg: String = "app",
+    val vollstaendig: Double? = null,
+    @SerialName("mit_accel") val mitAccel: Double? = null,
 )
 
 @Serializable
@@ -1084,6 +1089,8 @@ data class WatchQuality(
     val sessions: Int = 0,
     val stunden: Int = 0,
     val modelle: List<WatchQualityModel> = emptyList(),
+    // Garmin-Connect-Importe getrennt (alte Apps lesen nur `modelle`).
+    @SerialName("modelle_konto") val modelleKonto: List<WatchQualityModel> = emptyList(),
 )
 
 // Restliches Setup einer Session (Server: sessions.py:_resolve_setup). Jedes Teil hat ein

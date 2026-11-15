@@ -1109,6 +1109,20 @@ export interface TanzAbschnitt {
 }
 export interface TanzDaten { abschnitte: TanzAbschnitt[]; taenze: string[]; server_version?: string }
 
+// Eine Zeile der Uhren-Auswertung (scripts/uhren-qualitaet.py). `weg`: "app" = mit unserer App aufgenommen,
+// "gc" = ueber die Garmin-Connect-Verknuepfung importiert (15.11.2026). `vollstaendig` = % ganz angekommener Sessions.
+export interface WatchQualityRow {
+  plattform: string; modell: string; sessions: number; nutzer: number;
+  accel_hz: number | null; gps_only: number; ortung_steht: number | null;
+  guete_gut: number | null; hacc_m: number | null;
+  puls_wechsel: number | null; puls_tot: number | null; puls_sessions: number;
+  // Ab welcher App-Version gezaehlt wurde bzw. nur aeltere Aufnahmen (15.10.2026).
+  accel_ab?: string | null; accel_alt?: boolean;
+  puls_ab?: string | null; puls_alt?: boolean;
+  urteil: string;
+  weg?: string; vollstaendig?: number; mit_accel?: number;   // % Sessions mit Beschleunigung >= 15 Hz
+}
+
 export const api = {
   register: (email: string, password: string, display_name?: string, language?: string) =>
     req<{ access_token: string }>("/api/auth/register", {
@@ -1233,14 +1247,9 @@ export const api = {
   // Uhren-Auswertung fuer /watch-stats: Snapshot aus scripts/uhren-qualitaet.py.
   watchQuality: () => req<{
     stand: string; sessions?: number; nutzer?: number; stunden?: number;
-    modelle: { plattform: string; modell: string; sessions: number; nutzer: number;
-               accel_hz: number | null; gps_only: number; ortung_steht: number | null;
-               guete_gut: number | null; hacc_m: number | null;
-               puls_wechsel: number | null; puls_tot: number | null; puls_sessions: number;
-               // Ab welcher App-Version gezaehlt wurde bzw. nur aeltere Aufnahmen (15.10.2026).
-               accel_ab?: string | null; accel_alt?: boolean;
-               puls_ab?: string | null; puls_alt?: boolean;
-               urteil: string }[];
+    // Garmin-Connect-Importe getrennt (15.11.2026), gleiche Felder; alte Apps lesen nur `modelle`.
+    modelle_konto?: WatchQualityRow[];
+    modelle: WatchQualityRow[];
   }>("/api/app/watch-quality"),
 
   // Die drei Sync-Aufrufe STOSSEN nur an und antworten sofort — der Import laeuft im
