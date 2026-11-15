@@ -1547,6 +1547,10 @@ Idee: Laeufe desselben Nutzers, die sich zeitlich decken (Start/Ende innerhalb w
 Gruppe; je Gruppe zaehlt EIN Lauf (Regel offen: bester Wert je Wertung? Aufnahme mit besserer Datenlage?) fuer Statistik,
 Bestwerte, Rankings, Events, Sprints. Die anderen bleiben sichtbar, aber markiert („auch aufgenommen mit …, zaehlt einmal").
 Teilweise Ueberlappung (eine Aufnahme startet spaeter) muss gehen, deshalb je Lauf und nicht je Session.
+**Zusammen planen (Jan 15.11.: „gehoert auch zusammen vermutlich mit der loesung nur runs zu zaehlen innerhalb eines
+event-windows"):** beides stellt Wertungen von je Session auf je Lauf um (Laeufe aus `segments_json`, Verweise `run_idx`,
+Einfrieren) — s. Eintrag 14.11. „Events: Laeufe am Eventschluss abschneiden". Ein gemeinsamer Lauf-Baustein (Lauf zaehlt, wenn
+im Fenster begonnen UND nicht Duplikat) statt zwei Umbauten.
 Offen vor dem Bau: Zuordnungsregel und Toleranzen am Bestand eichen; welcher Lauf zaehlt; Events/Rankings sind Wertung
 (Aenderung erst nach einem Event-WE, Jans OK); Anzeige Web + Apps. Haengt mit dem Eintrag „Puls aus der Uhr auch in der
 besseren Session" zusammen (beides: mehrere Aufnahmen derselben Fahrt). Erst Entwurf mit Zahlen, dann bauen.
@@ -1608,6 +1612,7 @@ Abschalten nach dem Schluss (sich zurueckziehen) duerfte weiter wirken, Datensch
 14.11. die Teilnahme aus (vielleicht versehentlich). Fuer das laufende WE nichts aendern.
 
 ### 14.11.2026 — Events: Laeufe am Eventschluss abschneiden (naechste Woche, laufendes WE-Event bleibt wie es ist)
+_Zusammen mit „Doppelte Laeufe aus paralleler Aufnahme nur einmal zaehlen" (15.11.) planen: beides ist je-Lauf-Wertung._
 Heute zaehlt eine Session, wenn sie im Fenster GESTARTET ist — komplett, auch mit Laeufen nach dem Eventschluss
 (`teams.py` Filter auf `started_at`, Werte aus der Auswertung der ganzen Session); wer vor dem Start beginnt, zaehlt gar
 nicht, auch nicht mit Laeufen im Fenster. Jan: „fuer andere events ist es sicher wichtig" — Ziel: nur Laeufe, die im
