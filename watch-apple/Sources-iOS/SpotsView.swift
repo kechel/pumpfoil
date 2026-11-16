@@ -1,7 +1,8 @@
 import SwiftUI
 import MapKit
 
-private let KARTE_HOEHE: CGFloat = 520   // doppelt so hoch wie bisher (Jan, 16.11.2026)
+/// Karten (Spots, Session-Details, Spot-Heatmap) nehmen 2/3 der Bildschirmhoehe ein (Jan, 16.11.2026).
+var KARTE_HOEHE: CGFloat { (UIScreen.main.bounds.height * 2 / 3).rounded() }
 
 // MapKit wirft eine NSException, sobald eine Region breiter als 180°/360° ist — das beendet die
 // App sofort, es gibt keinen Fehlerwert zum Abfangen. Genau das ist am 30.08. passiert: mit der

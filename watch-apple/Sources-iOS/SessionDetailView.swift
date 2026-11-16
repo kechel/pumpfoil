@@ -1044,7 +1044,7 @@ struct SessionDetailView: View {
         return AnyView(VStack(alignment: .leading, spacing: 16) {
             modeRow(s, v)
             smoothingRow(s)
-            trackMap(track, segs, v, hoehe: 600)   // doppelt so hoch wie bisher (Jan, 16.11.2026)
+            trackMap(track, segs, v, hoehe: KARTE_HOEHE)   // 2/3 Bildschirmhoehe (Jan, 16.11.2026)
                 .overlay(alignment: .topTrailing) { mapFullButton }
             legendRow(v)
             eventKennzeichen(s)

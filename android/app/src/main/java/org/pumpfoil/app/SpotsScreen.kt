@@ -322,11 +322,11 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                 // Auf den anderen Reitern bleibt die Karte IM BAUM (osmdroid raeumt sonst beim Abhaengen seinen
                 // Kachel-Anbieter ab, s. oben): voll ausgemessen, aber mit Hoehe 0 eingehaengt und abgeschnitten.
                 // Das Abschneiden steht VOR dem Ausmessen, damit es die eingehaengte Hoehe (0) nimmt, nicht die gemessene.
-                Modifier.fillMaxWidth().clipToBounds().layout { m, c ->
-                    val h = 220.dp.roundToPx()
+                kartenHoehe().let { kh -> Modifier.fillMaxWidth().clipToBounds().layout { m, c ->
+                    val h = kh.roundToPx()
                     val p = m.measure(c.copy(minHeight = h, maxHeight = h))
                     layout(p.width, if (karteAn) h else 0) { p.place(0, 0) }
-                },
+                } },
             )
             // Sportart folgt dem Filter oben (seit 16.10. kennt die Heatmap alle Sportarten mit Laeufen)
             HeatmapLaden(karte, heat, heatArt, sport) { heatSessions = it }

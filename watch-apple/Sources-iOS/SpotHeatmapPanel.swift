@@ -132,7 +132,7 @@ struct SpotHeatmapPanel: View {
                     onPlatz: { i in plan.start = i },
                     onSetzen: { la, lo in plan.eigenenSetzen(la, lo) },
                     onZiehen: { i, la, lo in plan.eigenenVerschieben(i - plan.nServer, la, lo) })
-            .frame(height: 560)   // doppelt so hoch wie bisher (Jan, 16.11.2026)
+            .frame(height: KARTE_HOEHE)   // 2/3 Bildschirmhoehe (Jan, 16.11.2026)
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .mitKartenUmschalter()
             .schutzgebietSteuerung(lang: lang, legende: true)
