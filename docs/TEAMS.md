@@ -607,7 +607,8 @@ Session-Paare bei 24 Fahrern (viele davon gewollte Brett-Paare).
 
 ### 1. Ein Baustein: `zaehlende_laeufe(event)`
 Ein Lauf zaehlt, wenn
-1. er im Fenster BEGINNT (`start <= Laufstart < ende`) — egal, wann die Session startet oder endet;
+1. er im Fenster BEGINNT (`start <= Laufstart < ende`) und zaehlt dann VOLLSTAENDIG, auch wenn er nach dem Schluss endet —
+   egal, wann die Session startet oder endet; wer zu frueh oder zu spaet losfaehrt, zaehlt nicht (Jan 16.11.);
 2. er kein Duplikat ist: Laeufe desselben Fahrers aus verschiedenen Sessions bilden eine Gruppe, wenn Start UND Ende je
    <= 10 s auseinander liegen; je Gruppe zaehlt EIN Lauf. **Offen (Jan):** welcher — Vorschlag: der aus der Aufnahme mit der
    besseren Datenlage (mehr Uhr-Tempo-Anteil, dann hoehere Accel-Rate), NICHT der bessere Wert (sonst Rosinenpicken mit zwei Uhren);
