@@ -62,3 +62,10 @@ def test_alte_auswertung_ohne_session_ms_mit_zuschnitt():
     assert EL.zaehlende([s], FENSTER) == {}          # 15 min vor Schluss + 10 min Zuschnitt + 6 min = nach dem Schluss
     s["trim"] = 0
     assert EL.zaehlende([s], FENSTER) == {1: [0]}
+
+
+def test_ausnahme_gilt_fuer_alle_kopien_derselben_fahrt():
+    uhr = _s(1, T0, [_lauf(100, 60, 300.0)], det="gps_only", hz=0)
+    handy = _s(2, T0, [_lauf(101, 60, 280.0)], det="model", hz=50)
+    assert EL.zaehlende([uhr, handy], FENSTER) == {2: [0]}
+    assert EL.zaehlende([uhr, handy], FENSTER, aus=frozenset({(2, 101000)})) == {}     # die andere Kopie rueckt nicht nach

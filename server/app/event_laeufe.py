@@ -63,25 +63,30 @@ def zaehlende(sessions: list[dict], fenster: tuple[datetime, datetime], aus: fro
                  -int(s["id"]))
         t0 = s["started_at"].timestamp()
         for k, a, b, _g in _laeufe(s["started_at"], s.get("segments_json"), s.get("trim")):
-            if s0 <= a < s1 and not ist_ausgenommen(aus, s["id"], (a - t0) * 1000.0):
-                je_user.setdefault(s["user_id"], []).append((a, b, s["id"], k, guete))
+            if s0 <= a < s1:
+                je_user.setdefault(s["user_id"], []).append(
+                    (a, b, s["id"], k, guete, ist_ausgenommen(aus, s["id"], (a - t0) * 1000.0)))
     out: dict[int, list[int]] = {}
     for laeufe in je_user.values():
         laeufe.sort()
         frei = [True] * len(laeufe)
-        for i, (a, b, sid, k, g) in enumerate(laeufe):
+        for i, (a, b, sid, k, g, _aus) in enumerate(laeufe):
             if not frei[i]:
                 continue
             gruppe = [i]
             for j in range(i + 1, len(laeufe)):
-                a2, b2, sid2, _k2, _g2 = laeufe[j]
+                a2, b2, sid2 = laeufe[j][0], laeufe[j][1], laeufe[j][2]
                 if a2 - a > DUPLIKAT_S:
                     break
                 if frei[j] and sid2 != sid and abs(b2 - b) <= DUPLIKAT_S:
                     gruppe.append(j)
-            sieger = max(gruppe, key=lambda x: laeufe[x][4])
             for x in gruppe:
                 frei[x] = False
+            # Die Referee-Ausnahme gilt fuer den LOGISCHEN Lauf: ist eine Kopie derselben Fahrt herausgenommen, rueckt
+            # keine andere nach (Test-Durchlauf 16.11.: sonst zaehlte nach „doppelt aufgezeichnet" die andere Kopie).
+            if any(laeufe[x][5] for x in gruppe):
+                continue
+            sieger = max(gruppe, key=lambda x: laeufe[x][4])
             out.setdefault(laeufe[sieger][2], []).append(laeufe[sieger][3])
     return out
 
