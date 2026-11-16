@@ -54,7 +54,11 @@ export default function RefereeBoard() {
     setSpalte(SPALTEN.find((s) => s.status.includes(k.status))?.key ?? "offen");
   };
   const aktion = async (p: Promise<RefereeKorrektur>) => {
-    try { ersetzen(await p); setFehler(null); } catch (e: any) { setFehler(fehlerText(e, t)); }
+    try {
+      const k = await p; ersetzen(k); setFehler(null);
+      // Veroeffentlichen/Aufheben verschieben die Wertung: Kandidaten (Spitze je Kategorie) neu laden.
+      if (k.status === "veroeffentlicht" || k.status === "aufgehoben") laden();
+    } catch (e: any) { setFehler(fehlerText(e, t)); }
   };
 
   const kategorien = useMemo(() => {

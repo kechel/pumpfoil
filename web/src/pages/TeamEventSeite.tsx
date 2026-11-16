@@ -466,13 +466,17 @@ export default function TeamEventSeite() {
           <p className="mb-1.5 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("ref.oeffentlichTitel")}</p>
           <ul className="space-y-1.5 text-sm">
             {(ev.korrekturen ?? []).map((k) => (
-              <li key={k.id} className={k.status === "aufgehoben" ? "text-slate-500 line-through" : "text-slate-200"}>
+              <li key={k.id} className={k.status === "aufgehoben" ? "text-slate-500" : "text-slate-200"}>
+                {k.status === "aufgehoben" && (
+                  <span className="mr-1.5 rounded-md bg-slate-800 px-1.5 py-0.5 text-xs font-semibold text-slate-300">{t("ref.status.aufgehoben")}</span>
+                )}
+                <span className={k.status === "aufgehoben" ? "line-through" : ""}>
                 <span className="font-semibold">{k.fahrer}</span>
                 {" · "}<Link to={`/sessions/${k.session_id}${k.run_idx != null ? `?run=${k.run_idx}` : ""}`} className="text-brand-700 hover:underline dark:text-brand-300">
                   {k.run_idx != null ? t("ref.lauf", { n: k.run_idx + 1 }) : t("ref.session")}</Link>
                 {" · "}{t(`ref.grund.${k.grund}`)}
                 {k.kommentar_oeffentlich && <> — {k.kommentar_oeffentlich}</>}
-                {k.status === "aufgehoben" && <span className="ml-1 no-underline">({t("ref.status.aufgehoben")})</span>}
+                </span>
                 <span className="ml-1 text-xs text-slate-500">{k.veroeffentlicht_am ? new Date(k.veroeffentlicht_am).toLocaleDateString(lang) : ""}
                   {k.bearbeitet_am ? ` · ${t("ref.bearbeitetAm", { am: new Date(k.bearbeitet_am).toLocaleDateString(lang) })}` : ""}</span>
               </li>
