@@ -1536,6 +1536,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 ## 📥 Inbox
 
 ### 16.11.2026 — Sortiert: was seit 06.11. gesammelt wurde (Uebersicht, Details in den Eintraegen darunter)
+**Reihenfolge (Jan 16.11. nachmittags):** 1) A6 Accel-Normierung, 2) Events unter mehreren Teams, 3) App-Ports von allem aus A.
+Referee „nur zu zweit/Moderatoren nur Vorschlag" nur gemerkt (Jan: „glaube das brauchen wir garnicht").
+
 **A. Diese Woche (Jan: „naechste Woche"), alles Wertung/Analyse -> erst Entwurf mit Zahlen, dann Jans OK**
 1. 🟡 16.11. TEIL 1 LIVE (f5a411e8, EVENT_JE_LAUF=1): Baustein zaehlende Laeufe (Startzeit je Lauf, Duplikate einmal) in
    Bestenlisten + Gesamtsummen. ✅ 16.11. Session-Kennzeichen + Event-Kategorie-Dropdown im Web (980d71a4, 62429a12;
