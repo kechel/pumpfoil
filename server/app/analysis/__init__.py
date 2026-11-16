@@ -135,6 +135,24 @@ WATER_POINT_SPEED_MPS = (1.0, 8.0)
 WATER_POINT_MIN_SAMPLES = 20
 
 
+def ds_ueber_laeufe(segments: list) -> float | None:
+    """Ø Speed (m/s) ueber die Punkte der fertigen Laeufe: Lauf-Schnitt (`avg_speed_mps` = Mittel der 3-s-Werte
+    ueber track-Index i_start..i_end) gewichtet mit der Punktzahl — dasselbe Mittel wie frueher ueber die Maske,
+    nur auf die Laeufe beschraenkt, die stehen bleiben. Ohne Indizes zaehlt die Dauer. Keine Laeufe -> None."""
+    summe = gewicht = 0.0
+    for s in segments:
+        v = s.get("avg_speed_mps")
+        if v is None:
+            continue
+        i0, i1 = s.get("i_start"), s.get("i_end")
+        w = float(i1 - i0) if isinstance(i0, int) and isinstance(i1, int) and i1 > i0 else float(s.get("duration_s") or 0)
+        if w <= 0:
+            continue
+        summe += w * float(v)
+        gewicht += w
+    return round(summe / gewicht, 2) if gewicht else None
+
+
 def _water_lookup_point(gps_samples: list) -> tuple[float, float] | None:
     """Ort fuer die Wasser-Abfrage. Median NUR der bewegten Samples statt aller.
 
@@ -1167,6 +1185,12 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
             metrics["sportregel"] = sportregel.merkmale(res["segments"], gps_roh, dauer)
         except Exception:  # noqa: BLE001
             logging.getLogger(__name__).exception("sportregel-Merkmale fuer Session %s", session.id)
+    # Ø Speed ueber die FERTIGEN Laeufe (16.11.2026, Jans OK). Bis dahin kam er aus gps/detect_v2 ueber die Maske der
+    # ersten Stufe; v3/Gates/Fremdkraft verwerfen danach Kandidaten, der Durchschnitt blieb (Session ohne Laeufe zeigte
+    # 13 km/h). Jetzt: Mittel der 3-s-Geschwindigkeit ueber die Punkte der angezeigten Laeufe, ohne Laeufe kein Wert.
+    # Nur wo eine Lauferkennung lief: ohne (`detection` none — Laufen, Rad, Ski …) bleibt der bisherige Ø der Strecke.
+    if (metrics.get("detection") or "none") != "none":
+        metrics["avg_speed_mps"] = ds_ueber_laeufe(res.get("segments") or [])
     result.metrics_json = json.dumps(metrics)
 
     # Denormalisierte Bestwerte je Kennzahl (Wert + Lauf-Index) für schnelle Aggregate.
