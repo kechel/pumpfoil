@@ -42,3 +42,13 @@ def test_sprint_aus_zaehlendem_lauf():
     z = EL.zaehlende([s], FENSTER)
     w = EL.werte("sprint_100m", [s], z, False)
     assert w[1]["value"] == 5.0 and w[1]["run_idx"] == 0     # der schnellere Lauf begann nach dem Schluss
+
+
+def test_sprint_fenster_je_lauf():
+    """sprint-VERSION 5: je Lauf die Fenster je Kennzahl (Event-Kategorie in der Session)."""
+    from app.analysis import sprint as SP
+    lat, out, t = 50.0, [], 0
+    for v in [5.0] * 90:
+        out.append([t, lat, 7.0, v, None, 4]); lat += v / 111320.0; t += 1000
+    erg = SP.session_sprints(out, [{"t_start_session_ms": 0, "t_end_session_ms": 89_000}])
+    assert erg["v"] == 5 and erg["laeufe_fenster"][0]["sprint_100m"] == erg["fenster"]["sprint_100m"]

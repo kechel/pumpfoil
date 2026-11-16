@@ -25,7 +25,8 @@ import math
 
 import numpy as np
 
-VERSION = 4   # 4: Regel je Fenster statt 80 % Uhr-Tempo je Lauf, Tempo-Luecken <= 3 s gefuellt, Sprung-Regel (16.11.2026)
+VERSION = 5   # 5: Fenster je Lauf und Kennzahl (`laeufe_fenster`, Session-ms) fuer die Session-Anzeige, Werte unveraendert (16.11.2026)
+# 4: Regel je Fenster statt 80 % Uhr-Tempo je Lauf, Tempo-Luecken <= 3 s gefuellt, Sprung-Regel (16.11.2026)
 # 3: dazu Lage des besten Fensters je Kennzahl (`fenster`, Session-ms), Werte unveraendert (11.11.2026)
 # 2: nur Uhr-Tempo (roh), ohne aus Positionen aufgefuelltes (09.11.2026)
 STRECKEN_M = (100, 200, 300)
@@ -200,21 +201,24 @@ def session_sprints(gps: list, segmente: list, trim_start_ms: int = 0, je_fenste
     lauf: dict[str, int] = {}
     fenster: dict[str, list] = {}
     laeufe: list = []
+    laeufe_fenster: list = []
     for k, g in enumerate(segmente or []):
         a = g.get("t_start_session_ms")
         b = g.get("t_end_session_ms")
         if a is None or b is None:
             if g.get("t_start_ms") is None or g.get("t_end_ms") is None:
                 laeufe.append(None)
+                laeufe_fenster.append(None)
                 continue
             a, b = float(g["t_start_ms"]) + trim_start_ms, float(g["t_end_ms"]) + trim_start_ms
         fl: dict = {}
         w = lauf_sprints(gps, float(a), float(b), fl, je_fenster=je_fenster)
         laeufe.append(w)
+        laeufe_fenster.append(fl or None)
         for kz, x in (w or {}).items():
             if x > best.get(kz, 0.0):
                 best[kz], lauf[kz], fenster[kz] = x, k, fl[kz]
-    return {"v": VERSION, "best": best, "lauf": lauf, "fenster": fenster, "laeufe": laeufe}
+    return {"v": VERSION, "best": best, "lauf": lauf, "fenster": fenster, "laeufe": laeufe, "laeufe_fenster": laeufe_fenster}
 
 
 def setzen(session, result) -> bool:

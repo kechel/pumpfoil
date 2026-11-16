@@ -1413,6 +1413,70 @@ def event_summen(db: Session, t: models.Team, e: models.TeamEvent) -> dict:
     return {k: hit[k] for k in auswahl}
 
 
+def session_events(db: Session, s: models.Session, betrachter: int | None = None) -> list[dict]:
+    """Events, fuer die diese Session mindestens einen zaehlenden Lauf hat (Wertung je Lauf, app/event_laeufe.py).
+
+    -> [{id, titel, team_slug, global, status, kategorien: [laufbezogene Kennzahlen des Events], laeufe_ms: [Laufstart in
+    Session-ms je zaehlendem Lauf], plaetze: [{kennzahl, sportart, rang, run_idx}] wo DIESE Session in der Wertung steht}].
+    Team-Events nur, wenn das Team freigegeben ist oder der Betrachter Mitglied ist (sonst verraete die Session ein
+    internes Team). Laeufe ueber die Startzeit statt den Index — die Anzeige kann ein Empfindlichkeits-Preset zeigen."""
+    if not EL.aktiv() or s.started_at is None or s.deleted:
+        return []
+    from .api import community as C
+    anfang = _aware(s.started_at)
+    ende = _aware(s.ended_at) if s.ended_at else anfang
+    E, Tm, S, AR = models.TeamEvent, models.Team, models.Session, models.AnalysisResult
+    out = []
+    for e, t in (db.query(E, Tm).join(Tm, Tm.id == E.team_id)
+                 .filter(E.geloescht_am.is_(None), Tm.geloescht_am.is_(None), E.start <= ende, E.ende > anfang).all()):
+        glob = ist_global(e)
+        if glob:
+            if s.user_id in global_aus(db):
+                continue
+        else:
+            if s.user_id not in event_teilnehmer(db, t, e):
+                continue
+            if t.frei_am is None and (betrachter is None or betrachter not in mitglieder_ids(db, t.id)):
+                continue
+        sport = s.sport_class or "pumpfoil"
+        tafeln_ = [tf for tf in event_tafeln(e) if tf.sportart == sport or sportmix.ist_mix(tf.sportart)]
+        if not tafeln_ and not event_summen_auswahl(e):
+            continue
+        fenster = (_aware(e.start), _aware(e.ende))
+        rows = (db.query(S.id, S.user_id, S.started_at, AR.segments_json, AR.detection, S.accel_hz)
+                .join(AR, AR.session_id == S.id)
+                .filter(S.user_id == s.user_id, S.deleted.isnot(True), S.started_at < fenster[1],
+                        func.coalesce(S.ended_at, S.started_at) >= fenster[0]).all())
+        sessions = [{"id": a, "user_id": b, "started_at": c, "segments_json": d, "detection": f, "accel_hz": g}
+                    for a, b, c, d, f, g in rows]
+        zaehl = EL.zaehlende(sessions, fenster)
+        idx = set(zaehl.get(s.id) or [])
+        if not idx:
+            continue
+        eigene = next((x for x in sessions if x["id"] == s.id), None)
+        laeufe_ms = [round((a - anfang.timestamp()) * 1000) for k, a, _b, _g in
+                     EL._laeufe(eigene["started_at"], eigene["segments_json"]) if k in idx] if eigene else []
+        kategorien = []
+        for tf in tafeln_:
+            if tf.kennzahl in SPRINT and tf.kennzahl not in kategorien:
+                kategorien.append(tf.kennzahl)
+        plaetze = []
+        try:
+            for tf in _event_voll(db, t, e):
+                if sportmix.ist_mix(tf.get("sportart")):
+                    continue
+                z = next((z for z in tf.get("zeilen") or [] if z.get("user_id") == s.user_id), None)
+                if z and z.get("session_id") == s.id:
+                    plaetze.append({"kennzahl": tf.get("kennzahl"), "sportart": tf.get("sportart"), "rang": z.get("rang"),
+                                    **({"run_idx": z["run_idx"]} if "run_idx" in z else {})})
+        except Exception:  # noqa: BLE001
+            plaetze = []
+        out.append({"id": e.id, "titel": e.titel, "team_slug": t.slug, "global": glob,
+                    "status": "beendet" if e.eingefroren_am else ("laeuft" if fenster[0] <= _jetzt() < fenster[1] else "offen"),
+                    "kategorien": kategorien, "laeufe_ms": laeufe_ms, "plaetze": plaetze})
+    return out
+
+
 def _event_summen_je_lauf(db: Session, e, ids, alle: bool, sportart: str, accel_only: bool, spots, fenster) -> dict:
     """Gesamtsummen je LAUF (app/event_laeufe.py): nur zaehlende Laeufe; Sessions/Spots/Aktive = mit >= 1 zaehlendem Lauf."""
     from .api import community as C

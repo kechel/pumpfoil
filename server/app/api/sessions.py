@@ -5,6 +5,7 @@ import base64
 import gzip
 import io
 import json
+import logging
 import math
 import secrets
 import uuid
@@ -370,7 +371,11 @@ def _sprints_out(result: models.AnalysisResult) -> dict | None:
         return None
     if not isinstance(j, dict) or not j.get("fenster"):
         return None
-    return {k: j.get(k) or {} for k in ("best", "lauf", "fenster")}
+    out = {k: j.get(k) or {} for k in ("best", "lauf", "fenster")}
+    # Je Lauf (16.11.2026, Event-Kategorie in der Session): Werte und Fenster je Kennzahl, Index = Lauf in segments_json.
+    out["laeufe"] = j.get("laeufe") or []
+    out["laeufe_fenster"] = j.get("laeufe_fenster") or []
+    return out
 
 
 def _sport_zahlen(session, result, segments, foil_s):
@@ -2791,6 +2796,12 @@ def get_session(
     elif import_geraet(s.session_uuid, s.device_model):
         out.device_label = s.device_model
     out.device_model = s.device_model  # Aufnahme-Gerät (Modell + OS) — nur zur Fehlersuche
+    # Events, fuer die diese Session zaehlt (Wertung je Lauf, 16.11.2026): Kennzeichen + Event-Kategorie-Dropdown.
+    try:
+        from .. import teams as _teams
+        out.events = _teams.session_events(db, s, user.id)
+    except Exception:  # noqa: BLE001 — die Session-Seite darf daran nie scheitern
+        logging.getLogger(__name__).exception("session_events fuer Session %s", s.id)
     out.app_version = s.app_version    # App-Version DIESER Aufnahme (Fehlersuche, s. models.py)
     # Kreisel vorhanden? Ein gezielter Treffer, kein Zählen — die Oberfläche will nur wissen, ob
     # es die Lage-Ansicht überhaupt geben kann. `device_model` taugt dafür NICHT: das setzen die
