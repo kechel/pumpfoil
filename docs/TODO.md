@@ -1614,9 +1614,10 @@ Entwurf zusammen mit A1.
 - Antwort an u963 (zwei FR245 an beiden Handgelenken, Sessions 21943/21945 fast gleich): Entwurf liegt, nicht gesendet.
 - Optional DM an u352 (GTR 4, GPS-Luecken), wenn Zepp 1.0.17 live ist.
 - Lob als Zitate sammeln (bei Gelegenheit, 15.11.).
+- ✅ 16.11. Antwort an u1124 (Suunto: Uhrname + Takt laut Uhr) gesendet (Konto 230).
 
 **F. Ideen / geparkt (nicht anfangen ohne Jan)**
-Globale Events von Teams vorschlagen (15.11.) und Events vorschlagen + Voting (11.11.), reale Wettkaempfe (12.11.),
+Events vorschlagen + Voting (11.11.; „Als globales Event vorschlagen" ist seit 16.11. gebaut, 1f3f2f1a), reale Wettkaempfe (12.11.),
 Wind-Fairness bei Sprints (13.11.), Luftdruck-/Wassersensor (12.11.), Event-Fenster in Ortszeit (06.11.), Foil Scoot
 erkennen (08.11.), gruene Spots nach versehentlichem Stopp (08.11.), 100/25-Hz-Paare (06.11.), Systemzustand
 konfigurierbar (11.11.), Stabs/Tail Wings Atmo gegen Gong abgleichen (16.11.).
