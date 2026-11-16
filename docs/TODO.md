@@ -1672,6 +1672,7 @@ blockweise). Laeufe, Rankings, Sprints aendern sich nicht (Ø geht in keine Wert
 „<Event-Kategorie>": hebt je Lauf das Stueck der gewaehlten Kategorie hervor (Karte/Verlauf/Lauf-Tabelle). Nur Kategorien,
 die sich auf einen TEIL EINES Laufs beziehen (heute sprint_100m/200m/300m/60s); generisch bauen (Liste der „Lauf-
 Fenster-Kennzahlen" vom Server), es kommen spaeter weitere dazu. Summen-Kategorien (Strecke, Zeit, Pumps) nicht.
+Fuer JEDEN direkt in der Session waehlbar (nicht nur per Klick aus dem Leaderboard mit `?sprint=`), Jan 16.11.
 Heute zeigt die Session-Seite nur den Sprint aus dem Event-Link (`?run=…&sprint=<kennzahl>`: Wert + Lage auf der Karte,
 `sprint_json` haelt je Kennzahl nur das beste Fenster). Jan: unten in der Session ALLE Sprints auflisten (je Kennzahl
 und Lauf, z. B. bestes 100-m-/200-m-/300-m-/60-s-Fenster je Lauf), Klick blendet den gewaehlten auf Karte/Verlauf ein.

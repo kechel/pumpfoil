@@ -226,3 +226,45 @@ def test_global_events_ics(client, monkeypatch):
     assert "SUMMARY:Sprint Weekend" in t and "Nur intern" not in t
     assert "Fast\; really\\, fast" in t
     assert all(len(z.encode()) <= 75 for z in t.split("\r\n"))
+
+
+def _ohne_tempo(gps: list, ab: int, n: int) -> list:
+    """Uhr-Tempo an n Punkten ab Index `ab` entfernen (Position bleibt)."""
+    for k in range(ab, ab + n):
+        gps[k] = [gps[k][0], gps[k][1], gps[k][2], None, None, 4]
+    return gps
+
+
+def test_je_fenster_kurze_tempoluecke_ueberbrueckt():
+    """Regel je Fenster (16.11.2026): 2 s ohne Uhr-Tempo werden aus dem Tempo davor/danach gefuellt."""
+    from app.analysis import sprint as SP
+    gps = _ohne_tempo(_spur([5.0] * 90), 40, 2)
+    w = SP.lauf_sprints(gps, 0, 89_000, je_fenster=True)
+    assert math.isclose(w["sprint_60s"], 5.0, abs_tol=0.05)
+
+
+def test_je_fenster_lange_tempoluecke_bricht_fenster():
+    """5 s ohne Uhr-Tempo: kein Fenster ueber die Luecke; die 60 s davor/danach sind zu kurz."""
+    from app.analysis import sprint as SP
+    gps = _ohne_tempo(_spur([5.0] * 100), 45, 5)
+    w = SP.lauf_sprints(gps, 0, 99_000, je_fenster=True)
+    assert "sprint_60s" not in w and math.isclose(w["sprint_100m"], 5.0, abs_tol=0.05)
+
+
+def test_je_fenster_statt_lauf_anteil():
+    """Lauf mit nur 70 % Uhr-Tempo: alte Regel verwirft den ganzen Lauf, je Fenster zaehlt das voll abgedeckte Stueck."""
+    from app.analysis import sprint as SP
+    gps = _ohne_tempo(_spur([5.0] * 100), 70, 30)
+    assert SP.lauf_sprints(gps, 0, 99_000) is None
+    w = SP.lauf_sprints(gps, 0, 99_000, je_fenster=True)
+    assert math.isclose(w["sprint_60s"], 5.0, abs_tol=0.05)
+
+
+def test_je_fenster_springendes_tempo_ungueltig():
+    """Ausreisser ueber 1,5 x Median in mehr als 10 % der Punkte: Fenster zaehlt nicht."""
+    from app.analysis import sprint as SP
+    tempi = [5.0] * 90
+    for k in range(0, 90, 5):
+        tempi[k] = 9.0
+    w = SP.lauf_sprints(_spur(tempi), 0, 89_000, je_fenster=True)
+    assert "sprint_100m" not in w
