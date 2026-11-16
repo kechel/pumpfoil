@@ -294,6 +294,8 @@ struct EventKachelDaten {
     var banner_fokus: String? = nil
     /// Als globales Event vorgeschlagen und angenommen (16.11.2026, web 1f3f2f1a): „promoted by <Team>" neben „Global".
     var promoted_by: TeamEventTeam? = nil
+    /// Event mehrerer Teams (web f598f50f): ausrichtendes + zugesagte Teams fuer die Zeile „Mit:".
+    var mit_teams: [EventTeamBeteiligt] = []
 
     init(_ e: TeamEvent, slug: String, farbe: String?) {
         // Event eines anderen Teams, bei dem dieses Team mitmacht (web 2d30a70e): Kachel mit dem ausrichtenden Team,
@@ -306,6 +308,9 @@ struct EventKachelDaten {
         // Teamseite: nur das Eventbild — das Teambild steht dort schon oben (web pages/Team.tsx, 10.11.2026).
         banner_url = e.banner_url; banner_fokus = e.banner_fokus
         promoted_by = e.promoted_by
+        if e.mehrteam == true {
+            mit_teams = (e.teams_beteiligt ?? []).filter { $0.status == "ausrichtend" || $0.status == "angenommen" }
+        }
         if let h = host { team = TeamEventTeam(slug: h.slug, name: h.name, logo_url: h.logo_url, farbe: h.farbe) }
     }
 
@@ -383,6 +388,7 @@ struct EventKalenderKachel: View {
             abzeichen
             Text(d.titel).font(.title3.weight(.bold)).foregroundStyle(marke.akzent)
                 .fixedSize(horizontal: false, vertical: true)
+            if d.mit_teams.count > 1 { mitTeamsZeile }
             if mitUhr { uhrZeile }
             if let z = eventErsteZeile(d.beschreibung) {
                 Text(z).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
@@ -414,6 +420,20 @@ struct EventKalenderKachel: View {
             }
             ForEach(d.sportarten, id: \.self) { sp in sportClassPill(Loc.t("cls.sport." + sp, lang)) }
             ForEach(d.spots) { sp in teamSpotChip(sp.anzeige) }
+        }
+    }
+
+    private var mitTeamsZeile: some View {
+        FoilerFliessReihe(abstand: 6) {
+            Text(teamText("team.event.mitTeams", lang, [:])).font(.caption2.weight(.semibold)).foregroundStyle(.secondary)
+            ForEach(d.mit_teams, id: \.slug) { x in
+                HStack(spacing: 4) {
+                    TeamWappen(name: x.name, logo: x.logo_url, farbe: x.farbe, size: 16)
+                    Text(x.name).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                }
+                .padding(.leading, 2).padding(.trailing, 8).padding(.vertical, 2)
+                .background(Color.secondary.opacity(0.15), in: Capsule())
+            }
         }
     }
 

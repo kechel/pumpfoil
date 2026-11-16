@@ -909,6 +909,8 @@ fun EventKachel(
     global: Boolean = false,
     /** „promoted by <Team>" (vorgeschlagenes globales Event, Web EventKurzKachel 1f3f2f1a). */
     promotedBy: EventTeamBeteiligt? = null,
+    /** Event mehrerer Teams (Web f598f50f): ausrichtendes + zugesagte Teams fuer die Zeile „Mit:". */
+    mitTeams: List<EventTeamBeteiligt> = emptyList(),
 ) {
     val laeuft = status == "laeuft"
     val marke = MaterialTheme.colorScheme.primary
@@ -965,6 +967,22 @@ fun EventKachel(
                 // Titel ausdruecklich in der Akzentfarbe (Jan, 06.11.2026) — sonst erbte er das gedaempfte Grau der Card.
                 Text(titel, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
                     color = akzent, modifier = Modifier.padding(top = 4.dp))
+                if (mitTeams.size > 1) {
+                    FlowRow(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(I18n.t("team.event.mitTeams"), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.align(Alignment.CenterVertically))
+                        mitTeams.forEach { x ->
+                            Row(Modifier.align(Alignment.CenterVertically).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .padding(start = 2.dp, end = 8.dp, top = 2.dp, bottom = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically) {
+                                TeamWappen(x.name, x.logoUrl, x.farbe, 16.dp)
+                                Spacer(Modifier.width(4.dp))
+                                Text(x.name, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                            }
+                        }
+                    }
+                }
                 if (status == "kommend" || laeuft) {
                     val jetzt = rememberJetzt()
                     Text(I18n.t(if (laeuft) "team.event.endetIn" else "team.event.startIn") + " " +
@@ -1001,7 +1019,8 @@ fun EventKachel(e: TeamEvent, farbe: String?, onClick: () -> Unit, modifier: Mod
         e.teamsBeteiligt.firstOrNull { it.status == "ausrichtend" } else null
     EventKachel(e.titel, e.beschreibung, e.status, e.start, e.ende, e.zeitzone, e.sportarten, e.spots, host?.farbe ?: farbe, onClick, modifier,
         team = host?.let { TeamEventTeam(slug = it.slug, name = it.name, logoUrl = it.logoUrl, farbe = it.farbe) },
-        bannerUrl = e.bannerUrl, bannerFokus = e.bannerFokus, global = e.global, promotedBy = e.promotedBy)
+        bannerUrl = e.bannerUrl, bannerFokus = e.bannerFokus, global = e.global, promotedBy = e.promotedBy,
+        mitTeams = if (e.mehrteam) e.teamsBeteiligt.filter { it.status == "ausrichtend" || it.status == "angenommen" } else emptyList())
 }
 
 @Composable
