@@ -1608,9 +1608,13 @@ Entwurf zusammen mit A1.
   naechsten Massen-Neuauswertung klaeren).
 
 **D. Kurze Entscheidungen fuer Jan**
-- Garmin ohne Handy: wartende Uploads (a) Server antwortet „erledigt" oder (b) duenn puffern? (15.11.)
-- Datenschutz-Konzept eines Nutzers: Punkt 1 „Uhrzeit verbergen" — wartet auf Go (11.11.)
-- Max-Speed der Uhr-App gegen Server nachrechnen (07.11.)
+- ✅ 16.11. ENTSCHIEDEN (Jan): Garmin ohne Handy -> (a) Server antwortet „erledigt" (naechstes Bauvorhaben).
+- ✅ 16.11. ENTSCHIEDEN (Jan): „Uhrzeit verbergen" (u146) -> beides bauen: grobe Startzeit fuer andere + Schalter
+  „Neue Sessions erst am naechsten Tag zeigen" (naechstes Bauvorhaben).
+- ✅ 16.11. GESCHLOSSEN (Jan): Max-Speed Uhr vs. Server — neue Regel seit 10.11. im Median ~0 (Garmin -0,3, Apple/Wear 0,0;
+  215 Sessions, scripts/uhr-vmax-messen.py), Abstand des gemeldeten Werts von Alt-Fassungen; Feldtest-Zeile beobachtet weiter.
+- ✅ 16.11. ERLEDIGT (Jan „ja"): 5515 root-eigene Suunto-Ordner per chown (nur das Verzeichnis, nicht rekursiv — Backups
+  unberuehrt), Takt nachgetragen: 3106 Sessions / 28 Nutzer haben jetzt uhr_takt.json.
 
 **E. Kommunikation**
 - Antwort an u963 (zwei FR245 an beiden Handgelenken, Sessions 21943/21945 fast gleich): Entwurf liegt, nicht gesendet.
