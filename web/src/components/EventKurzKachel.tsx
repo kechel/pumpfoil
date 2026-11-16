@@ -71,6 +71,17 @@ export default function EventKurzKachel({ e, ohneTeam = false }: { e: TeamEventK
           ))}
         </div>
         <p className={`text-lg font-bold leading-snug ${e.global ? "text-brand-700 dark:text-brand-300" : "team-akzent"}`}>{e.titel}</p>
+        {/* Event mehrerer Teams (16.11.2026): die zugesagten Teams, wie „Mit:“ auf der Eventseite. */}
+        {(e.mit_teams?.length ?? 0) > 1 && (
+          <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-slate-300">
+            <span className="font-semibold">{t("team.event.mitTeams")}</span>
+            {e.mit_teams!.map((x) => (
+              <span key={x.slug} className="inline-flex items-center gap-1 rounded-full bg-slate-800 py-0.5 pl-0.5 pr-2">
+                <TeamWappen name={x.name} logo={x.logo_url} farbe={x.farbe} size={16} />{x.name}
+              </span>
+            ))}
+          </p>
+        )}
         {(e.status === "kommend" || laeuft) && (
           <p className="mt-0.5 text-sm"><KachelUhr ziel={e.status === "kommend" ? e.start : e.ende} text={t(e.status === "kommend" ? "team.event.startIn" : "team.event.endetIn")} lang={lang} /></p>
         )}

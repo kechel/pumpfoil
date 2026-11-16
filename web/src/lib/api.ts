@@ -2371,6 +2371,8 @@ export interface TeamEventKurz {
   promoted_by?: EventPromotedBy | null;
   /** Bild unten in der Kachel (10.11.2026): Eventbild, sonst Teambild (wenn das Event es zeigt), sonst null */
   banner_url?: string | null; banner_fokus?: string | null;
+  /** Event mehrerer Teams (16.11.2026): ausrichtendes + angenommene Teams, fuer die Zeile „Mit:“ in der Kachel */
+  mit_teams?: { slug: string; name: string; logo_url: string | null; farbe: string | null }[];
 }
 export interface TeamListenEintrag extends TeamAuftritt { id: number; mitglieder_anzahl: number; anmeldungen_zulassen: boolean; bestenlisten_oeffentlich: boolean;
   sessions_30d?: number }   // Sessions der Mitglieder in 30 Tagen (02.11.2026, „aktivste Teams")

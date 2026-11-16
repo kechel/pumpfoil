@@ -159,6 +159,8 @@ function TeamEventKachel({ e, kopf }: { e: TeamEvent; kopf: TeamAuftritt }) {
     team: host ? { slug: host.slug, name: host.name, logo_url: host.logo_url, farbe: host.farbe, land: null }
       : { slug: kopf.slug, name: kopf.name, logo_url: kopf.logo_url, farbe: kopf.farbe, land: kopf.land },
     banner_url: e.banner_url ?? null, banner_fokus: e.banner_fokus ?? null,
+    // Zugesagte Teams in der Kachel (Jan, 16.11.2026), wie „Mit:“ auf der Eventseite.
+    mit_teams: e.mehrteam ? (e.teams_beteiligt ?? []).filter((x) => x.status === "ausrichtend" || x.status === "angenommen") : undefined,
   };
   return <EventKurzKachel e={kurz} ohneTeam={!host} />;
 }
