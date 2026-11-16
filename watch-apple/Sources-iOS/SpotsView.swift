@@ -3,6 +3,8 @@ import MapKit
 
 /// Karten (Spots, Session-Details, Spot-Heatmap) nehmen 2/3 der Bildschirmhoehe ein (Jan, 16.11.2026).
 var KARTE_HOEHE: CGFloat { (UIScreen.main.bounds.height * 2 / 3).rounded() }
+/// Die Spots-Karte steht fest ueber der Liste (scrollt nicht mit) -> nur die halbe Bildschirmhoehe (Jan, 16.11.2026).
+private var SPOTS_KARTE_HOEHE: CGFloat { (UIScreen.main.bounds.height / 2).rounded() }
 
 // MapKit wirft eine NSException, sobald eine Region breiter als 180°/360° ist — das beendet die
 // App sofort, es gibt keinen Fehlerwert zum Abfangen. Genau das ist am 30.08. passiert: mit der
@@ -271,7 +273,7 @@ struct SpotsView: View {
     @ViewBuilder private var karteOben: some View {
         if !items.isEmpty {
             spotKarte
-                .frame(height: KARTE_HOEHE)
+                .frame(height: SPOTS_KARTE_HOEHE)
                 .background(GeometryReader { geo in
                     // Echte Breite nachreichen (Voreinstellung 390) und einmal neu buendeln.
                     Color.clear.onAppear { kartenBreite = Double(geo.size.width); buendeln() }
@@ -513,7 +515,7 @@ struct SpotsView: View {
         // Punkte je Grad im aktuellen Ausschnitt. Lineare Naeherung statt echter Mercator-
         // Projektion wie im Web — fuer eine Ueberdeckungs-Schwelle in Punkten genau genug.
         let ppLon = kartenBreite / dLon
-        let ppLat = Double(KARTE_HOEHE) / dLat
+        let ppLat = Double(SPOTS_KARTE_HOEHE) / dLat
         let reihe = (0..<sicht.count).sorted { sicht[$0].sessions > sicht[$1].sessions }
         var belegt = Array(repeating: false, count: sicht.count)
         var out: [SpotBuendel] = []
