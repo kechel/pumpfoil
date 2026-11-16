@@ -45,7 +45,8 @@ import numpy as np
 
 log = logging.getLogger(__name__)
 
-VERSION = "v3-r4-mild-3"   # mild-3 (13.11.2026): Kandidaten ueber kurze Luecken mit Luftlinien-Bruecke verbinden
+VERSION = "v3-r4-mild-4"   # mild-4 (16.11.2026): Laufrand mit rohem p verlaengern (_rand_verlaengern)
+# mild-3 (13.11.2026): Kandidaten ueber kurze Luecken mit Luftlinien-Bruecke verbinden
 # Die Live-Modelle liegen IM REPO neben dem Code (wie `foil_rf.pkl`), nicht unter data/ (Jan, 30.09.:
 # „bitte ins repo committen, nicht dass das verloren geht"). Sie enthalten nur Baeume und
 # Bin-Grenzen, keine Sessions. Neue Fassung: unter neuem Namen trainieren, pruefen, HIER ablegen,
@@ -161,6 +162,34 @@ def _bruecken(L, t, pg, theta, gps):
     return [(float(x), float(y)) for x, y in out]
 
 
+def _rand_verlaengern(L, kand, t, p, theta):
+    """Jeden fertigen Lauf an Anfang und Ende um bis zu GLAETTEN_S//2 Punkte verlaengern, solange das ROHE p >= theta
+    bleibt, nie ueber seinen Kandidaten hinaus (16.11.2026, Jans OK). Anlass: `_glaetten` (zentriert) zieht die niedrigen
+    p nach dem Absetzen vor — Session 21890 Lauf 3 endete bei 59,997 s, roh p 0,43 >= theta, geglaettet 0,36. Laeuft NACH
+    tau-/Kurz-Filter, damit der Rand keinen Lauf aus dem Filter wirft. Regression 5074 Sessions
+    (scripts/v3/regression-randglaettung.py): Laeufe +4, Foil-Zeit +0,07 %, 801 Sessions, meist +1 s je Lauf."""
+    k = GLAETTEN_S // 2
+    out = []
+    for x, y in L:
+        ka = next(((a, b) for a, b in kand if a <= x and y <= b), None)
+        if ka is None:
+            out.append((x, y))
+            continue
+        idx = np.flatnonzero((t >= ka[0]) & (t <= ka[1]))
+        i0 = int(np.searchsorted(t[idx], x))
+        i1 = int(np.searchsorted(t[idx], y, side="right")) - 1
+        n = 0
+        while n < k and i1 + 1 < idx.size and p[idx[i1 + 1]] >= theta:
+            i1 += 1
+            n += 1
+        n = 0
+        while n < k and i0 - 1 >= 0 and p[idx[i0 - 1]] >= theta:
+            i0 -= 1
+            n += 1
+        out.append((float(t[idx[i0]]), float(t[idx[i1]])))
+    return _vereinigung(out, [])
+
+
 def _mittel(t, p, a, b):
     m = (t >= a) & (t <= b)
     return float(p[m].mean()) if m.any() else None
@@ -184,11 +213,13 @@ def laeufe(tb, v2_segmente, tief_segmente, sens: str, keep=None):
     frei_tief = [iv(s) for s in tief_segmente
                  if not any(iv(s)[0] < iv(g)[1] and iv(s)[1] > iv(g)[0] for g in geschuetzt)]
     theta, tau = TEIL.get(sens, TEIL["normal"])
-    L = _teil(_vereinigung(frei_v2, frei_tief), t, pg, theta)
+    kand = _vereinigung(frei_v2, frei_tief)
+    L = _teil(kand, t, pg, theta)
     L = _bruecken(L, t, pg, theta, getattr(tb, "gps", None))
     L = [(a, b) for a, b in L if (_mittel(t, pg, a, b) or 0) >= tau]
     k = KURZ.get(sens, KURZ["normal"])
     L = [(a, b) for a, b in L if b - a >= KURZ_S * 1000 or (_mittel(t, p, a, b) or 0) >= k]
+    L = _rand_verlaengern(L, kand, t, p, theta)
     return L, geschuetzt, (t, p)
 
 
