@@ -674,6 +674,9 @@ def event_einzeln(slug: str, event_id: int, team: str | None = None, mix: bool =
     from .. import referee as R
     out["korrekturen"] = R.oeffentlich(db, e)          # Referee Board: oeffentliche Korrekturen (16.11.2026)
     out["referee"] = R.darf(db, user, t, e)
+    # Teilnehmer duerfen Laeufe anderer zur Pruefung melden — bis zum Festschreiben (16.11.2026).
+    out["melden"] = {"erlaubt": R.melden_offen(e) and R.in_wertung(db, t, e, user.id),
+                     "gemeldet": R.gemeldete(db, e, nur_offen=True), "gesperrt": R.gemeldete(db, e), "ich": user.id}
     if T.ist_global(e):
         out["mein_team"] = _mein_team(db, e, user.id)   # primaeres Team / Wahl je Event (10.11.2026)
         # „Du bist angetreten für …" (Jan, 11.11.2026): nach dem Ende bzw. wenn die Teamwahl zu ist. Aus der Zuordnung des
@@ -727,6 +730,55 @@ def _korrektur(db: Session, e: models.TeamEvent, kid: int) -> models.EventKorrek
     if k is None or k.event_id != e.id:
         raise _404()
     return k
+
+
+class MeldungIn(BaseModel):
+    session_id: int
+    run_idx: int
+    grund: str
+    text: str | None = Field(None, max_length=1000)
+
+
+@router.post("/{slug}/events/{event_id}/melden")
+def lauf_melden(slug: str, event_id: int, body: MeldungIn, user: models.User = Depends(current_user),
+                db: Session = Depends(get_db)) -> dict:
+    """Teilnehmer markiert einen Lauf eines ANDEREN Fahrers zur Pruefung (Entwurf im Referee Board), s. referee.py."""
+    from .. import event_laeufe as EL, referee as R
+    t = db.query(models.Team).filter(models.Team.slug == slug, models.Team.geloescht_am.is_(None)).first()
+    if t is None:
+        raise _404()
+    e = _event(db, t, event_id)
+    if not R.melden_offen(e):
+        raise HTTPException(status.HTTP_409_CONFLICT, "melden_vorbei")
+    if body.grund not in R.GRUENDE:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "grund")
+    if not R.in_wertung(db, t, e, user.id):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "nicht_in_wertung")
+    s = db.get(models.Session, body.session_id)
+    if s is None or s.deleted or s.result is None:
+        raise _404()
+    if s.user_id == user.id:
+        raise HTTPException(status.HTTP_409_CONFLICT, "eigener_lauf")
+    # Nur Laeufe, die in einer Bestenliste des Events stehen.
+    if not any(z.get("session_id") == s.id and z.get("run_idx") == body.run_idx
+               for tf in T._event_voll(db, t, e) for z in tf.get("zeilen") or []):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "kein_lauf")
+    laeufe = EL._laeufe(s.started_at, s.result.segments_json)
+    g = next((g for k, _a, _b, g in laeufe if k == body.run_idx), None)
+    if g is None or g.get("t_start_session_ms") is None:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "kein_lauf")
+    start_ms = int(g["t_start_session_ms"])
+    K = models.EventKorrektur
+    if any(abs(k.lauf_start_ms - start_ms) <= R.TOLERANZ_MS for k in db.query(K).filter(K.event_id == e.id, K.session_id == s.id)):
+        raise HTTPException(status.HTTP_409_CONFLICT, "schon_gemeldet")   # einmal je Lauf, egal von wem
+    if db.query(K).filter(K.event_id == e.id, K.erstellt_von == user.id, K.von_teilnehmer.is_(True)).count() >= R.MELDUNGEN_MAX:
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "zu_viele")
+    text = (body.text or "").strip()
+    db.add(K(event_id=e.id, session_id=s.id, user_id=s.user_id, lauf_start_ms=start_ms, grund=body.grund, status="entwurf",
+             erstellt_von=user.id, von_teilnehmer=True, notiz_intern=text or None))
+    db.commit()
+    R.referees_benachrichtigen(db, t, e, ausser=user.id)
+    return {"ok": True, "gemeldet": R.gemeldete(db, e, nur_offen=True), "gesperrt": R.gemeldete(db, e)}
 
 
 @router.get("/{slug}/events/{event_id}/referee")

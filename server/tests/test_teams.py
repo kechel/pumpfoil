@@ -1249,3 +1249,45 @@ def test_referee_nach_festschreiben_frist(client, monkeypatch):
     e.eingefroren_am = jetzt - timedelta(hours=25); db.commit(); db.close()            # Frist abgelaufen
     assert client.patch(url, headers=adm1, json={"status": "aufgehoben"}).status_code == 409
     assert client.patch(url, headers=adm1, json={"kommentar_oeffentlich": "spaet"}).status_code == 409   # auch Kommentar
+
+
+def test_teilnehmer_melden_einmal_je_lauf(client, monkeypatch):
+    """Teilnehmer markieren Laeufe ANDERER zur Pruefung (16.11.2026): Entwurf im Board, nur einmal je Lauf, nicht den eigenen,
+    nur wer in der Wertung steht, nur bis zum Festschreiben."""
+    from app import models, teams as T
+    from app.db import SessionLocal
+    monkeypatch.setenv("EVENT_JE_LAUF", "1")
+    db = SessionLocal()
+    db.query(models.RateEvent).delete()
+    db.commit()
+    db.close()
+    adm = _admin(client, "mel-adm@t.de")
+    (_io, ko) = _konto(client, "mel-off@t.de", "Mel Offiziell")
+    (ia, ka), (ib, kb), (ic, kc) = (_konto(client, "mel-a@t.de", "Mel Anna"), _konto(client, "mel-b@t.de", "Mel Bert"),
+                                    _konto(client, "mel-c@t.de", "Mel Carl"))
+    offiziell = _team(client, ko, "Mel Offiziell Team")
+    monkeypatch.setenv("TEAM_GLOBAL", offiziell)
+    _freigeben(client, adm, ko, offiziell)
+    sa = _session(ia, 300, tage=1, dist=150.0)
+    _session(ib, 300, tage=1, dist=120.0)
+    jetzt = datetime.now(timezone.utc)
+    eid = client.post(f"/api/teams/{offiziell}/events", headers=ko, json={
+        "titel": "Mel", "start": (jetzt - timedelta(days=3)).isoformat(), "ende": (jetzt + timedelta(days=1)).isoformat(),
+        "tafeln": [{"kennzahl": "distance", "accel_only": False}], "global_event": True}).json()["id"]
+    T._cache.clear()
+    ev = client.get(f"/api/teams/{offiziell}/events/{eid}", headers=kb).json()
+    assert ev["melden"]["erlaubt"] is True
+    assert client.get(f"/api/teams/{offiziell}/events/{eid}", headers=kc).json()["melden"]["erlaubt"] is False   # nicht in Wertung
+    z = next(r for r in ev["tafeln"][0]["zeilen"] if r["name"] == "Mel Anna")
+    url = f"/api/teams/{offiziell}/events/{eid}/melden"
+    body = {"session_id": sa, "run_idx": z["run_idx"], "grund": "andere_sportart", "text": "sieht nach Wing aus"}
+    assert client.post(url, headers=ka, json=body).status_code == 409                # eigener Lauf
+    assert client.post(url, headers=kc, json=body).status_code == 403                # nicht in der Wertung
+    r = client.post(url, headers=kb, json=body)
+    assert r.status_code == 200 and [sa, z["run_idx"]] in r.json()["gemeldet"] and [sa, z["run_idx"]] in r.json()["gesperrt"]
+    assert client.post(url, headers=kb, json=body).status_code == 409                # nur einmal je Lauf
+    board = client.get(f"/api/teams/{offiziell}/events/{eid}/referee", headers=adm).json()
+    k = board["korrekturen"][0]
+    assert k["status"] == "entwurf" and k["von_teilnehmer"] and k["notiz_intern"] == "sieht nach Wing aus"
+    db = SessionLocal(); e = db.get(models.TeamEvent, eid); e.ende = jetzt - timedelta(hours=5); db.commit(); db.close()
+    assert client.post(url, headers=kb, json={**body, "run_idx": 0}).status_code == 409   # nach Ende + 4 h vorbei

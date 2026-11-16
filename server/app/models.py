@@ -2218,6 +2218,8 @@ class EventKorrektur(Base):
     abgeschlossen_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     wirkung_json: Mapped[str | None] = mapped_column(Text)    # Werte des Fahrers vorher/nachher je Bestenliste (beim Veroeffentlichen)
     bearbeitet_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))   # oeffentl. Kommentar nach Veroeffentlichung geaendert
+    # Von einem Teilnehmer zur Pruefung gemeldet (16.11.2026): erstellt_von ist dann der Melder, nicht ein Referee.
+    von_teilnehmer: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
 
 
 class EventKorrekturKommentar(Base):

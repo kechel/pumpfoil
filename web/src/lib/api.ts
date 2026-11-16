@@ -2276,6 +2276,8 @@ export const api = {
     req<RefereeKorrektur>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/referee`, { method: "POST", body: JSON.stringify(body) }),
   refereeAendern: (slug: string, id: number | string, kid: number, body: { grund?: string; kommentar_oeffentlich?: string; notiz_intern?: string; status?: string }) =>
     req<RefereeKorrektur>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/referee/${kid}`, { method: "PATCH", body: JSON.stringify(body) }),
+  teamEventMelden: (slug: string, id: number | string, body: { session_id: number; run_idx: number; grund: string; text?: string }) =>
+    req<{ ok: boolean; gemeldet: number[][]; gesperrt: number[][] }>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/melden`, { method: "POST", body: JSON.stringify(body) }),
   refereeKommentar: (slug: string, id: number | string, kid: number, text: string) =>
     req<RefereeKorrektur>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/referee/${kid}/kommentare`, { method: "POST", body: JSON.stringify({ text }) }),
   teamPrimaer: (slug: string) => req<{ primaer: string }>(`/api/teams/${encodeURIComponent(slug)}/primaer`, { method: "PUT" }),
@@ -2425,7 +2427,7 @@ export interface RefereeKorrektur {
   abgeschlossen_am: string | null; bearbeitet_am?: string | null;
   wirkung: null | { vorher: Record<string, { rang: number; value: number } | null>; nachher: Record<string, { rang: number; value: number } | null> };
   // nur im Board (intern)
-  notiz_intern?: string | null; erstellt_von?: string | null; erstellt_von_id?: number; erstellt_am?: string | null;
+  notiz_intern?: string | null; erstellt_von?: string | null; erstellt_von_id?: number; erstellt_am?: string | null; von_teilnehmer?: boolean;
   bestaetigt_von?: string | null; abgeschlossen_von?: string | null;
   kommentare?: { id: number; von: string; user_id: number; text: string; am: string }[];
 }
@@ -2442,6 +2444,8 @@ export interface TeamEvent {
   /** Referee Board (16.11.2026): oeffentliche Korrekturen + ob der Betrachter Referee ist. */
   korrekturen?: RefereeKorrektur[];
   referee?: boolean;
+  /** Teilnehmer duerfen Laeufe anderer zur Pruefung melden (bis zum Festschreiben); gemeldet = [[session_id, run_idx]]. */
+  melden?: { erlaubt: boolean; gemeldet: number[][]; gesperrt: number[][]; ich: number };
   /** Filter „Wertungsklasse" (10.11.2026): angebotene Klassen mit Anzahl (leer = kein Filter), aktive Klasse */
   klassen?: Record<string, number>; klasse?: string | null;
   id: number; titel: string; beschreibung: string | null; start: string; ende: string; zeitzone: string | null;

@@ -261,6 +261,8 @@ function EventTeilen({ url, titel, t }: { url: string; titel: string; t: (k: str
 export default function TeamEventSeite() {
   const { slug = "", id = "" } = useParams();
   const { t, lang } = useI18n();
+  // Lauf eines anderen Fahrers zur Pruefung melden (16.11.2026): Pop-up mit Grund und optionalem Hinweis.
+  const [laufMeldung, setLaufMeldung] = useState<null | { z: TeamTafelMitZeilen["zeilen"][number]; kennzahl: string }>(null);
   const gast = !getToken();
   const globalAus = useGlobalAus();
   const [team, setTeam] = useState<(TeamAuftritt & { id: number; bestenlisten_oeffentlich?: boolean; meine_rolle?: TeamRolle | null;
@@ -451,6 +453,13 @@ export default function TeamEventSeite() {
           </Link>
         )}
       </div>
+      {laufMeldung && ev.melden && (
+        <MeldenDialog z={laufMeldung.z} t={t} onClose={() => setLaufMeldung(null)} onSenden={async (grund, text) => {
+          const r = await api.teamEventMelden(team.slug, ev.id, { session_id: laufMeldung.z.session_id!, run_idx: laufMeldung.z.run_idx!, grund, text });
+          setEv((x) => x && x.melden ? { ...x, melden: { ...x.melden, gemeldet: r.gemeldet, gesperrt: r.gesperrt } } : x);
+          setLaufMeldung(null);
+        }} />
+      )}
       {/* Oeffentliche Korrekturen des Referees: was geaendert wurde, mit Grund und oeffentlichem Kommentar (Jan, 16.11.2026). */}
       {(ev.korrekturen ?? []).length > 0 && (
         <div className="mb-4 rounded-2xl border-2 border-fuchsia-500/60 p-3">
@@ -552,7 +561,8 @@ export default function TeamEventSeite() {
                 es zeigt nur, was die Seite ohnehin geladen hat — Gaeste also in Gastform (Rang, Name, Wert, Wappen). */}
             {ev.status === "beendet" && <EventPodest evId={ev.id} tf={tf0} global={!!ev.global} t={t} />}
             <div className={`grid grid-cols-1 gap-3 ${ev.global ? "sm:grid-cols-2" : ""}`}>
-              <Tafel tf={tf} gast={gast} t={t} teamsZeigen={!!ev.global} ohneFilter sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} standText={standText} />
+              <Tafel tf={tf} gast={gast} t={t} teamsZeigen={!!ev.global} ohneFilter
+                melden={!gast && ev.melden ? { ...ev.melden, onMelden: (z) => setLaufMeldung({ z, kennzahl: tf.kennzahl }) } : undefined} sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} standText={standText} />
               {ev.global && <TeamWertung tf={tf} n={ev.team_wertung_n ?? 5} t={t} eigeneSlugs={meineTeams.map((x) => x.slug)} standText={standText}
                 onBild={gast ? undefined : () => setBildTeams(tf0)} />}
             </div>
@@ -620,6 +630,47 @@ export default function TeamEventSeite() {
         dateiBasis={dateiTeil(ev.titel) || `event-${ev.id}`} teamsZeigen={!!ev.global}
         ohneLogo={!!ev.global} eventZeile={[ev.titel, eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang, true)]}
         abzeichen={ev.status === "laeuft" || ev.status === "auswertung" ? t(`team.event.status.${ev.status}`) : null} />}
+    </div>
+  );
+}
+
+
+const MELDE_GRUENDE = ["andere_sportart", "messfehler", "doppelte_aufnahme", "fremdkraft", "ausserhalb_fenster", "sonstiges"];
+
+function MeldenDialog({ z, t, onClose, onSenden }: {
+  z: TeamTafelMitZeilen["zeilen"][number]; t: (k: string, p?: Record<string, string | number>) => string;
+  onClose: () => void; onSenden: (grund: string, text: string) => Promise<void>;
+}) {
+  const [grund, setGrund] = useState(MELDE_GRUENDE[0]);
+  const [text, setText] = useState("");
+  const [fehler, setFehler] = useState<string | null>(null);
+  const [laeuft, setLaeuft] = useState(false);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div className="w-full max-w-md space-y-3 rounded-2xl bg-slate-900 p-5" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-lg font-bold text-slate-100">{t("ref.meldenTitel")}</h3>
+        <p className="text-sm text-slate-300">{z.name} · {t("ref.lauf", { n: (z.run_idx ?? 0) + 1 })}</p>
+        <div className="space-y-1">
+          {MELDE_GRUENDE.map((g) => (
+            <label key={g} className="flex items-center gap-2 text-sm text-slate-200">
+              <input type="radio" checked={grund === g} onChange={() => setGrund(g)} /> {t(`ref.grund.${g}`)}
+            </label>
+          ))}
+        </div>
+        <textarea value={text} onChange={(e) => setText(e.target.value)} rows={2} maxLength={1000} placeholder={t("ref.meldenText")}
+          className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100" />
+        <p className="text-xs text-slate-400">{t("ref.meldenHinweis")}</p>
+        {fehler && <p className="text-sm text-red-700 dark:text-red-300">{fehler}</p>}
+        <div className="flex justify-end gap-2">
+          <button onClick={onClose} className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-semibold text-slate-200 hover:bg-slate-700">{t("common.cancel")}</button>
+          <button disabled={laeuft} onClick={async () => {
+            setLaeuft(true);
+            try { await onSenden(grund, text.trim()); }
+            catch (e: any) { const c = /"detail":"([a-z_]+)"/.exec(String(e?.message))?.[1]; setFehler(c ? t(`ref.fehler.${c}`) : String(e?.message ?? e)); }
+            finally { setLaeuft(false); }
+          }} className="rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-40">{t("ref.meldenSenden")}</button>
+        </div>
+      </div>
     </div>
   );
 }

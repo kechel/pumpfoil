@@ -91,6 +91,53 @@ def ist_ausgenommen(aus: frozenset | None, session_id: int, lauf_start_ms: float
     return any(sid == session_id and abs(ms - lauf_start_ms) <= TOLERANZ_MS for sid, ms in aus)
 
 
+# ---------------------------------------------------------------------------------------- Teilnehmer melden ----
+# Jan, 16.11.2026: wer in der Wertung steht, darf Laeufe ANDERER zur Pruefung markieren — als Entwurf im Board, nur einmal je
+# Lauf (gibt es schon irgendeine Korrektur dazu, ist er gesperrt), nur bis zum Festschreiben (Ende + 4 h; die 24 h danach
+# gehoeren den Referees), hoechstens MELDUNGEN_MAX je Teilnehmer und Event.
+MELDUNGEN_MAX = 10
+
+
+def melden_offen(e: models.TeamEvent) -> bool:
+    from . import teams as T
+    return e.eingefroren_am is None and _jetzt() < _aware(e.ende) + T.EINFRIEREN_NACH
+
+
+def in_wertung(db: Session, t: models.Team, e: models.TeamEvent, uid: int) -> bool:
+    from . import teams as T
+    return any(z.get("user_id") == uid for tf in T._event_voll(db, t, e) for z in tf.get("zeilen") or [])
+
+
+def gemeldete(db: Session, e: models.TeamEvent, nur_offen: bool = False) -> list[list[int]]:
+    """[[session_id, run_idx]] der Laeufe mit einer Korrektur. Alle Status = gesperrt fuer weitere Meldungen;
+    `nur_offen` (entwurf/offen) = „wird geprueft" an der Zeile."""
+    K = models.EventKorrektur
+    out = []
+    q = db.query(K).filter(K.event_id == e.id)
+    if nur_offen:
+        q = q.filter(K.status.in_(("entwurf", "offen")))
+    for k in q.all():
+        idx = korrektur_out(db, k, intern=False).get("run_idx")
+        if idx is not None:
+            out.append([k.session_id, idx])
+    return out
+
+
+def referees_benachrichtigen(db: Session, t: models.Team, e: models.TeamEvent, ausser: int) -> None:
+    from .push import push_enabled, send_push
+    try:
+        if not push_enabled():
+            return
+        for uid in referee_ids(db, t, e) - {ausser}:
+            u = db.get(models.User, uid)
+            de = ((getattr(u, "language", None) or "en").lower()).startswith(("de", "gsw"))
+            send_push(db, uid, "Pumpfoil", (f"Neue Prüfbitte im Referee Board: „{e.titel}“" if de
+                                            else f"New review request in the referee board: “{e.titel}”"),
+                      f"/teams/{t.slug}/events/{e.id}/referee")
+    except Exception:  # noqa: BLE001
+        log.exception("Referee-Hinweis Event %s", e.id)
+
+
 # ------------------------------------------------------------------------------------------------- Ausgabe ----
 
 def korrektur_out(db: Session, k: models.EventKorrektur, intern: bool) -> dict:
@@ -115,6 +162,7 @@ def korrektur_out(db: Session, k: models.EventKorrektur, intern: bool) -> dict:
         out["run_idx"] = idx
     if intern:
         out.update({"notiz_intern": k.notiz_intern, "erstellt_von": namen.get(k.erstellt_von),
+                    "von_teilnehmer": bool(k.von_teilnehmer),
                     "erstellt_von_id": k.erstellt_von, "erstellt_am": k.erstellt_am.isoformat() if k.erstellt_am else None,
                     "bestaetigt_von": namen.get(k.bestaetigt_von) if k.bestaetigt_von else None,
                     "abgeschlossen_von": namen.get(k.abgeschlossen_von) if k.abgeschlossen_von else None,

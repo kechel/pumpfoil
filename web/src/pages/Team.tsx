@@ -12,7 +12,7 @@ import { Avatar, Card } from "../components/ui";
 import { Flagge } from "../components/Flagge";
 import { SportAbzeichen } from "../components/SportAbzeichen";
 import { sportLabel } from "../lib/sportClass";
-import { ChatBubbleIcon, SettingsIcon, ShareIcon } from "../components/Icons";
+import { ChatBubbleIcon, FlagIcon, SettingsIcon, ShareIcon } from "../components/Icons";
 import TeamTafelBild from "../components/TeamTafelBild";
 import TeamQr from "../components/TeamQr";
 import { Reiterleiste, useReiter } from "../components/Reiter";
@@ -177,7 +177,7 @@ function Logbuch({ eintraege, t, zurueck }: { eintraege: TeamLogbuchEintrag[]; t
   );
 }
 
-export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZeigen = false, standText, teamsZeigen = false }: {
+export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZeigen = false, standText, teamsZeigen = false, melden }: {
   tf: TeamTafelMitZeilen; gast: boolean; t: (k: string, p?: Record<string, string>) => string; onBild?: () => void;
   /** Sportart als Marke neben der Ueberschrift — wenn die Bestenlisten verschiedene Sportarten haben (Jan, 02.11.2026:
    * „in den kacheln fehlt die anzeige welche sportart jeweils gemeint ist"). */
@@ -190,6 +190,8 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
   standText?: string | null;
   /** Globale Events: Spalte mit den Team-Wappen, Teamname beim Darueberfahren (Jan, 07.11.2026). */
   teamsZeigen?: boolean;
+  /** Events (16.11.2026): Teilnehmer markieren Laeufe anderer zur Pruefung; gemeldete zeigen „wird geprueft". */
+  melden?: { erlaubt: boolean; gemeldet: number[][]; gesperrt: number[][]; ich: number; onMelden: (z: TeamTafelMitZeilen["zeilen"][number]) => void };
 }) {
   const k = kennzahl(tf.kennzahl);
   const filter = [
@@ -260,6 +262,17 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
                     </span>
                   )}
                 </span>
+                {melden && z.session_id && z.run_idx != null && z.user_id !== melden.ich && (
+                  melden.gemeldet.some(([s, r]) => s === z.session_id && r === z.run_idx) ? (
+                    <span className="relative z-10 shrink-0 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
+                      {t("ref.wirdGeprueft")}</span>
+                  ) : melden.erlaubt && !melden.gesperrt.some(([s, r]) => s === z.session_id && r === z.run_idx) ? (
+                    <button onClick={() => melden.onMelden(z)} title={t("ref.meldenTitel")} aria-label={t("ref.meldenTitel")}
+                      className="relative z-10 shrink-0 rounded-md p-1 text-slate-500 hover:bg-amber-500/15 hover:text-amber-700 dark:hover:text-amber-300">
+                      <FlagIcon className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null
+                )}
                 <span className="shrink-0 text-sm font-semibold text-slate-100">{wert}</span>
               </li>
             );

@@ -240,6 +240,7 @@ function KorrekturKarte({ k, b, slug, id, aktion }: {
         <span className="font-semibold text-slate-100">{k.fahrer}</span>
         <Link to={`/sessions/${k.session_id}${k.run_idx != null ? `?run=${k.run_idx}` : ""}`} className="text-sm text-brand-700 hover:underline dark:text-brand-300">{lauf}</Link>
         <span className="text-sm text-slate-300">· {t(`ref.grund.${k.grund}`)}</span>
+        {k.von_teilnehmer && <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">{t("ref.vonTeilnehmer", { von: k.erstellt_von ?? "" })}</span>}
         <span className="ml-auto text-xs text-slate-500">{t("ref.erstellt", { von: k.erstellt_von ?? "", am: zeit(k.erstellt_am, lang) })}
           {k.bearbeitet_am ? ` · ${t("ref.bearbeitetAm", { am: zeit(k.bearbeitet_am, lang) })}` : ""}</span>
       </div>
