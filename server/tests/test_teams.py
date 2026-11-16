@@ -1202,7 +1202,9 @@ def test_referee_board_vier_augen_und_wirkung(client, monkeypatch):
     assert wert() == 75.0                                                      # naechstbester Lauf (rest = 75 m)
     oeff = client.get(f"/api/teams/{offiziell}/events/{eid}", headers=ka).json()["korrekturen"]
     assert oeff[0]["kommentar_oeffentlich"] == "GPS-Sprung" and "notiz_intern" not in oeff[0]
-    assert client.patch(url, headers=adm1, json={"kommentar_oeffentlich": "x"}).status_code == 409   # nicht mehr aenderbar
+    assert client.patch(url, headers=adm1, json={"grund": "sonstiges"}).status_code == 409          # Grund fest
+    b = client.patch(url, headers=adm1, json={"kommentar_oeffentlich": "GPS-Sprung bei 1:20"}).json()   # Kommentar: ja
+    assert b["bearbeitet_am"] and b["kommentare"][-1]["text"].startswith("[oeffentlich vorher] GPS-Sprung")
     assert client.patch(url, headers=adm1, json={"status": "aufgehoben"}).json()["status"] == "aufgehoben"
     assert wert() == 150.0
 
@@ -1246,3 +1248,4 @@ def test_referee_nach_festschreiben_frist(client, monkeypatch):
     assert e.eingefroren_am == fest
     e.eingefroren_am = jetzt - timedelta(hours=25); db.commit(); db.close()            # Frist abgelaufen
     assert client.patch(url, headers=adm1, json={"status": "aufgehoben"}).status_code == 409
+    assert client.patch(url, headers=adm1, json={"kommentar_oeffentlich": "spaet"}).status_code == 409   # auch Kommentar

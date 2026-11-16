@@ -716,6 +716,8 @@ const gsw: Record<string, string> = {
   "ref.kommentarPlatzhalter": "Kommentar für die anderen Referees…",
   "ref.senden": "Schicke",
   "ref.oeffentlichTitel": "Korrekturen des Referees",
+  "ref.bearbeitetAm": "bearbeitet am {am}",
+  "ref.grundFest": "De Grund isch nach em Veröffentliche fix; zum Ändere d Korrektur ufhebe und neu aalege.",
   "ref.fehler.uebergang": "Dieser Schritt ist aus dem aktuellen Status nicht möglich.",
   "ref.fehler.frist_abgelaufen": "Der Endstand steht fest, das wirkt nicht mehr.",
   "ref.fehler.nicht_mehr_aenderbar": "Veröffentlichte oder erledigte Korrekturen sind nicht mehr änderbar.",

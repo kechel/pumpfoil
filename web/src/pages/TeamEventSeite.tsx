@@ -464,7 +464,8 @@ export default function TeamEventSeite() {
                 {" · "}{t(`ref.grund.${k.grund}`)}
                 {k.kommentar_oeffentlich && <> — {k.kommentar_oeffentlich}</>}
                 {k.status === "aufgehoben" && <span className="ml-1 no-underline">({t("ref.status.aufgehoben")})</span>}
-                <span className="ml-1 text-xs text-slate-500">{k.veroeffentlicht_am ? new Date(k.veroeffentlicht_am).toLocaleDateString(lang) : ""}</span>
+                <span className="ml-1 text-xs text-slate-500">{k.veroeffentlicht_am ? new Date(k.veroeffentlicht_am).toLocaleDateString(lang) : ""}
+                  {k.bearbeitet_am ? ` · ${t("ref.bearbeitetAm", { am: new Date(k.bearbeitet_am).toLocaleDateString(lang) })}` : ""}</span>
               </li>
             ))}
           </ul>

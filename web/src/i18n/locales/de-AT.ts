@@ -677,6 +677,8 @@ const deAT: Record<string, string> = {
   "ref.kommentarPlatzhalter": "Kommentar für die anderen Referees…",
   "ref.senden": "Senden",
   "ref.oeffentlichTitel": "Korrekturen des Referees",
+  "ref.bearbeitetAm": "bearbeitet am {am}",
+  "ref.grundFest": "Der Grund steht nach dem Veröffentlichen fest; zum Ändern die Korrektur aufheben und neu anlegen.",
   "ref.fehler.uebergang": "Dieser Schritt ist aus dem aktuellen Status nicht möglich.",
   "ref.fehler.frist_abgelaufen": "Der Endstand steht fest, das wirkt nicht mehr.",
   "ref.fehler.nicht_mehr_aenderbar": "Veröffentlichte oder erledigte Korrekturen sind nicht mehr änderbar.",

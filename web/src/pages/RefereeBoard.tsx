@@ -158,17 +158,19 @@ export default function RefereeBoard() {
   );
 }
 
-function Felder({ b, grund, setGrund, oeff, setOeff, intern, setIntern }: {
+function Felder({ b, grund, setGrund, oeff, setOeff, intern, setIntern, grundFest = false }: {
   b: Board; grund: string; setGrund: (v: string) => void; oeff: string; setOeff: (v: string) => void; intern: string; setIntern: (v: string) => void;
+  grundFest?: boolean;
 }) {
   const { t } = useI18n();
   const feld = "w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-1.5 text-sm text-slate-100";
   return (
     <div className="space-y-2">
       <label className="block text-sm font-semibold text-slate-200">{t("ref.feldGrund")}
-        <select value={grund} onChange={(e) => setGrund(e.target.value)} className={`${feld} mt-1`}>
+        <select value={grund} disabled={grundFest} onChange={(e) => setGrund(e.target.value)} className={`${feld} mt-1 disabled:opacity-60`}>
           {b.gruende.map((g) => <option key={g} value={g}>{t(`ref.grund.${g}`)}</option>)}
         </select>
+        {grundFest && <span className="mt-1 block text-xs font-normal text-slate-400">{t("ref.grundFest")}</span>}
       </label>
       <label className="block text-sm font-semibold text-slate-200">{t("ref.feldOeffentlich")}
         <textarea value={oeff} onChange={(e) => setOeff(e.target.value)} rows={2} maxLength={1000} className={`${feld} mt-1`} />
@@ -225,7 +227,8 @@ function KorrekturKarte({ k, b, slug, id, aktion }: {
   const [frage, setFrage] = useState<null | "veroeffentlicht" | "aufgehoben">(null);
   const status = (s: string) => aktion(api.refereeAendern(slug, id, k.id, { status: s }));
   const lauf = k.run_idx != null ? t("ref.lauf", { n: k.run_idx + 1 }) : t("ref.session");
-  const aenderbar = k.status === "entwurf" || k.status === "offen";
+  // Veroeffentlicht: Kommentar/Notiz innerhalb der Frist aenderbar (Jan, 16.11.2026), Grund bleibt fest.
+  const aenderbar = k.status === "entwurf" || k.status === "offen" || (k.status === "veroeffentlicht" && b.wirkung_erlaubt);
   return (
     <Card className="space-y-3 p-4">
       <div className="flex flex-wrap items-center gap-2">
@@ -233,15 +236,18 @@ function KorrekturKarte({ k, b, slug, id, aktion }: {
         <span className="font-semibold text-slate-100">{k.fahrer}</span>
         <Link to={`/sessions/${k.session_id}${k.run_idx != null ? `?run=${k.run_idx}` : ""}`} className="text-sm text-brand-700 hover:underline dark:text-brand-300">{lauf}</Link>
         <span className="text-sm text-slate-300">· {t(`ref.grund.${k.grund}`)}</span>
-        <span className="ml-auto text-xs text-slate-500">{t("ref.erstellt", { von: k.erstellt_von ?? "", am: zeit(k.erstellt_am, lang) })}</span>
+        <span className="ml-auto text-xs text-slate-500">{t("ref.erstellt", { von: k.erstellt_von ?? "", am: zeit(k.erstellt_am, lang) })}
+          {k.bearbeitet_am ? ` · ${t("ref.bearbeitetAm", { am: zeit(k.bearbeitet_am, lang) })}` : ""}</span>
       </div>
 
       {bearbeiten ? (
         <>
-          <Felder b={b} grund={grund} setGrund={setGrund} oeff={oeff} setOeff={setOeff} intern={intern} setIntern={setIntern} />
+          <Felder b={b} grund={grund} setGrund={setGrund} oeff={oeff} setOeff={setOeff} intern={intern} setIntern={setIntern}
+            grundFest={k.status === "veroeffentlicht"} />
           <div className="flex justify-end gap-2">
             <button onClick={() => setBearbeiten(false)} className={KNOPF_GRAU}>{t("common.cancel")}</button>
-            <button onClick={async () => { await aktion(api.refereeAendern(slug, id, k.id, { grund, kommentar_oeffentlich: oeff, notiz_intern: intern })); setBearbeiten(false); }}
+            <button onClick={async () => { await aktion(api.refereeAendern(slug, id, k.id, k.status === "veroeffentlicht"
+              ? { kommentar_oeffentlich: oeff, notiz_intern: intern } : { grund, kommentar_oeffentlich: oeff, notiz_intern: intern })); setBearbeiten(false); }}
               className={KNOPF_BLAU}>{t("ref.speichern")}</button>
           </div>
         </>

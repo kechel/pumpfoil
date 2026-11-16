@@ -902,6 +902,8 @@ const en: Record<string, string> = {
   "ref.kommentarPlatzhalter": "Comment for the other referees…",
   "ref.senden": "Send",
   "ref.oeffentlichTitel": "Referee corrections",
+  "ref.bearbeitetAm": "edited {am}",
+  "ref.grundFest": "The reason stays fixed after publishing; to change it, withdraw this correction and create a new one.",
   "ref.fehler.uebergang": "This step is not possible from the current status.",
   "ref.fehler.frist_abgelaufen": "The final standings are fixed, this no longer takes effect.",
   "ref.fehler.nicht_mehr_aenderbar": "Published or closed corrections can no longer be edited.",

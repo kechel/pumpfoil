@@ -2422,7 +2422,7 @@ export type RefereeStatus = "entwurf" | "offen" | "veroeffentlicht" | "abgelehnt
 export interface RefereeKorrektur {
   id: number; status: RefereeStatus; session_id: number; user_id: number; fahrer: string | null; lauf_start_ms: number;
   run_idx?: number | null; grund: string; kommentar_oeffentlich: string | null; veroeffentlicht_am: string | null;
-  abgeschlossen_am: string | null;
+  abgeschlossen_am: string | null; bearbeitet_am?: string | null;
   wirkung: null | { vorher: Record<string, { rang: number; value: number } | null>; nachher: Record<string, { rang: number; value: number } | null> };
   // nur im Board (intern)
   notiz_intern?: string | null; erstellt_von?: string | null; erstellt_von_id?: number; erstellt_am?: string | null;

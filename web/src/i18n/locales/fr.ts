@@ -770,6 +770,8 @@ const fr: Record<string, string> = {
   "ref.kommentarPlatzhalter": "Commentaire pour les autres referees…",
   "ref.senden": "Envoyer",
   "ref.oeffentlichTitel": "Corrections du referee",
+  "ref.bearbeitetAm": "modifiée le {am}",
+  "ref.grundFest": "Le motif est figé après publication ; pour le changer, annule la correction et crées-en une nouvelle.",
   "ref.fehler.uebergang": "Cette étape n'est pas possible depuis le statut actuel.",
   "ref.fehler.frist_abgelaufen": "Le classement final est figé, cela ne s'applique plus.",
   "ref.fehler.nicht_mehr_aenderbar": "Les corrections publiées ou clôturées ne sont plus modifiables.",

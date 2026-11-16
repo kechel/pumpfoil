@@ -860,6 +860,8 @@ const ja: Record<string, string> = {
   "ref.kommentarPlatzhalter": "他のrefereeへのコメント…",
   "ref.senden": "送信",
   "ref.oeffentlichTitel": "refereeによる修正",
+  "ref.bearbeitetAm": "{am} に編集",
+  "ref.grundFest": "公開後は理由を変更できません。変更するには修正を取り消し、新しく作成してください。",
   "ref.fehler.uebergang": "現在の状態からはこの操作はできません。",
   "ref.fehler.frist_abgelaufen": "最終結果は確定済みのため、反映されません。",
   "ref.fehler.nicht_mehr_aenderbar": "公開済みまたは完了した修正は編集できません。",

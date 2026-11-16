@@ -884,6 +884,8 @@ const nl: Record<string, string> = {
   "ref.kommentarPlatzhalter": "Opmerking voor de andere referees…",
   "ref.senden": "Versturen",
   "ref.oeffentlichTitel": "Correcties van de referee",
+  "ref.bearbeitetAm": "bewerkt op {am}",
+  "ref.grundFest": "De reden ligt vast na publicatie; om te wijzigen de correctie intrekken en een nieuwe aanmaken.",
   "ref.fehler.uebergang": "Deze stap kan niet vanuit de huidige status.",
   "ref.fehler.frist_abgelaufen": "De eindstand staat vast, dit geldt niet meer.",
   "ref.fehler.nicht_mehr_aenderbar": "Gepubliceerde of afgehandelde correcties zijn niet meer te wijzigen.",

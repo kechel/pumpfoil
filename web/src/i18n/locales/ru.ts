@@ -860,6 +860,8 @@ const ru: Record<string, string> = {
   "ref.kommentarPlatzhalter": "Комментарий для других referees…",
   "ref.senden": "Отправить",
   "ref.oeffentlichTitel": "Исправления referee",
+  "ref.bearbeitetAm": "изменено {am}",
+  "ref.grundFest": "Причина фиксируется после публикации; чтобы изменить, отмените исправление и создайте новое.",
   "ref.fehler.uebergang": "Этот шаг невозможен из текущего статуса.",
   "ref.fehler.frist_abgelaufen": "Итоги закреплены, это больше не действует.",
   "ref.fehler.nicht_mehr_aenderbar": "Опубликованные или закрытые исправления менять нельзя.",

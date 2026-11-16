@@ -860,6 +860,8 @@ const zh: Record<string, string> = {
   "ref.kommentarPlatzhalter": "给其他裁判的备注…",
   "ref.senden": "发送",
   "ref.oeffentlichTitel": "裁判修正",
+  "ref.bearbeitetAm": "编辑于 {am}",
+  "ref.grundFest": "发布后原因不可更改；如需更改，请撤销此修正并新建一条。",
   "ref.fehler.uebergang": "当前状态下无法执行此步骤。",
   "ref.fehler.frist_abgelaufen": "最终成绩已锁定，此操作不再生效。",
   "ref.fehler.nicht_mehr_aenderbar": "已发布或已结束的修正无法再编辑。",

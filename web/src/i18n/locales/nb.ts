@@ -876,6 +876,8 @@ const nb: Record<string, string> = {
   "ref.kommentarPlatzhalter": "Kommentar til de andre referees…",
   "ref.senden": "Send",
   "ref.oeffentlichTitel": "Referee-korrigeringer",
+  "ref.bearbeitetAm": "redigert {am}",
+  "ref.grundFest": "Grunnen er låst etter publisering; for å endre, trekk tilbake og opprett en ny korrigering.",
   "ref.fehler.uebergang": "Dette steget er ikke mulig fra nåværende status.",
   "ref.fehler.frist_abgelaufen": "Sluttresultatet er låst, dette gjelder ikke lenger.",
   "ref.fehler.nicht_mehr_aenderbar": "Publiserte eller avsluttede korrigeringer kan ikke endres.",

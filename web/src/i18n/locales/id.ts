@@ -860,6 +860,8 @@ const id: Record<string, string> = {
   "ref.kommentarPlatzhalter": "Komentar untuk referee lain…",
   "ref.senden": "Kirim",
   "ref.oeffentlichTitel": "Koreksi referee",
+  "ref.bearbeitetAm": "diubah {am}",
+  "ref.grundFest": "Alasan terkunci setelah diterbitkan; untuk mengubah, batalkan koreksi dan buat yang baru.",
   "ref.fehler.uebergang": "Langkah ini tidak bisa dari status sekarang.",
   "ref.fehler.frist_abgelaufen": "Hasil akhir sudah dikunci, ini tidak berlaku lagi.",
   "ref.fehler.nicht_mehr_aenderbar": "Koreksi yang terbit atau selesai tidak bisa diubah lagi.",

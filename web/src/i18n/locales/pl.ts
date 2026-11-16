@@ -882,6 +882,8 @@ const pl: Record<string, string> = {
   "ref.kommentarPlatzhalter": "Komentarz dla innych referees…",
   "ref.senden": "Wyślij",
   "ref.oeffentlichTitel": "Korekty referee",
+  "ref.bearbeitetAm": "edytowano {am}",
+  "ref.grundFest": "Powód jest stały po opublikowaniu; aby zmienić, wycofaj korektę i utwórz nową.",
   "ref.fehler.uebergang": "Ten krok nie jest możliwy z obecnego statusu.",
   "ref.fehler.frist_abgelaufen": "Wynik końcowy jest ustalony, to już nie działa.",
   "ref.fehler.nicht_mehr_aenderbar": "Opublikowanych lub zamkniętych korekt nie można już zmieniać.",

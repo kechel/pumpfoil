@@ -884,6 +884,8 @@ const cs: Record<string, string> = {
   "ref.kommentarPlatzhalter": "Komentář pro ostatní referees…",
   "ref.senden": "Odeslat",
   "ref.oeffentlichTitel": "Opravy referee",
+  "ref.bearbeitetAm": "upraveno {am}",
+  "ref.grundFest": "Důvod je po zveřejnění pevný; ke změně opravu zruš a vytvoř novou.",
   "ref.fehler.uebergang": "Tento krok není z aktuálního stavu možný.",
   "ref.fehler.frist_abgelaufen": "Konečné pořadí je uzavřené, už to neplatí.",
   "ref.fehler.nicht_mehr_aenderbar": "Zveřejněné nebo uzavřené opravy už nelze upravit.",

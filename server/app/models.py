@@ -2217,6 +2217,7 @@ class EventKorrektur(Base):
     abgeschlossen_von: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"))   # abgelehnt/aufgehoben von
     abgeschlossen_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     wirkung_json: Mapped[str | None] = mapped_column(Text)    # Werte des Fahrers vorher/nachher je Bestenliste (beim Veroeffentlichen)
+    bearbeitet_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))   # oeffentl. Kommentar nach Veroeffentlichung geaendert
 
 
 class EventKorrekturKommentar(Base):

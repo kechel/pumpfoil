@@ -866,6 +866,8 @@ const fi: Record<string, string> = {
   "ref.kommentarPlatzhalter": "Kommentti muille refereille…",
   "ref.senden": "Lähetä",
   "ref.oeffentlichTitel": "Refereen korjaukset",
+  "ref.bearbeitetAm": "muokattu {am}",
+  "ref.grundFest": "Syy lukittuu julkaisun jälkeen; muuta perumalla korjaus ja luomalla uusi.",
   "ref.fehler.uebergang": "Tämä vaihe ei ole mahdollinen nykyisestä tilasta.",
   "ref.fehler.frist_abgelaufen": "Lopputulos on lukittu, tämä ei enää vaikuta.",
   "ref.fehler.nicht_mehr_aenderbar": "Julkaistuja tai suljettuja korjauksia ei voi muokata.",

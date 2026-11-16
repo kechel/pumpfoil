@@ -781,7 +781,18 @@ def referee_aendern(slug: str, event_id: int, kid: int, body: KorrekturPatch, us
     jetzt = datetime.now(timezone.utc)
     felder = {f: getattr(body, f) for f in ("grund", "kommentar_oeffentlich", "notiz_intern") if getattr(body, f) is not None}
     if felder:
-        if k.status not in ("entwurf", "offen"):
+        # Veroeffentlicht (Jan, 16.11.2026): Kommentar und Notiz bleiben innerhalb der Frist aenderbar — sichtbar als
+        # „bearbeitet am", der alte Text kommt ins interne Protokoll. Grund/Lauf nie: das waere eine andere Korrektur.
+        if k.status == "veroeffentlicht" and "grund" not in felder:
+            if not R.wirkung_erlaubt(e):
+                raise HTTPException(status.HTTP_409_CONFLICT, "frist_abgelaufen")
+            for f, alt_name in (("kommentar_oeffentlich", "oeffentlich"), ("notiz_intern", "intern")):
+                if f in felder and (felder[f] or "").strip() != (getattr(k, f) or ""):
+                    db.add(models.EventKorrekturKommentar(korrektur_id=k.id, user_id=user.id,
+                                                          text=f"[{alt_name} vorher] {getattr(k, f) or '—'}"))
+                    if f == "kommentar_oeffentlich":
+                        k.bearbeitet_am = jetzt
+        elif k.status not in ("entwurf", "offen"):
             raise HTTPException(status.HTTP_409_CONFLICT, "nicht_mehr_aenderbar")
         if "grund" in felder and felder["grund"] not in R.GRUENDE:
             raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "grund")

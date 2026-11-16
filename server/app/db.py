@@ -660,6 +660,7 @@ def _migrate_add_columns() -> None:
                                                # Endstand festhalten (08.11.2026)
                                                "team_zuordnung_json": "TEXT", "spots_fest_json": "TEXT"})
     want["teams"]["land"] = "VARCHAR(10)"        # Team-Herkunft (03.11.2026)
+    want.setdefault("event_korrekturen", {})["bearbeitet_am"] = "TIMESTAMP WITH TIME ZONE"   # Referee (16.11.2026)
     want.setdefault("team_mitglieder", {})["primaer"] = "BOOLEAN DEFAULT FALSE"   # Primaeres Team (10.11.2026)
     want.setdefault("analysis_results", {}).update({"lauf_start_at": "TIMESTAMP WITH TIME ZONE",   # app/laufzeiten.py
                                                     "lauf_ende_at": "TIMESTAMP WITH TIME ZONE"})

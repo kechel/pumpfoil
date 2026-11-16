@@ -102,6 +102,7 @@ def korrektur_out(db: Session, k: models.EventKorrektur, intern: bool) -> dict:
            "lauf_start_ms": k.lauf_start_ms, "grund": k.grund, "kommentar_oeffentlich": k.kommentar_oeffentlich,
            "veroeffentlicht_am": k.veroeffentlicht_am.isoformat() if k.veroeffentlicht_am else None,
            "abgeschlossen_am": k.abgeschlossen_am.isoformat() if k.abgeschlossen_am else None,
+           "bearbeitet_am": k.bearbeitet_am.isoformat() if k.bearbeitet_am else None,
            "wirkung": json.loads(k.wirkung_json) if k.wirkung_json else None}
     s = db.get(models.Session, k.session_id)
     if s is not None:
