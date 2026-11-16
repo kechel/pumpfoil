@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { SupporterBadge } from "../components/SupporterBadge";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket, AdminBewertung, BewertungStatus, AdminTeamFreigabe, AdminMediaReport, AdminMediaPending, AdminMedium } from "../lib/api";
+import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket, AdminBewertung, BewertungStatus, AdminTeamFreigabe, AdminEventVorschlag, AdminMediaReport, AdminMediaPending, AdminMedium } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import { teamFarbStil } from "../lib/teamFarben";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
@@ -116,7 +116,54 @@ export default function Admin() {
 // Das Teambild hier GANZ (nicht im Ausschnitt): der Fokus ist frei waehlbar, also muss das ganze Bild passen.
 // Links die bisher freigegebene Fassung (falls es eine gibt), rechts die neue. Wie die Demo-Zeile ohne
 // Uebersetzung der Inhalte — nur Jan und Admins sehen das.
+// Als globales Event vorgeschlagen (16.11.2026): ansehen (Link zur Eventseite), annehmen oder mit Grund ablehnen.
+// Annehmen macht das Event global; es bleibt beim Team („promoted by"), Titel/Zeitraum/Wertung danach nur noch hier/Admin.
+function EventVorschlaegeAdmin() {
+  const [rows, setRows] = useState<AdminEventVorschlag[] | null>(null);
+  const [notiz, setNotiz] = useState<Record<number, string>>({});
+  const laden = () => api.adminEventVorschlaege().then(setRows).catch(() => setRows([]));
+  useEffect(() => { laden(); }, []);
+  if (!rows?.length) return null;
+  return (
+    <div className="mb-6 space-y-3">
+      <h3 className="text-lg font-bold text-slate-100">Als globales Event vorgeschlagen</h3>
+      {rows.map((r) => (
+        <Card key={r.id} className="p-4">
+          <div className="mb-2 flex items-center gap-3">
+            <TeamWappen name={r.team.name} logo={r.team.logo_url} farbe={r.team.farbe} size={40} />
+            <div className="min-w-0 flex-1">
+              <Link to={`/teams/${r.team.slug}/events/${r.id}`} className="font-semibold text-brand-700 underline dark:text-brand-300">{r.titel}</Link>
+              <p className="text-xs text-slate-400">
+                {r.team.name} · {new Date(r.start).toLocaleString()} – {new Date(r.ende).toLocaleString()}
+                {r.von && <> · vorgeschlagen von <Link to={`/foiler/${r.von.user_id}`} className="underline">{r.von.name ?? r.von.user_id}</Link></>}
+              </p>
+            </div>
+          </div>
+          <p className="mb-2 text-sm text-slate-300">
+            Kennzahlen: {r.kennzahlen.join(", ") || "—"}{r.summen.length ? ` · Summen: ${r.summen.join(", ")}` : ""}
+            {r.sportarten.length ? ` · ${r.sportarten.join(", ")}` : ""}{r.spots.length ? ` · Spots: ${r.spots.map((s) => s.name).join(", ")}` : ""}
+          </p>
+          {r.beschreibung && <p className="mb-2 whitespace-pre-line text-sm text-slate-400">{r.beschreibung}</p>}
+          <input value={notiz[r.id] ?? ""} onChange={(e) => setNotiz({ ...notiz, [r.id]: e.target.value })}
+            placeholder="Notiz an das Team (Pflicht bei Ablehnung)"
+            className="mb-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
+          <div className="flex gap-2">
+            <button onClick={() => api.adminEventVorschlagEntscheiden(r.id, true, notiz[r.id]).then(laden)}
+              className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400">Als global annehmen</button>
+            <button disabled={!(notiz[r.id] ?? "").trim()} onClick={() => api.adminEventVorschlagEntscheiden(r.id, false, notiz[r.id]).then(laden)}
+              className="rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-40">Ablehnen</button>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
 function TeamsFreigabeTab() {
+  return <><EventVorschlaegeAdmin /><TeamsFreigabeListe /></>;
+}
+
+function TeamsFreigabeListe() {
   const [rows, setRows] = useState<AdminTeamFreigabe[] | null>(null);
   const [notiz, setNotiz] = useState<Record<number, string>>({});
   const laden = () => api.adminTeams().then(setRows).catch(() => setRows([]));

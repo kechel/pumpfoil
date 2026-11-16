@@ -63,12 +63,17 @@ def _aware(d: datetime) -> datetime:
 def referee_ids(db: Session, t: models.Team, e: models.TeamEvent) -> set[int]:
     from . import teams as T
     admins = {u for (u,) in db.query(models.User.id).filter(models.User.is_admin.is_(True), models.User.blocked.isnot(True))}
-    if T.ist_global(e):
-        return admins
     M = models.TeamMitglied
-    leitung = {u for (u,) in db.query(M.user_id).filter(M.team_id == t.id, M.status == "aktiv",
-                                                         M.rolle.in_(("leiter", "moderator")))}
-    return leitung | admins
+
+    def leitung(tid):
+        return {u for (u,) in db.query(M.user_id).filter(M.team_id == tid, M.status == "aktiv",
+                                                         M.rolle.in_(("leiter", "moderator")))} if tid else set()
+    if T.ist_global(e):
+        # Globale Events (Jan, 16.11.2026): Admins + Leitung/Moderation des offiziellen Teams (= globale Moderatoren) +
+        # bei einem vorgeschlagenen Event das ausrichtende Team.
+        og = T.offizielles_team_id(db)
+        return admins | leitung(og) | (leitung(t.id) if t.id != og else set())
+    return leitung(t.id) | admins
 
 
 def darf(db: Session, user: models.User, t: models.Team, e: models.TeamEvent) -> bool:

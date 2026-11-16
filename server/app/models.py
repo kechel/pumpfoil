@@ -2302,3 +2302,12 @@ class TeamEvent(Base):
     # Regel- und Auswertungsstand beim Festschreiben (16.11.2026, Jan: „nachvollziehen, auch noch 3 Jahre spaeter"):
     # Regel-Fassung, Wertungsregel, Erkennungs-/Sprint-Versionen der gewerteten Sessions, Server-Commit. teams.event_stand.
     stand_json: Mapped[str | None] = mapped_column(Text)
+    # Als globales Event vorschlagen (Jan, 16.11.2026): Team schlaegt vor, Admin nimmt an (Event wird global, bleibt beim
+    # Team = „promoted by") oder lehnt mit Begruendung ab. vorschlag_gesehen: Team hat die Entscheidung gesehen (Marker).
+    vorschlag_status: Mapped[str | None] = mapped_column(String(14))    # vorgeschlagen | angenommen | abgelehnt
+    vorschlag_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    vorschlag_von: Mapped[int | None] = mapped_column(Integer)
+    vorschlag_entschieden_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    vorschlag_entschieden_von: Mapped[int | None] = mapped_column(Integer)
+    vorschlag_notiz: Mapped[str | None] = mapped_column(Text)
+    vorschlag_gesehen: Mapped[bool | None] = mapped_column(Boolean)

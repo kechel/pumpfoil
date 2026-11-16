@@ -193,6 +193,7 @@ def meine(user: models.User = Depends(current_user), db: Session = Depends(get_d
         if T.darf_verwalten(m):
             offen = int(db.query(func.count(M.id)).filter_by(team_id=t.id, status="angefragt").scalar() or 0)
             offen += T.einladungen_offen(db, t.id)    # Mitmach-Einladungen zu Team-Events zaehlen mit (16.11.2026)
+            offen += T.vorschlag_bescheide(db, t.id)  # Entscheidung ueber einen Global-Vorschlag, noch ungesehen
         out.append({**_kurz(t, True, db, sp[t.id]), "rolle": m.rolle, "status": m.status, "anfragen": offen,
                     "freigabe": t.freigabe if T.ist_leiter(m) else None,
                     # zaehlt in globalen Events (freigegeben, oeffentlich) — und ist das Team, fuer das man antritt
@@ -345,6 +346,7 @@ def _event_kurz(db: Session, e: models.TeamEvent, t: models.Team, intern: bool, 
     return {"id": e.id, "titel": e.titel, "beschreibung": e.beschreibung, "start": T._aware(e.start).isoformat(),
             "ende": T._aware(e.ende).isoformat(), "zeitzone": e.zeitzone, "status": T.event_status(e, jetzt),
             "sportarten": sportarten, "spots": spots, "global": T.ist_global(e),
+            "promoted_by": T.promoted_by(t) if T.ist_promoted(e) else None,
             "banner_url": bild, "banner_fokus": fokus,
             "team": {"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"], "land": a["land"]}}
 
@@ -628,8 +630,8 @@ def _event_pruefen(db: Session, body: EventIn) -> tuple[str, str | None]:
     return json.dumps([x.model_dump() for x in body.tafeln]), (json.dumps(ids) if ids else None)
 
 
-def _global_pruefen(db: Session, t: models.Team, body: EventIn) -> None:
-    if body.global_event and t.id != T.offizielles_team_id(db):
+def _global_pruefen(db: Session, t: models.Team, body: EventIn, e: models.TeamEvent | None = None) -> None:
+    if body.global_event and t.id != T.offizielles_team_id(db) and not (e is not None and T.ist_promoted(e)):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "nur_offiziell")
 
 
@@ -706,6 +708,10 @@ def event_einzeln(slug: str, event_id: int, team: str | None = None, mix: bool =
     if sehen is None and not T.ist_global(e):
         _darf_tafeln(t, m)
     if T.event_einfrieren(db, e):
+        db.commit()
+    if (e.vorschlag_status in ("angenommen", "abgelehnt") and not e.vorschlag_gesehen and m is not None
+            and T.darf_verwalten(m)):
+        e.vorschlag_gesehen = True     # Leitung/Moderation hat die Entscheidung gesehen -> Marker weg
         db.commit()
     out = T.event_out(db, t, e, nur_team_ids=_nur_team(db, team, user) if T.ist_global(e) else None,
                       betrachter=user.id, mix=mix, sprint=sprint, klasse=klasse)
@@ -1021,6 +1027,44 @@ def event_einladung_antworten(slug: str, event_id: int, body: EinladungAntwortIn
     return {"status": x.status}
 
 
+# --- Als globales Event vorschlagen (Jan, 16.11.2026) ---------------------------------------------------------------
+# Leitung/Moderation eines freigegebenen Teams schlaegt ein eigenes Event vor (mind. 3 Tage vor dem Start); der Admin
+# nimmt an (Event wird global und bleibt beim Team: „promoted by"; Titel/Zeitraum/Wertung danach nur noch Admin) oder
+# lehnt mit Begruendung ab. Keine Push — die Entscheidung zaehlt beim Team-Marker, bis die Leitung das Event oeffnet.
+
+@router.post("/{slug}/events/{event_id}/vorschlag")
+def event_vorschlagen(slug: str, event_id: int, user: models.User = Depends(current_user),
+                      db: Session = Depends(get_db)) -> dict:
+    t, _m = _verwalter(db, slug, user)
+    e = _event(db, t, event_id)
+    _nicht_eingefroren(e)
+    if T.ist_global(e) or t.id == T.offizielles_team_id(db):
+        raise HTTPException(status.HTTP_409_CONFLICT, "global")
+    if t.frei_am is None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "team_nicht_frei")
+    if e.vorschlag_status == "vorgeschlagen":
+        raise HTTPException(status.HTTP_409_CONFLICT, "schon_vorgeschlagen")
+    if T._aware(e.start) < T._jetzt() + T.VORSCHLAG_VORLAUF:
+        raise HTTPException(status.HTTP_409_CONFLICT, "vorschlag_vorlauf")
+    e.vorschlag_status, e.vorschlag_am, e.vorschlag_von = "vorgeschlagen", T._jetzt(), user.id
+    e.vorschlag_entschieden_am = e.vorschlag_entschieden_von = e.vorschlag_notiz = None
+    e.vorschlag_gesehen = None
+    db.commit()
+    return {"vorschlag": T.vorschlag_out(e)}
+
+
+@router.delete("/{slug}/events/{event_id}/vorschlag")
+def event_vorschlag_zurueckziehen(slug: str, event_id: int, user: models.User = Depends(current_user),
+                                  db: Session = Depends(get_db)) -> dict:
+    t, _m = _verwalter(db, slug, user)
+    e = _event(db, t, event_id)
+    if e.vorschlag_status != "vorgeschlagen":
+        raise HTTPException(status.HTTP_409_CONFLICT, "kein_vorschlag")
+    e.vorschlag_status = e.vorschlag_am = e.vorschlag_von = None
+    db.commit()
+    return {"vorschlag": None}
+
+
 class FokusIn(BaseModel):
     fokus: str = Field(pattern=r"^\d{1,3},\d{1,3}$")
 
@@ -1085,6 +1129,12 @@ def event_aendern(slug: str, event_id: int, body: EventIn, sprint: bool = False,
     e = _event(db, t, event_id)
     if e.eingefroren_am is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "event_eingefroren")
+    if T.ist_promoted(e) and not user.is_admin:
+        # Angenommener Global-Vorschlag (Jan, 16.11.2026): Titel, Zeitraum, Wertung usw. nur noch pumpfoil.org; das Team
+        # pflegt weiter Beschreibung und Bild (Banner ueber die eigenen Endpunkte).
+        e.beschreibung, e.teambild_zeigen = (body.beschreibung or "").strip() or None, body.teambild_zeigen
+        db.commit()
+        return T.event_out(db, t, e, sprint=sprint)
     alt_tafeln = json.loads(e.tafeln_json or "[]")
     e.tafeln_json, e.spots_json = _event_pruefen(db, body)
     if not sprint:
@@ -1094,7 +1144,7 @@ def event_aendern(slug: str, event_id: int, body: EventIn, sprint: bool = False,
         if bleiben:
             e.tafeln_json = json.dumps([x for x in json.loads(e.tafeln_json) if x.get("kennzahl") not in T.SPRINT]
                                        + bleiben)
-    _global_pruefen(db, t, body)
+    _global_pruefen(db, t, body, e)
     e.global_event, e.team_wertung_n = body.global_event, body.team_wertung_n
     e.titel, e.beschreibung = body.titel.strip(), (body.beschreibung or "").strip() or None
     e.start, e.ende, e.zeitzone, e.vorlage = body.start, body.ende, body.zeitzone, body.vorlage
@@ -1119,6 +1169,8 @@ def event_loeschen(slug: str, event_id: int, user: models.User = Depends(current
     t, _m = _verwalter(db, slug, user)   # Events auch fuer Moderatoren (Jan, 01.11.2026)
     e = _event(db, t, event_id)
     _nicht_eingefroren(e)
+    if T.ist_promoted(e) and not user.is_admin:
+        raise HTTPException(status.HTTP_409_CONFLICT, "promoted")    # global angenommen: nur pumpfoil.org loescht
     e.geloescht_am, e.geloescht_von = T._jetzt(), user.id
     db.commit()
     return {"ok": True}
@@ -1487,6 +1539,47 @@ def admin_entscheiden(team_id: int, body: FreigabeIn, _a: models.User = Depends(
     return {"freigabe": t.freigabe}
 
 
+@admin_router.get("/event-vorschlaege")
+def admin_event_vorschlaege(_a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> list[dict]:
+    """Vorgeschlagene globale Events (16.11.2026), aeltester Vorschlag zuerst."""
+    E, Tm = models.TeamEvent, models.Team
+    out = []
+    for e, t in (db.query(E, Tm).join(Tm, Tm.id == E.team_id)
+                 .filter(E.vorschlag_status == "vorgeschlagen", E.geloescht_am.is_(None), Tm.geloescht_am.is_(None))
+                 .order_by(E.vorschlag_am).all()):
+        von = db.get(models.User, e.vorschlag_von) if e.vorschlag_von else None
+        out.append({**_event_kurz(db, e, t, False, T._jetzt()), "team": {**T.promoted_by(t), "id": t.id},
+                    "vorschlag": T.vorschlag_out(e), "von": {"user_id": von.id, "name": von.display_name} if von else None,
+                    "kennzahlen": [tf.kennzahl for tf in T.event_tafeln(e)], "summen": T.event_summen_auswahl(e)})
+    return out
+
+
+class VorschlagEntscheidungIn(BaseModel):
+    annehmen: bool
+    notiz: str | None = Field(default=None, max_length=1000)
+    team_wertung_n: int | None = Field(default=None, ge=0, le=50)
+
+
+@admin_router.post("/event-vorschlaege/{event_id}")
+def admin_event_vorschlag_entscheiden(event_id: int, body: VorschlagEntscheidungIn, a: models.User = Depends(current_admin),
+                                      db: Session = Depends(get_db)) -> dict:
+    e = db.get(models.TeamEvent, event_id)
+    if e is None or e.geloescht_am is not None or e.vorschlag_status != "vorgeschlagen":
+        raise _404()
+    _nicht_eingefroren(e)
+    if body.annehmen:
+        e.global_event = True
+        if body.team_wertung_n is not None:
+            e.team_wertung_n = body.team_wertung_n
+        e.vorschlag_status, e.vorschlag_notiz = "angenommen", (body.notiz or "").strip() or None
+    else:
+        e.vorschlag_status, e.vorschlag_notiz = "abgelehnt", (body.notiz or "").strip() or None
+    e.vorschlag_entschieden_am, e.vorschlag_entschieden_von, e.vorschlag_gesehen = T._jetzt(), a.id, False
+    T._cache.clear()
+    db.commit()
+    return {"vorschlag": T.vorschlag_out(e), "global": T.ist_global(e)}
+
+
 # --- Kalender-Abo fuer globale Events (Jan, 09.11.2026) -------------------------------------------------------------
 # „bei den global events haette ich gerne noch einen ical-link … public, oeffentlich, fuer alle der gleiche" / „also ein
 # link fuer alle events". EIN Feed (iCalendar, RFC 5545) fuer alle, ohne Login — Kalender wie Google holen ihn von ihren
@@ -1525,24 +1618,23 @@ def _ics_zeit(t: datetime) -> str:
 def global_events_ics(db: Session = Depends(get_db), _rl: None = Depends(rate_limit(60, 900, "events-ics"))) -> Response:
     from ..config import get_settings
     basis = get_settings().base_url
-    tid = T.offizielles_team_id(db)
     jetzt = T._jetzt()
     zeilen = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//pumpfoil.org//Global events//EN", "CALSCALE:GREGORIAN",
               "METHOD:PUBLISH", "X-WR-CALNAME:pumpfoil.org global events",
               "X-WR-CALDESC:Global pumpfoil events on pumpfoil.org - everyone who rides takes part automatically.",
               "REFRESH-INTERVAL;VALUE=DURATION:PT6H", "X-PUBLISHED-TTL:PT6H"]
-    t = db.get(models.Team, tid) if tid else None
-    if t is not None:
-        E = models.TeamEvent
+    # Alle globalen Events, auch vorgeschlagene aus anderen Teams (16.11.2026); Link zum ausrichtenden Team.
+    E, Tm = models.TeamEvent, models.Team
+    for e, t in (db.query(E, Tm).join(Tm, Tm.id == E.team_id)
+                 .filter(E.global_event.is_(True), E.geloescht_am.is_(None), Tm.geloescht_am.is_(None),
+                         E.ende > jetzt - ICS_RUECKBLICK).order_by(E.start).all()):
         slug = T.auftritt(t, False)["slug"] or t.slug
-        for e in (db.query(E).filter(E.team_id == t.id, E.global_event.is_(True), E.geloescht_am.is_(None),
-                                     E.ende > jetzt - ICS_RUECKBLICK).order_by(E.start).all()):
-            url = f"{basis}/teams/{slug}/events/{e.id}"
-            beschreibung = ((e.beschreibung or "").strip() + "\n\n" + url).strip()
-            zeilen += ["BEGIN:VEVENT", f"UID:global-event-{e.id}@pumpfoil.org", f"DTSTAMP:{_ics_zeit(jetzt)}",
-                       f"DTSTART:{_ics_zeit(e.start)}", f"DTEND:{_ics_zeit(e.ende)}",
-                       f"SUMMARY:{_ics_text(e.titel or 'pumpfoil.org event')}", f"DESCRIPTION:{_ics_text(beschreibung)}",
-                       f"URL:{url}", "TRANSP:TRANSPARENT", "END:VEVENT"]
+        url = f"{basis}/teams/{slug}/events/{e.id}"
+        beschreibung = ((e.beschreibung or "").strip() + "\n\n" + url).strip()
+        zeilen += ["BEGIN:VEVENT", f"UID:global-event-{e.id}@pumpfoil.org", f"DTSTAMP:{_ics_zeit(jetzt)}",
+                   f"DTSTART:{_ics_zeit(e.start)}", f"DTEND:{_ics_zeit(e.ende)}",
+                   f"SUMMARY:{_ics_text(e.titel or 'pumpfoil.org event')}", f"DESCRIPTION:{_ics_text(beschreibung)}",
+                   f"URL:{url}", "TRANSP:TRANSPARENT", "END:VEVENT"]
     zeilen.append("END:VCALENDAR")
     text = "\r\n".join(z for zeile in zeilen for z in _ics_falten(zeile)) + "\r\n"
     return Response(text, media_type="text/calendar; charset=utf-8",

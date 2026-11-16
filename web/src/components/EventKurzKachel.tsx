@@ -46,7 +46,16 @@ export default function EventKurzKachel({ e, ohneTeam = false }: { e: TeamEventK
             {t(`team.event.status.${e.status}`)}
           </span>
           {e.global ? (
-            <span className="rounded-full bg-brand-500/15 px-2 py-0.5 text-xs font-semibold text-brand-700 dark:text-brand-300">{t("team.event.global")}</span>
+            <>
+              <span className="rounded-full bg-brand-500/15 px-2 py-0.5 text-xs font-semibold text-brand-700 dark:text-brand-300">{t("team.event.global")}</span>
+              {/* Vorgeschlagen von einem Team (16.11.2026): „promoted by" mit Wappen. */}
+              {e.promoted_by && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 py-0.5 pl-0.5 pr-2 text-xs text-slate-300">
+                  <TeamWappen name={e.promoted_by.name} logo={e.promoted_by.logo_url} farbe={e.promoted_by.farbe} size={16} />
+                  {t("team.event.promotedBy", { team: e.promoted_by.name })}
+                </span>
+              )}
+            </>
           ) : !ohneTeam && (
             <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 py-0.5 pl-0.5 pr-2 text-xs font-semibold text-slate-300">
               <TeamWappen name={e.team.name} logo={e.team.logo_url} farbe={e.team.farbe} size={16} /> {e.team.name}

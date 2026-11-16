@@ -382,7 +382,16 @@ export default function TeamEventSeite() {
   return (
     <div className="team-farbe w-full" style={teamFarbStil(team.farbe)}>
       {/* Zum Team: Wappen + Name als Link (der Zurueck-Pfeil steht in der Titelzeile darunter). */}
-      {ev.global ? (
+      {ev.global && ev.promoted_by ? (
+        // Vorgeschlagenes globales Event (16.11.2026): „promoted by <Team>", verlinkt zum Team.
+        <p className="mb-3 flex flex-wrap items-center gap-2 text-sm text-slate-300">
+          <span className="rounded-full bg-brand-500/15 px-2 py-0.5 text-xs font-semibold text-brand-700 dark:text-brand-300">{t("team.event.global")}</span>
+          <Link to={`/teams/${ev.promoted_by.slug}`} className="inline-flex items-center gap-1.5 hover:text-slate-200">
+            <TeamWappen name={ev.promoted_by.name} logo={ev.promoted_by.logo_url} farbe={ev.promoted_by.farbe} size={20} />
+            {t("team.event.promotedBy", { team: ev.promoted_by.name })}
+          </Link>
+        </p>
+      ) : ev.global ? (
         <p className="mb-3 inline-flex items-center gap-2 text-sm text-slate-300">
           <TeamWappen name={team.name} logo={team.logo_url} farbe={team.farbe} size={20} />
           {team.name}
@@ -702,7 +711,8 @@ function MeldenDialog({ z, t, onClose, onSenden }: {
 /** „Ausgewertet mit …" (Jan, 16.11.2026: „damit man das nachvollziehen kann, auch noch 3 Jahre spaeter"): festgehaltener
  *  Regel- und Auswertungsstand des Endstands; vor dem Festschreiben der aktuelle als Vorschau. */
 function EventStand({ ev, t, lang }: { ev: TeamEvent; t: (k: string, p?: Record<string, string | number>) => string; lang: string }) {
-  const datum = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString(lang, { dateStyle: "medium" });
+  // Regelstand ist ein Datum, ggf. mit Buchstaben fuer mehrere Fassungen am selben Tag ("2026-11-16b") — nur das Datum zeigen.
+  const datum = (d: string) => new Date(`${d.slice(0, 10)}T12:00:00`).toLocaleDateString(lang, { dateStyle: "medium" });
   const st = ev.stand;
   const teile: string[] = [];
   if (st) {

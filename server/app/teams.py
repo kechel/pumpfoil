@@ -972,6 +972,42 @@ def ist_global(e: models.TeamEvent) -> bool:
     return bool(getattr(e, "global_event", False))
 
 
+VORSCHLAG_VORLAUF = timedelta(days=3)    # Vorschlag mindestens 3 Tage vor dem Start (Jan, 16.11.2026)
+
+
+def ist_promoted(e: models.TeamEvent) -> bool:
+    """Globales Event eines normalen Teams („promoted by", 16.11.2026) — angenommener Vorschlag."""
+    return ist_global(e) and getattr(e, "vorschlag_status", None) == "angenommen"
+
+
+def global_ausser(db: Session, e: models.TeamEvent) -> int | None:
+    """Welches Team in der Team-Wertung eines globalen Events NICHT auftaucht: das offizielle (der Ort der globalen
+    Events). Bei einem vorgeschlagenen Event zaehlt das ausrichtende Team ganz normal mit."""
+    return offizielles_team_id(db) if ist_global(e) else None
+
+
+def vorschlag_bescheide(db: Session, team_id: int) -> int:
+    """Entschiedene Vorschlaege, die das Team noch nicht gesehen hat (Marker wie Beitrittsanfragen, keine Push)."""
+    E = models.TeamEvent
+    return int(db.query(func.count(E.id)).filter(E.team_id == team_id, E.geloescht_am.is_(None),
+                                                 E.vorschlag_status.in_(("angenommen", "abgelehnt")),
+                                                 E.vorschlag_gesehen.isnot(True)).scalar() or 0)
+
+
+def promoted_by(t: models.Team) -> dict:
+    """Ausrichtendes Team eines vorgeschlagenen globalen Events — immer die freigegebene Fassung (oeffentlich)."""
+    a = auftritt(t, False)
+    return {"slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"]}
+
+
+def vorschlag_out(e: models.TeamEvent) -> dict | None:
+    if not getattr(e, "vorschlag_status", None):
+        return None
+    return {"status": e.vorschlag_status, "notiz": e.vorschlag_notiz,
+            "am": _aware(e.vorschlag_am).isoformat() if e.vorschlag_am else None,
+            "entschieden_am": _aware(e.vorschlag_entschieden_am).isoformat() if e.vorschlag_entschieden_am else None}
+
+
 def einladungen_offen(db: Session, team_id: int) -> int:
     """Offene Einladungen dieses Teams zu Events anderer Teams (noch nicht beantwortet, Event nicht vorbei/geloescht) —
     zaehlt beim Team-Marker mit wie Beitrittsanfragen (Jan, 16.11.2026: keine Push, nur der Marker)."""
@@ -1143,7 +1179,7 @@ def event_zuordnung(db: Session, e: models.TeamEvent) -> dict:
         return json.loads(e.team_zuordnung_json)
     if not ist_global(e):
         return team_zuordnung(db, None, e.id, nur_teams=event_team_ids(db, e))
-    return team_zuordnung(db, e.team_id, e.id)
+    return team_zuordnung(db, global_ausser(db, e), e.id)
 
 
 def events_zuordnung_sichern(db: Session, jetzt: datetime | None = None) -> None:
@@ -1156,7 +1192,7 @@ def events_zuordnung_sichern(db: Session, jetzt: datetime | None = None) -> None
     offen = (db.query(E).filter(E.ende <= j, E.eingefroren_am.is_(None), E.geloescht_am.is_(None),
                                 E.team_zuordnung_json.is_(None), E.global_event.is_(True)).all())
     for e in offen:
-        e.team_zuordnung_json = json.dumps(team_zuordnung(db, e.team_id, e.id))
+        e.team_zuordnung_json = json.dumps(team_zuordnung(db, global_ausser(db, e), e.id))
     # Events mehrerer Teams ebenso (16.11.2026).
     TT = models.TeamEventTeam
     for e in (db.query(E).join(TT, TT.event_id == E.id)
@@ -1368,7 +1404,7 @@ def _event_voll(db: Session, t: models.Team, e: models.TeamEvent, frisch: bool =
                                  stand=zeiten, ausgenommen=R.ausgenommen(db, e))
         x = {**tafel_out(tf), "zeilen": zeilen}
         if glob or mehr:
-            tw = team_wertung(db, zeilen, wertung_n(e), t.id if glob else None, zuordnung, schnitt=tf.kennzahl in SPRINT)
+            tw = team_wertung(db, zeilen, wertung_n(e), global_ausser(db, e), zuordnung, schnitt=tf.kennzahl in SPRINT)
             x["teams"] = [z for z in tw if not z.get("ungewertet")]
             if len(x["teams"]) < len(tw):
                 x["teams_ungewertet"] = [z for z in tw if z.get("ungewertet")]
@@ -1410,7 +1446,7 @@ def event_berechnen(db: Session, t: models.Team, e: models.TeamEvent, nur_team_i
     # Eingefroren: die Wappen stehen schon in der Zeile (beim Einfrieren aus der festgehaltenen Zuordnung).
     uids = sorted({z["user_id"] for x in out for z in x["zeilen"] + ([x["eigene"]] if x.get("eigene") else [])
                    if "teams" not in z})
-    wappen = zeilen_teams(db, uids, t.id, event_zuordnung(db, e)) if uids else {}
+    wappen = zeilen_teams(db, uids, global_ausser(db, e), event_zuordnung(db, e)) if uids else {}
 
     def mit(z: dict) -> dict:
         return z if "teams" in z else {**z, "teams": wappen.get(z["user_id"], [])}
@@ -1595,7 +1631,7 @@ def _event_summen_je_lauf(db: Session, e, ids, alle: bool, sportart: str, accel_
 
 # Fassung der Team-Regeln (web/src/pages/TeamRegeln.tsx + team.regeln.* in den Sprachdateien). Bei jeder inhaltlichen
 # Aenderung der Regeln hochsetzen — der Endstand eines Events haelt fest, welche Fassung galt.
-REGELN_STAND = "2026-11-16"
+REGELN_STAND = "2026-11-16b"   # Datum (+ Buchstabe bei mehreren Fassungen je Tag; Anzeige nur das Datum). b: globale Events auch von Teams vorgeschlagen, Events mehrerer Teams
 WERTUNG_JE_LAUF = "je-lauf-1"   # app/event_laeufe.py: Startzeit je Lauf, Duplikate einmal, Referee-Ausnahmen je logischem Lauf
 _COMMIT: dict = {}
 
@@ -1664,7 +1700,7 @@ def event_einfrieren(db: Session, e: models.TeamEvent, jetzt: datetime | None = 
         # Wappen je Zeile mit festschreiben (sonst kaemen sie beim Abruf aus der aktuellen Mitgliedschaft).
         z_ = json.loads(e.team_zuordnung_json)
         for tf in voll:
-            w = zeilen_teams(db, [z["user_id"] for z in tf["zeilen"]], t.id if ist_global(e) else None, z_)
+            w = zeilen_teams(db, [z["user_id"] for z in tf["zeilen"]], global_ausser(db, e), z_)
             tf["zeilen"] = [{**z, "teams": w.get(z["user_id"], [])} for z in tf["zeilen"]]
     # Spots des Events mit Namen (Umbenennungen spaeter aendern den Endstand nicht).
     ids = event_spots(e)
@@ -1737,6 +1773,9 @@ def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = Fal
             # Events mehrerer Teams (16.11.2026): Team-Wertung wie global, beteiligte Teams (ausrichtendes zuerst).
             "mehrteam": ist_mehrteam(db, e),
             "teams_beteiligt": [] if gast else event_teams_out(db, e),
+            # Als globales Event vorgeschlagen (16.11.2026): Stand fuer das Team, „promoted by" fuer alle.
+            "vorschlag": None if gast else vorschlag_out(e),
+            "promoted_by": promoted_by(t) if ist_promoted(e) else None,
             # Filter „Wertungsklasse" (10.11.2026): angebotene Klassen mit Anzahl, leer = kein Filter; `klasse` = aktiv.
             "klassen": klassen, "klasse": klasse if klasse in klassen else None}
 

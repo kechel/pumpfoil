@@ -2328,6 +2328,13 @@ export const api = {
   teamLoeschen: (slug: string, name: string) =>
     req<{ ok: boolean }>(`/api/teams/${encodeURIComponent(slug)}/loeschen`, { method: "POST", body: JSON.stringify({ name }) }),
   adminTeams: () => req<AdminTeamFreigabe[]>("/api/admin/teams"),
+  adminEventVorschlaege: () => req<AdminEventVorschlag[]>("/api/admin/teams/event-vorschlaege"),
+  adminEventVorschlagEntscheiden: (id: number, annehmen: boolean, notiz?: string) =>
+    req<{ vorschlag: EventVorschlag; global: boolean }>(`/api/admin/teams/event-vorschlaege/${id}`, { method: "POST", body: JSON.stringify({ annehmen, notiz: notiz || null }) }),
+  teamEventVorschlagen: (slug: string, id: number) =>
+    req<{ vorschlag: EventVorschlag }>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/vorschlag`, { method: "POST" }),
+  teamEventVorschlagZurueck: (slug: string, id: number) =>
+    req<{ vorschlag: null }>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/vorschlag`, { method: "DELETE" }),
   adminTeamEntscheiden: (id: number, ok: boolean, notiz?: string) =>
     req<{ freigabe: string }>(`/api/admin/teams/${id}`, { method: "POST", body: JSON.stringify({ ok, notiz: notiz || null }) }),
 };
@@ -2346,12 +2353,20 @@ export type TeamVergleichZeile = Pick<TeamAuftritt, "name" | "slug" | "logo_url"
   & Record<TeamVergleichKennzahl | `${TeamVergleichKennzahl}_fahrer`, number>;
 export interface TeamVergleich { period: string; top: number; teams: TeamVergleichZeile[]; quellen?: string[] }
 /** Community-Seite: laufende und bald beginnende Events (ohne Bestenlisten) */
+export interface EventPromotedBy { slug: string; name: string; logo_url: string | null; farbe: string | null }
+export interface EventVorschlag { status: "vorgeschlagen" | "angenommen" | "abgelehnt"; notiz: string | null; am: string | null; entschieden_am: string | null }
+export interface AdminEventVorschlag extends TeamEventKurz {
+  team: EventPromotedBy & { id: number; land?: string | null };
+  vorschlag: EventVorschlag; von: { user_id: number; name: string | null } | null; kennzahlen: string[]; summen: string[];
+}
 export interface TeamEventKurz {
   id: number; titel: string; beschreibung: string | null; start: string; ende: string; zeitzone: string | null;
   status: "kommend" | "laeuft" | "auswertung" | "beendet"; sportarten: string[]; spots: { id: number; name: string | null }[];
   team: { slug: string; name: string; logo_url: string | null; farbe: string | null; land?: string | null };
   /** Globales Event (06.11.2026): jeder nimmt automatisch teil */
   global?: boolean;
+  /** Als globales Event vorgeschlagen und angenommen (16.11.2026): das ausrichtende Team */
+  promoted_by?: EventPromotedBy | null;
   /** Bild unten in der Kachel (10.11.2026): Eventbild, sonst Teambild (wenn das Event es zeigt), sonst null */
   banner_url?: string | null; banner_fokus?: string | null;
 }
@@ -2459,6 +2474,9 @@ export interface TeamEvent {
   mehrteam?: boolean;
   teams_beteiligt?: { slug: string; name: string; logo_url: string | null; farbe: string | null; status: string }[];
   team_slug?: string;
+  /** Als globales Event vorschlagen (16.11.2026): Stand fuer das Team; promoted_by fuer alle, wenn angenommen. */
+  vorschlag?: EventVorschlag | null;
+  promoted_by?: EventPromotedBy | null;
   gastgeber?: any;
   /** Regel-/Auswertungsstand (16.11.2026): beim Festschreiben festgehalten; vorher der aktuelle als Vorschau. */
   stand?: null | { festgeschrieben: string; regeln: string; wertung: string; erkennung: Record<string, number>;

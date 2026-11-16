@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { teamFarbStil } from "../lib/teamFarben";
 import { BannerBearbeiten } from "./TeamBanner";
-import { api, FoilBand, TeamEvent, TeamEventTafel } from "../lib/api";
+import { api, EventVorschlag, FoilBand, TeamEvent, TeamEventTafel } from "../lib/api";
 import { Card } from "./ui";
 import { TrashIcon } from "./Icons";
 import { EVENT_KENNZAHLEN, EVENT_SUMMEN, fehlerCode } from "../lib/teamKennzahlen";
@@ -19,7 +19,7 @@ const eingabe = "w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-
 const knopf = "rounded-xl border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50";
 const auswahl = "rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100";
 
-type Entwurf = { global_event?: boolean; team_wertung_n?: number | null; id?: number; eingefroren?: boolean; banner_url?: string | null; banner_fokus?: string | null; ohne_dateien?: boolean; teambild_zeigen?: boolean; summen?: string[]; summen_sportart?: string; summen_accel_only?: boolean; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
+type Entwurf = { promoted?: boolean; vorschlag?: EventVorschlag | null; global_event?: boolean; team_wertung_n?: number | null; id?: number; eingefroren?: boolean; banner_url?: string | null; banner_fokus?: string | null; ohne_dateien?: boolean; teambild_zeigen?: boolean; summen?: string[]; summen_sportart?: string; summen_accel_only?: boolean; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
 
 function leer(): Entwurf {
   const v = EVENT_VORLAGEN[0];
@@ -41,6 +41,8 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
   // auf die Seite dahinter, die das offene Popup verdeckt; man sah also gar nichts.
   const [popupFehler, setPopupFehler] = useState<string | null>(null);
   const [spotWahl, setSpotWahl] = useState("");
+  const [istAdmin, setIstAdmin] = useState(false);
+  useEffect(() => { api.getProfile().then((p) => setIstAdmin(!!p.is_admin)).catch(() => {}); }, []);
   const [beteiligt, setBeteiligt] = useState<NonNullable<TeamEvent["teams_beteiligt"]>>([]);
   const [einladen, setEinladen] = useState("");
   const [teamVorschlaege, setTeamVorschlaege] = useState<{ slug: string; name: string }[]>([]);
@@ -65,7 +67,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
       tafeln: e.tafeln, spot_ids: e.spot_ids, vorlage: e.vorlage, ohne_dateien: !!e.ohne_dateien,
       teambild_zeigen: e.teambild_zeigen !== false, summen: e.summen ?? [],
       summen_sportart: e.summen_sportart ?? "pumpfoil", summen_accel_only: !!e.summen_accel_only,
-      global_event: offiziell && !!e.global_event, team_wertung_n: e.team_wertung_n ?? null,
+      global_event: (offiziell || !!e.promoted) && !!e.global_event, team_wertung_n: e.team_wertung_n ?? null,
     };
     setPopupFehler(null);
     (e.id ? api.teamEventAendern(slug, e.id, body) : api.teamEventAnlegen(slug, body))
@@ -73,7 +75,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
       .catch((x) => setPopupFehler(t(`team.err.${fehlerCode(x)}`)));
   };
   const bearbeiten = (ev: TeamEvent) => { setBeteiligt(ev.teams_beteiligt ?? []); setE({
-    global_event: !!ev.global, team_wertung_n: ev.team_wertung_n ?? 5,
+    global_event: !!ev.global, team_wertung_n: ev.team_wertung_n ?? 5, promoted: !!ev.promoted_by, vorschlag: ev.vorschlag ?? null,
     id: ev.id, eingefroren: ev.status === "beendet", banner_url: ev.banner_url, banner_fokus: ev.banner_fokus, ohne_dateien: ev.ohne_dateien, teambild_zeigen: ev.teambild_zeigen, summen: ev.summen_auswahl ?? [], summen_sportart: ev.summen_sportart, summen_accel_only: ev.summen_accel_only, titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
     ende: alsEingabe(new Date(ev.ende)), spot_ids: ev.spot_ids, vorlage: ev.vorlage,
     // Gemischte Bestenlisten (Pumpfoil + Foil Scoot) leitet der Server selbst ab — nicht als eigene Tafel speichern.
@@ -135,6 +137,30 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
               )}
             </div>
           )}
+          {/* Als globales Event vorschlagen (16.11.2026): Admin prueft; angenommen = global, bleibt beim Team. */}
+          {e.id && !offiziell && !e.eingefroren && (e.promoted ? (
+            <p className="mb-3 rounded-xl border border-brand-500/30 bg-brand-500/10 p-3 text-sm text-slate-200">{t("team.event.vorschlag.angenommen")}
+              {e.vorschlag?.notiz && <span className="mt-1 block text-slate-400">„{e.vorschlag.notiz}“</span>}</p>
+          ) : (
+            <div className="mb-3 rounded-xl border border-slate-700 p-3">
+              <p className="mb-1 text-sm font-semibold text-slate-200">{t("team.event.vorschlag.titel")}</p>
+              {e.vorschlag?.status === "vorgeschlagen" ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">{t("team.event.vorschlag.wirdGeprueft")}</span>
+                  <button className={knopf} onClick={() => api.teamEventVorschlagZurueck(slug, e.id!).then(() => { setE({ ...e, vorschlag: null }); laden(); })
+                    .catch((x) => setPopupFehler(t(`team.err.${fehlerCode(x)}`)))}>{t("team.event.vorschlag.zurueckziehen")}</button>
+                </div>
+              ) : (<>
+                <p className="mb-2 text-xs text-slate-400">{t("team.event.vorschlag.hinweis")}</p>
+                {e.vorschlag?.status === "abgelehnt" && (
+                  <p className="mb-2 text-sm text-slate-300">{t("team.event.vorschlag.abgelehnt")}{e.vorschlag.notiz && <> „{e.vorschlag.notiz}“</>}</p>
+                )}
+                <button className={knopf} onClick={() => api.teamEventVorschlagen(slug, e.id!).then((r) => { setE({ ...e, vorschlag: r.vorschlag }); laden(); })
+                  .catch((x) => setPopupFehler(t(`team.err.${fehlerCode(x)}`)))}>{t("team.event.vorschlag.knopf")}</button>
+              </>)}
+            </div>
+          ))}
+          {e.promoted && !istAdmin && <p className="mb-3 text-sm text-slate-400">{t("team.event.vorschlag.gesperrt")}</p>}
           {/* Mit anderen Teams austragen (16.11.2026): einladen, das andere Team nimmt an; erst gespeicherte Events. */}
           {e.id && !e.global_event && (
             <div className="mb-3 rounded-xl border border-slate-700 p-3">
@@ -160,6 +186,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
               ))}
             </div>
           )}
+          <fieldset disabled={!!e.promoted && !istAdmin} className="m-0 min-w-0 border-0 p-0 disabled:opacity-60">
           <label className="mb-1 block text-sm text-slate-300">{t("team.event.titel")}</label>
           <input value={e.titel} maxLength={80} onChange={(x) => setE({ ...e, titel: x.target.value })} className={`${eingabe} mb-3`} />
           <div className="mb-3 grid gap-3 sm:grid-cols-2">
@@ -170,9 +197,11 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
               <input type="datetime-local" value={e.ende} onChange={(x) => setE({ ...e, ende: x.target.value })} className={`${eingabe} mt-1`} />
             </label>
           </div>
+          </fieldset>
           <label className="mb-1 block text-sm text-slate-300">{t("team.beschreibung")}</label>
           <textarea value={e.beschreibung} maxLength={1000} rows={2} onChange={(x) => setE({ ...e, beschreibung: x.target.value })} className={`${eingabe} mb-3`} />
 
+          <fieldset disabled={!!e.promoted && !istAdmin} className="m-0 min-w-0 border-0 p-0 disabled:opacity-60">
           <p className="mb-1 text-sm text-slate-300">{t("team.bestenlisten")}</p>
           {e.tafeln.map((tf, i) => (
             <div key={i} className="mb-2 flex flex-wrap items-center gap-2 text-sm text-slate-300">
@@ -241,11 +270,12 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
               + {t("team.spotHinzu")}
             </button>
           </div>
+          </fieldset>
 
           </>)}
           {!e.eingefroren && (
             <label className="mb-3 flex cursor-pointer items-start gap-2 text-sm text-slate-300">
-              <input type="checkbox" className="mt-1" checked={!!e.ohne_dateien} onChange={(x) => setE({ ...e, ohne_dateien: x.target.checked })} />
+              <input type="checkbox" className="mt-1" disabled={!!e.promoted && !istAdmin} checked={!!e.ohne_dateien} onChange={(x) => setE({ ...e, ohne_dateien: x.target.checked })} />
               <span>{t("team.event.ohneDateien")}</span>
             </label>
           )}
@@ -258,7 +288,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
             )}
             <button className={knopf} onClick={() => schliessen()}>{t("common.cancel")}</button>
             {/* Eingefrorene Events nicht loeschbar (Jan, 09.11.2026), der Server lehnt es auch ab. */}
-            {e.id && !e.eingefroren && (
+            {e.id && !e.eingefroren && !(e.promoted && !istAdmin) && (
               <button className={`${knopf} ml-auto inline-flex items-center gap-1.5 text-red-700 dark:text-red-300`} onClick={() => {
                 if (!e.id || !window.confirm(t("team.event.loeschenFrage", { titel: e.titel }))) return;
                 api.teamEventLoeschen(slug, e.id).then(() => { schliessen(); laden(); })

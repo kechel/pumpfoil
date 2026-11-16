@@ -698,6 +698,10 @@ def pending(_a: models.User = Depends(current_admin), db: Session = Depends(get_
     # Teams, die auf Freigabe ihres Auftritts nach aussen warten (docs/TEAMS.md).
     teams = int(db.query(func.count()).select_from(models.Team)
                 .filter(models.Team.freigabe == "wartet", models.Team.geloescht_am.is_(None)).scalar() or 0)
+    # Als globales Event vorgeschlagen (16.11.2026) — im selben Reiter „Teams".
+    teams += int(db.query(func.count()).select_from(models.TeamEvent)
+                 .filter(models.TeamEvent.vorschlag_status == "vorgeschlagen", models.TeamEvent.geloescht_am.is_(None))
+                 .scalar() or 0)
     # Fotos (12.11.2026): Medien neuer Konten im Warteraum (medienfreigabe.py) + offene Medien-Meldungen.
     # Nur was noch fuer jemanden sichtbar werden koennte: Konten, die schon versteckt/gesperrt sind, zaehlen nicht
     # (Jan 12.11.2026: „die zahl sollte nur die anzahl der aktuell noch sichtbaren medien anzeigen").

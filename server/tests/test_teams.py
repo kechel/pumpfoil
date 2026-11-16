@@ -1379,3 +1379,72 @@ def test_session_events_nur_passende_sportart(client, monkeypatch):
         assert eid not in [x["id"] for x in T.session_events(db, db.get(models.Session, wf), ia)]
     finally:
         db.close()
+
+
+def test_global_vorschlagen(client, monkeypatch):
+    """Als globales Event vorschlagen (16.11.2026): freigegebenes Team schlaegt vor (>= 3 Tage vor Start), Admin nimmt an
+    -> global, bleibt beim Team (promoted_by), Wertung gesperrt bis auf Beschreibung; Referee = Team + Moderation des
+    offiziellen Teams; Team-Wertung zaehlt das ausrichtende Team mit; Marker bis die Leitung das Event oeffnet."""
+    from app import models, teams as T
+    from app.db import SessionLocal
+    monkeypatch.setenv("EVENT_JE_LAUF", "1")
+    db = SessionLocal(); db.query(models.RateEvent).delete(); db.commit(); db.close()
+    adm = _admin(client, "gv-adm@t.de")
+    (ia, ka), (io, ko), (ib, kb) = (_konto(client, "gv-a@t.de", "GV Anna"), _konto(client, "gv-o@t.de", "GV Olga"),
+                                    _konto(client, "gv-b@t.de", "GV Bert"))
+    ta = _team(client, ka, "GV Ausrichter")
+    og = _team(client, ko, "GV Offiziell")
+    monkeypatch.setenv("TEAM_GLOBAL", og)
+    jetzt = datetime.now(timezone.utc)
+    body = {"titel": "Herbst-Cup", "start": (jetzt + timedelta(days=5)).isoformat(),
+            "ende": (jetzt + timedelta(days=7)).isoformat(), "tafeln": [{"kennzahl": "distance", "accel_only": False}]}
+    eid = client.post(f"/api/teams/{ta}/events", headers=ka, json=body).json()["id"]
+    url = f"/api/teams/{ta}/events/{eid}/vorschlag"
+    assert client.post(url, headers=ka).json()["detail"] == "team_nicht_frei"          # erst freigegebenes Team
+    _freigeben(client, adm, ka, ta)
+    kurz = client.post(f"/api/teams/{ta}/events", headers=ka, json={**body, "start": (jetzt + timedelta(days=1)).isoformat()}).json()["id"]
+    assert client.post(f"/api/teams/{ta}/events/{kurz}/vorschlag", headers=ka).json()["detail"] == "vorschlag_vorlauf"
+    assert client.post(url, headers=kb).status_code in (403, 404)                        # nur Leitung/Moderation
+    assert client.post(url, headers=ka).json()["vorschlag"]["status"] == "vorgeschlagen"
+    assert client.get("/api/admin/teams/event-vorschlaege", headers=ka).status_code == 403
+    vs = client.get("/api/admin/teams/event-vorschlaege", headers=adm).json()
+    assert [v["id"] for v in vs] == [eid] and vs[0]["team"]["slug"] == ta
+    assert client.get("/api/admin/pending", headers=adm).json()["teams"] >= 1
+    # zurueckziehen und erneut
+    assert client.delete(url, headers=ka).json()["vorschlag"] is None
+    assert client.post(url, headers=ka).status_code == 200
+    r = client.post(f"/api/admin/teams/event-vorschlaege/{eid}", headers=adm, json={"annehmen": True, "notiz": "Super"}).json()
+    assert r["global"] and r["vorschlag"]["status"] == "angenommen"
+
+    def marker():
+        return next(x["anfragen"] for x in client.get("/api/teams/mine", headers=ka).json() if x["slug"] == ta)
+    assert marker() == 1
+    ev = client.get(f"/api/teams/{ta}/events/{eid}", headers=ka).json()
+    assert ev["global"] and ev["promoted_by"]["slug"] == ta and ev["vorschlag"]["notiz"] == "Super"
+    assert marker() == 0                                                                  # gesehen
+    # fuer alle sichtbar (auch Nichtmitglieder), in der globalen Uebersicht mit promoted_by
+    assert client.get(f"/api/teams/{ta}/events/{eid}", headers=kb).status_code == 200
+    alle = client.get("/api/teams/liste/events", headers=kb).json()
+    eintrag = next(x for x in (alle if isinstance(alle, list) else alle.get("events", [])) if x["id"] == eid)
+    assert eintrag["promoted_by"]["slug"] == ta and eintrag["team"]["slug"] == ta
+    # gesperrt: Titel bleibt, Beschreibung aendert sich; Loeschen nur Admin
+    neu = client.put(f"/api/teams/{ta}/events/{eid}", headers=ka,
+                     json={**body, "titel": "Anders", "beschreibung": "Neu", "global_event": True}).json()
+    assert neu["titel"] == "Herbst-Cup" and neu["beschreibung"] == "Neu" and neu["global"]
+    assert client.delete(f"/api/teams/{ta}/events/{eid}", headers=ka).json()["detail"] == "promoted"
+    # Referee: Leitung des Teams + Leitung/Moderation des offiziellen Teams, nicht ein einfaches Mitglied
+    db = SessionLocal()
+    try:
+        from app import referee as R
+        e = db.get(models.TeamEvent, eid); t = db.get(models.Team, e.team_id)
+        refs = R.referee_ids(db, t, e)
+        assert ia in refs and io in refs and ib not in refs
+        assert T.global_ausser(db, e) == T.offizielles_team_id(db) != t.id
+    finally:
+        db.close()
+    # Ablehnen mit Begruendung
+    e2 = client.post(f"/api/teams/{ta}/events", headers=ka, json=body).json()["id"]
+    client.post(f"/api/teams/{ta}/events/{e2}/vorschlag", headers=ka)
+    r = client.post(f"/api/admin/teams/event-vorschlaege/{e2}", headers=adm, json={"annehmen": False, "notiz": "Zu kurz"}).json()
+    assert not r["global"] and r["vorschlag"]["status"] == "abgelehnt"
+    assert marker() == 1

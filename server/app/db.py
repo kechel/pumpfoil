@@ -660,7 +660,13 @@ def _migrate_add_columns() -> None:
                                                # Endstand festhalten (08.11.2026)
                                                "team_zuordnung_json": "TEXT", "spots_fest_json": "TEXT",
                                                # Regel-/Auswertungsstand beim Festschreiben (16.11.2026)
-                                               "stand_json": "TEXT"})
+                                               "stand_json": "TEXT",
+                                               # Als globales Event vorschlagen (16.11.2026)
+                                               "vorschlag_status": "VARCHAR(14)",
+                                               "vorschlag_am": "TIMESTAMP WITH TIME ZONE", "vorschlag_von": "INTEGER",
+                                               "vorschlag_entschieden_am": "TIMESTAMP WITH TIME ZONE",
+                                               "vorschlag_entschieden_von": "INTEGER", "vorschlag_notiz": "TEXT",
+                                               "vorschlag_gesehen": "BOOLEAN"})
     want["teams"]["land"] = "VARCHAR(10)"        # Team-Herkunft (03.11.2026)
     want.setdefault("event_korrekturen", {})["bearbeitet_am"] = "TIMESTAMP WITH TIME ZONE"   # Referee (16.11.2026)
     want["event_korrekturen"]["von_teilnehmer"] = "BOOLEAN DEFAULT FALSE"

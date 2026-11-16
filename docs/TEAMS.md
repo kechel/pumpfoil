@@ -469,7 +469,20 @@ Fuer das uebernaechste globale Event (nach dem Sprint-Wochenende). Nur festgehal
 - **Zeitplan (Jan, 11.11.2026):** erst in der PWA entwickeln, danach in die nativen Apps — NICHT in Android 1.1.49
   (das traegt nur die Neuerungen vom 10./11.11.).
 
-### Globale Events vorschlagen: „Promote as public event" (Jan, 15.11.2026; NOCH NICHT BAUEN)
+### Globale Events vorschlagen: „Promote as public event" (Jan, 15.11.2026; GEBAUT 16.11.2026, Web + Server)
+
+**Stand 16.11.2026 (Jans Entscheidungen):** 1) Umhaengen statt Kopie: das Event bleibt beim Team, bekommt `global_event`
+und zeigt „promoted by <Team>" (Kachel, Eventseite, `promoted_by` in der API). 2) Nach dem Annehmen aendert Titel,
+Zeitraum, Wertung, Spots nur noch der Admin; das Team pflegt Beschreibung und Bild, Loeschen nur Admin (409 `promoted`).
+3) Referees: das vorschlagende Team + Leitung/Moderation des offiziellen Teams (= globale Moderatoren) + Admins (gilt
+fuer alle globalen Events). 4) Vorschlag mind. 3 Tage vor dem Start (`VORSCHLAG_VORLAUF`), nur freigegebene Teams.
+5) Keine Push: die Entscheidung zaehlt beim Team-Marker (`anfragen` in /mine), bis Leitung/Moderation das Event oeffnet.
+Technik: Spalten `team_events.vorschlag_*`; `POST/DELETE /api/teams/{slug}/events/{id}/vorschlag`;
+`GET/POST /api/admin/teams/event-vorschlaege[/{id}]` (Admin › Teams, zaehlt im Reiter-Badge); Team-Wertung schliesst
+nur das offizielle Team aus (`global_ausser`), das ausrichtende zaehlt mit; iCal-Feed enthaelt alle globalen Events.
+Regeln (global/referee) angepasst, REGELN_STAND 2026-11-16b. Offen: Apps.
+
+Urspruengliche Skizze:
 
 Jan: „ich will das jeder globale events vorschlagen kann, vielleicht indem man ein team gruendet, ein event anlegt, und dann
 sowas wie 'promote as public event' anklickt, bei mir dann zum review auftaucht und ich das dann freischalten kann /

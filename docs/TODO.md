@@ -1537,7 +1537,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ### 16.11.2026 — Sortiert: was seit 06.11. gesammelt wurde (Uebersicht, Details in den Eintraegen darunter)
 **Reihenfolge (Jan 16.11. nachmittags):** 1) A6 Accel-Normierung, 2) Events unter mehreren Teams, 3) App-Ports von allem aus A.
-Stand 16.11. abends: 1) vertagt, 2) gebaut (Web/Server) -> als Naechstes 3) App-Ports.
+Stand 16.11. abends: 1) vertagt, 2) gebaut (Web/Server), dazu „Als globales Event vorschlagen" gebaut (Web/Server,
+docs/TEAMS.md) -> als Naechstes 3) App-Ports von ALLEM (Jan: „danach dann alles in die apps uebernehmen in ruhe").
 Referee „nur zu zweit/Moderatoren nur Vorschlag" nur gemerkt (Jan: „glaube das brauchen wir garnicht").
 
 **A. Diese Woche (Jan: „naechste Woche"), alles Wertung/Analyse -> erst Entwurf mit Zahlen, dann Jans OK**
