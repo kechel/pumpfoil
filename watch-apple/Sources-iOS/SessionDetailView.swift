@@ -1232,11 +1232,10 @@ struct SessionDetailView: View {
 
     @ViewBuilder private var selectedRunRow: some View {
         if let sel = selectedRun {
-            // Hinweis zum gewerteten Sprint-Fenster neben der Laufauswahl (web f8927f95); bricht auf schmalen Geraeten um.
+            // Der Wert des gewerteten Sprint-Fensters steht im aktiven Event-Kennzeichen (web 67651cf0), nicht mehr hier.
             FoilerFliessReihe(abstand: 8) {
                 Text(runLabel(sel)).font(.subheadline).foregroundStyle(Color.accentColor)
                 Button(Loc.t("sd.clearSelection", lang)) { selectedRun = nil }.font(.caption).buttonStyle(.borderless)
-                if let hl = sprintHL { SprintHinweis(text: sprintHinweisText(hl)) }
             }
         }
     }
@@ -1370,6 +1369,8 @@ struct SessionDetailView: View {
     private func eventKnopfText(_ ev: SessionEvent, _ k: String) -> String {
         var t: String = eventKurz(ev) + " · " + Loc.t(teamKennzahl(k).labelKey, lang)
         if let r = (ev.plaetze ?? []).first(where: { $0.kennzahl == k })?.rang { t += " · #" + String(r) }
+        // Aktiv: Wert und Lage im gewaehlten Lauf direkt im Kennzeichen (web 67651cf0, kein zweites Kennzeichen).
+        if aktivKz == k, let hl = sprintHL, hl.kz == k { t += " · " + sprintWertText(hl) }
         return t
     }
 
@@ -1398,10 +1399,10 @@ struct SessionDetailView: View {
         if selectedRun == nil, let s = session, let sl = sprintLauf(s) { selectedRun = sl.i }
     }
 
-    /// „Schnellste fliegende 100 m · 12.3 s · 29.3 km/h · +1:05" — Wert wie in der Bestenliste, dahinter die Lage im Lauf.
-    private func sprintHinweisText(_ hl: SprintLauf) -> String {
+    /// „12.3 s · 29.3 km/h · +1:05" — Wert wie in der Bestenliste, dahinter die Lage im Lauf (Teil des aktiven Kennzeichens).
+    private func sprintWertText(_ hl: SprintLauf) -> String {
         let k: TeamKennzahl = teamKennzahl(hl.kz)
-        var text: String = Loc.t(k.labelKey, lang) + " · " + k.fmt(hl.wert, lang)
+        var text: String = k.fmt(hl.wert, lang)
         let segs: [Segment] = session?.analysis?.segments ?? []
         let start: Double = segs.indices.contains(hl.i) ? (segs[hl.i].t_start_session_ms ?? hl.a) : hl.a
         let ab: Double = hl.a - start
@@ -2682,27 +2683,6 @@ private class SprintMarke: NSObject, MKAnnotation {
     let coordinate: CLLocationCoordinate2D
     let schild: String?
     init(_ c: CLLocationCoordinate2D, schild: String?) { coordinate = c; self.schild = schild }
-}
-
-/// Hinweis neben der Laufauswahl: Farbstreifen + „Kennzahl · Wert · +m:ss", magenta umrandet (web f8927f95).
-private struct SprintHinweis: View {
-    let text: String
-
-    private static let rand = Color(red: 0xd9 / 255.0, green: 0x46 / 255.0, blue: 0xef / 255.0)
-    private static let schrift = Color(UIColor { tc in
-        tc.userInterfaceStyle == .dark ? UIColor(red: 0xf0 / 255.0, green: 0xab / 255.0, blue: 0xfc / 255.0, alpha: 1)
-                                       : UIColor(red: 0xa2 / 255.0, green: 0x1c / 255.0, blue: 0xaf / 255.0, alpha: 1)
-    })
-
-    var body: some View {
-        HStack(spacing: 6) {
-            RoundedRectangle(cornerRadius: 2).fill(SprintHinweis.rand).frame(width: 16, height: 8)
-            Text(text).font(.caption.weight(.semibold)).foregroundStyle(SprintHinweis.schrift)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(.horizontal, 8).padding(.vertical, 4)
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(SprintHinweis.rand, lineWidth: 2))
-    }
 }
 
 private class EndPunkt: NSObject, MKAnnotation {

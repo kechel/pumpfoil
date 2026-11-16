@@ -1157,7 +1157,13 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 // Events, fuer die die Session zaehlt (Web 62429a12/67651cf0): je Kategorie mit Wert ein Kennzeichen (an/aus hebt das
                 // Stueck des gewaehlten Laufs hervor), ohne Kategorie „Zaehlt fuer <Event> · n Laeufe"; Pfeil oeffnet das Event.
                 if (!s.events.isNullOrEmpty()) {
-                    SessionEventKennzeichen(s, kzWahl, onKat = { k ->
+                    // Wert + Lage im gewaehlten Lauf stehen im aktiven Kennzeichen (Web 67651cf0, kein zweites Kennzeichen).
+                    val hlText = sprintHL?.let { hl ->
+                        val ab = hl.a - (segs.getOrNull(hl.lauf)?.tStartSessionMs ?: hl.a)
+                        val lage = if (ab > 0) " · +${(ab / 60000).toInt()}:" + ((Math.round(ab / 1000.0) % 60).toString().padStart(2, '0')) else ""
+                        hl.kz to (kennzahlWert(hl.kz, hl.wert) + lage)
+                    }
+                    SessionEventKennzeichen(s, kzWahl, hlText, onKat = { k ->
                         if (kzWahl == k) { eventKat = ""; selectedRun = null } else eventKat = k
                     })
                 }
@@ -1187,20 +1193,6 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                     label = { Text(I18n.t("sd.allRuns")) },
                                     colors = cyanChipColors(),
                                 )
-                            }
-                            // Sprint aus der Bestenliste (Web f8927f95): Kennzahl · Wert · Lage im Lauf (+m:ss).
-                            sprintHL?.let { hl ->
-                                val ab = hl.a - (segs.getOrNull(hl.lauf)?.tStartSessionMs ?: hl.a)
-                                val lage = if (ab > 0) " · +${(ab / 60000).toInt()}:" + ((Math.round(ab / 1000.0) % 60).toString().padStart(2, '0')) else ""
-                                Row(Modifier.align(Alignment.CenterVertically).clip(RoundedCornerShape(8.dp))
-                                        .border(1.dp, SPRINT_HINWEIS.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
-                                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically) {
-                                    Box(Modifier.size(width = 14.dp, height = 7.dp).clip(RoundedCornerShape(2.dp)).background(SPRINT_HINWEIS))
-                                    Spacer(Modifier.width(6.dp))
-                                    Text("${kennzahlLabel(hl.kz)} · ${kennzahlWert(hl.kz, hl.wert)}$lage",
-                                        style = MaterialTheme.typography.bodySmall)
-                                }
                             }
                         }
                     }
@@ -3369,7 +3361,7 @@ internal fun sprintFensterImLauf(s: SessionDetail, kz: String?, lauf: Int?): Spr
 /** Kennzeichen der Events, fuer die die Session zaehlt (Web SessionDetail, 16.11.2026), fuchsia wie im Web. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun SessionEventKennzeichen(s: SessionDetail, kzWahl: String?, onKat: (String) -> Unit) {
+private fun SessionEventKennzeichen(s: SessionDetail, kzWahl: String?, hlText: Pair<String, String>?, onKat: (String) -> Unit) {
     val openEvent = LocalOpenTeamEvent.current
     val dunkel = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val textFarbe = if (dunkel) Color(0xFFF0ABFC) else Color(0xFFA21CAF)   // fuchsia-300 / fuchsia-700
@@ -3388,7 +3380,8 @@ private fun SessionEventKennzeichen(s: SessionDetail, kzWahl: String?, onKat: (S
                 mitWert.forEach { k ->
                     val an = kzWahl == k
                     val rang = ev.plaetze.firstOrNull { it.kennzahl == k }?.rang
-                    Text(kurz + " · " + kennzahlLabel(k) + (rang?.let { " · #$it" } ?: ""),
+                    val wert = hlText?.takeIf { an && it.first == k }?.let { " · " + it.second } ?: ""
+                    Text(kurz + " · " + kennzahlLabel(k) + (rang?.let { " · #$it" } ?: "") + wert,
                         color = if (an) Color(0xFF020617) else textFarbe, style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.clip(RoundedCornerShape(8.dp))
