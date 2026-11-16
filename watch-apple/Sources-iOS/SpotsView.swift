@@ -1,7 +1,7 @@
 import SwiftUI
 import MapKit
 
-private let KARTE_HOEHE: CGFloat = 260
+private let KARTE_HOEHE: CGFloat = 520   // doppelt so hoch wie bisher (Jan, 16.11.2026)
 
 // MapKit wirft eine NSException, sobald eine Region breiter als 180°/360° ist — das beendet die
 // App sofort, es gibt keinen Fehlerwert zum Abfangen. Genau das ist am 30.08. passiert: mit der
