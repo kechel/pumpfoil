@@ -36,7 +36,10 @@ def main() -> None:
     db = SessionLocal()
     S, A = models.Session, models.AnalysisResult
     q = (db.query(A.id).join(S, S.id == A.session_id)
-         .filter(S.deleted.isnot(True), S.status == "analyzed", A.segments_json.isnot(None)))
+         .filter(S.deleted.isnot(True), S.status == "analyzed", A.segments_json.isnot(None),
+                 # Von Hand festgehaltene Auswertungen (auswertung-festhalten.py) nie neu rechnen — z. B. Sprints, die der
+                 # Schiedsrichter einzeln korrigiert hat (15.11.2026).
+                 S.auswertung_fest.isnot(True)))
     if args.ohne_fenster:
         q = q.filter(A.sprint_json.isnot(None), ~A.sprint_json.contains('"fenster"'))
     elif not args.alle:
