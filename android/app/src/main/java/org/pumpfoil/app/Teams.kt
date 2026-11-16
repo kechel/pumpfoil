@@ -335,6 +335,10 @@ data class TeamEvent(
     // Als globales Event vorgeschlagen (16.11.2026): Stand fuer das Team; „promoted by" fuer alle.
     val vorschlag: EventVorschlag? = null,
     @SerialName("promoted_by") val promotedBy: EventTeamBeteiligt? = null,
+    // Team-Eventliste (16.11.2026): ausrichtendes Team — bei Events anderer Teams, an denen dieses Team mitmacht, nicht das eigene.
+    @SerialName("team_slug") val teamSlug: String? = null,
+    // Mitglied eines eingeladenen Teams: das ausrichtende Team ist fuer ihn evtl. intern -> Kopf der Eventseite von hier.
+    val gastgeber: TeamInfo? = null,
 ) {
     /** Team-Wertung und Wappen-Spalte: globale Events und Events mehrerer Teams (Web `ev.global || ev.mehrteam`). */
     val mitTeamWertung: Boolean get() = global || mehrteam
@@ -468,6 +472,7 @@ data class TeamEventKurz(
     // Bild unten in der Kachel (10.11.2026): Eventbild, sonst Teambild (wenn das Event es zeigt) — der Server waehlt.
     @SerialName("banner_url") val bannerUrl: String? = null,
     @SerialName("banner_fokus") val bannerFokus: String? = null,
+    @SerialName("promoted_by") val promotedBy: EventTeamBeteiligt? = null,   // vorgeschlagenes globales Event (16.11.2026)
 )
 
 @Serializable
@@ -902,6 +907,8 @@ fun EventKachel(
     sportarten: List<String>, spots: List<TeamSpotKurz>, farbe: String?, onClick: () -> Unit,
     modifier: Modifier = Modifier, team: TeamEventTeam? = null, bannerUrl: String? = null, bannerFokus: String? = null,
     global: Boolean = false,
+    /** „promoted by <Team>" (vorgeschlagenes globales Event, Web EventKurzKachel 1f3f2f1a). */
+    promotedBy: EventTeamBeteiligt? = null,
 ) {
     val laeuft = status == "laeuft"
     val marke = MaterialTheme.colorScheme.primary
@@ -947,6 +954,14 @@ fun EventKachel(
                     sportarten.forEach { Box(Modifier.align(Alignment.CenterVertically)) { SportChip(it) } }
                     spots.forEach { Box(Modifier.align(Alignment.CenterVertically)) { SpotChip(it.name ?: "#${it.id}") } }
                 }
+                promotedBy?.let { pb ->
+                    Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        TeamWappen(pb.name, pb.logoUrl, pb.farbe, 16.dp)
+                        Spacer(Modifier.width(4.dp))
+                        Text(I18n.t("team.event.promotedBy").replace("{team}", pb.name), style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
                 // Titel ausdruecklich in der Akzentfarbe (Jan, 06.11.2026) — sonst erbte er das gedaempfte Grau der Card.
                 Text(titel, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold,
                     color = akzent, modifier = Modifier.padding(top = 4.dp))
@@ -980,14 +995,19 @@ private fun KachelBild(url: String?, fokus: String?) {
 }
 
 @Composable
-fun EventKachel(e: TeamEvent, farbe: String?, onClick: () -> Unit, modifier: Modifier = Modifier) =
-    EventKachel(e.titel, e.beschreibung, e.status, e.start, e.ende, e.zeitzone, e.sportarten, e.spots, farbe, onClick, modifier,
-        bannerUrl = e.bannerUrl, bannerFokus = e.bannerFokus, global = e.global)
+fun EventKachel(e: TeamEvent, farbe: String?, onClick: () -> Unit, modifier: Modifier = Modifier, eigenerSlug: String? = null) {
+    // Event eines anderen Teams, bei dem dieses Team mitmacht (Web 2d30a70e): Wappen + Name des ausrichtenden Teams.
+    val host = if (e.teamSlug != null && eigenerSlug != null && e.teamSlug != eigenerSlug)
+        e.teamsBeteiligt.firstOrNull { it.status == "ausrichtend" } else null
+    EventKachel(e.titel, e.beschreibung, e.status, e.start, e.ende, e.zeitzone, e.sportarten, e.spots, host?.farbe ?: farbe, onClick, modifier,
+        team = host?.let { TeamEventTeam(slug = it.slug, name = it.name, logoUrl = it.logoUrl, farbe = it.farbe) },
+        bannerUrl = e.bannerUrl, bannerFokus = e.bannerFokus, global = e.global, promotedBy = e.promotedBy)
+}
 
 @Composable
 fun EventKachel(e: TeamEventKurz, onClick: () -> Unit, modifier: Modifier = Modifier) {
     EventKachel(e.titel, e.beschreibung, e.status, e.start, e.ende, e.zeitzone, e.sportarten, e.spots, e.team.farbe, onClick,
-        modifier, team = e.team, bannerUrl = e.bannerUrl, bannerFokus = e.bannerFokus, global = e.global)
+        modifier, team = e.team, bannerUrl = e.bannerUrl, bannerFokus = e.bannerFokus, global = e.global, promotedBy = e.promotedBy)
 }
 
 /** Abzeichen „Global" (Karten, Event-Seite): Pumpfoil-Cyan, hell dunkler (Web brand-700 / dark brand-300). */

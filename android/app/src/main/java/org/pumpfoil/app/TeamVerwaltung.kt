@@ -863,6 +863,11 @@ private data class EventEntwurf(
     // Globales Event (06.11.2026, nur im offiziellen Team) und Teamwertung: beste N, 0 = alle (null = Server-Standard 5).
     val globalEvent: Boolean = false,
     val teamWertungN: Int? = null,
+    // Als globales Event vorgeschlagen und angenommen (16.11.2026): Titel/Zeitraum/Wertung nur noch pumpfoil.org (Web).
+    val promoted: Boolean = false,
+    val vorschlag: EventVorschlag? = null,
+    // Events mehrerer Teams (16.11.2026): beteiligte Teams samt Status.
+    val beteiligt: List<EventTeamBeteiligt> = emptyList(),
 )
 
 /** Naechster Samstag 00:00 bis Montag 00:00 (heute Samstag: der naechste) bzw. dieser Monat (Web wochenende/monat). */
@@ -906,6 +911,7 @@ private fun entwurfAus(ev: TeamEvent) = EventEntwurf(
     spotIds = ev.spotIds, vorlage = ev.vorlage, tafeln = ev.tafeln.filter { '+' !in it.sportart }.map { it.copy(zeilen = emptyList(), id = null,
         nurTeamspots = false, teams = null, eigene = null, stand = null) },
     globalEvent = ev.global, teamWertungN = ev.teamWertungN ?: 5,
+    promoted = ev.promotedBy != null, vorschlag = ev.vorschlag, beteiligt = ev.teamsBeteiligt,
 )
 
 private fun eventKoerper(e: EventEntwurf, offiziell: Boolean): JsonObject = buildJsonObject {
@@ -1050,9 +1056,36 @@ private fun TeamEventDialog(slug: String, farbe: String?, start: EventEntwurf, l
                     }
                     // Ohne eigenes Eventbild: Teambild zeigen (Standard an).
                     if (e.bannerUrl == null) Haken(e.teambildZeigen, I18n.t("team.event.teambildZeigen"), { e = e.copy(teambildZeigen = it) })
+                    val evId = e.id
+                    // Als globales Event vorschlagen (Web 1f3f2f1a): pumpfoil.org prueft; angenommen = global, bleibt beim Team.
+                    if (evId != null && !offiziell) {
+                        EventVorschlagBlock(e.promoted, e.vorschlag,
+                            vorschlagen = {
+                                try { e = e.copy(vorschlag = Api.teamEventVorschlagen(slug, evId)); onGeaendert() }
+                                catch (x: Exception) { fehler = teamFehlerText(x) }
+                            },
+                            zurueckziehen = {
+                                try { Api.teamEventVorschlagZurueck(slug, evId); e = e.copy(vorschlag = null); onGeaendert() }
+                                catch (x: Exception) { fehler = teamFehlerText(x) }
+                            })
+                    }
+                    if (e.promoted) Text(I18n.t("team.event.vorschlag.gesperrt"), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = 8.dp))
+                    // Mit anderen Teams austragen (Web 2d30a70e): einladen, das andere Team nimmt an; erst gespeicherte Events.
+                    if (evId != null && !e.globalEvent) {
+                        EventMehrteamBlock(e.beteiligt,
+                            einladen = { team ->
+                                try { e = e.copy(beteiligt = Api.teamEventTeamEinladen(slug, evId, team)); onGeaendert(); true }
+                                catch (x: Exception) { fehler = teamFehlerText(x); false }
+                            },
+                            entfernen = { ts ->
+                                try { e = e.copy(beteiligt = Api.teamEventTeamEntfernen(slug, evId, ts)); onGeaendert() }
+                                catch (x: Exception) { fehler = teamFehlerText(x) }
+                            })
+                    }
                     // Globales Event (Web 06.11.2026): nur im offiziellen Team. Jeder mit passenden Sessions nimmt teil,
                     // dazu eine Team-Rangliste aus den besten N Mitgliedern jedes Teams.
-                    if (offiziell) {
+                    if (offiziell && !e.promoted) {
                         Column(Modifier.fillMaxWidth().padding(vertical = 6.dp).clip(RoundedCornerShape(12.dp))
                             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f))
                             .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.30f), RoundedCornerShape(12.dp)).padding(8.dp)) {
@@ -1067,15 +1100,16 @@ private fun TeamEventDialog(slug: String, farbe: String?, start: EventEntwurf, l
                             }
                         }
                     }
-                    OutlinedTextField(value = e.titel, onValueChange = { e = e.copy(titel = it.take(80)) }, singleLine = true,
+                    OutlinedTextField(value = e.titel, onValueChange = { e = e.copy(titel = it.take(80)) }, singleLine = true, enabled = !e.promoted,
                         label = { Text(I18n.t("team.event.titel")) }, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
-                    Row(Modifier.padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (!e.promoted) Row(Modifier.padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         DatumZeitFeld(I18n.t("team.event.start"), e.start, { e = e.copy(start = it) }, Modifier.weight(1f))
                         DatumZeitFeld(I18n.t("team.event.ende"), e.ende, { e = e.copy(ende = it) }, Modifier.weight(1f))
                     }
                     OutlinedTextField(value = e.beschreibung, onValueChange = { e = e.copy(beschreibung = it.take(1000)) }, minLines = 2,
                         label = { Text(I18n.t("team.beschreibung")) }, modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp))
 
+                    if (!e.promoted) {
                     Text(I18n.t("team.bestenlisten"), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
                     e.tafeln.forEachIndexed { i, tf ->
                         fun aendern(neu: TeamTafel) { e = e.copy(tafeln = e.tafeln.mapIndexed { j, x -> if (j == i) neu else x }) }
@@ -1144,6 +1178,7 @@ private fun TeamEventDialog(slug: String, farbe: String?, start: EventEntwurf, l
                         }) { Text("+ " + I18n.t("team.spotHinzu")) }
                     }
                     Haken(e.ohneDateien, I18n.t("team.event.ohneDateien"), { e = e.copy(ohneDateien = it) })
+                    }   // !promoted
                 }
                 fehler?.let {
                     Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium,
@@ -1165,7 +1200,7 @@ private fun TeamEventDialog(slug: String, farbe: String?, start: EventEntwurf, l
                             }
                         })
                     OutlinedButton(onClick = onZu) { Text(I18n.t("common.cancel")) }
-                    if (e.id != null && !e.eingefroren) TextButton(onClick = { loeschFrage = true }) {
+                    if (e.id != null && !e.eingefroren && !e.promoted) TextButton(onClick = { loeschFrage = true }) {
                         Icon(Icons.Filled.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(4.dp))
                         Text(I18n.t("common.delete"), color = MaterialTheme.colorScheme.error)
@@ -1190,5 +1225,76 @@ private fun TeamEventDialog(slug: String, farbe: String?, start: EventEntwurf, l
             },
             dismissButton = { TextButton(onClick = { loeschFrage = false }) { Text(I18n.t("common.cancel")) } },
         )
+    }
+}
+
+
+/** „Als globales Event vorschlagen" im Event-Editor (Web TeamEventsVerwalten, 1f3f2f1a). */
+@Composable
+private fun EventVorschlagBlock(promoted: Boolean, v: EventVorschlag?, vorschlagen: suspend () -> Unit, zurueckziehen: suspend () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var busy by remember { mutableStateOf(false) }
+    fun los(f: suspend () -> Unit) { busy = true; scope.launch { f(); busy = false } }
+    val marke = MaterialTheme.colorScheme.primary
+    if (promoted) {
+        Column(Modifier.fillMaxWidth().padding(vertical = 6.dp).clip(RoundedCornerShape(12.dp)).background(marke.copy(alpha = 0.10f))
+            .border(1.dp, marke.copy(alpha = 0.30f), RoundedCornerShape(12.dp)).padding(10.dp)) {
+            Text(I18n.t("team.event.vorschlag.angenommen"), style = MaterialTheme.typography.bodyMedium)
+            v?.notiz?.takeIf { it.isNotBlank() }?.let { Text("„$it“", style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp)) }
+        }
+        return
+    }
+    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp).clip(RoundedCornerShape(12.dp))
+        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp)).padding(10.dp)) {
+        Text(I18n.t("team.event.vorschlag.titel"), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+        if (v?.status == "vorgeschlagen") {
+            Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(I18n.t("team.event.vorschlag.wirdGeprueft"), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
+                    color = strittigFarbe(), modifier = Modifier.clip(RoundedCornerShape(6.dp))
+                        .background(androidx.compose.ui.graphics.Color(0xFFF59E0B).copy(alpha = 0.15f)).padding(horizontal = 6.dp, vertical = 2.dp))
+                Spacer(Modifier.width(8.dp))
+                OutlinedButton(enabled = !busy, onClick = { los(zurueckziehen) }) { Text(I18n.t("team.event.vorschlag.zurueckziehen")) }
+            }
+        } else {
+            Text(I18n.t("team.event.vorschlag.hinweis"), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
+            if (v?.status == "abgelehnt") Text(I18n.t("team.event.vorschlag.abgelehnt") + (v.notiz?.takeIf { it.isNotBlank() }?.let { " „$it“" } ?: ""),
+                style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 6.dp))
+            OutlinedButton(enabled = !busy, onClick = { los(vorschlagen) }) { Text(I18n.t("team.event.vorschlag.knopf")) }
+        }
+    }
+}
+
+/** „Mit anderen Teams austragen" im Event-Editor (Web TeamEventsVerwalten, 2d30a70e). */
+@Composable
+private fun EventMehrteamBlock(beteiligt: List<EventTeamBeteiligt>, einladen: suspend (String) -> Boolean, entfernen: suspend (String) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var feld by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
+    Column(Modifier.fillMaxWidth().padding(vertical = 6.dp).clip(RoundedCornerShape(12.dp))
+        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp)).padding(10.dp)) {
+        Text(I18n.t("team.event.mehrteam"), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+        Text(I18n.t("team.event.mehrteamHinweis"), style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(feld, { feld = it.take(80) }, singleLine = true, label = { Text(I18n.t("team.event.mehrteamFeld")) },
+                modifier = Modifier.weight(1f))
+            Spacer(Modifier.width(8.dp))
+            OutlinedButton(enabled = !busy && feld.isNotBlank(), onClick = {
+                busy = true
+                scope.launch { if (einladen(feld.trim().substringAfterLast("/"))) feld = ""; busy = false }
+            }) { Text(I18n.t("team.event.mehrteamEinladen")) }
+        }
+        beteiligt.filter { it.status != "ausrichtend" }.forEach { x ->
+            Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                TeamWappen(x.name, x.logoUrl, x.farbe, 20.dp)
+                Spacer(Modifier.width(6.dp))
+                Text(x.name, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(I18n.t("team.event.einladung.${x.status}"), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
+                    color = when (x.status) { "angenommen" -> markenAkzent(); "abgelehnt" -> MaterialTheme.colorScheme.onSurfaceVariant; else -> strittigFarbe() })
+                TextButton(onClick = { scope.launch { entfernen(x.slug) } }) { Text(I18n.t("team.event.mehrteamEntfernen")) }
+            }
+        }
     }
 }

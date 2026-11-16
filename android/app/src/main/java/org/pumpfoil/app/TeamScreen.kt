@@ -4,6 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Button
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -245,6 +249,11 @@ fun TeamScreen(
                         }
                     }
 
+                    // Einladungen anderer Teams zu ihren Events (Web 2d30a70e): nur offene, Leitung/Moderation nimmt an oder lehnt ab.
+                    if (k.verwalter) EventEinladungenKarte(k.slug, onGeaendert = {
+                        neuLaden++
+                        scope.launch { events = try { Api.teamEvents(slug) } catch (_: Exception) { events } }
+                    })
                     // Oben: laufende, kommende und bis eine Woche nach dem Ende auch beendete Events; aeltere darunter mit
                     // derselben Kachel (Jan, 01.11.2026). Reihenfolge oben: laeuft, kommend (naechstes zuerst), dann vorbei.
                     val (oben, unten) = remember(events) { eventsAufteilen(events.orEmpty()) }
@@ -252,13 +261,13 @@ fun TeamScreen(
                         if (oben.isEmpty() && unten.isEmpty()) Text(I18n.t("team.event.keineAktuellen"),
                             style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         oben.forEach { e ->
-                            EventKachel(e, k.farbe, onClick = { onOpenEvent(k.slug, e.id) }, Modifier.padding(bottom = 10.dp))
+                            EventKachel(e, k.farbe, onClick = { onOpenEvent(e.teamSlug ?: k.slug, e.id) }, Modifier.padding(bottom = 10.dp), eigenerSlug = k.slug)
                         }
                         if (unten.isNotEmpty()) {
                             Text(I18n.t("team.event.vergangen"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.padding(top = 16.dp, bottom = 8.dp))
                             unten.forEach { e ->
-                                EventKachel(e, k.farbe, onClick = { onOpenEvent(k.slug, e.id) }, Modifier.padding(bottom = 10.dp))
+                                EventKachel(e, k.farbe, onClick = { onOpenEvent(e.teamSlug ?: k.slug, e.id) }, Modifier.padding(bottom = 10.dp), eigenerSlug = k.slug)
                             }
                         }
                     }
@@ -483,5 +492,47 @@ private fun TeamAdresseKarte(k: TeamInfo, f: TeamFarbe) {
                 color = if (zustand == "oeffentlich") MaterialTheme.colorScheme.onSurfaceVariant else androidx.compose.ui.graphics.Color(0xFFD97706),
                 modifier = Modifier.padding(top = 8.dp))
         }
+    }
+}
+
+
+/** Offene Einladungen dieses Teams zu Events anderer Teams (Web EventEinladungen, 16.11.2026). */
+@Composable
+private fun EventEinladungenKarte(slug: String, onGeaendert: () -> Unit) {
+    var liste by remember(slug) { mutableStateOf<List<EventEinladung>>(emptyList()) }
+    var fehler by remember(slug) { mutableStateOf<String?>(null) }
+    var laden by remember(slug) { mutableIntStateOf(0) }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(slug, laden) { liste = try { Api.teamEventEinladungen(slug) } catch (_: Exception) { emptyList() } }
+    val offen = liste.filter { it.status == "eingeladen" }
+    if (offen.isEmpty()) return
+    val bernstein = Color(0xFFF59E0B)
+    Column(Modifier.fillMaxWidth().padding(bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        offen.forEach { x ->
+            Card(Modifier.fillMaxWidth(), border = BorderStroke(1.dp, bernstein.copy(alpha = 0.4f)),
+                colors = CardDefaults.cardColors(containerColor = bernstein.copy(alpha = 0.10f))) {
+                Column(Modifier.padding(12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        TeamWappen(x.team.name, x.team.logoUrl, x.team.farbe, 32.dp)
+                        Spacer(Modifier.width(10.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(I18n.t("team.event.einladungText").replace("{team}", x.team.name).replace("{titel}", x.titel),
+                                style = MaterialTheme.typography.bodyMedium)
+                            Text(kurzDatum(x.start) + " – " + kurzDatum(x.ende), style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+                        fun antworten(ja: Boolean) = scope.launch {
+                            try { Api.teamEventEinladungAntworten(slug, x.eventId, ja); laden++; onGeaendert() }
+                            catch (ex: Exception) { fehler = teamFehlerText(ex) }
+                        }
+                        OutlinedButton(onClick = { antworten(false) }) { Text(I18n.t("team.event.einladungAblehnen")) }
+                        Button(onClick = { antworten(true) }) { Text(I18n.t("team.event.einladungAnnehmen")) }
+                    }
+                }
+            }
+        }
+        fehler?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
     }
 }

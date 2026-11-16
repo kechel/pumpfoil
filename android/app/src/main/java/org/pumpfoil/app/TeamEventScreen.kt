@@ -90,6 +90,9 @@ fun TeamEventScreen(
     var team by remember(slug) { mutableStateOf<TeamInfo?>(null) }
     var ev by remember(slug, eventId) { mutableStateOf<TeamEvent?>(null) }
     var fehlt by remember(slug, eventId) { mutableStateOf(false) }
+    // Events mehrerer Teams: wer ueber ein eingeladenes Team kommt, darf das ausrichtende Team evtl. nicht sehen — dann
+    // traegt die Event-Antwort den Kopf (`gastgeber`, Web 2d30a70e).
+    var teamFehlt by remember(slug) { mutableStateOf(false) }
     var neuLaden by remember { mutableIntStateOf(0) }
     var dialog by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
@@ -116,7 +119,7 @@ fun TeamEventScreen(
     val uri = LocalUriHandler.current
 
     LaunchedEffect(slug, neuLaden) {
-        try { team = Api.team(slug) } catch (_: Exception) { if (team == null) fehlt = true }
+        try { team = Api.team(slug) } catch (_: Exception) { if (team == null) teamFehlt = true }
     }
     LaunchedEffect(slug, eventId, evLaden, klasse) {
         try { ev = Api.teamEvent(slug, eventId, klasse) } catch (_: Exception) {
@@ -131,8 +134,9 @@ fun TeamEventScreen(
             .getOrDefault(emptySet())
     }
 
-    val t = team
+    val t = team ?: ev?.gastgeber
     val e = ev
+    val nichtDa = fehlt || (teamFehlt && e != null && e.gastgeber == null)
     val f = teamFarbe(t?.farbe)
     // „Stand 6. Nov., 14:32" in den Listen und im geteilten Bild, solange sich noch etwas aendern kann; danach „Endstand"
     // (Web standFuer, 06.11.2026). Mit Datum — im geteilten Bild muss man sehen, von welchem Tag der Stand ist.
@@ -195,7 +199,7 @@ fun TeamEventScreen(
     ) { pad ->
         Box(Modifier.padding(pad).fillMaxSize()) {
             when {
-                fehlt -> Text(I18n.t("team.nichtGefunden"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                nichtDa -> Text(I18n.t("team.nichtGefunden"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 t == null || e == null -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 else -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)) {
                     meldung?.let {
@@ -814,8 +818,7 @@ private fun LaufMeldenDialog(z: TeamZeile, onClose: () -> Unit, onSenden: suspen
                 scope.launch {
                     try { onSenden(grund, text.trim()) }
                     catch (ex: Exception) {
-                        val c = Regex("\"detail\"\\s*:\\s*\"([a-z_]+)\"").find(ex.message ?: "")?.groupValues?.get(1)
-                            ?: Regex("^([a-z_]+)$").find(ex.message ?: "")?.groupValues?.get(1)
+                        val c = (ex as? ApiFehler)?.detail
                         val k = c?.let { "ref.fehler.$it" }
                         fehler = if (k != null && I18n.t(k) != k) I18n.t(k) else (ex.message ?: ex.toString())
                     }
