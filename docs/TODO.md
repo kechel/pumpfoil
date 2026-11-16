@@ -1537,6 +1537,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ### 16.11.2026 — Sortiert: was seit 06.11. gesammelt wurde (Uebersicht, Details in den Eintraegen darunter)
 **Reihenfolge (Jan 16.11. nachmittags):** 1) A6 Accel-Normierung, 2) Events unter mehreren Teams, 3) App-Ports von allem aus A.
+Stand 16.11. abends: 1) vertagt, 2) gebaut (Web/Server) -> als Naechstes 3) App-Ports.
 Referee „nur zu zweit/Moderatoren nur Vorschlag" nur gemerkt (Jan: „glaube das brauchen wir garnicht").
 
 **A. Diese Woche (Jan: „naechste Woche"), alles Wertung/Analyse -> erst Entwurf mit Zahlen, dann Jans OK**
@@ -1585,7 +1586,9 @@ nachtraeglich HINEINnehmen (Laufgrenzen/Sprints neu rechnen, wie 21890/21668) �
 Entwurf zusammen mit A1.
 
 **A++. Nach A1 (Jan 16.11.)**
-- **Event unter mehreren Teams austragen:** ein Team laedt andere Teams zu seinem Event ein (z. B. 5 Teams), die Wertung
+- ✅ 16.11. GEBAUT Web+Server (2d30a70e, Marker 78a55f0f; s. docs/TEAMS.md „Events unter mehreren Teams"): Einladen +
+  Annehmen, Referee nur ausrichtendes Team, sichtbar nur Beteiligten, Team-Marker zaehlt offene Einladungen. Offen: Apps.
+  **Event unter mehreren Teams austragen:** ein Team laedt andere Teams zu seinem Event ein (z. B. 5 Teams), die Wertung
   zaehlt nur deren Mitglieder (Team-Wertung wie bei globalen Events), angezeigt nur diesen Teams. Erweitert „Globale Events
   von Teams vorschlagen" (docs/TEAMS.md). Offen: Einladung annehmen/ablehnen je Team, wer Referee ist (Leitung aller
   beteiligten Teams?), Sichtbarkeit fuer Nicht-Mitglieder.
