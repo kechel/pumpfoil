@@ -1546,7 +1546,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 3. ✅ 16.11. Ø Speed ueber die fertigen Laeufe — LIVE (8828c9bc), Bestand 6611 nachgezogen.
 4. ✅ 16.11. Sprints je Fenster LIVE (88eaba2d, VERSION 4, + Sprung-Regel), Bestand 15725 nachgerechnet (Sicherung
    data/analyse-notizen/2026-11-16-sprint-v4/), sprints-nachrechnen laesst `auswertung_fest` aus (dc0aa359).
-5. v3 schneidet Laufenden zu frueh ab (5-s-Glaettung am Rand), Regression vorher (15.11.).
+5. ✅ 16.11. v3-Laufrand mit rohem p LIVE (5e973320, v3-r4-mild-4), 799 Sessions neu ausgewertet (Laeufe +4, wie Regression).
 6. Accel-Normierung (`ACCEL_NORM`, r8b gemessen) + Regel „wer gewinnt beim Garmin-Zusammenfuehren", 7 Altfaelle (13.11.).
    Jan 16.11.: SPAETER, erst A1; danach mit frischer Gegenprobe (Brett-Paare, Garmin-Connect-Paare) entscheiden.
 
