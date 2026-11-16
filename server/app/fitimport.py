@@ -337,6 +337,11 @@ def _ernten(fit, profil: dict | None = None) -> tuple[list, list, list, str, obj
             produkt = fid.get("garmin_product") if fid.get("manufacturer") in ("garmin", 1) else None
             if profil is not None and isinstance(produkt, int):
                 profil["produkt"] = produkt
+            # Lesbarer Geraetename, wenn die Datei ihn mitbringt (Suunto: „Suunto Race 2", 16.11.2026 — bisher fehlte bei
+            # Suunto-Importen der Uhrname ganz). Garmin schreibt hier nichts; dort kommt der Name aus dem Push.
+            pn = fid.get("product_name")
+            if profil is not None and isinstance(pn, str) and pn.strip():
+                profil["geraet_name"] = pn.strip()[:60]
         if msg.name == "record":
             records.append({d.name: d.value for d in msg})
         elif msg.name == "accelerometer_data":
@@ -445,6 +450,7 @@ def parse_fit_bytes(data: bytes) -> dict:
         "sport": sport,
         "sport_name": profil.get("name"),
         "garmin_produkt": profil.get("produkt"),
+        "geraet_name": profil.get("geraet_name"),
         "foil_status": foil_status,
         # Gesetzt, wenn die Datei nur bis zu einer Stelle lesbar war (abgebrochene Aufzeichnung,
         # falsche Pruefsumme, Muell hinter dem Ende). Der Import laeuft trotzdem — hiermit kann

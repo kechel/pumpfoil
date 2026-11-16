@@ -95,3 +95,20 @@ def test_kontoimport_nichts_vor_2026_und_nichts_ohne_gps():
     assert suunto._vorfilter({"startTime": int(alt.timestamp() * 1000), "totalTime": 3600}) == "zu alt"
     assert suunto._vorfilter({"startTime": int(neu.timestamp() * 1000), "totalTime": 3600}) is None
     assert suunto._grund_code("zu alt") == "gefiltert"
+
+
+def test_fit_geraetename_aus_file_id():
+    """Uhrname aus file_id.product_name (16.11.2026: Suunto-Importe zeigten keinen Geraetenamen)."""
+    from app.fitimport import parse_fit_bytes
+    start = datetime(2026, 11, 7, 9, 0, 0, tzinfo=timezone.utc)
+    ts0 = int(start.timestamp()) - FIT_EPOCH
+    name = b"Suunto Race 2".ljust(16, b"\0")
+    body = struct.pack("<BBBHB", 0x40, 0, 0, 0, 3) + bytes([0, 1, 0x00, 4, 4, 0x86, 8, 16, 0x07])
+    body += struct.pack("<BBI", 0x00, 4, ts0) + name
+    body += struct.pack("<BBBHB", 0x42, 0, 0, 20, 2) + bytes([253, 4, 0x86, 3, 1, 0x02])
+    for i in range(30):
+        body += struct.pack("<BIB", 0x02, ts0 + i, 90)
+    kopf = struct.pack("<BBHI4s", 14, 0x20, 2132, len(body), b".FIT")
+    kopf += struct.pack("<H", _crc(kopf))
+    datei = kopf + body
+    assert parse_fit_bytes(datei + struct.pack("<H", _crc(datei)))["geraet_name"] == "Suunto Race 2"

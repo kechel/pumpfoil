@@ -36,8 +36,8 @@ def import_geraet(session_uuid: str | None, device_model: str | None) -> str | N
     """Geraet einer IMPORTIERTEN Session fuer das Uhr-Abzeichen. Bisher nur Garmin Connect (05.11.2026): Garmins
     Markenvorgaben verlangen an jeder Anzeige solcher Daten „Garmin [Geraet]"; der Name kommt im Push und steht in
     `device_model` (app/api/garmin.py). Andere Importe haben kein Abzeichen."""
-    if session_uuid and session_uuid.startswith("garmin-") and device_model:
-        return device_model
+    if session_uuid and session_uuid.startswith(("garmin-", "suunto-")) and device_model:
+        return device_model     # Suunto seit 16.11.2026: Name aus der FIT-Datei (fitimport `geraet_name`)
     return None
 
 
@@ -917,6 +917,8 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
         # Garmin Connect: auf die Skala unserer Garmin-App (fitimport.GARMIN_APP_SKALA, 13.11.2026). Andere Importe
         # (FIT-Upload, Suunto, COROS, Polar …) bleiben bei 2048 — die Frage stellt sich dort erst mit einer Neu-Eichung.
         **({"accel_scale": GARMIN_APP_SKALA} if uuid_prefix == "garmin-" else {}),
+        # Uhrname aus der Datei (fitimport `geraet_name`, z. B. Suunto), Garmin setzt ihn spaeter aus dem Push.
+        **({"device_model": parsed["geraet_name"]} if parsed.get("geraet_name") else {}),
         status="complete",
         total_chunks=1,
         # Standard-Foil + Stab/Board/Mast/Shim fest zuordnen (s. setup_snapshot), angepasst an die
