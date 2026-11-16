@@ -1560,6 +1560,11 @@ Festschreiben noch 24 h nachgerechnet, danach endgueltig. Rechte: Event-Leiter d
 **Oeffentliche Referee-Anzeige (Jan 16.11.):** am Event sichtbar, was geaendert wurde (welcher Lauf/Wert, wann,
 vorher/nachher) mit Kommentar des Referees — zwei getrennte Felder: oeffentlicher Kommentar (fuer alle) und interne
 Notiz (nur Referees/Admins).
+**Gruende als Vorauswahl (Jan 16.11.)** aus den Faellen der ersten Events: „andere Sportart" (z. B. Wingfoil-Session
+21529, Wingfoil auf Platz 1 im Flying Sprint), „Messfehler (GPS-/Tempo-Sprung)", „doppelte Aufnahme derselben Fahrt",
+„Fremdkraft (Welle, Boot, Zug)", „ausserhalb des Eventfensters" — plus Freitext. **Nicht im Board:** nicht erkannte Laeufe
+nachtraeglich HINEINnehmen (Laufgrenzen/Sprints neu rechnen, wie 21890/21668) — vorerst nur ueber Claude mit Sicherung
++ auswertung-festhalten.
 Entwurf zusammen mit A1.
 
 **C. Analyse-Befunde (Pipeline, nur mit Jans OK)**
