@@ -14,7 +14,7 @@ LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "
 FUN = {c: "texte" + c.upper().replace("-", "") for c in LANGS}
 
 # Praefixe/Schluessel ausserhalb von `team.*`, die die App braucht (Stand 16.11.2026).
-WEITERE_PRAEFIXE = ("ref.",)
+WEITERE_PRAEFIXE = ("ref.", "imp.")   # imp.*: Datenschutzseite wortgleich mit dem Web (ImpressumScreen.kt)
 WEITERE = ["sd.eventZaehlt", "sd.eventKategorieHinweis", "sd.taktUhr"]
 
 
@@ -53,7 +53,7 @@ fehlt = [k for k in keys if k not in T["en"]]
 if fehlt:
     sys.exit(f"FEHLT im Web (en): {fehlt}")
 o = ["package org.pumpfoil.app", "",
-     "// Referee, Event-Kennzeichen an Sessions, Takt laut Uhr (16.11.2026). ERZEUGT von scripts/gen-i18n-android-teams.py aus",
+     "// Referee, Event-Kennzeichen an Sessions, Takt laut Uhr, Datenschutzseite (16.11.2026). ERZEUGT von scripts/gen-i18n-android-teams.py aus",
      "// web/src/i18n/locales/*.ts — Wortlaut im Web aendern und neu erzeugen, nie hier. Rueckfall gsw/de-AT -> de, pt-PT -> pt,",
      "// dann Englisch. Je Sprache eine Funktion (64-KB-Grenze je Methode).", "",
      "private val EVENTS_BRUECKE = mapOf(\"gsw\" to \"de\", \"de-AT\" to \"de\", \"pt-PT\" to \"pt\")",

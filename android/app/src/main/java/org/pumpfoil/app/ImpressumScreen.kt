@@ -50,19 +50,25 @@ fun ImpressumScreen(onBack: () -> Unit) {
             Body(I18n.t("imp.intro"))
             Spacer(Modifier.height(12.dp))
 
-            Section("imp.publicTitle", null, listOf("imp.public1", "imp.public2"), null)
-            Section("imp.communityTitle", "imp.communityIntro", listOf("imp.community1", "imp.community2", "imp.community3", "imp.community4"), "imp.communityNote")
-            Section("imp.ownerTitle", null, listOf("imp.owner1", "imp.owner2", "imp.owner3", "imp.owner4", "imp.owner5", "imp.owner6"), null)
-            Section("imp.operatorTitle", null, listOf("imp.operator1", "imp.operator2"), null)
-            Section("imp.hostTitle", null, listOf("imp.host1", "imp.host2"), null)   // Server + Hosting (29.09.2026, wie PWA)
+            // Abschnitte und Reihenfolge wie web pages/Impressum.tsx (Stand 16.11.2026); Texte aus I18nEvents.kt (gen-i18n-android-teams.py).
+            Section("imp.publicTitle", null, listOf("imp.public1", "imp.public2", "imp.public3", "imp.public4"), null)
+            Section("imp.communityTitle", "imp.communityIntro", (1..8).map { "imp.community$it" }, "imp.communityNote")
+            Section("imp.friendsTitle", null, listOf("imp.friends1", "imp.friends2", "imp.friends3"), null)
+            Section("imp.teamsTitle", null, (1..5).map { "imp.teams$it" }, null)
+            Section("imp.ownerTitle", null, (1..6).map { "imp.owner$it" }, null)
+            Section("imp.operatorTitle", null, listOf("imp.operator1", "imp.operator2", "imp.operator3"), null)
+            Section("imp.hostTitle", null, listOf("imp.host1", "imp.host2"), null)
             Section("imp.googleTitle", "imp.googleIntro", listOf("imp.google1", "imp.google2", "imp.google3", "imp.google4"), "imp.googleNote")
             Section("imp.appleTitle", "imp.appleIntro", listOf("imp.apple1", "imp.apple2", "imp.apple3"), null)
-            // Facebook-Anmeldung und KI-Unterstuetzung (29.09.2026): standen nur in der PWA.
-            // Reihenfolge ab hier wie web /impressum: Facebook, Konten, KI, Karten, YouTube.
             Section("imp.fbTitle", "imp.fbIntro", listOf("imp.fb1", "imp.fb2", "imp.fb3", "imp.fb4", "imp.fb5"), "imp.fbNote")
             Section("imp.connTitle", "imp.connIntro", listOf("imp.conn1", "imp.conn2", "imp.conn3"), null)
+            Section("imp.mcpTitle", null, listOf("imp.mcp1", "imp.mcp2", "imp.mcp3"), null)
+            Section("imp.garminTitle", "imp.garminIntro", listOf("imp.garmin1", "imp.garmin2", "imp.garmin2b", "imp.garmin3", "imp.garmin4", "imp.garmin5"), null)
+            Section("imp.huaweiTitle", "imp.huaweiIntro", listOf("imp.huawei1", "imp.huawei2", "imp.huawei3", "imp.huawei4"), null)
+            Section("imp.ghTitle", "imp.ghIntro", listOf("imp.gh1", "imp.gh2", "imp.gh3", "imp.gh4"), null)
+            Section("imp.werteTitle", "imp.werteText", emptyList(), null)
             Section("imp.aiTitle", "imp.aiIntro", listOf("imp.ai1", "imp.ai2", "imp.ai3", "imp.ai4"), "imp.aiNote")
-            Section("imp.mapTitle", null, listOf("imp.map1", "imp.map2", "imp.mapApple"), null)
+            Section("imp.mapTitle", null, listOf("imp.map1", "imp.map2", "imp.mapApple", "imp.mapSpots"), null)
             Section("imp.ytTitle", null, listOf("imp.yt1", "imp.yt2"), "imp.ytNote")
 
             Spacer(Modifier.height(16.dp))

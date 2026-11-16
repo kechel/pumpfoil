@@ -1323,6 +1323,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 win = win, wattFuer = FoilPhysics.wattRechner(s.foil, weightKg),
                 onSaved = { fresh -> selectedRun = null; SessionCache.store(fresh); onReload() },
             ) { selectedRun = if (selectedRun == it) null else it }
+            // Puls je Lauf als Streifen (Web CompareHrStrips, Port 16.11.2026) — zeigt sich nur mit Puls.
+            trackForRuns?.let { tr -> if (segList.isNotEmpty()) HrStreifenKarte(tr, segList) }
             // Lage je Lauf — nur am Brett, eigene kleine Tabelle unter der grossen (wie PWA).
             LageJeLaufTabelle(s, selectedRun) { selectedRun = if (selectedRun == it) null else it }
         }
