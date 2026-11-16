@@ -809,7 +809,6 @@ const ru: Record<string, string> = {
   "sd.eventKategorie": "Категория события",
   "sd.eventKategorieHinweis": "Выделяет в каждом заезде участок, который засчитывается в эту категорию",
   "sd.eventZaehlt": "Засчитано в {titel} · заездов: {n}",
-  "sd.eventLabel": "Событие {titel}:",
   "sd.runN": "· заезд {n}",
   "rate.tile": "Оценить анализ",
   "rate.rated": "Твоя оценка",

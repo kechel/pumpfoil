@@ -809,7 +809,6 @@ const id: Record<string, string> = {
   "sd.eventKategorie": "Kategori event",
   "sd.eventKategorieHinweis": "Menyorot bagian tiap run yang dihitung untuk kategori ini",
   "sd.eventZaehlt": "Dihitung untuk {titel} · {n} run",
-  "sd.eventLabel": "Event {titel}:",
   "sd.runN": "· run {n}",
   "rate.tile": "Nilai analisis",
   "rate.rated": "Penilaianmu",

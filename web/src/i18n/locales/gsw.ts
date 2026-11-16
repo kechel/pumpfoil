@@ -665,7 +665,6 @@ const gsw: Record<string, string> = {
   "sd.eventKategorie": "Event-Kategorii",
   "sd.eventKategorieHinweis": "Zeigt pro Lauf s Stück, wo für die Event-Kategorii zellt",
   "sd.eventZaehlt": "Zellt für {titel} · {n} Läuf",
-  "sd.eventLabel": "Event {titel}:",
   "sd.runN": "· Lauf {n}",
   "rate.tile": "Uswärtig bewärte",
   "rate.rated": "Dini Bewärtig",

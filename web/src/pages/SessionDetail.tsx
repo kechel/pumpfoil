@@ -851,11 +851,6 @@ export default function SessionDetail() {
   // null = nie angefasst (dann gilt ?sprint= aus der URL), "" = bewusst keine Kategorie (Jan 16.11.: Platzhalter waehlen
   // liess sonst den Sprint aus der URL und den vorgewaehlten Lauf stehen).
   const [eventKat, setEventKat] = useState<string | null>(null);
-  const eventKats = useMemo(() => {
-    const out: string[] = [];
-    for (const ev of session?.events ?? []) for (const k of ev.kategorien) if (!out.includes(k)) out.push(k);
-    return out;
-  }, [session]);
   const sprintKz = eventKat ?? (searchParams.get("sprint") || "");
   const laufZurZeit = (mitte: number) => ((session?.analysis?.segments ?? []) as any[]).findIndex((g) =>
     g.t_start_session_ms != null && g.t_start_session_ms <= mitte && mitte <= g.t_end_session_ms);
@@ -2551,20 +2546,6 @@ export default function SessionDetail() {
           </button>
         </div>
 
-        {/* Event-Kategorie in eigener Zeile mit Label „Event <Titel>:" (Jan, 16.11.2026; mehrere Events als Kommaliste). */}
-        {eventKats.length > 0 && !fullscreen && (
-          <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
-            <span className="font-bold text-slate-100">
-              {t("sd.eventLabel", { titel: (session?.events ?? []).map((ev) => ev.titel).join(", ") })}
-            </span>
-            <select value={sprintKz} onChange={(e) => { const v = e.target.value; setEventKat(v); if (!v) setSelectedRun(null); }}
-              title={t("sd.eventKategorieHinweis")}
-              className={`rounded-lg px-2 py-1 text-sm ${sprintKz ? "bg-fuchsia-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}>
-              <option value="">{t("sd.eventKategorie")}</option>
-              {eventKats.map((k) => <option key={k} value={k}>{t(kennzahl(k).labelKey)}</option>)}
-            </select>
-          </div>
-        )}
 
         {/* Aufnahme ohne eine einzige Position: hier stand bisher eine leere Karte und sonst
             nichts. Am 07.09.2026 nachgezählt: 199 solche Sessions bei 82 Nutzern, und 11 Nutzer
@@ -2627,12 +2608,24 @@ export default function SessionDetail() {
           <div className="mt-2 flex flex-wrap gap-1.5">
             {(session?.events ?? []).map((ev) => {
               const platz = ev.plaetze.filter((p) => p.rang <= 50).sort((a, b) => a.rang - b.rang)[0];
+              // Event-Kategorie direkt im Kennzeichen (Jan, 16.11.2026: keine eigene Zeile, „genau mit in dieses lila badge").
               return (
-                <Link key={ev.id} to={`/teams/${ev.team_slug}/events/${ev.id}`}
-                  className="inline-flex items-center gap-1.5 rounded-lg border-2 border-fuchsia-500 px-2 py-1 text-xs font-semibold text-fuchsia-700 hover:underline dark:text-fuchsia-300">
-                  {t("sd.eventZaehlt", { titel: ev.titel, n: ev.laeufe_ms.length })}
-                  {platz && <span className="tabular-nums">· #{platz.rang} {t(kennzahl(platz.kennzahl).labelKey)}</span>}
-                </Link>
+                <div key={ev.id}
+                  className="inline-flex flex-wrap items-center gap-1.5 rounded-lg border-2 border-fuchsia-500 px-2 py-1 text-xs font-semibold text-fuchsia-700 dark:text-fuchsia-300">
+                  <Link to={`/teams/${ev.team_slug}/events/${ev.id}`} className="hover:underline">
+                    {t("sd.eventZaehlt", { titel: ev.titel, n: ev.laeufe_ms.length })}
+                    {platz && <span className="tabular-nums"> · #{platz.rang} {t(kennzahl(platz.kennzahl).labelKey)}</span>}
+                  </Link>
+                  {ev.kategorien.length > 0 && (
+                    <select value={ev.kategorien.includes(sprintKz) ? sprintKz : ""}
+                      onChange={(e) => { const v = e.target.value; setEventKat(v); if (!v) setSelectedRun(null); }}
+                      title={t("sd.eventKategorieHinweis")}
+                      className={`rounded-md px-1.5 py-0.5 text-xs ${sprintKz && ev.kategorien.includes(sprintKz) ? "bg-fuchsia-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}>
+                      <option value="">{t("sd.eventKategorie")}</option>
+                      {ev.kategorien.map((k) => <option key={k} value={k}>{t(kennzahl(k).labelKey)}</option>)}
+                    </select>
+                  )}
+                </div>
               );
             })}
           </div>

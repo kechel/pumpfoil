@@ -809,7 +809,6 @@ const zh: Record<string, string> = {
   "sd.eventKategorie": "赛事类别",
   "sd.eventKategorieHinweis": "在每次滑行中高亮计入该类别的片段",
   "sd.eventZaehlt": "计入 {titel} · {n} 次滑行",
-  "sd.eventLabel": "赛事 {titel}：",
   "sd.runN": "· 航段 {n}",
   "rate.tile": "评价分析",
   "rate.rated": "你的评价",

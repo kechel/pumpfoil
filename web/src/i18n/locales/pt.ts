@@ -809,7 +809,6 @@ const pt: Record<string, string> = {
   "sd.eventKategorie": "Categoria do evento",
   "sd.eventKategorieHinweis": "Destaca em cada volta o trecho que conta para esta categoria",
   "sd.eventZaehlt": "Conta para {titel} · {n} voltas",
-  "sd.eventLabel": "Evento {titel}:",
   "sd.runN": "· volta {n}",
   "rate.tile": "Avaliar a análise",
   "rate.rated": "Sua avaliação",

@@ -833,7 +833,6 @@ const nl: Record<string, string> = {
   "sd.eventKategorie": "Eventcategorie",
   "sd.eventKategorieHinweis": "Markeert per run het stuk dat telt voor deze categorie",
   "sd.eventZaehlt": "Telt voor {titel} · {n} runs",
-  "sd.eventLabel": "Event {titel}:",
   "sd.runN": "· run {n}",
   "rate.tile": "Analyse beoordelen",
   "rate.rated": "Jouw beoordeling",

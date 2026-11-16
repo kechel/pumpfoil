@@ -825,7 +825,6 @@ const nb: Record<string, string> = {
   "sd.eventKategorie": "Eventkategori",
   "sd.eventKategorieHinweis": "Fremhever delen av hver tur som teller for denne kategorien",
   "sd.eventZaehlt": "Teller for {titel} · {n} turer",
-  "sd.eventLabel": "Event {titel}:",
   "sd.runN": "· run {n}",
   "rate.tile": "Vurder analysen",
   "rate.rated": "Din vurdering",

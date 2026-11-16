@@ -833,7 +833,6 @@ const cs: Record<string, string> = {
   "sd.eventKategorie": "Kategorie akce",
   "sd.eventKategorieHinweis": "Zvýrazní v každé jízdě úsek, který se počítá do této kategorie",
   "sd.eventZaehlt": "Počítá se do {titel} · {n} jízd",
-  "sd.eventLabel": "Akce {titel}:",
   "sd.runN": "· Jízda {n}",
   "rate.tile": "Ohodnotit analýzu",
   "rate.rated": "Tvoje hodnocení",

@@ -719,7 +719,6 @@ const fr: Record<string, string> = {
   "sd.eventKategorie": "Catégorie d'événement",
   "sd.eventKategorieHinweis": "Met en évidence, pour chaque run, la partie qui compte pour cette catégorie",
   "sd.eventZaehlt": "Compte pour {titel} · {n} runs",
-  "sd.eventLabel": "Événement {titel} :",
   "sd.runN": "· run {n}",
   "rate.tile": "Évaluer l'analyse",
   "rate.rated": "Ton évaluation",

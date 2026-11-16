@@ -719,7 +719,6 @@ const es: Record<string, string> = {
   "sd.eventKategorie": "Categoría del evento",
   "sd.eventKategorieHinweis": "Resalta en cada vuelta el tramo que cuenta para esta categoría",
   "sd.eventZaehlt": "Cuenta para {titel} · {n} vueltas",
-  "sd.eventLabel": "Evento {titel}:",
   "sd.runN": "· run {n}",
   "rate.tile": "Valorar el análisis",
   "rate.rated": "Tu valoración",

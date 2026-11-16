@@ -626,7 +626,6 @@ const deAT: Record<string, string> = {
   "sd.eventKategorie": "Event-Kategorie",
   "sd.eventKategorieHinweis": "Hebt je Lauf das Stück hervor, das für diese Event-Kategorie zählt",
   "sd.eventZaehlt": "Zählt für {titel} · {n} Läufe",
-  "sd.eventLabel": "Event {titel}:",
   "sd.runN": "· Lauf {n}",
   "rate.tile": "Auswertung bewerten",
   "rate.rated": "Deine Bewertung",

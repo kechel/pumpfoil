@@ -831,7 +831,6 @@ const pl: Record<string, string> = {
   "sd.eventKategorie": "Kategoria wydarzenia",
   "sd.eventKategorieHinweis": "Wyróżnia w każdym przejeździe odcinek liczony do tej kategorii",
   "sd.eventZaehlt": "Liczy się do {titel} · {n} przejazdów",
-  "sd.eventLabel": "Wydarzenie {titel}:",
   "sd.runN": "· przejazd {n}",
   "rate.tile": "Oceń analizę",
   "rate.rated": "Twoja ocena",

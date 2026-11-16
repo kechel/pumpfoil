@@ -809,7 +809,6 @@ const ja: Record<string, string> = {
   "sd.eventKategorie": "イベント部門",
   "sd.eventKategorieHinweis": "各ランでこの部門に計上される区間を強調表示します",
   "sd.eventZaehlt": "{titel} に計上 · {n} ラン",
-  "sd.eventLabel": "イベント {titel}:",
   "sd.runN": "· ラン {n}",
   "rate.tile": "解析を評価",
   "rate.rated": "あなたの評価",
