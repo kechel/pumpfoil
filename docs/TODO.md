@@ -1538,7 +1538,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 ### 16.11.2026 — Sortiert: was seit 06.11. gesammelt wurde (Uebersicht, Details in den Eintraegen darunter)
 **A. Diese Woche (Jan: „naechste Woche"), alles Wertung/Analyse -> erst Entwurf mit Zahlen, dann Jans OK**
 1. 🟡 16.11. TEIL 1 LIVE (f5a411e8, EVENT_JE_LAUF=1): Baustein zaehlende Laeufe (Startzeit je Lauf, Duplikate einmal) in
-   Bestenlisten + Gesamtsummen. Offen: Session-Kennzeichen + Event-Kategorie-Dropdown, dann Referee Board.
+   Bestenlisten + Gesamtsummen. ✅ 16.11. Session-Kennzeichen + Event-Kategorie-Dropdown im Web (980d71a4, 62429a12;
+   sprint-VERSION 5 mit Fenstern je Lauf). Offen: Apps (Kennzeichen + Dropdown, naechstes Release), dann Referee Board.
    Je-Lauf-Wertung als EIN Baustein: es zaehlt die STARTZEIT JEDES LAUFS — im Fenster begonnen = zaehlt vollstaendig, egal
    wann er endet und wann die Session startet/endet (Jan 16.11.; frueher „abschneiden") (14.11.) + doppelte Laeufe aus paralleler
    Aufnahme einmal zaehlen (15.11.) + Session-Kennzeichen „zaehlt fuer Event" und alle Sprints je Lauf anzeigen (14./15.11.).
