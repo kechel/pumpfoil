@@ -188,7 +188,9 @@ _VALID_LABELS = {"pump", "glide", "not_foiling"}
 #   9 = `sport_zahlen.tempo_kmh` nur noch aus der Strecke IN Bewegung (24.10.2026, #18978: 43,6 statt 9,3 km/h).
 #       Gerechnet beim Ausliefern, die Session aendert sich nicht — ohne Bump bekamen Clients 304 mit dem alten Wert.
 #  10 = `analysis.start_attempts` aus der neuen Zaehlung startversuche-1 (25.10.2026, Front-Start #12734).
-_OUT_VERSION = 10
+#  11 = `events` (Events, fuer die die Session zaehlt) + `analysis.sprints.laeufe/laeufe_fenster` (16.11.2026). Beides
+#       aendert sich ohne Aenderung der Session (Event-Wertung, Nachrechnen) -> steht zusaetzlich als Pruefsumme im ETag.
+_OUT_VERSION = 11
 
 
 def _ort_verborgen(s: models.Session) -> bool:
@@ -2769,7 +2771,14 @@ def get_session(
     # im Katalog aendert die Session nicht. Ohne das zeigte die Detailseite nach der
     # Zusammenfuehrung „Gong TRAIL V3 / V3 ATMO PERF" weiter den alten Namen (Jans Befund 04.10.).
     import zlib as _zlib
-    _ausr = json.dumps([_resolve_foil(db, s), _resolve_setup(db, s, s.user_id == user.id)],
+    try:
+        from .. import teams as _teams
+        _events = _teams.session_events(db, s, user.id)
+    except Exception:  # noqa: BLE001 — die Session-Seite darf daran nie scheitern
+        logging.getLogger(__name__).exception("session_events fuer Session %s", s.id)
+        _events = None
+    _ausr = json.dumps([_resolve_foil(db, s), _resolve_setup(db, s, s.user_id == user.id), _events,
+                        (s.result.sprint_json if s.result else None)],
                        sort_keys=True, default=str)
     etag = f'W/"{_OUT_VERSION}-{dv}-{like_count}-{int(liked)}-c{comment_count}{"k" if kommentare.aus(s.user) else ""}-{_zlib.crc32(_ausr.encode()):08x}{"-brett" if brett_neu else ""}{("-v3" + v3_name) if v3_name else ""}{"-pg" if pg_neu else ""}{PA.etag_teil()}"'
     if request.headers.get("if-none-match") == etag:
@@ -2797,11 +2806,7 @@ def get_session(
         out.device_label = s.device_model
     out.device_model = s.device_model  # Aufnahme-Gerät (Modell + OS) — nur zur Fehlersuche
     # Events, fuer die diese Session zaehlt (Wertung je Lauf, 16.11.2026): Kennzeichen + Event-Kategorie-Dropdown.
-    try:
-        from .. import teams as _teams
-        out.events = _teams.session_events(db, s, user.id)
-    except Exception:  # noqa: BLE001 — die Session-Seite darf daran nie scheitern
-        logging.getLogger(__name__).exception("session_events fuer Session %s", s.id)
+    out.events = _events
     out.app_version = s.app_version    # App-Version DIESER Aufnahme (Fehlersuche, s. models.py)
     # Kreisel vorhanden? Ein gezielter Treffer, kein Zählen — die Oberfläche will nur wissen, ob
     # es die Lage-Ansicht überhaupt geben kann. `device_model` taugt dafür NICHT: das setzen die
