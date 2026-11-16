@@ -110,7 +110,10 @@ def test_event_sprint_nur_mit_schalter(client, monkeypatch):
     db.add(s)
     db.commit()
     db.add(models.AnalysisResult(session_id=s.id, algo_version="test", detection="model", num_runs=1,
-                                 foiling_distance_m=500, sprint_100m_mps=5.5, sprint_60s_mps=5.0))
+                                 foiling_distance_m=500, sprint_100m_mps=5.5, sprint_60s_mps=5.0,
+                                 segments_json=json.dumps([{"t_start_session_ms": 60000, "t_end_session_ms": 160000,
+                                                            "distance_m": 500, "duration_s": 100}]),
+                                 sprint_json=json.dumps({"laeufe": [{"sprint_100m": 5.5, "sprint_60s": 5.0}]})))
     db.commit()
     db.close()
     jetzt = datetime.now(timezone.utc)

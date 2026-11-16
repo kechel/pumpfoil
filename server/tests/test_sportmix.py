@@ -25,6 +25,17 @@ def _konto(client, mail: str, name: str) -> tuple[int, dict]:
     return client.get("/api/auth/me", headers=kopf).json()["id"], kopf
 
 
+def _laeufe_json(dists: list, pumps: list, dauern: list) -> str:
+    """Laeufe passend zu den Summen-Spalten (Event-Wertung je Lauf, app/event_laeufe.py, rechnet aus segments_json)."""
+    import json as _j
+    out, t = [], 60.0
+    for d, p, du in zip(dists, pumps, dauern):
+        out.append({"t_start_session_ms": t * 1000, "t_end_session_ms": (t + du) * 1000, "distance_m": d,
+                    "duration_s": du, "pumps": p})
+        t += du + 300
+    return _j.dumps(out)
+
+
 def _session(uid: int, sport: str, dist: float, stunden: float = 5) -> int:
     from app import models
     from app.db import SessionLocal
@@ -38,7 +49,8 @@ def _session(uid: int, sport: str, dist: float, stunden: float = 5) -> int:
         db.commit()
         db.add(models.AnalysisResult(session_id=s.id, algo_version="test", detection="model", num_runs=3,
                                      pump_count=50, foiling_distance_m=dist, best_distance_m=dist / 3,
-                                     best_duration_s=dist / 10))
+                                     best_duration_s=dist / 10,
+                                     segments_json=_laeufe_json([dist / 3] * 3, [17, 17, 16], [dist / 10] * 3)))
         db.commit()
         return s.id
     finally:

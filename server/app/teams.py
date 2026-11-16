@@ -477,7 +477,7 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
                     if nur_spots else [])
     key = (team.id, tf.id, tf.kennzahl, tf.sportart, tf.accel_only, tf.nur_brett, tf.foil_band,
            nur_spots, tuple(sorted(spot_ids)), period, fenster, ALLE if alle else tuple(sorted(ids)), ohne_dateien,
-           laenge, tuple(sorted(global_aus(db))) if alle else ())
+           laenge, tuple(sorted(global_aus(db))) if alle else (), EL.aktiv())
     hit = _cache_holen(key)
     if hit is not None:
         if stand is not None:
@@ -497,7 +497,11 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
             aus = global_aus(db)
             if aus:
                 q = q.filter(S.user_id.notin_(list(aus)))
-        if fenster is not None:
+        if fenster is not None and EL.aktiv():
+            # Wertung je Lauf (event_laeufe): jede Session, die das Fenster UEBERLAPPT — welche Laeufe zaehlen,
+            # entscheidet die Startzeit des Laufs.
+            q = q.filter(S.started_at < fenster[1], func.coalesce(S.ended_at, S.started_at) >= fenster[0])
+        elif fenster is not None:
             q = q.filter(S.started_at >= fenster[0], S.started_at < fenster[1])
         elif cut is not None:
             q = C._ab(q, cut, S.started_at)
@@ -513,7 +517,9 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
 
     out: list[dict] = []
     strittig = strittige_sessions(db)
-    if tf.kennzahl in BEST or tf.kennzahl in SPRINT:
+    if fenster is not None and EL.aktiv():
+        out = _event_zeilen(db, tf, filtern, fenster, strittig)
+    elif tf.kennzahl in BEST or tf.kennzahl in SPRINT:
         valcol = _sprint_col(tf.kennzahl) if tf.kennzahl in SPRINT else C.REC_COL[tf.kennzahl][0]
         q = C._community(db.query(U.id, valcol, S.id, S.started_at, C.NAME, U.avatar_url, S.place_name,
                                   S.place_lat, S.place_lon, S.ort_sichtbarkeit),
@@ -568,6 +574,41 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
         C.mix_abzeichen(db, tf.sportart, out, nq)
     lauf_dazu(db, tf.kennzahl, out)
     _cache_setzen(key, out)
+    return out
+
+
+def _event_zeilen(db: Session, tf: models.TeamTafel, filtern, fenster, strittig: set[int]) -> list[dict]:
+    """Event-Bestenliste je LAUF (app/event_laeufe.py): Sessions, die das Fenster ueberlappen, davon die zaehlenden Laeufe."""
+    from .api import community as C
+    from . import pumpgleit_anzeige as PA
+    S, U, AR = C.S, C.U, C.AR
+    q = filtern(C._community(db.query(U.id, S.id, S.started_at, C.NAME, U.avatar_url, S.place_name, S.place_lat,
+                                      S.place_lon, S.ort_sichtbarkeit, S.spot_id, AR.segments_json, AR.sprint_json,
+                                      AR.detection, S.accel_hz), None, tf.accel_only, tf.sportart))
+    if q is None:
+        return []
+    sessions, info = [], {}
+    for uid, sid, ts, name, av, place, lat, lon, sicht, spot_id, segs, spr, det, hz in q.all():
+        sessions.append({"id": sid, "user_id": uid, "started_at": ts, "segments_json": segs, "sprint_json": spr,
+                         "detection": det, "accel_hz": hz, "spot_id": spot_id})
+        info[sid] = (name, av, place, lat, lon, sicht)
+        info.setdefault(("u", uid), (name, av))
+    zaehl = EL.zaehlende(sessions, fenster)
+    out = []
+    for uid, w in EL.werte(tf.kennzahl, sessions, zaehl, PA.AN).items():
+        name, av = info[("u", uid)]
+        z = {"user_id": uid, "name": name, "avatar_url": av, "value": round(float(w["value"]), 2)}
+        if "session_id" in w:
+            sid = w["session_id"]
+            _n, _a, place, lat, lon, sicht = info[sid]
+            spot, tz = C._ort(db, sicht, uid, place, lat, lon)
+            z.update({"session_id": sid, "started_at": w["started_at"].isoformat() if w.get("started_at") else None,
+                      "spot": spot, "tz": tz, **({"run_idx": w["run_idx"]} if "run_idx" in w else {})})
+            if sid in strittig:
+                z["strittig"] = True
+        elif any(s["user_id"] == uid and s["id"] in strittig and zaehl.get(s["id"]) for s in sessions):
+            z["strittig"] = True
+        out.append(z)
     return out
 
 
@@ -842,6 +883,8 @@ def offizielles_team_id(db: Session) -> int | None:
     t, _umbenannt = finde(db, slug)
     return t.id if t is not None and t.geloescht_am is None else None
 
+
+from . import event_laeufe as EL  # noqa: E402
 
 _GLOBAL_AUS = {"zeit": 0.0, "ids": frozenset()}
 
@@ -1342,8 +1385,11 @@ def event_summen(db: Session, t: models.Team, e: models.TeamEvent) -> dict:
     if not alle and not ids:
         return leer
     key = (t.id, "event_summen", e.id, sportart, accel_only, fenster, tuple(sorted(spots)), bool(e.ohne_dateien),
-           ALLE if alle else tuple(sorted(ids)), tuple(sorted(global_aus(db))) if alle else ())
+           ALLE if alle else tuple(sorted(ids)), tuple(sorted(global_aus(db))) if alle else (), EL.aktiv())
     hit = _cache_holen(key)
+    if hit is None and EL.aktiv():
+        hit = _event_summen_je_lauf(db, e, ids, alle, sportart, accel_only, spots, fenster)
+        _cache_setzen(key, hit)
     if hit is None:
         S, AR = C.S, C.AR
         q = C._community(db.query(
@@ -1365,6 +1411,45 @@ def event_summen(db: Session, t: models.Team, e: models.TeamEvent) -> dict:
                "spots": int(nspots or 0), "aktive": int(aktive or 0)}
         _cache_setzen(key, hit)
     return {k: hit[k] for k in auswahl}
+
+
+def _event_summen_je_lauf(db: Session, e, ids, alle: bool, sportart: str, accel_only: bool, spots, fenster) -> dict:
+    """Gesamtsummen je LAUF (app/event_laeufe.py): nur zaehlende Laeufe; Sessions/Spots/Aktive = mit >= 1 zaehlendem Lauf."""
+    from .api import community as C
+    from . import pumpgleit_anzeige as PA
+    S, AR = C.S, C.AR
+    q = C._community(db.query(S.id, S.user_id, S.started_at, S.spot_id, AR.segments_json, AR.detection, S.accel_hz),
+                     None, accel_only, sportart).filter(
+        S.started_at < fenster[1], func.coalesce(S.ended_at, S.started_at) >= fenster[0])
+    if not alle:
+        q = q.filter(S.user_id.in_(ids))
+    elif global_aus(db):
+        q = q.filter(S.user_id.notin_(list(global_aus(db))))
+    if e.ohne_dateien:
+        q = q.filter(*[~S.session_uuid.like(f"{p}%") for p in DATEI_PRAEFIXE])
+    if spots:
+        q = q.filter(or_(*[C._spot_cond(str(s), db) for s in spots]))
+    sessions = [{"id": sid, "user_id": uid, "started_at": ts, "spot_id": sp, "segments_json": sj, "detection": d,
+                 "accel_hz": hz} for sid, uid, ts, sp, sj, d, hz in q.all()]
+    zaehl = EL.zaehlende(sessions, fenster)
+    runs = pumps = dist = zeit = 0.0
+    mit, spot_ids, aktive = 0, set(), set()
+    for s in sessions:
+        idx = set(zaehl.get(s["id"]) or [])
+        if not idx:
+            continue
+        mit += 1
+        aktive.add(s["user_id"])
+        if s["spot_id"] is not None:
+            spot_ids.add(s["spot_id"])
+        for k, _a, _b, g in EL._laeufe(s["started_at"], s["segments_json"]):
+            if k in idx:
+                runs += 1
+                pumps += EL._pumps(g, PA.AN)
+                dist += float(g.get("distance_m") or 0)
+                zeit += float(g.get("duration_s") or 0)
+    return {"sessions": mit, "runs": int(runs), "pumps": int(pumps), "distance_m": round(dist, 1),
+            "time_s": round(zeit, 1), "spots": len(spot_ids), "aktive": len(aktive)}
 
 
 def event_einfrieren(db: Session, e: models.TeamEvent, jetzt: datetime | None = None) -> bool:
