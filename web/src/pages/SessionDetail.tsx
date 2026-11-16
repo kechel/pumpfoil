@@ -2604,29 +2604,48 @@ export default function SessionDetail() {
             EINEN Bildschirm passt. Die Bedienelemente wandern dafuer unter die Kurven. In der
             normalen Kartenansicht bleibt alles, wo es war. Im Vollbild ebenfalls — dort haben
             die Lauf-Knoepfe eine eigene Leiste, die oben bleiben muss. */}
+        {/* Events, fuer die die Session zaehlt (Jan, 16.11.2026): je laufbezogener Kategorie, in der die Session einen Wert
+            hat, ein anklickbares Kennzeichen (an/aus hebt das Stueck des gewaehlten Laufs hervor und zeigt dessen Wert) —
+            kein Dropdown, nichts doppelt. Eventtitel gekuerzt, voll im Tooltip; der Link zum Event am Ende. */}
         {!fullscreen && (session?.events ?? []).length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1.5">
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {(session?.events ?? []).map((ev) => {
-              const platz = ev.plaetze.filter((p) => p.rang <= 50).sort((a, b) => a.rang - b.rang)[0];
-              // Event-Kategorie direkt im Kennzeichen (Jan, 16.11.2026: keine eigene Zeile, „genau mit in dieses lila badge").
-              return (
-                <div key={ev.id}
-                  className="inline-flex flex-wrap items-center gap-1.5 rounded-lg border-2 border-fuchsia-500 px-2 py-1 text-xs font-semibold text-fuchsia-700 dark:text-fuchsia-300">
-                  <Link to={`/teams/${ev.team_slug}/events/${ev.id}`} className="hover:underline">
-                    {t("sd.eventZaehlt", { titel: ev.titel, n: ev.laeufe_ms.length })}
-                    {platz && <span className="tabular-nums"> · #{platz.rang} {t(kennzahl(platz.kennzahl).labelKey)}</span>}
-                  </Link>
-                  {ev.kategorien.length > 0 && (
-                    <select value={ev.kategorien.includes(sprintKz) ? sprintKz : ""}
-                      onChange={(e) => { const v = e.target.value; setEventKat(v); if (!v) setSelectedRun(null); }}
-                      title={t("sd.eventKategorieHinweis")}
-                      className={`rounded-md px-1.5 py-0.5 text-xs ${sprintKz && ev.kategorien.includes(sprintKz) ? "bg-fuchsia-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}>
-                      <option value="">{t("sd.eventKategorie")}</option>
-                      {ev.kategorien.map((k) => <option key={k} value={k}>{t(kennzahl(k).labelKey)}</option>)}
-                    </select>
-                  )}
-                </div>
+              const kurz = ev.titel.length > 24 ? `${ev.titel.slice(0, 23).trimEnd()}…` : ev.titel;
+              const sp = session?.analysis?.sprints;
+              const mitWert = ev.kategorien.filter((k) => (sp?.best?.[k] ?? 0) > 0);
+              const rang = (k: string) => ev.plaetze.find((p) => p.kennzahl === k)?.rang;
+              const zumEvent = (
+                <Link key={`l${ev.id}`} to={`/teams/${ev.team_slug}/events/${ev.id}`} title={ev.titel}
+                  className="rounded-lg p-1 text-fuchsia-700 hover:bg-fuchsia-500/10 dark:text-fuchsia-300">
+                  <LinkIcon className="h-4 w-4" />
+                </Link>
               );
+              if (mitWert.length === 0)
+                return [
+                  <Link key={ev.id} to={`/teams/${ev.team_slug}/events/${ev.id}`} title={ev.titel}
+                    className="rounded-lg border-2 border-fuchsia-500 px-2 py-1 text-xs font-semibold text-fuchsia-700 hover:underline dark:text-fuchsia-300">
+                    {t("sd.eventZaehlt", { titel: kurz, n: ev.laeufe_ms.length })}
+                  </Link>,
+                ];
+              return [
+                ...mitWert.map((k) => {
+                  const an = sprintKz === k;
+                  const kz = kennzahl(k);
+                  const r = rang(k);
+                  return (
+                    <button key={`${ev.id}-${k}`} title={`${ev.titel} · ${t(kz.labelKey)} — ${t("sd.eventKategorieHinweis")}`}
+                      onClick={() => { if (an) { setEventKat(""); setSelectedRun(null); } else setEventKat(k); }}
+                      className={`inline-flex items-center gap-1.5 rounded-lg border-2 border-fuchsia-500 px-2 py-1 text-xs font-semibold ${an ? "bg-fuchsia-500 text-slate-950" : "text-fuchsia-700 hover:bg-fuchsia-500/10 dark:text-fuchsia-300"}`}>
+                      {kurz} · {t(kz.labelKey)}{r ? ` · #${r}` : ""}
+                      {an && sprintHL && (() => {
+                        const ab = sprintHL.a - ((segs[sprintHL.i] as any)?.t_start_session_ms ?? sprintHL.a);
+                        return <span className="tabular-nums">· {kz.fmt(sprintHL.wert)}{ab > 0 ? ` · +${Math.floor(ab / 60000)}:${String(Math.round(ab / 1000) % 60).padStart(2, "0")}` : ""}</span>;
+                      })()}
+                    </button>
+                  );
+                }),
+                zumEvent,
+              ];
             })}
           </div>
         )}
@@ -2659,16 +2678,6 @@ export default function SessionDetail() {
                   {t("sd.allRuns")}
                 </button>
               )}
-              {sprintHL && (() => {
-                const k = kennzahl(sprintHL.kz);
-                const ab = sprintHL.a - ((segs[selectedRun!] as any)?.t_start_session_ms ?? sprintHL.a);
-                return (
-                  <span className="ml-1 inline-flex items-center gap-1.5 rounded-lg border-2 border-fuchsia-500 px-2 py-1 text-xs font-semibold text-fuchsia-700 dark:text-fuchsia-300">
-                    <span className="inline-block h-2 w-4 rounded-sm" style={{ background: "#d946ef" }} />
-                    {t(k.labelKey)} · {k.fmt(sprintHL.wert)}{ab > 0 ? ` · +${Math.floor(ab / 60000)}:${String(Math.round(ab / 1000) % 60).padStart(2, "0")}` : ""}
-                  </span>
-                );
-              })()}
             </div>
           );
 
