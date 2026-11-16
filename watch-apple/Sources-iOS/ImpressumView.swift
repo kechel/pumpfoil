@@ -58,19 +58,26 @@ struct ImpressumView: View {
     private struct Sec { let title: String; let intro: String?; let bullets: [String]; let note: String? }
     private var sections: [Sec] {
         [
-            Sec(title: "imp.publicTitle", intro: nil, bullets: ["imp.public1", "imp.public2"], note: nil),
-            Sec(title: "imp.communityTitle", intro: "imp.communityIntro", bullets: ["imp.community1", "imp.community2", "imp.community3", "imp.community4"], note: "imp.communityNote"),
+            // Abschnitte und Reihenfolge wie web /impressum (Stand 16.11.2026: Freunde, Teams, KI-Zugang, Garmin, HUAWEI,
+            // GitHub, Messwerte, Spots auf der Karte nachgezogen — TODO 07.11. „Datenschutzseite in den Apps").
+            Sec(title: "imp.publicTitle", intro: nil, bullets: ["imp.public1", "imp.public2", "imp.public3", "imp.public4"], note: nil),
+            Sec(title: "imp.communityTitle", intro: "imp.communityIntro", bullets: ["imp.community1", "imp.community2", "imp.community3", "imp.community4", "imp.community5", "imp.community6", "imp.community7", "imp.community8"], note: "imp.communityNote"),
+            Sec(title: "imp.friendsTitle", intro: nil, bullets: ["imp.friends1", "imp.friends2", "imp.friends3"], note: nil),
+            Sec(title: "imp.teamsTitle", intro: nil, bullets: ["imp.teams1", "imp.teams2", "imp.teams3", "imp.teams4", "imp.teams5"], note: nil),
             Sec(title: "imp.ownerTitle", intro: nil, bullets: ["imp.owner1", "imp.owner2", "imp.owner3", "imp.owner4", "imp.owner5", "imp.owner6"], note: nil),
-            Sec(title: "imp.operatorTitle", intro: nil, bullets: ["imp.operator1", "imp.operator2"], note: nil),
+            Sec(title: "imp.operatorTitle", intro: nil, bullets: ["imp.operator1", "imp.operator2", "imp.operator3"], note: nil),
             Sec(title: "imp.hostTitle", intro: nil, bullets: ["imp.host1", "imp.host2"], note: nil),   // Server + Hosting (29.09.2026, wie PWA)
             Sec(title: "imp.googleTitle", intro: "imp.googleIntro", bullets: ["imp.google1", "imp.google2", "imp.google3", "imp.google4"], note: "imp.googleNote"),
             Sec(title: "imp.appleTitle", intro: "imp.appleIntro", bullets: ["imp.apple1", "imp.apple2", "imp.apple3"], note: nil),
-            // Facebook-Anmeldung und KI-Unterstuetzung (29.09.2026): standen nur in der PWA.
-            // Reihenfolge ab hier wie web /impressum: Facebook, Konten, KI, Karten, YouTube.
             Sec(title: "imp.fbTitle", intro: "imp.fbIntro", bullets: ["imp.fb1", "imp.fb2", "imp.fb3", "imp.fb4", "imp.fb5"], note: "imp.fbNote"),
             Sec(title: "imp.connTitle", intro: "imp.connIntro", bullets: ["imp.conn1", "imp.conn2", "imp.conn3"], note: nil),
+            Sec(title: "imp.mcpTitle", intro: nil, bullets: ["imp.mcp1", "imp.mcp2", "imp.mcp3"], note: nil),
+            Sec(title: "imp.garminTitle", intro: "imp.garminIntro", bullets: ["imp.garmin1", "imp.garmin2", "imp.garmin2b", "imp.garmin3", "imp.garmin4", "imp.garmin5"], note: nil),
+            Sec(title: "imp.huaweiTitle", intro: "imp.huaweiIntro", bullets: ["imp.huawei1", "imp.huawei2", "imp.huawei3", "imp.huawei4"], note: nil),
+            Sec(title: "imp.ghTitle", intro: "imp.ghIntro", bullets: ["imp.gh1", "imp.gh2", "imp.gh3", "imp.gh4"], note: nil),
+            Sec(title: "imp.werteTitle", intro: "imp.werteText", bullets: [], note: nil),
             Sec(title: "imp.aiTitle", intro: "imp.aiIntro", bullets: ["imp.ai1", "imp.ai2", "imp.ai3", "imp.ai4"], note: "imp.aiNote"),
-            Sec(title: "imp.mapTitle", intro: nil, bullets: ["imp.map1", "imp.map2", "imp.mapApple"], note: nil),
+            Sec(title: "imp.mapTitle", intro: nil, bullets: ["imp.map1", "imp.map2", "imp.mapApple", "imp.mapSpots"], note: nil),
             Sec(title: "imp.ytTitle", intro: nil, bullets: ["imp.yt1", "imp.yt2"], note: "imp.ytNote"),
         ]
     }

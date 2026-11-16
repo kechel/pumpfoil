@@ -20,8 +20,12 @@ DATEIEN = ["TeamModels.swift", "TeamsApi.swift", "TeamFarben.swift", "TeamEventK
 # standen bisher nur in LocPort.swift — hier vollstaendig und aktuell (Abschnitt „global", web 9ed3e55c). LocTeam wird
 # fuer team.* zuerst gefragt, ueberdeckt also den alten Stand in LocPort.
 # wk.* (11.11.2026): Wertungsklasse (Einstellungen › Ich, Einrichtungs-Assistent, Filter der Event-Bestenlisten).
-PRAEFIXE = ["team.event.status.", "team.err.", "team.rolle.", "team.k.", "team.adresseTeilen.", "fw.", "team.regeln.", "wk."]
-EXTRA = ["sd.avgHrFoil", "leader.totalDistance", "leader.totalTime"]
+# ref.* (16.11.2026): Referee-Texte (Meldung, oeffentliche Korrekturen); imp.* (16.11.2026): Datenschutzseite vollstaendig und
+# aktuell wie im Web (TODO 07.11.); team.event.einladung./vorschlag. werden teils dynamisch zusammengesetzt.
+PRAEFIXE = ["team.event.status.", "team.err.", "team.rolle.", "team.k.", "team.adresseTeilen.", "fw.", "team.regeln.", "wk.",
+            "ref.", "imp.", "team.event.einladung.", "team.event.vorschlag.", "team.event.stand."]
+# sd.event*/sd.taktUhr (16.11.2026): Event-Kennzeichen der Session und Takt laut Uhr.
+EXTRA = ["sd.avgHrFoil", "leader.totalDistance", "leader.totalTime", "sd.eventZaehlt", "sd.eventKategorieHinweis", "sd.taktUhr"]
 
 def lies(code):
     s = io.open(WEB / f"{code}.ts", encoding="utf-8").read()
