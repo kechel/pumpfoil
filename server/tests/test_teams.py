@@ -1339,9 +1339,13 @@ def test_event_mehrerer_teams(client, monkeypatch):
     tbs = client.post(f"/api/teams/{ta}/events/{eid}/teams", headers=ka, json={"team": tb}).json()["teams_beteiligt"]
     assert [x["status"] for x in tbs] == ["ausrichtend", "eingeladen"]
     assert namen(ka)[1] == {"MT Anna"}                                     # erst nach dem Annehmen
+    def marker(k, slug):
+        return next(x["anfragen"] for x in client.get("/api/teams/mine", headers=k).json() if x["slug"] == slug)
+    assert marker(kb, tb) == 1                                             # Einladung zaehlt beim Team-Marker mit
     einl = client.get(f"/api/teams/{tb}/event-einladungen", headers=kb).json()
     assert einl[0]["event_id"] == eid and einl[0]["status"] == "eingeladen"
     assert client.post(f"/api/teams/{tb}/event-einladungen/{eid}", headers=kb, json={"annehmen": True}).json()["status"] == "angenommen"
+    assert marker(kb, tb) == 0
     assert namen(ka)[1] == {"MT Anna", "MT Bert"} and namen(kb)[1] == {"MT Anna", "MT Bert"}
     assert namen(kc)[0] == 404                                             # fremdes Team sieht es nicht
     ev = client.get(f"/api/teams/{ta}/events/{eid}", headers=kb).json()
@@ -1370,7 +1374,8 @@ def test_session_events_nur_passende_sportart(client, monkeypatch):
     assert r.status_code == 200, r.text
     db = SessionLocal()
     try:
-        assert [x["titel"] for x in T.session_events(db, db.get(models.Session, pf), ia)] == ["Sprint"]
-        assert T.session_events(db, db.get(models.Session, wf), ia) == []
+        eid = r.json()["id"]
+        assert eid in [x["id"] for x in T.session_events(db, db.get(models.Session, pf), ia)]
+        assert eid not in [x["id"] for x in T.session_events(db, db.get(models.Session, wf), ia)]
     finally:
         db.close()

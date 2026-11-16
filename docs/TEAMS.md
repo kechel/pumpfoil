@@ -501,7 +501,8 @@ Tabelle `team_event_teams` (event_id, team_id, status eingeladen|angenommen|abge
 - **Bezug zu „Promote as public event" (oben):** dieselbe Grundform „Event eines Teams, freigegeben fuer mehr" — dort gibt
   Jan ein Team-Event fuer ALLE frei, hier laedt ein Team gezielt andere ein. Beim Bau von Promote die Sichtbarkeits-
   und Zuordnungslogik (`darf_event_sehen`, `team_zuordnung`, `mit_teamwertung`) wiederverwenden statt doppelt bauen.
-- **Offen:** Apps-Port; Push an das eingeladene Team (heute keine Benachrichtigung).
+- **Hinweis:** keine Push (Jan); offene Einladungen zaehlen beim Team-Marker (`/api/teams/mine` → `anfragen`) mit wie Beitrittsanfragen.
+- **Offen:** Apps-Port (Apps zeigen den Marker schon, haben aber noch keine Einladungskarte).
 
 ## Stufen
 

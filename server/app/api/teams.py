@@ -192,6 +192,7 @@ def meine(user: models.User = Depends(current_user), db: Session = Depends(get_d
         offen = 0
         if T.darf_verwalten(m):
             offen = int(db.query(func.count(M.id)).filter_by(team_id=t.id, status="angefragt").scalar() or 0)
+            offen += T.einladungen_offen(db, t.id)    # Mitmach-Einladungen zu Team-Events zaehlen mit (16.11.2026)
         out.append({**_kurz(t, True, db, sp[t.id]), "rolle": m.rolle, "status": m.status, "anfragen": offen,
                     "freigabe": t.freigabe if T.ist_leiter(m) else None,
                     # zaehlt in globalen Events (freigegeben, oeffentlich) — und ist das Team, fuer das man antritt

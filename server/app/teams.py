@@ -972,6 +972,15 @@ def ist_global(e: models.TeamEvent) -> bool:
     return bool(getattr(e, "global_event", False))
 
 
+def einladungen_offen(db: Session, team_id: int) -> int:
+    """Offene Einladungen dieses Teams zu Events anderer Teams (noch nicht beantwortet, Event nicht vorbei/geloescht) —
+    zaehlt beim Team-Marker mit wie Beitrittsanfragen (Jan, 16.11.2026: keine Push, nur der Marker)."""
+    TT, E = models.TeamEventTeam, models.TeamEvent
+    return int(db.query(func.count(TT.id)).join(E, E.id == TT.event_id)
+               .filter(TT.team_id == team_id, TT.status == "eingeladen", E.geloescht_am.is_(None),
+                       E.eingefroren_am.is_(None), E.ende > _jetzt()).scalar() or 0)
+
+
 def event_team_ids(db: Session, e: models.TeamEvent) -> list[int]:
     """Events unter mehreren Teams (16.11.2026): ausrichtendes Team + alle, die die Einladung angenommen haben."""
     TT = models.TeamEventTeam
