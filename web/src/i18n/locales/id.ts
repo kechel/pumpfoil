@@ -1052,6 +1052,7 @@ const id: Record<string, string> = {
   "power.tip": "{foil}: daya teoretis pada rata-rata {speed} km/h, {weight} kg total. Hambatan {drag} W + inersia pump {inertia} W{note}.",
   "power.estPump": "perkiraan datar, tanpa data accel",
   "sd.avgPump": "Pump rata-rata",
+  "sd.taktUhr": "Kadens (jam)",
   "sd.colPower": "Daya",
   "account.devicesTitle": "Jam terhubung",
   "account.devicesHint": "Perangkat yang dipasangkan dengan akunmu. Mencabut membatalkan token — sesi tetap tersimpan, dan jam bisa dihubungkan lagi nanti.",

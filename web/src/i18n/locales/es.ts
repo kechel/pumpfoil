@@ -932,6 +932,7 @@ const es: Record<string, string> = {
   "power.tip": "{foil}: potencia teórica a {speed} km/h de media, {weight} kg en total. Resistencia {drag} W + inercia de pump {inertia} W{note}.",
   "power.estPump": "estimación fija, sin datos accel",
   "sd.avgPump": "Pump medio",
+  "sd.taktUhr": "Cadencia (reloj)",
   "sd.colPower": "Potencia",
   "account.devicesTitle": "Relojes vinculados",
   "account.devicesHint": "Dispositivos emparejados con tu cuenta. Revocar invalida el token — las sesiones se conservan y el reloj puede volver a vincularse.",

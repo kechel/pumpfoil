@@ -1076,6 +1076,7 @@ const nl: Record<string, string> = {
   "power.tip": "{foil}: theoretisch vermogen bij Ø {speed} km/h, {weight} kg totaalgewicht. Voortstuwing {drag} W + pomptraagheid {inertia} W{note}.",
   "power.estPump": "zonder accel-data grofweg geschat",
   "sd.avgPump": "Ø pump",
+  "sd.taktUhr": "Cadans (horloge)",
   "sd.colPower": "Vermogen",
   "account.devicesTitle": "Verbonden horloges",
   "account.devicesHint": "Apparaten die met je account zijn gepaird. Intrekken maakt de token ongeldig — sessies blijven bewaard, het horloge kan later opnieuw worden verbonden.",

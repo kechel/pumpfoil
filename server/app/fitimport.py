@@ -339,11 +339,21 @@ def _ernten(fit, profil: dict | None = None) -> tuple[list, list, list, str, obj
                 profil["produkt"] = produkt
             # Lesbarer Geraetename, wenn die Datei ihn mitbringt (Suunto: „Suunto Race 2", 16.11.2026 — bisher fehlte bei
             # Suunto-Importen der Uhrname ganz). Garmin schreibt hier nichts; dort kommt der Name aus dem Push.
+            if profil is not None:
+                profil["hersteller"] = fid.get("manufacturer")
             pn = fid.get("product_name")
             if profil is not None and isinstance(pn, str) and pn.strip():
                 profil["geraet_name"] = pn.strip()[:60]
         if msg.name == "record":
-            records.append({d.name: d.value for d in msg})
+            # Developer-Felder mit demselben Namen wie ein Standardfeld (SuuntoPlus-App schreibt ein eigenes „cadence")
+            # ueberschrieben bisher das Standardfeld im dict — getrennt als dev_<name> ablegen (16.11.2026).
+            felder = list(msg)
+            ist_dev = [type(getattr(d, "field", None)).__name__ == "DevField" for d in felder]
+            r = {d.name: d.value for d, dv in zip(felder, ist_dev) if not dv}
+            for d, dv in zip(felder, ist_dev):
+                if dv:
+                    r["dev_" + d.name if d.name in r else d.name] = d.value   # foil_status & Co. bleiben unter ihrem Namen
+            records.append(r)
         elif msg.name == "accelerometer_data":
             accel_msgs.append({d.name: d.value for d in msg})
         elif msg.name == "gyroscope_data":
@@ -427,6 +437,18 @@ def parse_fit_bytes(data: bytes) -> dict:
     gyro_bytes = gyro_from_messages(gyro_msgs)
     # foil_status (Developer-Feld anderer Apps) parallel zu gps_samples — NUR als
     # optionale Ground-Truth fürs Training, falls vorhanden. Gleiche Filterung wie gps.
+    # Takt laut Uhr (16.11.2026, Feedback eines Suunto-Fahrers): SuuntoPlus-Apps schreiben den Pump-Takt je Sekunde ins
+    # Standardfeld `cadence` (1/min). Nur bei Suunto-Dateien gemerkt — bei Garmin & Co. ist `cadence` Lauf-/Trittfrequenz.
+    # [ms ab t0, Takt] fuer Werte > 0; die Anzeige mittelt je Lauf (sessions.uhr_takt_anhaengen), die Analyse nutzt ihn nicht.
+    # Vorrang hat das Developer-Feld „cadence" der SuuntoPlus-App: in Hz (beim Fahren ~1), 0 in Ruhe; das Standardfeld
+    # haelt in Ruhe den letzten Wert. Werte < 5 gelten als Hz und werden in 1/min umgerechnet.
+    uhr_takt = []
+    if profil.get("hersteller") in ("suunto", 23):
+        dev = any(isinstance(r.get("dev_cadence"), (int, float)) for r in records)
+        for r in records:
+            c, rt = (r.get("dev_cadence") if dev else r.get("cadence")), _record_time(r)
+            if isinstance(c, (int, float)) and c > 0 and rt is not None:
+                uhr_takt.append([int((rt - t0).total_seconds() * 1000), round(c * 60 if c < 5 else c, 1)])
     foil_status = [
         r.get("foil_status")
         for r in records
@@ -451,6 +473,7 @@ def parse_fit_bytes(data: bytes) -> dict:
         "sport_name": profil.get("name"),
         "garmin_produkt": profil.get("produkt"),
         "geraet_name": profil.get("geraet_name"),
+        "uhr_takt": uhr_takt,
         "foil_status": foil_status,
         # Gesetzt, wenn die Datei nur bis zu einer Stelle lesbar war (abgebrochene Aufzeichnung,
         # falsche Pruefsumme, Muell hinter dem Ende). Der Import laeuft trotzdem — hiermit kann

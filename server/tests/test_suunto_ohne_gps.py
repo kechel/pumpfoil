@@ -112,3 +112,30 @@ def test_fit_geraetename_aus_file_id():
     kopf += struct.pack("<H", _crc(kopf))
     datei = kopf + body
     assert parse_fit_bytes(datei + struct.pack("<H", _crc(datei)))["geraet_name"] == "Suunto Race 2"
+
+
+def test_suunto_takt_aus_cadence_und_mittel_je_lauf(tmp_path, monkeypatch):
+    """Takt laut Uhr (16.11.2026): Suunto-Datei mit `cadence` je Record -> uhr_takt; Anzeige mittelt je Lauf."""
+    from types import SimpleNamespace
+    from app.fitimport import parse_fit_bytes
+    from app.api import sessions as SA
+    start = datetime(2026, 11, 7, 9, 0, 0, tzinfo=timezone.utc)
+    ts0 = int(start.timestamp()) - FIT_EPOCH
+    # file_id: type, time_created, manufacturer=23 (suunto)
+    body = struct.pack("<BBBHB", 0x40, 0, 0, 0, 3) + bytes([0, 1, 0x00, 4, 4, 0x86, 1, 2, 0x84])
+    body += struct.pack("<BBIH", 0x00, 4, ts0, 23)
+    # record: timestamp, cadence(4, uint8)
+    body += struct.pack("<BBBHB", 0x42, 0, 0, 20, 2) + bytes([253, 4, 0x86, 4, 1, 0x02])
+    for i in range(60):
+        body += struct.pack("<BIB", 0x02, ts0 + i, 70 if 10 <= i < 20 else (50 if 30 <= i < 40 else 0))
+    kopf = struct.pack("<BBHI4s", 14, 0x20, 2132, len(body), b".FIT")
+    kopf += struct.pack("<H", _crc(kopf))
+    datei = kopf + body
+    takt = parse_fit_bytes(datei + struct.pack("<H", _crc(datei)))["uhr_takt"]
+    assert len(takt) == 20 and takt[0] == [10_000, 70]
+    monkeypatch.setattr(SA.storage, "load_uhr_takt", lambda uuid: takt)
+    s = SimpleNamespace(session_uuid="suunto-x", trim_start_ms=0, sport_class="pumpfoil")
+    segs, met = SA.uhr_takt_anhaengen(s, [{"t_start_session_ms": 9_000, "t_end_session_ms": 21_000},
+                                          {"t_start_session_ms": 29_000, "t_end_session_ms": 41_000},
+                                          {"t_start_session_ms": 50_000, "t_end_session_ms": 55_000}], {})
+    assert [g.get("uhr_takt_min") for g in segs] == [70.0, 50.0, None] and met["uhr_takt_min"] == 60.0

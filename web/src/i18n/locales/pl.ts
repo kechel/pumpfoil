@@ -1168,6 +1168,7 @@ const pl: Record<string, string> = {
   "power.tip": "{foil}: moc teoretyczna przy średniej {speed} km/h, {weight} kg łącznie. Opór {drag} W + bezwładność pompowania {inertia} W{note}.",
   "power.estPump": "wartość ryczałtowa, brak danych akcelerometru",
   "sd.avgPump": "Śr. pompa",
+  "sd.taktUhr": "Kadencja (zegarek)",
   "sd.colPower": "Moc",
   "account.devicesTitle": "Połączone zegarki",
   "account.devicesHint": "Urządzenia sparowane z Twoim kontem. Cofnięcie unieważnia token — sesje zostają, a zegarek można później połączyć ponownie.",

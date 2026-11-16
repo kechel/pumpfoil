@@ -870,6 +870,7 @@ const gsw: Record<string, string> = {
   "power.tip": "{foil}: theoretischi Leischtig bi Ø {speed} km/h, {weight} kg Gsamtgwicht. Vortrib {drag} W + Pump-Trägheit {inertia} W{note}.",
   "power.estPump": "ohni Accel-Date pauschal gschätzt",
   "sd.avgPump": "Ø Pump",
+  "sd.taktUhr": "Takt (Uhr)",
   "sd.colPower": "Leischtig",
   "account.devicesTitle": "Verbundeni Uhre",
   "account.devicesHint": "Mit dim Konto gepairti Grät. Widerrueffe macht de Token ungültig — Sessions bliibe, d Uhr cha spöter neu verbunde wärde.",

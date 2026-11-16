@@ -32,6 +32,38 @@ from ..clockmap import gesamt_pause_ms, pausen as _pausen, segmente_mit_uhrzeit
 from ..naming import geraete_label, ist_gattung, owner_label
 
 
+def _takt_mittel(takt: list, a_ms: float, b_ms: float) -> float | None:
+    w = [c for t, c in takt if a_ms <= t <= b_ms]
+    return round(sum(w) / len(w), 1) if len(w) >= 3 else None
+
+
+def uhr_takt_anhaengen(session, segments: list | None, metrics: dict | None) -> tuple[list | None, dict | None]:
+    """Takt laut Uhr (Suunto/SuuntoPlus, `uhr_takt.json`, 16.11.2026): je Lauf `uhr_takt_min` (Mittel der Uhrwerte im Lauf)
+    und `metrics.uhr_takt_min` (Mittel ueber alle Laeufe). Reine Anzeige der Uhrangabe — keine eigene Erkennung."""
+    from ..sportarten import FOIL
+    if not FOIL.get(getattr(session, "sport_class", None) or "pumpfoil", False):
+        return segments, metrics      # bei Laufen/Rad waere `cadence` Schritt-/Trittfrequenz, kein Pump-Takt
+    takt = storage.load_uhr_takt(session.session_uuid) if session.session_uuid else None
+    if not takt:
+        return segments, metrics
+    alle: list = []
+    if segments:
+        neu = []
+        for g in segments:
+            a, b = g.get("t_start_session_ms"), g.get("t_end_session_ms")
+            if a is None or b is None:
+                a = (g.get("t_start_ms") or 0) + (session.trim_start_ms or 0) if g.get("t_start_ms") is not None else None
+                b = (g.get("t_end_ms") or 0) + (session.trim_start_ms or 0) if g.get("t_end_ms") is not None else None
+            v = _takt_mittel(takt, a, b) if a is not None and b is not None else None
+            if v is not None:
+                alle += [c for t, c in takt if a <= t <= b]
+            neu.append({**g, "uhr_takt_min": v} if v is not None else g)
+        segments = neu
+    if alle:
+        metrics = {**(metrics or {}), "uhr_takt_min": round(sum(alle) / len(alle), 1)}
+    return segments, metrics
+
+
 def import_geraet(session_uuid: str | None, device_model: str | None) -> str | None:
     """Geraet einer IMPORTIERTEN Session fuer das Uhr-Abzeichen. Bisher nur Garmin Connect (05.11.2026): Garmins
     Markenvorgaben verlangen an jeder Anzeige solcher Daten „Garmin [Geraet]"; der Name kommt im Push und steht in
@@ -190,7 +222,8 @@ _VALID_LABELS = {"pump", "glide", "not_foiling"}
 #  10 = `analysis.start_attempts` aus der neuen Zaehlung startversuche-1 (25.10.2026, Front-Start #12734).
 #  11 = `events` (Events, fuer die die Session zaehlt) + `analysis.sprints.laeufe/laeufe_fenster` (16.11.2026). Beides
 #       aendert sich ohne Aenderung der Session (Event-Wertung, Nachrechnen) -> steht zusaetzlich als Pruefsumme im ETag.
-_OUT_VERSION = 11
+#  12 = `uhr_takt_min` je Lauf + in metrics (Takt laut Suunto-Uhr, 16.11.2026); Bestand per Skript nachgetragen.
+_OUT_VERSION = 12
 
 
 def _ort_verborgen(s: models.Session) -> bool:
@@ -333,6 +366,8 @@ def _analysis_out(result: models.AnalysisResult | None, slim: bool = False, sens
             segments = segmente_mit_uhrzeit(session, segments)
         # pg-1 (Weg B): mit Schalter an die neuen Pumps/Gleitphasen je Lauf (app/pumpgleit_anzeige.py)
         segments = PA.segs(segments)
+    if session is not None and not slim:
+        segments, metrics = uhr_takt_anhaengen(session, segments, metrics)
     return AnalysisOut(
         algo_version=result.algo_version,
         total_distance_m=result.total_distance_m,
@@ -956,6 +991,8 @@ def import_parsed_session(db, user, raw: bytes, parsed: dict, *, src_label: str,
     foil = parsed.get("foil_status") or []
     if any(v is not None for v in foil):
         storage.save_foil_status(session_uuid, foil)
+    if parsed.get("uhr_takt"):
+        storage.save_uhr_takt(session_uuid, parsed["uhr_takt"])
 
     run_analysis(db, s)
 

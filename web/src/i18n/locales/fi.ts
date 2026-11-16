@@ -1058,6 +1058,7 @@ const fi: Record<string, string> = {
   "power.tip": "{foil}: teoreettinen teho Ø {speed} km/h, {weight} kg kokonaispaino. Vastus {drag} W + pump-hitaus {inertia} W{note}.",
   "power.estPump": "ilman kiihtyvyysdataa karkeasti arvioitu",
   "sd.avgPump": "Ø pump",
+  "sd.taktUhr": "Tahti (kello)",
   "sd.colPower": "Teho",
   "account.devicesTitle": "Yhdistetyt kellot",
   "account.devicesHint": "Tiliisi pariutetut laitteet. Peruutus mitätöi tokenin — sessiot säilyvät, kellon voi yhdistää myöhemmin uudelleen.",

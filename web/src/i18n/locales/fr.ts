@@ -932,6 +932,7 @@ const fr: Record<string, string> = {
   "power.tip": "{foil} : puissance théorique à {speed} km/h moy., {weight} kg au total. Traînée {drag} W + inertie de pump {inertia} W{note}.",
   "power.estPump": "estimation forfaitaire, sans données accel",
   "sd.avgPump": "Pump moy.",
+  "sd.taktUhr": "Cadence (montre)",
   "sd.colPower": "Puissance",
   "account.devicesTitle": "Montres liées",
   "account.devicesHint": "Appareils associés à ton compte. Révoquer invalide le jeton — les sessions sont conservées, la montre peut être reliée plus tard.",

@@ -366,6 +366,20 @@ def save_foil_status(session_uuid: str, foil_status: list) -> None:
     (d / "foil_status.json").write_text(json.dumps(foil_status))
 
 
+def save_uhr_takt(session_uuid: str, takt: list) -> None:
+    """Takt laut Uhr ([ms ab Start, 1/min], fitimport `uhr_takt`) — nur Anzeige, nicht Analyse (16.11.2026)."""
+    d = ensure_session_dir(session_uuid)
+    (d / "uhr_takt.json").write_text(json.dumps(takt))
+
+
+def load_uhr_takt(session_uuid: str) -> list | None:
+    f = session_dir(session_uuid) / "uhr_takt.json"
+    try:
+        return json.loads(f.read_text()) if f.exists() else None
+    except ValueError:
+        return None
+
+
 def load_foil_status(session_uuid: str) -> list | None:
     f = session_dir(session_uuid) / "foil_status.json"
     return json.loads(f.read_text()) if f.exists() else None

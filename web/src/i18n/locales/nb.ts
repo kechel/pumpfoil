@@ -1070,6 +1070,7 @@ const nb: Record<string, string> = {
   "power.tip": "{foil}: teoretisk effekt ved snitt {speed} km/h, {weight} kg totalt. Motstand {drag} W + pumpetreghet {inertia} W{note}.",
   "power.estPump": "flatt anslag, ingen akselerasjonsdata",
   "sd.avgPump": "Snitt pumping",
+  "sd.taktUhr": "Takt (klokke)",
   "sd.colPower": "Effekt",
   "account.devicesTitle": "Tilkoblede klokker",
   "account.devicesHint": "Enheter som er paret med kontoen din. Trekker du tilbake tilgangen, blir token ugyldig — øktene beholdes, og klokken kan kobles til igjen senere.",

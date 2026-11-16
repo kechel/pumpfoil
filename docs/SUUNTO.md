@@ -303,6 +303,19 @@ legt die App in zwei Modi. Das ist die Bedienung, die Suunto-Nutzer kennen (Plat
    fuer einen Bruecken-Test `new Uhr({ aktivitaet: 86 })` nehmen.
 5. Kein neuer Code in `/config-kompakt` noetig (keine Sportliste auf der Uhr).
 
+## Konto-Import: Uhrname und Takt laut Uhr (16.11.2026)
+
+Anlass: Feedback eines Suunto-Fahrers (u1124), der eine eigene SuuntoPlus-App mit Pump-Takt nutzt.
+- **Uhrname:** `file_id.product_name` („Suunto Race 2") -> `sessions.device_model`, als Uhr-Abzeichen angezeigt
+  (`import_geraet` gilt jetzt fuer `garmin-` und `suunto-`). Bestand: `scripts/suunto-geraet-nachtragen.py` (8435 gesetzt).
+- **Takt (Uhr):** Suunto-Dateien mit `cadence` je Record -> `data/<uuid>/uhr_takt.json` ([ms ab Start, 1/min]).
+  Vorrang hat ein Developer-Feld `cadence` (SuuntoPlus, dort in Hz, 0 in Ruhe; Werte < 5 werden x60 gerechnet), sonst
+  das Standardfeld (haelt in Ruhe den letzten Wert). fitimport legt gleichnamige Developer-Felder als `dev_<name>` ab.
+  Die API mittelt je Lauf (`segments[].uhr_takt_min`) und gesamt (`metrics.uhr_takt_min`), nur bei Foil-Sportarten;
+  Web zeigt „Takt (Uhr)" nur, wenn es keinen eigenen Pump-Takt gibt. Reine Anzeige, die Analyse nutzt ihn nicht.
+  Bestand: `scripts/suunto-takt-nachtragen.py --echt [--neu]` -> 1904 Sessions (26 Nutzer); 1207 Ordner gehoeren root
+  (kein Schreibrecht, ausgelassen). Offen: Apps.
+
 ## Was nur auf echter Hardware geklaert wird
 
 1. Kommen Beschleunigungswerte, in welcher Einheit, ueber welchen Aufruf, mit 25 oder 50 Werten?

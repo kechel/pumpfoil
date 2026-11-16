@@ -1052,6 +1052,7 @@ const ja: Record<string, string> = {
   "power.tip": "{foil}：平均 {speed} km/h、合計 {weight} kg での理論上のパワー。抵抗 {drag} W ＋ポンプ慣性 {inertia} W{note}。",
   "power.estPump": "簡易推定、加速度データなし",
   "sd.avgPump": "平均ポンプ",
+  "sd.taktUhr": "ケイデンス（ウォッチ）",
   "sd.colPower": "パワー",
   "account.devicesTitle": "連携したウォッチ",
   "account.devicesHint": "アカウントとペアリングされたデバイス。取り消すとトークンが無効になります — セッションは保持され、ウォッチは後で再連携できます。",

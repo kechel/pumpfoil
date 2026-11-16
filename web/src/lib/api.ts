@@ -330,6 +330,8 @@ export interface Metrics {
   avg_hr?: number | null;
   /** Ø Puls nur ueber die Laeufe (Server rechnet aus der GPS-Spur, 01.11.2026); fehlt ohne Puls oder ohne Laeufe */
   avg_hr_foil?: number | null;
+  /** Takt laut Uhr in 1/min (Suunto/SuuntoPlus `cadence`, 16.11.2026) — Angabe der Uhr, keine eigene Erkennung */
+  uhr_takt_min?: number | null;
   max_hr?: number | null;
   avg_speed_mps?: number | null;
   max_speed_5s_mps?: number | null;

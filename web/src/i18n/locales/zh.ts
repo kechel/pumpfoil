@@ -1052,6 +1052,7 @@ const zh: Record<string, string> = {
   "power.tip": "{foil}：在平均 {speed} km/h、总重 {weight} kg 下的理论功率。阻力 {drag} W + 泵动惯性 {inertia} W{note}。",
   "power.estPump": "平坦估算，无加速度数据",
   "sd.avgPump": "平均泵动",
+  "sd.taktUhr": "频率（手表）",
   "sd.colPower": "功率",
   "account.devicesTitle": "已关联的手表",
   "account.devicesHint": "与你账号配对的设备。撤销会使令牌失效 —— 记录会保留，之后可重新关联手表。",

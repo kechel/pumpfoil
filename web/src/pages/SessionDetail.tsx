@@ -2370,6 +2370,9 @@ export default function SessionDetail() {
               sub={hasPumpStats ? undefined : t("sd.phase2")} />
           </>
         )}
+        {/* Takt laut Uhr (Suunto/SuuntoPlus, 16.11.2026): nur wenn wir selbst keinen Takt haben — die Angabe der Uhr, keine
+            eigene Erkennung; dieselbe Einheit/Umschaltung wie die Pumpfrequenz. */}
+        {!hasPumpStats && m?.uhr_takt_min != null && <PumpRateStat hz={m.uhr_takt_min / 60} label={t("sd.taktUhr")} />}
         {pumpzahlen && hasPumpStats && (
           <>
             <PumpRateStat hz={m!.avg_pump_hz!} />
@@ -3357,7 +3360,7 @@ function ClickStat({
 // Pump-Kadenz-Kachel: per Tap zwischen Hz und Pumps/Minute (Hz×60) umschalten. Merk-Badge
 // oben rechts zeigt die ALTERNATIVE Einheit -> signalisiert, dass man tippen kann. Die Wahl
 // landet im Profil (siehe lib/pumpRate) und gilt sofort in allen Ansichten.
-function PumpRateStat({ hz }: { hz: number }) {
+function PumpRateStat({ hz, label }: { hz: number; label?: string }) {
   const t = useT();
   const pf = usePumpFmt();
   const toggle = () => setPumpUnit(pf.unit === "hz" ? "ppm" : "hz");
@@ -3367,7 +3370,7 @@ function PumpRateStat({ hz }: { hz: number }) {
   return (
     <button
       onClick={toggle}
-      title={t("sd.avgPump")}
+      title={label ?? t("sd.avgPump")}
       className="relative overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 p-1.5 text-left hover:border-slate-600"
     >
       {/* Merk-Badge oben rechts: die andere Einheit -> hier kann man tippen. */}
@@ -3376,7 +3379,7 @@ function PumpRateStat({ hz }: { hz: number }) {
         <span className="text-base font-bold tabular-nums text-brand-400 sm:text-lg">{value}</span>
         <span className="truncate text-[11px] font-normal text-slate-400">{sub}</span>
       </div>
-      <div className="mt-1 text-[10px] uppercase leading-tight tracking-wide text-slate-300">{t("sd.avgPump")}</div>
+      <div className="mt-1 text-[10px] uppercase leading-tight tracking-wide text-slate-300">{label ?? t("sd.avgPump")}</div>
     </button>
   );
 }
@@ -3861,6 +3864,7 @@ function RunsTable({
   const showPower = !!powerFor && segments.some((s) => powerFor(s.avg_speed_mps, s.avg_pump_hz) != null);
   const bestDist = maxVon(segments.map((s) => s.distance_m ?? 0));
   const hasPump = segments.some((s) => s.avg_pump_hz != null && (s.pumps ?? 0) > 0);
+  const hasUhrTakt = !hasPump && segments.some((s) => s.uhr_takt_min != null);   // Takt laut Uhr (Suunto, 16.11.2026)
   // Hoechstpuls im Lauf (Wunsch ThermikDreher, 15.08.: „max Heartrate pro Lauf").
   const maxHr = (s: any): number | null => {
     if (!hr.length || s?.i_start == null || s?.i_end == null) return null;
@@ -3919,7 +3923,7 @@ function RunsTable({
     start: (s) => s.t_start_ms, distance: (s) => s.distance_m, duration: (s) => s.duration_s,
     avg: (s) => s.avg_speed_mps, max: (s) => speedOf(s, "max"), min: (s) => speedOf(s, "min"),
     power: (s) => powerFor?.(s.avg_speed_mps, s.avg_pump_hz), pumps: (s) => s.pumps,
-    distPerPump: (s) => (s.pumps ? s.distance_m / s.pumps : null), avgPump: (s) => s.avg_pump_hz,
+    distPerPump: (s) => (s.pumps ? s.distance_m / s.pumps : null), avgPump: (s) => s.avg_pump_hz, uhrTakt: (s) => s.uhr_takt_min,
     pumpMax: (s) => s.max_pump_hz, hrStart: (s) => hrWerte(s)[0] ?? null, hrAvg: (s) => hrAvg(s),
     hrMax: (s) => maxHr(s), hrEnd: (s) => { const w = hrWerte(s); return w.length ? w[w.length - 1] : null; },
     hrDrop60: (s) => hrDrop(s, 60), hrDrop120: (s) => hrDrop(s, 120),
@@ -4080,6 +4084,7 @@ function RunsTable({
               {th("pumps", t("sd.colPumps"))}
               {hasPump && th("distPerPump", t("sd.colDistPerPump"))}
               {hasPump && th("avgPump", t("sd.colAvgPump", { unit: pf.suffix }))}
+              {hasUhrTakt && th("uhrTakt", `${t("sd.taktUhr")} (${pf.suffix})`)}
               {hasPump && th("pumpMax", t("sd.colPumpMaxMin", { unit: pf.suffix }))}
               {hasHr && th("hrStart", t("sd.colHrStart"))}
               {hasHr && th("hrAvg", t("sd.colHrAvg"))}
@@ -4134,6 +4139,7 @@ function RunsTable({
                   <td className="px-3 py-2 tabular-nums">{s.pumps ?? "–"}</td>
                   {hasPump && <td className="px-3 py-2 tabular-nums">{s.pumps ? `${(s.distance_m / s.pumps).toFixed(1)} m` : "–"}</td>}
                   {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.avg_pump_hz)}</td>}
+                  {hasUhrTakt && <td className="px-3 py-2 tabular-nums">{hz(s.uhr_takt_min != null ? s.uhr_takt_min / 60 : null)}</td>}
                   {hasPump && <td className="px-3 py-2 tabular-nums">{hz(s.max_pump_hz)} / {hz(s.min_pump_hz)}</td>}
                   {hasHr && (() => {
                     const w = hrWerte(s);

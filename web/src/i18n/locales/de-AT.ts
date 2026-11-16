@@ -831,6 +831,7 @@ const deAT: Record<string, string> = {
   "power.tip": "{foil}: theoretische Leistung bei Ø {speed} km/h, {weight} kg Gesamtgewicht. Vortrieb {drag} W + Pump-Trägheit {inertia} W{note}.",
   "power.estPump": "ohne Accel-Daten pauschal geschätzt",
   "sd.avgPump": "Ø Pump",
+  "sd.taktUhr": "Takt (Uhr)",
   "sd.colPower": "Leistung",
   "account.devicesTitle": "Verbundene Uhren",
   "account.devicesHint": "Mit deinem Konto gepairte Geräte. Widerrufen macht den Token ungültig — Sessions bleiben erhalten, die Uhr kann später neu verbunden werden.",

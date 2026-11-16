@@ -1076,6 +1076,7 @@ const cs: Record<string, string> = {
   "power.tip": "{foil}: teoretický výkon při Ø {speed} km/h, celkové hmotnosti {weight} kg. Pohon {drag} W + setrvačnost pumpnutí {inertia} W{note}.",
   "power.estPump": "bez accel dat paušálně odhadnuto",
   "sd.avgPump": "Ø pumpnutí",
+  "sd.taktUhr": "Kadence (hodinky)",
   "sd.colPower": "Výkon",
   "account.devicesTitle": "Připojené hodinky",
   "account.devicesHint": "Zařízení spárovaná s tvým účtem. Odvolání zneplatní token — vyjížďky zůstanou zachovány, hodinky lze později znovu připojit.",

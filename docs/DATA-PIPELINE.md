@@ -282,6 +282,7 @@ Puls ist das die erste Vermutung, kein Defekt der Uhr oder der App. Folgen:
 | `accel/<index>.bin` | int16 **little endian**, 3 Achsen **verschränkt** (x,y,z,x,y,z…). Samples = Dateigröße / 6. Einheit: Rohwert / `accel_scale` = g |
 | `accel/<index>.t0` | Sidecar mit `t0_ms`, **nur wenn der Client es geschickt hat** |
 | `gps/<index>.json` | JSON-Liste von Samples (s. u.) |
+| `uhr_takt.json` | nur Suunto-Importe mit Takt: `[[t_ms, takt_pro_min], …]`, Session-ms; reine Anzeige (docs/SUUNTO.md, 16.11.2026) |
 
 **GPS-Sample = `[t_ms, lat, lon, speed_mps, hr_bpm, h_acc_m]`** — 6 Felder, bei #1814 in allen
 8.181 Samples vollständig (kein `null`). Beispiel:
