@@ -1608,7 +1608,6 @@ Entwurf zusammen mit A1.
   naechsten Massen-Neuauswertung klaeren).
 
 **D. Kurze Entscheidungen fuer Jan**
-- Uhren-Auswertung: Mindestzahl Garmin-Connect-Zeilen 8 -> 3? (15.11.)
 - Garmin ohne Handy: wartende Uploads (a) Server antwortet „erledigt" oder (b) duenn puffern? (15.11.)
 - Datenschutz-Konzept eines Nutzers: Punkt 1 „Uhrzeit verbergen" — wartet auf Go (11.11.)
 - Max-Speed der Uhr-App gegen Server nachrechnen (07.11.)
@@ -1738,7 +1737,7 @@ antwortet er „erledigt" und die Uhr loescht ohne Upload (nur Server). (b) Uhre
 die speicherarmen nur duenn puffern (`devices._datenwege`, `UHR_LOWMEM_GC_NUR_FIT` auf alle) — Nachteil: wer mit Handy
 faehrt, sieht die Fahrt erst, wenn Garmin liefert. Beides braucht einmal eine Handy-Verbindung, damit die Uhr es lernt.
 
-### 15.11.2026 — Uhren-Auswertung: Mindestzahl fuer Garmin-Connect-Zeilen (offen)
+### 15.11.2026 — Uhren-Auswertung: Mindestzahl fuer Garmin-Connect-Zeilen (✅ erledigt 15.11., 3aa92cd9: ab 3 mit „wenig Daten")
 Seit 0f139248 zaehlen dort nur Dateien unserer App mit Beschleunigung; mit MIN_SESSIONS = 8 bleibt nur fēnix 7 Pro
 (14 Fahrten). 13 Modelle haben Dateien, meist 1–2 (fēnix 6 Pro 7, MARQ Athlete 4). Frage an Jan: Grenze dort auf 3
 senken (mit „wenig Daten") oder warten.
