@@ -845,16 +845,39 @@ export default function SessionDetail() {
   // sein Lauf ausgewaehlt ist. Fenster in Session-ms (wie indexZuSessionMs) aus analysis.sprints.
   // Lauf ueber die ZEIT (Mitte des Fensters in [t_start_session_ms, t_end_session_ms]) — die Laufnummern unterscheiden sich
   // zwischen den normalen Laeufen und einem Empfindlichkeits-Preset des Besitzers.
+  // Event-Kategorie (16.11.2026, Jan): Dropdown neben „Pumps" in Sessions, die fuer ein Event zaehlen — hebt je Lauf das
+  // Stueck der gewaehlten Kategorie hervor (heute die Sprints; generisch ueber `events[].kategorien` vom Server).
+  // Vorbelegt mit `?sprint=` aus der Bestenliste.
+  const [eventKat, setEventKat] = useState<string>("");
+  useEffect(() => { const kz = searchParams.get("sprint"); if (kz) setEventKat(kz); }, [searchParams]);
+  const eventKats = useMemo(() => {
+    const out: string[] = [];
+    for (const ev of session?.events ?? []) for (const k of ev.kategorien) if (!out.includes(k)) out.push(k);
+    return out;
+  }, [session]);
+  const sprintKz = eventKat || searchParams.get("sprint") || "";
+  const laufZurZeit = (mitte: number) => ((session?.analysis?.segments ?? []) as any[]).findIndex((g) =>
+    g.t_start_session_ms != null && g.t_start_session_ms <= mitte && mitte <= g.t_end_session_ms);
   const sprintLauf = useMemo(() => {
-    const kz = searchParams.get("sprint");
+    const kz = sprintKz;
     const f = kz ? session?.analysis?.sprints?.fenster?.[kz] : null;
     if (!kz || !f) return null;
-    const mitte = (f[0] + f[1]) / 2;
-    const i = ((session?.analysis?.segments ?? []) as any[]).findIndex((g) =>
-      g.t_start_session_ms != null && g.t_start_session_ms <= mitte && mitte <= g.t_end_session_ms);
+    const i = laufZurZeit((f[0] + f[1]) / 2);
     return i >= 0 ? { kz, i, a: f[0], b: f[1], wert: session?.analysis?.sprints?.best?.[kz] ?? 0 } : null;
-  }, [searchParams, session]);
-  const sprintHL = useMemo(() => (sprintLauf && selectedRun === sprintLauf.i ? sprintLauf : null), [sprintLauf, selectedRun]);
+  }, [sprintKz, session]);
+  // Hervorhebung fuer den GEWAEHLTEN Lauf: sein eigenes Fenster der Kategorie (laeufe_fenster, Zuordnung ueber die Zeit),
+  // sonst — alte Auswertung ohne Fenster je Lauf — nur das beste Fenster, wenn es in diesem Lauf liegt.
+  const sprintHL = useMemo(() => {
+    if (!sprintKz || selectedRun == null) return null;
+    const sp = session?.analysis?.sprints;
+    const lf = sp?.laeufe_fenster ?? [];
+    for (let j = 0; j < lf.length; j++) {
+      const f = lf[j]?.[sprintKz];
+      if (f && laufZurZeit((f[0] + f[1]) / 2) === selectedRun)
+        return { kz: sprintKz, i: selectedRun, a: f[0], b: f[1], wert: sp?.laeufe?.[j]?.[sprintKz] ?? 0 };
+    }
+    return sprintLauf && selectedRun === sprintLauf.i ? sprintLauf : null;
+  }, [sprintKz, sprintLauf, selectedRun, session]);
   // Aus einer Sprint-Bestenliste: Glides-Faerbung aus (Jan 12.11.2026), sonst ist der Track grau und vom gewerteten
   // Abschnitt bleiben nur die weissen Raender. Einmal je Session/Sprint, danach darf man zurueckschalten.
   const sprintFarbeRef = useRef<string | null>(null);
@@ -865,6 +888,11 @@ export default function SessionDetail() {
     sprintFarbeRef.current = key;
     if (colorMode === "glides") setColorMode("speed");
   }, [sprintLauf, session, colorMode]);
+
+  // Kategorie im Dropdown gewaehlt und kein Lauf ausgewaehlt: den Lauf mit dem besten Stueck vorauswaehlen.
+  useEffect(() => {
+    if (eventKat && selectedRun == null && sprintLauf) setSelectedRun(sprintLauf.i);
+  }, [eventKat]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   // Beim Aufruf über einen Rekord-Link (?run=N) den Lauf vorauswählen (einmal je Session).
   const appliedRunRef = useRef<string | null>(null);
@@ -2497,6 +2525,13 @@ export default function SessionDetail() {
             <span className="inline-flex items-center gap-1">{schlagSport ? t("sd.strokes") : t("stat.pumps")} {showPumps ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
           </button>
           )}
+          {eventKats.length > 0 && (
+            <select value={eventKat} onChange={(e) => setEventKat(e.target.value)} title={t("sd.eventKategorieHinweis")}
+              className={`ml-2 rounded-lg px-2 py-1 text-xs ${eventKat ? "bg-fuchsia-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}>
+              <option value="">{t("sd.eventKategorie")}</option>
+              {eventKats.map((k) => <option key={k} value={k}>{t(kennzahl(k).labelKey)}</option>)}
+            </select>
+          )}
           {/* Nur zeigen, wenn es wirklich etwas zu zeigen gibt: mehr Versuche als Läufe heißt,
               dass Anläufe dabei waren, aus denen kein Lauf wurde. Beides steht schon in der
               Session-Antwort — kein zusätzlicher Aufruf nur für die Frage, ob der Schalter hin soll. */}
@@ -2579,6 +2614,20 @@ export default function SessionDetail() {
             EINEN Bildschirm passt. Die Bedienelemente wandern dafuer unter die Kurven. In der
             normalen Kartenansicht bleibt alles, wo es war. Im Vollbild ebenfalls — dort haben
             die Lauf-Knoepfe eine eigene Leiste, die oben bleiben muss. */}
+        {!fullscreen && (session?.events ?? []).length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {(session?.events ?? []).map((ev) => {
+              const platz = ev.plaetze.filter((p) => p.rang <= 50).sort((a, b) => a.rang - b.rang)[0];
+              return (
+                <Link key={ev.id} to={`/teams/${ev.team_slug}/events/${ev.id}`}
+                  className="inline-flex items-center gap-1.5 rounded-lg border-2 border-fuchsia-500 px-2 py-1 text-xs font-semibold text-fuchsia-700 hover:underline dark:text-fuchsia-300">
+                  {t("sd.eventZaehlt", { titel: ev.titel, n: ev.laeufe_ms.length })}
+                  {platz && <span className="tabular-nums">· #{platz.rang} {t(kennzahl(platz.kennzahl).labelKey)}</span>}
+                </Link>
+              );
+            })}
+          </div>
+        )}
         {(() => {
           const untenAnordnen = zeigeLage && !fullscreen;
 

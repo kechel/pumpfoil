@@ -290,12 +290,21 @@ export interface Board {
   id: number; name: string; volume_l: number | null; length_cm: number | null;
 }
 
+export interface SessionEvent {
+  id: number; titel: string; team_slug: string; global: boolean; status: string;
+  kategorien: string[];          // laufbezogene Kennzahlen des Events (heute sprint_*)
+  laeufe_ms: number[];           // Laufstart (Session-ms) je zaehlendem Lauf
+  plaetze: { kennzahl: string; sportart: string; rang: number; run_idx?: number }[];
+}
+
 export interface Analysis {
   algo_version: string;
   total_distance_m: number | null;
   // Zusatzzahlen je Sportart (19.10.2026, server/app/sportzahlen.py), nur Wind/Motor, nur Detail.
   /** Fliegende Sprints (11.11.2026): bester Wert (m/s), Lauf und Fenster [Start, Ende] in Session-ms je Kennzahl. */
-  sprints?: null | { best: Record<string, number>; lauf: Record<string, number>; fenster: Record<string, [number, number]> };
+  sprints?: null | { best: Record<string, number>; lauf: Record<string, number>; fenster: Record<string, [number, number]>;
+    /** Je Lauf (Index wie segments_json, 16.11.2026): Werte und Fenster je Kennzahl. */
+    laeufe?: (Record<string, number> | null)[]; laeufe_fenster?: (Record<string, [number, number]> | null)[] };
   sport_zahlen?: null | {
     fahrzeit_s?: number; tempo_kmh?: number; foil_anteil?: number; fahrt_pause_s?: number;
     fahrten?: { laeufe: number; lauf_von: number; lauf_bis: number; t_start_ms: number; dauer_s: number; strecke_m: number; foil_m: number; foil_s: number;
@@ -440,6 +449,8 @@ export interface SessionSummary {
   // Einzel-Session-Ausgabe (Listen zeigen keine Leistung).
   owner_weight_kg?: number | null;
   share_token?: string | null;   // nur dem Besitzer geliefert (öffentlicher Teilen-Link gesetzt?)
+  /** Events, fuer die die Session zaehlt (Wertung je Lauf, 16.11.2026). */
+  events?: SessionEvent[] | null;
   photos?: { id: number; url: string; thumb_url?: string | null }[];  // im öffentlichen Payload (/s/<token>)
   videos?: SessionVideo[];  // im öffentlichen Payload (/s/<token>)
   photo_count?: number;
