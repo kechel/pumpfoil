@@ -292,13 +292,21 @@ struct EventKachelDaten {
     /// waehlt; auf der Teamseite nur das Eventbild.
     var banner_url: String? = nil
     var banner_fokus: String? = nil
+    /// Als globales Event vorgeschlagen und angenommen (16.11.2026, web 1f3f2f1a): „promoted by <Team>" neben „Global".
+    var promoted_by: TeamEventTeam? = nil
 
     init(_ e: TeamEvent, slug: String, farbe: String?) {
-        id = e.id; self.slug = slug; titel = e.titel; beschreibung = e.beschreibung
+        // Event eines anderen Teams, bei dem dieses Team mitmacht (web 2d30a70e): Kachel mit dem ausrichtenden Team,
+        // die Seite liegt unter dessen Adresse.
+        let host: EventTeamBeteiligt? = (e.team_slug != nil && e.team_slug != slug)
+            ? (e.teams_beteiligt ?? []).first(where: { $0.status == "ausrichtend" }) : nil
+        id = e.id; self.slug = host?.slug ?? slug; titel = e.titel; beschreibung = e.beschreibung
         start = e.start; ende = e.ende; zeitzone = e.zeitzone; status = e.status
-        sportarten = e.sportarten; spots = e.spots; self.farbe = farbe; global = e.istGlobal
+        sportarten = e.sportarten; spots = e.spots; self.farbe = host != nil ? host?.farbe : farbe; global = e.istGlobal
         // Teamseite: nur das Eventbild — das Teambild steht dort schon oben (web pages/Team.tsx, 10.11.2026).
         banner_url = e.banner_url; banner_fokus = e.banner_fokus
+        promoted_by = e.promoted_by
+        if let h = host { team = TeamEventTeam(slug: h.slug, name: h.name, logo_url: h.logo_url, farbe: h.farbe) }
     }
 
     init(_ e: TeamEventKurz) {
@@ -306,6 +314,7 @@ struct EventKachelDaten {
         start = e.start; ende = e.ende; zeitzone = e.zeitzone; status = e.status
         sportarten = e.sportarten; spots = e.spots; farbe = e.team.farbe; team = e.team; global = e.global == true
         banner_url = e.banner_url; banner_fokus = e.banner_fokus
+        promoted_by = e.promoted_by
     }
 }
 
@@ -387,6 +396,14 @@ struct EventKalenderKachel: View {
             TeamEventStatusChip(status: d.status, farbe: d.global ? nil : d.farbe, lang: lang)
             if d.global {
                 EventGlobalChip(lang: lang)
+                if let p = d.promoted_by {
+                    HStack(spacing: 4) {
+                        TeamWappen(name: p.name, logo: p.logo_url, farbe: p.farbe, size: 16)
+                        Text(teamText("team.event.promotedBy", lang, ["team": p.name])).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                    }
+                    .padding(.leading, 2).padding(.trailing, 8).padding(.vertical, 2)
+                    .background(Color.secondary.opacity(0.15), in: Capsule())
+                }
             } else if let t = d.team {
                 HStack(spacing: 4) {
                     TeamWappen(name: t.name, logo: t.logo_url, farbe: t.farbe, size: 16)

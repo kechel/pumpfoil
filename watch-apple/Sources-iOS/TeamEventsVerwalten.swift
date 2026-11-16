@@ -64,6 +64,12 @@ struct TeamEventEntwurf: Identifiable {
     /// Globales Event (06.11.2026, nur im offiziellen Team) und Teamwertung: beste N, 0 = alle.
     var global_event = false
     var team_wertung_n = 5
+    /// Als globales Event vorgeschlagen und angenommen (16.11.2026, web 1f3f2f1a): bleibt beim Team, Titel/Zeitraum/Wertung
+    /// aendert dann nur noch pumpfoil.org. `vorschlag` = Stand des Vorschlags.
+    var promoted = false
+    var vorschlag: EventVorschlag?
+    /// Events mehrerer Teams (web 2d30a70e): beteiligte Teams samt Status.
+    var beteiligt: [EventTeamBeteiligt] = []
     let id = UUID()
 
     static func neu() -> TeamEventEntwurf {
@@ -91,6 +97,9 @@ struct TeamEventEntwurf: Identifiable {
         e.vorlage = ev.vorlage
         e.global_event = ev.istGlobal
         e.team_wertung_n = ev.team_wertung_n ?? 5
+        e.promoted = ev.promoted_by != nil
+        e.vorschlag = ev.vorschlag
+        e.beteiligt = ev.teams_beteiligt ?? []
         return e
     }
 
@@ -192,6 +201,12 @@ struct TeamEventEditor: View {
     @State private var fehler: String?
     @State private var busy = false
     @State private var loeschenFragen = false
+    @State private var istAdmin = false
+    @State private var einladen = ""
+    @State private var teamVorschlaege: [TeamListenEintrag] = []
+
+    /// Angenommener Vorschlag: ausser Beschreibung und Bild nichts mehr aenderbar (Admins ausgenommen, web fieldset).
+    private var gesperrt: Bool { entwurf.promoted && !istAdmin }
 
     private var kopf: String {
         guard entwurf.eventId != nil else { return Loc.t("team.event.neu", lang) }
@@ -208,14 +223,19 @@ struct TeamEventEditor: View {
                     }
                 } else {
                     if offiziell { globalSection }
+                    vorschlagSection
+                    mehrteamSection
                     grundSection
-                    tafelnSection
-                    summenSection
-                    spotsSection
-                    Section { Toggle(Loc.t("team.event.ohneDateien", lang), isOn: $entwurf.ohne_dateien).font(.subheadline) }
+                    Group {
+                        tafelnSection
+                        summenSection
+                        spotsSection
+                        Section { Toggle(Loc.t("team.event.ohneDateien", lang), isOn: $entwurf.ohne_dateien).font(.subheadline) }
+                    }
+                    .disabled(gesperrt)
                 }
                 if let f = fehler { Section { Text(f).foregroundStyle(.red) } }
-                if entwurf.eventId != nil && !entwurf.eingefroren { loeschenSection }
+                if entwurf.eventId != nil && !entwurf.eingefroren && !gesperrt { loeschenSection }
             }
             .navigationTitle(kopf)
             .navigationBarTitleDisplayMode(.inline)
@@ -227,6 +247,137 @@ struct TeamEventEditor: View {
         }
         .interactiveDismissDisabled(true)
         .task { if auswahl == nil { auswahl = await TeamAuswahl.laden(lang) } }
+        .task { await nebenLaden() }
+    }
+
+    private func nebenLaden() async {
+        if let p = try? await Api.getProfile() { istAdmin = p.is_admin ?? false }
+        if entwurf.eventId != nil && !offiziell, let l = try? await Api.teamsListe() {
+            teamVorschlaege = l.filter { $0.slug != slug }
+        }
+    }
+
+    // MARK: Als globales Event vorschlagen (16.11.2026, web 1f3f2f1a)
+
+    @ViewBuilder private var vorschlagSection: some View {
+        if let id = entwurf.eventId, !offiziell {
+            Section {
+                if entwurf.promoted {
+                    Text(Loc.t("team.event.vorschlag.angenommen", lang)).font(.subheadline)
+                    if let n = entwurf.vorschlag?.notiz, !n.isEmpty { Text("„" + n + "“").font(.caption).foregroundStyle(.secondary) }
+                    if !istAdmin { Text(Loc.t("team.event.vorschlag.gesperrt", lang)).font(.caption).foregroundStyle(.secondary) }
+                } else if entwurf.vorschlag?.status == "vorgeschlagen" {
+                    HStack(spacing: 10) {
+                        Text(Loc.t("team.event.vorschlag.wirdGeprueft", lang)).font(.caption.weight(.semibold)).foregroundStyle(teamAmberText)
+                        Spacer(minLength: 4)
+                        Button(Loc.t("team.event.vorschlag.zurueckziehen", lang)) { Task { await vorschlagZurueck(id) } }
+                            .buttonStyle(.bordered).disabled(busy)
+                    }
+                } else {
+                    Text(Loc.t("team.event.vorschlag.hinweis", lang)).font(.caption).foregroundStyle(.secondary)
+                    if entwurf.vorschlag?.status == "abgelehnt" { Text(abgelehntText).font(.subheadline) }
+                    Button(Loc.t("team.event.vorschlag.knopf", lang)) { Task { await vorschlagen(id) } }
+                        .buttonStyle(.bordered).disabled(busy)
+                }
+            } header: {
+                Text(Loc.t("team.event.vorschlag.titel", lang))
+            }
+        }
+    }
+
+    private var abgelehntText: String {
+        var t: String = Loc.t("team.event.vorschlag.abgelehnt", lang)
+        if let n = entwurf.vorschlag?.notiz, !n.isEmpty { t += " „" + n + "“" }
+        return t
+    }
+
+    private func vorschlagen(_ id: Int) async {
+        busy = true
+        defer { busy = false }
+        do { entwurf.vorschlag = try await Api.teamEventVorschlagen(slug, id: id); fehler = nil }
+        catch { fehler = Api.teamFehlerText(error, lang) }
+    }
+
+    private func vorschlagZurueck(_ id: Int) async {
+        busy = true
+        defer { busy = false }
+        do { try await Api.teamEventVorschlagZurueck(slug, id: id); entwurf.vorschlag = nil; fehler = nil }
+        catch { fehler = Api.teamFehlerText(error, lang) }
+    }
+
+    // MARK: Mit anderen Teams austragen (16.11.2026, web 2d30a70e) — erst bei gespeicherten Events
+
+    @ViewBuilder private var mehrteamSection: some View {
+        if let id = entwurf.eventId, !entwurf.global_event {
+            Section {
+                Text(Loc.t("team.event.mehrteamHinweis", lang)).font(.caption).foregroundStyle(.secondary)
+                HStack(spacing: 8) {
+                    TextField(Loc.t("team.event.mehrteamFeld", lang), text: $einladen)
+                        .textInputAutocapitalization(.never).autocorrectionDisabled()
+                    Button(Loc.t("team.event.mehrteamEinladen", lang)) { Task { await teamEinladen(id) } }
+                        .buttonStyle(.bordered)
+                        .disabled(einladen.trimmingCharacters(in: .whitespaces).isEmpty || busy)
+                }
+                ForEach(passendeTeams) { x in
+                    Button { einladen = x.slug } label: {
+                        HStack(spacing: 8) {
+                            TeamWappen(name: x.name, logo: x.logo_url, farbe: x.farbe, size: 20)
+                            Text(x.name).font(.subheadline)
+                            Text(x.slug).font(.caption).foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+                ForEach(entwurf.beteiligt.filter { $0.status != "ausrichtend" }) { x in beteiligtZeile(id, x) }
+            } header: {
+                Text(Loc.t("team.event.mehrteam", lang))
+            }
+            .disabled(gesperrt)
+        }
+    }
+
+    /// Vorschlaege beim Tippen (web datalist): Name oder Adresse enthaelt den Suchtext, hoechstens fuenf.
+    private var passendeTeams: [TeamListenEintrag] {
+        let q: String = einladen.trimmingCharacters(in: .whitespaces).lowercased()
+        guard q.count >= 2 else { return [] }
+        let schon: Set<String> = Set(entwurf.beteiligt.map { $0.slug })
+        let treffer: [TeamListenEintrag] = teamVorschlaege.filter { x in
+            !schon.contains(x.slug) && x.slug != q && (x.name.lowercased().contains(q) || x.slug.contains(q))
+        }
+        return Array(treffer.prefix(5))
+    }
+
+    private func statusFarbe(_ st: String) -> Color {
+        if st == "angenommen" { return TeamFarbe(nil).akzent }
+        if st == "abgelehnt" { return Color.secondary }
+        return teamAmberText
+    }
+
+    private func beteiligtZeile(_ id: Int, _ x: EventTeamBeteiligt) -> some View {
+        HStack(spacing: 8) {
+            Text(x.name).font(.subheadline).lineLimit(1)
+            Spacer(minLength: 4)
+            Text(Loc.t("team.event.einladung." + x.status, lang)).font(.caption.weight(.semibold)).foregroundStyle(statusFarbe(x.status))
+            Button(Loc.t("team.event.mehrteamEntfernen", lang)) { Task { await teamEntfernen(id, x.slug) } }
+                .font(.caption).buttonStyle(.borderless)
+        }
+    }
+
+    private func teamEinladen(_ id: Int) async {
+        busy = true
+        defer { busy = false }
+        do {
+            entwurf.beteiligt = try await Api.teamEventEinladen(slug, id: id, team: einladen.trimmingCharacters(in: .whitespaces))
+            einladen = ""
+            fehler = nil
+        } catch { fehler = Api.teamFehlerText(error, lang) }
+    }
+
+    private func teamEntfernen(_ id: Int, _ team: String) async {
+        busy = true
+        defer { busy = false }
+        do { entwurf.beteiligt = try await Api.teamEventTeamEntfernen(slug, id: id, team: team); fehler = nil }
+        catch { fehler = Api.teamFehlerText(error, lang) }
     }
 
     @ToolbarContentBuilder private var leiste: some ToolbarContent {
@@ -280,8 +431,9 @@ struct TeamEventEditor: View {
             }
             TextField(Loc.t("team.event.titel", lang), text: $entwurf.titel)
                 .onChange(of: entwurf.titel) { t in if t.count > 80 { entwurf.titel = String(t.prefix(80)) } }
-            DatePicker(Loc.t("team.event.start", lang), selection: $entwurf.start)
-            DatePicker(Loc.t("team.event.ende", lang), selection: $entwurf.ende)
+                .disabled(gesperrt)
+            DatePicker(Loc.t("team.event.start", lang), selection: $entwurf.start).disabled(gesperrt)
+            DatePicker(Loc.t("team.event.ende", lang), selection: $entwurf.ende).disabled(gesperrt)
             TextField(Loc.t("team.beschreibung", lang), text: $entwurf.beschreibung, axis: .vertical)
                 .lineLimit(2...6)
                 .onChange(of: entwurf.beschreibung) { t in if t.count > 1000 { entwurf.beschreibung = String(t.prefix(1000)) } }
@@ -397,7 +549,7 @@ struct TeamEventEditor: View {
         fehler = nil
         defer { busy = false }
         // Global nur im offiziellen Team (der Server lehnt es sonst ab: nur_offiziell).
-        if !offiziell { entwurf.global_event = false }
+        if !offiziell && !entwurf.promoted { entwurf.global_event = false }
         do {
             if let id = entwurf.eventId {
                 _ = try await Api.teamEventAendern(slug, id: id, entwurf.json)

@@ -77,6 +77,10 @@ struct TeamView: View {
                      primaerGeaendert: { Task { await meineLaden() } })
             Reiterleiste(reiter: reiter(k), aktiv: Binding(get: { aktiverReiter(k) }, set: { tteil = $0; ReiterSpeicher.setze("team", $0) }))
             if let m = meldung { meldungsBox(m) }
+            if k.istVerwalter {
+                // Einladungen anderer Teams zu ihren Events (web 2d30a70e): annehmen/ablehnen, danach Events neu laden.
+                TeamEventEinladungenKarte(slug: k.slug, farbe: k.farbe, lang: lang) { Task { await laden() } }
+            }
             beitrittBereich(k)
         }
     }
@@ -216,8 +220,10 @@ struct TeamView: View {
     }
 
     private func eventLink(_ e: TeamEvent, _ k: TeamInfo) -> some View {
-        NavigationLink { TeamEventView(slug: k.slug, eventId: e.id) } label: {
-            TeamEventKachel(d: EventKachelDaten(e, slug: k.slug, farbe: k.farbe), lang: lang)
+        let d = EventKachelDaten(e, slug: k.slug, farbe: k.farbe)
+        // Mitmach-Event eines anderen Teams: die Seite liegt beim ausrichtenden Team (d.slug).
+        return NavigationLink { TeamEventView(slug: d.slug, eventId: e.id) } label: {
+            TeamEventKachel(d: d, lang: lang)
         }
         .buttonStyle(.plain)
     }
@@ -685,7 +691,7 @@ struct TeamRegelnInhalt: View {
     let lang: String
 
     private static let abschnitte: [String] = ["was", "rollen", "beitreten", "oeffentlich", "bestenlisten", "statistik",
-                                               "logbuch", "events", "global", "chat", "loeschen", "konto", "haftung"]
+                                               "logbuch", "events", "global", "referee", "chat", "loeschen", "konto", "haftung"]   // referee: web a794b52e (16.11.2026)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -711,5 +717,77 @@ struct TeamRegelnInhalt: View {
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+    }
+}
+
+// MARK: - Einladungen zu Events anderer Teams (16.11.2026, web Team.tsx EventEinladungen)
+
+/// Nur offene Einladungen; Leitung/Moderation nimmt an oder lehnt ab. Der Team-Marker zaehlt sie mit (Server).
+struct TeamEventEinladungenKarte: View {
+    let slug: String
+    let farbe: String?
+    let lang: String
+    let geaendert: () -> Void
+    @State private var liste: [TeamEventEinladung] = []
+    @State private var fehler: String?
+    @State private var busy = false
+
+    private var offen: [TeamEventEinladung] { liste.filter { $0.status == "eingeladen" } }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(offen) { x in zeile(x) }
+            if let f = fehler { Text(f).font(.footnote).foregroundStyle(.red) }
+        }
+        .task(id: slug) { await holen() }
+    }
+
+    private func text(_ x: TeamEventEinladung) -> String {
+        teamText("team.event.einladungText", lang, ["team": x.team.name, "titel": x.titel])
+    }
+
+    private func zeitraum(_ x: TeamEventEinladung) -> String {
+        teamKurzdatum(x.start, lang) + " – " + teamKurzdatum(x.ende, lang)
+    }
+
+    private func zeile(_ x: TeamEventEinladung) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top, spacing: 10) {
+                TeamWappen(name: x.team.name, logo: x.team.logo_url, farbe: x.team.farbe, size: 32)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(text(x)).font(.subheadline)
+                    Text(zeitraum(x)).font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            HStack(spacing: 10) {
+                TeamKnopf(titel: Loc.t("team.event.einladungAnnehmen", lang), farbe: farbe) { antworten(x, true) }
+                Button(Loc.t("team.event.einladungAblehnen", lang)) { antworten(x, false) }
+                    .buttonStyle(.bordered)
+            }
+            .disabled(busy)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.orange.opacity(0.10), in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.orange.opacity(0.4), lineWidth: 1))
+    }
+
+    private func holen() async {
+        liste = (try? await Api.teamEventEinladungen(slug)) ?? []
+    }
+
+    private func antworten(_ x: TeamEventEinladung, _ ja: Bool) {
+        busy = true
+        Task {
+            defer { busy = false }
+            do {
+                try await Api.teamEventEinladungAntworten(slug, eventId: x.event_id, annehmen: ja)
+                fehler = nil
+                await holen()
+                geaendert()
+            } catch {
+                fehler = Api.teamFehlerText(error, lang)
+            }
+        }
     }
 }

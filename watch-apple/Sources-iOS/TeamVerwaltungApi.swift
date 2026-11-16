@@ -205,6 +205,50 @@ extension Api {
         let _: TeamOk = try await teamJson(vPfad(slug) + "/events/\(id)", method: "DELETE", json: nil)
     }
 
+    // MARK: Referee, Events mehrerer Teams, globaler Vorschlag (16.11.2026, web 91bbc061 / 2d30a70e / 1f3f2f1a)
+
+    struct MeldenAntwort: Decodable { let gemeldet: [[Int]]; let gesperrt: [[Int]] }
+    struct BeteiligtAntwort: Decodable { let teams_beteiligt: [EventTeamBeteiligt] }
+    struct VorschlagAntwort: Decodable { let vorschlag: EventVorschlag? }
+    struct StatusAntwort: Decodable { let status: String? }
+
+    /// Lauf eines anderen Fahrers den Referees melden; Fehlercodes unter `ref.fehler.<code>`.
+    static func teamEventMelden(_ slug: String, id: Int, sessionId: Int, lauf: Int, grund: String, text: String) async throws -> MeldenAntwort {
+        let body: [String: Any] = ["session_id": sessionId, "run_idx": lauf, "grund": grund, "text": text]
+        return try await teamJson(vPfad(slug) + "/events/\(id)/melden", method: "POST", json: body)
+    }
+
+    static func teamEventEinladen(_ slug: String, id: Int, team: String) async throws -> [EventTeamBeteiligt] {
+        let a: BeteiligtAntwort = try await teamJson(vPfad(slug) + "/events/\(id)/teams", method: "POST", json: ["team": team])
+        return a.teams_beteiligt
+    }
+
+    static func teamEventTeamEntfernen(_ slug: String, id: Int, team: String) async throws -> [EventTeamBeteiligt] {
+        let a: BeteiligtAntwort = try await teamJson(vPfad(slug) + "/events/\(id)/teams/" + vPfadTeil(team), method: "DELETE", json: nil)
+        return a.teams_beteiligt
+    }
+
+    static func teamEventEinladungen(_ slug: String) async throws -> [TeamEventEinladung] {
+        try await teamJson(vPfad(slug) + "/event-einladungen", method: "GET", json: nil)
+    }
+
+    static func teamEventEinladungAntworten(_ slug: String, eventId: Int, annehmen: Bool) async throws {
+        let _: StatusAntwort = try await teamJson(vPfad(slug) + "/event-einladungen/\(eventId)", method: "POST", json: ["annehmen": annehmen])
+    }
+
+    static func teamEventVorschlagen(_ slug: String, id: Int) async throws -> EventVorschlag? {
+        let a: VorschlagAntwort = try await teamJson(vPfad(slug) + "/events/\(id)/vorschlag", method: "POST", json: nil)
+        return a.vorschlag
+    }
+
+    static func teamEventVorschlagZurueck(_ slug: String, id: Int) async throws {
+        let _: VorschlagAntwort = try await teamJson(vPfad(slug) + "/events/\(id)/vorschlag", method: "DELETE", json: nil)
+    }
+
+    private static func vPfadTeil(_ s: String) -> String {
+        s.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? s
+    }
+
     static func teamEventBanner(_ slug: String, id: Int, bild: TeamUploadBild) async throws -> TeamBannerAntwort {
         try await teamBildHoch(vPfad(slug) + "/events/\(id)/banner", data: bild.data, filename: bild.dateiname, mime: bild.mime)
     }

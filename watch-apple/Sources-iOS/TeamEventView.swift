@@ -29,6 +29,8 @@ struct TeamEventView: View {
     @State private var laedt = false
     /// Eigene aktive Teams (globale Events: eigene Teams hinter Platz 10 bleiben in der Team-Rangliste sichtbar).
     @State private var meineSlugs: [String] = []
+    /// Lauf, der gerade den Referees gemeldet wird (web MeldenDialog, 16.11.2026).
+    @State private var laufMeldung: TeamZeile?
     @Environment(\.dismiss) private var dismiss
 
     /// Bestenliste und Wertungsklasse je Event gemerkt (web f8927f95, Jan 11.11.2026: „wenn ich mir eine session anschaue
@@ -57,6 +59,7 @@ struct TeamEventView: View {
             .sheet(isPresented: $dialog) { beitrittSheet }
             .toolbar { zahnrad }
             .sheet(item: $editor) { e in editorSheet(e) }
+            .sheet(item: $laufMeldung) { z in meldenSheet(z) }
             .onChange(of: wahl) { _ in wahlMerken() }
             .onChange(of: klasse) { _ in klasseGewechselt() }
     }
@@ -96,23 +99,93 @@ struct TeamEventView: View {
     }
 
     private func seite(_ t: TeamInfo, _ e: TeamEvent) -> some View {
+        // Zwei Teil-Stapel: ein ViewBuilder mit mehr als zehn Kindern kostet den Type-Checker unverhaeltnismaessig viel.
         VStack(alignment: .leading, spacing: 14) {
-            teamZeile(t, e)
-            if let m = meldung { meldungsBox(m) }
-            bild(t, e)
-            EventKopf(e: e, farbe: t.farbe, lang: lang)
-            if !e.istGlobal { beitrittBereich(t) }
-            Text(Loc.t(eventStandKey(e.status), lang)).font(.title3.weight(.bold))
+            kopfTeil(t, e)
+            standTitelZeile(t, e)
+            EventKorrekturenKarte(korrekturen: e.korrekturen ?? [], lang: lang)
             meinTeamBereich(t, e)
             standBereich(t, e)
             teilenBereich(t, e)
             EventRegelnBox(e: e, lang: lang)
+            EventStandFuss(e: e, lang: lang)
         }
+    }
+
+    private func kopfTeil(_ t: TeamInfo, _ e: TeamEvent) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            teamZeile(t, e)
+            mitTeamsZeile(e)
+            if let m = meldung { meldungsBox(m) }
+            bild(t, e)
+            EventKopf(e: e, farbe: t.farbe, lang: lang)
+            if !e.istGlobal && e.gastgeber == nil { beitrittBereich(t) }
+        }
+    }
+
+    /// „Stand"/„Ergebnis" und — nur fuer Referees — der Weg ins Referee Board (bleibt im Web, 16.11.2026).
+    private func standTitelZeile(_ t: TeamInfo, _ e: TeamEvent) -> some View {
+        HStack(spacing: 8) {
+            Text(Loc.t(eventStandKey(e.status), lang)).font(.title3.weight(.bold))
+            Spacer(minLength: 4)
+            if e.referee == true, let u = Api.teamWebURL("/teams/" + t.slug + "/events/" + String(e.id) + "/referee") {
+                Link(destination: u) {
+                    Text(Loc.t("ref.titel", lang)).font(.subheadline.weight(.semibold))
+                        .padding(.horizontal, 10).padding(.vertical, 4)
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.accentColor, lineWidth: 2))
+                }
+            }
+        }
+    }
+
+    /// Event mehrerer Teams (web 2d30a70e): wer mitmacht — nur angenommene Teams, das ausrichtende zuerst.
+    @ViewBuilder private func mitTeamsZeile(_ e: TeamEvent) -> some View {
+        let dabei: [EventTeamBeteiligt] = (e.teams_beteiligt ?? []).filter { $0.status == "ausrichtend" || $0.status == "angenommen" }
+        if e.mehrteam == true && !dabei.isEmpty {
+            FoilerFliessReihe(abstand: 6) {
+                Text(Loc.t("team.event.mitTeams", lang)).font(.subheadline.weight(.semibold))
+                ForEach(dabei) { x in
+                    HStack(spacing: 4) {
+                        TeamWappen(name: x.name, logo: x.logo_url, farbe: x.farbe, size: 18)
+                        Text(x.name).font(.caption)
+                    }
+                    .padding(.horizontal, 8).padding(.vertical, 3)
+                    .background(Color(.tertiarySystemBackground), in: Capsule())
+                }
+            }
+        }
+    }
+
+    private func meldenSheet(_ z: TeamZeile) -> some View {
+        EventMeldenSheet(z: z, lang: lang, abbrechen: { laufMeldung = nil }, senden: { grund, text in
+            guard let sid = z.session_id, let lauf = z.run_idx else { return }
+            let r = try await Api.teamEventMelden(slug, id: eventId, sessionId: sid, lauf: lauf, grund: grund, text: text)
+            if var e = ev, var m = e.melden {
+                m.gemeldet = r.gemeldet
+                m.gesperrt = r.gesperrt
+                e.melden = m
+                ev = e
+            }
+            laufMeldung = nil
+        })
     }
 
     /// Globale Events: Wappen + Name des offiziellen Teams ohne Link, dazu „Global" (web: kein Team zum Mitmachen).
     @ViewBuilder private func teamZeile(_ t: TeamInfo, _ e: TeamEvent) -> some View {
-        if e.istGlobal {
+        if e.istGlobal, let p = e.promoted_by {
+            // Vorgeschlagenes globales Event (web 1f3f2f1a): „promoted by <Team>", verlinkt zum Team.
+            HStack(spacing: 8) {
+                EventGlobalChip(lang: lang)
+                NavigationLink { TeamView(slug: p.slug) } label: {
+                    HStack(spacing: 6) {
+                        TeamWappen(name: p.name, logo: p.logo_url, farbe: p.farbe, size: 20)
+                        Text(teamText("team.event.promotedBy", lang, ["team": p.name])).font(.subheadline).foregroundStyle(.secondary)
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.top, 8)
+        } else if e.istGlobal {
             HStack(spacing: 8) {
                 TeamWappen(name: t.name, logo: t.logo_url, farbe: t.farbe, size: 20)
                 Text(t.name).font(.subheadline).foregroundStyle(.secondary)
@@ -184,7 +257,7 @@ struct TeamEventView: View {
     }
 
     @ViewBuilder private func meinTeamBereich(_ t: TeamInfo, _ e: TeamEvent) -> some View {
-        if e.istGlobal, let mt = e.mein_team, mt.aenderbar, meinTeamZeigen(mt), e.status == "kommend" || e.status == "laeuft" {
+        if e.mitTeamWertung, let mt = e.mein_team, mt.aenderbar, meinTeamZeigen(mt), e.status == "kommend" || e.status == "laeuft" {
             EventMeinTeamKarte(slug: t.slug, evId: e.id, mt: mt, lang: lang) { Task { await neuLaden() } }
         } else if e.istGlobal, let at = e.angetreten, !at.isEmpty, e.status == "laeuft" || e.angetreten_mit_werten == true {
             // Nach dem Ende bzw. wenn die Teamwahl zu ist: „Du bist angetreten für …" (web, 11.11.2026)
@@ -328,8 +401,9 @@ struct TeamEventView: View {
                 EventPodest(evId: e.id, tf: tf0, global: e.istGlobal, farbe: t.farbe, lang: lang)
             }
             TeamTafelKarte(tf: anzeigeTafel(e, tf0), farbe: t.farbe, lang: lang, ohneFilter: true, sportZeigen: mehrSport,
-                           standText: stand, onBild: { fahrerBild(t, e, tf0) }, teamsZeigen: e.istGlobal)
-            if e.istGlobal {
+                           standText: stand, onBild: { fahrerBild(t, e, tf0) }, teamsZeigen: e.mitTeamWertung,
+                           melden: e.melden, onMelden: { z in laufMeldung = z })
+            if e.mitTeamWertung {
                 TeamWertungKarte(tf: tf0, n: e.team_wertung_n ?? 5, farbe: t.farbe, lang: lang, eigeneSlugs: meineSlugs,
                                  standText: stand, onBild: { teamsBild(e, tf0) })
             }
@@ -414,7 +488,7 @@ struct TeamEventView: View {
             kategorien.append(TeamUebersichtKategorie(key: "p" + String(i), titel: eventTafelTitel(tf, e, lang),
                                                       zeilen: uebersichtFahrer(e, tf), team: false))
         }
-        if e.istGlobal {
+        if e.mitTeamWertung {
             for (i, tf) in e.tafeln.enumerated() {
                 let titel: String = Loc.t("team.event.teams", lang) + " · " + eventTafelTitel(tf, e, lang)
                 kategorien.append(TeamUebersichtKategorie(key: "t" + String(i), titel: titel,
@@ -441,7 +515,7 @@ struct TeamEventView: View {
     private func uebersichtFahrer(_ e: TeamEvent, _ tf: TeamTafel) -> [TeamBildZeile] {
         let k: TeamKennzahl = teamKennzahl(tf.kennzahl)
         return tf.zeilen.prefix(3).map { z in
-            let w: TeamEventTeam? = e.istGlobal ? z.teams?.first : nil
+            let w: TeamEventTeam? = e.mitTeamWertung ? z.teams?.first : nil
             return TeamBildZeile(rang: z.rang, name: z.name ?? z.initialen ?? "—", wert: k.fmt(z.value, lang), ich: false,
                                  logo: w?.logo_url, farbe: w?.farbe, land: z.land, wappenName: w?.name)
         }
@@ -466,7 +540,8 @@ struct TeamEventView: View {
 
     @ViewBuilder private func teilenBereich(_ t: TeamInfo, _ e: TeamEvent) -> some View {
         // Globale Events immer (sichtbar fuer jeden Angemeldeten und als Gast-Link), sonst nur bei oeffentlichen Bestenlisten.
-        if t.bestenlisten_oeffentlich == true || e.istGlobal, let u = Api.teamWebURL("/teams/" + t.slug + "/events/" + String(e.id)) {
+        // Events mehrerer Teams sind nur fuer Beteiligte sichtbar -> kein Teilen-Link (web).
+        if (t.bestenlisten_oeffentlich == true || e.istGlobal) && e.mehrteam != true, let u = Api.teamWebURL("/teams/" + t.slug + "/events/" + String(e.id)) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(Loc.t("team.event.teilen", lang)).font(.subheadline).foregroundStyle(.secondary)
                 TeamTeilenZeile(url: u, titel: e.titel, farbe: t.farbe, lang: lang)
@@ -481,9 +556,11 @@ struct TeamEventView: View {
         do {
             let e = try await Api.teamEvent(slug, id: eventId, klasse: klasse)
             ev = e
-            team = await t
+            // Mitglied eines Gast-Teams (Event mehrerer Teams): die Teamseite des Ausrichters kann fuer ihn intern sein —
+            // dann kommt der Kopf aus dem Event (`gastgeber`, wie web TeamEventSeite).
+            team = await t ?? e.gastgeber?.alsTeamInfo
             fehlt = team == nil
-            if e.istGlobal && meineSlugs.isEmpty { await meineTeamsLaden() }
+            if e.mitTeamWertung && meineSlugs.isEmpty { await meineTeamsLaden() }
         } catch {
             _ = await t
             if ev == nil { fehlt = true }
@@ -1021,4 +1098,215 @@ enum EventWahlSpeicher {
     static func von(_ slug: String, _ id: Int) -> Wahl? { gemerkt[schluessel(slug, id)] }
 
     static func setze(_ slug: String, _ id: Int, _ w: Wahl) { gemerkt[schluessel(slug, id)] = w }
+}
+
+// MARK: - Referee: Korrekturen, Melden; Auswertungsstand (16.11.2026)
+
+/// Oeffentliche Korrekturen des Referees (web TeamEventSeite, 91bbc061): Fahrer · Lauf (zur Session) · Grund — Kommentar.
+struct EventKorrekturenKarte: View {
+    let korrekturen: [RefereeKorrektur]
+    let lang: String
+
+    var body: some View {
+        if !korrekturen.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(Loc.t("ref.oeffentlichTitel", lang).uppercased()).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                ForEach(korrekturen) { k in zeile(k) }
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.purple.opacity(0.6), lineWidth: 2))
+        }
+    }
+
+    private func laufText(_ k: RefereeKorrektur) -> String {
+        guard let r = k.run_idx else { return Loc.t("ref.session", lang) }
+        return teamText("ref.lauf", lang, ["n": String(r + 1)])
+    }
+
+    private func text(_ k: RefereeKorrektur) -> String {
+        var s: String = (k.fahrer ?? "—") + " · " + laufText(k) + " · " + Loc.t("ref.grund." + k.grund, lang)
+        if let c = k.kommentar_oeffentlich, !c.isEmpty { s += " — " + c }
+        return s
+    }
+
+    private func datum(_ k: RefereeKorrektur) -> String {
+        var s: String = teamKurzdatum(k.veroeffentlicht_am, lang)
+        if let b = k.bearbeitet_am { s += " · " + teamText("ref.bearbeitetAm", lang, ["am": teamKurzdatum(b, lang)]) }
+        return s
+    }
+
+    private func zeile(_ k: RefereeKorrektur) -> some View {
+        let aufgehoben: Bool = k.status == "aufgehoben"
+        return NavigationLink { SessionDetailView(id: k.session_id, vorwahlLauf: k.run_idx) } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                if aufgehoben {
+                    Text(Loc.t("ref.status.aufgehoben", lang)).font(.caption2.weight(.semibold))
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(Color(.tertiarySystemBackground), in: RoundedRectangle(cornerRadius: 6))
+                }
+                Text(text(k)).font(.subheadline).strikethrough(aufgehoben)
+                    .foregroundStyle(aufgehoben ? Color.secondary : Color.primary)
+                    .multilineTextAlignment(.leading)
+                Text(datum(k)).font(.caption2).foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+/// Lauf eines anderen Fahrers den Referees melden (web MeldenDialog): Grund + optionaler Hinweis.
+struct EventMeldenSheet: View {
+    let z: TeamZeile
+    let lang: String
+    let abbrechen: () -> Void
+    let senden: (String, String) async throws -> Void
+    @State private var grund: String = EventMeldenSheet.gruende[0]
+    @State private var text: String = ""
+    @State private var fehler: String?
+    @State private var laeuft = false
+
+    static let gruende: [String] = ["andere_sportart", "messfehler", "doppelte_aufnahme", "fremdkraft", "ausserhalb_fenster", "sonstiges"]
+
+    private var unterzeile: String {
+        (z.name ?? "—") + " · " + teamText("ref.lauf", lang, ["n": String((z.run_idx ?? 0) + 1)])
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section { Text(unterzeile).font(.subheadline) }
+                Section {
+                    Picker(Loc.t("ref.feldGrund", lang), selection: $grund) {
+                        ForEach(EventMeldenSheet.gruende, id: \.self) { g in Text(Loc.t("ref.grund." + g, lang)).tag(g) }
+                    }
+                    .pickerStyle(.inline)
+                    .labelsHidden()
+                }
+                Section {
+                    TextField(Loc.t("ref.meldenText", lang), text: $text, axis: .vertical).lineLimit(2...4)
+                } footer: {
+                    Text(Loc.t("ref.meldenHinweis", lang))
+                }
+                if let f = fehler { Section { Text(f).foregroundStyle(.red) } }
+            }
+            .navigationTitle(Loc.t("ref.meldenTitel", lang))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button(Loc.t("common.cancel", lang), action: abbrechen) }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(Loc.t("ref.meldenSenden", lang)) { Task { await absenden() } }.disabled(laeuft)
+                }
+            }
+        }
+    }
+
+    private func absenden() async {
+        laeuft = true
+        defer { laeuft = false }
+        let t: String = String(text.trimmingCharacters(in: .whitespacesAndNewlines).prefix(1000))
+        do { try await senden(grund, t) } catch {
+            let code: String = Api.teamFehlerCode(error)
+            let key: String = "ref.fehler." + code
+            let s: String = Loc.t(key, lang)
+            fehler = s == key ? error.localizedDescription : s
+        }
+    }
+}
+
+/// „Ausgewertet mit …" (web EventStand, 6eb68c00): festgehaltener Regel- und Auswertungsstand, vorher die Vorschau.
+struct EventStandFuss: View {
+    let e: TeamEvent
+    let lang: String
+    @State private var regelnAuf = false
+
+    private var beendet: Bool { e.status == "beendet" }
+
+    /// Regelstand ist ein Datum, ggf. mit Buchstaben fuer mehrere Fassungen am selben Tag ("2026-11-16b").
+    private func datum(_ d: String) -> String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "yyyy-MM-dd"
+        guard let x = f.date(from: String(d.prefix(10))) else { return d }
+        let g = DateFormatter()
+        g.locale = teamLocale(lang)
+        g.dateStyle = .medium
+        g.timeStyle = .none
+        return g.string(from: x)
+    }
+
+    private func wertungText(_ w: String) -> String {
+        if w == "je-session" { return Loc.t("team.event.stand.jeSession", lang) }
+        let v: String = String(w.drop { !$0.isNumber })
+        return teamText("team.event.stand.jeLauf", lang, ["v": v])
+    }
+
+    private var teile: [String] {
+        var out: [String] = []
+        if let st = e.stand {
+            out.append(teamText("team.event.stand.regeln", lang, ["datum": datum(st.regeln)]))
+            out.append(wertungText(st.wertung))
+            let erk: [(String, Int)] = (st.erkennung ?? [:]).sorted { $0.value > $1.value }.map { ($0.key, $0.value) }
+            let erkText: String = erk.map { $0.0 + " (" + String($0.1) + ")" }.joined(separator: ", ")
+            if !erkText.isEmpty { out.append(teamText("team.event.stand.erkennung", lang, ["liste": erkText])) }
+            let spr: String = (st.sprints ?? [:]).keys.sorted().map { "v" + $0 }.joined(separator: ", ")
+            if !spr.isEmpty { out.append(teamText("team.event.stand.sprints", lang, ["v": spr])) }
+            if let n = st.korrekturen, n > 0 { out.append(teamText("team.event.stand.korrekturen", lang, ["n": String(n)])) }
+            if let c = st.server { out.append(teamText("team.event.stand.server", lang, ["c": c])) }
+        } else if let a = e.stand_aktuell {
+            out.append(teamText("team.event.stand.regeln", lang, ["datum": datum(a.regeln)]))
+            out.append(wertungText(a.wertung))
+            if let c = a.server { out.append(teamText("team.event.stand.server", lang, ["c": c])) }
+        }
+        return out
+    }
+
+    private var titel: String {
+        Loc.t(e.stand != nil || beendet ? "team.event.stand.titel" : "team.event.stand.titelVorschau", lang)
+    }
+
+    private var zeile: String {
+        let rest: String = beendet && e.stand == nil ? Loc.t("team.event.stand.alt", lang) : teile.joined(separator: " · ")
+        return titel + ": " + rest
+    }
+
+    var body: some View {
+        if e.stand != nil || e.stand_aktuell != nil || beendet {
+            VStack(alignment: .leading, spacing: 4) {
+                Divider()
+                Text(zeile)
+                if e.stand == nil && !beendet { Text(Loc.t("team.event.stand.vorschau", lang)) }
+                if let st = e.stand { festgeschrieben(st) }
+            }
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+            .padding(.top, 12)
+        }
+    }
+
+    @ViewBuilder private func festgeschrieben(_ st: EventStand) -> some View {
+        Text(teamText("team.event.stand.am", lang, ["zeit": eventZeit(st.festgeschrieben, nil, lang)]))
+        if let rt = st.regeln_text {
+            Button(teamText("team.event.stand.regelnDamals", lang, ["datum": datum(st.regeln)])) { regelnAuf.toggle() }
+                .font(.caption2).buttonStyle(.borderless)
+            if regelnAuf { regelnText(rt) }
+        }
+    }
+
+    /// Wortlaut der damals geltenden Regeln — festgehalten nur auf Englisch.
+    private func regelnText(_ rt: EventRegelnText) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(rt.abschnitte) { a in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(a.titel).font(.caption.weight(.semibold))
+                    ForEach(Array(a.text.split(separator: "\n").map { String($0) }.enumerated()), id: \.offset) { _, z in
+                        Text("• " + z)
+                    }
+                }
+            }
+        }
+        .padding(10)
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(.separator), lineWidth: 1))
+    }
 }

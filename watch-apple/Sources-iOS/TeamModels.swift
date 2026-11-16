@@ -264,8 +264,27 @@ struct TeamEvent: Codable, Identifiable {
     /// Filter; `klasse` = die aktive (nil = alle).
     var klassen: [String: Int]? = nil
     var klasse: String? = nil
+    /// Referee Board (16.11.2026, web 91bbc061): oeffentliche Korrekturen am Event und ob der Betrachter Referee ist.
+    var korrekturen: [RefereeKorrektur]? = nil
+    var referee: Bool? = nil
+    /// Teilnehmer melden Laeufe anderer zur Pruefung (web b26a6569) — bis zum Festschreiben.
+    var melden: EventMelden? = nil
+    /// Event mehrerer Teams (16.11.2026, web 2d30a70e): Team-Wertung wie global, beteiligte Teams.
+    var mehrteam: Bool? = nil
+    var teams_beteiligt: [EventTeamBeteiligt]? = nil
+    var team_slug: String? = nil
+    /// Mitglied eines Gast-Teams: Kopf des ausrichtenden Teams (die Teamseite kann fuer ihn intern sein).
+    var gastgeber: GastgeberTeam? = nil
+    /// Als globales Event vorschlagen (16.11.2026, web 1f3f2f1a): Stand fuer das Team; `promoted_by`, wenn angenommen.
+    var vorschlag: EventVorschlag? = nil
+    var promoted_by: TeamEventTeam? = nil
+    /// „Ausgewertet mit …" (web 6eb68c00): beim Festschreiben festgehalten; vorher der aktuelle Stand als Vorschau.
+    var stand: EventStand? = nil
+    var stand_aktuell: EventStandAktuell? = nil
 
     var istGlobal: Bool { global == true }
+    /// Team-Wertung und Wappen-Spalte: globale Events und Events mehrerer Teams (web `ev.global || ev.mehrteam`).
+    var mitTeamWertung: Bool { global == true || mehrteam == true }
 
     func summe(_ key: String) -> Double {
         guard let w = summen?[key], let v = w else { return 0 }
@@ -332,10 +351,115 @@ struct TeamEventKurz: Codable, Identifiable {
     let team: TeamEventTeam
     /// Globales Event (06.11.2026): jeder nimmt automatisch teil
     var global: Bool? = nil
+    /// Als globales Event vorgeschlagen und angenommen (16.11.2026): das ausrichtende Team.
+    var promoted_by: TeamEventTeam? = nil
     /// Bild unten in der Kachel (10.11.2026): Eventbild, sonst Teambild (wenn das Event es zeigt), sonst nil.
     var banner_url: String? = nil
     var banner_fokus: String? = nil
     var listenId: String { "\(team.slug)-\(id)" }
+}
+
+/// Oeffentliche Korrektur des Referees (server referee.korrektur_out, oeffentlicher Teil).
+struct RefereeKorrektur: Codable, Identifiable {
+    let id: Int
+    let status: String                       // veroeffentlicht | aufgehoben (oeffentlich)
+    let session_id: Int
+    var fahrer: String? = nil
+    var run_idx: Int? = nil
+    let grund: String
+    var kommentar_oeffentlich: String? = nil
+    var veroeffentlicht_am: String? = nil
+    var bearbeitet_am: String? = nil
+}
+
+/// Melden-Stand des Betrachters: `gemeldet`/`gesperrt` = [[session_id, run_idx]].
+struct EventMelden: Codable {
+    let erlaubt: Bool
+    var gemeldet: [[Int]]
+    var gesperrt: [[Int]]
+    let ich: Int
+
+    func istGemeldet(_ sid: Int, _ lauf: Int) -> Bool { gemeldet.contains { $0.count >= 2 && $0[0] == sid && $0[1] == lauf } }
+    func istGesperrt(_ sid: Int, _ lauf: Int) -> Bool { gesperrt.contains { $0.count >= 2 && $0[0] == sid && $0[1] == lauf } }
+}
+
+/// Beteiligtes Team eines Events mehrerer Teams. status: ausrichtend | eingeladen | angenommen | abgelehnt.
+struct EventTeamBeteiligt: Codable, Identifiable {
+    let slug: String
+    let name: String
+    var logo_url: String? = nil
+    var farbe: String? = nil
+    let status: String
+    var id: String { slug }
+}
+
+/// Kopf des ausrichtenden Teams fuer Mitglieder eines Gast-Teams (server `gastgeber`, ohne Mitgliederzahl).
+struct GastgeberTeam: Codable {
+    let id: Int
+    let name: String
+    let slug: String
+    var beschreibung: String? = nil
+    var logo_url: String? = nil
+    var farbe: String? = nil
+    var banner_url: String? = nil
+    var banner_fokus: String? = nil
+    var land: String? = nil
+
+    var alsTeamInfo: TeamInfo {
+        TeamInfo(id: id, name: name, slug: slug, beschreibung: beschreibung, logo_url: logo_url, farbe: farbe,
+                 banner_url: banner_url, banner_fokus: banner_fokus, mitglieder_anzahl: 0, land: land)
+    }
+}
+
+/// Vorschlag „als globales Event" (status: vorgeschlagen | angenommen | abgelehnt).
+struct EventVorschlag: Codable {
+    let status: String
+    var notiz: String? = nil
+    var am: String? = nil
+    var entschieden_am: String? = nil
+}
+
+/// Festgehaltener Regel- und Auswertungsstand eines Endstands (server teams.event_stand).
+struct EventStand: Codable {
+    let festgeschrieben: String
+    let regeln: String
+    let wertung: String
+    var erkennung: [String: Int]? = nil
+    var sprints: [String: Int]? = nil
+    var korrekturen: Int? = nil
+    var server: String? = nil
+    var regeln_text: EventRegelnText? = nil
+}
+
+/// Wortlaut der damals geltenden Team-Regeln (nur Englisch).
+struct EventRegelnText: Codable {
+    struct Abschnitt: Codable, Identifiable {
+        let key: String
+        let titel: String
+        let text: String
+        var id: String { key }
+    }
+    var titel: String? = nil
+    var intro: String? = nil
+    let abschnitte: [Abschnitt]
+}
+
+/// Vor dem Festschreiben: womit gerade gerechnet wird.
+struct EventStandAktuell: Codable {
+    let regeln: String
+    let wertung: String
+    var server: String? = nil
+}
+
+/// Offene Einladung eines anderen Teams zu dessen Event (`GET /api/teams/{slug}/event-einladungen`).
+struct TeamEventEinladung: Codable, Identifiable {
+    let event_id: Int
+    let titel: String
+    let start: String
+    let ende: String
+    let status: String
+    let team: TeamEventTeam
+    var id: Int { event_id }
 }
 
 /// Antwort auf Beitreten / Einladung annehmen.

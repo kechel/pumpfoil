@@ -203,6 +203,9 @@ struct TeamTafelKarte: View {
     var onBild: (() -> Void)? = nil
     /// Globale Events: Spalte mit den Team-Wappen je Fahrer (web 8fc88474, 07.11.2026).
     var teamsZeigen: Bool = false
+    /// Event-Seite (16.11.2026, web b26a6569): Fahne „zur Pruefung melden" an fremden Laeufen, „wird geprueft" an gemeldeten.
+    var melden: EventMelden? = nil
+    var onMelden: ((TeamZeile) -> Void)? = nil
 
     private var k: TeamKennzahl { teamKennzahl(tf.kennzahl) }
     private var tfarbe: TeamFarbe { TeamFarbe(farbe) }
@@ -254,7 +257,7 @@ struct TeamTafelKarte: View {
                 ForEach(Array(tf.zeilen.enumerated()), id: \.offset) { i, z in
                     if i > 0 { Divider() }
                     TeamTafelZeile(z: z, wert: k.fmt(z.value, lang), farbe: farbe, lang: lang, teamsZeigen: teamsZeigen,
-                                   kennzahl: tf.kennzahl)
+                                   kennzahl: tf.kennzahl, melden: melden, onMelden: onMelden)
                 }
             }
         }
@@ -285,7 +288,18 @@ private struct TeamTafelZeile: View {
     let lang: String
     var teamsZeigen: Bool = false
     var kennzahl: String = ""
+    var melden: EventMelden? = nil
+    var onMelden: ((TeamZeile) -> Void)? = nil
     @State private var profil = false
+
+    /// Wie web Team.tsx Tafel: „wird geprueft" auch an der eigenen Zeile, die Fahne nur an fremden, nicht gesperrten.
+    private enum MeldeStand { case keiner, gemeldet, fahne }
+    private var meldeStand: MeldeStand {
+        guard let m = melden, let sid = z.session_id, let lauf = z.run_idx else { return .keiner }
+        if m.istGemeldet(sid, lauf) { return .gemeldet }
+        if m.erlaubt && z.user_id != m.ich && !m.istGesperrt(sid, lauf) && onMelden != nil { return .fahne }
+        return .keiner
+    }
 
     private var tf: TeamFarbe { TeamFarbe(farbe) }
     private var rangFarbe: Color { z.rang <= 3 ? tf.akzent : Color.secondary }
@@ -329,10 +343,28 @@ private struct TeamTafelZeile: View {
                 if let u = unterzeile { Text(u).font(.caption2).foregroundStyle(.secondary).lineLimit(1) }
             }
             Spacer(minLength: 4)
+            meldeMarke
             Text(wert).font(.subheadline.weight(.semibold))
         }
         .padding(.vertical, 6)
         .contentShape(Rectangle())
+    }
+
+    @ViewBuilder private var meldeMarke: some View {
+        switch meldeStand {
+        case .gemeldet:
+            Text(Loc.t("ref.wirdGeprueft", lang)).font(.caption2.weight(.semibold)).foregroundStyle(teamAmberText)
+                .padding(.horizontal, 6).padding(.vertical, 2)
+                .background(Color.orange.opacity(0.15), in: RoundedRectangle(cornerRadius: 6))
+        case .fahne:
+            Button { onMelden?(z) } label: {
+                Image(systemName: "flag").font(.caption).foregroundStyle(.secondary).padding(6)
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel(Loc.t("ref.meldenTitel", lang))
+        case .keiner:
+            EmptyView()
+        }
     }
 
     @ViewBuilder private var bild: some View {
