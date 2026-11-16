@@ -255,7 +255,7 @@ private fun ChatRoomsList(onOpen: (ChatRoom) -> Unit) {
                                                 Icon(Icons.Filled.Notifications, contentDescription = I18n.t("chat.subscribe"), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                                                 Spacer(Modifier.width(4.dp))
                                             }
-                                            if (r.unread > 0) Text(r.unread.toString(), color = MaterialTheme.colorScheme.primary)
+                                            if (r.unread > 0) ChatAbzeichen(r.unread)
                                         }
                                     },
                                 )

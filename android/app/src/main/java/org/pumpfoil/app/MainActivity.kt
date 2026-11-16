@@ -51,6 +51,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Alignment
@@ -276,6 +278,23 @@ fun MainScaffold(onLogout: () -> Unit) {
         onDispose { lifecycleOwner.lifecycle.removeObserver(obs); OnlineStatus.setVordergrund(false) }
     }
 
+    // Rotes Abzeichen am Reiter „Chat" wie im Web (DmWidget): Summe `unread` aller Raeume. Abfrage beim Start, bei jeder
+    // Rueckkehr in den Vordergrund, alle 60 s und beim Wechsel der Route (nach dem Lesen eines Raums faellt die Zahl).
+    var chatUnread by remember { mutableStateOf(0) }
+    var resumeZaehler by remember { mutableStateOf(0) }
+    DisposableEffect(lifecycleOwner) {
+        val obs = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) resumeZaehler++ }
+        lifecycleOwner.lifecycle.addObserver(obs)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(obs) }
+    }
+    androidx.compose.runtime.LaunchedEffect(social, resumeZaehler, route) {
+        if (!social) { chatUnread = 0; return@LaunchedEffect }
+        while (true) {
+            try { chatUnread = Api.chatRooms().sumOf { it.unread } } catch (_: Exception) {}
+            kotlinx.coroutines.delay(60_000)
+        }
+    }
+
     val compareIds by CompareStore.refs.collectAsState()
     val recSt by Recorder.state.collectAsState()
     Scaffold(
@@ -293,7 +312,7 @@ fun MainScaffold(onLogout: () -> Unit) {
                     // ist sie auf jedem Bildschirm dieselbe und sitzt dort, wo man ohnehin
                     // hinsieht. Sie zeigt sich nur, wenn wirklich etwas offen ist.
                     PhoneUploadBar()
-                    PumpfoilBottomBar(route, social) { nav.switchTab(it) }
+                    PumpfoilBottomBar(route, social, chatUnread) { nav.switchTab(it) }
                 }
             }
         },
@@ -593,7 +612,7 @@ private fun NavController.zuEinstellungen(reiter: String) {
 
 // Eigene Bottom-Nav: Markierung umschließt Icon UND Label, enger Icon<->Label-Abstand.
 @Composable
-private fun PumpfoilBottomBar(route: String?, social: Boolean = true, onSelect: (String) -> Unit) {
+private fun PumpfoilBottomBar(route: String?, social: Boolean = true, chatUnread: Int = 0, onSelect: (String) -> Unit) {
     // Wie im Web (docs/UX-IA.md, App-Port Phase 2, 04.11.2026): Home · Community · Sessions · Spots · Chat · Zahnrad.
     // „Verlauf" ist ein Teil von Home › Stats, die Einstellungen (Route "profile") nur als Zahnrad ohne Text.
     data class Tab(val route: String, val label: String, val icon: ImageVector, val nurIcon: Boolean = false)
@@ -628,7 +647,10 @@ private fun PumpfoilBottomBar(route: String?, social: Boolean = true, onSelect: 
                     if (t.nurIcon) {
                         Icon(t.icon, contentDescription = t.label, tint = c, modifier = Modifier.size(26.dp))
                     } else {
-                        Icon(t.icon, contentDescription = null, tint = c, modifier = Modifier.size(22.dp))
+                        androidx.compose.foundation.layout.Box {
+                            Icon(t.icon, contentDescription = null, tint = c, modifier = Modifier.size(22.dp))
+                            if (t.route == "chat" && chatUnread > 0) ChatAbzeichen(chatUnread, Modifier.align(Alignment.TopEnd).offset(x = 9.dp, y = (-5).dp))
+                        }
                         Spacer(Modifier.height(1.dp))
                         Text(t.label, color = c, maxLines = 1, softWrap = false, fontSize = 10.sp)
                     }
@@ -636,4 +658,15 @@ private fun PumpfoilBottomBar(route: String?, social: Boolean = true, onSelect: 
             }
         }
     }
+}
+
+
+/** Rotes Zaehler-Abzeichen wie im Web (bg-red-500, weisse fette Zahl), ab 100 „99+". */
+@Composable
+fun ChatAbzeichen(n: Int, modifier: Modifier = Modifier) {
+    Text(if (n > 99) "99+" else n.toString(), color = Color.White, fontSize = 10.sp,
+        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, maxLines = 1,
+        modifier = modifier.background(Color(0xFFEF4444), RoundedCornerShape(50))
+            .defaultMinSize(minWidth = 18.dp).padding(horizontal = 4.dp, vertical = 1.dp),
+        textAlign = androidx.compose.ui.text.style.TextAlign.Center)
 }
