@@ -1541,8 +1541,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
    Aufnahme einmal zaehlen (15.11.) + Session-Kennzeichen „zaehlt fuer Event" und alle Sprints je Lauf anzeigen (14./15.11.).
 2. ✅ 16.11. entfaellt: Jan will den Stand beim Festschreiben (Ende + 4 h), nicht beim Schluss — so ist es schon.
 3. ✅ 16.11. Ø Speed ueber die fertigen Laeufe — LIVE (8828c9bc), Bestand 6611 nachgezogen.
-4. Sprints: 80-%-Regel je Lauf raus, Kriterien je Fenster (Luecken <= 3 s, >= 2/3 Uhr-Tempo, Position <= 10 %), neue
-   sprint-VERSION, Bestand nachrechnen; dabei `scripts/sprints-nachrechnen.py` muss `auswertung_fest` respektieren (15.11.).
+4. ✅ 16.11. Sprints je Fenster LIVE (88eaba2d, VERSION 4, + Sprung-Regel), Bestand 15725 nachgerechnet (Sicherung
+   data/analyse-notizen/2026-11-16-sprint-v4/), sprints-nachrechnen laesst `auswertung_fest` aus (dc0aa359).
 5. v3 schneidet Laufenden zu frueh ab (5-s-Glaettung am Rand), Regression vorher (15.11.).
 6. Accel-Normierung (`ACCEL_NORM`, r8b gemessen) + Regel „wer gewinnt beim Garmin-Zusammenfuehren", 7 Altfaelle (13.11.).
 
