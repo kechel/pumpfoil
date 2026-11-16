@@ -56,6 +56,7 @@ struct RootView: View {
         // Online-Punkt: nur im Vordergrund fragen, und im Hintergrund nicht als online gelten
         // (OnlinePunkt.swift). Bei JEDEM Wechsel, auch .inactive (Kontrollzentrum, App-Umschalter).
         OnlineStore.shared.szenenWechsel(phase)
+        if session.isLoggedIn && session.profile?.social_allowed != false { ChatUngelesen.shared.szenenWechsel(phase) }
         if phase == .background {
             wasBackground = true
         } else if phase == .active, wasBackground {
@@ -107,6 +108,7 @@ struct MainTabView: View {
     @AppStorage("appLang") private var lang = "de"
     @EnvironmentObject private var session: SessionStore
     @ObservedObject private var compare = CompareStore.shared
+    @ObservedObject private var ungelesen = ChatUngelesen.shared
     @State private var showCompare = false
     @State private var tab = 0
     @State private var resetTokens = Array(repeating: 0, count: 7)
@@ -136,6 +138,9 @@ struct MainTabView: View {
             tabBar
         }
         .overlay(alignment: .bottom) { compareOverlay }
+        // Abzeichen am Chat-Reiter: Takt laeuft, solange man angemeldet ist (ChatView.swift ChatUngelesen).
+        .onAppear { if socialOK { ChatUngelesen.shared.starten() } }
+        .onDisappear { ChatUngelesen.shared.stoppen() }
         // Event-Hinweis auf Home: Community › Teams & Events (TeamsListen.swift EventsZiel, 06.11.2026). selectTab baut
         // den Tab neu auf, der liest dabei den Reiter aus ReiterSpeicher.
         .onReceive(NotificationCenter.default.publisher(for: .eventsZiel)) { _ in selectTab(2) }
@@ -208,6 +213,7 @@ struct MainTabView: View {
             } else {
                 Image(systemName: tabIcon(i)).font(.system(size: 17))
                     .frame(height: 20)
+                    .overlay(alignment: .topTrailing) { chatAbzeichen(i) }
                 Text(tabLabel(i)).font(.system(size: 9)).lineLimit(1)
             }
         }
@@ -215,6 +221,22 @@ struct MainTabView: View {
         .foregroundStyle(tab == i ? Color.accentColor : MainTabView.inaktiv)
         .contentShape(Rectangle())
     }
+
+    // Rotes Abzeichen mit der Zahl ungelesener Nachrichten, nur am Chat-Reiter (wie Web DmWidget.tsx).
+    @ViewBuilder private func chatAbzeichen(_ i: Int) -> some View {
+        if i == 5 && ungelesen.summe > 0 {
+            Text(abzeichenText(ungelesen.summe))
+                .font(.system(size: 10, weight: .bold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 4)
+                .frame(minWidth: 16, minHeight: 16)
+                .background(Color.red, in: Capsule())
+                .offset(x: 10, y: -6)
+                .accessibilityLabel(Text(String(ungelesen.summe)))
+        }
+    }
+
+    private func abzeichenText(_ n: Int) -> String { n > 99 ? "99+" : String(n) }
 
     // Ein Tipp im Menue fuehrt IMMER zur Uebersicht des Bereichs — bei JEDEM Tab, nicht nur bei
     // Sessions. Die Ansichten bleiben pro Tab am Leben, also bleibt auch ihr NavigationStack stehen:

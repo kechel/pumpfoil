@@ -2,6 +2,48 @@ import PhotosUI
 import SwiftUI
 import UIKit
 
+// Rotes Abzeichen am Chat-Reiter (wie Web DmWidget.tsx: Summe `unread` ueber alle Raeume). Die Apps
+// bekommen keine Push-Nachrichten — ohne das Abzeichen sah man neue Nachrichten nur, wenn man den Chat
+// zufaellig oeffnete (Nutzermeldung 16.11.2026). Abfrage beim Start, bei Rueckkehr in den Vordergrund,
+// alle 60 s und jedes Mal, wenn die Raumliste neu geladen wird (also auch nach dem Verlassen eines Raums).
+@MainActor
+final class ChatUngelesen: ObservableObject {
+    static let shared = ChatUngelesen()
+    @Published private(set) var summe: Int = 0
+    private var takt: Task<Void, Never>?
+    private static let taktNs: UInt64 = 60_000_000_000
+
+    func setzen(_ rooms: [ChatRoom]) {
+        let n: Int = rooms.reduce(0) { $0 + max(0, $1.unread) }
+        if n != summe { summe = n }
+    }
+
+    func neuLaden() async {
+        guard let r = try? await Api.chatRooms() else { return }
+        setzen(r)
+    }
+
+    /// Takt starten (idempotent); `aktiv == false` haelt ihn im Hintergrund an.
+    func szenenWechsel(_ phase: ScenePhase) {
+        if phase == .active { starten() } else if phase == .background { takt?.cancel(); takt = nil }
+    }
+
+    func starten() {
+        guard takt == nil else { return }
+        takt = Task { [weak self] in
+            while !Task.isCancelled {
+                await self?.neuLaden()
+                try? await Task.sleep(nanoseconds: ChatUngelesen.taktNs)
+            }
+        }
+    }
+
+    func stoppen() {
+        takt?.cancel(); takt = nil
+        summe = 0
+    }
+}
+
 // Chat: Räume (Spot/Community) -> Nachrichten + Senden (spiegelt web/Android-Chat).
 // Zwei Tabs: „Meine" (DMs + eigene Spot-Chats) und „Spot-Chats" (alle, aktivste zuerst).
 // Globale Suche über beide: tippen -> Personen (→ DM) + Spots (→ öffnen), egal welcher Tab.
@@ -84,6 +126,8 @@ struct ChatView: View {
         .listStyle(.plain)   // .insetGrouped hatte großen Top-Inset -> zu viel Padding oben
         .refreshable { await load() }
         .task { if rooms.isEmpty { await load() } }
+        // Zurueck aus einem Raum: Liste (und damit das Abzeichen am Reiter) neu laden.
+        .onAppear { if !rooms.isEmpty { Task { await load() } } }
         .onChange(of: q) { _ in Task { await search() } }
         .onChange(of: tab) { _ in resetSearch() }
     }
@@ -217,7 +261,7 @@ struct ChatView: View {
         if r.unread > 0 {
             Text("\(r.unread)").font(.caption2).bold()
                 .padding(.horizontal, 7).padding(.vertical, 3)
-                .background(Color.accentColor, in: Capsule())
+                .background(Color.red, in: Capsule())   // rot wie im Web (bg-red-500)
                 .foregroundStyle(.white)
         }
     }
@@ -290,7 +334,7 @@ struct ChatView: View {
 
     private func load() async {
         loading = true; defer { loading = false }
-        do { rooms = try await Api.chatRooms(); error = nil }
+        do { rooms = try await Api.chatRooms(); error = nil; ChatUngelesen.shared.setzen(rooms) }
         catch { self.error = error.localizedDescription }
         allSpots = (try? await Api.chatAllSpots()) ?? []
         blockedUsers = (try? await Api.chatBlocks()) ?? []
