@@ -2917,6 +2917,7 @@ const nb: Record<string, string> = {
   "team.event.stand.vorschau": "Lagres når resultatet låses.",
   "team.event.stand.alt": "Låst før 16.11.2026: vurderingsdetaljene ble ikke lagret da.",
   "team.event.stand.am": "Låst {zeit}.",
+  "team.event.stand.regelnDamals": "Regler fra {datum} (slik de ble lagret, engelsk)",
   "team.event.kategorieTitel": "Kategori: {name}",
   "team.event.kategorieWaehlen": "Velg kategori:",
   "team.event.teilnehmer": "Deltakere",

@@ -675,9 +675,11 @@ Beim Festschreiben (und bei jeder Neu-Festschreibung durch den Referee) speicher
 je-session), Erkennungs- und Sprint-Versionen der gewerteten Sessions mit Anzahl, Zahl veroeffentlichter Korrekturen,
 Server-Commit. Die Event-Seite zeigt es im Footer „Ausgewertet mit …"; Endstaende von vor dem 16.11.2026 sagen ehrlich,
 dass der Stand damals nicht gespeichert wurde (nicht nachgetragen, damals galten andere Regeln).
-**Pflicht:** bei jeder inhaltlichen Aenderung der Team-Regeln (team.regeln.*) `REGELN_STAND` hochsetzen; bei einer neuen
-Wertungslogik `WERTUNG_JE_LAUF`. Offen: der Kasten „Event-Regeln" auf der Event-Seite zeigt immer die AKTUELLEN Regeln —
-der Text der damaligen Fassung steht im Repo beim festgehaltenen Server-Commit.
+Der **Wortlaut der Regeln** wird mit festgehalten, nur Englisch (Jan): `app/regeln_text.py` liest die Export-Datei
+`app/data/team_regeln_en.json`; im Footer „Regeln vom … (wie festgehalten, Englisch)" klappt sie auf.
+**Pflicht:** bei jeder inhaltlichen Aenderung der Team-Regeln (team.regeln.* in en.ts oder ABSCHNITTE) `python
+scripts/regeln-export.py` ausfuehren und `REGELN_STAND` hochsetzen (tests/test_regeln_export.py schlaegt sonst fehl); bei
+einer neuen Wertungslogik `WERTUNG_JE_LAUF`. Der Kasten „Event-Regeln" auf der Event-Seite zeigt weiter die aktuellen Regeln.
 
 ## Offene Punkte
 

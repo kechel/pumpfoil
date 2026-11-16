@@ -2925,6 +2925,7 @@ const pl: Record<string, string> = {
   "team.event.stand.vorschau": "Zapisywane przy ustaleniu wyniku.",
   "team.event.stand.alt": "Ustalone przed 16.11.2026: szczegóły oceny nie były wtedy zapisywane.",
   "team.event.stand.am": "Ustalone {zeit}.",
+  "team.event.stand.regelnDamals": "Zasady z {datum} (jak zapisano, po angielsku)",
   "team.event.kategorieTitel": "Kategoria: {name}",
   "team.event.kategorieWaehlen": "Wybierz kategorię:",
   "team.event.teilnehmer": "Uczestnicy",

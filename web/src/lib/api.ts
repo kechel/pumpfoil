@@ -2448,7 +2448,8 @@ export interface TeamEvent {
   melden?: { erlaubt: boolean; gemeldet: number[][]; gesperrt: number[][]; ich: number };
   /** Regel-/Auswertungsstand (16.11.2026): beim Festschreiben festgehalten; vorher der aktuelle als Vorschau. */
   stand?: null | { festgeschrieben: string; regeln: string; wertung: string; erkennung: Record<string, number>;
-    sprint_aktuell: number; sprints: Record<string, number>; korrekturen: number; server: string | null };
+    sprint_aktuell: number; sprints: Record<string, number>; korrekturen: number; server: string | null;
+    regeln_text?: { titel: string; intro: string; abschnitte: { key: string; titel: string; text: string }[] } | null };
   stand_aktuell?: null | { regeln: string; wertung: string; server: string | null };
   /** Filter „Wertungsklasse" (10.11.2026): angebotene Klassen mit Anzahl (leer = kein Filter), aktive Klasse */
   klassen?: Record<string, number>; klasse?: string | null;

@@ -2943,6 +2943,7 @@ const zh: Record<string, string> = {
   "team.event.stand.vorschau": "成绩锁定时保存。",
   "team.event.stand.alt": "于 2026-11-16 之前锁定：当时尚未保存评估细节。",
   "team.event.stand.am": "锁定于 {zeit}。",
+  "team.event.stand.regelnDamals": "{datum} 版规则（存档原文，英文）",
   "team.event.kategorieTitel": "类别：{name}",
   "team.event.kategorieWaehlen": "选择类别：",
   "team.event.teilnehmer": "参与者",

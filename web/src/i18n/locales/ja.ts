@@ -2942,6 +2942,7 @@ const ja: Record<string, string> = {
   "team.event.stand.vorschau": "結果の確定時に保存されます。",
   "team.event.stand.alt": "2026年11月16日より前に確定：当時は評価の詳細を保存していませんでした。",
   "team.event.stand.am": "{zeit} に確定。",
+  "team.event.stand.regelnDamals": "{datum} 版ルール（保存時のもの・英語）",
   "team.event.kategorieTitel": "部門: {name}",
   "team.event.kategorieWaehlen": "部門を選択:",
   "team.event.teilnehmer": "参加者",

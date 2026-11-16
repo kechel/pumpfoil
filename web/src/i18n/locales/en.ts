@@ -3052,6 +3052,7 @@ const en: Record<string, string> = {
   "team.event.stand.vorschau": "Saved when the result is frozen.",
   "team.event.stand.alt": "Frozen before 16 Nov 2026: the evaluation details were not saved yet.",
   "team.event.stand.am": "Frozen on {zeit}.",
+  "team.event.stand.regelnDamals": "Rules as of {datum} (as recorded, English)",
   "team.event.kategorieTitel": "Event category: {name}",
   "team.event.kategorieWaehlen": "Select category:",
   "team.event.teilnehmer": "Participants",

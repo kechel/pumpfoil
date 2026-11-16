@@ -2829,6 +2829,7 @@ const it: Record<string, string> = {
   "team.event.stand.vorschau": "Salvato quando la classifica diventa definitiva.",
   "team.event.stand.alt": "Definitivo prima del 16/11/2026: i dettagli della valutazione non venivano ancora salvati.",
   "team.event.stand.am": "Definitivo il {zeit}.",
+  "team.event.stand.regelnDamals": "Regole del {datum} (come salvate, in inglese)",
   "team.event.kategorieTitel": "Categoria: {name}",
   "team.event.kategorieWaehlen": "Scegli categoria:",
   "team.event.teilnehmer": "Partecipanti",

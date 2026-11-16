@@ -2981,6 +2981,7 @@ const fi: Record<string, string> = {
   "team.event.stand.vorschau": "Tallennetaan, kun tulos lukitaan.",
   "team.event.stand.alt": "Lukittu ennen 16.11.2026: arvioinnin tietoja ei vielä tallennettu.",
   "team.event.stand.am": "Lukittu {zeit}.",
+  "team.event.stand.regelnDamals": "Säännöt {datum} (tallennettuna, englanniksi)",
   "team.event.kategorieTitel": "Sarja: {name}",
   "team.event.kategorieWaehlen": "Valitse sarja:",
   "team.event.teilnehmer": "Osallistujat",

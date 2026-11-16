@@ -2999,6 +2999,7 @@ const cs: Record<string, string> = {
   "team.event.stand.vorschau": "Uloží se při uzavření výsledku.",
   "team.event.stand.alt": "Uzavřeno před 16. 11. 2026: podrobnosti vyhodnocení se tehdy ještě neukládaly.",
   "team.event.stand.am": "Uzavřeno {zeit}.",
+  "team.event.stand.regelnDamals": "Pravidla z {datum} (jak byla uložena, anglicky)",
   "team.event.kategorieTitel": "Kategorie: {name}",
   "team.event.kategorieWaehlen": "Vyber kategorii:",
   "team.event.teilnehmer": "Účastníci",

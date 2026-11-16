@@ -2828,6 +2828,7 @@ const es: Record<string, string> = {
   "team.event.stand.vorschau": "Se guarda al fijar la clasificación.",
   "team.event.stand.alt": "Fijado antes del 16/11/2026: los detalles de la evaluación aún no se guardaban.",
   "team.event.stand.am": "Fijado el {zeit}.",
+  "team.event.stand.regelnDamals": "Reglas del {datum} (tal como se guardaron, en inglés)",
   "team.event.kategorieTitel": "Categoría: {name}",
   "team.event.kategorieWaehlen": "Elegir categoría:",
   "team.event.teilnehmer": "Participantes",

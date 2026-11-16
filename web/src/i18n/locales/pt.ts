@@ -2946,6 +2946,7 @@ const pt: Record<string, string> = {
   "team.event.stand.vorschau": "Salvo quando o resultado é fixado.",
   "team.event.stand.alt": "Fixado antes de 16/11/2026: os detalhes da avaliação ainda não eram salvos.",
   "team.event.stand.am": "Fixado em {zeit}.",
+  "team.event.stand.regelnDamals": "Regras de {datum} (como registradas, em inglês)",
   "team.event.kategorieTitel": "Categoria: {name}",
   "team.event.kategorieWaehlen": "Escolher categoria:",
   "team.event.teilnehmer": "Participantes",

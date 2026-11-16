@@ -703,6 +703,7 @@ function EventStand({ ev, t, lang }: { ev: TeamEvent; t: (k: string, p?: Record<
     if (a.server) teile.push(t("team.event.stand.server", { c: a.server }));
   }
   const beendet = ev.status === "beendet";
+  const [regelnAuf, setRegelnAuf] = useState(false);
   return (
     <div className="mt-8 border-t border-slate-800 pt-3 text-xs text-slate-500">
       <p>
@@ -711,7 +712,21 @@ function EventStand({ ev, t, lang }: { ev: TeamEvent; t: (k: string, p?: Record<
       </p>
       {!st && !beendet && <p>{t("team.event.stand.vorschau")}</p>}
       {st && <p>{t("team.event.stand.am", { zeit: new Date(st.festgeschrieben).toLocaleString(lang, { dateStyle: "medium", timeStyle: "short" }) })}{" "}
-        <Link to="/teams/regeln#events" className="underline hover:text-slate-300">{t("team.regeln.link")}</Link></p>}
+        {st.regeln_text ? (
+          <button onClick={() => setRegelnAuf((v) => !v)} className="underline hover:text-slate-300">
+            {t("team.event.stand.regelnDamals", { datum: datum(st.regeln) })}</button>
+        ) : <Link to="/teams/regeln#events" className="underline hover:text-slate-300">{t("team.regeln.link")}</Link>}</p>}
+      {/* Wortlaut der damals geltenden Regeln — festgehalten nur auf Englisch (Jan, 16.11.2026). */}
+      {regelnAuf && st?.regeln_text && (
+        <div lang="en" className="mt-2 space-y-2 rounded-xl border border-slate-800 p-3 text-slate-400">
+          {st.regeln_text.abschnitte.map((a) => (
+            <div key={a.key}>
+              <p className="font-semibold text-slate-300">{a.titel}</p>
+              <ul className="list-disc pl-5">{a.text.split("\n").filter(Boolean).map((z, i) => <li key={i}>{z}</li>)}</ul>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

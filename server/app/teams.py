@@ -888,6 +888,7 @@ def offizielles_team_id(db: Session) -> int | None:
 
 
 from . import event_laeufe as EL  # noqa: E402
+from . import regeln_text  # noqa: E402
 from . import referee as R  # noqa: E402
 
 _GLOBAL_AUS = {"zeit": 0.0, "ids": frozenset()}
@@ -1569,7 +1570,9 @@ def event_stand(db: Session, e: models.TeamEvent, voll: list[dict]) -> dict:
             "wertung": WERTUNG_JE_LAUF if EL.aktiv() else "je-session",
             "erkennung": erkennung, "sprint_aktuell": SP.VERSION, "sprints": sprint_v,
             "korrekturen": db.query(K).filter(K.event_id == e.id, K.status == "veroeffentlicht").count(),
-            "server": server_commit()}
+            "server": server_commit(),
+            # Wortlaut der damals geltenden Team-Regeln, nur Englisch (Jan, 16.11.2026), app/regeln_text.py.
+            "regeln_text": regeln_text.gespeichert()}
 
 
 def event_einfrieren(db: Session, e: models.TeamEvent, jetzt: datetime | None = None) -> bool:

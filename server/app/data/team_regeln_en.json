@@ -1,0 +1,76 @@
+{
+ "titel": "Team rules",
+ "intro": "How teams work on pumpfoil.org: who sees what, how things are scored, and what happens when something is deleted.",
+ "abschnitte": [
+  {
+   "key": "was",
+   "titel": "What is a team?",
+   "text": "A fixed group with its own leaderboards, events and team chat.\nAnyone can start teams, several if they like, and be in several teams.\nA new team works right away, through invite links."
+  },
+  {
+   "key": "rollen",
+   "titel": "Roles",
+   "text": "The team lead can do everything: settings, leaderboards, events, naming moderators, handing over the lead and deleting the team.\nModerators accept or decline requests, remove members and create events. They can't change anything else.\nMembers see everything in the team and can leave at any time.\nThe lead can only leave after handing over the lead."
+  },
+  {
+   "key": "beitreten",
+   "titel": "Joining",
+   "text": "If a team allows sign-ups, its page shows a “Join” button. Depending on the setting you're in right away, or the lead or a moderator decides.\nThere are two invite links: one that makes you a member right away and one that sends a request. Both are also available as QR codes.\nAnyone without an account creates one and is then straight in the team, or has sent the request.\nA newly created link replaces the old one, which then stops working.\nEvery time you join, you agree that the team's leaderboards may be public, even if they aren't right now.\nWith a request, the team lead and moderators see which spots and sports you have been out on so far (only the number of sessions)."
+  },
+  {
+   "key": "oeffentlich",
+   "titel": "What is public",
+   "text": "Inside, a team can do anything. It only appears to others once we've looked at and approved its name, address, description, crest and colour.\nThe team banner goes through the same approval as the crest. The team lead chooses which part is visible without a new approval; if they remove the banner, it disappears from the public page right away too.\nIf an approved team changes its appearance, that applies inside the team right away, and to the public after a new approval.\nApproved teams are listed on the “All teams” page. Their events are on the team page; the community only shows the global events by pumpfoil.org.\nIf the lead makes the leaderboards public, everyone can see them, even without signing in, but only rank, display name, initials and value. Sessions, spots, dates and profile pictures are visible to signed-in users only.\nSearch engines don't index team pages.\nThe lead decides who sees the member list: members only, or all signed-in users."
+  },
+  {
+   "key": "bestenlisten",
+   "titel": "Leaderboards",
+   "text": "Each person counts once: their best value from a single session, or for totals everything in the chosen period added up.\nAll of a member's sessions count, including those from before they joined. Anyone who leaves disappears from the lists right away.\nFor events this only applies until the end, see “Events”.\nThe same filters apply as for the community records: deleted, reported, unassigned and ongoing recordings don't count.\nEach leaderboard can be limited to one sport, a foil band, recordings with motion data, the phone on the board, or the team spots.\nIf “Hide location” is on, the session never counts for a particular spot.\nOn a tie, whoever rode the value first comes first."
+  },
+  {
+   "key": "statistik",
+   "titel": "Team totals",
+   "text": "Above the leaderboards are the totals of all members in the chosen period: pumps, on-foil distance and time, sessions, runs and how many members were active.\nTeam against team: in the community, the team leaderboards compare all approved teams with public leaderboards, per metric by the sum of the best 3, 5 or 10 riders. The same measure applies to all teams there, not the filters of their own leaderboards.\nAnyone in two teams counts for both."
+  },
+  {
+   "key": "logbuch",
+   "titel": "Logbook",
+   "text": "The logbook records who broke which team record, and when. It's updated every night.\nThe first entry of a leaderboard is the standing on the first night after it was set up.\nFor best values every improvement counts, including your own. For totals it only counts when someone takes the lead.\nIf a record drops because a session was deleted or someone left, it's adjusted quietly, without an entry."
+  },
+  {
+   "key": "events",
+   "titel": "Events",
+   "text": "An event has a time window and its own leaderboards, optionally only at certain spots.\nIn addition to or instead of leaderboards, an event can show totals across all participants, such as the whole team's pumps or distance. Every event needs at least one leaderboard or one total.\nWhat counts is the start time of each run: a run that starts within the window counts in full, even if it ends after the event; runs that start before or after the window don't count, no matter when the session starts or ends. If the same ride was recorded more than once (e.g. watch and phone), each run counts only once.\nFor each event the team lead can decide that manually uploaded files (FIT, GPX, TCX) don't count; recordings from watches, the app and linked accounts still count.\nAfter the end you can still upload for 4 hours; the team page then shows “results pending”. After that the result is frozen, and later trimming or deleting no longer changes anything.\nAnyone who leaves after the end stays in the result; anyone who joins afterwards is not added.\nResults are frozen at night and also as soon as someone opens the team page.\nTimes are in the time zone the event was created in and are shown that way to everyone.\nPlaces 1 to 3 get an event badge on their foiler page, but only for teams whose appearance is approved."
+  },
+  {
+   "key": "global",
+   "titel": "Global events",
+   "text": "Global events are organised by pumpfoil.org itself. Everyone with matching sessions in the time window counts automatically, without joining and without signing up.\nAnyone who doesn't want to take part can turn it off in their profile under “Privacy” (“Don't take part in global events”). They then disappear from leaderboards, team rankings, totals and badges, including events that have already ended.\nTurning participation back on only counts until the result is frozen (4 hours after the end).\nEach leaderboard has a team ranking: the sum of each team's best members, usually 5, and for speeds (sprints) their average. Approved teams with public leaderboards take part. Anyone in several teams counts for one only: the one picked on the event page, otherwise their primary team (★, set on the team page or under “My teams”). Without a choice of your own, joining another team keeps your current team as primary – a new or grown team never takes over by itself. Your teams that don’t count (not approved or leaderboards not public) are shown greyed out on the event page. This can be changed until 6 hours before the event ends.\nThe leaderboards are also visible without logging in via the event link: rank, display name, initials and value.\nOtherwise the rules for events apply: time window, evaluation, freezing, and badges for places 1 to 3, marked “Global” on the profile page."
+  },
+  {
+   "key": "referee",
+   "titel": "Referee board",
+   "text": "Team leads and moderators act as referees; for global events it is pumpfoil.org. In the referee board they can take single runs out of an event ranking, e.g. a different sport, a measurement error, the same ride recorded twice or outside help.\nEvery correction goes through controlled steps: draft, under review, published. Only published corrections take effect. They appear on the event page with the reason and a public comment, and the rider is notified.\nUntil the result is frozen (4 hours after the end), every rider in the ranking can ask the referees to review someone else's run. Each run can only be reported once.\nReferees can publish or withdraw corrections until 24 hours after the result was frozen; the result is then recalculated. After that it is final.\nRuns that were not recognised can't be added in the referee board."
+  },
+  {
+   "key": "chat",
+   "titel": "Team chat",
+   "text": "Only active members can read and write in the team chat. Anyone who has only sent a request can't see it.\nIt never shows up for others, not even among the active chats.\nAnyone who leaves or is removed loses access right away and gets no more notifications."
+  },
+  {
+   "key": "loeschen",
+   "titel": "Deleting a team",
+   "text": "Only the team lead can delete a team, and only by typing the team name to confirm.\nThe team is then gone for everyone: memberships, leaderboards, logbook, events and the team chat. We keep the data for now so a team deleted by mistake can be restored.\nThe team's address stays blocked and is never given to another team."
+  },
+  {
+   "key": "konto",
+   "titel": "When an account is deleted",
+   "text": "The person disappears from all teams and leaderboards, and from frozen event results too. Those below move up.\nIf they led a team, the longest-serving moderator takes over, otherwise the longest-serving member. If nobody is left, the team is deleted."
+  },
+  {
+   "key": "haftung",
+   "titel": "Liability",
+   "text": "Events are run by the teams themselves. pumpfoil.org has no influence on events or on any promises made in them, financial or otherwise, and accepts no responsibility for them. Recourse to the courts is excluded. Payments and all other arrangements are settled between organisers and participants, independently of pumpfoil.org.\nLikewise, pumpfoil.org accepts no responsibility for whether measured values and data are correct or have been manipulated. What is shown is what the public source code on GitHub calculates from the uploaded data; there are no further promises."
+  }
+ ]
+}

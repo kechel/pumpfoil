@@ -3000,6 +3000,7 @@ const nl: Record<string, string> = {
   "team.event.stand.vorschau": "Wordt opgeslagen als de eindstand vastligt.",
   "team.event.stand.alt": "Vastgelegd vóór 16-11-2026: de beoordelingsdetails werden toen nog niet opgeslagen.",
   "team.event.stand.am": "Vastgelegd op {zeit}.",
+  "team.event.stand.regelnDamals": "Regels van {datum} (zoals vastgelegd, Engels)",
   "team.event.kategorieTitel": "Categorie: {name}",
   "team.event.kategorieWaehlen": "Kies categorie:",
   "team.event.teilnehmer": "Deelnemers",

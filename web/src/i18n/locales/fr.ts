@@ -2829,6 +2829,7 @@ const fr: Record<string, string> = {
   "team.event.stand.vorschau": "Enregistré quand le classement est figé.",
   "team.event.stand.alt": "Figé avant le 16/11/2026 : les détails de l'évaluation n'étaient pas encore enregistrés.",
   "team.event.stand.am": "Figé le {zeit}.",
+  "team.event.stand.regelnDamals": "Règles du {datum} (telles qu'enregistrées, en anglais)",
   "team.event.kategorieTitel": "Catégorie : {name}",
   "team.event.kategorieWaehlen": "Choisir la catégorie :",
   "team.event.teilnehmer": "Participants",

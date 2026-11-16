@@ -2946,6 +2946,7 @@ const id: Record<string, string> = {
   "team.event.stand.vorschau": "Disimpan saat hasil dikunci.",
   "team.event.stand.alt": "Dikunci sebelum 16/11/2026: detail penilaian belum disimpan saat itu.",
   "team.event.stand.am": "Dikunci pada {zeit}.",
+  "team.event.stand.regelnDamals": "Aturan per {datum} (seperti disimpan, bahasa Inggris)",
   "team.event.kategorieTitel": "Kategori: {name}",
   "team.event.kategorieWaehlen": "Pilih kategori:",
   "team.event.teilnehmer": "Peserta",

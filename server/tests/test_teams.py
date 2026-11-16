@@ -1309,3 +1309,4 @@ def test_festschreiben_haelt_stand_fest(client, monkeypatch):
     ev = client.get(f"/api/teams/{slug}/events/{eid}", headers=ka).json()
     st = ev["stand"]
     assert st and st["regeln"] == T.REGELN_STAND and st["wertung"] == "je-lauf-1" and sum(st["erkennung"].values()) == 1
+    assert any(a["key"] == "referee" for a in st["regeln_text"]["abschnitte"])     # Wortlaut (Englisch) mit festgehalten

@@ -2832,6 +2832,7 @@ const gsw: Record<string, string> = {
   "team.event.stand.vorschau": "Wird beim Festschreiben gespeichert.",
   "team.event.stand.alt": "Vor dem 16.11.2026 festgeschrieben: der Auswertungsstand wurde damals noch nicht gespeichert.",
   "team.event.stand.am": "Festgeschrieben am {zeit}.",
+  "team.event.stand.regelnDamals": "Regeln vom {datum} (wie festgehalten, Englisch)",
   "team.event.kategorieTitel": "Event-Kategorii: {name}",
   "team.event.kategorieWaehlen": "Kategorii uswähle:",
   "team.event.teilnehmer": "Teilnähmer",

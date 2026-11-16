@@ -2833,6 +2833,7 @@ const deAT: Record<string, string> = {
   "team.event.stand.vorschau": "Wird beim Festschreiben gespeichert.",
   "team.event.stand.alt": "Vor dem 16.11.2026 festgeschrieben: der Auswertungsstand wurde damals noch nicht gespeichert.",
   "team.event.stand.am": "Festgeschrieben am {zeit}.",
+  "team.event.stand.regelnDamals": "Regeln vom {datum} (wie festgehalten, Englisch)",
   "team.event.kategorieTitel": "Event-Kategorie: {name}",
   "team.event.kategorieWaehlen": "Kategorie wählen:",
   "team.event.teilnehmer": "Teilnehmer",

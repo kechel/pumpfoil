@@ -2946,6 +2946,7 @@ const ru: Record<string, string> = {
   "team.event.stand.vorschau": "Сохраняется при закреплении итогов.",
   "team.event.stand.alt": "Закреплено до 16.11.2026: детали оценки тогда ещё не сохранялись.",
   "team.event.stand.am": "Закреплено {zeit}.",
+  "team.event.stand.regelnDamals": "Правила от {datum} (как сохранены, на английском)",
   "team.event.kategorieTitel": "Категория: {name}",
   "team.event.kategorieWaehlen": "Выбрать категорию:",
   "team.event.teilnehmer": "Участники",
