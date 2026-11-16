@@ -113,6 +113,7 @@ const Team = seite(() => import("./pages/Team"));
 const TeamEinstellungen = seite(() => import("./pages/TeamEinstellungen"));
 const TeamEinladung = seite(() => import("./pages/TeamEinladung"));
 const TeamEventSeite = seite(() => import("./pages/TeamEventSeite"));
+const RefereeBoardSeite = seite(() => import("./pages/RefereeBoard"));
 const TeamRegeln = seite(() => import("./pages/TeamRegeln"));
 const FoilCalculator = seite(() => import("./pages/FoilCalculator"));
 const PersonalHome = seite(() => import("./pages/PersonalHome"));
@@ -317,6 +318,7 @@ const router = createBrowserRouter([
           { path: "teams/:slug/einstellungen", element: <TeamEinstellungen /> },
           { path: "teams/:slug/verwalten", element: <TeamEinstellungen /> },
           { path: "teams/:slug/events/:id", element: <TeamEventSeite />, handle: GAST },
+          { path: "teams/:slug/events/:id/referee", element: <RefereeBoardSeite /> },
           { path: "teams/:slug/:einladung", element: <TeamEinladung />, handle: GAST },
           { path: "konten", element: <LinkedAccounts /> },
           // Zustimmungsseite des eigenen OAuth-Servers. IM App-Rahmen, damit sie aussieht wie der

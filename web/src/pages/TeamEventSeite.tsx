@@ -441,7 +441,35 @@ export default function TeamEventSeite() {
       )}
       {!gast && team.mein_status === "angefragt" && <p className="mb-4 text-sm text-slate-300">{t("team.join.wartet")}</p>}
 
-      <h3 className="mb-2 text-lg font-bold text-slate-100">{t(eventStandKey(ev.status))}</h3>
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <h3 className="flex-1 text-lg font-bold text-slate-100">{t(eventStandKey(ev.status))}</h3>
+        {/* Referee Board (16.11.2026): nur fuer Referees (Team-Leitung/Moderation, bei globalen Events Admins). */}
+        {ev.referee && (
+          <Link to={`/teams/${team.slug}/events/${ev.id}/referee`}
+            className="rounded-xl border-2 border-brand-500 px-3 py-1 text-sm font-semibold text-brand-700 hover:bg-brand-500/10 dark:text-brand-300">
+            {t("ref.titel")}
+          </Link>
+        )}
+      </div>
+      {/* Oeffentliche Korrekturen des Referees: was geaendert wurde, mit Grund und oeffentlichem Kommentar (Jan, 16.11.2026). */}
+      {(ev.korrekturen ?? []).length > 0 && (
+        <div className="mb-4 rounded-2xl border-2 border-fuchsia-500/60 p-3">
+          <p className="mb-1.5 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("ref.oeffentlichTitel")}</p>
+          <ul className="space-y-1.5 text-sm">
+            {(ev.korrekturen ?? []).map((k) => (
+              <li key={k.id} className={k.status === "aufgehoben" ? "text-slate-500 line-through" : "text-slate-200"}>
+                <span className="font-semibold">{k.fahrer}</span>
+                {" · "}<Link to={`/sessions/${k.session_id}${k.run_idx != null ? `?run=${k.run_idx}` : ""}`} className="text-brand-700 hover:underline dark:text-brand-300">
+                  {k.run_idx != null ? t("ref.lauf", { n: k.run_idx + 1 }) : t("ref.session")}</Link>
+                {" · "}{t(`ref.grund.${k.grund}`)}
+                {k.kommentar_oeffentlich && <> — {k.kommentar_oeffentlich}</>}
+                {k.status === "aufgehoben" && <span className="ml-1 no-underline">({t("ref.status.aufgehoben")})</span>}
+                <span className="ml-1 text-xs text-slate-500">{k.veroeffentlicht_am ? new Date(k.veroeffentlicht_am).toLocaleDateString(lang) : ""}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {/* Teamwahl globaler Events (10.11.2026): schon vor dem Start, bis 6 h vor dem Ende */}
       {ev.global && ev.mein_team && !gast && ev.mein_team.aenderbar && (ev.status === "kommend" || ev.status === "laeuft") ? (
         <EventMeinTeam slug={team.slug} evId={ev.id} mt={ev.mein_team} t={t}

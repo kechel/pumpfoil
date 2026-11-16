@@ -2269,6 +2269,15 @@ export const api = {
     req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events?sprint=1`, { method: "POST", body: JSON.stringify(body) }),
   teamEventAendern: (slug: string, id: number, body: TeamEventIn) =>
     req<TeamEvent>(`/api/teams/${encodeURIComponent(slug)}/events/${id}?sprint=1`, { method: "PUT", body: JSON.stringify(body) }),
+  // Referee Board (16.11.2026, server/app/referee.py)
+  refereeBoard: (slug: string, id: number | string) =>
+    req<RefereeBoard>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/referee`),
+  refereeAnlegen: (slug: string, id: number | string, body: { session_id: number; lauf_start_ms: number; grund: string; kommentar_oeffentlich?: string; notiz_intern?: string }) =>
+    req<RefereeKorrektur>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/referee`, { method: "POST", body: JSON.stringify(body) }),
+  refereeAendern: (slug: string, id: number | string, kid: number, body: { grund?: string; kommentar_oeffentlich?: string; notiz_intern?: string; status?: string }) =>
+    req<RefereeKorrektur>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/referee/${kid}`, { method: "PATCH", body: JSON.stringify(body) }),
+  refereeKommentar: (slug: string, id: number | string, kid: number, text: string) =>
+    req<RefereeKorrektur>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/referee/${kid}/kommentare`, { method: "POST", body: JSON.stringify({ text }) }),
   teamPrimaer: (slug: string) => req<{ primaer: string }>(`/api/teams/${encodeURIComponent(slug)}/primaer`, { method: "PUT" }),
   teamEventMeinTeam: (slug: string, id: number, teamId: number | null) =>
     req<EventMeinTeam>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/mein-team`, { method: "PUT", body: JSON.stringify({ team_id: teamId }) }),
@@ -2409,7 +2418,30 @@ export interface TeamEventIn {
   /** Globales Event (nur im offiziellen Team) und Teamwertung: beste N, 0 = alle */
   global_event?: boolean; team_wertung_n?: number | null;
 }
+export type RefereeStatus = "entwurf" | "offen" | "veroeffentlicht" | "abgelehnt" | "aufgehoben";
+export interface RefereeKorrektur {
+  id: number; status: RefereeStatus; session_id: number; user_id: number; fahrer: string | null; lauf_start_ms: number;
+  run_idx?: number | null; grund: string; kommentar_oeffentlich: string | null; veroeffentlicht_am: string | null;
+  abgeschlossen_am: string | null;
+  wirkung: null | { vorher: Record<string, { rang: number; value: number } | null>; nachher: Record<string, { rang: number; value: number } | null> };
+  // nur im Board (intern)
+  notiz_intern?: string | null; erstellt_von?: string | null; erstellt_von_id?: number; erstellt_am?: string | null;
+  bestaetigt_von?: string | null; abgeschlossen_von?: string | null;
+  kommentare?: { id: number; von: string; user_id: number; text: string; am: string }[];
+}
+export interface RefereeKandidat {
+  kennzahl: string; sportart: string; rang: number; user_id: number; name: string; value: number;
+  session_id: number; run_idx: number | null; lauf_start_ms?: number; hinweise: string[];
+}
+export interface RefereeBoard {
+  event_id: number; titel: string; status: string; frist_bis: string | null; wirkung_erlaubt: boolean;
+  referees: string[]; ich: number; gruende: string[]; kandidaten: RefereeKandidat[]; korrekturen: RefereeKorrektur[];
+}
+
 export interface TeamEvent {
+  /** Referee Board (16.11.2026): oeffentliche Korrekturen + ob der Betrachter Referee ist. */
+  korrekturen?: RefereeKorrektur[];
+  referee?: boolean;
   /** Filter „Wertungsklasse" (10.11.2026): angebotene Klassen mit Anzahl (leer = kein Filter), aktive Klasse */
   klassen?: Record<string, number>; klasse?: string | null;
   id: number; titel: string; beschreibung: string | null; start: string; ende: string; zeitzone: string | null;
