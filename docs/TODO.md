@@ -1535,6 +1535,46 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 16.11.2026 — Sortiert: was seit 06.11. gesammelt wurde (Uebersicht, Details in den Eintraegen darunter)
+**A. Diese Woche (Jan: „naechste Woche"), alles Wertung/Analyse -> erst Entwurf mit Zahlen, dann Jans OK**
+1. Je-Lauf-Wertung als EIN Baustein: Laeufe am Eventschluss abschneiden (14.11.) + doppelte Laeufe aus paralleler
+   Aufnahme einmal zaehlen (15.11.) + Session-Kennzeichen „zaehlt fuer Event" und alle Sprints je Lauf anzeigen (14./15.11.).
+2. Globale Events: Opt-out beim Eventschluss einfrieren (14.11.).
+3. Ø Speed nach v3 ueber die fertigen Laeufe: zuerst die Verschiebung in 575 Sessions zeigen (15.11.).
+4. Sprints: 80-%-Regel je Lauf raus, Kriterien je Fenster (Luecken <= 3 s, >= 2/3 Uhr-Tempo, Position <= 10 %), neue
+   sprint-VERSION, Bestand nachrechnen; dabei `scripts/sprints-nachrechnen.py` muss `auswertung_fest` respektieren (15.11.).
+5. v3 schneidet Laufenden zu frueh ab (5-s-Glaettung am Rand), Regression vorher (15.11.).
+6. Accel-Normierung (`ACCEL_NORM`, r8b gemessen) + Regel „wer gewinnt beim Garmin-Zusammenfuehren", 7 Altfaelle (13.11.).
+
+**B. Releases**
+- Zepp 1.0.17 (GPS-Neustart) einreichen, sobald 1.0.16 freigegeben ist; danach Eimer-Test Balance 2 + `messweg` auswerten (14.11.).
+- Naechstes Android/iOS: Puls-Streifen je Lauf (12.11.), Datenschutz + Team-Regeln (07.11.); Global-Opt-out-Hinweis ist
+  gebaut, mit abgemeldetem Konto noch nicht angesehen (Web/Android/iOS).
+- Uhren-Paritaet LaufLuecke: Zepp, Huawei, Suunto offen (12.11.).
+
+**C. Analyse-Befunde (Pipeline, nur mit Jans OK)**
+- GPS-Wiederfinden nach Unterwasser-Luecke als Lauf (08.11.); Autofahrt verschiebt den Wasser-Suchpunkt (07.11.);
+  eingefrorene GPS-Fixe reparieren (13.11., gebaut, nicht eingehaengt); Land-Session bekam Laeufe (11.11., vor der
+  naechsten Massen-Neuauswertung klaeren).
+
+**D. Kurze Entscheidungen fuer Jan**
+- Uhren-Auswertung: Mindestzahl Garmin-Connect-Zeilen 8 -> 3? (15.11.)
+- Garmin ohne Handy: wartende Uploads (a) Server antwortet „erledigt" oder (b) duenn puffern? (15.11.)
+- Datenschutz-Konzept eines Nutzers: Punkt 1 „Uhrzeit verbergen" — wartet auf Go (11.11.)
+- Max-Speed der Uhr-App gegen Server nachrechnen (07.11.)
+
+**E. Kommunikation**
+- Antwort an u963 (zwei FR245 an beiden Handgelenken, Sessions 21943/21945 fast gleich): Entwurf liegt, nicht gesendet.
+- Optional DM an u352 (GTR 4, GPS-Luecken), wenn Zepp 1.0.17 live ist.
+- Lob als Zitate sammeln (bei Gelegenheit, 15.11.).
+
+**F. Ideen / geparkt (nicht anfangen ohne Jan)**
+Globale Events von Teams vorschlagen (15.11.) und Events vorschlagen + Voting (11.11.), reale Wettkaempfe (12.11.),
+Wind-Fairness bei Sprints (13.11.), Luftdruck-/Wassersensor (12.11.), Event-Fenster in Ortszeit (06.11.), Foil Scoot
+erkennen (08.11.), gruene Spots nach versehentlichem Stopp (08.11.), 100/25-Hz-Paare (06.11.), Systemzustand
+konfigurierbar (11.11.), Stabs/Tail Wings Atmo gegen Gong abgleichen (16.11.).
+Niedrig: Ursache der 10 verschwundenen Roh-Daten-Ordner (11.11.).
+
 ### 15.11.2026 — Lob sammeln und als Zitate aufbereiten (Shorts, oeffentliche Seite) — bei Gelegenheit (Jan)
 Jan: „soviel lob und freude ueberall … raussuchen und als 'zitate' aufbereiten fuer shorts und public seite". Quellen: alle
 Chatnachrichten (vollstaendig gespeichert, nur Anzeige auf 100 begrenzt; oeffentlicher Chat, DMs an Jan/Assistent,
