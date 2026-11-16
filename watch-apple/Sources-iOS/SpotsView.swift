@@ -3,8 +3,8 @@ import MapKit
 
 /// Karten (Spots, Session-Details, Spot-Heatmap) nehmen 2/3 der Bildschirmhoehe ein (Jan, 16.11.2026).
 var KARTE_HOEHE: CGFloat { (UIScreen.main.bounds.height * 2 / 3).rounded() }
-/// Die Spots-Karte steht fest ueber der Liste (scrollt nicht mit) -> nur die halbe Bildschirmhoehe (Jan, 16.11.2026).
-private var SPOTS_KARTE_HOEHE: CGFloat { (UIScreen.main.bounds.height / 2).rounded() }
+/// Spots-Karte: 2/3 wie die anderen, seit die Reiterleiste darunter steht und der leere Streifen oben weg ist (Jan, 16.11.2026).
+private var SPOTS_KARTE_HOEHE: CGFloat { KARTE_HOEHE }
 
 // MapKit wirft eine NSException, sobald eine Region breiter als 180°/360° ist — das beendet die
 // App sofort, es gibt keinen Fehlerwert zum Abfangen. Genau das ist am 30.08. passiert: mit der
@@ -116,11 +116,9 @@ struct SpotsView: View {
             //
             // Preis: die Karte laesst sich nicht mehr wegscrollen. Auf Android ist das seit jeher
             // so, und eine Karte, die man nicht bedienen kann, ist der schlechtere Tausch.
-            VStack(spacing: 0) {
-                Reiterleiste(reiter: spotsReiter, aktiv: Binding(get: { tab }, set: { tab = $0; ReiterSpeicher.setze("spots", $0) }))
-                    .padding(.horizontal)
-                reiterInhalt
-            }
+            // Die Reiterleiste steht NICHT mehr ganz oben: dort blieb sie unter iOS 26 (Suche unten, `.searchable`) unsichtbar,
+            // nur ein leerer weisser Streifen (Jan, 16.11.2026). Jetzt unter der Karte bzw. als erste Zeile der Listen.
+            reiterInhalt
             // Wert-basiertes Ziel statt eines Links IN der Kartenzeile (s. `annotation`).
             .navigationDestination(for: SpotDest.self) { d in
                 SpotSessionsView(spot: d.spot, vorgegebeneSpotId: d.spotId, sport: d.sport)
@@ -151,16 +149,29 @@ struct SpotsView: View {
         switch tab {
         case "liste": spotListe
         case "rekorde":
-            List { SpotCompareView() }.listStyle(.insetGrouped)
+            List { reiterZeile; SpotCompareView() }.listStyle(.insetGrouped)
         case "routen":
-            List { RoutenAbschnitt(lang: lang) }.listStyle(.insetGrouped)
+            List { reiterZeile; RoutenAbschnitt(lang: lang) }.listStyle(.insetGrouped)
         default: karteReiter
         }
+    }
+
+    private var reiterBindung: Binding<String> {
+        Binding(get: { tab }, set: { tab = $0; ReiterSpeicher.setze("spots", $0) })
+    }
+
+    /// Reiterleiste als erste Listenzeile (Liste, Rekorde, Routen) — ohne Zeilenhintergrund.
+    private var reiterZeile: some View {
+        Reiterleiste(reiter: spotsReiter, aktiv: reiterBindung)
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
     }
 
     private var karteReiter: some View {
         VStack(spacing: 0) {
             karteOben
+            Reiterleiste(reiter: spotsReiter, aktiv: reiterBindung)
+                .padding(.horizontal)
             List {
                 // Bei einer Suche NUR die Treffer, direkt unter der Karte. Vorher standen sie unter
                 // Filterzeile, Erklaertext und dem ganzen Spot-Vergleich — beim Tippen nie zu sehen,
@@ -181,6 +192,7 @@ struct SpotsView: View {
         let liste: [SpotMapItem] = items.filter { $0.spot_id != nil && (q.isEmpty || passtZu(q, $0.spot, $0.water)) }
             .sorted { $0.sessions > $1.sessions }
         return List {
+            reiterZeile
             if SportFilterMenu.zeigen(sport: sport, sports: sports) {
                 SportFilterMenu(sport: sport, sports: sports, lang: lang) { sport = $0 }
             }
