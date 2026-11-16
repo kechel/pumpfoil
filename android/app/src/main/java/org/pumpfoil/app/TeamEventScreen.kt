@@ -1,6 +1,11 @@
 package org.pumpfoil.app
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -104,6 +109,8 @@ fun TeamEventScreen(
     var uebersicht by remember { mutableStateOf(false) }
     // Globale Events: eigene (aktive) Teams, fuer ihre Zeilen hinter Platz 10 und die Hervorhebung im Bild.
     var meineTeams by remember { mutableStateOf<Set<String>>(emptySet()) }
+    // Lauf eines anderen Fahrers zur Pruefung melden (Web b26a6569): Pop-up mit Grund und optionalem Hinweis.
+    var laufMeldung by remember { mutableStateOf<TeamZeile?>(null) }
     val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
     val uri = LocalUriHandler.current
@@ -118,8 +125,8 @@ fun TeamEventScreen(
         }
     }
 
-    LaunchedEffect(ev?.global) {
-        if (ev?.global != true) return@LaunchedEffect
+    LaunchedEffect(ev?.mitTeamWertung) {
+        if (ev?.mitTeamWertung != true) return@LaunchedEffect
         meineTeams = runCatching { Api.teamsMine().filter { it.status == "aktiv" && it.slug != slug }.map { it.slug }.toSet() }
             .getOrDefault(emptySet())
     }
@@ -212,6 +219,31 @@ fun TeamEventScreen(
                             (if (e.spots.isNotEmpty()) " · " + e.spots.joinToString(", ") { it.name ?: "#${it.id}" } else ""),
                         style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 4.dp),
                     )
+                    // „promoted by <Team>" (vorgeschlagenes globales Event, Web 1f3f2f1a) und „Mit: …" (Event mehrerer Teams, 2d30a70e).
+                    if (e.global) e.promotedBy?.let { pb ->
+                        Row(Modifier.padding(top = 6.dp).clip(RoundedCornerShape(8.dp)).clickable { onOpenTeam(pb.slug) },
+                            verticalAlignment = Alignment.CenterVertically) {
+                            TeamWappen(pb.name, pb.logoUrl, pb.farbe, 20.dp)
+                            Spacer(Modifier.width(6.dp))
+                            Text(I18n.t("team.event.promotedBy").replace("{team}", pb.name), style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                    if (e.mehrteam) {
+                        FlowRow(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(I18n.t("team.event.mitTeams"), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.align(Alignment.CenterVertically))
+                            e.teamsBeteiligt.filter { it.status == "ausrichtend" || it.status == "angenommen" }.forEach { x ->
+                                Row(Modifier.align(Alignment.CenterVertically).clip(RoundedCornerShape(8.dp)).clickable { onOpenTeam(x.slug) },
+                                    verticalAlignment = Alignment.CenterVertically) {
+                                    TeamWappen(x.name, x.logoUrl, x.farbe, 18.dp)
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(x.name, style = MaterialTheme.typography.bodyMedium)
+                                }
+                            }
+                        }
+                    }
                     e.beschreibung?.trim()?.takeIf { it.isNotEmpty() }?.let {
                         Text(it, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
                     }
@@ -249,11 +281,22 @@ fun TeamEventScreen(
                         Text(I18n.t("team.join.wartet"), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 12.dp))
                     }
 
-                    Text(I18n.t(eventStandKey(e.status)), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 8.dp))
+                    Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(I18n.t(eventStandKey(e.status)), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f))
+                        // Referee Board (Web 91bbc061): nur fuer Referees; das Board selbst bleibt im Web.
+                        if (e.referee) OutlinedButton(onClick = { uri.openUri(teamWebUrl("/teams/${t.slug}/events/${e.id}/referee")) },
+                            contentPadding = PaddingValues(horizontal = 12.dp)) {
+                            Text(I18n.t("ref.titel"))
+                            Spacer(Modifier.width(4.dp))
+                            Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                    // Oeffentliche Korrekturen des Referees (Web 91bbc061): Fahrer · Lauf · Grund — Kommentar; aufgehobene durchgestrichen.
+                    if (e.korrekturen.isNotEmpty()) EventKorrekturenKarte(e.korrekturen, onOpenSession)
                     // Teamwahl globaler Events (Web EventMeinTeam, 10.11.2026): schon vor dem Start, bis 6 h vor dem Ende.
                     val mt = e.meinTeam
-                    if (e.global && mt != null && mt.aenderbar && (e.status == "kommend" || e.status == "laeuft")) {
+                    if (e.mitTeamWertung && mt != null && mt.aenderbar && (e.status == "kommend" || e.status == "laeuft")) {
                         EventMeinTeamWahl(slug, e.id, mt) {
                             scope.launch { runCatching { Api.teamEvent(slug, eventId, klasse) }.getOrNull()?.let { ev = it } }
                         }
@@ -354,7 +397,8 @@ fun TeamEventScreen(
                                 if (e.status == "beendet") EventPodest(e.id, tf0, e.global, f, onOpenTeam)
                                 TeamTafelKarte(tf, f, onOpenSession, ohneFilter = true,
                                     sportZeigen = e.tafeln.map { x -> x.sportart }.distinct().size > 1, standText = standText,
-                                    teamsZeigen = e.global, onOpenTeam = onOpenTeam,
+                                    teamsZeigen = e.mitTeamWertung, onOpenTeam = onOpenTeam,
+                                    melden = e.melden, onMelden = { z -> laufMeldung = z },
                                     onBild = {
                                         val ich = tf0.eigene?.userId
                                         teilBild = TeamBildDaten(t.name,
@@ -368,7 +412,7 @@ fun TeamEventScreen(
                                             "${t.slug}-event-${e.id}-${tf0.kennzahl}.png", abzeichen = bildAbzeichen,
                                             leer = I18n.t("team.tafel.leer"))
                                     })
-                                if (e.global) TeamWertungKarte(tf0, e.teamWertungN ?: 5, f, meineTeams, standText, onOpenTeam,
+                                if (e.mitTeamWertung) TeamWertungKarte(tf0, e.teamWertungN ?: 5, f, meineTeams, standText, onOpenTeam,
                                     onBild = {
                                         val n = e.teamWertungN ?: 5
                                         val alle = tf0.teams.orEmpty()
@@ -417,9 +461,19 @@ fun TeamEventScreen(
                             }
                         }
                     }
+                    // „Ausgewertet mit …" (Web 6eb68c00): festgehaltener bzw. vorlaeufiger Regel- und Auswertungsstand.
+                    EventStandFuss(e)
                     Spacer(Modifier.height(24.dp))
                 }
             }
+        }
+    }
+    val lm = laufMeldung
+    if (lm != null && t != null && ev != null) {
+        LaufMeldenDialog(lm, onClose = { laufMeldung = null }) { grund, text ->
+            val r = Api.teamEventMelden(t.slug, eventId, lm.sessionId ?: 0, lm.runIdx ?: 0, grund, text)
+            ev = ev?.let { x -> x.copy(melden = x.melden?.copy(gemeldet = r.gemeldet, gesperrt = r.gesperrt)) }
+            laufMeldung = null
         }
     }
 
@@ -692,4 +746,141 @@ private fun EventUhr(ziel: String, f: TeamFarbe, klein: Boolean) {
 /** Gewaehlte Bestenliste + Wertungsklasse je Event ("slug/id"), fuer die App-Sitzung (Web: sessionStorage je Tab). */
 internal object EventAuswahlMerker {
     val wahl = HashMap<String, Pair<Int, String>>()
+}
+
+
+/** Oeffentliche Referee-Korrekturen am Event (Web 91bbc061), fuchsia umrandet. */
+@Composable
+private fun EventKorrekturenKarte(liste: List<EventKorrektur>, onOpenSession: (Int) -> Unit) {
+    val oeffneLauf = LocalOpenSessionLauf.current
+    Card(Modifier.fillMaxWidth().padding(bottom = 12.dp), border = BorderStroke(2.dp, Color(0xFFD946EF).copy(alpha = 0.6f))) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(I18n.t("ref.oeffentlichTitel").uppercase(), style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            liste.forEach { k ->
+                val auf = k.status == "aufgehoben"
+                val lauf = if (k.runIdx != null) I18n.t("ref.lauf").replace("{n}", (k.runIdx + 1).toString()) else I18n.t("ref.session")
+                val text = listOfNotNull(k.fahrer ?: "—", lauf, I18n.t("ref.grund.${k.grund}")).joinToString(" · ") +
+                    (k.kommentarOeffentlich?.takeIf { it.isNotBlank() }?.let { " — $it" } ?: "") +
+                    (if (auf) " (${I18n.t("ref.status.aufgehoben")})" else "") +
+                    (k.veroeffentlichtAm?.let { " · ${kurzDatum(it)}" } ?: "")
+                Text(text, style = MaterialTheme.typography.bodyMedium,
+                    color = if (auf) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    textDecoration = if (auf) androidx.compose.ui.text.style.TextDecoration.LineThrough else null,
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).clickable {
+                        val r = k.runIdx
+                        if (r != null && oeffneLauf != null) oeffneLauf(k.sessionId, r, null) else onOpenSession(k.sessionId)
+                    }.padding(vertical = 2.dp))
+            }
+        }
+    }
+}
+
+private val MELDE_GRUENDE = listOf("andere_sportart", "messfehler", "doppelte_aufnahme", "fremdkraft", "ausserhalb_fenster", "sonstiges")
+
+/** „Lauf zur Pruefung melden" (Web MeldenDialog): Grund aus der Vorauswahl, optionaler Hinweis. */
+@Composable
+private fun LaufMeldenDialog(z: TeamZeile, onClose: () -> Unit, onSenden: suspend (String, String) -> Unit) {
+    var grund by remember { mutableStateOf(MELDE_GRUENDE[0]) }
+    var text by remember { mutableStateOf("") }
+    var fehler by remember { mutableStateOf<String?>(null) }
+    var laeuft by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    AlertDialog(
+        onDismissRequest = onClose,
+        title = { Text(I18n.t("ref.meldenTitel")) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text("${z.name ?: z.initialen} · " + I18n.t("ref.lauf").replace("{n}", ((z.runIdx ?: 0) + 1).toString()),
+                    style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(bottom = 8.dp))
+                MELDE_GRUENDE.forEach { g ->
+                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).clickable { grund = g },
+                        verticalAlignment = Alignment.CenterVertically) {
+                        RadioButton(selected = grund == g, onClick = { grund = g })
+                        Text(I18n.t("ref.grund.$g"), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+                OutlinedTextField(text, { if (it.length <= 1000) text = it }, Modifier.fillMaxWidth().padding(top = 6.dp),
+                    placeholder = { Text(I18n.t("ref.meldenText")) }, minLines = 2)
+                Text(I18n.t("ref.meldenHinweis"), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 6.dp))
+                fehler?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 6.dp)) }
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = !laeuft, onClick = {
+                laeuft = true
+                scope.launch {
+                    try { onSenden(grund, text.trim()) }
+                    catch (ex: Exception) {
+                        val c = Regex("\"detail\"\\s*:\\s*\"([a-z_]+)\"").find(ex.message ?: "")?.groupValues?.get(1)
+                            ?: Regex("^([a-z_]+)$").find(ex.message ?: "")?.groupValues?.get(1)
+                        val k = c?.let { "ref.fehler.$it" }
+                        fehler = if (k != null && I18n.t(k) != k) I18n.t(k) else (ex.message ?: ex.toString())
+                    }
+                    laeuft = false
+                }
+            }) { Text(I18n.t("ref.meldenSenden")) }
+        },
+        dismissButton = { TextButton(onClick = onClose) { Text(I18n.t("common.cancel")) } },
+    )
+}
+
+/** Footer „Ausgewertet mit …" (Web EventStand, 6eb68c00/1a18c294); Regeln von damals (Englisch) aufklappbar. */
+@Composable
+private fun EventStandFuss(e: TeamEvent) {
+    val st = e.stand
+    val a = st ?: e.standAktuell
+    val beendet = e.status == "beendet"
+    fun datum(d: String): String = runCatching {
+        java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM, java.util.Locale.forLanguageTag(I18n.lang))
+            .format(java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.ROOT).parse(d.take(10))!!)
+    }.getOrDefault(d.take(10))
+    val teile = buildList {
+        if (a != null) {
+            add(I18n.t("team.event.stand.regeln").replace("{datum}", datum(a.regeln)))
+            add(if (a.wertung == "je-session") I18n.t("team.event.stand.jeSession")
+                else I18n.t("team.event.stand.jeLauf").replace("{v}", a.wertung.replace(Regex("^\\D+"), "")))
+            if (st != null) {
+                st.erkennung.entries.sortedByDescending { it.value }.joinToString(", ") { "${it.key} (${it.value})" }
+                    .takeIf { it.isNotEmpty() }?.let { add(I18n.t("team.event.stand.erkennung").replace("{liste}", it)) }
+                st.sprints.orEmpty().keys.sorted().joinToString(", ") { "v$it" }.takeIf { it.isNotEmpty() }
+                    ?.let { add(I18n.t("team.event.stand.sprints").replace("{v}", it)) }
+                if (st.korrekturen > 0) add(I18n.t("team.event.stand.korrekturen").replace("{n}", st.korrekturen.toString()))
+            }
+            a.server?.let { add(I18n.t("team.event.stand.server").replace("{c}", it)) }
+        }
+    }
+    if (teile.isEmpty() && !beendet) return
+    var regelnAuf by remember { mutableStateOf(false) }
+    val grau = MaterialTheme.colorScheme.onSurfaceVariant
+    Column(Modifier.fillMaxWidth().padding(top = 20.dp)) {
+        HorizontalDivider(Modifier.padding(bottom = 8.dp))
+        Text(I18n.t(if (st != null || beendet) "team.event.stand.titel" else "team.event.stand.titelVorschau") + ": " +
+            (if (beendet && st == null) I18n.t("team.event.stand.alt") else teile.joinToString(" · ")),
+            style = MaterialTheme.typography.bodySmall, color = grau)
+        if (st == null && !beendet) Text(I18n.t("team.event.stand.vorschau"), style = MaterialTheme.typography.bodySmall, color = grau)
+        if (st != null) {
+            st.festgeschrieben?.let { Text(I18n.t("team.event.stand.am").replace("{zeit}", kurzDatum(it)),
+                style = MaterialTheme.typography.bodySmall, color = grau) }
+            if (st.regelnText != null) {
+                Text(I18n.t("team.event.stand.regelnDamals").replace("{datum}", datum(st.regeln)),
+                    style = MaterialTheme.typography.bodySmall, color = grau,
+                    textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
+                    modifier = Modifier.clip(RoundedCornerShape(4.dp)).clickable { regelnAuf = !regelnAuf }.padding(vertical = 4.dp))
+                if (regelnAuf) Card(Modifier.fillMaxWidth().padding(top = 4.dp)) {
+                    Column(Modifier.padding(10.dp)) {
+                        st.regelnText.abschnitte.forEach { ab ->
+                            Text(ab.titel, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                            ab.text.split("\n").filter { it.isNotBlank() }.forEach { z ->
+                                Text("• $z", style = MaterialTheme.typography.bodySmall, color = grau)
+                            }
+                            Spacer(Modifier.height(6.dp))
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

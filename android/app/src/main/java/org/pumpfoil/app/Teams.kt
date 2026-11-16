@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
@@ -321,10 +322,102 @@ data class TeamEvent(
     // Filter „Wertungsklasse" (10.11.2026): angebotene Klassen (w/m/nb) mit Anzahl, leer = kein Filter; `klasse` = aktive.
     val klassen: Map<String, Int> = emptyMap(),
     val klasse: String? = null,
+    // Referee Board (16.11.2026): oeffentliche Korrekturen, ob der Betrachter Referee ist, Meldungen von Teilnehmern.
+    val korrekturen: List<EventKorrektur> = emptyList(),
+    val referee: Boolean = false,
+    val melden: EventMelden? = null,
+    // Regel-/Auswertungsstand (16.11.2026): festgehalten beim Festschreiben (`stand`), sonst der aktuelle als Vorschau.
+    val stand: EventStand? = null,
+    @SerialName("stand_aktuell") val standAktuell: EventStand? = null,
+    // Events mehrerer Teams (16.11.2026): Team-Wertung wie global; beteiligte Teams (ausrichtendes zuerst).
+    val mehrteam: Boolean = false,
+    @SerialName("teams_beteiligt") val teamsBeteiligt: List<EventTeamBeteiligt> = emptyList(),
+    // Als globales Event vorgeschlagen (16.11.2026): Stand fuer das Team; „promoted by" fuer alle.
+    val vorschlag: EventVorschlag? = null,
+    @SerialName("promoted_by") val promotedBy: EventTeamBeteiligt? = null,
 ) {
+    /** Team-Wertung und Wappen-Spalte: globale Events und Events mehrerer Teams (Web `ev.global || ev.mehrteam`). */
+    val mitTeamWertung: Boolean get() = global || mehrteam
     /** Sportarten: die der Bestenlisten, ohne Bestenliste die der Gesamtsummen (wie Web eventSportarten). */
     val sportarten: List<String> get() = (if (tafeln.isNotEmpty()) tafeln.map { it.sportart } else listOf(summenSportart)).distinct()
 }
+
+/** Oeffentliche Referee-Korrektur am Event (server referee.korrektur_out, intern=False). */
+@Serializable
+data class EventKorrektur(
+    val id: Int = 0,
+    val status: String = "",
+    @SerialName("session_id") val sessionId: Int = 0,
+    @SerialName("user_id") val userId: Int? = null,
+    val fahrer: String? = null,
+    val grund: String = "",
+    @SerialName("kommentar_oeffentlich") val kommentarOeffentlich: String? = null,
+    @SerialName("veroeffentlicht_am") val veroeffentlichtAm: String? = null,
+    @SerialName("run_idx") val runIdx: Int? = null,
+)
+
+/** Teilnehmer duerfen Laeufe anderer zur Pruefung melden (bis zum Festschreiben); Paare [session_id, run_idx]. */
+@Serializable
+data class EventMelden(
+    val erlaubt: Boolean = false,
+    val gemeldet: List<List<Int>> = emptyList(),
+    val gesperrt: List<List<Int>> = emptyList(),
+    val ich: Int = 0,
+)
+
+/** Regel-/Auswertungsstand eines Events (Footer „Ausgewertet mit …"). */
+@Serializable
+data class EventStand(
+    val regeln: String = "",
+    val wertung: String = "",
+    val erkennung: Map<String, Int> = emptyMap(),
+    val sprints: Map<String, Int>? = null,
+    val korrekturen: Int = 0,
+    val server: String? = null,
+    val festgeschrieben: String? = null,
+    @SerialName("regeln_text") val regelnText: EventRegelnText? = null,
+)
+
+@Serializable
+data class EventRegelnText(val abschnitte: List<EventRegelAbschnitt> = emptyList())
+
+@Serializable
+data class EventRegelAbschnitt(val key: String = "", val titel: String = "", val text: String = "")
+
+/** Beteiligtes Team eines Events (ausrichtend | angenommen | eingeladen | abgelehnt) bzw. „promoted by". */
+@Serializable
+data class EventTeamBeteiligt(
+    val slug: String = "",
+    val name: String = "",
+    @SerialName("logo_url") val logoUrl: String? = null,
+    val farbe: String? = null,
+    val status: String? = null,
+)
+
+@Serializable
+data class EventVorschlag(
+    val status: String = "",          // vorgeschlagen | angenommen | abgelehnt
+    val notiz: String? = null,
+    val am: String? = null,
+    @SerialName("entschieden_am") val entschiedenAm: String? = null,
+)
+
+@Serializable
+data class EventTeamsAntwort(@SerialName("teams_beteiligt") val teamsBeteiligt: List<EventTeamBeteiligt> = emptyList())
+
+@Serializable
+data class EventVorschlagAntwort(val vorschlag: EventVorschlag? = null)
+
+/** Einladung eines Teams zu einem Event eines anderen Teams (GET /teams/{slug}/event-einladungen). */
+@Serializable
+data class EventEinladung(
+    @SerialName("event_id") val eventId: Int = 0,
+    val titel: String = "",
+    val start: String = "",
+    val ende: String = "",
+    val status: String = "",            // eingeladen | angenommen | abgelehnt
+    val team: EventTeamBeteiligt = EventTeamBeteiligt(),
+)
 
 /** Teamwahl des Betrachters fuer ein globales Event (server api/teams._mein_team, 10.11.2026). */
 @Serializable
@@ -1011,7 +1104,10 @@ fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit
                    onBild: (() -> Unit)? = null,
                    /** Globale Events: Spalte mit den Team-Wappen der Person (Web 8fc88474); antippen oeffnet das Team. */
                    teamsZeigen: Boolean = false,
-                   onOpenTeam: ((String) -> Unit)? = null) {
+                   onOpenTeam: ((String) -> Unit)? = null,
+                   /** Events (Web b26a6569/5cbccfdb): Fahne „zur Pruefung melden" an fremden Zeilen, „wird geprueft" an gemeldeten. */
+                   melden: EventMelden? = null,
+                   onMelden: ((TeamZeile) -> Unit)? = null) {
     val oeffneFoiler = LocalOpenFoiler.current
     val oeffneLauf = LocalOpenSessionLauf.current
     Card(Modifier.fillMaxWidth()) {
@@ -1087,6 +1183,21 @@ fun TeamTafelKarte(tf: TeamTafel, farbe: TeamFarbe, onOpenSession: (Int) -> Unit
                         if (z.startedAt != null) Text(kurzDatum(z.startedAt) + (z.spot?.let { " · $it" } ?: ""),
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    val sidM = z.sessionId; val runM = z.runIdx
+                    if (melden != null && sidM != null && runM != null) {
+                        val paar = listOf(sidM, runM)
+                        if (paar in melden.gemeldet) {
+                            Text(I18n.t("ref.wirdGeprueft"), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold,
+                                color = strittigFarbe(), maxLines = 1,
+                                modifier = Modifier.padding(start = 6.dp).clip(RoundedCornerShape(6.dp))
+                                    .background(Color(0xFFF59E0B).copy(alpha = 0.15f)).padding(horizontal = 6.dp, vertical = 2.dp))
+                        } else if (melden.erlaubt && z.userId != melden.ich && paar !in melden.gesperrt && onMelden != null) {
+                            Icon(Icons.Outlined.Flag, contentDescription = I18n.t("ref.meldenTitel"),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 4.dp).clip(RoundedCornerShape(6.dp)).clickable { onMelden(z) }
+                                    .padding(4.dp).size(16.dp))
+                        }
                     }
                     Spacer(Modifier.width(8.dp))
                     Text(kennzahlWert(tf.kennzahl, z.value), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)

@@ -11,6 +11,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -569,7 +571,11 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     // [t_start_session_ms, t_end_session_ms] —, denn die Laufnummern unterscheiden sich zwischen den normalen Laeufen und
     // einem Empfindlichkeits-Preset des Besitzers.
     // Schluessel bewusst schmal: SessionDetail per equals zu vergleichen hiesse, die ganze Spur bei jeder Recomposition zu vergleichen.
-    val sprintLauf = remember(s.id, s.dataVersion, s.analysis?.sprints, sprintKennzahl) { sprintLaufFuer(s, sprintKennzahl) }
+    // Event-Kategorie (Web 67651cf0, 16.11.2026): anklickbare Kennzeichen „<Event> · <Kategorie>" in Sessions, die fuer ein Event
+    // zaehlen. null = nie angefasst (dann gilt die Kennzahl aus der Bestenliste), "" = bewusst keine.
+    var eventKat by remember(s.id) { mutableStateOf<String?>(null) }
+    val kzWahl = (eventKat ?: sprintKennzahl)?.takeIf { it.isNotEmpty() }
+    val sprintLauf = remember(s.id, s.dataVersion, s.analysis?.sprints, kzWahl) { sprintLaufFuer(s, kzWahl) }
     // Lauf vorauswaehlen (Bestenlisten-Zeile mit run_idx), einmal je Session.
     var laufAngewandt by remember(s.id) { mutableStateOf(false) }
     LaunchedEffect(s.id, sprintLauf, startLauf) {
@@ -578,8 +584,15 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         val i = sprintLauf?.lauf ?: startLauf
         if (i != null && i in 0 until n) { selectedRun = i; laufAngewandt = true }
     }
-    // Hervorhebung nur, solange genau dieser Lauf ausgewaehlt ist (Web sprintHL).
-    val sprintHL = sprintLauf?.takeIf { selectedRun == it.lauf }
+    // Kategorie gewaehlt und kein Lauf ausgewaehlt: den Lauf mit dem besten Stueck vorauswaehlen (Web).
+    LaunchedEffect(eventKat) {
+        if (!eventKat.isNullOrEmpty() && selectedRun == null) sprintLauf?.let { selectedRun = it.lauf }
+    }
+    // Hervorhebung fuer den GEWAEHLTEN Lauf (Web sprintHL): sein eigenes Fenster der Kategorie (laeufe_fenster, Zuordnung
+    // ueber die Zeit), sonst — alte Auswertung ohne Fenster je Lauf — nur das beste Fenster, wenn es in diesem Lauf liegt.
+    val sprintHL = remember(kzWahl, sprintLauf, selectedRun, s.id, s.dataVersion) {
+        sprintFensterImLauf(s, kzWahl, selectedRun) ?: sprintLauf?.takeIf { selectedRun == it.lauf }
+    }
     // Aus einer Sprint-Bestenliste: Glides-Faerbung aus (Web ad4dbfe3) — sonst ist der Track grau und vom gewerteten
     // Abschnitt bleibt nur der Rand. Einmal je Session, danach darf man zurueckschalten.
     var sprintFarbeAngewandt by remember(s.id) { mutableStateOf(false) }
@@ -1141,6 +1154,13 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 //
                 // FlowRow, nicht Row: bei 15 Laeufen (kommt vor, s. u270) liefe eine Zeile aus dem
                 // Bild. Die Tabelle weiter unten bleibt, sie zeigt ja zusaetzlich die Werte.
+                // Events, fuer die die Session zaehlt (Web 62429a12/67651cf0): je Kategorie mit Wert ein Kennzeichen (an/aus hebt das
+                // Stueck des gewaehlten Laufs hervor), ohne Kategorie „Zaehlt fuer <Event> · n Laeufe"; Pfeil oeffnet das Event.
+                if (!s.events.isNullOrEmpty()) {
+                    SessionEventKennzeichen(s, kzWahl, onKat = { k ->
+                        if (kzWahl == k) { eventKat = ""; selectedRun = null } else eventKat = k
+                    })
+                }
                 if (segs.isNotEmpty()) {
                     Kompakt {
                         FlowRow(
@@ -1257,6 +1277,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     if (pc > 0 && a.foilingDistanceM != null) add(StatItem(I18n.t("sd.avgDistPerPump"), "%.1f m".format(a.foilingDistanceM / pc)))
                 }
                 if (pumpzahlen) (m?.avgPumpHz ?: a.avgCadenceHz)?.let { add(StatItem(I18n.t("sd.avgPump"), PumpUnit.fmt(it))) }
+                // Takt laut Uhr (Suunto/SuuntoPlus, Web 6b7055ae): nur ohne eigene Pump-Werte; Server liefert 1/min.
+                if (!(m?.avgPumpHz != null && (a.pumpCount ?: 0) > 0)) m?.uhrTaktMin?.let { add(StatItem(I18n.t("sd.taktUhr"), PumpUnit.fmt(it / 60.0))) }
                 // Ø Puls auf dem Foil als Hauptzahl, der Gesamtwert (mit Pausen am Ufer) klein darunter (wie Web,
                 // 01.11.2026). Ohne Laeufe gibt es keinen Foil-Wert, dann wie bisher der Gesamtwert.
                 val hrFoil = m?.avgHrFoil?.takeIf { it > 0 }
@@ -2352,6 +2374,12 @@ private fun laufSpalten(
                 PumpUnit.fmtValue(seg.maxPumpHz) + " / " + PumpUnit.fmtValue(seg.minPumpHz)
             })
         }
+        // Takt laut Uhr je Lauf (Suunto, Web 6b7055ae): nur ohne eigene Pump-Werte.
+        if (!hatPump && segments.any { it.uhrTaktMin != null }) {
+            add(LaufSpalte("uhrTakt", I18n.t("sd.taktUhr") + " ($einheit)", 70, { it.uhrTaktMin }) { seg ->
+                PumpUnit.fmtValue(seg.uhrTaktMin?.div(60.0))
+            })
+        }
         // Puls: Start, Durchschnitt, Max., Ende — Reihenfolge wie in der PWA (26.09.2026).
         if (zeigeMaxHr) {
             add(LaufSpalte("hrStart", k("sd.colHrStart"), 62, { hrWerte(it).firstOrNull()?.toDouble() }) { seg -> hrWerte(seg).firstOrNull()?.let { "$it bpm" } ?: "–" })
@@ -3321,6 +3349,59 @@ private val SPRINT_HINWEIS = Color(0xFFD946EF)
 internal data class SprintLauf(val kz: String, val lauf: Int, val a: Double, val b: Double, val wert: Double)
 
 /** Lauf zum Sprint-Fenster ueber die Zeit (Web sprintLauf): Fenstermitte in [t_start_session_ms, t_end_session_ms]. */
+/** Fenster der Kennzahl `kz` im Lauf `lauf` aus analysis.sprints.laeufe_fenster (sprint-VERSION 5), Zuordnung ueber die Zeit. */
+internal fun sprintFensterImLauf(s: SessionDetail, kz: String?, lauf: Int?): SprintLauf? {
+    if (kz == null || lauf == null) return null
+    val sp = s.analysis?.sprints ?: return null
+    val segs = s.analysis.segments.orEmpty()
+    val g = segs.getOrNull(lauf) ?: return null
+    val a0 = g.tStartSessionMs ?: return null; val b0 = g.tEndSessionMs ?: return null
+    sp.laeufeFenster.orEmpty().forEachIndexed { j, m ->
+        val f = m?.get(kz)?.takeIf { it.size >= 2 } ?: return@forEachIndexed
+        val mitte = (f[0] + f[1]) / 2
+        if (a0 <= mitte && mitte <= b0) return SprintLauf(kz, lauf, f[0], f[1], sp.laeufe?.getOrNull(j)?.get(kz) ?: 0.0)
+    }
+    return null
+}
+
+/** Kennzeichen der Events, fuer die die Session zaehlt (Web SessionDetail, 16.11.2026), fuchsia wie im Web. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SessionEventKennzeichen(s: SessionDetail, kzWahl: String?, onKat: (String) -> Unit) {
+    val openEvent = LocalOpenTeamEvent.current
+    val dunkel = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val textFarbe = if (dunkel) Color(0xFFF0ABFC) else Color(0xFFA21CAF)   // fuchsia-300 / fuchsia-700
+    val best = s.analysis?.sprints?.best.orEmpty()
+    FlowRow(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        s.events.orEmpty().forEach { ev ->
+            val kurz = if (ev.titel.length > 24) ev.titel.take(23).trimEnd() + "…" else ev.titel
+            val mitWert = ev.kategorien.filter { (best[it] ?: 0.0) > 0 }
+            if (mitWert.isEmpty()) {
+                Text(I18n.t("sd.eventZaehlt").replace("{titel}", kurz).replace("{n}", ev.laeufeMs.size.toString()),
+                    color = textFarbe, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).border(2.dp, SPRINT_HINWEIS, RoundedCornerShape(8.dp))
+                        .clickable { openEvent?.invoke(ev.teamSlug, ev.id) }.padding(horizontal = 8.dp, vertical = 4.dp))
+            } else {
+                mitWert.forEach { k ->
+                    val an = kzWahl == k
+                    val rang = ev.plaetze.firstOrNull { it.kennzahl == k }?.rang
+                    Text(kurz + " · " + kennzahlLabel(k) + (rang?.let { " · #$it" } ?: ""),
+                        color = if (an) Color(0xFF020617) else textFarbe, style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.clip(RoundedCornerShape(8.dp))
+                            .then(if (an) Modifier.background(SPRINT_HINWEIS) else Modifier)
+                            .border(2.dp, SPRINT_HINWEIS, RoundedCornerShape(8.dp))
+                            .clickable { onKat(k) }.padding(horizontal = 8.dp, vertical = 4.dp))
+                }
+                Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = ev.titel, tint = textFarbe,
+                    modifier = Modifier.align(Alignment.CenterVertically).clip(RoundedCornerShape(8.dp))
+                        .clickable { openEvent?.invoke(ev.teamSlug, ev.id) }.padding(4.dp).size(18.dp))
+            }
+        }
+    }
+}
+
 internal fun sprintLaufFuer(s: SessionDetail, kz: String?): SprintLauf? {
     if (kz == null) return null
     val sp = s.analysis?.sprints ?: return null

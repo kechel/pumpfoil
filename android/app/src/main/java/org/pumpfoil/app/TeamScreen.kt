@@ -434,7 +434,7 @@ private fun LogbuchKarte(eintraege: List<TeamLogbuchEintrag>, onOpenSession: (In
 /** Team-Regeln nativ (Web pages/TeamRegeln.tsx, eingebettet als Reiter „Regeln"): Einleitung, dann je Abschnitt Titel + Punkte
  *  (die Punkte stehen in EINEM Text je Abschnitt, getrennt durch Zeilenumbrueche). */
 private val REGEL_ABSCHNITTE = listOf("was", "rollen", "beitreten", "oeffentlich", "bestenlisten", "statistik", "logbuch",
-    "events", "global", "chat", "loeschen", "konto", "haftung")   // „global" wie Web TeamRegeln (9ed3e55c)
+    "events", "global", "referee", "chat", "loeschen", "konto", "haftung")   // „global" (9ed3e55c), „referee" (16.11.2026) wie Web TeamRegeln
 
 @Composable
 private fun TeamRegelnInhalt() {

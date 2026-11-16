@@ -334,6 +334,30 @@ data class SprintLagen(
     val best: Map<String, Double> = emptyMap(),
     val lauf: Map<String, Int> = emptyMap(),
     val fenster: Map<String, List<Double>> = emptyMap(),
+    // Je Lauf (Index wie segments, sprint-VERSION 5, 16.11.2026): Werte und Fenster je Kennzahl; null = Lauf ohne Wert.
+    val laeufe: List<Map<String, Double>?>? = null,
+    @SerialName("laeufe_fenster") val laeufeFenster: List<Map<String, List<Double>>?>? = null,
+)
+
+/** Events, fuer die eine Session zaehlt (Server session_events, 16.11.2026; Web SessionEvent). */
+@Serializable
+data class SessionEvent(
+    val id: Int,
+    val titel: String = "",
+    @SerialName("team_slug") val teamSlug: String = "",
+    val global: Boolean = false,
+    val status: String = "",
+    val kategorien: List<String> = emptyList(),          // laufbezogene Kennzahlen (heute sprint_*)
+    @SerialName("laeufe_ms") val laeufeMs: List<Double> = emptyList(),   // Laufstart (Session-ms) je zaehlendem Lauf
+    val plaetze: List<SessionEventPlatz> = emptyList(),
+)
+
+@Serializable
+data class SessionEventPlatz(
+    val kennzahl: String = "",
+    val sportart: String = "",
+    val rang: Int = 0,
+    @SerialName("run_idx") val runIdx: Int? = null,
 )
 
 @Serializable
@@ -383,6 +407,8 @@ data class Metrics(
     @SerialName("avg_hr") val avgHr: Int? = null,
     // Ø Puls nur ueber die Laeufe (01.11.2026, Server-Cache hr_foil_json) — fehlt ohne Puls oder ohne Laeufe.
     @SerialName("avg_hr_foil") val avgHrFoil: Int? = null,
+    // Takt laut Uhr (Suunto/SuuntoPlus, 16.11.2026) in 1/min, Mittel ueber alle Laeufe — nur Anzeige der Uhrangabe.
+    @SerialName("uhr_takt_min") val uhrTaktMin: Double? = null,
     @SerialName("max_hr") val maxHr: Int? = null,
     @SerialName("farthest_segment_m") val farthestSegmentM: Double? = null,
     @SerialName("longest_segment_s") val longestSegmentS: Double? = null,
@@ -427,6 +453,7 @@ data class Segment(
     @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
     @SerialName("longest_glide_s") val longestGlideS: Double? = null,
     @SerialName("accel_fehlt") val accelFehlt: Boolean = false,
+    @SerialName("uhr_takt_min") val uhrTaktMin: Double? = null,   // Takt laut Uhr je Lauf (1/min, Suunto, 16.11.2026)
     // Ab hier: Felder, die der Server schon immer liefert, die Android aber nicht gelesen hat —
     // deshalb fehlten sieben der dreizehn Spalten der PWA-Lauf-Tabelle (Jans Meldung 18.08.).
     @SerialName("min_speed_mps") val minSpeedMps: Double? = null,
@@ -1245,6 +1272,7 @@ data class SessionDetail(
     @SerialName("like_count") val likeCount: Int = 0,
     @SerialName("comment_count") val commentCount: Int = 0,   // sichtbare Kommentare (Web 6fc0a4f8, 02.11.2026)
     @SerialName("comments_off") val commentsOff: Boolean = false,   // Inhaber hat Kommentare abgeschaltet
+    val events: List<SessionEvent>? = null,   // Events, fuer die die Session zaehlt (16.11.2026)
     val liked: Boolean = false,
     val owned: Boolean = false,
     @SerialName("youtube_url") val youtubeUrl: String? = null,

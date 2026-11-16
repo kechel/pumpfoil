@@ -97,7 +97,8 @@ object I18n {
             return key.removePrefix("cls.sport.").split("+").filter { it.isNotEmpty() }.joinToString(" + ") { t("cls.sport.$it") }
         }
         NEU[key]?.let { m -> (m[lang] ?: (if (lang == "pt-PT") m["pt"] else null) ?: m["en"])?.let { return it } }
-        teamsText(key, lang)?.let { return it }   // Teams & Events (I18nTeams.kt, aus den Web-Sprachdateien)
+        teamsText(key, lang)?.let { return it }
+        eventsText(key, lang)?.let { return it }   // Referee, Event-Kennzeichen, Takt laut Uhr (I18nEvents.kt, aus dem Web)   // Teams & Events (I18nTeams.kt, aus den Web-Sprachdateien)
         portText(key, lang)?.let { return it }    // App-Port ab 04.11.2026 (I18nPort.kt, aus den Web-Sprachdateien)
         if (lang == "fi") FI[key]?.let { return it }   // fi-Overlay (aus web fi.ts); sonst Englisch
         if (lang == "nl") NL[key]?.let { return it }   // nl-Overlay (aus web nl.ts); sonst Englisch

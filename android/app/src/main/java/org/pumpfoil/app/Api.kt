@@ -1821,6 +1821,38 @@ object Api {
         val body = if (teamId == null) "{\"team_id\":null}" else "{\"team_id\":$teamId}"
         json.decodeFromString(EventMeinTeam.serializer(), http("PUT", slugPfad(slug) + "/events/$id/mein-team", body, auth = true))
     }
+    /** Lauf eines anderen Fahrers zur Pruefung melden (Referee Board, 16.11.2026) → aktualisierte gemeldet/gesperrt-Paare. */
+    suspend fun teamEventMelden(slug: String, id: Int, sessionId: Int, runIdx: Int, grund: String, text: String): EventMelden =
+        withContext(Dispatchers.IO) {
+            val body = buildJsonObject {
+                put("session_id", sessionId); put("run_idx", runIdx); put("grund", grund)
+                if (text.isNotEmpty()) put("text", text)
+            }
+            json.decodeFromString(EventMelden.serializer(), http("POST", slugPfad(slug) + "/events/$id/melden", body.toString(), auth = true))
+        }
+    /** Events mehrerer Teams (16.11.2026): anderes Team einladen bzw. entfernen → beteiligte Teams. */
+    suspend fun teamEventTeamEinladen(slug: String, id: Int, team: String): List<EventTeamBeteiligt> = withContext(Dispatchers.IO) {
+        json.decodeFromString(EventTeamsAntwort.serializer(),
+            http("POST", slugPfad(slug) + "/events/$id/teams", buildJsonObject { put("team", team) }.toString(), auth = true)).teamsBeteiligt
+    }
+    suspend fun teamEventTeamEntfernen(slug: String, id: Int, teamSlug: String): List<EventTeamBeteiligt> = withContext(Dispatchers.IO) {
+        json.decodeFromString(EventTeamsAntwort.serializer(),
+            http("DELETE", slugPfad(slug) + "/events/$id/teams/" + java.net.URLEncoder.encode(teamSlug, "UTF-8"), null, auth = true)).teamsBeteiligt
+    }
+    /** Einladungen dieses Teams zu Events anderer Teams (nur Leitung/Moderation). */
+    suspend fun teamEventEinladungen(slug: String): List<EventEinladung> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(EventEinladung.serializer()), http("GET", slugPfad(slug) + "/event-einladungen", null, auth = true))
+    }
+    suspend fun teamEventEinladungAntworten(slug: String, eventId: Int, annehmen: Boolean): Unit = withContext(Dispatchers.IO) {
+        http("POST", slugPfad(slug) + "/event-einladungen/$eventId", buildJsonObject { put("annehmen", annehmen) }.toString(), auth = true); Unit
+    }
+    /** Als globales Event vorschlagen bzw. Vorschlag zurueckziehen (16.11.2026). */
+    suspend fun teamEventVorschlagen(slug: String, id: Int): EventVorschlag? = withContext(Dispatchers.IO) {
+        json.decodeFromString(EventVorschlagAntwort.serializer(), http("POST", slugPfad(slug) + "/events/$id/vorschlag", null, auth = true)).vorschlag
+    }
+    suspend fun teamEventVorschlagZurueck(slug: String, id: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", slugPfad(slug) + "/events/$id/vorschlag", null, auth = true); Unit
+    }
     /** Beitreten → `status` aktiv | angefragt (entscheidet „automatisch akzeptieren" am Server). */
     suspend fun teamBeitreten(slug: String): TeamBeitritt = withContext(Dispatchers.IO) {
         json.decodeFromString(TeamBeitritt.serializer(), http("POST", slugPfad(slug) + "/beitreten", null, auth = true))
