@@ -1575,6 +1575,17 @@ nachtraeglich HINEINnehmen (Laufgrenzen/Sprints neu rechnen, wie 21890/21668) �
 + auswertung-festhalten.
 Entwurf zusammen mit A1.
 
+**A++. Nach A1 (Jan 16.11.)**
+- **Event unter mehreren Teams austragen:** ein Team laedt andere Teams zu seinem Event ein (z. B. 5 Teams), die Wertung
+  zaehlt nur deren Mitglieder (Team-Wertung wie bei globalen Events), angezeigt nur diesen Teams. Erweitert „Globale Events
+  von Teams vorschlagen" (docs/TEAMS.md). Offen: Einladung annehmen/ablehnen je Team, wer Referee ist (Leitung aller
+  beteiligten Teams?), Sichtbarkeit fuer Nicht-Mitglieder.
+- **Endstand nachvollziehbar festhalten (auch Jahre spaeter):** beim Festschreiben bisher Ergebnis, Summen, Teilnehmer,
+  Teamzuordnung, Spots — NICHT festgehalten: welche Regeln und welche Auswertung galten. Dazu beim Festschreiben einen
+  „Stand" speichern: Regeltext-Fassung (Datum/Commit der Team-Regeln), Wertungsregel (event_laeufe-Version), Erkennung
+  (v2/v3-Version der gezaehlten Sessions), sprint-VERSION, Server-Commit, Referee-Korrekturen. Anzeige im Footer der
+  Event-Seite („Ausgewertet mit …"), Regeln als festgehaltener Text abrufbar. Bei Neu-Festschreiben (Referee) aktualisieren.
+
 **C. Analyse-Befunde (Pipeline, nur mit Jans OK)**
 - GPS-Wiederfinden nach Unterwasser-Luecke als Lauf (08.11.); Autofahrt verschiebt den Wasser-Suchpunkt (07.11.);
   eingefrorene GPS-Fixe reparieren (13.11., gebaut, nicht eingehaengt); Land-Session bekam Laeufe (11.11., vor der
