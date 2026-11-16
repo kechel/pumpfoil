@@ -1539,6 +1539,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 **Reihenfolge (Jan 16.11. nachmittags):** 1) A6 Accel-Normierung, 2) Events unter mehreren Teams, 3) App-Ports von allem aus A.
 Stand 16.11. abends: 1) vertagt, 2) gebaut (Web/Server), dazu „Als globales Event vorschlagen" gebaut (Web/Server,
 docs/TEAMS.md) -> als Naechstes 3) App-Ports von ALLEM (Jan: „danach dann alles in die apps uebernehmen in ruhe").
+✅ 16.11. abends: 3) App-Ports gebaut — Android 6b01a325/788129f8/87b63910/351d215d (assembleDebug gruen, Emulator gesehen;
+Schreibwege Melden/Einladen/Vorschlagen nicht ausgeloest), iOS 53e22b61/b4c99fec/0ed3576b/c60424d6 (nur swiftc -parse, Xcode-Build
+Jan). Dazu Chat-Abzeichen am Reiter (Meldung u1074), Puls-Streifen je Lauf, Datenschutzseite. Changelog 16.11. nachgetragen.
 Referee „nur zu zweit/Moderatoren nur Vorschlag" nur gemerkt (Jan: „glaube das brauchen wir garnicht").
 
 **A. Diese Woche (Jan: „naechste Woche"), alles Wertung/Analyse -> erst Entwurf mit Zahlen, dann Jans OK**
