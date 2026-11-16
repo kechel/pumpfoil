@@ -196,7 +196,7 @@ function EventUebersichtBild({ ev, team, t, lang, stand, onClose }: {
 }) {
   const kategorien = [
     ...ev.tafeln.map((tf, i) => ({ key: `p${i}`, titel: tafelTitel(tf, ev, t), tf, team: false })),
-    ...(ev.global ? ev.tafeln.map((tf, i) => ({ key: `t${i}`, titel: `${t("team.event.teams")} · ${tafelTitel(tf, ev, t)}`, tf, team: true })) : []),
+    ...(ev.global || ev.mehrteam ? ev.tafeln.map((tf, i) => ({ key: `t${i}`, titel: `${t("team.event.teams")} · ${tafelTitel(tf, ev, t)}`, tf, team: true })) : []),
   ];
   // Standard: die Bestenlisten der Fahrer (hoechstens 4, damit das Bild nicht zu lang wird), Team-Wertungen abgewaehlt.
   const [wahl, setWahl] = useState<Set<string>>(() => new Set(kategorien.filter((k) => !k.team).slice(0, 4).map((k) => k.key)));
@@ -207,7 +207,7 @@ function EventUebersichtBild({ ev, team, t, lang, stand, onClose }: {
     const zeilen: BildZeile[] = k.team
       ? (k.tf.teams ?? []).slice(0, 3).map((x) => teamBildZeile(x, f.fmt(x.value), false, t))
       : k.tf.zeilen.slice(0, 3).map((z) => ({ rang: z.rang, name: z.name, initialen: z.initialen, land: z.land, wert: f.fmt(z.value),
-          abzeichen: bildAbzeichen(t, z.sportarten, SPORTS), wappen: ev.global ? wappenVon(z.teams?.[0]) : undefined }));
+          abzeichen: bildAbzeichen(t, z.sportarten, SPORTS), wappen: ev.global || ev.mehrteam ? wappenVon(z.teams?.[0]) : undefined }));
     return { titel: k.titel, zeilen };
   });
   const farbe = TEAM_FARBEN[team.farbe || "cyan"] ?? TEAM_FARBEN.cyan;
@@ -306,8 +306,15 @@ export default function TeamEventSeite() {
     if (gast) {
       api.teamEventOeffentlich(slug, id).then((d) => { setTeam(d.team); setEv(d.event); }).catch(() => setFehlt(true));
     } else {
-      api.team(slug).then(setTeam).catch(() => setFehlt(true));
-      api.teamEvent(slug, id, teamFilter || undefined, klasse || undefined).then(setEv).catch(() => setFehlt(true));
+      // Event mehrerer Teams (16.11.2026): Mitglieder eines Gast-Teams sehen das ausrichtende Team evtl. nicht — dann
+      // kommt der Kopf aus dem Event (`gastgeber`).
+      Promise.allSettled([api.team(slug), api.teamEvent(slug, id, teamFilter || undefined, klasse || undefined)]).then(([tr, er]) => {
+        if (er.status !== "fulfilled") { setFehlt(true); return; }
+        setEv(er.value);
+        if (tr.status === "fulfilled") setTeam(tr.value);
+        else if (er.value.gastgeber) setTeam(er.value.gastgeber);
+        else setFehlt(true);
+      });
     }
   }, [slug, id, gast, teamFilter, klasse]);
   // Vorauswahl nach der Standard-Ansicht im Profil (08.11.2026): wer „Pumpfoil + Foil Scoot" eingestellt hat, sieht
@@ -387,6 +394,17 @@ export default function TeamEventSeite() {
         {team.name}
         <TeamHerkunft land={team.land} />
       </Link>
+      )}
+      {/* Event mehrerer Teams (16.11.2026): wer mitmacht — nur angenommene Teams, das ausrichtende zuerst. */}
+      {ev.mehrteam && (
+        <p className="mb-3 flex flex-wrap items-center gap-2 text-sm text-slate-300">
+          <span className="font-semibold">{t("team.event.mitTeams")}</span>
+          {(ev.teams_beteiligt ?? []).filter((x) => x.status === "ausrichtend" || x.status === "angenommen").map((x) => (
+            <span key={x.slug} className="inline-flex items-center gap-1.5 rounded-full bg-slate-800 px-2 py-0.5">
+              <TeamWappen name={x.name} logo={x.logo_url} farbe={x.farbe} size={18} />{x.name}
+            </span>
+          ))}
+        </p>
       )}
       {meldung && <p className="mb-3 rounded-xl border border-slate-700 bg-slate-900/60 p-3 text-sm text-slate-200">{meldung}</p>}
       {ev.banner_url ? <TeamBanner url={ev.banner_url} fokus={ev.banner_fokus} className="mb-4" />
@@ -485,7 +503,7 @@ export default function TeamEventSeite() {
         </div>
       )}
       {/* Teamwahl globaler Events (10.11.2026): schon vor dem Start, bis 6 h vor dem Ende */}
-      {ev.global && ev.mein_team && !gast && ev.mein_team.aenderbar && (ev.status === "kommend" || ev.status === "laeuft") ? (
+      {(ev.global || ev.mehrteam) && ev.mein_team && !gast && ev.mein_team.aenderbar && (ev.status === "kommend" || ev.status === "laeuft") ? (
         <EventMeinTeam slug={team.slug} evId={ev.id} mt={ev.mein_team} t={t}
           onGeaendert={() => api.teamEvent(slug, id).then(setEv).catch(() => {})} />
       ) : ev.global && !gast && ev.angetreten && (ev.status === "laeuft" || ev.angetreten_mit_werten) && (
@@ -564,10 +582,10 @@ export default function TeamEventSeite() {
             {/* Siegertreppchen ueber der Bestenliste, nur beendete Events. Gleiche Rechte wie die Eventseite (Jan, 09.11.2026):
                 es zeigt nur, was die Seite ohnehin geladen hat — Gaeste also in Gastform (Rang, Name, Wert, Wappen). */}
             {ev.status === "beendet" && <EventPodest evId={ev.id} tf={tf0} global={!!ev.global} t={t} />}
-            <div className={`grid grid-cols-1 gap-3 ${ev.global ? "sm:grid-cols-2" : ""}`}>
-              <Tafel tf={tf} gast={gast} t={t} teamsZeigen={!!ev.global} ohneFilter
+            <div className={`grid grid-cols-1 gap-3 ${ev.global || ev.mehrteam ? "sm:grid-cols-2" : ""}`}>
+              <Tafel tf={tf} gast={gast} t={t} teamsZeigen={!!(ev.global || ev.mehrteam)} ohneFilter
                 melden={!gast && ev.melden ? { ...ev.melden, onMelden: (z) => setLaufMeldung({ z, kennzahl: tf.kennzahl }) } : undefined} sportZeigen={new Set(ev.tafeln.map((x) => x.sportart)).size > 1} zurueck={{ zurueck: `/teams/${team.slug}/events/${ev.id}`, zurueckText: ev.titel }} onBild={gast ? undefined : () => setBild(tf)} standText={standText} />
-              {ev.global && <TeamWertung tf={tf} n={ev.team_wertung_n ?? 5} t={t} eigeneSlugs={meineTeams.map((x) => x.slug)} standText={standText}
+              {(ev.global || ev.mehrteam) && <TeamWertung tf={tf} n={ev.team_wertung_n ?? 5} t={t} eigeneSlugs={meineTeams.map((x) => x.slug)} standText={standText}
                 onBild={gast ? undefined : () => setBildTeams(tf0)} />}
             </div>
             </>
@@ -577,7 +595,7 @@ export default function TeamEventSeite() {
       )}
 
       {/* Teilen-Zeile unter den Bestenlisten, ueber den Regeln (Jan, 01.11.2026). */}
-      {(team.bestenlisten_oeffentlich || ev.global) && <EventTeilen url={`${window.location.origin}/teams/${team.slug}/events/${ev.id}`} titel={ev.titel} t={t} />}
+      {(team.bestenlisten_oeffentlich || ev.global) && !ev.mehrteam && <EventTeilen url={`${window.location.origin}/teams/${team.slug}/events/${ev.id}`} titel={ev.titel} t={t} />}
 
       {/* Event-Regeln als kleine Box statt Link auf die ganze Regelseite (Jan, 01.11.2026): nur was fuers Event gilt. */}
       <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
@@ -632,7 +650,7 @@ export default function TeamEventSeite() {
       {uebersicht && <EventUebersichtBild ev={ev} team={team} t={t} lang={lang} stand={ev.tafeln[0] ? standFuer(ev.tafeln[0]) : null}
         onClose={() => setUebersicht(false)} />}
       {bild && <TeamTafelBild team={team} tafel={bild} onClose={() => setBild(null)} zeitraum={ev.titel} stand={standFuer(bild)}
-        dateiBasis={dateiTeil(ev.titel) || `event-${ev.id}`} teamsZeigen={!!ev.global}
+        dateiBasis={dateiTeil(ev.titel) || `event-${ev.id}`} teamsZeigen={!!(ev.global || ev.mehrteam)}
         ohneLogo={!!ev.global} eventZeile={[ev.titel, eventZeitraum(ev.start, ev.ende, ev.zeitzone, lang, true)]}
         abzeichen={ev.status === "laeuft" || ev.status === "auswertung" ? t(`team.event.status.${ev.status}`) : null} />}
     </div>

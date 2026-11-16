@@ -972,12 +972,45 @@ def ist_global(e: models.TeamEvent) -> bool:
     return bool(getattr(e, "global_event", False))
 
 
+def event_team_ids(db: Session, e: models.TeamEvent) -> list[int]:
+    """Events unter mehreren Teams (16.11.2026): ausrichtendes Team + alle, die die Einladung angenommen haben."""
+    TT = models.TeamEventTeam
+    return [e.team_id] + [i for (i,) in db.query(TT.team_id).filter(TT.event_id == e.id, TT.status == "angenommen")
+                          .order_by(TT.id).all() if i != e.team_id]
+
+
+def ist_mehrteam(db: Session, e: models.TeamEvent) -> bool:
+    """Event unter mehreren Teams = nicht global und mindestens ein weiteres Team hat angenommen."""
+    if ist_global(e) or e.id is None:
+        return False
+    TT = models.TeamEventTeam
+    return db.query(TT.id).filter(TT.event_id == e.id, TT.status == "angenommen").first() is not None
+
+
+def mit_teamwertung(db: Session, e: models.TeamEvent) -> bool:
+    return ist_global(e) or ist_mehrteam(db, e)
+
+
+def darf_event_sehen(db: Session, uid: int, e: models.TeamEvent) -> bool | None:
+    """Events mehrerer Teams: nur Mitglieder der beteiligten Teams (Jan). None = kein Mehrteam-Event (alte Regel gilt)."""
+    if not ist_mehrteam(db, e):
+        return None
+    return bool(set(mitglieder_team_ids(db, uid)) & set(event_team_ids(db, e)))
+
+
+def mehrteam_event_ids(db: Session, team_id: int) -> list[int]:
+    """Events anderer Teams, bei denen `team_id` die Einladung angenommen hat."""
+    TT = models.TeamEventTeam
+    return [i for (i,) in db.query(TT.event_id).filter(TT.team_id == team_id, TT.status == "angenommen").all()]
+
+
 def wertung_n(e: models.TeamEvent) -> int:
     n = getattr(e, "team_wertung_n", None)
     return WERTUNG_N_STANDARD if n is None else max(0, int(n))
 
 
-def team_zuordnung(db: Session, ausser_team_id: int | None = None, event_id: int | None = None) -> dict:
+def team_zuordnung(db: Session, ausser_team_id: int | None = None, event_id: int | None = None,
+                   nur_teams: list[int] | None = None) -> dict:
     """Wer jetzt fuer welches Team zaehlt — dieselben Teams wie im Team-Vergleich (freigegeben, Bestenlisten
     oeffentlich, nicht geloescht), ohne `ausser_team_id`. Mit dem freigegebenen Auftritt jedes Teams (Name, Logo,
     Farbe, Land), damit ein festgehaltener Stand auch spaetere Umbenennungen uebersteht.
@@ -985,14 +1018,19 @@ def team_zuordnung(db: Session, ausser_team_id: int | None = None, event_id: int
     M, Tm = models.TeamMitglied, models.Team
     kandidaten: dict[str, list[tuple]] = {}
     teams: dict[str, dict] = {}
-    for t, m in (db.query(Tm, M).join(M, M.team_id == Tm.id)
-                 .filter(M.status == "aktiv", Tm.frei_am.isnot(None), Tm.geloescht_am.is_(None),
-                         Tm.oeffentlich.is_(True)).order_by(Tm.id, M.user_id).all()):
+    q = db.query(Tm, M).join(M, M.team_id == Tm.id).filter(M.status == "aktiv", Tm.geloescht_am.is_(None))
+    if nur_teams is not None:
+        # Event mehrerer Teams: genau die beteiligten Teams, auch nicht freigegebene (sichtbar nur fuer Beteiligte) —
+        # dann mit ihrem aktuellen Auftritt.
+        q = q.filter(Tm.id.in_(list(nur_teams) or [-1]))
+    else:
+        q = q.filter(Tm.frei_am.isnot(None), Tm.oeffentlich.is_(True))
+    for t, m in q.order_by(Tm.id, M.user_id).all():
         if t.id == ausser_team_id:
             continue
         kandidaten.setdefault(str(m.user_id), []).append((t.id, bool(m.primaer), m.seit))
         if str(t.id) not in teams:
-            a = auftritt(t, False)
+            a = auftritt(t, nur_teams is not None and t.frei_am is None)
             # banner_* seit 09.11.2026 (Siegertreppchen); aeltere festgehaltene Staende haben sie nicht.
             teams[str(t.id)] = {k: a[k] for k in ("slug", "name", "logo_url", "farbe", "land", "banner_url", "banner_fokus")}
     # Genau EIN Team je Fahrer (Jan, 10.11.2026: „dann zaehlt man … nur fuer genau ein team auch wenn man in mehreren
@@ -1094,6 +1132,8 @@ def event_zuordnung(db: Session, e: models.TeamEvent) -> dict:
     """Teamzugehoerigkeit fuer ein globales Event: festgehalten zum Ende (`team_zuordnung_json`), sonst die aktuelle."""
     if e.team_zuordnung_json:
         return json.loads(e.team_zuordnung_json)
+    if not ist_global(e):
+        return team_zuordnung(db, None, e.id, nur_teams=event_team_ids(db, e))
     return team_zuordnung(db, e.team_id, e.id)
 
 
@@ -1108,6 +1148,12 @@ def events_zuordnung_sichern(db: Session, jetzt: datetime | None = None) -> None
                                 E.team_zuordnung_json.is_(None), E.global_event.is_(True)).all())
     for e in offen:
         e.team_zuordnung_json = json.dumps(team_zuordnung(db, e.team_id, e.id))
+    # Events mehrerer Teams ebenso (16.11.2026).
+    TT = models.TeamEventTeam
+    for e in (db.query(E).join(TT, TT.event_id == E.id)
+              .filter(TT.status == "angenommen", E.ende <= j, E.eingefroren_am.is_(None), E.geloescht_am.is_(None),
+                      E.team_zuordnung_json.is_(None), E.global_event.isnot(True)).distinct().all()):
+        e.team_zuordnung_json = json.dumps(event_zuordnung(db, e))
 
 
 def team_wertung(db: Session, zeilen: list[dict], n: int, ausser_team_id: int | None,
@@ -1250,6 +1296,8 @@ def event_teilnehmer(db: Session, t: models.Team, e: models.TeamEvent) -> list[i
     if ist_global(e):
         return ALLE
     if e.teilnehmer_json is None:
+        if ist_mehrteam(db, e):     # alle Mitglieder der beteiligten Teams (16.11.2026)
+            return sorted({u for tid in event_team_ids(db, e) for u in mitglieder_ids(db, tid)})
         return mitglieder_ids(db, t.id)
     ids = [int(i) for i in json.loads(e.teilnehmer_json)]
     if not ids:
@@ -1266,13 +1314,13 @@ def events_teilnehmer_sichern(db: Session, team_id: int, jetzt: datetime | None 
     j = jetzt or _jetzt()
     events_zuordnung_sichern(db, j)
     E = models.TeamEvent
-    offen = (db.query(E).filter(E.team_id == team_id, E.ende <= j, E.eingefroren_am.is_(None),
-                                E.geloescht_am.is_(None), E.teilnehmer_json.is_(None),
+    # Auch Events anderer Teams, bei denen dieses Team mitmacht (Events mehrerer Teams, 16.11.2026).
+    andere = mehrteam_event_ids(db, team_id)
+    offen = (db.query(E).filter(or_(E.team_id == team_id, E.id.in_(andere or [-1])), E.ende <= j,
+                                E.eingefroren_am.is_(None), E.geloescht_am.is_(None), E.teilnehmer_json.is_(None),
                                 E.global_event.isnot(True)).all())
-    if offen:
-        ids = json.dumps(sorted(mitglieder_ids(db, team_id)))
-        for e in offen:
-            e.teilnehmer_json = ids
+    for e in offen:
+        e.teilnehmer_json = json.dumps(event_teilnehmer(db, db.get(models.Team, e.team_id), e))
 
 
 def _event_voll(db: Session, t: models.Team, e: models.TeamEvent, frisch: bool = False) -> list[dict]:
@@ -1300,7 +1348,8 @@ def _event_voll(db: Session, t: models.Team, e: models.TeamEvent, frisch: bool =
         return voll
     ids = event_teilnehmer(db, t, e)
     glob = ist_global(e)
-    zuordnung = event_zuordnung(db, e) if glob else None
+    mehr = ist_mehrteam(db, e)       # Events mehrerer Teams: Team-Wertung wie global, nur die beteiligten Teams
+    zuordnung = event_zuordnung(db, e) if (glob or mehr) else None
     fenster = (_aware(e.start), _aware(e.ende))
     out = []
     zeiten: list[float] = []
@@ -1309,8 +1358,8 @@ def _event_voll(db: Session, t: models.Team, e: models.TeamEvent, frisch: bool =
                                  ohne_dateien=bool(e.ohne_dateien), laenge=GLOBAL_ZEILEN_MAX if glob else TAFEL_LAENGE,
                                  stand=zeiten, ausgenommen=R.ausgenommen(db, e))
         x = {**tafel_out(tf), "zeilen": zeilen}
-        if glob:
-            tw = team_wertung(db, zeilen, wertung_n(e), t.id, zuordnung, schnitt=tf.kennzahl in SPRINT)
+        if glob or mehr:
+            tw = team_wertung(db, zeilen, wertung_n(e), t.id if glob else None, zuordnung, schnitt=tf.kennzahl in SPRINT)
             x["teams"] = [z for z in tw if not z.get("ungewertet")]
             if len(x["teams"]) < len(tw):
                 x["teams_ungewertet"] = [z for z in tw if z.get("ungewertet")]
@@ -1331,6 +1380,12 @@ def event_berechnen(db: Session, t: models.Team, e: models.TeamEvent, nur_team_i
     if klasse and klasse in klassen_angebot(db, voll):
         voll = nach_klasse(db, voll, klasse)
     if not ist_global(e):
+        if ist_mehrteam(db, e) and not e.ergebnis_json:
+            # Events mehrerer Teams: Wappen je Zeile wie bei globalen (16.11.2026); eingefroren stehen sie schon drin.
+            z_ = event_zuordnung(db, e)
+            for tf in voll:
+                w = zeilen_teams(db, [z["user_id"] for z in tf["zeilen"]], None, z_)
+                tf["zeilen"] = [{**z, "teams": w.get(z["user_id"], [])} for z in tf["zeilen"]]
         return voll
     erlaubt = set(nur_team_ids) if nur_team_ids is not None else None
     aus = global_aus(db)
@@ -1442,11 +1497,17 @@ def session_events(db: Session, s: models.Session, betrachter: int | None = None
         else:
             if s.user_id not in event_teilnehmer(db, t, e):
                 continue
-            if t.frei_am is None and (betrachter is None or betrachter not in mitglieder_ids(db, t.id)):
+            sehen = darf_event_sehen(db, betrachter, e) if betrachter is not None else None
+            if sehen is False or (sehen is None and t.frei_am is None
+                                  and (betrachter is None or betrachter not in mitglieder_ids(db, t.id))):
                 continue
         sport = s.sport_class or "pumpfoil"
-        tafeln_ = [tf for tf in event_tafeln(e) if tf.sportart == sport or sportmix.ist_mix(tf.sportart)]
-        if not tafeln_ and not event_summen_auswahl(e):
+        # Nur Tafeln/Summen DIESER Sportart (bzw. eine Mischung, die sie enthaelt) — sonst bekam z. B. eine Wingfoil-Session
+        # das Event-Badge, weil das Event Gesamtsummen fuer Pumpfoil hat (16.11.2026).
+        def _passt(sa):
+            return sa == sport or sport in (sportmix.teile(sa) or ())
+        tafeln_ = [tf for tf in event_tafeln(e) if _passt(tf.sportart)]
+        if not tafeln_ and not (event_summen_auswahl(e) and _passt(e.summen_sportart or "pumpfoil")):
             continue
         fenster = (_aware(e.start), _aware(e.ende))
         rows = (db.query(S.id, S.user_id, S.started_at, AR.segments_json, AR.detection, S.accel_hz, S.trim_start_ms)
@@ -1586,14 +1647,15 @@ def event_einfrieren(db: Session, e: models.TeamEvent, jetzt: datetime | None = 
     # Frisch rechnen, nicht aus dem 2-Minuten-Cache.
     for k in [k for k in _cache if k and k[0] == t.id]:
         _cache.pop(k, None)
-    if ist_global(e) and not e.team_zuordnung_json:
-        e.team_zuordnung_json = json.dumps(team_zuordnung(db, e.team_id, e.id))   # keine Aenderung seit dem Ende
+    mehr = ist_mehrteam(db, e)
+    if (ist_global(e) or mehr) and not e.team_zuordnung_json:
+        e.team_zuordnung_json = json.dumps(event_zuordnung(db, e))   # keine Aenderung seit dem Ende
     voll = _event_voll(db, t, e)
-    if ist_global(e):
+    if ist_global(e) or mehr:
         # Wappen je Zeile mit festschreiben (sonst kaemen sie beim Abruf aus der aktuellen Mitgliedschaft).
         z_ = json.loads(e.team_zuordnung_json)
         for tf in voll:
-            w = zeilen_teams(db, [z["user_id"] for z in tf["zeilen"]], t.id, z_)
+            w = zeilen_teams(db, [z["user_id"] for z in tf["zeilen"]], t.id if ist_global(e) else None, z_)
             tf["zeilen"] = [{**z, "teams": w.get(z["user_id"], [])} for z in tf["zeilen"]]
     # Spots des Events mit Namen (Umbenennungen spaeter aendern den Endstand nicht).
     ids = event_spots(e)
@@ -1663,18 +1725,42 @@ def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = Fal
             # ich erstmal ein". Titel und Beschreibung von Events sind ebenso ohne Freigabe oeffentlich.
             "banner_url": e.banner_url, "banner_fokus": e.banner_fokus,
             "global": ist_global(e), "team_wertung_n": wertung_n(e),
+            # Events mehrerer Teams (16.11.2026): Team-Wertung wie global, beteiligte Teams (ausrichtendes zuerst).
+            "mehrteam": ist_mehrteam(db, e),
+            "teams_beteiligt": [] if gast else event_teams_out(db, e),
             # Filter „Wertungsklasse" (10.11.2026): angebotene Klassen mit Anzahl, leer = kein Filter; `klasse` = aktiv.
             "klassen": klassen, "klasse": klasse if klasse in klassen else None}
 
 
-def events_liste(db: Session, team_id: int, beendete: int = 10) -> list[models.TeamEvent]:
-    """Laufende, in Auswertung und kommende Events, dazu die letzten `beendete` eingefrorenen."""
+def events_liste(db: Session, team_id: int, beendete: int = 10, gast: bool = False) -> list[models.TeamEvent]:
+    """Laufende, in Auswertung und kommende Events, dazu die letzten `beendete` eingefrorenen. Mit den Events anderer
+    Teams, bei denen dieses Team mitmacht (16.11.2026); fuer Gaeste (oeffentliche Teamseite) OHNE Events mehrerer Teams
+    — die sehen nur die Beteiligten."""
     E = models.TeamEvent
-    offen = (db.query(E).filter(E.team_id == team_id, E.eingefroren_am.is_(None), E.geloescht_am.is_(None))
-             .order_by(E.start).all())
-    alt = (db.query(E).filter(E.team_id == team_id, E.eingefroren_am.isnot(None), E.geloescht_am.is_(None))
+    andere = [] if gast else mehrteam_event_ids(db, team_id)
+    eigen = or_(E.team_id == team_id, E.id.in_(andere or [-1]))
+    offen = (db.query(E).filter(eigen, E.eingefroren_am.is_(None), E.geloescht_am.is_(None)).order_by(E.start).all())
+    alt = (db.query(E).filter(eigen, E.eingefroren_am.isnot(None), E.geloescht_am.is_(None))
            .order_by(E.ende.desc()).limit(beendete).all())
-    return offen + alt
+    out = offen + alt
+    return [e for e in out if not ist_mehrteam(db, e)] if gast else out
+
+
+def event_teams_out(db: Session, e: models.TeamEvent) -> list[dict]:
+    """Beteiligte Teams eines Events mit Status (ausrichtend | angenommen | eingeladen | abgelehnt)."""
+    if ist_global(e):
+        return []
+    TT, Tm = models.TeamEventTeam, models.Team
+    out = []
+    host = db.get(Tm, e.team_id)
+    if host is not None:
+        a = auftritt(host, host.frei_am is None)
+        out.append({"slug": host.slug, "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"], "status": "ausrichtend"})
+    for x, t in (db.query(TT, Tm).join(Tm, Tm.id == TT.team_id).filter(TT.event_id == e.id, Tm.geloescht_am.is_(None))
+                 .order_by(TT.id).all()):
+        a = auftritt(t, t.frei_am is None)
+        out.append({"slug": t.slug, "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"], "status": x.status})
+    return out
 
 
 def abzeichen(db: Session, uid: int) -> list[dict]:

@@ -41,6 +41,10 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
   // auf die Seite dahinter, die das offene Popup verdeckt; man sah also gar nichts.
   const [popupFehler, setPopupFehler] = useState<string | null>(null);
   const [spotWahl, setSpotWahl] = useState("");
+  const [beteiligt, setBeteiligt] = useState<NonNullable<TeamEvent["teams_beteiligt"]>>([]);
+  const [einladen, setEinladen] = useState("");
+  const [teamVorschlaege, setTeamVorschlaege] = useState<{ slug: string; name: string }[]>([]);
+  useEffect(() => { api.teamsListe().then((l) => setTeamVorschlaege(l.filter((x) => x.slug !== slug).map((x) => ({ slug: x.slug, name: x.name })))).catch(() => {}); }, [slug]);
   const laden = () => api.teamEvents(slug).then(setListe).catch(() => {});
   useEffect(() => { laden(); }, [slug]);   // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -68,13 +72,13 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
       .then(() => { schliessen(); laden(); onMeldung(t("team.gespeichert")); })
       .catch((x) => setPopupFehler(t(`team.err.${fehlerCode(x)}`)));
   };
-  const bearbeiten = (ev: TeamEvent) => setE({
+  const bearbeiten = (ev: TeamEvent) => { setBeteiligt(ev.teams_beteiligt ?? []); setE({
     global_event: !!ev.global, team_wertung_n: ev.team_wertung_n ?? 5,
     id: ev.id, eingefroren: ev.status === "beendet", banner_url: ev.banner_url, banner_fokus: ev.banner_fokus, ohne_dateien: ev.ohne_dateien, teambild_zeigen: ev.teambild_zeigen, summen: ev.summen_auswahl ?? [], summen_sportart: ev.summen_sportart, summen_accel_only: ev.summen_accel_only, titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
     ende: alsEingabe(new Date(ev.ende)), spot_ids: ev.spot_ids, vorlage: ev.vorlage,
     // Gemischte Bestenlisten (Pumpfoil + Foil Scoot) leitet der Server selbst ab — nicht als eigene Tafel speichern.
     tafeln: ev.tafeln.filter((x) => !istMix(x.sportart)).map(({ kennzahl, sportart, accel_only, nur_brett, foil_band }) => ({ kennzahl, sportart, accel_only, nur_brett, foil_band })),
-  });
+  }); };
   const schliessen = () => { setE(null); setPopupFehler(null); onZu?.(); };
   useEffect(() => { if (nurEvent) bearbeiten(nurEvent); }, [nurEvent?.id]);   // eslint-disable-line react-hooks/exhaustive-deps
   const spotName = (id: number) => alleSpots.find((s) => s.id === id)?.name ?? `#${id}`;
@@ -129,6 +133,31 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
                   </select>
                 </label>
               )}
+            </div>
+          )}
+          {/* Mit anderen Teams austragen (16.11.2026): einladen, das andere Team nimmt an; erst gespeicherte Events. */}
+          {e.id && !e.global_event && (
+            <div className="mb-3 rounded-xl border border-slate-700 p-3">
+              <p className="mb-1 text-sm font-semibold text-slate-200">{t("team.event.mehrteam")}</p>
+              <p className="mb-2 text-xs text-slate-400">{t("team.event.mehrteamHinweis")}</p>
+              <div className="mb-2 flex gap-2">
+                <input value={einladen} onChange={(x) => setEinladen(x.target.value)} list="team-vorschlaege" placeholder={t("team.event.mehrteamFeld")}
+                  className={`${eingabe} min-w-0 flex-1`} />
+                <datalist id="team-vorschlaege">{teamVorschlaege.map((x) => <option key={x.slug} value={x.slug}>{x.name}</option>)}</datalist>
+                <button disabled={!einladen.trim()} onClick={() => api.teamEventEinladen(slug, e.id!, einladen.trim())
+                  .then((r) => { setBeteiligt(r.teams_beteiligt); setEinladen(""); laden(); })
+                  .catch((x) => setPopupFehler(t(`team.err.${fehlerCode(x)}`)))}
+                  className="rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-40">{t("team.event.mehrteamEinladen")}</button>
+              </div>
+              {beteiligt.filter((x) => x.status !== "ausrichtend").map((x) => (
+                <div key={x.slug} className="flex items-center gap-2 py-1 text-sm text-slate-200">
+                  <span className="min-w-0 flex-1 truncate">{x.name}</span>
+                  <span className={`rounded-md px-1.5 py-0.5 text-xs font-semibold ${x.status === "angenommen" ? "bg-brand-500/15 text-brand-700 dark:text-brand-300" : x.status === "abgelehnt" ? "bg-slate-800 text-slate-400" : "bg-amber-500/15 text-amber-700 dark:text-amber-300"}`}>
+                    {t(`team.event.einladung.${x.status}`)}</span>
+                  <button onClick={() => api.teamEventTeamEntfernen(slug, e.id!, x.slug).then((r) => { setBeteiligt(r.teams_beteiligt); laden(); })}
+                    className="rounded-md px-1.5 py-0.5 text-xs text-slate-400 hover:bg-slate-800">{t("team.event.mehrteamEntfernen")}</button>
+                </div>
+              ))}
             </div>
           )}
           <label className="mb-1 block text-sm text-slate-300">{t("team.event.titel")}</label>

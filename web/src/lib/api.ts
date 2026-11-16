@@ -2280,6 +2280,15 @@ export const api = {
     req<{ ok: boolean; gemeldet: number[][]; gesperrt: number[][] }>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/melden`, { method: "POST", body: JSON.stringify(body) }),
   refereeKommentar: (slug: string, id: number | string, kid: number, text: string) =>
     req<RefereeKorrektur>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/referee/${kid}/kommentare`, { method: "POST", body: JSON.stringify({ text }) }),
+  // Events mehrerer Teams (16.11.2026)
+  teamEventEinladen: (slug: string, id: number, team: string) =>
+    req<{ teams_beteiligt: NonNullable<TeamEvent["teams_beteiligt"]> }>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/teams`, { method: "POST", body: JSON.stringify({ team }) }),
+  teamEventTeamEntfernen: (slug: string, id: number, team: string) =>
+    req<{ teams_beteiligt: NonNullable<TeamEvent["teams_beteiligt"]> }>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/teams/${encodeURIComponent(team)}`, { method: "DELETE" }),
+  teamEventEinladungen: (slug: string) =>
+    req<{ event_id: number; titel: string; start: string; ende: string; status: string; team: { slug: string; name: string; logo_url: string | null; farbe: string | null } }[]>(`/api/teams/${encodeURIComponent(slug)}/event-einladungen`),
+  teamEventEinladungAntworten: (slug: string, eventId: number, annehmen: boolean) =>
+    req<{ status: string }>(`/api/teams/${encodeURIComponent(slug)}/event-einladungen/${eventId}`, { method: "POST", body: JSON.stringify({ annehmen }) }),
   teamPrimaer: (slug: string) => req<{ primaer: string }>(`/api/teams/${encodeURIComponent(slug)}/primaer`, { method: "PUT" }),
   teamEventMeinTeam: (slug: string, id: number, teamId: number | null) =>
     req<EventMeinTeam>(`/api/teams/${encodeURIComponent(slug)}/events/${id}/mein-team`, { method: "PUT", body: JSON.stringify({ team_id: teamId }) }),
@@ -2446,6 +2455,11 @@ export interface TeamEvent {
   referee?: boolean;
   /** Teilnehmer duerfen Laeufe anderer zur Pruefung melden (bis zum Festschreiben); gemeldet = [[session_id, run_idx]]. */
   melden?: { erlaubt: boolean; gemeldet: number[][]; gesperrt: number[][]; ich: number };
+  /** Events mehrerer Teams (16.11.2026): Team-Wertung wie global, beteiligte Teams; `gastgeber` fuer Gast-Team-Mitglieder. */
+  mehrteam?: boolean;
+  teams_beteiligt?: { slug: string; name: string; logo_url: string | null; farbe: string | null; status: string }[];
+  team_slug?: string;
+  gastgeber?: any;
   /** Regel-/Auswertungsstand (16.11.2026): beim Festschreiben festgehalten; vorher der aktuelle als Vorschau. */
   stand?: null | { festgeschrieben: string; regeln: string; wertung: string; erkennung: Record<string, number>;
     sprint_aktuell: number; sprints: Record<string, number>; korrekturen: number; server: string | null;

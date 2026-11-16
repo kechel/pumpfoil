@@ -233,7 +233,8 @@ def event_mein_team(slug: str, event_id: int, body: MeinTeamIn, user: models.Use
     Aenderbar bis zum Ende — danach steht die Zuordnung (events_zuordnung_sichern)."""
     t, _m = _team_fuer(db, slug, user)
     e = _event(db, t, event_id)
-    if not T.ist_global(e):
+    mehr = T.ist_mehrteam(db, e)
+    if not T.ist_global(e) and not mehr:
         raise HTTPException(status.HTTP_409_CONFLICT, "kein_globales_event")
     if not T.teamwahl_offen(e):
         raise HTTPException(status.HTTP_409_CONFLICT, "teamwahl_geschlossen")   # 6 h vor Ende (10.11.2026)
@@ -243,14 +244,35 @@ def event_mein_team(slug: str, event_id: int, body: MeinTeamIn, user: models.Use
         if alt:
             db.delete(alt)
     else:
-        if body.team_id not in T.meine_wertbaren(db, user.id)["teams"]:
+        erlaubt = (set(T.mitglieder_team_ids(db, user.id)) & set(T.event_team_ids(db, e))) if mehr \
+            else set(T.meine_wertbaren(db, user.id)["teams"])
+        if body.team_id not in erlaubt:
             raise HTTPException(status.HTTP_409_CONFLICT, "team_nicht_wertbar")
         if alt:
             alt.team_id = body.team_id
         else:
             db.add(W(event_id=e.id, user_id=user.id, team_id=body.team_id))
     db.commit()
-    return _mein_team(db, e, user.id)
+    return _mein_team_mehr(db, e, user.id) if mehr else _mein_team(db, e, user.id)
+
+
+def _mein_team_mehr(db: Session, e: models.TeamEvent, uid: int) -> dict | None:
+    """Teamwahl in einem Event mehrerer Teams (16.11.2026): nur wer in mindestens zwei beteiligten Teams ist; Form wie
+    `_mein_team`, damit die Eventseite dieselbe Auswahl zeigt."""
+    meine = [tid for tid in T.event_team_ids(db, e) if tid in set(T.mitglieder_team_ids(db, uid))]
+    if len(meine) < 2:
+        return None
+    W, M = models.TeamEventTeamWahl, models.TeamMitglied
+    gewaehlt = db.query(W.team_id).filter(W.event_id == e.id, W.user_id == uid).scalar()
+    prim = db.query(M.team_id).filter(M.user_id == uid, M.status == "aktiv", M.primaer.is_(True)).scalar()
+    eff = (T.event_zuordnung(db, e).get("mitglieder", {}).get(str(uid)) or [None])[0]
+    teams = {x.id: x for x in db.query(models.Team).filter(models.Team.id.in_(meine)).all()}
+    def kurz(tid):
+        a = T.auftritt(teams[tid], True)
+        return {"id": tid, "slug": a["slug"], "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"]}
+    return {"auswahl": [kurz(i) for i in meine], "nicht_zaehlend": [], "gewaehlt": gewaehlt if gewaehlt in meine else None,
+            "primaer": prim if prim in meine else None, "markiert": prim, "effektiv": eff, "aenderbar": T.teamwahl_offen(e),
+            "schluss": (T._aware(e.ende) - T.TEAMWAHL_SCHLUSS).isoformat()}
 
 
 def _mein_team(db: Session, e: models.TeamEvent, uid: int) -> dict | None:
@@ -403,9 +425,10 @@ def liste_events_meine(user: models.User = Depends(current_user), db: Session = 
         return []
     jetzt = T._jetzt()
     E, Tm = models.TeamEvent, models.Team
+    mit = {i for tid in eigene for i in T.mehrteam_event_ids(db, tid)}   # Events mehrerer Teams (16.11.2026)
     rows = (db.query(E, Tm).join(Tm, Tm.id == E.team_id)
-            .filter(E.team_id.in_(eigene), E.geloescht_am.is_(None), Tm.geloescht_am.is_(None),
-                    E.global_event.isnot(True), E.ende > jetzt - timedelta(days=7))
+            .filter(or_(E.team_id.in_(eigene), E.id.in_(list(mit) or [-1])), E.geloescht_am.is_(None),
+                    Tm.geloescht_am.is_(None), E.global_event.isnot(True), E.ende > jetzt - timedelta(days=7))
             .order_by(E.start).limit(200).all())
     gruppe = lambda e: 0 if T._aware(e.start) <= jetzt < T._aware(e.ende) else (1 if T._aware(e.start) > jetzt else 2)
     rows.sort(key=lambda r: (gruppe(r[0]), T._aware(r[0].start) if gruppe(r[0]) < 2 else -T._aware(r[0].ende).timestamp()))
@@ -633,7 +656,9 @@ def events(slug: str, mix: bool = False, sprint: bool = False, user: models.User
     liste = T.events_liste(db, t.id, beendete=20)
     if any(T.event_einfrieren(db, e) for e in liste):
         db.commit()
-    return [T.event_out(db, t, e, mix=mix, sprint=sprint) for e in liste]
+    # Events anderer Teams, bei denen dieses Team mitmacht (16.11.2026): mit dem ausrichtenden Team rechnen und verlinken.
+    gastgeber = lambda e: t if e.team_id == t.id else db.get(models.Team, e.team_id)   # noqa: E731
+    return [{**T.event_out(db, gastgeber(e), e, mix=mix, sprint=sprint), "team_slug": gastgeber(e).slug} for e in liste]
 
 
 @router.post("/{slug}/events")
@@ -663,9 +688,21 @@ def event_einzeln(slug: str, event_id: int, team: str | None = None, mix: bool =
                   db: Session = Depends(get_db)) -> dict:
     """Ein Event direkt (Event-Seite), unabhaengig davon, wie weit es in der Liste zurueckliegt. Globale Events sieht
     jeder; `team` = nur die Zeilen der Mitglieder dieses Teams (Filter „mein Team")."""
-    t, m = _team_fuer(db, slug, user)
+    try:
+        t, m = _team_fuer(db, slug, user)
+    except HTTPException:
+        # Event mehrerer Teams: Mitglieder der beteiligten Teams duerfen es sehen, auch wenn das ausrichtende Team fuer sie
+        # intern ist (16.11.2026). Sonst bleibt es beim Fehler von _team_fuer.
+        t = db.query(models.Team).filter(models.Team.slug == slug, models.Team.geloescht_am.is_(None)).first()
+        e0 = db.get(models.TeamEvent, event_id) if t else None
+        if not (e0 and e0.team_id == t.id and T.darf_event_sehen(db, user.id, e0)):
+            raise
+        m = None
     e = _event(db, t, event_id)
-    if not T.ist_global(e):
+    sehen = T.darf_event_sehen(db, user.id, e)     # Events mehrerer Teams: nur Beteiligte (16.11.2026)
+    if sehen is False and not user.is_admin:
+        raise _404()
+    if sehen is None and not T.ist_global(e):
         _darf_tafeln(t, m)
     if T.event_einfrieren(db, e):
         db.commit()
@@ -675,6 +712,11 @@ def event_einzeln(slug: str, event_id: int, team: str | None = None, mix: bool =
     out["korrekturen"] = R.oeffentlich(db, e)          # Referee Board: oeffentliche Korrekturen (16.11.2026)
     out["referee"] = R.darf(db, user, t, e)
     # Teilnehmer duerfen Laeufe anderer zur Pruefung melden — bis zum Festschreiben (16.11.2026).
+    if sehen:                                          # Event mehrerer Teams: Teamwahl wie bei globalen Events
+        out["mein_team"] = _mein_team_mehr(db, e, user.id)
+        if m is None:
+            # Mitglied eines Gast-Teams: das ausrichtende Team ist fuer ihn evtl. intern -> Kopf der Eventseite von hier.
+            out["gastgeber"] = {**_kurz(t, t.frei_am is None, db), "mein_status": None, "meine_rolle": None}
     out["melden"] = {"erlaubt": R.melden_offen(e) and R.in_wertung(db, t, e, user.id),
                      "gemeldet": R.gemeldete(db, e, nur_offen=True), "gesperrt": R.gemeldete(db, e), "ich": user.id}
     if T.ist_global(e):
@@ -890,6 +932,92 @@ def referee_kommentar(slug: str, event_id: int, kid: int, body: KommentarIn, use
     db.add(models.EventKorrekturKommentar(korrektur_id=k.id, user_id=user.id, text=body.text.strip()))
     db.commit()
     return R.korrektur_out(db, k, intern=True)
+
+
+# ------------------------------------------------------------------------------ Events mehrerer Teams (16.11.2026) ----
+# Jan: Einladen + annehmen; Referees nur das ausrichtende Team; sichtbar nur fuer die beteiligten Teams; wer in mehreren
+# beteiligten Teams ist, zaehlt wie bei globalen Events fuer eines (Wahl auf der Eventseite, sonst primaeres).
+
+class TeamEinladenIn(BaseModel):
+    team: str = Field(min_length=1, max_length=80)     # Adresse (slug) des einzuladenden Teams
+
+
+class EinladungAntwortIn(BaseModel):
+    annehmen: bool
+
+
+@router.post("/{slug}/events/{event_id}/teams")
+def event_team_einladen(slug: str, event_id: int, body: TeamEinladenIn, user: models.User = Depends(current_user),
+                        db: Session = Depends(get_db)) -> dict:
+    t, _m = _verwalter(db, slug, user)
+    e = _event(db, t, event_id)
+    _nicht_eingefroren(e)
+    if T.ist_global(e):
+        raise HTTPException(status.HTTP_409_CONFLICT, "global")
+    ziel = db.query(models.Team).filter(or_(models.Team.slug == body.team.strip().lower(),
+                                            models.Team.frei_slug == body.team.strip().lower()),
+                                        models.Team.geloescht_am.is_(None)).first()
+    if ziel is None or ziel.id == t.id:
+        raise _404()
+    TT = models.TeamEventTeam
+    x = db.query(TT).filter(TT.event_id == e.id, TT.team_id == ziel.id).first()
+    if x is None:
+        db.add(TT(event_id=e.id, team_id=ziel.id, status="eingeladen", eingeladen_von=user.id))
+    elif x.status == "abgelehnt":                      # erneut einladen
+        x.status, x.eingeladen_von, x.eingeladen_am, x.beantwortet_von, x.beantwortet_am = "eingeladen", user.id, T._jetzt(), None, None
+    db.commit()
+    return {"teams_beteiligt": T.event_teams_out(db, e)}
+
+
+@router.delete("/{slug}/events/{event_id}/teams/{team_slug}")
+def event_team_entfernen(slug: str, event_id: int, team_slug: str, user: models.User = Depends(current_user),
+                         db: Session = Depends(get_db)) -> dict:
+    t, _m = _verwalter(db, slug, user)
+    e = _event(db, t, event_id)
+    _nicht_eingefroren(e)
+    TT, Tm = models.TeamEventTeam, models.Team
+    x = (db.query(TT).join(Tm, Tm.id == TT.team_id).filter(TT.event_id == e.id, Tm.slug == team_slug).first())
+    if x is None:
+        raise _404()
+    if T._aware(e.ende) <= T._jetzt():
+        T.events_teilnehmer_sichern(db, t.id)          # nach dem Ende: Stand vor dem Entfernen festhalten
+    db.delete(x)
+    db.commit()
+    return {"teams_beteiligt": T.event_teams_out(db, e)}
+
+
+@router.get("/{slug}/event-einladungen")
+def event_einladungen(slug: str, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Offene und beantwortete Einladungen dieses Teams zu Events anderer Teams (Leitung/Moderation)."""
+    t, _m = _verwalter(db, slug, user)
+    TT, E, Tm = models.TeamEventTeam, models.TeamEvent, models.Team
+    out = []
+    for x, e, h in (db.query(TT, E, Tm).join(E, E.id == TT.event_id).join(Tm, Tm.id == E.team_id)
+                    .filter(TT.team_id == t.id, E.geloescht_am.is_(None), E.eingefroren_am.is_(None))
+                    .order_by(E.start).all()):
+        a = T.auftritt(h, h.frei_am is None)
+        out.append({"event_id": e.id, "titel": e.titel, "start": T._aware(e.start).isoformat(), "ende": T._aware(e.ende).isoformat(),
+                    "status": x.status, "team": {"slug": h.slug, "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"]},
+                    "teams_beteiligt": T.event_teams_out(db, e)})
+    return out
+
+
+@router.post("/{slug}/event-einladungen/{event_id}")
+def event_einladung_antworten(slug: str, event_id: int, body: EinladungAntwortIn, user: models.User = Depends(current_user),
+                              db: Session = Depends(get_db)) -> dict:
+    t, _m = _verwalter(db, slug, user)
+    TT = models.TeamEventTeam
+    x = db.query(TT).filter(TT.event_id == event_id, TT.team_id == t.id).first()
+    e = db.get(models.TeamEvent, event_id)
+    if x is None or e is None or e.geloescht_am is not None:
+        raise _404()
+    _nicht_eingefroren(e)
+    if T._aware(e.ende) <= T._jetzt():
+        raise HTTPException(status.HTTP_409_CONFLICT, "event_vorbei")   # nach dem Ende aendert sich die Besetzung nicht mehr
+    x.status = "angenommen" if body.annehmen else "abgelehnt"
+    x.beantwortet_von, x.beantwortet_am = user.id, T._jetzt()
+    db.commit()
+    return {"status": x.status}
 
 
 class FokusIn(BaseModel):
@@ -1293,7 +1421,7 @@ def oeffentlich(slug: str, response: Response, period: str = "30d", mix: bool = 
             "tafeln": [{**T.tafel_out(tf), "zeilen": T.fuer_gast(T.tafel_berechnen(db, t, tf, period, ids))}
                        for tf in T.tafeln(db, t.id)],
             # Events sind Bestenlisten mit Zeitfenster -> in derselben Gastform (ohne Spots).
-            "events": [T.event_out(db, t, e, gast=True, mix=mix, sprint=sprint) for e in T.events_liste(db, t.id, beendete=10)]}
+            "events": [T.event_out(db, t, e, gast=True, mix=mix, sprint=sprint) for e in T.events_liste(db, t.id, beendete=10, gast=True)]}
 
 
 @public_router.get("/{slug}/events/{event_id}")
@@ -1305,8 +1433,9 @@ def oeffentliches_event(slug: str, event_id: int, response: Response, mix: bool 
     if t is None or t.geloescht_am is not None:
         raise _404()
     e = _event(db, t, event_id)
-    # Globale Events auch aus einem nicht oeffentlichen offiziellen Team (06.11.2026); sonst wie bisher.
-    if not (T.bestenlisten_oeffentlich(t) or (T.ist_global(e) and T.oeffentlich_sichtbar(t))):
+    # Globale Events auch aus einem nicht oeffentlichen offiziellen Team (06.11.2026); sonst wie bisher. Events mehrerer
+    # Teams nie ohne Login (nur Beteiligte, 16.11.2026).
+    if T.ist_mehrteam(db, e) or not (T.bestenlisten_oeffentlich(t) or (T.ist_global(e) and T.oeffentlich_sichtbar(t))):
         raise _404()
     if T.event_einfrieren(db, e):
         db.commit()

@@ -119,14 +119,48 @@ function Statistik({ s, t }: { s: TeamStatistik; t: (k: string, p?: Record<strin
 /** Event-Kachel der Teamseite: seit 10.11.2026 dieselbe wie auf der Community-Seite und unter „Alle Events" (Jan: „nimm
  *  doch die gleiche wie ueberall") — ohne Teamabzeichen, das Team steht im Kopf. Bild nur das Eventbild: das Teambild
  *  steht auf dieser Seite schon oben. */
+// Einladungen anderer Teams zu ihren Events (16.11.2026): nur offene zeigen, Leitung/Moderation nimmt an oder lehnt ab.
+function EventEinladungen({ slug, onGeaendert }: { slug: string; onGeaendert: () => void }) {
+  const { t } = useI18n();
+  const [liste, setListe] = useState<Awaited<ReturnType<typeof api.teamEventEinladungen>> | null>(null);
+  const [fehler, setFehler] = useState<string | null>(null);
+  const holen = () => api.teamEventEinladungen(slug).then(setListe).catch(() => setListe(null));
+  useEffect(() => { holen(); }, [slug]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const offen = (liste ?? []).filter((x) => x.status === "eingeladen");
+  if (!offen.length) return null;
+  const antworten = (id: number, ja: boolean) => api.teamEventEinladungAntworten(slug, id, ja)
+    .then(() => { holen(); onGeaendert(); }).catch((e) => setFehler(t(`team.err.${fehlerCode(e)}`)));
+  return (
+    <div className="mb-4 space-y-2">
+      {offen.map((x) => (
+        <div key={x.event_id} className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3">
+          <TeamWappen name={x.team.name} logo={x.team.logo_url} farbe={x.team.farbe} size={32} />
+          <p className="min-w-0 flex-1 text-sm text-slate-200">
+            {t("team.event.einladungText", { team: x.team.name, titel: x.titel })}
+            <span className="block text-xs text-slate-400">{new Date(x.start).toLocaleDateString()} – {new Date(x.ende).toLocaleDateString()}</span>
+          </p>
+          <button onClick={() => antworten(x.event_id, true)}
+            className="rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">{t("team.event.einladungAnnehmen")}</button>
+          <button onClick={() => antworten(x.event_id, false)}
+            className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800">{t("team.event.einladungAblehnen")}</button>
+        </div>
+      ))}
+      {fehler && <p className="text-sm text-red-700 dark:text-red-400">{fehler}</p>}
+    </div>
+  );
+}
+
 function TeamEventKachel({ e, kopf }: { e: TeamEvent; kopf: TeamAuftritt }) {
+  // Event eines anderen Teams, bei dem dieses Team mitmacht (16.11.2026): Kachel mit dem ausrichtenden Team, Link dorthin.
+  const host = e.team_slug && e.team_slug !== kopf.slug ? (e.teams_beteiligt ?? []).find((x) => x.status === "ausrichtend") : null;
   const kurz: TeamEventKurz = {
     id: e.id, titel: e.titel, beschreibung: e.beschreibung, start: e.start, ende: e.ende, zeitzone: e.zeitzone,
     status: e.status, sportarten: eventSportarten(e), spots: e.spots, global: e.global,
-    team: { slug: kopf.slug, name: kopf.name, logo_url: kopf.logo_url, farbe: kopf.farbe, land: kopf.land },
+    team: host ? { slug: host.slug, name: host.name, logo_url: host.logo_url, farbe: host.farbe, land: null }
+      : { slug: kopf.slug, name: kopf.name, logo_url: kopf.logo_url, farbe: kopf.farbe, land: kopf.land },
     banner_url: e.banner_url ?? null, banner_fokus: e.banner_fokus ?? null,
   };
-  return <EventKurzKachel e={kurz} ohneTeam />;
+  return <EventKurzKachel e={kurz} ohneTeam={!host} />;
 }
 
 /** Vergangene Events (aelter als eine Woche) unten — mit derselben Kachel wie oben, ohne Sieger (Jan, 01.11.2026). */
@@ -410,6 +444,8 @@ export default function Team() {
         </div>
         {kopf.beschreibung && <p className="col-span-2 mt-1 whitespace-pre-line text-sm text-slate-300">{kopf.beschreibung}</p>}
       </div>
+
+      {(kopf.meine_rolle === "leiter" || kopf.meine_rolle === "moderator") && <EventEinladungen slug={kopf.slug} onGeaendert={() => { laden(); api.teamEvents(slug).then(setEvents).catch(() => {}); }} />}
 
       {/* Reiter wie ueberall (Jan, 02.11.2026): Rekorde | Events | Logbuch | Mitglieder | Teilen, direkt unter dem Trennstrich
           des Kopfs. Austreten und Regeln bleiben darunter fuer alle Reiter sichtbar. */}

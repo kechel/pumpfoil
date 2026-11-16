@@ -485,6 +485,24 @@ Skizze, an Bestehendes angelehnt:
   nur Admin); Vorlauf (Vorschlag mind. X Tage vor Start, damit Review rechtzeitig); Ueberschneidung mit anderen globalen
   Events; Push/Benachrichtigung an das vorschlagende Team bei Entscheidung; Texte in allen Sprachen; Apps-Port.
 
+### Events unter mehreren Teams (Jan, 16.11.2026; GEBAUT, Web)
+
+Ein Team-Event kann andere Teams einladen; das eingeladene Team (Leitung/Moderation) nimmt an oder lehnt ab.
+Tabelle `team_event_teams` (event_id, team_id, status eingeladen|angenommen|abgelehnt, wer/wann eingeladen/beantwortet).
+- **Einladen/Entfernen:** nur Leitung/Moderation des ausrichtenden Teams, im Event-Editor (Block „Mit anderen Teams
+  austragen", erst bei gespeicherten, nicht globalen Events). Abgelehnte lassen sich erneut einladen. Nach dem Ende haelt
+  Entfernen vorher den Teilnehmerstand fest.
+- **Annehmen/Ablehnen:** Karte oben auf der Teamseite des eingeladenen Teams (nur Leitung/Moderation); nach dem Ende 409.
+- **Sichtbar** nur fuer Mitglieder beteiligter Teams (ausrichtend + angenommen), nie ohne Login, kein Teilen-Link; auf der
+  Teamseite des Gast-Teams erscheint die Kachel mit dem ausrichtenden Team und verlinkt dorthin.
+- **Wertung:** Teilnehmer = Mitglieder aller beteiligten Teams; zusaetzlich Team-Wertung wie bei globalen Events. Wer in
+  mehreren beteiligten Teams ist, zaehlt fuer EIN Team (Wahl auf der Eventseite, sonst Primaerteam), festgehalten wie global.
+- **Referee** bleibt allein beim ausrichtenden Team.
+- **Bezug zu „Promote as public event" (oben):** dieselbe Grundform „Event eines Teams, freigegeben fuer mehr" — dort gibt
+  Jan ein Team-Event fuer ALLE frei, hier laedt ein Team gezielt andere ein. Beim Bau von Promote die Sichtbarkeits-
+  und Zuordnungslogik (`darf_event_sehen`, `team_zuordnung`, `mit_teamwertung`) wiederverwenden statt doppelt bauen.
+- **Offen:** Apps-Port; Push an das eingeladene Team (heute keine Benachrichtigung).
+
 ## Stufen
 
 1. **Kern (Web):** Teams, Rollen, Beitritt (zwei Schalter + join/apply-Links mit QR-Code), Registrierung

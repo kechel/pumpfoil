@@ -1310,3 +1310,67 @@ def test_festschreiben_haelt_stand_fest(client, monkeypatch):
     st = ev["stand"]
     assert st and st["regeln"] == T.REGELN_STAND and st["wertung"] == "je-lauf-1" and sum(st["erkennung"].values()) == 1
     assert any(a["key"] == "referee" for a in st["regeln_text"]["abschnitte"])     # Wortlaut (Englisch) mit festgehalten
+
+
+def test_event_mehrerer_teams(client, monkeypatch):
+    """Events unter mehreren Teams (16.11.2026): einladen + annehmen, dann zaehlen die Mitglieder des eingeladenen Teams,
+    Team-Wertung wie global; sichtbar nur fuer Beteiligte; Entfernen nimmt sie wieder heraus."""
+    from app import models, teams as T
+    from app.db import SessionLocal
+    monkeypatch.setenv("EVENT_JE_LAUF", "1")
+    db = SessionLocal(); db.query(models.RateEvent).delete(); db.commit(); db.close()
+    (ia, ka), (ib, kb), (ic, kc) = (_konto(client, "mt-a@t.de", "MT Anna"), _konto(client, "mt-b@t.de", "MT Bert"),
+                                    _konto(client, "mt-c@t.de", "MT Carl"))
+    ta, tb = _team(client, ka, "MT Gastgeber"), _team(client, kb, "MT Gast")
+    _team(client, kc, "MT Fremd")
+    _session(ia, 300, tage=1, dist=150.0)
+    _session(ib, 300, tage=1, dist=120.0)
+    jetzt = datetime.now(timezone.utc)
+    eid = client.post(f"/api/teams/{ta}/events", headers=ka, json={
+        "titel": "Liga", "start": (jetzt - timedelta(days=3)).isoformat(), "ende": (jetzt + timedelta(days=1)).isoformat(),
+        "tafeln": [{"kennzahl": "distance", "accel_only": False}]}).json()["id"]
+
+    def namen(k):
+        T._cache.clear()
+        r = client.get(f"/api/teams/{ta}/events/{eid}", headers=k)
+        return r.status_code, ({z["name"] for z in r.json()["tafeln"][0]["zeilen"]} if r.status_code == 200 else None)
+    assert namen(ka) == (200, {"MT Anna"})
+    assert client.post(f"/api/teams/{ta}/events/{eid}/teams", headers=kb, json={"team": tb}).status_code in (403, 404)   # nur Gastgeber
+    tbs = client.post(f"/api/teams/{ta}/events/{eid}/teams", headers=ka, json={"team": tb}).json()["teams_beteiligt"]
+    assert [x["status"] for x in tbs] == ["ausrichtend", "eingeladen"]
+    assert namen(ka)[1] == {"MT Anna"}                                     # erst nach dem Annehmen
+    einl = client.get(f"/api/teams/{tb}/event-einladungen", headers=kb).json()
+    assert einl[0]["event_id"] == eid and einl[0]["status"] == "eingeladen"
+    assert client.post(f"/api/teams/{tb}/event-einladungen/{eid}", headers=kb, json={"annehmen": True}).json()["status"] == "angenommen"
+    assert namen(ka)[1] == {"MT Anna", "MT Bert"} and namen(kb)[1] == {"MT Anna", "MT Bert"}
+    assert namen(kc)[0] == 404                                             # fremdes Team sieht es nicht
+    ev = client.get(f"/api/teams/{ta}/events/{eid}", headers=kb).json()
+    assert ev["mehrteam"] and {x["slug"] for x in ev["tafeln"][0]["teams"]} == {ta, tb}
+    liste_b = client.get(f"/api/teams/{tb}/events", headers=kb).json()
+    assert any(x["id"] == eid and x["team_slug"] == ta for x in liste_b)    # auf der Seite des Gast-Teams, verlinkt zum Gastgeber
+    assert any(x["id"] == eid for x in client.get("/api/teams/liste/events/meine", headers=kb).json())
+    client.delete(f"/api/teams/{ta}/events/{eid}/teams/{tb}", headers=ka)
+    assert namen(ka)[1] == {"MT Anna"} and namen(kb)[0] in (403, 404)
+
+
+def test_session_events_nur_passende_sportart(client, monkeypatch):
+    """Event-Badge an der Session nur, wenn das Event eine Tafel oder Summen fuer DEREN Sportart hat (16.11.2026: eine
+    Wingfoil-Session bekam das Badge, weil das Event Pumpfoil-Gesamtsummen hatte)."""
+    from app import models, teams as T
+    from app.db import SessionLocal
+    monkeypatch.setenv("EVENT_JE_LAUF", "1")
+    ia, ka = _konto(client, "se-a@t.de", "SE Anna")
+    ta = _team(client, ka, "SE Team")
+    pf = _session(ia, 30, tage=1)
+    wf = _session(ia, 30, tage=1, sport="wingfoil")
+    jetzt = datetime.now(timezone.utc)
+    r = client.post(f"/api/teams/{ta}/events", headers=ka, json={
+        "titel": "Sprint", "start": (jetzt - timedelta(days=3)).isoformat(), "ende": (jetzt + timedelta(days=1)).isoformat(),
+        "tafeln": [{"kennzahl": "distance", "accel_only": False}], "summen": ["aktive"]})
+    assert r.status_code == 200, r.text
+    db = SessionLocal()
+    try:
+        assert [x["titel"] for x in T.session_events(db, db.get(models.Session, pf), ia)] == ["Sprint"]
+        assert T.session_events(db, db.get(models.Session, wf), ia) == []
+    finally:
+        db.close()

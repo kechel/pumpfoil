@@ -2192,6 +2192,22 @@ class TeamLogbuch(Base):
     erfasst_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class TeamEventTeam(Base):
+    """Event unter mehreren Teams (16.11.2026, Jan): das ausrichtende Team laedt andere Teams ein; Leitung/Moderation des
+    eingeladenen Teams nimmt an oder lehnt ab. Angenommen = dessen Mitglieder zaehlen, es gibt eine Team-Wertung wie bei
+    globalen Events, und sichtbar ist das Event nur den beteiligten Teams. Referees bleiben beim ausrichtenden Team."""
+    __tablename__ = "team_event_teams"
+    __table_args__ = (UniqueConstraint("event_id", "team_id"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    event_id: Mapped[int] = mapped_column(Integer, ForeignKey("team_events.id"), index=True)
+    team_id: Mapped[int] = mapped_column(Integer, ForeignKey("teams.id"), index=True)
+    status: Mapped[str] = mapped_column(String(12), default="eingeladen")   # eingeladen | angenommen | abgelehnt
+    eingeladen_von: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    eingeladen_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    beantwortet_von: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"))
+    beantwortet_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class EventKorrektur(Base):
     """Referee Board (16.11.2026, Jan): einen Lauf aus der Wertung eines Events nehmen — in kontrollierten Schritten.
 
