@@ -1541,6 +1541,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
    Bestenlisten + Gesamtsummen. ✅ 16.11. Session-Kennzeichen + Event-Kategorie-Dropdown im Web (980d71a4, 62429a12;
    sprint-VERSION 5 mit Fenstern je Lauf). ✅ 16.11. Referee Board LIVE (Server 6978b7a9/9c467b24, Web). Offen: Apps
    (Kennzeichen/Kategorien, naechstes Release); spaeter je Team einstellbar: Vier-Augen bzw. Moderatoren nur Vorschlag.
+   Apps beim naechsten Release auch: Teilnehmer-Meldung (Fahne + Pop-up), oeffentliche Korrekturen am Event, Team-Regeln
+   (neuer Abschnitt `referee`, geaenderte Texte events/global; REGEL_ABSCHNITTE in TeamScreen.kt / abschnitte in TeamView.swift).
    Je-Lauf-Wertung als EIN Baustein: es zaehlt die STARTZEIT JEDES LAUFS — im Fenster begonnen = zaehlt vollstaendig, egal
    wann er endet und wann die Session startet/endet (Jan 16.11.; frueher „abschneiden") (14.11.) + doppelte Laeufe aus paralleler
    Aufnahme einmal zaehlen (15.11.) + Session-Kennzeichen „zaehlt fuer Event" und alle Sprints je Lauf anzeigen (14./15.11.).
