@@ -1537,7 +1537,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ### 16.11.2026 — Sortiert: was seit 06.11. gesammelt wurde (Uebersicht, Details in den Eintraegen darunter)
 **A. Diese Woche (Jan: „naechste Woche"), alles Wertung/Analyse -> erst Entwurf mit Zahlen, dann Jans OK**
-1. Je-Lauf-Wertung als EIN Baustein: es zaehlt die STARTZEIT JEDES LAUFS — im Fenster begonnen = zaehlt vollstaendig, egal
+1. 🟡 16.11. TEIL 1 LIVE (f5a411e8, EVENT_JE_LAUF=1): Baustein zaehlende Laeufe (Startzeit je Lauf, Duplikate einmal) in
+   Bestenlisten + Gesamtsummen. Offen: Session-Kennzeichen + Event-Kategorie-Dropdown, dann Referee Board.
+   Je-Lauf-Wertung als EIN Baustein: es zaehlt die STARTZEIT JEDES LAUFS — im Fenster begonnen = zaehlt vollstaendig, egal
    wann er endet und wann die Session startet/endet (Jan 16.11.; frueher „abschneiden") (14.11.) + doppelte Laeufe aus paralleler
    Aufnahme einmal zaehlen (15.11.) + Session-Kennzeichen „zaehlt fuer Event" und alle Sprints je Lauf anzeigen (14./15.11.).
 2. ✅ 16.11. entfaellt: Jan will den Stand beim Festschreiben (Ende + 4 h), nicht beim Schluss — so ist es schon.
