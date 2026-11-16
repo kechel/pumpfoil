@@ -255,7 +255,7 @@ def test_je_fenster_statt_lauf_anteil():
     """Lauf mit nur 70 % Uhr-Tempo: alte Regel verwirft den ganzen Lauf, je Fenster zaehlt das voll abgedeckte Stueck."""
     from app.analysis import sprint as SP
     gps = _ohne_tempo(_spur([5.0] * 100), 70, 30)
-    assert SP.lauf_sprints(gps, 0, 99_000) is None
+    assert SP.lauf_sprints(gps, 0, 99_000, je_fenster=False) is None
     w = SP.lauf_sprints(gps, 0, 99_000, je_fenster=True)
     assert math.isclose(w["sprint_60s"], 5.0, abs_tol=0.05)
 

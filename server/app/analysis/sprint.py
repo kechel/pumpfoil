@@ -25,7 +25,8 @@ import math
 
 import numpy as np
 
-VERSION = 3   # 3: dazu Lage des besten Fensters je Kennzahl (`fenster`, Session-ms), Werte unveraendert (11.11.2026)
+VERSION = 4   # 4: Regel je Fenster statt 80 % Uhr-Tempo je Lauf, Tempo-Luecken <= 3 s gefuellt, Sprung-Regel (16.11.2026)
+# 3: dazu Lage des besten Fensters je Kennzahl (`fenster`, Session-ms), Werte unveraendert (11.11.2026)
 # 2: nur Uhr-Tempo (roh), ohne aus Positionen aufgefuelltes (09.11.2026)
 STRECKEN_M = (100, 200, 300)
 DAUERN_S = (60,)
@@ -142,7 +143,7 @@ def _tempo_luecken_fuellen(t: np.ndarray, v: np.ndarray, echt: np.ndarray) -> tu
 
 
 def lauf_sprints(gps: list, a_ms: float, b_ms: float, fenster: dict | None = None,
-                 je_fenster: bool = False) -> dict[str, float] | None:
+                 je_fenster: bool = True) -> dict[str, float] | None:
     """Beste Fenster eines Laufs [a_ms, b_ms] (Session-ms) -> {kennzahl: m/s}; None ohne brauchbares Uhr-Tempo.
     `fenster` (optional): bekommt je Kennzahl [Start-ms, Ende-ms] des besten Fensters (Session-ms, fuer die Anzeige)."""
     from .detect_v2 import _clean_speed
@@ -150,8 +151,9 @@ def lauf_sprints(gps: list, a_ms: float, b_ms: float, fenster: dict | None = Non
     if len(pkt) < 5:
         return None
     roh = [p[3] if len(p) > 3 and isinstance(p[3], (int, float)) and not isinstance(p[3], bool) else None for p in pkt]
-    if not je_fenster and sum(1 for v in roh if v is not None and v > 0) < MIN_TEMPO_ANTEIL * len(pkt):
-        return None
+    n_echt = sum(1 for v in roh if v is not None and v > 0)
+    if n_echt == 0 or (not je_fenster and n_echt < MIN_TEMPO_ANTEIL * len(pkt)):
+        return None                                         # gar kein Uhr-Tempo: keine Doppler-Messung
     t = np.array([float(p[0]) for p in pkt]) / 1000.0
     lat = np.array([float(p[1]) for p in pkt])
     lon = np.array([float(p[2]) for p in pkt])
@@ -189,7 +191,7 @@ def lauf_sprints(gps: list, a_ms: float, b_ms: float, fenster: dict | None = Non
     return out
 
 
-def session_sprints(gps: list, segmente: list, trim_start_ms: int = 0, je_fenster: bool = False) -> dict:
+def session_sprints(gps: list, segmente: list, trim_start_ms: int = 0, je_fenster: bool = True) -> dict:
     """Je Kennzahl das beste Fenster der Session und je Lauf alle Werte.
 
     -> {"v": VERSION, "best": {kennzahl: m/s}, "lauf": {kennzahl: Laufindex}, "fenster": {kennzahl: [Start-ms, Ende-ms]},
