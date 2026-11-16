@@ -1539,7 +1539,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 **A. Diese Woche (Jan: „naechste Woche"), alles Wertung/Analyse -> erst Entwurf mit Zahlen, dann Jans OK**
 1. Je-Lauf-Wertung als EIN Baustein: Laeufe am Eventschluss abschneiden (14.11.) + doppelte Laeufe aus paralleler
    Aufnahme einmal zaehlen (15.11.) + Session-Kennzeichen „zaehlt fuer Event" und alle Sprints je Lauf anzeigen (14./15.11.).
-2. Globale Events: Opt-out beim Eventschluss einfrieren (14.11.).
+2. ✅ 16.11. entfaellt: Jan will den Stand beim Festschreiben (Ende + 4 h), nicht beim Schluss — so ist es schon.
 3. ✅ 16.11. Ø Speed ueber die fertigen Laeufe — LIVE (8828c9bc), Bestand 6611 nachgezogen.
 4. Sprints: 80-%-Regel je Lauf raus, Kriterien je Fenster (Luecken <= 3 s, >= 2/3 Uhr-Tempo, Position <= 10 %), neue
    sprint-VERSION, Bestand nachrechnen; dabei `scripts/sprints-nachrechnen.py` muss `auswertung_fest` respektieren (15.11.).
@@ -1684,6 +1684,10 @@ Seit 0f139248 zaehlen dort nur Dateien unserer App mit Beschleunigung; mit MIN_S
 senken (mit „wenig Daten") oder warten.
 
 ### 14.11.2026 — Globale Events: Teilnahme nach dem Eventschluss nicht mehr umschaltbar (nach diesem WE)
+**ENTSCHIEDEN 16.11. (Jan): „beim festschreiben sollte das passieren, nicht vorher".** Das ist der heutige Stand:
+`event_einfrieren` rechnet mit den dann Angemeldeten, wer sich danach anmeldet, steht nicht im Endstand, Abmelden
+filtert weiter. Im 4-h-Fenster bleiben Korrekturen moeglich (wie u1015 am 15.11.). Nichts zu bauen. (Leere Spalte
+`team_events.global_aus_json` vom verworfenen Entwurf liegt in der DB, ungenutzt.)
 Heute liest die Rangliste `global_events_aus` (Profil › Privatsphaere) bei jeder Berechnung frisch, auch beim
 Einfrieren (`teams.event_einfrieren`, ende + 4 h). Wer bis dahin einschaltet, taucht nach dem Schluss noch auf. Jan:
 „das sollten wir nicht zulassen … dann kann man ja auch garnichts mehr kontrollieren und 10 rider ueberfallen das
