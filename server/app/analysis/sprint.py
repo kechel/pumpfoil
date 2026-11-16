@@ -37,6 +37,13 @@ MIN_TEMPO_ANTEIL = 0.8   # so viel des Laufs muss ein Uhr-Tempo tragen, sonst is
 # Positionen), laenger -> Fenster ungueltig; im Fenster mind. FENSTER_TEMPO_ANTEIL der Punkte mit echtem Uhr-Tempo.
 TEMPO_LUECKE_S = 3.0
 FENSTER_TEMPO_ANTEIL = 2 / 3
+# Sprung-Regel (16.11.2026, Jans OK): Uhren, die Tempo zwischen ~25 und ~50 km/h hin- und herspringen lassen (#1460),
+# bestehen Anteil und Positionsprobe trotzdem. Ein Punkt „springt", wenn sein Uhr-Tempo zum Nachbarpunkt (<= 1,5 s
+# daneben, beide echt) um mehr als den Faktor SPRUNG_FAKTOR abweicht — ein Foil aendert sein Tempo nicht in 1 s um 60 %.
+# Nicht ±30 % zum Median: das traf das normale Schwanken im Pumptakt (Probe 16.11.: -80 Werte bei 100 m), und bei
+# #1460 springt die Haelfte der Punkte, der Median wandert mit. Mehr als SPRUNG_ANTEIL springende Punkte -> ungueltig.
+SPRUNG_FAKTOR = 1.6
+SPRUNG_ANTEIL = 0.10
 
 KENNZAHLEN = tuple(f"sprint_{m}m" for m in STRECKEN_M) + tuple(f"sprint_{s}s" for s in DAUERN_S)
 
@@ -50,7 +57,7 @@ def _strecke_pos(lat: np.ndarray, lon: np.ndarray) -> np.ndarray:
 
 def _fenster(t: np.ndarray, cd: np.ndarray, cp: np.ndarray, luecken: np.ndarray, *,
              strecke: float | None = None, dauer: float | None = None,
-             echt: np.ndarray | None = None) -> tuple[float, float, float] | None:
+             echt: np.ndarray | None = None, sprung: np.ndarray | None = None) -> tuple[float, float, float] | None:
     """Bestes gueltiges Fenster ueber eine Strecke ODER eine Dauer -> (m/s, Start s, Ende s); None, wenn keines passt.
     Gleichstand: das fruehere Fenster (argmax).
 
@@ -88,11 +95,27 @@ def _fenster(t: np.ndarray, cd: np.ndarray, cp: np.ndarray, luecken: np.ndarray,
         ce = np.concatenate([[0], np.cumsum(echt)])
         anz = (j + 1) - i
         gut &= (ce[j + 1] - ce[i]) >= FENSTER_TEMPO_ANTEIL * anz
+    if sprung is not None:
+        cs = np.concatenate([[0], np.cumsum(sprung)])
+        gut &= (cs[j + 1] - cs[i]) <= SPRUNG_ANTEIL * ((j + 1) - i)
     if not gut.any():
         return None
     v = dd[gut] / dt[gut]
     k = int(np.argmax(v))
     return float(v[k]), float(t[i[gut][k]]), float(t[i[gut][k]] + dt[gut][k])
+
+
+def _springt(t: np.ndarray, v: np.ndarray, echt: np.ndarray) -> np.ndarray:
+    """True je Punkt, dessen Uhr-Tempo zu einem echten Nachbarn (<= 1,5 s) um mehr als SPRUNG_FAKTOR abweicht."""
+    out = np.zeros(v.size, dtype=bool)
+    if v.size < 2:
+        return out
+    nah = (np.diff(t) <= 1.5) & echt[1:] & echt[:-1]
+    q = np.where(nah, np.maximum(v[1:], 1e-6) / np.maximum(v[:-1], 1e-6), 1.0)
+    weit = (q > SPRUNG_FAKTOR) | (q < 1 / SPRUNG_FAKTOR)
+    out[1:] |= weit
+    out[:-1] |= weit
+    return out
 
 
 def _tempo_luecken_fuellen(t: np.ndarray, v: np.ndarray, echt: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -138,6 +161,7 @@ def lauf_sprints(gps: list, a_ms: float, b_ms: float, fenster: dict | None = Non
         t, lat, lon, v, echt = t[k], lat[k], lon[k], v[k], echt[k]
         dt = np.diff(t)
     if je_fenster:
+        sprung = _springt(t, np.where(echt, v, 0.0), echt)
         v, schlecht = _tempo_luecken_fuellen(t, np.where(echt, v, 0.0), echt)
         v = np.nan_to_num(_clean_speed(v, 1), nan=0.0)
         # Lange Tempo-Luecke wie eine Zeit-Luecke: kein Fenster darf sie enthalten.
@@ -153,9 +177,9 @@ def lauf_sprints(gps: list, a_ms: float, b_ms: float, fenster: dict | None = Non
     cd = np.concatenate([[0.0], np.cumsum(seg)])
     cp = _strecke_pos(lat, lon)
     out: dict[str, float] = {}
-    e = echt if je_fenster else None
-    for kz, w in ([(f"sprint_{m}m", _fenster(t, cd, cp, luecke, strecke=float(m), echt=e)) for m in STRECKEN_M]
-                  + [(f"sprint_{s}s", _fenster(t, cd, cp, luecke, dauer=float(s), echt=e)) for s in DAUERN_S]):
+    e, sp = (echt, sprung) if je_fenster else (None, None)
+    for kz, w in ([(f"sprint_{m}m", _fenster(t, cd, cp, luecke, strecke=float(m), echt=e, sprung=sp)) for m in STRECKEN_M]
+                  + [(f"sprint_{s}s", _fenster(t, cd, cp, luecke, dauer=float(s), echt=e, sprung=sp)) for s in DAUERN_S]):
         if w is not None:
             out[kz] = round(w[0], 3)
             if fenster is not None:
