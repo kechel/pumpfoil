@@ -659,9 +659,10 @@ Nicht waehrend eines laufenden Events umstellen; eingefrorene Endstaende bleiben
 nach dem Schluss). Vorher Gegenprobe: alte Events neu rechnen (ohne Speichern) und Verschiebungen zeigen. Alte Apps lesen
 dieselben Bestenlisten-Felder weiter (rein serverseitig).
 
-**Offene Fragen an Jan:** (a) ✅ das bessere/kombinierte (Fusion, s. 1.2); (b) Rechte: Leiter + Moderatoren des ausrichtenden
-Teams, bei globalen Events nur Admins/Moderatoren des offiziellen Teams?; (c) Benachrichtigung des Fahrers bei einer
-Korrektur ja/nein; (d) Reihenfolge: zuerst Baustein + Session-Kennzeichen, dann Board?
+**Entschieden (Jan 16.11.):** (a) Duplikate: das bessere/kombinierte (Fusion, s. 1.2); (b) Rechte: Team-Events Leiter +
+Moderatoren des ausrichtenden Teams, globale Events nur Admins (und Moderatoren des offiziellen Teams); (c) der Fahrer wird
+benachrichtigt (Grund + oeffentlicher Kommentar + Link, nie die interne Notiz); (d) Reihenfolge: erst Baustein
+`zaehlende_laeufe` + Session-Kennzeichen/Dropdown, danach das Referee Board.
 
 ## Offene Punkte
 
