@@ -219,73 +219,6 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
           Column(Modifier.fillMaxSize()) {
             Reiterleiste(reiter, tab, { tab = it })
             val karteAn = tab == "karte"
-            if (karteAn) {
-            // Filterzeile ueber dem Suchfeld. In der PWA steht sie rechts neben der Ueberschrift;
-            // hier sitzt der Titel in der TopBar, also bekommt sie eine eigene Zeile — Sportart und
-            // „mit Beschreibung" nebeneinander (Jan, 28.09.2026), umbrechend, falls es nicht passt.
-            FlowRow(
-                Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                SportDropdown(sports, sport, Modifier.align(Alignment.CenterVertically)) { sport = it }
-                Row(Modifier.align(Alignment.CenterVertically)) {
-                    AnsichtSeg(!heatAnsicht, I18n.t("nav.spots")) { heatAnsicht = false }
-                    Spacer(Modifier.width(4.dp))
-                    AnsichtSeg(heatAnsicht, I18n.t("spots.heatmap")) { heatAnsicht = true }
-                }
-                if (heatAnsicht) {
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterVertically),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        listOf("foil" to "spots.heatFoil", "start" to "spots.heatStart").forEach { (a, k) ->
-                            FilterChip(selected = heatArt == a, onClick = { heatArt = a },
-                                label = { Text(I18n.t(k)) }, colors = cyanChipColors())
-                        }
-                        listOf("30d", "all").forEach { p ->
-                            FilterChip(selected = heatZeitraum == p, onClick = { heatZeitraum = p },
-                                label = { Text(I18n.t("period.$p")) }, colors = cyanChipColors())
-                        }
-                    }
-                }
-                // Auch hier: sichtbar, solange etwas aktiv ist oder der Haken sitzt (Weg zurueck).
-                if (!heatAnsicht && (aktivEinzeln.isNotEmpty() || aktivGegend.isNotEmpty() || nurAktiv)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.align(Alignment.CenterVertically).clickable { nurAktiv = !nurAktiv },
-                    ) {
-                        Checkbox(checked = nurAktiv, onCheckedChange = { nurAktiv = it },
-                            colors = CheckboxDefaults.colors(checkedColor = AKTIV_GRUEN))
-                        Text(I18n.t("spots.activeShort"), style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-                // Auch bei 0 zeigen, solange der Haken sitzt: sonst bleibt nach einem Sportart-Wechsel
-                // eine leere Karte ohne Weg zurueck (Jan, 28.09.2026).
-                if (!heatAnsicht && (mitNotes > 0 || nurNotes)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.align(Alignment.CenterVertically).clickable { nurNotes = !nurNotes },
-                    ) {
-                        Checkbox(checked = nurNotes, onCheckedChange = { nurNotes = it })
-                        Text("${I18n.t("spots.notesShort")} ($mitNotes)",
-                             style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-            }
-            // Suchfeld ueber der Karte — dieselbe Stelle wie in der PWA.
-            OutlinedTextField(
-                value = suche,
-                onValueChange = { suche = it },
-                singleLine = true,
-                placeholder = { Text(I18n.t("home.spotPick")) },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                trailingIcon = {
-                    if (suche.isNotEmpty()) {
-                        Icon(Icons.Filled.Close, contentDescription = null,
-                             modifier = Modifier.clickable { suche = "" })
-                    }
-                },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-            )
-            }   // karteAn: Filter + Suche
             // Die Karte steht FEST oben und scrollt nicht mit.
             //
             // Nicht aus Geschmack, sondern weil osmdroid es erzwingt (Jan, 02.09.): als
@@ -316,70 +249,39 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
             //    stimmt.
             // 3. Der Inhalt darunter bekommt einen DECKENDEN Hintergrund. Compose-Flaechen sind
             //    sonst durchsichtig, und dann scheint alles durch, was dahinter liegt.
+            // Seit 16.11.2026 (Jan, wie iOS): im Reiter Karte nur Reiter oben, die Karte auf der ganzen freien Hoehe und unten
+            // die Suche — keine Filter-, Legenden- und Hinweiszeilen, die Seite scrollt nicht. Bei einer Suche ersetzen die
+            // Treffer die Karte (die Karte bleibt dabei im Baum, s. unten, nur mit Hoehe 0).
+            val karteSichtbar = karteAn && suche.isBlank()
             SpotsMap(
                 // In der Heatmap-Ansicht keine Pins (sie lagen sonst ueber den Zellen).
                 karte, if (heatAnsicht) emptyList() else sichtbar, oeffneSpot, startSpot, aktivEinzeln, aktivGegend,
-                // Auf den anderen Reitern bleibt die Karte IM BAUM (osmdroid raeumt sonst beim Abhaengen seinen
-                // Kachel-Anbieter ab, s. oben): voll ausgemessen, aber mit Hoehe 0 eingehaengt und abgeschnitten.
+                // Auf den anderen Reitern (und waehrend einer Suche) bleibt die Karte IM BAUM (osmdroid raeumt sonst beim
+                // Abhaengen seinen Kachel-Anbieter ab, s. oben): voll ausgemessen, aber mit Hoehe 0 eingehaengt und abgeschnitten.
                 // Das Abschneiden steht VOR dem Ausmessen, damit es die eingehaengte Hoehe (0) nimmt, nicht die gemessene.
-                spotsKartenHoehe().let { kh -> Modifier.fillMaxWidth().clipToBounds().layout { m, c ->
-                    val h = kh.roundToPx()
-                    val p = m.measure(c.copy(minHeight = h, maxHeight = h))
-                    layout(p.width, if (karteAn) h else 0) { p.place(0, 0) }
-                } },
+                spotsKartenHoehe().let { kh ->
+                    Modifier.fillMaxWidth().then(if (karteSichtbar) Modifier.weight(1f) else Modifier).clipToBounds().layout { m, c ->
+                        val h = if (karteSichtbar && c.hasBoundedHeight) c.maxHeight else kh.roundToPx()
+                        val p = m.measure(c.copy(minHeight = h, maxHeight = h))
+                        layout(p.width, if (karteSichtbar) h else 0) { p.place(0, 0) }
+                    }
+                },
             )
-            // Sportart folgt dem Filter oben (seit 16.10. kennt die Heatmap alle Sportarten mit Laeufen)
             HeatmapLaden(karte, heat, heatArt, sport) { heatSessions = it }
             if (!karteAn) {
                 SpotsReiterInhalt(tab, items, sports, sport, { sport = it }, listeSuche, { listeSuche = it }, oeffneSpot,
                                   onOpenSession, onOpenSpot, onOpenRoute)
                 return@Column
             }
-            if (heat != null && heatSessions != null) {
-                Text("${I18n.t(if (heatArt == "start") "spots.heatHintStart" else "spots.heatHint")} · $heatSessions ${I18n.t("side.sessions")}",
-                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
-            }
-            Refreshable(refreshing = loading, onRefresh = { scope.launch { load() } }) {
-            if (loading && items.isEmpty()) {
-                CircularProgressIndicator(Modifier.align(Alignment.Center))
-            } else {
-                LazyColumn(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+            if (!karteSichtbar) {
+                LazyColumn(Modifier.weight(1f).fillMaxWidth().background(MaterialTheme.colorScheme.background)) {
                     error?.let { e -> item { Text(e, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error) } }
-                    // Legende der gruenen Spots direkt unter der Karte (wie die PWA): ohne sie bleibt
-                    // offen, warum ein Spot gruen ist — und warum ein kleiner nie allein gruen wird.
-                    // Bei einer Suche NUR die Treffer, direkt unter der Karte. Vorher standen sie unter Legende,
-                    // Spot-Vergleich und Hinweis — beim Tippen nie zu sehen (Jan, 28.10.2026, wie auf iOS).
-                    val ohneSuche = suche.isBlank()
-                    if (!heatAnsicht && ohneSuche) item {
-                        Row(Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)) {
-                            Box(Modifier.padding(top = 4.dp).size(12.dp).clip(CircleShape).background(AKTIV_GRUEN))
-                            Spacer(Modifier.width(8.dp))
-                            Text(I18n.t("spots.activeLegend"), style = MaterialTheme.typography.bodySmall,
-                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                    // Der Spot-Vergleich stand hier unter der Karte; seit 04.11.2026 eigener Reiter „Spot-Rekorde" (wie das Web).
-                    // „Spots entstehen automatisch" — dritter Nutzer in Folge suchte in der PWA
-                    // einen Knopf zum Anlegen, den es bewusst nicht gibt. Steht dort ueber der
-                    // Karte; hier unten, weil oben schon Filter und Suchfeld sitzen.
-                    if (ohneSuche) item {
-                        Text(I18n.t("spots.autoHint"), Modifier.padding(16.dp),
-                             style = MaterialTheme.typography.bodySmall,
-                             color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    if (items.isEmpty() && !loading && error == null) {
-                        item { Text(I18n.t("spots.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                    }
-                    // NUR Treffer, und nur bei einer Eingabe. Sortiert wie zuvor nach
-                    // Sessionzahl, damit der meistgefahrene Spot gleicher Namensfamilie
-                    // („Berlin 3" / „Berlin 4") oben steht.
+                    // NUR Treffer, sortiert nach Sessionzahl (meistgefahrener Spot gleicher Namensfamilie oben).
                     items(treffer) { s ->
                         ListItem(
                             modifier = Modifier.clickable { oeffneSpot(s.spot) },
                             headlineContent = { Text(s.spot) },
-                            // Gewaesser mit in die Zeile: „Berlin 3" und „Berlin 4" waren vorher
-                            // nicht zu unterscheiden — genau dafuer steht es im PWA-Auswahlfeld.
+                            // Gewaesser mit in die Zeile: „Berlin 3" und „Berlin 4" sonst nicht zu unterscheiden.
                             supportingContent = {
                                 val w = s.water?.takeIf { it.isNotBlank() && it != s.spot }
                                 Text(listOfNotNull(w, "${s.sessions} ${I18n.t("nav.sessions")}").joinToString(" · "))
@@ -390,15 +292,28 @@ fun SpotsScreen(onOpenSpot: (String) -> Unit = {}, onOpenSession: (Int) -> Unit 
                         )
                         HorizontalDivider()
                     }
-                    if (suche.isNotBlank() && treffer.isEmpty()) {
-                        item {
-                            Text(I18n.t("spots.empty"), Modifier.padding(16.dp),
-                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
+                    if (treffer.isEmpty()) item {
+                        Text(I18n.t("spots.empty"), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
-            }
+            if (loading && items.isEmpty()) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth())
+            // Suche unten, fest (wie iOS).
+            OutlinedTextField(
+                value = suche,
+                onValueChange = { suche = it },
+                singleLine = true,
+                placeholder = { Text(I18n.t("home.spotPick")) },
+                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (suche.isNotEmpty()) {
+                        Icon(Icons.Filled.Close, contentDescription = null,
+                             modifier = Modifier.clickable { suche = "" })
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            )
           }
         }
     }
