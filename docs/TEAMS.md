@@ -593,6 +593,72 @@ daten". Erster Einsatz: Flying Sprint Weekend (Event 11, Sa 14.11. 05:00 bis So 
 Nach dem Event mit diesen Zahlen entscheiden, ob die Grenzen fuer Sprint-Events hochgehen (Nachrechnung 30/40 km/h:
 `scripts/bandgrenze-regression.py`, kein Bestwert betroffen; Recherche 10.11.: Weltspitze vermutlich 11-13 s auf 100 m).
 
+## Entwurf: Wertung je Lauf + Referee Board (16.11.2026, ZUR FREIGABE — noch nichts gebaut)
+
+Fasst vier Wuensche zusammen (docs/TODO.md, A1 + A+): Laeufe am Eventschluss abschneiden (14.11.), doppelte Laeufe aus
+paralleler Aufnahme einmal zaehlen (15.11.), Session-Kennzeichen „zaehlt fuer Event" mit Event-Kategorie-Dropdown (14.–16.11.),
+Referee Board (16.11.). Alle brauchen dieselbe Antwort: **welche Laeufe zaehlen fuer dieses Event?**
+
+**Befund (rein lesend, 16.11.):** Flying Sprint (Event 11): 125 Sessions im Fenster, 5 davon mit 32 Laeufen NACH dem
+Schluss; bei einer (u785) stammen die gewerteten Sprints 100 m + 1 min aus einem Lauf nach dem Schluss. Event 4: 157
+Sessions, 1 mit 1 Lauf danach, 1 VOR dem Start begonnen mit 7 Laeufen im Fenster (zaehlen heute gar nicht). Doppelte Laeufe
+(selber Fahrer, Start +-10 s) im Fenster: Event 11 2 Laeufe bei 1 Fahrer, Event 4 keine; im ganzen Bestand 77 ueberlappende
+Session-Paare bei 24 Fahrern (viele davon gewollte Brett-Paare).
+
+### 1. Ein Baustein: `zaehlende_laeufe(event)`
+Ein Lauf zaehlt, wenn
+1. er im Fenster BEGINNT (`start <= Laufstart < ende`) — egal, wann die Session startet oder endet;
+2. er kein Duplikat ist: Laeufe desselben Fahrers aus verschiedenen Sessions bilden eine Gruppe, wenn Start UND Ende je
+   <= 10 s auseinander liegen; je Gruppe zaehlt EIN Lauf. **Offen (Jan):** welcher — Vorschlag: der aus der Aufnahme mit der
+   besseren Datenlage (mehr Uhr-Tempo-Anteil, dann hoehere Accel-Rate), NICHT der bessere Wert (sonst Rosinenpicken mit zwei Uhren);
+3. ein Referee ihn nicht ausgenommen hat (s. 3.).
+Schluessel eines Laufs ist (session_id, Laufstart in Session-ms), nicht der Index — nach einer Neuauswertung verschieben
+sich Indizes (heute z. B. A5), die Startzeit nur um <= 2 s; Zuordnung mit Toleranz 3 s.
+
+Sessions kommen in Frage, wenn sie das Fenster UEBERLAPPEN (nicht mehr nur `started_at` im Fenster). Brett-Paare (Handy am
+Brett + Uhr) und Garmin-Connect-Kopien sind schon je Session verknuepft und zaehlen wie heute nur einmal.
+
+### 2. Kennzahlen aus den zaehlenden Laeufen
+- Summen (Laeufe, Strecke, Zeit, Pumps) = Summe ueber die zaehlenden Laeufe (`segments_json`).
+- Bestwerte je Lauf (laengster, weitester) und Sprints (`sprint_json.laeufe[k]`) = Maximum ueber die zaehlenden Laeufe.
+- Session-Kennzahlen (`session_pumps` …): Summe der zaehlenden Laeufe dieser Session.
+Heute rechnet `teams.tafel_berechnen` per SQL aus den Session-Spalten; neu je Event in Python ueber `segments_json` der
+Sessions im Fenster (Event 11: 125 Sessions — unkritisch), 2-min-Cache wie heute. Team-Bestenlisten ausserhalb von Events
+bleiben je Session (kein Fenster).
+
+### 3. Referee Board (Web, fuer Event-Leiter + Moderatoren des Teams und Admins)
+- Ansicht je Event: alle zaehlenden Laeufe der Top-Plaetze je Bestenliste, mit Auffaelligkeiten: andere Sportart erkannt/
+  gemeldet (`strittig`), Uhr-Tempo-Anteil im Sprint-Fenster, Tempo deutlich ueber dem Bestand, Lauf nahe am Eventschluss,
+  Duplikat-Gruppe. Klick oeffnet die Session mit hervorgehobenem Lauf.
+- Knopf „Lauf aus der Wertung nehmen": Grund als Vorauswahl (andere Sportart · Messfehler (GPS-/Tempo-Sprung) · doppelte
+  Aufnahme · Fremdkraft (Welle, Boot, Zug) · ausserhalb des Eventfensters · Sonstiges) + **oeffentlicher Kommentar** +
+  **interne Notiz**. Rueckgaengig moeglich (bleibt im Protokoll).
+- Neue Tabelle `event_korrekturen` (event_id, session_id, lauf_start_ms, grund, kommentar_oeffentlich, notiz_intern,
+  von_user_id, am, aufgehoben_von, aufgehoben_am).
+- **Oeffentliche Anzeige** am Event („Korrekturen des Referees"): Fahrer, Bestenliste, Wert vorher/nachher, Grund,
+  oeffentlicher Kommentar, Zeit. Die interne Notiz sieht nur das Board. Der betroffene Fahrer bekommt eine Benachrichtigung.
+- **Zeitrahmen:** waehrend des Events und bis 24 h nach dem Festschreiben (`eingefroren_am`). In dieser Zeit rechnet jede
+  Korrektur den Endstand neu (`ergebnis_json` neu schreiben, `eingefroren_am` bleibt); danach endgueltig.
+- Laeufe HINEINnehmen (nicht erkannt, Laufgrenzen falsch) bleibt vorerst bei Claude (Sicherung + auswertung-festhalten).
+
+### 4. Session-Seite
+- Kennzeichen „zaehlt fuer <Event>" (mit Platz, Link) im Kopf und in der Lauf-Liste je zaehlendem Lauf; ausgenommene
+  Laeufe grau mit Grund.
+- Dropdown „<Event-Kategorie>" neben dem Pumps-Umschalter, fuer JEDEN, nur bei Sessions in einem Event: Liste der
+  laufbezogenen Kennzahlen vom Server (heute `sprint_*`, generisch fuer spaetere), hebt je Lauf das Fenster auf Karte/
+  Verlauf/Tabelle hervor. Dafuer speichert `sprint.py` die Fenster je Lauf und Kennzahl (neue sprint-VERSION; heute nur das
+  beste Fenster je Kennzahl).
+- Apps: Kennzeichen + Dropdown mit dem naechsten Android-/iOS-Release; Referee Board nur Web.
+
+### 5. Rollout
+Nicht waehrend eines laufenden Events umstellen; eingefrorene Endstaende bleiben unveraendert (auch Event 11 mit dem Lauf
+nach dem Schluss). Vorher Gegenprobe: alte Events neu rechnen (ohne Speichern) und Verschiebungen zeigen. Alte Apps lesen
+dieselben Bestenlisten-Felder weiter (rein serverseitig).
+
+**Offene Fragen an Jan:** (a) welcher Lauf einer Duplikat-Gruppe zaehlt; (b) Rechte: Leiter + Moderatoren des ausrichtenden
+Teams, bei globalen Events nur Admins/Moderatoren des offiziellen Teams?; (c) Benachrichtigung des Fahrers bei einer
+Korrektur ja/nein; (d) Reihenfolge: zuerst Baustein + Session-Kennzeichen, dann Board?
+
 ## Offene Punkte
 
 - Push bei Beitrittsanfrage / Event-Start — spaeter, optional.
