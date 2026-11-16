@@ -961,6 +961,8 @@ struct Segment: Codable {
     // den Trim verschoben. Das synchrone Abspielen haengt daran (s. SyncPlayback.swift).
     let t_start_session_ms: Double?
     let t_end_session_ms: Double?
+    /// Takt laut Uhr in 1/min (Suunto/SuuntoPlus `cadence`, 16.11.2026) — Angabe der Uhr, keine eigene Erkennung.
+    var uhr_takt_min: Double? = nil
     // FERTIGE Uhrzeit des Laufs: ms ab `started_at` in WANDUHR-Zeit, Trim UND Pausen sind darin
     // schon verrechnet (der Server rechnet das, s. server/app/clockmap.py). Damit hoert das
     // Selbstrechnen auf — `t_start_ms` dafuer zu nehmen war falsch (Befund 10.09.2026).
@@ -1282,6 +1284,28 @@ struct SessionSprints: Codable {
     var best: [String: Double]? = nil
     var lauf: [String: Int]? = nil
     var fenster: [String: [Double]]? = nil
+    /// Je Lauf (Index wie die Segmente, sprint-VERSION 5, 16.11.2026): Werte und Fenster je Kennzahl; null je Lauf ohne.
+    var laeufe: [[String: Double]?]? = nil
+    var laeufe_fenster: [[String: [Double]]?]? = nil
+}
+
+/// Event, fuer das diese Session zaehlt (server teams.session_events, 16.11.2026): laufbezogene Kategorien des Events,
+/// Laufstarts der zaehlenden Laeufe und die Plaetze dieser Session.
+struct SessionEvent: Codable, Identifiable {
+    struct Platz: Codable {
+        let kennzahl: String
+        var sportart: String? = nil
+        let rang: Int
+        var run_idx: Int? = nil
+    }
+    let id: Int
+    let titel: String
+    let team_slug: String
+    var global: Bool? = nil
+    var status: String? = nil
+    var kategorien: [String]? = nil
+    var laeufe_ms: [Double]? = nil
+    var plaetze: [Platz]? = nil
 }
 
 struct Fahrt: Codable {
@@ -1311,6 +1335,8 @@ struct Metrics: Codable {
     /// Ø Puls nur ueber die Laeufe (Server-Cache hr_foil_json, 01.11.2026) — Hauptzahl in Detail und Liste,
     /// `avg_hr` (mit den Pausen am Ufer) steht daneben klein als „gesamt". Fehlt ohne Laeufe/Puls.
     var avg_hr_foil: Double? = nil
+    /// Takt laut Uhr in 1/min (Suunto/SuuntoPlus, 16.11.2026); nur Foil-Sportarten, nur wenn die Uhr ihn aufzeichnet.
+    var uhr_takt_min: Double? = nil
     let max_hr: Double?
     let farthest_segment_m: Double?
     let longest_segment_s: Double?
@@ -1489,6 +1515,8 @@ struct SessionDetail: Codable, Identifiable {
     // Pausen der Aufnahme als [[session_ms, dauer_ms], …]. Damit wird aus einer Session-Zeit eine
     // UHRZEIT — s. Clockmap.swift.
     let pause_windows: [[Int]]?
+    /// Events, fuer die die Session zaehlt (16.11.2026, web 980d71a4); fehlt bei alten Servern und Fremd-Sessions ohne Event.
+    var events: [SessionEvent]? = nil
 
     var startedDate: Date? { Self.parseDate(started_at) }
     var endedDate: Date? { ended_at.flatMap(Self.parseDate) }

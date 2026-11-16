@@ -89,6 +89,9 @@ struct SessionDetailView: View {
     @State private var attempts: [AttemptLine]?   // nil = noch nicht geholt
     @State private var selectedRun: Int?     // ausgewählter Lauf -> nur dieser farbig, Karte zoomt
     @State private var vorwahlErledigt = false   // vorwahlLauf/sprintKz nur EINMAL anwenden (web appliedRunRef)
+    /// Event-Kategorie (16.11.2026, web 980d71a4/67651cf0): anklickbares Kennzeichen hebt je Lauf das zaehlende Stueck hervor.
+    /// nil = nie angefasst (dann gilt `sprintKz` aus der Bestenliste), "" = bewusst keine Kategorie.
+    @State private var eventKat: String?
     // Wind-Sportarten (Profil karte="ganz"): ganze Fahrt grau unter den Laeufen, umschaltbar auf
     // „nur on-foil". Bewusst NICHT gemerkt (wie im Web) — jede Session startet mit der ganzen Fahrt.
     @State private var ganzeFahrt = true
@@ -1044,6 +1047,7 @@ struct SessionDetailView: View {
             trackMap(track, segs, v, hoehe: 300)
                 .overlay(alignment: .topTrailing) { mapFullButton }
             legendRow(v)
+            eventKennzeichen(s)
             selectedRunRow
         }
         // Modifier INNERHALB des AnyView(...) — trackSection gibt ein AnyView zurueck.
@@ -1263,8 +1267,14 @@ struct SessionDetailView: View {
 
     /// Lauf ueber die ZEIT: Mitte des Fensters in [t_start_session_ms, t_end_session_ms] — die Laufnummern unterscheiden
     /// sich zwischen den normalen Laeufen und einem Empfindlichkeits-Preset des Besitzers (web 587a99d7).
+    /// Wirksame Kategorie: die im Kennzeichen gewaehlte, sonst die aus der Bestenliste (nur fuer die geoeffnete Session).
+    private var aktivKz: String? {
+        if let k = eventKat { return k.isEmpty ? nil : k }
+        return sid == id ? sprintKz : nil
+    }
+
     private func sprintLauf(_ s: SessionDetail) -> SprintLauf? {
-        guard sid == id, let kz = sprintKz, let f = s.analysis?.sprints?.fenster?[kz], f.count >= 2 else { return nil }
+        guard let kz = aktivKz, let f = s.analysis?.sprints?.fenster?[kz], f.count >= 2 else { return nil }
         let mitte: Double = (f[0] + f[1]) / 2
         let segs: [Segment] = s.analysis?.segments ?? []
         let treffer: Int? = segs.firstIndex { (g: Segment) -> Bool in
@@ -1276,10 +1286,116 @@ struct SessionDetailView: View {
         return SprintLauf(kz: kz, i: i, a: f[0], b: f[1], wert: wert)
     }
 
-    /// Hervorhebung nur, solange der Sprint-Lauf ausgewaehlt ist (web sprintHL).
+    /// Hervorhebung fuer den GEWAEHLTEN Lauf (web sprintHL): sein eigenes Fenster der Kategorie (laeufe_fenster, Zuordnung
+    /// ueber die Zeit), sonst — alte Auswertung ohne Fenster je Lauf — nur das beste Fenster, wenn es in diesem Lauf liegt.
     private var sprintHL: SprintLauf? {
-        guard let s = session, let sl = sprintLauf(s), selectedRun == sl.i else { return nil }
+        guard let s = session, let kz = aktivKz, let sel = selectedRun else { return nil }
+        if let hl = laufFenster(s, kz, sel) { return hl }
+        guard let sl = sprintLauf(s), sel == sl.i else { return nil }
         return sl
+    }
+
+    private func laufZurZeit(_ s: SessionDetail, _ mitte: Double) -> Int? {
+        let segs: [Segment] = s.analysis?.segments ?? []
+        return segs.firstIndex { (g: Segment) -> Bool in
+            guard let a = g.t_start_session_ms, let b = g.t_end_session_ms else { return false }
+            return a <= mitte && mitte <= b
+        }
+    }
+
+    private func laufFenster(_ s: SessionDetail, _ kz: String, _ sel: Int) -> SprintLauf? {
+        let lf: [[String: [Double]]?] = s.analysis?.sprints?.laeufe_fenster ?? []
+        let werte: [[String: Double]?] = s.analysis?.sprints?.laeufe ?? []
+        for j in 0..<lf.count {
+            guard let f = lf[j]?[kz], f.count >= 2 else { continue }
+            guard laufZurZeit(s, (f[0] + f[1]) / 2) == sel else { continue }
+            let w: Double = (j < werte.count ? werte[j]?[kz] : nil) ?? 0
+            return SprintLauf(kz: kz, i: sel, a: f[0], b: f[1], wert: w)
+        }
+        return nil
+    }
+
+    // MARK: Events, fuer die die Session zaehlt (16.11.2026, web 980d71a4, 62429a12, 5ed1728e, 67651cf0, 8d008d2f)
+
+    /// Je laufbezogener Kategorie mit Wert ein anklickbares Kennzeichen (an/aus hebt das Stueck des gewaehlten Laufs hervor),
+    /// ohne solche Kategorie ein Kennzeichen „Zaehlt fuer … · n Laeufe"; dahinter der Weg zum Event.
+    @ViewBuilder private func eventKennzeichen(_ s: SessionDetail) -> some View {
+        let evs: [SessionEvent] = s.events ?? []
+        if !evs.isEmpty {
+            FoilerFliessReihe(abstand: 6) {
+                ForEach(evs) { ev in eventTeile(s, ev) }
+            }
+        }
+    }
+
+    private static let eventFarbe: Color = Color(UIColor { t in
+        t.userInterfaceStyle == .dark ? UIColor(red: 0.941, green: 0.671, blue: 0.988, alpha: 1)   // fuchsia-300
+                                      : UIColor(red: 0.635, green: 0.110, blue: 0.686, alpha: 1)   // fuchsia-700
+    })
+    private static let eventRand: Color = Color(red: 0.851, green: 0.275, blue: 0.937)              // fuchsia-500
+
+    private func eventKurz(_ ev: SessionEvent) -> String {
+        ev.titel.count > 24 ? String(ev.titel.prefix(23)).trimmingCharacters(in: .whitespaces) + "…" : ev.titel
+    }
+
+    private func mitWert(_ s: SessionDetail, _ ev: SessionEvent) -> [String] {
+        let best: [String: Double] = s.analysis?.sprints?.best ?? [:]
+        return (ev.kategorien ?? []).filter { (best[$0] ?? 0) > 0 }
+    }
+
+    @ViewBuilder private func eventTeile(_ s: SessionDetail, _ ev: SessionEvent) -> some View {
+        let kats: [String] = mitWert(s, ev)
+        if kats.isEmpty {
+            NavigationLink { TeamEventView(slug: ev.team_slug, eventId: ev.id) } label: {
+                Text(eventZaehltText(ev)).font(.caption.weight(.semibold)).foregroundStyle(Self.eventFarbe)
+                    .padding(.horizontal, 8).padding(.vertical, 4)
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Self.eventRand, lineWidth: 2))
+            }
+            .buttonStyle(.plain)
+        } else {
+            ForEach(kats, id: \.self) { k in eventKnopf(ev, k) }
+            NavigationLink { TeamEventView(slug: ev.team_slug, eventId: ev.id) } label: {
+                Image(systemName: "link").font(.caption.weight(.semibold)).foregroundStyle(Self.eventFarbe).padding(4)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(ev.titel)
+        }
+    }
+
+    private func eventZaehltText(_ ev: SessionEvent) -> String {
+        Loc.t("sd.eventZaehlt", lang).replacingOccurrences(of: "{titel}", with: eventKurz(ev))
+            .replacingOccurrences(of: "{n}", with: String((ev.laeufe_ms ?? []).count))
+    }
+
+    private func eventKnopfText(_ ev: SessionEvent, _ k: String) -> String {
+        var t: String = eventKurz(ev) + " · " + Loc.t(teamKennzahl(k).labelKey, lang)
+        if let r = (ev.plaetze ?? []).first(where: { $0.kennzahl == k })?.rang { t += " · #" + String(r) }
+        return t
+    }
+
+    private func eventKnopf(_ ev: SessionEvent, _ k: String) -> some View {
+        let an: Bool = aktivKz == k
+        return Button { eventKatUmschalten(k, an: an) } label: {
+            Text(eventKnopfText(ev, k)).font(.caption.weight(.semibold))
+                .foregroundStyle(an ? Color.black : Self.eventFarbe)
+                .padding(.horizontal, 8).padding(.vertical, 4)
+                .background(an ? Self.eventRand : Color.clear, in: RoundedRectangle(cornerRadius: 8))
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Self.eventRand, lineWidth: 2))
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(Loc.t("sd.eventKategorieHinweis", lang))
+    }
+
+    /// An: Kategorie setzen und — ohne gewaehlten Lauf — den Lauf mit dem besten Stueck vorauswaehlen; aus: alles zuruecksetzen.
+    private func eventKatUmschalten(_ k: String, an: Bool) {
+        if an {
+            eventKat = ""
+            selectedRun = nil
+            return
+        }
+        eventKat = k
+        if colorMode == .glides { colorMode = .speed }
+        if selectedRun == nil, let s = session, let sl = sprintLauf(s) { selectedRun = sl.i }
     }
 
     /// „Schnellste fliegende 100 m · 12.3 s · 29.3 km/h · +1:05" — Wert wie in der Bestenliste, dahinter die Lage im Lauf.
@@ -1548,6 +1664,8 @@ struct SessionDetailView: View {
             excludeErrorRow
             if let segs = a.segments, !segs.isEmpty {
                 runsTable(segs, s)
+                // Puls je Lauf (web CompareHrStrips, TODO 12.11.): zeigt sich nur mit Puls.
+                PulsStreifenKarte(segments: segs, hr: s.analysis?.track_geojson?.properties?.hr ?? [], lang: lang)
             }
         } else {
             Text(Loc.t("sd.analyzing", lang)).foregroundStyle(.secondary)
@@ -1940,6 +2058,9 @@ struct SessionDetailView: View {
             if pc > 0, let fd = a.foiling_distance_m { out.append(StatItem(Loc.t("sd.avgDistPerPump", lang), String(format: "%.1f m", fd / Double(pc)))) }
         }
         if pumpzahlen, let v = m?.avg_pump_hz ?? a.avg_cadence_hz { out.append(StatItem(Loc.t("sd.avgPump", lang), PumpUnit.fmt(v, lang))) }
+        // Takt laut Uhr (Suunto/SuuntoPlus, web 6b7055ae): nur ohne eigenen Pump-Takt — die Angabe der Uhr, keine eigene
+        // Erkennung; dieselbe Einheit wie die Pumpfrequenz.
+        else if let tm = m?.uhr_takt_min, tm > 0 { out.append(StatItem(Loc.t("sd.taktUhr", lang), PumpUnit.fmt(tm / 60, lang))) }
         // Ø Puls auf dem Foil als Hauptzahl, der Gesamtwert (mit Pausen am Ufer) klein darunter — wie die PWA
         // (01.11.2026). Ohne Laeufe gibt es keinen Foil-Wert, dann wie bisher der Gesamtwert.
         // Tippen wechselt zwischen Ø auf dem Foil und Ø gesamt; das Kaestchen oben rechts zeigt den jeweils ANDEREN Wert
@@ -3346,6 +3467,8 @@ private struct RunsTable: View {
     // Spalten nur zeigen, wenn wenigstens EIN Lauf sie fuellt - sonst stehen dort nur Striche und
     // nehmen Platz weg. Dieselben drei Bedingungen wie die PWA (hasPump / hasHr / showPower).
     private var hatPump: Bool { segments.contains { $0.avg_pump_hz != nil && ($0.pumps ?? 0) > 0 } }
+    /// Takt laut Uhr (Suunto, web 6b7055ae): Spalte nur ohne eigenen Pump-Takt.
+    private var hatUhrTakt: Bool { !hatPump && segments.contains { $0.uhr_takt_min != nil } }
     private var zeigeMaxHr: Bool { segments.contains { maxHr($0) != nil } }
     private var zeigeDrop: Bool {
         guard zeigeMaxHr, zeiten != nil else { return false }
@@ -3420,6 +3543,12 @@ private struct RunsTable: View {
             s.append(Spalte(key: "pumpMax", kopf: k("sd.colPumpMaxMin"), breite: 84,
                               sort: { $0.max_pump_hz }) { _, seg in
                 PumpUnit.fmtValue(seg.max_pump_hz) + " / " + PumpUnit.fmtValue(seg.min_pump_hz)
+            })
+        }
+        if hatUhrTakt {
+            s.append(Spalte(key: "uhrTakt", kopf: Loc.t("sd.taktUhr", lang) + " (" + einheit + ")", breite: 70,
+                              sort: { $0.uhr_takt_min }) { _, seg in
+                PumpUnit.fmtValue(seg.uhr_takt_min.map { $0 / 60 })
             })
         }
         // Puls: Start, Durchschnitt, Max, Ende — Reihenfolge wie in der PWA (26.09.2026).
@@ -3843,3 +3972,176 @@ private struct WindHinweisKasten: View {
         .background(RoundedRectangle(cornerRadius: 12).fill(Color.orange.opacity(0.1)))
     }
 }
+
+
+// MARK: - Puls-Streifen je Lauf (web CompareHrStrips.tsx, TODO 12.11.2026)
+
+/// Eine Zeile = ein Lauf; waagerecht die Zeit AB LAUFBEGINN, alle Zeilen auf derselben Achse bis zum laengsten Lauf,
+/// eingefaerbt nach Puls (absolut) bzw. nach dem Anstieg gegenueber dem ersten gemessenen Puls des Laufs. Die Zeitachse
+/// kommt aus der Laufdauer (`duration_s`), NICHT Punkt = Sekunde: Uhren mit intelligenter Aufzeichnung speichern nur etwa
+/// alle 2 s (web a707ccb2). Laeufe ohne Puls fehlen ganz. Ziehen zeigt die Werte an der Zeitposition.
+struct PulsStreifenKarte: View {
+    let segments: [Segment]
+    let hr: [Int?]
+    let lang: String
+    @AppStorage("hrRise") private var anstieg = false
+    @State private var zeiger: Int?
+
+    private struct Zeile: Identifiable {
+        let id: Int        // Laufindex
+        let werte: [Int?]  // ein Wert je Sekunde ab Laufbeginn
+        let delta: [Int?]
+    }
+
+    private static let zeileH: CGFloat = 13
+    private static let luecke: CGFloat = 8
+
+    private var zeilen: [Zeile] {
+        var out: [Zeile] = []
+        for (k, g) in segments.enumerated() { if let z = zeile(k, g) { out.append(z) } }
+        return out
+    }
+
+    private func zeile(_ k: Int, _ g: Segment) -> Zeile? {
+        guard !hr.isEmpty, g.i_end > g.i_start, let d = g.duration_s, d >= 1 else { return nil }
+        let a: Int = max(0, g.i_start)
+        let b: Int = min(g.i_end, hr.count - 1)
+        guard b > a else { return nil }
+        let n: Int = max(1, Int(d.rounded()))
+        var w: [Int?] = []
+        w.reserveCapacity(n)
+        for sek in 0..<n {
+            let f: Double = n > 1 ? Double(sek) / Double(n - 1) : 0
+            let i: Int = a + Int((f * Double(b - a)).rounded())
+            let v: Int? = hr[i]
+            w.append((v ?? 0) > 0 ? v : nil)
+        }
+        guard let erster = w.first(where: { $0 != nil }) ?? nil else { return nil }
+        let delta: [Int?] = w.map { v in v.map { $0 - erster } }
+        return Zeile(id: k, werte: w, delta: delta)
+    }
+
+    var body: some View {
+        let zs: [Zeile] = zeilen
+        if !zs.isEmpty {
+            karte(zs)
+        }
+    }
+
+    private func bereich(_ zs: [Zeile]) -> (Int, Int) {
+        let alle: [Int] = zs.flatMap { (anstieg ? $0.delta : $0.werte).compactMap { $0 } }
+        return (alle.min() ?? 0, max((alle.max() ?? 1), (alle.min() ?? 0) + 1))
+    }
+
+    private func karte(_ zs: [Zeile]) -> some View {
+        let maxLen: Int = zs.map { $0.werte.count }.max() ?? 1
+        let b: (Int, Int) = bereich(zs)
+        return VStack(alignment: .leading, spacing: 8) {
+            kopf(zs.count, b)
+            HStack(alignment: .top, spacing: 6) {
+                VStack(alignment: .trailing, spacing: Self.luecke) {
+                    ForEach(zs) { z in
+                        Text("#" + String(z.id + 1)).font(.caption2).monospacedDigit().foregroundStyle(.secondary)
+                            .frame(height: Self.zeileH)
+                    }
+                }
+                VStack(spacing: 2) {
+                    streifen(zs, maxLen, b)
+                    HStack {
+                        Text(Self.dauer(zeiger ?? 0)).fontWeight(zeiger == nil ? .regular : .semibold)
+                        Spacer()
+                        Text(Self.dauer(maxLen))
+                    }
+                    .font(.caption2).monospacedDigit().foregroundStyle(.secondary)
+                }
+                VStack(alignment: .trailing, spacing: Self.luecke) {
+                    ForEach(zs) { z in
+                        Text(wertText(z)).font(.caption2).monospacedDigit()
+                            .frame(width: 40, height: Self.zeileH, alignment: .trailing)
+                    }
+                }
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func titel(_ n: Int) -> String {
+        Loc.t("field.2", lang) + " · " + Loc.t("compare.runsTitle", lang).replacingOccurrences(of: "{count}", with: String(n))
+    }
+
+    private func kopf(_ n: Int, _ b: (Int, Int)) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(titel(n)).font(.subheadline.weight(.semibold))
+            HStack(spacing: 8) {
+                Picker("", selection: $anstieg) {
+                    Text(Loc.t("hr.viewPeak", lang)).tag(false)
+                    Text(Loc.t("hr.viewRise", lang)).tag(true)
+                }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 200)
+                Spacer(minLength: 4)
+                Text(legendeLinks(b)).font(.caption2).monospacedDigit().foregroundStyle(.secondary)
+                LinearGradient(colors: [.blue, .cyan, .green, .yellow, .orange, .red], startPoint: .leading, endPoint: .trailing)
+                    .frame(width: 60, height: 8).clipShape(Capsule())
+                Text(legendeRechts(b)).font(.caption2).monospacedDigit().foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func legendeLinks(_ b: (Int, Int)) -> String {
+        guard anstieg else { return String(b.0) }
+        return b.0 > 0 ? "+" + String(b.0) : String(b.0)
+    }
+
+    private func legendeRechts(_ b: (Int, Int)) -> String {
+        (anstieg ? "+" + String(b.1) : String(b.1)) + " bpm"
+    }
+
+    private func wertText(_ z: Zeile) -> String {
+        guard let i = zeiger, i < z.werte.count else { return "" }
+        let v: Int? = anstieg ? z.delta[i] : z.werte[i]
+        guard let x = v else { return "–" }
+        return anstieg && x > 0 ? "+" + String(x) : String(x)
+    }
+
+    private func streifen(_ zs: [Zeile], _ maxLen: Int, _ b: (Int, Int)) -> some View {
+        let hoehe: CGFloat = CGFloat(zs.count) * (Self.zeileH + Self.luecke) - Self.luecke
+        let rise: Bool = anstieg
+        let z0: Int? = zeiger
+        return GeometryReader { geo in
+            Canvas { ctx, size in
+                let breite: CGFloat = size.width / CGFloat(max(maxLen, 1))
+                for (r, z) in zs.enumerated() {
+                    let y: CGFloat = CGFloat(r) * (Self.zeileH + Self.luecke)
+                    let werte: [Int?] = rise ? z.delta : z.werte
+                    for (i, v) in werte.enumerated() {
+                        guard let x = v else { continue }
+                        let t: Double = Double(x - b.0) / Double(max(b.1 - b.0, 1))
+                        let rect = CGRect(x: CGFloat(i) * breite, y: y, width: breite + 0.5, height: Self.zeileH)
+                        ctx.fill(Path(rect), with: .color(Color(uiColor: pulsRampe(t))))
+                    }
+                }
+                if let i = z0 {
+                    let x: CGFloat = (CGFloat(i) + 0.5) * breite
+                    ctx.fill(Path(CGRect(x: x, y: 0, width: 1, height: size.height)), with: .color(.primary.opacity(0.7)))
+                }
+            }
+            .contentShape(Rectangle())
+            // gleichzeitig mit dem Scrollen der Seite (sonst blockiert der Streifen das Wischen)
+            .simultaneousGesture(DragGesture(minimumDistance: 0)
+                .onChanged { g in
+                    let f: CGFloat = g.location.x / max(geo.size.width, 1)
+                    zeiger = max(0, min(maxLen - 1, Int(f * CGFloat(maxLen))))
+                }
+                .onEnded { _ in zeiger = nil })
+        }
+        .frame(height: max(hoehe, Self.zeileH))
+    }
+
+    private static func dauer(_ n: Int) -> String { String(n / 60) + ":" + String(format: "%02d", n % 60) }
+}
+
+/// Puls-Rampe der Streifen: dieselbe wie die Kartenfaerbung (blau niedrig -> rot hoch).
+private func pulsRampe(_ t: Double) -> UIColor { uiRampColor(t) }
