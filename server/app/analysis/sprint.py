@@ -32,6 +32,11 @@ DAUERN_S = (60,)
 LUECKE_S = 3.0
 TOLERANZ = 0.10          # relative Abweichung Positions- vs. Doppler-Strecke im Fenster; s. Messung in docs/TODO.md
 MIN_TEMPO_ANTEIL = 0.8   # so viel des Laufs muss ein Uhr-Tempo tragen, sonst ist es keine Doppler-Messung
+# Regel je FENSTER (Entwurf 16.11.2026, Jan 15.11.: „der ganze lauf interessiert nicht"): statt MIN_TEMPO_ANTEIL je Lauf
+# zaehlt nur das Fenster. Fehlendes Uhr-Tempo bis TEMPO_LUECKE_S aus den Tempowerten davor/danach ueberbruecken (nicht aus
+# Positionen), laenger -> Fenster ungueltig; im Fenster mind. FENSTER_TEMPO_ANTEIL der Punkte mit echtem Uhr-Tempo.
+TEMPO_LUECKE_S = 3.0
+FENSTER_TEMPO_ANTEIL = 2 / 3
 
 KENNZAHLEN = tuple(f"sprint_{m}m" for m in STRECKEN_M) + tuple(f"sprint_{s}s" for s in DAUERN_S)
 
@@ -44,7 +49,8 @@ def _strecke_pos(lat: np.ndarray, lon: np.ndarray) -> np.ndarray:
 
 
 def _fenster(t: np.ndarray, cd: np.ndarray, cp: np.ndarray, luecken: np.ndarray, *,
-             strecke: float | None = None, dauer: float | None = None) -> tuple[float, float, float] | None:
+             strecke: float | None = None, dauer: float | None = None,
+             echt: np.ndarray | None = None) -> tuple[float, float, float] | None:
     """Bestes gueltiges Fenster ueber eine Strecke ODER eine Dauer -> (m/s, Start s, Ende s); None, wenn keines passt.
     Gleichstand: das fruehere Fenster (argmax).
 
@@ -78,6 +84,10 @@ def _fenster(t: np.ndarray, cd: np.ndarray, cp: np.ndarray, luecken: np.ndarray,
         dp = cp[j - 1] + f * (cp[j] - cp[j - 1]) - cp[i]
     gut = (luecken[j] == luecken[i]) & (dt > 0) & (dd > 0)
     gut &= np.abs(dp - dd) <= TOLERANZ * dd
+    if echt is not None:                                    # Regel je Fenster: Anteil echter Uhr-Tempo-Punkte i..j
+        ce = np.concatenate([[0], np.cumsum(echt)])
+        anz = (j + 1) - i
+        gut &= (ce[j + 1] - ce[i]) >= FENSTER_TEMPO_ANTEIL * anz
     if not gut.any():
         return None
     v = dd[gut] / dt[gut]
@@ -85,7 +95,29 @@ def _fenster(t: np.ndarray, cd: np.ndarray, cp: np.ndarray, luecken: np.ndarray,
     return float(v[k]), float(t[i[gut][k]]), float(t[i[gut][k]] + dt[gut][k])
 
 
-def lauf_sprints(gps: list, a_ms: float, b_ms: float, fenster: dict | None = None) -> dict[str, float] | None:
+def _tempo_luecken_fuellen(t: np.ndarray, v: np.ndarray, echt: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Fehlendes Uhr-Tempo (echt False) linear aus dem Tempo davor/danach fuellen, wenn die Luecke <= TEMPO_LUECKE_S
+    dauert. Gibt (v, schlecht) zurueck: schlecht[k] = Punkt liegt in einer laengeren Luecke (oder am Rand ohne Nachbar)."""
+    v = v.copy()
+    schlecht = np.zeros(v.size, dtype=bool)
+    k, n = 0, v.size
+    while k < n:
+        if echt[k]:
+            k += 1
+            continue
+        a = k
+        while k < n and not echt[k]:
+            k += 1
+        b = k                                               # [a, b) ohne Uhr-Tempo
+        if a == 0 or b == n or (t[b] - t[a - 1]) > TEMPO_LUECKE_S + 1e-6:
+            schlecht[a:b] = True
+        else:
+            v[a:b] = np.interp(t[a:b], [t[a - 1], t[b]], [v[a - 1], v[b]])
+    return v, schlecht
+
+
+def lauf_sprints(gps: list, a_ms: float, b_ms: float, fenster: dict | None = None,
+                 je_fenster: bool = False) -> dict[str, float] | None:
     """Beste Fenster eines Laufs [a_ms, b_ms] (Session-ms) -> {kennzahl: m/s}; None ohne brauchbares Uhr-Tempo.
     `fenster` (optional): bekommt je Kennzahl [Start-ms, Ende-ms] des besten Fensters (Session-ms, fuer die Anzeige)."""
     from .detect_v2 import _clean_speed
@@ -93,27 +125,37 @@ def lauf_sprints(gps: list, a_ms: float, b_ms: float, fenster: dict | None = Non
     if len(pkt) < 5:
         return None
     roh = [p[3] if len(p) > 3 and isinstance(p[3], (int, float)) and not isinstance(p[3], bool) else None for p in pkt]
-    if sum(1 for v in roh if v is not None and v > 0) < MIN_TEMPO_ANTEIL * len(pkt):
+    if not je_fenster and sum(1 for v in roh if v is not None and v > 0) < MIN_TEMPO_ANTEIL * len(pkt):
         return None
     t = np.array([float(p[0]) for p in pkt]) / 1000.0
     lat = np.array([float(p[1]) for p in pkt])
     lon = np.array([float(p[2]) for p in pkt])
     v = np.array([float(x) if x is not None else np.nan for x in roh])
-    v = np.nan_to_num(_clean_speed(np.where(np.isfinite(v), v, 0.0), 1), nan=0.0)
+    echt = np.isfinite(v) & (v > 0)
     dt = np.diff(t)
     if (dt <= 0).any():                                    # doppelte Zeitstempel: nach Zeit eindeutig machen
         _, k = np.unique(t, return_index=True)
-        t, lat, lon, v = t[k], lat[k], lon[k], v[k]
+        t, lat, lon, v, echt = t[k], lat[k], lon[k], v[k], echt[k]
         dt = np.diff(t)
-    luecke = np.concatenate([[0], np.cumsum(dt > LUECKE_S)])
+    if je_fenster:
+        v, schlecht = _tempo_luecken_fuellen(t, np.where(echt, v, 0.0), echt)
+        v = np.nan_to_num(_clean_speed(v, 1), nan=0.0)
+        # Lange Tempo-Luecke wie eine Zeit-Luecke: kein Fenster darf sie enthalten.
+        bruch = (dt > LUECKE_S) | schlecht[1:] | schlecht[:-1]
+        luecke = np.concatenate([[0], np.cumsum(bruch)])
+    else:
+        v = np.nan_to_num(_clean_speed(np.where(np.isfinite(v), v, 0.0), 1), nan=0.0)
+        bruch = dt > LUECKE_S
+        luecke = np.concatenate([[0], np.cumsum(bruch)])
     # Ueber eine Luecke hinweg integriert der Doppler-Wert nichts Gemessenes — dort 0 Zuwachs, das Fenster
     # ist ohnehin ungueltig (luecken-Zaehler).
-    seg = np.where(dt > LUECKE_S, 0.0, (v[1:] + v[:-1]) / 2 * dt)
+    seg = np.where(bruch, 0.0, (v[1:] + v[:-1]) / 2 * dt)
     cd = np.concatenate([[0.0], np.cumsum(seg)])
     cp = _strecke_pos(lat, lon)
     out: dict[str, float] = {}
-    for kz, w in ([(f"sprint_{m}m", _fenster(t, cd, cp, luecke, strecke=float(m))) for m in STRECKEN_M]
-                  + [(f"sprint_{s}s", _fenster(t, cd, cp, luecke, dauer=float(s))) for s in DAUERN_S]):
+    e = echt if je_fenster else None
+    for kz, w in ([(f"sprint_{m}m", _fenster(t, cd, cp, luecke, strecke=float(m), echt=e)) for m in STRECKEN_M]
+                  + [(f"sprint_{s}s", _fenster(t, cd, cp, luecke, dauer=float(s), echt=e)) for s in DAUERN_S]):
         if w is not None:
             out[kz] = round(w[0], 3)
             if fenster is not None:
@@ -121,7 +163,7 @@ def lauf_sprints(gps: list, a_ms: float, b_ms: float, fenster: dict | None = Non
     return out
 
 
-def session_sprints(gps: list, segmente: list, trim_start_ms: int = 0) -> dict:
+def session_sprints(gps: list, segmente: list, trim_start_ms: int = 0, je_fenster: bool = False) -> dict:
     """Je Kennzahl das beste Fenster der Session und je Lauf alle Werte.
 
     -> {"v": VERSION, "best": {kennzahl: m/s}, "lauf": {kennzahl: Laufindex}, "fenster": {kennzahl: [Start-ms, Ende-ms]},
@@ -139,7 +181,7 @@ def session_sprints(gps: list, segmente: list, trim_start_ms: int = 0) -> dict:
                 continue
             a, b = float(g["t_start_ms"]) + trim_start_ms, float(g["t_end_ms"]) + trim_start_ms
         fl: dict = {}
-        w = lauf_sprints(gps, float(a), float(b), fl)
+        w = lauf_sprints(gps, float(a), float(b), fl, je_fenster=je_fenster)
         laeufe.append(w)
         for kz, x in (w or {}).items():
             if x > best.get(kz, 0.0):

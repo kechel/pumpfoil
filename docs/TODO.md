@@ -1552,6 +1552,13 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   gebaut, mit abgemeldetem Konto noch nicht angesehen (Web/Android/iOS).
 - Uhren-Paritaet LaufLuecke: Zepp, Huawei, Suunto offen (12.11.).
 
+**A+. Referee Board fuer Event-Leiter und Moderatoren (Jan 16.11.)** — „einzelne laeufe rausnehmen aus der wertung, auch
+nach dem festschreiben noch 24h lang … nicht nur via claude". Haengt an A1 (Wertung je Lauf): Ansicht je Event mit allen
+zaehlenden Laeufen/Sprints (sortiert nach Platz, Datenlage, Auffaelligkeiten wie Sportart/Tempo/Doppler), Knopf „Lauf aus der
+Wertung nehmen" mit Grund (sichtbar fuer den Fahrer, Protokoll wer/wann), Rueckgaengig moeglich; Endstand wird nach dem
+Festschreiben noch 24 h nachgerechnet, danach endgueltig. Rechte: Event-Leiter des Teams + Moderatoren/Admins.
+Entwurf zusammen mit A1.
+
 **C. Analyse-Befunde (Pipeline, nur mit Jans OK)**
 - GPS-Wiederfinden nach Unterwasser-Luecke als Lauf (08.11.); Autofahrt verschiebt den Wasser-Suchpunkt (07.11.);
   eingefrorene GPS-Fixe reparieren (13.11., gebaut, nicht eingehaengt); Land-Session bekam Laeufe (11.11., vor der
