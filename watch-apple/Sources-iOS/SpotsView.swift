@@ -3,8 +3,6 @@ import MapKit
 
 /// Karten (Spots, Session-Details, Spot-Heatmap) nehmen 2/3 der Bildschirmhoehe ein (Jan, 16.11.2026).
 var KARTE_HOEHE: CGFloat { (UIScreen.main.bounds.height * 2 / 3).rounded() }
-/// Spots-Karte: 2/3 wie die anderen, seit die Reiterleiste darunter steht und der leere Streifen oben weg ist (Jan, 16.11.2026).
-private var SPOTS_KARTE_HOEHE: CGFloat { KARTE_HOEHE }
 
 // MapKit wirft eine NSException, sobald eine Region breiter als 180°/360° ist — das beendet die
 // App sofort, es gibt keinen Fehlerwert zum Abfangen. Genau das ist am 30.08. passiert: mit der
@@ -91,6 +89,7 @@ struct SpotsView: View {
     // Zoom/Schwenk (s. buendelnFallsNoetig). Vorher lag hier je Spot eine eigene Annotation.
     @State private var buendel: [SpotBuendel] = []
     @State private var kartenBreite: Double = 390
+    @State private var kartenHoehe: Double = Double(KARTE_HOEHE)
     @State private var letzteSpanne: Double = 0
     @State private var letzteMitte = CLLocationCoordinate2D(latitude: 0, longitude: 0)
     /// Eigener Spot fuer die Startansicht (`homespot_effective`, s. settings.py).
@@ -116,9 +115,13 @@ struct SpotsView: View {
             //
             // Preis: die Karte laesst sich nicht mehr wegscrollen. Auf Android ist das seit jeher
             // so, und eine Karte, die man nicht bedienen kann, ist der schlechtere Tausch.
-            // Die Reiterleiste steht NICHT mehr ganz oben: dort blieb sie unter iOS 26 (Suche unten, `.searchable`) unsichtbar,
-            // nur ein leerer weisser Streifen (Jan, 16.11.2026). Jetzt unter der Karte bzw. als erste Zeile der Listen.
-            reiterInhalt
+            // Oben die Reiter (feste Zeile ohne ScrollView: die scrollbare blieb ganz oben unter iOS 26 leer, Jan 16.11.2026),
+            // darunter der Inhalt. Im Reiter Karte steht die Seite fest: nur die Karte bewegt sich, unten die Suche.
+            VStack(spacing: 0) {
+                Reiterleiste(reiter: spotsReiter, aktiv: reiterBindung, scrollbar: false)
+                    .padding(.horizontal)
+                reiterInhalt
+            }
             // Wert-basiertes Ziel statt eines Links IN der Kartenzeile (s. `annotation`).
             .navigationDestination(for: SpotDest.self) { d in
                 SpotSessionsView(spot: d.spot, vorgegebeneSpotId: d.spotId, sport: d.sport)
@@ -149,9 +152,9 @@ struct SpotsView: View {
         switch tab {
         case "liste": spotListe
         case "rekorde":
-            List { reiterZeile; SpotCompareView() }.listStyle(.insetGrouped)
+            List { SpotCompareView() }.listStyle(.insetGrouped)
         case "routen":
-            List { reiterZeile; RoutenAbschnitt(lang: lang) }.listStyle(.insetGrouped)
+            List { RoutenAbschnitt(lang: lang) }.listStyle(.insetGrouped)
         default: karteReiter
         }
     }
@@ -160,28 +163,14 @@ struct SpotsView: View {
         Binding(get: { tab }, set: { tab = $0; ReiterSpeicher.setze("spots", $0) })
     }
 
-    /// Reiterleiste als erste Listenzeile (Liste, Rekorde, Routen) — ohne Zeilenhintergrund.
-    private var reiterZeile: some View {
-        Reiterleiste(reiter: spotsReiter, aktiv: reiterBindung)
-            .listRowInsets(EdgeInsets())
-            .listRowBackground(Color.clear)
-    }
 
-    private var karteReiter: some View {
-        VStack(spacing: 0) {
+    /// Reiter Karte (Jan, 16.11.2026): Karte auf der ganzen freien Hoehe, nichts darunter ausser der Suche (unten, iOS);
+    /// keine scrollbare Seite, keine Filter- und Erklaerzeilen mehr. Bei einer Suche ersetzen die Treffer die Karte.
+    @ViewBuilder private var karteReiter: some View {
+        if suche.trimmingCharacters(in: .whitespaces).isEmpty {
             karteOben
-            Reiterleiste(reiter: spotsReiter, aktiv: reiterBindung)
-                .padding(.horizontal)
-            List {
-                // Bei einer Suche NUR die Treffer, direkt unter der Karte. Vorher standen sie unter
-                // Filterzeile, Erklaertext und dem ganzen Spot-Vergleich — beim Tippen nie zu sehen,
-                // die Suche wirkte kaputt (Jan, 28.10.2026: „findet nichtmal illmensee").
-                if suche.trimmingCharacters(in: .whitespaces).isEmpty {
-                    kopfSection
-                }
-                listSection
-            }
-            .listStyle(.insetGrouped)
+        } else {
+            List { listSection }.listStyle(.insetGrouped)
         }
     }
 
@@ -192,7 +181,6 @@ struct SpotsView: View {
         let liste: [SpotMapItem] = items.filter { $0.spot_id != nil && (q.isEmpty || passtZu(q, $0.spot, $0.water)) }
             .sorted { $0.sessions > $1.sessions }
         return List {
-            reiterZeile
             if SportFilterMenu.zeigen(sport: sport, sports: sports) {
                 SportFilterMenu(sport: sport, sports: sports, lang: lang) { sport = $0 }
             }
@@ -285,10 +273,10 @@ struct SpotsView: View {
     @ViewBuilder private var karteOben: some View {
         if !items.isEmpty {
             spotKarte
-                .frame(height: SPOTS_KARTE_HOEHE)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(GeometryReader { geo in
-                    // Echte Breite nachreichen (Voreinstellung 390) und einmal neu buendeln.
-                    Color.clear.onAppear { kartenBreite = Double(geo.size.width); buendeln() }
+                    // Echte Breite/Hoehe nachreichen (Voreinstellung 390 / 2/3 Bildschirm) und einmal neu buendeln.
+                    Color.clear.onAppear { kartenBreite = Double(geo.size.width); kartenHoehe = Double(geo.size.height); buendeln() }
                 })
                 // MKCoordinateRegion ist nicht Equatable -> auf die Skalare hoeren.
                 // Dieselben drei Haken merken den Ausschnitt mit (s. SpotsKarte) — eigene
@@ -527,7 +515,7 @@ struct SpotsView: View {
         // Punkte je Grad im aktuellen Ausschnitt. Lineare Naeherung statt echter Mercator-
         // Projektion wie im Web — fuer eine Ueberdeckungs-Schwelle in Punkten genau genug.
         let ppLon = kartenBreite / dLon
-        let ppLat = Double(SPOTS_KARTE_HOEHE) / dLat
+        let ppLat = kartenHoehe / dLat
         let reihe = (0..<sicht.count).sorted { sicht[$0].sessions > sicht[$1].sessions }
         var belegt = Array(repeating: false, count: sicht.count)
         var out: [SpotBuendel] = []

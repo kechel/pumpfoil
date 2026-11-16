@@ -22,12 +22,26 @@ struct Reiterleiste: View {
     @Binding var aktiv: String
     var stufe: Int = 1
     var unter: Bool = false
+    /// false: feste Zeile ohne ScrollView. Ganz oben unter der Navigationsleiste (Spots, iOS 26) blieb die horizontale
+    /// ScrollView leer — nur ein weisser Streifen (Jan, 16.11.2026). Nur fuer wenige Reiter, die sicher in eine Zeile passen.
+    var scrollbar: Bool = true
 
     /// Lage jedes Reiters im sichtbaren Bereich der Leiste (fuer die Rand-Pfeile).
     @State private var lagen: [String: CGRect] = [:]
     @State private var breite: CGFloat = 0
 
     var body: some View {
+        if scrollbar { scrollLeiste } else { festeLeiste }
+    }
+
+    private var festeLeiste: some View {
+        HStack(spacing: 0) {
+            ForEach(reiter) { r in knopf(r).frame(maxWidth: .infinity) }
+        }
+        .overlay(alignment: .bottom) { if stufe == 1 { Divider() } }
+    }
+
+    private var scrollLeiste: some View {
         ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: stufe == 2 ? 4 : 0) {
