@@ -24,8 +24,20 @@ def aktiv() -> bool:
     return (os.environ.get("EVENT_JE_LAUF") or "").strip().lower() in ("1", "true", "an", "on", "ja", "yes")
 
 
-def _laeufe(started_at: datetime, segs_json) -> list[tuple[int, float, float, dict]]:
-    """(Index, Start-Epoch-s, Ende-Epoch-s, Segment) je Lauf; Laufzeiten aus t_*_session_ms (ab Session-Start)."""
+def lauf_ms(g: dict, trim_ms: int = 0) -> tuple[float, float] | None:
+    """(Start, Ende) eines Laufs in Session-ms. Aeltere Auswertungen (gps-mvp, v1) kennen nur t_*_ms ab dem Zuschnitt —
+    dann + trim_start_ms, wie sprint.session_sprints. Ohne Zeiten None."""
+    a, b = g.get("t_start_session_ms"), g.get("t_end_session_ms")
+    if a is not None and b is not None:
+        return float(a), float(b)
+    a, b = g.get("t_start_ms"), g.get("t_end_ms")
+    if a is None or b is None:
+        return None
+    return float(a) + trim_ms, float(b) + trim_ms
+
+
+def _laeufe(started_at: datetime, segs_json, trim_ms: int | None = 0) -> list[tuple[int, float, float, dict]]:
+    """(Index, Start-Epoch-s, Ende-Epoch-s, Segment) je Lauf; Laufzeiten ueber lauf_ms (Session-ms ab Session-Start)."""
     try:
         segs = json.loads(segs_json or "[]") if isinstance(segs_json, str) else (segs_json or [])
     except ValueError:
@@ -33,13 +45,10 @@ def _laeufe(started_at: datetime, segs_json) -> list[tuple[int, float, float, di
     t0 = started_at.timestamp()
     out = []
     for k, g in enumerate(segs if isinstance(segs, list) else []):
-        a = g.get("t_start_session_ms")
-        b = g.get("t_end_session_ms")
-        if a is None:
-            a, b = g.get("t_start_ms"), g.get("t_end_ms")
-        if a is None or b is None:
+        ab = lauf_ms(g, int(trim_ms or 0))
+        if ab is None:
             continue
-        out.append((k, t0 + float(a) / 1000.0, t0 + float(b) / 1000.0, g))
+        out.append((k, t0 + ab[0] / 1000.0, t0 + ab[1] / 1000.0, g))
     return out
 
 
@@ -53,7 +62,7 @@ def zaehlende(sessions: list[dict], fenster: tuple[datetime, datetime], aus: fro
         guete = (1 if (s.get("detection") or "") not in ("", "none", "gps_only") else 0, float(s.get("accel_hz") or 0),
                  -int(s["id"]))
         t0 = s["started_at"].timestamp()
-        for k, a, b, _g in _laeufe(s["started_at"], s.get("segments_json")):
+        for k, a, b, _g in _laeufe(s["started_at"], s.get("segments_json"), s.get("trim")):
             if s0 <= a < s1 and not ist_ausgenommen(aus, s["id"], (a - t0) * 1000.0):
                 je_user.setdefault(s["user_id"], []).append((a, b, s["id"], k, guete))
     out: dict[int, list[int]] = {}
@@ -122,7 +131,7 @@ def werte(kennzahl: str, sessions: list[dict], zaehl: dict[int, list[int]], pg: 
         idx = set(zaehl.get(s["id"]) or [])
         if not idx:
             continue
-        laeufe = [(k, g) for k, _a, _b, g in _laeufe(s["started_at"], s.get("segments_json")) if k in idx]
+        laeufe = [(k, g) for k, _a, _b, g in _laeufe(s["started_at"], s.get("segments_json"), s.get("trim")) if k in idx]
         uid = s["user_id"]
         if kennzahl.startswith("sprint_"):
             try:

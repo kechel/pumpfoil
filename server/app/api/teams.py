@@ -763,11 +763,12 @@ def lauf_melden(slug: str, event_id: int, body: MeldungIn, user: models.User = D
     if not any(z.get("session_id") == s.id and z.get("run_idx") == body.run_idx
                for tf in T._event_voll(db, t, e) for z in tf.get("zeilen") or []):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "kein_lauf")
-    laeufe = EL._laeufe(s.started_at, s.result.segments_json)
+    laeufe = EL._laeufe(s.started_at, s.result.segments_json, s.trim_start_ms)
     g = next((g for k, _a, _b, g in laeufe if k == body.run_idx), None)
-    if g is None or g.get("t_start_session_ms") is None:
+    ab = EL.lauf_ms(g, int(s.trim_start_ms or 0)) if g is not None else None
+    if ab is None:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "kein_lauf")
-    start_ms = int(g["t_start_session_ms"])
+    start_ms = int(ab[0])
     K = models.EventKorrektur
     if any(abs(k.lauf_start_ms - start_ms) <= R.TOLERANZ_MS for k in db.query(K).filter(K.event_id == e.id, K.session_id == s.id)):
         raise HTTPException(status.HTTP_409_CONFLICT, "schon_gemeldet")   # einmal je Lauf, egal von wem
@@ -808,8 +809,9 @@ def referee_anlegen(slug: str, event_id: int, body: KorrekturIn, user: models.Us
     s = db.get(models.Session, body.session_id)
     if s is None or s.deleted or s.result is None:
         raise _404()
-    lauf = next((a for _k, a, _b, g in EL._laeufe(s.started_at, s.result.segments_json)
-                 if abs(float(g.get("t_start_session_ms") or -1e12) - body.lauf_start_ms) <= R.TOLERANZ_MS), None)
+    trim = int(s.trim_start_ms or 0)
+    lauf = next((a for _k, a, _b, g in EL._laeufe(s.started_at, s.result.segments_json, trim)
+                 if abs((EL.lauf_ms(g, trim) or (-1e12, 0))[0] - body.lauf_start_ms) <= R.TOLERANZ_MS), None)
     if lauf is None:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "kein_lauf")
     K = models.EventKorrektur

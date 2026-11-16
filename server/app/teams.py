@@ -586,13 +586,13 @@ def _event_zeilen(db: Session, tf: models.TeamTafel, filtern, fenster, strittig:
     S, U, AR = C.S, C.U, C.AR
     q = filtern(C._community(db.query(U.id, S.id, S.started_at, C.NAME, U.avatar_url, S.place_name, S.place_lat,
                                       S.place_lon, S.ort_sichtbarkeit, S.spot_id, AR.segments_json, AR.sprint_json,
-                                      AR.detection, S.accel_hz), None, tf.accel_only, tf.sportart))
+                                      AR.detection, S.accel_hz, S.trim_start_ms), None, tf.accel_only, tf.sportart))
     if q is None:
         return []
     sessions, info = [], {}
-    for uid, sid, ts, name, av, place, lat, lon, sicht, spot_id, segs, spr, det, hz in q.all():
+    for uid, sid, ts, name, av, place, lat, lon, sicht, spot_id, segs, spr, det, hz, trim in q.all():
         sessions.append({"id": sid, "user_id": uid, "started_at": ts, "segments_json": segs, "sprint_json": spr,
-                         "detection": det, "accel_hz": hz, "spot_id": spot_id})
+                         "detection": det, "accel_hz": hz, "spot_id": spot_id, "trim": trim})
         info[sid] = (name, av, place, lat, lon, sicht)
         info.setdefault(("u", uid), (name, av))
     zaehl = EL.zaehlende(sessions, fenster, ausgenommen)
@@ -1447,19 +1447,19 @@ def session_events(db: Session, s: models.Session, betrachter: int | None = None
         if not tafeln_ and not event_summen_auswahl(e):
             continue
         fenster = (_aware(e.start), _aware(e.ende))
-        rows = (db.query(S.id, S.user_id, S.started_at, AR.segments_json, AR.detection, S.accel_hz)
+        rows = (db.query(S.id, S.user_id, S.started_at, AR.segments_json, AR.detection, S.accel_hz, S.trim_start_ms)
                 .join(AR, AR.session_id == S.id)
                 .filter(S.user_id == s.user_id, S.deleted.isnot(True), S.started_at < fenster[1],
                         func.coalesce(S.ended_at, S.started_at) >= fenster[0]).all())
-        sessions = [{"id": a, "user_id": b, "started_at": c, "segments_json": d, "detection": f, "accel_hz": g}
-                    for a, b, c, d, f, g in rows]
+        sessions = [{"id": a, "user_id": b, "started_at": c, "segments_json": d, "detection": f, "accel_hz": g, "trim": h}
+                    for a, b, c, d, f, g, h in rows]
         zaehl = EL.zaehlende(sessions, fenster)
         idx = set(zaehl.get(s.id) or [])
         if not idx:
             continue
         eigene = next((x for x in sessions if x["id"] == s.id), None)
         laeufe_ms = [round((a - anfang.timestamp()) * 1000) for k, a, _b, _g in
-                     EL._laeufe(eigene["started_at"], eigene["segments_json"]) if k in idx] if eigene else []
+                     EL._laeufe(eigene["started_at"], eigene["segments_json"], eigene.get("trim")) if k in idx] if eigene else []
         kategorien = []
         for tf in tafeln_:
             if tf.kennzahl in SPRINT and tf.kennzahl not in kategorien:
@@ -1486,7 +1486,8 @@ def _event_summen_je_lauf(db: Session, e, ids, alle: bool, sportart: str, accel_
     from .api import community as C
     from . import pumpgleit_anzeige as PA
     S, AR = C.S, C.AR
-    q = C._community(db.query(S.id, S.user_id, S.started_at, S.spot_id, AR.segments_json, AR.detection, S.accel_hz),
+    q = C._community(db.query(S.id, S.user_id, S.started_at, S.spot_id, AR.segments_json, AR.detection, S.accel_hz,
+                              S.trim_start_ms),
                      None, accel_only, sportart).filter(
         S.started_at < fenster[1], func.coalesce(S.ended_at, S.started_at) >= fenster[0])
     if not alle:
@@ -1498,7 +1499,7 @@ def _event_summen_je_lauf(db: Session, e, ids, alle: bool, sportart: str, accel_
     if spots:
         q = q.filter(or_(*[C._spot_cond(str(s), db) for s in spots]))
     sessions = [{"id": sid, "user_id": uid, "started_at": ts, "spot_id": sp, "segments_json": sj, "detection": d,
-                 "accel_hz": hz} for sid, uid, ts, sp, sj, d, hz in q.all()]
+                 "accel_hz": hz, "trim": tr} for sid, uid, ts, sp, sj, d, hz, tr in q.all()]
     zaehl = EL.zaehlende(sessions, fenster, R.ausgenommen(db, e))
     runs = pumps = dist = zeit = 0.0
     mit, spot_ids, aktive = 0, set(), set()
@@ -1510,7 +1511,7 @@ def _event_summen_je_lauf(db: Session, e, ids, alle: bool, sportart: str, accel_
         aktive.add(s["user_id"])
         if s["spot_id"] is not None:
             spot_ids.add(s["spot_id"])
-        for k, _a, _b, g in EL._laeufe(s["started_at"], s["segments_json"]):
+        for k, _a, _b, g in EL._laeufe(s["started_at"], s["segments_json"], s.get("trim")):
             if k in idx:
                 runs += 1
                 pumps += EL._pumps(g, PA.AN)

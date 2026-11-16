@@ -52,3 +52,13 @@ def test_sprint_fenster_je_lauf():
         out.append([t, lat, 7.0, v, None, 4]); lat += v / 111320.0; t += 1000
     erg = SP.session_sprints(out, [{"t_start_session_ms": 0, "t_end_session_ms": 89_000}])
     assert erg["v"] == 5 and erg["laeufe_fenster"][0]["sprint_100m"] == erg["fenster"]["sprint_100m"]
+
+
+def test_alte_auswertung_ohne_session_ms_mit_zuschnitt():
+    """gps-mvp-Laeufe kennen nur t_start_ms ab dem Zuschnitt -> + trim_start_ms (wie sprint.py)."""
+    s = {"id": 1, "user_id": 1, "started_at": FENSTER[1] - timedelta(minutes=15), "detection": "gps_only", "accel_hz": 0,
+         "trim": 10 * 60 * 1000, "segments_json": [{"t_start_ms": 6 * 60 * 1000, "t_end_ms": 6 * 60 * 1000 + 30000,
+                                                    "distance_m": 100, "duration_s": 30}]}
+    assert EL.zaehlende([s], FENSTER) == {}          # 15 min vor Schluss + 10 min Zuschnitt + 6 min = nach dem Schluss
+    s["trim"] = 0
+    assert EL.zaehlende([s], FENSTER) == {1: [0]}

@@ -45,6 +45,13 @@ TOLERANZ_MS = 3000           # Laufstart nach einer Neuauswertung (A5 verlaenger
 KANDIDATEN_JE_TAFEL = 20
 
 
+def push_aus(e: models.TeamEvent) -> bool:
+    """Test-Events ohne Push (Env REFEREE_PUSH_AUS = Event-IDs, kommagetrennt). Jan, 16.11.2026: Durchlauf mit echten
+    Team-Mitgliedern als Testern — sie sollen dabei keine Nachrichten bekommen."""
+    import os
+    return str(e.id) in {x.strip() for x in (os.environ.get("REFEREE_PUSH_AUS") or "").split(",") if x.strip()}
+
+
 def _jetzt() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -126,7 +133,7 @@ def gemeldete(db: Session, e: models.TeamEvent, nur_offen: bool = False) -> list
 def referees_benachrichtigen(db: Session, t: models.Team, e: models.TeamEvent, ausser: int) -> None:
     from .push import push_enabled, send_push
     try:
-        if not push_enabled():
+        if not push_enabled() or push_aus(e):
             return
         for uid in referee_ids(db, t, e) - {ausser}:
             u = db.get(models.User, uid)
@@ -157,8 +164,10 @@ def korrektur_out(db: Session, k: models.EventKorrektur, intern: bool) -> dict:
             segs = json.loads(s.result.segments_json or "[]") if s.result else []
         except ValueError:
             segs = []
-        idx = next((i for i, g in enumerate(segs) if g.get("t_start_session_ms") is not None
-                    and abs(float(g["t_start_session_ms"]) - k.lauf_start_ms) <= TOLERANZ_MS), None)
+        from .event_laeufe import lauf_ms
+        trim = int(s.trim_start_ms or 0)
+        idx = next((i for i, g in enumerate(segs) if lauf_ms(g, trim) is not None
+                    and abs(lauf_ms(g, trim)[0] - k.lauf_start_ms) <= TOLERANZ_MS), None)
         out["run_idx"] = idx
     if intern:
         out.update({"notiz_intern": k.notiz_intern, "erstellt_von": namen.get(k.erstellt_von),
@@ -205,7 +214,12 @@ def kandidaten(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
                     segs = []
                 if 0 <= k < len(segs):
                     g = segs[k]
-                    eintrag["lauf_start_ms"] = int(g.get("t_start_session_ms") or 0)
+                    from .event_laeufe import lauf_ms
+                    ab = lauf_ms(g, int(s.trim_start_ms or 0))
+                    if ab is None:
+                        out.append(eintrag)
+                        continue
+                    eintrag["lauf_start_ms"] = int(ab[0])
                     beginn = _aware(s.started_at) + timedelta(milliseconds=eintrag["lauf_start_ms"])
                     if beginn >= _aware(e.ende) - timedelta(minutes=10):
                         eintrag["hinweise"].append("kurz_vor_schluss")
@@ -251,7 +265,7 @@ def neu_festschreiben(db: Session, t: models.Team, e: models.TeamEvent) -> None:
 def benachrichtigen(db: Session, k: models.EventKorrektur, e: models.TeamEvent, t: models.Team) -> None:
     from .push import push_enabled, send_push
     try:
-        if not push_enabled():
+        if not push_enabled() or push_aus(e):
             return
         u = db.get(models.User, k.user_id)
         de = ((getattr(u, "language", None) or "en").lower()).startswith(("de", "gsw"))
