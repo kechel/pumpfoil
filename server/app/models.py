@@ -2195,8 +2195,8 @@ class TeamLogbuch(Base):
 class EventKorrektur(Base):
     """Referee Board (16.11.2026, Jan): einen Lauf aus der Wertung eines Events nehmen — in kontrollierten Schritten.
 
-    Status: entwurf (nur Referees, keine Wirkung) -> offen (zur Pruefung, interne Diskussion) -> veroeffentlicht (nur mit
-    Bestaetigung durch einen ZWEITEN Referee; erst jetzt wirkt sie auf die Wertung, steht oeffentlich am Event und der Fahrer
+    Status: entwurf (nur Referees, keine Wirkung) -> offen (zur Pruefung, interne Diskussion) -> veroeffentlicht (mit
+    ausdruecklicher Bestaetigung, ein Referee reicht; erst jetzt wirkt sie auf die Wertung, steht oeffentlich am Event und der Fahrer
     wird benachrichtigt) | abgelehnt; veroeffentlicht -> aufgehoben (bleibt im Protokoll). Der Lauf ist ueber seine
     Startzeit (Session-ms) verankert, nicht ueber den Index — eine Neuauswertung verschiebt Indizes. app/referee.py."""
     __tablename__ = "event_korrekturen"

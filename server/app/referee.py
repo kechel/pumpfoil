@@ -9,8 +9,9 @@ bekannt gibt ohne bestaetigung und kontrolle". Darum ein Statusablauf (models.Ev
 
 * entwurf: nur Referees sehen sie, keine Wirkung, frei aenderbar.
 * offen („zur Pruefung"): zur Diskussion gestellt (interne Kommentare), Felder noch aenderbar.
-* veroeffentlicht: nur durch einen ZWEITEN Referee (Vier-Augen-Prinzip). Ausnahme: das Event hat nur einen Referee, dann
-  darf er selbst — die Oberflaeche sagt das deutlich. Erst jetzt nimmt die Wertung den Lauf heraus, die Korrektur steht
+* veroeffentlicht: nur aus „offen" und mit ausdruecklicher Bestaetigung (Dialog zeigt, was oeffentlich wird). EIN Referee
+  reicht (Jan, 16.11.2026: „wir haben keine 2 referees derzeit, ich muss das alleine koennen … die team-admins & moderatoren
+  genauso"); wer bestaetigt hat, steht im Protokoll. Erst jetzt nimmt die Wertung den Lauf heraus, die Korrektur steht
   oeffentlich am Event (Grund + oeffentlicher Kommentar, nie die interne Notiz) und der Fahrer bekommt eine Nachricht.
 * abgelehnt / aufgehoben: bleiben im Protokoll; aufgehoben steht auch oeffentlich (der Lauf zaehlt wieder).
 

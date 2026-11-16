@@ -690,7 +690,7 @@ def event_einzeln(slug: str, event_id: int, team: str | None = None, mix: bool =
 
 # ------------------------------------------------------------------------------------------- Referee Board ----
 # Jan, 16.11.2026: Laeufe aus der Wertung nehmen, in kontrollierten Schritten (Entwurf -> zur Pruefung -> veroeffentlicht
-# durch einen zweiten Referee). Logik und Regeln: app/referee.py.
+# mit ausdruecklicher Bestaetigung; Jan: allein moeglich, auch fuer Team-Leiter/Moderatoren). Regeln: app/referee.py.
 
 class KorrekturIn(BaseModel):
     session_id: int
@@ -748,7 +748,7 @@ def referee_board(slug: str, event_id: int, user: models.User = Depends(current_
 @router.post("/{slug}/events/{event_id}/referee")
 def referee_anlegen(slug: str, event_id: int, body: KorrekturIn, user: models.User = Depends(current_user),
                     db: Session = Depends(get_db)) -> dict:
-    """Neue Korrektur als ENTWURF — ohne Wirkung, bis ein zweiter Referee veroeffentlicht."""
+    """Neue Korrektur als ENTWURF — ohne Wirkung, bis sie (nach „zur Pruefung") veroeffentlicht wird."""
     from .. import event_laeufe as EL, referee as R
     t, e = _referee_event(db, slug, event_id, user)
     if body.grund not in R.GRUENDE:
@@ -794,8 +794,6 @@ def referee_aendern(slug: str, event_id: int, kid: int, body: KorrekturPatch, us
             raise HTTPException(status.HTTP_409_CONFLICT, "uebergang")
         if ziel in ("veroeffentlicht", "aufgehoben") and not R.wirkung_erlaubt(e):
             raise HTTPException(status.HTTP_409_CONFLICT, "frist_abgelaufen")
-        if ziel == "veroeffentlicht" and k.erstellt_von == user.id and len(R.referee_ids(db, t, e)) > 1:
-            raise HTTPException(status.HTTP_409_CONFLICT, "vier_augen")   # ein ZWEITER Referee bestaetigt
         if ziel in ("veroeffentlicht", "aufgehoben"):
             vorher = R.werte_des_fahrers(db, t, e, k.user_id, frisch=False)
             k.status = ziel

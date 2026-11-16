@@ -1159,7 +1159,7 @@ def test_primaer_wird_gespeichert_und_wechselt_nicht_still(client, monkeypatch):
 
 
 def test_referee_board_vier_augen_und_wirkung(client, monkeypatch):
-    """Referee Board (16.11.2026): Entwurf ohne Wirkung, Veroeffentlichen nur durch einen zweiten Referee, dann faellt der
+    """Referee Board (16.11.2026): Entwurf ohne Wirkung, Veroeffentlichen nur aus „zur Pruefung" (ein Referee reicht), dann faellt der
     Lauf aus der Wertung und steht oeffentlich; Aufheben bringt ihn zurueck. Nicht-Referees sehen das Board nicht."""
     from app import models, teams as T
     from app.db import SessionLocal
@@ -1194,11 +1194,10 @@ def test_referee_board_vier_augen_und_wirkung(client, monkeypatch):
         "kommentar_oeffentlich": "GPS-Sprung", "notiz_intern": "nur intern"}).json()
     assert k["status"] == "entwurf" and wert() == 150.0                       # Entwurf wirkt nicht
     url = f"/api/teams/{offiziell}/events/{eid}/referee/{k['id']}"
+    assert client.patch(url, headers=adm1, json={"status": "veroeffentlicht"}).status_code == 409   # erst zur Pruefung
     assert client.patch(url, headers=adm1, json={"status": "offen"}).json()["status"] == "offen"
     assert client.post(url + "/kommentare", headers=adm2, json={"text": "sehe ich auch so"}).json()["kommentare"][0]["text"]
-    assert client.patch(url, headers=adm1, json={"status": "veroeffentlicht"}).status_code == 409   # Vier-Augen
-    assert wert() == 150.0
-    pub = client.patch(url, headers=adm2, json={"status": "veroeffentlicht"}).json()
+    pub = client.patch(url, headers=adm1, json={"status": "veroeffentlicht"}).json()   # allein moeglich (Jan)
     assert pub["status"] == "veroeffentlicht" and pub["wirkung"]["vorher"]
     assert wert() == 75.0                                                      # naechstbester Lauf (rest = 75 m)
     oeff = client.get(f"/api/teams/{offiziell}/events/{eid}", headers=ka).json()["korrekturen"]

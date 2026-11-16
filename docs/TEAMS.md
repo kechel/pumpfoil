@@ -644,6 +644,11 @@ bleiben je Session (kein Fenster).
 - **Zeitrahmen:** waehrend des Events und bis 24 h nach dem Festschreiben (`eingefroren_am`). In dieser Zeit rechnet jede
   Korrektur den Endstand neu (`ergebnis_json` neu schreiben, `eingefroren_am` bleibt); danach endgueltig.
 - Laeufe HINEINnehmen (nicht erkannt, Laufgrenzen falsch) bleibt vorerst bei Claude (Sicherung + auswertung-festhalten).
+- **Gebaut 16.11.2026** (app/referee.py): entwurf -> offen (zur Pruefung, interne Diskussion) -> veroeffentlicht (mit
+  ausdruecklicher Bestaetigung) | abgelehnt; veroeffentlicht -> aufgehoben. **Ein Referee reicht** (Jan: „wir haben keine 2
+  referees derzeit, ich muss das alleine koennen/duerfen, und die team-admins & moderatoren genauso").
+- **Spaetere Ausbaustufe (Jan 16.11.):** je Team einstellbar, wer veroeffentlichen darf — (a) jeder Referee allein (heute),
+  (b) nur zu zweit (Vier-Augen), (c) Leiter/Admins veroeffentlichen, Moderatoren duerfen nur vorschlagen (bis „zur Pruefung").
 
 ### 4. Session-Seite
 - Kennzeichen „zaehlt fuer <Event>" (mit Platz, Link) im Kopf und in der Lauf-Liste je zaehlendem Lauf; ausgenommene
