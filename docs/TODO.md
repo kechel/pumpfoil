@@ -1580,7 +1580,7 @@ Entwurf zusammen mit A1.
   zaehlt nur deren Mitglieder (Team-Wertung wie bei globalen Events), angezeigt nur diesen Teams. Erweitert „Globale Events
   von Teams vorschlagen" (docs/TEAMS.md). Offen: Einladung annehmen/ablehnen je Team, wer Referee ist (Leitung aller
   beteiligten Teams?), Sichtbarkeit fuer Nicht-Mitglieder.
-- **Endstand nachvollziehbar festhalten (auch Jahre spaeter):** beim Festschreiben bisher Ergebnis, Summen, Teilnehmer,
+- ✅ 16.11. GEBAUT (stand_json + Footer, s. docs/TEAMS.md). **Endstand nachvollziehbar festhalten (auch Jahre spaeter):** beim Festschreiben bisher Ergebnis, Summen, Teilnehmer,
   Teamzuordnung, Spots — NICHT festgehalten: welche Regeln und welche Auswertung galten. Dazu beim Festschreiben einen
   „Stand" speichern: Regeltext-Fassung (Datum/Commit der Team-Regeln), Wertungsregel (event_laeufe-Version), Erkennung
   (v2/v3-Version der gezaehlten Sessions), sprint-VERSION, Server-Commit, Referee-Korrekturen. Anzeige im Footer der

@@ -669,6 +669,16 @@ Moderatoren des ausrichtenden Teams, globale Events nur Admins (und Moderatoren 
 benachrichtigt (Grund + oeffentlicher Kommentar + Link, nie die interne Notiz); (d) Reihenfolge: erst Baustein
 `zaehlende_laeufe` + Session-Kennzeichen/Dropdown, danach das Referee Board.
 
+## Endstand nachvollziehbar (16.11.2026)
+Beim Festschreiben (und bei jeder Neu-Festschreibung durch den Referee) speichert `teams.event_stand` in
+`team_events.stand_json`: Fassung der Team-Regeln (`teams.REGELN_STAND`), Wertungsregel (`WERTUNG_JE_LAUF` bzw.
+je-session), Erkennungs- und Sprint-Versionen der gewerteten Sessions mit Anzahl, Zahl veroeffentlichter Korrekturen,
+Server-Commit. Die Event-Seite zeigt es im Footer „Ausgewertet mit …"; Endstaende von vor dem 16.11.2026 sagen ehrlich,
+dass der Stand damals nicht gespeichert wurde (nicht nachgetragen, damals galten andere Regeln).
+**Pflicht:** bei jeder inhaltlichen Aenderung der Team-Regeln (team.regeln.*) `REGELN_STAND` hochsetzen; bei einer neuen
+Wertungslogik `WERTUNG_JE_LAUF`. Offen: der Kasten „Event-Regeln" auf der Event-Seite zeigt immer die AKTUELLEN Regeln —
+der Text der damaligen Fassung steht im Repo beim festgehaltenen Server-Commit.
+
 ## Offene Punkte
 
 - Push bei Beitrittsanfrage / Event-Start — spaeter, optional.

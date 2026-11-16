@@ -21,6 +21,7 @@ verborgene Aufnahme zaehlt nie fuer einen Teamspot.
 from __future__ import annotations
 
 import hashlib
+import logging
 import re
 import secrets
 import time
@@ -1521,6 +1522,56 @@ def _event_summen_je_lauf(db: Session, e, ids, alle: bool, sportart: str, accel_
             "time_s": round(zeit, 1), "spots": len(spot_ids), "aktive": len(aktive)}
 
 
+# Fassung der Team-Regeln (web/src/pages/TeamRegeln.tsx + team.regeln.* in den Sprachdateien). Bei jeder inhaltlichen
+# Aenderung der Regeln hochsetzen — der Endstand eines Events haelt fest, welche Fassung galt.
+REGELN_STAND = "2026-11-16"
+WERTUNG_JE_LAUF = "je-lauf-1"   # app/event_laeufe.py: Startzeit je Lauf, Duplikate einmal, Referee-Ausnahmen je logischem Lauf
+_COMMIT: dict = {}
+
+
+def server_commit() -> str | None:
+    """Git-Commit des laufenden Servers (beim ersten Aufruf gelesen — Stand des letzten Neustarts)."""
+    if "c" not in _COMMIT:
+        import subprocess
+        from pathlib import Path
+        try:
+            _COMMIT["c"] = subprocess.run(["git", "-C", str(Path(__file__).resolve().parents[2]), "rev-parse", "--short=10", "HEAD"],
+                                          capture_output=True, text=True, timeout=5).stdout.strip() or None
+        except Exception:  # noqa: BLE001
+            _COMMIT["c"] = None
+    return _COMMIT["c"]
+
+
+def event_stand(db: Session, e: models.TeamEvent, voll: list[dict]) -> dict:
+    """Womit dieser Endstand gerechnet wurde: Regeln, Wertungsregel, Versionen der Erkennung/Sprints in den gewerteten
+    Sessions (mit Anzahl), Server-Commit, veroeffentlichte Referee-Korrekturen. Rein beschreibend, aendert nichts."""
+    from .analysis import sprint as SP
+    sids = {z.get("session_id") for tf in voll for z in tf.get("zeilen") or [] if z.get("session_id")}
+    erkennung: dict[str, int] = {}
+    sprint_v: dict[str, int] = {}
+    if sids:
+        AR = models.AnalysisResult
+        for algo, mj, sj in db.query(AR.algo_version, AR.metrics_json, AR.sprint_json).filter(AR.session_id.in_(list(sids))):
+            try:
+                v3 = (json.loads(mj or "{}").get("v3") or {}).get("version")
+            except ValueError:
+                v3 = None
+            key = " + ".join(x for x in (algo, v3) if x) or "?"
+            erkennung[key] = erkennung.get(key, 0) + 1
+            try:
+                sv = (json.loads(sj or "{}") or {}).get("v")
+            except ValueError:
+                sv = None
+            if sv is not None:
+                sprint_v[str(sv)] = sprint_v.get(str(sv), 0) + 1
+    K = models.EventKorrektur
+    return {"festgeschrieben": _jetzt().isoformat(), "regeln": REGELN_STAND,
+            "wertung": WERTUNG_JE_LAUF if EL.aktiv() else "je-session",
+            "erkennung": erkennung, "sprint_aktuell": SP.VERSION, "sprints": sprint_v,
+            "korrekturen": db.query(K).filter(K.event_id == e.id, K.status == "veroeffentlicht").count(),
+            "server": server_commit()}
+
+
 def event_einfrieren(db: Session, e: models.TeamEvent, jetzt: datetime | None = None) -> bool:
     """Ergebnis festschreiben, sobald ende + EINFRIEREN_NACH vorbei ist. True = gerade eingefroren."""
     j = jetzt or _jetzt()
@@ -1548,6 +1599,10 @@ def event_einfrieren(db: Session, e: models.TeamEvent, jetzt: datetime | None = 
     e.ergebnis_json = json.dumps(voll)
     if event_summen_auswahl(e):
         e.summen_ergebnis_json = json.dumps(event_summen(db, t, e))
+    try:
+        e.stand_json = json.dumps(event_stand(db, e, voll))
+    except Exception:  # noqa: BLE001 — der Stand ist Beiwerk, das Festschreiben darf daran nie scheitern
+        logging.getLogger(__name__).exception("event_stand %s", e.id)
     e.eingefroren_am = j
     return True
 
@@ -1593,6 +1648,11 @@ def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = Fal
             "status": event_status(e), "spots": spots, "ohne_dateien": bool(e.ohne_dateien),
             "teambild_zeigen": e.teambild_zeigen is not False, "spot_ids": [] if gast else event_spots(e),
             "einfrieren_am": (_aware(e.ende) + EINFRIEREN_NACH).isoformat(), "tafeln": tafeln_,
+            # Regel-/Auswertungsstand (16.11.2026): festgehalten beim Festschreiben, sonst der aktuelle (Vorschau).
+            "stand": (json.loads(e.stand_json) if e.stand_json else None),
+            "stand_aktuell": None if e.stand_json else {"regeln": REGELN_STAND,
+                                                        "wertung": WERTUNG_JE_LAUF if EL.aktiv() else "je-session",
+                                                        "server": server_commit()},
             # Nur Summen, keine Namen — darum auch fuer Gaeste.
             "summen_auswahl": event_summen_auswahl(e), "summen": event_summen(db, t, e),
             "summen_sportart": e.summen_sportart or "pumpfoil", "summen_accel_only": bool(e.summen_accel_only),

@@ -2283,3 +2283,6 @@ class TeamEvent(Base):
     # Spots des Events mit Namen (beim Einfrieren).
     team_zuordnung_json: Mapped[str | None] = mapped_column(Text)
     spots_fest_json: Mapped[str | None] = mapped_column(Text)
+    # Regel- und Auswertungsstand beim Festschreiben (16.11.2026, Jan: „nachvollziehen, auch noch 3 Jahre spaeter"):
+    # Regel-Fassung, Wertungsregel, Erkennungs-/Sprint-Versionen der gewerteten Sessions, Server-Commit. teams.event_stand.
+    stand_json: Mapped[str | None] = mapped_column(Text)

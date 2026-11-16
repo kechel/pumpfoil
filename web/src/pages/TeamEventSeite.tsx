@@ -628,6 +628,7 @@ export default function TeamEventSeite() {
             }} />
         );
       })()}
+      <EventStand ev={ev} t={t} lang={lang} />
       {uebersicht && <EventUebersichtBild ev={ev} team={team} t={t} lang={lang} stand={ev.tafeln[0] ? standFuer(ev.tafeln[0]) : null}
         onClose={() => setUebersicht(false)} />}
       {bild && <TeamTafelBild team={team} tafel={bild} onClose={() => setBild(null)} zeitraum={ev.titel} stand={standFuer(bild)}
@@ -675,6 +676,42 @@ function MeldenDialog({ z, t, onClose, onSenden }: {
           }} className="rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-40">{t("ref.meldenSenden")}</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+
+/** „Ausgewertet mit …" (Jan, 16.11.2026: „damit man das nachvollziehen kann, auch noch 3 Jahre spaeter"): festgehaltener
+ *  Regel- und Auswertungsstand des Endstands; vor dem Festschreiben der aktuelle als Vorschau. */
+function EventStand({ ev, t, lang }: { ev: TeamEvent; t: (k: string, p?: Record<string, string | number>) => string; lang: string }) {
+  const datum = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString(lang, { dateStyle: "medium" });
+  const st = ev.stand;
+  const teile: string[] = [];
+  if (st) {
+    teile.push(t("team.event.stand.regeln", { datum: datum(st.regeln) }));
+    teile.push(t(st.wertung === "je-session" ? "team.event.stand.jeSession" : "team.event.stand.jeLauf", { v: st.wertung.replace(/^\D+/, "") }));
+    const erk = Object.entries(st.erkennung).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} (${n})`).join(", ");
+    if (erk) teile.push(t("team.event.stand.erkennung", { liste: erk }));
+    const spr = Object.keys(st.sprints ?? {}).sort().map((v) => `v${v}`).join(", ");
+    if (spr) teile.push(t("team.event.stand.sprints", { v: spr }));
+    if (st.korrekturen) teile.push(t("team.event.stand.korrekturen", { n: st.korrekturen }));
+    if (st.server) teile.push(t("team.event.stand.server", { c: st.server }));
+  } else if (ev.stand_aktuell) {
+    const a = ev.stand_aktuell;
+    teile.push(t("team.event.stand.regeln", { datum: datum(a.regeln) }));
+    teile.push(t(a.wertung === "je-session" ? "team.event.stand.jeSession" : "team.event.stand.jeLauf", { v: a.wertung.replace(/^\D+/, "") }));
+    if (a.server) teile.push(t("team.event.stand.server", { c: a.server }));
+  }
+  const beendet = ev.status === "beendet";
+  return (
+    <div className="mt-8 border-t border-slate-800 pt-3 text-xs text-slate-500">
+      <p>
+        <span className="font-semibold">{t(st ? "team.event.stand.titel" : beendet ? "team.event.stand.titel" : "team.event.stand.titelVorschau")}:</span>{" "}
+        {beendet && !st ? t("team.event.stand.alt") : teile.join(" · ")}
+      </p>
+      {!st && !beendet && <p>{t("team.event.stand.vorschau")}</p>}
+      {st && <p>{t("team.event.stand.am", { zeit: new Date(st.festgeschrieben).toLocaleString(lang, { dateStyle: "medium", timeStyle: "short" }) })}{" "}
+        <Link to="/teams/regeln#events" className="underline hover:text-slate-300">{t("team.regeln.link")}</Link></p>}
     </div>
   );
 }

@@ -1291,3 +1291,21 @@ def test_teilnehmer_melden_einmal_je_lauf(client, monkeypatch):
     assert k["status"] == "entwurf" and k["von_teilnehmer"] and k["notiz_intern"] == "sieht nach Wing aus"
     db = SessionLocal(); e = db.get(models.TeamEvent, eid); e.ende = jetzt - timedelta(hours=5); db.commit(); db.close()
     assert client.post(url, headers=kb, json={**body, "run_idx": 0}).status_code == 409   # nach Ende + 4 h vorbei
+
+
+def test_festschreiben_haelt_stand_fest(client, monkeypatch):
+    """Endstand nachvollziehbar (16.11.2026): beim Festschreiben Regel-Fassung, Wertungsregel, Erkennungs-Versionen."""
+    from app import models, teams as T
+    from app.db import SessionLocal
+    monkeypatch.setenv("EVENT_JE_LAUF", "1")
+    db = SessionLocal(); db.query(models.RateEvent).delete(); db.commit(); db.close()
+    (ia, ka), (ib, kb) = _konto(client, "stand-a@t.de", "Stand A"), _konto(client, "stand-b@t.de", "Stand B")
+    slug, _l = _team_mit(client, ka, kb, "Standteam")
+    _session(ia, 300, tage=2, dist=150.0)
+    jetzt = datetime.now(timezone.utc)
+    eid = client.post(f"/api/teams/{slug}/events", headers=ka, json={
+        "titel": "Stand", "start": (jetzt - timedelta(days=3)).isoformat(), "ende": (jetzt - timedelta(hours=6)).isoformat(),
+        "tafeln": [{"kennzahl": "distance", "accel_only": False}]}).json()["id"]
+    ev = client.get(f"/api/teams/{slug}/events/{eid}", headers=ka).json()
+    st = ev["stand"]
+    assert st and st["regeln"] == T.REGELN_STAND and st["wertung"] == "je-lauf-1" and sum(st["erkennung"].values()) == 1
