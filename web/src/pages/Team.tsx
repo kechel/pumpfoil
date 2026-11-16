@@ -262,11 +262,12 @@ export function Tafel({ tf, gast, t, onBild, ohneFilter = false, zurueck, sportZ
                     </span>
                   )}
                 </span>
-                {melden && z.session_id && z.run_idx != null && z.user_id !== melden.ich && (
+                {/* „wird geprueft" auch an der eigenen Zeile (der Betroffene soll es sehen); die Fahne nur an fremden. */}
+                {melden && z.session_id && z.run_idx != null && (
                   melden.gemeldet.some(([s, r]) => s === z.session_id && r === z.run_idx) ? (
                     <span className="relative z-10 shrink-0 rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
                       {t("ref.wirdGeprueft")}</span>
-                  ) : melden.erlaubt && !melden.gesperrt.some(([s, r]) => s === z.session_id && r === z.run_idx) ? (
+                  ) : melden.erlaubt && z.user_id !== melden.ich && !melden.gesperrt.some(([s, r]) => s === z.session_id && r === z.run_idx) ? (
                     <button onClick={() => melden.onMelden(z)} title={t("ref.meldenTitel")} aria-label={t("ref.meldenTitel")}
                       className="relative z-10 shrink-0 rounded-md p-1 text-slate-500 hover:bg-amber-500/15 hover:text-amber-700 dark:hover:text-amber-300">
                       <FlagIcon className="h-3.5 w-3.5" />
