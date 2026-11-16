@@ -3,7 +3,7 @@
 // Ergebnis (eingefroren 24 h nach dem Ende). Gaeste sehen das Event nur bei oeffentlichem Team, in Gastform
 // (Rang, Name, Initialen, Wert) — dieselben Daten, die die oeffentliche Teamseite ohnehin liefert.
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, FoilBand, getToken, TeamAuftritt, TeamEvent, TeamRolle, TeamTafelMitZeilen } from "../lib/api";
@@ -82,11 +82,15 @@ const SUMMEN_SPALTEN: Record<number, string> = {
   7: "grid-cols-2 sm:grid-cols-4 lg:grid-cols-7",
 };
 
-function EventSummen({ ev, t }: { ev: TeamEvent; t: (k: string) => string }) {
+function EventSummen({ ev, t, aktion }: { ev: TeamEvent; t: (k: string) => string; aktion?: ReactNode }) {
   const auswahl = EVENT_SUMMEN.filter((k) => (ev.summen_auswahl ?? []).includes(k.key));
   return (
     <div className="mb-4">
-      <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("team.event.teamGesamt")}</p>
+      {/* „Share summary" gehoert zu den Event-Summen (Jan, 16.11.2026): rechtsbuendig in deren Kopfzeile. */}
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <p className="flex-1 text-sm font-semibold uppercase tracking-wide text-slate-400">{t("team.event.teamGesamt")}</p>
+        {aktion}
+      </div>
       {/* Je nach Anzahl ueber die ganze Breite (Jan, 06.11.2026). Klassen ausgeschrieben, sonst findet Tailwind sie nicht. */}
       <div className={`grid gap-2 ${SUMMEN_SPALTEN[Math.min(auswahl.length, 7)] ?? "grid-cols-2"}`}>
         {auswahl.map((k) => (
@@ -125,7 +129,7 @@ function TeamWertung({ tf, n, t, eigeneSlugs, standText, onBild }: { tf: TeamTaf
         <h3 className="team-akzent min-w-0 flex-1 font-semibold">{t("team.event.teams")} · {t(k.labelKey)}{tf.sportart && tf.sportart !== "pumpfoil" ? ` · ${sportLabel(tf.sportart, t)}` : ""}</h3>
         {onBild && alle.length > 0 && (
           <button onClick={onBild} title={t("team.bild.titel")} aria-label={t("team.bild.titel")}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-100">
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm bg-brand-500 font-semibold text-slate-950 hover:bg-brand-400">
             <ShareIcon className="h-4 w-4" /> {t("team.teilen")}
           </button>
         )}
@@ -457,12 +461,30 @@ export default function TeamEventSeite() {
             <Uhr ziel={ev.ende} klein t={t} />
           </div>
         )}
-        {(ev.summen_auswahl ?? []).length > 0 && <EventSummen ev={ev} t={t} />}
-        {/* Eine Bestenliste zur Zeit (Auswahl wie in der Community), bei globalen Events daneben ihre Team-Rangliste. */}
+        {(() => {
+          // Event-Uebersicht als Bild (07.11.2026): Summen + die ersten 3 je Kategorie. Blau, rechtsbuendig (Jan 16.11.2026).
+          const teilen = !gast && ev.tafeln.length + (ev.summen_auswahl ?? []).length > 0 ? (
+            <button onClick={() => setUebersicht(true)}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-xl px-3 py-1 text-sm bg-brand-500 font-semibold text-slate-950 hover:bg-brand-400">
+              <ShareIcon className="h-4 w-4" /> {t("team.event.uebersichtTeilen")}
+            </button>
+          ) : null;
+          return (ev.summen_auswahl ?? []).length > 0
+            ? <EventSummen ev={ev} t={t} aktion={teilen} />
+            : teilen && <div className="mb-3 flex">{teilen}</div>;
+        })()}
+        {/* Eine Bestenliste zur Zeit (Auswahl wie in der Community), bei globalen Events daneben ihre Team-Rangliste.
+            Ueberschrift „Event category: …" + fettes Label vor der Auswahl (Jan, 16.11.2026: „zu unscheinbar"). */}
+        {ev.tafeln.length > 0 && (
+          <h3 className="mb-2 text-lg font-bold text-slate-100">
+            {t("team.event.kategorieTitel", { name: tafelTitel(ev.tafeln[Math.min(wahl, ev.tafeln.length - 1)], ev, t) })}
+          </h3>
+        )}
         <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-slate-300">
+          {ev.tafeln.length > 1 && <span className="font-bold text-slate-100">{t("team.event.kategorieWaehlen")}</span>}
           {ev.tafeln.length > 1 && (
             <select value={Math.min(wahl, ev.tafeln.length - 1)} onChange={(x) => setWahl(Number(x.target.value))}
-              className="rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100">
+              className="rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm font-semibold text-slate-100">
               {/* Mehrere Sportarten (z. B. Pumpfoil und Foil Scoot getrennt, Jan 07.11.2026): Sportart mit in die Auswahl. */}
               {ev.tafeln.map((tf, i) => <option key={i} value={i}>{tafelTitel(tf, ev, t)}</option>)}
             </select>
@@ -475,13 +497,6 @@ export default function TeamEventSeite() {
                 {k ? `${t(`wk.${k}`)} (${ev.klassen![k]})` : t("wk.alle")}
               </button>
             ))}
-          {/* Event-Uebersicht als Bild (07.11.2026): Summen + die ersten 3 je Kategorie. */}
-          {!gast && ev.tafeln.length + (ev.summen_auswahl ?? []).length > 0 && (
-            <button onClick={() => setUebersicht(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:bg-slate-800">
-              <ShareIcon className="h-4 w-4" /> {t("team.event.uebersichtTeilen")}
-            </button>
-          )}
           {/* „Bestenliste für" (eigenes Team) wieder raus (Jan, 06.11.2026) — Top 10 + man selbst reicht. */}
           {/* Neu laden, solange sich noch etwas aendern kann (Jan, 06.11.2026). Der Server rechnet hoechstens alle 2 min neu. */}
           {!gast && (ev.status === "laeuft" || ev.status === "auswertung") && (

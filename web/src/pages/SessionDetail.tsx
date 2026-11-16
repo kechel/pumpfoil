@@ -848,14 +848,15 @@ export default function SessionDetail() {
   // Event-Kategorie (16.11.2026, Jan): Dropdown neben „Pumps" in Sessions, die fuer ein Event zaehlen — hebt je Lauf das
   // Stueck der gewaehlten Kategorie hervor (heute die Sprints; generisch ueber `events[].kategorien` vom Server).
   // Vorbelegt mit `?sprint=` aus der Bestenliste.
-  const [eventKat, setEventKat] = useState<string>("");
-  useEffect(() => { const kz = searchParams.get("sprint"); if (kz) setEventKat(kz); }, [searchParams]);
+  // null = nie angefasst (dann gilt ?sprint= aus der URL), "" = bewusst keine Kategorie (Jan 16.11.: Platzhalter waehlen
+  // liess sonst den Sprint aus der URL und den vorgewaehlten Lauf stehen).
+  const [eventKat, setEventKat] = useState<string | null>(null);
   const eventKats = useMemo(() => {
     const out: string[] = [];
     for (const ev of session?.events ?? []) for (const k of ev.kategorien) if (!out.includes(k)) out.push(k);
     return out;
   }, [session]);
-  const sprintKz = eventKat || searchParams.get("sprint") || "";
+  const sprintKz = eventKat ?? (searchParams.get("sprint") || "");
   const laufZurZeit = (mitte: number) => ((session?.analysis?.segments ?? []) as any[]).findIndex((g) =>
     g.t_start_session_ms != null && g.t_start_session_ms <= mitte && mitte <= g.t_end_session_ms);
   const sprintLauf = useMemo(() => {
@@ -2525,13 +2526,6 @@ export default function SessionDetail() {
             <span className="inline-flex items-center gap-1">{schlagSport ? t("sd.strokes") : t("stat.pumps")} {showPumps ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
           </button>
           )}
-          {eventKats.length > 0 && (
-            <select value={eventKat} onChange={(e) => setEventKat(e.target.value)} title={t("sd.eventKategorieHinweis")}
-              className={`ml-2 rounded-lg px-2 py-1 text-xs ${eventKat ? "bg-fuchsia-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}>
-              <option value="">{t("sd.eventKategorie")}</option>
-              {eventKats.map((k) => <option key={k} value={k}>{t(kennzahl(k).labelKey)}</option>)}
-            </select>
-          )}
           {/* Nur zeigen, wenn es wirklich etwas zu zeigen gibt: mehr Versuche als Läufe heißt,
               dass Anläufe dabei waren, aus denen kein Lauf wurde. Beides steht schon in der
               Session-Antwort — kein zusätzlicher Aufruf nur für die Frage, ob der Schalter hin soll. */}
@@ -2556,6 +2550,21 @@ export default function SessionDetail() {
             {fullscreen ? t("sd.close") : t("sd.fullscreen")}
           </button>
         </div>
+
+        {/* Event-Kategorie in eigener Zeile mit Label „Event <Titel>:" (Jan, 16.11.2026; mehrere Events als Kommaliste). */}
+        {eventKats.length > 0 && !fullscreen && (
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+            <span className="font-bold text-slate-100">
+              {t("sd.eventLabel", { titel: (session?.events ?? []).map((ev) => ev.titel).join(", ") })}
+            </span>
+            <select value={sprintKz} onChange={(e) => { const v = e.target.value; setEventKat(v); if (!v) setSelectedRun(null); }}
+              title={t("sd.eventKategorieHinweis")}
+              className={`rounded-lg px-2 py-1 text-sm ${sprintKz ? "bg-fuchsia-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200"}`}>
+              <option value="">{t("sd.eventKategorie")}</option>
+              {eventKats.map((k) => <option key={k} value={k}>{t(kennzahl(k).labelKey)}</option>)}
+            </select>
+          </div>
+        )}
 
         {/* Aufnahme ohne eine einzige Position: hier stand bisher eine leere Karte und sonst
             nichts. Am 07.09.2026 nachgezählt: 199 solche Sessions bei 82 Nutzern, und 11 Nutzer
