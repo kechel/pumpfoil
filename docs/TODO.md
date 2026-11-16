@@ -1557,6 +1557,9 @@ nach dem festschreiben noch 24h lang … nicht nur via claude". Haengt an A1 (We
 zaehlenden Laeufen/Sprints (sortiert nach Platz, Datenlage, Auffaelligkeiten wie Sportart/Tempo/Doppler), Knopf „Lauf aus der
 Wertung nehmen" mit Grund (sichtbar fuer den Fahrer, Protokoll wer/wann), Rueckgaengig moeglich; Endstand wird nach dem
 Festschreiben noch 24 h nachgerechnet, danach endgueltig. Rechte: Event-Leiter des Teams + Moderatoren/Admins.
+**Oeffentliche Referee-Anzeige (Jan 16.11.):** am Event sichtbar, was geaendert wurde (welcher Lauf/Wert, wann,
+vorher/nachher) mit Kommentar des Referees — zwei getrennte Felder: oeffentlicher Kommentar (fuer alle) und interne
+Notiz (nur Referees/Admins).
 Entwurf zusammen mit A1.
 
 **C. Analyse-Befunde (Pipeline, nur mit Jans OK)**
