@@ -671,6 +671,9 @@ def event_einzeln(slug: str, event_id: int, team: str | None = None, mix: bool =
         db.commit()
     out = T.event_out(db, t, e, nur_team_ids=_nur_team(db, team, user) if T.ist_global(e) else None,
                       betrachter=user.id, mix=mix, sprint=sprint, klasse=klasse)
+    from .. import referee as R
+    out["korrekturen"] = R.oeffentlich(db, e)          # Referee Board: oeffentliche Korrekturen (16.11.2026)
+    out["referee"] = R.darf(db, user, t, e)
     if T.ist_global(e):
         out["mein_team"] = _mein_team(db, e, user.id)   # primaeres Team / Wahl je Event (10.11.2026)
         # „Du bist angetreten für …" (Jan, 11.11.2026): nach dem Ende bzw. wenn die Teamwahl zu ist. Aus der Zuordnung des
@@ -683,6 +686,147 @@ def event_einzeln(slug: str, event_id: int, team: str | None = None, mix: bool =
             out["angetreten_mit_werten"] = any(
                 tf.get("eigene") or any(r.get("user_id") == user.id for r in tf.get("zeilen", [])) for tf in out.get("tafeln", []))
     return out
+
+
+# ------------------------------------------------------------------------------------------- Referee Board ----
+# Jan, 16.11.2026: Laeufe aus der Wertung nehmen, in kontrollierten Schritten (Entwurf -> zur Pruefung -> veroeffentlicht
+# durch einen zweiten Referee). Logik und Regeln: app/referee.py.
+
+class KorrekturIn(BaseModel):
+    session_id: int
+    lauf_start_ms: int
+    grund: str
+    kommentar_oeffentlich: str | None = Field(None, max_length=1000)
+    notiz_intern: str | None = Field(None, max_length=4000)
+
+
+class KorrekturPatch(BaseModel):
+    grund: str | None = None
+    kommentar_oeffentlich: str | None = Field(None, max_length=1000)
+    notiz_intern: str | None = Field(None, max_length=4000)
+    status: str | None = None
+
+
+class KommentarIn(BaseModel):
+    text: str = Field(min_length=1, max_length=4000)
+
+
+def _referee_event(db: Session, slug: str, event_id: int, user: models.User) -> tuple[models.Team, models.TeamEvent]:
+    from .. import referee as R
+    t = db.query(models.Team).filter(models.Team.slug == slug, models.Team.geloescht_am.is_(None)).first()
+    if t is None:
+        raise _404()
+    e = _event(db, t, event_id)
+    if not R.darf(db, user, t, e):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "kein_referee")
+    return t, e
+
+
+def _korrektur(db: Session, e: models.TeamEvent, kid: int) -> models.EventKorrektur:
+    k = db.get(models.EventKorrektur, kid)
+    if k is None or k.event_id != e.id:
+        raise _404()
+    return k
+
+
+@router.get("/{slug}/events/{event_id}/referee")
+def referee_board(slug: str, event_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    from .. import referee as R
+    t, e = _referee_event(db, slug, event_id, user)
+    refs = R.referee_ids(db, t, e)
+    f = R.frist_bis(e)
+    K = models.EventKorrektur
+    return {"event_id": e.id, "titel": e.titel, "status": "beendet" if e.eingefroren_am else "offen",
+            "frist_bis": f.isoformat() if f else None, "wirkung_erlaubt": R.wirkung_erlaubt(e),
+            "nur_ein_referee": len(refs) <= 1, "ich": user.id,
+            "referees": sorted((db.get(models.User, u).display_name or f"#{u}") for u in refs if db.get(models.User, u)),
+            "gruende": list(R.GRUENDE), "kandidaten": R.kandidaten(db, t, e),
+            "korrekturen": [R.korrektur_out(db, k, intern=True)
+                            for k in db.query(K).filter(K.event_id == e.id).order_by(K.id.desc()).all()]}
+
+
+@router.post("/{slug}/events/{event_id}/referee")
+def referee_anlegen(slug: str, event_id: int, body: KorrekturIn, user: models.User = Depends(current_user),
+                    db: Session = Depends(get_db)) -> dict:
+    """Neue Korrektur als ENTWURF — ohne Wirkung, bis ein zweiter Referee veroeffentlicht."""
+    from .. import event_laeufe as EL, referee as R
+    t, e = _referee_event(db, slug, event_id, user)
+    if body.grund not in R.GRUENDE:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "grund")
+    s = db.get(models.Session, body.session_id)
+    if s is None or s.deleted or s.result is None:
+        raise _404()
+    lauf = next((a for _k, a, _b, g in EL._laeufe(s.started_at, s.result.segments_json)
+                 if abs(float(g.get("t_start_session_ms") or -1e12) - body.lauf_start_ms) <= R.TOLERANZ_MS), None)
+    if lauf is None:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "kein_lauf")
+    K = models.EventKorrektur
+    doppelt = db.query(K).filter(K.event_id == e.id, K.session_id == s.id, K.status.in_(("entwurf", "offen", "veroeffentlicht"))).all()
+    if any(abs(k.lauf_start_ms - body.lauf_start_ms) <= R.TOLERANZ_MS for k in doppelt):
+        raise HTTPException(status.HTTP_409_CONFLICT, "schon_vorhanden")
+    k = K(event_id=e.id, session_id=s.id, user_id=s.user_id, lauf_start_ms=body.lauf_start_ms, grund=body.grund,
+          kommentar_oeffentlich=(body.kommentar_oeffentlich or "").strip() or None,
+          notiz_intern=(body.notiz_intern or "").strip() or None, status="entwurf", erstellt_von=user.id)
+    db.add(k)
+    db.commit()
+    return R.korrektur_out(db, k, intern=True)
+
+
+@router.patch("/{slug}/events/{event_id}/referee/{kid}")
+def referee_aendern(slug: str, event_id: int, kid: int, body: KorrekturPatch, user: models.User = Depends(current_user),
+                    db: Session = Depends(get_db)) -> dict:
+    from .. import referee as R
+    t, e = _referee_event(db, slug, event_id, user)
+    k = _korrektur(db, e, kid)
+    jetzt = datetime.now(timezone.utc)
+    felder = {f: getattr(body, f) for f in ("grund", "kommentar_oeffentlich", "notiz_intern") if getattr(body, f) is not None}
+    if felder:
+        if k.status not in ("entwurf", "offen"):
+            raise HTTPException(status.HTTP_409_CONFLICT, "nicht_mehr_aenderbar")
+        if "grund" in felder and felder["grund"] not in R.GRUENDE:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "grund")
+        for f, v in felder.items():
+            setattr(k, f, (v or "").strip() or None if f != "grund" else v)
+        k.geaendert_am = jetzt
+    ziel = body.status
+    if ziel and ziel != k.status:
+        if ziel not in R.UEBERGAENGE.get(k.status, ()):
+            raise HTTPException(status.HTTP_409_CONFLICT, "uebergang")
+        if ziel in ("veroeffentlicht", "aufgehoben") and not R.wirkung_erlaubt(e):
+            raise HTTPException(status.HTTP_409_CONFLICT, "frist_abgelaufen")
+        if ziel == "veroeffentlicht" and k.erstellt_von == user.id and len(R.referee_ids(db, t, e)) > 1:
+            raise HTTPException(status.HTTP_409_CONFLICT, "vier_augen")   # ein ZWEITER Referee bestaetigt
+        if ziel in ("veroeffentlicht", "aufgehoben"):
+            vorher = R.werte_des_fahrers(db, t, e, k.user_id, frisch=False)
+            k.status = ziel
+            if ziel == "veroeffentlicht":
+                k.bestaetigt_von, k.veroeffentlicht_am = user.id, jetzt
+            else:
+                k.abgeschlossen_von, k.abgeschlossen_am = user.id, jetzt
+            db.flush()
+            nachher = R.werte_des_fahrers(db, t, e, k.user_id, frisch=True)
+            if ziel == "veroeffentlicht":
+                k.wirkung_json = json.dumps({"vorher": vorher, "nachher": nachher})
+            R.neu_festschreiben(db, t, e)
+            db.commit()
+            R.benachrichtigen(db, k, e, t)
+        else:
+            k.status = ziel
+            if ziel == "abgelehnt":
+                k.abgeschlossen_von, k.abgeschlossen_am = user.id, jetzt
+    db.commit()
+    return R.korrektur_out(db, k, intern=True)
+
+
+@router.post("/{slug}/events/{event_id}/referee/{kid}/kommentare")
+def referee_kommentar(slug: str, event_id: int, kid: int, body: KommentarIn, user: models.User = Depends(current_user),
+                      db: Session = Depends(get_db)) -> dict:
+    from .. import referee as R
+    _t, e = _referee_event(db, slug, event_id, user)
+    k = _korrektur(db, e, kid)
+    db.add(models.EventKorrekturKommentar(korrektur_id=k.id, user_id=user.id, text=body.text.strip()))
+    db.commit()
+    return R.korrektur_out(db, k, intern=True)
 
 
 class FokusIn(BaseModel):

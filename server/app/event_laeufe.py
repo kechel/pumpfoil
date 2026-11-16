@@ -43,15 +43,18 @@ def _laeufe(started_at: datetime, segs_json) -> list[tuple[int, float, float, di
     return out
 
 
-def zaehlende(sessions: list[dict], fenster: tuple[datetime, datetime]) -> dict[int, list[int]]:
-    """sessions: [{id, user_id, started_at, segments_json, detection, accel_hz}] -> {session_id: [zaehlende Laufindizes]}."""
+def zaehlende(sessions: list[dict], fenster: tuple[datetime, datetime], aus: frozenset | None = None) -> dict[int, list[int]]:
+    """sessions: [{id, user_id, started_at, segments_json, detection, accel_hz}] -> {session_id: [zaehlende Laufindizes]}.
+    `aus`: vom Referee veroeffentlichte Ausnahmen {(session_id, lauf_start_ms)} (app/referee.py)."""
+    from .referee import ist_ausgenommen
     s0, s1 = fenster[0].timestamp(), fenster[1].timestamp()
     je_user: dict[int, list[tuple]] = {}
     for s in sessions:
         guete = (1 if (s.get("detection") or "") not in ("", "none", "gps_only") else 0, float(s.get("accel_hz") or 0),
                  -int(s["id"]))
+        t0 = s["started_at"].timestamp()
         for k, a, b, _g in _laeufe(s["started_at"], s.get("segments_json")):
-            if s0 <= a < s1:
+            if s0 <= a < s1 and not ist_ausgenommen(aus, s["id"], (a - t0) * 1000.0):
                 je_user.setdefault(s["user_id"], []).append((a, b, s["id"], k, guete))
     out: dict[int, list[int]] = {}
     for laeufe in je_user.values():

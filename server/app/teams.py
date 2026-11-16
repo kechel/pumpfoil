@@ -453,7 +453,8 @@ def strittige_sessions(db: Session) -> set[int]:
 def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period: str,
                     member_ids: list[int] | str | None = None, fenster: tuple[datetime, datetime] | None = None,
                     event_spots: list[int] | None = None, ohne_dateien: bool = False,
-                    laenge: int | None = TAFEL_LAENGE, stand: list | None = None) -> list[dict]:
+                    laenge: int | None = TAFEL_LAENGE, stand: list | None = None,
+                    ausgenommen: frozenset | None = None) -> list[dict]:
     """Rangliste einer Tafel: je Person der beste Wert bzw. die Summe, absteigend.
 
     `ohne_dateien` (Events, 01.11.2026): keine von Hand hochgeladenen Dateien (FIT/GPX/TCX, s. DATEI_PRAEFIXE).
@@ -477,7 +478,7 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
                     if nur_spots else [])
     key = (team.id, tf.id, tf.kennzahl, tf.sportart, tf.accel_only, tf.nur_brett, tf.foil_band,
            nur_spots, tuple(sorted(spot_ids)), period, fenster, ALLE if alle else tuple(sorted(ids)), ohne_dateien,
-           laenge, tuple(sorted(global_aus(db))) if alle else (), EL.aktiv())
+           laenge, tuple(sorted(global_aus(db))) if alle else (), EL.aktiv(), tuple(sorted(ausgenommen or ())))
     hit = _cache_holen(key)
     if hit is not None:
         if stand is not None:
@@ -518,7 +519,7 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
     out: list[dict] = []
     strittig = strittige_sessions(db)
     if fenster is not None and EL.aktiv():
-        out = _event_zeilen(db, tf, filtern, fenster, strittig)
+        out = _event_zeilen(db, tf, filtern, fenster, strittig, ausgenommen)
     elif tf.kennzahl in BEST or tf.kennzahl in SPRINT:
         valcol = _sprint_col(tf.kennzahl) if tf.kennzahl in SPRINT else C.REC_COL[tf.kennzahl][0]
         q = C._community(db.query(U.id, valcol, S.id, S.started_at, C.NAME, U.avatar_url, S.place_name,
@@ -577,7 +578,8 @@ def tafel_berechnen(db: Session, team: models.Team, tf: models.TeamTafel, period
     return out
 
 
-def _event_zeilen(db: Session, tf: models.TeamTafel, filtern, fenster, strittig: set[int]) -> list[dict]:
+def _event_zeilen(db: Session, tf: models.TeamTafel, filtern, fenster, strittig: set[int],
+                  ausgenommen: frozenset | None = None) -> list[dict]:
     """Event-Bestenliste je LAUF (app/event_laeufe.py): Sessions, die das Fenster ueberlappen, davon die zaehlenden Laeufe."""
     from .api import community as C
     from . import pumpgleit_anzeige as PA
@@ -593,7 +595,7 @@ def _event_zeilen(db: Session, tf: models.TeamTafel, filtern, fenster, strittig:
                          "detection": det, "accel_hz": hz, "spot_id": spot_id})
         info[sid] = (name, av, place, lat, lon, sicht)
         info.setdefault(("u", uid), (name, av))
-    zaehl = EL.zaehlende(sessions, fenster)
+    zaehl = EL.zaehlende(sessions, fenster, ausgenommen)
     out = []
     for uid, w in EL.werte(tf.kennzahl, sessions, zaehl, PA.AN).items():
         name, av = info[("u", uid)]
@@ -885,6 +887,7 @@ def offizielles_team_id(db: Session) -> int | None:
 
 
 from . import event_laeufe as EL  # noqa: E402
+from . import referee as R  # noqa: E402
 
 _GLOBAL_AUS = {"zeit": 0.0, "ids": frozenset()}
 
@@ -1270,10 +1273,10 @@ def events_teilnehmer_sichern(db: Session, team_id: int, jetzt: datetime | None 
             e.teilnehmer_json = ids
 
 
-def _event_voll(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
+def _event_voll(db: Session, t: models.Team, e: models.TeamEvent, frisch: bool = False) -> list[dict]:
     """Bestenlisten des Events — eingefroren aus `ergebnis_json`, sonst live. Bei globalen Events mit ALLEN Zeilen
     (bis GLOBAL_ZEILEN_MAX) und der Team-Rangliste je Bestenliste (`teams`); gekuerzt wird erst in `event_berechnen`."""
-    if e.ergebnis_json:
+    if e.ergebnis_json and not frisch:
         voll = json.loads(e.ergebnis_json)
         # Endstaende von vor dem 09.11.2026 haben keine Teamgroesse: aus der MIT festgehaltenen Zuordnung ergaenzen
         # (derselbe Stand wie das Ergebnis, nichts Aktuelles).
@@ -1302,7 +1305,7 @@ def _event_voll(db: Session, t: models.Team, e: models.TeamEvent) -> list[dict]:
     for tf in event_tafeln_mit_mix(e):
         zeilen = tafel_berechnen(db, t, tf, "all", ids, fenster=fenster, event_spots=event_spots(e),
                                  ohne_dateien=bool(e.ohne_dateien), laenge=GLOBAL_ZEILEN_MAX if glob else TAFEL_LAENGE,
-                                 stand=zeiten)
+                                 stand=zeiten, ausgenommen=R.ausgenommen(db, e))
         x = {**tafel_out(tf), "zeilen": zeilen}
         if glob:
             tw = team_wertung(db, zeilen, wertung_n(e), t.id, zuordnung, schnitt=tf.kennzahl in SPRINT)
@@ -1385,7 +1388,8 @@ def event_summen(db: Session, t: models.Team, e: models.TeamEvent) -> dict:
     if not alle and not ids:
         return leer
     key = (t.id, "event_summen", e.id, sportart, accel_only, fenster, tuple(sorted(spots)), bool(e.ohne_dateien),
-           ALLE if alle else tuple(sorted(ids)), tuple(sorted(global_aus(db))) if alle else (), EL.aktiv())
+           ALLE if alle else tuple(sorted(ids)), tuple(sorted(global_aus(db))) if alle else (), EL.aktiv(),
+           tuple(sorted(R.ausgenommen(db, e))))
     hit = _cache_holen(key)
     if hit is None and EL.aktiv():
         hit = _event_summen_je_lauf(db, e, ids, alle, sportart, accel_only, spots, fenster)
@@ -1495,7 +1499,7 @@ def _event_summen_je_lauf(db: Session, e, ids, alle: bool, sportart: str, accel_
         q = q.filter(or_(*[C._spot_cond(str(s), db) for s in spots]))
     sessions = [{"id": sid, "user_id": uid, "started_at": ts, "spot_id": sp, "segments_json": sj, "detection": d,
                  "accel_hz": hz} for sid, uid, ts, sp, sj, d, hz in q.all()]
-    zaehl = EL.zaehlende(sessions, fenster)
+    zaehl = EL.zaehlende(sessions, fenster, R.ausgenommen(db, e))
     runs = pumps = dist = zeit = 0.0
     mit, spot_ids, aktive = 0, set(), set()
     for s in sessions:

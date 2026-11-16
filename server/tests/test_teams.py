@@ -1156,3 +1156,94 @@ def test_primaer_wird_gespeichert_und_wechselt_nicht_still(client, monkeypatch):
     mine = {x["slug"]: x for x in client.get("/api/teams/mine", headers=ka).json()}
     assert mine[gross]["primaer_gewaehlt"]
     assert team_von_a() == [gross]
+
+
+def test_referee_board_vier_augen_und_wirkung(client, monkeypatch):
+    """Referee Board (16.11.2026): Entwurf ohne Wirkung, Veroeffentlichen nur durch einen zweiten Referee, dann faellt der
+    Lauf aus der Wertung und steht oeffentlich; Aufheben bringt ihn zurueck. Nicht-Referees sehen das Board nicht."""
+    from app import models, teams as T
+    from app.db import SessionLocal
+    monkeypatch.setenv("EVENT_JE_LAUF", "1")
+    db = SessionLocal()
+    db.query(models.RateEvent).delete()
+    db.commit()
+    db.close()
+    adm1 = _admin(client, "ref-adm1@t.de")
+    adm2 = _admin(client, "ref-adm2@t.de")
+    (_io, ko) = _konto(client, "ref-off@t.de", "Ref Offiziell")
+    (ia, ka) = _konto(client, "ref-a@t.de", "Ref Anna")
+    offiziell = _team(client, ko, "Ref Offiziell Team")
+    monkeypatch.setenv("TEAM_GLOBAL", offiziell)
+    _freigeben(client, adm1, ko, offiziell)
+    sid = _session(ia, 300, tage=1, dist=150.0)
+    jetzt = datetime.now(timezone.utc)
+    eid = client.post(f"/api/teams/{offiziell}/events", headers=ko, json={
+        "titel": "Ref", "start": (jetzt - timedelta(days=3)).isoformat(), "ende": (jetzt + timedelta(days=1)).isoformat(),
+        "tafeln": [{"kennzahl": "distance", "accel_only": False}], "global_event": True}).json()["id"]
+
+    def wert():
+        T._cache.clear()
+        z = client.get(f"/api/teams/{offiziell}/events/{eid}", headers=ka).json()["tafeln"][0]["zeilen"]
+        return next((r["value"] for r in z if r["name"] == "Ref Anna"), None)
+    assert wert() == 150.0
+    assert client.get(f"/api/teams/{offiziell}/events/{eid}/referee", headers=ka).status_code == 403
+    board = client.get(f"/api/teams/{offiziell}/events/{eid}/referee", headers=adm1).json()
+    kand = next(k for k in board["kandidaten"] if k["session_id"] == sid)
+    k = client.post(f"/api/teams/{offiziell}/events/{eid}/referee", headers=adm1, json={
+        "session_id": sid, "lauf_start_ms": kand["lauf_start_ms"], "grund": "messfehler",
+        "kommentar_oeffentlich": "GPS-Sprung", "notiz_intern": "nur intern"}).json()
+    assert k["status"] == "entwurf" and wert() == 150.0                       # Entwurf wirkt nicht
+    url = f"/api/teams/{offiziell}/events/{eid}/referee/{k['id']}"
+    assert client.patch(url, headers=adm1, json={"status": "offen"}).json()["status"] == "offen"
+    assert client.post(url + "/kommentare", headers=adm2, json={"text": "sehe ich auch so"}).json()["kommentare"][0]["text"]
+    assert client.patch(url, headers=adm1, json={"status": "veroeffentlicht"}).status_code == 409   # Vier-Augen
+    assert wert() == 150.0
+    pub = client.patch(url, headers=adm2, json={"status": "veroeffentlicht"}).json()
+    assert pub["status"] == "veroeffentlicht" and pub["wirkung"]["vorher"]
+    assert wert() == 75.0                                                      # naechstbester Lauf (rest = 75 m)
+    oeff = client.get(f"/api/teams/{offiziell}/events/{eid}", headers=ka).json()["korrekturen"]
+    assert oeff[0]["kommentar_oeffentlich"] == "GPS-Sprung" and "notiz_intern" not in oeff[0]
+    assert client.patch(url, headers=adm1, json={"kommentar_oeffentlich": "x"}).status_code == 409   # nicht mehr aenderbar
+    assert client.patch(url, headers=adm1, json={"status": "aufgehoben"}).json()["status"] == "aufgehoben"
+    assert wert() == 150.0
+
+
+def test_referee_nach_festschreiben_frist(client, monkeypatch):
+    """Festgeschriebenes Event: Veroeffentlichen schreibt den Endstand neu (Festschreib-Zeit bleibt); nach 24 h nicht mehr."""
+    from app import models, teams as T
+    from app.db import SessionLocal
+    monkeypatch.setenv("EVENT_JE_LAUF", "1")
+    db = SessionLocal()
+    db.query(models.RateEvent).delete()
+    db.commit()
+    db.close()
+    adm1 = _admin(client, "reff-adm1@t.de")
+    adm2 = _admin(client, "reff-adm2@t.de")
+    (_io, ko) = _konto(client, "reff-off@t.de", "Reff Offiziell")
+    (ia, ka) = _konto(client, "reff-a@t.de", "Reff Anna")
+    offiziell = _team(client, ko, "Reff Offiziell Team")
+    monkeypatch.setenv("TEAM_GLOBAL", offiziell)
+    _freigeben(client, adm1, ko, offiziell)
+    sid = _session(ia, 300, tage=2, dist=150.0)
+    jetzt = datetime.now(timezone.utc)
+    eid = client.post(f"/api/teams/{offiziell}/events", headers=ko, json={
+        "titel": "Reff", "start": (jetzt - timedelta(days=3)).isoformat(), "ende": (jetzt - timedelta(hours=6)).isoformat(),
+        "tafeln": [{"kennzahl": "distance", "accel_only": False}], "global_event": True}).json()["id"]
+    ev = client.get(f"/api/teams/{offiziell}/events/{eid}", headers=ka).json()      # friert ein (Ende + 4 h vorbei)
+    assert next(r["value"] for r in ev["tafeln"][0]["zeilen"] if r["name"] == "Reff Anna") == 150.0
+    db = SessionLocal(); fest = db.get(models.TeamEvent, eid).eingefroren_am; db.close()
+    assert fest is not None
+    kand = next(k for k in client.get(f"/api/teams/{offiziell}/events/{eid}/referee", headers=adm1).json()["kandidaten"]
+                if k["session_id"] == sid)
+    k = client.post(f"/api/teams/{offiziell}/events/{eid}/referee", headers=adm1, json={
+        "session_id": sid, "lauf_start_ms": kand["lauf_start_ms"], "grund": "andere_sportart"}).json()
+    url = f"/api/teams/{offiziell}/events/{eid}/referee/{k['id']}"
+    client.patch(url, headers=adm1, json={"status": "offen"})
+    assert client.patch(url, headers=adm2, json={"status": "veroeffentlicht"}).status_code == 200
+    T._cache.clear()
+    ev = client.get(f"/api/teams/{offiziell}/events/{eid}", headers=ka).json()
+    assert next(r["value"] for r in ev["tafeln"][0]["zeilen"] if r["name"] == "Reff Anna") == 75.0
+    db = SessionLocal(); e = db.get(models.TeamEvent, eid)
+    assert e.eingefroren_am == fest
+    e.eingefroren_am = jetzt - timedelta(hours=25); db.commit(); db.close()            # Frist abgelaufen
+    assert client.patch(url, headers=adm1, json={"status": "aufgehoben"}).status_code == 409

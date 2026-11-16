@@ -2192,6 +2192,43 @@ class TeamLogbuch(Base):
     erfasst_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class EventKorrektur(Base):
+    """Referee Board (16.11.2026, Jan): einen Lauf aus der Wertung eines Events nehmen — in kontrollierten Schritten.
+
+    Status: entwurf (nur Referees, keine Wirkung) -> offen (zur Pruefung, interne Diskussion) -> veroeffentlicht (nur mit
+    Bestaetigung durch einen ZWEITEN Referee; erst jetzt wirkt sie auf die Wertung, steht oeffentlich am Event und der Fahrer
+    wird benachrichtigt) | abgelehnt; veroeffentlicht -> aufgehoben (bleibt im Protokoll). Der Lauf ist ueber seine
+    Startzeit (Session-ms) verankert, nicht ueber den Index — eine Neuauswertung verschiebt Indizes. app/referee.py."""
+    __tablename__ = "event_korrekturen"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    event_id: Mapped[int] = mapped_column(Integer, ForeignKey("team_events.id"), index=True)
+    session_id: Mapped[int] = mapped_column(Integer, ForeignKey("sessions.id"), index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))        # Fahrer (Besitzer der Session)
+    lauf_start_ms: Mapped[int] = mapped_column(Integer)                          # Laufstart in Session-ms
+    grund: Mapped[str] = mapped_column(String(30))                                # Vorauswahl, s. referee.GRUENDE
+    kommentar_oeffentlich: Mapped[str | None] = mapped_column(Text)
+    notiz_intern: Mapped[str | None] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(16), default="entwurf")
+    erstellt_von: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    erstellt_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    geaendert_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    bestaetigt_von: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"))
+    veroeffentlicht_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    abgeschlossen_von: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"))   # abgelehnt/aufgehoben von
+    abgeschlossen_am: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    wirkung_json: Mapped[str | None] = mapped_column(Text)    # Werte des Fahrers vorher/nachher je Bestenliste (beim Veroeffentlichen)
+
+
+class EventKorrekturKommentar(Base):
+    """Interne Diskussion zu einer Korrektur (nur Referees)."""
+    __tablename__ = "event_korrektur_kommentare"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    korrektur_id: Mapped[int] = mapped_column(Integer, ForeignKey("event_korrekturen.id"), index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    text: Mapped[str] = mapped_column(Text)
+    am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
 class TeamEvent(Base):
     """Team-Event (Stufe 3, docs/TEAMS.md): Zeitfenster [start, ende) mit eigenen Bestenlisten, optional
     auf Spots begrenzt. Gewertet werden Sessions, die im Fenster GESTARTET sind. 24 h nach dem Ende wird
