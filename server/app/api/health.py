@@ -254,25 +254,49 @@ def _postgres(db: Session) -> dict:
     return d
 
 
-def _backups() -> dict:
-    d: dict = {"pfad": BACKUP_PFAD}
+_BACKUP_GROESSE: dict = {"zeit": 0.0, "bytes": None, "laeuft": False}
+_BACKUP_LOCK = __import__("threading").Lock()
+BACKUP_GROESSE_S = 600
+
+
+def _backup_groesse_zaehlen() -> None:
+    gesamt = 0
     try:
-        st = os.stat(BACKUP_PFAD)
-        d["stand"] = int(st.st_mtime)
-        d["alter_h"] = round((time.time() - st.st_mtime) / 3600, 1)
-        gesamt = 0
         for wurzel, _dirs, dateien in os.walk(BACKUP_PFAD):
             for n in dateien:
                 try:
                     gesamt += os.stat(os.path.join(wurzel, n)).st_size
                 except OSError:
                     pass
-        d["bytes"] = gesamt
+        _BACKUP_GROESSE.update({"zeit": time.time(), "bytes": gesamt})
+    finally:
+        _BACKUP_GROESSE["laeuft"] = False
+
+
+def _backups() -> dict:
+    """Backup-Stand fuer den Admin-Bildschirm. Stand/Alter/Secrets sofort; die GROESSE zaehlt ein Hintergrund-Thread,
+    hoechstens alle 10 min und nie zweimal gleichzeitig — die Antwort nimmt den letzten Stand (anfangs keinen).
+
+    16.11.2026: `os.walk` ueber den ganzen Backup-Ordner lief bei jedem Aufruf und dauerte waehrend eines Backup-Pulls
+    (rsync) Minuten; der Admin-Bildschirm fragt regelmaessig nach, die Aufrufe stapelten sich, hielten DB-Verbindungen
+    und erschoepften den Pool (QueuePool-Fehler, 500 bei Chat/Settings/Me fuer alle Nutzer, 09:56–10:16)."""
+    d: dict = {"pfad": BACKUP_PFAD}
+    try:
+        st = os.stat(BACKUP_PFAD)
+        d["stand"] = int(st.st_mtime)
+        d["alter_h"] = round((time.time() - st.st_mtime) / 3600, 1)
         # Der GPG-Umschlag mit den Zugangsdaten faehrt in der Pull-Kette mit — fehlt er, ist das
         # ein stiller Ausfall (s. deploy/backup-secrets.sh).
         d["secrets_da"] = os.path.exists(os.path.join(BACKUP_PFAD, "secrets.tar.gz.gpg"))
     except OSError as e:
         d["fehler"] = e.strerror or "nicht lesbar"
+        return d
+    with _BACKUP_LOCK:
+        if not _BACKUP_GROESSE["laeuft"] and time.time() - _BACKUP_GROESSE["zeit"] >= BACKUP_GROESSE_S:
+            _BACKUP_GROESSE["laeuft"] = True
+            __import__("threading").Thread(target=_backup_groesse_zaehlen, daemon=True).start()
+    if _BACKUP_GROESSE["bytes"] is not None:
+        d["bytes"] = _BACKUP_GROESSE["bytes"]
     return d
 
 
