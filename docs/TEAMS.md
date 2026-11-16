@@ -609,9 +609,12 @@ Session-Paare bei 24 Fahrern (viele davon gewollte Brett-Paare).
 Ein Lauf zaehlt, wenn
 1. er im Fenster BEGINNT (`start <= Laufstart < ende`) und zaehlt dann VOLLSTAENDIG, auch wenn er nach dem Schluss endet —
    egal, wann die Session startet oder endet; wer zu frueh oder zu spaet losfaehrt, zaehlt nicht (Jan 16.11.);
-2. er kein Duplikat ist: Laeufe desselben Fahrers aus verschiedenen Sessions bilden eine Gruppe, wenn Start UND Ende je
-   <= 10 s auseinander liegen; je Gruppe zaehlt EIN Lauf. **Offen (Jan):** welcher — Vorschlag: der aus der Aufnahme mit der
-   besseren Datenlage (mehr Uhr-Tempo-Anteil, dann hoehere Accel-Rate), NICHT der bessere Wert (sonst Rosinenpicken mit zwei Uhren);
+2. er kein Duplikat ist: Laeufe desselben Fahrers aus verschiedenen Aufnahmen derselben Fahrt (Start UND Ende je <= 10 s
+   auseinander) bilden EINEN logischen Lauf. **Jan 16.11.:** es zaehlt „das bessere bzw. kombinierte" — gehoert zum
+   allgemeinen Umgang mit Mehrfach-Aufnahmen (FIT-Import, eigene Uhr, Garmin Connect, Handy am Brett, zweite Uhr): im
+   Prinzip alle zusammen auswerten, je mehr Daten desto besser (je Kanal die beste Quelle, s. docs/TODO.md „Zwei Aufnahmen
+   derselben Fahrt: Puls …" und „Doppelte Laeufe …"). Bis diese Fusion steht: je Gruppe der Lauf aus der Aufnahme mit der
+   besseren Datenlage;
 3. ein Referee ihn nicht ausgenommen hat (s. 3.).
 Schluessel eines Laufs ist (session_id, Laufstart in Session-ms), nicht der Index — nach einer Neuauswertung verschieben
 sich Indizes (heute z. B. A5), die Startzeit nur um <= 2 s; Zuordnung mit Toleranz 3 s.
@@ -656,7 +659,7 @@ Nicht waehrend eines laufenden Events umstellen; eingefrorene Endstaende bleiben
 nach dem Schluss). Vorher Gegenprobe: alte Events neu rechnen (ohne Speichern) und Verschiebungen zeigen. Alte Apps lesen
 dieselben Bestenlisten-Felder weiter (rein serverseitig).
 
-**Offene Fragen an Jan:** (a) welcher Lauf einer Duplikat-Gruppe zaehlt; (b) Rechte: Leiter + Moderatoren des ausrichtenden
+**Offene Fragen an Jan:** (a) ✅ das bessere/kombinierte (Fusion, s. 1.2); (b) Rechte: Leiter + Moderatoren des ausrichtenden
 Teams, bei globalen Events nur Admins/Moderatoren des offiziellen Teams?; (c) Benachrichtigung des Fahrers bei einer
 Korrektur ja/nein; (d) Reihenfolge: zuerst Baustein + Session-Kennzeichen, dann Board?
 
