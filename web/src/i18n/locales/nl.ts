@@ -872,6 +872,7 @@ const nl: Record<string, string> = {
   "ref.zurPruefung": "Ter beoordeling indienen",
   "ref.zurueckEntwurf": "Terug naar concept",
   "ref.ablehnen": "Afwijzen",
+  "ref.verwerfen": "Verwerpen",
   "ref.veroeffentlichen": "Publiceren",
   "ref.aufheben": "Intrekken",
   "ref.bestaetigen": "Hiermee gaat {lauf} van {fahrer} uit de ranglijst, de reden en openbare opmerking verschijnen op de eventpagina en de rider krijgt een melding.",

@@ -848,6 +848,7 @@ const id: Record<string, string> = {
   "ref.zurPruefung": "Kirim untuk ditinjau",
   "ref.zurueckEntwurf": "Kembali ke draf",
   "ref.ablehnen": "Tolak",
+  "ref.verwerfen": "Buang",
   "ref.veroeffentlichen": "Terbitkan",
   "ref.aufheben": "Batalkan",
   "ref.bestaetigen": "Ini mengeluarkan {lauf} milik {fahrer} dari peringkat, menampilkan alasan dan komentar publik di halaman event, dan memberi tahu rider.",

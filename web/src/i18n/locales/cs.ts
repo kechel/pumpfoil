@@ -872,6 +872,7 @@ const cs: Record<string, string> = {
   "ref.zurPruefung": "Poslat ke kontrole",
   "ref.zurueckEntwurf": "Zpět na koncept",
   "ref.ablehnen": "Zamítnout",
+  "ref.verwerfen": "Zahodit",
   "ref.veroeffentlichen": "Zveřejnit",
   "ref.aufheben": "Zrušit",
   "ref.bestaetigen": "Tím se {lauf} jezdce {fahrer} vyřadí z pořadí, důvod a veřejný komentář se zobrazí na stránce akce a jezdec dostane upozornění.",

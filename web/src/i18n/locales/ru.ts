@@ -848,6 +848,7 @@ const ru: Record<string, string> = {
   "ref.zurPruefung": "На проверку",
   "ref.zurueckEntwurf": "Вернуть в черновик",
   "ref.ablehnen": "Отклонить",
+  "ref.verwerfen": "Отбросить",
   "ref.veroeffentlichen": "Опубликовать",
   "ref.aufheben": "Отменить",
   "ref.bestaetigen": "{lauf} райдера {fahrer} будет убран из рейтинга, причина и публичный комментарий появятся на странице события, райдер получит уведомление.",

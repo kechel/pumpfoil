@@ -870,6 +870,7 @@ const pl: Record<string, string> = {
   "ref.zurPruefung": "Wyślij do weryfikacji",
   "ref.zurueckEntwurf": "Wróć do szkicu",
   "ref.ablehnen": "Odrzuć",
+  "ref.verwerfen": "Odrzuć szkic",
   "ref.veroeffentlichen": "Opublikuj",
   "ref.aufheben": "Wycofaj",
   "ref.bestaetigen": "To usunie {lauf} ridera {fahrer} z rankingu, pokaże powód i komentarz publiczny na stronie wydarzenia i powiadomi ridera.",

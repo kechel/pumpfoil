@@ -864,6 +864,7 @@ const nb: Record<string, string> = {
   "ref.zurPruefung": "Send til vurdering",
   "ref.zurueckEntwurf": "Tilbake til utkast",
   "ref.ablehnen": "Avvis",
+  "ref.verwerfen": "Forkast",
   "ref.veroeffentlichen": "Publiser",
   "ref.aufheben": "Trekk tilbake",
   "ref.bestaetigen": "Dette tar {lauf} fra {fahrer} ut av resultatlisten, viser grunnen og den offentlige kommentaren på eventsiden og gir rideren beskjed.",

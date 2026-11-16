@@ -854,6 +854,7 @@ const fi: Record<string, string> = {
   "ref.zurPruefung": "Lähetä tarkistukseen",
   "ref.zurueckEntwurf": "Takaisin luonnokseksi",
   "ref.ablehnen": "Hylkää",
+  "ref.verwerfen": "Hylkää luonnos",
   "ref.veroeffentlichen": "Julkaise",
   "ref.aufheben": "Peru",
   "ref.bestaetigen": "Tämä poistaa ajajan {fahrer} ajon {lauf} tuloslistalta, näyttää syyn ja julkisen kommentin tapahtumasivulla ja ilmoittaa ajajalle.",

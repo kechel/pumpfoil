@@ -848,6 +848,7 @@ const ja: Record<string, string> = {
   "ref.zurPruefung": "確認に回す",
   "ref.zurueckEntwurf": "下書きに戻す",
   "ref.ablehnen": "却下",
+  "ref.verwerfen": "破棄",
   "ref.veroeffentlichen": "公開",
   "ref.aufheben": "取り消す",
   "ref.bestaetigen": "{fahrer} の {lauf} をランキングから外し、理由と公開コメントをイベントページに表示して、ライダーに通知します。",

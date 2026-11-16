@@ -48,7 +48,11 @@ export default function RefereeBoard() {
   const laden = () => api.refereeBoard(slug, id).then(setB).catch((e) => setFehler(fehlerText(e, t)));
   useEffect(() => { laden(); }, [slug, id]);  // eslint-disable-line react-hooks/exhaustive-deps
 
-  const ersetzen = (k: RefereeKorrektur) => setB((x) => x && { ...x, korrekturen: x.korrekturen.map((y) => (y.id === k.id ? k : y)) });
+  // Nach einem Statuswechsel folgt der Reiter der Korrektur (sonst verschwindet sie scheinbar).
+  const ersetzen = (k: RefereeKorrektur) => {
+    setB((x) => x && { ...x, korrekturen: x.korrekturen.map((y) => (y.id === k.id ? k : y)) });
+    setSpalte(SPALTEN.find((s) => s.status.includes(k.status))?.key ?? "offen");
+  };
   const aktion = async (p: Promise<RefereeKorrektur>) => {
     try { ersetzen(await p); setFehler(null); } catch (e: any) { setFehler(fehlerText(e, t)); }
   };
@@ -289,7 +293,10 @@ function KorrekturKarte({ k, b, slug, id, aktion }: {
       {/* Schritte */}
       <div className="flex flex-wrap justify-end gap-2">
         {aenderbar && !bearbeiten && <button onClick={() => setBearbeiten(true)} className={KNOPF_GRAU}>{t("ref.bearbeiten")}</button>}
-        {k.status === "entwurf" && <button onClick={() => status("offen")} className={KNOPF_BLAU}>{t("ref.zurPruefung")}</button>}
+        {k.status === "entwurf" && <>
+          <button onClick={() => status("abgelehnt")} className={KNOPF_GRAU}>{t("ref.verwerfen")}</button>
+          <button onClick={() => status("offen")} className={KNOPF_BLAU}>{t("ref.zurPruefung")}</button>
+        </>}
         {k.status === "offen" && <>
           <button onClick={() => status("entwurf")} className={KNOPF_GRAU}>{t("ref.zurueckEntwurf")}</button>
           <button onClick={() => status("abgelehnt")} className={KNOPF_GRAU}>{t("ref.ablehnen")}</button>

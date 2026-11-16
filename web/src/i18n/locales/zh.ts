@@ -848,6 +848,7 @@ const zh: Record<string, string> = {
   "ref.zurPruefung": "提交审核",
   "ref.zurueckEntwurf": "退回草稿",
   "ref.ablehnen": "驳回",
+  "ref.verwerfen": "放弃",
   "ref.veroeffentlichen": "发布",
   "ref.aufheben": "撤销",
   "ref.bestaetigen": "这会把 {fahrer} 的{lauf}移出排名，在赛事页面显示原因和公开备注，并通知该滑手。",

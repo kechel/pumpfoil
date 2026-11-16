@@ -665,6 +665,7 @@ const deAT: Record<string, string> = {
   "ref.zurPruefung": "Zur Prüfung stellen",
   "ref.zurueckEntwurf": "Zurück zum Entwurf",
   "ref.ablehnen": "Ablehnen",
+  "ref.verwerfen": "Verwerfen",
   "ref.veroeffentlichen": "Veröffentlichen",
   "ref.aufheben": "Aufheben",
   "ref.bestaetigen": "Damit wird {lauf} von {fahrer} aus der Wertung genommen, Grund und öffentlicher Kommentar erscheinen auf der Eventseite, und der Fahrer wird benachrichtigt.",

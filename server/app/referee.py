@@ -34,7 +34,7 @@ log = logging.getLogger("referee")
 GRUENDE = ("andere_sportart", "messfehler", "doppelte_aufnahme", "fremdkraft", "ausserhalb_fenster", "sonstiges")
 STATUS = ("entwurf", "offen", "veroeffentlicht", "abgelehnt", "aufgehoben")
 UEBERGAENGE = {
-    "entwurf": ("offen",),
+    "entwurf": ("offen", "abgelehnt"),       # Entwurf direkt verwerfen (16.11.2026)
     "offen": ("entwurf", "veroeffentlicht", "abgelehnt"),
     "veroeffentlicht": ("aufgehoben",),
     "abgelehnt": (),

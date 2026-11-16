@@ -890,6 +890,7 @@ const en: Record<string, string> = {
   "ref.zurPruefung": "Submit for review",
   "ref.zurueckEntwurf": "Back to draft",
   "ref.ablehnen": "Reject",
+  "ref.verwerfen": "Discard",
   "ref.veroeffentlichen": "Publish",
   "ref.aufheben": "Withdraw",
   "ref.bestaetigen": "This removes {lauf} of {fahrer} from the ranking, shows the reason and the public comment on the event page and notifies the rider.",

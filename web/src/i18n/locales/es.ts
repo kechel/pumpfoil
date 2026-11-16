@@ -758,6 +758,7 @@ const es: Record<string, string> = {
   "ref.zurPruefung": "Enviar a revisión",
   "ref.zurueckEntwurf": "Volver a borrador",
   "ref.ablehnen": "Rechazar",
+  "ref.verwerfen": "Descartar",
   "ref.veroeffentlichen": "Publicar",
   "ref.aufheben": "Retirar",
   "ref.bestaetigen": "Esto quita {lauf} de {fahrer} de la clasificación, muestra el motivo y el comentario público en la página del evento y avisa al rider.",
