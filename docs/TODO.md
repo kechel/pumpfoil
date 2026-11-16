@@ -1540,7 +1540,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 1. Je-Lauf-Wertung als EIN Baustein: Laeufe am Eventschluss abschneiden (14.11.) + doppelte Laeufe aus paralleler
    Aufnahme einmal zaehlen (15.11.) + Session-Kennzeichen „zaehlt fuer Event" und alle Sprints je Lauf anzeigen (14./15.11.).
 2. Globale Events: Opt-out beim Eventschluss einfrieren (14.11.).
-3. Ø Speed nach v3 ueber die fertigen Laeufe: zuerst die Verschiebung in 575 Sessions zeigen (15.11.).
+3. ✅ 16.11. Ø Speed ueber die fertigen Laeufe — LIVE (8828c9bc), Bestand 6611 nachgezogen.
 4. Sprints: 80-%-Regel je Lauf raus, Kriterien je Fenster (Luecken <= 3 s, >= 2/3 Uhr-Tempo, Position <= 10 %), neue
    sprint-VERSION, Bestand nachrechnen; dabei `scripts/sprints-nachrechnen.py` muss `auswertung_fest` respektieren (15.11.).
 5. v3 schneidet Laufenden zu frueh ab (5-s-Glaettung am Rand), Regression vorher (15.11.).
@@ -1645,6 +1645,9 @@ Kandidaten (hier 3, p 0,10/0,24/0,54), der Durchschnitt bleibt. Max/Min kommen a
 Betroffen: 38 von 1364 Pumpfoil-Sessions ohne Laeufe zeigen einen Ø; 575 Sessions mit Laeufen haben mind. einen verworfenen
 Kandidaten (Ausmass der Verschiebung noch nicht gerechnet).
 
+**✅ ERLEDIGT 16.11. (Jans OK, 8828c9bc):** Pipeline rechnet den Ø vor dem Speichern aus den fertigen Laeufen (nur mit
+Lauferkennung; detection none behaelt den Strecken-Ø), Bestand per scripts/ds-nachziehen.py (6611, Sicherung
+data/analyse-notizen/2026-11-16-ds/). Pumpfoil Median -0,17 km/h, 43 Sessions ohne Laeufe ohne Ø.
 **Plan (Jan 15.11.: „jetzt nix aendern … fuer naechste woche merken"):** Ø nach v3 ueber die fertigen Laeufe rechnen, vorher
 die Verschiebung in den 575 Sessions auswerten und Jan zeigen, dann betroffene Sessions neu auswerten (Ist-Zustand sichern,
 blockweise). Laeufe, Rankings, Sprints aendern sich nicht (Ø geht in keine Wertung). Bis dahin weder Anzeige noch Analyse anfassen.
