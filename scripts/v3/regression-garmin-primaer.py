@@ -62,12 +62,20 @@ def kette(db, s, sport_class):
 
 SKALA = False
 EINS_G = False
+MODELL = None          # --modell r8b: v3-Stufe-A-Kandidat aus data/ml/v3/stufe_a_<name>.pkl (A6, 16.11.2026)
+NORM = False           # --norm: ACCEL_NORM=1 (echtes g je Quelle, app/analysis/skala.py)
 
 
 def eine(paar):
     oid, gid = paar
     import logging
     logging.disable(logging.WARNING)
+    if NORM:
+        os.environ["ACCEL_NORM"] = "1"
+    if MODELL:
+        from app.analysis.v3 import nachbearbeitung as N
+        N._VORSCHAU.set((pathlib.Path(__file__).resolve().parents[2] / "server" / "data" / "ml" / "v3" / f"stufe_a_{MODELL}.pkl",
+                         N.REF, f"vorschau:{MODELL}"))
     from sqlalchemy import text
     from app.db import SessionLocal
     from app import models
@@ -131,9 +139,13 @@ if __name__ == "__main__":
     ap.add_argument("--bericht")
     ap.add_argument("--eins-g", action="store_true", help="beide Seiten auf echtes g (unsere App 1000/g) — Experiment")
     ap.add_argument("--garmin-skala", action="store_true", help="Garmin-Accel wie unsere Garmin-App skalieren (Experiment)")
+    ap.add_argument("--modell", help="v3-Kandidat, z. B. r8b (data/ml/v3/stufe_a_<name>.pkl)")
+    ap.add_argument("--norm", action="store_true", help="ACCEL_NORM=1: Accel je Quelle in echtem g")
     a = ap.parse_args()
     SKALA = a.garmin_skala
     EINS_G = a.eins_g
+    MODELL = a.modell
+    NORM = a.norm
     if a.bericht:
         bericht(a.bericht); sys.exit(0)
     from sqlalchemy import text

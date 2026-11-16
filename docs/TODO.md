@@ -1556,6 +1556,12 @@ Referee „nur zu zweit/Moderatoren nur Vorschlag" nur gemerkt (Jan: „glaube d
 5. ✅ 16.11. v3-Laufrand mit rohem p LIVE (5e973320, v3-r4-mild-4), 799 Sessions neu ausgewertet (Laeufe +4, wie Regression).
 6. Accel-Normierung (`ACCEL_NORM`, r8b gemessen) + Regel „wer gewinnt beim Garmin-Zusammenfuehren", 7 Altfaelle (13.11.).
    Jan 16.11.: SPAETER, erst A1; danach mit frischer Gegenprobe (Brett-Paare, Garmin-Connect-Paare) entscheiden.
+   **VERTAGT 16.11. (Jan) bis zum naechsten Modelltraining.** Gegenprobe (rein lesend): Brett-Paare r4 0,848/0,926 vs.
+   r8b+echtes g 0,863/0,916, Uhr-Laeufe bestaetigt 91/104 vs. 91/99, Land 21 vs. 19, u350-Fortsetzung 289 vs. 255 s
+   (data/ml/v3/r7/messung-r4-r4_norm-r8b_norm-b.json); Garmin-Connect-Paare (103): Laeufe 470/458 vs. 460/443, gleiche
+   Laufzahl 88 vs. 87 (scripts/v3/regression-garmin-primaer.py --modell r8b --norm). Kein klarer Gewinn; die Garmin-Seite
+   ist seit 23f8c958 (GC-Import in der Einheit der App) schon stimmig. ACCEL_NORM bleibt als Schalter; beim naechsten
+   Training gleich auf echtem g trainieren.
 
 **B. Releases**
 - Zepp 1.0.17 (GPS-Neustart) einreichen, sobald 1.0.16 freigegeben ist; danach Eimer-Test Balance 2 + `messweg` auswerten (14.11.).
