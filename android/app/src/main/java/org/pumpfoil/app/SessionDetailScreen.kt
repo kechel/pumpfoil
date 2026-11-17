@@ -85,6 +85,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -593,6 +594,15 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     val sprintHL = remember(kzWahl, sprintLauf, selectedRun, s.id, s.dataVersion) {
         sprintFensterImLauf(s, kzWahl, selectedRun) ?: sprintLauf?.takeIf { selectedRun == it.lauf }
     }
+    // Sprint-Ebene „1 min" / „100 m" (Web 982f492c/cae0d4c8, 17.11.2026, Wunsch aus der Community): ein/aus wie die Pumps,
+    // unabhaengig von der Faerbung, immer nur eine Kategorie, nicht gemerkt. Zeigt je Lauf das beste Fenster der Kategorie
+    // (weisses Band unter der Spur + Endpunkte), mit gewaehltem Lauf nur dessen Fenster samt Schild mit dem Wert. Die
+    // Event-Kennzeichen bleiben davon unberuehrt.
+    var sprintEbene by remember(s.id) { mutableStateOf("") }
+    val sprintJeLauf = remember(s.id, s.dataVersion, s.analysis?.sprints) {
+        listOf("sprint_60s", "sprint_100m").associateWith { sprintFensterJeLauf(s, it) }
+    }
+    val sprintEbeneDaten = sprintJeLauf[sprintEbene]
     // Aus einer Sprint-Bestenliste: Glides-Faerbung aus (Web ad4dbfe3) — sonst ist der Track grau und vom gewerteten
     // Abschnitt bleibt nur der Rand. Einmal je Session, danach darf man zurueckschalten.
     var sprintFarbeAngewandt by remember(s.id) { mutableStateOf(false) }
@@ -997,6 +1007,15 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 track.points.indices.filter { val t = ms(it); t >= hl.a - 500 && t <= hl.b + 500 }
             }
             val sprintSchild = sprintHL?.let { if (it.kz == "sprint_60s") "60 s" else it.kz.removePrefix("sprint_").removeSuffix("m") + " m" }
+            // Sprint-Ebene (s. sprintEbene): Spurpunkte je Fenster (±0,5 s wie oben), mit gewaehltem Lauf nur dessen Fenster.
+            val ebeneIdx = remember(track, sprintEbeneDaten, selectedRun, zeitenFuerLaeufe) {
+                val daten = sprintEbeneDaten ?: return@remember emptyList<List<Int>>()
+                val ms = indexZuSessionMs(track.points.size, segs, zeitenFuerLaeufe)
+                daten.filterKeys { selectedRun == null || it == selectedRun }.values.map { f ->
+                    track.points.indices.filter { val t = ms(it); t >= f.a - 500 && t <= f.b + 500 }
+                }.filter { it.size >= 2 }
+            }
+            val ebeneSchild = selectedRun?.let { sprintEbeneDaten?.get(it) }?.let { kennzahlWert(it.kz, it.wert) }
             // Karte auch OHNE erkannte Laeufe zeigen: die PWA macht das laengst (dort wird dann
             // die komplette Spur gezeichnet), Android und iOS blendeten sie ganz aus. Fuer wen das
             // wichtig ist: wer prueft, ob seine Uhr ueberhaupt ortet, sieht sonst NICHTS und haelt
@@ -1066,7 +1085,8 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                 FilterChip(selected = ganzeFahrt, onClick = { ganzeFahrt = true }, label = { Text(I18n.t("sd.mapWhole")) }, colors = cyanChipColors())
                             }
                         }
-                        if (colorMode == ColorMode.SPEED || colorMode == ColorMode.GLIDES || zeigeMarker || zeigeVersuchsSchalter) {
+                        val ebenenKz = listOf("sprint_60s" to "1 min", "sprint_100m" to "100 m").filter { sprintJeLauf[it.first].orEmpty().isNotEmpty() }
+                        if (colorMode == ColorMode.SPEED || colorMode == ColorMode.GLIDES || zeigeMarker || zeigeVersuchsSchalter || ebenenKz.isNotEmpty()) {
                             FlowRow(
                                 Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1080,8 +1100,9 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                         }
                                     }
                                 }
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    if (zeigeMarker) {
+                                // FlowRow statt Row: mit den Sprint-Schaltern passen nicht mehr alle in eine Zeile.
+                                FlowRow(verticalArrangement = Arrangement.Center) {
+                                    if (zeigeMarker) Row(verticalAlignment = Alignment.CenterVertically) {
                                         // SUP: dort sind es Paddelschlaege (Schlag-Erkennung), keine Pumps (20.10.2026).
                                         Text(I18n.t(if (s.sportClass == "sup_paddle" || s.sportClass == "sup") "sd.strokes" else "sd.markerShort"), style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -1089,7 +1110,19 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                         Switch(checked = showPumps, onCheckedChange = { showPumps = it })
                                         Spacer(Modifier.width(12.dp))
                                     }
-                                    if (zeigeVersuchsSchalter) {
+                                    // Sprint-Ebene (s. sprintEbene): je Kategorie ein Schalter wie bei den Pumps, an = fuchsia; nur eine
+                                    // Kategorie zugleich, nur wenn die Session Werte je Lauf dafuer hat.
+                                    ebenenKz.forEach { (kz, label) ->
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(label, style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            Spacer(Modifier.width(4.dp))
+                                            Switch(checked = sprintEbene == kz, onCheckedChange = { sprintEbene = if (it) kz else "" },
+                                                colors = SwitchDefaults.colors(checkedTrackColor = SPRINT_HINWEIS))
+                                            Spacer(Modifier.width(12.dp))
+                                        }
+                                    }
+                                    if (zeigeVersuchsSchalter) Row(verticalAlignment = Alignment.CenterVertically) {
                                         Text(I18n.t("sd.showAttempts"), style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         Spacer(Modifier.width(4.dp))
@@ -1106,7 +1139,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                         if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                             selectedRun, { selectedRun = if (selectedRun == it) null else it },
                             if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
-                            Modifier.fillMaxWidth().height(kartenHoehe()), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty(), sprints = paddel?.versuche?.map { it.linie }.orEmpty(), schlaege = (if (zeigeGanz) paddel?.schlagPkt else paddel?.versuche?.flatMap { it.schlagPkt }).orEmpty(), wellen = wellePumpen?.linien.orEmpty(), sprintIdx = sprintIdx, sprintSchild = sprintSchild)
+                            Modifier.fillMaxWidth().height(kartenHoehe()), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty(), sprints = paddel?.versuche?.map { it.linie }.orEmpty(), schlaege = (if (zeigeGanz) paddel?.schlagPkt else paddel?.versuche?.flatMap { it.schlagPkt }).orEmpty(), wellen = wellePumpen?.linien.orEmpty(), sprintIdx = sprintIdx, sprintSchild = sprintSchild, ebeneIdx = ebeneIdx, ebeneSchild = ebeneSchild)
                         // Vollbild-Karte (PWA-Paritaet: dort ein Knopf "Vollbild" ueber der Karte
                         // bzw. die Taste F). Hier ein Knopf IN der Kartenecke — dasselbe Muster,
                         // das die Vergleichskarte dieser App schon nutzt.
@@ -1130,7 +1163,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                 if (showAttempts && pumpzahlen) attempts.orEmpty() else emptyList(),
                                 selectedRun, { selectedRun = if (selectedRun == it) null else it },
                                 if (colorMode == ColorMode.TURNS) carve else null, carveGMax,
-                                Modifier.fillMaxSize(), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty(), sprints = paddel?.versuche?.map { it.linie }.orEmpty(), schlaege = (if (zeigeGanz) paddel?.schlagPkt else paddel?.versuche?.flatMap { it.schlagPkt }).orEmpty(), wellen = wellePumpen?.linien.orEmpty(), sprintIdx = sprintIdx, sprintSchild = sprintSchild)
+                                Modifier.fillMaxSize(), ganzeFahrt = zeigeGanz, tempoSkala = tempoSkala, manoever = manoever?.items.orEmpty(), sprints = paddel?.versuche?.map { it.linie }.orEmpty(), schlaege = (if (zeigeGanz) paddel?.schlagPkt else paddel?.versuche?.flatMap { it.schlagPkt }).orEmpty(), wellen = wellePumpen?.linien.orEmpty(), sprintIdx = sprintIdx, sprintSchild = sprintSchild, ebeneIdx = ebeneIdx, ebeneSchild = ebeneSchild)
                             IconButton(
                                 onClick = { mapFull = false },
                                 // Karte bleibt randlos, das X nicht — sonst liegt es unter der Statusleiste.
@@ -1177,12 +1210,24 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                             Text(I18n.t("sd.run"), style = MaterialTheme.typography.bodySmall,
                                  color = MaterialTheme.colorScheme.onSurfaceVariant,
                                  modifier = Modifier.align(Alignment.CenterVertically))
+                            // Sprint-Ebene an: Wert des Fensters hinter der Nummer, wie in der Event-Wertung (100 m = Zeit + km/h,
+                            // 1 min = km/h + Strecke), in der Sprint-Farbe — ausser auf dem gewaehlten Knopf.
+                            val ebeneFarbe = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) Color(0xFFF0ABFC) else Color(0xFFA21CAF)
                             segs.indices.forEach { i ->
                                 val aktiv = selectedRun == i
+                                val ebeneWert = sprintEbeneDaten?.get(i)?.let { kennzahlWert(it.kz, it.wert) }
                                 FilterChip(
                                     selected = aktiv,
                                     onClick = { selectedRun = if (aktiv) null else i },
-                                    label = { Text("${i + 1}") },
+                                    label = {
+                                        if (ebeneWert == null) Text("${i + 1}")
+                                        else Row {
+                                            Text("${i + 1}")
+                                            Spacer(Modifier.width(6.dp))
+                                            Text(ebeneWert, fontWeight = FontWeight.SemiBold,
+                                                color = if (aktiv) Color.Unspecified else ebeneFarbe)
+                                        }
+                                    },
                                     colors = cyanChipColors(),
                                 )
                             }
@@ -1597,6 +1642,10 @@ private fun TrackMap(
     sprintIdx: List<Int> = emptyList(),
     /** Schild in der Mitte des Sprint-Abschnitts („100 m", „60 s"). */
     sprintSchild: String? = null,
+    /** Sprint-Ebene „1 min"/„100 m" (17.11.2026): Spurpunkt-Indizes je Fenster (je Lauf eines); leer = aus. */
+    ebeneIdx: List<List<Int>> = emptyList(),
+    /** Schild mit dem Wert in der Mitte des Fensters, nur bei gewaehltem Lauf. */
+    ebeneSchild: String? = null,
 ) {
     val pts = track.points
     val speeds = track.speedsFor(win)
@@ -1674,9 +1723,12 @@ private fun TrackMap(
                 // Gewerteter Sprint-Abschnitt als weisses, halbtransparentes Band UNTER dem Lauf (Web 5d1f97df/7cc47a32/35833cc5):
                 // die gewaehlte Faerbung (Tempo, Puls …) bleibt sichtbar. Vor den Laeufen eingehaengt = darunter gezeichnet.
                 val sprintPkte = sprintIdx.mapNotNull { pts.getOrNull(it)?.let { p -> GeoPoint(p.second, p.first) } }
-                if (sprintPkte.size >= 2) {
+                // Sprint-Ebene: dieselben Baender je Fenster.
+                val ebenePkte = ebeneIdx.map { idx -> idx.mapNotNull { pts.getOrNull(it)?.let { p -> GeoPoint(p.second, p.first) } } }
+                for (band in ebenePkte + listOf(sprintPkte)) {
+                    if (band.size < 2) continue
                     map.overlays.add(Polyline(map).apply {
-                        setPoints(sprintPkte)
+                        setPoints(band)
                         outlinePaint.color = Color.White.copy(alpha = 0.85f).toArgb()
                         outlinePaint.strokeWidth = 11f * dens
                         outlinePaint.strokeCap = android.graphics.Paint.Cap.ROUND
@@ -1858,6 +1910,28 @@ private fun TrackMap(
                             })
                             allPts.add(g0); allPts.add(g1)
                         }
+                    }
+                }
+                // Sprint-Ebene: Endpunkte je Fenster UEBER dem Track, Schild nur fuer den gewaehlten Lauf.
+                for (band in ebenePkte) {
+                    if (band.size < 2) continue
+                    for (gp in listOf(band.first(), band.last())) {
+                        map.overlays.add(Marker(map).apply {
+                            position = gp
+                            icon = sprintPunkt(map.context, dens)
+                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+                            setInfoWindow(null)
+                            setOnMarkerClickListener { _, _ -> true }
+                        })
+                    }
+                    if (selectedRun != null) ebeneSchild?.let { txt ->
+                        map.overlays.add(Marker(map).apply {
+                            position = band[band.size / 2]
+                            icon = sprintSchildIcon(map.context, txt, dens)
+                            setAnchor(Marker.ANCHOR_CENTER, 1.35f)
+                            setInfoWindow(null)
+                            setOnMarkerClickListener { _, _ -> true }
+                        })
                     }
                 }
                 // Start/Ende des Sprint-Abschnitts (kleine magenta Punkte, weisser Rand) und das Schild UEBER dem Track.
@@ -3395,6 +3469,26 @@ private fun SessionEventKennzeichen(s: SessionDetail, kzWahl: String?, hlText: P
             }
         }
     }
+}
+
+/** Sprint-Ebene (Web sprintJeLauf): je Lauf (Index in den Segmenten) das Fenster der Kennzahl `kz` aus
+ *  analysis.sprints.laeufe_fenster, Zuordnung ueber die Zeit wie in sprintFensterImLauf; nur Fenster mit Wert > 0. */
+internal fun sprintFensterJeLauf(s: SessionDetail, kz: String): Map<Int, SprintLauf> {
+    val sp = s.analysis?.sprints ?: return emptyMap()
+    val segs = s.analysis.segments.orEmpty()
+    val m = LinkedHashMap<Int, SprintLauf>()
+    sp.laeufeFenster.orEmpty().forEachIndexed { j, fm ->
+        val f = fm?.get(kz)?.takeIf { it.size >= 2 } ?: return@forEachIndexed
+        val wert = sp.laeufe?.getOrNull(j)?.get(kz) ?: 0.0
+        if (wert <= 0) return@forEachIndexed
+        val mitte = (f[0] + f[1]) / 2
+        val i = segs.indexOfFirst { g ->
+            val a = g.tStartSessionMs; val b = g.tEndSessionMs
+            a != null && b != null && a <= mitte && mitte <= b
+        }
+        if (i >= 0) m[i] = SprintLauf(kz, i, f[0], f[1], wert)
+    }
+    return m
 }
 
 internal fun sprintLaufFuer(s: SessionDetail, kz: String?): SprintLauf? {
