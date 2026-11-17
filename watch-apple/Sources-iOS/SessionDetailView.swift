@@ -92,6 +92,9 @@ struct SessionDetailView: View {
     /// Event-Kategorie (16.11.2026, web 980d71a4/67651cf0): anklickbares Kennzeichen hebt je Lauf das zaehlende Stueck hervor.
     /// nil = nie angefasst (dann gilt `sprintKz` aus der Bestenliste), "" = bewusst keine Kategorie.
     @State private var eventKat: String?
+    /// Sprint-Ebene „1 min" / „100 m" (17.11.2026, web 982f492c/cae0d4c8): "" = aus, sonst "sprint_60s"/"sprint_100m".
+    /// Bewusst NICHT gemerkt (wie im Web).
+    @State private var sprintEbene: String = ""
     // Wind-Sportarten (Profil karte="ganz"): ganze Fahrt grau unter den Laeufen, umschaltbar auf
     // „nur on-foil". Bewusst NICHT gemerkt (wie im Web) — jede Session startet mit der ganzen Fahrt.
     @State private var ganzeFahrt = true
@@ -1131,12 +1134,33 @@ struct SessionDetailView: View {
         if (pumpzahlen && (s.analysis?.pump_count ?? 0) > 0) || (s.sport_class == "sup" && !(paddel?.schlag_pkt ?? []).isEmpty) {
             Toggle(Loc.t(session?.sport_class == "sup_paddle" || session?.sport_class == "sup" ? "sd.strokes" : "sd.markerShort", lang), isOn: $showPumps).font(.caption).fixedSize()
         }
+        // Sprint-Ebene (s. sprintEbene): je Kategorie ein Schalter wie die Pumps, nur einer zugleich, an in Fuchsia.
+        ForEach(Self.sprintEbenen, id: \.self) { kz in
+            if !sprintJeLauf(s, kz).isEmpty { sprintEbeneSchalter(kz) }
+        }
         // Nur zeigen, wenn es etwas zu zeigen gibt: `nil` = noch nicht geholt (dann darf
         // der Schalter stehen, sonst koennte man ihn nie einschalten), leer = keine.
         // Startversuche gibt es nur beim Pumpen — bei Wind (Profil ohne Pump-Zahlen) kein Schalter, wie im Web.
         if pumpzahlen && (attempts == nil || !(attempts?.isEmpty ?? true)) {
             Toggle(Loc.t("sd.showAttempts", lang), isOn: $showAttempts).font(.caption).fixedSize()
         }
+    }
+
+    private static let sprintEbenen: [String] = ["sprint_60s", "sprint_100m"]
+
+    /// Beschriftung ohne Uebersetzung (Zahl + Einheit): „1 min" bzw. „100 m"; leer fuer keine Kategorie.
+    private static func sprintEbeneLabel(_ kz: String) -> String {
+        switch kz {
+        case "sprint_60s": return "1 min"
+        case "sprint_100m": return "100 m"
+        default: return ""
+        }
+    }
+
+    /// Eigene Bindung: an = diese Kategorie, aus = keine (die andere geht damit automatisch aus).
+    private func sprintEbeneSchalter(_ kz: String) -> some View {
+        let an: Binding<Bool> = Binding(get: { sprintEbene == kz }, set: { sprintEbene = $0 ? kz : "" })
+        return Toggle(Self.sprintEbeneLabel(kz), isOn: an).font(.caption).fixedSize().tint(Self.eventRand)
     }
 
     // Die .tag()-Aufrufe bleiben ABSICHTLICH direkte Kinder des Pickers.
@@ -1178,6 +1202,8 @@ struct SessionDetailView: View {
         let arcs: [[[Double]]] = colorMode == .turns ? (carve?.arcs ?? []) : []
         let band: [[Double]] = sprintBand(track)
         let schild: String = sprintSchildText
+        let ebene: [[[Double]]] = sprintEbeneBaender(track)
+        let ebeneSchild: String = sprintEbeneSchild
         return TrackMap(points: track.geometry.coordinates, speedsMps: v.speeds, hr: v.hr, pumpHz: v.pumpHz,
                         segments: segs, mode: colorMode, hrRange: v.hrRange, pumpRange: v.pumpRange,
                         showPumps: showPumps && (pumpzahlen || session?.sport_class == "sup"), showGlides: showGlides && gleitMoeglich, selectedRun: selectedRun,
@@ -1190,7 +1216,8 @@ struct SessionDetailView: View {
                         // Nur in den gezeigten Abschnitten: ganze Fahrt alle, „nur Foil" nur die Sprintschlaege (20.10.2026).
                         schlaege: (karteGanzMoeglich && ganzeFahrt) ? (paddel?.schlag_pkt ?? []) : (paddel?.versuche ?? []).flatMap { $0.schlag_pkt ?? [] },
                         wellen: wellePumpen?.linien ?? [],
-                        sprintBand: band, sprintSchild: schild)
+                        sprintBand: band, sprintSchild: schild,
+                        ebeneBaender: ebene, ebeneSchild: ebeneSchild)
             .frame(height: hoehe).frame(maxWidth: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: hoehe == nil ? 0 : 12))
             .mitKartenUmschalter()
@@ -1312,6 +1339,67 @@ struct SessionDetailView: View {
             return SprintLauf(kz: kz, i: sel, a: f[0], b: f[1], wert: w)
         }
         return nil
+    }
+
+    // MARK: Sprint-Ebene „1 min" / „100 m" (17.11.2026, web 982f492c/cae0d4c8, Wunsch aus der Community)
+    // Ein/aus wie die Pumps, unabhaengig von der Faerbung. Je Lauf das beste Fenster der Kategorie (weisses Band unter der
+    // Spur + Endpunkte), mit gewaehltem Lauf nur dessen Fenster samt Schild mit dem Wert. Daten aus sprints.laeufe /
+    // laeufe_fenster, Zuordnung zum Lauf ueber die Zeit wie beim Event-Sprint. Die Event-Kennzeichen bleiben unberuehrt.
+
+    /// Lauf-Index -> Fenster + Wert (m/s) der Kategorie; leer ohne Werte je Lauf.
+    private func sprintJeLauf(_ s: SessionDetail, _ kz: String) -> [Int: SprintLauf] {
+        let lf: [[String: [Double]]?] = s.analysis?.sprints?.laeufe_fenster ?? []
+        let werte: [[String: Double]?] = s.analysis?.sprints?.laeufe ?? []
+        var out: [Int: SprintLauf] = [:]
+        for j in 0..<lf.count {
+            guard let f = lf[j]?[kz], f.count >= 2 else { continue }
+            let w: Double = (j < werte.count ? werte[j]?[kz] : nil) ?? 0
+            guard w > 0, let i = laufZurZeit(s, (f[0] + f[1]) / 2) else { continue }
+            out[i] = SprintLauf(kz: kz, i: i, a: f[0], b: f[1], wert: w)
+        }
+        return out
+    }
+
+    /// Daten der eingeschalteten Kategorie (leer = aus).
+    private var sprintEbeneDaten: [Int: SprintLauf] {
+        guard !sprintEbene.isEmpty, let s = session else { return [:] }
+        return sprintJeLauf(s, sprintEbene)
+    }
+
+    /// „14.1 s · 25.5 km/h" bzw. „23.6 km/h · 393 m" — wie in der Event-Wertung (teamKennzahl).
+    private func sprintEbeneText(_ wert: Double) -> String {
+        teamKennzahl(sprintEbene).fmt(wert, lang)
+    }
+
+    /// Lauf-Index -> Wert als Text, fuer die Lauf-Tabelle.
+    private var sprintEbeneTexte: [Int: String] {
+        var out: [Int: String] = [:]
+        for (i, sl) in sprintEbeneDaten { out[i] = sprintEbeneText(sl.wert) }
+        return out
+    }
+
+    /// Spurpunkte [lon,lat] je Fenster (±0,5 s), mit gewaehltem Lauf nur dessen; Fenster mit < 2 Punkten fallen weg.
+    private func sprintEbeneBaender(_ track: TrackGeo) -> [[[Double]]] {
+        let daten: [Int: SprintLauf] = sprintEbeneDaten
+        guard !daten.isEmpty, let s = session else { return [] }
+        let pts: [[Double]] = track.geometry.coordinates
+        let zeiten: [Double] = punktZeiten(s, pts.count)
+        let n: Int = min(pts.count, zeiten.count)
+        var out: [[[Double]]] = []
+        for i in daten.keys.sorted() {
+            if let sel = selectedRun, sel != i { continue }
+            guard let f = daten[i] else { continue }
+            var band: [[Double]] = []
+            for k in 0..<n where zeiten[k] >= f.a - 500 && zeiten[k] <= f.b + 500 { band.append(pts[k]) }
+            if band.count >= 2 { out.append(band) }
+        }
+        return out
+    }
+
+    /// Schild mit dem Wert, nur mit gewaehltem Lauf.
+    private var sprintEbeneSchild: String {
+        guard let sel = selectedRun, let f = sprintEbeneDaten[sel] else { return "" }
+        return sprintEbeneText(f.wert)
     }
 
     // MARK: Events, fuer die die Session zaehlt (16.11.2026, web 980d71a4, 62429a12, 5ed1728e, 67651cf0, 8d008d2f)
@@ -1687,6 +1775,8 @@ struct SessionDetailView: View {
                   wattFuer: wattFuer(s),
                   canEdit: s.owned == true, busy: excludeBusy,
                   onExclude: { askExcludeRun($0) },
+                  sprintKopf: Self.sprintEbeneLabel(sprintEbene),
+                  sprintTexte: sprintEbeneTexte,
                   onSelect: { selectedRun = (selectedRun == $0) ? nil : $0 })
     }
 
@@ -2788,6 +2878,10 @@ struct TrackMap: UIViewRepresentable {
     /// UNTER der farbigen Spur, Start/Ende als magenta Punkte, `sprintSchild` („100 m") in der Mitte. Leer = nichts.
     var sprintBand: [[Double]] = []
     var sprintSchild: String = ""
+    /// Sprint-Ebene „1 min"/„100 m" (17.11.2026): je Lauf ein Fenster [lon,lat], gleich gezeichnet wie `sprintBand`;
+    /// `ebeneSchild` (Wert) nur mit gewaehltem Lauf, dann gibt es genau ein Fenster.
+    var ebeneBaender: [[[Double]]] = []
+    var ebeneSchild: String = ""
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -2829,12 +2923,17 @@ struct TrackMap: UIViewRepresentable {
         let a: [Double] = points.first ?? [], b: [Double] = points.last ?? []
         return "\(ebene)|\(points.count)|\(a)|\(b)|\(segs)|\(mode)|\(hrRange.0)-\(hrRange.1)|\(pumpRange.0)-\(pumpRange.1)|"
             + "\(showPumps)|\(showGlides)|\(ganzeFahrt)|\(tempoSkala.0)-\(tempoSkala.1)|\(manoever.count)|\(sprints.count)|\(schlaege.count)|\(wellen.count)|\(selectedRun ?? -1)|\(attempts.count)|\(carveArcs.count)|\(carveGMax)|\(speedsMps.count)|\(hr.count)|\(pumpHz.count)"
-            + "|\(sprintBand.count)|\(sprintSchild)"
+            + "|\(sprintBand.count)|\(sprintSchild)|\(ebeneBaender.map { $0.count })|\(ebeneBaender.first?.first ?? [])|\(ebeneSchild)"
     }
 
     /// Sprint-Band vor den Laeufen auf die Karte = darunter (die gewaehlte Faerbung bleibt sichtbar).
+    /// Event-Sprint und Sprint-Ebene sehen gleich aus.
     private func zeichneSprintBand(_ map: MKMapView, _ co: Coordinator) {
-        let cs: [CLLocationCoordinate2D] = sprintBand.compactMap { $0.count >= 2 ? CLLocationCoordinate2D(latitude: $0[1], longitude: $0[0]) : nil }
+        for band in [sprintBand] + ebeneBaender { zeichneEinBand(map, co, band) }
+    }
+
+    private func zeichneEinBand(_ map: MKMapView, _ co: Coordinator, _ band: [[Double]]) {
+        let cs: [CLLocationCoordinate2D] = band.compactMap { $0.count >= 2 ? CLLocationCoordinate2D(latitude: $0[1], longitude: $0[0]) : nil }
         guard cs.count >= 2 else { return }
         let pl = MKPolyline(coordinates: cs, count: cs.count)
         co.colors[ObjectIdentifier(pl)] = UIColor(white: 1, alpha: 0.85)
@@ -2844,11 +2943,16 @@ struct TrackMap: UIViewRepresentable {
 
     /// Start/Ende und Schild ueber der Spur (Annotationen liegen immer ueber den Linien).
     private func zeichneSprintMarken(_ map: MKMapView) {
-        let cs: [CLLocationCoordinate2D] = sprintBand.compactMap { $0.count >= 2 ? CLLocationCoordinate2D(latitude: $0[1], longitude: $0[0]) : nil }
+        zeichneEineMarke(map, sprintBand, sprintSchild)
+        for band in ebeneBaender { zeichneEineMarke(map, band, ebeneSchild) }
+    }
+
+    private func zeichneEineMarke(_ map: MKMapView, _ band: [[Double]], _ schild: String) {
+        let cs: [CLLocationCoordinate2D] = band.compactMap { $0.count >= 2 ? CLLocationCoordinate2D(latitude: $0[1], longitude: $0[0]) : nil }
         guard let erste = cs.first, let letzte = cs.last, cs.count >= 2 else { return }
         map.addAnnotation(SprintMarke(erste, schild: nil))
         map.addAnnotation(SprintMarke(letzte, schild: nil))
-        if !sprintSchild.isEmpty { map.addAnnotation(SprintMarke(cs[cs.count / 2], schild: sprintSchild)) }
+        if !schild.isEmpty { map.addAnnotation(SprintMarke(cs[cs.count / 2], schild: schild)) }
     }
 
     /// Gleitphasen ueber den Laeufen, nur fuer nicht gedimmte Laeufe (wie PWA) — in der TEMPO-Farbe (web 12.11.2026,
@@ -3321,6 +3425,9 @@ private struct RunsTable: View {
     var canEdit: Bool = false
     var busy: Bool = false
     var onExclude: ((Int) -> Void)? = nil
+    /// Sprint-Ebene (17.11.2026, web cae0d4c8): Kopf „1 min"/„100 m" und Wert je Lauf; leer = Spalte aus.
+    var sprintKopf: String = ""
+    var sprintTexte: [Int: String] = [:]
     let onSelect: (Int) -> Void
 
     // Damit ein Wechsel Hz <-> Pumps/min sofort durchschlaegt (s. PumpUnit.swift).
@@ -3600,6 +3707,10 @@ private struct RunsTable: View {
                     .frame(width: 22, alignment: .leading)
             }
             .buttonStyle(.borderless)
+            if !sprintKopf.isEmpty {
+                Text(sprintKopf).font(.caption2).foregroundStyle(Self.sprintFarbe)
+                    .frame(width: Self.sprintBreite, alignment: .leading)
+            }
             ForEach(Array(sp.enumerated()), id: \.offset) { _, s in
                 kopfZelle(s)
             }
@@ -3638,6 +3749,7 @@ private struct RunsTable: View {
             Text("\(i + 1)").font(.caption).monospacedDigit()
                 .foregroundStyle(sel ? Color.accentColor : Color.primary)
                 .frame(width: 22, alignment: .leading)
+            if !sprintKopf.isEmpty { sprintZelle(i, sel) }
             ForEach(Array(sp.enumerated()), id: \.offset) { _, s in
                 Text(s.wert(i, seg))
                     .font(.caption).monospacedDigit()
@@ -3651,6 +3763,22 @@ private struct RunsTable: View {
         .clipShape(RoundedRectangle(cornerRadius: 6))
         .contentShape(Rectangle())
         .onTapGesture { onSelect(i) }
+    }
+
+    private static let sprintBreite: CGFloat = 120
+    // Sprint-Farbe wie die Event-Kennzeichen: fuchsia-700 hell, fuchsia-300 dunkel.
+    private static let sprintFarbe: Color = Color(UIColor { t in
+        t.userInterfaceStyle == .dark ? UIColor(red: 0.941, green: 0.671, blue: 0.988, alpha: 1)
+                                      : UIColor(red: 0.635, green: 0.110, blue: 0.686, alpha: 1)
+    })
+
+    /// Wert der Sprint-Ebene im Lauf; im gewaehlten Lauf in der Akzentfarbe wie der Rest der Zeile (web: dort ohne Fuchsia).
+    private func sprintZelle(_ i: Int, _ sel: Bool) -> some View {
+        let farbe: Color = sel ? Color.accentColor : Self.sprintFarbe
+        return Text(sprintTexte[i] ?? "–")
+            .font(.caption.weight(.semibold)).monospacedDigit()
+            .foregroundStyle(farbe)
+            .frame(width: Self.sprintBreite, alignment: .leading)
     }
 
     /// Diesen EINEN Lauf in den Vergleichskorb legen bzw. herausnehmen. Eigene Zelle, damit der
