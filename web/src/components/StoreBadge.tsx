@@ -1,3 +1,4 @@
+import { useT } from "../i18n";
 // Theme-abhängiges Store-Badge: rendert beide Motive, per CSS (index.css: .storebadge-*)
 // erscheint je App-Theme das passende — Dark-Mode -> dunkles, Light-Mode -> helles Badge.
 export function StoreBadge({ href, darkSrc, lightSrc, alt, height = "h-11", widthClass, className = "" }: {
@@ -17,14 +18,17 @@ export function StoreBadge({ href, darkSrc, lightSrc, alt, height = "h-11", widt
 export const APP_STORE_URL = "https://apps.apple.com/app/id6783975714";
 export const PLAY_URL = "https://play.google.com/store/apps/details?id=org.pumpfoil.app";
 
+// Alt-Text uebersetzt (17.11.2026); die Badge-BILDER gibt es bisher nur auf Deutsch.
 export function AppStoreBadge({ height, className }: { height?: string; className?: string }) {
+  const t = useT();
   return <StoreBadge href={APP_STORE_URL} darkSrc="/badges/app-store-de.svg" lightSrc="/badges/app-store-de-light.svg"
-    alt="Laden im App Store" height={height} className={className} />;
+    alt={t("badge.appstore")} height={height} className={className} />;
 }
 
 export function PlayBadge({ height, className }: { height?: string; className?: string }) {
+  const t = useT();
   return <StoreBadge href={PLAY_URL} darkSrc="/badges/google-play-de.png" lightSrc="/badges/google-play-de-light.png"
-    alt="Jetzt bei Google Play" height={height} className={className} />;
+    alt={t("badge.play")} height={height} className={className} />;
 }
 
 // HUAWEI WATCH 5 (AppGallery seit 04.11.2026). Huawei-Badge haben wir keins; Jan, 05.11.2026: „so wie fuer die
@@ -35,7 +39,7 @@ export const APPGALLERY_URL = "https://appgallery.huawei.com/app/detail?id=org.p
 
 export function AppGalleryBadge({ className = "" }: { className?: string }) {
   return (
-    <a href={APPGALLERY_URL} target="_blank" rel="noopener noreferrer" aria-label="Pumpfoil in der Huawei AppGallery"
+    <a href={APPGALLERY_URL} target="_blank" rel="noopener noreferrer" aria-label="Pumpfoil · Huawei AppGallery"
       className={`inline-flex flex-col items-center gap-1.5 ${className}`}>
       <span className="inline-block rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 shadow-sm hover:border-brand-400">
         <img src="/badges/appgallery.png" alt="AppGallery" className="h-8 w-auto" />

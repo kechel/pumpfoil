@@ -23,6 +23,8 @@ const ja: Record<string, string> = {
   "wk.nb": "ノンバイナリー",
   "wk.filter": "区分",
   "wk.alle": "すべて",
+  "badge.appstore": "App Store からダウンロード",
+  "badge.play": "Google Play で手に入れよう",
   "hideloc.title": "場所を表示",
   "sd.ortAktiv": "非表示",
   "sd.ortLabel": "この記録の場所",

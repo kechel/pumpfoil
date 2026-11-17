@@ -23,6 +23,8 @@ const ru: Record<string, string> = {
   "wk.nb": "Небинарные",
   "wk.filter": "Зачёт",
   "wk.alle": "Все",
+  "badge.appstore": "Загрузите в App Store",
+  "badge.play": "Доступно в Google Play",
   "hideloc.title": "Показывать место",
   "sd.ortAktiv": "скрыто",
   "sd.ortLabel": "Место этой записи",

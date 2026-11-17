@@ -25,6 +25,8 @@ const cs: Record<string, string> = {
   "wk.nb": "Nebinární",
   "wk.filter": "Kategorie",
   "wk.alle": "Vše",
+  "badge.appstore": "Stáhnout v App Store",
+  "badge.play": "Nyní na Google Play",
   "hideloc.title": "Zobrazit místo",
   "sd.ortAktiv": "skryto",
   "sd.ortLabel": "Místo této nahrávky",

@@ -136,6 +136,8 @@ const en: Record<string, string> = {
   "wk.nb": "Non-binary",
   "wk.filter": "Category",
   "wk.alle": "All",
+  "badge.appstore": "Download on the App Store",
+  "badge.play": "Get it on Google Play",
   "hideloc.title": "Show location",
   "hideloc.hint": "Without the tick: your recordings stay visible — just not where you rode. The map and the spot name then show Point Nemo, in the middle of the Pacific. Nobody pumps there, and everyone can see that at a glance.",
   "hideloc.switch": "Show the location of my recordings",

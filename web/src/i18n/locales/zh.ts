@@ -23,6 +23,8 @@ const zh: Record<string, string> = {
   "wk.nb": "非二元",
   "wk.filter": "组别",
   "wk.alle": "全部",
+  "badge.appstore": "在 App Store 下载",
+  "badge.play": "在 Google Play 上获取",
   "hideloc.title": "显示地点",
   "sd.ortAktiv": "已隐藏",
   "sd.ortLabel": "这次记录的地点",

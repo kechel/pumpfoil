@@ -23,6 +23,8 @@ const pl: Record<string, string> = {
   "wk.nb": "Osoby niebinarne",
   "wk.filter": "Kategoria",
   "wk.alle": "Wszyscy",
+  "badge.appstore": "Pobierz z App Store",
+  "badge.play": "Pobierz z Google Play",
   "hideloc.title": "Pokaż miejsce",
   "sd.ortAktiv": "ukryte",
   "sd.ortLabel": "Miejsce tego nagrania",

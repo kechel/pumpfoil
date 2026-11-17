@@ -35,6 +35,8 @@ const ptPT: Record<string, string> = {
   "wk.nb": "Não binário",
   "wk.filter": "Categoria",
   "wk.alle": "Todos",
+  "badge.appstore": "Descarregar na App Store",
+  "badge.play": "Disponível no Google Play",
   "hideloc.title": "Mostrar o local",
   "sd.ortAktiv": "escondido",
   "sd.ortLabel": "Local desta gravação",

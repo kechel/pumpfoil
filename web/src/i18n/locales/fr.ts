@@ -23,6 +23,8 @@ const fr: Record<string, string> = {
   "wk.nb": "Non-binaire",
   "wk.filter": "Catégorie",
   "wk.alle": "Tous",
+  "badge.appstore": "Télécharger dans l'App Store",
+  "badge.play": "Disponible sur Google Play",
   "hideloc.title": "Afficher le lieu",
   "sd.ortAktiv": "masqué",
   "sd.ortLabel": "Lieu de cet enregistrement",

@@ -23,6 +23,8 @@ const nb: Record<string, string> = {
   "wk.nb": "Ikke-binær",
   "wk.filter": "Klasse",
   "wk.alle": "Alle",
+  "badge.appstore": "Last ned i App Store",
+  "badge.play": "Tilgjengelig på Google Play",
   "hideloc.title": "Vis stedet",
   "sd.ortAktiv": "skjult",
   "sd.ortLabel": "Stedet for dette opptaket",

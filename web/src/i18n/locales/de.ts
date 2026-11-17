@@ -137,6 +137,8 @@ const de: Record<string, string> = {
   "wk.nb": "Nicht-binär / divers",
   "wk.filter": "Wertung",
   "wk.alle": "Alle",
+  "badge.appstore": "Laden im App Store",
+  "badge.play": "Jetzt bei Google Play",
   "hideloc.title": "Ort anzeigen",
   "hideloc.hint": "Ohne Haken: deine Aufnahmen bleiben sichtbar — nur nicht, wo du gefahren bist. Karte und Spotname zeigen dann Point Nemo, mitten im Pazifik. Dass dort niemand pumpt, sieht jeder sofort.",
   "hideloc.switch": "Den Ort meiner Aufnahmen anzeigen",

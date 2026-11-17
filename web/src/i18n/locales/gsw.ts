@@ -24,6 +24,8 @@ const gsw: Record<string, string> = {
   "wk.nb": "Nöd-binär / divers",
   "wk.filter": "Wertig",
   "wk.alle": "Alli",
+  "badge.appstore": "Laden im App Store",
+  "badge.play": "Jetzt bei Google Play",
   "hideloc.title": "Ort aazeige",
   "sd.ortAktiv": "versteckt",
   "sd.ortLabel": "Ort vo dere Ufnahm",

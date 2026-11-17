@@ -23,6 +23,8 @@ const es: Record<string, string> = {
   "wk.nb": "No binario",
   "wk.filter": "Categoría",
   "wk.alle": "Todos",
+  "badge.appstore": "Descargar en el App Store",
+  "badge.play": "Disponible en Google Play",
   "hideloc.title": "Mostrar el lugar",
   "sd.ortAktiv": "oculto",
   "sd.ortLabel": "Lugar de esta grabación",

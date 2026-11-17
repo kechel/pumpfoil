@@ -23,6 +23,8 @@ const id: Record<string, string> = {
   "wk.nb": "Non-biner",
   "wk.filter": "Kategori",
   "wk.alle": "Semua",
+  "badge.appstore": "Unduh di App Store",
+  "badge.play": "Temukan di Google Play",
   "hideloc.title": "Tampilkan lokasi",
   "sd.ortAktiv": "disembunyikan",
   "sd.ortLabel": "Lokasi rekaman ini",

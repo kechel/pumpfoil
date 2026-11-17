@@ -23,6 +23,8 @@ const fi: Record<string, string> = {
   "wk.nb": "Muunsukupuoliset",
   "wk.filter": "Sarja",
   "wk.alle": "Kaikki",
+  "badge.appstore": "Lataa App Storesta",
+  "badge.play": "Saatavilla Google Playssa",
   "hideloc.title": "Näytä paikka",
   "sd.ortAktiv": "piilotettu",
   "sd.ortLabel": "Tämän tallennuksen paikka",

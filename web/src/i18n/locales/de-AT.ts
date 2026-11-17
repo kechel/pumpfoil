@@ -24,6 +24,8 @@ const deAT: Record<string, string> = {
   "wk.nb": "Nicht-binär / divers",
   "wk.filter": "Wertung",
   "wk.alle": "Olle",
+  "badge.appstore": "Laden im App Store",
+  "badge.play": "Jetzt bei Google Play",
   "hideloc.title": "Ort anzeigen",
   "sd.ortAktiv": "versteckt",
   "sd.ortLabel": "Ort von dera Aufnahme",

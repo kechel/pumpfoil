@@ -25,6 +25,8 @@ const nl: Record<string, string> = {
   "wk.nb": "Non-binair",
   "wk.filter": "Categorie",
   "wk.alle": "Alle",
+  "badge.appstore": "Download in de App Store",
+  "badge.play": "Ontdek het op Google Play",
   "hideloc.title": "Locatie tonen",
   "sd.ortAktiv": "verborgen",
   "sd.ortLabel": "Locatie van deze opname",
