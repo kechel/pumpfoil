@@ -271,3 +271,23 @@ def test_je_fenster_springendes_tempo_ungueltig():
         tempi[k] = 9.0
     w = SP.lauf_sprints(_spur(tempi), 0, 89_000, je_fenster=True)
     assert "sprint_100m" not in w
+
+
+def test_motorfahrt_im_lauf_zaehlt_nicht():
+    """VERSION 6 (17.11.2026): ein Lauf, der in Motorfahrt uebergeht (Doppler UND Positionen einig, 16 m/s), liefert keinen
+    Sprint aus dem Motorstueck — Obergrenze = Lauf-Spitze der Sportart, am 3-s-Median des bereinigten Tempos."""
+    from app.analysis import sprint as SP
+    gps = _spur([5.0] * 60 + [5.0 + k for k in range(1, 12)] + [16.0] * 40)   # weicher Uebergang, sonst greift die Sprung-Regel
+    ende = (len(gps) - 1) * 1000
+    ohne = SP.lauf_sprints(gps, 0, ende)
+    assert ohne["sprint_100m"] > 15, ohne                 # ohne Grenze: das Motorstueck gewinnt
+    w = SP.lauf_sprints(gps, 0, ende, max_mps=32 / 3.6)
+    assert w["sprint_100m"] < 32 / 3.6, w
+
+
+def test_einzelner_ausreisser_kippt_nichts():
+    from app.analysis import sprint as SP
+    tempi = [6.5] * 60
+    tempi[30] = 9.7                                         # ein Punkt 35 km/h
+    w = SP.lauf_sprints(_spur(tempi), 0, 59_000, max_mps=32 / 3.6)
+    assert w and w.get("sprint_100m", 0) > 6.0, w

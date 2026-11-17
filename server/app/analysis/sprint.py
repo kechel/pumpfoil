@@ -25,7 +25,8 @@ import math
 
 import numpy as np
 
-VERSION = 5   # 5: Fenster je Lauf und Kennzahl (`laeufe_fenster`, Session-ms) fuer die Session-Anzeige, Werte unveraendert (16.11.2026)
+VERSION = 6   # 6: Obergrenze je Sportart — kein Fenster mit Uhr-Tempo ueber der Lauf-Spitze (Motor im Lauf), 17.11.2026
+# 5: Fenster je Lauf und Kennzahl (`laeufe_fenster`, Session-ms) fuer die Session-Anzeige, Werte unveraendert (16.11.2026)
 # 4: Regel je Fenster statt 80 % Uhr-Tempo je Lauf, Tempo-Luecken <= 3 s gefuellt, Sprung-Regel (16.11.2026)
 # 3: dazu Lage des besten Fensters je Kennzahl (`fenster`, Session-ms), Werte unveraendert (11.11.2026)
 # 2: nur Uhr-Tempo (roh), ohne aus Positionen aufgefuelltes (09.11.2026)
@@ -144,9 +145,13 @@ def _tempo_luecken_fuellen(t: np.ndarray, v: np.ndarray, echt: np.ndarray) -> tu
 
 
 def lauf_sprints(gps: list, a_ms: float, b_ms: float, fenster: dict | None = None,
-                 je_fenster: bool = True) -> dict[str, float] | None:
+                 je_fenster: bool = True, max_mps: float | None = None) -> dict[str, float] | None:
     """Beste Fenster eines Laufs [a_ms, b_ms] (Session-ms) -> {kennzahl: m/s}; None ohne brauchbares Uhr-Tempo.
-    `fenster` (optional): bekommt je Kennzahl [Start-ms, Ende-ms] des besten Fensters (Session-ms, fuer die Anzeige)."""
+    `fenster` (optional): bekommt je Kennzahl [Start-ms, Ende-ms] des besten Fensters (Session-ms, fuer die Anzeige).
+    `max_mps` (VERSION 6, 17.11.2026): Lauf-Spitze der Sportart (gps.grenzen_fuer). Kein Fenster darf einen Punkt mit
+    Uhr-Tempo darueber enthalten. Befund: 18 Sessions mit Sprint ueber Vmax, z. B. ein GPS-only-Import, dessen Lauf am Ende
+    30 s Motorfahrt mit 16 m/s mitnahm (Doppler UND Positionen einig, die Positionsprobe griff also nicht). Die Lauf-
+    Grenze prueft das bereinigte Tempo, in dem solche Passagen schon geglaettet sind — hier zaehlt das Uhr-Tempo."""
     from .detect_v2 import _clean_speed
     pkt = [p for p in gps if a_ms <= float(p[0]) <= b_ms and p[1] is not None and p[2] is not None]
     if len(pkt) < 5:
@@ -171,6 +176,13 @@ def lauf_sprints(gps: list, a_ms: float, b_ms: float, fenster: dict | None = Non
         v = np.nan_to_num(_clean_speed(v, 1), nan=0.0)
         # Lange Tempo-Luecke wie eine Zeit-Luecke: kein Fenster darf sie enthalten.
         bruch = (dt > LUECKE_S) | schlecht[1:] | schlecht[:-1]
+        if max_mps is not None:
+            # Am BEREINIGTEN Tempo (nach _clean_speed), anhaltende Motorfahrt bleibt drin, Einzelwerte nicht.
+            # Wie die Lauf-Grenze (_gate_implausible_runs: max_speed_mps aus dem 3-s-Median) — ein einzelner Punkt kippt
+            # nichts (zweite Messung: ein 34,9-km/h-Punkt nahm einem 25-km/h-Lauf alle Fenster).
+            from .gps import _running_median
+            zu_schnell = _running_median(v, 3) > max_mps
+            bruch = bruch | zu_schnell[1:] | zu_schnell[:-1]
         luecke = np.concatenate([[0], np.cumsum(bruch)])
     else:
         v = np.nan_to_num(_clean_speed(np.where(np.isfinite(v), v, 0.0), 1), nan=0.0)
@@ -192,7 +204,8 @@ def lauf_sprints(gps: list, a_ms: float, b_ms: float, fenster: dict | None = Non
     return out
 
 
-def session_sprints(gps: list, segmente: list, trim_start_ms: int = 0, je_fenster: bool = True) -> dict:
+def session_sprints(gps: list, segmente: list, trim_start_ms: int = 0, je_fenster: bool = True,
+                    max_mps: float | None = None) -> dict:
     """Je Kennzahl das beste Fenster der Session und je Lauf alle Werte.
 
     -> {"v": VERSION, "best": {kennzahl: m/s}, "lauf": {kennzahl: Laufindex}, "fenster": {kennzahl: [Start-ms, Ende-ms]},
@@ -212,7 +225,7 @@ def session_sprints(gps: list, segmente: list, trim_start_ms: int = 0, je_fenste
                 continue
             a, b = float(g["t_start_ms"]) + trim_start_ms, float(g["t_end_ms"]) + trim_start_ms
         fl: dict = {}
-        w = lauf_sprints(gps, float(a), float(b), fl, je_fenster=je_fenster)
+        w = lauf_sprints(gps, float(a), float(b), fl, je_fenster=je_fenster, max_mps=max_mps)
         laeufe.append(w)
         laeufe_fenster.append(fl or None)
         for kz, x in (w or {}).items():
@@ -233,8 +246,10 @@ def setzen(session, result) -> bool:
     # roh=True: NUR das Uhr-Tempo. Der Standard-Ladeweg fuellt fehlendes Tempo (0/-1) aus den Positionen auf
     # (storage.tempo_auffuellen) — das waere genau die Positionsstrecke, die hier nicht zaehlen soll, und hebelte
     # MIN_TEMPO_ANTEIL aus (Befund 09.11.2026: 36 von 2949 Sessions betroffen, 11 hatten nur dadurch einen Wert).
+    from .gps import grenzen_fuer
     erg = session_sprints(storage.load_gps(session.session_uuid, roh=True) if segmente else [], segmente,
-                          int(session.trim_start_ms or 0))
+                          int(session.trim_start_ms or 0),
+                          max_mps=grenzen_fuer(getattr(session, "sport_class", None))[1] / 3.6)
     for kz in KENNZAHLEN:
         setattr(result, kz + "_mps", erg["best"].get(kz, 0.0))
     result.sprint_json = json.dumps(erg, separators=(",", ":"))
