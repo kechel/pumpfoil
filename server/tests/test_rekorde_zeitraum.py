@@ -40,7 +40,8 @@ def test_mit_period_kommt_nur_dieser_zeitraum(client):
     community._rec_cache.clear()
     d = _rekorde(client, auth, period="10d")
     assert list(d) == ["10d"]
-    assert set(d["10d"]) - {"quellen"} == set(community.METRICS)   # quellen: Quellenzeile (05.11.2026)
+    # quellen: Quellenzeile (05.11.2026); Sprints nur bei Pumpfoil/Foil Scoot (17.11.2026, _extra_metriken)
+    assert set(d["10d"]) - {"quellen"} == set(community.METRICS) | set(community._extra_metriken("pumpfoil"))
 
 
 def test_einzelner_zeitraum_ist_inhaltlich_derselbe(client):

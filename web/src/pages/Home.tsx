@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { KalenderAbo } from "../components/KalenderAbo";
 import { fmtDate } from "../lib/time";
 import { Link, useSearchParams } from "react-router-dom";
+import { kennzahl } from "../lib/teamKennzahlen";
 import { api, setFreundeAnsicht, CommunityRecords, RecordSet, CommunitySession, Leaders, LeaderRow, CommunityPhoto, WatchLayout, FoilBand, TeamEventKurz, TeamListenEintrag, TeamVergleich, TeamVergleichKennzahl, TeamVergleichZeile } from "../lib/api";
 import EventKurzKachel from "../components/EventKurzKachel";
 import { SportAbzeichen } from "../components/SportAbzeichen";
@@ -171,6 +172,10 @@ export const REC_ITEMS: { key: keyof RecordSet; labelKey: string; fmt: (v: numbe
   { key: "dw_ab_speed", labelKey: "rec.dwAbSpeed", fmt: (v) => `${v.toFixed(1)} km/h` },
   { key: "waves", labelKey: "rec.waves", fmt: (v) => `${Math.round(v)}` },
   { key: "wave_longest", labelKey: "rec.waveLongest", fmt: (v) => fmtLaufDauer(v) },
+  // Fliegende Sprints (Jan, 17.11.2026, Wunsch aus der Community) — nur Pumpfoil/Foil Scoot (SPORT_REC); Anzeige wie in
+  // der Event-Wertung: 100 m = Zeit + Tempo, Minute = Tempo + Strecke.
+  { key: "sprint_100m", labelKey: "team.k.sprint_100m", fmt: (v) => kennzahl("sprint_100m").fmt(v) },
+  { key: "sprint_60s", labelKey: "team.k.sprint_60s", fmt: (v) => kennzahl("sprint_60s").fmt(v) },
 ];
 
 // Eigene Bestwerte je Sportart, eine abgesetzte Zeile je Sportart (Jan, 20.10.2026: „auch fuer einen selber im
@@ -210,6 +215,9 @@ export const SPORT_REC: Record<string, string[]> = {
   wakethief: ["wake_longest", "wake_time"],
   surf_downwind: ["dw_ab", "dw_ab_speed"],
   surf_wave: ["waves", "wave_longest"],
+  pumpfoil: ["sprint_100m", "sprint_60s"],
+  foil_scoot: ["sprint_100m", "sprint_60s"],
+  "pumpfoil+foil_scoot": ["sprint_100m", "sprint_60s"],
 };
 const ALLE_SPORT_REC = new Set(Object.values(SPORT_REC).flat());
 
@@ -283,7 +291,7 @@ export function RecordGrid({ rec, showSpot, sport, nurSport, nurBelegt }: { rec?
         return has && r!.session_id ? (
           <Link
             key={it.key}
-            to={`/sessions/${r!.session_id}${r!.run_idx != null ? `?run=${r!.run_idx}` : ""}`}
+            to={`/sessions/${r!.session_id}${r!.run_idx != null ? `?run=${r!.run_idx}` : ""}${String(it.key).startsWith("sprint_") && r!.run_idx != null ? `&sprint=${String(it.key)}` : ""}`}
             className="block transition-colors hover:opacity-90"
           >
             {inner}

@@ -140,3 +140,24 @@ def test_verschiebung_auf_mittag_ortszeit():
     neu = t + zeitverbergen.verschiebung(t, "Europe/Berlin")
     lokal = neu.astimezone(__import__("zoneinfo").ZoneInfo("Europe/Berlin"))
     assert (lokal.day, lokal.hour, lokal.minute) == (16, 12, 0)
+
+
+def test_sprint_rekorde_nur_pumpfoil(client):
+    """Fliegende Sprints als Rekord-Kacheln (17.11.2026) — nur bei Pumpfoil und Foil Scoot."""
+    kopf, uid = _konto(client, "sprint-rekord@b.de")
+    sid = _session(uid)
+    db = SessionLocal()
+    try:
+        ar = db.query(models.AnalysisResult).filter_by(session_id=sid).one()
+        ar.sprint_json = json.dumps({"best": {"sprint_100m": 77.7, "sprint_60s": 66.6},
+                                     "lauf": {"sprint_100m": 0, "sprint_60s": 0}, "fenster": {"sprint_100m": [0, 1000]}})
+        db.commit()
+    finally:
+        db.close()
+    from app.api import community
+    community._rec_cache.clear()
+    rec = client.get("/api/community/records?accel_only=false&sport=pumpfoil&period=all", headers=kopf).json()["all"]
+    assert rec["sprint_100m"]["session_id"] == sid and rec["sprint_100m"]["value"] == 77.7, rec["sprint_100m"]
+    assert rec["sprint_60s"]["value"] == 66.6
+    wing = client.get("/api/community/records?accel_only=false&sport=wingfoil&period=all", headers=kopf).json()["all"]
+    assert "sprint_100m" not in wing and "sprint_60s" not in wing

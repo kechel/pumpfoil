@@ -116,6 +116,10 @@ def _spot_cond(spot: str, db: Session | None = None):
 # Max-Puls steckt (nur) in metrics_json -> JSONB-Extraktion; Tabelle ist klein, kein Index nötig.
 _MAX_HR = cast(func.nullif(func.jsonb_extract_path_text(cast(AR.metrics_json, JSONB), "max_hr"), ""), Float)
 
+def _sprint_col(teil: str, kz: str, typ):
+    return cast(func.nullif(func.jsonb_extract_path_text(cast(func.nullif(AR.sprint_json, ""), JSONB), teil, kz), ""), typ)
+
+
 class _RecCol(dict):
     """Rekord-Spalten. Mit dem pg-1-Anzeige-Schalter (app/pumpgleit_anzeige.py) liefern „glide" und
     „session_pumps" die pg-Spalten mit Rueckfall auf die alten (coalesce) — zur Abfragezeit entschieden,
@@ -146,12 +150,19 @@ REC_COL = _RecCol({
     # Wave (20.10.2026): jeder Lauf ist eine Welle -> dieselben Spalten unter eigenem Namen.
     "waves": (AR.num_runs, None),
     "wave_longest": (AR.best_duration_s, AR.best_duration_idx),
+    # Fliegende Sprints (Jan, 17.11.2026, Wunsch aus der Community): bestes 100-m- bzw. 60-s-Fenster einer Session in
+    # m/s, aus sprint_json (app/analysis/sprint.py, nur echtes Uhr-Tempo); Lauf-Index aus `lauf` (Link ?run=&sprint=).
+    "sprint_100m": (_sprint_col("best", "sprint_100m", Float), _sprint_col("lauf", "sprint_100m", Integer)),
+    "sprint_60s": (_sprint_col("best", "sprint_60s", Float), _sprint_col("lauf", "sprint_60s", Integer)),
 })
 # Zusaetzliche Rekord-Arten je Sportart-Gruppe (app/sportprofil.py). Alte Clients ignorieren den
 # zusaetzlichen Schluessel im Zeitraum-Objekt; Pumpfoil bekommt nichts Neues.
 METRICS_JE_GRUPPE = {"wind": ("session_total",)}
 # Je Sportart (20.10.2026): Spalten-Rekorde einzelner Sportarten.
-METRICS_JE_SPORT = {"surf_wave": ("waves", "wave_longest")}
+METRICS_JE_SPORT = {"surf_wave": ("waves", "wave_longest"),
+                    # Sprints NUR bei Pumpfoil und Foil Scoot (Jan, 17.11.2026)
+                    "pumpfoil": ("sprint_100m", "sprint_60s"), "foil_scoot": ("sprint_100m", "sprint_60s"),
+                    "pumpfoil+foil_scoot": ("sprint_100m", "sprint_60s")}
 # Zeit-Rekorde (Early Bird / Night Owl) laufen NICHT über REC_COL, sondern Python-seitig
 # über die echte Spot-Zeitzone (inkl. Sommerzeit) — siehe _time_record().
 TIME_METRICS = ("early_bird", "night_owl")
@@ -833,6 +844,10 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
                    nur_gps=nur_gps)
     q = _band_filter(db, q, foil_band, viewer_id or 0)
     q = q.filter(valcol > 0)
+    if metric.startswith("sprint_"):
+        # Plausibilitaet nur fuer die ANZEIGE (17.11.2026): ein Sprint-Mittel ueber dem Hoechsttempo der Session ist ein
+        # GPS-Sprung (18 Sessions, fast alle GPS-only-Importe mit bis zu 58 km/h auf 100 m). Die Auswertung bleibt.
+        q = q.filter(valcol <= AR.best_speed_mps * 1.02)
     if cut is not None:
         q = _ab(q, cut, S.started_at)
     if spot is not None:

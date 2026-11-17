@@ -547,6 +547,7 @@ export interface RecordSet {
   paddle_success?: StatRecord; paddle_quote?: StatRecord; paddle_foil_longest?: StatRecord;
   wake_longest?: StatRecord; wake_time?: StatRecord; dw_ab?: StatRecord; dw_ab_speed?: StatRecord;
   waves?: StatRecord; wave_longest?: StatRecord;
+  sprint_100m?: StatRecord; sprint_60s?: StatRecord;   // nur Pumpfoil/Foil Scoot (17.11.2026)
 }
 
 export type SyncStart = { gestartet?: boolean; laeuft?: boolean };

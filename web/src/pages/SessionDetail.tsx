@@ -895,7 +895,9 @@ export default function SessionDetail() {
     };
     return { sprint_60s: aus("sprint_60s"), sprint_100m: aus("sprint_100m") } as Record<string, Map<number, { a: number; b: number; wert: number }>>;
   }, [session]);
-  const sprintEbeneDaten = sprintEbene ? sprintJeLauf[sprintEbene] : null;
+  // Nur Pumpfoil und Foil Scoot (Jan, 17.11.2026) — bei anderen Sportarten gibt es die Sprint-Ebene nicht.
+  const sprintSport = ["pumpfoil", "foil_scoot"].includes(session?.sport_class ?? "pumpfoil");
+  const sprintEbeneDaten = sprintEbene && sprintSport ? sprintJeLauf[sprintEbene] : null;
   // Aus einer Sprint-Bestenliste: Glides-Faerbung aus (Jan 12.11.2026), sonst ist der Track grau und vom gewerteten
   // Abschnitt bleiben nur die weissen Raender. Einmal je Session/Sprint, danach darf man zurueckschalten.
   const sprintFarbeRef = useRef<string | null>(null);
@@ -2579,7 +2581,7 @@ export default function SessionDetail() {
           </button>
           )}
           {/* Sprint-Ebene (s. sprintEbene): je eine Kategorie, ein/aus wie die Pumps. */}
-          {([["sprint_60s", "1 min"], ["sprint_100m", "100 m"]] as const).map(([kz, label]) => sprintJeLauf[kz].size > 0 && (
+          {sprintSport && ([["sprint_60s", "1 min"], ["sprint_100m", "100 m"]] as const).map(([kz, label]) => sprintJeLauf[kz].size > 0 && (
             <button key={kz} onClick={() => setSprintEbene((v) => (v === kz ? "" : kz))}
               className={`ml-1 rounded-lg px-2.5 py-1 text-xs ${sprintEbene === kz ? "bg-fuchsia-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}>
               <span className="inline-flex items-center gap-1">{label} {sprintEbene === kz ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>

@@ -1607,6 +1607,9 @@ Entwurf zusammen mit A1.
   Event-Seite („Ausgewertet mit …"), Regeln als festgehaltener Text abrufbar. Bei Neu-Festschreiben (Referee) aktualisieren.
 
 **C. Analyse-Befunde (Pipeline, nur mit Jans OK)**
+- Sprint ueber Vmax (17.11.): 18 Sessions haben ein bestes 100-m-Fenster schneller als ihr Hoechsttempo (bis 58 km/h,
+  fast alle GPS-only-Importe eines Nutzers) — GPS-Spruenge in analysis/sprint.py. In den Rekord-Kacheln per Anzeige-Filter
+  (Sprint <= 1,02 x Vmax) ausgeblendet; Ursache in der Pipeline offen.
 - GPS-Wiederfinden nach Unterwasser-Luecke als Lauf (08.11.); Autofahrt verschiebt den Wasser-Suchpunkt (07.11.);
   eingefrorene GPS-Fixe reparieren (13.11., gebaut, nicht eingehaengt); Land-Session bekam Laeufe (11.11., vor der
   naechsten Massen-Neuauswertung klaeren).
