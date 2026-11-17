@@ -1620,8 +1620,10 @@ Entwurf zusammen mit A1.
 - C4 Autofahrt verschiebt Wasser-Suchpunkt: die erkannten Fahrten waren schon raus (analyse_ausschluss), aber der langsame
   Stadtverkehr davor/danach nicht. Fix: 5 min Puffer je Fahrt nur fuer den Suchpunkt. 11 von 166 Sessions mit Autofahrt
   bekommen einen anderen Suchpunkt (bis 28 km); Laeufe aendern sich dadurch im Trockenlauf nicht.
-  Nebenbefund: #20881 waere heute 23 statt 4 Laeufe, #21958/#19228/#21192 je 1-5 statt 0 (Code-Stand seit der letzten
-  Auswertung, nicht der Puffer) -> Kandidaten fuer eine Neuauswertung.
+  (Ein vermeintlicher Nebenbefund — #20881 23 statt 4 Laeufe u. a. — war der v2-Zwischenstand `heute` der Regression;
+  der gespeicherte Stand ist v3 und stimmt mit v3 ueberein. Nichts neu auszuwerten.) #20881 ist eine 3-Tage-Handy-
+  Aufnahme (08.-11.11.): die v2-Zusatzlaeufe sind Wege an Land (~70 km bzw. 7-9 km vom Spot, Rad/Roller?); auch der
+  gespeicherte 4. Lauf (11.11. 14:47, 9 km vom Spot) liegt vermutlich an Land — Fall fuer C6/Wasserpruefung je Lauf.
 - C5 Eingefrorene GPS-Fixe: Reparatur jetzt in `storage.load_gps` (vor tempo_auffuellen, alle Rechnungen inkl. v3 sehen
   dieselbe Spur). 158 Sessions / 265 Abschnitte: Laeufe 1913 -> 1912, Foil-Zeit +1,2 min, mehrere Laeufe enden nicht mehr
   zu frueh (59 -> 73 s u. a.), #21487 Min-Tempo 0,0 -> 2,0. **Offen: die 158 neu auswerten (nach Sicherung) — Jans OK.**
