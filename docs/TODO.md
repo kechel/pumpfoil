@@ -1623,8 +1623,13 @@ Entwurf zusammen mit A1.
   GNSS „best" ab 1.0.75, gleiche Fahrer + gleiche Uhr vorher/nachher (20 Paare): Median -0,4 Prozentpunkte, 12 besser /
   8 schlechter — messbar, aber klein. Streuung zwischen Fahrern auf DEMSELBEN Modell (fenix 7X 3,9-7,3 %) groesser als
   zwischen Modellen -> Arm/Wasser/Haltung dominieren. Welche GNSS-Stufe aktiv war, meldet die Uhr nicht (`_gnssStufe`
-  nur intern). Skripte: Scratchpad gpsguete.py / gpsguete_tab.py. Offene Idee: Sprint-TOLERANZ (heute 10 %) fuer
-  Event-Wertungen enger (z. B. 5 %) und messen, wie viele Event-Werte dadurch wegfallen bzw. sich aendern.
+  nur intern). Skripte: Scratchpad gpsguete.py / gpsguete_tab.py.
+  Was-waere-wenn Sprint-TOLERANZ 5 % statt 10 % fuer Events (17.11., rein lesend, Event-WE 14./15.11.): Minute 48
+  Fahrer -> 7 fallen GANZ raus (darunter Platz 7 und 9), 9 Werte sinken (Platz 4 21,3 -> 20,5 km/h); 100 m 88 Fahrer ->
+  4 raus, 19 sinken (bis -1,5 km/h, Platz 12 -> 20). Podium unveraendert. Von den 11 Rausfallenden tragen 7 eine Apple
+  Watch (Apple-Tempo passt systematisch schlechter zu den Positionen, s. o.) -> 5 % benachteiligt eine Plattform statt
+  schlechte Messungen. Empfehlung: bei 10 % bleiben. ACHTUNG Messfalle: Event-Ranglisten nur mit voller .env
+  (EVENT_JE_LAUF) und ohne den 2-min-Cache in teams.tafel_berechnen nachrechnen (Skript event_tol.py).
 - C3 GPS-Wiederfinden nach Unterwasser-Luecke: heutige Erkennung (v3) macht es richtig (#20528 Trockenlauf 4 -> 2 Laeufe,
   Schein-Lauf weg); #20528 ist absichtlich festgehalten (auswertung_fest, u972). Nichts zu tun.
 - C4 Autofahrt verschiebt Wasser-Suchpunkt: die erkannten Fahrten waren schon raus (analyse_ausschluss), aber der langsame
