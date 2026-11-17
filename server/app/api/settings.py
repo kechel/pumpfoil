@@ -224,6 +224,10 @@ DEFAULTS = {
     # fuer genau diesen Menschen wertlos. Moeglich ist das, weil nicht die Daten geaendert
     # werden, sondern nur ihre Ausgabe (s. app/ortverbergen.py).
     "hide_location": False,
+    # „UHRZEIT VERBERGEN" (17.11.2026, Wunsch u146, app/zeitverbergen.py): andere sehen von den eigenen Sessions nur den
+    # TAG, nicht die Uhrzeit. Rueckwirkend wie „Ort verbergen", nur in der Ausgabe; der Besitzer sieht immer die echte Zeit.
+    # In der Oberflaeche als Einwilligung „Uhrzeit anzeigen" (Haken = sichtbar, Standard).
+    "hide_time": False,
     # Kommentare unter den eigenen Sessions abschalten (02.11.2026, app/kommentare.py). Aus = fuer alle ausgeblendet.
     "comments_off": False,
     # Nicht an globalen Events teilnehmen (06.11.2026, teams.global_aus): fehlt dann in deren Bestenlisten, Team-Wertung
@@ -659,6 +663,10 @@ def update_settings(
         current["equipment_je_sport"] = {sp: e for sp, e in eq.items() if e}
     if "hide_location" in patch:
         current["hide_location"] = bool(patch["hide_location"])
+    if "hide_time" in patch:
+        current["hide_time"] = bool(patch["hide_time"])
+        from .. import zeitverbergen
+        zeitverbergen.cache_leeren()
     if "comments_off" in patch:
         current["comments_off"] = bool(patch["comments_off"])
     if "global_events_aus" in patch:

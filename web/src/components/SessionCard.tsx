@@ -25,9 +25,11 @@ export function SessionCard({
   sessionId, startedAt, endedAt, tz, spot, foil, sportLabel, stab, mast, board, deviceLabel, placement, caption,
   avatarName, avatarUrl, avatarUserId, name, stats, thumbUrl, photoCount = 0, youtubeUrl, videoUrl,
   likeCount0 = 0, liked0 = false, kommentare = 0, statusBadge, trackPreview, highlight = false, owned = false,
-  sportClass, dataQuality, needsClassification = false, ohneFoil = false,
+  sportClass, dataQuality, needsClassification = false, ohneFoil = false, zeitVerborgen = false,
 }: {
   sessionId: number;
+  // „Uhrzeit verbergen" des Besitzers (17.11.2026): nur das Datum zeigen — die Zeiten sind auf 12:00 geschoben.
+  zeitVerborgen?: boolean;
   owned?: boolean;   // eigene Session? -> Merge-Angebot in Vergleichen
   startedAt: string | null;
   endedAt?: string | null;
@@ -206,7 +208,7 @@ export function SessionCard({
             <div className="flex items-center gap-2 overflow-hidden whitespace-nowrap">
               <Avatar name={avatarName ?? name} url={avatarUrl} userId={avatarUserId} size={20} />
               <span className="shrink-0 font-semibold tabular-nums">{kurzDatum}</span>
-              {startedAt && <span className="shrink-0 tabular-nums text-slate-400">{fmtTime(startedAt, tz)}</span>}
+              {startedAt && !zeitVerborgen && <span className="shrink-0 tabular-nums text-slate-400">{fmtTime(startedAt, tz)}</span>}
               {/* Name vor Spot: der Name bekommt bis zu 40 % der Breite, gekuerzt wird zuerst der Spot. */}
               {name && <span className="pf-name min-w-0 max-w-[40%] shrink-0 truncate text-brand-600 dark:text-brand-300">{name}</span>}
               {spot && <span className="inline-flex min-w-0 shrink items-center gap-1 text-slate-300"><LocationIcon className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{spot}</span></span>}
@@ -223,7 +225,7 @@ export function SessionCard({
           <div className={`hidden ${ZEILEN_RASTER}`}>
             <Avatar name={avatarName ?? name} url={avatarUrl} userId={avatarUserId} size={22} />
             <span className="truncate font-semibold tabular-nums">{kurzDatum}</span>
-            <span className="truncate tabular-nums text-slate-400">{startedAt ? fmtTime(startedAt, tz) : ""}</span>
+            <span className="truncate tabular-nums text-slate-400">{startedAt && !zeitVerborgen ? fmtTime(startedAt, tz) : ""}</span>
             <span className="pf-name truncate text-brand-600 dark:text-brand-300">{name ?? ""}</span>
             <span className="flex min-w-0 items-center gap-1 text-slate-300">
               {spot && <><LocationIcon className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{spot}</span></>}
@@ -312,10 +314,10 @@ export function SessionCard({
               {caption && <span className="text-slate-100"> · {caption}</span>}
             </div>
             <div className="text-sm text-slate-300">
-              {startedAt && fmtTime(startedAt, tz)}
-              {startedAt && endedAt && <>{` ${t("sessions.timeTo")} `}{fmtTime(endedAt, tz)}</>}
-              {startedAt && t("sessions.oclock") && ` ${t("sessions.oclock")}`}
-              {startedAt && endedAt && <span className="text-slate-400"> · {fmtSpan(startedAt, endedAt)}</span>}
+              {startedAt && !zeitVerborgen && fmtTime(startedAt, tz)}
+              {startedAt && endedAt && !zeitVerborgen && <>{` ${t("sessions.timeTo")} `}{fmtTime(endedAt, tz)}</>}
+              {startedAt && !zeitVerborgen && t("sessions.oclock") && ` ${t("sessions.oclock")}`}
+              {startedAt && endedAt && <span className="text-slate-400">{zeitVerborgen ? "" : " · "}{fmtSpan(startedAt, endedAt)}</span>}
               {sportLabel && <span className="ml-2 inline-flex items-center rounded bg-amber-500/15 px-1.5 py-0.5 text-xs text-amber-700 dark:text-amber-300">{sportLabel}</span>}
               {spot && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><LocationIcon className="h-3.5 w-3.5" /> {spot}</span>}
               {foil && !ohneFoil && <span className="ml-2 inline-flex items-center gap-1 rounded bg-slate-800 px-1.5 py-0.5 text-xs text-slate-300"><FoilIcon className="h-3.5 w-3.5" /> {foil}</span>}

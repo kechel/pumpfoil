@@ -546,7 +546,7 @@ export default function Foiler({ userId, eingebettet = false, als }:
               <SessionCard
                 key={s.id}
                 sessionId={s.id}
-                startedAt={s.started_at}
+                startedAt={s.started_at} zeitVerborgen={!!(s as any).zeit_verborgen}
                 endedAt={s.ended_at}
                 tz={s.tz}
                 spot={s.place_name}

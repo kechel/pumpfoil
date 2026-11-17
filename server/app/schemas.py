@@ -326,6 +326,9 @@ class SessionOut(BaseModel):
     # „Ort verbergen" (25.09.2026): wahr = place_name/Spur zeigen Point Nemo statt des echten
     # Orts. Die Oberflaeche haengt daran das Abzeichen „Position verborgen".
     ort_verborgen: bool = False
+    # „Uhrzeit verbergen" (17.11.2026): wahr = started_at/ended_at sind auf 12:00 Ortszeit des Tages geschoben, die
+    # Oberflaeche zeigt nur das Datum (und Laufzeiten relativ). Nur fuer andere als den Besitzer.
+    zeit_verborgen: bool = False
     # Der EIGENE Zustand dieser Aufnahme: None = folgt dem Profil, "show", "hide". Nur fuer den
     # Besitzer interessant (er stellt ihn dort um), aber unschaedlich fuer alle.
     ort_sichtbarkeit: str | None = None

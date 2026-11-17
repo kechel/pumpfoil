@@ -2221,6 +2221,8 @@ export default function SessionDetail() {
         )}
       </h2>
       <p className="mb-2 text-sm text-slate-300">
+        {/* „Uhrzeit verbergen" des Besitzers: nur die Dauer, keine Uhrzeiten. */}
+        {session.zeit_verborgen ? (session.ended_at && <span className="text-slate-400">{t("sd.duration")} {fmtSpan(session.started_at, session.ended_at)}</span>) : <>
         {fmtTime(session.started_at, session.tz)}
         {session.ended_at && (
           <>
@@ -2230,6 +2232,7 @@ export default function SessionDetail() {
             <span className="text-slate-400"> · {t("sd.duration")} {fmtSpan(session.started_at, session.ended_at)}</span>
           </>
         )}
+        </>}
       </p>
       {/* Badges einheitlich hoch + horizontal ausgerichtet (flex, items-center). */}
       <div className="mb-5 flex flex-wrap items-center gap-2 text-xs text-slate-300">
@@ -2881,7 +2884,8 @@ export default function SessionDetail() {
                   onClick={() => { setSelectedRun(x.lauf); setColorMode("glides"); }}
                   className="rounded-lg bg-slate-800 px-2.5 py-1 text-xs tabular-nums text-slate-200 hover:bg-slate-700">
                   #{x.lauf + 1}
-                  {x.t != null && <span className="opacity-70"> · {fmtTime(new Date(startMs + wanduhrMs(session!.pause_windows, x.t)).toISOString(), session!.tz,
+                  {x.t != null && <span className="opacity-70"> · {session!.zeit_verborgen ? relZeit(wanduhrMs(session!.pause_windows, x.t))
+                    : fmtTime(new Date(startMs + wanduhrMs(session!.pause_windows, x.t)).toISOString(), session!.tz,
                     { hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>}
                   <span className="font-semibold"> · {x.d.toFixed(1)} s</span>
                 </button>
@@ -3163,7 +3167,7 @@ export default function SessionDetail() {
         <TanzAbschnitte sessionId={session.id} startedAt={session.started_at} />
       )}
 
-      <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} tz={session.tz}
+      <RunsTable segments={a?.segments ?? []} selected={selectedRun} onSelect={setSelectedRun} win={win} powerFor={powerFor} sessionId={session.id} compareRefs={compareRefs} startedAt={session.started_at} tz={session.tz} zeitVerborgen={!!session.zeit_verborgen}
         trimStartMs={session.trim_start_ms ?? null} pausen={session.pause_windows ?? []}
         hr={session.analysis?.track_geojson?.properties?.hr ?? []}
         zeiten={trackZeiten && trackZeiten.length === (session.analysis?.track_geojson?.geometry?.coordinates?.length ?? -1) ? trackZeiten : null}
@@ -3521,7 +3525,7 @@ function Legend({ mode, hrRange, speedRange, pumpRange, optimal }: { mode: Color
         <span>{unit}</span>
         {mode === "speed" && (
           <span className="flex items-center gap-1">
-            <i className="inline-block h-3 w-4 rounded border border-slate-600 bg-black" /> außerhalb
+            <i className="inline-block h-3 w-4 rounded border border-slate-600 bg-black" /> {t("sd.outside")}
           </span>
         )}
       </div>
@@ -3836,6 +3840,13 @@ function SortTabelle<T>({ zeilen, spalten, titel }: { zeilen: T[]; spalten: Sort
   );
 }
 
+// „Uhrzeit verbergen" (17.11.2026): Zeit ab Session-Start statt Uhrzeit, z. B. „+12:30" bzw. „+1:02:05".
+function relZeit(ms: number): string {
+  const s = Math.max(0, Math.round(ms / 1000));
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sek = s % 60;
+  return h > 0 ? `+${h}:${String(m).padStart(2, "0")}:${String(sek).padStart(2, "0")}` : `+${m}:${String(sek).padStart(2, "0")}`;
+}
+
 function RunsTable({
   segments,
   selected,
@@ -3846,6 +3857,7 @@ function RunsTable({
   compareRefs,
   startedAt,
   tz,
+  zeitVerborgen = false,
   trimStartMs = null,
   pausen = [],
   excluded = [],
@@ -3871,6 +3883,7 @@ function RunsTable({
   sessionId: number;
   compareRefs: { sessionId: number; runIdx: number | null }[];
   startedAt: string;
+  zeitVerborgen?: boolean;   // „Uhrzeit verbergen": Laufzeiten relativ (+m:ss) statt Uhrzeit
   tz?: string | null;
   // Zuschnitt-Beginn und Pausen der Aufnahme — beides braucht es, um aus einer Session-Zeit eine
   // UHRZEIT zu machen (s. src/lib/clock.ts).
@@ -3918,8 +3931,8 @@ function RunsTable({
   // Frueher stand hier `sessionStartMs + t_start_ms` — das liess den Zuschnitt weg UND die
   // Pausen, jeder Lauf war also zu frueh (s. src/lib/clock.ts).
   const sessionStartMs = new Date(startedAt).getTime();
-  const uhr = (msAbStart: number): string =>
-    fmtTime(new Date(sessionStartMs + msAbStart).toISOString(), tz,
+  const uhr = (msAbStart: number): string => zeitVerborgen ? relZeit(msAbStart)
+    : fmtTime(new Date(sessionStartMs + msAbStart).toISOString(), tz,
             { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const runClock = (s: any): string => {
     const ms = laufUhrzeitMs(s, trimStartMs, pausen);

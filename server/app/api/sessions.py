@@ -89,7 +89,7 @@ from ..schemas import (
     AnalysisOut, ExcludeRunIn, IncludeRangeIn, LabelIn, LabelOut, PumpTruthIn, RawDataOut,
     SessionMetaIn, SessionOut, SessionVideoIn, TrimIn,
 )
-from .. import ortverbergen, sportprofil, teilen
+from .. import ortverbergen, sportprofil, teilen, zeitverbergen
 from .. import pumpgleit_anzeige as PA
 from ..tzlookup import tz_name
 from ..videos import client_wants_all_videos, filter_videos
@@ -602,6 +602,11 @@ def _owner_weight_kg(s: models.Session, owned: bool = True) -> int | None:
 def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, owned: bool = True,
                  owner_name: str | None = None, owner_avatar_url: str | None = None,
                  sens: str | None = None, video_url: str | None = None) -> SessionOut:
+    # „Uhrzeit verbergen" (17.11.2026, app/zeitverbergen.py): fuer ANDERE auf 12:00 Ortszeit des Tages geschoben, Dauer
+    # bleibt; der Besitzer (owned) sieht immer die echte Zeit. Ortszeit wie unten in `tz`.
+    _zv = (not owned) and zeitverbergen.profil_verbirgt(getattr(s, "user", None))
+    _zd = (zeitverbergen.verschiebung(s.started_at, ortverbergen.ort_fuer_ausgabe(
+        _ort_verborgen(s), s.place_name, s.place_lat, s.place_lon)[1]) if _zv else timedelta(0))
     return SessionOut(
         id=s.id,
         owner_id=s.user_id,
@@ -623,8 +628,9 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         wind_vorschlag=(_wind_vorschlag(s) if (owned and not slim) else None),
         flag_count=(_flag_count(s) if owned else 0),
         appeal_text=(s.appeal_text if owned else None),
-        started_at=s.started_at,
-        ended_at=_list_ended_at(s),
+        started_at=s.started_at + _zd,
+        ended_at=zeitverbergen.schieben(_list_ended_at(s), _zd),
+        zeit_verborgen=_zv,
         status=s.status,
         # Wo das Geraet war. Die Lage-Ansicht (Pitch/Roll/Gierrate) haengt daran: nur „board"
         # misst das Brett, am Koerper misst es den Fahrer.
@@ -2861,7 +2867,7 @@ def get_session(
     if out.ended_at is None and s.started_at is not None:
         gps = storage.load_gps(s.session_uuid)
         if gps and gps[-1] and gps[-1][0]:
-            out.ended_at = s.started_at + timedelta(milliseconds=int(gps[-1][0]))
+            out.ended_at = out.started_at + timedelta(milliseconds=int(gps[-1][0]))   # out: ggf. verschoben
     # Like-Zustand (oben schon berechnet, in den ETag eingeflossen).
     out.like_count = like_count
     out.liked = liked
@@ -2949,7 +2955,7 @@ def public_shared_session(token: str, request: Request, db: Session = Depends(ge
     if out.ended_at is None and s.started_at is not None:
         gps = storage.load_gps(s.session_uuid)
         if gps and gps[-1] and gps[-1][0]:
-            out.ended_at = s.started_at + timedelta(milliseconds=int(gps[-1][0]))
+            out.ended_at = out.started_at + timedelta(milliseconds=int(gps[-1][0]))   # out: ggf. verschoben
     out.like_count = int(db.query(func.count()).select_from(models.SessionLike)
                          .filter_by(session_id=s.id).scalar() or 0)
     out.liked = False
@@ -4373,7 +4379,7 @@ def session_wind(
 
     Bei „Ort verbergen" nichts: die Windwerte einer Koordinate verraten grob den Ort."""
     s = _readable(db, session_id, _user)
-    if _ort_verborgen(s):
+    if _ort_verborgen(s) or zeitverbergen.gilt(s.user, _user.id):   # Stundenwerte verraeten die Uhrzeit
         return {"wind": None}
     from ..sessionwind import session_wind as _wind
     w = _wind(s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at)
@@ -4425,7 +4431,8 @@ def session_manoever(
     `items[].i` ist der Index in die getrimmte Spur (= track_geojson). Ohne Windrichtung (kein Ort,
     Ort verborgen, Open-Meteo nicht erreichbar) gibt es keine Einordnung -> leer."""
     s = _readable(db, session_id, _user)
-    if sportprofil.profil(s.sport_class)["gruppe"] != "wind" or _ort_verborgen(s):
+    if (sportprofil.profil(s.sport_class)["gruppe"] != "wind" or _ort_verborgen(s)
+            or zeitverbergen.gilt(s.user, _user.id)):   # Wind je Stunde -> grob die Uhrzeit
         return dict(MANOEVER_LEER)
     return manoever_gecacht(db, s)
 

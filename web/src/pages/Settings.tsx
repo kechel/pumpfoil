@@ -436,6 +436,7 @@ export default function Settings() {
           unter den block mit Public profile page passen"). Steht richtig hier: es ist dieselbe
           Art Entscheidung — was sehen andere von mir. */}
       <OrtVerbergenCard onSaved={flashSaved} />
+      <UhrzeitCard onSaved={flashSaved} />
       <GlobaleEventsCard onSaved={flashSaved} />
       <AktivAufKarteCard onSaved={flashSaved} />
 
@@ -816,7 +817,9 @@ function GlobaleEventsCard({ onSaved }: { onSaved?: () => void }) {
   const [an, setAn] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
-    api.getSettings().then((s) => setAn(!!s.global_events_aus)).catch(() => setAn(false));
+    // Haken = Einwilligung (Jan, 17.11.2026: „haken sollte immer einwilligung fuer mehr daten anzeigen sein"); in der DB
+    // bleibt das Opt-out `global_events_aus`, angezeigt wird es umgekehrt.
+    api.getSettings().then((s) => setAn(!s.global_events_aus)).catch(() => setAn(true));
   }, []);
   if (an === null) return null;
   return (
@@ -828,7 +831,7 @@ function GlobaleEventsCard({ onSaved }: { onSaved?: () => void }) {
           onChange={(e) => {
             const wert = e.target.checked;
             setBusy(true);
-            api.saveSettings({ global_events_aus: wert }).then(() => { setAn(wert); onSaved?.(); })
+            api.saveSettings({ global_events_aus: !wert }).then(() => { setAn(wert); onSaved?.(); })
               .catch(() => {}).finally(() => setBusy(false));
           }}
           className="h-4 w-4 rounded border-slate-600 bg-slate-800" />
@@ -843,7 +846,8 @@ function OrtVerbergenCard({ onSaved }: { onSaved?: () => void }) {
   const [an, setAn] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
-    api.getSettings().then((s) => setAn(!!s.hide_location)).catch(() => setAn(false));
+    // Haken = Ort anzeigen (Jan, 17.11.2026, wie bei Spot-Karte und Online-Punkt); in der DB bleibt `hide_location`.
+    api.getSettings().then((s) => setAn(!s.hide_location)).catch(() => setAn(true));
   }, []);
   if (an === null) return null;
 
@@ -857,7 +861,7 @@ function OrtVerbergenCard({ onSaved }: { onSaved?: () => void }) {
           onChange={(e) => {
             const wert = e.target.checked;
             setBusy(true);
-            api.saveSettings({ hide_location: wert })
+            api.saveSettings({ hide_location: !wert })
               .then(() => { setAn(wert); onSaved?.(); })
               .catch(() => {})
               .finally(() => setBusy(false));
@@ -868,6 +872,36 @@ function OrtVerbergenCard({ onSaved }: { onSaved?: () => void }) {
       </label>
       <p className="mt-3 text-sm text-slate-400">{t("hideloc.scope")}</p>
       <p className="mt-1 text-sm text-slate-400">{t("hideloc.single")}</p>
+    </Card>
+  );
+}
+
+// „Uhrzeit anzeigen" (17.11.2026, Wunsch u146, server/app/zeitverbergen.py): aus = andere sehen von den eigenen
+// Sessions nur den Tag. Haken = Einwilligung, Standard an; in der DB das Opt-out `hide_time`.
+function UhrzeitCard({ onSaved }: { onSaved?: () => void }) {
+  const t = useT();
+  const [an, setAn] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    api.getSettings().then((s) => setAn(!s.hide_time)).catch(() => setAn(true));
+  }, []);
+  if (an === null) return null;
+  return (
+    <Card className="mt-4 p-5">
+      <h3 className="mb-1 font-semibold">{t("hidetime.title")}</h3>
+      <p className="mb-3 text-sm text-slate-300">{t("hidetime.hint")}</p>
+      <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-slate-200">
+        <input type="checkbox" checked={an} disabled={busy}
+          onChange={(e) => {
+            const wert = e.target.checked;
+            setBusy(true);
+            api.saveSettings({ hide_time: !wert }).then(() => { setAn(wert); onSaved?.(); })
+              .catch(() => {}).finally(() => setBusy(false));
+          }}
+          className="h-4 w-4 rounded border-slate-600 bg-slate-800" />
+        {t("hidetime.switch")}
+      </label>
+      <p className="mt-3 text-sm text-slate-400">{t("hidetime.scope")}</p>
     </Card>
   );
 }

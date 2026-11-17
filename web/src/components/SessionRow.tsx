@@ -95,7 +95,7 @@ export function SessionRow({ s, showName = true, showSpot = true }: { s: Communi
           </div>
           <div className="text-[11px] text-slate-400">
             {fmtDay(s.started_at, s.tz)}
-            {s.started_at && (
+            {s.started_at && !(s as any).zeit_verborgen && (
               <span className="ml-1">
                 · {fmtTime(s.started_at!, s.tz)}{s.ended_at && <>{` ${t("sessions.timeTo")} `}{fmtTime(s.ended_at, s.tz)}</>}{t("sessions.oclock") && ` ${t("sessions.oclock")}`}
               </span>

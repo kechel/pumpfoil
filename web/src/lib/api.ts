@@ -385,6 +385,9 @@ export interface SessionSummary {
   // dieser Aufnahme: null = wie im Profil, "show", "hide".
   ort_verborgen?: boolean;
   ort_sichtbarkeit?: string | null;
+  // „Uhrzeit verbergen" (17.11.2026): started_at/ended_at stehen auf 12:00 Ortszeit des Tages -> nur das Datum zeigen,
+  // Laufzeiten relativ zum Start.
+  zeit_verborgen?: boolean;
   // Aussortierte Läufe als Zeitfenster [[start_ms, end_ms], …] (ms ab Session-Start).
   // Nur die Auswertung ist betroffen — Rohdaten bleiben, jederzeit zurücknehmbar.
   excluded_ranges?: number[][];

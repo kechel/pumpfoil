@@ -20,7 +20,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import and_, case, func, or_
 from sqlalchemy.orm import Session
 
-from .. import models, teams as T
+from .. import models, teams as T, zeitverbergen
 from ..db import get_db
 from ..ratelimit import rate_limit
 from .deps import current_admin, current_user
@@ -537,6 +537,7 @@ def austreten(slug: str, user: models.User = Depends(current_user), db: Session 
 
 
 @router.get("/{slug}/bestenlisten")
+@zeitverbergen.antwort   # Zeilen mit started_at + user_id: „Uhrzeit verbergen" (app/zeitverbergen.py)
 def bestenlisten(slug: str, period: str = "30d", user: models.User = Depends(current_user),
                  db: Session = Depends(get_db)) -> dict:
     t, m = _team_fuer(db, slug, user)
@@ -569,7 +570,8 @@ def logbuch(slug: str, user: models.User = Depends(current_user), db: Session = 
     """Wer wann welchen Teamrekord gebrochen hat (naechtlich nachgefuehrt)."""
     t, m = _team_fuer(db, slug, user)
     _darf_tafeln(t, m)
-    return T.logbuch(db, t.id)
+    # „Uhrzeit verbergen": `gefahren_am` ist die Startzeit der Session.
+    return zeitverbergen.liste_anwenden(db, T.logbuch(db, t.id), user.id, start_key="gefahren_am", ende_key="_")
 
 
 # --------------------------------------------------------------------------------- Events ----
@@ -653,6 +655,7 @@ def _event(db: Session, t: models.Team, event_id: int) -> models.TeamEvent:
 
 
 @router.get("/{slug}/events")
+@zeitverbergen.antwort   # Zeilen mit started_at + user_id: „Uhrzeit verbergen" (app/zeitverbergen.py)
 def events(slug: str, mix: bool = False, sprint: bool = False, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
     t, m = _team_fuer(db, slug, user)
     _darf_tafeln(t, m)
@@ -686,6 +689,7 @@ def event_anlegen(slug: str, body: EventIn, sprint: bool = False, user: models.U
 
 
 @router.get("/{slug}/events/{event_id}")
+@zeitverbergen.antwort   # Zeilen mit started_at + user_id: „Uhrzeit verbergen" (app/zeitverbergen.py)
 def event_einzeln(slug: str, event_id: int, team: str | None = None, mix: bool = False, sprint: bool = False,
                   klasse: str | None = None, user: models.User = Depends(current_user),
                   db: Session = Depends(get_db)) -> dict:

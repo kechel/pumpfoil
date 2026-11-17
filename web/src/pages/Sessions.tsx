@@ -872,7 +872,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, fi
               key={s.id}
               sessionId={s.id}
               owned={s.owned ?? true}
-              startedAt={s.started_at}
+              startedAt={s.started_at} zeitVerborgen={!!(s as any).zeit_verborgen}
               tz={s.tz}
               endedAt={s.ended_at}
               spot={s.place_name}
@@ -926,7 +926,7 @@ export function renderCommunitySession(s: CommunitySession, t: (k: string) => st
     <SessionCard
       key={s.session_id}
       sessionId={s.session_id}
-      startedAt={s.started_at}
+      startedAt={s.started_at} zeitVerborgen={!!(s as any).zeit_verborgen}
       tz={s.tz}
       endedAt={s.ended_at}
       spot={s.spot}

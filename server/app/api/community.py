@@ -20,7 +20,7 @@ from sqlalchemy import Float, Integer, and_, case, cast, false, func, literal, n
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, joinedload
 
-from .. import models, sportmix, sportprofil
+from .. import models, sportmix, sportprofil, zeitverbergen
 from ..suche import bedingung_oder_alles as _such_alles, wort_bedingung as _such
 from ..accounts import is_new_account
 from ..db import get_db
@@ -471,7 +471,7 @@ def community_sessions(
             return []
         je: dict[int, int] = {}
         rows = []
-        for r in q.order_by(S.started_at.desc()).limit(NAMENSSUCHE_VORRAT).all():
+        for r in q.order_by(_feed_ordnung(db).desc()).limit(NAMENSSUCHE_VORRAT).all():
             owner = r[S_USER_ID_IDX]
             if owner != user.id:
                 je[owner] = je.get(owner, 0) + 1
@@ -481,7 +481,7 @@ def community_sessions(
             if len(rows) >= limit:
                 break
     else:
-        rows = q.order_by(S.started_at.desc()).offset(max(offset, 0)).limit(limit).all()
+        rows = q.order_by(_feed_ordnung(db).desc()).offset(max(offset, 0)).limit(limit).all()
     return _attach_first_video(db, _attach_social(db, user, [_brief(*r, verbergende=_verbergende_nutzer(db)) for r in rows]), request)
 
 
@@ -606,6 +606,11 @@ def sessions_today(
     wie die Liste darunter: `_community` (+ Spot), bei „Meine" nur die eigenen."""
     seit = datetime.fromtimestamp(since_ms / 1000.0, tz=timezone.utc)
     q = _brett(_community(db.query(func.count(S.id)), user.id, accel_only, sport), board).filter(S.started_at >= seit)
+    # „Uhrzeit verbergen": `since_ms` waehlt der Client frei — mit verbergenden Nutzern liesse sich die Startzeit per
+    # Intervallschachtelung ermitteln. Ihre Sessions zaehlen hier deshalb nicht mit (die eigenen schon).
+    _zv_ids = [i for i in zeitverbergen.nutzer_ids(db) if i != user.id]
+    if _zv_ids:
+        q = q.filter(not_(S.user_id.in_(_zv_ids)))
     if mine:
         q = q.filter(S.user_id == user.id)
     if spot:
@@ -642,7 +647,7 @@ def spot_sessions(
 ) -> list[dict]:
     rows = (
         _brett(_community(db.query(*BRIEF_COLS), user.id, accel_only, sport), board).filter(_spot_cond(spot, db))
-        .order_by(S.started_at.desc())
+        .order_by(_feed_ordnung(db).desc())
         .offset(max(offset, 0)).limit(min(max(limit, 1), 100)).all()
     )
     return _attach_first_video(db, _attach_social(db, user, [_brief(*r, verbergende=_verbergende_nutzer(db)) for r in rows]), request)
@@ -715,7 +720,7 @@ def sessions_grouped(
         q = q.filter(_such_alles(name, [U.display_name]))
     if spot:
         q = q.filter(_spot_cond(spot, db))
-    rows = q.order_by(S.started_at.desc()).limit(_GROUP_SCAN_CAP + 1).all()
+    rows = q.order_by(_feed_ordnung(db).desc()).limit(_GROUP_SCAN_CAP + 1).all()
     truncated = len(rows) > _GROUP_SCAN_CAP
     if truncated:
         rows = rows[:_GROUP_SCAN_CAP]
@@ -840,12 +845,12 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
         return dict(_EMPTY_REC)
     val, idx, sid, ts, name, place, avatar, preview, lat, lon, uid, sicht = row
     spot_aus, tz_aus = _ort(db, sicht, uid, place, lat, lon)
-    return {
+    return _zeit_zeile(db, {
         "session_id": sid, "value": round(float(val), 2),
         "started_at": ts.isoformat() if ts else None, "run_idx": idx,
         "name": name, "avatar_url": avatar, "user_id": uid, "spot": spot_aus, "track_preview": preview or None,
         "tz": tz_aus,
-    }
+    }, viewer_id)
 
 
 # Erster Lauf-Start / letztes Lauf-Ende je Session, aus `segments_json` (03.11.2026). Die Foiler-Seite rechnet fuer
@@ -899,6 +904,10 @@ def _time_rows(db: Session, spot: str | None, viewer_id: int | None, accel_only:
     # „Ort verbergen" (Security-Review 29.10.2026): Early Bird/Night Owl SIND Ortszeit — der Wert neben
     # der UTC-Startzeit verraet den Laengengrad. Verborgene Aufnahmen halten deshalb keinen Zeit-Rekord.
     q = q.filter(not_(_verborgen_cond(db)))
+    # „Uhrzeit verbergen" (17.11.2026): Early Bird/Night Owl SIND die Uhrzeit — wer sie verbirgt, haelt keinen Zeit-Rekord.
+    _zv_ids = zeitverbergen.nutzer_ids(db)
+    if _zv_ids:
+        q = q.filter(not_(S.user_id.in_(list(_zv_ids))))
     if spot is not None:
         q = q.filter(_spot_cond(spot, db))
     rows: list[tuple] = []
@@ -1284,6 +1293,7 @@ _REC_MAX = 64      # Deckel: Spot-Rekorde koennen sonst beliebig viele Schluesse
 
 
 @router.get("/records")
+@zeitverbergen.antwort
 def community_records(accel_only: bool = True, sport: str = "pumpfoil", foil_band: str = "all",
                       spot: str | None = None, period: str | None = None,
                       _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
@@ -1526,6 +1536,7 @@ def carve_stats(user: models.User = Depends(current_user), db: Session = Depends
 
 
 @spot_router.get("/spot-records")
+@zeitverbergen.antwort
 def spot_records(
     spot: str, period: str = "all", accel_only: bool = True, sport: str = "pumpfoil",
     _user: models.User = Depends(current_user), db: Session = Depends(get_db),
@@ -1700,6 +1711,7 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
 
 # ----------------------------------------------------------- Neueste Medien ----
 @router.get("/latest-photos")
+@zeitverbergen.antwort
 def latest_photos(
     limit: int = 5, user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
@@ -2050,6 +2062,7 @@ def spot_active(_user: models.User = Depends(current_user), db: Session = Depend
 
 
 @spot_router.get("/spot-compare")
+@zeitverbergen.antwort
 def spot_compare(period: str = "all", accel_only: bool = False,
                  _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     """Kennzahlen JE SPOT (für den Spot-Vergleich unter der Karte). Aggregate: Sessions, Läufe,
@@ -2827,7 +2840,26 @@ def _foiler_titel(db: Session, user: models.User, u: models.User) -> dict:
     return raus
 
 
+def _foiler_zeit(fn):
+    """„Uhrzeit verbergen" fuer die Foiler-Seite EINES Nutzers: Zeilen tragen dort oft keine user_id (seine Rekorde, Medien)
+    — verbirgt er die Uhrzeit, gilt das fuer alle Zeilen; auch in seiner Vorschau „als andere" (`als`)."""
+    import copy
+    import functools
+
+    @functools.wraps(fn)
+    def w(*a, **kw):
+        out = fn(*a, **kw)
+        db, betrachter, ziel = kw.get("db"), kw.get("user"), kw.get("user_id")
+        if db is None or ziel not in zeitverbergen.nutzer_ids(db):
+            return out
+        if getattr(betrachter, "id", None) == ziel and not kw.get("als"):
+            return out
+        return zeitverbergen.baum_anwenden(db, copy.deepcopy(out), None, alle=True)
+    return w
+
+
 @router.get("/foiler/{user_id}/titel")
+@_foiler_zeit
 def foiler_titel(user_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db),
                  als: str | None = Query(None, pattern="^(freunde|alle)$")) -> dict:
     """Nur die Rekord-Titel der Foiler-Seite (03.11.2026) — das Web laedt die Seite mit `titel=false` und holt sie
@@ -2839,6 +2871,7 @@ def foiler_titel(user_id: int, user: models.User = Depends(current_user), db: Se
 
 
 @router.get("/foiler/{user_id}")
+@_foiler_zeit
 def foiler_profil(user_id: int, user: models.User = Depends(current_user),
                   db: Session = Depends(get_db), titel: bool = Query(True),
                   als: str | None = Query(None, pattern="^(freunde|alle)$")) -> dict:
@@ -3243,8 +3276,22 @@ def top_commented(
 
 
 # ------------------------------------------------------------ Likes / Votes ----
+def _zeit_zeile(db: Session, e: dict, viewer_id, uid_key: str = "user_id") -> dict:
+    """Eine Ergebniszeile (Rekord, Foto, Bestenliste) fuer „Uhrzeit verbergen" anpassen (app/zeitverbergen.py)."""
+    if e and e.get(uid_key) in zeitverbergen.nutzer_ids(db) and e.get(uid_key) != viewer_id:
+        zeitverbergen.eintrag_anwenden(e)
+    return e
+
+
+def _feed_ordnung(db: Session):
+    """Sortierschluessel der Feeds: bei „Uhrzeit verbergen" der Tag statt der Uhrzeit (app/zeitverbergen.py)."""
+    return zeitverbergen.sortier_start(S.started_at, S.user_id, zeitverbergen.nutzer_ids(db))
+
+
 def _attach_social(db: Session, user: models.User, briefs: list[dict]) -> list[dict]:
     """Reichert Briefs in einem Rutsch mit Likes/Foto-Infos an (kein N+1)."""
+    # „Uhrzeit verbergen": hier, weil JEDE Brief-Liste (Feed, Spot, Freunde, Team, Top-Listen) hier durchlaeuft.
+    zeitverbergen.liste_anwenden(db, briefs, getattr(user, "id", None))
     ids = [b["session_id"] for b in briefs]
     if not ids:
         return briefs

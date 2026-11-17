@@ -531,7 +531,7 @@ export default function PersonalHome() {
               <SessionCard
                 key={s.id}
                 sessionId={s.id}
-                startedAt={s.started_at}
+                startedAt={s.started_at} zeitVerborgen={!!(s as any).zeit_verborgen}
                 tz={s.tz}
                 endedAt={s.ended_at}
                 spot={s.place_name}
