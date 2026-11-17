@@ -1611,10 +1611,20 @@ Entwurf zusammen mit A1.
 - C1 Sprint ueber Vmax: Ursache = Laeufe, die in Motorfahrt hineinlaufen (16 m/s, Doppler+Positionen einig; Lauf-Grenze
   prueft das bereinigte 3-s-Tempo, Sprints das Uhr-Tempo). Fix sprint VERSION 6 (2c7faf3c): kein Fenster ueber der Lauf-
   Spitze der Sportart (3-s-Median). Messung 8850 Sessions: 25 Werte sinken (20 = GPS-only-Importe eines Nutzers), keiner
-  steigt. **Offen: die 25 in der DB nachrechnen (Sicherung `server/data/analyse-notizen/2026-11-17-sprint-v6/`) — braucht
-  Jans OK, der Auto-Modus hat den DB-Schreibvorgang blockiert.** Anzeige-Filter (Sprint <= 1,02 x Vmax) bleibt.
+  steigt. ✅ 17.11. abends mit Jans OK in der DB nachgerechnet (25/25 wie Trockenlauf; Sicherung
+  `server/data/analyse-notizen/2026-11-17-sprint-v6/sprint-vorher.csv`). Anzeige-Filter (Sprint <= 1,02 x Vmax) bleibt.
 - C2 Messunsicherheit: 58 unabhaengige Uhren-Paare, 210 gemeinsame Laeufe. 100 m Median 0,36 km/h (p90 1,3), Minute
   0,14 (p90 1,0). Glaetten (3/5 s) aendert nichts — Streuung kommt von Uhr/Arm. Kein Code. Die Minute ist ~2x genauer.
+  Je Uhrenmodell (17.11., Jan: GNSS-Modi/„best" seit Garmin 1.0.75 -> bei Events strenger?): 5838 Pumpfoil-/Scoot-Sessions
+  seit 06/2026, Mass = Median |Doppler- minus Positionsstrecke| je 10-s-Fenster im Lauf (Einigkeit zweier Messungen
+  desselben Chips, KEINE Wahrheit; enthaelt Positionsrauschen). Garmin meldet h_acc praktisch immer 4,0 m (wertlos),
+  Suunto gar nicht. Ergebnis: Garmin-Modelle 1,7-6,4 % Median, Suunto 2-5 %, Apple 5-11 % (aeltere Series schlechter),
+  Wear 5-7 %, Importe 3,1 %. Schwanz (p90) schlecht bei FR55 (18 %), Ambit3 (19-22 %), Wear OPWWE251 (25 %, h_acc 125 m).
+  GNSS „best" ab 1.0.75, gleiche Fahrer + gleiche Uhr vorher/nachher (20 Paare): Median -0,4 Prozentpunkte, 12 besser /
+  8 schlechter — messbar, aber klein. Streuung zwischen Fahrern auf DEMSELBEN Modell (fenix 7X 3,9-7,3 %) groesser als
+  zwischen Modellen -> Arm/Wasser/Haltung dominieren. Welche GNSS-Stufe aktiv war, meldet die Uhr nicht (`_gnssStufe`
+  nur intern). Skripte: Scratchpad gpsguete.py / gpsguete_tab.py. Offene Idee: Sprint-TOLERANZ (heute 10 %) fuer
+  Event-Wertungen enger (z. B. 5 %) und messen, wie viele Event-Werte dadurch wegfallen bzw. sich aendern.
 - C3 GPS-Wiederfinden nach Unterwasser-Luecke: heutige Erkennung (v3) macht es richtig (#20528 Trockenlauf 4 -> 2 Laeufe,
   Schein-Lauf weg); #20528 ist absichtlich festgehalten (auswertung_fest, u972). Nichts zu tun.
 - C4 Autofahrt verschiebt Wasser-Suchpunkt: die erkannten Fahrten waren schon raus (analyse_ausschluss), aber der langsame
@@ -1626,7 +1636,10 @@ Entwurf zusammen mit A1.
   gespeicherte 4. Lauf (11.11. 14:47, 9 km vom Spot) liegt vermutlich an Land — Fall fuer C6/Wasserpruefung je Lauf.
 - C5 Eingefrorene GPS-Fixe: Reparatur jetzt in `storage.load_gps` (vor tempo_auffuellen, alle Rechnungen inkl. v3 sehen
   dieselbe Spur). 158 Sessions / 265 Abschnitte: Laeufe 1913 -> 1912, Foil-Zeit +1,2 min, mehrere Laeufe enden nicht mehr
-  zu frueh (59 -> 73 s u. a.), #21487 Min-Tempo 0,0 -> 2,0. **Offen: die 158 neu auswerten (nach Sicherung) — Jans OK.**
+  zu frueh (59 -> 73 s u. a.), #21487 Min-Tempo 0,0 -> 2,0. ✅ 17.11. abends mit Jans OK neu ausgewertet: 157 + 1 fest;
+  Laeufe 1921 -> 1918, Foil-Zeit +6 min, 12 Sessions +-1-2 Laeufe gegen Trockenlauf. Erster Durchgang lief versehentlich
+  ohne DETECTOR_V3 (1921 -> 1759), sofort mit voller .env wiederholt. Sicherung + Logs:
+  `server/data/analyse-notizen/2026-11-17-eingefroren/` (analysis_results + sessions als pg_dump).
 - C6 Land-Session mit Laeufen: KEINE Regel. 39 % aller Laeufe (12 551 von 32 548, 1045 Sessions) liegen komplett
   ausserhalb der gecachten OSM-Wasserflaeche (Fluesse/kleine Seen fehlen, falsches Gewaesser) — eine Land-Regel loeschte
   echte Laeufe. Dazu (Jan 17.11.): Landsportarten, Foil Scoot an Land, Snowkiten auf gefrorenen Seen. #8538 bleibt
