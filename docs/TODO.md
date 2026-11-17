@@ -1630,6 +1630,30 @@ Entwurf zusammen mit A1.
   Watch (Apple-Tempo passt systematisch schlechter zu den Positionen, s. o.) -> 5 % benachteiligt eine Plattform statt
   schlechte Messungen. Empfehlung: bei 10 % bleiben. ACHTUNG Messfalle: Event-Ranglisten nur mit voller .env
   (EVENT_JE_LAUF) und ohne den 2-min-Cache in teams.tafel_berechnen nachrechnen (Skript event_tol.py).
+  **Sprint-Genauigkeit, Versuche (17.11., Jan: „werde kreativ … moeglichst genau"), Skripte scripts/sprint-genauigkeit/:**
+  Datensatz neu: 31 unabhaengige Aufnahme-Paare, 12 Fahrer, 132 gemeinsame Laeufe (Uhr+Uhr, Uhr+Handy am Brett). Die
+  alte Zahl „58 Paare/210 Laeufe" enthielt denselben GPS-Chip doppelt (App + native Garmin-Aktivitaet bzw. FIT-Import,
+  Abstand 0-1 m) -> zu optimistisch; Nerd-Artikel korrigiert. Heute (Uhr-Tempo): Bestwert 100 m |A-B| Median 0,38
+  (p90 1,28), Minute 0,20 (p90 1,00) km/h.
+  - Uhr-Tempo glaetten (MA/Median/Savitzky-Golay/EMA 3-7 s): nichts. Positionen allein: schlechter. Spline: schlechter.
+  - Mischung Uhr-Tempo + 5-s-geglaettete Positionen 50/50 (`mix50p5`) bzw. + Kalman/RTS-Positionen (`mixrts50`):
+    alle Fenster, mittlere |A-B| 100 m 0,55 -> 0,45/0,44 (KI der Verbesserung +0,01..+0,20), Minute 0,35 -> 0,27/0,26
+    (+0,04..+0,13). Gegen Handy am Brett (Mittel aus dessen Tempo+Positionen) 100 m 0,36 -> 0,26/0,31, Minute
+    0,25 -> 0,18/0,22; Niveau dabei -0,1 km/h (KI schliesst 0 ein).
+  - Starke Positionsglaettung (9-21 s) „stimmt" scheinbar noch besser ueberein, drueckt aber ALLE Werte um 0,4-1,5 km/h
+    (Kurven abgeschnitten; Pumpfoiler fahren auch im Sprint Boegen) -> verworfen (Jans Idee „keine Schlangenlinie" nur
+    schwach tragfaehig). Adaptive inverse Varianz je Punkt: kaum Gewinn (unterschaetzt Doppler-Fehler).
+  - Fehler je Klasse (Paar-Netz/Three-Cornered Hat, 1 Sigma, 100 m): Garmin-Uhr 0,60 -> 0,45 mit Mischung, Handy am
+    Brett ~0-0,2 (genaueste Quelle), Apple 0,49 -> 0,65-0,69 mit Mischung (Apple-Positionen schlechter; nur 3 Paare).
+  - Armschwung-Hypothese (Uhr-Tempo zu hoch): NICHT bestaetigt, Uhr-Doppler gegen Brett-Doppler +0,02 km/h.
+  - Recherche (Speedsurf-Szene/GPSTC, logiqx, Witte & Wilson 2004/05, Gloersen 2018): wir liegen auf Szene-Niveau fuer
+    1-Hz-Uhren; Garmin glaettet je nach Sportprofil (wir: GENERIC + Unterprofil OPEN_WATER; fast alle Nutzer, nicht im
+    Bestand vergleichbar) -> Feldtest-Idee: zwei Garmins, Unterprofil OPEN_WATER gegen ohne. Szene-Filter: max. 5 m/s^2
+    Beschleunigung, erste Sekunden nach Signalverlust verwerfen; Apple/Wear liefern speedAccuracy (bei uns nicht
+    aufgezeichnet — Uhren-Apps nicht ausbauen, nur als Idee).
+  - Empfehlung (wartet auf Jan): Sprint-Wert = 50 % Uhr-Tempo + 50 % Strecke der 5-s-geglaetteten Positionen (einfach,
+    erklaerbar), ggf. Apple nur Uhr-Tempo. Vor Umstellung: Trockenlauf ueber alle Sessions + Event-WE, Aenderungen
+    der Ranglisten zeigen, sprint VERSION 7.
 - C3 GPS-Wiederfinden nach Unterwasser-Luecke: heutige Erkennung (v3) macht es richtig (#20528 Trockenlauf 4 -> 2 Laeufe,
   Schein-Lauf weg); #20528 ist absichtlich festgehalten (auswertung_fest, u972). Nichts zu tun.
 - C4 Autofahrt verschiebt Wasser-Suchpunkt: die erkannten Fahrten waren schon raus (analyse_ausschluss), aber der langsame

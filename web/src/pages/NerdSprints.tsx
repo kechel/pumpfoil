@@ -134,12 +134,15 @@ export default function NerdSprints() {
         would have penalised one brand of watch, not bad measurements. So the limit stays at 10 %.</P>
 
       <H>How precise is it?</H>
-      <P><b>Two watches, one rider.</b> Several riders wear two watches at the same time — 58 independent pairs, 210 runs
-        recorded by both. The same run, timed by both watches, differs by a median of <b>0.36 km/h over 100 m</b> (1 in 10 runs
-        by more than 1.3 km/h) and <b>0.14 km/h over the minute</b> (1 in 10 by more than 1.0 km/h). The minute is about twice
-        as reliable, because it averages over more seconds. Smoothing the speed over 3 or 5 seconds did not make the two
-        watches agree any better: the difference comes from the watch and the arm, not from noise we could filter. In a close
-        race, a few tenths of a km/h over 100 m are within what the watches themselves can tell apart.</P>
+      <P><b>Two recorders, one rider.</b> Some riders record with two devices at the same time — two watches, or a watch and a
+        phone strapped to the board: 31 recordings from 12 riders, 132 runs recorded by both, aligned to the same clock. (An
+        earlier count of 58 pairs also contained watches that recorded the same ride twice with the same GPS chip — our app
+        and the watch's own activity. Those agree almost perfectly and made the result look better than it is; they are no
+        longer counted.) The same run, timed by both devices, differs by a median of <b>0.38 km/h over 100 m</b> (1 in 10
+        runs by more than 1.3 km/h) and <b>0.20 km/h over the minute</b> (1 in 10 by more than 1.0 km/h). The minute is about
+        twice as reliable, because it averages over more seconds. Smoothing the watch's speed over 3 to 7 seconds — moving
+        average, median, Savitzky–Golay or exponential — did not make the devices agree any better. In a close race, a few
+        tenths of a km/h over 100 m are within what the devices themselves can tell apart.</P>
       <P><b>By watch model.</b> We do not know the true speed, but we can check how well two measurements of the same chip agree:
         in 10-second windows during runs, the distance from the reported speed against the distance from the positions. 5,838
         pumpfoil and foil scoot sessions since June 2026, median difference per session:</P>
