@@ -7,17 +7,21 @@ import SwiftUI
 enum Bestenliste {
     /// Reihenfolge wie web LEADER_KINDS (Vorschlag eines Team-Kapitaens, 02.11.2026): zuerst die Laufdauer, dann die
     /// Summen, zuletzt der weiteste Lauf. Bei Wind/Paddeln vorne die ganze Fahrt; dort keine Pumps/Laeufe, bei Motor
-    /// keine Pumps.
-    static func arten(_ lang: String, wind: Bool, motor: Bool) -> [(String, String)] {
+    /// keine Pumps. Fliegende Sprints (web 17.11.2026) nur bei Pumpfoil/Foil Scoot und nur, wenn die Antwort sie enthaelt.
+    static func arten(_ lang: String, wind: Bool, motor: Bool, sport: String = "", lb: Leaders? = nil) -> [(String, String)] {
         let alle: [(String, String)] = [("ride_total", Loc.t("rec.sessionTotal", lang)), ("run_time", Loc.t("rec.longestRun", lang)),
          ("distance", Loc.t("leader.totalDistance", lang)), ("time", Loc.t("leader.totalTime", lang)),
          ("runs", Loc.t("leader.mostRuns", lang)), ("pumps", Loc.t("leader.mostPumps", lang)),
          ("sessions", Loc.t("leader.mostSessions", lang)), ("spots", Loc.t("leader.mostSpots", lang)),
-         ("run_distance", Loc.t("rec.farthestRun", lang))]
+         ("run_distance", Loc.t("rec.farthestRun", lang)),
+         ("sprint_100m", Loc.t("team.k.sprint_100m", lang)), ("sprint_60s", Loc.t("team.k.sprint_60s", lang))]
+        let sprintSport: Bool = ["pumpfoil", "foil_scoot", "pumpfoil+foil_scoot"].contains(sport)
         return alle.filter { a in
             let k: String = a.0
             if wind && (k == "pumps" || k == "runs") { return false }
             if motor && k == "pumps" { return false }
+            if k == "sprint_100m" { return sprintSport && (lb == nil || lb?.sprint_100m != nil) }
+            if k == "sprint_60s" { return sprintSport && (lb == nil || lb?.sprint_60s != nil) }
             return k != "ride_total" || wind
         }
     }
@@ -32,6 +36,8 @@ enum Bestenliste {
         case "run_distance": return lb.run_distance ?? []
         case "run_time": return lb.run_time ?? []
         case "ride_total": return lb.ride_total ?? []
+        case "sprint_100m": return lb.sprint_100m ?? []
+        case "sprint_60s": return lb.sprint_60s ?? []
         default: return lb.sessions ?? []
         }
     }
@@ -46,6 +52,9 @@ enum Bestenliste {
         case "run_distance": return String(format: "%.2f", (e.run_distance_m ?? 0) / 1000)
         case "run_time": return dauer(e.run_time_s ?? 0)
         case "ride_total": return String(format: "%.1f", (e.ride_total_m ?? 0) / 1000)
+        // wie in der Event-Wertung: „14.1 s · 25.5 km/h" bzw. „23.6 km/h · 393 m", ohne Einheit dahinter
+        case "sprint_100m": return teamKennzahl("sprint_100m").fmt(e.sprint_100m_mps ?? 0, "")
+        case "sprint_60s": return teamKennzahl("sprint_60s").fmt(e.sprint_60s_mps ?? 0, "")
         default: return "\(e.sessions ?? 0)"
         }
     }
@@ -58,6 +67,7 @@ enum Bestenliste {
         case "distance", "run_distance", "ride_total": return "km"
         case "time": return (e.time_s ?? 0) >= 3600 ? "h" : "min"
         case "run_time": return (e.run_time_s ?? 0) >= 3600 ? "h" : "min"
+        case "sprint_100m", "sprint_60s": return ""
         default: return Loc.t("unit.sessions", lang)
         }
     }
@@ -94,7 +104,8 @@ enum Bestenliste {
     }
 
     private static func bildZeile(_ e: LeaderEntry, _ rang: Int, _ key: String, _ lang: String, ich: Bool) -> TeamBildZeile {
-        let w: String = wert(e, key) + " " + einheit(e, key, lang)
+        let u: String = einheit(e, key, lang)
+        let w: String = u.isEmpty ? wert(e, key) : wert(e, key) + " " + u
         return TeamBildZeile(rang: rang, name: e.name ?? "—", wert: w, ich: ich, logo: nil, farbe: nil, land: e.land)
     }
 }
@@ -111,7 +122,7 @@ struct SpotBestenliste: View {
     @State private var wahl = "run_time"
 
     private var arten: [(String, String)] {
-        Bestenliste.arten(lang, wind: Sportarten.windArtig(sport), motor: Sportarten.motor(sport))
+        Bestenliste.arten(lang, wind: Sportarten.windArtig(sport), motor: Sportarten.motor(sport), sport: sport, lb: lb)
     }
     /// Gewaehlte Liste, sonst die erste angebotene (web: arten[0]).
     private var key: String { arten.contains { $0.0 == wahl } ? wahl : (arten.first?.0 ?? "sessions") }
@@ -150,7 +161,9 @@ struct SpotBestenliste: View {
 
     @ViewBuilder private func zeileTap(_ platz: Int, _ e: LeaderEntry, ich: Bool) -> some View {
         if let sid = e.session_id {
-            NavigationLink { SessionDetailView(id: sid) } label: { zeile(platz, e, link: false, ich: ich) }
+            // Sprint-Listen mit der Kennzahl (web ?sprint=): die Session waehlt den Lauf mit dem besten Fenster selbst.
+            let kz: String? = key.hasPrefix("sprint_") ? key : nil
+            NavigationLink { SessionDetailView(id: sid, sprintKz: kz) } label: { zeile(platz, e, link: false, ich: ich) }
         } else {
             zeile(platz, e, link: true, ich: ich)
         }
@@ -164,7 +177,8 @@ struct SpotBestenliste: View {
             Text(e.name ?? "—").lineLimit(1)
             Spacer()
             Text(Bestenliste.wert(e, key)).fontWeight(.semibold)
-            Text(Bestenliste.einheit(e, key, lang)).font(.caption2).foregroundStyle(.secondary)
+            let u: String = Bestenliste.einheit(e, key, lang)
+            if !u.isEmpty { Text(u).font(.caption2).foregroundStyle(.secondary) }
         }
         .padding(.horizontal, ich ? 4 : 0)
         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.accentColor.opacity(ich ? 0.6 : 0), lineWidth: 1))

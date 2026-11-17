@@ -608,6 +608,7 @@ struct LeaderEntry: Codable, Identifiable {
     var run_distance_m: Double? = nil; var run_time_s: Double? = nil   // bester einzelner Lauf
     var session_id: Int? = nil   // nur bei Einzellauf-Listen: Session des besten Laufs (Tippen oeffnet sie)
     var ride_total_m: Double? = nil   // ganze Fahrt (Wind/Paddeln, „Session gesamt")
+    var sprint_100m_mps: Double? = nil; var sprint_60s_mps: Double? = nil   // fliegende 100 m / Minute, nur Pumpfoil/Foil Scoot (17.11.2026)
     var rank: Int? = nil   // nur in `me`: die eigene Stelle, wenn sie nicht unter den ersten 10 ist (01.11.2026)
     var land: String? = nil   // Nationalitaet (Flagge), nur wer sie selbst eingestellt hat (Server seit 02.11.2026)
     var id: String { (name ?? "") + (avatar_url ?? "") }
@@ -618,6 +619,7 @@ struct Leaders: Codable {
     var distance: [LeaderEntry]? = nil; var time: [LeaderEntry]? = nil
     var run_distance: [LeaderEntry]? = nil; var run_time: [LeaderEntry]? = nil
     var ride_total: [LeaderEntry]? = nil   // nur Wind/Paddeln vorne (web LEADER_KINDS)
+    var sprint_100m: [LeaderEntry]? = nil; var sprint_60s: [LeaderEntry]? = nil   // nur Pumpfoil/Foil Scoot (Server 17.11.2026)
     var me: [String: LeaderEntry?]? = nil   // eigene Zeile unter Platz 10 je Liste (Server additiv seit 01.11.2026)
 }
 

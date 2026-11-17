@@ -71,7 +71,7 @@ struct CommunityView: View {
         return " · " + bandLabel(b)
     }
     // Kennzahlen, Werte und Reihenfolge der Bestenliste: Bestenliste.swift (geteilt mit der Spot-Seite).
-    private var lbMetrics: [(String, String)] { Bestenliste.arten(lang, wind: istWind, motor: istMotor) }
+    private var lbMetrics: [(String, String)] { Bestenliste.arten(lang, wind: istWind, motor: istMotor, sport: sportart, lb: leaders) }
     private func lbList(_ lb: Leaders) -> [LeaderEntry] { Bestenliste.liste(lb, lbMetric) }
     private func lbValue(_ e: LeaderEntry) -> String { Bestenliste.wert(e, lbMetric) }
     private func lbUnit(_ e: LeaderEntry) -> String { Bestenliste.einheit(e, lbMetric, lang) }
@@ -538,7 +538,9 @@ struct CommunityView: View {
     /// eigener Link, sonst teilten sich zwei Tippziele eine Zeile.
     @ViewBuilder private func leaderTap(_ platz: Int, _ e: LeaderEntry, ich: Bool = false) -> some View {
         if let sid = e.session_id {
-            Button { navPath.append(SessionDest(id: sid)) } label: { leaderRow(platz, e, avatarLink: false, ich: ich).contentShape(Rectangle()) }
+            // Sprint-Listen mit der Kennzahl (web ?sprint=); Lauf unbekannt, die Session waehlt den mit dem besten Fenster.
+            let kz: String? = lbMetric.hasPrefix("sprint_") ? lbMetric : nil
+            Button { navPath.append(SessionDest(id: sid, sprintKz: kz)) } label: { leaderRow(platz, e, avatarLink: false, ich: ich).contentShape(Rectangle()) }
                 .buttonStyle(.plain)
         } else {
             leaderRow(platz, e, ich: ich)
@@ -556,7 +558,8 @@ struct CommunityView: View {
             Text(e.name ?? "—").lineLimit(1)
             Spacer()
             Text(lbValue(e)).fontWeight(.semibold)
-            Text(lbUnit(e)).font(.caption2).foregroundStyle(.secondary)
+            let u: String = lbUnit(e)
+            if !u.isEmpty { Text(u).font(.caption2).foregroundStyle(.secondary) }
         }
         .padding(.horizontal, ich ? 4 : 0)
         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.accentColor.opacity(ich ? 0.6 : 0), lineWidth: 1))
