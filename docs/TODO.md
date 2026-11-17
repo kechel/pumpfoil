@@ -1640,6 +1640,11 @@ Entwurf zusammen mit A1.
 - ✅ 16.11. Antwort an u1124 (Suunto: Uhrname + Takt laut Uhr) gesendet (Konto 230).
 
 **F. Ideen / geparkt (nicht anfangen ohne Jan)**
+- **Sessions nach Parametern filtern (u914, 17.11., Jan: „nice idea", fuer spaeter):** im Community-Reiter bzw. in den
+  Sessions alle Laeufe/Sessions mit demselben Foil (Marke + Frontwing) sehen, um eigene Laeufe und Koennen ueber ein
+  Material zu vergleichen — heute nur ueber die Foil-Detailseite (FoilDetail) bzw. versteckt im Profil. Jan: Filtern
+  nach verschiedenen Parametern generell gut (Foil, Stab, Board, Sportart, Spot, Zeitraum …). Server hat fuer den Feed
+  schon `?foil_id=`. Nicht angefangen.
 Events vorschlagen + Voting (11.11.; „Als globales Event vorschlagen" ist seit 16.11. gebaut, 1f3f2f1a), reale Wettkaempfe (12.11.),
 Wind-Fairness bei Sprints (13.11.), Luftdruck-/Wassersensor (12.11.), Event-Fenster in Ortszeit (06.11.), Foil Scoot
 erkennen (08.11.), gruene Spots nach versehentlichem Stopp (08.11.), 100/25-Hz-Paare (06.11.), Systemzustand
