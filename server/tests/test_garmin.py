@@ -1135,3 +1135,80 @@ def test_schon_verknuepft_wird_nicht_nochmal_umgehaengt(client, garmin, monkeypa
         assert not e.deleted and e.merged_into is None and g.merged_into == sid
     finally:
         db.close()
+
+
+def _uhr(uid, part="006-B3869-00", platform="garmin"):
+    from app import models
+    from app.db import SessionLocal
+    db = SessionLocal()
+    try:
+        tok = secrets.token_hex(16)
+        db.add(models.DeviceToken(user_id=uid, label="fr", token=tok, platform=platform, part_number=part))
+        db.commit()
+        return {"X-Device-Token": tok}
+    finally:
+        db.close()
+
+
+def _import(uid, start, tmp_path, praefix="garmin-", geloescht=False):
+    from app import models
+    from app.db import SessionLocal
+    db = SessionLocal()
+    try:
+        g = models.Session(session_uuid=praefix + secrets.token_hex(6), user_id=uid, started_at=start,
+                           ended_at=start + timedelta(minutes=30), status="analyzed", deleted=geloescht)
+        db.add(g); db.commit()
+        (tmp_path / g.session_uuid).mkdir(parents=True)
+        (tmp_path / g.session_uuid / "original.fit").write_bytes(b"FIT")
+        return g.id
+    finally:
+        db.close()
+
+
+def test_wartende_uhr_aufnahme_schon_ueber_garmin_da(client, garmin, monkeypatch, tmp_path):
+    # Jan, 17.11.2026: hat der Server dieselbe Fahrt schon (Garmin Connect / FIT-Upload), darf die Uhr ihre Rohdaten
+    # loeschen. Zuordnung ueber die Startsekunde in der UUID, Profilname, Produktnummer der Uhr.
+    from app import storage
+    import app.fitimport as fi
+    uid, _ = _konto(client)
+    kopf = _uhr(uid)
+    monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
+    start = datetime(2026, 11, 15, 10, 0, 0, tzinfo=timezone.utc)
+    datei = {"started_at": start + timedelta(seconds=2), "sport_name": "Pumpfoil", "garmin_produkt": 3869}
+    monkeypatch.setattr(fi, "parse_fit_bytes", lambda b: dict(datei))
+    uuid = f"{int(start.timestamp())}-12345"
+
+    def frage(u=uuid, k=kopf):
+        return client.get(f"/api/ingest/session/{u}/status", headers=k).json()
+
+    assert frage() == {"exists": False, "status": "none"}            # noch nichts da
+    gid = _import(uid, start + timedelta(seconds=2), tmp_path)
+    r = frage()
+    assert r["status"] == "complete" and r["session_id"] == gid
+    assert frage(f"{int(start.timestamp()) + 600}-1")["status"] == "none"     # andere Startzeit
+    assert frage("3f2a-uuid-von-wear")["status"] == "none"                    # keine Garmin-UUID
+    datei["sport_name"] = "Foil"                                              # Garmins Profil = andere Uhr
+    assert frage()["status"] == "none"
+    datei["sport_name"] = "Pumpfoil"
+    datei["garmin_produkt"] = 4315                                            # andere Uhr unserer App
+    assert frage()["status"] == "none"
+    datei["garmin_produkt"] = None                                            # unbekannt -> nach der Zeit
+    assert frage()["status"] == "complete"
+    assert frage(k=_uhr(_konto(client)[0]))["status"] == "none"               # anderer Nutzer
+    assert frage(k=_uhr(uid, platform="wear"))["status"] == "none"            # keine Garmin-Uhr
+
+
+def test_wartende_uhr_aufnahme_fit_upload_und_geloeschte(client, garmin, monkeypatch, tmp_path):
+    from app import storage
+    import app.fitimport as fi
+    uid, _ = _konto(client)
+    kopf = _uhr(uid, part=None)
+    monkeypatch.setattr(storage, "session_dir", lambda u: tmp_path / u)
+    start = datetime(2026, 11, 16, 9, 30, 0, tzinfo=timezone.utc)
+    monkeypatch.setattr(fi, "parse_fit_bytes", lambda b: {"started_at": start, "sport_name": "pumpfoil",
+                                                          "garmin_produkt": 3869})
+    uuid = f"{int(start.timestamp())}-7"
+    _import(uid, start, tmp_path, geloescht=True)                 # vom Fahrer geloescht: zaehlt nicht
+    assert client.get(f"/api/ingest/session/{uuid}/status", headers=kopf).json()["status"] == "none"
+    _import(uid, start, tmp_path, praefix="fit-")                 # von Hand hochgeladene FIT
+    assert client.get(f"/api/ingest/session/{uuid}/status", headers=kopf).json()["status"] == "complete"

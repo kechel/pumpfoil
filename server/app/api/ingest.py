@@ -543,6 +543,16 @@ def session_status(
     Antwortet immer 200: {exists, status} (status: none|recording|complete)."""
     s = db.query(models.Session).filter_by(session_uuid=session_uuid).first()
     if s is None or s.user_id != device.user_id:
+        # Unbekannt, aber dieselbe Fahrt kam schon ueber Garmin Connect oder als FIT-Upload (17.11.2026)? Dann darf
+        # die Uhr ihre Rohdaten loeschen statt sie komplett hochzuladen. Regeln in garmin.uhr_aufnahme_schon_da.
+        # Alte Uhren lesen nur `status`; `exists`/`session_id` sind Zusatz.
+        if s is None:
+            from .garmin import uhr_aufnahme_schon_da
+            g = uhr_aufnahme_schon_da(db, device, session_uuid)
+            if g is not None:
+                log.info("ingest: %s nicht hochgeladen, aber als #%s schon da (%s) — Uhr darf loeschen",
+                         session_uuid, g.id, g.session_uuid.split("-", 1)[0])
+                return {"exists": True, "status": "complete", "session_id": g.id, "via": "garmin"}
         return {"exists": False, "status": "none"}
     # Für die Uhr zählt nur: ist die Session serverseitig fertig? Jeder finalisierte
     # Zustand (complete/analyzed/…) -> "complete", damit die Uhr aufräumt; nur die noch

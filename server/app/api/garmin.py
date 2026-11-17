@@ -1148,3 +1148,55 @@ def unlink(user: models.User = Depends(current_user), db: Session = Depends(get_
         db.delete(link)
         db.commit()
     return {"ok": True}
+
+
+# --------------------------------------------------------------------------------------
+# Wartende Uhr-Aufnahme, die Garmin schon geliefert hat (Jan, 17.11.2026: „wenn der server sagt er hat eine session
+# schon dann kann die uhr unsere rohdaten loeschen"). Wer nur selten ein Handy dabei hat, bekommt seine Fahrten ueber
+# Garmin Connect oder laedt die FIT von Hand hoch — die Rohdaten unserer App liegen dann noch auf der Uhr und wuerden
+# beim naechsten Handy-Kontakt komplett hochgeladen, nur um in der vorhandenen Session aufzugehen.
+# Die Uhr fragt vor jedem Upload `GET /api/ingest/session/<uuid>/status`; „complete" heisst fuer sie „loeschen"
+# (Uploader.onStatus). Kennt der Server die UUID nicht, prueft er hier, ob es dieselbe Fahrt schon gibt.
+#
+# EINDEUTIG, weil: die UUID unserer Garmin-App ist „<Unix-Sekunde des Starts>-<Zufall>" (SessionRecorder._genUuid,
+# in derselben Sekunde wie started_at), und die Datei muss (1) aus unserer App stammen (Profilname in der FIT),
+# (2) von DIESER Uhr (Produktnummer der Kopplung = garmin_produkt der Datei, wenn beide bekannt), (3) auf
+# UHR_START_TOLERANZ_S gleich gestartet sein. Eine Uhr nimmt nie zwei Aktivitaeten gleichzeitig auf.
+UHR_START_TOLERANZ_S = 30
+
+
+def uhr_aufnahme_schon_da(db: Session, device: models.DeviceToken, session_uuid: str) -> models.Session | None:
+    """Garmin-/FIT-Session derselben Fahrt zu einer wartenden, uns unbekannten Uhr-Aufnahme, sonst None. Wirft nie."""
+    import re
+    m = re.match(r"^(\d{9,10})-\d+$", session_uuid or "")
+    if not m or (device.platform not in (None, "garmin")):
+        return None
+    try:
+        start = datetime.fromtimestamp(int(m.group(1)), tz=timezone.utc)
+        S = models.Session
+        kandidaten = (db.query(S).filter(
+            S.user_id == device.user_id, S.deleted.isnot(True),
+            or_(S.session_uuid.like("garmin-%"), S.session_uuid.like("fit-%")),
+            S.started_at > start - timedelta(seconds=UHR_START_TOLERANZ_S),
+            S.started_at < start + timedelta(seconds=UHR_START_TOLERANZ_S)).all())
+        if not kandidaten:
+            return None
+        from .. import storage
+        eigenes = _produkt_der_uhr(db, device.id)
+        for g in kandidaten:
+            d = storage.session_dir(g.session_uuid)
+            originale = sorted(d.glob("original.*")) if d.exists() else []
+            parsed = _parsed_der_datei(originale[0]) if originale else None
+            if not parsed or parsed.get("started_at") is None:
+                continue
+            if str(parsed.get("sport_name") or "").strip().lower() not in UNSERE_NAMEN:
+                continue
+            produkt = parsed.get("garmin_produkt")
+            if eigenes is not None and produkt is not None and eigenes != produkt:
+                continue
+            if abs((_aware(parsed["started_at"]) - start).total_seconds()) > UHR_START_TOLERANZ_S:
+                continue
+            return g
+    except Exception as exc:  # noqa: BLE001
+        log.warning("garmin: Abgleich wartende Uhr-Aufnahme %s: %s", session_uuid, exc)
+    return None

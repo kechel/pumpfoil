@@ -1733,7 +1733,7 @@ Session-Seite, Apps) „zaehlt fuer <Event>" mit Link zum Event, gern mit Platz;
 die in einem Event liegen, sonst nicht. Gehoert zum je-Lauf-Umbau (Eintraege „Laeufe am Eventschluss abschneiden" und
 „Doppelte Laeufe … nur einmal zaehlen"): ob eine Session/ein Lauf zaehlt, muss dieselbe Regel liefern wie das Ranking.
 
-### 15.11.2026 — Garmin Connect ohne Handy: wartende Uploads auf der Uhr (offen, Jans Entscheidung)
+### 15.11.2026 — Garmin Connect ohne Handy: wartende Uploads auf der Uhr (✅ 17.11.: (a) live im Server, dazu Uhr-Menuepunkt „Aufnahmen loeschen" fcccce41 fuer den naechsten Garmin-Release; s. docs/WATCH-STORAGE.md)
 Anlass: u963 (Forerunner 245, synct nur per Garmin Express) — Fahrten kommen seit 665de6b3 automatisch ueber Garmin
 Connect, aber unsere App zeigt sie weiter als „nicht hochgeladen": sie liegen im eigenen Connect-IQ-Speicher der App
 (nicht im Activities-Ordner, Loeschen der FIT dort aendert nichts) und belegen Platz, bis die Uhr einmal ein Handy sieht.

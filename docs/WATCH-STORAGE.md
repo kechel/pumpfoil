@@ -176,3 +176,14 @@ Neuinstallieren auch nicht (der Object Store haengt an der App-ID, c72cfbbc).
 - Nicht im LITE-Build (96-KB-Uhren, ~7 KB Luft): dort leere Fassung, +112 B. Voller Build +3,5 KB, 128-KB-Stufe
   (FR55/FR245) +1,9 KB — vor der Einreichung im Simulator den Heap der 128-KB-Stufe pruefen.
 - Nur Garmin: die anderen Uhren haben keinen USB-FIT-Weg, ihre Puffer gehen ohnehin uebers Handy.
+
+## Server sagt „schon da" zu wartenden Aufnahmen (17.11.2026, live, nur Server)
+
+Die Uhr fragt vor jedem Upload `GET /api/ingest/session/<uuid>/status` und loescht bei `complete` ihre Kopie
+(`Uploader.onStatus`, in allen Fassungen). Kennt der Server die UUID nicht, prueft `garmin.uhr_aufnahme_schon_da`,
+ob dieselbe Fahrt schon als Garmin-Connect- oder FIT-Upload-Session da ist, und antwortet dann `complete`
+(+ `session_id`, `via: "garmin"`). Eindeutig, weil: UUID unserer Garmin-App = „<Unix-Startsekunde>-<Zufall>",
+Datei mit unserem Profilnamen („Pumpfoil"/„Dance"), Produktnummer der Datei = die der gekoppelten Uhr (wenn beide
+bekannt), Start auf 30 s gleich; geloeschte Sessions zaehlen nicht. Hilft nur, wer irgendwann ein Handy koppelt —
+ganz ohne Handy bleibt der Menuepunkt oben. Folge: die 25-Hz-Rohdaten der Uhr kommen dann nicht mehr an, es zaehlt
+die FIT (Jan: „dann kann die uhr unsere rohdaten loeschen"). Log: „nicht hochgeladen, aber als #… schon da".
