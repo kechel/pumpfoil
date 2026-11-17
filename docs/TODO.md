@@ -1619,7 +1619,13 @@ Entwurf zusammen mit A1.
   unberuehrt), Takt nachgetragen: 3106 Sessions / 28 Nutzer haben jetzt uhr_takt.json.
 
 **E. Kommunikation**
-- Antwort an u963 (zwei FR245 an beiden Handgelenken, Sessions 21943/21945 fast gleich): Entwurf liegt, nicht gesendet.
+- ✅ 17.11. Antwort an u963 (zwei FR245 an beiden Handgelenken, Sessions 21943/21945) gesendet (Konto 230, Nachricht 5260);
+  Frage offen: welche Uhr links/rechts (fuer den Arm-Vergleich der Pumperkennung).
+- **Messunsicherheit der Sprints (Jan 17.11.: „25,9 vs 25,4 ist schon viel bei solchen events")** — zwei gleiche FR245 an
+  derselben Person: 100 m 25,92/25,37 (0,55 km/h), 200 m 0,13, 300 m 0,36, 1 min 0,26; je Lauf meist ±0,5, zweimal 2,4 km/h.
+  Abstaende darunter sind mit Handgelenk-GPS nicht sicher zu trennen. Ideen (Analyse-Pipeline -> nur mit Jans OK): laenger
+  glaetten, Fusion zweier Aufnahmen (s. Memory mehrfach-aufnahmen-zusammen), Hinweis auf Messunsicherheit bei knappen
+  Abstaenden in der Event-Wertung. NICHT gebaut.
 - Optional DM an u352 (GTR 4, GPS-Luecken), wenn Zepp 1.0.17 live ist.
 - Lob als Zitate sammeln (bei Gelegenheit, 15.11.).
 - ✅ 16.11. Antwort an u1124 (Suunto: Uhrname + Takt laut Uhr) gesendet (Konto 230).
