@@ -161,3 +161,7 @@ def test_sprint_rekorde_nur_pumpfoil(client):
     assert rec["sprint_60s"]["value"] == 66.6
     wing = client.get("/api/community/records?accel_only=false&sport=wingfoil&period=all", headers=kopf).json()["all"]
     assert "sprint_100m" not in wing and "sprint_60s" not in wing
+    lb = client.get("/api/community/leaders?accel_only=false&sport=pumpfoil&period=all", headers=kopf).json()
+    assert lb["sprint_100m"][0]["user_id"] == uid and lb["sprint_100m"][0]["session_id"] == sid, lb["sprint_100m"][:1]
+    assert "sprint_100m" not in client.get("/api/community/leaders?accel_only=false&sport=wingfoil&period=all",
+                                           headers=kopf).json()

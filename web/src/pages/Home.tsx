@@ -326,10 +326,13 @@ const LEADER_KINDS: { key: Exclude<keyof Leaders, "me" | "quellen">; labelKey: s
   { key: "sessions", labelKey: "leader.mostSessions", field: "sessions", unitKey: "unit.sessions" },
   { key: "spots", labelKey: "leader.mostSpots", field: "spots", unitKey: "unit.spots" },
   { key: "run_distance", labelKey: "rec.farthestRun", field: "run_distance_m", unit: () => "km", fmt: (v) => (v / 1000).toFixed(2) },
+  // Fliegende Sprints (17.11.2026) — der Server liefert sie nur bei Pumpfoil/Foil Scoot; Format wie in der Event-Wertung.
+  { key: "sprint_100m", labelKey: "team.k.sprint_100m", field: "sprint_100m_mps", unit: () => "", fmt: (v) => kennzahl("sprint_100m").fmt(v) },
+  { key: "sprint_60s", labelKey: "team.k.sprint_60s", field: "sprint_60s_mps", unit: () => "", fmt: (v) => kennzahl("sprint_60s").fmt(v) },
 ];
 
-function LeaderList({ rows, field, unit, fmt, me }: { rows: LeaderRow[]; field: keyof LeaderRow; unit: string | ((v: number) => string);
-                      fmt?: (v: number) => string; me?: LeaderRow | null }) {
+function LeaderList({ rows, field, unit, fmt, me, sprint }: { rows: LeaderRow[]; field: keyof LeaderRow; unit: string | ((v: number) => string);
+                      fmt?: (v: number) => string; me?: LeaderRow | null; sprint?: string }) {
   if (rows.length === 0) return <p className="text-xs text-slate-400">—</p>;
   const zeile = (r: LeaderRow, platz: number, ich = false) => {
     const inhalt = (
@@ -348,7 +351,7 @@ function LeaderList({ rows, field, unit, fmt, me }: { rows: LeaderRow[]; field: 
         {/* Einzellauf-Listen fuehren direkt zur Session (Jan, 01.11.2026). Das Profilbild bleibt eigener Link aufs
             Profil, deshalb ist nur der Rest der Zeile der Link (kein <a> im <a>). */}
         {r.session_id
-          ? <Link to={`/sessions/${r.session_id}`} className="flex min-w-0 flex-1 items-center gap-2 hover:underline">{inhalt}</Link>
+          ? <Link to={`/sessions/${r.session_id}${sprint ? `?sprint=${sprint}` : ""}`} className="flex min-w-0 flex-1 items-center gap-2 hover:underline">{inhalt}</Link>
           : <div className="flex min-w-0 flex-1 items-center gap-2">{inhalt}</div>}
       </div>
     );
@@ -590,7 +593,8 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
   const arten = LEADER_KINDS.filter((k) => !(
     ((WIND_SPORTS.includes(sport) || PADDEL_SPORTS.includes(sport)) && (k.key === "pumps" || k.key === "runs"))
     || (MOTOR_SPORTS.includes(sport) && k.key === "pumps")
-    || (k.key === "ride_total" && !(WIND_SPORTS.includes(sport) || PADDEL_SPORTS.includes(sport)))));
+    || (k.key === "ride_total" && !(WIND_SPORTS.includes(sport) || PADDEL_SPORTS.includes(sport)))
+    || (k.key.startsWith("sprint_") && !["pumpfoil", "foil_scoot", "pumpfoil+foil_scoot"].includes(sport))));
   const k = arten.find((a) => a.key === wahl) ?? arten[0];
   // Leer: Ueberschrift und Filter bleiben stehen — man soll den Zeitraum hier auch wieder weiter stellen koennen.
   const empty = !data || (data.sessions.length === 0 && data.runs.length === 0 && data.spots.length === 0);
@@ -626,7 +630,7 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
         {filter}
       </div>
       {!data ? null : empty ? <p className="text-xs text-slate-400">—</p> : (
-        <LeaderList rows={data[k.key] ?? []} field={k.field} unit={k.unit ?? t(k.unitKey ?? "")} fmt={k.fmt} me={data.me?.[k.key]} />
+        <LeaderList rows={data[k.key] ?? []} field={k.field} unit={k.unit ?? t(k.unitKey ?? "")} fmt={k.fmt} me={data.me?.[k.key]} sprint={k.key.startsWith("sprint_") ? k.key : undefined} />
       )}
       {data && !empty && <Quellen quellen={data.quellen} />}
       {data && !empty && (data[k.key] ?? []).length > 0 && (
@@ -666,7 +670,7 @@ export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf
               ))}
             </div>
             <div className="max-w-xl">
-              <LeaderList rows={data[k.key] ?? []} field={k.field} unit={k.unit ?? t(k.unitKey ?? "")} fmt={k.fmt} me={data.me?.[k.key]} />
+              <LeaderList rows={data[k.key] ?? []} field={k.field} unit={k.unit ?? t(k.unitKey ?? "")} fmt={k.fmt} me={data.me?.[k.key]} sprint={k.key.startsWith("sprint_") ? k.key : undefined} />
               <Quellen quellen={data.quellen} />
               {(data[k.key] ?? []).length > 0 && (
                 <button onClick={() => setBild(true)}

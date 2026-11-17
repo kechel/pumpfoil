@@ -762,6 +762,8 @@ export interface LeaderRow {
   run_distance_m?: number;   // bester einzelner Lauf
   run_time_s?: number;
   ride_total_m?: number;   // laengste ganze Fahrt (Gesamtstrecke), Reiter nur bei Wind/Paddeln
+  sprint_100m_mps?: number;   // fliegende 100 m / Minute, nur Pumpfoil/Foil Scoot (17.11.2026)
+  sprint_60s_mps?: number;
   session_id?: number | null;   // nur bei Einzellauf-Listen: die Session des besten Laufs
   rank?: number;   // nur in `me`: die eigene Stelle, wenn sie nicht unter den ersten 10 ist
   land?: string | null;   // Nationalitaet (ISO-Code), nur wenn selbst eingestellt (02.11.2026)
@@ -780,6 +782,8 @@ export interface Leaders {
   run_distance?: LeaderRow[];
   run_time?: LeaderRow[];
   ride_total?: LeaderRow[];
+  sprint_100m?: LeaderRow[];
+  sprint_60s?: LeaderRow[];
   me?: Record<string, LeaderRow | null>;   // eigene Zeile unter Platz 10 je Liste (01.11.2026)
 }
 

@@ -120,6 +120,14 @@ def _sprint_col(teil: str, kz: str, typ):
     return cast(func.nullif(func.jsonb_extract_path_text(cast(func.nullif(AR.sprint_json, ""), JSONB), teil, kz), ""), typ)
 
 
+def _sprint_plausibel(kz: str):
+    """Sprint-Wert nur, wenn er nicht ueber dem Hoechsttempo der Session liegt — sonst NULL. Plausibilitaet nur fuer die
+    ANZEIGE (17.11.2026): ein Sprint-Mittel ueber Vmax ist ein GPS-Sprung (18 Sessions, fast alle GPS-only-Importe mit bis
+    zu 58 km/h auf 100 m). Die Auswertung selbst bleibt (Pipeline, s. TODO)."""
+    v = _sprint_col("best", kz, Float)
+    return case((v <= AR.best_speed_mps * 1.02, v), else_=None)
+
+
 class _RecCol(dict):
     """Rekord-Spalten. Mit dem pg-1-Anzeige-Schalter (app/pumpgleit_anzeige.py) liefern „glide" und
     „session_pumps" die pg-Spalten mit Rueckfall auf die alten (coalesce) — zur Abfragezeit entschieden,
@@ -845,9 +853,7 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
     q = _band_filter(db, q, foil_band, viewer_id or 0)
     q = q.filter(valcol > 0)
     if metric.startswith("sprint_"):
-        # Plausibilitaet nur fuer die ANZEIGE (17.11.2026): ein Sprint-Mittel ueber dem Hoechsttempo der Session ist ein
-        # GPS-Sprung (18 Sessions, fast alle GPS-only-Importe mit bis zu 58 km/h auf 100 m). Die Auswertung bleibt.
-        q = q.filter(valcol <= AR.best_speed_mps * 1.02)
+        q = q.filter(_sprint_plausibel(metric).isnot(None))
     if cut is not None:
         q = _ab(q, cut, S.started_at)
     if spot is not None:
@@ -1649,6 +1655,9 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
         func.coalesce(func.max(REC_COL["distance"][0]), 0), func.coalesce(func.max(REC_COL["duration"][0]), 0),
         # Laengste ganze Fahrt (Gesamtstrecke) — bei Wind/Paddeln die Hauptzahl, wie der erste Rekord dort.
         func.coalesce(func.max(REC_COL["session_total"][0]), 0),
+        # Fliegende Sprints (17.11.2026), Plausibilitaet wie bei den Rekorden (s. _sprint_plausibel).
+        func.coalesce(func.max(_sprint_plausibel("sprint_100m")), 0),
+        func.coalesce(func.max(_sprint_plausibel("sprint_60s")), 0),
     ), _user.id, accel_only, sport)
     q = _band_filter(db, q, foil_band, _user.id)
     if cut is not None:
@@ -1660,8 +1669,9 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
              "spots": int(nsp or 0), "pumps": int(np or 0),
              "distance_m": round(float(dm or 0), 1), "time_s": round(float(ts or 0), 1),
              "run_distance_m": round(float(rd or 0), 1), "run_time_s": round(float(rt or 0), 1),
-             "ride_total_m": round(float(gt or 0), 1)}
-            for name, av, uid, ns, nr, nsp, np, dm, ts, rd, rt, gt in rows]
+             "ride_total_m": round(float(gt or 0), 1),
+             "sprint_100m_mps": round(float(s1 or 0), 3), "sprint_60s_mps": round(float(s6 or 0), 3)}
+            for name, av, uid, ns, nr, nsp, np, dm, ts, rd, rt, gt, s1, s6 in rows]
     top = lambda key: [x for x in sorted(flat, key=lambda y: y[key], reverse=True) if x[key] > 0][:10]  # noqa: E731
 
     def mit_session(zeilen: list[dict], col) -> list[dict]:
@@ -1674,7 +1684,7 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
                 qq = _ab(qq, cut, S.started_at)
             if spot:
                 qq = qq.filter(_spot_cond(spot, db))
-            r = qq.filter(S.user_id == x["user_id"]).order_by(col.desc(), S.id.desc()).first()
+            r = qq.filter(S.user_id == x["user_id"]).order_by(col.desc().nullslast(), S.id.desc()).first()
             aus.append({**x, "session_id": r[0] if r else None})
         return aus
 
@@ -1683,6 +1693,10 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
               "run_distance": ("run_distance_m", REC_COL["distance"][0]),
               "run_time": ("run_time_s", REC_COL["duration"][0]),
               "ride_total": ("ride_total_m", REC_COL["session_total"][0])}
+    # Sprints nur bei Pumpfoil/Foil Scoot (Jan, 17.11.2026) — wie die Rekord-Kacheln (METRICS_JE_SPORT).
+    if "sprint_100m" in METRICS_JE_SPORT.get(sport, ()):
+        listen["sprint_100m"] = ("sprint_100m_mps", _sprint_plausibel("sprint_100m"))
+        listen["sprint_60s"] = ("sprint_60s_mps", _sprint_plausibel("sprint_60s"))
     out: dict = {}
     for name, (key, col) in listen.items():
         zeilen = top(key)
