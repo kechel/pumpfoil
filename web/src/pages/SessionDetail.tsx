@@ -874,6 +874,28 @@ export default function SessionDetail() {
     }
     return sprintLauf && selectedRun === sprintLauf.i ? sprintLauf : null;
   }, [sprintKz, sprintLauf, selectedRun, session]);
+  // Sprint-Ebene „1 min" / „100 m" (Jan, 17.11.2026, Wunsch aus der Community): ein/aus wie die Pumps, unabhaengig von
+  // der Faerbung. Zeigt je Lauf das beste Fenster der Kategorie (weisses Band unter der Spur + Endpunkte), mit gewaehltem
+  // Lauf nur dessen Fenster samt Schild mit dem Wert. Daten aus sprints.laeufe/laeufe_fenster (sprint-VERSION >= 4, alle
+  // Sessions), Zuordnung zum Lauf ueber die Zeit wie oben. Die Event-Kennzeichen bleiben davon unberuehrt.
+  const [sprintEbene, setSprintEbene] = useState<"" | "sprint_60s" | "sprint_100m">("");
+  const sprintJeLauf = useMemo(() => {
+    const aus = (kz: string) => {
+      const sp = session?.analysis?.sprints;
+      const lf = sp?.laeufe_fenster ?? [];
+      const m = new Map<number, { a: number; b: number; wert: number }>();
+      for (let j = 0; j < lf.length; j++) {
+        const f = lf[j]?.[kz];
+        const wert = sp?.laeufe?.[j]?.[kz] ?? 0;
+        if (!f || !(wert > 0)) continue;
+        const i = laufZurZeit((f[0] + f[1]) / 2);
+        if (i >= 0) m.set(i, { a: f[0], b: f[1], wert });
+      }
+      return m;
+    };
+    return { sprint_60s: aus("sprint_60s"), sprint_100m: aus("sprint_100m") } as Record<string, Map<number, { a: number; b: number; wert: number }>>;
+  }, [session]);
+  const sprintEbeneDaten = sprintEbene ? sprintJeLauf[sprintEbene] : null;
   // Aus einer Sprint-Bestenliste: Glides-Faerbung aus (Jan 12.11.2026), sonst ist der Track grau und vom gewerteten
   // Abschnitt bleiben nur die weissen Raender. Einmal je Session/Sprint, danach darf man zurueckschalten.
   const sprintFarbeRef = useRef<string | null>(null);
@@ -1531,6 +1553,22 @@ export default function SessionDetail() {
         L.polyline(sprintPkte, { color: "#ffffff", weight: 11, opacity: 0.85, interactive: false, lineCap: "round" }).addTo(lg);
       }
     }
+    // Sprint-Ebene (s. sprintEbene): je Lauf das beste Fenster als weisses Band UNTER der Spur, wie der Event-Sprint.
+    const ebenePkte: { idx: number; pk: L.LatLngExpression[] }[] = [];
+    if (sprintEbeneDaten) {
+      sprintEbeneDaten.forEach((f, idx) => {
+        if (selectedRun != null && idx !== selectedRun) return;
+        const pk: L.LatLngExpression[] = [];
+        for (let i = 0; i < coords.length; i++) {
+          const tm = indexZuSessionMs(i);
+          if (tm >= f.a - 500 && tm <= f.b + 500) pk.push(coords[i]);
+        }
+        if (pk.length >= 2) {
+          L.polyline(pk, { color: "#ffffff", weight: 11, opacity: 0.85, interactive: false, lineCap: "round" }).addTo(lg);
+          ebenePkte.push({ idx, pk });
+        }
+      });
+    }
     segs.forEach((seg: any, idx: number) => {
       // Inaktive Läufe nur grau + transparent (nicht farbig), wenn einer aktiv ist.
       const dim = selectedRun != null && idx !== selectedRun;
@@ -1676,6 +1714,19 @@ export default function SessionDetail() {
         L.circleMarker(p, { radius: 5, color: farbe, weight: 2, fillColor: farbe, fillOpacity: mv.durch ? 0.95 : 0, interactive: false }).addTo(lg);
       });
     }
+    // Sprint-Ebene: Endpunkte ueber der Spur (Wert im Tooltip), Schild mit dem Wert nur fuer den gewaehlten Lauf.
+    if (sprintEbene && sprintEbeneDaten) {
+      const kzInfo = kennzahl(sprintEbene);
+      for (const { idx, pk } of ebenePkte) {
+        const wert = sprintEbeneDaten.get(idx)!.wert;
+        for (const pt of [pk[0], pk[pk.length - 1]])
+          L.circleMarker(pt, { radius: 4, color: "#0f172a", weight: 1.5, fillColor: "#ffffff", fillOpacity: 1 })
+            .bindTooltip(`${t("sd.run")} ${idx + 1} · ${kzInfo.fmt(wert)}`).addTo(lg);
+        if (selectedRun != null)
+          L.tooltip({ permanent: true, direction: "top", className: "sprint-schild", offset: [0, -10] })
+            .setLatLng(pk[Math.floor(pk.length / 2)]).setContent(kzInfo.fmt(wert)).addTo(lg);
+      }
+    }
     // Gewerteter Sprint-Abschnitt (s. sprintHL): Start/Ende-Punkte + Schild UEBER dem Track (das Band liegt darunter).
     if (sprintPkte.length >= 2) {
       for (const pt of [sprintPkte[0], sprintPkte[sprintPkte.length - 1]])
@@ -1794,7 +1845,7 @@ export default function SessionDetail() {
       map.fitBounds(L.latLngBounds(coords.slice(seg.i_start, seg.i_end + 1)), { padding: [40, 40] });
     }
     lastFitRun.current = selectedRun;
-  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, showGlides, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData, zeigeGanz, pumpzahlen, gleitenMoeglich, manoever, wellePumpen, paddel, sprintHL, indexZuSessionMs]);
+  }, [session, colorMode, selectedRun, hrRange, pumpRange, speedMin, speedMax, win, showPumps, showAttempts, showGlides, attemptSegs, fullscreen, optimalKmh, playMode, autoScaleOn, carveData, zeigeGanz, pumpzahlen, gleitenMoeglich, manoever, wellePumpen, paddel, sprintHL, indexZuSessionMs, sprintEbene, sprintEbeneDaten]);
 
   // Play-Animation: zeichnet die Timeline progressiv (wie beim Fahren). Beim (Wieder-)
   // Eintritt komplett bis zum aktuellen Kopf neu zeichnen (mit aktuellen Farben), dann —
@@ -2524,6 +2575,13 @@ export default function SessionDetail() {
             <span className="inline-flex items-center gap-1">{schlagSport ? t("sd.strokes") : t("stat.pumps")} {showPumps ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
           </button>
           )}
+          {/* Sprint-Ebene (s. sprintEbene): je eine Kategorie, ein/aus wie die Pumps. */}
+          {([["sprint_60s", "1 min"], ["sprint_100m", "100 m"]] as const).map(([kz, label]) => sprintJeLauf[kz].size > 0 && (
+            <button key={kz} onClick={() => setSprintEbene((v) => (v === kz ? "" : kz))}
+              className={`ml-1 rounded-lg px-2.5 py-1 text-xs ${sprintEbene === kz ? "bg-brand-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}>
+              <span className="inline-flex items-center gap-1">{label} {sprintEbene === kz ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
+            </button>
+          ))}
           {/* Nur zeigen, wenn es wirklich etwas zu zeigen gibt: mehr Versuche als Läufe heißt,
               dass Anläufe dabei waren, aus denen kein Lauf wurde. Beides steht schon in der
               Session-Antwort — kein zusätzlicher Aufruf nur für die Frage, ob der Schalter hin soll. */}
@@ -2671,6 +2729,9 @@ export default function SessionDetail() {
                   className={`rounded-lg px-2.5 py-1 text-xs tabular-nums ${selectedRun === i ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"} ${playRunIdx === i ? "ring-2 ring-brand-400" : ""}`}
                 >
                   {i + 1}
+                  {sprintEbeneDaten?.get(i) && (
+                    <span className="ml-1 opacity-80">{(sprintEbeneDaten.get(i)!.wert * 3.6).toFixed(1)}</span>
+                  )}
                 </button>
               ))}
               {(selectedRun != null || selectedAttempt != null) && (
