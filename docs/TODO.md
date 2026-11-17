@@ -1572,7 +1572,8 @@ Referee „nur zu zweit/Moderatoren nur Vorschlag" nur gemerkt (Jan: „glaube d
 
 **B. Releases**
 - Zepp 1.0.17 (GPS-Neustart) einreichen, sobald 1.0.16 freigegeben ist; danach Eimer-Test Balance 2 + `messweg` auswerten (14.11.).
-- Naechstes Android/iOS: Puls-Streifen je Lauf (12.11.), Datenschutz + Team-Regeln (07.11.); Global-Opt-out-Hinweis ist
+- Naechstes Android/iOS: Sprint-Ebene „1 min"/„100 m" in der Session (Web 17.11., 982f492c/cae0d4c8: ein/aus wie Pumps,
+  Band + fuchsia Endpunkte, Werte an den Lauf-Knoepfen wie in der Event-Wertung); Puls-Streifen je Lauf (12.11.), Datenschutz + Team-Regeln (07.11.); Global-Opt-out-Hinweis ist
   gebaut, mit abgemeldetem Konto noch nicht angesehen (Web/Android/iOS).
 - Uhren-Paritaet LaufLuecke: Zepp, Huawei, Suunto offen (12.11.).
 
