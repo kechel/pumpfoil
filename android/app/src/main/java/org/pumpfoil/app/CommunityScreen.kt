@@ -100,17 +100,23 @@ private fun fmtBand(v: Double?): String =
 
 /** Bestenlisten in der Reihenfolge des Webs (Home.tsx LEADER_KINDS): zuerst die Laufdauer, dann die Summen, zuletzt der
  *  weiteste Lauf. Bei Wind/Paddeln vorn die ganze Fahrt und keine Pumps/Laeufe, bei Motor keine Pumps. */
-private fun leaderArten(sport: String): List<Pair<String, String>> {
+private fun leaderArten(sport: String, lb: Leaders? = null): List<Pair<String, String>> {
     val wind = Sportarten.windArtig(sport)
     val motor = Sportarten.motor(sport)
     return listOf(
         "ride_total" to "rec.sessionTotal", "run_time" to "rec.longestRun", "distance" to "leader.totalDistance",
         "time" to "leader.totalTime", "runs" to "leader.mostRuns", "pumps" to "leader.mostPumps",
         "sessions" to "leader.mostSessions", "spots" to "leader.mostSpots", "run_distance" to "rec.farthestRun",
+        // Fliegende Sprints (Web 17.11.2026): nur Pumpfoil/Foil Scoot, und nur wenn der Server die Liste liefert.
+        "sprint_100m" to "team.k.sprint_100m", "sprint_60s" to "team.k.sprint_60s",
     ).filter { (id, _) ->
-        !((wind && (id == "pumps" || id == "runs")) || (motor && id == "pumps") || (id == "ride_total" && !wind))
+        !((wind && (id == "pumps" || id == "runs")) || (motor && id == "pumps") || (id == "ride_total" && !wind)
+          || (id.startsWith("sprint_") && (sport !in SPRINT_LEADER_SPORTS
+                || (lb != null && (if (id == "sprint_100m") lb.sprint100m else lb.sprint60s) == null))))
     }
 }
+
+private val SPRINT_LEADER_SPORTS = listOf("pumpfoil", "foil_scoot", "pumpfoil+foil_scoot")
 
 private val PERIODS = listOf("today" to "period.today", "yesterday" to "period.yesterday", "10d" to "period.10d", "30d" to "period.30d", "365d" to "period.365d", "all" to "period.all")
 
@@ -339,7 +345,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                             SectionHeader("${I18n.t("home.leaderboards")} – ${I18n.t("team.mitglieder")}")
                             Column(Modifier.padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Dropdown(leaderArten(sportart).map { (id, k) -> id to I18n.t(k) }, lbMetric,
+                                    Dropdown(leaderArten(sportart, leaders).map { (id, k) -> id to I18n.t(k) }, lbMetric,
                                         { lbMetric = it; merken("foil_leader_wahl", it) }, Modifier.weight(1f))
                                     // accel/alle/Freunde als Auswahlfeld (vorher Knopfgruppe AccelSeg), wie im Web.
                                     Dropdown(listOf("accel" to I18n.t("side.onlyAccel").replaceFirstChar { it.uppercase() },
@@ -814,35 +820,44 @@ private fun leaderDauer(s: Double): String {
 internal fun BestenlistenBlock(lb: Leaders, sportart: String, lbMetric: String, onMetric: (String) -> Unit, onOpen: (Int) -> Unit,
                                unterzeile: List<String>, kennzahlKnoepfe: Boolean = true) {
     var lbBild by remember { mutableStateOf<TeamBildDaten?>(null) }
+    val oeffneLauf = LocalOpenSessionLauf.current
     Column(Modifier.fillMaxWidth()) {
         // Ohne Knoepfe (Community-Rangliste seit 05.11.2026): die Kennzahl waehlt ein Auswahlfeld darueber.
         if (kennzahlKnoepfe) Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            leaderArten(sportart).forEach { (id, key) ->
+            leaderArten(sportart, lb).forEach { (id, key) ->
                 FilterChip(selected = lbMetric == id, onClick = { onMetric(id) }, label = { Text(I18n.t(key)) }, colors = cyanChipColors())
             }
         }
         val list = when (lbMetric) { "runs" -> lb.runs; "pumps" -> lb.pumps; "spots" -> lb.spots
             "distance" -> lb.distance; "time" -> lb.time; "run_distance" -> lb.runDistance
-            "run_time" -> lb.runTime; "ride_total" -> lb.rideTotal; else -> lb.sessions }
+            "run_time" -> lb.runTime; "ride_total" -> lb.rideTotal
+            "sprint_100m" -> lb.sprint100m.orEmpty(); "sprint_60s" -> lb.sprint60s.orEmpty(); else -> lb.sessions }
         fun leaderWert(e: LeaderEntry): String = when (lbMetric) { "runs" -> "${e.runs}"; "pumps" -> "${e.pumps}"; "spots" -> "${e.spots}"
             "distance" -> String.format(java.util.Locale.ROOT, "%.1f", e.distanceM / 1000)
             "ride_total" -> String.format(java.util.Locale.ROOT, "%.1f", e.rideTotalM / 1000)
             "time" -> leaderDauer(e.timeS)
             "run_distance" -> String.format(java.util.Locale.ROOT, "%.2f", e.runDistanceM / 1000)
-            "run_time" -> leaderDauer(e.runTimeS); else -> "${e.sessions}" }
+            "run_time" -> leaderDauer(e.runTimeS)
+            // Sprints wie in der Event-Wertung: „14.1 s · 25.5 km/h" bzw. „23.6 km/h · 393 m", ohne Einheit dahinter
+            "sprint_100m" -> kennzahlWert("sprint_100m", e.sprint100mMps)
+            "sprint_60s" -> kennzahlWert("sprint_60s", e.sprint60sMps); else -> "${e.sessions}" }
         fun leaderEinheit(e: LeaderEntry): String = when (lbMetric) { "runs" -> I18n.t("unit.runs"); "pumps" -> I18n.t("unit.pumps")
             "spots" -> I18n.t("unit.spots"); "distance", "run_distance", "ride_total" -> "km"
             "time" -> if (e.timeS >= 3600) "h" else "min"; "run_time" -> if (e.runTimeS >= 3600) "h" else "min"
+            "sprint_100m", "sprint_60s" -> ""
             else -> I18n.t("unit.sessions") }
         Card(Modifier.fillMaxWidth().padding(12.dp)) {
             Column(Modifier.padding(8.dp)) {
                 val zeile: @Composable (LeaderEntry, Int, Boolean) -> Unit = { e, platz, ich ->
                     val v = leaderWert(e)
                     val unit = leaderEinheit(e)
-                    // Einzellauf-Listen: Tippen oeffnet die Session (01.11.2026, wie das Web)
+                    // Einzellauf-Listen: Tippen oeffnet die Session (01.11.2026, wie das Web); Sprint-Listen mit der
+                    // Kennzahl (Web ?sprint=), die Session waehlt dann den Lauf mit dem besten Fenster selbst.
                     val sid = e.sessionId
-                    Row(Modifier.fillMaxWidth().then(if (sid != null) Modifier.clickable { onOpen(sid) } else Modifier)
+                    Row(Modifier.fillMaxWidth().then(if (sid != null) Modifier.clickable {
+                            if (lbMetric.startsWith("sprint_") && oeffneLauf != null) oeffneLauf(sid, null, lbMetric) else onOpen(sid)
+                        } else Modifier)
                         .then(if (ich) Modifier.border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), RoundedCornerShape(8.dp)).padding(horizontal = 4.dp) else Modifier)
                         .padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
                         // Feste Spalten (05.11.2026, Jan: „ausrichtung noch fixen"): Platz, Profilbild (ohne Bild die
@@ -856,8 +871,8 @@ internal fun BestenlistenBlock(lb: Leaders, sportart: String, lbMetric: String, 
                         Spacer(Modifier.width(6.dp))
                         Text(e.name ?: "—", Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Text(v, fontWeight = FontWeight.SemiBold)
-                        Spacer(Modifier.width(4.dp))
-                        Text(unit, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (unit.isNotEmpty()) Spacer(Modifier.width(4.dp))
+                        if (unit.isNotEmpty()) Text(unit, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
                 // Alle 10 wie im Web: die eigene Zeile darunter (Olek, 01.11.2026) gibt der Server nur,
@@ -879,12 +894,12 @@ internal fun BestenlistenBlock(lb: Leaders, sportart: String, lbMetric: String, 
         if (list.isNotEmpty()) Row(Modifier.padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             val ctxTeilen = androidx.compose.ui.platform.LocalContext.current
             TextButton(onClick = {
-                val art = leaderArten(sportart).firstOrNull { it.first == lbMetric }?.second ?: "leader.mostSessions"
+                val art = leaderArten(sportart, lb).firstOrNull { it.first == lbMetric }?.second ?: "leader.mostSessions"
                 val unter = (unterzeile + java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT,
                     java.util.Locale.forLanguageTag(I18n.lang)).format(java.util.Date())).joinToString(" · ")
-                val zeilen = list.take(10).mapIndexed { i, e -> BildZeile(i + 1, e.name ?: "—", "${leaderWert(e)} ${leaderEinheit(e)}", false, land = e.land) } +
+                val zeilen = list.take(10).mapIndexed { i, e -> BildZeile(i + 1, e.name ?: "—", "${leaderWert(e)} ${leaderEinheit(e)}".trim(), false, land = e.land) } +
                     listOfNotNull(lb.me[lbMetric]?.let { ich -> ich.rank?.let { r ->
-                        BildZeile(r, ich.name ?: "—", "${leaderWert(ich)} ${leaderEinheit(ich)}", true, land = ich.land) } })
+                        BildZeile(r, ich.name ?: "—", "${leaderWert(ich)} ${leaderEinheit(ich)}".trim(), true, land = ich.land) } })
                 lbBild = TeamBildDaten(I18n.t(art), unter, zeilen, "pumpfoil-$lbMetric.png")
             }) {
                 Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(16.dp))

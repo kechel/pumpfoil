@@ -545,6 +545,8 @@ data class LeaderEntry(
     @SerialName("run_distance_m") val runDistanceM: Double = 0.0, @SerialName("run_time_s") val runTimeS: Double = 0.0,
     // ganze Fahrt (Wind/Paddeln, Server additiv seit 02.11.2026)
     @SerialName("ride_total_m") val rideTotalM: Double = 0.0,
+    // fliegende 100 m / Minute in m/s, nur Pumpfoil/Foil Scoot (Server additiv seit 17.11.2026)
+    @SerialName("sprint_100m_mps") val sprint100mMps: Double = 0.0, @SerialName("sprint_60s_mps") val sprint60sMps: Double = 0.0,
     // nur bei Einzellauf-Listen: Session des besten Laufs (Tippen oeffnet sie)
     @SerialName("session_id") val sessionId: Int? = null,
     // nur in `me`: die eigene Stelle, wenn sie nicht unter den ersten 10 ist (Server additiv seit 01.11.2026)
@@ -566,6 +568,9 @@ data class Leaders(
     @SerialName("run_distance") val runDistance: List<LeaderEntry> = emptyList(),
     @SerialName("run_time") val runTime: List<LeaderEntry> = emptyList(),
     @SerialName("ride_total") val rideTotal: List<LeaderEntry> = emptyList(),
+    // Fliegende Sprints (17.11.2026): nur bei Pumpfoil/Foil Scoot im Response, sonst null -> keine Auswahl
+    @SerialName("sprint_100m") val sprint100m: List<LeaderEntry>? = null,
+    @SerialName("sprint_60s") val sprint60s: List<LeaderEntry>? = null,
     // eigene Zeile unter Platz 10 je Liste; null, wenn man schon drinsteht oder keinen Wert hat
     val me: Map<String, LeaderEntry?> = emptyMap(),
 )
