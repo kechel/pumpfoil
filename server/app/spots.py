@@ -1032,8 +1032,14 @@ def assign_one(db, s, erzwingen: bool = False):
                 .filter(models.Spot.merged_into.is_(None), models.Spot.lat.isnot(None),
                         models.Spot.lat.between(lat0 - 0.01, lat0 + 0.01))
                 .all())
+        # 3) (17.11.2026) Nach der Sperre auch die STRECKE pruefen, nicht nur den Startpunkt: zwei Sessions desselben
+        # Tages kamen gleichzeitig hoch (Wear-Upload), der zweite Worker wartete auf die Sperre, fand danach aber nur
+        # „kein Spot unter 100 m" — die Starts lagen 160 m auseinander, die Strecken ueberlappten — und legte
+        # „<Ort> 2" an. Jetzt gilt nach der Sperre dieselbe Regel wie oben (Polygon schneidet die Spur).
+        frisch = [x for x in nahe if x.poly_wkt and _wkt_to_m(x.poly_wkt, lat0).intersects(new_m)]
         nahe = [x for x in nahe
-                if abstand_m(x.lat, x.lon, g.start[0], g.start[1]) <= DUBLETTE_M]
+                if abstand_m(x.lat, x.lon, g.start[0], g.start[1]) <= DUBLETTE_M
+                or x in frisch]
         if nahe:
             nahe.sort(key=lambda x: (-_session_count(db, x.id), x.name is None, x.id))
             sp = nahe[0]

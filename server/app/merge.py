@@ -70,54 +70,57 @@ def _same_spot(a, b) -> bool:
 
 def _eligible(s) -> bool:
     """Mergebar ist eine Session nur, wenn sie nicht geloescht/bereits zusammengefuehrt,
-    nicht aussortiert (is_pumpfoil) ist UND eine On-Foil-Erkennung hat (num_runs>0)."""
+    eine On-Foil-Erkennung hat (num_runs>0). Seit 17.11.2026 jede Sportart (s. can_merge)."""
     if s.deleted or s.merged_into is not None:
-        return False
-    if not s.is_pumpfoil:
         return False
     r = s.result
     return bool(r and (r.num_runs or 0) > 0)
 
 
 def can_merge(sessions: list[models.Session]) -> tuple[bool, str]:
+    # Gruende ENGLISCH (17.11.2026): sie gehen roh an die Oberflaeche (Web-Banner, Apps), die meisten Nutzer lesen
+    # Englisch — vorher bekam ein englischer Nutzer „aussortierte Session (kein Pumpfoilen)".
     if len(sessions) < 2:
-        return False, "min. 2 Sessions"
+        return False, "Select at least 2 sessions"
     if len({s.user_id for s in sessions}) > 1:
-        return False, "verschiedene Nutzer"
+        return False, "Sessions of different users"
     for s in sessions:
         if s.deleted or s.merged_into is not None:
-            return False, "geloeschte/zusammengefuehrte Session"
-        if not s.is_pumpfoil:
-            return False, "aussortierte Session (kein Pumpfoilen)"
+            return False, "A session is deleted or already merged"
         r = s.result
         if not (r and (r.num_runs or 0) > 0):
-            return False, "keine On-Foil-Erkennung"
+            return False, "A session has no detected runs"
+    # Jede Sportart (Jan, 17.11.2026: „kann ruhig bei allen sportarten erlaubt sein"). Die Sperre `is_pumpfoil` stammte
+    # vom 05.07.2026, als es noch keine Sportarten gab und „nicht Pumpfoil" aussortiert hiess — seitdem traf sie jede
+    # Wingfoil-/Wave-Session. Verlangt wird nur DIESELBE Sportart (die zusammengefuehrte bekommt sie, s. _sportart).
+    if len({(s.sport_class or "pumpfoil") for s in sessions}) > 1:
+        return False, "Sessions of different sports"
     # Nur Sessions DERSELBEN Uhr zusammenführen (gleiche device_id). Verhindert das Verschmelzen
     # paralleler Aufnahmen verschiedener Uhren (z. B. Dual-Watch-Experiment) — auch wenn die Raten
     # zufällig gleich wären. None (z. B. importierte Sessions) gilt als eigene Gruppe.
     if len({s.device_id for s in sessions}) > 1:
-        return False, "verschiedene Uhren/Geraete"
+        return False, "Sessions from different watches/devices"
     if len({s.accel_hz for s in sessions}) > 1 or len({s.accel_scale for s in sessions}) > 1 \
             or len({s.gps_hz for s in sessions}) > 1:
-        return False, "unterschiedliche Geraete-Raten"
+        return False, "Different device sample rates"
     # Nur Sessions mit DEMSELBEN Foil zusammenführen (foil_id). None==None gilt als gleich;
     # verschiedene (oder gesetzt vs. unbekannt) -> kein Merge, da andere Ausrüstung.
     if len({s.foil_id for s in sessions}) > 1:
-        return False, "verschiedene Foils"
+        return False, "Different foils"
     if any(not _same_spot(a, b) for a in sessions for b in sessions):
-        return False, "Sessions an verschiedenen Spots"
+        return False, "Sessions at different spots"
     # Nur Sessions DESSELBEN Tages zusammenführen (wie Web/mergeableIds) — verhindert das
     # versehentliche Verschmelzen unabhängiger Sessions verschiedener Tage.
     days = {s.started_at.astimezone().date() for s in sessions if s.started_at is not None}
     if len(days) > 1:
-        return False, "Sessions von verschiedenen Tagen"
+        return False, "Sessions on different days"
     # Keine ZEITLICH ÜBERLAPPENDEN Sessions — die können keine aufeinanderfolgenden Teile
     # sein, sondern sind parallele Aufnahmen (mehrere Geräte gleichzeitig, Dual-Watch-Experiment).
     # Backstop zusätzlich zum device_id-Check (greift auch bei unbekanntem Gerät, None==None).
     ordered = sorted((s for s in sessions if s.started_at is not None), key=lambda s: s.started_at)
     for a, b in zip(ordered, ordered[1:]):
         if b.started_at < _end(a):
-            return False, "Sessions überschneiden sich zeitlich (parallele Aufnahme)"
+            return False, "Sessions overlap in time (parallel recordings)"
     return True, ""
 
 
@@ -443,8 +446,7 @@ def merge_suggestions(db: DbSession, user_id: int) -> list[list[models.Session]]
           .options(joinedload(models.Session.result))
           .filter(models.Session.user_id == user_id,
                   models.Session.deleted.is_(False),
-                  models.Session.merged_into.is_(None),
-                  models.Session.is_pumpfoil.is_(True))
+                  models.Session.merged_into.is_(None))
           .order_by(models.Session.started_at).all())
     ss = [s for s in ss if _eligible(s)]   # nur On-Foil-erkannte, nicht aussortiert/geloescht
     groups: list[list[models.Session]] = []
@@ -464,6 +466,7 @@ def merge_suggestions(db: DbSession, user_id: int) -> list[list[models.Session]]
         same_device = _gleiche_quelle(s, prev)
         if same_device and 0 <= gap <= AUTO_MAX_GAP_S \
                 and s.accel_hz == prev.accel_hz and s.foil_id == prev.foil_id \
+                and (s.sport_class or "pumpfoil") == (prev.sport_class or "pumpfoil") \
                 and _same_spot(s, prev):
             chain.append(s)
         else:
