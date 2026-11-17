@@ -169,7 +169,7 @@ Object Store wurden nie abgeholt und fuellten ihn. Leeren des Activities-Ordners
 Neuinstallieren auch nicht (der Object Store haengt an der App-ID, c72cfbbc).
 
 - Menuepunkt „Aufnahmen loeschen" im App-Menue (MENU/halten vor dem Start) und in den Einstellungen an der
-  Aktivitaeten-Auswahl, nur wenn etwas wartet (Unterzeile „N offen"), immer mit Rueckfrage.
+  Aktivitaeten-Auswahl, nur wenn etwas wartet (Unterzeile „N offen"), immer mit Rueckfrage (eigene Ansicht `LoeschView`: UP/DOWN, „Abbrechen" vorgewaehlt, Loeschen nur mit START 2 s halten + Ring; die System-`Confirmation` schnitt den Text ab).
 - `Uploader.discardAll()`: loescht nur die Schluessel der wartenden Aufnahmen (ca_/cg_/state_/meta_/sa_/sg_ und den
   Eintrag im `sessions`-Index), eine Aufnahme je 100-ms-Timer-Schritt (Watchdog). Sprache, Foils, Seiten und
   Kopplung bleiben — anders als `Storage.clearValues()` in c72cfbbc (am selben Tag zurueckgenommen).
