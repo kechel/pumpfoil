@@ -264,7 +264,7 @@ module Uploader {
 
     // Alle ausstehenden Sessions hochladen (manuell, periodisch, App-Start, Background).
     function syncAll() as Void {
-        if (_busy || _recordingActive) { return; }
+        if (_busy || _recordingActive || _loeschListe != null) { return; }
         var sessions = Storage.getValue("sessions");
         if (!(sessions instanceof Lang.Array) || sessions.size() == 0) { return; }
         _queue = [];
@@ -338,6 +338,60 @@ module Uploader {
         } catch (e) { }
     }
     (:nolayouts) function _profilNachziehen() as Void { }
+
+    // LOKALE AUFNAHMEN LOESCHEN (Jan, 17.11.2026: „fuer diese 'offline' funktion benoetigt die uhr einen
+    // menuepunkt 'lokale pumpfoil aufnahmen loeschen'"). Wer nie ein Handy koppelt, laedt die FIT-Dateien
+    // per USB von Hand hoch oder bekommt sie ueber Garmin Connect — unsere Puffer im Object Store bleiben
+    // dann ewig liegen und fuellen ihn. Neu installieren leert ihn NICHT (haengt an der App-ID, c72cfbbc).
+    // Anders als `Storage.clearValues()` (c72cfbbc, zurueckgenommen) bleiben Sprache, Foils, Seiten und
+    // Kopplung erhalten: geloescht werden nur die Schluessel der wartenden Aufnahmen.
+    // EINE Aufnahme je Timer-Schritt: eine 5-h-Fahrt sind ~450 Schluessel, mehrere in einem Rutsch
+    // koennten den Watchdog ausloesen. Je Aufnahme dieselbe Menge wie `SessionSyncJob._cleanup`.
+    var _loeschTimer = null;
+    var _loeschListe = null;
+
+    (:full) function discardAll() as Void {
+        if (_busy || _recordingActive || _loeschListe != null) { return; }
+        var arr = Storage.getValue("sessions");
+        if (!(arr instanceof Lang.Array) || arr.size() == 0) { return; }
+        _loeschListe = [];
+        for (var i = 0; i < arr.size(); i++) {
+            if (_activeUuid != null && arr[i].equals(_activeUuid)) { continue; }
+            _loeschListe.add(arr[i]);
+        }
+        watch().stop();
+        if (_loeschTimer == null) { _loeschTimer = new Timer.Timer(); }
+        _loeschSchritt();
+    }
+
+    (:full) function _loeschSchritt() as Void {
+        if (_loeschListe == null || _loeschListe.size() == 0) { _loeschListe = null; return; }
+        var u = _loeschListe[0];
+        _loeschListe.remove(u);
+        try {
+            var st = Storage.getValue("state_" + u);
+            var na = 0;
+            var ng = 0;
+            if (st instanceof Lang.Dictionary) {
+                if (st["accel_chunks"] instanceof Lang.Number) { na = st["accel_chunks"]; }
+                if (st["gps_chunks"] instanceof Lang.Number) { ng = st["gps_chunks"]; }
+            }
+            for (var k = 0; k < na; k++) { Storage.deleteValue("ca_" + u + "_" + k); }
+            for (var k = 0; k < ng; k++) { Storage.deleteValue("cg_" + u + "_" + k); }
+            Storage.deleteValue("state_" + u);
+            Storage.deleteValue("meta_" + u);
+            Storage.deleteValue("sa_" + u);
+            Storage.deleteValue("sg_" + u);
+            var idx = Storage.getValue("sessions");
+            if (idx instanceof Lang.Array) { idx.remove(u); _set("sessions", idx); }
+            _storageFull = false;
+        } catch (e) { }
+        if (_loeschListe.size() == 0) { _loeschListe = null; return; }
+        try { _loeschTimer.start(new Lang.Method(Uploader, :_loeschSchritt), 100, false); }
+        catch (e) { _loeschListe = null; }
+    }
+
+    (:full) function isDiscarding() as Lang.Boolean { return _loeschListe != null; }
 
     function _toast(msg as Lang.String) as Void {
         System.println(msg);

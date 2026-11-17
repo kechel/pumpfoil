@@ -265,6 +265,7 @@ class RecordDelegate extends WatchUi.BehaviorDelegate {
         menu.addItem(new WatchUi.MenuItem(
             Strings.s("menu.autostart"), _rec.autoStartOn() ? Strings.s("common.on") : Strings.s("common.off"), :autostart, {}));
         _addLayoutItem(menu);
+        LoeschAbfrage.eintrag(menu);
         WatchUi.pushView(menu, new MenuDelegate(_rec), WatchUi.SLIDE_UP);
         return true;
     }
@@ -525,6 +526,8 @@ class MenuDelegate extends WatchUi.Menu2InputDelegate {
             WatchUi.requestUpdate();
         } else if (id == :layouts) {
             _toggleLayouts(item);
+        } else if (id == :loeschen) {
+            LoeschAbfrage.frage(item);
         }
     }
 }

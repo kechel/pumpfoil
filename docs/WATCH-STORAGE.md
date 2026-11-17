@@ -161,3 +161,18 @@ gespeichert werden, am ende wollen wir immer die besseren daten zur analyse und 
 - Die bessere Aufnahme wird die Session (`garmin_ersetzt`: deckt die Fahrt ab UND eigene duenn oder Datei mit
   deutlich hoeherer Beschleunigungsrate) — die eigene geht darin auf (`merged_into`, Ordner bleibt). Sonst haengt die
   Datei als `fit-upload-<hash>.fit` an der eigenen Session.
+
+## Lokale Aufnahmen loeschen (Garmin, 17.11.2026, noch nicht im Store)
+
+Anlass: ein Fahrer ohne Handy (Forerunner 245) laedt seine FIT-Dateien per USB von Hand hoch; unsere Puffer im
+Object Store wurden nie abgeholt und fuellten ihn. Leeren des Activities-Ordners hilft nicht (das sind Garmins Dateien),
+Neuinstallieren auch nicht (der Object Store haengt an der App-ID, c72cfbbc).
+
+- Menuepunkt „Aufnahmen loeschen" im App-Menue (MENU/halten vor dem Start) und in den Einstellungen an der
+  Aktivitaeten-Auswahl, nur wenn etwas wartet (Unterzeile „N offen"), immer mit Rueckfrage.
+- `Uploader.discardAll()`: loescht nur die Schluessel der wartenden Aufnahmen (ca_/cg_/state_/meta_/sa_/sg_ und den
+  Eintrag im `sessions`-Index), eine Aufnahme je 100-ms-Timer-Schritt (Watchdog). Sprache, Foils, Seiten und
+  Kopplung bleiben — anders als `Storage.clearValues()` in c72cfbbc (am selben Tag zurueckgenommen).
+- Nicht im LITE-Build (96-KB-Uhren, ~7 KB Luft): dort leere Fassung, +112 B. Voller Build +3,5 KB, 128-KB-Stufe
+  (FR55/FR245) +1,9 KB — vor der Einreichung im Simulator den Heap der 128-KB-Stufe pruefen.
+- Nur Garmin: die anderen Uhren haben keinen USB-FIT-Weg, ihre Puffer gehen ohnehin uebers Handy.

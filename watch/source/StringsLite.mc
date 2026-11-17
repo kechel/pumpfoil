@@ -179,6 +179,9 @@ module Strings {
     (:full) function _e7(key as Lang.String) {
         if (key.equals("menu.settings")) { return "Settings"; }
         if (key.equals("menu.autostart")) { return "Auto-start"; }
+        if (key.equals("menu.discard")) { return "Delete recordings"; }
+        if (key.equals("del.ask"))      { return "Delete pending recordings from the watch? Only if already uploaded (FIT/Garmin Connect)."; }
+        if (key.equals("del.done"))     { return "deleted"; }
         if (key.equals("common.on"))     { return "On"; }
         if (key.equals("common.off"))    { return "Off"; }
         if (key.equals("fm.title"))      { return "Foil & alarm"; }

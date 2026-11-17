@@ -16,6 +16,46 @@ class SettingsMenu extends WatchUi.Menu2 {
             :verbinden, {}));
         addItem(new WatchUi.MenuItem(
             Strings.s("menu.upload"), Strings.s("menu.uploadSub"), :upload, {}));
+        LoeschAbfrage.eintrag(self);
+    }
+}
+
+// „Lokale Aufnahmen loeschen" (Jan, 17.11.2026) — fuer alle, die ohne Handy fahren und ihre FIT-Dateien per USB
+// hochladen oder ueber Garmin Connect bekommen; sonst fuellen unsere Puffer den Speicher (s. Uploader.discardAll).
+// Nur sichtbar, wenn etwas wartet; immer mit Rueckfrage. NICHT im LITE-Build (96-KB-Uhren, Spitze 89/92 KB):
+// dort kostete es ~1,9 KB; leere Fassung darunter.
+(:full)
+module LoeschAbfrage {
+    function eintrag(menu) as Void {
+        var n = Uploader.pendingCount();
+        if (n == 0) { return; }
+        menu.addItem(new WatchUi.MenuItem(Strings.s("menu.discard"), n + " " + Strings.s("up.open"), :loeschen, {}));
+    }
+    function frage(item) as Void {
+        WatchUi.pushView(new WatchUi.Confirmation(Strings.s("del.ask")), new LoeschDelegate(item), WatchUi.SLIDE_IMMEDIATE);
+    }
+}
+
+(:lite)
+module LoeschAbfrage {
+    function eintrag(menu) as Void { }
+    function frage(item) as Void { }
+}
+
+(:full)
+class LoeschDelegate extends WatchUi.ConfirmationDelegate {
+    hidden var _item;
+    function initialize(item) {
+        ConfirmationDelegate.initialize();
+        _item = item;
+    }
+    function onResponse(r) as Lang.Boolean {
+        if (r == WatchUi.CONFIRM_YES) {
+            Uploader.discardAll();
+            _item.setSubLabel(Strings.s("del.done"));
+            WatchUi.requestUpdate();
+        }
+        return true;
     }
 }
 
@@ -35,6 +75,8 @@ class SettingsMenuDelegate extends WatchUi.Menu2InputDelegate {
             WatchUi.pushView(new PairView(_rec), new PairDelegate(_rec), WatchUi.SLIDE_LEFT);
         } else if (id == :upload) {
             WatchUi.pushView(new UploadView(_rec), new UploadDelegate(_rec), WatchUi.SLIDE_LEFT);
+        } else if (id == :loeschen) {
+            LoeschAbfrage.frage(item);
         }
     }
 }
