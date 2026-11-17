@@ -1574,7 +1574,7 @@ Referee „nur zu zweit/Moderatoren nur Vorschlag" nur gemerkt (Jan: „glaube d
 - Zepp 1.0.17 (GPS-Neustart) einreichen, sobald 1.0.16 freigegeben ist; danach Eimer-Test Balance 2 + `messweg` auswerten (14.11.).
 - Sprint-Ebene „1 min"/„100 m" in der Session (Web 17.11., 982f492c/cae0d4c8) PORTIERT: Android 100ef974 (in 1.1.49,
   kompiliert; Material-Switches), iOS 9cb6d3fd (fuer 1.1.68, nur swiftc -parse; Werte als Spalte in der Lauf-Tabelle).
-- Naechstes Android/iOS: Puls-Streifen je Lauf (12.11.), Datenschutz + Team-Regeln (07.11.); Global-Opt-out-Hinweis ist
+- ✅ Puls-Streifen je Lauf + Datenschutzseite portiert (Android 351d215d in 1.1.49, iOS b4c99fec in 1.1.67). Global-Opt-out-Hinweis ist
   gebaut, mit abgemeldetem Konto noch nicht angesehen (Web/Android/iOS).
 - ✅ Uhren-Paritaet LaufLuecke: laut docs/PARITY-AUDIT.md Punkt 9 seit 12.11. ueberall gebaut (Zepp 1.0.16, Huawei 1.0.6
   Watch 5 + Watch 3/4 — Lite nicht, 48-KB-Heap —, Suunto 1.01); TODO-Zeile war veraltet (17.11.).
