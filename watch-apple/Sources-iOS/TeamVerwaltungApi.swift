@@ -52,8 +52,10 @@ struct TeamTafelEntwurf: Identifiable, Equatable {
 let TEAM_KENNZAHLEN_BEST: [String] = ["session_pumps", "distance", "duration", "speed", "glide", "runs",
                                       "session_distance", "session_time"]
 let TEAM_KENNZAHLEN_SUMME: [String] = ["sum_pumps", "sum_runs", "sum_sessions", "sum_distance", "sum_time", "sum_spots"]
-/// Fliegende Sprints (09.11.2026, web SPRINT_KENNZAHLEN): vorerst NUR in Events waehlbar, nicht in den Team-Bestenlisten.
+/// Fliegende Sprints (09.11.2026, web SPRINT_KENNZAHLEN): erst nur in Events, seit 17.11.2026 auch als Team-Bestenliste —
+/// dort nur in diesen Sportarten (Server teams.SPRINT_SPORTARTEN).
 let TEAM_KENNZAHLEN_SPRINT: [String] = ["sprint_100m", "sprint_200m", "sprint_300m", "sprint_60s"]
+let TEAM_SPRINT_SPORTARTEN: Set<String> = ["pumpfoil", "foil_scoot", "pumpfoil+foil_scoot"]
 
 extension Api {
     fileprivate static func vPfad(_ slug: String) -> String {
@@ -152,9 +154,11 @@ extension Api {
         try await teamJson(vPfad(slug) + "/freigabe", method: "POST", json: nil)
     }
 
+    /// `sprint=1` (17.11.2026): Sprint-Bestenlisten annehmen (web teamTafelnSetzen). Ohne den Schalter haelt der Server
+    /// vorhandene Sprint-Bestenlisten fest — mit ihm zaehlt genau die geschickte Liste.
     static func teamTafelnSetzen(_ slug: String, _ tafeln: [TeamTafelEntwurf]) async throws {
         struct A: Decodable { let tafeln: [TeamTafel]? }
-        let _: A = try await teamJson(vPfad(slug) + "/tafeln", method: "PUT", json: tafeln.map { $0.json(mitTeamspots: true) })
+        let _: A = try await teamJson(vPfad(slug) + "/tafeln?sprint=1", method: "PUT", json: tafeln.map { $0.json(mitTeamspots: true) })
     }
 
     static func teamSpotsSetzen(_ slug: String, _ ids: [Int]) async throws {

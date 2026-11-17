@@ -477,6 +477,7 @@ struct TeamTafelEditor: View {
                     ForEach(auswahl?.sports ?? ["pumpfoil"], id: \.self) { s in Text(Loc.t("cls.sport." + s, lang)).tag(s) }
                 }
                 .pickerStyle(.menu)
+                .onChange(of: tf.sportart) { s in sprintPruefen(s) }
                 Picker("", selection: $tf.foil_band) { baender }
                     .pickerStyle(.menu)
             }
@@ -488,6 +489,13 @@ struct TeamTafelEditor: View {
 
     private var eventKennzahlen: [String] { TEAM_KENNZAHLEN_BEST + TEAM_KENNZAHLEN_SUMME + TEAM_KENNZAHLEN_SPRINT }
 
+    /// Team-Bestenliste: wechselt die Sportart weg von Pumpfoil/Foil Scoot, faellt eine Sprint-Kennzahl auf „weitester
+    /// Lauf" zurueck (web tafelAendern, 17.11.2026; sonst lehnte der Server das Speichern ab). Events duerfen alle Sportarten.
+    private func sprintPruefen(_ sportart: String) {
+        guard gruppiert, TEAM_KENNZAHLEN_SPRINT.contains(tf.kennzahl), !TEAM_SPRINT_SPORTARTEN.contains(sportart) else { return }
+        tf.kennzahl = "distance"
+    }
+
     @ViewBuilder private var kennzahlen: some View {
         if gruppiert {
             Section(Loc.t("team.k.best", lang)) {
@@ -495,6 +503,12 @@ struct TeamTafelEditor: View {
             }
             Section(Loc.t("team.k.summe", lang)) {
                 ForEach(TEAM_KENNZAHLEN_SUMME, id: \.self) { k in Text(Loc.t(teamKennzahl(k).labelKey, lang)).tag(k) }
+            }
+            // Sprint-Bestenlisten nur bei Pumpfoil/Foil Scoot (17.11.2026, web TeamEinstellungen).
+            if TEAM_SPRINT_SPORTARTEN.contains(tf.sportart) {
+                Section("Sprints") {
+                    ForEach(TEAM_KENNZAHLEN_SPRINT, id: \.self) { k in Text(Loc.t(teamKennzahl(k).labelKey, lang)).tag(k) }
+                }
             }
         } else {
             // Events (web EVENT_KENNZAHLEN): Team-Kennzahlen plus die Sprints.

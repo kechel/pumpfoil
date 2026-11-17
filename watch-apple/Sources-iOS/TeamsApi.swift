@@ -43,8 +43,9 @@ extension Api {
         try await request(teamPfad(slug), method: "GET", body: nil, auth: true)
     }
 
+    /// `sprint=1` (17.11.2026): Sprint-Bestenlisten mitliefern (web teamBestenlisten); ohne laesst der Server sie weg.
     static func teamBestenlisten(_ slug: String, period: String) async throws -> TeamBestenlisten {
-        try await request(teamPfad(slug) + "/bestenlisten?period=" + periodeQuery(period), method: "GET", body: nil, auth: true)
+        try await request(teamPfad(slug) + "/bestenlisten?period=" + periodeQuery(period) + "&sprint=1", method: "GET", body: nil, auth: true)
     }
 
     static func teamStatistik(_ slug: String, period: String) async throws -> TeamStatistik {
