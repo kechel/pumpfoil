@@ -1656,6 +1656,14 @@ Entwurf zusammen mit A1.
 - Lob als Zitate sammeln (bei Gelegenheit, 15.11.).
 - ✅ 16.11. Antwort an u1124 (Suunto: Uhrname + Takt laut Uhr) gesendet (Konto 230).
 
+- **On-Foil-Alarm auch als Piepton (u991, 17.11., Jan: aufnehmen):** „bei Kaelte spuere ich die Vibration nicht".
+  Jan: zusaetzlich zur Vibration optional ein Piepton, GLEICHES Muster (alarm_pattern_high/low, Wiederholung), zwei
+  Checkboxen „Vibrieren" / „Piepen", getrennt ein/aus, auch beides. Server: neues Feld (z. B. `alarm_beep`, Standard
+  aus; `alarm_vibrate` Standard an = heutiges Verhalten) in /config, alte Uhren ignorieren es. Web-Einstellung + Apps.
+  Uhren: Garmin `Attention.playTone` (ToneProfile, `has :playTone`; Uhren ohne Lautsprecher -> Checkbox ausgrauen/
+  ignorieren), Apple `WKInterfaceDevice.play`, Zepp/Wear/Huawei je Plattform pruefen. Achtung Regel „Uhren-Apps nicht
+  ausbauen" — Jan hat es gewuenscht, also vorher klaeren, welche Plattformen in welcher Reihenfolge. Nicht angefangen.
+
 **F. Ideen / geparkt (nicht anfangen ohne Jan)**
 - **Sessions nach Parametern filtern (u914, 17.11., Jan: „nice idea", fuer spaeter):** im Community-Reiter bzw. in den
   Sessions alle Laeufe/Sessions mit demselben Foil (Marke + Frontwing) sehen, um eigene Laeufe und Koennen ueber ein
