@@ -424,6 +424,9 @@ struct PeriodRecords: Codable {
     var dw_ab_speed: CommunityRecordEntry? = nil
     var waves: CommunityRecordEntry? = nil
     var wave_longest: CommunityRecordEntry? = nil
+    // Fliegende Sprints (17.11.2026): Wert in m/s, nur bei Pumpfoil/Foil Scoot gefuellt.
+    var sprint_100m: CommunityRecordEntry? = nil
+    var sprint_60s: CommunityRecordEntry? = nil
 
     let max_hr: CommunityRecordEntry?
     let early_bird: CommunityRecordEntry?   // Wert = s seit Mitternacht (Spot-Ortszeit)
@@ -1651,6 +1654,9 @@ enum LayoutValue: Codable {
 struct SessionDest: Hashable {
     let id: Int
     var dataVersion: Int? = nil
+    /// Aus einer Sprint-Rekordkachel (17.11.2026, web `?run=&sprint=`): Lauf vorauswaehlen, Sprint hervorheben.
+    var vorwahlLauf: Int? = nil
+    var sprintKz: String? = nil
 }
 
 // Ziel der programmatischen Navigation von der Spot-KARTE aus (wert- statt closure-basiert,

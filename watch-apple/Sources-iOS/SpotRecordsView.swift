@@ -16,6 +16,14 @@ struct RecRow: Identifiable {
     let label: String
     let value: String
     let entry: CommunityRecordEntry?
+    /// Sprint-Kachel (17.11.2026): Kennzahl fuer die Hervorhebung beim Oeffnen, sonst nil.
+    var sprintKz: String? = nil
+}
+
+/// Ziel einer Rekord-Kachel: Sprint-Kacheln oeffnen den Lauf mit hervorgehobenem Sprint (wie die Event-Bestenliste).
+func rekordZiel(_ t: RecRow, _ sid: Int) -> SessionDest {
+    guard let kz = t.sprintKz, let lauf = t.entry?.run_idx else { return SessionDest(id: sid) }
+    return SessionDest(id: sid, vorwahlLauf: lauf, sprintKz: kz)
 }
 
 
@@ -33,6 +41,8 @@ let REK_SAETZE: [String: [String]] = [
 ]
 func sportRek(_ sport: String?) -> [String] {
     if sport == "surf_wave" { return ["waves", "wave_longest"] }
+    // Fliegende Sprints (17.11.2026, web SPORT_REC): nur Pumpfoil, Foil Scoot und deren Mischung.
+    if sport == "pumpfoil" || sport == "foil_scoot" || sport == "pumpfoil+foil_scoot" { return ["sprint_100m", "sprint_60s"] }
     guard let satz = Sportarten.eintrag(sport)?.rekorde else { return [] }
     return REK_SAETZE[satz] ?? []
 }
@@ -64,6 +74,12 @@ func sportRekordZeile(_ key: String, _ r: PeriodRecords, lang: String) -> RecRow
     case "dw_ab_speed": e = r.dw_ab_speed; label = "rec.dwAbSpeed"; fmt = kmh
     case "waves": e = r.waves; label = "rec.waves"; fmt = anz
     case "wave_longest": e = r.wave_longest; label = "rec.waveLongest"; fmt = dauer
+    // Anzeige wie in der Event-Wertung (TeamKennzahlen.swift): 100 m = Zeit + Tempo, Minute = Tempo + Strecke.
+    case "sprint_100m", "sprint_60s":
+        e = key == "sprint_100m" ? r.sprint_100m : r.sprint_60s
+        label = "team.k." + key
+        let kz: TeamKennzahl = teamKennzahl(key)
+        fmt = { kz.fmt($0, lang) }
     default: return nil
     }
     let da: Bool = e?.session_id != nil && (e?.value ?? 0) > 0
@@ -71,7 +87,8 @@ func sportRekordZeile(_ key: String, _ r: PeriodRecords, lang: String) -> RecRow
     if da, let n = e?.anzahl {   // Quoten mit Anzahl („100 % von 146", 20.10.2026)
         text = Loc.t("rec.ofN", lang).replacingOccurrences(of: "{p}", with: text).replacingOccurrences(of: "{n}", with: String(n))
     }
-    return RecRow(id: key, label: Loc.t(label, lang), value: text, entry: da ? e : nil)
+    let sprint: String? = key.hasPrefix("sprint_") ? key : nil
+    return RecRow(id: key, label: Loc.t(label, lang), value: text, entry: da ? e : nil, sprintKz: sprint)
 }
 
 func sportRekordZeilen(_ r: PeriodRecords?, lang: String, sport: String?) -> [RecRow] {
@@ -124,7 +141,7 @@ struct SportRekordeZeilenView: View {
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
         if let sid = t.entry?.session_id {
-            NavigationLink(value: SessionDest(id: sid)) { inhalt }.buttonStyle(.plain)
+            NavigationLink(value: rekordZiel(t, sid)) { inhalt }.buttonStyle(.plain)
         } else {
             inhalt
         }
@@ -139,6 +156,7 @@ struct SportRekordeZeilenView: View {
         p.ride_farthest = m["ride_farthest"]; p.paddle_success = m["paddle_success"]; p.paddle_quote = m["paddle_quote"]
         p.paddle_foil_longest = m["paddle_foil_longest"]; p.wake_longest = m["wake_longest"]; p.wake_time = m["wake_time"]
         p.dw_ab = m["dw_ab"]; p.dw_ab_speed = m["dw_ab_speed"]; p.waves = m["waves"]; p.wave_longest = m["wave_longest"]
+        p.sprint_100m = m["sprint_100m"]; p.sprint_60s = m["sprint_60s"]
         return p
     }
 }
@@ -338,6 +356,11 @@ struct SpotRecordsKasten: View {
     @State private var fensterWahl = "10d"
     @State private var selbstGewaehlt = false
 
+    /// Sprint-Kacheln mit Lauf und Hervorhebung (17.11.2026), sonst die Session.
+    private static func ziel(_ d: SessionDest) -> SessionDetailView {
+        SessionDetailView(id: d.id, vorwahlLauf: d.vorwahlLauf, sprintKz: d.sprintKz)
+    }
+
     static func hatRekorde(_ alle: [String: PeriodRecords]?, lang: String, sport: String) -> Bool {
         guard let alle else { return false }
         return fenster.contains { !rekordZeilen(alle[$0], lang: lang, sport: sport).allSatisfy { $0.entry == nil } }
@@ -392,7 +415,7 @@ struct SpotRecordsKasten: View {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
                 ForEach(zeilen) { z in
                     if let sid = z.entry?.session_id {
-                        NavigationLink { SessionDetailView(id: sid) } label: { kachel(z) }
+                        NavigationLink { Self.ziel(rekordZiel(z, sid)) } label: { kachel(z) }
                             .buttonStyle(.plain)
                     } else {
                         kachel(z)

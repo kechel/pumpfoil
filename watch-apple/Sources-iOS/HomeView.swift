@@ -91,7 +91,7 @@ struct HomeView: View {
                 // Wert-basiertes Session-Ziel (s. SessionDest in Models.swift) — die
                 // Rekord-Kacheln unten sind ein LazyVGrid, closure-Links pushten dort doppelt.
                 .navigationDestination(for: SessionDest.self) { d in
-                    SessionDetailView(id: d.id, dataVersion: d.dataVersion)
+                    SessionDetailView(id: d.id, dataVersion: d.dataVersion, vorwahlLauf: d.vorwahlLauf, sprintKz: d.sprintKz)
                 }
                 // Ziele der eingebetteten Foiler-Seite (Home › Profil), wie in FoilerSheet.
                 .navigationDestination(for: SpotDest.self) { d in

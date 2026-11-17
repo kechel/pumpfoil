@@ -1348,6 +1348,9 @@ struct SessionDetailView: View {
 
     /// Lauf-Index -> Fenster + Wert (m/s) der Kategorie; leer ohne Werte je Lauf.
     private func sprintJeLauf(_ s: SessionDetail, _ kz: String) -> [Int: SprintLauf] {
+        // Nur Pumpfoil und Foil Scoot (web, 17.11.2026; ohne Sportart = Pumpfoil) — sonst keine Schalter, nichts gezeichnet.
+        let sport: String = s.sport_class ?? "pumpfoil"
+        guard sport == "pumpfoil" || sport == "foil_scoot" else { return [:] }
         let lf: [[String: [Double]]?] = s.analysis?.sprints?.laeufe_fenster ?? []
         let werte: [[String: Double]?] = s.analysis?.sprints?.laeufe ?? []
         var out: [Int: SprintLauf] = [:]

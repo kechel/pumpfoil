@@ -31,7 +31,7 @@ struct FoilerSheet: View {
             FoilerView(userId: userId, pfad: $pfad)
                 .toolbar { schliessenKnopf }
                 .navigationDestination(for: SessionDest.self) { d in
-                    SessionDetailView(id: d.id, dataVersion: d.dataVersion)
+                    SessionDetailView(id: d.id, dataVersion: d.dataVersion, vorwahlLauf: d.vorwahlLauf, sprintKz: d.sprintKz)
                 }
                 .navigationDestination(for: SpotDest.self) { d in
                     SpotSessionsView(spot: d.spot, vorgegebeneSpotId: d.spotId, sport: d.sport)

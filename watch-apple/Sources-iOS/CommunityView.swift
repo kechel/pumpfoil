@@ -119,7 +119,7 @@ struct CommunityView: View {
             // EIN Ziel fuer alle Session-Links dieses Stapels (Rekorde, Medien, Zeilen) —
             // wert-basiert statt closure-basiert, s. SessionDest in Models.swift.
             .navigationDestination(for: SessionDest.self) { d in
-                SessionDetailView(id: d.id, dataVersion: d.dataVersion)
+                SessionDetailView(id: d.id, dataVersion: d.dataVersion, vorwahlLauf: d.vorwahlLauf, sprintKz: d.sprintKz)
             }
             // Team-Events, „Alle Events", „Alle Teams" (TeamsListen.swift)
             .navigationDestination(for: TeamsZiel.self) { z in TeamsZielView(ziel: z) }
@@ -267,7 +267,7 @@ struct CommunityView: View {
             LazyVGrid(columns: gridCols, spacing: 8) {
                 ForEach(rows) { t in
                     if let sid = t.entry?.session_id {
-                        Button { navPath.append(SessionDest(id: sid)) } label: { recordCell(t, showSpot: showSpot) }
+                        Button { navPath.append(rekordZiel(t, sid)) } label: { recordCell(t, showSpot: showSpot) }
                             .buttonStyle(.plain)
                     } else {
                         recordCell(t, showSpot: showSpot)
