@@ -606,14 +606,7 @@ export default function Landing() {
           <div className="mt-8 flex flex-col items-center justify-center gap-8 sm:flex-row sm:items-start sm:gap-12">
             {/* Android (Google Play) */}
             <div className="flex flex-col items-center gap-3">
-              <a
-                href="https://play.google.com/store/apps/details?id=org.pumpfoil.app"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Jetzt bei Google Play"
-              >
-                <img src="/badges/google-play-de.png" alt="Jetzt bei Google Play" className="h-14 w-auto" />
-              </a>
+              <PlayBadge height="h-14" />
               <span className="text-xs font-medium text-slate-300">{t("land.inclWear")}</span>
               <img
                 src="/badges/qr-google-play.svg"
@@ -623,14 +616,7 @@ export default function Landing() {
             </div>
             {/* iPhone + Apple Watch (App Store) */}
             <div className="flex flex-col items-center gap-3">
-              <a
-                href="https://apps.apple.com/app/id6783975714"
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Laden im App Store"
-              >
-                <img src="/badges/app-store-de.svg" alt="Laden im App Store" className="h-14 w-auto" />
-              </a>
+              <AppStoreBadge height="h-14" />
               <span className="text-xs font-medium text-slate-300">{t("land.inclWatch")}</span>
               <img
                 src="/badges/qr-app-store.svg"

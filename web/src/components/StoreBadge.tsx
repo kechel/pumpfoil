@@ -1,4 +1,4 @@
-import { useT } from "../i18n";
+import { useI18n, useT } from "../i18n";
 // Theme-abhängiges Store-Badge: rendert beide Motive, per CSS (index.css: .storebadge-*)
 // erscheint je App-Theme das passende — Dark-Mode -> dunkles, Light-Mode -> helles Badge.
 export function StoreBadge({ href, darkSrc, lightSrc, alt, height = "h-11", widthClass, className = "" }: {
@@ -18,16 +18,25 @@ export function StoreBadge({ href, darkSrc, lightSrc, alt, height = "h-11", widt
 export const APP_STORE_URL = "https://apps.apple.com/app/id6783975714";
 export const PLAY_URL = "https://play.google.com/store/apps/details?id=org.pumpfoil.app";
 
-// Alt-Text uebersetzt (17.11.2026); die Badge-BILDER gibt es bisher nur auf Deutsch.
+// Alt-Text uebersetzt, Badge-BILD deutsch fuer de/gsw/de-AT, sonst englisch (17.11.2026). Das englische Google-Badge ist
+// das offizielle (play.google.com), zugeschnitten wie das deutsche; die helle Fassung daraus umgefaerbt. Das App-Store-Badge
+// ist wie das deutsche nachgebaut (Apples Badge-Server ist von der Build-VM nicht erreichbar).
+export function useBadgeSprache(): "de" | "en" {
+  const { lang } = useI18n();
+  return lang === "de" || lang === "gsw" || lang === "de-AT" ? "de" : "en";
+}
+
 export function AppStoreBadge({ height, className }: { height?: string; className?: string }) {
   const t = useT();
-  return <StoreBadge href={APP_STORE_URL} darkSrc="/badges/app-store-de.svg" lightSrc="/badges/app-store-de-light.svg"
+  const sp = useBadgeSprache();
+  return <StoreBadge href={APP_STORE_URL} darkSrc={`/badges/app-store-${sp}.svg`} lightSrc={`/badges/app-store-${sp}-light.svg`}
     alt={t("badge.appstore")} height={height} className={className} />;
 }
 
 export function PlayBadge({ height, className }: { height?: string; className?: string }) {
   const t = useT();
-  return <StoreBadge href={PLAY_URL} darkSrc="/badges/google-play-de.png" lightSrc="/badges/google-play-de-light.png"
+  const sp = useBadgeSprache();
+  return <StoreBadge href={PLAY_URL} darkSrc={`/badges/google-play-${sp}.png`} lightSrc={`/badges/google-play-${sp}-light.png`}
     alt={t("badge.play")} height={height} className={className} />;
 }
 
