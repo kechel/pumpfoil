@@ -556,7 +556,7 @@ internal fun SectionHeader(title: String) {
  *  noch Spot — nur Wert und Person. Ohne dieses Kennzeichen fiele die Kachel durch die
  *  `sessionId != null`-Pruefung und stuende dauerhaft auf „–". */
 private data class RecItem(val label: String, val value: String, val e: CommunityRecordEntry,
-                           val ohneSession: Boolean = false)
+                           val ohneSession: Boolean = false, val sprint: String? = null)
 
 // Sekunden-seit-Mitternacht (Spot-Ortszeit) -> "HH:MM"; Night Owl kann >24 h liefern (über
 // Mitternacht) -> mod 24 h.
@@ -606,6 +606,8 @@ fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modi
     // Hat das Zeitfenster gar keinen Rekord, bleiben die „–"-Kacheln (statt einer leeren Flaeche).
     val belegt = if (nurBelegt && r != null) items0.filter { it.e.value > 0.0 && (it.e.sessionId != null || it.ohneSession) } else emptyList()
     val items = belegt.ifEmpty { items0 }
+    // Sprint-Kacheln (17.11.2026, Web Home.tsx): Session mit Lauf und hervorgehobenem Sprint wie die Event-Bestenliste.
+    val oeffneLauf = LocalOpenSessionLauf.current
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items.chunked(2).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -616,7 +618,11 @@ fun RecordGrid(r: PeriodRecords?, showSpot: Boolean, onOpen: (Int) -> Unit, modi
                     // Verlinken nur, wenn es wirklich eine Session gibt.
                     val klickbar = has && ri.e.sessionId != null
                     Card(
-                        Modifier.weight(1f).then(if (klickbar) Modifier.clickable { onOpen(ri.e.sessionId!!) } else Modifier),
+                        Modifier.weight(1f).then(if (klickbar) Modifier.clickable {
+                            val sid = ri.e.sessionId!!
+                            if (ri.sprint != null && ri.e.runIdx != null && oeffneLauf != null) oeffneLauf(sid, ri.e.runIdx, ri.sprint)
+                            else onOpen(sid)
+                        } else Modifier),
                     ) {
                       // Box nur als Rahmen: die Vorschau liegt HINTER dem Text (Web 1be44c9e, 09.11.2026: Deckkraft 0,2)
                       // und beeinflusst die Höhe nicht — ohne Track bleibt alles gleich.
@@ -682,6 +688,8 @@ private val REK_SAETZE: Map<String, List<String>> = mapOf(
 )
 private fun sportRek(sport: String?): List<String> = when {
     sport == "surf_wave" -> listOf("waves", "wave_longest")
+    // Fliegende Sprints (17.11.2026, Web SPORT_REC): nur Pumpfoil, Foil Scoot und deren Mischung.
+    sport == "pumpfoil" || sport == "foil_scoot" || sport == "pumpfoil+foil_scoot" -> listOf("sprint_100m", "sprint_60s")
     else -> Sportarten.eintrag(sport)?.rekorde?.let { REK_SAETZE[it] } ?: emptyList()
 }
 
@@ -703,12 +711,15 @@ private fun sportRecItems(r: PeriodRecords?, sport: String?): List<RecItem> {
         "wake_longest" to Triple("rec.wakeLongest", dur, r.wakeLongest), "wake_time" to Triple("rec.wakeTime", dur, r.wakeTime),
         "dw_ab" to Triple("rec.dwAb", km, r.dwAb), "dw_ab_speed" to Triple("rec.dwAbSpeed", kmh, r.dwAbSpeed),
         "waves" to Triple("rec.waves", n, r.waves), "wave_longest" to Triple("rec.waveLongest", dur, r.waveLongest),
+        // Anzeige wie in der Event-Wertung (Teams.kt kennzahlWert): 100 m = Zeit + Tempo, Minute = Tempo + Strecke.
+        "sprint_100m" to Triple("team.k.sprint_100m", { v: Double -> kennzahlWert("sprint_100m", v) }, r.sprint100m),
+        "sprint_60s" to Triple("team.k.sprint_60s", { v: Double -> kennzahlWert("sprint_60s", v) }, r.sprint60s),
     )
     return sportRek(sport).mapNotNull { k ->
         val (label, fmt, e) = def[k] ?: return@mapNotNull null
         // Quoten mit Anzahl („100 % von 146", 20.10.2026)
         val text = fmt(e?.value ?: 0.0).let { w -> e?.anzahl?.let { I18n.t("rec.ofN").replace("{p}", w).replace("{n}", "$it") } ?: w }
-        RecItem(I18n.t(label), text, e ?: CommunityRecordEntry())
+        RecItem(I18n.t(label), text, e ?: CommunityRecordEntry(), sprint = k.takeIf { istSprint(it) })
     }
 }
 
@@ -729,7 +740,8 @@ fun SportRekordeZeilen(zeilen: List<SportRekordeZeile>, titel: String, onOpen: (
                         upwindM = m["upwind_m"], jibesFoil = m["jibes_foil"], rideLongest = m["ride_longest"], rideFarthest = m["ride_farthest"],
                         paddleSuccess = m["paddle_success"], paddleQuote = m["paddle_quote"], paddleFoilLongest = m["paddle_foil_longest"],
                         wakeLongest = m["wake_longest"], wakeTime = m["wake_time"], dwAb = m["dw_ab"], dwAbSpeed = m["dw_ab_speed"],
-                        waves = m["waves"], waveLongest = m["wave_longest"])
+                        waves = m["waves"], waveLongest = m["wave_longest"],
+                        sprint100m = m["sprint_100m"], sprint60s = m["sprint_60s"])
                     RecordGrid(pr, showSpot = true, onOpen = onOpen, sport = z.sport, nurSport = true)
                 }
             }

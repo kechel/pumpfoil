@@ -847,6 +847,9 @@ data class PeriodRecords(
     @SerialName("dw_ab_speed") val dwAbSpeed: CommunityRecordEntry? = null,
     @SerialName("waves") val waves: CommunityRecordEntry? = null,
     @SerialName("wave_longest") val waveLongest: CommunityRecordEntry? = null,
+    // Fliegende Sprints (17.11.2026): Wert in m/s, nur bei Pumpfoil/Foil Scoot gefuellt.
+    @SerialName("sprint_100m") val sprint100m: CommunityRecordEntry? = null,
+    @SerialName("sprint_60s") val sprint60s: CommunityRecordEntry? = null,
 
     @SerialName("max_hr") val maxHr: CommunityRecordEntry? = null,
     @SerialName("early_bird") val earlyBird: CommunityRecordEntry? = null,   // Wert = s seit Mitternacht (Spot-Ortszeit)

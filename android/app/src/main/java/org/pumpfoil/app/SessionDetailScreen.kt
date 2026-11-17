@@ -599,8 +599,11 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
     // (weisses Band unter der Spur + Endpunkte), mit gewaehltem Lauf nur dessen Fenster samt Schild mit dem Wert. Die
     // Event-Kennzeichen bleiben davon unberuehrt.
     var sprintEbene by remember(s.id) { mutableStateOf("") }
-    val sprintJeLauf = remember(s.id, s.dataVersion, s.analysis?.sprints) {
-        listOf("sprint_60s", "sprint_100m").associateWith { sprintFensterJeLauf(s, it) }
+    // Nur Pumpfoil und Foil Scoot (Web, 17.11.2026; ohne Sportart = Pumpfoil) — sonst keine Schalter und nichts gezeichnet.
+    val sprintSport = (s.sportClass ?: "pumpfoil") in listOf("pumpfoil", "foil_scoot")
+    val sprintJeLauf = remember(s.id, s.dataVersion, s.analysis?.sprints, sprintSport) {
+        if (!sprintSport) emptyMap()
+        else listOf("sprint_60s", "sprint_100m").associateWith { sprintFensterJeLauf(s, it) }
     }
     val sprintEbeneDaten = sprintJeLauf[sprintEbene]
     // Aus einer Sprint-Bestenliste: Glides-Faerbung aus (Web ad4dbfe3) — sonst ist der Track grau und vom gewerteten
