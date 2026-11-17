@@ -133,6 +133,7 @@ _CACHE_NARBEN_BIS = datetime(2026, 8, 1, 6, 34, tzinfo=timezone.utc)
 # (Pause, Auto-Parkplatz, Zuhause), darueber faehrt sie (Auto/Zug auf dem Heimweg).
 WATER_POINT_SPEED_MPS = (1.0, 8.0)
 WATER_POINT_MIN_SAMPLES = 20
+WATER_POINT_AUTO_PUFFER_MS = 300_000   # 5 min um jede erkannte Autofahrt gehoeren nicht zum Suchpunkt (17.11.2026)
 
 
 def ds_ueber_laeufe(segments: list) -> float | None:
@@ -776,7 +777,16 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
     # finalen Analyse (kein Netz im Live-Pfad); Fehler/kein Treffer -> None (keine Korrektur).
     # Land-Sportarten (Snowkite, Kite-ATB, Kitebuggy; sportarten.LAND, 25.10.2026): kein Wasser zu suchen.
     from ..sportarten import LAND as _LAND
-    water_rings = (_water_rings_cached(db, gps_samples)
+    # Suchpunkt mit PUFFER um die erkannten Autofahrten (17.11.2026, Befund #20507): die Fahrten selbst sind oben schon
+    # raus (analyse_ausschluss), aber die Erkennung findet nur den schnellen Teil — der Stadtverkehr davor/danach liegt im
+    # Tempo-Band des Suchpunkts (1-8 m/s) und zog ihn auf die Strasse (gemessen: 11 von 166 Sessions mit Autofahrt, bis
+    # 28 km). Nur fuer den Suchpunkt; gps_samples ist hier ggf. auf den Zuschnitt re-based (_off wie oben).
+    _fahrt = auto_fahrt_fenster(session)
+    _woff = (ts0 or 0) if (ts0 is not None or ts1 is not None) else 0
+    _wasser_gps = ([g for g in gps_samples
+                    if not any(a - WATER_POINT_AUTO_PUFFER_MS <= g[0] + _woff <= b + WATER_POINT_AUTO_PUFFER_MS
+                               for a, b, _ in _fahrt)] or gps_samples) if _fahrt else gps_samples
+    water_rings = (_water_rings_cached(db, _wasser_gps)
                    if final and (session.sport_class or "pumpfoil") not in _LAND else None)
 
     # Die vom Besitzer gewählte Empfindlichkeit IST seine maßgebliche Analyse — überall gleich,

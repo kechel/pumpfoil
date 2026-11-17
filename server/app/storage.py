@@ -396,7 +396,16 @@ def load_gps(session_uuid: str, roh: bool = False) -> list:
     out: list = []
     for f in sorted(gps_dir.glob("*.json"), key=lambda p: int(p.stem)):
         out.extend(json.loads(f.read_text()))
-    return out if roh else tempo_auffuellen(out)
+    if roh:
+        return out
+    # Kurz eingefrorenes GPS reparieren (17.11.2026, gebaut 13.11., analysis.gps.eingefroren_reparieren): HIER, damit alle
+    # Rechnungen dieselbe Zeitachse sehen — Erkennung v2, v3-Merkmale, Pumps, Spots, Anzeige. Vorher war sie nur probeweise
+    # in v2 eingehaengt, v3 vermass dann aus der unreparierten Spur (Min-Tempo 0,0). VOR dem Auffuellen: das ersetzt die
+    # Doppler-Nullen, an denen die Reparatur den eingefrorenen Abschnitt erkennt. Zur Laufzeit ueber das Modul aufgerufen,
+    # damit Regressionen sie abschalten koennen (scripts/v3/regression-eingefroren.py).
+    from .analysis import gps as _G
+    out, _ = _G.eingefroren_reparieren(out)
+    return tempo_auffuellen(out)
 
 
 # Auffuellen nur aus einer GERADEN, plausiblen Bewegung ueber ±2 Punkte (4 s). Ein Schritt von

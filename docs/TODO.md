@@ -1607,13 +1607,28 @@ Entwurf zusammen mit A1.
   (v2/v3-Version der gezaehlten Sessions), sprint-VERSION, Server-Commit, Referee-Korrekturen. Anzeige im Footer der
   Event-Seite („Ausgewertet mit …"), Regeln als festgehaltener Text abrufbar. Bei Neu-Festschreiben (Referee) aktualisieren.
 
-**C. Analyse-Befunde (Pipeline, nur mit Jans OK)**
-- Sprint ueber Vmax (17.11.): 18 Sessions haben ein bestes 100-m-Fenster schneller als ihr Hoechsttempo (bis 58 km/h,
-  fast alle GPS-only-Importe eines Nutzers) — GPS-Spruenge in analysis/sprint.py. In den Rekord-Kacheln per Anzeige-Filter
-  (Sprint <= 1,02 x Vmax) ausgeblendet; Ursache in der Pipeline offen.
-- GPS-Wiederfinden nach Unterwasser-Luecke als Lauf (08.11.); Autofahrt verschiebt den Wasser-Suchpunkt (07.11.);
-  eingefrorene GPS-Fixe reparieren (13.11., gebaut, nicht eingehaengt); Land-Session bekam Laeufe (11.11., vor der
-  naechsten Massen-Neuauswertung klaeren).
+**C. Analyse-Befunde (Pipeline) — 17.11. abends durchgegangen (Jan: „alle punkte der reihe nach, nach eigenem ermessen")**
+- C1 Sprint ueber Vmax: Ursache = Laeufe, die in Motorfahrt hineinlaufen (16 m/s, Doppler+Positionen einig; Lauf-Grenze
+  prueft das bereinigte 3-s-Tempo, Sprints das Uhr-Tempo). Fix sprint VERSION 6 (2c7faf3c): kein Fenster ueber der Lauf-
+  Spitze der Sportart (3-s-Median). Messung 8850 Sessions: 25 Werte sinken (20 = GPS-only-Importe eines Nutzers), keiner
+  steigt. **Offen: die 25 in der DB nachrechnen (Sicherung `server/data/analyse-notizen/2026-11-17-sprint-v6/`) — braucht
+  Jans OK, der Auto-Modus hat den DB-Schreibvorgang blockiert.** Anzeige-Filter (Sprint <= 1,02 x Vmax) bleibt.
+- C2 Messunsicherheit: 58 unabhaengige Uhren-Paare, 210 gemeinsame Laeufe. 100 m Median 0,36 km/h (p90 1,3), Minute
+  0,14 (p90 1,0). Glaetten (3/5 s) aendert nichts — Streuung kommt von Uhr/Arm. Kein Code. Die Minute ist ~2x genauer.
+- C3 GPS-Wiederfinden nach Unterwasser-Luecke: heutige Erkennung (v3) macht es richtig (#20528 Trockenlauf 4 -> 2 Laeufe,
+  Schein-Lauf weg); #20528 ist absichtlich festgehalten (auswertung_fest, u972). Nichts zu tun.
+- C4 Autofahrt verschiebt Wasser-Suchpunkt: die erkannten Fahrten waren schon raus (analyse_ausschluss), aber der langsame
+  Stadtverkehr davor/danach nicht. Fix: 5 min Puffer je Fahrt nur fuer den Suchpunkt. 11 von 166 Sessions mit Autofahrt
+  bekommen einen anderen Suchpunkt (bis 28 km); Laeufe aendern sich dadurch im Trockenlauf nicht.
+  Nebenbefund: #20881 waere heute 23 statt 4 Laeufe, #21958/#19228/#21192 je 1-5 statt 0 (Code-Stand seit der letzten
+  Auswertung, nicht der Puffer) -> Kandidaten fuer eine Neuauswertung.
+- C5 Eingefrorene GPS-Fixe: Reparatur jetzt in `storage.load_gps` (vor tempo_auffuellen, alle Rechnungen inkl. v3 sehen
+  dieselbe Spur). 158 Sessions / 265 Abschnitte: Laeufe 1913 -> 1912, Foil-Zeit +1,2 min, mehrere Laeufe enden nicht mehr
+  zu frueh (59 -> 73 s u. a.), #21487 Min-Tempo 0,0 -> 2,0. **Offen: die 158 neu auswerten (nach Sicherung) — Jans OK.**
+- C6 Land-Session mit Laeufen: KEINE Regel. 39 % aller Laeufe (12 551 von 32 548, 1045 Sessions) liegen komplett
+  ausserhalb der gecachten OSM-Wasserflaeche (Fluesse/kleine Seen fehlen, falsches Gewaesser) — eine Land-Regel loeschte
+  echte Laeufe. Dazu (Jan 17.11.): Landsportarten, Foil Scoot an Land, Snowkiten auf gefrorenen Seen. #8538 bleibt
+  festgehalten. (Der Verweis auf tests/test_land.py war falsch — der testet die Nationalitaet.)
 
 **D. Kurze Entscheidungen fuer Jan**
 - ✅ 16.11. ENTSCHIEDEN (Jan): Garmin ohne Handy -> (a) Server antwortet „erledigt" (naechstes Bauvorhaben).

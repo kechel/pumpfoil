@@ -51,7 +51,7 @@ def test_sprint_fenster_je_lauf():
     for v in [5.0] * 90:
         out.append([t, lat, 7.0, v, None, 4]); lat += v / 111320.0; t += 1000
     erg = SP.session_sprints(out, [{"t_start_session_ms": 0, "t_end_session_ms": 89_000}])
-    assert erg["v"] == 5 and erg["laeufe_fenster"][0]["sprint_100m"] == erg["fenster"]["sprint_100m"]
+    assert erg["v"] >= 5 and erg["laeufe_fenster"][0]["sprint_100m"] == erg["fenster"]["sprint_100m"]
 
 
 def test_alte_auswertung_ohne_session_ms_mit_zuschnitt():
