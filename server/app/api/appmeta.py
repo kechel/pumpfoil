@@ -950,6 +950,19 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # iPhone + Apple Watch 1.1.67 (Build 78) am 17.11.2026 06:02 eingereicht (Jans Meldung, ASC „Warten auf Pruefung",
+    # Uebermittlung 640546f6-64a8-4eae-bf30-5a937970dfeb). Punkte stehen im Changelog mit ios 1.1.67.
+    {"name": "iPhone + Apple Watch", "version": "1.1.67",
+     "eingereicht": "2026-11-17",
+     "items": [
+         "Pumpfoil sessions show the wind at the spot: strength, gusts and direction.",
+         "Sessions that count for an event show it, with category tags that highlight the scoring part of each run.",
+         "Event pages list referee corrections, let you flag a run for review and note which rules the final standings used.",
+         "Teams can invite other teams to their events and propose an event as a global event.",
+         "Unread chat messages show a red badge on the Chat tab.",
+         "Each run on the session page shows its heart-rate chart, and Suunto sessions show the cadence from the watch.",
+         "Taller maps, and the Spots map fills the screen between the tabs and the search field.",
+     ]},
     # Amazfit 1.0.16 am 13.11.2026 ~19:00 eingereicht (Jans Meldung, Zepp-Konsole „Under Review").
     {"name": "Amazfit", "version": "1.0.16",
      "eingereicht": "2026-11-13",
