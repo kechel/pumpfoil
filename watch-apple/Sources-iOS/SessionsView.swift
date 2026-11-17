@@ -783,7 +783,7 @@ struct SessionRow: View {
         KompaktZeile(avatarName: session.owner_name, avatarURL: Api.mediaURL(session.owner_avatar_url),
                      avatarUserId: avatarUserId,
                      datum: TimeFmt.kurzDatum(session.started_at, session.tz) ?? "",
-                     zeit: TimeFmt.timeOnly(session.started_at, session.tz) ?? "",
+                     zeit: session.zeitVerborgen ? "" : (TimeFmt.timeOnly(session.started_at, session.tz) ?? ""),
                      name: showOwner ? session.owner_name : nil, spot: session.place_name, abzeichen: sportLabel,
                      status: kompaktStatus, kennzahlen: statsText ?? "",
                      likeId: session.id, liked: session.liked ?? false, likeCount: session.like_count ?? 0,
@@ -1029,7 +1029,7 @@ struct SessionRow: View {
     }
 
     private var dateText: String {
-        sessionDateTime(session.started_at, session.ended_at, session.tz)
+        sessionDateTime(session.started_at, session.ended_at, session.tz, zeitVerborgen: session.zeitVerborgen)
     }
 }
 
@@ -1488,7 +1488,9 @@ func fmtLaufDauerEinheit(_ s: Double) -> String {
 
 // Datum + Start[–Ende] + „Uhr" (nur wo üblich, via sessions.oclock) für die Listen-Zeilen.
 // tz = IANA-Zeitzone des Spots (Server) — Anzeige in Ortszeit, Fallback Geräte-Zeit.
-func sessionDateTime(_ startISO: String, _ endISO: String?, _ tz: String? = nil) -> String {
+// zeitVerborgen („Uhrzeit verbergen" des Besitzers, 17.11.2026): nur Datum + Dauer, die Zeiten stehen auf 12:00.
+func sessionDateTime(_ startISO: String, _ endISO: String?, _ tz: String? = nil, zeitVerborgen: Bool = false) -> String {
+    if zeitVerborgen { return sessionDatumDauer(startISO, endISO, tz) }
     guard let start = TimeFmt.dateTime(startISO, tz) else { return startISO }
     let lang = UserDefaults.standard.string(forKey: "appLang") ?? "de"
     let oc = Loc.t("sessions.oclock", lang)
@@ -1499,6 +1501,14 @@ func sessionDateTime(_ startISO: String, _ endISO: String?, _ tz: String? = nil)
         return spanne + ocSuffix
     }
     return start + ocSuffix
+}
+
+// Nur Datum, dahinter die Dauer („17. Nov. 2026 · 1:02:05 h") — fuer `zeit_verborgen`.
+func sessionDatumDauer(_ startISO: String, _ endISO: String?, _ tz: String?) -> String {
+    let datum: String = TimeFmt.dateOnly(startISO, tz) ?? startISO
+    guard let endISO, let a = TimeFmt.parseISO(startISO), let b = TimeFmt.parseISO(endISO), b > a else { return datum }
+    let dauer: String = fmtLaufDauerEinheit(b.timeIntervalSince(a))
+    return datum + " · " + dauer
 }
 
 // Uebersetzt, nicht hartcodiert (s. Android SessionsScreen.statusLabel): hier stand deutsches

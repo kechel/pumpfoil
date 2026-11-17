@@ -557,6 +557,7 @@ struct LageInhaltView: View {
     private func uhrzeit(_ t: Double) -> String {
         guard let start = session.startedDate else { return "" }
         let wand: Double = Clockmap.wanduhrMs(session.pause_windows, t)
+        if session.zeitVerborgen { return TimeFmt.relativ(wand) }   // „Uhrzeit verbergen" des Besitzers
         return TimeFmt.hhmmss(start.addingTimeInterval(wand / 1000), session.tz)
     }
 

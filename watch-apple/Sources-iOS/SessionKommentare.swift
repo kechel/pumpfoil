@@ -202,8 +202,9 @@ struct KommentareSection: View {
     }
 }
 
-/// Profil › Privatsphaere: „Nicht an globalen Events teilnehmen" (PWA GlobaleEventsCard, web 161ff0b7, 06.11.2026; Feld
+/// Profil › Privatsphaere: „An globalen Events teilnehmen" (PWA GlobaleEventsCard, web 161ff0b7, 06.11.2026; Feld
 /// `global_events_aus` in /api/settings). Globale Events werten sonst jeden mit passenden Sessions automatisch.
+/// Haken = Einwilligung (Jan, 17.11.2026); in der DB bleibt das Opt-out `global_events_aus`, angezeigt umgekehrt.
 /// Speichert sofort; schlaegt das fehl, springt der Schalter zurueck.
 struct GlobaleEventsSection: View {
     let lang: String
@@ -213,7 +214,7 @@ struct GlobaleEventsSection: View {
     var body: some View {
         Section {
             if aus != nil {
-                Toggle(Loc.t("globalev.switch", lang), isOn: Binding(get: { aus ?? false }, set: { v in setzen(v) }))
+                Toggle(Loc.t("globalev.switch", lang), isOn: Binding(get: { !(aus ?? false) }, set: { v in setzen(!v) }))
                     .disabled(busy)
             } else {
                 // Ohne sichtbaren Inhalt laeuft `.task` nie (Memory swiftui-leere-group-laedt-nicht).

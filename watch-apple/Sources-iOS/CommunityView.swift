@@ -740,7 +740,7 @@ struct CommunityRow: View {
         KompaktZeile(avatarName: item.name, avatarURL: Api.mediaURL(item.avatar_url),
                      avatarUserId: item.user_id,
                      datum: TimeFmt.kurzDatum(item.started_at, item.tz) ?? "",
-                     zeit: TimeFmt.timeOnly(item.started_at, item.tz) ?? "",
+                     zeit: item.zeitVerborgen ? "" : (TimeFmt.timeOnly(item.started_at, item.tz) ?? ""),
                      name: item.name, spot: item.spot, abzeichen: sportLabel,
                      kennzahlen: statsText ?? "",
                      likeId: item.id, liked: item.liked ?? false, likeCount: item.like_count ?? 0,
@@ -890,7 +890,7 @@ struct CommunityRow: View {
     }
 
     private var dateText: String {
-        sessionDateTime(item.started_at, item.ended_at, item.tz)
+        sessionDateTime(item.started_at, item.ended_at, item.tz, zeitVerborgen: item.zeitVerborgen)
     }
 }
 

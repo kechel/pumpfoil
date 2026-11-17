@@ -113,12 +113,13 @@ struct SettingsView: View {
     @ViewBuilder private var privatTeil: some View {
         OeffentlicheSeiteSection(lang: lang)
         OrtVerbergenSection(lang: lang)
+        UhrzeitSection(lang: lang)
         AktivAufKarteSection(lang: lang)
         // Online-Punkt (Jan, 01.10.2026: „im profil zum ausstellen, aber erstmal default an").
         OnlinePunktSection(lang: lang)
         // Kommentare unter meinen Sessions erlauben (PWA KommentareCard, 02.11.2026).
         KommentareSection(lang: lang)
-        // Nicht an globalen Events teilnehmen (PWA GlobaleEventsCard, 06.11.2026) — direkt nach den Kommentaren wie im Web.
+        // An globalen Events teilnehmen (PWA GlobaleEventsCard, 06.11.2026) — direkt nach den Kommentaren wie im Web.
         GlobaleEventsSection(lang: lang)
         GeteilteAufnahmenSection(lang: lang)
     }
@@ -650,8 +651,9 @@ struct OeffentlicheSeiteSection: View {
     }
 }
 
-/// „Ort verbergen" als Voreinstellung fuer ALLE eigenen Aufnahmen, rueckwirkend. Der Text sagt
-/// ausdruecklich, was NICHT verborgen wird.
+/// „Ort anzeigen" als Voreinstellung fuer ALLE eigenen Aufnahmen, rueckwirkend. Der Text sagt
+/// ausdruecklich, was NICHT verborgen wird. Haken = Einwilligung (Jan, 17.11.2026: „haken sollte immer einwilligung
+/// fuer mehr daten anzeigen sein", wie Spot-Karte und Online-Punkt); in der DB bleibt das Opt-out `hide_location`.
 struct OrtVerbergenSection: View {
     let lang: String
     @State private var an: Bool? = nil
@@ -659,7 +661,7 @@ struct OrtVerbergenSection: View {
     var body: some View {
         Section {
             if an != nil {
-                Toggle(Loc.t("hideloc.switch", lang), isOn: Binding(get: { an ?? false }, set: { v in setzen(v) }))
+                Toggle(Loc.t("hideloc.switch", lang), isOn: Binding(get: { an ?? true }, set: { v in setzen(v) }))
                 Text(Loc.t("hideloc.scope", lang)).font(.callout).foregroundStyle(.secondary)
                 Text(Loc.t("hideloc.single", lang)).font(.callout).foregroundStyle(.secondary)
             } else {
@@ -677,13 +679,49 @@ struct OrtVerbergenSection: View {
         let alt = an
         an = v
         Task {
-            do { try await Api.saveSettings(["hide_location": v]) } catch { an = alt }
+            do { try await Api.saveSettings(["hide_location": !v]) } catch { an = alt }
         }
     }
 
     private func laden() async {
         let s = (try? await Api.settings()) ?? [:]
-        an = (s["hide_location"] as? Bool) ?? false
+        an = (s["hide_location"] as? Bool) != true
+    }
+}
+
+/// „Uhrzeit anzeigen" (PWA UhrzeitCard, 17.11.2026, server/app/zeitverbergen.py): aus = andere sehen von den eigenen
+/// Sessions nur den Tag. Haken = Einwilligung, Standard an; in der DB das Opt-out `hide_time`.
+struct UhrzeitSection: View {
+    let lang: String
+    @State private var an: Bool? = nil
+
+    var body: some View {
+        Section {
+            if an != nil {
+                Toggle(Loc.t("hidetime.switch", lang), isOn: Binding(get: { an ?? true }, set: { v in setzen(v) }))
+                Text(Loc.t("hidetime.scope", lang)).font(.callout).foregroundStyle(.secondary)
+            } else {
+                ProgressView()
+            }
+        } header: {
+            Text(Loc.t("hidetime.title", lang))
+        } footer: {
+            Text(Loc.t("hidetime.hint", lang))
+        }
+        .task { await laden() }
+    }
+
+    private func setzen(_ v: Bool) {
+        let alt = an
+        an = v
+        Task {
+            do { try await Api.saveSettings(["hide_time": !v]) } catch { an = alt }
+        }
+    }
+
+    private func laden() async {
+        let s = (try? await Api.settings()) ?? [:]
+        an = (s["hide_time"] as? Bool) != true
     }
 }
 

@@ -139,6 +139,10 @@ struct SessionSummary: Codable, Identifiable {
     // Restliches Setup (Stab/Mastlänge/Board) — der Server löst es für die Liste im Batch auf
     // (sessions.py). Je Teil optional; fehlt eines, zeigt die Karte den Chip gar nicht.
     let setup: SessionSetup?
+    // „Uhrzeit verbergen" des Besitzers (17.11.2026, server/app/zeitverbergen.py): started_at/ended_at stehen dann auf
+    // 12:00 Ortszeit des Tages (Dauer unveraendert) -> nur das Datum zeigen, Laufzeiten relativ zum Start. Alte Server: nil.
+    var zeit_verborgen: Bool? = nil
+    var zeitVerborgen: Bool { zeit_verborgen == true }
 
     // ISO-8601-Startzeit als Date (für native Formatierung).
     var startedDate: Date? {
@@ -184,6 +188,10 @@ struct CommunityItem: Codable, Identifiable {
     // Besitzer — fuer Online-Punkt und Tipp aufs Profilbild (Server additiv seit 01.10.2026).
     let user_id: Int?
     var id: Int { session_id }
+    // „Uhrzeit verbergen" des Besitzers (17.11.2026, server/app/zeitverbergen.py): started_at/ended_at stehen dann auf
+    // 12:00 Ortszeit des Tages (Dauer unveraendert) -> nur das Datum zeigen, Laufzeiten relativ zum Start. Alte Server: nil.
+    var zeit_verborgen: Bool? = nil
+    var zeitVerborgen: Bool { zeit_verborgen == true }
 
     var startedDate: Date? {
         let f = ISO8601DateFormatter()
@@ -1490,6 +1498,10 @@ struct SessionDetail: Codable, Identifiable {
     // fuer den Besitzer); `ort_sichtbarkeit` ist die EIGENE Wahl: nil/"" = wie im Profil, show, hide.
     let ort_sichtbarkeit: String?
     let ort_verborgen: Bool?
+    // „Uhrzeit verbergen" des Besitzers (17.11.2026, server/app/zeitverbergen.py): started_at/ended_at stehen dann auf
+    // 12:00 Ortszeit des Tages (Dauer unveraendert) -> nur das Datum zeigen, Laufzeiten relativ zum Start. Alte Server: nil.
+    var zeit_verborgen: Bool? = nil
+    var zeitVerborgen: Bool { zeit_verborgen == true }
     // Wo sass das Geraet: "board" (Handy am Brett) | "phone" (Tasche/Huefte) | nil (Uhr). Nur
     // "board" macht Nicken/Rollen zu einer Aussage ueber das BRETT (s. analysis/lage.py).
     let placement: String?

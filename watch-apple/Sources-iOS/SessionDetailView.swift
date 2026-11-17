@@ -1770,7 +1770,7 @@ struct SessionDetailView: View {
                   zeiten: passendeZeiten(s),
                   sessionId: s.id,
                   win: win,
-                  sessionStart: TimeFmt.parseISO(s.started_at), tz: s.tz,
+                  sessionStart: TimeFmt.parseISO(s.started_at), tz: s.tz, zeitVerborgen: s.zeitVerborgen,
                   trimStartMs: s.trim_start_ms, pausen: s.pause_windows,
                   wattFuer: wattFuer(s),
                   canEdit: s.owned == true, busy: excludeBusy,
@@ -1844,7 +1844,7 @@ struct SessionDetailView: View {
         let from: Double = Double(w[0]) / 1000.0
         let to: Double = Double(w[1]) / 1000.0
         let wanduhr: Double = Clockmap.wanduhrMs(s.pause_windows, Double(w[0]))
-        let clock: String = hhmmss(start.addingTimeInterval(wanduhr / 1000.0), s.tz)
+        let clock: String = s.zeitVerborgen ? TimeFmt.relativ(wanduhr) : hhmmss(start.addingTimeInterval(wanduhr / 1000.0), s.tz)
         let len: String = mmss(max(0, to - from))
         return "\(clock) · \(len)"
     }
@@ -1914,6 +1914,7 @@ struct SessionDetailView: View {
         guard let ms, let start = s.startedDate else { return "–" }
         // `ms` ist Session-Zeit (aktive Zeit) -> Pausen dazu, sonst zu frueh.
         let wanduhr: Double = Clockmap.wanduhrMs(s.pause_windows, Double(ms))
+        if s.zeitVerborgen { return TimeFmt.relativ(wanduhr) }
         return hhmmss(start.addingTimeInterval(wanduhr / 1000.0), s.tz)
     }
 
@@ -2071,7 +2072,9 @@ struct SessionDetailView: View {
     }
 
     private func dateText(_ s: SessionDetail) -> String {
-        TimeFmt.dateTime(s.started_at, s.tz) ?? s.started_at
+        // „Uhrzeit verbergen" des Besitzers: nur der Tag (die Zeiten stehen auf 12:00 Ortszeit).
+        if s.zeitVerborgen { return TimeFmt.dateOnly(s.started_at, s.tz) ?? s.started_at }
+        return TimeFmt.dateTime(s.started_at, s.tz) ?? s.started_at
     }
 
     // Start–End-Zeit ("08:13 – 09:45 Uhr · Dauer 1:32"); Endzeit ggf. serverseitig aus GPS.
@@ -2086,8 +2089,11 @@ struct SessionDetailView: View {
             let durS = dur >= 3600
                 ? String(format: "%d:%02d:%02d", dur / 3600, (dur % 3600) / 60, dur % 60)
                 : String(format: "%d:%02d", dur / 60, dur % 60)
+            // „Uhrzeit verbergen" des Besitzers (17.11.2026): nur die Dauer, keine Uhrzeiten.
+            if s.zeitVerborgen { return "\(Loc.t("sd.duration", lang)) \(durS)" }
             return "\(f.string(from: a)) – \(f.string(from: b))\(ocSuffix) · \(Loc.t("sd.duration", lang)) \(durS)"
         }
+        if s.zeitVerborgen { return nil }
         return "\(f.string(from: a))\(ocSuffix)"
     }
 
@@ -3415,6 +3421,8 @@ private struct RunsTable: View {
     // Session-Start + Spot-Zeitzone -> Startuhrzeit des Laufs (PWA: runClock).
     var sessionStart: Date? = nil
     var tz: String? = nil
+    // „Uhrzeit verbergen" des Besitzers (17.11.2026): Laufzeiten relativ zum Start („+12:30") statt Uhrzeit.
+    var zeitVerborgen: Bool = false
     // Zuschnitt-Beginn und Pausen der Aufnahme — beides braucht es, um aus einer Session-Zeit
     // eine UHRZEIT zu machen (s. Clockmap.swift).
     var trimStartMs: Int? = nil
@@ -3815,6 +3823,7 @@ private struct RunsTable: View {
     private func startUhr(_ seg: Segment) -> String {
         guard let start = sessionStart else { return "–" }
         guard let ms = Clockmap.laufUhrzeitMs(seg, trimStartMs, pausen) else { return "–" }
+        if zeitVerborgen { return TimeFmt.relativ(ms) }
         let f = DateFormatter()
         f.dateFormat = "HH:mm:ss"
         f.timeZone = TimeFmt.zone(tz)

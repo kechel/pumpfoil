@@ -28,6 +28,24 @@ enum TimeFmt {
         return d.formatted(style)
     }
 
+    // Nur Datum wie `.formatted(date: .abbreviated, time: .omitted)` — fuer Sessions mit „Uhrzeit verbergen"
+    // (`zeit_verborgen`, 17.11.2026): der Server hat Start/Ende auf 12:00 Ortszeit geschoben, nur der Tag stimmt.
+    static func dateOnly(_ iso: String?, _ tz: String?) -> String? {
+        guard let iso, let d = parseISO(iso) else { return nil }
+        let style = Date.FormatStyle(date: .abbreviated, time: .omitted, timeZone: zone(tz))
+        return d.formatted(style)
+    }
+
+    // Zeit ab Session-Start statt Uhrzeit, z. B. „+12:30" bzw. „+1:02:05" (Laufzeiten bei `zeit_verborgen`,
+    // wie relZeit in web/src/pages/SessionDetail.tsx).
+    static func relativ(_ ms: Double) -> String {
+        let s: Int = ms.isFinite ? max(0, Int((ms / 1000).rounded())) : 0
+        let h: Int = s / 3600
+        let m: Int = (s % 3600) / 60
+        let sek: Int = s % 60
+        return h > 0 ? String(format: "+%d:%02d:%02d", h, m, sek) : String(format: "+%d:%02d", m, sek)
+    }
+
     // Nur Uhrzeit wie `.formatted(date: .omitted, time: .shortened)` (End-Zeit in Listen).
     static func timeOnly(_ iso: String?, _ tz: String?) -> String? {
         guard let iso, let d = parseISO(iso) else { return nil }
