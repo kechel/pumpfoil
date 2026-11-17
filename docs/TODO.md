@@ -1617,7 +1617,7 @@ Entwurf zusammen mit A1.
   Server app/zeitverbergen.py (hide_time, fuer andere 12:00 Ortszeit + zeit_verborgen; Feed-Reihenfolge je Tag; Wind,
   Early Bird/Night Owl, sessions-today), Web, Android c9616b2e, iOS 3a1f192f. Dazu Datenschutz-Haken ueberall als
   Einwilligung („Ort anzeigen", „Uhrzeit anzeigen", „An globalen Events teilnehmen"). Offen/bewusst nicht: Live-Freunde,
-  kurze Event-Fenster, /neighbors-Reihenfolge. u146 noch Bescheid geben (Entwurf).
+  kurze Event-Fenster, /neighbors-Reihenfolge. u146 am 17.11. Bescheid gegeben (Konto 230).
 - ✅ 16.11. GESCHLOSSEN (Jan): Max-Speed Uhr vs. Server — neue Regel seit 10.11. im Median ~0 (Garmin -0,3, Apple/Wear 0,0;
   215 Sessions, scripts/uhr-vmax-messen.py), Abstand des gemeldeten Werts von Alt-Fassungen; Feldtest-Zeile beobachtet weiter.
 - ✅ 16.11. ERLEDIGT (Jan „ja"): 5515 root-eigene Suunto-Ordner per chown (nur das Verzeichnis, nicht rekursiv — Backups
