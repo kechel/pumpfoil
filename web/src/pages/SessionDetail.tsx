@@ -1720,7 +1720,7 @@ export default function SessionDetail() {
       for (const { idx, pk } of ebenePkte) {
         const wert = sprintEbeneDaten.get(idx)!.wert;
         for (const pt of [pk[0], pk[pk.length - 1]])
-          L.circleMarker(pt, { radius: 4, color: "#0f172a", weight: 1.5, fillColor: "#ffffff", fillOpacity: 1 })
+          L.circleMarker(pt, { radius: 5, color: "#ffffff", weight: 2, fillColor: "#c026d3", fillOpacity: 1 })
             .bindTooltip(`${t("sd.run")} ${idx + 1} · ${kzInfo.fmt(wert)}`).addTo(lg);
         if (selectedRun != null)
           L.tooltip({ permanent: true, direction: "top", className: "sprint-schild", offset: [0, -10] })
@@ -2578,7 +2578,7 @@ export default function SessionDetail() {
           {/* Sprint-Ebene (s. sprintEbene): je eine Kategorie, ein/aus wie die Pumps. */}
           {([["sprint_60s", "1 min"], ["sprint_100m", "100 m"]] as const).map(([kz, label]) => sprintJeLauf[kz].size > 0 && (
             <button key={kz} onClick={() => setSprintEbene((v) => (v === kz ? "" : kz))}
-              className={`ml-1 rounded-lg px-2.5 py-1 text-xs ${sprintEbene === kz ? "bg-brand-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}>
+              className={`ml-1 rounded-lg px-2.5 py-1 text-xs ${sprintEbene === kz ? "bg-fuchsia-500 text-slate-950 font-semibold" : "bg-slate-800 text-slate-200"}`}>
               <span className="inline-flex items-center gap-1">{label} {sprintEbene === kz ? <EyeIcon className="h-3.5 w-3.5" /> : <EyeOffIcon className="h-3.5 w-3.5" />}</span>
             </button>
           ))}
@@ -2729,8 +2729,11 @@ export default function SessionDetail() {
                   className={`rounded-lg px-2.5 py-1 text-xs tabular-nums ${selectedRun === i ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"} ${playRunIdx === i ? "ring-2 ring-brand-400" : ""}`}
                 >
                   {i + 1}
-                  {sprintEbeneDaten?.get(i) && (
-                    <span className="ml-1 opacity-80">{(sprintEbeneDaten.get(i)!.wert * 3.6).toFixed(1)}</span>
+                  {sprintEbene && sprintEbeneDaten?.get(i) && (
+                    // Wie in der Event-Wertung (Jan 17.11.): 100 m = Zeit + km/h, 1 min = km/h + Strecke; Sprint-Farbe.
+                    <span className={`ml-1.5 font-semibold ${selectedRun === i ? "" : "text-fuchsia-700 dark:text-fuchsia-300"}`}>
+                      {kennzahl(sprintEbene).fmt(sprintEbeneDaten.get(i)!.wert)}
+                    </span>
                   )}
                 </button>
               ))}
