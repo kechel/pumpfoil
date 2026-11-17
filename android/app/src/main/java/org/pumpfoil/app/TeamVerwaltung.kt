@@ -199,6 +199,8 @@ internal fun kontinentBild(k: String, hell: Boolean = false): android.graphics.B
 
 /** Kennzahlen der Team-Bestenlisten in der Reihenfolge des Webs (lib/teamKennzahlen.ts TEAM_KENNZAHLEN). */
 private val KENNZAHLEN_BEST = listOf("session_pumps", "distance", "duration", "speed", "glide", "runs", "session_distance", "session_time")
+/** Sportarten, in denen Sprint-Bestenlisten im Team erlaubt sind (Server teams.SPRINT_SPORTARTEN, 17.11.2026). */
+private val SPRINT_SPORTARTEN = listOf("pumpfoil", "foil_scoot", "pumpfoil+foil_scoot")
 private val KENNZAHLEN_SUMME = listOf("sum_pumps", "sum_runs", "sum_sessions", "sum_distance", "sum_time", "sum_spots")
 
 /** Eine Option der Auswahl: `key` = Wert; `kopf` = Gruppenueberschrift (nicht waehlbar), `trenner` = Linie. */
@@ -724,12 +726,20 @@ fun TeamVerwaltungScreen(slug: String, grund: Boolean, onFertig: (String?) -> Un
                                 val kennzahlOpt = listOf(Option("#b", I18n.t("team.k.best"), kopf = true)) +
                                     KENNZAHLEN_BEST.map { Option(it, kennzahlLabel(it)) } +
                                     Option("#s", I18n.t("team.k.summe"), kopf = true) + KENNZAHLEN_SUMME.map { Option(it, kennzahlLabel(it)) }
+                                // Sprint-Bestenlisten nur bei Pumpfoil/Foil Scoot (17.11.2026, Server teams.SPRINT_SPORTARTEN).
+                                val sprintOpt = listOf(Option("#p", "Sprints", kopf = true)) + KENNZAHLEN_SPRINT.map { Option(it, kennzahlLabel(it)) }
                                 tafeln.forEachIndexed { i, tf ->
-                                    fun aendern(neu: TeamTafel) { tafeln = tafeln.mapIndexed { j, x -> if (j == i) neu else x } }
+                                    // Wechselt die Sportart weg von Pumpfoil/Foil Scoot, faellt eine Sprint-Kennzahl auf
+                                    // „weitester Lauf" zurueck (Web tafelAendern; sonst lehnte der Server das Speichern ab).
+                                    fun aendern(neu: TeamTafel) {
+                                        val ok = if (istSprint(neu.kennzahl) && neu.sportart !in SPRINT_SPORTARTEN) neu.copy(kennzahl = "distance") else neu
+                                        tafeln = tafeln.mapIndexed { j, x -> if (j == i) ok else x }
+                                    }
                                     Column(Modifier.fillMaxWidth().padding(bottom = 10.dp).clip(RoundedCornerShape(12.dp))
                                         .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp)).padding(8.dp)) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
-                                            AuswahlFeld(tf.kennzahl, kennzahlOpt, { aendern(tf.copy(kennzahl = it)) }, Modifier.weight(1f))
+                                            AuswahlFeld(tf.kennzahl, kennzahlOpt + if (tf.sportart in SPRINT_SPORTARTEN) sprintOpt else emptyList(),
+                                                { aendern(tf.copy(kennzahl = it)) }, Modifier.weight(1f))
                                             IconButton(onClick = {
                                                 if (i > 0) tafeln = tafeln.toMutableList().also { l -> val x = l[i]; l[i] = l[i - 1]; l[i - 1] = x }
                                             }) { Text("↑") }

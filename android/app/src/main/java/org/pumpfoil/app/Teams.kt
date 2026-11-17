@@ -605,8 +605,8 @@ internal fun kennzahlLabel(key: String): String = I18n.t(when (key) {
     else -> "team.k.$key"   // sum_pumps, sum_runs, sum_sessions, sum_distance, sum_time, sum_spots, sprint_*
 })
 
-// Fliegende Sprints (09.11.2026, Web SPRINT_KENNZAHLEN): Wert = Tempo des besten Fensters in m/s. Nur in Events waehlbar,
-// nicht in den festen Team-Bestenlisten. Strecken als Zeit, km/h dahinter; die Minute als km/h und die Strecke darin.
+// Fliegende Sprints (09.11.2026, Web SPRINT_KENNZAHLEN): Wert = Tempo des besten Fensters in m/s. Erst nur in Events, seit
+// 17.11.2026 auch als Team-Bestenliste (nur Pumpfoil/Foil Scoot). Strecken als Zeit, km/h dahinter; die Minute als km/h und die Strecke darin.
 internal val KENNZAHLEN_SPRINT = listOf("sprint_100m", "sprint_200m", "sprint_300m", "sprint_60s")
 private val SPRINT_STRECKE = mapOf("sprint_100m" to 100.0, "sprint_200m" to 200.0, "sprint_300m" to 300.0)
 internal fun istSprint(key: String): Boolean = key in KENNZAHLEN_SPRINT

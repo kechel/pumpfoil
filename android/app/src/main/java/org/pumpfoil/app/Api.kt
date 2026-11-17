@@ -1788,9 +1788,11 @@ object Api {
     suspend fun team(slug: String): TeamInfo = withContext(Dispatchers.IO) {
         json.decodeFromString(TeamInfo.serializer(), http("GET", slugPfad(slug), null, auth = true))
     }
+    // `sprint=1` (17.11.2026): Sprint-Bestenlisten mitliefern/annehmen (Web teamBestenlisten/teamTafelnSetzen); ohne den
+    // Schalter laesst der Server sie weg und haelt sie beim Speichern fest.
     suspend fun teamBestenlisten(slug: String, period: String): List<TeamTafel> = withContext(Dispatchers.IO) {
         json.decodeFromString(TeamBestenlisten.serializer(),
-            http("GET", slugPfad(slug) + "/bestenlisten?period=$period", null, auth = true)).tafeln
+            http("GET", slugPfad(slug) + "/bestenlisten?period=$period&sprint=1", null, auth = true)).tafeln
     }
     suspend fun teamStatistik(slug: String, period: String): TeamStatistik = withContext(Dispatchers.IO) {
         json.decodeFromString(TeamStatistik.serializer(), http("GET", slugPfad(slug) + "/statistik?period=$period", null, auth = true))
@@ -1922,7 +1924,7 @@ object Api {
                 })
             }
         }.toString()
-        json.decodeFromString(TeamBestenlisten.serializer(), http("PUT", slugPfad(slug) + "/tafeln", body, auth = true)).tafeln
+        json.decodeFromString(TeamBestenlisten.serializer(), http("PUT", slugPfad(slug) + "/tafeln?sprint=1", body, auth = true)).tafeln
     }
     suspend fun teamSpotsSetzen(slug: String, ids: List<Int>): Unit = withContext(Dispatchers.IO) {
         http("PUT", slugPfad(slug) + "/spots", buildJsonArray { ids.forEach { add(it) } }.toString(), auth = true); Unit
