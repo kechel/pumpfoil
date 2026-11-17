@@ -143,6 +143,10 @@ class SessionRecorder {
     hidden var _idleSpeed = 0.0; // letzte GPS-Geschwindigkeit im Idle (für Auto-Start)
     hidden var _autoStreak = 0;  // aufeinanderfolgende schnelle Idle-Ticks
     hidden var _idleTicks = 0;   // 1-Hz-Ticks auf dem Start-Screen (Auto-Start-Vorlauf)
+    // Start-Screen vorne? Liegt ein Menue/eine Rueckfrage darueber (RecordView.onHide), startet Auto-Start NICHT
+    // (Jan, 17.11.2026: „auto-start muss auch hier deaktiviert sein, ueberall im menue"). Vorher lief der Vorlauf
+    // im Menue weiter — wer dort zu lange stand und losging, bekam eine Aufnahme unter dem Menue.
+    var startVorne = false;
     // Web-Presets (Alarm An/Aus, Schwellen, Auto-Start) nur beim ERSTEN Config des App-Laufs in
     // die Live-Werte übernehmen; danach behält die Uhr die on-watch gemachten Änderungen (bis
     // App-Neustart). Der Cache wird immer mit dem Web-Wert aktualisiert -> Neustart = Preset.
@@ -1844,7 +1848,7 @@ class SessionRecorder {
     // Nicht direkt nach einem Stopp (stopped) und nur mit GPS-Fix; kurze Vibration als
     // Bestätigung, damit man weiß, dass jetzt aufgezeichnet wird.
     hidden function _maybeAutoStart() as Void {
-        if (!autoStart || stopped || !hasGpsFix()) { _autoStreak = 0; _idleTicks = 0; return; }
+        if (!autoStart || stopped || !startVorne || !hasGpsFix()) { _autoStreak = 0; _idleTicks = 0; return; }
         // Vorlauf: erst nach AUTO_START_LEAD s auf dem Start-Screen scharf schalten (Zeit, um
         // z.B. ins Einstellungs-Menü zu wechseln). Zähler wird bei Aufnahme/Stopp/GPS-Verlust
         // zurückgesetzt -> startet nach Session-Ende erneut.

@@ -2,6 +2,7 @@ using Toybox.WatchUi;
 using Toybox.Graphics;
 using Toybox.Timer;
 using Toybox.Lang;
+using Toybox.System;
 
 // On-Device-Settings (AppBase.getSettingsView): erscheint im Vorab-Menü an der
 // Aktivitäten-Auswahl ("Pumpfoil markieren -> MENU halten -> Pumpfoil
@@ -32,7 +33,8 @@ module LoeschAbfrage {
         menu.addItem(new WatchUi.MenuItem(Strings.s("menu.discard"), n + " " + Strings.s("up.open"), :loeschen, {}));
     }
     function frage(item) as Void {
-        WatchUi.pushView(new WatchUi.Confirmation(Strings.s("del.ask")), new LoeschDelegate(item), WatchUi.SLIDE_IMMEDIATE);
+        var v = new LoeschView();
+        WatchUi.pushView(v, new LoeschDelegate(item, v), WatchUi.SLIDE_LEFT);
     }
 }
 
@@ -42,20 +44,126 @@ module LoeschAbfrage {
     function frage(item) as Void { }
 }
 
+// Eigene Rueckfrage statt WatchUi.Confirmation (Jan, 17.11.2026): wie das Aufnahme-Menue mit UP/DOWN waehlen, Auswahl
+// cyan, START bestaetigt. „Abbrechen" ist vorgewaehlt; „Loeschen" will START 2 s GEHALTEN (roter Ring wie beim Stoppen),
+// Loslassen vorher bricht ab. Die System-Rueckfrage schnitt den Text ab und war per Taste kaum zu bedienen.
 (:full)
-class LoeschDelegate extends WatchUi.ConfirmationDelegate {
-    hidden var _item;
-    function initialize(item) {
-        ConfirmationDelegate.initialize();
-        _item = item;
+class LoeschView extends WatchUi.View {
+    hidden var _sel = 0;          // 0 = Abbrechen, 1 = Loeschen
+    hidden var _halt = 0.0;       // 0..1 Fortschritt des Haltens
+    function initialize() { View.initialize(); }
+    function sel() { return _sel; }
+    function setSel(s) { _sel = s; }
+    function setHalt(p) { _halt = p; }
+
+    function onUpdate(dc) {
+        dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        dc.clear();
+        var w = dc.getWidth();
+        var h = dc.getHeight();
+        if (_halt > 0) {
+            dc.setPenWidth(12);
+            dc.setColor(FARBE_ROT, Graphics.COLOR_TRANSPARENT);
+            dc.drawArc(w / 2, h / 2, (w < h ? w : h) / 2 - 8, Graphics.ARC_CLOCKWISE, 90, 90.0 - 360.0 * _halt);
+            dc.setPenWidth(1);
+        }
+        // Frage oben, bei Bedarf zweizeilig (am Leerzeichen nahe der Mitte getrennt).
+        var f = Graphics.FONT_XTINY;
+        var t = Strings.s("del.ask");
+        var fh = dc.getFontHeight(f);
+        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+        if (dc.getTextWidthInPixels(t, f) <= w * 0.68) {
+            dc.drawText(w / 2, h * 0.24, f, t, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        } else {
+            var ch = t.toCharArray();
+            var mitte = ch.size() / 2;
+            var cut = -1;
+            for (var d = 0; d <= mitte && cut < 0; d++) {
+                if (mitte + d < ch.size() && ch[mitte + d] == ' ') { cut = mitte + d; }
+                else if (ch[mitte - d] == ' ') { cut = mitte - d; }
+            }
+            if (cut < 0) { cut = mitte; }
+            dc.drawText(w / 2, h * 0.24 - fh / 2, f, t.substring(0, cut), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+            dc.drawText(w / 2, h * 0.24 + fh / 2, f, t.substring(cut + 1, t.length()), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        }
+        var keys = ["rec.cancel", "rec.discardHold"];
+        var ys = [0.52, 0.72];
+        for (var i = 0; i < 2; i++) {
+            var hot = (i == _sel);
+            dc.setColor(hot ? FARBE_CYAN : Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+            dc.drawText(w / 2, h * ys[i], hot ? Graphics.FONT_MEDIUM : Graphics.FONT_TINY,
+                Strings.s(keys[i]), Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        }
     }
-    function onResponse(r) as Lang.Boolean {
-        if (r == WatchUi.CONFIRM_YES) {
+}
+
+(:full)
+class LoeschDelegate extends WatchUi.BehaviorDelegate {
+    hidden var _item;
+    hidden var _view;
+    hidden var _timer = null;
+    hidden var _start = null;
+    hidden var _done = false;
+    const HALTEN_MS = 2000;
+
+    function initialize(item, view) {
+        BehaviorDelegate.initialize();
+        _item = item;
+        _view = view;
+    }
+
+    function onNextPage() as Lang.Boolean { _wahl(1); return true; }       // DOWN
+    function onPreviousPage() as Lang.Boolean { _wahl(0); return true; }   // UP
+    hidden function _wahl(s) as Void {
+        if (_start != null) { return; }
+        _view.setSel(s);
+        WatchUi.requestUpdate();
+    }
+
+    function onKeyPressed(evt as WatchUi.KeyEvent) as Lang.Boolean {
+        if (evt.getKey() != WatchUi.KEY_ENTER) { return false; }
+        if (_view.sel() == 0) { _zu(); return true; }
+        _start = System.getTimer();
+        if (_timer == null) { _timer = new Timer.Timer(); }
+        _timer.start(method(:onTick), 50, true);
+        return true;
+    }
+
+    function onKeyReleased(evt as WatchUi.KeyEvent) as Lang.Boolean {
+        if (evt.getKey() != WatchUi.KEY_ENTER || _start == null) { return false; }
+        _abbrechen();   // vor Ablauf losgelassen -> nichts loeschen
+        return true;
+    }
+
+    function onTick() as Void {
+        if (_start == null) { return; }
+        var p = (System.getTimer() - _start).toFloat() / HALTEN_MS;
+        if (p >= 1.0) {
+            _abbrechen();
+            if (_done) { return; }
+            _done = true;
             Uploader.discardAll();
             _item.setSubLabel(Strings.s("del.done"));
-            WatchUi.requestUpdate();
+            _zu();
+            return;
         }
-        return true;
+        _view.setHalt(p);
+        WatchUi.requestUpdate();
+    }
+
+    function onBack() as Lang.Boolean { _zu(); return true; }
+
+    hidden function _abbrechen() as Void {
+        if (_timer != null) { _timer.stop(); }
+        _start = null;
+        _view.setHalt(0.0);
+        WatchUi.requestUpdate();
+    }
+
+    hidden function _zu() as Void {
+        if (_timer != null) { _timer.stop(); _timer = null; }
+        _start = null;
+        WatchUi.popView(WatchUi.SLIDE_RIGHT);
     }
 }
 

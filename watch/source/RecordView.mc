@@ -35,6 +35,12 @@ class RecordView extends WatchUi.View {
     // Rückkehr aus dem Einstellungs-/Foil-Menü, damit die 10 s Countdown wieder von vorn laufen.
     function onShow() {
         _rec.resetAutoLead();
+        _rec.startVorne = true;
+    }
+
+    // Menue, Rueckfrage o. Ae. liegt darueber -> kein Auto-Start (s. SessionRecorder.startVorne).
+    function onHide() {
+        _rec.startVorne = false;
     }
 
     // Seitenzahl des AKTUELLEN Zustands (F3) — es gibt keinen Übersichts-Slot mehr, jeder Zustand
