@@ -538,7 +538,7 @@ def austreten(slug: str, user: models.User = Depends(current_user), db: Session 
 
 @router.get("/{slug}/bestenlisten")
 @zeitverbergen.antwort   # Zeilen mit started_at + user_id: „Uhrzeit verbergen" (app/zeitverbergen.py)
-def bestenlisten(slug: str, period: str = "30d", user: models.User = Depends(current_user),
+def bestenlisten(slug: str, period: str = "30d", sprint: bool = False, user: models.User = Depends(current_user),
                  db: Session = Depends(get_db)) -> dict:
     t, m = _team_fuer(db, slug, user)
     if not (T.aktiv(m) or T.bestenlisten_oeffentlich(t)):
@@ -547,7 +547,7 @@ def bestenlisten(slug: str, period: str = "30d", user: models.User = Depends(cur
     period = period if period in PERIODS else "30d"
     ids = T.mitglieder_ids(db, t.id)
     return {"period": period, "tafeln": [{**T.tafel_out(tf), "zeilen": T.tafel_berechnen(db, t, tf, period, ids)}
-                                         for tf in T.tafeln(db, t.id)]}
+                                         for tf in T.tafeln(db, t.id, sprint=sprint)]}
 
 
 def _darf_tafeln(t: models.Team, m: models.TeamMitglied | None) -> None:
@@ -1391,20 +1391,30 @@ class TafelIn(BaseModel):
 
 
 @router.put("/{slug}/tafeln")
-def tafeln_setzen(slug: str, body: list[TafelIn], user: models.User = Depends(current_user),
+def tafeln_setzen(slug: str, body: list[TafelIn], sprint: bool = False, user: models.User = Depends(current_user),
                   db: Session = Depends(get_db)) -> dict:
+    """Fliegende Sprints auch als Team-Bestenliste (Jan, 17.11.2026, Nutzerwunsch) — nur bei Pumpfoil/Foil Scoot und nur
+    von Clients mit `?sprint=1`. Ein alter Client kennt sie nicht und schickt die Liste ohne sie: dann bleiben die
+    vorhandenen Sprint-Bestenlisten am Ende stehen (wie bei den Events, s. event_aendern)."""
     t = _leiter(db, slug, user)
+    sporte = _sportarten()
+    erlaubt = T.KENNZAHLEN + (T.SPRINT if sprint else ())
+    for x in body:
+        if x.kennzahl not in erlaubt or x.sportart not in sporte:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "tafel")
+        if x.kennzahl in T.SPRINT and x.sportart not in T.SPRINT_SPORTARTEN:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "tafel")
+    bleiben = [] if sprint else [TafelIn(kennzahl=tf.kennzahl, sportart=tf.sportart, accel_only=tf.accel_only,
+                                         nur_brett=tf.nur_brett, foil_band=tf.foil_band, nur_teamspots=tf.nur_teamspots)
+                                 for tf in T.tafeln(db, t.id) if tf.kennzahl in T.SPRINT]
+    body = list(body) + bleiben
     if len(body) > T.MAX_TAFELN:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "zu_viele_tafeln")
-    sporte = _sportarten()
-    for x in body:
-        if x.kennzahl not in T.KENNZAHLEN or x.sportart not in sporte:
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "tafel")
     db.query(models.TeamTafel).filter_by(team_id=t.id).delete()
     for i, x in enumerate(body):
         db.add(models.TeamTafel(team_id=t.id, reihenfolge=i, **x.model_dump()))
     db.commit()
-    return {"tafeln": [T.tafel_out(tf) for tf in T.tafeln(db, t.id)]}
+    return {"tafeln": [T.tafel_out(tf) for tf in T.tafeln(db, t.id, sprint=sprint)]}
 
 
 @router.put("/{slug}/spots")
@@ -1476,7 +1486,7 @@ def oeffentlich(slug: str, response: Response, period: str = "30d", mix: bool = 
     ids = T.mitglieder_ids(db, t.id)
     return {**_kurz(t, False, db), "mitglieder_anzahl": len(ids), "period": period,
             "tafeln": [{**T.tafel_out(tf), "zeilen": T.fuer_gast(T.tafel_berechnen(db, t, tf, period, ids))}
-                       for tf in T.tafeln(db, t.id)],
+                       for tf in T.tafeln(db, t.id, sprint=sprint)],
             # Events sind Bestenlisten mit Zeitfenster -> in derselben Gastform (ohne Spots).
             "events": [T.event_out(db, t, e, gast=True, mix=mix, sprint=sprint) for e in T.events_liste(db, t.id, beendete=10, gast=True)]}
 

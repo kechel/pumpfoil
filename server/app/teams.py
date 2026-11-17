@@ -55,9 +55,12 @@ BEST = ("distance", "duration", "speed", "glide", "runs", "session_distance", "s
 SUMME = ("sum_sessions", "sum_runs", "sum_pumps", "sum_distance", "sum_time", "sum_spots")
 KENNZAHLEN = BEST + SUMME
 # Fliegende Sprints (09.11.2026, analysis/sprint.py): je Person die beste Session wie BEST, Wert = Tempo des besten
-# Fensters (m/s). Vorerst NUR in Events waehlbar (Jan: „erstmal nur in events … noch nicht in den rekord-kacheln oder
-# community-seiten") und nur an Clients, die sie kennen (`?sprint=1`) — alte Apps zeigten den Rohschluessel.
+# Fensters (m/s). Zuerst nur in Events (Jan 09.11.: „erstmal nur in events"), seit 17.11.2026 auch in Community-Rekorden,
+# Bestenlisten und Team-Bestenlisten (Nutzerwunsch). Nur an Clients, die sie kennen (`?sprint=1`) — alte Apps zeigten den
+# Rohschluessel.
 SPRINT = ("sprint_100m", "sprint_200m", "sprint_300m", "sprint_60s")
+# Seit 17.11.2026 auch als Team-Bestenliste (nicht mehr nur Events) — wie in den Community-Rekorden nur diese Sportarten.
+SPRINT_SPORTARTEN = ("pumpfoil", "foil_scoot", "pumpfoil+foil_scoot")
 EVENT_KENNZAHLEN = KENNZAHLEN + SPRINT
 
 
@@ -629,9 +632,11 @@ def tafel_out(tf: models.TeamTafel) -> dict:
             "nur_brett": tf.nur_brett, "foil_band": tf.foil_band, "nur_teamspots": tf.nur_teamspots}
 
 
-def tafeln(db: Session, team_id: int) -> list[models.TeamTafel]:
+def tafeln(db: Session, team_id: int, sprint: bool = True) -> list[models.TeamTafel]:
+    """Bestenlisten eines Teams. `sprint=False`: ohne Sprint-Bestenlisten (alte Clients zeigten den Rohschluessel)."""
     T = models.TeamTafel
-    return db.query(T).filter_by(team_id=team_id).order_by(T.reihenfolge, T.id).all()
+    alle = db.query(T).filter_by(team_id=team_id).order_by(T.reihenfolge, T.id).all()
+    return alle if sprint else [tf for tf in alle if tf.kennzahl not in SPRINT]
 
 
 STANDARD_TAFELN = ("session_pumps", "distance", "speed", "sum_pumps")

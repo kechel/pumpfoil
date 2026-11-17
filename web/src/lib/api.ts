@@ -2258,7 +2258,7 @@ export const api = {
   teamOeffentlich: (slug: string, period: string) =>
     req<TeamOeffentlich>(`/api/public/teams/${encodeURIComponent(slug)}?period=${period}&mix=1&sprint=1`),
   teamBestenlisten: (slug: string, period: string) =>
-    req<{ period: string; tafeln: TeamTafelMitZeilen[] }>(`/api/teams/${encodeURIComponent(slug)}/bestenlisten?period=${period}`),
+    req<{ period: string; tafeln: TeamTafelMitZeilen[] }>(`/api/teams/${encodeURIComponent(slug)}/bestenlisten?period=${period}&sprint=1`),
   teamStatistik: (slug: string, period: string) =>
     req<TeamStatistik>(`/api/teams/${encodeURIComponent(slug)}/statistik?period=${period}`),
   teamLogbuch: (slug: string) => req<TeamLogbuchEintrag[]>(`/api/teams/${encodeURIComponent(slug)}/logbuch`),
@@ -2323,7 +2323,7 @@ export const api = {
   teamFreigabe: (slug: string) =>
     req<{ freigabe: string }>(`/api/teams/${encodeURIComponent(slug)}/freigabe`, { method: "POST" }),
   teamTafelnSetzen: (slug: string, tafeln: TeamTafel[]) =>
-    req<{ tafeln: TeamTafel[] }>(`/api/teams/${encodeURIComponent(slug)}/tafeln`, { method: "PUT", body: JSON.stringify(tafeln) }),
+    req<{ tafeln: TeamTafel[] }>(`/api/teams/${encodeURIComponent(slug)}/tafeln?sprint=1`, { method: "PUT", body: JSON.stringify(tafeln) }),
   teamSpotsSetzen: (slug: string, ids: number[]) =>
     req<{ spots: number[] }>(`/api/teams/${encodeURIComponent(slug)}/spots`, { method: "PUT", body: JSON.stringify(ids) }),
   teamEinladungen: (slug: string) => req<{ join: string; apply: string }>(`/api/teams/${encodeURIComponent(slug)}/einladungen`),

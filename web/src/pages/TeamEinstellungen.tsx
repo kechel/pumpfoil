@@ -16,7 +16,7 @@ import TeamQr from "../components/TeamQr";
 import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
 import { RegelnLink } from "./TeamRegeln";
 import { TEAM_FARBEN, teamFarbStil } from "../lib/teamFarben";
-import { TEAM_KENNZAHLEN, fehlerCode, teamUrl } from "../lib/teamKennzahlen";
+import { SPRINT_KENNZAHLEN, TEAM_KENNZAHLEN, fehlerCode, teamUrl } from "../lib/teamKennzahlen";
 import { sortiereNachSport } from "../lib/sportClass";
 import { bandLabel } from "./Home";
 import { useI18n } from "../i18n";
@@ -48,6 +48,8 @@ function Schalter({ an, onChange, titel, text }: { an: boolean; onChange: (v: bo
 // Zwei Ansichten (Jan, 01.11.2026): „Verwaltung" fuer Leitung UND Moderatoren (Anfragen, Mitglieder, Events,
 // Einladungslinks) und „Grundeinstellungen" nur fuer die Leitung (Auftritt mit Teambild, Beitritt, Sichtbarkeit,
 // Bestenlisten, Teamspots, Loeschen). Routen /teams/:slug/verwalten und /teams/:slug/einstellungen.
+const SPRINT_SPORTS = ["pumpfoil", "foil_scoot", "pumpfoil+foil_scoot"];
+
 export default function TeamEinstellungen() {
   const grund = useLocation().pathname.endsWith("/einstellungen");   // sonst /verwalten
   const { slug = "" } = useParams();
@@ -115,7 +117,13 @@ export default function TeamEinstellungen() {
     else kopieren(s);
   };
 
-  const tafelAendern = (i: number, teil: Partial<TeamTafel>) => setTafeln((l) => l.map((x, j) => (j === i ? { ...x, ...teil } : x)));
+  // Sprint-Bestenlisten nur bei Pumpfoil/Foil Scoot (17.11.2026, Server teams.SPRINT_SPORTARTEN): wechselt die Sportart
+  // weg davon, faellt die Kennzahl auf „weitester Lauf" zurueck (sonst lehnte der Server das Speichern ab).
+  const tafelAendern = (i: number, teil: Partial<TeamTafel>) => setTafeln((l) => l.map((x, j) => {
+    if (j !== i) return x;
+    const neu = { ...x, ...teil };
+    return neu.kennzahl.startsWith("sprint_") && !SPRINT_SPORTS.includes(neu.sportart) ? { ...neu, kennzahl: "distance" } : neu;
+  }));
   const tafelVerschieben = (i: number, d: number) => setTafeln((l) => {
     const n = [...l]; const j = i + d;
     if (j < 0 || j >= n.length) return l;
@@ -328,6 +336,11 @@ export default function TeamEinstellungen() {
                   <optgroup label={t("team.k.summe")}>
                     {TEAM_KENNZAHLEN.filter((k) => k.summe).map((k) => <option key={k.key} value={k.key}>{t(k.labelKey)}</option>)}
                   </optgroup>
+                  {SPRINT_SPORTS.includes(tf.sportart) && (
+                    <optgroup label="Sprints">
+                      {SPRINT_KENNZAHLEN.map((k) => <option key={k.key} value={k.key}>{t(k.labelKey)}</option>)}
+                    </optgroup>
+                  )}
                 </select>
                 <button onClick={() => tafelVerschieben(i, -1)} className={knopf} aria-label="↑">↑</button>
                 <button onClick={() => tafelVerschieben(i, 1)} className={knopf} aria-label="↓">↓</button>
