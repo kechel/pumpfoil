@@ -359,7 +359,11 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.103",   # LIVE 2026-11-12: am Tag der Einreichung freigegeben (Jans Meldung, aus dem Store auf beiden Uhren
+        "latest": "1.0.104",   # LIVE 2026-11-17: am Tag der Einreichung freigegeben (Jans Meldung, aus dem IQ Store auf die
+        # echte Uhr geholt). Inhalt: Menuepunkt „Aufnahmen loeschen" (eigene Rueckfrage, START 2 s halten; nicht im Lite-Build),
+        # kein Auto-Start unter Menues. .iq aus af8a563b. Dazu Server: wartende Uhr-Aufnahme gilt als erledigt, wenn sie ueber
+        # Garmin Connect/FIT schon da ist (abaf287c).
+        # ALT: "latest": "1.0.103",   # LIVE 2026-11-12: am Tag der Einreichung freigegeben (Jans Meldung, aus dem Store auf beiden Uhren
         # installiert, Testsessions #21457-#21459; Store-Seite zweimal 1.0.103). Inhalt: GPS-Luecke am Lauf-Ende (LaufLuecke.mc).
         # .iq aus ba53bfcb, 222 Varianten. Changelog-Punkt mit den Simulator-Screenshots + Ereignis.
         # ALT: "latest": "1.0.102",   # LIVE 2026-11-10: am Tag der Einreichung freigegeben (Jans Meldung, aus dem Store auf fenix 7X Pro
@@ -986,6 +990,7 @@ IN_REVIEW: list[dict] = [
      ]},
     # 12.11.2026: GPS-Luecke am Lauf-Ende (LaufLuecke.mc, baf2244d/bddabe64), im Simulator auf fenix 7X Pro, FR55 und
     # Instinct 2 getestet. Version 1.0.103 fuer die Einreichung gebumpt.
+    # Garmin 1.0.104 am 17.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); 2 Punkte + Ereignis im Changelog mit garmin 1.0.104.
     # Garmin 1.0.103 am 12.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt mit 5 Bildern im Changelog mit garmin 1.0.103.
     # Huawei Watch 5 1.0.5 am 12.11. FREIGEGEBEN (s. _APP_META["huawei-watch5"]); Punkt im Changelog mit huawei-watch5 1.0.5.
     # 15.10.2026 (Jan: „alle immer moeglichst auf dem gleichen stand"): Garmin-1.0.93-Uhrseite
