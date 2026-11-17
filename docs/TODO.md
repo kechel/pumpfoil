@@ -1576,7 +1576,8 @@ Referee „nur zu zweit/Moderatoren nur Vorschlag" nur gemerkt (Jan: „glaube d
   kompiliert; Material-Switches), iOS 9cb6d3fd (fuer 1.1.68, nur swiftc -parse; Werte als Spalte in der Lauf-Tabelle).
 - Naechstes Android/iOS: Puls-Streifen je Lauf (12.11.), Datenschutz + Team-Regeln (07.11.); Global-Opt-out-Hinweis ist
   gebaut, mit abgemeldetem Konto noch nicht angesehen (Web/Android/iOS).
-- Uhren-Paritaet LaufLuecke: Zepp, Huawei, Suunto offen (12.11.).
+- ✅ Uhren-Paritaet LaufLuecke: laut docs/PARITY-AUDIT.md Punkt 9 seit 12.11. ueberall gebaut (Zepp 1.0.16, Huawei 1.0.6
+  Watch 5 + Watch 3/4 — Lite nicht, 48-KB-Heap —, Suunto 1.01); TODO-Zeile war veraltet (17.11.).
 
 **A+. Referee Board fuer Event-Leiter und Moderatoren (Jan 16.11.)** — „einzelne laeufe rausnehmen aus der wertung, auch
 nach dem festschreiben noch 24h lang … nicht nur via claude". Haengt an A1 (Wertung je Lauf): Ansicht je Event mit allen
@@ -2000,7 +2001,7 @@ Stehen nur alle bis zu 50 s eine Position, und bleibt). Konzept mit Jan abgestim
       375 -> 254 (52 Sessions besser, 26 schlechter); insgesamt jetzt eher mehr Laeufe als der Server (pumpfoil 1275 vs
       1062 — Luecken > 15 s trennen, der Server fuehrt mit Accel/v3 teils wieder zusammen). Jans Emulator-Test #21523 mit
       GPX hatte keine Luecke erreicht (GPX-Wiedergabe interpoliert: 6,7 m / 11 s = 0,61 m/s).
-- [ ] Zepp, Huawei, Suunto (Tabelle in PARITY-AUDIT).
+- [x] Zepp 1.0.16, Huawei 1.0.6 (Lite nicht), Suunto 1.01 — s. PARITY-AUDIT Punkt 9 (TODO am 17.11. nachgezogen).
 - Nebenbefund KORRIGIERT: `watch/test/lite-minimal.test.mjs` „Lite-Fassungen stehen im Quelltext" schlug schon auf HEAD fehl
   (verbot auch den SensorLogger, den 8ec18c47 am 05.11. absichtlich fuer Accel-in-FIT eingebaut hat) -> Test prueft jetzt: kein eigener Listener, SensorLogger nur hinter `Wege.fitAccel`.
 
