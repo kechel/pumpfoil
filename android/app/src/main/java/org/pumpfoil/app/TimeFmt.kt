@@ -46,10 +46,19 @@ fun hhmmssOffset(startIso: String?, tz: String?, seconds: Long): String? =
     startIso?.let { zoned(it, tz)?.plusSeconds(seconds)?.format(FMT_HHMMSS) }
 
 // Datum + Start[–Ende] + „Uhr" (nur wo üblich, via sessions.oclock). Für die Listen-Zeilen.
-fun dateTimeRange(startIso: String, endIso: String?, tz: String? = null): String {
+// zeitVerborgen („Uhrzeit verbergen" des Besitzers, Server `zeit_verborgen`): nur das Datum.
+fun dateTimeRange(startIso: String, endIso: String?, tz: String? = null, zeitVerborgen: Boolean = false): String {
+    if (zeitVerborgen) return shortDateFull(startIso, tz) ?: prettyDate(startIso, tz)
     val oc = I18n.t("sessions.oclock")
     val end = hhmm(endIso, tz)
     return prettyDate(startIso, tz) + (if (end != null) " – $end" else "") + (if (oc.isNotEmpty()) " $oc" else "")
+}
+
+// Zeit ab Session-Start statt Uhrzeit, z. B. „+12:30" bzw. „+1:02:05" (Web relZeit, „Uhrzeit verbergen" 17.11.2026).
+fun relZeit(ms: Long): String {
+    val s = maxOf(0L, Math.round(ms / 1000.0))
+    val h = s / 3600; val m = (s % 3600) / 60; val sek = s % 60
+    return if (h > 0) "+%d:%02d:%02d".format(h, m, sek) else "+%d:%02d".format(m, sek)
 }
 
 // Kurzes Datum "dd.MM.yy" — Community-Rekord-Kacheln (früher CommunityScreen.shortDateC).

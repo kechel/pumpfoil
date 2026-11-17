@@ -720,7 +720,9 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
             AvatarCircle(name = s.ownerName, avatarUrl = s.ownerAvatarUrl, size = 44.dp, userId = s.ownerId)
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
-                Text(prettyDate(s.startedAt, s.tz), style = MaterialTheme.typography.headlineSmall)
+                // „Uhrzeit verbergen" des Besitzers: nur das Datum (die Zeiten stehen auf 12:00 geschoben).
+                Text(if (s.zeitVerborgen) (shortDateFull(s.startedAt, s.tz) ?: prettyDate(s.startedAt, s.tz)) else prettyDate(s.startedAt, s.tz),
+                    style = MaterialTheme.typography.headlineSmall)
                 if (!s.owned && !s.ownerName.isNullOrBlank()) {
                     Text(s.ownerName, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
                 }
@@ -791,7 +793,9 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     val dur = if (secs >= 3600) "%d:%02d h".format(secs / 3600, (secs % 3600) / 60)
                               else "%d:%02d min".format(secs / 60, secs % 60)
                     val oc = I18n.t("sessions.oclock").let { if (it.isBlank()) "" else " $it" }
-                    Text("${hhmmLoc(s.startedAt, s.tz)} – ${hhmmLoc(s.endedAt, s.tz)}$oc · ${I18n.t("sd.duration")} $dur",
+                    // Bei „Uhrzeit verbergen" nur die Dauer (Web SessionDetail, 17.11.2026).
+                    Text(if (s.zeitVerborgen) "${I18n.t("sd.duration")} $dur"
+                         else "${hhmmLoc(s.startedAt, s.tz)} – ${hhmmLoc(s.endedAt, s.tz)}$oc · ${I18n.t("sd.duration")} $dur",
                         style = normal, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 // Uhr-Badge: mit welcher Uhr aufgenommen — dasselbe Abzeichen wie auf den Karten, hier
@@ -1355,7 +1359,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 hr = trackForRuns?.hr.orEmpty(),
                 zeiten = zeitenFuerLaeufe,
                 excluded = excluded, poweredRuns = powered, keptWindows = kept,
-                canEdit = s.owned, startedAt = s.startedAt, tz = s.tz,
+                canEdit = s.owned, startedAt = s.startedAt, tz = s.tz, zeitVerborgen = s.zeitVerborgen,
                 trimStartMs = s.trimStartMs, pausen = s.pauseWindows.orEmpty(),
                 win = win, wattFuer = FoilPhysics.wattRechner(s.foil, weightKg),
                 onSaved = { fresh -> selectedRun = null; SessionCache.store(fresh); onReload() },
@@ -2059,6 +2063,8 @@ private fun RunsTable(
     canEdit: Boolean = false,
     startedAt: String = "",
     tz: String? = null,
+    // „Uhrzeit verbergen" des Besitzers: Laufzeiten relativ zum Start („+12:30") statt als Uhrzeit.
+    zeitVerborgen: Boolean = false,
     // Zuschnitt-Beginn und Pausen der Aufnahme — beides braucht es, um aus einer Session-Zeit
     // eine UHRZEIT zu machen (s. Clockmap.kt).
     trimStartMs: Long? = null,
@@ -2127,7 +2133,7 @@ private fun RunsTable(
                 val from = win.getOrNull(0) ?: 0L
                 val to = win.getOrNull(1) ?: from
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("${clockAt(startedAt, tz, Clockmap.wanduhrMs(pausen, from))} · ${mmss(((to - from).coerceAtLeast(0L) / 1000.0).toFloat())}",
+                    Text("${clockAt(startedAt, tz, Clockmap.wanduhrMs(pausen, from), zeitVerborgen)} · ${mmss(((to - from).coerceAtLeast(0L) / 1000.0).toFloat())}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (canEdit) {
@@ -2186,7 +2192,7 @@ private fun RunsTable(
             }
             poweredRuns.forEach { r ->
                 Column {
-                    Text("${clockAt(startedAt, tz, Clockmap.wanduhrMs(pausen, r.tStartMs))} · ${poweredWhy(r)}",
+                    Text("${clockAt(startedAt, tz, Clockmap.wanduhrMs(pausen, r.tStartMs), zeitVerborgen)} · ${poweredWhy(r)}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (canEdit) {
@@ -2205,7 +2211,7 @@ private fun RunsTable(
                 val from = win.getOrNull(0) ?: 0L
                 val to = win.getOrNull(1) ?: from
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("${clockAt(startedAt, tz, Clockmap.wanduhrMs(pausen, from))} · ${mmss(((to - from).coerceAtLeast(0L) / 1000.0).toFloat())} · ${I18n.t("v2.keptLabel")}",
+                    Text("${clockAt(startedAt, tz, Clockmap.wanduhrMs(pausen, from), zeitVerborgen)} · ${mmss(((to - from).coerceAtLeast(0L) / 1000.0).toFloat())} · ${I18n.t("v2.keptLabel")}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     if (canEdit) {
@@ -2284,7 +2290,7 @@ private fun RunsTable(
             // Inhalt ist dann breiter als der Container, und Kopf und Zellen muessen exakt
             // dieselbe Breite haben, sonst laufen sie auseinander.
             val spalten = laufSpalten(segments, win, wattFuer, maxHrImLauf, hrWerteImLauf, hrAbfall, startedAt, tz,
-                                      trimStartMs, pausen)
+                                      trimStartMs, pausen, zeitVerborgen)
             // Sortieren per Tipp auf die Spaltenueberschrift, wie die PWA (Wunsch eines Fahrers,
             // 10.10.2026): erster Tipp aufsteigend, zweiter absteigend; „#" stellt die
             // Laufreihenfolge wieder her. Fehlende Werte stehen immer unten, Gleichstand bleibt in
@@ -2402,6 +2408,7 @@ private fun laufSpalten(
     tz: String?,
     trimStartMs: Long?,
     pausen: List<List<Long>>,
+    zeitVerborgen: Boolean = false,
 ): List<LaufSpalte> {
     val einheit = PumpUnit.unitLabel()
     // Die PWA-Keys tragen Platzhalter ({win}, {unit}); I18n.t kennt keine Interpolation.
@@ -2416,7 +2423,7 @@ private fun laufSpalten(
     fun eine(v: Double?) = if (v == null) "–" else "%.1f".format(v)
     return buildList {
         add(LaufSpalte("start", k("sd.colStart"), 68, { it.tStartMs }) { seg ->
-            Clockmap.laufUhrzeitMs(seg, trimStartMs, pausen)?.let { clockAt(startedAt, tz, it) } ?: "–"
+            Clockmap.laufUhrzeitMs(seg, trimStartMs, pausen)?.let { clockAt(startedAt, tz, it, zeitVerborgen) } ?: "–"
         })
         // Distanz in Metern, auch oberhalb von 1000 — wie die PWA (Math.round + " m").
         add(LaufSpalte("distance", k("sd.colDistance"), 62, { it.distanceM }) { seg -> "%.0f m".format(seg.distanceM) })
@@ -2473,8 +2480,10 @@ private fun laufSpalten(
 
 // Uhrzeit (HH:mm:ss) in der Ortszeit des Spots für einen Zeitpunkt „ms ab Session-Start".
 // Fallback ohne tz: der Offset aus dem ISO-String der Startzeit (wie TimeFmt/web).
+// relativ = „Uhrzeit verbergen" des Besitzers: Zeit ab Start („+12:30", „+1:02:05") wie Web relZeit.
 private val CLOCK_HMS = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")
-private fun clockAt(startedAt: String, tz: String?, offsetMs: Long): String {
+private fun clockAt(startedAt: String, tz: String?, offsetMs: Long, relativ: Boolean = false): String {
+    if (relativ) return relZeit(offsetMs)
     val start = try { java.time.OffsetDateTime.parse(startedAt) } catch (_: Exception) { return "–" }
     val zone: java.time.ZoneId =
         (if (!tz.isNullOrBlank()) try { java.time.ZoneId.of(tz) } catch (_: Exception) { null } else null) ?: start.offset

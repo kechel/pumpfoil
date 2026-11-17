@@ -197,6 +197,8 @@ data class SessionSummary(
     // Karten dieselben Chips zeigen wie die PWA. null = für diese Session ist nichts hinterlegt.
     val setup: SessionSetup? = null,
     val analysis: Analysis? = null,        // slim: Kennzahlen für die Listenkarte
+    // „Uhrzeit verbergen" des Besitzers: Zeiten auf 12:00 geschoben -> nur das Datum zeigen (alte Server: false).
+    @SerialName("zeit_verborgen") val zeitVerborgen: Boolean = false,
 )
 
 // Kompakte Foil-Info für Listen/Karten (Server liefert ein dict mit u.a. brand/model/size).
@@ -251,6 +253,8 @@ data class CommunityItem(
     // Sportart der Session. Die Liste „was ist neu" zeigt ALLE Sportarten (sport=all), deshalb
     // kennzeichnet die Karte, wenn es KEIN Pumpfoilen war. null/"pumpfoil" = kein Hinweis.
     @SerialName("sport_class") val sportClass: String? = null,
+    // „Uhrzeit verbergen" des Besitzers: Zeiten auf 12:00 geschoben -> nur das Datum zeigen (alte Server: false).
+    @SerialName("zeit_verborgen") val zeitVerborgen: Boolean = false,
 )
 
 // Tages-Gruppe (ein Nutzer, ein Tag) aus /api/community/sessions-grouped. count==1 -> als
@@ -1311,6 +1315,9 @@ data class SessionDetail(
     // Profil, "show", "hide".
     @SerialName("ort_sichtbarkeit") val ortSichtbarkeit: String? = null,
     @SerialName("ort_verborgen") val ortVerborgen: Boolean = false,
+    // „Uhrzeit verbergen" des Besitzers (17.11.2026, server/app/zeitverbergen.py): started_at/ended_at stehen auf
+    // 12:00 Ortszeit des Tages, die Dauer stimmt -> nur Datum zeigen, Laufzeiten relativ zum Start. Alte Server: false.
+    @SerialName("zeit_verborgen") val zeitVerborgen: Boolean = false,
     // Wo sass das Geraet: "board" (Handy am Brett) | "phone" (Tasche/Huefte) | null (Uhr). Nur
     // "board" macht Nicken/Rollen zu einer Aussage ueber das BRETT (s. analysis/lage.py).
     val placement: String? = null,

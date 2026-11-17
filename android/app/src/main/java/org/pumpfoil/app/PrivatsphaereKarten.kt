@@ -22,7 +22,10 @@ import kotlinx.serialization.json.*
  *    der Seite landet (community.foiler_profil liest genau diese Werte); die Karte schreibt sie
  *    nur und filtert nicht selbst, sonst gaebe es zwei Wahrheiten. Die Seite selbst gibt es seit
  *    01.10.2026 auch nativ (FoilerScreen.kt); der Link oeffnet sie dort.
- *  - ORT VERBERGEN als Voreinstellung fuer ALLE eigenen Aufnahmen, rueckwirkend.
+ *  - ORT ANZEIGEN (bis 17.11.2026 „Ort verbergen“) als Voreinstellung fuer ALLE eigenen Aufnahmen, rueckwirkend.
+ *
+ * Haken = Einwilligung, mehr zu zeigen (Jan, 17.11.2026, wie Spot-Karte und Online-Punkt). Die Server-Schluessel
+ * bleiben die Opt-outs (`hide_location`, `hide_time`, `global_events_aus`), die Karten zeigen und speichern sie umgekehrt.
  *  - GETEILTE AUFNAHMEN: jede Aufnahme mit aktivem Teilen-Link, Knopf zum Zuruecknehmen. Die
  *    Karte erscheint nicht, wenn nichts geteilt ist. Wann ein Link erzeugt oder ob er je geoeffnet
  *    wurde, wissen wir nicht — dafuer braeuchte es ein Zugriffsprotokoll, und das waere Tracking.
@@ -97,7 +100,8 @@ fun OrtVerbergenKarte(onSaved: () -> Unit) {
     var an by remember { mutableStateOf<Boolean?>(null) }
     var busy by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        an = try { Api.settings()["hide_location"]?.jsonPrimitive?.booleanOrNull ?: false } catch (_: Exception) { false }
+        // Haken = Ort anzeigen; in der DB bleibt `hide_location`.
+        an = try { Api.settings()["hide_location"]?.jsonPrimitive?.booleanOrNull != true } catch (_: Exception) { true }
     }
     val wert = an ?: return
     Card(Modifier.fillMaxWidth()) {
@@ -109,7 +113,7 @@ fun OrtVerbergenKarte(onSaved: () -> Unit) {
                 busy = true
                 scope.launch {
                     try {
-                        Api.saveSettings(buildJsonObject { put("hide_location", neu) })
+                        Api.saveSettings(buildJsonObject { put("hide_location", !neu) })
                         an = neu; onSaved()
                     } catch (_: Exception) {}
                     busy = false
@@ -126,6 +130,40 @@ fun OrtVerbergenKarte(onSaved: () -> Unit) {
 }
 
 /**
+ * „Uhrzeit anzeigen“ (Web UhrzeitCard in Settings.tsx, 17.11.2026; server/app/zeitverbergen.py): ohne Haken sehen andere
+ * von den eigenen Sessions nur den Tag. Standard an; in der DB das Opt-out `hide_time`. Direkt unter „Ort anzeigen“.
+ */
+@Composable
+fun UhrzeitKarte(onSaved: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var an by remember { mutableStateOf<Boolean?>(null) }
+    var busy by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        an = try { Api.settings()["hide_time"]?.jsonPrimitive?.booleanOrNull != true } catch (_: Exception) { true }
+    }
+    val wert = an ?: return
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp)) {
+            Text(I18n.t("hidetime.title"), style = MaterialTheme.typography.titleMedium)
+            Text(I18n.t("hidetime.hint"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp, bottom = 6.dp))
+            Haken(I18n.t("hidetime.switch"), wert, aktiv = !busy) { neu ->
+                busy = true
+                scope.launch {
+                    try {
+                        Api.saveSettings(buildJsonObject { put("hide_time", !neu) })
+                        an = neu; onSaved()
+                    } catch (_: Exception) {}
+                    busy = false
+                }
+            }
+            Text(I18n.t("hidetime.scope"), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 6.dp))
+        }
+    }
+}
+
+/**
  * Opt-out globale Events (Web GlobaleEventsCard in Settings.tsx; Jan, 06.11.2026): wer nicht automatisch in den
  * Bestenlisten, der Team-Wertung und den Summen globaler Events stehen will (`global_events_aus`). Direkt unter
  * „Ort verbergen", wie in der PWA.
@@ -136,7 +174,8 @@ fun GlobaleEventsKarte(onSaved: () -> Unit) {
     var an by remember { mutableStateOf<Boolean?>(null) }
     var busy by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        an = try { Api.settings()["global_events_aus"]?.jsonPrimitive?.booleanOrNull ?: false } catch (_: Exception) { false }
+        // Haken = teilnehmen; in der DB bleibt das Opt-out `global_events_aus`.
+        an = try { Api.settings()["global_events_aus"]?.jsonPrimitive?.booleanOrNull != true } catch (_: Exception) { true }
     }
     val wert = an ?: return
     Card(Modifier.fillMaxWidth()) {
@@ -148,7 +187,7 @@ fun GlobaleEventsKarte(onSaved: () -> Unit) {
                 busy = true
                 scope.launch {
                     try {
-                        Api.saveSettings(buildJsonObject { put("global_events_aus", neu) })
+                        Api.saveSettings(buildJsonObject { put("global_events_aus", !neu) })
                         an = neu; onSaved()
                     } catch (_: Exception) {}
                     busy = false

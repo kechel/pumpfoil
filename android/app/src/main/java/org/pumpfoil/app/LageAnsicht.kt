@@ -267,7 +267,9 @@ private fun LageInhalt(
     val roll = d.rollDeg.getOrNull(idx) ?: 0.0
     val gier = d.gierDeltaDeg.getOrNull(idx) ?: 0.0
     val uhrzeit = { t: Long ->
-        hhmmssOffset(s.startedAt, s.tz, Clockmap.wanduhrMs(s.pauseWindows, t) / 1000) ?: ""
+        // „Uhrzeit verbergen" des Besitzers: Zeit ab Start statt Uhrzeit.
+        if (s.zeitVerborgen) relZeit(Clockmap.wanduhrMs(s.pauseWindows, t))
+        else hhmmssOffset(s.startedAt, s.tz, Clockmap.wanduhrMs(s.pauseWindows, t) / 1000) ?: ""
     }
 
     // Vorn/hinten nicht aus den Daten bestimmbar (keine eindeutige Anfahrt): dann ist das

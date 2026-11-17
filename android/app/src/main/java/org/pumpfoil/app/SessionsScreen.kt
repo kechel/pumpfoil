@@ -534,7 +534,7 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, avatarUserId: I
     if (ListenAnsicht.kompakt) {
         SessionZeile(
             sessionId = s.id, avatarName = s.ownerName, avatarUrl = s.ownerAvatarUrl, avatarUserId = avatarUserId,
-            datum = zeilenDatum(s.startedAt, s.tz), uhrzeit = hhmm(s.startedAt, s.tz),
+            datum = zeilenDatum(s.startedAt, s.tz), uhrzeit = if (s.zeitVerborgen) null else hhmm(s.startedAt, s.tz),
             name = null, spot = s.placeName,
             sportLabel = s.sportClass?.takeIf { it.isNotBlank() && it != "pumpfoil" }?.let { I18n.t(classLabelKey(it, null)) },
             kennzahlen = if (a != null) sessionStatsTeile(a, m, s.sportProfil) else emptyList(),
@@ -567,7 +567,7 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, avatarUserId: I
                 }
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(dateTimeRange(s.startedAt, s.endedAt, s.tz), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text(dateTimeRange(s.startedAt, s.endedAt, s.tz, s.zeitVerborgen), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                     // Titel der Session direkt UNTER dem Datum und fett (Jan, 02.09.): vorher
                     // stand er klein und blass unter den Chips und ging dort unter.
                     s.caption?.takeIf { it.isNotBlank() }?.let {
@@ -959,7 +959,7 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
     if (ListenAnsicht.kompakt) {
         SessionZeile(
             sessionId = c.id, avatarName = c.name, avatarUrl = c.avatarUrl, avatarUserId = c.userId,
-            datum = zeilenDatum(c.startedAt, c.tz), uhrzeit = hhmm(c.startedAt, c.tz),
+            datum = zeilenDatum(c.startedAt, c.tz), uhrzeit = if (c.zeitVerborgen) null else hhmm(c.startedAt, c.tz),
             name = c.name, spot = c.spot,
             sportLabel = c.sportClass?.takeIf { it.isNotBlank() && it != "pumpfoil" }?.let { I18n.t("cls.sport.$it") },
             kennzahlen = communityStatsTeile(c),
@@ -982,10 +982,10 @@ fun CommunityItemRow(c: CommunityItem, modifier: Modifier = Modifier, onClick: (
                 }
                 Spacer(Modifier.width(10.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(c.name ?: dateTimeRange(c.startedAt, c.endedAt, c.tz), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                    Text(c.name ?: dateTimeRange(c.startedAt, c.endedAt, c.tz, c.zeitVerborgen), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                     if (inCompare) Text("⇄ ${I18n.t("compare.title")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     if (c.name != null) {
-                        Text(dateTimeRange(c.startedAt, c.endedAt, c.tz), style = MaterialTheme.typography.bodySmall,
+                        Text(dateTimeRange(c.startedAt, c.endedAt, c.tz, c.zeitVerborgen), style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     c.caption?.takeIf { it.isNotBlank() }?.let {
