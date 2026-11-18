@@ -1061,6 +1061,7 @@ const ja: Record<string, string> = {
   "sd.avgPump": "平均ポンプ",
   "sd.taktUhr": "ケイデンス（ウォッチ）",
   "sd.colPower": "パワー",
+  "sd.colFoilDrag": "フォイル抵抗",
   "account.devicesTitle": "連携したウォッチ",
   "account.devicesHint": "アカウントとペアリングされたデバイス。取り消すとトークンが無効になります — セッションは保持され、ウォッチは後で再連携できます。",
   "account.devicesNone": "まだウォッチが連携されていません。",

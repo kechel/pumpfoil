@@ -941,6 +941,7 @@ const fr: Record<string, string> = {
   "sd.avgPump": "Pump moy.",
   "sd.taktUhr": "Cadence (montre)",
   "sd.colPower": "Puissance",
+  "sd.colFoilDrag": "Traînée du foil",
   "account.devicesTitle": "Montres liées",
   "account.devicesHint": "Appareils associés à ton compte. Révoquer invalide le jeton — les sessions sont conservées, la montre peut être reliée plus tard.",
   "account.devicesNone": "Aucune montre liée pour l’instant.",

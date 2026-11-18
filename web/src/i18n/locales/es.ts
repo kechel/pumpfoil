@@ -941,6 +941,7 @@ const es: Record<string, string> = {
   "sd.avgPump": "Pump medio",
   "sd.taktUhr": "Cadencia (reloj)",
   "sd.colPower": "Potencia",
+  "sd.colFoilDrag": "Arrastre del foil",
   "account.devicesTitle": "Relojes vinculados",
   "account.devicesHint": "Dispositivos emparejados con tu cuenta. Revocar invalida el token — las sesiones se conservan y el reloj puede volver a vincularse.",
   "account.devicesNone": "Aún no hay reloj vinculado.",

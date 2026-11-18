@@ -879,6 +879,7 @@ const gsw: Record<string, string> = {
   "sd.avgPump": "Ø Pump",
   "sd.taktUhr": "Takt (Uhr)",
   "sd.colPower": "Leischtig",
+  "sd.colFoilDrag": "Foil-Widerstand",
   "account.devicesTitle": "Verbundeni Uhre",
   "account.devicesHint": "Mit dim Konto gepairti Grät. Widerrueffe macht de Token ungültig — Sessions bliibe, d Uhr cha spöter neu verbunde wärde.",
   "account.devicesNone": "No kei Uhr verbunde.",

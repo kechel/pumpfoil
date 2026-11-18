@@ -1220,6 +1220,7 @@ const de: Record<string, string> = {
   "sd.avgPump": "Ø Pump",
   "sd.taktUhr": "Takt (Uhr)",
   "sd.colPower": "Leistung",
+  "sd.colFoilDrag": "Foil-Widerstand",
   "account.devicesTitle": "Verbundene Uhren",
   "account.devicesHint": "Mit deinem Konto gepairte Geräte. Widerrufen macht den Token ungültig — Sessions bleiben erhalten, die Uhr kann später neu verbunden werden.",
   "account.devicesNone": "Noch keine Uhr verbunden.",

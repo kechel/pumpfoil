@@ -1061,6 +1061,7 @@ const ru: Record<string, string> = {
   "sd.avgPump": "Ср. помпинг",
   "sd.taktUhr": "Темп (часы)",
   "sd.colPower": "Мощность",
+  "sd.colFoilDrag": "Сопротивление фойла",
   "account.devicesTitle": "Связанные часы",
   "account.devicesHint": "Устройства, сопряжённые с вашим аккаунтом. Отзыв аннулирует токен — сессии сохраняются, часы можно связать заново позже.",
   "account.devicesNone": "Пока нет связанных часов.",

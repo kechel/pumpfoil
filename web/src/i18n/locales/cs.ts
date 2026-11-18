@@ -1085,6 +1085,7 @@ const cs: Record<string, string> = {
   "sd.avgPump": "Ø pumpnutí",
   "sd.taktUhr": "Kadence (hodinky)",
   "sd.colPower": "Výkon",
+  "sd.colFoilDrag": "Odpor foilu",
   "account.devicesTitle": "Připojené hodinky",
   "account.devicesHint": "Zařízení spárovaná s tvým účtem. Odvolání zneplatní token — vyjížďky zůstanou zachovány, hodinky lze později znovu připojit.",
   "account.devicesNone": "Zatím nepřipojeny žádné hodinky.",

@@ -1197,6 +1197,7 @@ const en: Record<string, string> = {
   "sd.avgPump": "Avg pump",
   "sd.taktUhr": "Cadence (watch)",
   "sd.colPower": "Power",
+  "sd.colFoilDrag": "Foil drag",
   "account.devicesTitle": "Linked watches",
   "account.devicesHint": "Devices paired with your account. Revoking invalidates the token — sessions are kept, and the watch can be re-linked later.",
   "account.devicesNone": "No watch linked yet.",

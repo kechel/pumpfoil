@@ -1079,6 +1079,7 @@ const nb: Record<string, string> = {
   "sd.avgPump": "Snitt pumping",
   "sd.taktUhr": "Takt (klokke)",
   "sd.colPower": "Effekt",
+  "sd.colFoilDrag": "Foil-motstand",
   "account.devicesTitle": "Tilkoblede klokker",
   "account.devicesHint": "Enheter som er paret med kontoen din. Trekker du tilbake tilgangen, blir token ugyldig — øktene beholdes, og klokken kan kobles til igjen senere.",
   "account.devicesNone": "Ingen klokke tilkoblet ennå.",

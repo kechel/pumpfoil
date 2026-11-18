@@ -1061,6 +1061,7 @@ const zh: Record<string, string> = {
   "sd.avgPump": "平均泵动",
   "sd.taktUhr": "频率（手表）",
   "sd.colPower": "功率",
+  "sd.colFoilDrag": "水翼阻力",
   "account.devicesTitle": "已关联的手表",
   "account.devicesHint": "与你账号配对的设备。撤销会使令牌失效 —— 记录会保留，之后可重新关联手表。",
   "account.devicesNone": "尚未关联手表。",

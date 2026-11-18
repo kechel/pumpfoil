@@ -2082,7 +2082,9 @@ export default function SessionDetail() {
     const rider = { riderWeight: weightKg ?? DEFAULT_RIDER.riderWeight, equipmentWeight: DEFAULT_RIDER.equipmentWeight };
     const pump = pumpHz && pumpHz > 0 ? { heaveAmp_cm: 12, pumpFreq_hz: pumpHz, recoveryLoss_pct: 35 } : undefined;
     const r = computeFoilPowerAtSpeed(foilDims, avgMps * 3.6, { rider, pump });
-    return Math.round(r.dragPower + (pump ? r.inertiaPower : 50));
+    // Wind (18.11.2026): nur der Foil-Widerstand im Wasser, ohne die pauschalen 50 W Pump-Grundaufwand —
+    // die Leistung, die der Wing/Kite ans Foil abgeben muss (Luftwiderstand nicht enthalten).
+    return Math.round(r.dragPower + (pump ? r.inertiaPower : profil?.gruppe === "wind" ? 0 : 50));
   };
   const argBest = (
     getter: (s: any) => number | null | undefined,
@@ -4180,7 +4182,7 @@ function RunsTable({
               {th("max", t("sd.colMax", { win }))}
               {th("min", t("sd.colMin", { win }))}
               {drehungen && th("turns", t("sd.colTurns"))}
-              {showPower && th("power", t("sd.colPower"))}
+              {showPower && th("power", t(zugeklappt ? "sd.colFoilDrag" : "sd.colPower"))}
               {th("pumps", t("sd.colPumps"))}
               {hasPump && th("distPerPump", t("sd.colDistPerPump"))}
               {hasPump && th("avgPump", t("sd.colAvgPump", { unit: pf.suffix }))}

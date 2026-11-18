@@ -1067,6 +1067,7 @@ const fi: Record<string, string> = {
   "sd.avgPump": "Ø pump",
   "sd.taktUhr": "Tahti (kello)",
   "sd.colPower": "Teho",
+  "sd.colFoilDrag": "Foilin vastus",
   "account.devicesTitle": "Yhdistetyt kellot",
   "account.devicesHint": "Tiliisi pariutetut laitteet. Peruutus mitätöi tokenin — sessiot säilyvät, kellon voi yhdistää myöhemmin uudelleen.",
   "account.devicesNone": "Ei vielä yhdistettyä kelloa.",

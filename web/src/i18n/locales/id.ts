@@ -1061,6 +1061,7 @@ const id: Record<string, string> = {
   "sd.avgPump": "Pump rata-rata",
   "sd.taktUhr": "Kadens (jam)",
   "sd.colPower": "Daya",
+  "sd.colFoilDrag": "Hambatan foil",
   "account.devicesTitle": "Jam terhubung",
   "account.devicesHint": "Perangkat yang dipasangkan dengan akunmu. Mencabut membatalkan token — sesi tetap tersimpan, dan jam bisa dihubungkan lagi nanti.",
   "account.devicesNone": "Belum ada jam terhubung.",

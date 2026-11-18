@@ -1177,6 +1177,7 @@ const pl: Record<string, string> = {
   "sd.avgPump": "Śr. pompa",
   "sd.taktUhr": "Kadencja (zegarek)",
   "sd.colPower": "Moc",
+  "sd.colFoilDrag": "Opór foila",
   "account.devicesTitle": "Połączone zegarki",
   "account.devicesHint": "Urządzenia sparowane z Twoim kontem. Cofnięcie unieważnia token — sesje zostają, a zegarek można później połączyć ponownie.",
   "account.devicesNone": "Nie połączono jeszcze żadnego zegarka.",

@@ -1085,6 +1085,7 @@ const nl: Record<string, string> = {
   "sd.avgPump": "Ø pump",
   "sd.taktUhr": "Cadans (horloge)",
   "sd.colPower": "Vermogen",
+  "sd.colFoilDrag": "Foil-weerstand",
   "account.devicesTitle": "Verbonden horloges",
   "account.devicesHint": "Apparaten die met je account zijn gepaird. Intrekken maakt de token ongeldig — sessies blijven bewaard, het horloge kan later opnieuw worden verbonden.",
   "account.devicesNone": "Nog geen horloge verbonden.",

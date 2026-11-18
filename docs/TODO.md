@@ -1553,6 +1553,12 @@ Feedback-Formular 18.11., Sessions https://pumpfoil.org/sessions/21529 und https
   ✅ 18.11. gebaut (Web): Lauftabelle bei Wind mit Foil zugeklappt, Titel „On-foil segments (N)". Jan: Wingfoiler nennen
   einen „Run" ueblicherweise **vom Ins-Wasser-Gehen bis zurueck an Land** -> spaeter evtl. Fahrten = Abschnitte zwischen
   Land-Aufenthalten als eigene Ebene ueber den On-Foil-Abschnitten (Statistik „74 runs" bleibt bis dahin so).
+- ✅ 18.11. Web: Power-Spalte bei Wind mit Foil heisst „Foil drag", ohne die pauschalen 50 W (Luftwiderstand fehlt weiter).
+- 🔲 **„140 m in 0:00" (21529 Lauf 11) = GPS-BUENDEL der OnePlus:** nach 20 s Stille kommen 19 Positionen auf einmal, alle
+  innerhalb 25 ms gestempelt (Health Services meldet bei OnePlus offenbar die Zustellzeit als Messzeit; `GpsZeit.stempel`
+  faellt dann auf jetzt/letzte+1 zurueck). Seit 15.10.: OWWE251 3/9 Sessions 72 Buendel, OPWWE251 2/3 31, eine SM-R925U 34,
+  Samsung sonst vereinzelt, Pixel/Xiaomi 0. Moeglicher Fix (Server, Analyse -> Jans OK): Buendel >= 4 Punkte in <= 50 ms
+  nach einer Luecke von ~N s gleichmaessig rueckwaerts in die Luecke verteilen (1 s Abstand). Sprints: Datumsweiche beachten.
 - 🔲 Wear: Halten = Stopp (stop_mode hold), er erwartete Pause/Autostart. Wunsch: „Hold to stop" oder Auswahl Pause/Ende.
   Aktuelle Beschriftung nicht geprueft. Wear-Release noetig.
 - 🔲 Pause/Wing-Wechsel an Land (Nordosten in 22414) sollte Pause zwischen zwei Fahrten sein — nicht geprueft.
