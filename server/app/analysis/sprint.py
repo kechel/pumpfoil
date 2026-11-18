@@ -22,10 +22,12 @@ from __future__ import annotations
 
 import json
 import math
+from datetime import datetime, timezone
 
 import numpy as np
 
-VERSION = 6   # 6: Obergrenze je Sportart — kein Fenster mit Uhr-Tempo ueber der Lauf-Spitze (Motor im Lauf), 17.11.2026
+VERSION = 7   # 7: Strecke = 1/2 Uhr-Tempo + 1/2 geglaettete Positionen, NUR Sessions ab STICHTAG_V7 (18.11.2026)
+# 6: Obergrenze je Sportart — kein Fenster mit Uhr-Tempo ueber der Lauf-Spitze (Motor im Lauf), 17.11.2026
 # 5: Fenster je Lauf und Kennzahl (`laeufe_fenster`, Session-ms) fuer die Session-Anzeige, Werte unveraendert (16.11.2026)
 # 4: Regel je Fenster statt 80 % Uhr-Tempo je Lauf, Tempo-Luecken <= 3 s gefuellt, Sprung-Regel (16.11.2026)
 # 3: dazu Lage des besten Fensters je Kennzahl (`fenster`, Session-ms), Werte unveraendert (11.11.2026)
@@ -50,6 +52,27 @@ SPRUNG_HOCH = 1.5
 SPRUNG_TIEF = 0.5
 SPRUNG_N = 9
 SPRUNG_ANTEIL = 0.10
+
+# --- VERSION 7 (Jans OK 18.11.2026, Messung docs/TODO.md C2, scripts/sprint-genauigkeit/, Nerd-Artikel) ---------------
+# Strecke je Schritt = MISCHUNG_W x Uhr-Tempo-Strecke + (1 - MISCHUNG_W) x Strecke der Positionen, jede Position gemittelt
+# mit ihren Nachbarn in +-GLATT_HALB_S (nie ueber eine Luecke, am Abschnittsrand symmetrisch verkuerzt). Alle Regeln
+# (TOLERANZ gegen die ROHEN Positionen, Luecken, Spruenge, Obergrenze) bleiben wie in VERSION 6.
+# NIE RUECKWIRKEND (Jan 18.11.2026): gilt nur fuer Sessions, die ab STICHTAG_V7 (UTC, Session-Start) begonnen haben.
+# Aeltere Sessions rechnen IMMER mit VERSION 6 — auch bei Reanalyse, Nachrechnen, Events. Den Stichtag nie verschieben;
+# eine neue Fassung bekommt eine eigene VERSION mit eigenem Stichtag. Neue Varianten auf Altdaten nur als Trockenlauf.
+STICHTAG_V7 = datetime(2026, 11, 18, 7, 0, tzinfo=timezone.utc)
+MISCHUNG_W = 0.5
+GLATT_HALB_S = 2.5
+
+
+def version_fuer(started_at: datetime | None) -> int:
+    """Sprint-Fassung einer Session nach ihrem Start (UTC). Ohne Startzeit: die alte Fassung (nie versehentlich neu)."""
+    if started_at is None:
+        return 6
+    if started_at.tzinfo is None:
+        started_at = started_at.replace(tzinfo=timezone.utc)
+    return 7 if started_at >= STICHTAG_V7 else 6
+
 
 KENNZAHLEN = tuple(f"sprint_{m}m" for m in STRECKEN_M) + tuple(f"sprint_{s}s" for s in DAUERN_S)
 
@@ -111,6 +134,75 @@ def _fenster(t: np.ndarray, cd: np.ndarray, cp: np.ndarray, luecken: np.ndarray,
     return float(v[k]), float(t[i[gut][k]]), float(t[i[gut][k]] + dt[gut][k])
 
 
+def _fenster_misch(t: np.ndarray, cm: np.ndarray, cd: np.ndarray, cp: np.ndarray, luecken: np.ndarray, *,
+                   strecke: float | None = None, dauer: float | None = None,
+                   echt: np.ndarray | None = None, sprung: np.ndarray | None = None) -> tuple[float, float, float] | None:
+    """VERSION 7: wie `_fenster`, aber das Fenster wird auf der Mischstrecke `cm` gemessen (Strecke erreicht bzw. Strecke
+    in der Dauer). Die Pruefungen bleiben am selben Fenster: Doppler- (`cd`) gegen ROHE Positionsstrecke (`cp`)."""
+    n = t.size
+    if n < 3:
+        return None
+    i = np.arange(n)
+    if strecke is not None:
+        ziel = cm + strecke
+        j = np.searchsorted(cm, ziel, side="left")
+        ok = j < n
+        i, j = i[ok], j[ok]
+        if not i.size:
+            return None
+        f = (ziel[i] - cm[j - 1]) / np.maximum(cm[j] - cm[j - 1], 1e-9)
+        dt = t[j - 1] + f * (t[j] - t[j - 1]) - t[i]
+        dm = np.full(i.size, float(strecke))
+    else:
+        ziel = t + dauer
+        j = np.searchsorted(t, ziel, side="left")
+        ok = (j < n) & (j > i)
+        i, j = i[ok], j[ok]
+        if not i.size:
+            return None
+        f = (ziel[i] - t[j - 1]) / np.maximum(t[j] - t[j - 1], 1e-9)
+        dt = np.full(i.size, float(dauer))
+        dm = cm[j - 1] + f * (cm[j] - cm[j - 1]) - cm[i]
+    dd = cd[j - 1] + f * (cd[j] - cd[j - 1]) - cd[i]
+    dp = cp[j - 1] + f * (cp[j] - cp[j - 1]) - cp[i]
+    gut = (luecken[j] == luecken[i]) & (dt > 0) & (dd > 0) & (dm > 0)
+    gut &= np.abs(dp - dd) <= TOLERANZ * dd
+    if echt is not None:
+        ce = np.concatenate([[0], np.cumsum(echt)])
+        gut &= (ce[j + 1] - ce[i]) >= FENSTER_TEMPO_ANTEIL * ((j + 1) - i)
+    if sprung is not None:
+        cs = np.concatenate([[0], np.cumsum(sprung)])
+        gut &= (cs[j + 1] - cs[i]) <= SPRUNG_ANTEIL * ((j + 1) - i)
+    if not gut.any():
+        return None
+    v = dm[gut] / dt[gut]
+    k = int(np.argmax(v))
+    return float(v[k]), float(t[i[gut][k]]), float(t[i[gut][k]] + dt[gut][k])
+
+
+def _glatt_strecke(t: np.ndarray, lat: np.ndarray, lon: np.ndarray, luecke: np.ndarray, halb: float) -> np.ndarray:
+    """VERSION 7: kumulierte Strecke der geglaetteten Positionen (m). Jede Position = Mittel der Punkte in +-`halb` s
+    desselben Abschnitts (Abschnitt = zwischen zwei Bruechen); am Abschnittsrand wird das Fenster auf beiden Seiten
+    gleich verkuerzt, sonst rutschen die Randpunkte nach innen und kurze Laeufe verlieren Strecke."""
+    la0 = np.radians(lat[0])
+    x = np.radians(lon - lon[0]) * 6371000.0 * np.cos(la0)
+    y = np.radians(lat - lat[0]) * 6371000.0
+    xs, ys = x.copy(), y.copy()
+    anf: dict = {}
+    end: dict = {}
+    for k, g in enumerate(luecke):
+        anf.setdefault(int(g), t[k])
+        end[int(g)] = t[k]
+    for k in range(t.size):
+        g = int(luecke[k])
+        h = min(halb, t[k] - anf[g], end[g] - t[k])
+        a = np.searchsorted(t, t[k] - h - 1e-6, side="left")
+        b = np.searchsorted(t, t[k] + h + 1e-6, side="right")
+        sel = luecke[a:b] == g
+        xs[k], ys[k] = x[a:b][sel].mean(), y[a:b][sel].mean()
+    return np.hypot(np.diff(xs), np.diff(ys))
+
+
 def _springt(v: np.ndarray, echt: np.ndarray) -> np.ndarray:
     """True je Punkt mit echtem Uhr-Tempo ausserhalb [SPRUNG_TIEF, SPRUNG_HOCH] x Median seiner SPRUNG_N Nachbarn (nur echte)."""
     out = np.zeros(v.size, dtype=bool)
@@ -145,13 +237,14 @@ def _tempo_luecken_fuellen(t: np.ndarray, v: np.ndarray, echt: np.ndarray) -> tu
 
 
 def lauf_sprints(gps: list, a_ms: float, b_ms: float, fenster: dict | None = None,
-                 je_fenster: bool = True, max_mps: float | None = None) -> dict[str, float] | None:
+                 je_fenster: bool = True, max_mps: float | None = None, version: int = 6) -> dict[str, float] | None:
     """Beste Fenster eines Laufs [a_ms, b_ms] (Session-ms) -> {kennzahl: m/s}; None ohne brauchbares Uhr-Tempo.
     `fenster` (optional): bekommt je Kennzahl [Start-ms, Ende-ms] des besten Fensters (Session-ms, fuer die Anzeige).
     `max_mps` (VERSION 6, 17.11.2026): Lauf-Spitze der Sportart (gps.grenzen_fuer). Kein Fenster darf einen Punkt mit
     Uhr-Tempo darueber enthalten. Befund: 18 Sessions mit Sprint ueber Vmax, z. B. ein GPS-only-Import, dessen Lauf am Ende
     30 s Motorfahrt mit 16 m/s mitnahm (Doppler UND Positionen einig, die Positionsprobe griff also nicht). Die Lauf-
-    Grenze prueft das bereinigte Tempo, in dem solche Passagen schon geglaettet sind — hier zaehlt das Uhr-Tempo."""
+    Grenze prueft das bereinigte Tempo, in dem solche Passagen schon geglaettet sind — hier zaehlt das Uhr-Tempo.
+    `version` 7 = Mischstrecke (nur mit je_fenster; Aufrufer waehlt per `version_fuer(session.started_at)`), sonst 6."""
     from .detect_v2 import _clean_speed
     pkt = [p for p in gps if a_ms <= float(p[0]) <= b_ms and p[1] is not None and p[2] is not None]
     if len(pkt) < 5:
@@ -195,6 +288,18 @@ def lauf_sprints(gps: list, a_ms: float, b_ms: float, fenster: dict | None = Non
     cp = _strecke_pos(lat, lon)
     out: dict[str, float] = {}
     e, sp = (echt, sprung) if je_fenster else (None, None)
+    if version >= 7 and je_fenster:
+        sg = np.where(bruch, 0.0, _glatt_strecke(t, lat, lon, luecke, GLATT_HALB_S))
+        cm = MISCHUNG_W * cd + (1 - MISCHUNG_W) * np.concatenate([[0.0], np.cumsum(sg)])
+        for kz, w in ([(f"sprint_{m}m", _fenster_misch(t, cm, cd, cp, luecke, strecke=float(m), echt=e, sprung=sp))
+                       for m in STRECKEN_M]
+                      + [(f"sprint_{s}s", _fenster_misch(t, cm, cd, cp, luecke, dauer=float(s), echt=e, sprung=sp))
+                         for s in DAUERN_S]):
+            if w is not None:
+                out[kz] = round(w[0], 3)
+                if fenster is not None:
+                    fenster[kz] = [round(w[1] * 1000), round(w[2] * 1000)]
+        return out
     for kz, w in ([(f"sprint_{m}m", _fenster(t, cd, cp, luecke, strecke=float(m), echt=e, sprung=sp)) for m in STRECKEN_M]
                   + [(f"sprint_{s}s", _fenster(t, cd, cp, luecke, dauer=float(s), echt=e, sprung=sp)) for s in DAUERN_S]):
         if w is not None:
@@ -205,10 +310,10 @@ def lauf_sprints(gps: list, a_ms: float, b_ms: float, fenster: dict | None = Non
 
 
 def session_sprints(gps: list, segmente: list, trim_start_ms: int = 0, je_fenster: bool = True,
-                    max_mps: float | None = None) -> dict:
+                    max_mps: float | None = None, version: int = 6) -> dict:
     """Je Kennzahl das beste Fenster der Session und je Lauf alle Werte.
 
-    -> {"v": VERSION, "best": {kennzahl: m/s}, "lauf": {kennzahl: Laufindex}, "fenster": {kennzahl: [Start-ms, Ende-ms]},
+    -> {"v": 6 oder 7 (version), "best": {kennzahl: m/s}, "lauf": {kennzahl: Laufindex}, "fenster": {kennzahl: [Start-ms, Ende-ms]},
         "laeufe": [{…} | None je Lauf]}   (Fenster in Session-ms, wie `t_start_session_ms` der Laeufe)"""
     best: dict[str, float] = {}
     lauf: dict[str, int] = {}
@@ -225,13 +330,14 @@ def session_sprints(gps: list, segmente: list, trim_start_ms: int = 0, je_fenste
                 continue
             a, b = float(g["t_start_ms"]) + trim_start_ms, float(g["t_end_ms"]) + trim_start_ms
         fl: dict = {}
-        w = lauf_sprints(gps, float(a), float(b), fl, je_fenster=je_fenster, max_mps=max_mps)
+        w = lauf_sprints(gps, float(a), float(b), fl, je_fenster=je_fenster, max_mps=max_mps, version=version)
         laeufe.append(w)
         laeufe_fenster.append(fl or None)
         for kz, x in (w or {}).items():
             if x > best.get(kz, 0.0):
                 best[kz], lauf[kz], fenster[kz] = x, k, fl[kz]
-    return {"v": VERSION, "best": best, "lauf": lauf, "fenster": fenster, "laeufe": laeufe, "laeufe_fenster": laeufe_fenster}
+    return {"v": 7 if version >= 7 else 6, "best": best, "lauf": lauf, "fenster": fenster, "laeufe": laeufe,
+            "laeufe_fenster": laeufe_fenster}
 
 
 def setzen(session, result) -> bool:
@@ -249,7 +355,8 @@ def setzen(session, result) -> bool:
     from .gps import grenzen_fuer
     erg = session_sprints(storage.load_gps(session.session_uuid, roh=True) if segmente else [], segmente,
                           int(session.trim_start_ms or 0),
-                          max_mps=grenzen_fuer(getattr(session, "sport_class", None))[1] / 3.6)
+                          max_mps=grenzen_fuer(getattr(session, "sport_class", None))[1] / 3.6,
+                          version=version_fuer(getattr(session, "started_at", None)))
     for kz in KENNZAHLEN:
         setattr(result, kz + "_mps", erg["best"].get(kz, 0.0))
     result.sprint_json = json.dumps(erg, separators=(",", ":"))

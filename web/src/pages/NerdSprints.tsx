@@ -13,7 +13,7 @@ import { ScrollToTop } from "../components/ScrollToTop";
 // transparenz"): Obergrenze je Sportart (VERSION 6), Messgenauigkeit (Uhren-Paare, je Uhrenmodell, GNSS-Stufe) und der
 // 5-%-Test am Event-Wochenende — Zahlen aus docs/TODO.md Abschnitt C1/C2, nur zusammengefasst, keine Fahrer.
 // 18.11.2026 (Jan: „bessere uebersicht der resultate und begruendungen … inkl. schaubild … V7a"): Abschnitt V7 (nicht live,
-// Trockenlauf), Zahlen aus docs/TODO.md C2 / scripts/sprint-genauigkeit/. Geht V7 live: Status-Satz + Stichtag nachziehen.
+// Trockenlauf), Zahlen aus docs/TODO.md C2 / scripts/sprint-genauigkeit/. V7 LIVE seit 18.11.2026 07:00 UTC (sprint.STICHTAG_V7).
 
 function H({ children }: { children: ReactNode }) {
   return <h2 className="mb-3 mt-10 border-b border-slate-800 pb-1 text-lg font-bold text-slate-100">{children}</h2>;
@@ -106,7 +106,7 @@ function AblaufV7() {
         <Pfeil />
         <Kasten ton="brand"><b>fastest 100 m · 200 m · 300 m · 60 s</b></Kasten>
       </div>
-      <figcaption className="mt-2 text-xs text-slate-400">Proposal V7. Only the distance that is timed changes; which windows are
+      <figcaption className="mt-2 text-xs text-slate-400">V7. Only the distance that is timed changes; which windows are
         allowed stays exactly as it is today.</figcaption>
     </figure>
   );
@@ -170,7 +170,7 @@ export default function NerdSprints() {
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Nerd analyses</p>
       <h1 className="mb-1 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil />Flying sprints: how we time them</h1>
       <p className="text-sm text-slate-400">The fastest flying 100 m, 200 m and 300 m and the fastest flying minute — what is measured,
-        what does not count, how precise it is, and how teams are ranked, and what we are testing next. Last updated 18 November 2026.</p>
+        what does not count, how precise it is, and how teams are ranked, and what changed on 18 November 2026. Last updated 18 November 2026.</p>
 
       <H>What the four numbers mean</H>
       <P><b>Flying</b> means the clock does not start when you get up on the foil. We look for the fastest stretch
@@ -204,7 +204,8 @@ export default function NerdSprints() {
       <P>A ranking built on positions would reward the noisier watch. So we use the speed the GPS chip itself reports. The chip
         measures it from the Doppler shift of the satellite signals, which is far steadier than the difference between two
         positions. We add up that speed second by second to get the distance, and interpolate between seconds to find the exact
-        moment 100, 200 or 300 metres are reached.</P>
+        moment 100, 200 or 300 metres are reached. For sessions from 18 November 2026 on, half of the distance comes from
+        lightly smoothed positions — see V7 below.</P>
       <P>Before that, the speed goes through the same clean-up the run detection uses: single-second spikes that no rider can
         produce are removed.</P>
 
@@ -267,11 +268,12 @@ export default function NerdSprints() {
       <P>That is why there are no per-model rules: the same check applies to every watch on every day, and a window from a bad
         moment is thrown out whichever watch recorded it.</P>
 
-      <H>Under test: speed and positions together (V7, not live)</H>
-      <P><b>Status, 18 November 2026: proposal, dry runs only.</b> Nothing on the site uses it yet. If it goes live, it applies
-        only to sessions recorded from that day on. Nothing recorded earlier changes — no stored values, no event results, no
-        records. The cut-off date is fixed in the code, so the new method cannot be applied to older sessions by accident; on
-        those it only ever runs as a read-only test.</P>
+      <H>Since 18 November 2026: speed and positions together (V7)</H>
+      <P><b>Live for every session that starts on or after 18 November 2026, 07:00 UTC.</b> Nothing recorded earlier
+        changes — no stored values, no event results, no records; older sessions keep the method described above, even when
+        they are analysed again. The cut-off is fixed in the code, so the new method cannot be applied to older sessions by
+        accident; on those it only ever runs as a read-only test. Records and rankings that span both periods therefore
+        contain values from both methods. Everything else — distance, top speed, run times — is not affected.</P>
       <P><b>The idea.</b> The watch gives us two measurements of the same distance, and they go wrong in different ways. The
         reported speed is steady, but it comes out of the watch's own processing — some watches smooth it, and a single bad
         stretch counts in full. The positions jitter, which makes the path zigzag and come out too long, but they do not smooth
@@ -289,7 +291,7 @@ export default function NerdSprints() {
         ["Weight per run from its GPS quality (more watch speed when the positions are poor)", "worse than a fixed half and half (0.46 instead of 0.43 over 100 m)"],
         ["Speed-sailing filter: no acceleration above 2, 3 or 5 m/s²", "3 and 5 never trigger — pumpfoiling is smooth and single spikes are already removed. 2 m/s² throws away real values and makes the minute worse. Rejected"],
         ["Speed-sailing filter: drop the first 2 or 4 seconds after a GPS gap", "no effect — windows over a gap are already invalid, and we saw no drift after gaps. Rejected"],
-        [<b key="b">½ speed + ½ positions averaged over 5 s</b>, <b key="c">best — the proposal</b>],
+        [<b key="b">½ speed + ½ positions averaged over 5 s</b>, <b key="c">best — now V7</b>],
       ]} />
       <P><b>Is half and half just lucky?</b> We tried every weight from 30 % to 100 % watch speed and smoothing over ±1.5 to
         ±4.5 seconds. The best region is wide and flat: 50–60 % speed with ±2.5 to ±4.5 s are all within 0.01–0.02 km/h of each
@@ -392,6 +394,8 @@ export default function NerdSprints() {
           weight per run by quality, quality per window, and a penalty test — see the tables above.</li>
         <li className="mt-1"><b>Rule set on 18 Nov:</b> a new method only ever applies from its go-live date. Values, records and
           event results from before never change.</li>
+        <li className="mt-1"><b>18 Nov, 07:00 UTC:</b> V7 live for new sessions. Checked before: the code gives exactly the dry-run
+          values on 300 random sessions, and exactly today's values for older sessions.</li>
       </ol>
       <P><b>Ideas not yet tested:</b> riders who record with two devices at once could get the average of both — with two
         independent errors that should cut the error by about a third; a field test of the Garmin activity profile; and more

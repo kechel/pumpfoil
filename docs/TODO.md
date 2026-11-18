@@ -1690,6 +1690,12 @@ Entwurf zusammen mit A1.
     2 m/s^2 verwirft echte Werte (V6-Minute schlechter) -> verworfen. Erste 2/4 s nach Luecke verwerfen: keine Wirkung.
     Gewicht je Lauf nach Guete: schlechter (0,46). Guete je Sprint-Fenster statt je Lauf: nicht besser (rho 0,41-0,62 wie
     je Lauf). Offen als Idee: Mittel zweier gleichzeitiger Aufnahmen (ungetestet, braucht Dreier mit Brett).
+  - ✅ **V7 LIVE 18.11.2026 (Jans OK „schalten wir … frei und live fuer alles was neu reinkommt"):** `sprint.py` VERSION 7,
+    `STICHTAG_V7` = 18.11.2026 07:00 UTC nach Session-Start (`version_fuer`); nicht 00:00 UTC, weil 5 Sessions von heute
+    (ab 03:04 UTC) schon V6-Werte hatten und sonst bei Reanalyse gesprungen waeren. Aeltere Sessions: V6-Zweig unveraendert
+    (Default `version=6`), sprint_json "v" 6 bzw. 7. Abgleich: 300 Zufalls-Sessions, Produktivcode = Trockenlauf (V6 und V7
+    je 300/300). Tests tests/test_sprint.py (Stichtag, Default V6, Mischung, Setzen nach Sessionstart). Nur Sprintwerte —
+    Strecke, Topspeed, Laufzeiten unberuehrt; Bestenlisten ueber den Stichtag mischen V6- und V7-Werte (gewollt).
   - **Wiedervorlage ~Mitte Februar 2027 (Jan 18.11.):** mit mehr Paaren nachmessen — `bauen.py` neu (sammelt alle Paare
     bis heute), dann `paar_kombi.py`, `varianten.py`/`var_ausw.py raster`, `guete_paare.py`. Besonders: Paare von Suunto/
     Polar/COROS/Amazfit/Huawei, Apple-Frage, Mittel zweier Aufnahmen. Anpassung = neue VERSION mit eigenem Stichtag.

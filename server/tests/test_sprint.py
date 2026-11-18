@@ -291,3 +291,71 @@ def test_einzelner_ausreisser_kippt_nichts():
     tempi[30] = 9.7                                         # ein Punkt 35 km/h
     w = SP.lauf_sprints(_spur(tempi), 0, 59_000, max_mps=32 / 3.6)
     assert w and w.get("sprint_100m", 0) > 6.0, w
+
+
+# --- VERSION 7 (18.11.2026): Mischstrecke, nur ab Stichtag ------------------------------------------------------------
+
+def _spur_zu_schnell(n: int, v_uhr: float, v_echt: float) -> list:
+    """Uhr meldet v_uhr, die Positionen bewegen sich mit v_echt (z. B. Uhr-Tempo 5 % zu hoch)."""
+    lat, out = 50.0, []
+    for k in range(n):
+        out.append([k * 1000, lat, 7.0, v_uhr, None, 4])
+        lat += v_echt / 111320.0
+    return out
+
+
+def test_v7_stichtag_utc():
+    from datetime import datetime, timedelta, timezone
+    from zoneinfo import ZoneInfo
+    from app.analysis import sprint as SP
+    st = SP.STICHTAG_V7
+    assert st == datetime(2026, 11, 18, 7, 0, tzinfo=timezone.utc)
+    assert SP.version_fuer(st) == 7
+    assert SP.version_fuer(st - timedelta(seconds=1)) == 6
+    assert SP.version_fuer(datetime(2026, 11, 18, 7, 59, tzinfo=ZoneInfo("Europe/Berlin"))) == 6   # 06:59 UTC
+    assert SP.version_fuer(datetime(2026, 11, 18, 8, 0, tzinfo=ZoneInfo("Europe/Berlin"))) == 7
+    assert SP.version_fuer(None) == 6
+    assert SP.version_fuer(datetime(2025, 1, 1)) == 6
+
+
+def test_v6_bleibt_standard_und_unveraendert():
+    """Ohne version rechnet alles wie VERSION 6 — der neue Zweig laeuft nie versehentlich."""
+    from app.analysis import sprint as SP
+    gps = _spur_zu_schnell(90, 5.25, 5.0)
+    seg = [{"t_start_session_ms": 0, "t_end_session_ms": 89_000}]
+    a, b = SP.session_sprints(gps, seg), SP.session_sprints(gps, seg, version=6)
+    assert a == b and a["v"] == 6
+    assert math.isclose(a["best"]["sprint_100m"], 5.25, abs_tol=0.02)
+
+
+def test_v7_mischt_uhr_und_positionen():
+    from app.analysis import sprint as SP
+    gps = _spur_zu_schnell(90, 5.25, 5.0)          # 5 % Abweichung: Fenster gueltig (TOLERANZ 10 %)
+    e = SP.session_sprints(gps, [{"t_start_session_ms": 0, "t_end_session_ms": 89_000}], version=7)
+    assert e["v"] == 7
+    for kz in ("sprint_100m", "sprint_60s"):
+        assert math.isclose(e["best"][kz], 5.125, abs_tol=0.03), (kz, e["best"])
+
+
+def test_v7_gleichmaessig_wie_v6():
+    """Stimmen Uhr und Positionen ueberein, liefert V7 dasselbe — auch am Laufrand (symmetrische Glaettung)."""
+    from app.analysis import sprint as SP
+    gps = _spur([5.0] * 25)                        # 120 m: 100 m nur knapp vorhanden
+    w6, w7 = SP.lauf_sprints(gps, 0, 24_000), SP.lauf_sprints(gps, 0, 24_000, version=7)
+    assert math.isclose(w7["sprint_100m"], w6["sprint_100m"], abs_tol=0.02)
+
+
+def test_setzen_waehlt_fassung_nach_sessionstart(monkeypatch):
+    import json
+    from datetime import datetime, timezone
+    from types import SimpleNamespace
+    from app import storage
+    from app.analysis import sprint as SP
+    gps = _spur_zu_schnell(90, 5.25, 5.0)
+    monkeypatch.setattr(storage, "load_gps", lambda uuid, roh=False: gps)
+    seg = json.dumps([{"t_start_session_ms": 0, "t_end_session_ms": 89_000}])
+    for start, v in ((datetime(2026, 11, 18, 6, 59, tzinfo=timezone.utc), 6), (datetime(2026, 11, 18, 7, 1, tzinfo=timezone.utc), 7)):
+        s = SimpleNamespace(session_uuid="x", trim_start_ms=0, sport_class="pumpfoil", started_at=start)
+        r = SimpleNamespace(segments_json=seg)
+        SP.setzen(s, r)
+        assert json.loads(r.sprint_json)["v"] == v
