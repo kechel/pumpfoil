@@ -1950,7 +1950,7 @@ const gsw: Record<string, string> = {
   "sd.farthestRunTitle": "wytischte Lauf",
   "sd.gpsWarning": "⚠️ Kei Beschlünigungs-Date i dere Datei — d Foil-Erkennig lauft nur grob über GPS (Gschwindigkeit). Pumpe/Gleitphase fähle, Lauf-Gränze und Erkennig chönd ungnau si (Über- oder Untererkennig).",
   "sd.gpsFrozen": "Dini Uhr het bi dere Ufnahm kei eigeni Ortig gliferet, sondern immer wieder di gliich gspeicheret Position — drum kei Strecki, kei Tempo und kei Läuf. Meischtens hilfts, s Händy nid ans Wasser mitznäh (oder uf de Uhr Bluetooth uszschalte), damit d Uhr ihr eigets GPS bruucht.",
-  "sd.lowRateWarning": "⚠️ Beschlünigung nur mit ~{hz} Hz ufgnoh („Sparsam“) — für d Pump-/Gleit-Erkennig bruucht’s mindeschtens 15 Hz. D Rohwärt sind da (im Labeln sichtbar), wärded aber nöd uusgwärtet; d Foil-Erkennig lauft nur über GPS.",
+  "sd.lowRateWarning": "⚠️ D Uhr hät d Beschlünigung nur mit ~{hz} Hz gliferet — z wenig für d Pump-/Gleit-Erkennig, drum wärded d Läuf nur per GPS erkannt. D Wärt sind gspeicheret, wärded aber nöd uusgwärtet.",
   "sd.maxHr": "Max Puls",
   "sd.maxPump": "Max Pump (5s)",
   "sd.maxSpeed": "Max Speed ({win}s)",

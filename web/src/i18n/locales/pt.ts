@@ -746,7 +746,7 @@ const pt: Record<string, string> = {
   "sd.communityView": "Comunidade · só visualização",
   "sd.gpsWarning": "⚠️ Sem dados de aceleração neste arquivo — a detecção de foil funciona só de forma aproximada via GPS (velocidade). As fases de pump/planeio não existem; os limites das voltas e a detecção podem ser imprecisos (super ou subdetecção).",
   "sd.gpsFrozen": "Durante esta gravação o seu relógio não deu uma posição própria: repetiu sempre a mesma posição salva, por isso não há distância, velocidade nem runs. Normalmente ajuda deixar o celular longe da água (ou desligar o Bluetooth no relógio) para o relógio usar o GPS dele.",
-  "sd.lowRateWarning": "⚠️ Aceleração gravada a apenas ~{hz} Hz (modo \"Esparso\") — a detecção de pump/planeio precisa de pelo menos 15 Hz. Os valores brutos existem (visíveis na rotulagem), mas não são analisados; a detecção de foil funciona só via GPS.",
+  "sd.lowRateWarning": "⚠️ O relógio só forneceu a aceleração a ~{hz} Hz — pouco para detectar pumps e planeios, por isso as voltas são detectadas apenas por GPS. Os valores estão salvos, mas não são analisados.",
   "sd.avgSpeed": "Vel. Ø",
   "sd.maxSpeed": "Vel. máx. ({win}s)",
   "sd.minSpeed": "Vel. mín. ({win}s)",

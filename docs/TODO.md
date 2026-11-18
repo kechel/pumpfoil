@@ -1537,6 +1537,23 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 18.11.2026 — Wing-Feedback u655 (Wear, OnePlus Watch 2) — NUR GEMERKT (Jan: „rest erstmal nur merken")
+Feedback-Formular 18.11., Sessions https://pumpfoil.org/sessions/21529 und https://pumpfoil.org/sessions/22414.
+- ✅ Hinweistext `sd.lowRateWarning` neu (18 Sprachen): „Uhr hat nur ~X Hz geliefert … Werte gespeichert, nicht ausgewertet"
+  (alt sprach von „Sparse"-Modus, 15 Hz und „Rohwerte vorhanden" -> klang nach voller Aufloesung). Gemessen: 25 Hz
+  angefordert, 4,8-5,8 Hz geliefert seit 13.11. (1.2.46/1.2.48), am 08.11. 11 Hz; bekanntes OnePlus-Muster (u574 4,6 Hz),
+  OWWE261 eines anderen Nutzers 26 Hz. FIT-Idee (Jan): Garmin-FIT hat kein rohes Accel, CIQ kommt nicht an die FIT -> nein.
+- 🔲 **Wind-Laeufe nicht beim Aufsetzen trennen** (zweite Meldung dieser Art, Jan: frueher schon ein anderer Nutzer).
+  22414 Lauf 34/35: 15 s bei 6-7 km/h (Aufsetzen, kein Sturz), dann ab s ~5383 wieder 24-29 km/h, Lauf 35 startet erst
+  5414 -> ~30 s Fahrt fehlen (zweites Problem: spaeter Start). GPS-only, wind-1 (Start 15, Ende 9,4 km/h/5 s).
+  Vorschlag: Wind-Gruppe trennt nur bei Stillstand/Sturz (~0 km/h ein paar s) oder Land. Erkennungs-Aenderung -> Jans OK,
+  Trockenlauf ueber alle Wing/Kite; Wechselwirkung mit Fremdkraft/Deadreckoning beachten (Befund 16.09.).
+- 🔲 Wear: Halten = Stopp (stop_mode hold), er erwartete Pause/Autostart. Wunsch: „Hold to stop" oder Auswahl Pause/Ende.
+  Aktuelle Beschriftung nicht geprueft. Wear-Release noetig.
+- 🔲 Pause/Wing-Wechsel an Land (Nordosten in 22414) sollte Pause zwischen zwei Fahrten sein — nicht geprueft.
+- 🔲 Farbskala: Auto-Skala = Min/Max nur INNERHALB der Laeufe, `speedColor` malt alles ausserhalb schwarz. Jan: ich
+  erklaere es ihm und frage nach (DM 18.11.). Moeglich: Randfarbe statt schwarz, oder Skala ueber die ganze Spur.
+
 ### 16.11.2026 — Sortiert: was seit 06.11. gesammelt wurde (Uebersicht, Details in den Eintraegen darunter)
 **Reihenfolge (Jan 16.11. nachmittags):** 1) A6 Accel-Normierung, 2) Events unter mehreren Teams, 3) App-Ports von allem aus A.
 Stand 16.11. abends: 1) vertagt, 2) gebaut (Web/Server), dazu „Als globales Event vorschlagen" gebaut (Web/Server,
