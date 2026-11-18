@@ -32,3 +32,4 @@ Trockenlauf VERSION-7-Kandidat (18.11.2026, rein lesend):
 - `trocken_alle.py out.jsonl` + `alle_ausw.py out.jsonl` — alle Sessions V6 vs. V7 je Plattform (ueber `mit_env`, volle `.env`).
 - `event_v7.py <event-id> ...` — Event-Ranglisten gespeichert / V6 frisch / V7 / V7a (Cache aus, rollback).
 - `guete.py` — GPS-Guete je Lauf aus einem Geraet (Zittern, Tempo-Unruhe, abw_10s); `guete_paare.py <ordner>` prueft sie gegen den Paar-Fehler und fittet sigma ~ c x abw; `guete_event.py <ordner>` Guete der Bestlaeufe je Event-Fahrer (braucht event_v7.json); `paar_kombi.py <ordner>` V6/V7 je Geraetekombination.
+- `varianten.py <ordner>` rechnet ~40 Varianten (W x Glaettung, Speedsurf-Filter, Gewicht je Lauf) in Produktivform -> varianten.pkl; `var_ausw.py raster` (Raster + Kreuzvalidierung je Fahrer) bzw. `var_ausw.py t <namen>`; `fenster_guete.py` Guete je Lauf vs. je Fenster (im Ordner mit varianten.pkl/daten.pkl ausfuehren).

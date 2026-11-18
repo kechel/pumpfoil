@@ -286,8 +286,16 @@ export default function NerdSprints() {
         ["Positions smoothed heavily (9–21 s), the \"nobody zigzags in a sprint\" idea", "devices agree better — but only because every value drops by 0.4–1.5 km/h: riders curve even in a sprint, and heavy smoothing cuts the curves. Rejected"],
         ["Speed combined with a Kalman/RTS smoother on the positions", "as good as the 5-second average, much more complicated"],
         ["Weights per second from the estimated noise of each measurement", "hardly better"],
+        ["Weight per run from its GPS quality (more watch speed when the positions are poor)", "worse than a fixed half and half (0.46 instead of 0.43 over 100 m)"],
+        ["Speed-sailing filter: no acceleration above 2, 3 or 5 m/s²", "3 and 5 never trigger — pumpfoiling is smooth and single spikes are already removed. 2 m/s² throws away real values and makes the minute worse. Rejected"],
+        ["Speed-sailing filter: drop the first 2 or 4 seconds after a GPS gap", "no effect — windows over a gap are already invalid, and we saw no drift after gaps. Rejected"],
         [<b key="b">½ speed + ½ positions averaged over 5 s</b>, <b key="c">best — the proposal</b>],
       ]} />
+      <P><b>Is half and half just lucky?</b> We tried every weight from 30 % to 100 % watch speed and smoothing over ±1.5 to
+        ±4.5 seconds. The best region is wide and flat: 50–60 % speed with ±2.5 to ±4.5 s are all within 0.01–0.02 km/h of each
+        other. To check that we are not just fitting these few riders, we left out one rider at a time, picked the best setting
+        on the others and tested it on the one left out. The fixed half and half with ±2.5 s did better on unseen riders (0.43
+        km/h) than a setting tuned on the rest (0.46). So we keep the simple choice, which also cuts curves the least.</P>
       <P><b>How much data there is.</b> Recordings that ran alongside another device of the same rider (one recording can be in
         more than one pair):</P>
       <Tabelle kopf={["Recorder", "Recordings", "Runs", "Riders"]} zeilen={[
@@ -337,6 +345,58 @@ export default function NerdSprints() {
       <P><b>What V7 does not fix.</b> All of this works at one sample per second. Getting much more precise needs loggers that
         record 5 to 10 times per second, as speed-sailing uses — hardware, not maths. Some Garmin watches also smooth their speed
         depending on the activity profile; whether our profile setting matters is a field test with two watches, still to do.</P>
+
+      <H>GPS quality per run (under test)</H>
+      <P>Watches report almost nothing useful about their own accuracy — most Garmin watches always say 4 m, Suunto says nothing.
+        So we tried to measure it from the data of a single recording. Three candidates:</P>
+      <Tabelle kopf={["Measure", "Predicts the real error?"]} zeilen={[
+        ["Jitter: how far positions scatter around their 5-second average", "weakly — some watches smooth their positions themselves and look calm without being accurate"],
+        ["Restlessness of the watch's speed from second to second", "weakly"],
+        [<b key="a">Agreement: distance from positions vs. distance from speed, in 10-second pieces of the run (median)</b>, <b key="b">yes, clearly</b>],
+      ]} />
+      <P>Checked on the 132 runs recorded by two devices: sorted into thirds by this agreement, the two devices differ by 0.33
+        km/h over 100 m in the best third, 0.51 in the middle and 0.81 in the worst. That gives a simple rule of thumb for the
+        uncertainty of one device: about <b>10 km/h × the disagreement</b> — 2 % means about ±0.25 km/h, 5 % about ±0.5, 10 %
+        about ±1.0, for 100 m and the minute alike. Measuring it only inside the sprint window instead of over the whole run
+        did not predict any better, so the whole run is the steadier choice.</P>
+      <P>Examples from the event weekend: a fēnix 7X Pro run at 2.5 % (about ±0.25 km/h), a Forerunner 245 synced through Garmin
+        Connect at 4.5–5.6 % (about ±0.5), and several top-ten values came from runs between 7 and 11 % (±0.7 to ±1.1). In the
+        two-device data, a Samsung or iPhone on the board typically sits at about 2 %, some Pixel 7a phones on the board at 6–12 %,
+        a Forerunner 965 at 2 %, a fēnix 7X Pro at 3 %, an Apple Watch at 6 %.</P>
+      <P><b>Should a poor measurement cost points?</b> We tested a penalty of one uncertainty (value minus 10 km/h × the
+        disagreement) on the event weekend: values drop by a median of 0.5 km/h, first place stays in both rankings, places 2 and
+        3 swap in both, places 4 and 5 over 100 m. A value would then only count as high as we can back it up. But the penalty is uneven by brand — Apple
+        Watch and Wear OS 0.8 km/h, Garmin and Suunto 0.4, phones 0.2 — the same pattern that made us reject the stricter 5 %
+        limit. Not decided. The gentler option is to show the uncertainty next to the value (for example <C>25.9 ± 1.1 km/h</C>)
+        and mark places that are within the measurement error of each other, without changing the ranking.</P>
+
+      <H>How we got here</H>
+      <P>The process, including the dead ends, in order:</P>
+      <ol className="mt-2 list-decimal pl-5 text-sm text-slate-300">
+        <li className="mt-1"><b>9 Nov:</b> positions vs. watch speed on 7,026 runs — positions inflate the fastest window, and
+          differently per watch. Watch speed chosen, positions kept as the 10 % check.</li>
+        <li className="mt-1"><b>17 Nov:</b> per-model check on 5,838 sessions and a test of the stricter 5 % limit on a real event
+          weekend — it would have hit one brand, so it stays at 10 %.</li>
+        <li className="mt-1"><b>17 Nov:</b> first pair count (58 pairs) turned out to include watches that recorded the same ride
+          twice with the same chip. Removed; 31 real pairs remain. The precision numbers above got worse, not better.</li>
+        <li className="mt-1"><b>17 Nov:</b> dozens of estimators tried on a one-second grid (smoothing, splines, Kalman/RTS,
+          mixtures, adaptive weights). Heavy smoothing looked best until we checked the level: it lowered every value. Lesson:
+          two devices agreeing is not enough — a method that shrinks everything agrees too. Since then every result is also
+          checked against the board phone.</li>
+        <li className="mt-1"><b>18 Nov:</b> the winner rebuilt inside the real sprint code with all checks. First version had a
+          bug: at the start and end of a run the averaging pulled points inward, so short runs lost their 100 m. Fixed by
+          shrinking the window on both sides.</li>
+        <li className="mt-1"><b>18 Nov:</b> dry run on all 10,443 sessions and the event weekend (read-only). The Apple Watch
+          looked worse with V7 against a Garmin, but better against a board phone — too little data to treat it differently.</li>
+        <li className="mt-1"><b>18 Nov:</b> weight and smoothing grid with leave-one-rider-out check, speed-sailing filters,
+          weight per run by quality, quality per window, and a penalty test — see the tables above.</li>
+        <li className="mt-1"><b>Rule set on 18 Nov:</b> a new method only ever applies from its go-live date. Values, records and
+          event results from before never change.</li>
+      </ol>
+      <P><b>Ideas not yet tested:</b> riders who record with two devices at once could get the average of both — with two
+        independent errors that should cut the error by about a third; a field test of the Garmin activity profile; and more
+        two-device recordings from brands we have none of yet (Suunto, Polar, COROS, Amazfit, Huawei) — if you ride with two
+        devices, those recordings help directly.</P>
 
       <H>Watches without motion data</H>
       <P>Some recorders only send GPS, no motion data. Their runs are detected from speed alone, so the detector cannot tell

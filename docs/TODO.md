@@ -1684,6 +1684,12 @@ Entwurf zusammen mit A1.
     dahinter Tausch 2/3 bzw. 4/5; je Plattform Apple 0,8 / Wear 0,8 / Garmin 0,4 / Suunto 0,4 / Handy 0,2 km/h (100 m) —
     trifft also wieder vor allem Apple/Wear (wie der 5-%-Test). Offen: Guete je Sprint-Fenster statt je Lauf; Entscheidung
     Jan, ob Strafe/Unsicherheit nur angezeigt („± 0,5") oder in die Wertung geht.
+  - **Runde 18.11. nachmittags (`varianten.py`, `var_ausw.py`, `fenster_guete.py`; Nerd-Artikel ergaenzt inkl. Protokoll):**
+    W x Glaettung flach optimal (W 0,5-0,6, +-2,5-4,5 s je 0,42-0,44 bei 100 m); Kreuzvalidierung je Fahrer: fest
+    W0,5/+-2,5 s 0,432 besser als auf dem Rest gewaehlt 0,455 -> bleibt. Beschleunigungsfilter 3/5 m/s^2 greift nie,
+    2 m/s^2 verwirft echte Werte (V6-Minute schlechter) -> verworfen. Erste 2/4 s nach Luecke verwerfen: keine Wirkung.
+    Gewicht je Lauf nach Guete: schlechter (0,46). Guete je Sprint-Fenster statt je Lauf: nicht besser (rho 0,41-0,62 wie
+    je Lauf). Offen als Idee: Mittel zweier gleichzeitiger Aufnahmen (ungetestet, braucht Dreier mit Brett).
 - C3 GPS-Wiederfinden nach Unterwasser-Luecke: heutige Erkennung (v3) macht es richtig (#20528 Trockenlauf 4 -> 2 Laeufe,
   Schein-Lauf weg); #20528 ist absichtlich festgehalten (auswertung_fest, u972). Nichts zu tun.
 - C4 Autofahrt verschiebt Wasser-Suchpunkt: die erkannten Fahrten waren schon raus (analyse_ausschluss), aber der langsame

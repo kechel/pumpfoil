@@ -5,7 +5,7 @@ import numpy as np
 from app.analysis import sprint as SP
 
 ORIG = SP.lauf_sprints
-CFG = {"W": None, "PW_S": 2.5}
+CFG = {"W": None, "PW_S": 2.5, "ACC": None, "NACH_LUECKE_S": 0.0, "W_ADAPT": False}
 
 
 def _enu(lat, lon):
@@ -103,7 +103,19 @@ def lauf_sprints_v7(gps, a_ms, b_ms, fenster=None, je_fenster=True, max_mps=None
     if max_mps is not None:
         zu = _running_median(v, 3) > max_mps
         bruch = bruch | zu[1:] | zu[:-1]
+    if CFG["ACC"]:                                  # Speedsurf-Filter: Beschleunigung ueber Grenze = Bruch
+        bruch = bruch | (np.abs(np.diff(v)) / np.maximum(dt, 1e-3) > CFG["ACC"])
+    if CFG["NACH_LUECKE_S"]:                        # erste Sekunden nach einer Luecke verwerfen
+        b0 = bruch.copy()
+        for k in np.flatnonzero(b0):
+            m = (t[1:] > t[k + 1] - 1e-6) & (t[1:] <= t[k + 1] + CFG["NACH_LUECKE_S"])
+            bruch |= m
     luecke = np.concatenate([[0], np.cumsum(bruch)])
+    if CFG["W_ADAPT"]:
+        import guete as G
+        q = G.guete(t, lat, lon, np.where(echt, v, np.nan))
+        a = q["abw_10s"] if q and np.isfinite(q["abw_10s"]) else 0.03
+        W = float(np.clip(0.5 + (a - 0.03) * 6, 0.5, 0.9))
     seg = np.where(bruch, 0.0, (v[1:] + v[:-1]) / 2 * dt)
     cd = np.concatenate([[0.0], np.cumsum(seg)])
     cp = SP._strecke_pos(lat, lon)
