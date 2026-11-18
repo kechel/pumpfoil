@@ -1548,6 +1548,8 @@ Feedback-Formular 18.11., Sessions https://pumpfoil.org/sessions/21529 und https
   5414 -> ~30 s Fahrt fehlen (zweites Problem: spaeter Start). GPS-only, wind-1 (Start 15, Ende 9,4 km/h/5 s).
   Vorschlag: Wind-Gruppe trennt nur bei Stillstand/Sturz (~0 km/h ein paar s) oder Land. Erkennungs-Aenderung -> Jans OK,
   Trockenlauf ueber alle Wing/Kite; Wechselwirkung mit Fremdkraft/Deadreckoning beachten (Befund 16.09.).
+  **Jans Idee 18.11. (einfacher, ohne Erkennung anzufassen):** bei Wind-Sessions die einzelnen Laeufe zuklappen
+  (Lauf-Knoepfe/-Tabelle), erst auf Klick aufklappen. Loest die Wahrnehmung „zerstueckelt", nicht den spaeten Start.
 - 🔲 Wear: Halten = Stopp (stop_mode hold), er erwartete Pause/Autostart. Wunsch: „Hold to stop" oder Auswahl Pause/Ende.
   Aktuelle Beschriftung nicht geprueft. Wear-Release noetig.
 - 🔲 Pause/Wing-Wechsel an Land (Nordosten in 22414) sollte Pause zwischen zwei Fahrten sein — nicht geprueft.
