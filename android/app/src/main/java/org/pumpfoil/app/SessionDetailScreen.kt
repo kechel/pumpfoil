@@ -2175,7 +2175,10 @@ private fun RunsTable(
     // Fremdkraft-Vorschläge der Erkennung v2: abgetrennte Läufe (Boot/Auto/Motor-Verdacht) mit
     // Grund und Ein-Tipp-Rückholung — Vorschlag, keine stille Löschung. Für ALLE sichtbar
     // (Transparenz, warum die Zahlen so sind), Knöpfe nur mit Bearbeitungsrecht. Wie PWA RunsTable.
-    if (poweredRuns.isNotEmpty() || keptWindows.isNotEmpty()) {
+    var sepOffen by remember { mutableStateOf(false) }
+    // Unter der Laufliste, zugeklappt als eine blaue Zeile (Web, Jan 18.11.2026).
+    val zurueckgestellt: @Composable () -> Unit = { if (poweredRuns.isNotEmpty() || keptWindows.isNotEmpty()) {
+        Spacer(Modifier.height(8.dp))
         val sky = if (dark) SkyOnDark else SkyOnLight
         // Grund-Text HIER bauen (lokalisiert aus den Messwerten) — metrics.grund ist deutscher
         // Admin-Klartext und erscheint nie in der UI.
@@ -2202,11 +2205,14 @@ private fun RunsTable(
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(Modifier.fillMaxWidth().clickable { sepOffen = !sepOffen },
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(if (sepOffen) "▾" else "▸", color = sky)
                 Icon(Icons.Filled.RemoveCircleOutline, contentDescription = null, tint = sky, modifier = Modifier.size(18.dp))
-                Text(I18n.t("v2.sepTitle"), style = MaterialTheme.typography.bodyMedium,
+                Text("${I18n.t("v2.sepTitle")} (${poweredRuns.size + keptWindows.size})", style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold, color = sky)
             }
+            if (!sepOffen) return@Column
             if (poweredRuns.isNotEmpty()) {
                 Text(I18n.t("v2.sepIntro"), style = MaterialTheme.typography.bodyMedium, color = sky)
             }
@@ -2248,9 +2254,8 @@ private fun RunsTable(
                 }
             }
         }
-        Spacer(Modifier.height(8.dp))
-    }
-    if (segments.isEmpty()) return
+    } }
+    if (segments.isEmpty()) { zurueckgestellt(); return }
     // Hoechstpuls im Lauf, aus dem Puls je Trackpunkt (Wunsch ThermikDreher, 15.08.).
     // Identische Logik wie die PWA: ueber iStart..iEnd laufen, Nullen und 0-Werte ignorieren.
     val maxHrImLauf: (Segment) -> Int? = { seg ->
@@ -2406,6 +2411,7 @@ private fun RunsTable(
             }
         }
     }
+    zurueckgestellt()
 }
 
 /**

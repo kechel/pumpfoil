@@ -125,6 +125,7 @@ struct SessionDetailView: View {
     @State private var confirmExcludeRun = false
     @State private var confirmExcludeRange = false
     @State private var excludeBusy = false
+    @State private var sepOffen = false
     @State private var excludeErr: String?
     @State private var confirmDelete = false
     @State private var caption = ""
@@ -1762,10 +1763,13 @@ struct SessionDetailView: View {
             if let w = wellePumpen { WelleKarte(w: w, sport: session?.sport_class, lang: lang) }
             if let w = windInfo?.mittel { WindKarte(w: w, z: manoever?.zahlen, h: manoever?.hoehe, vorhersage: windInfo?.vorhersage ?? false, vg: windVergleich, ohneFoil: ohneFoil, lang: lang) }
             excludedSection(s)
-            poweredSection(s)
             excludeErrorRow
             if let segs = a.segments, !segs.isEmpty {
                 runsTable(segs, s)
+            }
+            // Unter der Laufliste, zugeklappt als eine blaue Zeile (Web, Jan 18.11.2026).
+            poweredSection(s)
+            if let segs = a.segments, !segs.isEmpty {
                 // Puls je Lauf (web CompareHrStrips, TODO 12.11.): zeigt sich nur mit Puls.
                 PulsStreifenKarte(segments: segs, hr: s.analysis?.track_geojson?.properties?.hr ?? [], lang: lang, zugeklappt: true)
             }
@@ -1879,15 +1883,18 @@ struct SessionDetailView: View {
         let kept: [[Int]] = s.fremdkraft_keep ?? []
         if !runs.isEmpty || !kept.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
-                poweredHeader
-                if !runs.isEmpty {
+                Button { sepOffen.toggle() } label: { poweredHeader(runs.count + kept.count) }
+                    .buttonStyle(.plain)
+                if sepOffen && !runs.isEmpty {
                     Text(Loc.t("v2.sepIntro", lang)).font(.body).foregroundStyle(.secondary)
                 }
-                ForEach(Array(runs.enumerated()), id: \.offset) { _, r in
-                    poweredRow(s, run: r)
-                }
-                ForEach(Array(kept.enumerated()), id: \.offset) { _, w in
-                    keptRow(s, window: w)
+                if sepOffen {
+                    ForEach(Array(runs.enumerated()), id: \.offset) { _, r in
+                        poweredRow(s, run: r)
+                    }
+                    ForEach(Array(kept.enumerated()), id: \.offset) { _, w in
+                        keptRow(s, window: w)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -1897,10 +1904,11 @@ struct SessionDetailView: View {
         }
     }
 
-    private var poweredHeader: some View {
+    private func poweredHeader(_ n: Int) -> some View {
         HStack(spacing: 6) {
+            Text(sepOffen ? "▾" : "▸").foregroundStyle(sky)
             Image(systemName: "nosign").foregroundStyle(sky)
-            Text(Loc.t("v2.sepTitle", lang)).font(.body).bold().foregroundStyle(sky)
+            Text(Loc.t("v2.sepTitle", lang) + " (\(n))").font(.body).bold().foregroundStyle(sky)
         }
     }
 
