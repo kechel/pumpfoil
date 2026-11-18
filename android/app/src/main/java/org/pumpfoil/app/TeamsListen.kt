@@ -85,7 +85,7 @@ fun CommunityEventsAbschnitt(onOpenEvent: (String, Int) -> Unit, onAlleEvents: (
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         l?.forEach { e ->
-            EventKachel(e, onClick = { onOpenEvent(e.team.slug, e.id) }, modifier = Modifier.padding(bottom = 8.dp))
+            EventKachel(e, onClick = { if (e.team.slug.isNotBlank()) onOpenEvent(e.team.slug, e.id) }, modifier = Modifier.padding(bottom = 8.dp))
         }
         // Wege weiter + Kalender-Abo UNTER den Events, kompakt in einer umbrechenden Zeile (Jan 10.11.2026, wie Web Home.tsx).
         KalenderAbo(onAlleEvents, onAlleTeams)
@@ -94,7 +94,7 @@ fun CommunityEventsAbschnitt(onOpenEvent: (String, Int) -> Unit, onAlleEvents: (
             EventUeberschrift(I18n.t("team.eventsMeineTeams"))
             Spacer(Modifier.height(6.dp))
             meine.forEach { e ->
-                EventKachel(e, onClick = { onOpenEvent(e.team.slug, e.id) }, modifier = Modifier.padding(bottom = 8.dp))
+                EventKachel(e, onClick = { if (e.team.slug.isNotBlank()) onOpenEvent(e.team.slug, e.id) }, modifier = Modifier.padding(bottom = 8.dp))
             }
         }
     }
@@ -233,7 +233,7 @@ fun TeamEventsListe(onOpenEvent: (String, Int) -> Unit, modifier: Modifier = Mod
     Column(modifier.fillMaxWidth()) {
         EventUeberschrift(I18n.t("team.eventsMeineTeams"))
         Spacer(Modifier.height(6.dp))
-        events.forEach { e -> EventKachel(e, onClick = { onOpenEvent(e.team.slug, e.id) }, modifier = Modifier.padding(bottom = 8.dp)) }
+        events.forEach { e -> EventKachel(e, onClick = { if (e.team.slug.isNotBlank()) onOpenEvent(e.team.slug, e.id) }, modifier = Modifier.padding(bottom = 8.dp)) }
     }
 }
 
@@ -346,7 +346,7 @@ fun EventsAlleScreen(onBack: () -> Unit, onOpenEvent: (String, Int) -> Unit) {
                 l == null -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 l.isEmpty() -> HinweisText(I18n.t("team.alleEventsLeer"))
                 else -> LazyColumn(state = liste, contentPadding = PaddingValues(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(l, key = { "${it.team.slug}-${it.id}" }) { e -> EventKachel(e, onClick = { onOpenEvent(e.team.slug, e.id) }) }
+                    items(l, key = { "${it.team.slug}-${it.id}" }) { e -> EventKachel(e, onClick = { if (e.team.slug.isNotBlank()) onOpenEvent(e.team.slug, e.id) }) }
                     if (mehr) item {
                         Box(Modifier.fillMaxWidth().padding(8.dp)) { CircularProgressIndicator(Modifier.align(Alignment.Center).size(24.dp)) }
                     }
