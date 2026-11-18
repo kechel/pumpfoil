@@ -1267,6 +1267,7 @@ const deAT: Record<string, string> = {
   "foilStats.minRunAll": "Alle Läufe",
   "foilStats.minRunAb": "Läufe ab {min} min",
   "foilStats.minRunHint": "Zahlen nur aus Läufen ab {min} min. Die Low-End-Spalte zählt weiter alle Läufe.",
+  "foilStats.scootHint": "Foils, die auch am Foil Scooter gefahren werden, kriegen eine zweite Zeile mit den Scooter-Sessions.",
   "foilStats.runsN": "{n} Läufe",
   "foilStats.noneBoard": "No kane Aufnahmen mitm Handy am Brett und gwähltem Foil.",
   "foilStats.colFoil": "Foil",

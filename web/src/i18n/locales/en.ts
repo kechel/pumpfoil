@@ -1953,6 +1953,7 @@ const en: Record<string, string> = {
   "foilStats.minRunAll": "All runs",
   "foilStats.minRunAb": "Runs from {min} min",
   "foilStats.minRunHint": "Numbers only from runs of at least {min} min. The low-end column still counts all runs.",
+  "foilStats.scootHint": "Foils that are also ridden on a foil scooter get a second row with the scooter sessions.",
   "foilStats.runsN": "{n} runs",
   "foilStats.noneBoard": "No sessions with the phone on the board and a chosen foil yet.",
   "foilStats.colFoil": "Foil",

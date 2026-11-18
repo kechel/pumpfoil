@@ -1701,6 +1701,7 @@ const zh: Record<string, string> = {
   "foilStats.minRunAll": "所有滑行段",
   "foilStats.minRunAb": "{min} 分钟以上的滑行段",
   "foilStats.minRunHint": "仅统计至少 {min} 分钟的滑行段。低速列仍统计所有滑行段。",
+  "foilStats.scootHint": "也用于水翼滑板车的水翼会多出一行，显示滑板车的训练记录。",
   "foilStats.runsN": "{n} 段",
   "foilStats.noneBoard": "暂无手机装在板上且选定水翼的记录。",
   "foilStats.colFoil": "水翼",

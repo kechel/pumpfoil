@@ -1325,6 +1325,7 @@ const gsw: Record<string, string> = {
   "foilStats.minRunAll": "Alli Läuf",
   "foilStats.minRunAb": "Läuf ab {min} min",
   "foilStats.minRunHint": "Zahle nur us Läuf ab {min} min. D Low-End-Spalte zellt wiiter alli Läuf.",
+  "foilStats.scootHint": "Foils, wo au am Foil Scooter gfahre wärded, überchömed e zwöiti Ziile mit de Scooter-Sessions.",
   "foilStats.runsN": "{n} Läuf",
   "foilStats.noneBoard": "No kei Ufnahme mitem Händy am Brätt und gwähltem Foil.",
   "foilStats.colFoil": "Foil",

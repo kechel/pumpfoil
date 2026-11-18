@@ -19,6 +19,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,7 +56,7 @@ fun FoilStatsScreen(onBack: () -> Unit, onWatchStats: () -> Unit = {},
     var minLauf by remember { mutableStateOf(0) }   // Minuten; 0 = alle Laeufe (Web 18.11.2026)
     LaunchedEffect(nurBrett, minLauf) {
         rows = null
-        try { rows = Api.foilStats(nurBrett, minLauf * 60) } catch (e: Exception) { error = e.message; rows = emptyList() }
+        try { rows = Api.foilStats(nurBrett, minLauf * 60, mitScoot = true) } catch (e: Exception) { error = e.message; rows = emptyList() }
     }
 
     Scaffold(topBar = {
@@ -118,7 +119,11 @@ fun FoilStatsScreen(onBack: () -> Unit, onWatchStats: () -> Unit = {},
                 Text(I18n.t("foilStats.hint"),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 8.dp))
+                    modifier = Modifier.padding(top = 8.dp))
+                Text(I18n.t("foilStats.scootHint"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 8.dp))
             }
             item {
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 6.dp),
@@ -168,22 +173,35 @@ private fun statCard(s: FoilStat, onFoil: (FoilStat) -> Unit = {}) {
     Card(Modifier.fillMaxWidth().padding(bottom = 10.dp).clickable { onFoil(s) }) {
         Column(Modifier.padding(12.dp)) {
             Text("${s.brand} ${s.model} ${s.size}", fontWeight = FontWeight.SemiBold)
-            Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                metric("${s.sessions}" + (s.laeufe?.let { " · ${I18n.t("foilStats.runsN").replace("{n}", "$it")}" } ?: ""), I18n.t("nav.sessions"))
-                metric("${s.users}", I18n.t("foilstats.riders"))
-                metric(s.avgSpeedKmh?.let { "%.1f".format(it) } ?: "–", "Ø km/h")
-            }
-            Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                metric(s.metersPerPump?.let { "%.1f".format(it) } ?: "–", "m/Pump", Modifier.weight(1f))
-                metric(PumpUnit.fmtValue(s.avgPumpHz), "Ø ${PumpUnit.unitLabel()}", Modifier.weight(1f))
-            }
-            // Die beiden Bestwerte eines Laufs als Paar (Nutzerwunsch 30.08.: "best time and
-            // distance for each different foil") — Strecke und Zeit gehoeren zusammen.
-            Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                metric(s.bestDistanceM?.let { "%.2f".format(it / 1000) } ?: "–", I18n.t("foilstats.bestKm"), Modifier.weight(1f))
-                metric(s.bestDurationS?.let { fmtRunDur(it) } ?: "–", I18n.t("rec.longestRun"), Modifier.weight(1f))
+            kennzahlen(s.sessions, s.laeufe, s.users, s.avgSpeedKmh, s.metersPerPump, s.avgPumpHz, s.bestDistanceM, s.bestDurationS)
+            // Zweiter Block: dasselbe Foil am Foil Scooter (Web: zweite Tabellenzeile, Jan 18.11.2026).
+            s.scoot?.let { c ->
+                HorizontalDivider(Modifier.padding(top = 12.dp))
+                Text("↳ ${I18n.t("cls.sport.foil_scoot")}", style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
+                kennzahlen(c.sessions, c.laeufe, c.users, c.avgSpeedKmh, c.metersPerPump, c.avgPumpHz, c.bestDistanceM, c.bestDurationS)
             }
         }
+    }
+}
+
+@Composable
+private fun kennzahlen(sessions: Int, laeufe: Int?, users: Int, speed: Double?, mpp: Double?, hz: Double?,
+                       best: Double?, dur: Double?) {
+    Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        metric("$sessions" + (laeufe?.let { " · ${I18n.t("foilStats.runsN").replace("{n}", "$it")}" } ?: ""), I18n.t("nav.sessions"))
+        metric("$users", I18n.t("foilstats.riders"))
+        metric(speed?.let { "%.1f".format(it) } ?: "–", "Ø km/h")
+    }
+    Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        metric(mpp?.let { "%.1f".format(it) } ?: "–", "m/Pump", Modifier.weight(1f))
+        metric(PumpUnit.fmtValue(hz), "Ø ${PumpUnit.unitLabel()}", Modifier.weight(1f))
+    }
+    // Die beiden Bestwerte eines Laufs als Paar (Nutzerwunsch 30.08.: "best time and
+    // distance for each different foil") — Strecke und Zeit gehoeren zusammen.
+    Row(Modifier.fillMaxWidth().padding(top = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        metric(best?.let { "%.2f".format(it / 1000) } ?: "–", I18n.t("foilstats.bestKm"), Modifier.weight(1f))
+        metric(dur?.let { fmtRunDur(it) } ?: "–", I18n.t("rec.longestRun"), Modifier.weight(1f))
     }
 }
 

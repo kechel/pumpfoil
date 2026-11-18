@@ -1701,6 +1701,7 @@ const id: Record<string, string> = {
   "foilStats.minRunAll": "Semua run",
   "foilStats.minRunAb": "Run mulai {min} menit",
   "foilStats.minRunHint": "Angka hanya dari run minimal {min} menit. Kolom low end tetap menghitung semua run.",
+  "foilStats.scootHint": "Foil yang juga dipakai di foil scooter mendapat baris kedua dengan sesi scooter.",
   "foilStats.runsN": "{n} run",
   "foilStats.noneBoard": "Belum ada sesi dengan ponsel di papan dan foil terpilih.",
   "foilStats.colFoil": "Foil",

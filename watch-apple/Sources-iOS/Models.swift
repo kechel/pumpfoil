@@ -875,13 +875,36 @@ struct SessionLabel: Codable, Identifiable {
     let label: String   // pump | glide | not_foiling
 }
 
-struct FoilStat: Codable, Identifiable {
+// Die Kennzahlen einer Foil-Stats-Zeile — gleich fuer Pumpfoil und die Scooter-Zweitzeile (18.11.2026).
+protocol FoilKennzahlen {
+    var sessions: Int { get }
+    var users: Int { get }
+    var avg_speed_kmh: Double? { get }
+    var meters_per_pump: Double? { get }
+    var best_distance_m: Double? { get }
+    var best_duration_s: Double? { get }
+    var avg_pump_hz: Double? { get }
+    var laeufe: Int? { get }
+}
+
+struct FoilStatScoot: Codable, FoilKennzahlen {
+    let sessions: Int
+    let users: Int
+    let avg_speed_kmh: Double?
+    let meters_per_pump: Double?
+    let best_distance_m: Double?
+    let best_duration_s: Double?
+    let avg_pump_hz: Double?
+    var laeufe: Int? = nil
+}
+
+struct FoilStat: Codable, Identifiable, FoilKennzahlen {
     let foil_id: Int
     let brand: String
     let model: String
     let size: String
     let aspect_ratio: Double?
-    let sessions: Int
+    var sessions: Int
     let users: Int
     let avg_speed_kmh: Double?
     let meters_per_pump: Double?
@@ -889,6 +912,7 @@ struct FoilStat: Codable, Identifiable {
     let best_duration_s: Double?   // laengster Einzellauf auf diesem Foil (Server ab 30.08.)
     let avg_pump_hz: Double?
     var laeufe: Int? = nil   // nur mit Lauf-Filter (18.11.2026): so viele Laeufe stecken in den Zahlen
+    var scoot: FoilStatScoot? = nil   // nur mit mitScoot: Kennzahlen aus Foil-Scoot-Sessions (18.11.2026)
     var id: Int { foil_id }
 }
 

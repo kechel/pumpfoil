@@ -134,7 +134,7 @@ def test_andere_meta_felder_bleiben_unberuehrt(client):
     assert d["placement"] == "board"
 
 
-def _gezaehlte_session(uid: int, foil_id: int, placement: str | None):
+def _gezaehlte_session(uid: int, foil_id: int, placement: str | None, sport: str = "pumpfoil"):
     """Eine community-sichtbare Pumpfoil-Session mit Accel-Erkennung, direkt in der DB."""
     import uuid as _uuid
     from datetime import datetime, timezone
@@ -145,7 +145,7 @@ def _gezaehlte_session(uid: int, foil_id: int, placement: str | None):
     s = models.Session(session_uuid=str(_uuid.uuid4()),
                        started_at=datetime(2026, 9, 20, 9, 0, tzinfo=timezone.utc),
                        user_id=uid, foil_id=foil_id, placement=placement,
-                       is_pumpfoil=True, sport_class="pumpfoil", status="analyzed")
+                       is_pumpfoil=True, sport_class=sport, status="analyzed")
     db.add(s)
     db.flush()
     db.add(models.AnalysisResult(session_id=s.id, algo_version="test", detection="model",
@@ -180,6 +180,31 @@ def test_foil_stats_nur_brett_zaehlt_nur_brett_aufnahmen(client):
     assert {r["foil_id"] for r in alle} >= {brett_foil, uhr_foil}
     assert [r["foil_id"] for r in nur_brett] == [brett_foil]
     assert next(r for r in nur_brett if r["foil_id"] == brett_foil)["sessions"] == 1
+
+
+def test_foil_stats_mit_scoot_zweite_zeile(client):
+    """`mit_scoot=1` haengt je Foil die Foil-Scoot-Werte als `scoot` an (Jan 18.11.2026: „eine zweite zeile");
+    reine Scooter-Foils kommen mit sessions 0 dazu. Ohne Schalter bleibt die Antwort wie bisher (alte Apps)."""
+    auth = _konto(client, "foilstats-scoot@example.com")
+    from app import models
+    from app.db import SessionLocal
+    db = SessionLocal()
+    uid = db.query(models.User).filter_by(email="foilstats-scoot@example.com").first().id
+    f = db.query(models.Foil).order_by(models.Foil.id.desc()).limit(2).all()
+    beide, nur_scoot = f[0].id, f[1].id
+    db.close()
+
+    _gezaehlte_session(uid, beide, None)
+    _gezaehlte_session(uid, beide, None, "foil_scoot")
+    _gezaehlte_session(uid, beide, None, "foil_scoot")
+    _gezaehlte_session(uid, nur_scoot, None, "foil_scoot")
+
+    ohne = {r["foil_id"]: r for r in client.get("/api/community/foil-stats", headers=auth).json()}
+    assert "scoot" not in ohne[beide] and nur_scoot not in ohne
+    mit = {r["foil_id"]: r for r in client.get("/api/community/foil-stats?mit_scoot=1", headers=auth).json()}
+    assert mit[beide]["sessions"] == ohne[beide]["sessions"]
+    assert mit[beide]["scoot"]["sessions"] == 2
+    assert mit[nur_scoot]["sessions"] == 0 and mit[nur_scoot]["scoot"]["sessions"] == 1
 
 
 def test_lage_ueber_den_teilen_link_ohne_login(client):

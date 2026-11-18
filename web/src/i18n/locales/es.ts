@@ -1411,6 +1411,7 @@ const es: Record<string, string> = {
   "foilStats.minRunAll": "Todas las tandas",
   "foilStats.minRunAb": "Tandas desde {min} min",
   "foilStats.minRunHint": "Cifras solo de tandas de al menos {min} min. La columna low end sigue contando todas.",
+  "foilStats.scootHint": "Los foils que también se usan en un foil scooter tienen una segunda fila con las sesiones de scooter.",
   "foilStats.runsN": "{n} tandas",
   "foilStats.noneBoard": "Aún no hay sesiones con el móvil en la tabla y foil elegido.",
   "foilStats.colFoil": "Foil",

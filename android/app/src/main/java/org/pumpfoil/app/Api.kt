@@ -1646,10 +1646,11 @@ object Api {
     // `nurBrett`: nur Aufnahmen mit dem Handy am Brett — genauere Zahlen (fest montiert, schneller
     // getaktet, mit Kreisel).
     // minLaufS > 0: Zahlen nur aus Laeufen ab dieser Dauer (Web 18.11.2026).
-    suspend fun foilStats(nurBrett: Boolean = false, minLaufS: Int = 0): List<FoilStat> = withContext(Dispatchers.IO) {
+    // mitScoot: je Foil zusaetzlich `scoot` (Foil-Scoot-Sessions), reine Scooter-Foils mit sessions 0 (18.11.2026).
+    suspend fun foilStats(nurBrett: Boolean = false, minLaufS: Int = 0, mitScoot: Boolean = false): List<FoilStat> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(FoilStat.serializer()),
             http("GET", "/api/community/foil-stats?only_board=${if (nurBrett) 1 else 0}" +
-                (if (minLaufS > 0) "&min_run_s=$minLaufS" else ""), null, auth = true))
+                (if (minLaufS > 0) "&min_run_s=$minLaufS" else "") + (if (mitScoot) "&mit_scoot=1" else ""), null, auth = true))
     }
 
     suspend fun watchStats(): List<WatchStat> = withContext(Dispatchers.IO) {

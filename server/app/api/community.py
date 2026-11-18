@@ -2335,16 +2335,16 @@ def _low_end_je_foil(db: Session, viewer_id: int, only_board: bool) -> dict[int,
 _FOILSTATS_LAUF_CACHE: dict = {}
 
 
-def _foil_stats_laeufe(db: Session, viewer_id: int, only_board: bool, min_s: int) -> list:
+def _foil_stats_laeufe(db: Session, viewer_id: int, only_board: bool, min_s: int, sport: str = "pumpfoil") -> list:
     """Wie die Session-Summen unten, aber aus den EINZELNEN Laeufen mit Dauer >= min_s (Jan 18.11.2026: Filter „nur Laeufe
     > 1/3/5/10/30 min"). Je Lauf aus `segments_json` (jsonb), Pumps aus pg-1 mit Rueckfall auf die alte Zaehlung.
     ~0,7 s ueber alle Foil-Sessions -> 10 min gecacht (fuer alle gleich bis auf versteckte Konten des Betrachters)."""
-    key = (only_board, min_s)
+    key = (only_board, min_s, sport)
     hit = _FOILSTATS_LAUF_CACHE.get(key)
     if hit and time.time() - hit[0] < 600:
         return hit[1]
     sub = (_community(db.query(S.id.label("sid"), S.foil_id.label("fid"), S.user_id.label("uid"),
-                               AR.segments_json.label("seg")), viewer_id, accel_only=not only_board)
+                               AR.segments_json.label("seg")), viewer_id, accel_only=not only_board, sport=sport)
            .filter(S.foil_id.isnot(None))
            .filter(S.placement == "board" if only_board else true())
            .subquery())
@@ -2362,23 +2362,12 @@ def _foil_stats_laeufe(db: Session, viewer_id: int, only_board: bool, min_s: int
     return rows
 
 
-@router.get("/foil-stats")
-def foil_stats(only_board: bool = False, min_run_s: int = 0, _user: models.User = Depends(current_user),
-               db: Session = Depends(get_db)) -> list[dict]:
-    """Community-Aggregat je Foil (nur Sessions mit explizit gewähltem Foil).
-
-    `only_board=1` zaehlt NUR Aufnahmen mit dem Handy am Brett. Die sind genauer als eine
-    Uhr am Handgelenk (fester Sitz, hohe Rate, Kreisel dabei), aber es gibt erst eine
-    Handvoll davon — die Zahlen daraus sind also lange duenn, bevor sie tragen.
-    """
-    # Am Brett erkennt das GPS die Laeufe (das Handgelenk-Modell passt dort nicht, seit 03.10.2026),
-    # die Aufnahme hat aber Bewegungsdaten und ist genauer als die Uhr. Mit „nur Handy am Brett"
-    # darf der Filter „nur Accel-Erkennung" sie deshalb nicht wegwerfen — sonst bleibt die Tabelle
-    # leer (Jans Befund 06.10.2026).
+def _foil_stats_werte(db: Session, viewer_id: int, only_board: bool, min_run_s: int, sport: str) -> dict[int, dict]:
+    """Kennzahlen je Foil fuer EINE Sportart: Session-Summen, mit Lauf-Filter aus den einzelnen Laeufen."""
     laeufe_n: dict = {}
     if min_run_s > 0:
         rows = []
-        for r in _foil_stats_laeufe(db, _user.id, only_board, int(min_run_s)):
+        for r in _foil_stats_laeufe(db, viewer_id, only_board, int(min_run_s), sport):
             rows.append(r[:9])
             laeufe_n[r[0]] = int(r[9])
     else:
@@ -2393,39 +2382,71 @@ def foil_stats(only_board: bool = False, min_run_s: int = 0, _user: models.User 
                 func.max(AR.best_distance_m),
                 func.max(AR.best_duration_s),
                 func.avg(PA.col_avg_cadence_hz()),
-            ), _user.id, accel_only=not only_board).filter(S.foil_id.isnot(None))
+            ), viewer_id, accel_only=not only_board, sport=sport).filter(S.foil_id.isnot(None))
             .filter(S.placement == "board" if only_board else true())
             .group_by(S.foil_id).all()
         )
-    if not rows:
-        return []
-    fmap = {f.id: f for f in db.query(models.Foil).filter(models.Foil.id.in_([r[0] for r in rows])).all()}
-    low_end = _low_end_je_foil(db, _user.id, only_board)
-    out = []
+    out = {}
     for fid, n_sess, n_users, sum_dist, sum_time, sum_pumps, best_dist, best_dur, avg_hz in rows:
-        f = fmap.get(fid)
-        if not f:
-            continue
         dist = float(sum_dist) if sum_dist else 0.0
-        time = float(sum_time) if sum_time else 0.0
+        zeit = float(sum_time) if sum_time else 0.0
         pumps = float(sum_pumps) if sum_pumps else 0.0
-        out.append({
-            "foil_id": fid, "brand": f.brand, "model": f.model, "size": f.size,
-            "aspect_ratio": round((f.span_cm ** 2) / f.area_cm2, 2) if f.area_cm2 else None,
+        out[fid] = {
             "sessions": int(n_sess), "users": int(n_users),
             # Aussagekräftig fürs Foil: Ø-Speed (Distanz/Zeit) + Meter pro Pump.
-            "avg_speed_kmh": round(dist / time * 3.6, 1) if time > 0 else None,
+            "avg_speed_kmh": round(dist / zeit * 3.6, 1) if zeit > 0 else None,
             "meters_per_pump": round(dist / pumps, 1) if pumps > 0 else None,
             "best_distance_m": round(float(best_dist)) if best_dist else None,
             # Laengster EINZELLAUF auf diesem Foil (nicht die Session-Dauer) — Gegenstueck zu
             # best_distance_m, angeregt von einem Nutzer (30.08.): "best time and distance per foil".
             "best_duration_s": round(float(best_dur)) if best_dur else None,
             "avg_pump_hz": round(float(avg_hz), 2) if avg_hz else None,
-            **low_end.get(fid, {"low_end_kmh": None, "low_end_laeufe": 0, "low_end_fahrer": 0}),
             # Nur mit Lauf-Filter: so viele Laeufe stecken in den Zahlen (sonst Session-Summen, kein Feld).
             **({"laeufe": laeufe_n.get(fid, 0)} if min_run_s > 0 else {}),
+        }
+    return out
+
+
+@router.get("/foil-stats")
+def foil_stats(only_board: bool = False, min_run_s: int = 0, mit_scoot: bool = False,
+               _user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
+    """Community-Aggregat je Foil (nur Sessions mit explizit gewähltem Foil).
+
+    `only_board=1` zaehlt NUR Aufnahmen mit dem Handy am Brett. Die sind genauer als eine
+    Uhr am Handgelenk (fester Sitz, hohe Rate, Kreisel dabei), aber es gibt erst eine
+    Handvoll davon — die Zahlen daraus sind also lange duenn, bevor sie tragen.
+
+    `mit_scoot=1` (Jan 18.11.2026: „bei foils die auch von foilscootern benutzt werden … eine zweite zeile"): je Foil
+    zusaetzlich `scoot` mit denselben Kennzahlen aus Foil-Scoot-Sessions (ohne Low End, das ist auf Pumpfoil geeicht);
+    Foils, die NUR am Scooter gefahren werden, kommen mit leeren Pumpfoil-Werten (`sessions` 0) dazu. Ohne den Schalter
+    bleibt die Antwort wie bisher — alte Apps zeigen sonst Scooter-Foils als leere Pumpfoil-Zeilen.
+    """
+    # Am Brett erkennt das GPS die Laeufe (das Handgelenk-Modell passt dort nicht, seit 03.10.2026),
+    # die Aufnahme hat aber Bewegungsdaten und ist genauer als die Uhr. Mit „nur Handy am Brett"
+    # darf der Filter „nur Accel-Erkennung" sie deshalb nicht wegwerfen — sonst bleibt die Tabelle
+    # leer (Jans Befund 06.10.2026).
+    pump = _foil_stats_werte(db, _user.id, only_board, min_run_s, "pumpfoil")
+    scoot = _foil_stats_werte(db, _user.id, only_board, min_run_s, "foil_scoot") if mit_scoot else {}
+    ids = set(pump) | set(scoot)
+    if not ids:
+        return []
+    fmap = {f.id: f for f in db.query(models.Foil).filter(models.Foil.id.in_(ids)).all()}
+    low_end = _low_end_je_foil(db, _user.id, only_board)
+    leer = {"sessions": 0, "users": 0, "avg_speed_kmh": None, "meters_per_pump": None, "best_distance_m": None,
+            "best_duration_s": None, "avg_pump_hz": None, **({"laeufe": 0} if min_run_s > 0 else {})}
+    out = []
+    for fid in ids:
+        f = fmap.get(fid)
+        if not f:
+            continue
+        out.append({
+            "foil_id": fid, "brand": f.brand, "model": f.model, "size": f.size,
+            "aspect_ratio": round((f.span_cm ** 2) / f.area_cm2, 2) if f.area_cm2 else None,
+            **pump.get(fid, leer),
+            **low_end.get(fid, {"low_end_kmh": None, "low_end_laeufe": 0, "low_end_fahrer": 0}),
+            **({"scoot": scoot[fid]} if fid in scoot else {}),
         })
-    out.sort(key=lambda x: x["sessions"], reverse=True)
+    out.sort(key=lambda x: (x["sessions"], x.get("scoot", {}).get("sessions", 0)), reverse=True)
     return out
 
 

@@ -1146,6 +1146,8 @@ export interface WatchQualityRow {
   weg?: string; vollstaendig?: number; mit_accel?: number;   // % Sessions mit Beschleunigung >= 15 Hz
 }
 
+export type FoilStatWerte = { sessions: number; users: number; avg_speed_kmh: number | null; meters_per_pump: number | null; best_distance_m: number | null; best_duration_s: number | null; avg_pump_hz: number | null; laeufe?: number };
+
 export const api = {
   register: (email: string, password: string, display_name?: string, language?: string) =>
     req<{ access_token: string }>("/api/auth/register", {
@@ -1602,7 +1604,8 @@ export const api = {
   layoutCopy: (id: number) => req<WatchLayout>(`/api/layouts/${id}/copy`, { method: "POST" }),
   layoutDelete: (id: number) => req<void>(`/api/layouts/${id}`, { method: "DELETE" }),
   // nurBrett: nur Aufnahmen mit dem Handy am Brett (genauer als die Uhr am Handgelenk).
-  foilStats: (nurBrett = false, minLaufS = 0) => req<{ foil_id: number; brand: string; model: string; size: string; aspect_ratio: number | null; sessions: number; users: number; avg_speed_kmh: number | null; meters_per_pump: number | null; best_distance_m: number | null; best_duration_s: number | null; avg_pump_hz: number | null; low_end_kmh: number | null; low_end_laeufe: number; low_end_fahrer: number; laeufe?: number }[]>(`/api/community/foil-stats?only_board=${nurBrett ? 1 : 0}${minLaufS ? `&min_run_s=${minLaufS}` : ""}`),
+  // mitScoot: je Foil zusaetzlich `scoot` (dieselben Kennzahlen aus Foil-Scoot-Sessions), reine Scooter-Foils mit sessions 0.
+  foilStats: (nurBrett = false, minLaufS = 0, mitScoot = false) => req<(FoilStatWerte & { foil_id: number; brand: string; model: string; size: string; aspect_ratio: number | null; low_end_kmh: number | null; low_end_laeufe: number; low_end_fahrer: number; scoot?: FoilStatWerte })[]>(`/api/community/foil-stats?only_board=${nurBrett ? 1 : 0}${minLaufS ? `&min_run_s=${minLaufS}` : ""}${mitScoot ? "&mit_scoot=1" : ""}`),
   // Die laengsten eigenen Laeufe ueber alle Sessions (Seite /laeufe, vorerst nur Admins).
   longestRuns: (n = 5, nurBrett = false) => req<{ session_id: number; run_idx: number; started_at: string | null; tz: string | null;
     spot: string | null; placement: string | null; duration_s: number | null; distance_m: number | null;

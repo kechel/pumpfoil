@@ -25,7 +25,9 @@ export function SessionFilter({ foil, onFoil }: { foil: number | null; onFoil: (
   // Liste erst beim ersten Oeffnen laden (oder wenn per Link schon ein Foil gesetzt ist -> Name im Titel).
   useEffect(() => {
     if ((!offen && !foil) || foils) return;
-    api.foilStats().then((l) => setFoils([...l].sort((a, b) => b.sessions - a.sessions))).catch(() => setFoils([]));
+    // Mit Scooter-Sessions: der Filter gilt fuer alle Sportarten, auch reine Scooter-Foils gehoeren in die Liste.
+    api.foilStats(false, 0, true).then((l) => setFoils(l.map((f) => ({ ...f, sessions: f.sessions + (f.scoot?.sessions ?? 0) }))
+      .sort((a, b) => b.sessions - a.sessions))).catch(() => setFoils([]));
     api.getSettings().then((s) => setMeine(((s?.my_foils as number[]) ?? []).filter((x) => typeof x === "number"))).catch(() => {});
   }, [offen, foil, foils]);
 

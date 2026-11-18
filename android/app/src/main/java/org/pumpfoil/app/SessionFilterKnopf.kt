@@ -57,7 +57,7 @@ fun SessionFilterKnopf(foil: Int?, modifier: Modifier = Modifier, onFoil: (Int?)
     var meine by remember { mutableStateOf<List<Int>>(emptyList()) }
     LaunchedEffect(offen, foil) {
         if ((!offen && foil == null) || foils != null) return@LaunchedEffect
-        foils = try { Api.foilStats().sortedByDescending { it.sessions } } catch (_: Exception) { emptyList() }
+        foils = try { Api.foilStats(mitScoot = true).map { it.copy(sessions = it.sessions + (it.scoot?.sessions ?: 0)) }.sortedByDescending { it.sessions } } catch (_: Exception) { emptyList() }
         meine = try {
             (Api.settings()["my_foils"] as? kotlinx.serialization.json.JsonArray)?.mapNotNull { it.jsonPrimitive.intOrNull } ?: emptyList()
         } catch (_: Exception) { emptyList() }

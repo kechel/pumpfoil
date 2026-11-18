@@ -1413,6 +1413,7 @@ const fr: Record<string, string> = {
   "foilStats.minRunAll": "Tous les runs",
   "foilStats.minRunAb": "Runs dès {min} min",
   "foilStats.minRunHint": "Chiffres uniquement à partir des runs d'au moins {min} min. La colonne low end compte toujours tous les runs.",
+  "foilStats.scootHint": "Les foils aussi utilisés sur un foil scooter ont une deuxième ligne avec les sessions en scooter.",
   "foilStats.runsN": "{n} runs",
   "foilStats.noneBoard": "Pas encore de sessions avec le téléphone sur la planche et un foil choisi.",
   "foilStats.colFoil": "Foil",

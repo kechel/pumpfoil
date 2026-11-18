@@ -1838,6 +1838,7 @@ const cs: Record<string, string> = {
   "foilStats.minRunAll": "Všechny jízdy",
   "foilStats.minRunAb": "Jízdy od {min} min",
   "foilStats.minRunHint": "Čísla jen z jízd od {min} min. Sloupec low end dál počítá všechny jízdy.",
+  "foilStats.scootHint": "Foily, na kterých se jezdí i na foil scooteru, mají druhý řádek se scooterovými sessions.",
   "foilStats.runsN": "{n} jízd",
   "foilStats.noneBoard": "Zatím žádné vyjížďky s telefonem na prkně a vybraným foilem.",
   "foilStats.colFoil": "Foil",

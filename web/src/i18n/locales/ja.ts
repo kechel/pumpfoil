@@ -1701,6 +1701,7 @@ const ja: Record<string, string> = {
   "foilStats.minRunAll": "すべてのラン",
   "foilStats.minRunAb": "{min}分以上のラン",
   "foilStats.minRunHint": "{min}分以上のランだけの数値です。ローエンド列は引き続き全ランを数えます。",
+  "foilStats.scootHint": "フォイルスクーターでも使われているフォイルには、スクーターのセッションを示す2行目があります。",
   "foilStats.runsN": "{n}本のラン",
   "foilStats.noneBoard": "ボードにスマホを装着し、フォイルを選んだセッションはまだありません。",
   "foilStats.colFoil": "フォイル",

@@ -1882,7 +1882,9 @@ private struct SessionFilterBlatt: View {
         }
         .task {
             if foils == nil {
-                let l: [FoilStat] = (try? await Api.foilStats()) ?? []
+                // Mit Scooter-Sessions: der Filter gilt fuer alle Sportarten, auch reine Scooter-Foils gehoeren dazu.
+                var l: [FoilStat] = (try? await Api.foilStats(mitScoot: true)) ?? []
+                for i in l.indices { l[i].sessions += l[i].scoot?.sessions ?? 0 }
                 foils = l.sorted { $0.sessions > $1.sessions }
                 let s: [String: Any] = (try? await Api.settings()) ?? [:]
                 meine = (s["my_foils"] as? [Any])?.compactMap { ($0 as? NSNumber)?.intValue } ?? []

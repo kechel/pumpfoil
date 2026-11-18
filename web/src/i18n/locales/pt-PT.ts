@@ -1699,6 +1699,7 @@ const ptPT: Record<string, string> = {
   "foilStats.minRunAll": "Todas as voltas",
   "foilStats.minRunAb": "Voltas a partir de {min} min",
   "foilStats.minRunHint": "Números só de voltas com pelo menos {min} min. A coluna low end continua a contar todas.",
+  "foilStats.scootHint": "Os foils também usados num foil scooter têm uma segunda linha com as sessões de scooter.",
   "foilStats.runsN": "{n} voltas",
   "foilStats.noneBoard": "Ainda sem sessões com o telemóvel na prancha e um foil escolhido.",
   "foilStats.colFoil": "Foil",

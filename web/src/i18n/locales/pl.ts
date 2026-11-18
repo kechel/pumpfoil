@@ -1862,6 +1862,7 @@ const pl: Record<string, string> = {
   "foilStats.minRunAll": "Wszystkie przejazdy",
   "foilStats.minRunAb": "Przejazdy od {min} min",
   "foilStats.minRunHint": "Liczby tylko z przejazdów od {min} min. Kolumna low end nadal liczy wszystkie.",
+  "foilStats.scootHint": "Foile używane także na foil scooterze mają drugi wiersz z sesjami na scooterze.",
   "foilStats.runsN": "{n} przejazdów",
   "foilStats.noneBoard": "Jeszcze żadnych sesji z telefonem na desce i wybranym foilem.",
   "foilStats.colFoil": "Foil",

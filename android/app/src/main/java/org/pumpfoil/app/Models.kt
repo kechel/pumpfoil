@@ -1089,6 +1089,19 @@ data class FoilStat(
     @SerialName("best_duration_s") val bestDurationS: Double? = null,
     @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
     val laeufe: Int? = null,   // nur mit Lauf-Filter: so viele Laeufe stecken in den Zahlen
+    val scoot: FoilStatScoot? = null,   // nur mit mitScoot: dieselben Kennzahlen aus Foil-Scoot-Sessions (18.11.2026)
+)
+
+@Serializable
+data class FoilStatScoot(
+    val sessions: Int = 0,
+    val users: Int = 0,
+    @SerialName("avg_speed_kmh") val avgSpeedKmh: Double? = null,
+    @SerialName("meters_per_pump") val metersPerPump: Double? = null,
+    @SerialName("best_distance_m") val bestDistanceM: Double? = null,
+    @SerialName("best_duration_s") val bestDurationS: Double? = null,
+    @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
+    val laeufe: Int? = null,
 )
 
 @Serializable

@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { Link } from "react-router-dom";
-import { api } from "../lib/api";
+import { api, type FoilStatWerte } from "../lib/api";
 import { Card, Spinner } from "../components/ui";
 import { WatchIcon, FoilIcon } from "../components/Icons";
 import { useSort, SortHead } from "../components/SortableTable";
@@ -17,7 +17,6 @@ type Row = Awaited<ReturnType<typeof api.foilStats>>[number];
 // Community-Vergleich je Foil: welche Werte werden mit welchem Material gefahren.
 export default function FoilStats() {
   const t = useT();
-  const pf = usePumpFmt();
   const [rows, setRows] = useState<Row[] | null>(null);
   const [nurBrett, setNurBrett] = useState(false);
   // Nur Laeufe ab N Minuten (Jan 18.11.2026): Zahlen dann aus den einzelnen Laeufen statt aus Session-Summen.
@@ -28,7 +27,7 @@ export default function FoilStats() {
 
   useEffect(() => {
     setRows(null);
-    api.foilStats(nurBrett, minLauf * 60).then(setRows).catch(() => setRows([]));
+    api.foilStats(nurBrett, minLauf * 60, true).then(setRows).catch(() => setRows([]));
   }, [nurBrett, minLauf]);
 
   return (
@@ -56,6 +55,7 @@ export default function FoilStats() {
       <p className="mb-2 text-sm text-slate-300">{t("foilStats.hint")} {t("foilStats.clickHint")}</p>
       {/* Low End (01.11.2026, Feedback foiling_fabs): was die Spalte misst, steht hier — nicht nur im Tooltip. */}
       <p className="mb-4 text-sm text-slate-400">{t("foilStats.lowEndHint")}</p>
+      <p className="-mt-2 mb-4 text-sm text-slate-400">{t("foilStats.scootHint")}</p>
       {minLauf > 0 && <p className="-mt-2 mb-4 text-sm font-medium text-brand-700 dark:text-brand-300">{t("foilStats.minRunHint", { min: minLauf })}</p>}
 
       {!rows ? (
@@ -82,7 +82,8 @@ export default function FoilStats() {
             </thead>
             <tbody>
               {sort.sorted!.map((r) => (
-                <tr key={r.foil_id} className="border-t border-slate-800">
+                <Fragment key={r.foil_id}>
+                <tr className="border-t border-slate-800">
                   {/* Anklickbar (Nutzer-Vorschlag 04.09.): fuehrt zur Foil-Detailseite mit den
                       Community-Rekorden dieses Fluegels und den eigenen Sessions damit. */}
                   <td className="px-4 py-3">
@@ -96,25 +97,47 @@ export default function FoilStats() {
                       <div className="text-xs text-slate-400">AR {r.aspect_ratio ?? "–"}</div>
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.sessions}
-                    {r.laeufe != null && <span className="block text-xs text-slate-400">{t("foilStats.runsN", { n: r.laeufe })}</span>}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.users}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.avg_speed_kmh != null ? `${r.avg_speed_kmh.toFixed(1)} km/h` : "–"}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.meters_per_pump != null ? `${r.meters_per_pump.toFixed(1)} m` : "–"}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.best_distance_m != null ? `${r.best_distance_m} m` : "–"}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.best_duration_s != null ? fmtDur(r.best_duration_s) : "–"}</td>
-                  <td className="px-4 py-3 text-right tabular-nums">{pf.fmt(r.avg_pump_hz)}</td>
+                  <Werte w={r} />
                   <td className="px-4 py-3 text-right tabular-nums">
                     {r.low_end_kmh != null ? `${r.low_end_kmh.toFixed(1)} km/h` : (
                       <span className="cursor-help text-slate-400" title={t("foilStats.lowEndWenig", { fahrer: String(r.low_end_fahrer), laeufe: String(r.low_end_laeufe) })}>–</span>
                     )}
                   </td>
                 </tr>
+                {/* Zweite Zeile: dasselbe Foil am Foil Scooter (Jan 18.11.2026), Low End gibt es dort nicht. */}
+                {r.scoot && (
+                  <tr className="bg-slate-900/40">
+                    <td className="py-2 pl-8 pr-4 text-xs text-slate-400">↳ {t("cls.sport.foil_scoot")}</td>
+                    <Werte w={r.scoot} klein />
+                    <td className="px-4 py-2 text-right text-slate-400">–</td>
+                  </tr>
+                )}
+                </Fragment>
               ))}
             </tbody>
           </table>
         </div>
       )}
     </div>
+  );
+}
+
+// Die sieben Kennzahlen einer Zeile — gleich fuer die Pumpfoil-Zeile und die Scooter-Zweitzeile.
+function Werte({ w, klein }: { w: FoilStatWerte; klein?: boolean }) {
+  const t = useT();
+  const pf = usePumpFmt();
+  const td = `px-4 ${klein ? "py-2 text-slate-300" : "py-3"} text-right tabular-nums`;
+  const leer = w.sessions === 0;
+  return (
+    <>
+      <td className={td}>{leer ? "–" : w.sessions}
+        {w.laeufe != null && !leer && <span className="block text-xs text-slate-400">{t("foilStats.runsN", { n: w.laeufe })}</span>}</td>
+      <td className={td}>{leer ? "–" : w.users}</td>
+      <td className={td}>{w.avg_speed_kmh != null ? `${w.avg_speed_kmh.toFixed(1)} km/h` : "–"}</td>
+      <td className={td}>{w.meters_per_pump != null ? `${w.meters_per_pump.toFixed(1)} m` : "–"}</td>
+      <td className={td}>{w.best_distance_m != null ? `${w.best_distance_m} m` : "–"}</td>
+      <td className={td}>{w.best_duration_s != null ? fmtDur(w.best_duration_s) : "–"}</td>
+      <td className={td}>{pf.fmt(w.avg_pump_hz)}</td>
+    </>
   );
 }

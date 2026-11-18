@@ -104,6 +104,8 @@ struct FoilStatsView: View {
             }
             Text(Loc.t("foilStats.hint", lang))
                 .font(.subheadline).foregroundStyle(.secondary)
+            Text(Loc.t("foilStats.scootHint", lang))
+                .font(.caption).foregroundStyle(.secondary)
             StatSortBar(options: sortOptions, sortKey: $sortKey, sortAsc: $sortAsc)
         }
     }
@@ -133,6 +135,7 @@ struct FoilStatsView: View {
                 topRow(s)
                 pumpRow(s)
                 bestRow(s)
+                if let c = s.scoot { scootRows(c) }
                 // Nutzer-Vorschlag (04.09.): das Foil anklickbar machen und dahinter alle
                 // Sessions damit zeigen. In der PWA seit dem 04.09., hier bis 07.09. vergessen.
                 NavigationLink { FoilDetailView(foil: s) } label: {
@@ -142,7 +145,15 @@ struct FoilStatsView: View {
         }
     }
 
-    private func topRow(_ s: FoilStat) -> some View {
+    // Zweiter Block: dasselbe Foil am Foil Scooter (Web: zweite Tabellenzeile, Jan 18.11.2026).
+    @ViewBuilder private func scootRows(_ c: FoilStatScoot) -> some View {
+        Text("↳ " + Loc.t("cls.sport.foil_scoot", lang)).font(.caption).foregroundStyle(.secondary)
+        topRow(c)
+        pumpRow(c)
+        bestRow(c)
+    }
+
+    private func topRow<K: FoilKennzahlen>(_ s: K) -> some View {
         HStack {
             metric("\(s.sessions)" + (s.laeufe.map { " · " + Loc.t("foilStats.runsN", lang).replacingOccurrences(of: "{n}", with: String($0)) } ?? ""), Loc.t("nav.sessions", lang))
             Spacer(); metric("\(s.users)", Loc.t("foilstats.riders", lang))
@@ -150,7 +161,7 @@ struct FoilStatsView: View {
         }
     }
 
-    private func pumpRow(_ s: FoilStat) -> some View {
+    private func pumpRow<K: FoilKennzahlen>(_ s: K) -> some View {
         HStack {
             metric(dec1(s.meters_per_pump), "m/Pump")
             Spacer(); metric(PumpUnit.fmtValue(s.avg_pump_hz), avgPumpLabel)
@@ -159,7 +170,7 @@ struct FoilStatsView: View {
 
     // Die beiden Bestwerte EINES Laufs als Paar (Nutzerwunsch 30.08.: "best time and distance
     // for each different foil") — zu zweit bleibt Platz fuer die langen Labels.
-    private func bestRow(_ s: FoilStat) -> some View {
+    private func bestRow<K: FoilKennzahlen>(_ s: K) -> some View {
         HStack {
             metric(kmStr(s.best_distance_m), Loc.t("foilstats.bestKm", lang))
             Spacer(); metric(durStr(s.best_duration_s), Loc.t("rec.longestRun", lang))
@@ -200,7 +211,7 @@ struct FoilStatsView: View {
 
     private func load() async {
         loading = true; defer { loading = false }
-        do { rows = try await Api.foilStats(nurBrett: nurBrett, minLaufS: minLauf * 60); error = nil }
+        do { rows = try await Api.foilStats(nurBrett: nurBrett, minLaufS: minLauf * 60, mitScoot: true); error = nil }
         catch { self.error = error.localizedDescription }
     }
 }

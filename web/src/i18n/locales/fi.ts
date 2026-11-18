@@ -1803,6 +1803,7 @@ const fi: Record<string, string> = {
   "foilStats.minRunAll": "Kaikki laskut",
   "foilStats.minRunAb": "Laskut {min} min alkaen",
   "foilStats.minRunHint": "Luvut vain vähintään {min} min laskuista. Low end -sarake laskee yhä kaikki laskut.",
+  "foilStats.scootHint": "Foileilla, joilla ajetaan myös foil scooterilla, on toinen rivi scooter-sessioista.",
   "foilStats.runsN": "{n} laskua",
   "foilStats.noneBoard": "Ei vielä sessioita, joissa puhelin on laudassa ja foili valittuna.",
   "foilStats.colFoil": "Foil",

@@ -1838,6 +1838,7 @@ const nl: Record<string, string> = {
   "foilStats.minRunAll": "Alle runs",
   "foilStats.minRunAb": "Runs vanaf {min} min",
   "foilStats.minRunHint": "Cijfers alleen uit runs van minstens {min} min. De low-end-kolom telt nog alle runs.",
+  "foilStats.scootHint": "Foils die ook op een foil scooter worden gereden, krijgen een tweede rij met de scootersessies.",
   "foilStats.runsN": "{n} runs",
   "foilStats.noneBoard": "Nog geen sessies met de telefoon op de board en gekozen foil.",
   "foilStats.colFoil": "Foil",

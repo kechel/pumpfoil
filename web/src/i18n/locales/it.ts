@@ -1411,6 +1411,7 @@ const it: Record<string, string> = {
   "foilStats.minRunAll": "Tutte le run",
   "foilStats.minRunAb": "Run da {min} min",
   "foilStats.minRunHint": "Numeri solo da run di almeno {min} min. La colonna low end conta ancora tutte le run.",
+  "foilStats.scootHint": "I foil usati anche su un foil scooter hanno una seconda riga con le sessioni in scooter.",
   "foilStats.runsN": "{n} run",
   "foilStats.noneBoard": "Ancora nessuna sessione con il telefono sulla tavola e foil scelto.",
   "foilStats.colFoil": "Foil",

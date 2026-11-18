@@ -1753,6 +1753,7 @@ const nb: Record<string, string> = {
   "foilStats.minRunAll": "Alle turer",
   "foilStats.minRunAb": "Turer fra {min} min",
   "foilStats.minRunHint": "Tall bare fra turer på minst {min} min. Low end-kolonnen teller fortsatt alle turer.",
+  "foilStats.scootHint": "Foiler som også brukes på foil scooter, får en ekstra rad med scooter-øktene.",
   "foilStats.runsN": "{n} turer",
   "foilStats.noneBoard": "Ingen økter med telefonen på brettet og valgt foil ennå.",
   "foilStats.colFoil": "Foil",

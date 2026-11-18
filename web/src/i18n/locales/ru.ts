@@ -1701,6 +1701,7 @@ const ru: Record<string, string> = {
   "foilStats.minRunAll": "Все заезды",
   "foilStats.minRunAb": "Заезды от {min} мин",
   "foilStats.minRunHint": "Цифры только по заездам от {min} мин. Колонка low end по-прежнему считает все заезды.",
+  "foilStats.scootHint": "У фойлов, на которых катаются и на фойл-скутере, есть вторая строка с сессиями на скутере.",
   "foilStats.runsN": "{n} заездов",
   "foilStats.noneBoard": "Пока нет сессий с телефоном на доске и выбранным фойлом.",
   "foilStats.colFoil": "Фойл",
