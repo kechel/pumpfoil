@@ -459,8 +459,8 @@ also wie viele der Sportarten man schon gefahren ist.
   „Abstimmung danach M Tage" (`team_events.kunst_json`). Das Eventfenster wird in Runden geteilt; nach jeder Runde M Tage
   Abstimmung, waehrend die naechste schon laeuft. Damit gehen beide Varianten: ein Advents-Event mit 4 Wochenrunden oder
   4 Events mit je einer Runde. Global (offizielles Team) = alle; Team-Event = Mitglieder; Mehrteam = Beteiligte.
-- Entscheidungen Jan 18.11.: **3 Herzen je Runde** (nicht fuers eigene), **alle Sportarten auf dem Wasser** (nicht
-  Snowkite/Landkite/Buggy), **1 Bild je Fahrer und Runde** (bis Rundenende austauschbar), **Zwischenstand verborgen** bis
+- Entscheidungen Jan 18.11.: **3 Herzen je Runde** (nicht fuers eigene), **alle Sportarten**, seit 18.11. spaet auch an Land
+  (Snowkite/Landkite/Buggy), **1 Bild je Fahrer und Runde** (bis Rundenende austauschbar), **Zwischenstand verborgen** bis
   Ende der Abstimmung, dann Aufloesung mit Name, Spot (nur wenn nicht verborgen) und Link.
 - Einreichen: eigene Session der Runde waehlen, von/bis zuschneiden, drehen (Vorschau im Browser). Gespeichert wird nur
   die normierte Linie 0..1000 (`kunst_bilder.linie_json`), keine Koordinaten. Galerie je Betrachter zufaellig, stabil.

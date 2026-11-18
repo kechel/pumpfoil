@@ -132,7 +132,8 @@ def test_einreichen_galerie_herzen_aufloesung(client, monkeypatch):
     _sid_schnee, uuid_s = _session(ia, jetzt - timedelta(hours=1), sport="snowkite")
     monkeypatch.setattr("app.api.kunst.storage.load_gps", lambda u: gps.get(u, []))
 
-    # Kandidaten: Wingfoil zaehlt (alle Sportarten auf dem Wasser), Snowkite nicht.
+    # Kandidaten: alle Sportarten zaehlen (Jan 18.11.: „ALL sports … auch land") — Wingfoil wie Snowkite; die Snowkite-
+    # Session hat hier keine GPS-Punkte und faellt deshalb raus.
     kand = client.get(f"/api/kunst/{eid}/kandidaten?runde=1", headers=ka).json()
     assert sid_wing in [k["id"] for k in kand] and len(kand) == 2
     sp = client.get(f"/api/kunst/{eid}/spur/{sid_wing}", headers=ka).json()

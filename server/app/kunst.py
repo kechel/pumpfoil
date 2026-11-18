@@ -7,7 +7,7 @@ Ein Team-Event mit Vorlage „gpskunst" statt Bestenlisten (docs/TEAMS.md „Eve
   `abstimmen_tage` Tage Abstimmung, waehrenddessen laeuft schon die naechste Runde (Jan: „alle paar tage … gekuert werden
   … waehrend das event aber noch weiterlaeuft").
 - **Einreichen:** je Fahrer und Runde EIN Bild, bis Rundenende austauschbar. Nur eigene Sessions, die in der Runde
-  gestartet sind, alle Sportarten auf dem Wasser (Jan 18.11.). Der Fahrer waehlt ein Stueck (von/bis) und dreht es.
+  gestartet sind, alle Sportarten, auch an Land (Jan 18.11.). Der Fahrer waehlt ein Stueck (von/bis) und dreht es.
 - **Speichern:** nur die normierte Linie (metrisch projiziert, gedreht, auf 0..1000 eingepasst) — die Galerie verraet
   keinen Spot und keine Groesse.
 - **Abstimmen:** anonym (nur die Linie), Reihenfolge je Betrachter zufaellig aber stabil, bis zu HERZEN_JE_RUNDE
@@ -34,8 +34,9 @@ HERZEN_JE_RUNDE = 3
 NACHFRIST = timedelta(0)
 RUNDEN_TAGE_STANDARD = 7
 ABSTIMMEN_TAGE_STANDARD = 2
-# Nicht auf dem Wasser (Jan 18.11.: „alle Sportarten auf dem Wasser").
-NICHT_WASSER = {"snowkite", "kite_atb", "kitebuggy"}
+# Ausgeschlossene Sportarten: keine (Jan 18.11.2026: „ALL sports are allowed … auch land" — Snowkite, Kite-ATB und Buggy
+# zaehlen mit). Erst hiess es „alle Sportarten auf dem Wasser".
+NICHT_WASSER: set[str] = set()
 MIN_PUNKTE = 10
 MIN_AUSDEHNUNG_M = 20.0
 LINIE_MAX_PUNKTE = 800
