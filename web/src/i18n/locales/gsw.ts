@@ -3015,6 +3015,7 @@ const gsw: Record<string, string> = {
   "kunst.ansichtKarte": "Charte",
   "kunst.err.ort_verborgen": "De Fahrer hät sin Ort versteckt.",
   "kunst.err.noch_nicht_aufgeloest": "D Charte gits erscht nach de Uflösig.",
+  "kunst.eigenAbstimmung": "Dis Bild isch i de Abstimmig.",
   "kunst.intro": "Mal mit dim Track es Bild uufs Wasser. Pro Rundi es Bild vonere Session vo dere Rundi, denn stimmt d Community ab — anonym, nume d Linie zellt. Jede het {n} Härz pro Rundi, nöd fürs eigete Bild.",
   "kunst.runde": "Rundi {n}",
   "kunst.phase.kommt": "chunnt",

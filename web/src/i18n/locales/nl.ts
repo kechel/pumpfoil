@@ -3184,6 +3184,7 @@ const nl: Record<string, string> = {
   "kunst.ansichtKarte": "Kaart",
   "kunst.err.ort_verborgen": "De rider heeft zijn locatie verborgen.",
   "kunst.err.noch_nicht_aufgeloest": "De kaart verschijnt pas na de uitslag.",
+  "kunst.eigenAbstimmung": "Je afbeelding staat in de stemming.",
   "kunst.intro": "Teken met je track een plaatje op het water. Per ronde één plaatje uit een sessie van die ronde, daarna stemt de community — anoniem, alleen de lijn telt. Iedereen heeft {n} hartjes per ronde, niet voor het eigen plaatje.",
   "kunst.runde": "Ronde {n}",
   "kunst.phase.kommt": "komt eraan",

@@ -3165,6 +3165,7 @@ const fi: Record<string, string> = {
   "kunst.ansichtKarte": "Kartta",
   "kunst.err.ort_verborgen": "Ajaja on piilottanut sijaintinsa.",
   "kunst.err.noch_nicht_aufgeloest": "Kartta näkyy vasta tulosten jälkeen.",
+  "kunst.eigenAbstimmung": "Kuvasi on äänestyksessä.",
   "kunst.intro": "Piirrä reitilläsi kuva veden päälle. Yksi kuva kierrosta kohti, kierroksen sessiosta, sitten yhteisö äänestää — nimettömästi, vain viiva ratkaisee. Jokaisella on {n} sydäntä kierrosta kohti, ei omalle kuvalle.",
   "kunst.runde": "Kierros {n}",
   "kunst.phase.kommt": "tulossa",

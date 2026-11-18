@@ -3127,6 +3127,7 @@ const zh: Record<string, string> = {
   "kunst.ansichtKarte": "地图",
   "kunst.err.ort_verborgen": "骑手已隐藏位置。",
   "kunst.err.noch_nicht_aufgeloest": "地图在公布结果后才显示。",
+  "kunst.eigenAbstimmung": "你的图正在投票中。",
   "kunst.intro": "用你的轨迹在水面上画一幅图。每轮从该轮的一次 Session 中选一幅图，之后由社区投票——匿名，只看线条。每人每轮有 {n} 颗爱心，不能投给自己的图。",
   "kunst.runde": "第 {n} 轮",
   "kunst.phase.kommt": "即将开始",

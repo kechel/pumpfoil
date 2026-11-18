@@ -70,6 +70,11 @@ function normiere(punkte: [number, number, number][], drehung: number, laeufe: [
   return q.map((st) => st.map(([x, y]) => [Math.round(x * f + ox), Math.round(y * f + oy)] as [number, number]));
 }
 
+// Rundenzeitraum kurz („15.–18.11."), Ende als letzter Tag der Runde (das Ende selbst ist 0:00 des Folgetags).
+const zeitraum = (a: string, z: string) => {
+  const f = (d: Date) => d.toLocaleDateString(undefined, { day: "numeric", month: "numeric" });
+  return `${f(new Date(a))}–${f(new Date(new Date(z).getTime() - 1))}`;
+};
 const datum = (iso: string) => new Date(iso).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
 export default function KunstBereich({ eventId }: { eventId: number }) {
@@ -125,7 +130,7 @@ export default function KunstBereich({ eventId }: { eventId: number }) {
           {d.runden.map((r) => (
             <button key={r.nr} type="button" onClick={() => setNr(r.nr)} aria-pressed={r.nr === runde.nr}
               className={`rounded-lg px-3 py-1.5 text-sm ${r.nr === runde.nr ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300 hover:text-slate-100"}`}>
-              {t("kunst.runde", { n: String(r.nr) })} · {t(`kunst.phase.${r.phase}`)}
+              {t("kunst.runde", { n: String(r.nr) })} · {zeitraum(r.start, r.ende)} · {t(`kunst.phase.${r.phase}`)}
             </button>
           ))}
         </div>
@@ -147,7 +152,8 @@ export default function KunstBereich({ eventId }: { eventId: number }) {
           <div className="min-w-0 flex-1 text-sm text-slate-300">
             {runde.eigen?.entfernt
               ? <span className="text-red-700 dark:text-red-300">{t("kunst.eigenEntfernt", { grund: runde.eigen.entfernt })}</span>
-              : runde.eigen ? t("kunst.eigenDa") : runde.phase === "einreichen" ? t("kunst.eigenNoch") : t("kunst.eigenKeins")}
+              : runde.eigen ? t(runde.phase === "einreichen" ? "kunst.eigenDa" : "kunst.eigenAbstimmung")
+              : runde.phase === "einreichen" ? t("kunst.eigenNoch") : t("kunst.eigenKeins")}
           </div>
           {runde.phase === "einreichen" && !runde.eigen?.entfernt && (
             <div className="flex gap-2">

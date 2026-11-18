@@ -86,6 +86,10 @@ def test_runden_teilen_das_fenster():
     assert [x["nr"] for x in r] == [1, 2, 3, 4]
     assert [x["phase"] for x in r] == ["abstimmen", "einreichen", "kommt", "kommt"]
     assert r[-1]["ende"] == a + timedelta(days=28)
+    # 10 Tage mit 3-Tages-Runden: der Rest (1 Tag) haengt an der letzten Runde -> 3 Runden, die letzte 4 Tage.
+    e10 = models.TeamEvent(start=a, ende=a + timedelta(days=10), kunst_json='{"runden_tage": 3, "abstimmen_tage": 3}')
+    r10 = K.runden(e10)
+    assert len(r10) == 3 and r10[-1]["ende"] - r10[-1]["start"] == timedelta(days=4)
     # Ein Event ueber eine Woche = eine Runde.
     e1 = models.TeamEvent(start=a, ende=a + timedelta(days=7), kunst_json='{"runden_tage": 7}')
     assert len(K.runden(e1)) == 1

@@ -3012,6 +3012,7 @@ const es: Record<string, string> = {
   "kunst.ansichtKarte": "Mapa",
   "kunst.err.ort_verborgen": "El rider ha ocultado su ubicación.",
   "kunst.err.noch_nicht_aufgeloest": "El mapa solo aparece tras los resultados.",
+  "kunst.eigenAbstimmung": "Tu imagen está en votación.",
   "kunst.intro": "Dibuja una imagen sobre el agua con tu track. Una imagen por ronda de una sesión de esa ronda y después vota la comunidad — de forma anónima, solo cuenta la línea. Cada uno tiene {n} corazones por ronda, no para su propia imagen.",
   "kunst.runde": "Ronda {n}",
   "kunst.phase.kommt": "próxima",

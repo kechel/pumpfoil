@@ -74,7 +74,9 @@ def runden(e: models.TeamEvent, jetzt: datetime | None = None) -> list[dict]:
     out, nr, s = [], 1, a
     while s < z and nr <= 60:
         en = min(s + schritt, z)
-        if z - en < timedelta(hours=12):   # kein Mini-Rest am Ende: der wird der letzten Runde zugeschlagen
+        # Kein Mini-Rest am Ende (Jan 18.11.2026: 10 Tage / 3 ergab eine 1-Tages-Runde 4): ein Rest unter einer halben
+        # Runde wird der letzten Runde zugeschlagen.
+        if z - en < schritt / 2:
             en = z
         ab = en + timedelta(days=k["abstimmen_tage"])
         phase = "kommt" if jetzt < s else "einreichen" if jetzt < en else "abstimmen" if jetzt < ab else "fertig"

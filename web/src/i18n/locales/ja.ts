@@ -3126,6 +3126,7 @@ const ja: Record<string, string> = {
   "kunst.ansichtKarte": "地図",
   "kunst.err.ort_verborgen": "ライダーは場所を非表示にしています。",
   "kunst.err.noch_nicht_aufgeloest": "地図は結果発表後に表示されます。",
+  "kunst.eigenAbstimmung": "あなたの絵は投票中です。",
   "kunst.intro": "自分のトラックで水面に絵を描こう。ラウンドごとに、そのラウンドのセッションから絵を1枚。その後コミュニティが投票します（匿名、評価されるのは線だけ）。ハートは1ラウンドあたり{n}個で、自分の絵には使えません。",
   "kunst.runde": "ラウンド{n}",
   "kunst.phase.kommt": "開催予定",
