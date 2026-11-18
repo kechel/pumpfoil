@@ -350,11 +350,14 @@ struct SessionDetailView: View {
         guard let foil = s.foil, hasSpecs(foil), weightKg > 0 else { return nil }
         let dims = FoilPhysics.FoilDims(spanCm: foil.span_cm, areaCm2: foil.area_cm2, thicknessMm: foil.thickness_mm ?? 0)
         let rider = FoilPhysics.RiderParams(riderWeight: weightKg)
+        let wind: Bool = s.sport_profil?.gruppe == "wind"
         return { mps, hz in
             guard let mps, mps > 0 else { return nil }
             let pump: FoilPhysics.PumpParams? = (hz ?? 0) > 0 ? FoilPhysics.PumpParams(pumpFreqHz: hz!) : nil
             let r = FoilPhysics.computeFoilPowerAtSpeed(foil: dims, speedKmh: mps * 3.6, rider: rider, pump: pump)
-            return Int((r.dragPower + (pump != nil ? r.inertiaPower : 50.0)).rounded())
+            // Wind (18.11.2026, wie Web): nur Foil-Widerstand, ohne die pauschalen 50 W Pump-Grundaufwand.
+            let grund: Double = wind ? 0.0 : 50.0
+            return Int((r.dragPower + (pump != nil ? r.inertiaPower : grund)).rounded())
         }
     }
 
@@ -1764,7 +1767,7 @@ struct SessionDetailView: View {
             if let segs = a.segments, !segs.isEmpty {
                 runsTable(segs, s)
                 // Puls je Lauf (web CompareHrStrips, TODO 12.11.): zeigt sich nur mit Puls.
-                PulsStreifenKarte(segments: segs, hr: s.analysis?.track_geojson?.properties?.hr ?? [], lang: lang)
+                PulsStreifenKarte(segments: segs, hr: s.analysis?.track_geojson?.properties?.hr ?? [], lang: lang, zugeklappt: true)
             }
         } else {
             Text(Loc.t("sd.analyzing", lang)).foregroundStyle(.secondary)
@@ -1783,6 +1786,7 @@ struct SessionDetailView: View {
                   sessionStart: TimeFmt.parseISO(s.started_at), tz: s.tz, zeitVerborgen: s.zeitVerborgen,
                   trimStartMs: s.trim_start_ms, pausen: s.pause_windows,
                   wattFuer: wattFuer(s),
+                  zugeklappt: s.sport_profil?.gruppe == "wind" && !ohneFoil,
                   canEdit: s.owned == true, busy: excludeBusy,
                   onExclude: { askExcludeRun($0) },
                   // Sprint-Fassung (Jan 18.11.2026, wie Web/Android): „100 m · V7" im Spaltenkopf, nur bei aktiver Ebene.
@@ -3444,6 +3448,9 @@ private struct RunsTable: View {
     var canEdit: Bool = false
     var busy: Bool = false
     var onExclude: ((Int) -> Void)? = nil
+    /// Wind mit Foil (Web 18.11.2026): „On-foil segments", zugeklappt, Watt-Spalte heisst „Foil drag".
+    var zugeklappt: Bool = false
+    @State private var offenGesetzt: Bool? = nil
     /// Sprint-Ebene (17.11.2026, web cae0d4c8): Kopf „1 min"/„100 m" und Wert je Lauf; leer = Spalte aus.
     var sprintKopf: String = ""
     var sprintTexte: [Int: String] = [:]
@@ -3626,7 +3633,7 @@ private struct RunsTable: View {
             Self.eine(seg.fenster(self.win, "min").map { $0 * 3.6 })
         })
         if zeigeWatt {
-            s.append(Spalte(key: "power", kopf: k("sd.colPower"), breite: 60,
+            s.append(Spalte(key: "power", kopf: zugeklappt ? k("sd.colFoilDrag") : k("sd.colPower"), breite: 60,
                               sort: { seg in self.wattSort(seg) }) { _, seg in
                 guard let w = self.wattFuer?(seg.avg_speed_mps, seg.avg_pump_hz) else { return "–" }
                 return "\(w) W"
@@ -3696,17 +3703,28 @@ private struct RunsTable: View {
         // Spalten EINMAL bauen und weitergeben: sonst rechnet jede Zeile sie neu, und der
         // Swift-Type-Checker bekommt einen Ausdruck, der ihn minutenlang beschaeftigt.
         let sp = spalten
+        let offen: Bool = offenGesetzt ?? !zugeklappt
         return VStack(alignment: .leading, spacing: 4) {
-            Text("\(Loc.t("home.runs", lang)) (\(segments.count))")
-                .font(.caption).foregroundStyle(.secondary)
+            if zugeklappt {
+                Button {
+                    offenGesetzt = !offen
+                } label: {
+                    Text((offen ? "▾ " : "▸ ") + Loc.t("sd.foilSegmentsTitle", lang).replacingOccurrences(of: "{count}", with: String(segments.count)))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            } else {
+                Text("\(Loc.t("home.runs", lang)) (\(segments.count))")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             // WAAGERECHT SCROLLBAR: dreizehn Spalten passen auf kein Handy-Display. Vorher gab es
             // keinen Scroll und nur sechs Spalten, sieben fehlten ganz (Jans Meldung 18.08.).
-            ScrollView(.horizontal, showsIndicators: true) {
+            if offen { ScrollView(.horizontal, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 0) {
                     kopfZeile(sp)
                     zeilen(sp)
                 }
-            }
+            } }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
@@ -4112,8 +4130,12 @@ struct PulsStreifenKarte: View {
     let segments: [Segment]
     let hr: [Int?]
     let lang: String
+    /// Session-Detail (Web 18.11.2026): zugeklappt starten, Tipp auf den Titel klappt auf.
+    var zugeklappt: Bool = false
     @AppStorage("hrRise") private var anstieg = false
     @State private var zeiger: Int?
+    @State private var offenGesetzt: Bool? = nil
+    private var offen: Bool { offenGesetzt ?? !zugeklappt }
 
     private struct Zeile: Identifiable {
         let id: Int        // Laufindex
@@ -4152,7 +4174,15 @@ struct PulsStreifenKarte: View {
     var body: some View {
         let zs: [Zeile] = zeilen
         if !zs.isEmpty {
-            karte(zs)
+            if offen {
+                karte(zs)
+            } else {
+                Button { offenGesetzt = true } label: {
+                    Text("▸ " + titel(zs.count)).font(.subheadline.weight(.semibold))
+                }
+                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
     }
 
@@ -4201,7 +4231,14 @@ struct PulsStreifenKarte: View {
 
     private func kopf(_ n: Int, _ b: (Int, Int)) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(titel(n)).font(.subheadline.weight(.semibold))
+            if zugeklappt {
+                Button { offenGesetzt = false } label: {
+                    Text("▾ " + titel(n)).font(.subheadline.weight(.semibold))
+                }
+                .buttonStyle(.plain)
+            } else {
+                Text(titel(n)).font(.subheadline.weight(.semibold))
+            }
             HStack(spacing: 8) {
                 Picker("", selection: $anstieg) {
                     Text(Loc.t("hr.viewPeak", lang)).tag(false)

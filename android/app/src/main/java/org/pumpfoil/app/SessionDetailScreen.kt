@@ -89,6 +89,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -1376,11 +1377,12 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 excluded = excluded, poweredRuns = powered, keptWindows = kept,
                 canEdit = s.owned, startedAt = s.startedAt, tz = s.tz, zeitVerborgen = s.zeitVerborgen,
                 trimStartMs = s.trimStartMs, pausen = s.pauseWindows.orEmpty(),
-                win = win, wattFuer = FoilPhysics.wattRechner(s.foil, weightKg),
+                win = win, wattFuer = FoilPhysics.wattRechner(s.foil, weightKg, ohneGrundlast = istWind),
+                zugeklappt = istWind && !ohneFoil,
                 onSaved = { fresh -> selectedRun = null; SessionCache.store(fresh); onReload() },
             ) { selectedRun = if (selectedRun == it) null else it }
             // Puls je Lauf als Streifen (Web CompareHrStrips, Port 16.11.2026) — zeigt sich nur mit Puls.
-            trackForRuns?.let { tr -> if (segList.isNotEmpty()) HrStreifenKarte(tr, segList) }
+            trackForRuns?.let { tr -> if (segList.isNotEmpty()) HrStreifenKarte(tr, segList, zugeklappt = true) }
             // Lage je Lauf — nur am Brett, eigene kleine Tabelle unter der grossen (wie PWA).
             LageJeLaufTabelle(s, selectedRun) { selectedRun = if (selectedRun == it) null else it }
         }
@@ -2089,9 +2091,12 @@ private fun RunsTable(
     win: Int = 3,
     // Watt je Lauf; null, wenn Foil-Masse oder Fahrergewicht fehlen -> Spalte entfaellt.
     wattFuer: ((Double, Double?) -> Int?)? = null,
+    // Wind mit Foil (Web 18.11.2026): „On-foil segments", zugeklappt, Watt-Spalte heisst „Foil drag".
+    zugeklappt: Boolean = false,
     onSaved: (SessionDetail) -> Unit = {},
     onSelect: (Int) -> Unit,
 ) {
+    var offen by rememberSaveable { mutableStateOf(!zugeklappt) }
     val scope = rememberCoroutineScope()
     // Vergleichskorb: die erste Spalte legt EINZELNE LAEUFE hinein (wie die PWA-Lauf-Tabelle).
     val korb by CompareStore.refs.collectAsState()
@@ -2296,8 +2301,15 @@ private fun RunsTable(
     // Striche und nimmt auf dem Handy Platz weg (genauso macht es die PWA mit `hasHr`).
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
-            Text("${I18n.t("home.runs")} (${segments.size})", style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (zugeklappt) {
+                Text("${if (offen) "▾" else "▸"} ${I18n.t("sd.foilSegmentsTitle").replace("{count}", segments.size.toString())}",
+                    style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.clickable { offen = !offen }.padding(vertical = 4.dp))
+                if (!offen) return@Column
+            } else {
+                Text("${I18n.t("home.runs")} (${segments.size})", style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             Spacer(Modifier.height(6.dp))
             // WAAGERECHT SCROLLBAR mit FESTEN Spaltenbreiten. Vorher standen hier sechs bis
             // sieben Spalten mit weight() und ohne Scroll — sieben der dreizehn PWA-Spalten
@@ -2306,6 +2318,7 @@ private fun RunsTable(
             // dieselbe Breite haben, sonst laufen sie auseinander.
             val spalten = laufSpalten(segments, win, wattFuer, maxHrImLauf, hrWerteImLauf, hrAbfall, startedAt, tz,
                                       trimStartMs, pausen, zeitVerborgen)
+                .map { if (zugeklappt && it.key == "power") it.copy(kopf = I18n.t("sd.colFoilDrag")) else it }
             // Sortieren per Tipp auf die Spaltenueberschrift, wie die PWA (Wunsch eines Fahrers,
             // 10.10.2026): erster Tipp aufsteigend, zweiter absteigend; „#" stellt die
             // Laufreihenfolge wieder her. Fehlende Werte stehen immer unten, Gleichstand bleibt in

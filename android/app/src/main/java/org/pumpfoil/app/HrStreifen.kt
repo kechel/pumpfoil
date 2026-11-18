@@ -1,5 +1,6 @@
 package org.pumpfoil.app
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -49,7 +50,9 @@ private const val ZEILE_H = 13
 private const val ZEILE_LUECKE = 8
 
 @Composable
-fun HrStreifenKarte(track: Track, segs: List<Segment>) {
+fun HrStreifenKarte(track: Track, segs: List<Segment>, zugeklappt: Boolean = false) {
+    // Session-Detail (Web 18.11.2026): zugeklappt starten, Tipp auf den Titel klappt auf.
+    var offen by rememberSaveable { mutableStateOf(!zugeklappt) }
     val zeilen = remember(track, segs) {
         val out = ArrayList<HrZeile>()
         segs.forEachIndexed { ri, s ->
@@ -94,14 +97,17 @@ fun HrStreifenKarte(track: Track, segs: List<Segment>) {
     Card(Modifier.fillMaxWidth().padding(top = 12.dp)) {
         Column(Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("${I18n.t("field.2")} · ${I18n.t("compare.runsTitle").replace("{count}", zeilen.size.toString())}",
-                    style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                listOf(false, true).forEach { v ->
+                Text((if (zugeklappt) (if (offen) "▾ " else "▸ ") else "") +
+                    "${I18n.t("field.2")} · ${I18n.t("compare.runsTitle").replace("{count}", zeilen.size.toString())}",
+                    style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f).then(if (zugeklappt) Modifier.clickable { offen = !offen } else Modifier))
+                if (offen) listOf(false, true).forEach { v ->
                     FilterChip(selected = anstieg == v, onClick = { anstieg = v },
                         label = { Text(I18n.t(if (v) "hr.viewRise" else "hr.viewPeak")) }, colors = cyanChipColors(),
                         modifier = Modifier.padding(start = 4.dp))
                 }
             }
+            if (!offen) return@Column
             // Legende: Zeit unter dem Finger, dann min — Verlauf — max.
             Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.End) {
