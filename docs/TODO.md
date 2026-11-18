@@ -1562,6 +1562,9 @@ neues Tab 'Performance' in Home". Datenlage 18.11.: Pumpfoil weltweit Median 36 
   Wertung". Web + Android + iOS. Offen (vorgeschlagen, nicht gebaut): Entwicklung der eigenen Werte, Vergleich mit Freunden,
   Saison 2027/Punkte (Vorschlag: Punkte = geschlagene Fahrer), Kategorie fliegender 1 km. Bewusst weggelassen: Donut,
   „Konsistenz-Score", Wertung je Session statt je Tag, Laenderflagge.
+- 🔲 18.11. NUR GEMERKT (Jan: „noch merken"): Punkte/Saison ab 1.1.2027 — im Performance-Reiter schon vorher ein
+  Platzhalter, der das ankuendigt (z. B. Kachel „Saison 2027 · Punkte ab 1. Januar"). Regel noch offen (Vorschlag:
+  Punkte = geschlagene Fahrer je Tag und Kategorie).
 
 ### 18.11.2026 — Wing-Feedback u655 (Wear, OnePlus Watch 2) — NUR GEMERKT (Jan: „rest erstmal nur merken")
 Feedback-Formular 18.11., Sessions https://pumpfoil.org/sessions/21529 und https://pumpfoil.org/sessions/22414.
