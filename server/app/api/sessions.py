@@ -224,7 +224,8 @@ _VALID_LABELS = {"pump", "glide", "not_foiling"}
 #       aendert sich ohne Aenderung der Session (Event-Wertung, Nachrechnen) -> steht zusaetzlich als Pruefsumme im ETag.
 #  12 = `uhr_takt_min` je Lauf + in metrics (Takt laut Suunto-Uhr, 16.11.2026); Bestand per Skript nachgetragen.
 #  13 = `analysis.sprints.v` (Sprint-Rechenfassung, 18.11.2026, Anzeige „V6"/„V7" neben den Sprint-Schaltern).
-_OUT_VERSION = 13
+#  14 = `analysis.sprints.v` nur noch 6 oder 7 (Anzeige, Jan „nur V6"); ohne Bump zeigten geladene Sessions per 304 weiter V5.
+_OUT_VERSION = 14
 
 
 def _ort_verborgen(s: models.Session) -> bool:
