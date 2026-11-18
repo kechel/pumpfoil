@@ -342,10 +342,10 @@ export default function Sessions() {
     if (next !== "mine") n.set("scope", next);
     if (nextSpot) n.set("spot", nextSpot);
     if (sport !== "all") n.set("sport", sport);   // die Sportart bleibt beim Wechsel Meine/Spot/Alle
-    if (sp.get("foil") && next !== "mine" && !nextSpot) n.set("foil", sp.get("foil")!);   // Foil-Filter bleibt in Alle/Freunde/Team
+    if (sp.get("foil") && !nextSpot) n.set("foil", sp.get("foil")!);   // Foil-Filter bleibt beim Reiterwechsel
     setSp(n, { replace: !nextSpot });   // Reiterwechsel ersetzt den Verlaufseintrag (wie alle Reiter)
   };
-  // Foil-Filter (Filter-Knopf, 18.11.2026) — nur in Alle/Freunde/Team, als ?foil=<id> im Link.
+  // Foil-Filter (Filter-Knopf, 18.11.2026) — Meine/Freunde/Team/Alle, als ?foil=<id> im Link.
   const foilFilter = Number(sp.get("foil")) || null;
   const setFoilFilter = (id: number | null) => {
     const n = new URLSearchParams(sp);
@@ -445,7 +445,7 @@ export default function Sessions() {
               <UploadIcon className="h-4 w-4" /> {t("import.title")}
             </Link>
           )}
-          {!isMine && !spot && <SessionFilter foil={foilFilter} onFoil={setFoilFilter} />}
+          {!spot && <SessionFilter foil={foilFilter} onFoil={setFoilFilter} />}
           <AccelToggle value={accelOnly} onChange={(v) => { setBrett(false); setAccelOnly(v); }}
                        brett={brett} onBrett={() => { setBrett(true); setAccelOnly(false); }} />
           {/* Kacheln / eine Zeile je Session (Feedback #156) — gilt fuer Meine, Alle und den Spot. Ganz rechts (Jan, 02.11.2026). */}
@@ -490,8 +490,8 @@ export default function Sessions() {
                          onShowAll={() => setAccelAuto(false)} />} />
       ) : isTeam ? <CommunityList key={`team|${teamWahl}|${brett}|${foilFilter ?? ""}`} name="" spot="" accelOnly={accelOnly && !brett} sport={sport} board={brett}
                                   team={teamWahl} foil={foilFilter ?? undefined} onShowAll={() => setAccelAuto(false)} />
-      : isMine ? <MySessionsList key={`${reloadKey}|${sport}|${brett}`} myName={myName} accelOnly={accelOnly && !brett} sport={sport}
-                                   board={brett} filterPlatz={filterPlatz} onShowAll={() => setAccelAuto(false)} />
+      : isMine ? <MySessionsList key={`${reloadKey}|${sport}|${brett}|${foilFilter ?? ""}`} myName={myName} accelOnly={accelOnly && !brett} sport={sport}
+                                   board={brett} filterPlatz={filterPlatz} foil={foilFilter ?? undefined} onShowAll={() => setAccelAuto(false)} />
               : <CommunityList key={`${brett}|${isFreunde}|${foilFilter ?? ""}`} name="" spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett}
                                foil={foilFilter ?? undefined} onShowAll={() => setAccelAuto(false)} />}
       {/* Hinweis auf die 30 Tage UNTER der Liste statt darueber (Jan, 02.11.2026). */}
@@ -583,9 +583,11 @@ function HeuteNeu({ mine, freunde = false, spot, accelOnly, sport, board = false
   );
 }
 
-function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, filterPlatz = null }:
+function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, filterPlatz = null, foil }:
     { myName: string | null; accelOnly: boolean; sport: string; onShowAll?: () => void; board?: boolean;
-      filterPlatz?: HTMLElement | null }) {
+      filterPlatz?: HTMLElement | null;
+      /** Filter-Knopf (18.11.2026): nur Sessions mit genau diesem Foil. */
+      foil?: number }) {
   const kompakt = useKompakteListe();   // Kacheln oder Zeilen (ListenAnsicht)
   const t = useT();
   const accelRef = useRef(accelOnly); accelRef.current = accelOnly;
@@ -617,7 +619,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, fi
   // `board` MUSS mit hinein (Jan, 08.10.2026: „phone on board funktioniert nur bei All, nicht bei
   // mine"): ohne ihn teilten sich „alle" und „Handy am Brett" einen Speicherplatz, und das
   // Nachpruefen mischte die gespeicherte volle Liste hinter die gefilterte.
-  const cacheKey = () => `${filterRef.current}|${monthRef.current}|${accelRef.current}|${sport}|${board}`;
+  const cacheKey = () => `${filterRef.current}|${monthRef.current}|${accelRef.current}|${sport}|${board}|${foil ?? ""}`;
   const restoreRef = useRef(false);                 // nach Cache-Restore die markierte Karte einscrollen
   const itemsRef = useRef<SessionSummary[]>([]);    // stets aktuelle Items (für Cache beim Unmount)
 
@@ -649,7 +651,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, fi
       // (StaleWhileRevalidate) den Wechsel zwischen „meine / alle / am Spot" aus seinem Cache,
       // und man sieht denselben Stand wie vorher — Jans Befund 21.09.2026. Beim Nachladen
       // weiterer Seiten ist der Cache dagegen erwuenscht (alte Seiten aendern sich nicht).
-      const page = await api.sessions({ limit: PAGE, offset: off, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, board, sport, fresh: replace });
+      const page = await api.sessions({ limit: PAGE, offset: off, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, board, sport, fresh: replace, foilId: foil });
       if (lauf !== meinLaufRef.current) return;   // Filter hat gewechselt -> Antwort ist veraltet
       offsetRef.current = off + page.length;
       hasMoreRef.current = page.length === PAGE;
@@ -671,7 +673,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, fi
       // `fresh: true` geht am Service-Worker-Cache vorbei. Ohne das bekaeme die Nachpruefung
       // seit 15.09. dieselbe gecachte Antwort wie die Anzeige (StaleWhileRevalidate) und
       // koennte nie etwas Neues melden.
-      const fresh = await api.sessions({ limit: PAGE, offset: 0, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, board, sport, fresh: true });
+      const fresh = await api.sessions({ limit: PAGE, offset: 0, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, board, sport, fresh: true, foilId: foil });
       if (lauf !== meinLaufRef.current) return;   // waehrend des Abrufs den Filter gewechselt
       const known = new Set(itemsRef.current.map((s) => s.id));
       const added = fresh.filter((s) => !known.has(s.id));
@@ -769,7 +771,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, fi
   useEffect(() => {
     if (!items.some(isInterim)) return;
     const iv = setInterval(() => {
-      api.sessions({ limit: PAGE, offset: 0, month: monthRef.current || undefined, filter: filterRef.current, accelOnly: accelRef.current, board, sport })
+      api.sessions({ limit: PAGE, offset: 0, month: monthRef.current || undefined, filter: filterRef.current, accelOnly: accelRef.current, board, sport, foilId: foil })
         .then((fresh) => setItems((prev) => prev.map((p) => fresh.find((f) => f.id === p.id) ?? p)))
         .catch(() => {});
     }, 4000);
@@ -859,10 +861,10 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, fi
       {/* `!error`: ein gescheiterter Abruf (offline, Serverfehler) ist kein leeres Konto —
           sonst stand unter der Fehlermeldung auch noch die Begruessung fuer Erstnutzer. */}
       {items.length === 0 && !loading && !error ? (
-        month || filter === "other" ? (
+        month || filter === "other" || foil ? (
           <Card className="flex flex-col items-center gap-3 p-10 text-center text-slate-300">
             <WaveIcon className="h-10 w-10 text-slate-400" />
-            <p>{t(month ? "sessions.noneMonth" : "sessions.noneOther")}</p>
+            <p>{t(foil ? "sfilter.none" : month ? "sessions.noneMonth" : "sessions.noneOther")}</p>
           </Card>
         ) : (
           /* "Leer" ist NUR im ungefilterten Pumpfoil-Tab der Erstnutzer-Fall -> dieselbe
