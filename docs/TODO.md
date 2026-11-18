@@ -1575,7 +1575,8 @@ Referee „nur zu zweit/Moderatoren nur Vorschlag" nur gemerkt (Jan: „glaube d
 - Sprint-Ebene „1 min"/„100 m" in der Session (Web 17.11., 982f492c/cae0d4c8) PORTIERT: Android 100ef974 (in 1.1.49,
   kompiliert; Material-Switches), iOS 9cb6d3fd (fuer 1.1.68, nur swiftc -parse; Werte als Spalte in der Lauf-Tabelle).
 - ✅ Puls-Streifen je Lauf + Datenschutzseite portiert (Android 351d215d in 1.1.49, iOS b4c99fec in 1.1.67). Global-Opt-out-Hinweis ist
-  gebaut, mit abgemeldetem Konto noch nicht angesehen (Web/Android/iOS).
+  gebaut; Web am 18.11. angesehen (Testkonto, Opt-out nur im Browser vorgetaeuscht, DB unveraendert): Badge auf /events + Hinweis
+  auf der Eventseite, hell/dunkel lesbar. Android/iOS mit abgemeldetem Konto noch nicht angesehen.
 - ✅ Uhren-Paritaet LaufLuecke: laut docs/PARITY-AUDIT.md Punkt 9 seit 12.11. ueberall gebaut (Zepp 1.0.16, Huawei 1.0.6
   Watch 5 + Watch 3/4 — Lite nicht, 48-KB-Heap —, Suunto 1.01); TODO-Zeile war veraltet (17.11.).
 
@@ -1829,7 +1830,7 @@ der Aufnahme, die Puls hat (Uhr am Handgelenk), auf die gemeinsame Wanduhr geleg
 Offen vor dem Bau: nur Anzeige (Pulsstreifen, Puls je Lauf) oder auch Analyse (Puls-Gegenbeweis Fremdkraft — dann
 Analyse-Aenderung, Jans OK); woher „besser" kommt; was die Apps zeigen (Paritaet). Erst Entwurf, dann bauen.
 
-### 15.11.2026 — Ø Speed zaehlt vom Modell verworfene Lauf-Kandidaten mit (fuer die Woche ab 16.11.; vor dem Umbau Zahlen zeigen, Jan gibt frei)
+### ✅ 15.11.2026 — Ø Speed zaehlt vom Modell verworfene Lauf-Kandidaten mit (ERLEDIGT 16.11., 8828c9bc)
 
 Befund (Session ohne Laeufe, 14.11., fēnix 7X): Ø Speed 13,0 km/h und 203 W theoretische Leistung bei 0 Laeufen, Max/Min „–".
 `metrics.avg_speed_mps` wird in `server/app/analysis/gps.py:696` ueber die Maske der ersten Stufe gerechnet; v3 verwirft danach
