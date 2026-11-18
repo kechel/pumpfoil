@@ -1668,6 +1668,22 @@ Entwurf zusammen mit A1.
     Spitze in V7a: 60 s Platz 1 bleibt, Platz 2/3 tauschen; 100 m Platz 1/2 bleiben, Platz 3-5 tauschen; 1 Fahrer
     faellt aus 100 m (einziger Lauf knapp 100 m). Entscheidung Jan: Umstellung (VERSION 7) ja/nein, eingefrorene Events
     nicht anfassen.
+  - **Jan 18.11.: Sprint-Verfahren NIE rueckwirkend** — ein neues Verfahren gilt nur fuer Sessions ab dem Live-Datum, nichts
+    Aelteres aendert sich (Werte, Events, Anzeige). Beim Live-Schalten Stichtag hart in `sprint.py` (nach Session-Start, nicht
+    nach Analysezeit) + Test, dass Altsessions den alten Zweig nehmen. Neue Varianten auf Altdaten nur als Trockenlauf.
+  - Datenbasis je Geraet (Paare): Garmin 31 Aufnahmen/128 Laeufe/10 Fahrer, Handy am Brett 23/79/7, Apple 4/25/2,
+    Handy Tasche 3/22/2, Wear 1/10/1, Suunto/Polar/COROS/Amazfit/Huawei 0. Apple widerspruechlich: gegen Brett mit V7
+    besser (0,33 -> 0,26, 6 Laeufe), gegen Garmin schlechter (0,69 -> 1,03, 15 Laeufe, ein Fahrer) -> Sonderregel nicht belegt.
+    Nerd-Artikel hat seit 18.11. einen Abschnitt V7 (nicht live) mit Schaubild.
+  - **GPS-Guete je Lauf (18.11., `guete.py`, `guete_paare.py`, `guete_event.py`):** aus EINEM Geraet ableitbar. Bester
+    Anzeiger = Abweichung Positions- vs. Tempo-Strecke in 10-s-Fenstern im Lauf (`abw_10s`, Median): Spearman gegen den
+    echten Paar-Fehler 0,43 (100 m) / 0,55 (60 s); Drittel gut/mittel/schlecht |A-B| 0,33/0,51/0,81 (100 m). Zittern um die
+    5-s-Glaettung allein: schwach (0,14/0,28, manche Uhren glaetten Positionen selbst). Fehlermodell aus den Paaren:
+    sigma je Geraet ~ 10 km/h x abw (2 % -> 0,25, 5 % -> 0,5, 10 % -> 1,0 km/h), fuer 100 m und 60 s fast gleich.
+    Was-waere-wenn Strafe = 1 sigma am Event 11: Median 0,5 km/h Abzug (p10 0,2, p90 1,0); Platz 1 bleibt in 100 m und 60 s,
+    dahinter Tausch 2/3 bzw. 4/5; je Plattform Apple 0,8 / Wear 0,8 / Garmin 0,4 / Suunto 0,4 / Handy 0,2 km/h (100 m) —
+    trifft also wieder vor allem Apple/Wear (wie der 5-%-Test). Offen: Guete je Sprint-Fenster statt je Lauf; Entscheidung
+    Jan, ob Strafe/Unsicherheit nur angezeigt („± 0,5") oder in die Wertung geht.
 - C3 GPS-Wiederfinden nach Unterwasser-Luecke: heutige Erkennung (v3) macht es richtig (#20528 Trockenlauf 4 -> 2 Laeufe,
   Schein-Lauf weg); #20528 ist absichtlich festgehalten (auswertung_fest, u972). Nichts zu tun.
 - C4 Autofahrt verschiebt Wasser-Suchpunkt: die erkannten Fahrten waren schon raus (analyse_ausschluss), aber der langsame
