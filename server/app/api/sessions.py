@@ -413,8 +413,10 @@ def _sprints_out(result: models.AnalysisResult) -> dict | None:
     # Je Lauf (16.11.2026, Event-Kategorie in der Session): Werte und Fenster je Kennzahl, Index = Lauf in segments_json.
     out["laeufe"] = j.get("laeufe") or []
     out["laeufe_fenster"] = j.get("laeufe_fenster") or []
-    # Rechenfassung (18.11.2026): 7 = Mischstrecke (ab sprint.STICHTAG_V7), 6 und aelter = nur Uhr-Tempo.
-    out["v"] = j.get("v")
+    # Rechenfassung fuer die Anzeige (18.11.2026): 7 = Mischstrecke (ab sprint.STICHTAG_V7), alles davor als 6 (Jan:
+    # „nur V6"; V1-V5 sind dasselbe Messprinzip „nur Uhr-Tempo", die echte Nummer steht weiter in sprint_json).
+    v = j.get("v")
+    out["v"] = None if v is None else (7 if v >= 7 else 6)
     return out
 
 
