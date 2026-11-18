@@ -31,6 +31,8 @@ struct TeamEventView: View {
     @State private var meineSlugs: [String] = []
     /// Lauf, der gerade den Referees gemeldet wird (web MeldenDialog, 16.11.2026).
     @State private var laufMeldung: TeamZeile?
+    /// Zaehlt bei jedem Laden hoch — der GPS-Kunst-Bereich laedt damit beim Ziehen zum Aktualisieren mit neu.
+    @State private var kunstStand = 0
     @Environment(\.dismiss) private var dismiss
 
     /// Bestenliste und Wertungsklasse je Event gemerkt (web f8927f95, Jan 11.11.2026: „wenn ich mir eine session anschaue
@@ -271,6 +273,8 @@ struct TeamEventView: View {
         if e.status == "kommend" {
             EventCountdownKarte(e: e, farbe: t.farbe, lang: lang)
         } else {
+            // GPS-Kunst (18.11.2026, web KunstBereich): Galerie, Herzen und Aufloesung statt Bestenlisten; nicht fuer Gaeste.
+            if e.vorlage == KUNST_VORLAGE && Api.token != nil { KunstBereich(eventId: e.id, stand: kunstStand, lang: lang) }
             if e.status == "laeuft" { EventEndetInKarte(e: e, farbe: t.farbe, lang: lang) }
             if !(e.summen_auswahl ?? []).isEmpty { summenBereich(t, e) }
             auswahlZeile(t, e)
@@ -556,6 +560,7 @@ struct TeamEventView: View {
         do {
             let e = try await Api.teamEvent(slug, id: eventId, klasse: klasse)
             ev = e
+            kunstStand += 1
             // Mitglied eines Gast-Teams (Event mehrerer Teams): die Teamseite des Ausrichters kann fuer ihn intern sein —
             // dann kommt der Kopf aus dem Event (`gastgeber`, wie web TeamEventSeite).
             team = await t ?? e.gastgeber?.alsTeamInfo
@@ -854,13 +859,16 @@ private struct EventRegelnBox: View {
 
     private var punkte: [String] {
         var p: [String] = []
-        let gemessen: String = eventGemessen(e, lang)
+        let kunst: Bool = e.vorlage == KUNST_VORLAGE
+        // GPS-Kunst misst nichts — keine „Gemessen"-Zeile, dafuer die eigenen Regeln (web kunst.regeln).
+        let gemessen: String = kunst ? "" : eventGemessen(e, lang)
         if !gemessen.isEmpty { p.append(Loc.t("team.event.gemessen", lang) + ": " + gemessen) }
         if e.ohne_dateien == true { p.append(Loc.t("team.event.ohneDateienKurz", lang)) }
         if e.status == "auswertung" {
             p.append(teamText("team.event.auswertungHinweis", lang, ["bis": eventZeit(e.einfrieren_am, e.zeitzone, lang)]))
         }
-        let allgemein: [String] = Loc.t("team.regeln.events.text", lang).components(separatedBy: "\n").filter { !$0.isEmpty }
+        let regelKey: String = kunst ? "kunst.regeln" : "team.regeln.events.text"
+        let allgemein: [String] = Loc.t(regelKey, lang).components(separatedBy: "\n").filter { !$0.isEmpty }
         return p + allgemein
     }
 
