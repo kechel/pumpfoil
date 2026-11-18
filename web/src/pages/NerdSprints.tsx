@@ -12,6 +12,8 @@ import { ScrollToTop } from "../components/ScrollToTop";
 // aendern, diese Seite mitziehen. 17.11.2026 (Jan: „nerd-artikel updaten mit den neuen erkenntnissen fuer volle
 // transparenz"): Obergrenze je Sportart (VERSION 6), Messgenauigkeit (Uhren-Paare, je Uhrenmodell, GNSS-Stufe) und der
 // 5-%-Test am Event-Wochenende — Zahlen aus docs/TODO.md Abschnitt C1/C2, nur zusammengefasst, keine Fahrer.
+// 18.11.2026 (Jan: „bessere uebersicht der resultate und begruendungen … inkl. schaubild … V7a"): Abschnitt V7 (nicht live,
+// Trockenlauf), Zahlen aus docs/TODO.md C2 / scripts/sprint-genauigkeit/. Geht V7 live: Status-Satz + Stichtag nachziehen.
 
 function H({ children }: { children: ReactNode }) {
   return <h2 className="mb-3 mt-10 border-b border-slate-800 pb-1 text-lg font-bold text-slate-100">{children}</h2>;
@@ -65,6 +67,102 @@ function Schema() {
   );
 }
 
+/** Kasten im V7-Ablauf. */
+function Kasten({ children, ton = "neutral" }: { children: ReactNode; ton?: "neutral" | "brand" | "amber" }) {
+  const farbe = ton === "brand" ? "border-brand-500/60 bg-brand-500/10" : ton === "amber" ? "border-amber-500/60 bg-amber-500/10"
+    : "border-slate-700 bg-slate-800/40";
+  return <div className={`rounded-lg border px-3 py-2 text-xs leading-snug text-slate-300 ${farbe}`}>{children}</div>;
+}
+function Pfeil() {
+  return <div className="text-center text-slate-500" aria-hidden="true">↓</div>;
+}
+
+/** V7-Vorschlag als Ablauf (HTML statt SVG, damit es auf dem Handy lesbar bleibt). */
+function AblaufV7() {
+  return (
+    <figure className="mt-4">
+      <div className="mx-auto max-w-xl space-y-1">
+        <Kasten ton="brand"><b>One run, one GPS sample per second:</b> position + the speed the chip reports (Doppler)</Kasten>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1">
+            <Pfeil />
+            <Kasten><b>Watch speed</b><br />spikes removed, gaps up to 3 s bridged — exactly as today</Kasten>
+            <Pfeil />
+            <Kasten>add up second by second<br /><b>= distance A</b></Kasten>
+          </div>
+          <div className="space-y-1">
+            <Pfeil />
+            <Kasten><b>Positions</b><br />each point averaged with its neighbours within ±2.5 s; never across a gap; at the start
+              and end of a run the window shrinks on both sides</Kasten>
+            <Pfeil />
+            <Kasten>distance between the averaged points<br /><b>= distance B</b></Kasten>
+          </div>
+        </div>
+        <Pfeil />
+        <Kasten ton="brand"><b>distance = ½ A + ½ B</b> — the window search runs on this combined distance</Kasten>
+        <Pfeil />
+        <Kasten ton="amber"><b>Checks unchanged:</b> raw positions vs. watch speed within 10 %, no gap over 3 s, at least 2 of 3
+          seconds with a real speed value, nothing above the sport's limit</Kasten>
+        <Pfeil />
+        <Kasten ton="brand"><b>fastest 100 m · 200 m · 300 m · 60 s</b></Kasten>
+      </div>
+      <figcaption className="mt-2 text-xs text-slate-400">Proposal V7. Only the distance that is timed changes; which windows are
+        allowed stays exactly as it is today.</figcaption>
+    </figure>
+  );
+}
+
+/** Skizze: Bogen, verrauschte Positionen, 5-s- und 15-s-Mittel. */
+function GlaettungSkizze() {
+  // wahrer Weg: Bogen; Messpunkte = Weg + fester Pseudo-Zufall (wiederholbar)
+  const n = 41;
+  const weg = Array.from({ length: n }, (_, i) => {
+    const a = Math.PI * (i / (n - 1));
+    return [300 - 160 * Math.cos(a), 220 - 175 * Math.sin(a)] as [number, number];
+  });
+  const rausch = (i: number) => [Math.sin(i * 12.9898) * 43758.5453 % 1, Math.sin(i * 78.233) * 12345.678 % 1];
+  const roh = weg.map(([x, y], i) => [x + rausch(i)[0] * 12, y + rausch(i)[1] * 12] as [number, number]);
+  const mittel = (h: number) => roh.map((_, i) => {
+    const k = Math.min(h, i, n - 1 - i);
+    const s = roh.slice(i - k, i + k + 1);
+    return [s.reduce((a, p) => a + p[0], 0) / s.length, s.reduce((a, p) => a + p[1], 0) / s.length] as [number, number];
+  });
+  const pfad = (a: [number, number][]) => a.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  return (
+    <figure className="mt-4">
+      <svg viewBox="0 0 600 240" className="w-full text-slate-400" role="img"
+        aria-label="A curved path, the jittery GPS positions, a light 5-second average that follows the curve and a heavy 15-second average that cuts it">
+        <path d={pfad(weg)} fill="none" stroke="currentColor" strokeWidth={6} strokeOpacity={0.25} />
+        <path d={pfad(roh)} fill="none" strokeWidth={1} className="stroke-amber-500" />
+        {roh.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={2.5} className="fill-amber-500" />)}
+        <path d={pfad(mittel(2))} fill="none" strokeWidth={2.5} className="stroke-brand-500" />
+        <path d={pfad(mittel(7))} fill="none" strokeWidth={2} strokeDasharray="6 4" className="stroke-rose-500" />
+      </svg>
+      <figcaption className="text-xs text-slate-400">
+        <span className="font-semibold text-slate-300">Grey:</span> the path actually ridden.{" "}
+        <span className="font-semibold text-amber-600 dark:text-amber-400">Orange:</span> GPS positions — the zigzag is longer than
+        the path.{" "}
+        <span className="font-semibold text-brand-600 dark:text-brand-300">Blue:</span> averaged over 5 s — the zigzag is gone, the
+        curve stays.{" "}
+        <span className="font-semibold text-rose-600 dark:text-rose-400">Red dashed:</span> averaged over 15 s — the curve gets cut and
+        the distance comes out too short. Schematic.
+      </figcaption>
+    </figure>
+  );
+}
+
+/** Kleine Tabelle. */
+function Tabelle({ kopf, zeilen }: { kopf: string[]; zeilen: ReactNode[][] }) {
+  return (
+    <div className="mt-3 overflow-x-auto">
+      <table className="text-sm text-slate-300">
+        <thead><tr className="text-left text-xs text-slate-400">{kopf.map((k) => <th key={k} className="pr-6 font-medium">{k}</th>)}</tr></thead>
+        <tbody>{zeilen.map((z, i) => <tr key={i}>{z.map((c, j) => <td key={j} className="pr-6 align-top">{c}</td>)}</tr>)}</tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function NerdSprints() {
   return (
     <div className="mx-auto max-w-3xl p-6" style={{ paddingTop: "calc(1.5rem + env(safe-area-inset-top))" }}>
@@ -72,7 +170,7 @@ export default function NerdSprints() {
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Nerd analyses</p>
       <h1 className="mb-1 flex items-center gap-2 text-xl font-bold"><ZurueckPfeil />Flying sprints: how we time them</h1>
       <p className="text-sm text-slate-400">The fastest flying 100 m, 200 m and 300 m and the fastest flying minute — what is measured,
-        what does not count, how precise it is, and how teams are ranked. Last updated 17 November 2026.</p>
+        what does not count, how precise it is, and how teams are ranked, and what we are testing next. Last updated 18 November 2026.</p>
 
       <H>What the four numbers mean</H>
       <P><b>Flying</b> means the clock does not start when you get up on the foil. We look for the fastest stretch
@@ -168,6 +266,77 @@ export default function NerdSprints() {
         the accuracy figure it reports is no help either (most Garmin watches always report 4 m, Suunto none).</P>
       <P>That is why there are no per-model rules: the same check applies to every watch on every day, and a window from a bad
         moment is thrown out whichever watch recorded it.</P>
+
+      <H>Under test: speed and positions together (V7, not live)</H>
+      <P><b>Status, 18 November 2026: proposal, dry runs only.</b> Nothing on the site uses it yet. If it goes live, it applies
+        only to sessions recorded from that day on. Nothing recorded earlier changes — no stored values, no event results, no
+        records. The cut-off date is fixed in the code, so the new method cannot be applied to older sessions by accident; on
+        those it only ever runs as a read-only test.</P>
+      <P><b>The idea.</b> The watch gives us two measurements of the same distance, and they go wrong in different ways. The
+        reported speed is steady, but it comes out of the watch's own processing — some watches smooth it, and a single bad
+        stretch counts in full. The positions jitter, which makes the path zigzag and come out too long, but they do not smooth
+        anything. Averaging each position with its neighbours over 5 seconds removes most of the zigzag and keeps the curves.
+        Taking half of each distance then cancels part of the errors that the two do not share.</P>
+      <GlaettungSkizze />
+      <AblaufV7 />
+      <P><b>What we tried</b>, on the 132 runs recorded by two devices at once:</P>
+      <Tabelle kopf={["Variant", "Result"]} zeilen={[
+        ["Smoothing the watch's speed (3–7 s; moving average, median, Savitzky–Golay, exponential)", "no gain"],
+        ["Positions only, raw or as a fitted curve (spline)", "worse"],
+        ["Positions smoothed heavily (9–21 s), the \"nobody zigzags in a sprint\" idea", "devices agree better — but only because every value drops by 0.4–1.5 km/h: riders curve even in a sprint, and heavy smoothing cuts the curves. Rejected"],
+        ["Speed combined with a Kalman/RTS smoother on the positions", "as good as the 5-second average, much more complicated"],
+        ["Weights per second from the estimated noise of each measurement", "hardly better"],
+        [<b key="b">½ speed + ½ positions averaged over 5 s</b>, <b key="c">best — the proposal</b>],
+      ]} />
+      <P><b>How much data there is.</b> Recordings that ran alongside another device of the same rider (one recording can be in
+        more than one pair):</P>
+      <Tabelle kopf={["Recorder", "Recordings", "Runs", "Riders"]} zeilen={[
+        ["Garmin", "31", "128", "10"],
+        ["Phone strapped to the board", "23", "79", "7"],
+        ["Apple Watch", "4", "25", "2"],
+        ["Phone in a pocket", "3", "22", "2"],
+        ["Wear OS", "1", "10", "1"],
+        ["Suunto, Polar, COROS, Amazfit, Huawei", "0", "0", "0"],
+      ]} />
+      <P>Garmin and the board phone are well covered. Apple Watch and Wear OS rest on one or two riders, and for the other brands
+        we have no pairs at all — the method would apply to them on the strength of the principle, not of a measurement.</P>
+      <P><b>Results.</b> Mean difference between the two devices for the same run, today → V7, in km/h (run in the full sprint
+        code with all checks):</P>
+      <Tabelle kopf={["Devices", "Runs", "100 m", "60 s"]} zeilen={[
+        ["Garmin + phone on the board", "52 / 24", "0.57 → 0.29", "0.37 → 0.22"],
+        ["Garmin + Garmin", "13 / 3", "0.71 → 0.52", "0.16 → 0.08"],
+        ["Garmin + phone in a pocket", "11 / 2", "0.28 → 0.26", "0.25 → 0.15"],
+        ["Apple Watch + phone on the board", "6 / 2", "0.33 → 0.26", "0.18 → 0.20"],
+        ["Apple Watch + Garmin", "15 / 5", "0.69 → 1.03", "0.52 → 0.57"],
+        [<b key="a">All pairs</b>, "100 / 36", <b key="b">0.55 → 0.43</b>, <b key="c">0.36 → 0.25</b>],
+      ]} />
+      <P>The minute improvement is statistically solid (95 % range of the gain +0.03 to +0.18 km/h); for 100 m the range just
+        touches zero (−0.02 to +0.25). The board phone is the best reference we have: it sits still on the board and has the
+        sky in view. Against it, watches today read on average 0.20 km/h <i>high</i> over 100 m, with V7 0.07 km/h low, and the
+        mean error drops from 0.53 to 0.30 km/h. A suspicion that arm swing pushes the watch's speed up did not hold: watch speed
+        and board speed agree within 0.02 km/h on average — the difference comes from the watch's speed processing, not the arm.</P>
+      <P><b>Open question: the Apple Watch.</b> Against the board phone it gets better with V7, against a Garmin it gets worse —
+        both from the same two riders. That is too little to decide either way. The options are one method for every recorder,
+        or the Apple Watch keeping the speed-only method until there are more pairs (all pairs then: 0.55 → 0.41 over 100 m).</P>
+      <P><b>Dry run on all 10,443 sessions with sprint values</b> (read-only), median change of the best 100 m:</P>
+      <Tabelle kopf={["Recorder", "Sessions", "Median change"]} zeilen={[
+        ["Suunto", "4,155", "−0.08 km/h"],
+        ["Garmin", "2,937", "−0.24 km/h"],
+        ["Apple Watch", "557", "−0.06 km/h"],
+        ["Imported files", "371", "−0.21 km/h"],
+        ["Phones", "349", "+0.09 km/h"],
+        ["Wear OS", "286", "+0.13 km/h"],
+        ["Polar", "105", "−0.16 km/h"],
+      ]} />
+      <P>Over the minute the median change is −0.09 km/h. 8 in 10 values move by less than 0.7 km/h. About 40 of 8,800 sessions
+        would lose their 100 m value — runs that are only just over 100 m long, where the slightly shorter combined distance no
+        longer reaches it. On the event weekend of 14–15 November the values would have moved by a median of −0.18 km/h over
+        100 m (−0.04 with the Apple Watch kept on speed only); the top places stay close, but in a dense midfield many riders
+        would swap a few places — which is exactly the size of the measurement error. Because of the cut-off date, none of this
+        would actually change.</P>
+      <P><b>What V7 does not fix.</b> All of this works at one sample per second. Getting much more precise needs loggers that
+        record 5 to 10 times per second, as speed-sailing uses — hardware, not maths. Some Garmin watches also smooth their speed
+        depending on the activity profile; whether our profile setting matters is a field test with two watches, still to do.</P>
 
       <H>Watches without motion data</H>
       <P>Some recorders only send GPS, no motion data. Their runs are detected from speed alone, so the detector cannot tell
