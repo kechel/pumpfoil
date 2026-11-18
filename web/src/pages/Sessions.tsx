@@ -17,6 +17,7 @@ import { usePumpFmt } from "../lib/pumpRate";
 import { Leaderboards, RecordGrid, PERIODS } from "./Home";
 import { Quellen } from "../components/Quellen";
 import { ListenAnsicht } from "../components/ListenAnsicht";
+import { SessionFilter } from "../components/SessionFilter";
 import { useKompakteListe, ZEILEN_RASTER } from "../lib/kompakteListe";
 import { fmtDate } from "../lib/time";
 import { SessionCard } from "../components/SessionCard";
@@ -341,7 +342,15 @@ export default function Sessions() {
     if (next !== "mine") n.set("scope", next);
     if (nextSpot) n.set("spot", nextSpot);
     if (sport !== "all") n.set("sport", sport);   // die Sportart bleibt beim Wechsel Meine/Spot/Alle
+    if (sp.get("foil") && next !== "mine" && !nextSpot) n.set("foil", sp.get("foil")!);   // Foil-Filter bleibt in Alle/Freunde/Team
     setSp(n, { replace: !nextSpot });   // Reiterwechsel ersetzt den Verlaufseintrag (wie alle Reiter)
+  };
+  // Foil-Filter (Filter-Knopf, 18.11.2026) — nur in Alle/Freunde/Team, als ?foil=<id> im Link.
+  const foilFilter = Number(sp.get("foil")) || null;
+  const setFoilFilter = (id: number | null) => {
+    const n = new URLSearchParams(sp);
+    id ? n.set("foil", String(id)) : n.delete("foil");
+    setSp(n);
   };
   const setSport = (next: string) => {
     const n = new URLSearchParams(sp);
@@ -436,6 +445,7 @@ export default function Sessions() {
               <UploadIcon className="h-4 w-4" /> {t("import.title")}
             </Link>
           )}
+          {!isMine && !spot && <SessionFilter foil={foilFilter} onFoil={setFoilFilter} />}
           <AccelToggle value={accelOnly} onChange={(v) => { setBrett(false); setAccelOnly(v); }}
                        brett={brett} onBrett={() => { setBrett(true); setAccelOnly(false); }} />
           {/* Kacheln / eine Zeile je Session (Feedback #156) — gilt fuer Meine, Alle und den Spot. Ganz rechts (Jan, 02.11.2026). */}
@@ -478,12 +488,12 @@ export default function Sessions() {
         <SpotBereich spot={spot} sport={rekordSport} accelOnly={accelOnly} sessions={
           <CommunityList key={`${brett}|${isFreunde}`} name="" spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett}
                          onShowAll={() => setAccelAuto(false)} />} />
-      ) : isTeam ? <CommunityList key={`team|${teamWahl}|${brett}`} name="" spot="" accelOnly={accelOnly && !brett} sport={sport} board={brett}
-                                  team={teamWahl} onShowAll={() => setAccelAuto(false)} />
+      ) : isTeam ? <CommunityList key={`team|${teamWahl}|${brett}|${foilFilter ?? ""}`} name="" spot="" accelOnly={accelOnly && !brett} sport={sport} board={brett}
+                                  team={teamWahl} foil={foilFilter ?? undefined} onShowAll={() => setAccelAuto(false)} />
       : isMine ? <MySessionsList key={`${reloadKey}|${sport}|${brett}`} myName={myName} accelOnly={accelOnly && !brett} sport={sport}
                                    board={brett} filterPlatz={filterPlatz} onShowAll={() => setAccelAuto(false)} />
-              : <CommunityList key={`${brett}|${isFreunde}`} name="" spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett}
-                               onShowAll={() => setAccelAuto(false)} />}
+              : <CommunityList key={`${brett}|${isFreunde}|${foilFilter ?? ""}`} name="" spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett}
+                               foil={foilFilter ?? undefined} onShowAll={() => setAccelAuto(false)} />}
       {/* Hinweis auf die 30 Tage UNTER der Liste statt darueber (Jan, 02.11.2026). */}
       {isTeam && meineTeams && <p className="mt-4 text-sm text-slate-400">{t("team.feed30")}</p>}
     </div>
@@ -1211,8 +1221,10 @@ function DayGroupCard({ g, t, lastViewed }: { g: CommunityGroup; t: (k: string) 
   );
 }
 
-export function CommunityList({ name, spot, accelOnly, sport, onShowAll, board = false, team }:
+export function CommunityList({ name, spot, accelOnly, sport, onShowAll, board = false, team, foil }:
     { name: string; spot: string; accelOnly: boolean; sport: string; onShowAll?: () => void; board?: boolean;
+      /** Filter-Knopf (18.11.2026): nur Sessions mit genau diesem Foil. */
+      foil?: number;
       /** Sessions › Team (02.11.2026): „alle" oder Team-ID, Server liefert die letzten 30 Tage der Mitglieder. */
       team?: string }) {
   const kompakt = useKompakteListe();   // Kacheln oder Zeilen (ListenAnsicht)
@@ -1255,7 +1267,7 @@ export function CommunityList({ name, spot, accelOnly, sport, onShowAll, board =
   const maybeShowAll = (rows: CommunityGroup[], off: number) => {
     if (!spot || !accelOnly || off !== 0 || autoTried.current === spot) return;
     autoTried.current = spot;
-    api.communitySessionsGrouped(PAGE, 0, { name: name || undefined, spot, accelOnly: false, sport, board, team })
+    api.communitySessionsGrouped(PAGE, 0, { name: name || undefined, spot, accelOnly: false, sport, board, team, foil })
       .then((probe) => { if (probe.length > rows.length) onShowAll?.(); })
       .catch(() => {});
   };
@@ -1265,7 +1277,7 @@ export function CommunityList({ name, spot, accelOnly, sport, onShowAll, board =
     loadingRef.current = true; setLoading(true);
     const lauf = laufRef.current;
     const off = reset ? 0 : offsetRef.current;
-    api.communitySessionsGrouped(PAGE, off, { name: name || undefined, spot: spot || undefined, accelOnly, sport, board, team })
+    api.communitySessionsGrouped(PAGE, off, { name: name || undefined, spot: spot || undefined, accelOnly, sport, board, team, foil })
       .then((rows) => {
         if (lauf !== laufRef.current) return;   // Filter hat gewechselt -> Antwort ist veraltet
         offsetRef.current = off + rows.length;
@@ -1301,7 +1313,7 @@ export function CommunityList({ name, spot, accelOnly, sport, onShowAll, board =
     const lauf = laufRef.current;
     try {
       const fresh = await api.communitySessionsGrouped(
-        PAGE, 0, { name: name || undefined, spot: spot || undefined, accelOnly, sport, fresh: true, board, team });
+        PAGE, 0, { name: name || undefined, spot: spot || undefined, accelOnly, sport, fresh: true, board, team, foil });
       if (lauf !== laufRef.current) return;   // waehrend des Abrufs den Filter gewechselt
       if (!fresh.length) return;
       const frisch = new Set(fresh.map(gruppenKey));
@@ -1313,7 +1325,7 @@ export function CommunityList({ name, spot, accelOnly, sport, onShowAll, board =
       itemsRef.current = merged;
       offsetRef.current = merged.length;
       setItems(merged);
-      communityCache.set(`${name}|${spot}|${accelOnly}|${sport}|${board}|${team ?? ""}`,
+      communityCache.set(`${name}|${spot}|${accelOnly}|${sport}|${board}|${team ?? ""}|${foil ?? ""}`,
                          { items: merged, offset: offsetRef.current, more: moreRef.current });
     } catch { /* offline/Fehler: der Cache bleibt einfach stehen */ }
   }
@@ -1323,7 +1335,7 @@ export function CommunityList({ name, spot, accelOnly, sport, onShowAll, board =
     // Abruf, nicht zum neuen — bliebe sie stehen, stiege `load(true)` unten sofort wieder aus.
     laufRef.current += 1;
     loadingRef.current = false;
-    const cached = communityCache.get(`${name}|${spot}|${accelOnly}|${sport}|${board}|${team ?? ""}`);
+    const cached = communityCache.get(`${name}|${spot}|${accelOnly}|${sport}|${board}|${team ?? ""}|${foil ?? ""}`);
     if (cached && cached.items.length) {
       setItems(cached.items); offsetRef.current = cached.offset; moreRef.current = cached.more;
       itemsRef.current = cached.items;
@@ -1341,7 +1353,7 @@ export function CommunityList({ name, spot, accelOnly, sport, onShowAll, board =
       moreRef.current = true; offsetRef.current = 0; load(true);
     }
     return () => {
-      communityCache.set(`${name}|${spot}|${accelOnly}|${sport}|${board}|${team ?? ""}`, { items: itemsRef.current, offset: offsetRef.current, more: moreRef.current });
+      communityCache.set(`${name}|${spot}|${accelOnly}|${sport}|${board}|${team ?? ""}|${foil ?? ""}`, { items: itemsRef.current, offset: offsetRef.current, more: moreRef.current });
     };
   }, [name, spot, accelOnly, sport]); // eslint-disable-line react-hooks/exhaustive-deps
   // Lag die PWA lange im Hintergrund, laeuft beim Zurueckkommen KEIN Mount — ohne das hier bliebe

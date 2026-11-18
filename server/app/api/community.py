@@ -721,7 +721,7 @@ def sessions_grouped(
     request: Request,
     limit: int = 20, offset: int = 0,
     name: str | None = Query(None), spot: str | None = Query(None), accel_only: bool = True,
-    sport: str = "pumpfoil", board: bool = False, team: str | None = None,
+    sport: str = "pumpfoil", board: bool = False, team: str | None = None, foil_id: int | None = None,
     user: models.User = Depends(current_user), db: Session = Depends(get_db),
 ) -> list[dict]:
     """Feed/Spot mit TAGES-GRUPPIERUNG (rein anzeige-seitig, ändert keine Daten/Rekorde):
@@ -735,6 +735,8 @@ def sessions_grouped(
     q = _brett(_community(db.query(*BRIEF_COLS, *_group_extra()), user.id, accel_only, sport), board)
     if team is not None:
         q = _team_filter(db, q, team, user)
+    if foil_id:   # Filter-Knopf in Sessions (Nutzerwunsch 17.11.2026: „all runs with brand XXX wing YYY")
+        q = q.filter(S.foil_id == foil_id)
     if name:
         q = q.filter(_such_alles(name, [U.display_name]))
     if spot:

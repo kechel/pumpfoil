@@ -1883,9 +1883,10 @@ export const api = {
   },
   communitySessionsGrouped: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean;
       // "all" = alle Sportarten (Liste "was ist neu"); sonst genau eine (Community-Ansichten).
-      sport?: string; fresh?: boolean; board?: boolean; team?: string } = {}) => {
+      sport?: string; fresh?: boolean; board?: boolean; team?: string; foil?: number } = {}) => {
     const p = new URLSearchParams({ limit: String(limit), offset: String(offset) });
-    if (opts.team) p.set("team", opts.team);   // Sessions › Team: „alle" oder Team-ID, letzte 30 Tage
+    if (opts.team) p.set("team", opts.team);
+    if (opts.foil) p.set("foil_id", String(opts.foil));   // Sessions › Team: „alle" oder Team-ID, letzte 30 Tage
     if (opts.board) p.set("board", "true");
     if (opts.name) p.set("name", opts.name);
     if (opts.spot) p.set("spot", opts.spot);
