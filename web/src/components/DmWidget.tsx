@@ -266,11 +266,12 @@ export function DmWidget() {
     }
   };
   const closeOverlay = () => { setActive(null); setOpen(false); setGross(false); consumeMarkers(); };
-  /** Klick auf ein Profil (Profilbild/Name mit data-profil) im Vollbild-Chat: schliessen, dann hin. */
+  /** Klick auf ein Profil (Profilbild/Name mit data-profil) im Chat: IMMER schliessen, dann hin — auch im kleinen
+   *  Fenster und wenn das Profil schon offen ist (Nutzer-Feedback 18.11.2026: sonst „passiert nichts", einheitlich). */
   const profilAbfangen = (e: React.MouseEvent) => {
     const el = (e.target as HTMLElement).closest?.("[data-profil]") as HTMLElement | null;
     const ziel = el?.dataset.profil;
-    if (!ziel || !(gross || window.innerWidth < 768)) return;
+    if (!ziel) return;
     e.preventDefault(); e.stopPropagation();
     const mitMarkern = depthRef.current > 0;
     if (mitMarkern) pendingNavRef.current = ziel;
