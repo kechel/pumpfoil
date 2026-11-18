@@ -52,9 +52,10 @@ fun FoilStatsScreen(onBack: () -> Unit, onWatchStats: () -> Unit = {},
 
     // „Nur mit Handy am Brett" — wie die PWA (FoilStats.tsx, Jan 22.09.), direkt ueber der Liste.
     var nurBrett by remember { mutableStateOf(false) }
-    LaunchedEffect(nurBrett) {
+    var minLauf by remember { mutableStateOf(0) }   // Minuten; 0 = alle Laeufe (Web 18.11.2026)
+    LaunchedEffect(nurBrett, minLauf) {
         rows = null
-        try { rows = Api.foilStats(nurBrett) } catch (e: Exception) { error = e.message; rows = emptyList() }
+        try { rows = Api.foilStats(nurBrett, minLauf * 60) } catch (e: Exception) { error = e.message; rows = emptyList() }
     }
 
     Scaffold(topBar = {
@@ -99,6 +100,19 @@ fun FoilStatsScreen(onBack: () -> Unit, onWatchStats: () -> Unit = {},
                     Checkbox(checked = nurBrett, onCheckedChange = { nurBrett = it })
                     Text(I18n.t("foilStats.onlyBoard"), style = MaterialTheme.typography.bodyMedium)
                 }
+            }
+            item {
+                androidx.compose.foundation.layout.Row(
+                    Modifier.fillMaxWidth().horizontalScroll(androidx.compose.foundation.rememberScrollState()),
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp)) {
+                    listOf(0, 1, 3, 5, 10, 30).forEach { m ->
+                        androidx.compose.material3.FilterChip(selected = minLauf == m, onClick = { minLauf = m },
+                            label = { Text(if (m == 0) I18n.t("foilStats.minRunAll") else I18n.t("foilStats.minRunAb").replace("{min}", "$m")) },
+                            colors = cyanChipColors())
+                    }
+                }
+                if (minLauf > 0) Text(I18n.t("foilStats.minRunHint").replace("{min}", "$minLauf"),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             item {
                 Text(I18n.t("foilStats.hint"),
@@ -155,7 +169,7 @@ private fun statCard(s: FoilStat, onFoil: (FoilStat) -> Unit = {}) {
         Column(Modifier.padding(12.dp)) {
             Text("${s.brand} ${s.model} ${s.size}", fontWeight = FontWeight.SemiBold)
             Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                metric("${s.sessions}", I18n.t("nav.sessions"))
+                metric("${s.sessions}" + (s.laeufe?.let { " · ${I18n.t("foilStats.runsN").replace("{n}", "$it")}" } ?: ""), I18n.t("nav.sessions"))
                 metric("${s.users}", I18n.t("foilstats.riders"))
                 metric(s.avgSpeedKmh?.let { "%.1f".format(it) } ?: "–", "Ø km/h")
             }

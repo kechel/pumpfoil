@@ -888,6 +888,7 @@ struct FoilStat: Codable, Identifiable {
     let best_distance_m: Double?
     let best_duration_s: Double?   // laengster Einzellauf auf diesem Foil (Server ab 30.08.)
     let avg_pump_hz: Double?
+    var laeufe: Int? = nil   // nur mit Lauf-Filter (18.11.2026): so viele Laeufe stecken in den Zahlen
     var id: Int { foil_id }
 }
 

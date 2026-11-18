@@ -20,14 +20,16 @@ export default function FoilStats() {
   const pf = usePumpFmt();
   const [rows, setRows] = useState<Row[] | null>(null);
   const [nurBrett, setNurBrett] = useState(false);
+  // Nur Laeufe ab N Minuten (Jan 18.11.2026): Zahlen dann aus den einzelnen Laeufen statt aus Session-Summen.
+  const [minLauf, setMinLauf] = useState(0);
   const sort = useSort<Row>(rows, "sessions", "desc", {
     foil: (r) => `${r.brand} ${r.model} ${r.size}`,
   });
 
   useEffect(() => {
     setRows(null);
-    api.foilStats(nurBrett).then(setRows).catch(() => setRows([]));
-  }, [nurBrett]);
+    api.foilStats(nurBrett, minLauf * 60).then(setRows).catch(() => setRows([]));
+  }, [nurBrett, minLauf]);
 
   return (
     <div className="w-full">
@@ -41,6 +43,11 @@ export default function FoilStats() {
             className="h-4 w-4 accent-brand-500" />
           {t("foilStats.onlyBoard")}
         </label>
+        <select value={minLauf} onChange={(e) => setMinLauf(Number(e.target.value))} aria-label={t("foilStats.minRun")}
+          className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm text-slate-100">
+          <option value={0}>{t("foilStats.minRunAll")}</option>
+          {[1, 3, 5, 10, 30].map((m) => <option key={m} value={m}>{t("foilStats.minRunAb", { min: m })}</option>)}
+        </select>
         <Link to="/watch-stats" title={t("watchStats.title")} aria-label={t("watchStats.title")}
           className="ml-auto inline-flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-1.5 text-xs text-brand-600 dark:text-brand-300 hover:bg-slate-700">
           <WatchIcon className="h-4 w-4" /> <span className="hidden sm:inline">{t("stats.short")}</span>
@@ -49,6 +56,7 @@ export default function FoilStats() {
       <p className="mb-2 text-sm text-slate-300">{t("foilStats.hint")} {t("foilStats.clickHint")}</p>
       {/* Low End (01.11.2026, Feedback foiling_fabs): was die Spalte misst, steht hier — nicht nur im Tooltip. */}
       <p className="mb-4 text-sm text-slate-400">{t("foilStats.lowEndHint")}</p>
+      {minLauf > 0 && <p className="-mt-2 mb-4 text-sm font-medium text-brand-700 dark:text-brand-300">{t("foilStats.minRunHint", { min: minLauf })}</p>}
 
       {!rows ? (
         <Spinner />
@@ -88,7 +96,8 @@ export default function FoilStats() {
                       <div className="text-xs text-slate-400">AR {r.aspect_ratio ?? "–"}</div>
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums">{r.sessions}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{r.sessions}
+                    {r.laeufe != null && <span className="block text-xs text-slate-400">{t("foilStats.runsN", { n: r.laeufe })}</span>}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.users}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.avg_speed_kmh != null ? `${r.avg_speed_kmh.toFixed(1)} km/h` : "–"}</td>
                   <td className="px-4 py-3 text-right tabular-nums">{r.meters_per_pump != null ? `${r.meters_per_pump.toFixed(1)} m` : "–"}</td>

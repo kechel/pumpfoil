@@ -2332,8 +2332,38 @@ def _low_end_je_foil(db: Session, viewer_id: int, only_board: bool) -> dict[int,
     return out
 
 
+_FOILSTATS_LAUF_CACHE: dict = {}
+
+
+def _foil_stats_laeufe(db: Session, viewer_id: int, only_board: bool, min_s: int) -> list:
+    """Wie die Session-Summen unten, aber aus den EINZELNEN Laeufen mit Dauer >= min_s (Jan 18.11.2026: Filter „nur Laeufe
+    > 1/3/5/10/30 min"). Je Lauf aus `segments_json` (jsonb), Pumps aus pg-1 mit Rueckfall auf die alte Zaehlung.
+    ~0,7 s ueber alle Foil-Sessions -> 10 min gecacht (fuer alle gleich bis auf versteckte Konten des Betrachters)."""
+    key = (only_board, min_s)
+    hit = _FOILSTATS_LAUF_CACHE.get(key)
+    if hit and time.time() - hit[0] < 600:
+        return hit[1]
+    sub = (_community(db.query(S.id.label("sid"), S.foil_id.label("fid"), S.user_id.label("uid"),
+                               AR.segments_json.label("seg")), viewer_id, accel_only=not only_board)
+           .filter(S.foil_id.isnot(None))
+           .filter(S.placement == "board" if only_board else true())
+           .subquery())
+    e = func.jsonb_array_elements(cast(func.nullif(sub.c.seg, ""), JSONB)).table_valued("value").lateral()
+
+    def f(k):
+        return cast(func.nullif(func.jsonb_extract_path_text(e.c.value, k), ""), Float)
+    dauer = f("duration_s")
+    rows = (db.query(sub.c.fid, func.count(func.distinct(sub.c.sid)), func.count(func.distinct(sub.c.uid)),
+                     func.sum(f("distance_m")), func.sum(dauer), func.sum(func.coalesce(f("pg_pumps"), f("pumps"))),
+                     func.max(f("distance_m")), func.max(dauer), func.avg(func.coalesce(f("pg_avg_pump_hz"), f("avg_pump_hz"))),
+                     func.count())
+            .select_from(sub).join(e, true()).filter(dauer >= min_s).group_by(sub.c.fid).all())
+    _FOILSTATS_LAUF_CACHE[key] = (time.time(), rows)
+    return rows
+
+
 @router.get("/foil-stats")
-def foil_stats(only_board: bool = False, _user: models.User = Depends(current_user),
+def foil_stats(only_board: bool = False, min_run_s: int = 0, _user: models.User = Depends(current_user),
                db: Session = Depends(get_db)) -> list[dict]:
     """Community-Aggregat je Foil (nur Sessions mit explizit gewähltem Foil).
 
@@ -2345,21 +2375,28 @@ def foil_stats(only_board: bool = False, _user: models.User = Depends(current_us
     # die Aufnahme hat aber Bewegungsdaten und ist genauer als die Uhr. Mit „nur Handy am Brett"
     # darf der Filter „nur Accel-Erkennung" sie deshalb nicht wegwerfen — sonst bleibt die Tabelle
     # leer (Jans Befund 06.10.2026).
-    rows = (
-        _community(db.query(
-            S.foil_id,
-            func.count(func.distinct(S.id)),
-            func.count(func.distinct(S.user_id)),
-            func.sum(AR.foiling_distance_m),
-            func.sum(AR.foiling_time_s),
-            func.sum(PA.col_pump_count()),
-            func.max(AR.best_distance_m),
-            func.max(AR.best_duration_s),
-            func.avg(PA.col_avg_cadence_hz()),
-        ), _user.id, accel_only=not only_board).filter(S.foil_id.isnot(None))
-        .filter(S.placement == "board" if only_board else true())
-        .group_by(S.foil_id).all()
-    )
+    laeufe_n: dict = {}
+    if min_run_s > 0:
+        rows = []
+        for r in _foil_stats_laeufe(db, _user.id, only_board, int(min_run_s)):
+            rows.append(r[:9])
+            laeufe_n[r[0]] = int(r[9])
+    else:
+        rows = (
+            _community(db.query(
+                S.foil_id,
+                func.count(func.distinct(S.id)),
+                func.count(func.distinct(S.user_id)),
+                func.sum(AR.foiling_distance_m),
+                func.sum(AR.foiling_time_s),
+                func.sum(PA.col_pump_count()),
+                func.max(AR.best_distance_m),
+                func.max(AR.best_duration_s),
+                func.avg(PA.col_avg_cadence_hz()),
+            ), _user.id, accel_only=not only_board).filter(S.foil_id.isnot(None))
+            .filter(S.placement == "board" if only_board else true())
+            .group_by(S.foil_id).all()
+        )
     if not rows:
         return []
     fmap = {f.id: f for f in db.query(models.Foil).filter(models.Foil.id.in_([r[0] for r in rows])).all()}
@@ -2385,6 +2422,8 @@ def foil_stats(only_board: bool = False, _user: models.User = Depends(current_us
             "best_duration_s": round(float(best_dur)) if best_dur else None,
             "avg_pump_hz": round(float(avg_hz), 2) if avg_hz else None,
             **low_end.get(fid, {"low_end_kmh": None, "low_end_laeufe": 0, "low_end_fahrer": 0}),
+            # Nur mit Lauf-Filter: so viele Laeufe stecken in den Zahlen (sonst Session-Summen, kein Feld).
+            **({"laeufe": laeufe_n.get(fid, 0)} if min_run_s > 0 else {}),
         })
     out.sort(key=lambda x: x["sessions"], reverse=True)
     return out

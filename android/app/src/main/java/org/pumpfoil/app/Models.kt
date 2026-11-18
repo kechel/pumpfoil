@@ -1088,6 +1088,7 @@ data class FoilStat(
     @SerialName("best_distance_m") val bestDistanceM: Double? = null,
     @SerialName("best_duration_s") val bestDurationS: Double? = null,
     @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
+    val laeufe: Int? = null,   // nur mit Lauf-Filter: so viele Laeufe stecken in den Zahlen
 )
 
 @Serializable

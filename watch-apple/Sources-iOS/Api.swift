@@ -1617,8 +1617,10 @@ enum Api {
     }
 
     // `nurBrett`: nur Aufnahmen mit dem Handy am Brett (genauere Zahlen).
-    static func foilStats(nurBrett: Bool = false) async throws -> [FoilStat] {
-        try await request("/api/community/foil-stats" + (nurBrett ? "?only_board=1" : ""), method: "GET", body: nil, auth: true)
+    /// `minLaufS` > 0: Zahlen nur aus Laeufen ab dieser Dauer (Web 18.11.2026).
+    static func foilStats(nurBrett: Bool = false, minLaufS: Int = 0) async throws -> [FoilStat] {
+        let q: String = "?only_board=\(nurBrett ? 1 : 0)" + (minLaufS > 0 ? "&min_run_s=\(minLaufS)" : "")
+        return try await request("/api/community/foil-stats" + q, method: "GET", body: nil, auth: true)
     }
 
     static func watchStats() async throws -> [WatchStat] {
