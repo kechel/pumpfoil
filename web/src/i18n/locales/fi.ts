@@ -3153,6 +3153,8 @@ const fi: Record<string, string> = {
   "perf.verlauf": "Päivän keskiarvo (voitettujen osuus)",
   "perf.hinweis": "Sijoitukset perustuvat mitattuihin arvoihin. Tiukat sijat sprinteissä ovat usein kellojen mittatarkkuuden sisällä — pidä niitä pelinä, ei tuomiona.",
   "perf.zuWenig": "Tarvitaan vähintään kaksi sijoituspäivää.",
+  "perf.saisonText": "1. tammikuuta alkaen jaetaan pisteitä, ja kaikki aloittavat nollasta: joka päivä ja kategoriassa sijat 1–10 tuovat 25, 20, 16, 13, 11, 9, 7, 5, 3 ja 2 pistettä, sekä 1 piste jokaisesta päivästä vedessä. Mukana kauden tulostaulu kaikista ajajista.",
+  "perf.saisonTitel": "Kausi 2027",
   "team.vorlage.gpskunst": "GPS-taide: kuka piirtää coolimman kuvan veden päälle?",
   "kunst.einstellungHinweis": "Tulostaulukoiden sijaan: osallistujat lähettävät kierroksella yhden kuvan omasta sessiostaan, minkä jälkeen yhteisö äänestää nimettömästi sydämillä. Seuraava kierros on silloin jo käynnissä.",
   "kunst.rundenTage": "Uusi kierros joka (päivää)",

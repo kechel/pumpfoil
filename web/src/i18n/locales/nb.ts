@@ -3089,6 +3089,8 @@ const nb: Record<string, string> = {
   "perf.verlauf": "Dagssnitt (andel slåtte utøvere)",
   "perf.hinweis": "Plasseringene kommer fra målte verdier. Jevne plasser i sprintene ligger ofte innenfor klokkenes målenøyaktighet — ta dem som en lek, ikke en dom.",
   "perf.zuWenig": "Trenger minst to rangerte dager.",
+  "perf.saisonText": "Fra 1. januar blir det poeng, og alle starter på null: hver dag og kategori gir plass 1 til 10 25, 20, 16, 13, 11, 9, 7, 5, 3 og 2 poeng, pluss 1 poeng for hver dag på vannet. Med en sesongtabell over alle ryttere.",
+  "perf.saisonTitel": "Sesong 2027",
   "team.vorlage.gpskunst": "GPS-kunst: hvem tegner det kuleste bildet på vannet?",
   "kunst.einstellungHinweis": "I stedet for toppliste: Deltakerne sender inn ett bilde per runde fra en egen økt, og så stemmer fellesskapet anonymt med hjerter. Neste runde går allerede i mellomtiden.",
   "kunst.rundenTage": "Ny runde hver (dager)",

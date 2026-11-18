@@ -3115,6 +3115,8 @@ const zh: Record<string, string> = {
   "perf.verlauf": "每日平均（超过的骑手比例）",
   "perf.hinweis": "名次来自测量值。冲刺项目中相近的名次常在手表测量精度之内——把它当作游戏，而不是定论。",
   "perf.zuWenig": "至少需要两个计入排名的日子。",
+  "perf.saisonText": "从 1 月 1 日起开始计分，所有人从零开始：每天每个类别第 1 到 10 名分别得 25、20、16、13、11、9、7、5、3、2 分，此外每下水一天得 1 分。并设有所有骑手的赛季排行榜。",
+  "perf.saisonTitel": "2027 赛季",
   "team.vorlage.gpskunst": "GPS 画作：谁能在水面上画出最酷的图？",
   "kunst.einstellungHinweis": "没有排行榜：每一轮参赛者从自己的一次 Session 中提交一幅图，之后社区用爱心匿名投票。与此同时，下一轮已经开始。",
   "kunst.rundenTage": "每隔几天一轮（天）",

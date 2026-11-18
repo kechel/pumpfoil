@@ -3001,6 +3001,8 @@ const it: Record<string, string> = {
   "perf.verlauf": "Media del giorno (quota di rider battuti)",
   "perf.hinweis": "I piazzamenti vengono dai valori misurati. Nei sprint posti vicini sono spesso dentro la precisione degli orologi: prendili come un gioco, non come un verdetto.",
   "perf.zuWenig": "Servono almeno due giorni in classifica.",
+  "perf.saisonText": "Dal 1° gennaio ci sono punti e tutti partono da zero: ogni giorno e per categoria, i posti dal 1 al 10 valgono 25, 20, 16, 13, 11, 9, 7, 5, 3 e 2 punti, più 1 punto per ogni giorno in acqua. Con una classifica stagionale di tutti i rider.",
+  "perf.saisonTitel": "Stagione 2027",
   "team.vorlage.gpskunst": "Arte GPS: chi disegna l'immagine più cool sull'acqua?",
   "kunst.einstellungHinweis": "Niente classifiche: in ogni round i partecipanti inviano un'immagine da una propria sessione, poi la community vota in modo anonimo con i cuori. Il round successivo è già in corso.",
   "kunst.rundenTage": "Nuovo round ogni (giorni)",

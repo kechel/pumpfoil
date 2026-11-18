@@ -120,6 +120,15 @@ fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
         }
         Text(I18n.t("perf.intro").replace("{n}", "${daten?.minFeld ?: 5}"), style = MaterialTheme.typography.bodyMedium,
             color = grau, modifier = Modifier.padding(vertical = 8.dp))
+        // Ankuendigung Saison 2027 (Jan 18.11.2026: Punkte ab 1.1.2027 mit Saison-Rangliste), bis die Saison startet.
+        if (LocalDate.now() < LocalDate.of(2027, 1, 1)) {
+            Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+                Column(Modifier.padding(12.dp)) {
+                    Text(I18n.t("perf.saisonTitel"), fontWeight = FontWeight.SemiBold, color = PerfCyan)
+                    Text(I18n.t("perf.saisonText"), style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
 
         val d = daten
         when {

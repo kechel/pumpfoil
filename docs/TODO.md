@@ -1570,7 +1570,9 @@ neues Tab 'Performance' in Home". Datenlage 18.11.: Pumpfoil weltweit Median 36 
   nur mit mind. einem erkannten Lauf; Platzpunkte wie heute ab 5 Fahrern, max. 101/Tag; Gleichstand = gleiche Punkte;
   Feldgroesse egal; getrennt je Ansicht (Pumpfoil | Pumpfoil + Foil Scoot); Saison 1.1.-31.12.2027, alle bei 0, nie
   rueckwirkend; aus gespeicherten Werten taeglich neu gerechnet (aussortierte/umklassifizierte Laeufe fallen raus).
-  OFFEN fuer Jan: (a) Saison-Rangliste aller Fahrer oder nur eigene Punkte, (b) Umgang mit Fehlwerten wie vorgeschlagen.
+  **ENTSCHIEDEN 18.11. (Jan):** (a) Saison-Rangliste aller Fahrer JA, (b) aussortierte/korrigierte/geloeschte Laeufe und
+  Sessions fallen aus den Punkten (taeglich neu aus gespeicherten Werten). Platzhalter-Kachel „Saison 2027" im
+  Performance-Reiter gebaut (Web/Android/iOS). Zu bauen bis 1.1.2027: Punkte je Tag, Saisonsumme, Saison-Rangliste.
 
 ### 18.11.2026 — Wing-Feedback u655 (Wear, OnePlus Watch 2) — NUR GEMERKT (Jan: „rest erstmal nur merken")
 Feedback-Formular 18.11., Sessions https://pumpfoil.org/sessions/21529 und https://pumpfoil.org/sessions/22414.

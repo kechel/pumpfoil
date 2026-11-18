@@ -3171,6 +3171,8 @@ const cs: Record<string, string> = {
   "perf.verlauf": "Denní průměr (podíl poražených jezdců)",
   "perf.hinweis": "Umístění vychází z naměřených hodnot. Těsná místa ve sprintech jsou často v rámci přesnosti hodinek — ber je jako hru, ne jako verdikt.",
   "perf.zuWenig": "Potřebuje aspoň dva hodnocené dny.",
+  "perf.saisonText": "Od 1. ledna se sbírají body a všichni začínají od nuly: každý den a v každé kategorii dostanou místa 1 až 10 25, 20, 16, 13, 11, 9, 7, 5, 3 a 2 body, k tomu 1 bod za každý den na vodě. Se sezónním žebříčkem všech jezdců.",
+  "perf.saisonTitel": "Sezóna 2027",
   "team.vorlage.gpskunst": "GPS umění: kdo nakreslí nejlepší obrázek na vodu?",
   "kunst.einstellungHinweis": "Místo žebříčků: účastníci v každém kole pošlou jeden obrázek z vlastní session, poté komunita anonymně hlasuje srdíčky. Další kolo mezitím už běží.",
   "kunst.rundenTage": "Nové kolo každých (dní)",

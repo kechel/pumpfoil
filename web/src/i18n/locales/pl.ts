@@ -3097,6 +3097,8 @@ const pl: Record<string, string> = {
   "perf.verlauf": "Średnia dnia (odsetek pokonanych)",
   "perf.hinweis": "Miejsca wynikają ze zmierzonych wartości. Bliskie miejsca w sprintach często mieszczą się w dokładności pomiaru zegarków — traktuj je jak zabawę, nie werdykt.",
   "perf.zuWenig": "Potrzeba co najmniej dwóch sklasyfikowanych dni.",
+  "perf.saisonText": "Od 1 stycznia są punkty i wszyscy zaczynają od zera: każdego dnia w każdej kategorii miejsca 1–10 dają 25, 20, 16, 13, 11, 9, 7, 5, 3 i 2 punkty, plus 1 punkt za każdy dzień na wodzie. Z sezonowym rankingiem wszystkich riderów.",
+  "perf.saisonTitel": "Sezon 2027",
   "team.vorlage.gpskunst": "Sztuka GPS: kto narysuje najfajniejszy obrazek na wodzie?",
   "kunst.einstellungHinweis": "Zamiast rankingów: uczestnicy w każdej rundzie wysyłają jeden obrazek z własnej sesji, a potem społeczność głosuje anonimowo za pomocą serduszek. Następna runda już się w tym czasie toczy.",
   "kunst.rundenTage": "Nowa runda co (dni)",

@@ -3172,6 +3172,8 @@ const nl: Record<string, string> = {
   "perf.verlauf": "Daggemiddelde (deel verslagen riders)",
   "perf.hinweis": "Klasseringen komen uit de gemeten waarden. Nipte plaatsen bij de sprints liggen vaak binnen de meetnauwkeurigheid van de horloges — zie het als spel, niet als oordeel.",
   "perf.zuWenig": "Minstens twee geklasseerde dagen nodig.",
+  "perf.saisonText": "Vanaf 1 januari zijn er punten en begint iedereen op nul: per dag en categorie leveren plaats 1 tot 10 25, 20, 16, 13, 11, 9, 7, 5, 3 en 2 punten op, plus 1 punt voor elke dag op het water. Met een seizoensklassement van alle riders.",
+  "perf.saisonTitel": "Seizoen 2027",
   "team.vorlage.gpskunst": "GPS-kunst: wie tekent het gaafste plaatje op het water?",
   "kunst.einstellungHinweis": "In plaats van ranglijsten: deelnemers sturen per ronde één plaatje uit een eigen sessie in, daarna stemt de community anoniem met hartjes. De volgende ronde loopt dan al.",
   "kunst.rundenTage": "Nieuwe ronde elke (dagen)",

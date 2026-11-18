@@ -96,6 +96,12 @@ export function PerformanceBereich() {
         </div>
 
         <p className="text-sm text-slate-400">{t("perf.intro", { n: daten?.min_feld ?? 5 })}</p>
+        {/* Ankuendigung Saison 2027 (Jan 18.11.2026: Punkte ab 1.1.2027 mit Saison-Rangliste), bis die Saison startet. */}
+        {Date.now() < Date.UTC(2027, 0, 1) && (
+          <div className="rounded-xl border border-brand-500/40 bg-brand-500/10 p-3 text-sm text-slate-200">
+            <span className="font-semibold text-brand-700 dark:text-brand-300">{t("perf.saisonTitel")}</span> · {t("perf.saisonText")}
+          </div>
+        )}
 
         {fehler ? <Card className="p-4 text-sm text-red-700 dark:text-red-400">{fehler}</Card> : !daten ? <Spinner /> : alle.length === 0 ? (
           <Card className="p-6 text-center text-slate-300">{t("perf.leer")}</Card>

@@ -1046,6 +1046,7 @@ struct PerfAntwort: Codable {
 }
 
 private let perfKats: [String] = ["sprint_100m", "sprint_60s", "run_distance", "run_time"]
+private let perfSaisonStart: Date = ISO8601DateFormatter().date(from: "2027-01-01T00:00:00Z") ?? Date.distantFuture
 private let perfCyan = Color(red: 34 / 255, green: 211 / 255, blue: 238 / 255)   // Markenfarbe (brand-design)
 private let perfBuckets: [(String, (Int) -> Bool)] = [
     ("1", { $0 == 1 }), ("2", { $0 == 2 }), ("3", { $0 == 3 }),
@@ -1105,9 +1106,20 @@ struct PerformanceBereich: View {
             auswahl
             Text(Loc.t("perf.intro", lang).replacingOccurrences(of: "{n}", with: String(daten?.min_feld ?? 5)))
                 .font(.subheadline).foregroundStyle(.secondary)
+            if Date() < perfSaisonStart { saisonKachel }
             inhalt
         }
         .task(id: sport) { await laden() }
+    }
+
+    // Ankuendigung Saison 2027 (Jan 18.11.2026: Punkte ab 1.1.2027 mit Saison-Rangliste), bis die Saison startet.
+    private var saisonKachel: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(Loc.t("perf.saisonTitel", lang)).fontWeight(.semibold).foregroundStyle(perfCyan)
+            Text(Loc.t("perf.saisonText", lang)).font(.caption)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading).padding(12)
+        .background(perfCyan.opacity(0.12)).clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private func laden() async {

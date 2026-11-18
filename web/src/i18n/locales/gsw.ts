@@ -3003,6 +3003,8 @@ const gsw: Record<string, string> = {
   "perf.verlauf": "Tagesschnitt (Aateil gschlageni Fahrer)",
   "perf.hinweis": "D Platzierige chömed us de gmässne Wärt. Knappi Plätz bi de Sprints ligged oft innerhalb vo de Mässgnauigkeit vo de Uhre — nimm sie als Spiel, nöd als Urteil.",
   "perf.zuWenig": "Bruucht mindeschtens zwei gwerteti Täg.",
+  "perf.saisonText": "Ab 1. Januar gits Pünkt, alli started bi null: pro Tag und Kategorie für Platz 1 bis 10 25, 20, 16, 13, 11, 9, 7, 5, 3 und 2 Pünkt, dezue 1 Punkt für jede Tag uf em Wasser. Mit ere Saison-Ranglischte vo allne Fahrer.",
+  "perf.saisonTitel": "Saison 2027",
   "team.vorlage.gpskunst": "GPS-Kunscht: Wer malt s cooluscht Bild uufs Wasser?",
   "kunst.einstellungHinweis": "Statt Bischtelischte: D Teilnehmer reiched pro Rundi es Bild vo ere eigete Session ii, denn stimmt d Community anonym mit Hääggli ab. D nöchscht Rundi lauft dezwüsche scho.",
   "kunst.rundenTage": "Neui Rundi alli (Tag)",

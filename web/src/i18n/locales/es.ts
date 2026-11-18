@@ -3000,6 +3000,8 @@ const es: Record<string, string> = {
   "perf.verlauf": "Media del día (parte de riders superados)",
   "perf.hinweis": "Los puestos salen de los valores medidos. En los sprints, puestos ajustados suelen estar dentro de la precisión de los relojes: tómalos como un juego, no como un veredicto.",
   "perf.zuWenig": "Hacen falta al menos dos días clasificados.",
+  "perf.saisonText": "Desde el 1 de enero hay puntos y todos empiezan de cero: cada día y categoría, los puestos 1 a 10 dan 25, 20, 16, 13, 11, 9, 7, 5, 3 y 2 puntos, más 1 punto por cada día en el agua. Con una clasificación de temporada de todos los riders.",
+  "perf.saisonTitel": "Temporada 2027",
   "team.vorlage.gpskunst": "Arte GPS: ¿quién dibuja la imagen más chula sobre el agua?",
   "kunst.einstellungHinweis": "En vez de clasificaciones: en cada ronda los participantes envían una imagen de una sesión propia y después la comunidad vota de forma anónima con corazones. Mientras tanto ya corre la siguiente ronda.",
   "kunst.rundenTage": "Nueva ronda cada (días)",

@@ -3118,6 +3118,8 @@ const id: Record<string, string> = {
   "perf.verlauf": "Rata-rata harian (bagian rider dikalahkan)",
   "perf.hinweis": "Peringkat berasal dari nilai yang diukur. Posisi yang tipis di sprint sering masih dalam akurasi jam tangan — anggap sebagai permainan, bukan vonis.",
   "perf.zuWenig": "Perlu minimal dua hari yang dinilai.",
+  "perf.saisonText": "Mulai 1 Januari ada poin dan semua mulai dari nol: setiap hari dan kategori, posisi 1 sampai 10 mendapat 25, 20, 16, 13, 11, 9, 7, 5, 3 dan 2 poin, ditambah 1 poin untuk setiap hari di air. Dengan papan peringkat musim semua rider.",
+  "perf.saisonTitel": "Musim 2027",
   "team.vorlage.gpskunst": "Seni GPS: siapa yang menggambar gambar paling keren di atas air?",
   "kunst.einstellungHinweis": "Alih-alih papan peringkat: peserta mengirim satu gambar per ronde dari sesi mereka sendiri, lalu komunitas memilih secara anonim dengan hati. Ronde berikutnya sudah berjalan selama itu.",
   "kunst.rundenTage": "Ronde baru setiap (hari)",

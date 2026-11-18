@@ -3277,6 +3277,8 @@ const de: Record<string, string> = {
   "perf.verlauf": "Tagesschnitt (Anteil geschlagener Fahrer)",
   "perf.hinweis": "Die Platzierungen kommen aus den gemessenen Werten. Knappe Plätze bei den Sprints liegen oft innerhalb der Messgenauigkeit der Uhren — nimm sie als Spiel, nicht als Urteil.",
   "perf.zuWenig": "Braucht mindestens zwei gewertete Tage.",
+  "perf.saisonText": "Ab 1. Januar gibt es Punkte, alle starten bei null: je Tag und Kategorie für Platz 1 bis 10 25, 20, 16, 13, 11, 9, 7, 5, 3 und 2 Punkte, dazu 1 Punkt für jeden Tag auf dem Wasser. Mit einer Saison-Rangliste aller Fahrer.",
+  "perf.saisonTitel": "Saison 2027",
   "team.vorlage.gpskunst": "GPS-Kunst: Wer malt das coolste Bild aufs Wasser?",
   "kunst.einstellungHinweis": "Statt Bestenlisten: Die Teilnehmer reichen je Runde ein Bild aus einer eigenen Session ein, danach stimmt die Community anonym mit Herzen ab. Die nächste Runde läuft dabei schon.",
   "kunst.rundenTage": "Neue Runde alle (Tage)",
