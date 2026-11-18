@@ -2139,7 +2139,11 @@ keine neue; Muster wie u588 am 18.09.: `_purge_session` loeschte die Ordner mitt
 vor dem Verlust). Server-Log reicht nur bis 17.11., also nicht direkt belegt. Scan 18.11.: seit 11.11. KEINE weiteren aktiven
 Sessions ohne Ordner (nur die bekannten 6). Gleiches Muster (Ordner vor dem Commit loeschen) noch in `merge.unmerge_session`
 und `split.unsplit_session` -> umgestellt auf „erst Commit, dann Dateien". `admin._purge_session` hat keine Aufrufer mehr.
-**Offene Frage an Jan (DSGVO):** wollten diese 4 ihr Konto loeschen? Dann bestehen sie bis heute weiter (u394 zuletzt gesehen 27.10.).
+✅ **18.11. nachgeloescht (Jan: „pruefe ob die sich nochmal eingeloggt haben, falls nicht, richtig loeschen"):** u159, u172, u256
+ohne jede Aktivitaet nach dem Verlust (last_seen 29.08./22.08./11.08., keine Geraete/Chats/Uploads danach) -> per
+`loeschung.konto_loeschen` geloescht. u394 bleibt (Geraete-Anmeldung 06.09., zuletzt gesehen 27.10.). Bestaetigungsmails als
+Entwurf bei Jan (eine Adresse ist Apple-Relay). Monats-Snapshots (hardlink-snapshots/2026080x, 2026090x) enthalten noch Rohdaten
+von u159 und u394 — nicht angefasst.
 
 - **🔲 08.11. Gruene Spots: versehentlicher Stopp meldet den Fahrer ab (andermal ueberlegen).** Versehentlich
   gestoppte Uhr-Aufnahme (3 min, 0 Laeufe) kam nach der Positionsmeldung hoch; nach der Regel vom 15.10. heisst
