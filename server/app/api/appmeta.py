@@ -53,7 +53,9 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.66",   # FREIGEGEBEN 2026-11-12 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.66 for iOS
+        "latest": "1.1.67",   # FREIGEGEBEN 2026-11-17 (Jans Meldung 18.11.), Apple-Mail eligible for distribution, 1.1.67 for iOS
+        # (Submission 640546f6-64a8-4eae-bf30-5a937970dfeb, Build 78); Store-Lookup de/us/nl/no 1.1.67 (2026-11-17T22:29:12Z).
+        # ALT: "latest": "1.1.66",   # FREIGEGEBEN 2026-11-12 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.66 for iOS
         # (Submission 4151a892-5045-49ff-ba41-57e9369963ae, Build 77 mit GPS-Luecken-Fix).
         # ALT: "latest": "1.1.65",   # FREIGEGEBEN 2026-11-11 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.65 for iOS
         # (Submission ffa9a803-b55d-4e6a-ba16-7f56f6bfbd15, Build 75); Store-Lookup de/us/nl zweimal hintereinander 1.1.65
@@ -528,7 +530,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.66",   # FREIGEGEBEN 2026-11-12 — dieselbe Einreichung wie "ios" (ein Bundle; GPS-Luecke am Lauf-Ende).
+        "latest": "1.1.67",   # FREIGEGEBEN 2026-11-17 — dieselbe Einreichung wie "ios" (ein Bundle; Watch unveraendert).
+        # ALT: "latest": "1.1.66",   # FREIGEGEBEN 2026-11-12 — dieselbe Einreichung wie "ios" (ein Bundle; GPS-Luecke am Lauf-Ende).
         # ALT: "latest": "1.1.65",   # FREIGEGEBEN 2026-11-11 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.64",   # FREIGEGEBEN 2026-11-11 — dieselbe Einreichung wie "ios" (ein Bundle; V-max wie der Server).
         # ALT: "latest": "1.1.62",   # FREIGEGEBEN 2026-11-07 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -954,19 +957,7 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # iPhone + Apple Watch 1.1.67 (Build 78) am 17.11.2026 06:02 eingereicht (Jans Meldung, ASC „Warten auf Pruefung",
-    # Uebermittlung 640546f6-64a8-4eae-bf30-5a937970dfeb). Punkte stehen im Changelog mit ios 1.1.67.
-    {"name": "iPhone + Apple Watch", "version": "1.1.67",
-     "eingereicht": "2026-11-17",
-     "items": [
-         "Pumpfoil sessions show the wind at the spot: strength, gusts and direction.",
-         "Sessions that count for an event show it, with category tags that highlight the scoring part of each run.",
-         "Event pages list referee corrections, let you flag a run for review and note which rules the final standings used.",
-         "Teams can invite other teams to their events and propose an event as a global event.",
-         "Unread chat messages show a red badge on the Chat tab.",
-         "Each run on the session page shows its heart-rate chart, and Suunto sessions show the cadence from the watch.",
-         "Taller maps, and the Spots map fills the screen between the tabs and the search field.",
-     ]},
+    # iPhone + Apple Watch 1.1.67 (Build 78) am 17.11. 06:02 eingereicht, am 17.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte im Changelog mit ios 1.1.67.
     # Amazfit 1.0.16 am 13.11.2026 ~19:00 eingereicht (Jans Meldung, Zepp-Konsole „Under Review").
     {"name": "Amazfit", "version": "1.0.16",
      "eingereicht": "2026-11-13",
