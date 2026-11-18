@@ -63,23 +63,25 @@ function baumMitStern(cx, top, hoehe, breite, sternR, saat) {
   };
   const rechts = seite(1, 0.95), links = seite(-1, 1.32);
   const st = breite * 0.08, unten = top + krone, boden = top + hoehe;
-  const sy = top - sternR * 1.25;
-  const phase = r() * 6;
-  const unterpunkt = [cx, sy - sternR * 0.15 + sternR * 1.05 * 0.9 * (1 + 0.1 * Math.sin(Math.PI + phase))];
-  // Oben ein gefahrener Kreis statt Stern (Jan 18.11.2026: „als gefahrenen kreis oben ohne zacken, auch nicht 100%
-  // rund"): vom unteren Punkt einmal herum, Radius leicht eiernd.
-  const stern = [];
-  for (let i = 0; i <= 12; i++) {
-    const w = Math.PI / 2 + i * 2 * Math.PI / 12;
-    const rr = sternR * 1.05 * (1 + 0.1 * Math.sin(2 * w + phase));          // leicht oval/eiernd, ohne Zacken
-    stern.push([cx + rr * Math.cos(w) + sternR * 0.08 * Math.sin(w), sy - sternR * 0.15 + rr * Math.sin(w) * 0.9]);
+  // Oben eine gefahrene Schleife statt Stern (Jan 18.11.2026: „gefahrenen kreis … nicht 100% rund", „der anschluss an
+  // den kreis muss auch gefahren werden"): von rechts unten tangential hinein, oben herum, links unten tangential hinaus
+  // in die linken Aeste — kein Steg, keine Kehre.
+  // Schlaufe mit Kreuzung: von rechts unten hinein, einmal ganz herum (gut 360°), unten ueber die eigene Spur, links
+  // hinaus — die Kreuzung bleibt als Baumspitze sichtbar.
+  const phase = r() * 6, kr = sternR * 1.1, ky = top - kr * 0.95;
+  const schleife = [];
+  for (let i = 0; i <= 22; i++) {
+    const grad = 55 - i * (395 / 22);                         // 55° (rechts unten) gegen den Uhrzeiger bis -340° (= 20°, wieder rechts unten vorbei)
+    const w = grad * Math.PI / 180;
+    const rr = kr * (1 + 0.1 * Math.sin(2 * w + phase));
+    schleife.push([cx + rr * Math.cos(w), ky + rr * Math.sin(w) * 0.9]);
   }
   // Links nur bis zum inneren Punkt der zweiten Etage, dann ein kurzes Stueck Richtung unterster Ast — Sturz.
   const l = links.slice(0, 4);
   const ende = [l[3][0] + (links[4][0] - l[3][0]) * 0.18, l[3][1] + (links[4][1] - l[3][1]) * 0.18];
   const roh = [
-    [cx + st * 0.6, boden], [cx + st, boden - hoehe * 0.03], [cx + st, unten], ...rechts.slice().reverse(), [cx + 2, top],
-    unterpunkt, ...stern.slice(1, -1), unterpunkt, [cx - 2, top], ...l, ende,
+    [cx + st * 0.6, boden], [cx + st, boden - hoehe * 0.03], [cx + st, unten], ...rechts.slice().reverse(),
+    ...schleife, ...l, ende,
   ];
   return gefahren(roh, hoehe * 0.06, saat, hoehe * 0.008);
 }
