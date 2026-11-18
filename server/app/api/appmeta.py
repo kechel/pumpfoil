@@ -651,8 +651,8 @@ _APP_META: dict[str, dict[str, str]] = {
     # Die Watch 5 schickt `p=huawei` (1.0.2 ist so eingereicht) -> devices._plat_fuer_hinweis
     # bildet das auf "huawei-watch5" ab. `latest` erst bei bestaetigter Freigabe setzen.
     "huawei-watch5": {      # watch-huawei/arkts, HarmonyOS 5/6, laedt selbst hoch (seit 1.0.2)
-        "latest": "1.0.5",  # FREIGEGEBEN 2026-11-12 (Jans Meldung, AppGallery-Mail: Einreichung 10.11. 19:28:02 Pekinger Zeit
-        # approved and released). 1.0.4 am 09.11. freigegeben (Einreichung 04.11. 17:42:06 Pekinger Zeit). 1.0.3 am 04.11. als erste Huawei-Fassung freigegeben; davor 1.0.2 abgelehnt 22.10./28.10.,
+        "latest": "1.0.6",  # FREIGEGEBEN 2026-11-18 (Jans Meldung, AppGallery-Mail: Einreichung 13.11. 23:30:56 Pekinger Zeit
+        # approved and released). 1.0.5 am 12.11. freigegeben (Einreichung 10.11. 19:28:02 Pekinger Zeit). 1.0.4 am 09.11. freigegeben (Einreichung 04.11. 17:42:06 Pekinger Zeit). 1.0.3 am 04.11. als erste Huawei-Fassung freigegeben; davor 1.0.2 abgelehnt 22.10./28.10.,
         # 1.0.3 abgelehnt 02.11.
         "min_supported": "",
         # Ueber den Paketnamen (von Jan im Browser bestaetigt 04.11.); die Form /app/C<App-ID> zeigte NICHTS.
@@ -973,12 +973,7 @@ IN_REVIEW: list[dict] = [
      "items": [
          "New: HUAWEI WATCH GT, Fit and D record pump foiling sessions and upload them through the Pumpfoil app for Android.",
      ]},
-    {"name": "Huawei Watch 5", "version": "1.0.6",
-     "eingereicht": "2026-11-13",
-     "items": [
-         "After a short GPS dropout at the end of a run, for example after a fall, the run now ends at the last good GPS fix.",
-         "You can swipe down from the settings list to return to the start screen, not only with the crown.",
-     ]},
+    # Huawei Watch 5 1.0.6 am 18.11. FREIGEGEBEN (s. _APP_META["huawei-watch5"]); Wisch-Punkt neu im Changelog, GPS-Luecke an #1028.
     # 12.11.2026: GPS-Luecke am Lauf-Ende (LaufLuecke.mc, baf2244d/bddabe64), im Simulator auf fenix 7X Pro, FR55 und
     # Instinct 2 getestet. Version 1.0.103 fuer die Einreichung gebumpt.
     # Garmin 1.0.104 am 17.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); 2 Punkte + Ereignis im Changelog mit garmin 1.0.104.
