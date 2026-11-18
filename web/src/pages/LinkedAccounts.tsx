@@ -225,11 +225,6 @@ function CorosCard() {
     <Card className="p-5">
       <h3 className="mb-1 flex items-center gap-2 font-semibold">
         {t("settings.coros.title")}
-        {mcp && (
-          <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-200">
-            Beta
-          </span>
-        )}
       </h3>
       <p className="mb-3 text-sm text-slate-300">{t("settings.coros.hint")}</p>
       {/* Aufbau exakt wie bei Polar und Suunto: Logo und „Verbunden" in EINER Zeile, die
