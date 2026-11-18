@@ -231,3 +231,21 @@ def test_testmodus_nur_admin_alte_sessions_und_phasen(client, monkeypatch):
     # Aus: Phasen verworfen, wieder nach der Uhr.
     client.post(f"/api/kunst/{eid}/test", headers=kadm, json={"test": False})
     assert client.get(f"/api/kunst/{eid}", headers=ka).json()["runden"][0]["phase"] == "einreichen"
+
+
+def test_karte_erst_nach_aufloesung(client, monkeypatch):
+    """Echter Track zum Bild: erst im Ergebnis, Norden oben (Koordinaten wie gemessen), fuer Fremde nicht vorher."""
+    jetzt = datetime.now(timezone.utc)
+    eid = _event(jetzt - timedelta(days=1), jetzt + timedelta(days=6))
+    (ia, ka), (ib, kb) = _nutzer("A"), _nutzer("B")
+    sid, uuid = _session(ia, jetzt - timedelta(hours=2))
+    gps = {uuid: _kreis()}
+    monkeypatch.setattr("app.api.kunst.storage.load_gps", lambda u: gps.get(u, []))
+    bid = client.post(f"/api/kunst/{eid}/bild", headers=ka, json={"runde": 1, "session_id": sid, "von_ms": 0,
+                                                                 "bis_ms": 10**9, "drehung": 90}).json()["id"]
+    assert client.get(f"/api/kunst/bild/{bid}/karte", headers=kb).status_code == 409
+    assert client.get(f"/api/kunst/bild/{bid}/karte", headers=ka).status_code == 200    # eigenes immer
+    _verschieben(eid, 9)
+    k = client.get(f"/api/kunst/bild/{bid}/karte", headers=kb).json()["striche"]
+    assert len(k) == 1 and abs(k[0][0][0] - 54.0) < 0.01          # echte Breite, nicht gedreht/normiert
+    assert client.get(f"/api/kunst/{eid}", headers=kb).json()["runden"][0]["ergebnis"][0]["karte"] is True

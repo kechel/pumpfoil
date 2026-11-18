@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import L from "leaflet";
+import { basiskarten, kartenTexte } from "../lib/mapTiles";
 import { Link } from "react-router-dom";
 import { api, type KunstBild, type KunstEvent, type KunstLinieDaten, type KunstRunde } from "../lib/api";
 import { useT } from "../i18n";
@@ -234,9 +236,29 @@ function Aufloesung({ runde }: { runde: KunstRunde }) {
   if (!e.length) return <p className="text-sm text-slate-400">{t("kunst.leer")}</p>;
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      {e.map((z) => (
-        <div key={z.bild_id} className={`rounded-xl border p-2 ${z.platz <= 3 ? "border-brand-500" : "border-slate-700"}`}>
-          <KunstLinie linie={z.linie} saat={z.bild_id} />
+      {e.map((z) => <ErgebnisBild key={z.bild_id} z={z} />)}
+    </div>
+  );
+}
+
+/** Ergebnisbild mit Umschalter „Bild | Karte" (Jan 18.11.2026): die Karte zeigt den echten Track desselben Ausschnitts,
+ *  Norden oben — nur wenn der Ort fuer den Betrachter nicht verborgen ist (Server prueft). */
+function ErgebnisBild({ z }: { z: NonNullable<KunstRunde["ergebnis"]>[number] }) {
+  const t = useT();
+  const [karte, setKarte] = useState(false);
+  return (
+        <div className={`rounded-xl border p-2 ${z.platz <= 3 ? "border-brand-500" : "border-slate-700"}`}>
+          {karte ? <KunstKarte bildId={z.bild_id} /> : <KunstLinie linie={z.linie} saat={z.bild_id} />}
+          {z.karte && (
+            <div className="mt-2 inline-flex rounded-lg bg-slate-800 p-0.5 text-xs">
+              {([false, true] as const).map((k) => (
+                <button key={String(k)} type="button" onClick={() => setKarte(k)} aria-pressed={karte === k}
+                  className={`rounded-md px-2 py-0.5 ${karte === k ? "bg-brand-500 font-semibold text-slate-950" : "text-slate-300 hover:text-slate-100"}`}>
+                  {k ? t("kunst.ansichtKarte") : t("kunst.ansichtBild")}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-lg font-bold tabular-nums text-slate-100">{z.platz}.</span>
             <span className="min-w-0 flex-1 truncate font-semibold text-slate-100">{z.name ?? "—"}</span>
@@ -247,9 +269,35 @@ function Aufloesung({ runde }: { runde: KunstRunde }) {
             {z.session_id && <Link to={`/sessions/${z.session_id}`} className="text-brand-700 hover:underline dark:text-brand-300">{t("kunst.zurSession")}</Link>}
           </div>
         </div>
-      ))}
-    </div>
   );
+}
+
+/** Echter Track auf der Karte (Strasse/Luftbild wie ueberall), Norden oben, auf den Track eingepasst. */
+function KunstKarte({ bildId }: { bildId: number }) {
+  const t = useT();
+  const box = useRef<HTMLDivElement>(null);
+  const [fehler, setFehler] = useState<string | null>(null);
+  useEffect(() => {
+    if (!box.current) return;
+    // keyboard: false — sonst haengt Leaflets Tastatur-Handler am document und schluckt Tasten (Spots.tsx, 17.08.).
+    const m = L.map(box.current, { zoomControl: false, attributionControl: true, keyboard: false, maxZoom: 20 });
+    basiskarten(m, kartenTexte(t), { maxZoom: 20 });
+    let aus = false;
+    api.kunstKarte(bildId).then((r) => {
+      if (aus) return;
+      const grenzen = L.latLngBounds([]);
+      for (const st of r.striche) {
+        // Dunkler Rand darunter: Cyan allein verschwindet auf hellblauem Wasser.
+        L.polyline(st as L.LatLngExpression[], { color: "#0b1a33", weight: 7, opacity: 0.85 }).addTo(m);
+        L.polyline(st as L.LatLngExpression[], { color: "#22d3ee", weight: 4, opacity: 1 }).addTo(m);
+        st.forEach((p) => grenzen.extend(p as L.LatLngExpression));
+      }
+      if (grenzen.isValid()) m.fitBounds(grenzen, { padding: [12, 12] });
+    }).catch((x) => { if (!aus) setFehler(t(`kunst.err.${fehlerCode(x)}`)); });
+    return () => { aus = true; m.remove(); };
+  }, [bildId]);   // eslint-disable-line react-hooks/exhaustive-deps
+  return fehler ? <p className="flex aspect-square items-center justify-center text-sm text-slate-400">{fehler}</p>
+    : <div ref={box} className="aspect-square w-full overflow-hidden rounded-lg" />;
 }
 
 function Editor({ eventId, runde, onZu, onFertig }: { eventId: number; runde: KunstRunde; onZu: () => void; onFertig: () => void }) {

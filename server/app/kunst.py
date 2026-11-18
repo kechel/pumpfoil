@@ -203,6 +203,37 @@ def linie(gps: list, von_ms: int, bis_ms: int, drehung: int, max_punkte: int = L
     return [[[int(round(x)), int(round(y))] for x, y in st] for st in z]
 
 
+def karte(gps: list, von_ms: int, bis_ms: int, fenster: list[tuple[int, int]], max_je_strich: int = 600) -> list[list[list[float]]]:
+    """Der echte Track zum Bild (Aufloesung, Jan 18.11.2026): dieselben Striche wie `linie`, aber als [lat, lon] ohne
+    Drehung — Norden oben auf der Karte. Nur Punkte in Laeufen, je Strich gleichmaessig ausgeduennt."""
+    striche, akt, akt_f = [], [], None
+    for p in gps:
+        if len(p) < 3 or p[1] is None or p[2] is None or abs(float(p[1])) < 1e-6:
+            continue
+        t = float(p[0])
+        if not (von_ms <= t <= bis_ms):
+            continue
+        f = next((i for i, (a, z) in enumerate(fenster) if a <= t <= z), None)
+        if f is None:
+            continue
+        if f != akt_f and akt:
+            striche.append(akt)
+            akt = []
+        akt_f = f
+        akt.append([round(float(p[1]), 6), round(float(p[2]), 6)])
+    if akt:
+        striche.append(akt)
+    out = []
+    for st in striche:
+        if len(st) < 2:
+            continue
+        if len(st) > max_je_strich:
+            k = len(st) / max_je_strich
+            st = [st[int(i * k)] for i in range(max_je_strich)] + [st[-1]]
+        out.append(st)
+    return out
+
+
 # ---------------------------------------------------------------------------------------------- Wer darf was ----
 
 def darf_teilnehmen(db: Session, user: models.User, e: models.TeamEvent) -> bool:

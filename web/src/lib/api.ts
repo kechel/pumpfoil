@@ -1153,7 +1153,7 @@ export type FoilStatWerte = { sessions: number; users: number; avg_speed_kmh: nu
 export type KunstLinieDaten = [number, number][][] | [number, number][];
 export type KunstBild = { id: number; linie: KunstLinieDaten; eigen?: boolean; herz?: boolean; entfernt?: string | null; meldungen?: number };
 export type KunstErgebnis = { bild_id: number; platz: number; herzen: number; user_id: number; session_id: number | null;
-  linie: KunstLinieDaten; name: string | null; avatar_url: string | null; spot: string | null };
+  linie: KunstLinieDaten; name: string | null; avatar_url: string | null; spot: string | null; karte?: boolean };
 export type KunstRunde = { nr: number; start: string; ende: string; abstimmen_bis: string; phase: "kommt" | "einreichen" | "abstimmen" | "fertig";
   anzahl: number; herzen_vergeben: number; galerie: KunstBild[]; ergebnis?: KunstErgebnis[];
   eigen: (KunstBild & { session_id: number; von_ms: number; bis_ms: number; drehung: number; entfernt: string | null }) | null };
@@ -1637,6 +1637,7 @@ export const api = {
   kunstTest: (eventId: number, test: boolean) => req<unknown>(`/api/kunst/${eventId}/test`, { method: "POST", body: JSON.stringify({ test }) }),
   kunstPhase: (eventId: number, runde: number, phase: string | null) =>
     req<unknown>(`/api/kunst/${eventId}/phase`, { method: "POST", body: JSON.stringify({ runde, phase }) }),
+  kunstKarte: (bildId: number) => req<{ striche: [number, number][][] }>(`/api/kunst/bild/${bildId}/karte`),
   kunstZurueckholen: (bildId: number) => req<{ ok: boolean }>(`/api/kunst/bild/${bildId}/zurueck`, { method: "POST" }),
   pushKey: () => req<{ key: string }>("/api/push/key"),
   pushSubscribe: (sub: unknown) => req<{ ok: boolean }>("/api/push/subscribe", { method: "POST", body: JSON.stringify(sub) }),

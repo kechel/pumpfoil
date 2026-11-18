@@ -103,10 +103,11 @@ def _aufloesung(db: Session, e: models.TeamEvent, nr: int, betrachter: int) -> l
     for z in zeilen:
         u, s, b = nutzer.get(z["user_id"]), sessions.get(z["session_id"]), bilder[z["bild_id"]]
         spot = None
-        if s is not None and s.spot_id and (not _ort_fuer_andere_verborgen(s) or _sieht_echten_ort(db, s, betrachter)):
+        ort_sichtbar = s is not None and not s.deleted and (not _ort_fuer_andere_verborgen(s) or _sieht_echten_ort(db, s, betrachter))
+        if ort_sichtbar and s.spot_id:
             spot = spots.get(s.spot_id)
         out.append({**z, "linie": json.loads(b.linie_json), "name": (u.display_name if u else None),
-                    "avatar_url": (u.avatar_url if u else None), "spot": spot,
+                    "avatar_url": (u.avatar_url if u else None), "spot": spot, "karte": ort_sichtbar,
                     "session_id": z["session_id"] if s is not None and not s.deleted else None})
     return out
 
@@ -339,3 +340,20 @@ def phase_setzen(event_id: int, body: PhaseIn, user: models.User = Depends(curre
     _kunst_speichern(e, setzen)
     db.commit()
     return K.einstellungen(e)
+
+
+@router.get("/bild/{bild_id}/karte")
+def bild_karte(bild_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Echter Track eines Bildes auf der Karte (Jan 18.11.2026) — erst nach der Aufloesung, und nur wenn der Betrachter
+    den Ort sehen darf (wie der Spotname: Besitzer, Freunde, oder „Ort verbergen" aus)."""
+    from .sessions import _ort_fuer_andere_verborgen, _sieht_echten_ort
+    b, e = _bild(db, bild_id, user)
+    r = _runde(e, b.runde)
+    if r["phase"] != "fertig" and b.user_id != user.id:
+        raise HTTPException(status.HTTP_409_CONFLICT, "noch_nicht_aufgeloest")
+    s = db.get(models.Session, b.session_id)
+    if s is None or s.deleted or b.entfernt_grund is not None:
+        raise _404()
+    if b.user_id != user.id and _ort_fuer_andere_verborgen(s) and not _sieht_echten_ort(db, s, user.id):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "ort_verborgen")
+    return {"striche": K.karte(storage.load_gps(s.session_uuid), b.von_ms, b.bis_ms, _laeufe(db, s))}
