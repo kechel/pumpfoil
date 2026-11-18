@@ -94,6 +94,8 @@ export default function KunstBereich({ eventId }: { eventId: number }) {
   const [fehler, setFehler] = useState<string | null>(null);
   const [nr, setNr] = useState<number | null>(null);
   const [editor, setEditor] = useState(false);
+  // Gesamtuebersicht aller fertigen Runden (Jan 18.11.2026), erst ab 2 fertigen Runden.
+  const [alle, setAlle] = useState(false);
   const [jetzt, setJetzt] = useState(() => Date.now());
   useEffect(() => { const h = setInterval(() => setJetzt(Date.now()), 1000); return () => clearInterval(h); }, []);
   // Vollbild beim Abstimmen: Reihenfolge beim Oeffnen festgehalten, damit nach einem Herz nichts wegspringt.
@@ -143,15 +145,23 @@ export default function KunstBereich({ eventId }: { eventId: number }) {
       {d.runden.length > 1 && (
         <div className="mb-3 flex flex-wrap gap-1.5">
           {d.runden.map((r) => (
-            <button key={r.nr} type="button" onClick={() => setNr(r.nr)} aria-pressed={r.nr === runde.nr}
-              className={`rounded-lg px-3 py-1.5 text-sm ${r.nr === runde.nr ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300 hover:text-slate-100"}`}>
+            <button key={r.nr} type="button" onClick={() => { setNr(r.nr); setAlle(false); }} aria-pressed={!alle && r.nr === runde.nr}
+              className={`rounded-lg px-3 py-1.5 text-sm ${!alle && r.nr === runde.nr ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300 hover:text-slate-100"}`}>
               {t("kunst.runde", { n: String(r.nr) })} · {zeitraum(r.start, r.ende)} · {t(`kunst.phase.${r.phase}`)}
               {/* Countdown bis zum naechsten Schritt der Runde (Jan 18.11.2026: „eigene countdowns als 2te zeile"). */}
-              {ziel(r) && <span className="block text-xs font-normal tabular-nums opacity-80">{t("kunst.noch", { zeit: restText(ziel(r)!, jetzt) })}</span>}
+              {ziel(r) && <span className="block text-xs font-normal tabular-nums opacity-80">
+                {t(r.phase === "kommt" ? "kunst.startetIn" : "kunst.noch", { zeit: restText(ziel(r)!, jetzt) })}</span>}
             </button>
           ))}
+          {d.runden.filter((r) => r.phase === "fertig").length >= 2 && (
+            <button type="button" onClick={() => setAlle(true)} aria-pressed={alle}
+              className={`rounded-lg px-3 py-1.5 text-sm ${alle ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300 hover:text-slate-100"}`}>
+              {t("kunst.alle")}
+            </button>
+          )}
         </div>
       )}
+      {alle ? <Gesamt runden={d.runden.filter((r) => r.phase === "fertig")} /> : <>
       <p className="mb-3 text-sm font-medium text-slate-200">
         {runde.phase === "kommt" && t("kunst.info.kommt", { datum: datum(runde.start) })}
         {runde.phase === "einreichen" && t("kunst.info.einreichen", { datum: datum(runde.einreichen_bis ?? runde.ende), n: String(runde.anzahl) })}
@@ -202,6 +212,7 @@ export default function KunstBereich({ eventId }: { eventId: number }) {
         </div>
       )}
 
+      </>}
       {voll && (
         <AbstimmGalerie ids={voll.ids} start={voll.start} runde={runde} d={d} neu={laden} meldung={meldung} onZu={() => setVoll(null)} />
       )}
@@ -326,6 +337,39 @@ function AbstimmGalerie({ ids, start, runde, d, neu, meldung, onZu }: { ids: num
   );
 }
 
+/** Gesamtuebersicht (Jan 18.11.2026: „aus allen 4 wochen, sortiert nach zuerst die 4 ersten plaetze, dann die 4 2ten"): je
+ *  Platz eine Zeile mit den Bildern aller fertigen Runden, jedes mit seiner Runde beschriftet; Klick -> Vollbild-Galerie. */
+function Gesamt({ runden }: { runden: KunstRunde[] }) {
+  const t = useT();
+  const [offen, setOffen] = useState<number | null>(null);
+  const alle = runden.flatMap((r) => (r.ergebnis ?? []).map((z) => ({ ...z, runde: r.nr })))
+    .sort((a, b) => a.platz - b.platz || a.runde - b.runde || b.herzen - a.herzen);
+  const plaetze = [...new Set(alle.map((z) => z.platz))];
+  return (
+    <div className="space-y-4">
+      {plaetze.map((p) => (
+        <div key={p}>
+          <div className="mb-1.5 text-sm font-bold" style={{ color: p <= 3 ? METALL_TEXT[p - 1] : undefined }}>{t("kunst.platzN", { n: String(p) })}</div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {alle.map((z, i) => z.platz !== p ? null : (
+              <button key={z.bild_id} type="button" onClick={() => setOffen(i)}
+                className="rounded-lg p-1.5 text-left" style={{ background: p <= 3 ? METALL[p - 1] : "transparent", border: p <= 3 ? "none" : "1px solid #334155" }}>
+                <KunstLinie linie={z.linie} saat={z.bild_id} klein />
+                <div className="mt-1 flex items-center gap-1 rounded bg-slate-950/70 px-1 text-xs" style={{ color: "#e2e8f0" }}>
+                  <span className="shrink-0 font-semibold">{t("kunst.runde", { n: String(z.runde) })}</span>
+                  <span className="min-w-0 flex-1 truncate">· {z.name ?? "—"}</span>
+                  <Herzen n={z.herzen} hell />
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+      {offen != null && <Galerie liste={alle} start={offen} onZu={() => setOffen(null)} />}
+    </div>
+  );
+}
+
 // Aufloesung (Jan 18.11.2026: „mit musik und treppchen … alle anderen darunter auch und bei klick in einen vollbildpopup /
 // gallery"): Platz 1-3 als Treppchen (2-1-3, Gold/Silber/Bronze) mit derselben Fanfare wie beim Event-Treppchen
 // (components/EventPodest, Ton nicht im Repo, Stumm-Einstellung geteilt), darunter alle weiteren, Klick -> Vollbild-Galerie.
@@ -430,7 +474,7 @@ function Aufloesung({ runde }: { runde: KunstRunde }) {
 
 /** Vollbild-Galerie der Auflösung: grosses Bild mit Umschalter Bild | Karte, Name, Platz, Herzen, Spot, Link; Pfeile/Tasten
  *  blaettern, Esc schliesst. */
-function Galerie({ liste, start, onZu }: { liste: Ergebnis[]; start: number; onZu: () => void }) {
+function Galerie({ liste, start, onZu }: { liste: (Ergebnis & { runde?: number })[]; start: number; onZu: () => void }) {
   const t = useT();
   const [i, setI] = useState(start);
   const [karte, setKarte] = useState(false);
@@ -458,7 +502,8 @@ function Galerie({ liste, start, onZu }: { liste: Ergebnis[]; start: number; onZ
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-3 text-white">
           <span className="text-2xl font-extrabold tabular-nums" style={{ color: p <= 3 ? METALL[p - 1] : "#e2e8f0" }}>{z.platz}.</span>
-          <span className="min-w-0 flex-1 truncate text-lg font-bold">{z.name ?? "—"}</span>
+          <span className="min-w-0 flex-1 truncate text-lg font-bold">{z.name ?? "—"}
+            {z.runde != null && <span className="ml-2 text-sm font-normal" style={{ color: "#94a3b8" }}>{t("kunst.runde", { n: String(z.runde) })}</span>}</span>
           <Herzen n={z.herzen} gross hell />
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-3 text-sm" style={{ color: "#cbd5e1" }}>
