@@ -2141,8 +2141,8 @@ Sessions ohne Ordner (nur die bekannten 6). Gleiches Muster (Ordner vor dem Comm
 und `split.unsplit_session` -> umgestellt auf „erst Commit, dann Dateien". `admin._purge_session` hat keine Aufrufer mehr.
 ✅ **18.11. nachgeloescht (Jan: „pruefe ob die sich nochmal eingeloggt haben, falls nicht, richtig loeschen"):** u159, u172, u256
 ohne jede Aktivitaet nach dem Verlust (last_seen 29.08./22.08./11.08., keine Geraete/Chats/Uploads danach) -> per
-`loeschung.konto_loeschen` geloescht. u394 bleibt (Geraete-Anmeldung 06.09., zuletzt gesehen 27.10.). Bestaetigungsmails als
-Entwurf bei Jan (eine Adresse ist Apple-Relay). Monats-Snapshots (hardlink-snapshots/2026080x, 2026090x) enthalten noch Rohdaten
+`loeschung.konto_loeschen` geloescht. u394 bleibt (Geraete-Anmeldung 06.09., zuletzt gesehen 27.10.). Keine
+Bestaetigungsmails (Jan: „wir verschicken nix"); Entwuerfe und Adressen verworfen. Monats-Snapshots (hardlink-snapshots/2026080x, 2026090x) enthalten noch Rohdaten
 von u159 und u394 — nicht angefasst.
 
 - **🔲 08.11. Gruene Spots: versehentlicher Stopp meldet den Fahrer ab (andermal ueberlegen).** Versehentlich
