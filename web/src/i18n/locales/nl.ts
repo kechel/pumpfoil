@@ -3178,7 +3178,7 @@ const nl: Record<string, string> = {
   "kunst.einstellungHinweis": "In plaats van ranglijsten: deelnemers sturen per ronde één plaatje uit een eigen sessie in, daarna stemt de community anoniem met hartjes. De volgende ronde loopt dan al.",
   "kunst.rundenTage": "Nieuwe ronde elke (dagen)",
   "kunst.abstimmenTage": "Stemmen daarna (dagen)",
-  "kunst.regeln": "Per ronde tellen alleen je eigen sessies die in die ronde zijn opgenomen, alle sporten op het water.\nIedereen stuurt per ronde één afbeelding in en kan die tot het einde van de ronde wijzigen of intrekken.\nNa de ronde wordt er gestemd: anoniem, alleen de lijn is te zien, iedereen heeft 3 hartjes en geen voor de eigen afbeelding.\nWie hoeveel hartjes heeft, wordt pas na de stemming bekend — dan met naam en spot (tenzij verborgen).\nHumor mag. Alleen wat echt verboden is, wordt verwijderd; de rider ziet de reden.",
+  "kunst.regeln": "Per ronde tellen alleen je eigen sessies die in die ronde zijn opgenomen, alle sporten op het water.\nAlleen wat je op de foil hebt gevaren wordt getekend. Meerdere runs kun je combineren, maar alleen opeenvolgende uit dezelfde sessie.\nIedereen stuurt per ronde één afbeelding in en kan die tot het einde van de ronde wijzigen of intrekken.\nNa de ronde wordt er gestemd: anoniem, alleen de lijn is te zien, iedereen heeft 3 hartjes en geen voor de eigen afbeelding.\nWie hoeveel hartjes heeft, wordt pas na de stemming bekend — dan met naam en spot (tenzij verborgen).\nHumor mag. Alleen wat echt verboden is, wordt verwijderd; de rider ziet de reden.",
   "kunst.andereSession": "Andere sessie kiezen",
   "kunst.ansichtBild": "Afbeelding",
   "kunst.ansichtKarte": "Kaart",

@@ -3007,7 +3007,7 @@ const it: Record<string, string> = {
   "kunst.einstellungHinweis": "Niente classifiche: in ogni round i partecipanti inviano un'immagine da una propria sessione, poi la community vota in modo anonimo con i cuori. Il round successivo è già in corso.",
   "kunst.rundenTage": "Nuovo round ogni (giorni)",
   "kunst.abstimmenTage": "Votazione dopo (giorni)",
-  "kunst.regeln": "Ogni round conta solo le tue sessioni registrate in quel round, tutti gli sport sull'acqua.\nOgnuno invia un'immagine per round e può cambiarla o ritirarla fino alla fine del round.\nDopo il round si vota: in forma anonima, si vede solo la linea, ognuno ha 3 cuori e nessuno per la propria immagine.\nChi ha quanti cuori si scopre solo dopo il voto — con nome e spot (se non nascosto).\nL'umorismo è benvenuto. Viene rimosso solo ciò che è davvero vietato; il rider vede il motivo.",
+  "kunst.regeln": "Ogni round conta solo le tue sessioni registrate in quel round, tutti gli sport sull'acqua.\nViene disegnato solo ciò che hai fatto sul foil. Più run si possono combinare, ma solo consecutivi della stessa sessione.\nOgnuno invia un'immagine per round e può cambiarla o ritirarla fino alla fine del round.\nDopo il round si vota: in forma anonima, si vede solo la linea, ognuno ha 3 cuori e nessuno per la propria immagine.\nChi ha quanti cuori si scopre solo dopo il voto — con nome e spot (se non nascosto).\nL'umorismo è benvenuto. Viene rimosso solo ciò che è davvero vietato; il rider vede il motivo.",
   "kunst.andereSession": "Scegli un'altra sessione",
   "kunst.ansichtBild": "Immagine",
   "kunst.ansichtKarte": "Mappa",

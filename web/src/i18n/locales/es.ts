@@ -3006,7 +3006,7 @@ const es: Record<string, string> = {
   "kunst.einstellungHinweis": "En vez de clasificaciones: en cada ronda los participantes envían una imagen de una sesión propia y después la comunidad vota de forma anónima con corazones. Mientras tanto ya corre la siguiente ronda.",
   "kunst.rundenTage": "Nueva ronda cada (días)",
   "kunst.abstimmenTage": "Votación después (días)",
-  "kunst.regeln": "Cada ronda solo cuenta tus propias sesiones grabadas durante esa ronda, cualquier deporte en el agua.\nCada uno envía una imagen por ronda y puede cambiarla o retirarla hasta que termine la ronda.\nTras la ronda se vota: de forma anónima, solo se ve la línea, cada uno tiene 3 corazones y ninguno para su propia imagen.\nQuién tiene cuántos corazones se revela solo después de la votación — con nombre y spot (salvo que esté oculto).\nEl humor es bienvenido. Solo se retira lo realmente prohibido; el rider ve el motivo.",
+  "kunst.regeln": "Cada ronda solo cuenta tus propias sesiones grabadas durante esa ronda, cualquier deporte en el agua.\nSolo se dibuja lo que hiciste sobre el foil. Se pueden combinar varios tramos, pero solo consecutivos de la misma sesión.\nCada uno envía una imagen por ronda y puede cambiarla o retirarla hasta que termine la ronda.\nTras la ronda se vota: de forma anónima, solo se ve la línea, cada uno tiene 3 corazones y ninguno para su propia imagen.\nQuién tiene cuántos corazones se revela solo después de la votación — con nombre y spot (salvo que esté oculto).\nEl humor es bienvenido. Solo se retira lo realmente prohibido; el rider ve el motivo.",
   "kunst.andereSession": "Elegir otra sesión",
   "kunst.ansichtBild": "Imagen",
   "kunst.ansichtKarte": "Mapa",

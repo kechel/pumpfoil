@@ -3009,7 +3009,7 @@ const gsw: Record<string, string> = {
   "kunst.einstellungHinweis": "Statt Bischtelischte: D Teilnehmer reiched pro Rundi es Bild vo ere eigete Session ii, denn stimmt d Community anonym mit Hääggli ab. D nöchscht Rundi lauft dezwüsche scho.",
   "kunst.rundenTage": "Neui Rundi alli (Tag)",
   "kunst.abstimmenTage": "Abstimmig danach (Tag)",
-  "kunst.regeln": "Pro Rundi zelled nur eigeni Sessions, wo i dere Rundi ufgnoh worde sind, alli Sportarte uf em Wasser.\nJedi und jede reicht pro Rundi es Bild ii und chas bis zum Rundi-Änd ändere oder zruggzieh.\nNach de Rundi wird abgstimmt: anonym, mer gseht nur d Linie, jedi hät 3 Härz und keis fürs eigete Bild.\nWer wieviel Härz hät, isch erscht nach de Abstimmig klar — dänn mit Name und Spot (wänn nöd versteckt).\nHumor isch erlaubt. Nur würkli Verbotnigs wird entfernt; de Fahrer gseht de Grund.",
+  "kunst.regeln": "Pro Rundi zelled nur eigeni Sessions, wo i dere Rundi ufgnoh worde sind, alli Sportarte uf em Wasser.\nZeichnet wird nur, was uf em Foil gfahre isch. Mehreri Läuf chasch kombiniere, aber nur diräkt hinterenand us de gliiche Session.\nJedi und jede reicht pro Rundi es Bild ii und chas bis zum Rundi-Änd ändere oder zruggzieh.\nNach de Rundi wird abgstimmt: anonym, mer gseht nur d Linie, jedi hät 3 Härz und keis fürs eigete Bild.\nWer wieviel Härz hät, isch erscht nach de Abstimmig klar — dänn mit Name und Spot (wänn nöd versteckt).\nHumor isch erlaubt. Nur würkli Verbotnigs wird entfernt; de Fahrer gseht de Grund.",
   "kunst.andereSession": "Anderi Session wähle",
   "kunst.ansichtBild": "Bild",
   "kunst.ansichtKarte": "Charte",

@@ -3229,7 +3229,7 @@ const en: Record<string, string> = {
   "kunst.einstellungHinweis": "Instead of leaderboards: riders submit one picture per round from one of their sessions, then the community votes anonymously with hearts. The next round is already running meanwhile.",
   "kunst.rundenTage": "New round every (days)",
   "kunst.abstimmenTage": "Voting afterwards (days)",
-  "kunst.regeln": "Each round only counts your own sessions recorded during that round, any sport on the water.\nEveryone submits one picture per round and can change or withdraw it until the round ends.\nAfter the round there is a vote: anonymous, only the line is shown, everyone has 3 hearts and none for their own picture.\nWho got how many hearts is only revealed after the vote — then with name and spot (unless hidden).\nHumour is welcome. Only truly forbidden content is removed; the rider sees the reason.",
+  "kunst.regeln": "Each round only counts your own sessions recorded during that round, any sport on the water.\nOnly your time on the foil is drawn. Several runs can be combined, but only consecutive ones from the same session.\nEveryone submits one picture per round and can change or withdraw it until the round ends.\nAfter the round there is a vote: anonymous, only the line is shown, everyone has 3 hearts and none for their own picture.\nWho got how many hearts is only revealed after the vote — then with name and spot (unless hidden).\nHumour is welcome. Only truly forbidden content is removed; the rider sees the reason.",
   "kunst.test.titel": "Test mode (admins only)",
   "kunst.test.hinweis": "your sessions from the last 60 days count, and the phase of each round can be set by hand here. Switch it off for the real event.",
   "kunst.test.uhr": "back to the clock",

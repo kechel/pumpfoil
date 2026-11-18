@@ -3007,7 +3007,7 @@ const fr: Record<string, string> = {
   "kunst.einstellungHinweis": "Pas de classements : à chaque manche, les participants envoient une image tirée d'une de leurs sessions, puis la communauté vote anonymement avec des cœurs. La manche suivante est déjà en cours.",
   "kunst.rundenTage": "Nouvelle manche tous les (jours)",
   "kunst.abstimmenTage": "Vote ensuite (jours)",
-  "kunst.regeln": "Chaque manche ne compte que tes propres sessions enregistrées pendant cette manche, tous les sports sur l'eau.\nChacun soumet une image par manche et peut la modifier ou la retirer jusqu'à la fin de la manche.\nAprès la manche, on vote : anonymement, seule la ligne est visible, chacun a 3 cœurs et aucun pour sa propre image.\nQui a combien de cœurs n'est révélé qu'après le vote — avec nom et spot (sauf s'il est masqué).\nL'humour est bienvenu. Seul ce qui est vraiment interdit est retiré ; le rider voit la raison.",
+  "kunst.regeln": "Chaque manche ne compte que tes propres sessions enregistrées pendant cette manche, tous les sports sur l'eau.\nSeul ce que tu as fait sur le foil est dessiné. Plusieurs runs peuvent être combinés, mais seulement des runs consécutifs de la même session.\nChacun soumet une image par manche et peut la modifier ou la retirer jusqu'à la fin de la manche.\nAprès la manche, on vote : anonymement, seule la ligne est visible, chacun a 3 cœurs et aucun pour sa propre image.\nQui a combien de cœurs n'est révélé qu'après le vote — avec nom et spot (sauf s'il est masqué).\nL'humour est bienvenu. Seul ce qui est vraiment interdit est retiré ; le rider voit la raison.",
   "kunst.andereSession": "Choisir une autre session",
   "kunst.ansichtBild": "Image",
   "kunst.ansichtKarte": "Carte",

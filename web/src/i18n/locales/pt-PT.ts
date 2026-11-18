@@ -3118,7 +3118,7 @@ const ptPT: Record<string, string> = {
   "kunst.einstellungHinweis": "Em vez de classificações: em cada ronda, os participantes enviam uma imagem de uma sessão própria e depois a comunidade vota anonimamente com corações. Entretanto, a ronda seguinte já está a decorrer.",
   "kunst.rundenTage": "Nova ronda a cada (dias)",
   "kunst.abstimmenTage": "Votação depois (dias)",
-  "kunst.regeln": "Cada ronda só conta as tuas próprias sessões gravadas nessa ronda, qualquer desporto na água.\nCada um submete uma imagem por ronda e pode alterá-la ou retirá-la até ao fim da ronda.\nDepois da ronda há votação: anónima, só se vê a linha, cada um tem 3 corações e nenhum para a própria imagem.\nQuem tem quantos corações só é revelado depois da votação — com nome e spot (a não ser que esteja oculto).\nO humor é bem-vindo. Só é removido o que é realmente proibido; o rider vê o motivo.",
+  "kunst.regeln": "Cada ronda só conta as tuas próprias sessões gravadas nessa ronda, qualquer desporto na água.\nSó é desenhado o que andaste no foil. Podes combinar vários troços, mas só consecutivos da mesma sessão.\nCada um submete uma imagem por ronda e pode alterá-la ou retirá-la até ao fim da ronda.\nDepois da ronda há votação: anónima, só se vê a linha, cada um tem 3 corações e nenhum para a própria imagem.\nQuem tem quantos corações só é revelado depois da votação — com nome e spot (a não ser que esteja oculto).\nO humor é bem-vindo. Só é removido o que é realmente proibido; o rider vê o motivo.",
   "kunst.andereSession": "Escolher outra sessão",
   "kunst.ansichtBild": "Imagem",
   "kunst.ansichtKarte": "Mapa",

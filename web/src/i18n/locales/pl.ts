@@ -3103,7 +3103,7 @@ const pl: Record<string, string> = {
   "kunst.einstellungHinweis": "Zamiast rankingów: uczestnicy w każdej rundzie wysyłają jeden obrazek z własnej sesji, a potem społeczność głosuje anonimowo za pomocą serduszek. Następna runda już się w tym czasie toczy.",
   "kunst.rundenTage": "Nowa runda co (dni)",
   "kunst.abstimmenTage": "Głosowanie potem (dni)",
-  "kunst.regeln": "W każdej rundzie liczą się tylko twoje własne sesje nagrane w tej rundzie, wszystkie sporty na wodzie.\nKażdy zgłasza jeden obraz na rundę i może go zmienić lub wycofać do końca rundy.\nPo rundzie odbywa się głosowanie: anonimowo, widać tylko linię, każdy ma 3 serca i żadnego dla własnego obrazu.\nKto ma ile serc, okazuje się dopiero po głosowaniu — wtedy z imieniem i spotem (chyba że jest ukryty).\nHumor jest mile widziany. Usuwane jest tylko to, co naprawdę zabronione; rider widzi powód.",
+  "kunst.regeln": "W każdej rundzie liczą się tylko twoje własne sesje nagrane w tej rundzie, wszystkie sporty na wodzie.\nRysowane jest tylko to, co przepłynąłeś na foilu. Można łączyć kilka przejazdów, ale tylko następujące po sobie z tej samej sesji.\nKażdy zgłasza jeden obraz na rundę i może go zmienić lub wycofać do końca rundy.\nPo rundzie odbywa się głosowanie: anonimowo, widać tylko linię, każdy ma 3 serca i żadnego dla własnego obrazu.\nKto ma ile serc, okazuje się dopiero po głosowaniu — wtedy z imieniem i spotem (chyba że jest ukryty).\nHumor jest mile widziany. Usuwane jest tylko to, co naprawdę zabronione; rider widzi powód.",
   "kunst.andereSession": "Wybierz inną sesję",
   "kunst.ansichtBild": "Obraz",
   "kunst.ansichtKarte": "Mapa",

@@ -3177,7 +3177,7 @@ const cs: Record<string, string> = {
   "kunst.einstellungHinweis": "Místo žebříčků: účastníci v každém kole pošlou jeden obrázek z vlastní session, poté komunita anonymně hlasuje srdíčky. Další kolo mezitím už běží.",
   "kunst.rundenTage": "Nové kolo každých (dní)",
   "kunst.abstimmenTage": "Hlasování poté (dní)",
-  "kunst.regeln": "Do každého kola se počítají jen tvoje vlastní sessiony nahrané během tohoto kola, všechny sporty na vodě.\nKaždý odešle za kolo jeden obrázek a může ho do konce kola změnit nebo stáhnout.\nPo kole se hlasuje: anonymně, vidět je jen čára, každý má 3 srdce a žádné pro vlastní obrázek.\nKdo má kolik srdcí, se ukáže až po hlasování — pak se jménem a spotem (pokud není skrytý).\nHumor je vítán. Odstraňuje se jen to, co je opravdu zakázané; jezdec vidí důvod.",
+  "kunst.regeln": "Do každého kola se počítají jen tvoje vlastní sessiony nahrané během tohoto kola, všechny sporty na vodě.\nKreslí se jen to, co jsi jel na foilu. Několik jízd lze spojit, ale jen po sobě jdoucí ze stejného sessionu.\nKaždý odešle za kolo jeden obrázek a může ho do konce kola změnit nebo stáhnout.\nPo kole se hlasuje: anonymně, vidět je jen čára, každý má 3 srdce a žádné pro vlastní obrázek.\nKdo má kolik srdcí, se ukáže až po hlasování — pak se jménem a spotem (pokud není skrytý).\nHumor je vítán. Odstraňuje se jen to, co je opravdu zakázané; jezdec vidí důvod.",
   "kunst.andereSession": "Vybrat jiný session",
   "kunst.ansichtBild": "Obrázek",
   "kunst.ansichtKarte": "Mapa",
