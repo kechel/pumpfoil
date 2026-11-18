@@ -130,6 +130,8 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
     // anders als auf der Community-Seite (dort Pumpfoil) — die Liste ist die Uebersicht (Jan).
     // Gilt fuer Meine/Homespot/Alle/Spot gleichermassen und bleibt beim Wechsel stehen.
     var sport by remember { mutableStateOf("all") }
+    // Foil-Filter (Filter-Knopf, Web 18.11.2026) — gilt fuer alle vier Reiter und bleibt beim Wechsel stehen.
+    var foilFilter by remember { mutableStateOf<Int?>(null) }
     var sports by remember { mutableStateOf<List<SportRuns>>(emptyList()) }
     // EIN EIGENER Scrollzustand JE LISTE — nicht einer fuer alle mit einem Ruecksprung.
     //
@@ -145,7 +147,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
     // Zustand, und ein frischer Zustand steht bei 0 — es gibt gar nichts, was zurueckspringen
     // muesste. Die Rueckkehr aus einer Session aendert keinen der vier Schluessel, dort bleibt die
     // Position also erhalten.
-    val listenStand = remember(scope, filter, month, sport) {
+    val listenStand = remember(scope, filter, month, sport, foilFilter) {
         androidx.compose.foundation.lazy.LazyListState()
     }
     var months by remember { mutableStateOf<List<MonthCount>>(emptyList()) }
@@ -185,7 +187,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
                 Scope.MINE -> {
                     val n = maxOf(seite, own.size)
                     val r = Api.sessions(month = month.ifBlank { null }, filter = filter, accelOnly = accelOnly, sport = sport, board = brett,
-                                         limit = n)
+                                         limit = n, foilId = foilFilter)
                     if (meine != ladeGeneration) return
                     own = r; hatMehr = r.size >= n
                 }
@@ -197,7 +199,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
                     val n = maxOf(seite, groups.size)
                     val r = Api.communitySessionsGrouped(null, limit = n, accelOnly = accelOnly, sport = sport, board = brett,
                                                          freunde = scope == Scope.FRIENDS,
-                                                         team = if (scope == Scope.TEAM) teamWahl else null)
+                                                         team = if (scope == Scope.TEAM) teamWahl else null, foilId = foilFilter)
                     if (meine != ladeGeneration) return
                     groups = r; hatMehr = r.size >= n
                 }
@@ -214,7 +216,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
         try {
             if (scope == Scope.MINE) {
                 val r = Api.sessions(month = month.ifBlank { null }, filter = filter, accelOnly = accelOnly, sport = sport, board = brett,
-                                     limit = seite, offset = own.size)
+                                     limit = seite, offset = own.size, foilId = foilFilter)
                 if (meine == ladeGeneration) {
                     val da = own.map { it.id }.toSet()
                     own = own + r.filter { it.id !in da }; hatMehr = r.size >= seite
@@ -222,7 +224,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
             } else {
                 val r = Api.communitySessionsGrouped(null, limit = seite, offset = groups.size, accelOnly = accelOnly, sport = sport,
                                                      board = brett, freunde = scope == Scope.FRIENDS,
-                                                     team = if (scope == Scope.TEAM) teamWahl else null)
+                                                     team = if (scope == Scope.TEAM) teamWahl else null, foilId = foilFilter)
                 if (meine == ladeGeneration) {
                     val da = groups.map { it.userId to it.date }.toSet()
                     groups = groups + r.filter { (it.userId to it.date) !in da }; hatMehr = r.size >= seite
@@ -234,8 +236,8 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
     // Filterwechsel: die ALTE Liste sofort weg, nicht erst, wenn die neue da ist (PWA 8f9cc725) —
     // sonst liest man Sessions eines anderen Spots unter der neuen Ueberschrift. Nicht bei `tick`
     // (Nachladen derselben Liste), dort bleibt sie stehen, bis die frische kommt.
-    LaunchedEffect(scope, teamWahl, accelOnly, filter, month, sport, brett) { groups = emptyList(); own = emptyList() }
-    LaunchedEffect(scope, teamWahl, tick, accelOnly, filter, month, sport, brett) { load() }
+    LaunchedEffect(scope, teamWahl, accelOnly, filter, month, sport, brett, foilFilter) { groups = emptyList(); own = emptyList() }
+    LaunchedEffect(scope, teamWahl, tick, accelOnly, filter, month, sport, brett, foilFilter) { load() }
     // Denselben Filter merken: „älter/neuer" im Detail navigiert damit innerhalb GENAU dieser
     // Liste statt immer durch die eigenen Sessions (Jan, 17.09.2026) — samt Sportart.
     LaunchedEffect(scope, accelOnly, filter, month, sport) {
@@ -348,6 +350,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
                     })
                 }
                 // Kacheln / eine Zeile je Session (ListenAnsicht.kt) — gilt fuer Meine, Alle und den Spot.
+                SessionFilterKnopf(foilFilter, Modifier.align(Alignment.CenterVertically)) { foilFilter = it }
                 ListenAnsichtUmschalter(Modifier.align(Alignment.CenterVertically))
             }
             }

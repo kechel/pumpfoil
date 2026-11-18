@@ -145,7 +145,8 @@ enum Api {
     // `sport`: "all" (Default) schraenkt nicht ein und wird gar nicht erst mitgeschickt — wie die
     // PWA (api.ts). Der Server liest es fuer eigene Sessions wie der Community-Feed (27.09.2026).
     static func sessions(month: String? = nil, filter: String = "pump", accelOnly: Bool = false,
-                         sport: String = "all", board: Bool = false, limit: Int? = nil, offset: Int = 0) async throws -> [SessionSummary] {
+                         sport: String = "all", board: Bool = false, limit: Int? = nil, offset: Int = 0,
+                         foilId: Int? = nil) async throws -> [SessionSummary] {
         var qs = "?filter=\(filter)"
         // Seitenweise (Home: die drei neuesten; Meine: 20 je Seite beim Scrollen). Ohne limit die ganze Liste (bei Jan 1,4 MB).
         if let limit { qs += "&limit=\(limit)" }
@@ -153,6 +154,7 @@ enum Api {
         if let month, !month.isEmpty { qs += "&month=\(month)" }
         if accelOnly { qs += "&accel_only=true" }
         if board { qs += "&board=true" }   // nur Handy am Brett (POB)
+        if let foilId { qs += "&foil_id=\(foilId)" }   // Filter-Knopf (18.11.2026)
         qs += sportQuery(sport)
         return try await request("/api/sessions\(qs)", method: "GET", body: nil, auth: true)
     }
@@ -580,11 +582,11 @@ enum Api {
     // eine. Der Endpunkt-Default ist "pumpfoil"; Rekorde/Bestenlisten bleiben dabei.
     static func communitySessionsGrouped(spot: String? = nil, limit: Int = 20, offset: Int = 0,
                                          accelOnly: Bool = true, sport: String = "pumpfoil", board: Bool = false,
-                                         freunde: Bool = false, team: String? = nil) async throws -> [CommunityGroup] {
+                                         freunde: Bool = false, team: String? = nil, foilId: Int? = nil) async throws -> [CommunityGroup] {
         let sp = (spot?.isEmpty == false) ? "&spot=\(spot!.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot!)" : ""
         let b = board ? "&board=true" : ""
         // Sessions › Team (02.11.2026): „alle" oder Team-ID, der Server liefert die letzten 30 Tage der Mitglieder.
-        let tm: String = team.map { "&team=" + $0 } ?? ""
+        let tm: String = (team.map { "&team=" + $0 } ?? "") + (foilId.map { "&foil_id=\($0)" } ?? "")   // + Filter-Knopf (18.11.2026)
         return try await request("/api/community/sessions-grouped?limit=\(limit)&offset=\(offset)&accel_only=\(accelOnly)&sport=\(sport)\(sp)\(b)\(freunde ? "&friends=1" : "")\(tm)", method: "GET", body: nil, auth: true)
     }
 

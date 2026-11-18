@@ -54,6 +54,8 @@ struct SessionsView: View {
     // Default „all", anders als auf der Community-Seite (dort Pumpfoil) — die Liste ist die
     // Uebersicht (Jan). Bleibt beim Wechsel Meine/Homespot/Alle/Spot stehen.
     @State private var sport = "all"
+    /// Foil-Filter (Filter-Knopf, Web 18.11.2026) — Meine/Freunde/Team/Alle, bleibt beim Reiterwechsel stehen.
+    @State private var foilFilter: Int?
     @State private var sports: [CommunitySport] = []
     // Sportarten des gewaehlten Spots fuer die Filter-Knoepfe (28.10.2026) und daraus die Sportart von
     // Rekorden und Heatmap (= der Filter, „Alle" zaehlt seit web 1eec9e07 alle Sportarten zusammen).
@@ -103,6 +105,7 @@ struct SessionsView: View {
                 .onChange(of: filter) { _ in listeLeeren(); Task { await loadMonths(); await load() } }
                 .onChange(of: month) { _ in listeLeeren(); Task { await load() } }
                 .onChange(of: sport) { _ in listeLeeren(); Task { await loadMonths(); await load() } }
+                .onChange(of: foilFilter) { _ in listeLeeren(); Task { await load() } }
                 .onChange(of: sync.tick) { _ in Task { await load() } }
                 .task { await loadMonths() }
                 // Laeuft eine eigene Aufnahme noch (status recording/live), die Liste alle 4 s
@@ -340,6 +343,7 @@ struct SessionsView: View {
         if scope != .spot, SportFilterMenu.zeigen(sport: sport, sports: sports) {
             SportFilterMenu(sport: sport, sports: sports, lang: lang, maxBreite: 110) { neu in month = ""; sport = neu }
         }
+        if scope != .spot { SessionFilterKnopf(foil: $foilFilter, lang: lang) }
         ListenAnsichtUmschalter(lang: lang)
     }
 
@@ -452,14 +456,15 @@ struct SessionsView: View {
         do {
             if scope == .mine {
                 let r = try await Api.sessions(month: month.isEmpty ? nil : month, filter: filter, accelOnly: accelOnly && !brett,
-                                               sport: sport, board: brett, limit: seite, offset: own.count)
+                                               sport: sport, board: brett, limit: seite, offset: own.count, foilId: foilFilter)
                 guard meine == ladeGeneration else { return }
                 let da = Set(own.map { $0.id })
                 own += r.filter { !da.contains($0.id) }; hatMehr = r.count >= seite
             } else {
                 let r = try await Api.communitySessionsGrouped(spot: scope == .spot ? spot : nil, limit: seite, offset: groups.count,
                                                                accelOnly: accelOnly && !brett, sport: sport, board: brett,
-                                                               freunde: scope == .friends, team: scope == .team ? teamWahl : nil)
+                                                               freunde: scope == .friends, team: scope == .team ? teamWahl : nil,
+                                                               foilId: scope == .spot ? nil : foilFilter)
                 guard meine == ladeGeneration else { return }
                 let da = Set(groups.map { $0.id })
                 groups += r.filter { !da.contains($0.id) }; hatMehr = r.count >= seite
@@ -650,7 +655,7 @@ struct SessionsView: View {
             case .mine:
                 let n = max(seite, own.count)
                 let r = try await Api.sessions(month: month.isEmpty ? nil : month, filter: filter,
-                                               accelOnly: accelOnly && !brett, sport: sport, board: brett, limit: n)
+                                               accelOnly: accelOnly && !brett, sport: sport, board: brett, limit: n, foilId: foilFilter)
                 guard meine == ladeGeneration else { return }
                 own = r; hatMehr = r.count >= n
             // sport: Default "all" — diese Liste ist das „was ist neu" und soll ALLE Sportarten
@@ -659,13 +664,13 @@ struct SessionsView: View {
             case .all, .friends:
                 let n = max(seite, groups.count)
                 let r = try await Api.communitySessionsGrouped(limit: n, accelOnly: accelOnly && !brett, sport: sport, board: brett,
-                                                               freunde: scope == .friends)
+                                                               freunde: scope == .friends, foilId: foilFilter)
                 guard meine == ladeGeneration else { return }
                 groups = r; hatMehr = r.count >= n
             case .team:
                 let n = max(seite, groups.count)
                 let r = try await Api.communitySessionsGrouped(limit: n, accelOnly: accelOnly && !brett, sport: sport, board: brett,
-                                                               team: teamWahl)
+                                                               team: teamWahl, foilId: foilFilter)
                 guard meine == ladeGeneration else { return }
                 groups = r; hatMehr = r.count >= n
             case .spot:
@@ -1776,5 +1781,126 @@ private struct ErsetzenFrageAlert: ViewModifier {
 extension View {
     func ersetzenFrageAlert(_ frage: ErsetzenFrage, lang: String) -> some View {
         modifier(ErsetzenFrageAlert(frage: frage, lang: lang))
+    }
+}
+
+
+/// Filter-Knopf fuer die Sessionlisten (Web SessionFilter.tsx, 18.11.2026; Nutzerwunsch 17.11.: „all runs with brand XXX
+/// wing YYY"). Erste Einstellung: genau ein Foil — Suche ueber Marke/Modell/Groesse, Marken-Auswahl, eigene Foils oben,
+/// darunter alle Foils, mit denen in der Community gefahren wird (nach Anzahl Sessions).
+struct SessionFilterKnopf: View {
+    @Binding var foil: Int?
+    let lang: String
+    @State private var offen = false
+
+    var body: some View {
+        Button { offen = true } label: {
+            Image(systemName: foil == nil ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill")
+                .font(.body)
+                .foregroundStyle(foil == nil ? Color.secondary : Color.cyan)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Loc.t("sfilter.title", lang))
+        .sheet(isPresented: $offen) {
+            SessionFilterBlatt(foil: $foil, lang: lang) { offen = false }
+        }
+    }
+}
+
+private struct SessionFilterBlatt: View {
+    @Binding var foil: Int?
+    let lang: String
+    let schliessen: () -> Void
+    @State private var foils: [FoilStat]?
+    @State private var meine: [Int] = []
+    @State private var suche = ""
+    @State private var marke = ""
+
+    private var marken: [String] {
+        Array(Set((foils ?? []).map { $0.brand.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }))
+            .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+    }
+    private var treffer: [FoilStat] {
+        let woerter: [String] = suche.lowercased().split(separator: " ").map(String.init)
+        return (foils ?? []).filter { f in
+            if !marke.isEmpty && f.brand.trimmingCharacters(in: .whitespaces) != marke { return false }
+            let text: String = "\(f.brand) \(f.model) \(f.size)".lowercased()
+            return woerter.allSatisfy { text.contains($0) }
+        }
+    }
+
+    var body: some View {
+        NavigationView {
+            List {
+                if foils == nil {
+                    Text("…").foregroundStyle(.secondary)
+                } else {
+                    if suche.isEmpty && marke.isEmpty {
+                        zeile(Loc.t("sfilter.allFoils", lang), nil, aktiv: foil == nil) { waehle(nil) }
+                    }
+                    let alle: [FoilStat] = treffer
+                    let eigene: [FoilStat] = alle.filter { meine.contains($0.foil_id) }
+                    let andere: [FoilStat] = alle.filter { !meine.contains($0.foil_id) }
+                    if !eigene.isEmpty {
+                        Section(Loc.t("sfilter.myFoils", lang)) {
+                            ForEach(eigene) { f in
+                                zeile(foilLabel(f.brand, f.model, f.size, f.aspect_ratio), nil, aktiv: f.foil_id == foil) { waehle(f.foil_id) }
+                            }
+                        }
+                    }
+                    if !andere.isEmpty {
+                        Section(Loc.t("sfilter.otherFoils", lang)) {
+                            ForEach(andere) { f in
+                                zeile(foilLabel(f.brand, f.model, f.size, f.aspect_ratio), f.sessions, aktiv: f.foil_id == foil) { waehle(f.foil_id) }
+                            }
+                        }
+                    }
+                    if alle.isEmpty { Text(Loc.t("sfilter.noHits", lang)).foregroundStyle(.secondary) }
+                }
+            }
+            .searchable(text: $suche, placement: .navigationBarDrawer(displayMode: .always), prompt: Loc.t("sfilter.search", lang))
+            .navigationTitle(Loc.t("sfilter.title", lang) + " · " + Loc.t("sfilter.foil", lang))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(Loc.t("common.close", lang)) { schliessen() }
+                }
+                ToolbarItem(placement: .primaryAction) {
+                    Menu {
+                        Button(Loc.t("sfilter.allBrands", lang)) { marke = "" }
+                        ForEach(marken, id: \.self) { m in Button(m) { marke = m } }
+                    } label: {
+                        Text(marke.isEmpty ? Loc.t("sfilter.allBrands", lang) : marke).lineLimit(1)
+                    }
+                }
+                if foil != nil {
+                    ToolbarItem(placement: .bottomBar) {
+                        Button(Loc.t("sfilter.reset", lang)) { waehle(nil) }
+                    }
+                }
+            }
+        }
+        .task {
+            if foils == nil {
+                let l: [FoilStat] = (try? await Api.foilStats()) ?? []
+                foils = l.sorted { $0.sessions > $1.sessions }
+                let s: [String: Any] = (try? await Api.settings()) ?? [:]
+                meine = (s["my_foils"] as? [Any])?.compactMap { ($0 as? NSNumber)?.intValue } ?? []
+            }
+        }
+    }
+
+    private func waehle(_ id: Int?) { foil = id; schliessen() }
+
+    @ViewBuilder private func zeile(_ text: String, _ zahl: Int?, aktiv: Bool, _ tap: @escaping () -> Void) -> some View {
+        Button(action: tap) {
+            HStack {
+                Text(text).fontWeight(aktiv ? .semibold : .regular).lineLimit(1)
+                Spacer()
+                if let zahl { Text("\(zahl)").font(.caption).foregroundStyle(.secondary) }
+                if aktiv { Image(systemName: "checkmark").foregroundStyle(Color.cyan) }
+            }
+        }
+        .foregroundStyle(.primary)
     }
 }
