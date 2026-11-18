@@ -1537,6 +1537,19 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 18.11.2026 — Idee „Performance"-Reiter (ranglistenorientierte Leistung) — NUR GEPLANT
+Vorschlag eines Fahrers (DM an Jan 16.11., vier KI-Mockups): je Tag die eigene Platzierung in mehreren Kategorien
+(100 m, 1 min, 1 km, Long Distance) festhalten und daraus eine persoenliche Uebersicht bauen — Ø Platz, Rang-Haeufigkeit,
+Top-3-Quote, Siege, Rangverlauf, Kachel-Raster Kategorie x Tag, Gesamtpunkte, Saison 2027 ab null. Jan 16.11.: „unter ein
+neues Tab 'Performance' in Home". Datenlage 18.11.: Pumpfoil weltweit Median 36 Fahrer/Tag (min 15, max 84, letzte 30 Tage)
+-> Tagesranglisten tragen. Plan und offene Entscheidungen: Antwort an Jan 18.11. (Session-Log); Kurzfassung:
+- Grundlage: naechtliche Tabelle Tagesplatzierung (Tag UTC, Sportart, Kategorie, Fahrer, Wert, Platz, Feldgroesse), aus
+  den GESPEICHERTEN Werten (Sprint-Regel: nie rueckwirkend neu rechnen); bester Wert des Tages je Fahrer.
+- Platz immer mit Feldgroesse („3. von 41"), Punkte nach Perzentil statt fester Platzpunkte.
+- Kategorien zuerst nur vorhandene: 100 m, 1 min (fliegend), laengster Lauf (Strecke), laengste Zeit; 1 km und
+  „zurueck zum Start" erst mit Trockenlauf.
+- Offen: Vergleichsgruppe (weltweit/Spot/Team/Freunde), Mindestfeld, Saison/Punkte, wer die Seite sieht.
+
 ### 18.11.2026 — Wing-Feedback u655 (Wear, OnePlus Watch 2) — NUR GEMERKT (Jan: „rest erstmal nur merken")
 Feedback-Formular 18.11., Sessions https://pumpfoil.org/sessions/21529 und https://pumpfoil.org/sessions/22414.
 - ✅ Hinweistext `sd.lowRateWarning` neu (18 Sprachen): „Uhr hat nur ~X Hz geliefert … Werte gespeichert, nicht ausgewertet"
