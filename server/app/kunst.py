@@ -29,9 +29,9 @@ from . import models
 
 VORLAGE = "gpskunst"
 HERZEN_JE_RUNDE = 3
-# Nachfrist (Jan 18.11.2026): wer Samstag faehrt und erst Sonntag synchronisiert, kann die Fahrt der abgelaufenen Woche noch
-# bis Sonntag 12:00 einreichen; die Abstimmung beginnt danach. Gezaehlt werden weiter nur Sessions aus der Runde selbst.
-NACHFRIST = timedelta(hours=12)
+# Nachfrist zum Einreichen nach Rundenende: bewusst KEINE (Jan 18.11.2026: „keine nachfrist") — eingereicht wird bis
+# Rundenende, danach beginnt die Abstimmung. Der Schalter bleibt, falls es spaeter doch eine braucht.
+NACHFRIST = timedelta(0)
 RUNDEN_TAGE_STANDARD = 7
 ABSTIMMEN_TAGE_STANDARD = 2
 # Nicht auf dem Wasser (Jan 18.11.: „alle Sportarten auf dem Wasser").
