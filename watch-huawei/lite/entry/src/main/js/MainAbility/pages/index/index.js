@@ -21,7 +21,10 @@ var FELDTEXTE = ["kmh3s", "kmhAvg", "kmhMax", "bpmAvg", "bpmMax", "time", "dist"
   "runTime", "runDist", "lastRunTime", "lastRunDist", "lastRunAvg", "lastRunMax", "runs", "lastRunMaxHr",
   "allRunsDist", "allRunsTime", "paused"];
 
-var HALTEN_MS = 2000;
+// 1,5 s (AppGallery-Pruefung 18.11.2026 auf GT 6/Fit 5: „does not respond after you touch the stop button for 2 seconds"
+// — wer „2 s" haelt, laesst oft knapp davor los, und auf echter Uhr kam das System-longpress nicht an). Die Beschriftung
+// bleibt „2 s"; ausgeloest wird etwas frueher, damit ein knappes Halten sicher reicht.
+var HALTEN_MS = 1500;
 
 /** Recorder aus dem app.js-Buendel: Lite gibt per getApp() nur dessen `data` heraus (Simulator 08.10.2026). */
 function holeRecorder() {
@@ -246,6 +249,15 @@ export default {
     try { R[aktion](); } catch (e) { console.error("Pumpfoil " + aktion + ": " + e); this.startFehler = aktion + ": " + e; }
     if (aktion === "stopp") this.zeigeFertig = true;   // Verwerfen: keine Zusammenfassung (wie Zepp/Wear)
     this.zeigen();
+  },
+  // --- Krone (s. index.hml): Swiper-Index im Kreis 0..2; vorwaerts = hoch wischen, rueckwaerts = runter.
+  onShow() { try { this.$refs.krone.rotation({ focus: true }); } catch (e) { console.error("Pumpfoil Krone: " + e); } },
+  onHide() { try { this.$refs.krone.rotation({ focus: false }); } catch (e) { /* ohne */ } },
+  krone(e) {
+    var neu = e && e.index, alt = this.kroneIndex === undefined ? 1 : this.kroneIndex;
+    this.kroneIndex = neu;
+    if (neu === alt) return;
+    this.wischen({ direction: (neu - alt + 3) % 3 === 1 ? "up" : "down" });
   },
   wischen(e) {
     var d = e && e.direction;

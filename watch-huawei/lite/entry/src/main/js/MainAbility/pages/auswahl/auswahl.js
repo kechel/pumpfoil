@@ -60,6 +60,9 @@ export default {
     var l = this.sports, n = (this.sportNr(l) + 1) % l.length;
     R.auswahl.sport = n ? l[n].id : null; this.zeigen();
   },
+  // Krone: Fokus auf die Liste (Lite: nur list/swiper/slider folgen der Krone, und nur mit Fokus).
+  onShow() { try { this.$refs.liste.rotation({ focus: true }); } catch (e) { console.error("Pumpfoil Krone: " + e); } },
+  onHide() { try { this.$refs.liste.rotation({ focus: false }); } catch (e) { /* ohne */ } },
   aendern(fn) { fn(R.auswahl); R.auswahlAnwenden(); this.zeigen(); },
   alarm() { this.aendern(function (a) { a.alarm = !a.alarm; }); },
   quelle() { this.aendern(function (a) { a.quelle = a.quelle === "foil" ? "manual" : "foil"; }); },
