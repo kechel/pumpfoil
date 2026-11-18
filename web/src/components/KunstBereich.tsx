@@ -268,7 +268,13 @@ function ErgebnisBild({ z }: { z: NonNullable<KunstRunde["ergebnis"]>[number] })
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-lg font-bold tabular-nums text-slate-100">{z.platz}.</span>
             <span className="min-w-0 flex-1 truncate font-semibold text-slate-100">{z.name ?? "—"}</span>
-            <span className="text-sm tabular-nums text-slate-300">{t("kunst.herzenN", { n: String(z.herzen) })}</span>
+            {/* Herzen in Marken-Cyan (Jan 18.11.2026), dasselbe Herz wie am Abstimmen-Knopf. */}
+            <span className="inline-flex items-center gap-1 text-sm font-semibold tabular-nums text-slate-200" aria-label={t("kunst.herzenN", { n: String(z.herzen) })}>
+              {z.herzen}
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="#22d3ee" aria-hidden="true">
+                <path d="M12 21s-7-4.35-9.5-8.5C.9 9.6 2.4 5.5 6.2 5.1 8.4 4.9 10 6.2 12 8.3c2-2.1 3.6-3.4 5.8-3.2 3.8.4 5.3 4.5 3.7 7.4C19 16.65 12 21 12 21z" />
+              </svg>
+            </span>
           </div>
           <div className="text-xs text-slate-400">
             {z.spot ?? ""}{z.spot && z.session_id ? " · " : ""}
