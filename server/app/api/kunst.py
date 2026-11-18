@@ -80,7 +80,7 @@ def kunst_event(event_id: int, user: models.User = Depends(current_user), db: Se
             x["galerie"] = []        # nach dem Ende zeigt die Aufloesung alle Bilder mit Namen
         out_runden.append(x)
     return {"event_id": e.id, "titel": e.titel, "herzen_je_runde": K.HERZEN_JE_RUNDE, "teilnehmen": teil,
-            "moderieren": mod, **K.einstellungen(e), "runden": out_runden}
+            "moderieren": mod, "admin": bool(user.is_admin), **K.einstellungen(e), "runden": out_runden}
 
 
 def _aufloesung(db: Session, e: models.TeamEvent, nr: int, betrachter: int) -> list[dict]:
@@ -111,10 +111,11 @@ def kandidaten(event_id: int, runde: int, user: models.User = Depends(current_us
     e = _event(db, event_id, user)
     r = _runde(e, runde)
     S = models.Session
-    q = (db.query(S).filter(S.user_id == user.id, S.deleted.isnot(True), S.started_at >= r["start"], S.started_at < r["ende"])
+    a, z = K.fenster(e, r)
+    q = (db.query(S).filter(S.user_id == user.id, S.deleted.isnot(True), S.started_at >= a, S.started_at < z)
          .order_by(S.started_at.desc()).limit(60).all())
     return [{"id": s.id, "started_at": _iso(s.started_at), "sport_class": s.sport_class, "caption": s.caption}
-            for s in q if K.session_passt(s, user.id, r)]
+            for s in q if K.session_passt(s, user.id, r, e)]
 
 
 @router.get("/{event_id}/spur/{session_id}")
@@ -148,7 +149,7 @@ def einreichen(event_id: int, body: BildIn, user: models.User = Depends(current_
     if r["phase"] != "einreichen":
         raise HTTPException(status.HTTP_409_CONFLICT, "runde_zu")
     s = db.get(models.Session, body.session_id)
-    if not K.session_passt(s, user.id, r):
+    if not K.session_passt(s, user.id, r, e):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "session_passt_nicht")
     if body.bis_ms <= body.von_ms:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "zeitraum")
@@ -263,3 +264,56 @@ def zurueckholen(bild_id: int, user: models.User = Depends(current_user), db: Se
     b.entfernt_grund, b.entfernt_von = None, None
     db.commit()
     return {"ok": True}
+
+
+class TestIn(BaseModel):
+    test: bool
+
+
+class PhaseIn(BaseModel):
+    runde: int
+    phase: str | None = None        # None = wieder nach der Uhr
+
+
+def _nur_admin(user: models.User) -> None:
+    if not user.is_admin:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "keine_rechte")
+
+
+def _kunst_speichern(e: models.TeamEvent, aendern) -> None:
+    k = json.loads(e.kunst_json or "{}") or {}
+    aendern(k)
+    e.kunst_json = json.dumps(k)
+
+
+@router.post("/{event_id}/test")
+def testmodus(event_id: int, body: TestIn, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Testmodus an/aus (nur Admins, Jan 18.11.2026). Aus = auch die von Hand gesetzten Phasen verwerfen."""
+    _nur_admin(user)
+    e = _event(db, event_id, user)
+    _kunst_speichern(e, lambda k: k.update({"test": body.test, **({} if body.test else {"phasen": {}})}))
+    db.commit()
+    return K.einstellungen(e)
+
+
+@router.post("/{event_id}/phase")
+def phase_setzen(event_id: int, body: PhaseIn, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Testmodus: Phase einer Runde von Hand setzen (oder mit phase=null wieder der Uhr ueberlassen)."""
+    _nur_admin(user)
+    e = _event(db, event_id, user)
+    if not K.einstellungen(e)["test"]:
+        raise HTTPException(status.HTTP_409_CONFLICT, "kein_test")
+    _runde(e, body.runde)
+    if body.phase is not None and body.phase not in K.PHASEN:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "phase")
+
+    def setzen(k: dict) -> None:
+        ph = dict(k.get("phasen") or {})
+        if body.phase is None:
+            ph.pop(str(body.runde), None)
+        else:
+            ph[str(body.runde)] = body.phase
+        k["phasen"] = ph
+    _kunst_speichern(e, setzen)
+    db.commit()
+    return K.einstellungen(e)

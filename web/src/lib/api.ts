@@ -1156,7 +1156,7 @@ export type KunstRunde = { nr: number; start: string; ende: string; abstimmen_bi
   anzahl: number; herzen_vergeben: number; galerie: KunstBild[]; ergebnis?: KunstErgebnis[];
   eigen: (KunstBild & { session_id: number; von_ms: number; bis_ms: number; drehung: number; entfernt: string | null }) | null };
 export type KunstEvent = { event_id: number; titel: string; herzen_je_runde: number; teilnehmen: boolean; moderieren: boolean;
-  runden_tage: number; abstimmen_tage: number; runden: KunstRunde[] };
+  admin: boolean; test: boolean; phasen: Record<string, string>; runden_tage: number; abstimmen_tage: number; runden: KunstRunde[] };
 
 export const api = {
   register: (email: string, password: string, display_name?: string, language?: string) =>
@@ -1632,6 +1632,9 @@ export const api = {
   kunstHerz: (bildId: number) => req<{ herz: boolean; uebrig: number }>(`/api/kunst/bild/${bildId}/herz`, { method: "POST" }),
   kunstMelden: (bildId: number, grund: string) => req<{ ok: boolean }>(`/api/kunst/bild/${bildId}/melden`, { method: "POST", body: JSON.stringify({ grund }) }),
   kunstEntfernen: (bildId: number, grund: string) => req<{ ok: boolean }>(`/api/kunst/bild/${bildId}/entfernen`, { method: "POST", body: JSON.stringify({ grund }) }),
+  kunstTest: (eventId: number, test: boolean) => req<unknown>(`/api/kunst/${eventId}/test`, { method: "POST", body: JSON.stringify({ test }) }),
+  kunstPhase: (eventId: number, runde: number, phase: string | null) =>
+    req<unknown>(`/api/kunst/${eventId}/phase`, { method: "POST", body: JSON.stringify({ runde, phase }) }),
   kunstZurueckholen: (bildId: number) => req<{ ok: boolean }>(`/api/kunst/bild/${bildId}/zurueck`, { method: "POST" }),
   pushKey: () => req<{ key: string }>("/api/push/key"),
   pushSubscribe: (sub: unknown) => req<{ ok: boolean }>("/api/push/subscribe", { method: "POST", body: JSON.stringify(sub) }),

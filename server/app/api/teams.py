@@ -1170,7 +1170,12 @@ def event_aendern(slug: str, event_id: int, body: EventIn, sprint: bool = False,
     e.ohne_dateien, e.teambild_zeigen = body.ohne_dateien, body.teambild_zeigen
     e.summen_json = _event_summen(body)
     e.summen_sportart, e.summen_accel_only = body.summen_sportart, body.summen_accel_only
-    e.kunst_json = _kunst_json(body)
+    neu_k = _kunst_json(body)
+    if neu_k and e.kunst_json:
+        # Testmodus und von Hand gesetzte Phasen (nur Admins, /api/kunst/<id>/test) beim Bearbeiten behalten.
+        alt_k = json.loads(e.kunst_json or "{}") or {}
+        neu_k = json.dumps({**json.loads(neu_k), **{x: alt_k[x] for x in ("test", "phasen") if x in alt_k}})
+    e.kunst_json = neu_k
     # Wieder laufend (Ende in die Zukunft verlegt): die beim frueheren Ende festgehaltenen Teilnehmer gelten nicht mehr,
     # es zaehlen wieder die aktuellen Mitglieder. Sonst fehlte jeder, der nach dem ALTEN Ende beigetreten ist (Jan,
     # 02.11.2026: Foil Scoot im Event leer, in der Team-Ansicht nicht — das Ende war verlaengert worden).

@@ -55,7 +55,14 @@ def einstellungen(e: models.TeamEvent) -> dict:
         k = {}
     rt = int(k.get("runden_tage") or RUNDEN_TAGE_STANDARD)
     at = int(k.get("abstimmen_tage") if k.get("abstimmen_tage") is not None else ABSTIMMEN_TAGE_STANDARD)
-    return {"runden_tage": max(1, min(rt, 62)), "abstimmen_tage": max(1, min(at, 14))}
+    return {"runden_tage": max(1, min(rt, 62)), "abstimmen_tage": max(1, min(at, 14)),
+            # Testmodus (Jan 18.11.2026, nur Admins): jede eigene Session der letzten TEST_TAGE zaehlt, und die Phase jeder
+            # Runde laesst sich von Hand setzen — so sind alle Stufen an einem Abend pruefbar, ohne auf Rundenenden zu warten.
+            "test": bool(k.get("test")), "phasen": {str(a): b for a, b in (k.get("phasen") or {}).items() if b in PHASEN}}
+
+
+PHASEN = ("kommt", "einreichen", "abstimmen", "fertig")
+TEST_TAGE = 60
 
 
 def runden(e: models.TeamEvent, jetzt: datetime | None = None) -> list[dict]:
@@ -71,6 +78,8 @@ def runden(e: models.TeamEvent, jetzt: datetime | None = None) -> list[dict]:
             en = z
         ab = en + timedelta(days=k["abstimmen_tage"])
         phase = "kommt" if jetzt < s else "einreichen" if jetzt < en else "abstimmen" if jetzt < ab else "fertig"
+        if k["test"] and str(nr) in k["phasen"]:
+            phase = k["phasen"][str(nr)]
         out.append({"nr": nr, "start": s, "ende": en, "abstimmen_bis": ab, "phase": phase})
         s, nr = en, nr + 1
     return out
@@ -183,13 +192,21 @@ def darf_moderieren(db: Session, user: models.User, e: models.TeamEvent) -> bool
     return T.darf_verwalten(m)
 
 
-def session_passt(s: models.Session | None, user_id: int, r: dict) -> bool:
+def fenster(e: models.TeamEvent, r: dict) -> tuple[datetime, datetime]:
+    """Aus welcher Zeit Sessions zaehlen: die Runde — im Testmodus die letzten TEST_TAGE."""
+    if einstellungen(e)["test"]:
+        jetzt = datetime.now(timezone.utc)
+        return jetzt - timedelta(days=TEST_TAGE), jetzt + timedelta(minutes=1)
+    return r["start"], r["ende"]
+
+
+def session_passt(s: models.Session | None, user_id: int, r: dict, e: models.TeamEvent | None = None) -> bool:
     if s is None or s.user_id != user_id or s.deleted or s.started_at is None:
         return False
     if (s.sport_class or "") in NICHT_WASSER:
         return False
-    st = _aware(s.started_at)
-    return r["start"] <= st < r["ende"]
+    a, z = fenster(e, r) if e is not None else (r["start"], r["ende"])
+    return a <= _aware(s.started_at) < z
 
 
 def reihenfolge(betrachter: int, bild_id: int) -> str:

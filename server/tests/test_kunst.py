@@ -182,8 +182,42 @@ def test_anlegen_ueber_den_event_dialog(client):
             "tafeln": [], "vorlage": "gpskunst", "kunst_runden_tage": 7, "kunst_abstimmen_tage": 2}
     ev = client.post(f"/api/teams/{slug}/events", headers=kopf, json=body)
     assert ev.status_code == 200, ev.text
-    assert ev.json()["kunst"] == {"runden_tage": 7, "abstimmen_tage": 2}
+    assert ev.json()["kunst"] == {"runden_tage": 7, "abstimmen_tage": 2, "test": False, "phasen": {}}
     d = client.get(f"/api/kunst/{ev.json()['id']}", headers=kopf).json()
     assert len(d["runden"]) == 4 and d["teilnehmen"] and d["moderieren"]
     # Ohne Vorlage bleibt eine leere Bestenliste verboten.
     assert client.post(f"/api/teams/{slug}/events", headers=kopf, json={**body, "vorlage": None}).status_code == 422
+
+
+def test_testmodus_nur_admin_alte_sessions_und_phasen(client, monkeypatch):
+    """Testmodus (Jan 18.11.): Sessions der letzten 60 Tage zaehlen, Phasen von Hand — beides nur fuer Admins."""
+    jetzt = datetime.now(timezone.utc)
+    eid = _event(jetzt - timedelta(hours=1), jetzt + timedelta(days=20))      # 3 Runden, Runde 1 laeuft
+    (ia, ka), (ib, kb) = _nutzer("A"), _nutzer("B")
+    _adm, kadm = _nutzer("Adm", admin=True)
+    gps = {}
+    alt, uuid = _session(ia, jetzt - timedelta(days=30))                       # weit vor der Runde
+    gps[uuid] = _kreis()
+    sb, uuid_b = _session(ib, jetzt - timedelta(days=10))
+    gps[uuid_b] = _kreis()
+    monkeypatch.setattr("app.api.kunst.storage.load_gps", lambda u: gps.get(u, []))
+    assert client.get(f"/api/kunst/{eid}/kandidaten?runde=1", headers=ka).json() == []
+    assert client.post(f"/api/kunst/{eid}/test", headers=ka, json={"test": True}).status_code == 403
+    assert client.post(f"/api/kunst/{eid}/test", headers=kadm, json={"test": True}).json()["test"] is True
+    assert [k["id"] for k in client.get(f"/api/kunst/{eid}/kandidaten?runde=1", headers=ka).json()] == [alt]
+    for kopf, sid in ((ka, alt), (kb, sb)):
+        assert client.post(f"/api/kunst/{eid}/bild", headers=kopf, json={"runde": 1, "session_id": sid, "von_ms": 0,
+                                                                        "bis_ms": 10**9}).status_code == 200
+    # Runde 1 sofort in die Abstimmung, dann ins Ergebnis.
+    assert client.post(f"/api/kunst/{eid}/phase", headers=ka, json={"runde": 1, "phase": "abstimmen"}).status_code == 403
+    client.post(f"/api/kunst/{eid}/phase", headers=kadm, json={"runde": 1, "phase": "abstimmen"})
+    r1 = client.get(f"/api/kunst/{eid}", headers=kb).json()["runden"][0]
+    assert r1["phase"] == "abstimmen"
+    bild_a = next(g["id"] for g in r1["galerie"] if not g["eigen"])
+    assert client.post(f"/api/kunst/bild/{bild_a}/herz", headers=kb).status_code == 200
+    client.post(f"/api/kunst/{eid}/phase", headers=kadm, json={"runde": 1, "phase": "fertig"})
+    erg = client.get(f"/api/kunst/{eid}", headers=ka).json()["runden"][0]["ergebnis"]
+    assert erg[0]["bild_id"] == bild_a and erg[0]["herzen"] == 1
+    # Aus: Phasen verworfen, wieder nach der Uhr.
+    client.post(f"/api/kunst/{eid}/test", headers=kadm, json={"test": False})
+    assert client.get(f"/api/kunst/{eid}", headers=ka).json()["runden"][0]["phase"] == "einreichen"
