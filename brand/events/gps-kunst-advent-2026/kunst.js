@@ -49,24 +49,30 @@ function baumMitStern(cx, top, hoehe, breite, sternR, saat) {
   let z = saat * 7919 + 13;
   const r = () => { z = (z * 1664525 + 1013904223) % 4294967296; return z / 4294967296 - 0.5; };
   const krone = hoehe * 0.84, etagen = 3;
-  const seite = (vz) => {                                     // Aeste einer Seite von oben nach unten, je Seite anders
+  // Links senkrecht gestreckt (Jan 18.11.2026: „die linke haelfte etwas vertikal gestreckter, nicht auf identischer
+  // hoehe die horizontalen stuecke"): die Etagen links liegen tiefer als rechts.
+  const seite = (vz, streck) => {                             // Aeste einer Seite von oben nach unten, je Seite anders
     const out = [];
     for (let i = 0; i < etagen; i++) {
-      const yu = top + krone * (i + 1) / etagen + r() * hoehe * 0.07;
+      const yu = top + krone * streck * (i + 1) / etagen + r() * hoehe * 0.05;
       const w = (breite / 2) * (0.5 + 0.5 * (i + 1) / etagen) * (1 + r() * 0.22);
       out.push([cx + vz * w, yu]);
       if (i < etagen - 1) out.push([cx + vz * w * (0.45 + r() * 0.15), yu + r() * hoehe * 0.04]);
     }
     return out;
   };
-  const rechts = seite(1), links = seite(-1);
+  const rechts = seite(1, 0.95), links = seite(-1, 1.32);
   const st = breite * 0.08, unten = top + krone, boden = top + hoehe;
   const sy = top - sternR * 1.25;
-  const unterpunkt = [cx, sy + sternR * 0.5];
+  const phase = r() * 6;
+  const unterpunkt = [cx, sy - sternR * 0.15 + sternR * 1.05 * 0.9 * (1 + 0.1 * Math.sin(Math.PI + phase))];
+  // Oben ein gefahrener Kreis statt Stern (Jan 18.11.2026: „als gefahrenen kreis oben ohne zacken, auch nicht 100%
+  // rund"): vom unteren Punkt einmal herum, Radius leicht eiernd.
   const stern = [];
-  for (let i = 5; i <= 15; i++) {
-    const w = -Math.PI / 2 + i * Math.PI / 5 + r() * 0.12, rr = (i % 2 ? sternR * 0.5 : sternR) * (1 + r() * 0.15);
-    stern.push([cx + rr * Math.cos(w), sy + rr * Math.sin(w)]);
+  for (let i = 0; i <= 12; i++) {
+    const w = Math.PI / 2 + i * 2 * Math.PI / 12;
+    const rr = sternR * 1.05 * (1 + 0.1 * Math.sin(2 * w + phase));          // leicht oval/eiernd, ohne Zacken
+    stern.push([cx + rr * Math.cos(w) + sternR * 0.08 * Math.sin(w), sy - sternR * 0.15 + rr * Math.sin(w) * 0.9]);
   }
   // Links nur bis zum inneren Punkt der zweiten Etage, dann ein kurzes Stueck Richtung unterster Ast — Sturz.
   const l = links.slice(0, 4);
