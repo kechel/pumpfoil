@@ -14,6 +14,8 @@ Tannenbaum + Stern als EINE durchgehende, offene GPS-Spur (Ecken als Kurvenboege
 
     node render.mjs <zielordner>      # banner, banner-rahmen, quadrat, hochkant, streifen-<1..4>-<transparent|weiss>
 
+Fertige Renderings (Stand 18.11.2026) liegen in `png/` — `banner.png` ist das Eventbild.
+
 ## Event (Entwurf, 18.11.2026)
 
 Im offiziellen Team, global, Vorlage GPS-Kunst, Testmodus aus. Start So 29.11. 00:00, Ende So 27.12. 00:00, Runde alle
