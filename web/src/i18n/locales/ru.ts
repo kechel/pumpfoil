@@ -889,6 +889,7 @@ const ru: Record<string, string> = {
   "ref.fehler.grund": "Выберите причину.",
   "sd.eventKategorie": "Категория события",
   "sd.eventKategorieHinweis": "Выделяет в каждом заезде участок, который засчитывается в эту категорию",
+  "sd.sprintVersion": "Расчёт спринтов, версия {{v}} — как это работает",
   "sd.eventZaehlt": "Засчитано в {titel} · заездов: {n}",
   "sd.runN": "· заезд {n}",
   "rate.tile": "Оценить анализ",

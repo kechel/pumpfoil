@@ -105,12 +105,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -1237,6 +1239,16 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                                     },
                                     colors = cyanChipColors(),
                                 )
+                            }
+                            // Sprint-Fassung (Jan 18.11.2026, wie Web): klein neben den Lauf-Knoepfen, nur bei aktiver Sprint-Anzeige;
+                            // V7 ab 18.11. 07:00 UTC, aeltere bleiben bei ihrer Fassung. Tipp oeffnet den Nerd-Artikel.
+                            val sprintV = s.analysis?.sprints?.v
+                            if (sprintEbeneDaten != null && sprintEbeneDaten.isNotEmpty() && sprintV != null) {
+                                val uri = LocalUriHandler.current
+                                Text("V$sprintV", fontSize = 10.sp, fontWeight = FontWeight.Medium,
+                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                     modifier = Modifier.align(Alignment.CenterVertically)
+                                         .clickable { runCatching { uri.openUri("https://pumpfoil.org/nerd-analysen-sprints") } })
                             }
                             if (selectedRun != null) {
                                 FilterChip(

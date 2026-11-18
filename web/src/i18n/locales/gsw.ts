@@ -745,6 +745,7 @@ const gsw: Record<string, string> = {
   "ref.fehler.grund": "Bitte en Grund uswähle.",
   "sd.eventKategorie": "Event-Kategorii",
   "sd.eventKategorieHinweis": "Zeigt pro Lauf s Stück, wo für die Event-Kategorii zellt",
+  "sd.sprintVersion": "Sprint-Berächnig, Version {{v}} — so gaht das",
   "sd.eventZaehlt": "Zellt für {titel} · {n} Läuf",
   "sd.runN": "· Lauf {n}",
   "rate.tile": "Uswärtig bewärte",

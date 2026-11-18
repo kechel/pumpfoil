@@ -896,6 +896,7 @@ const ptPT: Record<string, string> = {
   "ref.fehler.grund": "Escolha um motivo.",
   "sd.eventKategorie": "Categoria do evento",
   "sd.eventKategorieHinweis": "Destaca em cada volta o troço que conta para esta categoria",
+  "sd.sprintVersion": "Cálculo dos sprints, versão {{v}} — como funciona",
   "sd.eventZaehlt": "Conta para {titel} · {n} voltas",
   "sd.runN": "· volta {n}",
   "rate.tile": "Avaliar a análise",

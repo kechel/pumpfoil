@@ -1374,6 +1374,13 @@ struct SessionDetailView: View {
         teamKennzahl(sprintEbene).fmt(wert, lang)
     }
 
+    /// Spaltenkopf der Sprint-Ebene, mit Rechenfassung („100 m · V7", 18.11.2026), leer = Ebene aus.
+    private func sprintKopfText(_ s: SessionDetail) -> String {
+        let label: String = Self.sprintEbeneLabel(sprintEbene)
+        guard !label.isEmpty, !sprintEbeneDaten.isEmpty, let v = s.analysis?.sprints?.v else { return label }
+        return label + " · V" + String(v)
+    }
+
     /// Lauf-Index -> Wert als Text, fuer die Lauf-Tabelle.
     private var sprintEbeneTexte: [Int: String] {
         var out: [Int: String] = [:]
@@ -1778,7 +1785,8 @@ struct SessionDetailView: View {
                   wattFuer: wattFuer(s),
                   canEdit: s.owned == true, busy: excludeBusy,
                   onExclude: { askExcludeRun($0) },
-                  sprintKopf: Self.sprintEbeneLabel(sprintEbene),
+                  // Sprint-Fassung (Jan 18.11.2026, wie Web/Android): „100 m · V7" im Spaltenkopf, nur bei aktiver Ebene.
+                  sprintKopf: sprintKopfText(s),
                   sprintTexte: sprintEbeneTexte,
                   onSelect: { selectedRun = (selectedRun == $0) ? nil : $0 })
     }

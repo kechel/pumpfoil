@@ -911,6 +911,7 @@ const pl: Record<string, string> = {
   "ref.fehler.grund": "Wybierz powód.",
   "sd.eventKategorie": "Kategoria wydarzenia",
   "sd.eventKategorieHinweis": "Wyróżnia w każdym przejeździe odcinek liczony do tej kategorii",
+  "sd.sprintVersion": "Obliczanie sprintów, wersja {{v}} — jak to działa",
   "sd.eventZaehlt": "Liczy się do {titel} · {n} przejazdów",
   "sd.runN": "· przejazd {n}",
   "rate.tile": "Oceń analizę",

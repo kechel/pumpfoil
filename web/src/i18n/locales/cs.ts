@@ -913,6 +913,7 @@ const cs: Record<string, string> = {
   "ref.fehler.grund": "Vyber důvod.",
   "sd.eventKategorie": "Kategorie akce",
   "sd.eventKategorieHinweis": "Zvýrazní v každé jízdě úsek, který se počítá do této kategorie",
+  "sd.sprintVersion": "Výpočet sprintů, verze {{v}} — jak funguje",
   "sd.eventZaehlt": "Počítá se do {titel} · {n} jízd",
   "sd.runN": "· Jízda {n}",
   "rate.tile": "Ohodnotit analýzu",

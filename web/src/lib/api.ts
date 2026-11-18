@@ -304,7 +304,9 @@ export interface Analysis {
   /** Fliegende Sprints (11.11.2026): bester Wert (m/s), Lauf und Fenster [Start, Ende] in Session-ms je Kennzahl. */
   sprints?: null | { best: Record<string, number>; lauf: Record<string, number>; fenster: Record<string, [number, number]>;
     /** Je Lauf (Index wie segments_json, 16.11.2026): Werte und Fenster je Kennzahl. */
-    laeufe?: (Record<string, number> | null)[]; laeufe_fenster?: (Record<string, [number, number]> | null)[] };
+    laeufe?: (Record<string, number> | null)[]; laeufe_fenster?: (Record<string, [number, number]> | null)[];
+    /** Rechenfassung (18.11.2026): 7 = Mischstrecke ab 18.11. 07:00 UTC, 6 und aelter = nur Uhr-Tempo. */
+    v?: number };
   sport_zahlen?: null | {
     fahrzeit_s?: number; tempo_kmh?: number; foil_anteil?: number; fahrt_pause_s?: number;
     fahrten?: { laeufe: number; lauf_von: number; lauf_bis: number; t_start_ms: number; dauer_s: number; strecke_m: number; foil_m: number; foil_s: number;

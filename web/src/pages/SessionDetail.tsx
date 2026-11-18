@@ -2742,6 +2742,14 @@ export default function SessionDetail() {
                   )}
                 </button>
               ))}
+              {/* Sprint-Fassung (Jan 18.11.2026): klein neben den Lauf-Knoepfen, nur bei aktiver Sprint-Anzeige. V7 ab
+                  18.11. 07:00 UTC, aeltere bleiben bei ihrer Fassung (nie rueckwirkend). Link zum Nerd-Artikel. */}
+              {sprintEbene && sprintEbeneDaten && sprintEbeneDaten.size > 0 && session?.analysis?.sprints?.v && (
+                <Link to="/nerd-analysen-sprints" title={t("sd.sprintVersion", { v: session.analysis.sprints.v })}
+                  className="ml-1 text-[10px] font-medium text-slate-500 hover:text-fuchsia-700 hover:underline dark:hover:text-fuchsia-300">
+                  V{session.analysis.sprints.v}
+                </Link>
+              )}
               {(selectedRun != null || selectedAttempt != null) && (
                 <button
                   onClick={() => { setSelectedRun(null); setSelectedAttempt(null); }}

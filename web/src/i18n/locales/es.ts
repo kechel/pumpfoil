@@ -799,6 +799,7 @@ const es: Record<string, string> = {
   "ref.fehler.grund": "Elige un motivo.",
   "sd.eventKategorie": "Categoría del evento",
   "sd.eventKategorieHinweis": "Resalta en cada vuelta el tramo que cuenta para esta categoría",
+  "sd.sprintVersion": "Cálculo de sprints, versión {{v}} — cómo funciona",
   "sd.eventZaehlt": "Cuenta para {titel} · {n} vueltas",
   "sd.runN": "· run {n}",
   "rate.tile": "Valorar el análisis",

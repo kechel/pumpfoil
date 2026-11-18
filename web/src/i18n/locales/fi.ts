@@ -895,6 +895,7 @@ const fi: Record<string, string> = {
   "ref.fehler.grund": "Valitse syy.",
   "sd.eventKategorie": "Tapahtuman sarja",
   "sd.eventKategorieHinweis": "Korostaa jokaisesta ajosta osuuden, joka lasketaan tähän sarjaan",
+  "sd.sprintVersion": "Sprinttien laskenta, versio {{v}} — näin se toimii",
   "sd.eventZaehlt": "Lasketaan: {titel} · {n} ajoa",
   "sd.runN": "· Lenkki {n}",
   "rate.tile": "Arvioi analyysi",

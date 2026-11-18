@@ -341,6 +341,8 @@ data class SprintLagen(
     // Je Lauf (Index wie segments, sprint-VERSION 5, 16.11.2026): Werte und Fenster je Kennzahl; null = Lauf ohne Wert.
     val laeufe: List<Map<String, Double>?>? = null,
     @SerialName("laeufe_fenster") val laeufeFenster: List<Map<String, List<Double>>?>? = null,
+    // Rechenfassung (18.11.2026): 7 = Mischstrecke ab 18.11. 07:00 UTC, 6 und aelter = nur Uhr-Tempo.
+    val v: Int? = null,
 )
 
 /** Events, fuer die eine Session zaehlt (Server session_events, 16.11.2026; Web SessionEvent). */

@@ -889,6 +889,7 @@ const ja: Record<string, string> = {
   "ref.fehler.grund": "理由を選んでください。",
   "sd.eventKategorie": "イベント部門",
   "sd.eventKategorieHinweis": "各ランでこの部門に計上される区間を強調表示します",
+  "sd.sprintVersion": "スプリント計算 バージョン{{v}} — 仕組み",
   "sd.eventZaehlt": "{titel} に計上 · {n} ラン",
   "sd.runN": "· ラン {n}",
   "rate.tile": "解析を評価",

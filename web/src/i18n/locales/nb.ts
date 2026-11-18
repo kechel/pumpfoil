@@ -905,6 +905,7 @@ const nb: Record<string, string> = {
   "ref.fehler.grund": "Velg en grunn.",
   "sd.eventKategorie": "Eventkategori",
   "sd.eventKategorieHinweis": "Fremhever delen av hver tur som teller for denne kategorien",
+  "sd.sprintVersion": "Sprintberegning, versjon {{v}} — slik fungerer den",
   "sd.eventZaehlt": "Teller for {titel} · {n} turer",
   "sd.runN": "· run {n}",
   "rate.tile": "Vurder analysen",

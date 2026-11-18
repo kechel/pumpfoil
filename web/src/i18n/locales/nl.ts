@@ -913,6 +913,7 @@ const nl: Record<string, string> = {
   "ref.fehler.grund": "Kies een reden.",
   "sd.eventKategorie": "Eventcategorie",
   "sd.eventKategorieHinweis": "Markeert per run het stuk dat telt voor deze categorie",
+  "sd.sprintVersion": "Sprintberekening, versie {{v}} — zo werkt het",
   "sd.eventZaehlt": "Telt voor {titel} · {n} runs",
   "sd.runN": "· run {n}",
   "rate.tile": "Analyse beoordelen",

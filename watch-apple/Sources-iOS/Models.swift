@@ -1300,6 +1300,8 @@ struct SessionSprints: Codable {
     /// Je Lauf (Index wie die Segmente, sprint-VERSION 5, 16.11.2026): Werte und Fenster je Kennzahl; null je Lauf ohne.
     var laeufe: [[String: Double]?]? = nil
     var laeufe_fenster: [[String: [Double]]?]? = nil
+    /// Rechenfassung (18.11.2026): 7 = Mischstrecke ab 18.11. 07:00 UTC, 6 und aelter = nur Uhr-Tempo.
+    var v: Int? = nil
 }
 
 /// Event, fuer das diese Session zaehlt (server teams.session_events, 16.11.2026): laufbezogene Kategorien des Events,

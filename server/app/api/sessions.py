@@ -223,7 +223,8 @@ _VALID_LABELS = {"pump", "glide", "not_foiling"}
 #  11 = `events` (Events, fuer die die Session zaehlt) + `analysis.sprints.laeufe/laeufe_fenster` (16.11.2026). Beides
 #       aendert sich ohne Aenderung der Session (Event-Wertung, Nachrechnen) -> steht zusaetzlich als Pruefsumme im ETag.
 #  12 = `uhr_takt_min` je Lauf + in metrics (Takt laut Suunto-Uhr, 16.11.2026); Bestand per Skript nachgetragen.
-_OUT_VERSION = 12
+#  13 = `analysis.sprints.v` (Sprint-Rechenfassung, 18.11.2026, Anzeige „V6"/„V7" neben den Sprint-Schaltern).
+_OUT_VERSION = 13
 
 
 def _ort_verborgen(s: models.Session) -> bool:
@@ -412,6 +413,8 @@ def _sprints_out(result: models.AnalysisResult) -> dict | None:
     # Je Lauf (16.11.2026, Event-Kategorie in der Session): Werte und Fenster je Kennzahl, Index = Lauf in segments_json.
     out["laeufe"] = j.get("laeufe") or []
     out["laeufe_fenster"] = j.get("laeufe_fenster") or []
+    # Rechenfassung (18.11.2026): 7 = Mischstrecke (ab sprint.STICHTAG_V7), 6 und aelter = nur Uhr-Tempo.
+    out["v"] = j.get("v")
     return out
 
 

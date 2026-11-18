@@ -889,6 +889,7 @@ const id: Record<string, string> = {
   "ref.fehler.grund": "Pilih alasan.",
   "sd.eventKategorie": "Kategori event",
   "sd.eventKategorieHinweis": "Menyorot bagian tiap run yang dihitung untuk kategori ini",
+  "sd.sprintVersion": "Perhitungan sprint, versi {{v}} — cara kerjanya",
   "sd.eventZaehlt": "Dihitung untuk {titel} · {n} run",
   "sd.runN": "· run {n}",
   "rate.tile": "Nilai analisis",

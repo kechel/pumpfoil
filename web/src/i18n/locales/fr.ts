@@ -799,6 +799,7 @@ const fr: Record<string, string> = {
   "ref.fehler.grund": "Choisis un motif.",
   "sd.eventKategorie": "Catégorie d'événement",
   "sd.eventKategorieHinweis": "Met en évidence, pour chaque run, la partie qui compte pour cette catégorie",
+  "sd.sprintVersion": "Calcul des sprints, version {{v}} — comment ça marche",
   "sd.eventZaehlt": "Compte pour {titel} · {n} runs",
   "sd.runN": "· run {n}",
   "rate.tile": "Évaluer l'analyse",

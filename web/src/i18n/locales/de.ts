@@ -954,6 +954,7 @@ const de: Record<string, string> = {
   "ref.fehler.grund": "Bitte einen Grund wählen.",
   "sd.eventKategorie": "Event-Kategorie",
   "sd.eventKategorieHinweis": "Hebt je Lauf das Stück hervor, das für diese Event-Kategorie zählt",
+  "sd.sprintVersion": "Sprint-Berechnung, Version {{v}} — so funktioniert sie",
   "sd.eventZaehlt": "Zählt für {titel} · {n} Läufe",
   "sd.runN": "· Lauf {n}",
   "rate.tile": "Auswertung bewerten",

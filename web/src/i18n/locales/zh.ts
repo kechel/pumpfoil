@@ -889,6 +889,7 @@ const zh: Record<string, string> = {
   "ref.fehler.grund": "请选择原因。",
   "sd.eventKategorie": "赛事类别",
   "sd.eventKategorieHinweis": "在每次滑行中高亮计入该类别的片段",
+  "sd.sprintVersion": "冲刺计算 版本 {{v}} — 计算方法",
   "sd.eventZaehlt": "计入 {titel} · {n} 次滑行",
   "sd.runN": "· 航段 {n}",
   "rate.tile": "评价分析",
