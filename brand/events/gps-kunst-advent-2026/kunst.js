@@ -66,15 +66,18 @@ function baumMitStern(cx, top, hoehe, breite, sternR, saat) {
   // Oben eine gefahrene Schleife statt Stern (Jan 18.11.2026: „gefahrenen kreis … nicht 100% rund", „der anschluss an
   // den kreis muss auch gefahren werden"): von rechts unten tangential hinein, oben herum, links unten tangential hinaus
   // in die linken Aeste — kein Steg, keine Kehre.
-  // Schlaufe mit Kreuzung: von rechts unten hinein, einmal ganz herum (gut 360°), unten ueber die eigene Spur, links
-  // hinaus — die Kreuzung bleibt als Baumspitze sichtbar.
-  const phase = r() * 6, kr = sternR * 1.1, ky = top - kr * 0.95;
+  // Schlaufe (Jan 18.11.2026: „er kommt von rechts und faehrt gerade weiter in den kreis die rechtskurve und schneidet
+  // dann seinen eigenen weg im uebergang zum baum auf die linke seite"): die rechte Seite laeuft nach links oben ueber die
+  // Spitze hinaus in den Kreis (Eintritt links unten), Rechtskurve = im Uhrzeigersinn (links hoch, oben, rechts runter),
+  // Austritt rechts unten nach links unten — dabei kreuzt er die eigene Anfahrt und geht in die linken Aeste.
+  const phase = r() * 6, kr = sternR * 1.15;
+  const kx = cx - kr * 0.12, ky = top - kr * 1.05;
   const schleife = [];
-  for (let i = 0; i <= 22; i++) {
-    const grad = 55 - i * (395 / 22);                         // 55° (rechts unten) gegen den Uhrzeiger bis -340° (= 20°, wieder rechts unten vorbei)
+  for (let i = 0; i <= 20; i++) {
+    const grad = 150 + i * (270 / 20);                        // 150° (links unten) im Uhrzeigersinn bis 420° (= 60°, rechts unten)
     const w = grad * Math.PI / 180;
-    const rr = kr * (1 + 0.1 * Math.sin(2 * w + phase));
-    schleife.push([cx + rr * Math.cos(w), ky + rr * Math.sin(w) * 0.9]);
+    const rr = kr * (1 + 0.08 * Math.sin(2 * w + phase));
+    schleife.push([kx + rr * Math.cos(w), ky + rr * Math.sin(w) * 0.92]);
   }
   // Links nur bis zum inneren Punkt der zweiten Etage, dann ein kurzes Stueck Richtung unterster Ast — Sturz.
   const l = links.slice(0, 4);
