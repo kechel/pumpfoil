@@ -3216,6 +3216,7 @@ const cs: Record<string, string> = {
   "kunst.drehung": "Otočení: {grad}°",
   "kunst.punkte": "{n} GPS bodů v obrázku",
   "kunst.speichern": "Uložit",
+  "kunst.err.keine_laeufe": "Tento session nemá žádné rozpoznané jízdy — kreslí se jen to, co jsi jel na foilu.",
   "kunst.err.unbekannt": "To se nepovedlo. Zkus to prosím znovu.",
   "kunst.err.runde_zu": "Do tohoto kola už nelze odesílat.",
   "kunst.err.keine_abstimmung": "Hlasovat jde až po skončení kola.",

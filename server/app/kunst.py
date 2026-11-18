@@ -127,6 +127,21 @@ def _rdp(p: list[tuple[float, float]], eps: float) -> list[tuple[float, float]]:
     return [q for q, b in zip(p, behalten) if b]
 
 
+def laeufe(segments_json: str | None) -> list[tuple[int, int]]:
+    """Erkannte Laeufe als [(von, bis)] in GPS-ms (`t_start_session_ms`, gleiche Achse wie gps[i][0] — NICHT i_start,
+    das zeigt in track_geojson). Gezeichnet wird nur auf dem Foil (Jan 18.11.2026: „nur die on-foil strecken")."""
+    try:
+        segs = json.loads(segments_json or "[]") or []
+    except ValueError:
+        return []
+    out = []
+    for g in segs:
+        a, z = g.get("t_start_session_ms"), g.get("t_end_session_ms")
+        if a is not None and z is not None and z > a:
+            out.append((int(a), int(z)))
+    return sorted(out)
+
+
 def spur(gps: list) -> list[list[float]]:
     """Ganze Session fuers Zuschneiden: [[t_ms, x_m, y_m], ...], hoechstens SPUR_MAX_PUNKTE (gleichmaessig ausgeduennt).
     Relative Meter — nur fuer den Besitzer, aber auch so ohne Koordinaten."""
@@ -137,34 +152,55 @@ def spur(gps: list) -> list[list[float]]:
     return [[int(t), round(x, 1), round(y, 1)] for t, x, y in p]
 
 
-def linie(gps: list, von_ms: int, bis_ms: int, drehung: int, max_punkte: int = LINIE_MAX_PUNKTE) -> list[list[int]]:
-    """Normierte Linie des Stuecks [von, bis]: gedreht (Grad, im Uhrzeigersinn), Seitenverhaeltnis erhalten, mittig in
-    0..BOX eingepasst, y nach unten (SVG). ValueError, wenn zu wenig Punkte oder zu klein."""
-    p = [(x, y) for t, x, y in _projiziert(gps) if von_ms <= t <= bis_ms]
-    if len(p) < MIN_PUNKTE:
+def linie(gps: list, von_ms: int, bis_ms: int, drehung: int, max_punkte: int = LINIE_MAX_PUNKTE,
+          fenster: list[tuple[int, int]] | None = None) -> list[list[list[int]]]:
+    """Normierte Linie des Stuecks [von, bis] als STRICHE [[[x, y], ...], ...]: mit `fenster` (Laeufe) ein Strich je Lauf,
+    dazwischen nichts; ohne `fenster` ein einziger Strich. Gedreht (Grad, im Uhrzeigersinn), Seitenverhaeltnis erhalten,
+    mittig in 0..BOX eingepasst, y nach unten (SVG). ValueError, wenn zu wenig Punkte oder zu klein."""
+    striche: list[list[tuple[float, float]]] = []
+    akt, akt_f = [], None
+    for t, x, y in _projiziert(gps):
+        if not (von_ms <= t <= bis_ms):
+            continue
+        if fenster is not None:
+            f = next((i for i, (a, z) in enumerate(fenster) if a <= t <= z), None)
+            if f is None:
+                continue
+        else:
+            f = 0
+        if f != akt_f and akt:
+            striche.append(akt)
+            akt = []
+        akt_f = f
+        akt.append((x, y))
+    if akt:
+        striche.append(akt)
+    striche = [st for st in striche if len(st) >= 2]
+    if sum(len(st) for st in striche) < MIN_PUNKTE:
         raise ValueError("zu_wenig_punkte")
     w = math.radians(drehung % 360)
     c, s_ = math.cos(w), math.sin(w)
     # Bildschirm-Koordinaten (Norden oben, y nach unten): sx = x, sy = -y. Die Matrix [[c, -s], [s, c]] dreht dort im
-    # Uhrzeigersinn — genau wie SVG rotate(grad) in der Vorschau des Web-Editors.
-    q = [(x * c - (-y) * s_, x * s_ + (-y) * c) for x, y in p]
-    xs, ys = [a for a, _ in q], [b for _, b in q]
+    # Uhrzeigersinn — genau wie in der Vorschau des Web-Editors.
+    q = [[(x * c - (-y) * s_, x * s_ + (-y) * c) for x, y in st] for st in striche]
+    xs = [a for st in q for a, _ in st]
+    ys = [b for st in q for _, b in st]
     bx, by = max(xs) - min(xs), max(ys) - min(ys)
     if max(bx, by) < MIN_AUSDEHNUNG_M:
         raise ValueError("zu_klein")
     m = max(bx, by)
     rand = BOX * 0.04
-    f = (BOX - 2 * rand) / m
-    ox = (BOX - bx * f) / 2 - min(xs) * f
-    oy = (BOX - by * f) / 2 - min(ys) * f
-    r = [(x * f + ox, y * f + oy) for x, y in q]
+    f_ = (BOX - 2 * rand) / m
+    ox = (BOX - bx * f_) / 2 - min(xs) * f_
+    oy = (BOX - by * f_) / 2 - min(ys) * f_
+    r = [[(x * f_ + ox, y * f_ + oy) for x, y in st] for st in q]
     eps = 0.6
     while True:
-        z = _rdp(r, eps)
-        if len(z) <= max_punkte or eps > 200:
+        z = [_rdp(st, eps) for st in r]
+        if sum(len(st) for st in z) <= max_punkte or eps > 200:
             break
         eps *= 1.6
-    return [[int(round(x)), int(round(y))] for x, y in z]
+    return [[[int(round(x)), int(round(y))] for x, y in st] for st in z]
 
 
 # ---------------------------------------------------------------------------------------------- Wer darf was ----

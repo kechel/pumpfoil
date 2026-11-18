@@ -3142,6 +3142,7 @@ const pl: Record<string, string> = {
   "kunst.drehung": "Obrót: {grad}°",
   "kunst.punkte": "{n} punktów GPS na obrazku",
   "kunst.speichern": "Zapisz",
+  "kunst.err.keine_laeufe": "Ta sesja nie ma rozpoznanych przejazdów — rysowane jest tylko to, co przepłynąłeś na foilu.",
   "kunst.err.unbekannt": "Nie udało się. Spróbuj jeszcze raz.",
   "kunst.err.runde_zu": "W tej rundzie nie można już zgłaszać obrazków.",
   "kunst.err.keine_abstimmung": "Głosować można dopiero po zakończeniu rundy.",

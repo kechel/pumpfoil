@@ -3045,6 +3045,7 @@ const es: Record<string, string> = {
   "kunst.drehung": "Giro: {grad}°",
   "kunst.punkte": "{n} puntos GPS en la imagen",
   "kunst.speichern": "Guardar",
+  "kunst.err.keine_laeufe": "Esta sesión no tiene tramos detectados — solo se dibuja lo que hiciste sobre el foil.",
   "kunst.err.unbekannt": "No ha funcionado. Inténtalo de nuevo, por favor.",
   "kunst.err.runde_zu": "En esta ronda ya no se puede enviar nada.",
   "kunst.err.keine_abstimmung": "Solo se puede votar cuando termina la ronda.",

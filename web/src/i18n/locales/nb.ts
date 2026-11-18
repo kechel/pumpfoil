@@ -3134,6 +3134,7 @@ const nb: Record<string, string> = {
   "kunst.drehung": "Rotasjon: {grad}°",
   "kunst.punkte": "{n} GPS-punkter i bildet",
   "kunst.speichern": "Lagre",
+  "kunst.err.keine_laeufe": "Denne økten har ingen gjenkjente runs — bare det du kjørte på foilen tegnes.",
   "kunst.err.unbekannt": "Det gikk ikke. Prøv igjen.",
   "kunst.err.runde_zu": "Det kan ikke sendes inn flere bilder i denne runden.",
   "kunst.err.keine_abstimmung": "Avstemningen åpner først når runden er over.",

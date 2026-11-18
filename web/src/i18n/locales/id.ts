@@ -3163,6 +3163,7 @@ const id: Record<string, string> = {
   "kunst.drehung": "Rotasi: {grad}°",
   "kunst.punkte": "{n} titik GPS dalam gambar",
   "kunst.speichern": "Simpan",
+  "kunst.err.keine_laeufe": "Sesi ini tidak punya run yang terdeteksi — hanya yang dikendarai di atas foil yang digambar.",
   "kunst.err.unbekannt": "Gagal. Silakan coba lagi.",
   "kunst.err.runde_zu": "Ronde ini sudah tidak bisa menerima kiriman.",
   "kunst.err.keine_abstimmung": "Voting baru dibuka setelah ronde berakhir.",

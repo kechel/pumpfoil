@@ -3048,6 +3048,7 @@ const gsw: Record<string, string> = {
   "kunst.drehung": "Drehig: {grad}°",
   "kunst.punkte": "{n} GPS-Pünkt im Bild",
   "kunst.speichern": "Spichere",
+  "kunst.err.keine_laeufe": "I dere Session häts kei erkannti Läuf — zeichnet wird nur, was uf em Foil gfahre isch.",
   "kunst.err.unbekannt": "Das het nöd klappet. Bitte probier s nomal.",
   "kunst.err.runde_zu": "I dere Rundi chan nüme ihgreicht werde.",
   "kunst.err.keine_abstimmung": "Abgstimmt wird erscht nach em Änd vo de Rundi.",

@@ -3217,6 +3217,7 @@ const nl: Record<string, string> = {
   "kunst.drehung": "Draaiing: {grad}°",
   "kunst.punkte": "{n} GPS-punten in het plaatje",
   "kunst.speichern": "Opslaan",
+  "kunst.err.keine_laeufe": "Deze sessie heeft geen herkende runs — alleen wat je op de foil hebt gevaren wordt getekend.",
   "kunst.err.unbekannt": "Dat is niet gelukt. Probeer het nog eens.",
   "kunst.err.runde_zu": "In deze ronde kan niet meer worden ingezonden.",
   "kunst.err.keine_abstimmung": "Er wordt pas gestemd na het einde van de ronde.",

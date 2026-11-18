@@ -3159,6 +3159,7 @@ const ja: Record<string, string> = {
   "kunst.drehung": "回転：{grad}°",
   "kunst.punkte": "絵の中のGPSポイント：{n}",
   "kunst.speichern": "保存",
+  "kunst.err.keine_laeufe": "このセッションには検出された走行がありません — フォイルで乗った部分だけが描かれます。",
   "kunst.err.unbekannt": "うまくいきませんでした。もう一度お試しください。",
   "kunst.err.runde_zu": "このラウンドにはもう提出できません。",
   "kunst.err.keine_abstimmung": "投票はラウンド終了後に始まります。",

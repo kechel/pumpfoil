@@ -37,6 +37,12 @@ def _runde(e: models.TeamEvent, nr: int) -> dict:
     return r
 
 
+def _laeufe(db: Session, s: models.Session) -> list[tuple[int, int]]:
+    """Erkannte Laeufe der Session (nur dort wird gezeichnet, Jan 18.11.2026)."""
+    ar = db.query(models.AnalysisResult.segments_json).filter(models.AnalysisResult.session_id == s.id).first()
+    return K.laeufe(ar[0] if ar else None)
+
+
 def _iso(d: datetime) -> str:
     return d.astimezone(timezone.utc).isoformat()
 
@@ -119,8 +125,11 @@ def kandidaten(event_id: int, runde: int, user: models.User = Depends(current_us
         if not K.session_passt(s, user.id, r, e):
             continue
         # Vorschau der ganzen Session zum leichteren Auffinden (Jan 18.11.2026), grob vereinfacht; ohne GPS keine Kachel.
+        fenster = _laeufe(db, s)
+        if not fenster:
+            continue                 # ohne erkannte Laeufe nichts zu zeichnen
         try:
-            vorschau = K.linie(storage.load_gps(s.session_uuid), 0, 10**15, 0, max_punkte=120)
+            vorschau = K.linie(storage.load_gps(s.session_uuid), 0, 10**15, 0, max_punkte=160, fenster=fenster)
         except ValueError:
             continue
         out.append({"id": s.id, "started_at": _iso(s.started_at), "sport_class": s.sport_class, "caption": s.caption,
@@ -138,7 +147,7 @@ def spur(event_id: int, session_id: int, user: models.User = Depends(current_use
     p = K.spur(storage.load_gps(s.session_uuid))
     if len(p) < K.MIN_PUNKTE:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "zu_wenig_punkte")
-    return {"session_id": s.id, "punkte": p}
+    return {"session_id": s.id, "punkte": p, "laeufe": [[a, z] for a, z in _laeufe(db, s)]}
 
 
 class BildIn(BaseModel):
@@ -163,8 +172,11 @@ def einreichen(event_id: int, body: BildIn, user: models.User = Depends(current_
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "session_passt_nicht")
     if body.bis_ms <= body.von_ms:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "zeitraum")
+    fenster = _laeufe(db, s)
+    if not fenster:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "keine_laeufe")
     try:
-        lin = K.linie(storage.load_gps(s.session_uuid), body.von_ms, body.bis_ms, body.drehung)
+        lin = K.linie(storage.load_gps(s.session_uuid), body.von_ms, body.bis_ms, body.drehung, fenster=fenster)
     except ValueError as ex:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, str(ex))
     B = models.KunstBild

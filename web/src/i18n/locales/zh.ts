@@ -3160,6 +3160,7 @@ const zh: Record<string, string> = {
   "kunst.drehung": "旋转：{grad}°",
   "kunst.punkte": "图中有 {n} 个 GPS 点",
   "kunst.speichern": "保存",
+  "kunst.err.keine_laeufe": "此记录没有识别出的滑行段 —— 只绘制在水翼上滑行的部分。",
   "kunst.err.unbekannt": "操作失败，请再试一次。",
   "kunst.err.runde_zu": "本轮已不能再提交。",
   "kunst.err.keine_abstimmung": "本轮结束后才能投票。",

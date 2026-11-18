@@ -1149,9 +1149,11 @@ export interface WatchQualityRow {
 export type FoilStatWerte = { sessions: number; users: number; avg_speed_kmh: number | null; meters_per_pump: number | null; best_distance_m: number | null; best_duration_s: number | null; avg_pump_hz: number | null; laeufe?: number };
 
 // GPS-Kunst-Event (18.11.2026, server app/api/kunst.py)
-export type KunstBild = { id: number; linie: [number, number][]; eigen?: boolean; herz?: boolean; entfernt?: string | null; meldungen?: number };
+/** Linie eines Bildes: Striche (einer je Lauf, seit 18.11.2026); aeltere Bilder sind ein einzelner Strich. */
+export type KunstLinieDaten = [number, number][][] | [number, number][];
+export type KunstBild = { id: number; linie: KunstLinieDaten; eigen?: boolean; herz?: boolean; entfernt?: string | null; meldungen?: number };
 export type KunstErgebnis = { bild_id: number; platz: number; herzen: number; user_id: number; session_id: number | null;
-  linie: [number, number][]; name: string | null; avatar_url: string | null; spot: string | null };
+  linie: KunstLinieDaten; name: string | null; avatar_url: string | null; spot: string | null };
 export type KunstRunde = { nr: number; start: string; ende: string; abstimmen_bis: string; phase: "kommt" | "einreichen" | "abstimmen" | "fertig";
   anzahl: number; herzen_vergeben: number; galerie: KunstBild[]; ergebnis?: KunstErgebnis[];
   eigen: (KunstBild & { session_id: number; von_ms: number; bis_ms: number; drehung: number; entfernt: string | null }) | null };
@@ -1624,10 +1626,10 @@ export const api = {
   watchStats: () => req<{ watch: string; sessions: number; users: number; foiling_km: number; avg_speed_kmh: number | null; best_distance_m: number | null; best_speed_kmh: number | null; avg_pump_hz: number | null }[]>("/api/community/watch-stats"),
   kunst: (eventId: number) => req<KunstEvent>(`/api/kunst/${eventId}`),
   kunstKandidaten: (eventId: number, runde: number) =>
-    req<{ id: number; started_at: string; sport_class: string | null; caption: string | null; vorschau: [number, number][] }[]>(`/api/kunst/${eventId}/kandidaten?runde=${runde}`),
-  kunstSpur: (eventId: number, sessionId: number) => req<{ session_id: number; punkte: [number, number, number][] }>(`/api/kunst/${eventId}/spur/${sessionId}`),
+    req<{ id: number; started_at: string; sport_class: string | null; caption: string | null; vorschau: KunstLinieDaten }[]>(`/api/kunst/${eventId}/kandidaten?runde=${runde}`),
+  kunstSpur: (eventId: number, sessionId: number) => req<{ session_id: number; punkte: [number, number, number][]; laeufe: [number, number][] }>(`/api/kunst/${eventId}/spur/${sessionId}`),
   kunstEinreichen: (eventId: number, body: { runde: number; session_id: number; von_ms: number; bis_ms: number; drehung: number }) =>
-    req<{ id: number; linie: [number, number][] }>(`/api/kunst/${eventId}/bild`, { method: "POST", body: JSON.stringify(body) }),
+    req<{ id: number; linie: KunstLinieDaten }>(`/api/kunst/${eventId}/bild`, { method: "POST", body: JSON.stringify(body) }),
   kunstZurueckziehen: (eventId: number, runde: number) => req<{ ok: boolean }>(`/api/kunst/${eventId}/bild?runde=${runde}`, { method: "DELETE" }),
   kunstHerz: (bildId: number) => req<{ herz: boolean; uebrig: number }>(`/api/kunst/bild/${bildId}/herz`, { method: "POST" }),
   kunstMelden: (bildId: number, grund: string) => req<{ ok: boolean }>(`/api/kunst/bild/${bildId}/melden`, { method: "POST", body: JSON.stringify({ grund }) }),

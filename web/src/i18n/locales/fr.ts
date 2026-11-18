@@ -3046,6 +3046,7 @@ const fr: Record<string, string> = {
   "kunst.drehung": "Rotation : {grad}°",
   "kunst.punkte": "{n} points GPS dans l'image",
   "kunst.speichern": "Enregistrer",
+  "kunst.err.keine_laeufe": "Cette session n'a aucun run détecté — seul ce qui a été ridé sur le foil est dessiné.",
   "kunst.err.unbekannt": "Ça n'a pas marché. Réessaie, s'il te plaît.",
   "kunst.err.runde_zu": "Il n'est plus possible d'envoyer d'image dans cette manche.",
   "kunst.err.keine_abstimmung": "Le vote n'ouvre qu'après la fin de la manche.",

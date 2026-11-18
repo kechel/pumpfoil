@@ -29,7 +29,11 @@ def _session(uid: int, start: datetime, sport: str = "pumpfoil") -> tuple[int, s
         uuid = secrets.token_hex(16)
         s = models.Session(session_uuid=uuid, user_id=uid, started_at=start, ended_at=start + timedelta(minutes=30),
                            sport="pumpfoil", sport_class=sport, status="analyzed")
-        db.add(s); db.commit()
+        db.add(s); db.flush()
+        # Ein Lauf ueber alles: gezeichnet wird nur auf dem Foil.
+        db.add(models.AnalysisResult(session_id=s.id, algo_version="test", detection="model", num_runs=1,
+                                     segments_json='[{"t_start_session_ms": 0, "t_end_session_ms": 1000000000}]'))
+        db.commit()
         return s.id, uuid
     finally:
         db.close()
@@ -88,13 +92,19 @@ def test_runden_teilen_das_fenster():
 
 
 def test_linie_normiert_und_dreht():
-    lin = K.linie(_kreis(), 0, 10**9, 90)
+    striche = K.linie(_kreis(), 0, 10**9, 90)
+    assert len(striche) == 1
+    lin = striche[0]
     xs, ys = [p[0] for p in lin], [p[1] for p in lin]
     assert 0 <= min(xs) and max(xs) <= K.BOX and 0 <= min(ys) and max(ys) <= K.BOX
     assert max(xs) - min(xs) > 800          # eingepasst
     # Geschlossene Schleife (Anfang == Ende) darf nicht auf zwei Punkte schrumpfen.
     zu = _kreis(); zu.append([zu[-1][0] + 1000, zu[0][1], zu[0][2], 4.0])
-    assert len(K.linie(zu, 0, 10**9, 0)) > 20
+    assert len(K.linie(zu, 0, 10**9, 0)[0]) > 20
+    # Nur auf dem Foil: zwei Laeufe -> zwei Striche, das Stueck dazwischen (Weg an Land) faellt weg.
+    zwei = K.linie(_kreis(), 0, 10**9, 0, fenster=[(0, 40_000), (80_000, 119_000)])
+    assert len(zwei) == 2
+    assert K.laeufe('[{"t_start_session_ms": 5, "t_end_session_ms": 9}, {"t_start_ms": 1}]') == [(5, 9)]
     try:
         K.linie(_kreis()[:5], 0, 10**9, 0)
         assert False

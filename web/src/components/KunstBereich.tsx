@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
-import { api, type KunstBild, type KunstEvent, type KunstRunde } from "../lib/api";
+import { api, type KunstBild, type KunstEvent, type KunstLinieDaten, type KunstRunde } from "../lib/api";
 import { useT } from "../i18n";
 import { Spinner } from "./ui";
 import { fehlerCode } from "../lib/teamKennzahlen";
@@ -25,29 +25,47 @@ function schnee(saat: number): { x: number; y: number; r: number; o: number }[] 
   return Array.from({ length: 46 }, () => ({ x: zufall() * BOX, y: zufall() * BOX, r: 3 + zufall() * 6, o: 0.25 + zufall() * 0.55 }));
 }
 
-export function KunstLinie({ linie, klein = false, saat = 0 }: { linie: [number, number][]; klein?: boolean; saat?: number }) {
-  const punkte = linie.map(([x, y]) => `${x},${y}`).join(" ");
+/** Einzelner Strich (aeltere Bilder) oder mehrere (ein Strich je Lauf) -> immer Liste von Strichen. */
+function alsStriche(l: KunstLinieDaten): [number, number][][] {
+  if (!l.length) return [];
+  return Array.isArray((l as [number, number][][])[0][0]) ? (l as [number, number][][]) : [l as [number, number][]];
+}
+
+export function KunstLinie({ linie, klein = false, saat = 0 }: { linie: KunstLinieDaten; klein?: boolean; saat?: number }) {
+  const striche = alsStriche(linie).map((st) => st.map(([x, y]) => `${x},${y}`).join(" "));
   const flocken = useMemo(() => schnee(saat), [saat]);
   const dick = klein ? 30 : 22;
   return (
     <svg viewBox={`0 0 ${BOX} ${BOX}`} className="aspect-square w-full rounded-lg" style={{ background: NACHT }} role="img" aria-hidden="true">
       {flocken.map((f, i) => <circle key={i} cx={f.x} cy={f.y} r={f.r} fill="#ffffff" opacity={f.o} />)}
-      <polyline points={punkte} fill="none" stroke={CYAN} strokeOpacity={0.22} strokeWidth={dick * 2.6} strokeLinecap="round" strokeLinejoin="round" />
-      <polyline points={punkte} fill="none" stroke={CYAN} strokeWidth={dick} strokeLinecap="round" strokeLinejoin="round" />
+      {striche.map((p, i) => <polyline key={`g${i}`} points={p} fill="none" stroke={CYAN} strokeOpacity={0.22} strokeWidth={dick * 2.6} strokeLinecap="round" strokeLinejoin="round" />)}
+      {striche.map((p, i) => <polyline key={`l${i}`} points={p} fill="none" stroke={CYAN} strokeWidth={dick} strokeLinecap="round" strokeLinejoin="round" />)}
     </svg>
   );
 }
 
-/** Vorschau wie server kunst.linie: Bildschirm-Koordinaten (Norden oben), im Uhrzeigersinn drehen, mittig einpassen. */
-function normiere(punkte: [number, number, number][], drehung: number): [number, number][] {
-  if (punkte.length < 2) return [];
+/** Vorschau wie server kunst.linie: nur Punkte in Laeufen (ein Strich je Lauf), Bildschirm-Koordinaten (Norden oben),
+ *  im Uhrzeigersinn drehen, mittig einpassen. */
+function normiere(punkte: [number, number, number][], drehung: number, laeufe: [number, number][]): [number, number][][] {
+  const striche: [number, number][][] = [];
+  let akt: [number, number][] = [], aktL = -1;
+  for (const [t, x, y] of punkte) {
+    const l = laeufe.findIndex(([a, z]) => a <= t && t <= z);
+    if (l < 0) continue;
+    if (l !== aktL && akt.length) { striche.push(akt); akt = []; }
+    aktL = l; akt.push([x, y]);
+  }
+  if (akt.length) striche.push(akt);
+  const gut = striche.filter((st) => st.length >= 2);
+  if (!gut.length) return [];
   const w = (drehung * Math.PI) / 180, c = Math.cos(w), s = Math.sin(w);
-  const q = punkte.map(([, x, y]) => [x * c - -y * s, x * s + -y * c] as [number, number]);
-  const xs = q.map((p) => p[0]), ys = q.map((p) => p[1]);
+  const q = gut.map((st) => st.map(([x, y]) => [x * c - -y * s, x * s + -y * c] as [number, number]));
+  const alle = q.flat();
+  const xs = alle.map((p) => p[0]), ys = alle.map((p) => p[1]);
   const minX = Math.min(...xs), minY = Math.min(...ys), bx = Math.max(...xs) - minX, by = Math.max(...ys) - minY;
   const m = Math.max(bx, by) || 1, rand = BOX * 0.04, f = (BOX - 2 * rand) / m;
   const ox = (BOX - bx * f) / 2 - minX * f, oy = (BOX - by * f) / 2 - minY * f;
-  return q.map(([x, y]) => [Math.round(x * f + ox), Math.round(y * f + oy)]);
+  return q.map((st) => st.map(([x, y]) => [Math.round(x * f + ox), Math.round(y * f + oy)] as [number, number]));
 }
 
 const datum = (iso: string) => new Date(iso).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -239,6 +257,7 @@ function Editor({ eventId, runde, onZu, onFertig }: { eventId: number; runde: Ku
   const [kand, setKand] = useState<Awaited<ReturnType<typeof api.kunstKandidaten>> | null>(null);
   const [sid, setSid] = useState<number | null>(runde.eigen?.session_id ?? null);
   const [spur, setSpur] = useState<[number, number, number][] | null>(null);
+  const [laeufe, setLaeufe] = useState<[number, number][]>([]);
   const [von, setVon] = useState(0);
   const [bis, setBis] = useState(0);
   const [dreh, setDreh] = useState(runde.eigen?.drehung ?? 0);
@@ -252,6 +271,7 @@ function Editor({ eventId, runde, onZu, onFertig }: { eventId: number; runde: Ku
     api.kunstSpur(eventId, sid).then((r) => {
       const p = r.punkte;
       setSpur(p);
+      setLaeufe(r.laeufe);
       // Beim eigenen, schon eingereichten Bild das gewaehlte Stueck wiederherstellen, sonst die ganze Session.
       const e = runde.eigen && runde.eigen.session_id === sid ? runde.eigen : null;
       const iv = e ? Math.max(0, p.findIndex((x) => x[0] >= e.von_ms)) : 0;
@@ -261,7 +281,8 @@ function Editor({ eventId, runde, onZu, onFertig }: { eventId: number; runde: Ku
   }, [sid]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   const stueck = spur ? spur.slice(von, bis + 1) : [];
-  const vorschau = useMemo(() => normiere(stueck, dreh), [spur, von, bis, dreh]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const vorschau = useMemo(() => normiere(stueck, dreh, laeufe), [spur, von, bis, dreh, laeufe]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const aufFoil = vorschau.reduce((n, st) => n + st.length, 0);
   const zeit = (i: number) => (spur && spur[i] ? Math.round((spur[i][0] - spur[0][0]) / 60000) : 0);
 
   const senden = () => {
@@ -333,13 +354,13 @@ function Editor({ eventId, runde, onZu, onFertig }: { eventId: number; runde: Ku
                     className="rounded-lg bg-slate-800 px-2 py-1 text-xs text-slate-200 hover:bg-slate-700">{g > 0 ? `+${g}°` : `${g}°`}</button>
                 ))}
               </div>
-              <p className="text-xs text-slate-400">{t("kunst.punkte", { n: String(stueck.length) })}</p>
+              <p className="text-xs text-slate-400">{t("kunst.punkte", { n: String(aufFoil) })}</p>
             </div>
           </div>
         )}
         {fehler && <p className="mt-3 rounded-lg border border-red-500/40 bg-red-500/10 p-2 text-sm text-red-700 dark:text-red-300">{fehler}</p>}
         <div className="mt-4 flex gap-2">
-          <button type="button" disabled={!spur || laeuft || stueck.length < 10} onClick={senden}
+          <button type="button" disabled={!spur || laeuft || aufFoil < 10} onClick={senden}
             className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-40">
             {runde.eigen ? t("kunst.speichern") : t("kunst.einreichen")}
           </button>

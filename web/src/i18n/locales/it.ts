@@ -3046,6 +3046,7 @@ const it: Record<string, string> = {
   "kunst.drehung": "Rotazione: {grad}°",
   "kunst.punkte": "{n} punti GPS nell'immagine",
   "kunst.speichern": "Salva",
+  "kunst.err.keine_laeufe": "Questa sessione non ha run rilevati — viene disegnato solo ciò che hai fatto sul foil.",
   "kunst.err.unbekannt": "Non ha funzionato. Riprova, per favore.",
   "kunst.err.runde_zu": "In questo round non si può più inviare.",
   "kunst.err.keine_abstimmung": "Si può votare solo dopo la fine del round.",

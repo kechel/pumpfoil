@@ -3163,6 +3163,7 @@ const pt: Record<string, string> = {
   "kunst.drehung": "Rotação: {grad}°",
   "kunst.punkte": "{n} pontos de GPS na imagem",
   "kunst.speichern": "Salvar",
+  "kunst.err.keine_laeufe": "Esta sessão não tem trechos detectados — só é desenhado o que você andou no foil.",
   "kunst.err.unbekannt": "Não deu certo. Tente de novo, por favor.",
   "kunst.err.runde_zu": "Não dá mais para enviar nesta rodada.",
   "kunst.err.keine_abstimmung": "A votação só abre depois do fim da rodada.",

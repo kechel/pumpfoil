@@ -3157,6 +3157,7 @@ const ptPT: Record<string, string> = {
   "kunst.drehung": "Rotação: {grad}°",
   "kunst.punkte": "{n} pontos GPS na imagem",
   "kunst.speichern": "Guardar",
+  "kunst.err.keine_laeufe": "Esta sessão não tem troços detetados — só é desenhado o que andaste no foil.",
   "kunst.err.unbekannt": "Não correu bem. Tenta outra vez, por favor.",
   "kunst.err.runde_zu": "Já não é possível enviar nesta ronda.",
   "kunst.err.keine_abstimmung": "A votação só abre depois do fim da ronda.",

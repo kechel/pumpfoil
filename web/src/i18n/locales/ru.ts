@@ -3163,6 +3163,7 @@ const ru: Record<string, string> = {
   "kunst.drehung": "Поворот: {grad}°",
   "kunst.punkte": "GPS-точек на картинке: {n}",
   "kunst.speichern": "Сохранить",
+  "kunst.err.keine_laeufe": "В этой сессии нет распознанных заездов — рисуется только то, что ты проехал на фойле.",
   "kunst.err.unbekannt": "Не получилось. Попробуй ещё раз.",
   "kunst.err.runde_zu": "В этом раунде отправлять больше нельзя.",
   "kunst.err.keine_abstimmung": "Голосовать можно только после окончания раунда.",

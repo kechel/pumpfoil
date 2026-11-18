@@ -3198,6 +3198,7 @@ const fi: Record<string, string> = {
   "kunst.drehung": "Kierto: {grad}°",
   "kunst.punkte": "{n} GPS-pistettä kuvassa",
   "kunst.speichern": "Tallenna",
+  "kunst.err.keine_laeufe": "Tässä sessiossa ei ole tunnistettuja ajoja — piirretään vain se, mitä ajoit foililla.",
   "kunst.err.unbekannt": "Se ei onnistunut. Yritä uudelleen.",
   "kunst.err.runde_zu": "Tälle kierrokselle ei voi enää lähettää.",
   "kunst.err.keine_abstimmung": "Äänestys alkaa vasta kierroksen päätyttyä.",
