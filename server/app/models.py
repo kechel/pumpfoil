@@ -2311,3 +2311,49 @@ class TeamEvent(Base):
     vorschlag_entschieden_von: Mapped[int | None] = mapped_column(Integer)
     vorschlag_notiz: Mapped[str | None] = mapped_column(Text)
     vorschlag_gesehen: Mapped[bool | None] = mapped_column(Boolean)
+    # GPS-Kunst-Event (Vorlage „gpskunst", 18.11.2026, app/kunst.py): {"runden_tage": N, "abstimmen_tage": M}.
+    kunst_json: Mapped[str | None] = mapped_column(Text)
+
+
+class KunstBild(Base):
+    """GPS-Kunst (Jan 10./18.11.2026, docs/TEAMS.md „GPS-Kunst"): ein eingereichtes Bild je Fahrer und Runde. Gespeichert
+    wird nur die normierte Linie (0..1000, gedreht, OHNE Koordinaten) — die Galerie verraet keinen Spot. Die Session und
+    das gewaehlte Stueck (von/bis in GPS-ms) bleiben fuer die Aufloesung und zum Nachrechnen."""
+    __tablename__ = "kunst_bilder"
+    __table_args__ = (UniqueConstraint("event_id", "runde", "user_id", name="uq_kunst_bild_runde"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    event_id: Mapped[int] = mapped_column(Integer, ForeignKey("team_events.id"), index=True)
+    runde: Mapped[int] = mapped_column(Integer)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    session_id: Mapped[int] = mapped_column(Integer, ForeignKey("sessions.id"))
+    von_ms: Mapped[int] = mapped_column(BigInteger)
+    bis_ms: Mapped[int] = mapped_column(BigInteger)
+    drehung: Mapped[int] = mapped_column(Integer, default=0)          # Grad, im Uhrzeigersinn
+    linie_json: Mapped[str] = mapped_column(Text)                     # [[x, y], ...] in 0..1000
+    entfernt_grund: Mapped[str | None] = mapped_column(Text)          # Moderation: fuer den Fahrer sichtbar
+    entfernt_von: Mapped[int | None] = mapped_column(Integer)
+    angelegt_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    geaendert_am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
+class KunstHerz(Base):
+    """Eine Stimme („Herz") fuer ein Bild; hoechstens kunst.HERZEN_JE_RUNDE je Nutzer und Runde, nie fuers eigene."""
+    __tablename__ = "kunst_herzen"
+    __table_args__ = (UniqueConstraint("bild_id", "user_id", name="uq_kunst_herz"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    bild_id: Mapped[int] = mapped_column(Integer, ForeignKey("kunst_bilder.id"), index=True)
+    event_id: Mapped[int] = mapped_column(Integer, index=True)
+    runde: Mapped[int] = mapped_column(Integer)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
+    am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
+class KunstMeldung(Base):
+    """Melde-Knopf an einem Bild (nur wirklich Verbotenes fliegt raus, Jan 10.11.2026); Verwalter sehen die Zahl."""
+    __tablename__ = "kunst_meldungen"
+    __table_args__ = (UniqueConstraint("bild_id", "user_id", name="uq_kunst_meldung"),)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    bild_id: Mapped[int] = mapped_column(Integer, ForeignKey("kunst_bilder.id"), index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
+    grund: Mapped[str | None] = mapped_column(Text)
+    am: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

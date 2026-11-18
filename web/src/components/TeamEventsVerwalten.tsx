@@ -10,7 +10,7 @@ import { api, EventVorschlag, FoilBand, TeamEvent, TeamEventTafel } from "../lib
 import { Card } from "./ui";
 import { TrashIcon } from "./Icons";
 import { EVENT_KENNZAHLEN, EVENT_SUMMEN, fehlerCode } from "../lib/teamKennzahlen";
-import { EVENT_VORLAGEN, alsEingabe, eventZeitraum, neueEventTafel } from "../lib/teamEvents";
+import { KUNST_VORLAGE, EVENT_VORLAGEN, alsEingabe, eventZeitraum, neueEventTafel } from "../lib/teamEvents";
 import { istMix, sortiereNachSport } from "../lib/sportClass";
 import { bandLabel } from "../pages/Home";
 import { useI18n } from "../i18n";
@@ -19,7 +19,7 @@ const eingabe = "w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-
 const knopf = "rounded-xl border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-50";
 const auswahl = "rounded-xl border border-slate-700 bg-slate-950 px-2 py-1 text-sm text-slate-100";
 
-type Entwurf = { promoted?: boolean; vorschlag?: EventVorschlag | null; global_event?: boolean; team_wertung_n?: number | null; id?: number; eingefroren?: boolean; banner_url?: string | null; banner_fokus?: string | null; ohne_dateien?: boolean; teambild_zeigen?: boolean; summen?: string[]; summen_sportart?: string; summen_accel_only?: boolean; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null };
+type Entwurf = { promoted?: boolean; vorschlag?: EventVorschlag | null; global_event?: boolean; team_wertung_n?: number | null; id?: number; eingefroren?: boolean; banner_url?: string | null; banner_fokus?: string | null; ohne_dateien?: boolean; teambild_zeigen?: boolean; summen?: string[]; summen_sportart?: string; summen_accel_only?: boolean; titel: string; beschreibung: string; start: string; ende: string; tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage: string | null; kunst_runden_tage?: number; kunst_abstimmen_tage?: number };
 
 function leer(): Entwurf {
   const v = EVENT_VORLAGEN[0];
@@ -54,7 +54,8 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
     const v = EVENT_VORLAGEN.find((x) => x.key === key);
     if (!v || !e) return;
     const [a, b] = v.zeit ? v.zeit() : [new Date(e.start), new Date(e.ende)];
-    setE({ ...e, vorlage: v.key, titel: t(v.titelKey), tafeln: v.tafeln.map((x) => ({ ...x })), start: alsEingabe(a), ende: alsEingabe(b) });
+    setE({ ...e, vorlage: v.key, titel: t(v.titelKey), tafeln: v.tafeln.map((x) => ({ ...x })), start: alsEingabe(a), ende: alsEingabe(b),
+      ...(v.key === KUNST_VORLAGE ? { summen: [], kunst_runden_tage: 7, kunst_abstimmen_tage: 2 } : {}) });
   };
   const tafel = (i: number, teil: Partial<TeamEventTafel>) => e && setE({ ...e, tafeln: e.tafeln.map((x, j) => (j === i ? { ...x, ...teil } : x)) });
 
@@ -68,6 +69,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
       teambild_zeigen: e.teambild_zeigen !== false, summen: e.summen ?? [],
       summen_sportart: e.summen_sportart ?? "pumpfoil", summen_accel_only: !!e.summen_accel_only,
       global_event: (offiziell || !!e.promoted) && !!e.global_event, team_wertung_n: e.team_wertung_n ?? null,
+      ...(e.vorlage === KUNST_VORLAGE ? { kunst_runden_tage: e.kunst_runden_tage ?? 7, kunst_abstimmen_tage: e.kunst_abstimmen_tage ?? 2 } : {}),
     };
     setPopupFehler(null);
     (e.id ? api.teamEventAendern(slug, e.id, body) : api.teamEventAnlegen(slug, body))
@@ -78,6 +80,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
     global_event: !!ev.global, team_wertung_n: ev.team_wertung_n ?? 5, promoted: !!ev.promoted_by, vorschlag: ev.vorschlag ?? null,
     id: ev.id, eingefroren: ev.status === "beendet", banner_url: ev.banner_url, banner_fokus: ev.banner_fokus, ohne_dateien: ev.ohne_dateien, teambild_zeigen: ev.teambild_zeigen, summen: ev.summen_auswahl ?? [], summen_sportart: ev.summen_sportart, summen_accel_only: ev.summen_accel_only, titel: ev.titel, beschreibung: ev.beschreibung ?? "", start: alsEingabe(new Date(ev.start)),
     ende: alsEingabe(new Date(ev.ende)), spot_ids: ev.spot_ids, vorlage: ev.vorlage,
+    kunst_runden_tage: ev.kunst?.runden_tage, kunst_abstimmen_tage: ev.kunst?.abstimmen_tage,
     // Gemischte Bestenlisten (Pumpfoil + Foil Scoot) leitet der Server selbst ab — nicht als eigene Tafel speichern.
     tafeln: ev.tafeln.filter((x) => !istMix(x.sportart)).map(({ kennzahl, sportart, accel_only, nur_brett, foil_band }) => ({ kennzahl, sportart, accel_only, nur_brett, foil_band })),
   }); };
@@ -202,6 +205,22 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
           <textarea value={e.beschreibung} maxLength={1000} rows={2} onChange={(x) => setE({ ...e, beschreibung: x.target.value })} className={`${eingabe} mb-3`} />
 
           <fieldset disabled={!!e.promoted && !istAdmin} className="m-0 min-w-0 border-0 p-0 disabled:opacity-60">
+          {e.vorlage === KUNST_VORLAGE ? (
+            // GPS-Kunst (18.11.2026): statt Bestenlisten Runden + Abstimmung (app/kunst.py).
+            <div className="mb-3 rounded-xl border border-brand-500/30 bg-brand-500/10 p-3 text-sm text-slate-200">
+              <p className="mb-2">{t("kunst.einstellungHinweis")}</p>
+              <div className="flex flex-wrap gap-4">
+                <label className="flex items-center gap-2">{t("kunst.rundenTage")}
+                  <input type="number" min={1} max={62} value={e.kunst_runden_tage ?? 7}
+                    onChange={(x) => setE({ ...e, kunst_runden_tage: Math.max(1, Number(x.target.value) || 1) })} className={`${eingabe} w-20`} />
+                </label>
+                <label className="flex items-center gap-2">{t("kunst.abstimmenTage")}
+                  <input type="number" min={1} max={14} value={e.kunst_abstimmen_tage ?? 2}
+                    onChange={(x) => setE({ ...e, kunst_abstimmen_tage: Math.max(1, Number(x.target.value) || 1) })} className={`${eingabe} w-20`} />
+                </label>
+              </div>
+            </div>
+          ) : (<>
           <p className="mb-1 text-sm text-slate-300">{t("team.bestenlisten")}</p>
           {e.tafeln.map((tf, i) => (
             <div key={i} className="mb-2 flex flex-wrap items-center gap-2 text-sm text-slate-300">
@@ -270,6 +289,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
               + {t("team.spotHinzu")}
             </button>
           </div>
+          </>)}
           </fieldset>
 
           </>)}
@@ -282,7 +302,7 @@ export default function TeamEventsVerwalten({ slug, farbe, sports, bands, alleSp
           {popupFehler && <p className="mb-3 rounded-xl border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300">{popupFehler}</p>}
           <div className="flex flex-wrap gap-2">
             {!e.eingefroren && (
-              <button className="team-knopf rounded-xl px-4 py-2 text-sm font-semibold" disabled={e.titel.trim().length < 2 || (!e.tafeln.length && !(e.summen ?? []).length)} onClick={speichern}>
+              <button className="team-knopf rounded-xl px-4 py-2 text-sm font-semibold" disabled={e.titel.trim().length < 2 || (e.vorlage !== KUNST_VORLAGE && !e.tafeln.length && !(e.summen ?? []).length)} onClick={speichern}>
                 {e.id ? t("common.save") : t("team.event.anlegen")}
               </button>
             )}

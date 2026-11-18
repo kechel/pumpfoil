@@ -450,7 +450,23 @@ also wie viele der Sportarten man schon gefahren ist.
    ein Erstfahrer-Abzeichen), oder erst ab zwei Fahrern? Nur Pumpfoil oder je Sportart? Fahrer mit verborgenem Ort
    (Freunde-Funktion) ausnehmen? Sessions vor dem eigenen Konto (FIT-Import alter Fahrten) mitzaehlen?
 
-### Event-Idee: GPS-Kunst — „Wer malt das coolste Bild aufs Wasser?" (Jan, 10.11.2026; NOCH NICHT BAUEN)
+### Event-Idee: GPS-Kunst — „Wer malt das coolste Bild aufs Wasser?" (Jan, 10.11.2026; GEBAUT 18.11.2026, Web + Server)
+
+**Stand 18.11.2026 (Infrastruktur, Jan: „mir schwebt ein laengeres Event in der Adventszeit vor … alle paar Tage ein Pool
+… oder 4 Events fuer die 4 Adventswochen")** — `server/app/kunst.py` (Regeln), `server/app/api/kunst.py`,
+`web/src/components/KunstBereich.tsx`, Tests `server/tests/test_kunst.py`:
+- Event-Vorlage „gpskunst" im normalen Event-Dialog: keine Bestenlisten, stattdessen „Neue Runde alle N Tage" und
+  „Abstimmung danach M Tage" (`team_events.kunst_json`). Das Eventfenster wird in Runden geteilt; nach jeder Runde M Tage
+  Abstimmung, waehrend die naechste schon laeuft. Damit gehen beide Varianten: ein Advents-Event mit 4 Wochenrunden oder
+  4 Events mit je einer Runde. Global (offizielles Team) = alle; Team-Event = Mitglieder; Mehrteam = Beteiligte.
+- Entscheidungen Jan 18.11.: **3 Herzen je Runde** (nicht fuers eigene), **alle Sportarten auf dem Wasser** (nicht
+  Snowkite/Landkite/Buggy), **1 Bild je Fahrer und Runde** (bis Rundenende austauschbar), **Zwischenstand verborgen** bis
+  Ende der Abstimmung, dann Aufloesung mit Name, Spot (nur wenn nicht verborgen) und Link.
+- Einreichen: eigene Session der Runde waehlen, von/bis zuschneiden, drehen (Vorschau im Browser). Gespeichert wird nur
+  die normierte Linie 0..1000 (`kunst_bilder.linie_json`), keine Koordinaten. Galerie je Betrachter zufaellig, stabil.
+- Moderation: Melden (jeder), Entfernen/Zurueckholen mit Grund (Admins, Leitung/Moderation des Teams); der Fahrer sieht
+  den Grund, ein entferntes Bild kann er nicht still ersetzen.
+- Offen: Apps (Android/iOS), Finale der Rundensieger, Teilen-Bild der Siegerehrung, Benachrichtigung bei Rundenstart/-ende.
 
 Fuer das uebernaechste globale Event (nach dem Sprint-Wochenende). Nur festgehalten, nichts gebaut.
 

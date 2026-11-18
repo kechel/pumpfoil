@@ -16,6 +16,7 @@ import TeamEventsVerwalten from "../components/TeamEventsVerwalten";
 import { Card } from "../components/ui";
 import EventMeinTeam, { EventAngetreten } from "../components/EventMeinTeam";
 import EventPodest from "../components/EventPodest";
+import KunstBereich from "../components/KunstBereich";
 import TeamWappen from "../components/TeamWappen";
 import { bildAbzeichen, dateiTeil, uebersichtHoehe, type BildZeile } from "../lib/bestenlisteBild";
 import { TeamHerkunft } from "../components/TeamHerkunft";
@@ -24,7 +25,7 @@ import { HINWEIS_KLASSE, OPTOUT_LINK, useGlobalAus } from "../components/GlobalA
 import TeamTafelBild, { wappenVon } from "../components/TeamTafelBild";
 import { teamFarbStil } from "../lib/teamFarben";
 import { EVENT_SUMMEN, eventGemessen, kennzahl, wertungText } from "../lib/teamKennzahlen";
-import { eventZeit, eventZeitraum, eventZeitraumGenau } from "../lib/teamEvents";
+import { KUNST_VORLAGE, eventZeit, eventZeitraum, eventZeitraumGenau } from "../lib/teamEvents";
 import { BeitrittDialog, Tafel } from "./Team";
 import { fehlerCode } from "../lib/teamKennzahlen";
 import { useI18n } from "../i18n";
@@ -523,6 +524,8 @@ export default function TeamEventSeite() {
         <Countdown ev={ev} lang={lang} t={t} />
       ) : (
         <>
+        {/* GPS-Kunst (18.11.2026): Galerie, Herzen und Aufloesung statt Bestenlisten (components/KunstBereich). */}
+        {ev.vorlage === KUNST_VORLAGE && !gast && <KunstBereich eventId={ev.id} />}
         {/* Waehrend das Event laeuft (Jan, 01.11.2026): wie lange noch. */}
         {ev.status === "laeuft" && (
           <div className="team-rand mb-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded-2xl border-2 p-3">
@@ -612,11 +615,11 @@ export default function TeamEventSeite() {
         <ul className="list-disc space-y-1 pl-5 text-sm text-slate-300">
           {/* Was dieses Event misst und wie lange noch hochgeladen werden darf — als erste Punkte der Regeln statt oben
               im Kopf (Jan, 01.11.2026). */}
-          {eventGemessen(ev, t) && <li>{t("team.event.gemessen")}: {eventGemessen(ev, t)}</li>}
+          {ev.vorlage !== KUNST_VORLAGE && eventGemessen(ev, t) && <li>{t("team.event.gemessen")}: {eventGemessen(ev, t)}</li>}
           {ev.ohne_dateien && <li>{t("team.event.ohneDateienKurz")}</li>}
           {ev.status === "auswertung" && <li>{t("team.event.auswertungHinweis", { bis: eventZeit(ev.einfrieren_am, ev.zeitzone, lang) })}</li>}
           {/* Globale Events: deren eigene Regeln statt der Team-Event-Regeln („Teamleitung kann …", 07.11.2026). */}
-          {t(ev.global ? "team.regeln.global.text" : "team.regeln.events.text").split("\n").filter(Boolean).map((z, i) => <li key={i}>{z}</li>)}
+          {t(ev.vorlage === KUNST_VORLAGE ? "kunst.regeln" : ev.global ? "team.regeln.global.text" : "team.regeln.events.text").split("\n").filter(Boolean).map((z, i) => <li key={i}>{z}</li>)}
         </ul>
         {/* Haftungsausschluss (Jan, 01.11.2026): Events und ihre Zusagen sind Sache der Teams, nicht von pumpfoil.org. */}
         {!ev.global && <p className="mt-3 border-t border-slate-800 pt-3 text-sm text-slate-400">{t("team.event.disclaimer")}</p>}

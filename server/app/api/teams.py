@@ -603,6 +603,17 @@ class EventIn(BaseModel):
     # Globales Event (06.11.2026): nur im offiziellen Team; Team-Rangliste aus den besten N (0 = alle, None = Standard 5).
     global_event: bool = False
     team_wertung_n: int | None = Field(default=None, ge=0, le=50)
+    # GPS-Kunst (Vorlage „gpskunst", 18.11.2026, app/kunst.py): Runde alle N Tage, danach M Tage Abstimmung.
+    kunst_runden_tage: int | None = Field(default=None, ge=1, le=62)
+    kunst_abstimmen_tage: int | None = Field(default=None, ge=1, le=14)
+
+
+def _kunst_json(body: EventIn) -> str | None:
+    from .. import kunst as K
+    if body.vorlage != K.VORLAGE:
+        return None
+    return json.dumps({"runden_tage": body.kunst_runden_tage or K.RUNDEN_TAGE_STANDARD,
+                       "abstimmen_tage": body.kunst_abstimmen_tage or K.ABSTIMMEN_TAGE_STANDARD})
 
 
 def _event_summen(body: EventIn) -> str | None:
@@ -618,7 +629,10 @@ def _event_pruefen(db: Session, body: EventIn) -> tuple[str, str | None]:
     if body.ende <= body.start or body.ende - body.start > T.EVENT_MAX_DAUER:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "event_zeitraum")
     sporte = _sportarten()
-    if not body.tafeln and not body.summen:
+    from .. import kunst as K
+    if body.vorlage == K.VORLAGE:
+        body.tafeln, body.summen = [], []      # GPS-Kunst hat keine Bestenlisten, sondern Galerie + Herzen
+    elif not body.tafeln and not body.summen:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "event_leer")
     if body.summen_sportart not in sporte:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "tafel")
@@ -682,7 +696,8 @@ def event_anlegen(slug: str, body: EventIn, sprint: bool = False, user: models.U
                          start=body.start, ende=body.ende, zeitzone=body.zeitzone, tafeln_json=tafeln_json,
                          spots_json=spots_json, vorlage=body.vorlage, ohne_dateien=body.ohne_dateien,
                          teambild_zeigen=body.teambild_zeigen, summen_json=_event_summen(body),
-                         summen_sportart=body.summen_sportart, summen_accel_only=body.summen_accel_only)
+                         summen_sportart=body.summen_sportart, summen_accel_only=body.summen_accel_only,
+                         kunst_json=_kunst_json(body))
     db.add(e)
     db.commit()
     return T.event_out(db, t, e, sprint=sprint)
@@ -1155,6 +1170,7 @@ def event_aendern(slug: str, event_id: int, body: EventIn, sprint: bool = False,
     e.ohne_dateien, e.teambild_zeigen = body.ohne_dateien, body.teambild_zeigen
     e.summen_json = _event_summen(body)
     e.summen_sportart, e.summen_accel_only = body.summen_sportart, body.summen_accel_only
+    e.kunst_json = _kunst_json(body)
     # Wieder laufend (Ende in die Zukunft verlegt): die beim frueheren Ende festgehaltenen Teilnehmer gelten nicht mehr,
     # es zaehlen wieder die aktuellen Mitglieder. Sonst fehlte jeder, der nach dem ALTEN Ende beigetreten ist (Jan,
     # 02.11.2026: Foil Scoot im Event leer, in der Team-Ansicht nicht — das Ende war verlaengert worden).

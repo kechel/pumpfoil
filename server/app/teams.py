@@ -32,6 +32,7 @@ from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from . import models, sportmix
+from . import kunst as _kunst
 
 ROLLEN = ("leiter", "moderator", "mitglied")
 EINLADUNGS_ARTEN = ("join", "apply")
@@ -1760,6 +1761,8 @@ def event_out(db: Session, t: models.Team, e: models.TeamEvent, gast: bool = Fal
                      .filter(models.Spot.id.in_(ids)).all()]
     return {"id": e.id, "titel": e.titel, "beschreibung": e.beschreibung, "start": _aware(e.start).isoformat(),
             "ende": _aware(e.ende).isoformat(), "zeitzone": e.zeitzone, "vorlage": e.vorlage,
+            # GPS-Kunst (18.11.2026): Runden-Einstellungen; Galerie und Herzen ueber /api/kunst/<id>.
+            "kunst": (_kunst.einstellungen(e) if _kunst.ist_kunst(e) else None),
             "status": event_status(e), "spots": spots, "ohne_dateien": bool(e.ohne_dateien),
             "teambild_zeigen": e.teambild_zeigen is not False, "spot_ids": [] if gast else event_spots(e),
             "einfrieren_am": (_aware(e.ende) + EINFRIEREN_NACH).isoformat(), "tafeln": tafeln_,

@@ -26,7 +26,12 @@ export const EVENT_VORLAGEN: { key: string; titelKey: string; tafeln: TeamEventT
   { key: "top_speed", titelKey: "team.vorlage.top_speed", tafeln: [tafel("speed")], zeit: wochenende },
   { key: "session_pumps", titelKey: "team.vorlage.session_pumps", tafeln: [tafel("session_pumps")], zeit: wochenende },
   { key: "monat_strecke", titelKey: "team.vorlage.monat_strecke", tafeln: [tafel("sum_distance")], zeit: monat },
+  // GPS-Kunst (18.11.2026): keine Bestenlisten, sondern Runden mit Galerie und Herzen (server app/kunst.py).
+  { key: "gpskunst", titelKey: "team.vorlage.gpskunst", tafeln: [] },
 ];
+
+/** Vorlage des GPS-Kunst-Events (server app/kunst.py VORLAGE). */
+export const KUNST_VORLAGE = "gpskunst";
 
 export function neueEventTafel(): TeamEventTafel {
   return tafel("session_pumps");

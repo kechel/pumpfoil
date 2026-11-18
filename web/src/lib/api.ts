@@ -1148,6 +1148,16 @@ export interface WatchQualityRow {
 
 export type FoilStatWerte = { sessions: number; users: number; avg_speed_kmh: number | null; meters_per_pump: number | null; best_distance_m: number | null; best_duration_s: number | null; avg_pump_hz: number | null; laeufe?: number };
 
+// GPS-Kunst-Event (18.11.2026, server app/api/kunst.py)
+export type KunstBild = { id: number; linie: [number, number][]; eigen?: boolean; herz?: boolean; entfernt?: string | null; meldungen?: number };
+export type KunstErgebnis = { bild_id: number; platz: number; herzen: number; user_id: number; session_id: number | null;
+  linie: [number, number][]; name: string | null; avatar_url: string | null; spot: string | null };
+export type KunstRunde = { nr: number; start: string; ende: string; abstimmen_bis: string; phase: "kommt" | "einreichen" | "abstimmen" | "fertig";
+  anzahl: number; herzen_vergeben: number; galerie: KunstBild[]; ergebnis?: KunstErgebnis[];
+  eigen: (KunstBild & { session_id: number; von_ms: number; bis_ms: number; drehung: number; entfernt: string | null }) | null };
+export type KunstEvent = { event_id: number; titel: string; herzen_je_runde: number; teilnehmen: boolean; moderieren: boolean;
+  runden_tage: number; abstimmen_tage: number; runden: KunstRunde[] };
+
 export const api = {
   register: (email: string, password: string, display_name?: string, language?: string) =>
     req<{ access_token: string }>("/api/auth/register", {
@@ -1612,6 +1622,17 @@ export const api = {
     avg_speed_mps: number | null; max_speed_mps: number | null; pumps: number | null; avg_pump_hz: number | null;
     longest_glide_s: number | null; t_start_ms: number | null }[]>(`/api/sessions/longest-runs?n=${n}${nurBrett ? "&nur_brett=true" : ""}`),
   watchStats: () => req<{ watch: string; sessions: number; users: number; foiling_km: number; avg_speed_kmh: number | null; best_distance_m: number | null; best_speed_kmh: number | null; avg_pump_hz: number | null }[]>("/api/community/watch-stats"),
+  kunst: (eventId: number) => req<KunstEvent>(`/api/kunst/${eventId}`),
+  kunstKandidaten: (eventId: number, runde: number) =>
+    req<{ id: number; started_at: string; sport_class: string | null; caption: string | null }[]>(`/api/kunst/${eventId}/kandidaten?runde=${runde}`),
+  kunstSpur: (eventId: number, sessionId: number) => req<{ session_id: number; punkte: [number, number, number][] }>(`/api/kunst/${eventId}/spur/${sessionId}`),
+  kunstEinreichen: (eventId: number, body: { runde: number; session_id: number; von_ms: number; bis_ms: number; drehung: number }) =>
+    req<{ id: number; linie: [number, number][] }>(`/api/kunst/${eventId}/bild`, { method: "POST", body: JSON.stringify(body) }),
+  kunstZurueckziehen: (eventId: number, runde: number) => req<{ ok: boolean }>(`/api/kunst/${eventId}/bild?runde=${runde}`, { method: "DELETE" }),
+  kunstHerz: (bildId: number) => req<{ herz: boolean; uebrig: number }>(`/api/kunst/bild/${bildId}/herz`, { method: "POST" }),
+  kunstMelden: (bildId: number, grund: string) => req<{ ok: boolean }>(`/api/kunst/bild/${bildId}/melden`, { method: "POST", body: JSON.stringify({ grund }) }),
+  kunstEntfernen: (bildId: number, grund: string) => req<{ ok: boolean }>(`/api/kunst/bild/${bildId}/entfernen`, { method: "POST", body: JSON.stringify({ grund }) }),
+  kunstZurueckholen: (bildId: number) => req<{ ok: boolean }>(`/api/kunst/bild/${bildId}/zurueck`, { method: "POST" }),
   pushKey: () => req<{ key: string }>("/api/push/key"),
   pushSubscribe: (sub: unknown) => req<{ ok: boolean }>("/api/push/subscribe", { method: "POST", body: JSON.stringify(sub) }),
   pushUnsubscribe: (endpoint: string) => req<{ ok: boolean }>("/api/push/unsubscribe", { method: "POST", body: JSON.stringify({ endpoint }) }),
@@ -2459,7 +2480,7 @@ export interface TeamOeffentlich extends TeamAuftritt { id: number; mitglieder_a
 export type TeamEventTafel = Pick<TeamTafel, "kennzahl" | "sportart" | "accel_only" | "nur_brett" | "foil_band">;
 export interface TeamEventIn {
   titel: string; beschreibung?: string | null; start: string; ende: string; zeitzone?: string | null;
-  tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage?: string | null;
+  tafeln: TeamEventTafel[]; spot_ids: number[]; vorlage?: string | null; kunst_runden_tage?: number; kunst_abstimmen_tage?: number;
   ohne_dateien?: boolean; teambild_zeigen?: boolean; summen?: string[];
   /** nur fuer Events ohne Bestenliste */
   summen_sportart?: string; summen_accel_only?: boolean;
@@ -2508,7 +2529,7 @@ export interface TeamEvent {
   /** Filter „Wertungsklasse" (10.11.2026): angebotene Klassen mit Anzahl (leer = kein Filter), aktive Klasse */
   klassen?: Record<string, number>; klasse?: string | null;
   id: number; titel: string; beschreibung: string | null; start: string; ende: string; zeitzone: string | null;
-  vorlage: string | null; status: "kommend" | "laeuft" | "auswertung" | "beendet";
+  vorlage: string | null; kunst?: { runden_tage: number; abstimmen_tage: number } | null; status: "kommend" | "laeuft" | "auswertung" | "beendet";
   spots: { id: number; name: string | null }[]; spot_ids: number[]; einfrieren_am: string;
   tafeln: TeamTafelMitZeilen[];
   /** Eventbild, auch fuer Gaeste (ohne Freigabe, Jans Entscheidung 01.11.2026) */
