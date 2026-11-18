@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:M;src:local("Montserrat Black");font-weight:900}
+@font-face{font-family:M;src:local("Montserrat ExtraBold");font-weight:800}
+@font-face{font-family:M;src:local("Montserrat SemiBold");font-weight:600}
+html,body{margin:0}
+#b{position:relative;width:1600px;height:400px;background:#0b1a33;overflow:hidden;font-family:M,sans-serif;color:#fff}
+svg{position:absolute;inset:0}
+.t{position:absolute;left:320px;top:26px}
+.k{font-weight:800;font-size:17px;letter-spacing:.14em;color:#22d3ee}
+.h{font-weight:900;font-size:60px;line-height:.95;letter-spacing:-.01em;margin-top:8px}
+.h span{color:#22d3ee}
+.tag{display:inline-block;margin-top:14px;background:#22d3ee;color:#020617;font-weight:900;font-size:24px;padding:6px 16px;transform:skewX(-10deg)}
+.tag i{display:inline-block;transform:skewX(10deg);font-style:normal}
+.d{display:table;margin-top:16px;font-weight:800;font-size:20px;letter-spacing:.06em;background:rgba(2,6,23,.6);padding:8px 14px;border-radius:10px}
+.d b{color:#22d3ee}
+.logo{position:absolute;left:320px;bottom:26px;height:34px}
+.safe{position:absolute;left:300px;right:300px;top:0;bottom:0;outline:2px dashed rgba(255,0,0,.7)}
+</style><script src="kunst.js"></script></head><body><div id="b">
+<svg id="s" width="1600" height="400" viewBox="0 0 1600 400"></svg>
+<div class="t"><div class="k">GLOBAL EVENT · ADVENT 2026</div><div class="h">GPS ART<br><span>ON THE WATER</span></div><div class="tag"><i>DRAW WITH YOUR TRACK</i></div><div class="d">29 NOV – 27 DEC · <b>4 ROUNDS</b> · ONE EACH ADVENT WEEK</div></div>
+<img class="logo" src="logo.png">
+<div class="safe" id="safe"></div>
+</div><script>
+const s = document.getElementById("s");
+schnee(s, 1600, 400, 160, 7);
+spur(s, baumPfad(1150, 92, 280, 230, 3), 5);
+spur(s, sternPfad(1150, 70, 24, 5), 4.5);
+if (!location.search.includes("rahmen")) document.getElementById("safe").remove();
+</script></body></html>
