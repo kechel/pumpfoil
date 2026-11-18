@@ -137,7 +137,7 @@ def spur(gps: list) -> list[list[float]]:
     return [[int(t), round(x, 1), round(y, 1)] for t, x, y in p]
 
 
-def linie(gps: list, von_ms: int, bis_ms: int, drehung: int) -> list[list[int]]:
+def linie(gps: list, von_ms: int, bis_ms: int, drehung: int, max_punkte: int = LINIE_MAX_PUNKTE) -> list[list[int]]:
     """Normierte Linie des Stuecks [von, bis]: gedreht (Grad, im Uhrzeigersinn), Seitenverhaeltnis erhalten, mittig in
     0..BOX eingepasst, y nach unten (SVG). ValueError, wenn zu wenig Punkte oder zu klein."""
     p = [(x, y) for t, x, y in _projiziert(gps) if von_ms <= t <= bis_ms]
@@ -161,7 +161,7 @@ def linie(gps: list, von_ms: int, bis_ms: int, drehung: int) -> list[list[int]]:
     eps = 0.6
     while True:
         z = _rdp(r, eps)
-        if len(z) <= LINIE_MAX_PUNKTE or eps > 40:
+        if len(z) <= max_punkte or eps > 200:
             break
         eps *= 1.6
     return [[int(round(x)), int(round(y))] for x, y in z]

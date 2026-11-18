@@ -113,9 +113,19 @@ def kandidaten(event_id: int, runde: int, user: models.User = Depends(current_us
     S = models.Session
     a, z = K.fenster(e, r)
     q = (db.query(S).filter(S.user_id == user.id, S.deleted.isnot(True), S.started_at >= a, S.started_at < z)
-         .order_by(S.started_at.desc()).limit(60).all())
-    return [{"id": s.id, "started_at": _iso(s.started_at), "sport_class": s.sport_class, "caption": s.caption}
-            for s in q if K.session_passt(s, user.id, r, e)]
+         .order_by(S.started_at.desc()).limit(40).all())
+    out = []
+    for s in q:
+        if not K.session_passt(s, user.id, r, e):
+            continue
+        # Vorschau der ganzen Session zum leichteren Auffinden (Jan 18.11.2026), grob vereinfacht; ohne GPS keine Kachel.
+        try:
+            vorschau = K.linie(storage.load_gps(s.session_uuid), 0, 10**15, 0, max_punkte=120)
+        except ValueError:
+            continue
+        out.append({"id": s.id, "started_at": _iso(s.started_at), "sport_class": s.sport_class, "caption": s.caption,
+                    "vorschau": vorschau})
+    return out
 
 
 @router.get("/{event_id}/spur/{session_id}")

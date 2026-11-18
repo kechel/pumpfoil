@@ -1624,7 +1624,7 @@ export const api = {
   watchStats: () => req<{ watch: string; sessions: number; users: number; foiling_km: number; avg_speed_kmh: number | null; best_distance_m: number | null; best_speed_kmh: number | null; avg_pump_hz: number | null }[]>("/api/community/watch-stats"),
   kunst: (eventId: number) => req<KunstEvent>(`/api/kunst/${eventId}`),
   kunstKandidaten: (eventId: number, runde: number) =>
-    req<{ id: number; started_at: string; sport_class: string | null; caption: string | null }[]>(`/api/kunst/${eventId}/kandidaten?runde=${runde}`),
+    req<{ id: number; started_at: string; sport_class: string | null; caption: string | null; vorschau: [number, number][] }[]>(`/api/kunst/${eventId}/kandidaten?runde=${runde}`),
   kunstSpur: (eventId: number, sessionId: number) => req<{ session_id: number; punkte: [number, number, number][] }>(`/api/kunst/${eventId}/spur/${sessionId}`),
   kunstEinreichen: (eventId: number, body: { runde: number; session_id: number; von_ms: number; bis_ms: number; drehung: number }) =>
     req<{ id: number; linie: [number, number][] }>(`/api/kunst/${eventId}/bild`, { method: "POST", body: JSON.stringify(body) }),

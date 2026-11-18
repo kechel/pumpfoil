@@ -13,13 +13,27 @@ import { fehlerCode } from "../lib/teamKennzahlen";
  */
 const BOX = 1000;
 
-export function KunstLinie({ linie, klein = false }: { linie: [number, number][]; klein?: boolean }) {
-  // Marken-Cyan auf Weiss (Jan 18.11.2026: „bitte in unserem blau den track"; docs/BRAND.md: #22d3ee auch auf Weiss),
-  // in beiden Farbschemata gleich. Etwas kraeftiger als vorher Schwarz, weil Cyan auf Weiss heller wirkt.
+// Winternacht (Jan 18.11.2026: „sieht so trocken aus, etwas weihnachtlicher?"): flaches Nachtblau (keine Verlaeufe,
+// docs/BRAND.md), Schneeflocken je Bild fest verteilt (Saat = Bild-id, sonst springen sie beim Neuladen), der Track dick
+// in Marken-Cyan mit leichtem Leuchten darunter — wie eine Lichterkette auf dem Wasser.
+const NACHT = "#0b1a33";
+const CYAN = "#22d3ee";
+
+function schnee(saat: number): { x: number; y: number; r: number; o: number }[] {
+  let z = (saat * 2654435761) % 4294967296 || 1;
+  const zufall = () => { z = (z * 1664525 + 1013904223) % 4294967296; return z / 4294967296; };
+  return Array.from({ length: 46 }, () => ({ x: zufall() * BOX, y: zufall() * BOX, r: 3 + zufall() * 6, o: 0.25 + zufall() * 0.55 }));
+}
+
+export function KunstLinie({ linie, klein = false, saat = 0 }: { linie: [number, number][]; klein?: boolean; saat?: number }) {
+  const punkte = linie.map(([x, y]) => `${x},${y}`).join(" ");
+  const flocken = useMemo(() => schnee(saat), [saat]);
+  const dick = klein ? 30 : 22;
   return (
-    <svg viewBox={`0 0 ${BOX} ${BOX}`} className="aspect-square w-full rounded-lg bg-white" role="img" aria-hidden="true">
-      <polyline points={linie.map(([x, y]) => `${x},${y}`).join(" ")} fill="none" stroke="#22d3ee"
-        strokeWidth={klein ? 18 : 13} strokeLinecap="round" strokeLinejoin="round" />
+    <svg viewBox={`0 0 ${BOX} ${BOX}`} className="aspect-square w-full rounded-lg" style={{ background: NACHT }} role="img" aria-hidden="true">
+      {flocken.map((f, i) => <circle key={i} cx={f.x} cy={f.y} r={f.r} fill="#ffffff" opacity={f.o} />)}
+      <polyline points={punkte} fill="none" stroke={CYAN} strokeOpacity={0.22} strokeWidth={dick * 2.6} strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points={punkte} fill="none" stroke={CYAN} strokeWidth={dick} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -108,7 +122,7 @@ export default function KunstBereich({ eventId }: { eventId: number }) {
       {d.teilnehmen && runde.phase !== "kommt" && runde.phase !== "fertig" && (
         <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-slate-700 p-3">
           {runde.eigen ? (
-            <div className="w-24 shrink-0"><KunstLinie linie={runde.eigen.linie} klein /></div>
+            <div className="w-24 shrink-0"><KunstLinie linie={runde.eigen.linie} saat={runde.eigen.id} klein /></div>
           ) : null}
           <div className="min-w-0 flex-1 text-sm text-slate-300">
             {runde.eigen?.entfernt
@@ -154,7 +168,7 @@ function GalerieBild({ b, runde, d, neu, meldung }: { b: KunstBild; runde: Kunst
   const voll = runde.herzen_vergeben >= d.herzen_je_runde && !b.herz;
   return (
     <div className={`rounded-xl border p-2 ${b.herz ? "border-brand-500" : "border-slate-700"} ${b.entfernt ? "opacity-50" : ""}`}>
-      <KunstLinie linie={b.linie} />
+      <KunstLinie linie={b.linie} saat={b.id} />
       <div className="mt-2 flex items-center gap-2">
         {abstimmen && (
           <button type="button" disabled={voll} onClick={() => api.kunstHerz(b.id).then(neu).catch(meldung)}
@@ -204,7 +218,7 @@ function Aufloesung({ runde }: { runde: KunstRunde }) {
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {e.map((z) => (
         <div key={z.bild_id} className={`rounded-xl border p-2 ${z.platz <= 3 ? "border-brand-500" : "border-slate-700"}`}>
-          <KunstLinie linie={z.linie} />
+          <KunstLinie linie={z.linie} saat={z.bild_id} />
           <div className="mt-2 flex items-baseline gap-2">
             <span className="text-lg font-bold tabular-nums text-slate-100">{z.platz}.</span>
             <span className="min-w-0 flex-1 truncate font-semibold text-slate-100">{z.name ?? "—"}</span>
@@ -267,21 +281,24 @@ function Editor({ eventId, runde, onZu, onFertig }: { eventId: number; runde: Ku
         {!kand ? <Spinner /> : kand.length === 0 ? (
           <p className="mb-3 text-sm text-slate-300">{t("kunst.keineSessions", { von: datum(runde.start), bis: datum(runde.ende) })}</p>
         ) : (
-          <select value={sid ?? ""} onChange={(x) => setSid(Number(x.target.value) || null)}
-            className="mb-3 w-full rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-sm text-slate-100">
-            <option value="">{t("kunst.sessionWaehlen")}</option>
+          // Kacheln mit der ganzen Session als Vorschau (Jan 18.11.2026: „track-thumbnails zum leichteren auffinden").
+          <div className="mb-3 grid max-h-64 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
             {kand.map((k) => (
-              <option key={k.id} value={k.id}>
-                {new Date(k.started_at).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                {k.sport_class ? ` · ${t(`cls.sport.${k.sport_class}`)}` : ""}{k.caption ? ` · ${k.caption}` : ""}
-              </option>
+              <button key={k.id} type="button" onClick={() => setSid(k.id)} aria-pressed={sid === k.id}
+                className={`rounded-lg border-2 p-1 text-left ${sid === k.id ? "border-brand-500" : "border-transparent hover:border-slate-600"}`}>
+                <KunstLinie linie={k.vorschau} saat={k.id} klein />
+                <div className="mt-1 truncate text-xs text-slate-300">
+                  {new Date(k.started_at).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                </div>
+                <div className="truncate text-xs text-slate-400">{k.sport_class ? t(`cls.sport.${k.sport_class}`) : ""}{k.caption ? ` · ${k.caption}` : ""}</div>
+              </button>
             ))}
-          </select>
+          </div>
         )}
         {sid != null && !spur && !fehler && <Spinner />}
         {spur && (
           <div className="grid gap-4 sm:grid-cols-2">
-            <div><KunstLinie linie={vorschau} /></div>
+            <div><KunstLinie linie={vorschau} saat={sid ?? 0} /></div>
             <div className="space-y-3 text-sm text-slate-300">
               <label className="block">{t("kunst.von", { min: String(zeit(von)) })}
                 <input type="range" min={0} max={spur.length - 2} value={von} className="w-full"
