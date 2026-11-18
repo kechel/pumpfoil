@@ -83,6 +83,8 @@ export default function KunstBereich({ eventId }: { eventId: number }) {
   const [fehler, setFehler] = useState<string | null>(null);
   const [nr, setNr] = useState<number | null>(null);
   const [editor, setEditor] = useState(false);
+  // Vollbild beim Abstimmen: Reihenfolge beim Oeffnen festgehalten, damit nach einem Herz nichts wegspringt.
+  const [voll, setVoll] = useState<{ ids: number[]; start: number } | null>(null);
   const laden = () => api.kunst(eventId).then((x) => { setD(x); setFehler(null); }).catch((e) => setFehler(String(e)));
   useEffect(() => { laden(); }, [eventId]);   // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -177,25 +179,33 @@ export default function KunstBereich({ eventId }: { eventId: number }) {
           {t(runde.phase === "einreichen" && !d.moderieren ? "kunst.galerieSpaeter" : "kunst.leer")}</p>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {runde.galerie.map((b) => (
-            <GalerieBild key={b.id} b={b} runde={runde} d={d} neu={laden} meldung={meldung} />
+          {/* Eigene Herzen zuerst (Jan 18.11.2026), sonst die feste Mischung des Servers. */}
+          {[...runde.galerie].sort((a, b) => Number(!!b.herz) - Number(!!a.herz)).map((b, _i, liste) => (
+            <GalerieBild key={b.id} b={b} runde={runde} d={d} neu={laden} meldung={meldung}
+              onOeffnen={() => setVoll({ ids: liste.map((x) => x.id), start: liste.findIndex((x) => x.id === b.id) })} />
           ))}
         </div>
       )}
 
+      {voll && (
+        <AbstimmGalerie ids={voll.ids} start={voll.start} runde={runde} d={d} neu={laden} meldung={meldung} onZu={() => setVoll(null)} />
+      )}
       {editor && <Editor eventId={eventId} runde={runde} onZu={() => setEditor(false)} onFertig={() => { setEditor(false); laden(); }} />}
     </section>
   );
 }
 
-function GalerieBild({ b, runde, d, neu, meldung }: { b: KunstBild; runde: KunstRunde; d: KunstEvent; neu: () => void; meldung: (x: unknown) => void }) {
+function GalerieBild({ b, runde, d, neu, meldung, onOeffnen }: { b: KunstBild; runde: KunstRunde; d: KunstEvent; neu: () => void;
+  meldung: (x: unknown) => void; onOeffnen: () => void }) {
   const t = useT();
   const [gemeldet, setGemeldet] = useState(false);
   const abstimmen = runde.phase === "abstimmen" && d.teilnehmen && !b.eigen && !b.entfernt;
   const voll = runde.herzen_vergeben >= d.herzen_je_runde && !b.herz;
   return (
     <div className={`rounded-xl border p-2 ${b.herz ? "border-brand-500" : "border-slate-700"} ${b.entfernt ? "opacity-50" : ""}`}>
-      <KunstLinie linie={b.linie} saat={b.id} />
+      <button type="button" onClick={onOeffnen} className="block w-full" aria-label={t("kunst.gross")}>
+        <KunstLinie linie={b.linie} saat={b.id} />
+      </button>
       <div className="mt-2 flex items-center gap-2">
         {abstimmen && (
           <button type="button" disabled={voll} onClick={() => api.kunstHerz(b.id).then(neu).catch(meldung)}
@@ -234,6 +244,66 @@ function GalerieBild({ b, runde, d, neu, meldung }: { b: KunstBild; runde: Kunst
       </div>
       {b.entfernt && <p className="mt-1 text-xs text-slate-400">{b.entfernt}</p>}
     </div>
+  );
+}
+
+/** Vollbild zum Abstimmen (Jan 18.11.2026: „fullscreen-popup-variante zum durchschalten und gleichzeitig herzen vergeben"):
+ *  grosses Bild, Herz-Knopf mit Restzahl, Pfeile/Tasten blaettern, Esc schliesst. Herz-Stand kommt live aus der Runde. */
+function AbstimmGalerie({ ids, start, runde, d, neu, meldung, onZu }: { ids: number[]; start: number; runde: KunstRunde; d: KunstEvent;
+  neu: () => void; meldung: (x: unknown) => void; onZu: () => void }) {
+  const t = useT();
+  const [i, setI] = useState(start);
+  const b = runde.galerie.find((x) => x.id === ids[i]);
+  const weiter = (dd: number) => setI((x) => (x + dd + ids.length) % ids.length);
+  const abstimmen = !!b && runde.phase === "abstimmen" && d.teilnehmen && !b.eigen && !b.entfernt;
+  const voll = !!b && runde.herzen_vergeben >= d.herzen_je_runde && !b.herz;
+  const herz = () => { if (b && abstimmen && !voll) api.kunstHerz(b.id).then(neu).catch(meldung); };
+  useEffect(() => {
+    const taste = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onZu();
+      else if (e.key === "ArrowRight") weiter(1);
+      else if (e.key === "ArrowLeft") weiter(-1);
+    };
+    document.addEventListener("keydown", taste);
+    return () => document.removeEventListener("keydown", taste);
+  }, [ids.length]);   // eslint-disable-line react-hooks/exhaustive-deps
+  if (!b) return null;
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3" onClick={onZu}>
+      <div className="relative w-full max-w-[min(92vw,78vh)]" onClick={(e) => e.stopPropagation()}>
+        <div className={`rounded-2xl p-1.5 ${b.herz ? "bg-brand-500" : ""}`}>
+          <KunstLinie linie={b.linie} saat={b.id} />
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-3" style={{ color: "#e2e8f0" }}>
+          <span className="text-sm tabular-nums">{i + 1} / {ids.length}</span>
+          {b.eigen && <span className="text-sm font-semibold" style={{ color: "#22d3ee" }}>{t("kunst.deinBild")}</span>}
+          {runde.phase === "abstimmen" && d.teilnehmen && (
+            <span className="ml-auto text-sm">{t("kunst.uebrig", { rest: String(d.herzen_je_runde - runde.herzen_vergeben), n: String(d.herzen_je_runde) })}</span>
+          )}
+          {abstimmen && (
+            <button type="button" disabled={voll} onClick={herz} aria-pressed={!!b.herz} title={voll ? t("kunst.keineHerzen") : t("kunst.herz")}
+              className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-base font-bold disabled:opacity-40 ${b.herz ? "bg-brand-500 text-slate-950" : "bg-white/15 hover:bg-white/25"}`}
+              style={b.herz ? undefined : { color: "#ffffff" }}>
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill={b.herz ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M12 21s-7-4.35-9.5-8.5C.9 9.6 2.4 5.5 6.2 5.1 8.4 4.9 10 6.2 12 8.3c2-2.1 3.6-3.4 5.8-3.2 3.8.4 5.3 4.5 3.7 7.4C19 16.65 12 21 12 21z" />
+              </svg>
+              {t("kunst.herz")}
+            </button>
+          )}
+        </div>
+        {ids.length > 1 && (
+          <>
+            <button type="button" onClick={() => weiter(-1)} aria-label={t("kunst.zurueck")}
+              className="absolute left-1 top-[40%] rounded-full bg-black/50 px-3 py-2 text-2xl text-white hover:bg-black/70">‹</button>
+            <button type="button" onClick={() => weiter(1)} aria-label={t("kunst.weiter")}
+              className="absolute right-1 top-[40%] rounded-full bg-black/50 px-3 py-2 text-2xl text-white hover:bg-black/70">›</button>
+          </>
+        )}
+        <button type="button" onClick={onZu} aria-label={t("common.close")}
+          className="absolute -top-2 right-0 rounded-full bg-black/60 px-3 py-1 text-xl text-white hover:bg-black/80">×</button>
+      </div>
+    </div>,
+    document.body,
   );
 }
 

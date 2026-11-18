@@ -3128,6 +3128,8 @@ const ptPT: Record<string, string> = {
   "kunst.zurueck": "Imagem anterior",
   "kunst.weiter": "Imagem seguinte",
   "kunst.galerieSpaeter": "Vais ver as imagens dos outros quando a votação começar.",
+  "kunst.uebrig": "restam {rest} de {n} corações",
+  "kunst.gross": "Ver em grande",
   "kunst.intro": "Desenha uma imagem na água com o teu track. Uma imagem por ronda, de uma sessão dessa ronda, e depois a comunidade vota — anonimamente, só a linha conta. Cada um tem {n} corações por ronda, não para a própria imagem.",
   "kunst.runde": "Ronda {n}",
   "kunst.phase.kommt": "em breve",

@@ -3242,6 +3242,8 @@ const en: Record<string, string> = {
   "kunst.zurueck": "Previous picture",
   "kunst.weiter": "Next picture",
   "kunst.galerieSpaeter": "You'll see the others' pictures once voting starts.",
+  "kunst.uebrig": "{rest} of {n} hearts left",
+  "kunst.gross": "View large",
   "kunst.intro": "Draw a picture on the water with your track. One picture per round from a session of that round, then the community votes — anonymously, only the line counts. Everyone has {n} hearts per round, not for their own picture.",
   "kunst.runde": "Round {n}",
   "kunst.phase.kommt": "upcoming",

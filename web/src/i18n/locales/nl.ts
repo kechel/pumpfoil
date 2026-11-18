@@ -3188,6 +3188,8 @@ const nl: Record<string, string> = {
   "kunst.zurueck": "Vorige afbeelding",
   "kunst.weiter": "Volgende afbeelding",
   "kunst.galerieSpaeter": "De afbeeldingen van de anderen zie je zodra de stemming begint.",
+  "kunst.uebrig": "nog {rest} van {n} hartjes",
+  "kunst.gross": "Groot bekijken",
   "kunst.intro": "Teken met je track een plaatje op het water. Per ronde één plaatje uit een sessie van die ronde, daarna stemt de community — anoniem, alleen de lijn telt. Iedereen heeft {n} hartjes per ronde, niet voor het eigen plaatje.",
   "kunst.runde": "Ronde {n}",
   "kunst.phase.kommt": "komt eraan",

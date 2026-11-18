@@ -3169,6 +3169,8 @@ const fi: Record<string, string> = {
   "kunst.zurueck": "Edellinen kuva",
   "kunst.weiter": "Seuraava kuva",
   "kunst.galerieSpaeter": "Näet muiden kuvat, kun äänestys alkaa.",
+  "kunst.uebrig": "{rest}/{n} sydäntä jäljellä",
+  "kunst.gross": "Näytä suurena",
   "kunst.intro": "Piirrä reitilläsi kuva veden päälle. Yksi kuva kierrosta kohti, kierroksen sessiosta, sitten yhteisö äänestää — nimettömästi, vain viiva ratkaisee. Jokaisella on {n} sydäntä kierrosta kohti, ei omalle kuvalle.",
   "kunst.runde": "Kierros {n}",
   "kunst.phase.kommt": "tulossa",

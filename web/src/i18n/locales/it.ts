@@ -3017,6 +3017,8 @@ const it: Record<string, string> = {
   "kunst.zurueck": "Immagine precedente",
   "kunst.weiter": "Immagine successiva",
   "kunst.galerieSpaeter": "Vedrai le immagini degli altri quando inizia la votazione.",
+  "kunst.uebrig": "ancora {rest} cuori su {n}",
+  "kunst.gross": "Vedi in grande",
   "kunst.intro": "Disegna un'immagine sull'acqua con la tua traccia. Un'immagine per round da una sessione di quel round, poi la community vota — in modo anonimo, conta solo la linea. Ognuno ha {n} cuori per round, non per la propria immagine.",
   "kunst.runde": "Round {n}",
   "kunst.phase.kommt": "in arrivo",

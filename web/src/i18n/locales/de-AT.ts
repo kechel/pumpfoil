@@ -3020,6 +3020,8 @@ const deAT: Record<string, string> = {
   "kunst.zurueck": "Vorheriges Bild",
   "kunst.weiter": "Nächstes Bild",
   "kunst.galerieSpaeter": "Die Bilder der anderen siehst du ab der Abstimmung.",
+  "kunst.uebrig": "noch {rest} von {n} Herzen",
+  "kunst.gross": "Groß ansehen",
   "kunst.intro": "Mal mit deinem Track ein Bild aufs Wasser. Pro Runde ein Bild aus einer Session dieser Runde, danach stimmt die Community ab — anonym, nur die Linie zählt. Jeder hat {n} Herzen pro Runde, nicht für das eigene Bild.",
   "kunst.runde": "Runde {n}",
   "kunst.phase.kommt": "kommt",

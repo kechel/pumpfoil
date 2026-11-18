@@ -3131,6 +3131,8 @@ const zh: Record<string, string> = {
   "kunst.zurueck": "上一张",
   "kunst.weiter": "下一张",
   "kunst.galerieSpaeter": "投票开始后你才能看到其他人的图。",
+  "kunst.uebrig": "还剩 {rest}/{n} 颗心",
+  "kunst.gross": "放大查看",
   "kunst.intro": "用你的轨迹在水面上画一幅图。每轮从该轮的一次 Session 中选一幅图，之后由社区投票——匿名，只看线条。每人每轮有 {n} 颗爱心，不能投给自己的图。",
   "kunst.runde": "第 {n} 轮",
   "kunst.phase.kommt": "即将开始",
