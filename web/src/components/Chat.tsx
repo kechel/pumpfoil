@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { api, ChatMsg } from "../lib/api";
 import { Avatar, NewBadge } from "./ui";
 import { FlagIcon, BellIcon, BellOffIcon, EyeIcon, EyeOffIcon, MuteIcon, EditIcon, TrashIcon, CloseIcon, ThumbUpIcon, CameraIcon, CheckIcon, DoubleCheckIcon, ReplyIcon } from "./Icons";
@@ -67,7 +67,6 @@ export function Chat({ scope, fill = false, kommentare = false, inhaber = false 
   const CAP = 100;   // Anzeige-Limit: nur die letzten 100 Nachrichten; ältere bleiben serverseitig, werden aber nicht mehr angezeigt.
   // Desktop (Maus): Bearbeiten/Löschen per Hover statt Long-Press (der greift nur auf Touch).
   const navigate = useNavigate();
-  const { pathname } = useLocation();
   const isDesktop = typeof window !== "undefined" && !!window.matchMedia?.("(hover: hover) and (pointer: fine)").matches;
 
   useEffect(() => { api.getProfile().then((p) => { setIsAdmin(!!p.is_admin); setKannFotos(!!(p.chat_photos ?? p.is_admin)); setMeineId(p.id ?? 0); }).catch(() => {}); }, []);
@@ -352,7 +351,7 @@ export function Chat({ scope, fill = false, kommentare = false, inhaber = false 
               </button>
             )}
             <div className="flex shrink-0 flex-col items-center gap-1">
-              <Avatar name={m.name} url={m.avatar_url} userId={m.user_id} size={32} className="mt-0.5" />
+              <Avatar name={m.name} url={m.avatar_url} userId={m.user_id} size={32} className="mt-0.5" immerLink />
               {!m.hidden && (
                 <button onClick={() => like(m.id)} aria-label="Like"
                   className={`flex items-center gap-0.5 text-[10px] leading-none transition ${m.liked ? "text-brand-400" : "text-slate-500 hover:text-slate-300"}`}>
@@ -365,7 +364,7 @@ export function Chat({ scope, fill = false, kommentare = false, inhaber = false 
               <div className="flex items-baseline gap-2">
                 {/* Name oeffnet das Profil wie das Profilbild (Nutzer-Feedback 17.11.2026: „wenn ich auf nen Namen klicke
                     erwarte ich, dass es das Profil aufmacht"). data-profil: das Vollbild-Chatfenster faengt den Klick ab. */}
-                {m.user_id && pathname !== `/foiler/${m.user_id}` ? (
+                {m.user_id ? (
                   <span role="link" tabIndex={0} data-profil={`/foiler/${m.user_id}`}
                     onClick={(e) => { e.stopPropagation(); navigate(`/foiler/${m.user_id}`); }}
                     onKeyDown={(e) => { if (e.key === "Enter") navigate(`/foiler/${m.user_id}`); }}

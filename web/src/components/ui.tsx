@@ -159,6 +159,8 @@ export function Avatar(props: {
   link?: boolean;
   /** Router-State fuers Profil, z. B. der Zurueck-Link ({zurueck, zurueckText}) aus einer Event-Bestenliste */
   linkState?: unknown;
+  /** Auch verlinken, wenn das Profil schon offen ist (Chat: der Klick schliesst den Chat, Nutzer-Feedback 18.11.2026). */
+  immerLink?: boolean;
 }) {
   const t = useT();
   const navigate = useNavigate();
@@ -167,7 +169,7 @@ export function Avatar(props: {
   const stufe = useSupporter(props.userId);
   const bild = <AvatarBild {...props} />;
   const ziel = props.userId ? `/foiler/${props.userId}` : null;
-  const verlinkt = !!ziel && props.link !== false && pathname !== ziel;
+  const verlinkt = !!ziel && props.link !== false && (pathname !== ziel || !!props.immerLink);
   if (!online && !verlinkt && !stufe) return bild;
   const size = props.size ?? 32;
   const punkt = Math.max(8, Math.round(size * 0.28));
