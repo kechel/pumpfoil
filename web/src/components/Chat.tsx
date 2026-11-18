@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { api, ChatMsg } from "../lib/api";
 import { Avatar, NewBadge } from "./ui";
 import { FlagIcon, BellIcon, BellOffIcon, EyeIcon, EyeOffIcon, MuteIcon, EditIcon, TrashIcon, CloseIcon, ThumbUpIcon, CameraIcon, CheckIcon, DoubleCheckIcon, ReplyIcon } from "./Icons";
@@ -65,6 +66,8 @@ export function Chat({ scope, fill = false, kommentare = false, inhaber = false 
   const PAGE = 30;
   const CAP = 100;   // Anzeige-Limit: nur die letzten 100 Nachrichten; ältere bleiben serverseitig, werden aber nicht mehr angezeigt.
   // Desktop (Maus): Bearbeiten/Löschen per Hover statt Long-Press (der greift nur auf Touch).
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const isDesktop = typeof window !== "undefined" && !!window.matchMedia?.("(hover: hover) and (pointer: fine)").matches;
 
   useEffect(() => { api.getProfile().then((p) => { setIsAdmin(!!p.is_admin); setKannFotos(!!(p.chat_photos ?? p.is_admin)); setMeineId(p.id ?? 0); }).catch(() => {}); }, []);
@@ -360,7 +363,16 @@ export function Chat({ scope, fill = false, kommentare = false, inhaber = false 
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
-                <span className="pf-name text-sm font-semibold text-slate-200">{m.name || "—"}</span>
+                {/* Name oeffnet das Profil wie das Profilbild (Nutzer-Feedback 17.11.2026: „wenn ich auf nen Namen klicke
+                    erwarte ich, dass es das Profil aufmacht"). data-profil: das Vollbild-Chatfenster faengt den Klick ab. */}
+                {m.user_id && pathname !== `/foiler/${m.user_id}` ? (
+                  <span role="link" tabIndex={0} data-profil={`/foiler/${m.user_id}`}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/foiler/${m.user_id}`); }}
+                    onKeyDown={(e) => { if (e.key === "Enter") navigate(`/foiler/${m.user_id}`); }}
+                    className="pf-name cursor-pointer text-sm font-semibold text-slate-200 hover:underline">{m.name || "—"}</span>
+                ) : (
+                  <span className="pf-name text-sm font-semibold text-slate-200">{m.name || "—"}</span>
+                )}
                 {m.author_new && <NewBadge />}
                 <span className="text-[10px] text-slate-500">{hhmm(m.created_at)}</span>
                 {istDm && m.mine && gelesenBis != null && (

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { passtZu } from "../lib/suche";
 import { api, BotMsg, BotRoom, ChatRoom, DmUser } from "../lib/api";
 import { istSelbstPop } from "../lib/selfPop";
@@ -194,6 +195,14 @@ export function DmWidget() {
   // Marker und die App beendete sich, statt das Panel zu schließen. Jetzt liegen beide Marker
   // vorab auf dem Stack -> jedes Zurück konsumiert genau eine Ebene.
   const depthRef = useRef(0);       // Anzahl unserer Marker auf dem History-Stack
+  // Profil aus dem VOLLBILD-Chat oeffnen (Handy < 768 px oder „gross"; Nutzer-Feedback 18.11.2026: Tipp auf Profilbild
+  // tat auf dem Handy scheinbar nichts — das Profil ging HINTER dem Overlay auf). Erst Chat schliessen und unsere
+  // History-Marker abraeumen, DANN navigieren (im popstate, s. onPop) — sonst laege das Profil ueber toten Markern und
+  // Zurueck braeuchte drei Schritte. Im kleinen Desktop-Fenster bleibt es wie bisher (Profil dahinter, Chat bleibt offen).
+  const navigate = useNavigate();
+  const navRef = useRef(navigate);
+  navRef.current = navigate;
+  const pendingNavRef = useRef<string | null>(null);
   const skipPopRef = useRef(false); // eigenes Button-Schließen -> das folgende popstate ignorieren
   // NUR auf Touch-Geräten (Jan: „das war glaub nur zum schliessen per slide auf mobile mal gedacht,
   // wenn moeglich sollte das verhalten (nur mobile) beibehalten werden"). Am Desktop gibt es keine
@@ -218,7 +227,12 @@ export function DmWidget() {
       // „Bearbeiten" im Diktat den Chatraum und der diktierte Text ging mit der Komponente
       // verloren (gemeldet 25.08.).
       if (istSelbstPop()) return;
-      if (skipPopRef.current) { skipPopRef.current = false; return; }  // eigenes Button-Schließen
+      if (skipPopRef.current) {                                        // eigenes Button-Schließen
+        skipPopRef.current = false;
+        const z = pendingNavRef.current;                               // Profil-Klick aus dem Vollbild-Chat
+        if (z) { pendingNavRef.current = null; navRef.current(z); }
+        return;
+      }
       if (depthRef.current <= 0) return;                               // keiner unserer Marker
       depthRef.current -= 1;
       if (depthRef.current >= 1) { setActive(null); loadRooms(); }     // Chat → Liste
@@ -252,6 +266,17 @@ export function DmWidget() {
     }
   };
   const closeOverlay = () => { setActive(null); setOpen(false); setGross(false); consumeMarkers(); };
+  /** Klick auf ein Profil (Profilbild/Name mit data-profil) im Vollbild-Chat: schliessen, dann hin. */
+  const profilAbfangen = (e: React.MouseEvent) => {
+    const el = (e.target as HTMLElement).closest?.("[data-profil]") as HTMLElement | null;
+    const ziel = el?.dataset.profil;
+    if (!ziel || !(gross || window.innerWidth < 768)) return;
+    e.preventDefault(); e.stopPropagation();
+    const mitMarkern = depthRef.current > 0;
+    if (mitMarkern) pendingNavRef.current = ziel;
+    closeOverlay();
+    if (!mitMarkern) navigate(ziel);
+  };
 
   const toggleBlock = () => {
     if (!active || !active.otherId) return;
@@ -323,6 +348,7 @@ export function DmWidget() {
             paddingBottom: "env(safe-area-inset-bottom)",
             ...(pos && !gross && window.innerWidth >= 768 ? { right: pos.x, bottom: pos.y, left: "auto", top: "auto" } : {}),
           }}
+          onClickCapture={profilAbfangen}
         >
           <div
             className={`flex touch-none items-center gap-2 border-b border-slate-800 bg-slate-950/60 px-3 py-2 ${gross ? "" : "md:cursor-move"}`}

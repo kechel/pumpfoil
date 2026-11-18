@@ -182,7 +182,7 @@ export function Avatar(props: {
     <span
       className={`relative ${props.fill ? "block h-full w-full" : "inline-flex shrink-0"} ${verlinkt ? "cursor-pointer rounded-full" : ""}`}
       {...(verlinkt ? {
-        role: "link", tabIndex: 0, title: props.name || undefined,
+        role: "link", tabIndex: 0, title: props.name || undefined, "data-profil": ziel,
         onClick: oeffnen,
         onKeyDown: (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") oeffnen(e); },
       } : {})}
