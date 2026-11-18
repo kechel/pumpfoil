@@ -3740,3 +3740,85 @@ def board_attitude(user: models.User = Depends(current_user),
                 _lage_cache.clear()
         _lage_cache[user.id] = (jetzt, out)
     return out
+
+
+# ----------------------------------------------------------- Performance (Tagesplatzierungen) ----
+# Idee eines Fahrers (DM 16.11.2026), Jan 18.11.: „ja gerne so wie empfohlen umsetzen" (docs/TODO.md Inbox 18.11.).
+# Je Kalendertag (UTC) und Kategorie die Rangliste aller Fahrer weltweit derselben Sportart; man sieht NUR die eigenen
+# Plaetze. Gerechnet aus den GESPEICHERTEN Werten (Sprint-Regel „nie rueckwirkend": hier wird nichts neu ausgewertet),
+# dieselben Filter wie die Community-Ranglisten (`_community`, GPS-only mit Laeufen zaehlt mit), je Fahrer der beste Wert
+# des Tages. Ein Platz zaehlt erst ab PERF_MIN_FELD Fahrern in der Kategorie an dem Tag.
+PERF_MIN_FELD = 5
+PERF_AB = datetime(2026, 8, 1, tzinfo=timezone.utc)
+PERF_SPORTARTEN = ("pumpfoil", "foil_scoot")
+_PERF_CACHE: dict = {}
+_PERF_TTL_S = 600
+
+
+def _perf_kategorien() -> dict:
+    return {
+        "sprint_100m": _sprint_plausibel("sprint_100m"),
+        "sprint_60s": _sprint_plausibel("sprint_60s"),
+        "run_distance": REC_COL["distance"][0],
+        "run_time": REC_COL["duration"][0],
+    }
+
+
+def _perf_tageswerte(db: Session, sport: str, kat: str, col) -> dict:
+    """{tag: {user_id: bester Wert}} fuer alle community-sichtbaren Sessions ab PERF_AB (10 min gecacht, fuer alle gleich)."""
+    schluessel = (sport, kat)
+    hit = _PERF_CACHE.get(schluessel)
+    if hit and time.time() - hit[0] < _PERF_TTL_S:
+        return hit[1]
+    tag = func.date(func.timezone("UTC", S.started_at))
+    q = (_community(db.query(tag.label("tag"), S.user_id, func.max(col)), None, False, sport)
+         .filter(S.started_at >= PERF_AB)
+         .group_by(tag, S.user_id))
+    aus: dict = {}
+    for d, uid, v in q.all():
+        if v is not None and float(v) > 0:
+            aus.setdefault(d.isoformat(), {})[uid] = float(v)
+    _PERF_CACHE[schluessel] = (time.time(), aus)
+    return aus
+
+
+@router.get("/performance")
+def performance(
+    sport: str = "pumpfoil",
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Eigene Tagesplatzierungen je Kategorie: [{tag, wert, platz, feld, perzentil, session_id}] (neueste zuerst).
+
+    `platz` = 1 + Zahl der Fahrer mit MEHR (Gleichstand ehrlich), `perzentil` = Anteil der anderen, die man geschlagen
+    hat (0-100). Nur die eigenen Zeilen verlassen den Server, die anderen Fahrer zaehlen nur als Feld."""
+    if sport not in PERF_SPORTARTEN:
+        sport = "pumpfoil"
+    tag = func.date(func.timezone("UTC", S.started_at))
+    out: dict = {"sport": sport, "min_feld": PERF_MIN_FELD, "ab": PERF_AB.date().isoformat(), "kategorien": {}}
+    for kat, col in _perf_kategorien().items():
+        alle = _perf_tageswerte(db, sport, kat, col)
+        # Eigene Session je Tag mit dem besten Wert (zum Hinspringen). Ohne viewer-Ausnahme fiele ein verstecktes Konto
+        # aus seinen eigenen Tagen; deshalb hier mit viewer_id.
+        eigene: dict = {}
+        for d, sid, v in (_community(db.query(tag, S.id, col), user.id, False, sport)
+                          .filter(S.user_id == user.id, S.started_at >= PERF_AB).all()):
+            if v is None or float(v) <= 0:
+                continue
+            k = d.isoformat()
+            if k not in eigene or float(v) > eigene[k][1]:
+                eigene[k] = (sid, float(v))
+        zeilen = []
+        for k, (sid, v) in eigene.items():
+            werte = dict(alle.get(k, {}))
+            werte[user.id] = max(v, werte.get(user.id, 0.0))
+            feld = len(werte)
+            if feld < PERF_MIN_FELD:
+                continue
+            mein = werte[user.id]
+            platz = 1 + sum(1 for x in werte.values() if x > mein)
+            schlechter = sum(1 for x in werte.values() if x < mein)
+            zeilen.append({"tag": k, "wert": round(mein, 3), "platz": platz, "feld": feld,
+                           "perzentil": round(100.0 * schlechter / max(feld - 1, 1), 1), "session_id": sid})
+        zeilen.sort(key=lambda z: z["tag"], reverse=True)
+        out["kategorien"][kat] = zeilen
+    return out

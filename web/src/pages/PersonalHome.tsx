@@ -22,6 +22,7 @@ import Foiler from "./Foiler";
 import { TeamSuche } from "./Teams";
 import LinkedAccounts from "./LinkedAccounts";
 import { Reiterleiste, useReiter, useWischleiste, type ReiterDef } from "../components/Reiter";
+import { PerformanceBereich } from "../components/PerformanceBereich";
 import { TeamWahl, useTeamWahl } from "../components/TeamWahl";
 import { TeamPrimaer } from "../components/TeamPrimaer";
 import { InstallPwa } from "../components/InstallPwa";
@@ -448,6 +449,8 @@ export default function PersonalHome() {
     ...(homespotId != null || (meineSpots?.length ?? 0) > 0 ? [{ id: "spots", label: t("nav.spots") }] : []),
     // „Stats" statt „Verlauf" (Jan, 02.11.2026), darin eine zweite Reiterzeile fuer die einzelnen Auswertungen.
     { id: "stats", label: t("tab.stats") },
+    // Tagesplatzierungen je Kategorie (Idee eines Fahrers, Jan 18.11.2026).
+    { id: "performance", label: t("tab.performance") },
     // Uhr & Konten (Jan, 02.11.2026): die eigenen Uhren und verknuepften Konten, sonst die beiden Einstiege.
     { id: "uhr", label: t("ptab.watches") },
     // Die eigene Profilseite, so wie andere sie sehen (Jan, 04.11.2026) — vorher fuehrte das Profilbild links oben dorthin.
@@ -642,6 +645,8 @@ export default function PersonalHome() {
       {tab === "spots" && <SpotsBereich homespotId={homespotId} homespotName={homespot} liste={meineSpots} />}
 
       {tab === "stats" && <StatsBereich />}
+
+      {tab === "performance" && <PerformanceBereich />}
 
       {/* Uhren und Konten in einer Ansicht mit eigenen Reitern, dieselbe wie /konten (02.11.2026). */}
       {tab === "uhr" && <LinkedAccounts eingebettet />}

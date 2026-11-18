@@ -1549,6 +1549,10 @@ neues Tab 'Performance' in Home". Datenlage 18.11.: Pumpfoil weltweit Median 36 
 - Kategorien zuerst nur vorhandene: 100 m, 1 min (fliegend), laengster Lauf (Strecke), laengste Zeit; 1 km und
   „zurueck zum Start" erst mit Trockenlauf.
 - Offen: Vergleichsgruppe (weltweit/Spot/Team/Freunde), Mindestfeld, Saison/Punkte, wer die Seite sieht.
+- ✅ 18.11. GEBAUT (Jan: „so wie empfohlen"): weltweit je Sportart (Pumpfoil/Foil Scoot), Mindestfeld 5, ab 01.08.2026,
+  vier Kategorien (100 m, 1 min, laengster Lauf, laengste Laufzeit), nur fuer einen selbst, Web-Reiter Home › Performance.
+  Server `community.performance` (10 min Cache, aus gespeicherten Werten), Test test_performance.py. Offen: Apps,
+  1 km, Punkte/Saison 2027, Vergleich mit Freunden.
 
 ### 18.11.2026 — Wing-Feedback u655 (Wear, OnePlus Watch 2) — NUR GEMERKT (Jan: „rest erstmal nur merken")
 Feedback-Formular 18.11., Sessions https://pumpfoil.org/sessions/21529 und https://pumpfoil.org/sessions/22414.

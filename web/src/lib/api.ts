@@ -1881,6 +1881,10 @@ export const api = {
     if (opts.board) q.set("board", "true");
     return req<{ n: number; pumping_here?: boolean; friends_here?: { user_id: number; name: string | null }[] }>(`/api/community/sessions-today?${q}`);
   },
+  // Performance-Reiter (18.11.2026): eigene Tagesplatzierungen je Kategorie, weltweit je Sportart.
+  performance: (sport = "pumpfoil") => req<{ sport: string; min_feld: number; ab: string;
+    kategorien: Record<string, { tag: string; wert: number; platz: number; feld: number; perzentil: number; session_id: number }[]> }>(
+    `/api/community/performance?sport=${encodeURIComponent(sport)}`),
   communitySessionsGrouped: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean;
       // "all" = alle Sportarten (Liste "was ist neu"); sonst genau eine (Community-Ansichten).
       sport?: string; fresh?: boolean; board?: boolean; team?: string; foil?: number } = {}) => {
