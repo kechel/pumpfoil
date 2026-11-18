@@ -1550,6 +1550,9 @@ Feedback-Formular 18.11., Sessions https://pumpfoil.org/sessions/21529 und https
   Trockenlauf ueber alle Wing/Kite; Wechselwirkung mit Fremdkraft/Deadreckoning beachten (Befund 16.09.).
   **Jans Idee 18.11. (einfacher, ohne Erkennung anzufassen):** bei Wind-Sessions die einzelnen Laeufe zuklappen
   (Lauf-Knoepfe/-Tabelle), erst auf Klick aufklappen. Loest die Wahrnehmung „zerstueckelt", nicht den spaeten Start.
+  ✅ 18.11. gebaut (Web): Lauftabelle bei Wind mit Foil zugeklappt, Titel „On-foil segments (N)". Jan: Wingfoiler nennen
+  einen „Run" ueblicherweise **vom Ins-Wasser-Gehen bis zurueck an Land** -> spaeter evtl. Fahrten = Abschnitte zwischen
+  Land-Aufenthalten als eigene Ebene ueber den On-Foil-Abschnitten (Statistik „74 runs" bleibt bis dahin so).
 - 🔲 Wear: Halten = Stopp (stop_mode hold), er erwartete Pause/Autostart. Wunsch: „Hold to stop" oder Auswahl Pause/Ende.
   Aktuelle Beschriftung nicht geprueft. Wear-Release noetig.
 - 🔲 Pause/Wing-Wechsel an Land (Nordosten in 22414) sollte Pause zwischen zwei Fahrten sein — nicht geprueft.

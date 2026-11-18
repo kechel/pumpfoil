@@ -1141,6 +1141,7 @@ const id: Record<string, string> = {
   "chat.quotePhoto": "Foto",
   "chat.reportConfirm": "Laporkan pesan ini ke moderator?",
   "sd.runsTitle": "Run ({count})",
+  "sd.foilSegmentsTitle": "Segmen di atas foil ({count})",
   "sd.smoothToggle": "Penghalusan bisa diganti di atas ({win}d)",
   "sd.colStart": "Mulai",
   "sd.colDistance": "Jarak",

@@ -1156,6 +1156,7 @@ const nb: Record<string, string> = {
   "chat.quotePhoto": "Bilde",
   "chat.reportConfirm": "Rapportere denne meldingen til moderatorene?",
   "sd.runsTitle": "Runs ({count})",
+  "sd.foilSegmentsTitle": "Foil-etapper ({count})",
   "sd.smoothToggle": "Utjevning kan endres over ({win}s)",
   "sd.colStart": "Start",
   "sd.colDistance": "Distanse",

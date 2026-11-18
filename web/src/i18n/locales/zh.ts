@@ -1141,6 +1141,7 @@ const zh: Record<string, string> = {
   "chat.quotePhoto": "照片",
   "chat.reportConfirm": "向管理员举报这条消息？",
   "sd.runsTitle": "航段 ({count})",
+  "sd.foilSegmentsTitle": "水翼滑行段（{count}）",
   "sd.smoothToggle": "平滑可在上方切换（{win}秒）",
   "sd.colStart": "开始",
   "sd.colDistance": "距离",

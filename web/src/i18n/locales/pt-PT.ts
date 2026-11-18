@@ -1148,6 +1148,7 @@ const ptPT: Record<string, string> = {
   "chat.quotePhoto": "Foto",
   "chat.reportConfirm": "Denunciar esta mensagem aos moderadores?",
   "sd.runsTitle": "Voltas ({count})",
+  "sd.foilSegmentsTitle": "Troços em foil ({count})",
   "sd.smoothToggle": "Suavização alternável acima ({win}s)",
   "sd.colStart": "Início",
   "sd.colDistance": "Distância",

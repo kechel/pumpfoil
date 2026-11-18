@@ -1141,6 +1141,7 @@ const ja: Record<string, string> = {
   "chat.quotePhoto": "写真",
   "chat.reportConfirm": "このメッセージをモデレーターに報告しますか？",
   "sd.runsTitle": "ラン ({count})",
+  "sd.foilSegmentsTitle": "フォイル走行区間（{count}）",
   "sd.smoothToggle": "スムージングは上で切り替え可能 ({win}s)",
   "sd.colStart": "開始",
   "sd.colDistance": "距離",

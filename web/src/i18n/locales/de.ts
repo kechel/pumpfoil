@@ -1300,6 +1300,7 @@ const de: Record<string, string> = {
   "chat.quotePhoto": "Foto",
   "chat.reportConfirm": "Diese Nachricht den Moderatoren melden?",
   "sd.runsTitle": "Läufe ({count})",
+  "sd.foilSegmentsTitle": "On-Foil-Abschnitte ({count})",
   "sd.smoothToggle": "Glättung oben umschaltbar ({win}s)",
   "sd.colStart": "Start",
   "sd.colDistance": "Distanz",

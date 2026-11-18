@@ -955,6 +955,7 @@ const gsw: Record<string, string> = {
   "chat.quotePhoto": "Foti",
   "chat.reportConfirm": "Die Nachricht de Moderatore mälde?",
   "sd.runsTitle": "Läuf ({count})",
+  "sd.foilSegmentsTitle": "On-Foil-Abschnitt ({count})",
   "sd.colStart": "Start",
   "sd.colDistance": "Distanz",
   "sd.colDuration": "Duur",

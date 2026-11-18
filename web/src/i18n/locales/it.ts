@@ -1017,6 +1017,7 @@ const it: Record<string, string> = {
   "chat.quotePhoto": "Foto",
   "chat.reportConfirm": "Segnalare questo messaggio ai moderatori?",
   "sd.runsTitle": "Run ({count})",
+  "sd.foilSegmentsTitle": "Tratti in foil ({count})",
   "sd.smoothToggle": "Smussatura regolabile sopra ({win}s)",
   "sd.colStart": "Inizio",
   "sd.colDistance": "Distanza",

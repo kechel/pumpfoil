@@ -1257,6 +1257,7 @@ const pl: Record<string, string> = {
   "chat.quotePhoto": "Zdjęcie",
   "chat.reportConfirm": "Zgłosić tę wiadomość moderatorom?",
   "sd.runsTitle": "Przejazdy ({count})",
+  "sd.foilSegmentsTitle": "Odcinki na foilu ({count})",
   "sd.smoothToggle": "Wygładzanie przełączasz powyżej ({win}s)",
   "sd.colStart": "Start",
   "sd.colDistance": "Dystans",

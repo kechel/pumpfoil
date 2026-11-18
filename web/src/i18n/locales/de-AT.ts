@@ -916,6 +916,7 @@ const deAT: Record<string, string> = {
   "chat.quotePhoto": "Foto",
   "chat.reportConfirm": "Die Nachricht de Moderatorn meldn?",
   "sd.runsTitle": "Läufe ({count})",
+  "sd.foilSegmentsTitle": "On-Foil-Abschnitte ({count})",
   "sd.colDistance": "Distanz",
   "sd.colDuration": "Dauer",
   "sd.attitudePerRun": "Lage je Lauf",

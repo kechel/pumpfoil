@@ -1277,6 +1277,7 @@ const en: Record<string, string> = {
   "chat.quotePhoto": "Photo",
   "chat.reportConfirm": "Report this message to the moderators?",
   "sd.runsTitle": "Runs ({count})",
+  "sd.foilSegmentsTitle": "On-foil segments ({count})",
   "sd.smoothToggle": "Smoothing switchable above ({win}s)",
   "sd.colStart": "Start",
   "sd.colDistance": "Distance",

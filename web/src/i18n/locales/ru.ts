@@ -1141,6 +1141,7 @@ const ru: Record<string, string> = {
   "chat.quotePhoto": "Фото",
   "chat.reportConfirm": "Пожаловаться на это сообщение модераторам?",
   "sd.runsTitle": "Заезды ({count})",
+  "sd.foilSegmentsTitle": "Отрезки на фойле ({count})",
   "sd.smoothToggle": "Сглаживание переключается выше ({win}с)",
   "sd.colStart": "Начало",
   "sd.colDistance": "Дистанция",

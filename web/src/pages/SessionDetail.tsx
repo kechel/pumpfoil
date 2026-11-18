@@ -3186,7 +3186,8 @@ export default function SessionDetail() {
         poweredRuns={(session.analysis?.metrics as any)?.fremdkraft_laeufe ?? []}
         keptWindows={session.fremdkraft_keep ?? []}
         canEdit={owned && !isPublic} onSaved={uebernehmen} laufKennz={laufKennz}
-        drehungen={!ohneFoil && manoever?.je_lauf?.length === (a?.segments?.length ?? -1) && manoever.je_lauf.some((x) => x.wende + x.halse > 0) ? manoever.je_lauf : null} />
+        drehungen={!ohneFoil && manoever?.je_lauf?.length === (a?.segments?.length ?? -1) && manoever.je_lauf.some((x) => x.wende + x.halse > 0) ? manoever.je_lauf : null}
+        zugeklappt={profil?.gruppe === "wind" && !ohneFoil} />
 
       {/* Puls je Lauf — dieselbe Darstellung wie im Vergleich, hier nur fuer diese eine Session.
           Ohne Fahrer-Beschriftung (jede Zeile waere derselbe Name), nur mit der Lauf-Nummer.
@@ -3880,6 +3881,7 @@ function RunsTable({
   onSaved,
   laufKennz = [],
   drehungen = null,
+  zugeklappt = false,
 }: {
   // Wenden/Halsen auf dem Foil je Lauf (Index wie segments) — nur Wind-Sessions mit Foil.
   drehungen?: { wende: number; halse: number }[] | null;
@@ -3918,7 +3920,10 @@ function RunsTable({
   speeds?: number[];
   canEdit?: boolean;
   onSaved?: (s: SessionSummary) => void;
+  // Wind-Sessions (Jan 18.11.2026): viele kurze Laeufe, Tabelle erst auf Klick aufklappen.
+  zugeklappt?: boolean;
 }) {
+  const [offen, setOffen] = useState(!zugeklappt);
   // Lage je Lauf: korrigiert (Standard) oder unkorrigiert (Jan, 08.10.2026).
   const [lageKorr, setLageKorr] = useState(true);
   const t = useT();
@@ -4079,8 +4084,16 @@ function RunsTable({
   return (
     <div className="mt-8">
       <div className="mb-3 flex items-center gap-2">
-        <h3 className="text-sm font-semibold text-slate-200">{t("sd.runsTitle", { count: segments.length })}</h3>
-        <span className="ml-auto text-xs text-slate-400">{t("sd.smoothToggle", { win })}</span>
+        {zugeklappt ? (
+          <button type="button" onClick={() => setOffen((o) => !o)} aria-expanded={offen}
+            className="flex items-center gap-1 text-sm font-semibold text-slate-200 hover:text-brand-500">
+            <span aria-hidden="true" className="inline-block w-3">{offen ? "▾" : "▸"}</span>
+            {t(zugeklappt ? "sd.foilSegmentsTitle" : "sd.runsTitle", { count: segments.length })}
+          </button>
+        ) : (
+          <h3 className="text-sm font-semibold text-slate-200">{t(zugeklappt ? "sd.foilSegmentsTitle" : "sd.runsTitle", { count: segments.length })}</h3>
+        )}
+        {offen && <span className="ml-auto text-xs text-slate-400">{t("sd.smoothToggle", { win })}</span>}
       </div>
       {excluded.length > 0 && (
         <div className="mb-3 rounded-xl border border-amber-300 bg-amber-500/10 p-3 dark:border-amber-900/60 dark:bg-amber-950/30">
@@ -4153,7 +4166,7 @@ function RunsTable({
           </ul>
         </div>
       )}
-      {segments.length > 0 && (
+      {segments.length > 0 && offen && (
       <Card className="overflow-x-auto">
         <table className="w-full min-w-[820px] text-sm">
           <thead>
@@ -4291,7 +4304,7 @@ function RunsTable({
       </Card>
       )}
       {/* Gehoert zur Lauf-Tabelle, nicht unter die Lage-Tabelle (Jan, 08.10.2026). */}
-      {segments.length > 0 && (
+      {segments.length > 0 && offen && (
         <p className="mt-2 px-1 text-xs text-slate-400">
           {t("sd.tableFooter")}
         </p>

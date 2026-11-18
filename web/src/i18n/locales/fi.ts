@@ -1147,6 +1147,7 @@ const fi: Record<string, string> = {
   "chat.quotePhoto": "Kuva",
   "chat.reportConfirm": "Ilmoitetaanko tämä viesti moderaattoreille?",
   "sd.runsTitle": "Lenkit ({count})",
+  "sd.foilSegmentsTitle": "Foilausosuudet ({count})",
   "sd.smoothToggle": "Tasoitus vaihdettavissa yltä ({win}s)",
   "sd.colStart": "Alku",
   "sd.colDistance": "Matka",

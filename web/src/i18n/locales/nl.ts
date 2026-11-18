@@ -1165,6 +1165,7 @@ const nl: Record<string, string> = {
   "chat.quotePhoto": "Foto",
   "chat.reportConfirm": "Dit bericht bij de moderatoren melden?",
   "sd.runsTitle": "Runs ({count})",
+  "sd.foilSegmentsTitle": "Foil-segmenten ({count})",
   "sd.smoothToggle": "Afvlakking bovenaan omschakelbaar ({win}s)",
   "sd.colStart": "Start",
   "sd.colDistance": "Afstand",

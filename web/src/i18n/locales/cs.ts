@@ -1165,6 +1165,7 @@ const cs: Record<string, string> = {
   "chat.quotePhoto": "Fotka",
   "chat.reportConfirm": "Nahlásit tuto zprávu moderátorům?",
   "sd.runsTitle": "Jízdy ({count})",
+  "sd.foilSegmentsTitle": "Úseky na foilu ({count})",
   "sd.smoothToggle": "Vyhlazení přepínatelné nahoře ({win}s)",
   "sd.colStart": "Začátek",
   "sd.colDistance": "Vzdálenost",
