@@ -74,7 +74,9 @@ def kunst_event(event_id: int, user: models.User = Depends(current_user), db: Se
         sichtbar.sort(key=lambda b: K.reihenfolge(user.id, b.id))
         galerie = [{**_bild_out(b), "eigen": b.user_id == user.id, "herz": b.id in meine_herzen,
                     **({"entfernt": b.entfernt_grund, "meldungen": meldungen.get(b.id, 0)} if mod else {})}
-                   for b in sichtbar] if r["phase"] != "kommt" else []
+                   for b in sichtbar] if (r["phase"] in ("abstimmen", "fertig") or (r["phase"] == "einreichen" and mod)) else []
+        # Galerie fuer Teilnehmer erst ab der Abstimmung (Jan 18.11.2026: in der Einreichwoche nur Admins) — sonst liessen
+        # sich Ideen abschauen und fruehe Bilder waeren laenger sichtbar. Moderation sieht sie, um rechtzeitig zu pruefen.
         x = {"nr": nr, "start": _iso(r["start"]), "ende": _iso(r["ende"]), "einreichen_bis": _iso(r["einreichen_bis"]),
              "abstimmen_bis": _iso(r["abstimmen_bis"]),
              "phase": r["phase"], "anzahl": sum(1 for b in bilder if b.runde == nr and b.entfernt_grund is None),

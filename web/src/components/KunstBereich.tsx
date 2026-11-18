@@ -173,7 +173,8 @@ export default function KunstBereich({ eventId }: { eventId: number }) {
       {runde.phase === "fertig" ? (
         <Aufloesung runde={runde} />
       ) : runde.galerie.length === 0 ? (
-        runde.phase !== "kommt" && <p className="text-sm text-slate-400">{t("kunst.leer")}</p>
+        runde.phase !== "kommt" && <p className="text-sm text-slate-400">
+          {t(runde.phase === "einreichen" && !d.moderieren ? "kunst.galerieSpaeter" : "kunst.leer")}</p>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {runde.galerie.map((b) => (

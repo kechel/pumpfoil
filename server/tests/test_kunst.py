@@ -155,7 +155,9 @@ def test_einreichen_galerie_herzen_aufloesung(client, monkeypatch):
     d = client.get(f"/api/kunst/{eid}", headers=kb).json()
     r1 = d["runden"][0]
     assert r1["phase"] == "einreichen" and r1["anzahl"] == 3
-    assert all("name" not in g and "user_id" not in g for g in r1["galerie"])      # anonym
+    assert r1["galerie"] == [] and r1["eigen"]                    # Teilnehmer: Galerie erst ab der Abstimmung
+    g_mod = client.get(f"/api/kunst/{eid}", headers=km).json()["runden"][0]["galerie"]
+    assert len(g_mod) == 3 and all("name" not in g and "user_id" not in g for g in g_mod)   # Moderation sieht sie, anonym
     # Herzen gibt es erst in der Abstimmung.
     assert client.post(f"/api/kunst/bild/{ids[ia]}/herz", headers=kb).status_code == 409
 
