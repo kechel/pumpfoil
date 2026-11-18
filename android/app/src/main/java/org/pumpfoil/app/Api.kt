@@ -1653,6 +1653,12 @@ object Api {
                 (if (minLaufS > 0) "&min_run_s=$minLaufS" else "") + (if (mitScoot) "&mit_scoot=1" else ""), null, auth = true))
     }
 
+    // Home › Performance: eigene Tagesplatzierungen (sport: "pumpfoil" oder "pumpfoil+foil_scoot", 18.11.2026).
+    suspend fun performance(sport: String): PerfAntwort = withContext(Dispatchers.IO) {
+        json.decodeFromString(PerfAntwort.serializer(),
+            http("GET", "/api/community/performance?sport=" + java.net.URLEncoder.encode(sport, "UTF-8"), null, auth = true))
+    }
+
     suspend fun watchStats(): List<WatchStat> = withContext(Dispatchers.IO) {
         json.decodeFromString(ListSerializer(WatchStat.serializer()), http("GET", "/api/community/watch-stats", null, auth = true))
     }

@@ -3810,7 +3810,9 @@ def board_attitude(user: models.User = Depends(current_user),
 # des Tages. Ein Platz zaehlt erst ab PERF_MIN_FELD Fahrern in der Kategorie an dem Tag.
 PERF_MIN_FELD = 5
 PERF_AB = datetime(2026, 8, 1, tzinfo=timezone.utc)
-PERF_SPORTARTEN = ("pumpfoil", "foil_scoot")
+# Foil Scoot nur zusammen mit Pumpfoil (Jan 18.11.2026: „wir haben zu wenige foilscooter als dass das eigenstaendig sinn
+# ergeben wuerde"); ein altes `foil_scoot` landet in der Mischung.
+PERF_SPORTARTEN = ("pumpfoil", "pumpfoil+foil_scoot")
 _PERF_CACHE: dict = {}
 _PERF_TTL_S = 600
 
@@ -3851,6 +3853,9 @@ def performance(
 
     `platz` = 1 + Zahl der Fahrer mit MEHR (Gleichstand ehrlich), `perzentil` = Anteil der anderen, die man geschlagen
     hat (0-100). Nur die eigenen Zeilen verlassen den Server, die anderen Fahrer zaehlen nur als Feld."""
+    sport = sport.replace(" ", "+")   # unkodiertes „+" kommt als Leerzeichen an
+    if sport == "foil_scoot":
+        sport = "pumpfoil+foil_scoot"
     if sport not in PERF_SPORTARTEN:
         sport = "pumpfoil"
     tag = func.date(func.timezone("UTC", S.started_at))

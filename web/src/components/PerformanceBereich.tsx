@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { useT } from "../i18n";
 import { Card, Spinner } from "./ui";
+import { sportLabel } from "../lib/sportClass";
 
 /**
  * Home › Performance (Idee eines Fahrers, DM 16.11.2026; Jan 18.11.: „so wie empfohlen umsetzen").
@@ -34,7 +35,7 @@ function zellFarbe(perz: number): string {
 
 export function PerformanceBereich() {
   const t = useT();
-  const [sport, setSport] = useState<"pumpfoil" | "foil_scoot">("pumpfoil");
+  const [sport, setSport] = useState<"pumpfoil" | "pumpfoil+foil_scoot">("pumpfoil");
   const [zeitraum, setZeitraum] = useState<"alle" | "30">("alle");
   const [daten, setDaten] = useState<Awaited<ReturnType<typeof api.performance>> | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -65,10 +66,11 @@ export function PerformanceBereich() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        {(["pumpfoil", "foil_scoot"] as const).map((s) => (
+        {/* Foil Scoot nur zusammen mit Pumpfoil — allein zu wenige Fahrer fuer ein Feld (Jan 18.11.2026). */}
+        {(["pumpfoil", "pumpfoil+foil_scoot"] as const).map((s) => (
           <button key={s} type="button" onClick={() => setSport(s)} aria-pressed={sport === s}
             className={`rounded-lg px-3 py-1.5 text-sm ${sport === s ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300 hover:text-slate-100"}`}>
-            {t(`cls.sport.${s}`)}
+            {sportLabel(s, t)}
           </button>
         ))}
         <select value={zeitraum} onChange={(e) => setZeitraum(e.target.value as "alle" | "30")}

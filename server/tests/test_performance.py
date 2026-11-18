@@ -59,3 +59,11 @@ def test_platz_feld_und_mindestfeld(client):
     assert not [z for z in d["kategorien"]["sprint_100m"] if z["tag"] == "2026-09-04"]
     ld = [z for z in d["kategorien"]["run_distance"] if z["tag"] == "2026-09-03"][0]
     assert ld["platz"] == 1 and ld["perzentil"] == 100.0
+
+
+def test_performance_foil_scoot_nur_mit_pumpfoil(client):
+    """Foil Scoot gibt es nur als Mischung mit Pumpfoil (Jan 18.11.2026); ein altes `foil_scoot` landet dort."""
+    _, kopf = _konto(client, f"perf-mix-{secrets.token_hex(3)}@t.de")
+    for frage, sport in (("foil_scoot", "pumpfoil+foil_scoot"), ("pumpfoil%2Bfoil_scoot", "pumpfoil+foil_scoot"),
+                         ("pumpfoil+foil_scoot", "pumpfoil+foil_scoot"), ("wingfoil", "pumpfoil")):
+        assert client.get(f"/api/community/performance?sport={frage}", headers=kopf).json()["sport"] == sport

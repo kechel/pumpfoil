@@ -1624,6 +1624,12 @@ enum Api {
         return try await request("/api/community/foil-stats" + q, method: "GET", body: nil, auth: true)
     }
 
+    /// Home › Performance: eigene Tagesplatzierungen; sport "pumpfoil" oder "pumpfoil+foil_scoot" (18.11.2026).
+    static func performance(sport: String) async throws -> PerfAntwort {
+        let s: String = sport.replacingOccurrences(of: "+", with: "%2B")
+        return try await request("/api/community/performance?sport=" + s, method: "GET", body: nil, auth: true)
+    }
+
     static func watchStats() async throws -> [WatchStat] {
         try await request("/api/community/watch-stats", method: "GET", body: nil, auth: true)
     }

@@ -1551,8 +1551,11 @@ neues Tab 'Performance' in Home". Datenlage 18.11.: Pumpfoil weltweit Median 36 
 - Offen: Vergleichsgruppe (weltweit/Spot/Team/Freunde), Mindestfeld, Saison/Punkte, wer die Seite sieht.
 - ✅ 18.11. GEBAUT (Jan: „so wie empfohlen"): weltweit je Sportart (Pumpfoil/Foil Scoot), Mindestfeld 5, ab 01.08.2026,
   vier Kategorien (100 m, 1 min, laengster Lauf, laengste Laufzeit), nur fuer einen selbst, Web-Reiter Home › Performance.
-  Server `community.performance` (10 min Cache, aus gespeicherten Werten), Test test_performance.py. Offen: Apps,
+  Server `community.performance` (10 min Cache, aus gespeicherten Werten), Test test_performance.py. Offen:
   1 km, Punkte/Saison 2027, Vergleich mit Freunden.
+- ✅ 18.11. abends: Auswahl nur noch Pumpfoil | Pumpfoil + Foil Scoot (Jan: zu wenige Scooter fuer ein eigenes Feld;
+  altes `foil_scoot` -> Mischung). Apps: Android `PerformanceBereich.kt` (kompiliert), iOS am Ende von HomeView.swift
+  (nur Parse-Check, kein xcodegen noetig).
 
 ### 18.11.2026 — Wing-Feedback u655 (Wear, OnePlus Watch 2) — NUR GEMERKT (Jan: „rest erstmal nur merken")
 Feedback-Formular 18.11., Sessions https://pumpfoil.org/sessions/21529 und https://pumpfoil.org/sessions/22414.
@@ -1578,7 +1581,10 @@ Feedback-Formular 18.11., Sessions https://pumpfoil.org/sessions/21529 und https
   nach einer Luecke von ~N s gleichmaessig rueckwaerts in die Luecke verteilen (1 s Abstand). Sprints: Datumsweiche beachten.
   **Trockenlauf 18.11. (scripts/gps-buendel-trocken.py, v2 + Sprints V7, rein lesend):** 292 Wear-Sessions, 22 mit Buendeln,
   nur 4 aendern sich: 21529 38 -> 33 Laeufe, 0-s-Laeufe 3 -> 0, Foil-Zeit +107 s (+3,6 %), Strecke +214 m; 19239 0-s 2 -> 1,
-  +17 s; 20971 10 -> 9 Laeufe, 0-s 1 -> 0, +11 s; 19056 +1 s. Sprints (100 m/60 s) in ALLEN unveraendert. Wartet auf Jans OK.
+  +17 s; 20971 10 -> 9 Laeufe, 0-s 1 -> 0, +11 s; 19056 +1 s. Sprints (100 m/60 s) in ALLEN unveraendert.
+  **ERLEDIGT 18.11. (Jans OK):** Fix live (0200d7bb), die 4 Sessions neu ausgewertet (scripts/reanalyse-alle.py, Sicherung
+  server/data/sicherung/gps-buendel-4-sessions-auswertung-2026-11-18.json, Protokoll gps-buendel-reanalyse-2026-11-18.jsonl):
+  21529 38 -> 33 Laeufe, Foil-Zeit 2972 -> 3079 s; 19239 11 -> 12 Laeufe, +18 s; 20971 9 -> 9, +18 s; 19056 12 -> 12.
 - 🔲 Wear: Halten = Stopp (stop_mode hold), er erwartete Pause/Autostart. Wunsch: „Hold to stop" oder Auswahl Pause/Ende.
   Aktuelle Beschriftung nicht geprueft. Wear-Release noetig.
 - 🔲 Pause/Wing-Wechsel an Land (Nordosten in 22414) sollte Pause zwischen zwei Fahrten sein — nicht geprueft.

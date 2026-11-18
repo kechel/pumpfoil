@@ -356,6 +356,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
                     badge = if (teamEvAbz.live || teamEvAbz.bald > 0) ({ EventAbzeichen(teamEvAbz.live, teamEvAbz.bald) }) else null),
                 if (homespotId != null || !meineSpots.isNullOrEmpty()) ReiterDef("spots", I18n.t("nav.spots")) else null,
                 ReiterDef("stats", I18n.t("tab.stats")),
+                ReiterDef("performance", I18n.t("tab.performance")),
                 ReiterDef("uhren", I18n.t("ptab.watches")),
                 if ((profile?.id ?: 0) > 0) ReiterDef("profil", I18n.t("nav.profile")) else null)
             var tab by rememberReiter("home", homeReiter.map { it.id }, "uebersicht")
@@ -571,6 +572,10 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
             if (tab == "spots") {
                 HomeSpotsBereich(homespotId, homespotLink, meineSpots, onOpen = { onOpen(it, null) }, onOpenSpot = onOpenSpot)
             }   // spots
+
+            if (tab == "performance") {
+                PerformanceBereich(onOpenSession = { onOpen(it, null) })
+            }   // performance
 
             if (tab == "uhren") {
                 UhrenKontenBereich()
