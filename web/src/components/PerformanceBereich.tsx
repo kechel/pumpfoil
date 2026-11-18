@@ -16,7 +16,10 @@ const KATS = ["sprint_100m", "sprint_60s", "run_distance", "run_time"] as const;
 type Kat = typeof KATS[number];
 const BUCKETS: [string, (p: number) => boolean][] = [
   ["1", (p) => p === 1], ["2", (p) => p === 2], ["3", (p) => p === 3],
-  ["4–5", (p) => p >= 4 && p <= 5], ["6–10", (p) => p >= 6 && p <= 10], ["11+", (p) => p > 10],
+  ["4–5", (p) => p >= 4 && p <= 5], ["6–10", (p) => p >= 6 && p <= 10],
+  // Weitere Stufen (Jan 18.11.2026): die Felder haben 15 bis 80 Fahrer, „11+" sagte zu wenig.
+  ["11–20", (p) => p >= 11 && p <= 20], ["21–30", (p) => p >= 21 && p <= 30], ["31–50", (p) => p >= 31 && p <= 50],
+  ["51+", (p) => p > 50],
 ];
 
 function wertText(k: Kat, v: number): string {
@@ -121,7 +124,7 @@ export function PerformanceBereich() {
                         const n = z.filter((x) => f(x.platz)).length;
                         return (
                           <div key={label} className="flex items-center gap-2 text-xs">
-                            <span className="w-9 shrink-0 text-right tabular-nums text-slate-400">{label}</span>
+                            <span className="w-11 shrink-0 text-right tabular-nums text-slate-400">{label}</span>
                             <div className="h-3 flex-1 rounded bg-slate-800">
                               {n > 0 && <div className="h-3 rounded bg-brand-500" style={{ width: `${(100 * n) / max}%` }} />}
                             </div>

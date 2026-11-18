@@ -1049,7 +1049,10 @@ private let perfKats: [String] = ["sprint_100m", "sprint_60s", "run_distance", "
 private let perfCyan = Color(red: 34 / 255, green: 211 / 255, blue: 238 / 255)   // Markenfarbe (brand-design)
 private let perfBuckets: [(String, (Int) -> Bool)] = [
     ("1", { $0 == 1 }), ("2", { $0 == 2 }), ("3", { $0 == 3 }),
-    ("4–5", { $0 >= 4 && $0 <= 5 }), ("6–10", { $0 >= 6 && $0 <= 10 }), ("11+", { $0 > 10 })]
+    ("4–5", { $0 >= 4 && $0 <= 5 }), ("6–10", { $0 >= 6 && $0 <= 10 }),
+    // Weitere Stufen (Jan 18.11.2026): die Felder haben 15 bis 80 Fahrer, „11+" sagte zu wenig.
+    ("11–20", { $0 >= 11 && $0 <= 20 }), ("21–30", { $0 >= 21 && $0 <= 30 }), ("31–50", { $0 >= 31 && $0 <= 50 }),
+    ("51+", { $0 > 50 })]
 
 private func perfWertText(_ k: String, _ v: Double) -> String {
     if k == "sprint_100m" || k == "sprint_60s" { return String(format: "%.1f km/h", v * 3.6) }
@@ -1177,7 +1180,7 @@ struct PerformanceBereich: View {
 
     private func bucketZeile(_ label: String, _ n: Int, _ maxN: Int) -> some View {
         HStack(spacing: 6) {
-            Text(label).font(.caption2).foregroundStyle(.secondary).frame(width: 34, alignment: .trailing)
+            Text(label).font(.caption2).foregroundStyle(.secondary).frame(width: 42, alignment: .trailing)
             GeometryReader { g in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 3).fill(Color(.tertiarySystemFill))

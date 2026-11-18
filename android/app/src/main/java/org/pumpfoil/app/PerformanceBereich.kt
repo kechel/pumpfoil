@@ -59,7 +59,9 @@ private val KATS = listOf("sprint_100m", "sprint_60s", "run_distance", "run_time
 private val PerfCyan = Color(0xFF22D3EE)   // Markenfarbe (brand-design)
 private val BUCKETS: List<Pair<String, (Int) -> Boolean>> = listOf(
     "1" to { p -> p == 1 }, "2" to { p -> p == 2 }, "3" to { p -> p == 3 },
-    "4–5" to { p -> p in 4..5 }, "6–10" to { p -> p in 6..10 }, "11+" to { p -> p > 10 })
+    "4–5" to { p -> p in 4..5 }, "6–10" to { p -> p in 6..10 },
+    // Weitere Stufen (Jan 18.11.2026): die Felder haben 15 bis 80 Fahrer, „11+" sagte zu wenig.
+    "11–20" to { p -> p in 11..20 }, "21–30" to { p -> p in 21..30 }, "31–50" to { p -> p in 31..50 }, "51+" to { p -> p > 50 })
 
 private fun wertText(k: String, v: Double): String = when (k) {
     "sprint_100m", "sprint_60s" -> "%.1f km/h".format(v * 3.6)
@@ -146,7 +148,7 @@ fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
                                 BUCKETS.forEach { (label, f) ->
                                     val n = z.count { f(it.platz) }
                                     Row(Modifier.fillMaxWidth().padding(top = 3.dp), verticalAlignment = Alignment.CenterVertically) {
-                                        Text(label, Modifier.width(36.dp), style = MaterialTheme.typography.labelSmall, color = grau, textAlign = TextAlign.End)
+                                        Text(label, Modifier.width(44.dp), style = MaterialTheme.typography.labelSmall, color = grau, textAlign = TextAlign.End)
                                         Spacer(Modifier.width(6.dp))
                                         Box(Modifier.weight(1f).height(10.dp).clip(RoundedCornerShape(3.dp))
                                             .background(MaterialTheme.colorScheme.surfaceVariant)) {
