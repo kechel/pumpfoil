@@ -85,7 +85,7 @@ private fun zellFarbe(perz: Double): Color = PerfCyan.copy(alpha = (0.12 + 0.78 
 @Composable
 fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
     var sport by rememberSaveable { mutableStateOf("pumpfoil") }
-    var zeitraum by rememberSaveable { mutableStateOf("alle") }   // alle | 30 | 25
+    var zeitraum by rememberSaveable { mutableStateOf("25") }   // alle | 30 | 25; Standard „letzte 25 Tage" (Jan 18.11.)
     var daten by remember { mutableStateOf<PerfAntwort?>(null) }
     var fehler by remember { mutableStateOf<String?>(null) }
     val reiter = listOf(ReiterDef("uebersicht", I18n.t("perf.tabUebersicht")), ReiterDef("verlauf", I18n.t("perf.tabVerlauf")))

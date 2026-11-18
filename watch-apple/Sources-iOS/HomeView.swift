@@ -1069,7 +1069,7 @@ private func perfFarbe(_ perz: Double) -> Color {
 struct PerformanceBereich: View {
     let lang: String
     @State private var sport: String = "pumpfoil"
-    @State private var zeitraum: String = "alle"   // alle | 30 | 25 (letzte 25 Tage mit Wertung)
+    @State private var zeitraum: String = "25"   // alle | 30 | 25 (letzte 25 Tage mit Wertung, Standard seit Jan 18.11.)
     @State private var daten: PerfAntwort?
     @State private var fehler: String?
     // Unterreiter Uebersicht | Verlauf (Web 18.11.2026 abends) und die Kategorie des Platzverlaufs.

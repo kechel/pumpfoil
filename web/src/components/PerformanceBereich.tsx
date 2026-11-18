@@ -46,7 +46,7 @@ function zellFarbe(perz: number): string {
 export function PerformanceBereich() {
   const t = useT();
   const [sport, setSport] = useState<"pumpfoil" | "pumpfoil+foil_scoot">("pumpfoil");
-  const [zeitraum, setZeitraum] = useState<Zeitraum>("alle");
+  const [zeitraum, setZeitraum] = useState<Zeitraum>("25");
   const [daten, setDaten] = useState<Awaited<ReturnType<typeof api.performance>> | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const reiter = [{ id: "uebersicht", label: t("perf.tabUebersicht") }, { id: "verlauf", label: t("perf.tabVerlauf") }];
