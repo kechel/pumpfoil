@@ -797,7 +797,11 @@ private fun ChatRoomView(room: ChatRoom, onBack: () -> Unit, onOpen: (ChatRoom) 
                     Spacer(Modifier.width(8.dp))
                     Column(Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(m.name ?: "—", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                            // Name oeffnet das Profil wie das Bild daneben (Web ff411de5, 18.11.2026).
+                            val zumProfil = LocalOpenFoiler.current
+                            Text(m.name ?: "—", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
+                                modifier = if (!m.mine && m.userId > 0 && zumProfil != null)
+                                    Modifier.clickable { zumProfil(m.userId) } else Modifier)
                             hhmmChat(m.createdAt)?.let {
                                 Spacer(Modifier.width(6.dp))
                                 Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

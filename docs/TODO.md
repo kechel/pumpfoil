@@ -1603,8 +1603,9 @@ Referee „nur zu zweit/Moderatoren nur Vorschlag" nur gemerkt (Jan: „glaube d
 **A. Diese Woche (Jan: „naechste Woche"), alles Wertung/Analyse -> erst Entwurf mit Zahlen, dann Jans OK**
 1. 🟡 16.11. TEIL 1 LIVE (f5a411e8, EVENT_JE_LAUF=1): Baustein zaehlende Laeufe (Startzeit je Lauf, Duplikate einmal) in
    Bestenlisten + Gesamtsummen. ✅ 16.11. Session-Kennzeichen + Event-Kategorie-Dropdown im Web (980d71a4, 62429a12;
-   sprint-VERSION 5 mit Fenstern je Lauf). ✅ 16.11. Referee Board LIVE (Server 6978b7a9/9c467b24, Web). Offen: Apps
-   (Kennzeichen/Kategorien, naechstes Release); spaeter je Team einstellbar: Vier-Augen bzw. Moderatoren nur Vorschlag.
+   sprint-VERSION 5 mit Fenstern je Lauf). ✅ 16.11. Referee Board LIVE (Server 6978b7a9/9c467b24, Web). Apps ✅ 16.11.
+   abends (Android 788129f8/87b63910, iOS b4c99fec/0ed3576b; Kennzeichen, Kategorien, Melden, Korrekturen, Regel-Abschnitt
+   referee — 18.11. nachgeprueft); spaeter je Team einstellbar: Vier-Augen bzw. Moderatoren nur Vorschlag.
    Apps beim naechsten Release auch: Teilnehmer-Meldung (Fahne + Pop-up), oeffentliche Korrekturen am Event, Team-Regeln
    (neuer Abschnitt `referee`, geaenderte Texte events/global; REGEL_ABSCHNITTE in TeamScreen.kt / abschnitte in TeamView.swift).
    Je-Lauf-Wertung als EIN Baustein: es zaehlt die STARTZEIT JEDES LAUFS — im Fenster begonnen = zaehlt vollstaendig, egal
@@ -1651,7 +1652,12 @@ Entwurf zusammen mit A1.
 
 **A++. Nach A1 (Jan 16.11.)**
 - ✅ 16.11. GEBAUT Web+Server (2d30a70e, Marker 78a55f0f; s. docs/TEAMS.md „Events unter mehreren Teams"): Einladen +
-  Annehmen, Referee nur ausrichtendes Team, sichtbar nur Beteiligten, Team-Marker zaehlt offene Einladungen. Offen: Apps.
+  Annehmen, Referee nur ausrichtendes Team, sichtbar nur Beteiligten, Team-Marker zaehlt offene Einladungen. Apps ✅ 16.11.
+  (Android 87b63910, iOS 0ed3576b).
+- ✅ 18.11. Abgleich Web -> Apps fuer alles seit 16.11.: fehlte nur noch Chat-Name oeffnet Profil (wie Web ff411de5) und die
+  Erklaerung „nur du und Freunde sehen den Ort" an der Ort-Auswahl der Session. Dabei gefunden: Android zeigte den ALTEN
+  `hideloc.hint`, weil I18nNeu.kt (Vorrang vor I18n.kt) ihn noch hatte -> Eintrag entfernt; Teams/Events/Port-Tabellen
+  gegen web/en.ts verglichen, sonst keine Ueberdeckung.
   **Event unter mehreren Teams austragen:** ein Team laedt andere Teams zu seinem Event ein (z. B. 5 Teams), die Wertung
   zaehlt nur deren Mitglieder (Team-Wertung wie bei globalen Events), angezeigt nur diesen Teams. Erweitert „Globale Events
   von Teams vorschlagen" (docs/TEAMS.md). Offen: Einladung annehmen/ablehnen je Team, wer Referee ist (Leitung aller

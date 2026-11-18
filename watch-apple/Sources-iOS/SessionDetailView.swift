@@ -4023,6 +4023,8 @@ struct OrtSchalterView: View {
             .disabled(busy)
             if session.ort_verborgen == true {
                 Text(Loc.t("sd.ortAktiv", lang)).font(.callout.weight(.semibold)).foregroundStyle(Color.accentColor)
+                // Im Web der Tooltip am Auswahlfeld; seit 18.11.2026 sehen Freunde den echten Ort.
+                Text(Loc.t("sd.ortTitle", lang)).font(.caption).foregroundStyle(.secondary)
             }
         }
     }

@@ -950,7 +950,8 @@ struct ChatRoomView: View {
 
     @ViewBuilder private func bubbleHeader(_ m: ChatMsg) -> some View {
         HStack(spacing: 6) {
-            Text(m.name ?? "—").font(.subheadline).fontWeight(.semibold)
+            // Name oeffnet das Profil wie das Bild daneben (Web ff411de5, 18.11.2026).
+            ChatNameLink(name: m.name ?? "—", userId: m.user_id)
             if let ts = hhmmChat(m.created_at) {
                 Text(ts).font(.caption2).foregroundStyle(.secondary)
             }
@@ -1260,6 +1261,27 @@ struct ChatBildGalerie: View {
             case .da(let img): img.resizable().scaledToFit()
             default: ProgressView()
             }
+        }
+    }
+}
+
+
+/// Name im Chat-Kopf einer Nachricht: Tipp oeffnet die Foiler-Seite als Sheet, wie das Profilbild daneben
+/// (ProfilbildExtras in OnlinePunkt.swift). `.borderless`, damit nur der Name den Tipp bekommt.
+private struct ChatNameLink: View {
+    let name: String
+    let userId: Int
+    @State private var offen = false
+
+    var body: some View {
+        if userId > 0 {
+            Button { offen = true } label: {
+                Text(name).font(.subheadline).fontWeight(.semibold).foregroundStyle(.primary)
+            }
+            .buttonStyle(.borderless)
+            .sheet(isPresented: $offen) { FoilerSheet(userId: userId) }
+        } else {
+            Text(name).font(.subheadline).fontWeight(.semibold)
         }
     }
 }

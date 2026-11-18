@@ -3346,6 +3346,9 @@ private fun OrtSchalter(s: SessionDetail, onReload: () -> Unit) {
     if (s.ortVerborgen) {
         Text(I18n.t("sd.ortAktiv"), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 4.dp))
+        // Im Web der Tooltip am Auswahlfeld; seit 18.11.2026 sehen Freunde den echten Ort -> das muss man lesen koennen.
+        Text(I18n.t("sd.ortTitle"), style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
     }
 }
 
