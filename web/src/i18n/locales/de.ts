@@ -1935,6 +1935,7 @@ const de: Record<string, string> = {
   "watches.nAmazfit": "Sensor-Zugriff je nach Modell.",
   "watches.nHuawei": "In Arbeit: Aufnahme auf der Uhr, Übertragung über die Pumpfoil-App auf einem Android-Handy. Welche Daten die Uhren liefern, muss noch getestet werden.",
   "watches.nHuaweiW5": "Lädt nach der Kopplung per Code selbst hoch, ohne Handy-App. Neu in der AppGallery.",
+  "watches.nGarminConnect": "Konto verknüpfen → Aktivitäten kommen automatisch. Mit unserer Uhr-App aufgenommen: volle Pump-Erkennung. Andere Garmin-Aktivitäten: je nachdem, was sie aufzeichnen — GPS und Puls, gegebenenfalls auch Pumps.",
   "watches.nPolar": "Konto verknüpfen → Trainings importieren (GPS + HR). Den hochfrequenten Accel-Stream für die Pump-Erkennung liefert der API-Export nicht (nur via separatem BLE-Sensor).",
   "watches.nSuunto": "Konto verknüpfen → Trainings importieren (GPS + HR). Den hochfrequenten Accel-Stream für die Pump-Erkennung liefert der FIT-Export (noch) nicht.",
   "linked.xiaomi.title": "Xiaomi- und Redmi-Uhren",

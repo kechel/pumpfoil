@@ -1695,6 +1695,7 @@ const nl: Record<string, string> = {
   "watches.nAmazfit": "Sensortoegang afhankelijk van het model.",
   "watches.nHuawei": "In ontwikkeling: opnemen op het horloge, overdracht via de Pumpfoil-app op een Android-telefoon. Welke gegevens de horloges leveren, moet nog getest worden.",
   "watches.nHuaweiW5": "Uploadt zelf na koppelen met een code, zonder telefoon-app. Nieuw in AppGallery.",
+  "watches.nGarminConnect": "Koppel je account → activiteiten komen automatisch binnen. Opgenomen met onze horloge-app: volledige pompherkenning. Andere Garmin-activiteiten: afhankelijk van wat ze vastleggen — GPS en hartslag, eventueel ook pompen.",
   "watches.nPolar": "Account koppelen → trainingen importeren (GPS + HR). De hoogfrequente accel-stream voor de pompdetectie levert de API-export niet (alleen via een aparte BLE-sensor).",
   "watches.nSuunto": "Account koppelen → trainingen importeren (GPS + HR). De hoogfrequente accel-stream voor de pompdetectie levert de FIT-export (nog) niet.",
   "linked.xiaomi.title": "Xiaomi- en Redmi-horloges",

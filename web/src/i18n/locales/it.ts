@@ -1271,6 +1271,7 @@ const it: Record<string, string> = {
   "watches.nAmazfit": "Accesso ai sensori a seconda del modello.",
   "watches.nHuawei": "In lavorazione: registrazione sull’orologio, trasferimento tramite l’app Pumpfoil su un telefono Android. Quali dati forniscono gli orologi è ancora da testare.",
   "watches.nHuaweiW5": "Carica da solo dopo il collegamento con un codice, senza app sul telefono. Nuovo su AppGallery.",
+  "watches.nGarminConnect": "Collega l'account → le attività arrivano in automatico. Registrate con la nostra app per orologio: rilevamento completo delle pompate. Altre attività Garmin: a seconda di cosa registrano — GPS e frequenza cardiaca, eventualmente anche le pompate.",
   "watches.nPolar": "Collega l'account → importa allenamenti (GPS + FC). L'export API non include il flusso accel grezzo ad alta frequenza per il rilevamento del pump (solo con sensore BLE separato).",
   "watches.nSuunto": "Collega l'account → importa allenamenti (GPS + FC). L'export FIT non include (ancora) il flusso accel grezzo ad alta frequenza per il rilevamento del pump.",
   "linked.xiaomi.title": "Orologi Xiaomi e Redmi",

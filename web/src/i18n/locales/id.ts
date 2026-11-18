@@ -1560,6 +1560,7 @@ const id: Record<string, string> = {
   "watches.nAmazfit": "Akses sensor tergantung modelnya.",
   "watches.nHuawei": "Sedang dikerjakan: merekam di jam, transfer lewat aplikasi Pumpfoil di ponsel Android. Data apa yang diberikan tiap jam masih perlu diuji.",
   "watches.nHuaweiW5": "Mengunggah sendiri setelah ditautkan dengan kode, tanpa aplikasi ponsel. Baru di AppGallery.",
+  "watches.nGarminConnect": "Hubungkan akun → aktivitas masuk otomatis. Direkam dengan aplikasi jam kami: deteksi pump lengkap. Aktivitas Garmin lainnya: tergantung apa yang direkam — GPS dan detak jantung, mungkin juga pump.",
   "watches.nPolar": "Tautkan akunmu → impor latihan (GPS + HR). Ekspor API tidak menyertakan aliran accel mentah laju-tinggi yang dibutuhkan untuk deteksi pump (hanya via sensor BLE terpisah).",
   "watches.nSuunto": "Tautkan akunmu → impor latihan (GPS + HR). Ekspor FIT (belum) menyertakan aliran accel mentah laju-tinggi yang dibutuhkan untuk deteksi pump.",
   "linked.xiaomi.title": "Jam Xiaomi dan Redmi",

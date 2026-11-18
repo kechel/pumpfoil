@@ -1695,6 +1695,7 @@ const cs: Record<string, string> = {
   "watches.nAmazfit": "Přístup k senzorům podle modelu.",
   "watches.nHuawei": "V přípravě: záznam na hodinkách, přenos přes aplikaci Pumpfoil v telefonu s Androidem. Jaká data hodinky dodají, je ještě potřeba otestovat.",
   "watches.nHuaweiW5": "Po propojení kódem nahrává sama, bez aplikace v telefonu. Nově v AppGallery.",
+  "watches.nGarminConnect": "Propoj účet → aktivity přijdou automaticky. Nahrané naší aplikací v hodinkách: plné rozpoznání pumpování. Ostatní aktivity Garminu: podle toho, co zaznamenávají — GPS a tep, případně i pumpy.",
   "watches.nPolar": "Propoj účet → importuj tréninky (GPS + tep). Vysokofrekvenční accel stream pro rozpoznání pumpnutí API export neposkytuje (jen přes samostatný BLE senzor).",
   "watches.nSuunto": "Propoj účet → importuj tréninky (GPS + tep). Vysokofrekvenční accel stream pro rozpoznání pumpnutí FIT export (zatím) neposkytuje.",
   "linked.xiaomi.title": "Hodinky Xiaomi a Redmi",

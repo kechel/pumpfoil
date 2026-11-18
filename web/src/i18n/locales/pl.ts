@@ -1728,6 +1728,7 @@ const pl: Record<string, string> = {
   "watches.nAmazfit": "Dostęp do czujników zależy od modelu.",
   "watches.nHuawei": "W przygotowaniu: nagrywanie na zegarku, przesyłanie przez aplikację Pumpfoil na telefonie z Androidem. Jakie dane dostarczają zegarki, trzeba jeszcze przetestować.",
   "watches.nHuaweiW5": "Po połączeniu kodem sam wysyła dane, bez aplikacji w telefonie. Nowość w AppGallery.",
+  "watches.nGarminConnect": "Połącz konto → aktywności przychodzą automatycznie. Nagrane naszą aplikacją na zegarek: pełne rozpoznawanie pompowania. Inne aktywności Garmina: zależnie od tego, co rejestrują — GPS i tętno, ewentualnie też pompy.",
   "watches.nPolar": "Połącz konto → importuj treningi (GPS + tętno). Eksport z API nie zawiera strumienia surowego przyspieszenia o wysokiej częstotliwości, potrzebnego do wykrywania pomp (tylko przez osobny czujnik BLE).",
   "watches.nSuunto": "Połącz konto → importuj treningi (GPS + tętno). Eksport FIT (jeszcze) nie zawiera strumienia surowego przyspieszenia o wysokiej częstotliwości, potrzebnego do wykrywania pomp.",
   "linked.xiaomi.title": "Zegarki Xiaomi i Redmi",

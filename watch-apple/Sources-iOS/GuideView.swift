@@ -367,6 +367,9 @@ private let UHREN_ZEILEN: [UhrZeile] = [
              note: "watches.nHuaweiW5", links: [("AppGallery → „Pumpfoil\"", GUIDE_URL_APPGALLERY)]),
     UhrZeile(name: "Huawei", sub: "Lite Wearable (GT 3–7, Fit 2–5, D2)", gps: "y", hr: "y", pump: "p", status: "planned",
              note: "watches.nHuawei"),
+    // Garmin Connect (Web WatchMatrix, 18.11.2026): mit unserer Uhr-App volle Pump-Erkennung, Garmin-eigene nur GPS + Puls.
+    UhrZeile(name: "Garmin Connect", sub: "Fenix, Forerunner, Venu, Edge …", gps: "y", hr: "y", pump: "p", status: "import",
+             note: "watches.nGarminConnect", konto: "watches.linkAccount"),
     UhrZeile(name: "Polar", sub: "Vantage, Grit X …", gps: "y", hr: "y", pump: "n", status: "import",
              note: "watches.nPolar", konto: "watches.linkAccount"),
     UhrZeile(name: "Suunto", sub: "Race, Vertical …", gps: "y", hr: "y", pump: "n", status: "import",

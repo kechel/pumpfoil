@@ -1800,6 +1800,7 @@ const en: Record<string, string> = {
   "watches.nAmazfit": "Sensor access depends on the model.",
   "watches.nHuawei": "In progress: records on the watch, transfers via the Pumpfoil app on an Android phone. Which data the watches deliver still needs testing.",
   "watches.nHuaweiW5": "Uploads on its own after linking with a code, no phone app needed. New on AppGallery.",
+  "watches.nGarminConnect": "Link your account → activities arrive automatically. Recorded with our watch app: full pump detection. Other Garmin activities: depending on what they record — GPS and heart rate, possibly pumps too.",
   "watches.nPolar": "Link your account → import workouts (GPS + HR). The API export doesn't include the high-rate raw accel stream needed for pump detection (only via a separate BLE sensor).",
   "watches.nSuunto": "Link your account → import workouts (GPS + HR). The FIT export doesn't (yet) include the high-rate raw accel stream needed for pump detection.",
   "linked.xiaomi.title": "Xiaomi and Redmi watches",

@@ -1560,6 +1560,7 @@ const zh: Record<string, string> = {
   "watches.nAmazfit": "传感器访问取决于型号。",
   "watches.nHuawei": "开发中：在手表上记录，通过 Android 手机上的 Pumpfoil 应用传输。各款手表能提供哪些数据仍需测试。",
   "watches.nHuaweiW5": "用代码绑定后自行上传，无需手机应用。AppGallery 新上架。",
+  "watches.nGarminConnect": "关联账户 → 活动会自动同步。用我们的手表应用记录：完整的泵动识别。其他 Garmin 活动：取决于记录了什么 — GPS 和心率，可能也有泵动。",
   "watches.nPolar": "关联你的账号 → 导入训练（GPS + 心率）。API 导出不包含泵动识别所需的高频原始加速度流（只能通过单独的 BLE 传感器获取）。",
   "watches.nSuunto": "关联你的账号 → 导入训练（GPS + 心率）。FIT 导出（暂时）不包含泵动识别所需的高频原始加速度流。",
   "linked.xiaomi.title": "小米与 Redmi 手表",

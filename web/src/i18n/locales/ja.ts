@@ -1560,6 +1560,7 @@ const ja: Record<string, string> = {
   "watches.nAmazfit": "センサーへのアクセスはモデルによります。",
   "watches.nHuawei": "開発中：ウォッチで記録し、Android スマホの Pumpfoil アプリ経由で転送。各ウォッチがどのデータを出せるかはテスト中です。",
   "watches.nHuaweiW5": "コードで連携すると、スマホアプリなしで自分でアップロード。AppGallery で新登場。",
+  "watches.nGarminConnect": "アカウントを連携 → アクティビティが自動で届きます。当社のウォッチアプリで記録：パンプ検出をすべて利用可能。その他の Garmin アクティビティ：記録内容によります — GPS と心拍数、場合によってはパンプも。",
   "watches.nPolar": "アカウントを連携 → ワークアウトをインポート（GPS + 心拍数）。API エクスポートには、ポンプ検出に必要な高レート生加速度ストリームが含まれません（別途 BLE センサー経由のみ）。",
   "watches.nSuunto": "アカウントを連携 → ワークアウトをインポート（GPS + 心拍数）。FIT エクスポートには、ポンプ検出に必要な高レート生加速度ストリームが（まだ）含まれません。",
   "linked.xiaomi.title": "Xiaomi・Redmi ウォッチ",

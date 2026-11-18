@@ -25,6 +25,10 @@ const ROWS: { name: string; sub?: string; subKey?: string; gps: Cap; hr: Cap; pu
   { name: "Huawei Watch 5", sub: "HarmonyOS 5/6 · AppGallery", gps: "yes", hr: "yes", pump: "yes", status: "avail", noteKey: "watches.nHuaweiW5",
     weg: "AppGallery → „Pumpfoil\"", wegUrl: "https://appgallery.huawei.com/app/detail?id=org.pumpfoil.huawei" },   // wie bei Zepp; Link = appmeta store_url (ueber den Paketnamen, /app/C<id> geht nicht)
   { name: "Huawei", sub: "Lite Wearable (GT 3–7, Fit 2–5, D2)", gps: "yes", hr: "yes", pump: "partial", status: "planned", noteKey: "watches.nHuawei" },
+  // Garmin Connect (Jan 18.11.2026): eigene Zeile wie Polar/COROS. Mit unserer Uhr-App aufgenommen kommt die Original-FIT
+  // samt Beschleunigung (volle Pump-Erkennung), Garmin-eigene Aktivitaeten nur GPS + Puls -> Pump „partial".
+  { name: "Garmin Connect", sub: "Fenix, Forerunner, Venu, Edge …", gps: "yes", hr: "yes", pump: "partial", status: "import", noteKey: "watches.nGarminConnect",
+    account: { logo: "/garmin-connect-app.png", alt: "Garmin Connect", labelKey: "watches.linkAccount", imgClass: "h-7 w-7 rounded-md" } },
   { name: "Polar", sub: "Vantage, Grit X …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nPolar",
     account: { logo: "/polar-logo.jpg", alt: "Polar", labelKey: "watches.linkAccount" } },
   { name: "Suunto", sub: "Race, Vertical …", gps: "yes", hr: "yes", pump: "no", status: "import", noteKey: "watches.nSuunto",

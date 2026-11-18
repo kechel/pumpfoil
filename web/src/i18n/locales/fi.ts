@@ -1660,6 +1660,7 @@ const fi: Record<string, string> = {
   "watches.nAmazfit": "Sensoripääsy mallista riippuen.",
   "watches.nHuawei": "Työn alla: tallennus kellossa, siirto Pumpfoil-sovelluksella Android-puhelimeen. Mitä tietoja kellot antavat, on vielä testattava.",
   "watches.nHuaweiW5": "Lähettää itse, kun se on yhdistetty koodilla, ilman puhelinsovellusta. Uutena AppGalleryssä.",
+  "watches.nGarminConnect": "Yhdistä tili → aktiviteetit tulevat automaattisesti. Kelloapillamme tallennettu: täysi pumppauksen tunnistus. Muut Garmin-aktiviteetit: sen mukaan, mitä ne tallentavat — GPS ja syke, mahdollisesti myös pumppaukset.",
   "watches.nPolar": "Linkitä tili → tuo harjoitukset (GPS + HR). Pump-tunnistukseen tarvittavaa korkeataajuista kiihtyvyysvirtaa API-vienti ei toimita (vain erillisen BLE-sensorin kautta).",
   "watches.nSuunto": "Linkitä tili → tuo harjoitukset (GPS + HR). FIT-vienti ei (vielä) sisällä pump-tunnistukseen tarvittavaa korkeataajuista kiihtyvyysvirtaa.",
   "linked.xiaomi.title": "Xiaomi- ja Redmi-kellot",

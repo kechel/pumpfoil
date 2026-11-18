@@ -1180,6 +1180,7 @@ const gsw: Record<string, string> = {
   "watches.nAmazfit": "Sensor-Zuegriff je nach Modäll.",
   "watches.nHuawei": "Am Schaffe: Ufnahm uf de Uhr, Übertragig über d Pumpfoil-App uf emne Android-Handy. Weli Date d Uhre liefered, mues no tescht werde.",
   "watches.nHuaweiW5": "Ladet nach em Kopple per Code sälber ufe, ohni Handy-App. Neu i de AppGallery.",
+  "watches.nGarminConnect": "Konto verchnüpfe → Aktivitäte chömed automatisch. Mit eusere Uhr-App ufgnoh: volli Pump-Erchennig. Anderi Garmin-Aktivitäte: je nachdem, was si ufzeichned — GPS und Puls, allefalls au Pumps.",
   "watches.nPolar": "Konto verchnüpfe → Trainings importiere (GPS + HR). De hochfrequänt Accel-Stream für d Pump-Erkennig git de API-Export nöd (nur via separate BLE-Sensor).",
   "watches.nSuunto": "Konto verchnüpfe → Trainings importiere (GPS + HR). De hochfrequänt Accel-Stream für d Pump-Erkennig git de FIT-Export (nonig) nöd.",
   "linked.xiaomi.title": "Xiaomi- und Redmi-Uhre",

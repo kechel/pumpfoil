@@ -350,6 +350,9 @@ private val UHRZEILEN = listOf(
         noteKey = "watches.nHuaweiW5", weg = "AppGallery → „Pumpfoil\"" to APPGALLERY_URL),
     Uhrzeile("Huawei", "Lite Wearable (GT 3–7, Fit 2–5, D2)", gps = Kann.JA, hr = Kann.JA, pump = Kann.TEILS, status = "planned",
         noteKey = "watches.nHuawei"),
+    // Garmin Connect (Web WatchMatrix, 18.11.2026): mit unserer Uhr-App volle Pump-Erkennung, Garmin-eigene nur GPS + Puls.
+    Uhrzeile("Garmin Connect", "Fenix, Forerunner, Venu, Edge …", gps = Kann.JA, hr = Kann.JA, pump = Kann.TEILS, status = "import",
+        noteKey = "watches.nGarminConnect", konto = "watches.linkAccount"),
     Uhrzeile("Polar", "Vantage, Grit X …", gps = Kann.JA, hr = Kann.JA, pump = Kann.NEIN, status = "import",
         noteKey = "watches.nPolar", konto = "watches.linkAccount"),
     Uhrzeile("Suunto", "Race, Vertical …", gps = Kann.JA, hr = Kann.JA, pump = Kann.NEIN, status = "import",

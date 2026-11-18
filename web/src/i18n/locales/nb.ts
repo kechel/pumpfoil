@@ -1619,6 +1619,7 @@ const nb: Record<string, string> = {
   "watches.nAmazfit": "Sensortilgang avhenger av modellen.",
   "watches.nHuawei": "Under arbeid: opptak på klokken, overføring via Pumpfoil-appen på en Android-telefon. Hvilke data klokkene leverer, må fortsatt testes.",
   "watches.nHuaweiW5": "Laster opp selv etter tilkobling med kode, uten telefonapp. Ny i AppGallery.",
+  "watches.nGarminConnect": "Koble til kontoen → aktivitetene kommer automatisk. Tatt opp med klokkeappen vår: full pumpegjenkjenning. Andre Garmin-aktiviteter: avhengig av hva de registrerer — GPS og puls, eventuelt også pumper.",
   "watches.nPolar": "Koble til kontoen din → importer treningsøkter (GPS + puls). API-eksporten inneholder ikke den høyfrekvente strømmen av rå akselerasjon som trengs for pumpegjenkjenning (bare via en egen BLE-sensor).",
   "watches.nSuunto": "Koble til kontoen din → importer treningsøkter (GPS + puls). FIT-eksporten inneholder (ennå) ikke den høyfrekvente strømmen av rå akselerasjon som trengs for pumpegjenkjenning.",
   "linked.xiaomi.title": "Xiaomi- og Redmi-klokker",

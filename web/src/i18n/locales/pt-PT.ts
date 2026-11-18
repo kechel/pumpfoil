@@ -1562,6 +1562,7 @@ const ptPT: Record<string, string> = {
   "watches.nAmazfit": "O acesso ao sensor depende do modelo.",
   "watches.nHuawei": "Em desenvolvimento: gravação no relógio, transferência pela app Pumpfoil num telemóvel Android. Ainda falta testar que dados cada relógio fornece.",
   "watches.nHuaweiW5": "Envia sozinho depois de associado com um código, sem app no telemóvel. Novo na AppGallery.",
+  "watches.nGarminConnect": "Liga a tua conta → as atividades chegam automaticamente. Gravadas com a nossa app de relógio: deteção completa de bombadas. Outras atividades da Garmin: conforme o que registam — GPS e frequência cardíaca, eventualmente também bombadas.",
   "watches.nPolar": "Liga a tua conta → importa treinos (GPS + FC). A exportação da API não inclui o fluxo de accel em bruto em alta taxa necessário para detetar pump (só através de um sensor BLE separado).",
   "watches.nSuunto": "Liga a tua conta → importa treinos (GPS + FC). A exportação FIT (ainda) não inclui o fluxo de accel em bruto em alta taxa necessário para detetar pump.",
   "linked.xiaomi.title": "Relógios Xiaomi e Redmi",
