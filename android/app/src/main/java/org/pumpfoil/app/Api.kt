@@ -1826,6 +1826,47 @@ object Api {
         val k = klasse?.takeIf { it.isNotEmpty() }?.let { "&klasse=" + java.net.URLEncoder.encode(it, "UTF-8") } ?: ""
         json.decodeFromString(TeamEvent.serializer(), http("GET", slugPfad(slug) + "/events/$id?mix=1&sprint=1$k", null, auth = true))
     }
+    // ---- GPS-Kunst-Event (18.11.2026, Web lib/api.ts kunst*, Server app/api/kunst.py) ----
+    // Fehlercodes kommen als ApiFehler.detail, Text unter kunst.err.<code> (kunstFehlerText in KunstBereich.kt).
+    // Testmodus und Moderation (entfernen/zurueckholen) bleiben im Web.
+    suspend fun kunst(eventId: Int): KunstEvent = withContext(Dispatchers.IO) {
+        json.decodeFromString(KunstEvent.serializer(), http("GET", "/api/kunst/$eventId", null, auth = true))
+    }
+    /** Eigene Sessions, die fuer die Runde in Frage kommen, mit grober Vorschau-Linie. */
+    suspend fun kunstKandidaten(eventId: Int, runde: Int): List<KunstKandidat> = withContext(Dispatchers.IO) {
+        json.decodeFromString(ListSerializer(KunstKandidat.serializer()),
+            http("GET", "/api/kunst/$eventId/kandidaten?runde=$runde", null, auth = true))
+    }
+    /** Ganze eigene Session fuers Zuschneiden: [[t_ms, x_m, y_m]] und die Laeufe [[von_ms, bis_ms]]. */
+    suspend fun kunstSpur(eventId: Int, sessionId: Int): KunstSpur = withContext(Dispatchers.IO) {
+        json.decodeFromString(KunstSpur.serializer(), http("GET", "/api/kunst/$eventId/spur/$sessionId", null, auth = true))
+    }
+    suspend fun kunstEinreichen(eventId: Int, runde: Int, sessionId: Int, vonMs: Long, bisMs: Long, drehung: Int): Unit =
+        withContext(Dispatchers.IO) {
+            val body = buildJsonObject {
+                put("runde", runde); put("session_id", sessionId); put("von_ms", vonMs); put("bis_ms", bisMs); put("drehung", drehung)
+            }
+            http("POST", "/api/kunst/$eventId/bild", body.toString(), auth = true)
+            Unit
+        }
+    suspend fun kunstZurueckziehen(eventId: Int, runde: Int): Unit = withContext(Dispatchers.IO) {
+        http("DELETE", "/api/kunst/$eventId/bild?runde=$runde", null, auth = true)
+        Unit
+    }
+    /** Herz setzen bzw. wegnehmen (Umschalter). */
+    suspend fun kunstHerz(bildId: Int): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/kunst/bild/$bildId/herz", null, auth = true)
+        Unit
+    }
+    suspend fun kunstMelden(bildId: Int, grund: String): Unit = withContext(Dispatchers.IO) {
+        http("POST", "/api/kunst/bild/$bildId/melden", buildJsonObject { put("grund", grund) }.toString(), auth = true)
+        Unit
+    }
+    /** Echter Track eines Bildes (erst nach der Aufloesung): Striche aus [lat, lon]. */
+    suspend fun kunstKarte(bildId: Int): KunstKarte = withContext(Dispatchers.IO) {
+        json.decodeFromString(KunstKarte.serializer(), http("GET", "/api/kunst/bild/$bildId/karte", null, auth = true))
+    }
+
     /** Primaeres Team setzen (10.11.2026, ab 11.11. jedes aktive Team ausser dem offiziellen; 409 team_nicht_waehlbar). */
     suspend fun teamPrimaer(slug: String): Unit = withContext(Dispatchers.IO) {
         http("PUT", slugPfad(slug) + "/primaer", null, auth = true); Unit

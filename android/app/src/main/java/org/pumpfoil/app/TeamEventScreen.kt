@@ -311,6 +311,8 @@ fun TeamEventScreen(
                     if (e.status == "kommend") {
                         EventCountdown(e, f)
                     } else {
+                        // GPS-Kunst (Web 18.11.2026): Galerie, Herzen und Aufloesung statt Bestenlisten (KunstBereich.kt).
+                        if (e.vorlage == KUNST_VORLAGE) KunstBereich(e.id, onOpenSession)
                         if (e.status == "laeuft") {
                             Card(Modifier.fillMaxWidth().padding(bottom = 12.dp), border = BorderStroke(2.dp, f.akzent)) {
                                 Column(Modifier.fillMaxWidth().padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -444,11 +446,13 @@ fun TeamEventScreen(
                             Text(I18n.t("team.event.regelnTitel"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
                             Spacer(Modifier.height(6.dp))
                             val punkte = buildList {
-                                eventGemessen(e).takeIf { it.isNotEmpty() }?.let { add("${I18n.t("team.event.gemessen")}: $it") }
+                                // GPS-Kunst misst nichts — dort entfaellt die Zeile (Web).
+                                if (e.vorlage != KUNST_VORLAGE) eventGemessen(e).takeIf { it.isNotEmpty() }?.let { add("${I18n.t("team.event.gemessen")}: $it") }
                                 if (e.ohneDateien) add(I18n.t("team.event.ohneDateienKurz"))
                                 if (e.status == "auswertung") add(I18n.t("team.event.auswertungHinweis")
                                     .replace("{bis}", eventZeit(e.einfrierenAm, e.zeitzone)))
-                                addAll(I18n.t("team.regeln.events.text").split("\n").filter { it.isNotBlank() })
+                                addAll(I18n.t(if (e.vorlage == KUNST_VORLAGE) "kunst.regeln" else "team.regeln.events.text")
+                                    .split("\n").filter { it.isNotBlank() })
                             }
                             punkte.forEach { p ->
                                 Row(Modifier.padding(vertical = 2.dp)) {
