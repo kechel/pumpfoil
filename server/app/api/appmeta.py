@@ -268,7 +268,9 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.48",   # LIVE 2026-11-15: Play Console „Zuletzt veroeffentlicht am 15. November 2026", verwaltete
+        "latest": "1.1.46",   # 1.1.48 VEROEFFENTLICHT 15.11.2026 09:53, aber GESTAFFELT: Play zeigt „Vollstaendigen Roll-out
+        # starten" (Jans Meldung 18.11.) -> erst bei 100 % hier auf 1.1.48 setzen (Regel oben).
+        # 1.1.48: Play Console „Zuletzt veroeffentlicht am 15. November 2026", verwaltete
         # Veroeffentlichung aus, Uebersicht leer (Jans Meldung 18.11. — die Freigabe ging an uns vorbei). Teams/Events-Port,
         # Sprints, gemischte Bestenlisten, primaeres Team, Siegertreppchen, Uebersichtsbild, V-max wie der Server.
         # ALT: "latest": "1.1.46",   # LIVE 2026-11-05: Play-Mail „Your update to Pumpfoil, created on Oct 28, 2026
@@ -481,7 +483,7 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.48",   # LIVE 2026-11-15 mit android 1.1.48 (s. dort). Uhr: V-max wie der Server.
+        "latest": "1.2.46",   # 1.2.48 seit 15.11. GESTAFFELT (s. android) -> erst bei 100 % auf 1.2.48. Uhr: V-max wie der Server.
         # ALT: "latest": "1.2.46",   # LIVE 2026-11-05, dieselbe Play-Mail wie android (1.1.46). Uhr: Hinweis, wenn das
         # GPS-Signal verloren ist (aus 1.2.45, die vor der Freigabe ersetzt wurde).
         # ALT: "latest": "1.2.44",   # LIVE 2026-10-28, dieselbe Play-Mail wie android (1.1.44). Uhr: Sportart-Wahl,
