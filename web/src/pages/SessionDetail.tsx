@@ -3926,6 +3926,7 @@ function RunsTable({
   zugeklappt?: boolean;
 }) {
   const [offen, setOffen] = useState(!zugeklappt);
+  const [sepOffen, setSepOffen] = useState(false);
   // Lage je Lauf: korrigiert (Standard) oder unkorrigiert (Jan, 08.10.2026).
   const [lageKorr, setLageKorr] = useState(true);
   const t = useT();
@@ -4125,49 +4126,6 @@ function RunsTable({
           </ul>
         </div>
       )}
-      {/* Fremdkraft-Vorschläge der Erkennung v2: abgetrennte Läufe (Boot/Auto/Motor-Verdacht) mit
-          Grund und Ein-Tipp-Rückholung — Vorschlag, keine stille Löschung. Für ALLE sichtbar
-          (Transparenz, warum die Zahlen so sind), Knöpfe nur mit Bearbeitungsrecht. */}
-      {(poweredRuns.length > 0 || keptWindows.length > 0) && (
-        <div className="mb-3 rounded-xl border border-sky-300 bg-sky-500/10 p-3 dark:border-sky-900/60 dark:bg-sky-950/30">
-          <div className="flex items-center gap-2 font-semibold text-sky-700 dark:text-sky-300">
-            <FoilOffIcon className="h-4 w-4" />
-            {t("v2.sepTitle")}
-          </div>
-          {poweredRuns.length > 0 && (
-            <p className="mt-1 leading-relaxed text-sky-800 dark:text-sky-200">{t("v2.sepIntro")}</p>
-          )}
-          <ul className="mt-2 space-y-1.5">
-            {poweredRuns.map((r: any) => (
-              <li key={`${r.t_start_ms}`} className="flex flex-wrap items-center gap-2 text-slate-300">
-                <span className="tabular-nums">{uhr(wanduhrMs(pausen, r.t_start_ms))}</span>
-                <span>{poweredWhy(r)}</span>
-                {canEdit && (
-                  <button onClick={() => doKeep(r, true)} disabled={busy}
-                    className="rounded-lg bg-brand-500 px-2.5 py-0.5 font-medium text-slate-950 hover:bg-brand-400 disabled:opacity-50">
-                    {t("v2.keep")}
-                  </button>
-                )}
-              </li>
-            ))}
-            {keptWindows.map(([from, to]) => (
-              <li key={`kept-${from}`} className="flex flex-wrap items-center gap-2 text-slate-300">
-                <span className="tabular-nums">
-                  {uhr(wanduhrMs(pausen, from))}
-                  {" · "}{fmtMMSS(Math.max(0, (to - from) / 1000))}
-                </span>
-                <span>{t("v2.keptLabel")}</span>
-                {canEdit && (
-                  <button onClick={() => doKeep([from, to], false)} disabled={busy}
-                    className="rounded-lg bg-slate-800 px-2 py-0.5 text-slate-200 hover:bg-slate-700 disabled:opacity-50">
-                    {t("v2.unkeep")}
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
       {segments.length > 0 && offen && (
       <Card className="overflow-x-auto">
         <table className="w-full min-w-[820px] text-sm">
@@ -4310,6 +4268,52 @@ function RunsTable({
         <p className="mt-2 px-1 text-xs text-slate-400">
           {t("sd.tableFooter")}
         </p>
+      )}
+      {/* Fremdkraft-Vorschläge der Erkennung v2: abgetrennte Läufe (Boot/Auto/Motor-Verdacht) mit
+          Grund und Ein-Tipp-Rückholung — Vorschlag, keine stille Löschung. Für ALLE sichtbar
+          (Transparenz, warum die Zahlen so sind), Knöpfe nur mit Bearbeitungsrecht. */}
+      {(poweredRuns.length > 0 || keptWindows.length > 0) && (
+        <div className="mt-3 rounded-xl border border-sky-300 bg-sky-500/10 p-3 dark:border-sky-900/60 dark:bg-sky-950/30">
+          {/* Zugeklappt als eine blaue Zeile (Jan 18.11.2026), Klick klappt auf. */}
+          <button type="button" onClick={() => setSepOffen((o) => !o)} aria-expanded={sepOffen}
+            className="flex w-full items-center gap-2 text-left font-semibold text-sky-700 hover:underline dark:text-sky-300">
+            <span aria-hidden="true" className="inline-block w-3">{sepOffen ? "▾" : "▸"}</span>
+            <FoilOffIcon className="h-4 w-4" />
+            {t("v2.sepTitle")} ({poweredRuns.length + keptWindows.length})
+          </button>
+          {sepOffen && poweredRuns.length > 0 && (
+            <p className="mt-1 leading-relaxed text-sky-800 dark:text-sky-200">{t("v2.sepIntro")}</p>
+          )}
+          {sepOffen && <ul className="mt-2 space-y-1.5">
+            {poweredRuns.map((r: any) => (
+              <li key={`${r.t_start_ms}`} className="flex flex-wrap items-center gap-2 text-slate-300">
+                <span className="tabular-nums">{uhr(wanduhrMs(pausen, r.t_start_ms))}</span>
+                <span>{poweredWhy(r)}</span>
+                {canEdit && (
+                  <button onClick={() => doKeep(r, true)} disabled={busy}
+                    className="rounded-lg bg-brand-500 px-2.5 py-0.5 font-medium text-slate-950 hover:bg-brand-400 disabled:opacity-50">
+                    {t("v2.keep")}
+                  </button>
+                )}
+              </li>
+            ))}
+            {keptWindows.map(([from, to]) => (
+              <li key={`kept-${from}`} className="flex flex-wrap items-center gap-2 text-slate-300">
+                <span className="tabular-nums">
+                  {uhr(wanduhrMs(pausen, from))}
+                  {" · "}{fmtMMSS(Math.max(0, (to - from) / 1000))}
+                </span>
+                <span>{t("v2.keptLabel")}</span>
+                {canEdit && (
+                  <button onClick={() => doKeep([from, to], false)} disabled={busy}
+                    className="rounded-lg bg-slate-800 px-2 py-0.5 text-slate-200 hover:bg-slate-700 disabled:opacity-50">
+                    {t("v2.unkeep")}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>}
+        </div>
       )}
       {/* LAGE JE LAUF (Jan, 22.09.2026: „sollte eher als zusaetzliche stats-zeile in der tabelle
           je lauf angezeigt & berechnet werden oder?").
