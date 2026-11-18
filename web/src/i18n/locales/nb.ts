@@ -3094,6 +3094,7 @@ const nb: Record<string, string> = {
   "kunst.rundenTage": "Ny runde hver (dager)",
   "kunst.abstimmenTage": "Avstemning etterpå (dager)",
   "kunst.regeln": "Hver runde teller bare dine egne økter tatt opp i den runden, alle idretter på vannet.\nAlle sender inn ett bilde per runde og kan endre eller trekke det til runden er slutt.\nEtter runden er det avstemning: anonymt, bare linjen vises, alle har 3 hjerter og ingen til sitt eget bilde.\nHvem som fikk hvor mange hjerter, avsløres først etter avstemningen — da med navn og spot (om den ikke er skjult).\nHumor er velkommen. Bare det som virkelig er forbudt fjernes; rideren ser grunnen.",
+  "kunst.andereSession": "Velg en annen økt",
   "kunst.intro": "Tegn et bilde på vannet med sporet ditt. Ett bilde per runde fra en økt i den runden, og så stemmer fellesskapet — anonymt, bare linjen teller. Alle har {n} hjerter per runde, ikke til sitt eget bilde.",
   "kunst.runde": "Runde {n}",
   "kunst.phase.kommt": "kommer",

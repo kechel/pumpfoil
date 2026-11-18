@@ -3102,6 +3102,7 @@ const pl: Record<string, string> = {
   "kunst.rundenTage": "Nowa runda co (dni)",
   "kunst.abstimmenTage": "Głosowanie potem (dni)",
   "kunst.regeln": "W każdej rundzie liczą się tylko twoje własne sesje nagrane w tej rundzie, wszystkie sporty na wodzie.\nKażdy zgłasza jeden obraz na rundę i może go zmienić lub wycofać do końca rundy.\nPo rundzie odbywa się głosowanie: anonimowo, widać tylko linię, każdy ma 3 serca i żadnego dla własnego obrazu.\nKto ma ile serc, okazuje się dopiero po głosowaniu — wtedy z imieniem i spotem (chyba że jest ukryty).\nHumor jest mile widziany. Usuwane jest tylko to, co naprawdę zabronione; rider widzi powód.",
+  "kunst.andereSession": "Wybierz inną sesję",
   "kunst.intro": "Narysuj swoim trackiem obrazek na wodzie. Jeden obrazek na rundę z sesji z tej rundy, potem głosuje społeczność — anonimowo, liczy się tylko linia. Każdy ma {n} serduszek na rundę, nie na własny obrazek.",
   "kunst.runde": "Runda {n}",
   "kunst.phase.kommt": "wkrótce",

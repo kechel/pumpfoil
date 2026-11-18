@@ -3008,6 +3008,7 @@ const gsw: Record<string, string> = {
   "kunst.rundenTage": "Neui Rundi alli (Tag)",
   "kunst.abstimmenTage": "Abstimmig danach (Tag)",
   "kunst.regeln": "Pro Rundi zelled nur eigeni Sessions, wo i dere Rundi ufgnoh worde sind, alli Sportarte uf em Wasser.\nJedi und jede reicht pro Rundi es Bild ii und chas bis zum Rundi-Änd ändere oder zruggzieh.\nNach de Rundi wird abgstimmt: anonym, mer gseht nur d Linie, jedi hät 3 Härz und keis fürs eigete Bild.\nWer wieviel Härz hät, isch erscht nach de Abstimmig klar — dänn mit Name und Spot (wänn nöd versteckt).\nHumor isch erlaubt. Nur würkli Verbotnigs wird entfernt; de Fahrer gseht de Grund.",
+  "kunst.andereSession": "Anderi Session wähle",
   "kunst.intro": "Mal mit dim Track es Bild uufs Wasser. Pro Rundi es Bild vonere Session vo dere Rundi, denn stimmt d Community ab — anonym, nume d Linie zellt. Jede het {n} Härz pro Rundi, nöd fürs eigete Bild.",
   "kunst.runde": "Rundi {n}",
   "kunst.phase.kommt": "chunnt",

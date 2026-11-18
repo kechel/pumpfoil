@@ -3006,6 +3006,7 @@ const fr: Record<string, string> = {
   "kunst.rundenTage": "Nouvelle manche tous les (jours)",
   "kunst.abstimmenTage": "Vote ensuite (jours)",
   "kunst.regeln": "Chaque manche ne compte que tes propres sessions enregistrées pendant cette manche, tous les sports sur l'eau.\nChacun soumet une image par manche et peut la modifier ou la retirer jusqu'à la fin de la manche.\nAprès la manche, on vote : anonymement, seule la ligne est visible, chacun a 3 cœurs et aucun pour sa propre image.\nQui a combien de cœurs n'est révélé qu'après le vote — avec nom et spot (sauf s'il est masqué).\nL'humour est bienvenu. Seul ce qui est vraiment interdit est retiré ; le rider voit la raison.",
+  "kunst.andereSession": "Choisir une autre session",
   "kunst.intro": "Dessine une image sur l'eau avec ton tracé. Une image par manche, tirée d'une session de cette manche, puis la communauté vote — anonymement, seule la ligne compte. Chacun a {n} cœurs par manche, pas pour sa propre image.",
   "kunst.runde": "Manche {n}",
   "kunst.phase.kommt": "à venir",

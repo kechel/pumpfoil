@@ -3231,6 +3231,7 @@ const en: Record<string, string> = {
   "kunst.test.titel": "Test mode (admins only)",
   "kunst.test.hinweis": "your sessions from the last 60 days count, and the phase of each round can be set by hand here. Switch it off for the real event.",
   "kunst.test.uhr": "back to the clock",
+  "kunst.andereSession": "Choose another session",
   "kunst.intro": "Draw a picture on the water with your track. One picture per round from a session of that round, then the community votes — anonymously, only the line counts. Everyone has {n} hearts per round, not for their own picture.",
   "kunst.runde": "Round {n}",
   "kunst.phase.kommt": "upcoming",

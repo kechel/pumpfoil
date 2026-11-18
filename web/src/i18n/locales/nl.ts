@@ -3177,6 +3177,7 @@ const nl: Record<string, string> = {
   "kunst.rundenTage": "Nieuwe ronde elke (dagen)",
   "kunst.abstimmenTage": "Stemmen daarna (dagen)",
   "kunst.regeln": "Per ronde tellen alleen je eigen sessies die in die ronde zijn opgenomen, alle sporten op het water.\nIedereen stuurt per ronde één afbeelding in en kan die tot het einde van de ronde wijzigen of intrekken.\nNa de ronde wordt er gestemd: anoniem, alleen de lijn is te zien, iedereen heeft 3 hartjes en geen voor de eigen afbeelding.\nWie hoeveel hartjes heeft, wordt pas na de stemming bekend — dan met naam en spot (tenzij verborgen).\nHumor mag. Alleen wat echt verboden is, wordt verwijderd; de rider ziet de reden.",
+  "kunst.andereSession": "Andere sessie kiezen",
   "kunst.intro": "Teken met je track een plaatje op het water. Per ronde één plaatje uit een sessie van die ronde, daarna stemt de community — anoniem, alleen de lijn telt. Iedereen heeft {n} hartjes per ronde, niet voor het eigen plaatje.",
   "kunst.runde": "Ronde {n}",
   "kunst.phase.kommt": "komt eraan",

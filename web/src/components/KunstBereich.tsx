@@ -282,6 +282,20 @@ function Editor({ eventId, runde, onZu, onFertig }: { eventId: number; runde: Ku
           <p className="mb-3 text-sm text-slate-300">{t("kunst.keineSessions", { von: datum(runde.start), bis: datum(runde.ende) })}</p>
         ) : (
           // Kacheln mit der ganzen Session als Vorschau (Jan 18.11.2026: „track-thumbnails zum leichteren auffinden").
+          // Ist eine gewaehlt, verschwindet die Auswahl (Jan: „nur das zu bearbeitende bild anzeigen").
+          sid != null ? (() => {
+            const k = kand.find((x) => x.id === sid);
+            return (
+              <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-slate-300">
+                <span className="min-w-0 flex-1 truncate">
+                  {k ? new Date(k.started_at).toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : ""}
+                  {k?.sport_class ? ` · ${t(`cls.sport.${k.sport_class}`)}` : ""}
+                </span>
+                <button type="button" onClick={() => { setSid(null); setSpur(null); }}
+                  className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-700">{t("kunst.andereSession")}</button>
+              </div>
+            );
+          })() : (
           <div className="mb-3 grid max-h-64 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4">
             {kand.map((k) => (
               <button key={k.id} type="button" onClick={() => setSid(k.id)} aria-pressed={sid === k.id}
@@ -294,6 +308,7 @@ function Editor({ eventId, runde, onZu, onFertig }: { eventId: number; runde: Ku
               </button>
             ))}
           </div>
+          )
         )}
         {sid != null && !spur && !fehler && <Spinner />}
         {spur && (

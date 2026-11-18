@@ -3285,6 +3285,7 @@ const de: Record<string, string> = {
   "kunst.test.titel": "Testmodus (nur Admins)",
   "kunst.test.hinweis": "eigene Sessions der letzten 60 Tage zählen, und die Phase jeder Runde lässt sich hier von Hand setzen. Vor dem echten Event ausschalten.",
   "kunst.test.uhr": "wieder nach der Uhr",
+  "kunst.andereSession": "Andere Session wählen",
   "kunst.intro": "Male mit deinem Track ein Bild aufs Wasser. Je Runde ein Bild aus einer Session dieser Runde, danach stimmt die Community ab — anonym, nur die Linie zählt. Jeder hat {n} Herzen je Runde, nicht für das eigene Bild.",
   "kunst.runde": "Runde {n}",
   "kunst.phase.kommt": "kommt",

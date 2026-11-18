@@ -3176,6 +3176,7 @@ const cs: Record<string, string> = {
   "kunst.rundenTage": "Nové kolo každých (dní)",
   "kunst.abstimmenTage": "Hlasování poté (dní)",
   "kunst.regeln": "Do každého kola se počítají jen tvoje vlastní sessiony nahrané během tohoto kola, všechny sporty na vodě.\nKaždý odešle za kolo jeden obrázek a může ho do konce kola změnit nebo stáhnout.\nPo kole se hlasuje: anonymně, vidět je jen čára, každý má 3 srdce a žádné pro vlastní obrázek.\nKdo má kolik srdcí, se ukáže až po hlasování — pak se jménem a spotem (pokud není skrytý).\nHumor je vítán. Odstraňuje se jen to, co je opravdu zakázané; jezdec vidí důvod.",
+  "kunst.andereSession": "Vybrat jiný session",
   "kunst.intro": "Nakresli svou stopou obrázek na vodu. Jeden obrázek na kolo z session tohoto kola, poté hlasuje komunita — anonymně, počítá se jen čára. Každý má {n} srdíček na kolo, ne pro vlastní obrázek.",
   "kunst.runde": "Kolo {n}",
   "kunst.phase.kommt": "připravuje se",

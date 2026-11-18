@@ -3117,6 +3117,7 @@ const ptPT: Record<string, string> = {
   "kunst.rundenTage": "Nova ronda a cada (dias)",
   "kunst.abstimmenTage": "Votação depois (dias)",
   "kunst.regeln": "Cada ronda só conta as tuas próprias sessões gravadas nessa ronda, qualquer desporto na água.\nCada um submete uma imagem por ronda e pode alterá-la ou retirá-la até ao fim da ronda.\nDepois da ronda há votação: anónima, só se vê a linha, cada um tem 3 corações e nenhum para a própria imagem.\nQuem tem quantos corações só é revelado depois da votação — com nome e spot (a não ser que esteja oculto).\nO humor é bem-vindo. Só é removido o que é realmente proibido; o rider vê o motivo.",
+  "kunst.andereSession": "Escolher outra sessão",
   "kunst.intro": "Desenha uma imagem na água com o teu track. Uma imagem por ronda, de uma sessão dessa ronda, e depois a comunidade vota — anonimamente, só a linha conta. Cada um tem {n} corações por ronda, não para a própria imagem.",
   "kunst.runde": "Ronda {n}",
   "kunst.phase.kommt": "em breve",

@@ -3006,6 +3006,7 @@ const it: Record<string, string> = {
   "kunst.rundenTage": "Nuovo round ogni (giorni)",
   "kunst.abstimmenTage": "Votazione dopo (giorni)",
   "kunst.regeln": "Ogni round conta solo le tue sessioni registrate in quel round, tutti gli sport sull'acqua.\nOgnuno invia un'immagine per round e può cambiarla o ritirarla fino alla fine del round.\nDopo il round si vota: in forma anonima, si vede solo la linea, ognuno ha 3 cuori e nessuno per la propria immagine.\nChi ha quanti cuori si scopre solo dopo il voto — con nome e spot (se non nascosto).\nL'umorismo è benvenuto. Viene rimosso solo ciò che è davvero vietato; il rider vede il motivo.",
+  "kunst.andereSession": "Scegli un'altra sessione",
   "kunst.intro": "Disegna un'immagine sull'acqua con la tua traccia. Un'immagine per round da una sessione di quel round, poi la community vota — in modo anonimo, conta solo la linea. Ognuno ha {n} cuori per round, non per la propria immagine.",
   "kunst.runde": "Round {n}",
   "kunst.phase.kommt": "in arrivo",

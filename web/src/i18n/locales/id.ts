@@ -3123,6 +3123,7 @@ const id: Record<string, string> = {
   "kunst.rundenTage": "Ronde baru setiap (hari)",
   "kunst.abstimmenTage": "Pemungutan suara setelahnya (hari)",
   "kunst.regeln": "Setiap ronde hanya menghitung sesi milikmu yang direkam selama ronde itu, semua olahraga di air.\nSetiap orang mengirim satu gambar per ronde dan bisa mengubah atau menariknya sampai ronde berakhir.\nSetelah ronde ada pemungutan suara: anonim, hanya garisnya yang terlihat, setiap orang punya 3 hati dan tidak untuk gambar sendiri.\nSiapa mendapat berapa hati baru diumumkan setelah pemungutan suara — dengan nama dan spot (kecuali disembunyikan).\nHumor dipersilakan. Hanya yang benar-benar terlarang yang dihapus; rider melihat alasannya.",
+  "kunst.andereSession": "Pilih sesi lain",
   "kunst.intro": "Gambar sesuatu di atas air dengan track-mu. Satu gambar per ronde dari sesi ronde itu, lalu komunitas memilih — anonim, hanya garisnya yang dinilai. Setiap orang punya {n} hati per ronde, tidak untuk gambarnya sendiri.",
   "kunst.runde": "Ronde {n}",
   "kunst.phase.kommt": "segera",
