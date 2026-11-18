@@ -42,28 +42,38 @@ function gefahren(roh, radius, saat, welle) {
   return "M" + pts.map((p) => p.map((v) => v.toFixed(1)).join(",")).join("L");
 }
 // Tannenbaum mit Stern als EIN Track: Stamm rechts unten -> Aeste rechts hoch -> Steg -> einmal um den Stern ->
-// Steg zurueck -> Aeste links runter -> Stamm links unten, kurz vor dem Start Schluss.
+// Steg zurueck -> Aeste links runter. Jan 18.11.2026: „am ende den kompletten letzten zacken weg, da ist er halt ins
+// wasser gefallen, und auch nicht soo symmetrisch" -> links endet der Track nach der zweiten Etage, jeder Ast leicht
+// verschoben (Saat), die Seiten sind nicht spiegelgleich.
 function baumMitStern(cx, top, hoehe, breite, sternR, saat) {
+  let z = saat * 7919 + 13;
+  const r = () => { z = (z * 1664525 + 1013904223) % 4294967296; return z / 4294967296 - 0.5; };
   const krone = hoehe * 0.84, etagen = 3;
-  const links = [];                                          // von oben nach unten, linke Seite
-  for (let i = 0; i < etagen; i++) {
-    const yu = top + krone * (i + 1) / etagen;
-    const w = (breite / 2) * (0.5 + 0.5 * (i + 1) / etagen);
-    links.push([cx - w, yu]);
-    if (i < etagen - 1) links.push([cx - w * 0.45, yu]);
-  }
+  const seite = (vz) => {                                     // Aeste einer Seite von oben nach unten, je Seite anders
+    const out = [];
+    for (let i = 0; i < etagen; i++) {
+      const yu = top + krone * (i + 1) / etagen + r() * hoehe * 0.07;
+      const w = (breite / 2) * (0.5 + 0.5 * (i + 1) / etagen) * (1 + r() * 0.22);
+      out.push([cx + vz * w, yu]);
+      if (i < etagen - 1) out.push([cx + vz * w * (0.45 + r() * 0.15), yu + r() * hoehe * 0.04]);
+    }
+    return out;
+  };
+  const rechts = seite(1), links = seite(-1);
   const st = breite * 0.08, unten = top + krone, boden = top + hoehe;
-  const rechtsHoch = links.slice().reverse().map(([x, y]) => [2 * cx - x, y]);
-  const sy = top - sternR * 1.25;                            // Sternmitte ueber der Spitze
-  const unterpunkt = [cx, sy + sternR * 0.5];                // innerer Punkt unten am Stern
+  const sy = top - sternR * 1.25;
+  const unterpunkt = [cx, sy + sternR * 0.5];
   const stern = [];
-  for (let i = 5; i <= 15; i++) {                            // einmal herum, vom unteren Innenpunkt zurueck dorthin
-    const w = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? sternR * 0.5 : sternR;
+  for (let i = 5; i <= 15; i++) {
+    const w = -Math.PI / 2 + i * Math.PI / 5 + r() * 0.12, rr = (i % 2 ? sternR * 0.5 : sternR) * (1 + r() * 0.15);
     stern.push([cx + rr * Math.cos(w), sy + rr * Math.sin(w)]);
   }
+  // Links nur bis zum inneren Punkt der zweiten Etage, dann ein kurzes Stueck Richtung unterster Ast — Sturz.
+  const l = links.slice(0, 4);
+  const ende = [l[3][0] + (links[4][0] - l[3][0]) * 0.18, l[3][1] + (links[4][1] - l[3][1]) * 0.18];
   const roh = [
-    [cx + st, boden - hoehe * 0.02], [cx + st, unten], ...rechtsHoch, [cx + 2, top], unterpunkt,
-    ...stern.slice(1, -1), unterpunkt, [cx - 2, top], ...links, [cx - st, unten], [cx - st, boden], [cx + st * 0.2, boden],
+    [cx + st * 0.6, boden], [cx + st, boden - hoehe * 0.03], [cx + st, unten], ...rechts.slice().reverse(), [cx + 2, top],
+    unterpunkt, ...stern.slice(1, -1), unterpunkt, [cx - 2, top], ...l, ende,
   ];
   return gefahren(roh, hoehe * 0.06, saat, hoehe * 0.008);
 }
