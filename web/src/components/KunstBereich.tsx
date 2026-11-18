@@ -14,11 +14,12 @@ import { fehlerCode } from "../lib/teamKennzahlen";
 const BOX = 1000;
 
 export function KunstLinie({ linie, klein = false }: { linie: [number, number][]; klein?: boolean }) {
-  // Immer schwarz auf weiss (wie besprochen: „nur der Track als Linie auf weissem Grund"), in beiden Farbschemata.
+  // Marken-Cyan auf Weiss (Jan 18.11.2026: „bitte in unserem blau den track"; docs/BRAND.md: #22d3ee auch auf Weiss),
+  // in beiden Farbschemata gleich. Etwas kraeftiger als vorher Schwarz, weil Cyan auf Weiss heller wirkt.
   return (
     <svg viewBox={`0 0 ${BOX} ${BOX}`} className="aspect-square w-full rounded-lg bg-white" role="img" aria-hidden="true">
-      <polyline points={linie.map(([x, y]) => `${x},${y}`).join(" ")} fill="none" stroke="#0f172a"
-        strokeWidth={klein ? 14 : 10} strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points={linie.map(([x, y]) => `${x},${y}`).join(" ")} fill="none" stroke="#22d3ee"
+        strokeWidth={klein ? 18 : 13} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
