@@ -1559,6 +1559,9 @@ Feedback-Formular 18.11., Sessions https://pumpfoil.org/sessions/21529 und https
   faellt dann auf jetzt/letzte+1 zurueck). Seit 15.10.: OWWE251 3/9 Sessions 72 Buendel, OPWWE251 2/3 31, eine SM-R925U 34,
   Samsung sonst vereinzelt, Pixel/Xiaomi 0. Moeglicher Fix (Server, Analyse -> Jans OK): Buendel >= 4 Punkte in <= 50 ms
   nach einer Luecke von ~N s gleichmaessig rueckwaerts in die Luecke verteilen (1 s Abstand). Sprints: Datumsweiche beachten.
+  **Trockenlauf 18.11. (scripts/gps-buendel-trocken.py, v2 + Sprints V7, rein lesend):** 292 Wear-Sessions, 22 mit Buendeln,
+  nur 4 aendern sich: 21529 38 -> 33 Laeufe, 0-s-Laeufe 3 -> 0, Foil-Zeit +107 s (+3,6 %), Strecke +214 m; 19239 0-s 2 -> 1,
+  +17 s; 20971 10 -> 9 Laeufe, 0-s 1 -> 0, +11 s; 19056 +1 s. Sprints (100 m/60 s) in ALLEN unveraendert. Wartet auf Jans OK.
 - 🔲 Wear: Halten = Stopp (stop_mode hold), er erwartete Pause/Autostart. Wunsch: „Hold to stop" oder Auswahl Pause/Ende.
   Aktuelle Beschriftung nicht geprueft. Wear-Release noetig.
 - 🔲 Pause/Wing-Wechsel an Land (Nordosten in 22414) sollte Pause zwischen zwei Fahrten sein — nicht geprueft.
