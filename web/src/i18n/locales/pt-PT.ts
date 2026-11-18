@@ -3125,6 +3125,8 @@ const ptPT: Record<string, string> = {
   "kunst.err.ort_verborgen": "O rider ocultou o local.",
   "kunst.err.noch_nicht_aufgeloest": "O mapa só aparece depois do resultado.",
   "kunst.eigenAbstimmung": "A tua imagem está na votação.",
+  "kunst.zurueck": "Imagem anterior",
+  "kunst.weiter": "Imagem seguinte",
   "kunst.intro": "Desenha uma imagem na água com o teu track. Uma imagem por ronda, de uma sessão dessa ronda, e depois a comunidade vota — anonimamente, só a linha conta. Cada um tem {n} corações por ronda, não para a própria imagem.",
   "kunst.runde": "Ronda {n}",
   "kunst.phase.kommt": "em breve",

@@ -3184,6 +3184,8 @@ const cs: Record<string, string> = {
   "kunst.err.ort_verborgen": "Jezdec skryl své místo.",
   "kunst.err.noch_nicht_aufgeloest": "Mapa se ukáže až po vyhlášení.",
   "kunst.eigenAbstimmung": "Tvůj obrázek je v hlasování.",
+  "kunst.zurueck": "Předchozí obrázek",
+  "kunst.weiter": "Další obrázek",
   "kunst.intro": "Nakresli svou stopou obrázek na vodu. Jeden obrázek na kolo z session tohoto kola, poté hlasuje komunita — anonymně, počítá se jen čára. Každý má {n} srdíček na kolo, ne pro vlastní obrázek.",
   "kunst.runde": "Kolo {n}",
   "kunst.phase.kommt": "připravuje se",

@@ -3131,6 +3131,8 @@ const id: Record<string, string> = {
   "kunst.err.ort_verborgen": "Rider menyembunyikan lokasinya.",
   "kunst.err.noch_nicht_aufgeloest": "Peta baru muncul setelah hasil diumumkan.",
   "kunst.eigenAbstimmung": "Gambarmu sedang dalam pemungutan suara.",
+  "kunst.zurueck": "Gambar sebelumnya",
+  "kunst.weiter": "Gambar berikutnya",
   "kunst.intro": "Gambar sesuatu di atas air dengan track-mu. Satu gambar per ronde dari sesi ronde itu, lalu komunitas memilih — anonim, hanya garisnya yang dinilai. Setiap orang punya {n} hati per ronde, tidak untuk gambarnya sendiri.",
   "kunst.runde": "Ronde {n}",
   "kunst.phase.kommt": "segera",

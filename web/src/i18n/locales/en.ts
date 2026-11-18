@@ -3239,6 +3239,8 @@ const en: Record<string, string> = {
   "kunst.err.ort_verborgen": "The rider has hidden their location.",
   "kunst.err.noch_nicht_aufgeloest": "The map is only shown after the results are revealed.",
   "kunst.eigenAbstimmung": "Your picture is in the vote.",
+  "kunst.zurueck": "Previous picture",
+  "kunst.weiter": "Next picture",
   "kunst.intro": "Draw a picture on the water with your track. One picture per round from a session of that round, then the community votes — anonymously, only the line counts. Everyone has {n} hearts per round, not for their own picture.",
   "kunst.runde": "Round {n}",
   "kunst.phase.kommt": "upcoming",

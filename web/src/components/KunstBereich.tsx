@@ -236,51 +236,164 @@ function GalerieBild({ b, runde, d, neu, meldung }: { b: KunstBild; runde: Kunst
   );
 }
 
-function Aufloesung({ runde }: { runde: KunstRunde }) {
+// Aufloesung (Jan 18.11.2026: „mit musik und treppchen … alle anderen darunter auch und bei klick in einen vollbildpopup /
+// gallery"): Platz 1-3 als Treppchen (2-1-3, Gold/Silber/Bronze) mit derselben Fanfare wie beim Event-Treppchen
+// (components/EventPodest, Ton nicht im Repo, Stumm-Einstellung geteilt), darunter alle weiteren, Klick -> Vollbild-Galerie.
+type Ergebnis = NonNullable<KunstRunde["ergebnis"]>[number];
+// Eigener Jingle (Jan sucht einen, 18.11.2026): server/media/sounds/gpskunst.mp3 — fehlt die Datei, spielt die Event-Fanfare.
+const TON_KUNST = "/media/sounds/gpskunst.mp3";
+const TON = "/media/sounds/winner-awards-484333.mp3";
+const STUMM = "podest-stumm";
+const METALL = ["#facc15", "#cbd5e1", "#ea8a4a"];   // Gold, Silber, Bronze (wie EventPodest)
+const METALL_TEXT = ["#a16207", "#475569", "#9a3412"];   // dunklere Randfarben fuer Zahlen (lesbar auf hell), wie EventPodest
+const lies = (k: string) => { try { return localStorage.getItem(k); } catch { return null; } };
+const schreib = (k: string, v: string | null) => { try { if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch { /* egal */ } };
+
+function Herzen({ n, gross = false, hell = false }: { n: number; gross?: boolean; hell?: boolean }) {
   const t = useT();
-  const e = runde.ergebnis ?? [];
-  if (!e.length) return <p className="text-sm text-slate-400">{t("kunst.leer")}</p>;
+  // `hell`: auf dem immer dunklen Galerie-Hintergrund fest weiss (slate kippt im hellen Thema).
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      {e.map((z) => <ErgebnisBild key={z.bild_id} z={z} />)}
-    </div>
+    <span className={`inline-flex items-center gap-1 font-semibold tabular-nums ${hell ? "" : "text-slate-200"} ${gross ? "text-base" : "text-sm"}`}
+      style={hell ? { color: "#ffffff" } : undefined} aria-label={t("kunst.herzenN", { n: String(n) })}>
+      {n}
+      <svg viewBox="0 0 24 24" className={gross ? "h-5 w-5" : "h-4 w-4"} fill="#22d3ee" aria-hidden="true">
+        <path d="M12 21s-7-4.35-9.5-8.5C.9 9.6 2.4 5.5 6.2 5.1 8.4 4.9 10 6.2 12 8.3c2-2.1 3.6-3.4 5.8-3.2 3.8.4 5.3 4.5 3.7 7.4C19 16.65 12 21 12 21z" />
+      </svg>
+    </span>
   );
 }
 
-/** Ergebnisbild mit Umschalter „Bild | Karte" (Jan 18.11.2026): die Karte zeigt den echten Track desselben Ausschnitts,
- *  Norden oben — nur wenn der Ort fuer den Betrachter nicht verborgen ist (Server prueft). */
-function ErgebnisBild({ z }: { z: NonNullable<KunstRunde["ergebnis"]>[number] }) {
+function Aufloesung({ runde }: { runde: KunstRunde }) {
   const t = useT();
-  const [karte, setKarte] = useState(false);
+  const e = runde.ergebnis ?? [];
+  const [offen, setOffen] = useState<number | null>(null);      // Index in e
+  const [stumm, setStumm] = useState(() => lies(STUMM) === "1");
+  const ton = useRef<HTMLAudioElement | null>(null);
+  const fanfare = () => {
+    try {
+      ton.current?.pause();
+      const spiel = (url: string, ersatz?: string) => {
+        const a = new Audio(url); a.volume = 0.6; ton.current = a;
+        if (ersatz) a.addEventListener("error", () => spiel(ersatz), { once: true });
+        a.play().catch(() => { /* ohne vorherige Bedienung blockt der Browser — dann per Knopf */ });
+      };
+      spiel(TON_KUNST, TON);
+    } catch { /* egal */ }
+  };
+  useEffect(() => {
+    if (!stumm && e.length) fanfare();
+    return () => { ton.current?.pause(); };
+  }, [runde.nr]);   // eslint-disable-line react-hooks/exhaustive-deps
+  if (!e.length) return <p className="text-sm text-slate-400">{t("kunst.leer")}</p>;
+  const top = e.slice(0, 3).map((z, i) => ({ z, i }));
+  const treppe = top.length === 3 ? [top[1], top[0], top[2]] : top.length === 2 ? [top[1], top[0]] : top;
   return (
-        <div className={`rounded-xl border p-2 ${z.platz <= 3 ? "border-brand-500" : "border-slate-700"}`}>
+    <>
+      <div className="mb-2 flex flex-wrap items-center justify-end gap-2">
+        <button type="button" onClick={fanfare} title={t("team.podest.ton")} aria-label={t("team.podest.ton")}
+          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800">
+          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M19 5a10 10 0 0 1 0 14" />
+          </svg>
+        </button>
+        <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-slate-400">
+          <input type="checkbox" checked={stumm} onChange={(x) => { setStumm(x.target.checked); schreib(STUMM, x.target.checked ? "1" : null); if (x.target.checked) ton.current?.pause(); }} />
+          {t("team.podest.stumm")}
+        </label>
+      </div>
+      {/* Treppchen 2-1-3: Gold am hoechsten */}
+      <div className={`mb-5 grid items-end gap-3 sm:gap-5 ${treppe.length === 3 ? "grid-cols-3" : treppe.length === 2 ? "grid-cols-2" : "grid-cols-1"}`}>
+        {treppe.map(({ z, i }) => {
+          const p = Math.min(z.platz, 3);
+          return (
+            <button key={z.bild_id} type="button" onClick={() => setOffen(i)}
+              className={`mx-auto flex w-full flex-col items-center gap-1.5 text-center ${p === 1 ? "max-w-[260px] pb-10" : p === 2 ? "max-w-[210px] pb-4" : "max-w-[190px]"}`}>
+              <div className="w-full rounded-xl p-1.5" style={{ background: METALL[p - 1] }}>
+                <KunstLinie linie={z.linie} saat={z.bild_id} />
+              </div>
+              <span className={`font-extrabold tabular-nums ${p === 1 ? "text-3xl" : "text-2xl"}`} style={{ color: METALL_TEXT[p - 1] }}>{z.platz}.</span>
+              <span className={`max-w-full truncate font-extrabold text-slate-100 ${p === 1 ? "text-lg sm:text-xl" : "text-sm sm:text-base"}`}>{z.name ?? "—"}</span>
+              <Herzen n={z.herzen} gross={p === 1} />
+            </button>
+          );
+        })}
+      </div>
+      {/* Alle weiteren */}
+      {e.length > 3 && (
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+          {e.slice(3).map((z, k) => (
+            <button key={z.bild_id} type="button" onClick={() => setOffen(k + 3)} className="rounded-lg border border-slate-700 p-1.5 text-left hover:border-slate-500">
+              <KunstLinie linie={z.linie} saat={z.bild_id} klein />
+              <div className="mt-1 flex items-center gap-1 text-xs">
+                <span className="font-bold tabular-nums text-slate-300">{z.platz}.</span>
+                <span className="min-w-0 flex-1 truncate text-slate-300">{z.name ?? "—"}</span>
+                <Herzen n={z.herzen} />
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+      {offen != null && <Galerie liste={e} start={offen} onZu={() => setOffen(null)} />}
+    </>
+  );
+}
+
+/** Vollbild-Galerie der Auflösung: grosses Bild mit Umschalter Bild | Karte, Name, Platz, Herzen, Spot, Link; Pfeile/Tasten
+ *  blaettern, Esc schliesst. */
+function Galerie({ liste, start, onZu }: { liste: Ergebnis[]; start: number; onZu: () => void }) {
+  const t = useT();
+  const [i, setI] = useState(start);
+  const [karte, setKarte] = useState(false);
+  const z = liste[i];
+  const weiter = (d: number) => { setKarte(false); setI((x) => (x + d + liste.length) % liste.length); };
+  useEffect(() => {
+    const taste = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onZu();
+      else if (e.key === "ArrowRight") weiter(1);
+      else if (e.key === "ArrowLeft") weiter(-1);
+    };
+    document.addEventListener("keydown", taste);
+    return () => document.removeEventListener("keydown", taste);
+  }, [liste.length]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const p = Math.min(z.platz, 4);
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3" onClick={onZu}>
+      <div className="relative w-full max-w-[min(92vw,78vh)]" onClick={(e) => e.stopPropagation()}>
+        <div className="rounded-2xl p-1.5" style={{ background: p <= 3 ? METALL[p - 1] : "transparent" }}>
           {karte ? <KunstKarte bildId={z.bild_id} /> : <KunstLinie linie={z.linie} saat={z.bild_id} />}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-white">
+          <span className="text-2xl font-extrabold tabular-nums" style={{ color: p <= 3 ? METALL[p - 1] : "#e2e8f0" }}>{z.platz}.</span>
+          <span className="min-w-0 flex-1 truncate text-lg font-bold">{z.name ?? "—"}</span>
+          <Herzen n={z.herzen} gross hell />
+        </div>
+        <div className="mt-1 flex flex-wrap items-center gap-3 text-sm" style={{ color: "#cbd5e1" }}>
+          {z.spot && <span>{z.spot}</span>}
+          {z.session_id && <Link to={`/sessions/${z.session_id}`} className="text-brand-400 hover:underline">{t("kunst.zurSession")}</Link>}
           {z.karte && (
-            <div className="mt-2 inline-flex rounded-lg bg-slate-800 p-0.5 text-xs">
+            <span className="ml-auto inline-flex rounded-lg bg-slate-800 p-0.5 text-xs">
               {([false, true] as const).map((k) => (
                 <button key={String(k)} type="button" onClick={() => setKarte(k)} aria-pressed={karte === k}
                   className={`rounded-md px-2 py-0.5 ${karte === k ? "bg-brand-500 font-semibold text-slate-950" : "text-slate-300 hover:text-slate-100"}`}>
                   {k ? t("kunst.ansichtKarte") : t("kunst.ansichtBild")}
                 </button>
               ))}
-            </div>
-          )}
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-lg font-bold tabular-nums text-slate-100">{z.platz}.</span>
-            <span className="min-w-0 flex-1 truncate font-semibold text-slate-100">{z.name ?? "—"}</span>
-            {/* Herzen in Marken-Cyan (Jan 18.11.2026), dasselbe Herz wie am Abstimmen-Knopf. */}
-            <span className="inline-flex items-center gap-1 text-sm font-semibold tabular-nums text-slate-200" aria-label={t("kunst.herzenN", { n: String(z.herzen) })}>
-              {z.herzen}
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="#22d3ee" aria-hidden="true">
-                <path d="M12 21s-7-4.35-9.5-8.5C.9 9.6 2.4 5.5 6.2 5.1 8.4 4.9 10 6.2 12 8.3c2-2.1 3.6-3.4 5.8-3.2 3.8.4 5.3 4.5 3.7 7.4C19 16.65 12 21 12 21z" />
-              </svg>
             </span>
-          </div>
-          <div className="text-xs text-slate-400">
-            {z.spot ?? ""}{z.spot && z.session_id ? " · " : ""}
-            {z.session_id && <Link to={`/sessions/${z.session_id}`} className="text-brand-700 hover:underline dark:text-brand-300">{t("kunst.zurSession")}</Link>}
-          </div>
+          )}
         </div>
+        {liste.length > 1 && (
+          <>
+            <button type="button" onClick={() => weiter(-1)} aria-label={t("kunst.zurueck")}
+              className="absolute left-1 top-[40%] rounded-full bg-black/50 px-3 py-2 text-2xl text-white hover:bg-black/70">‹</button>
+            <button type="button" onClick={() => weiter(1)} aria-label={t("kunst.weiter")}
+              className="absolute right-1 top-[40%] rounded-full bg-black/50 px-3 py-2 text-2xl text-white hover:bg-black/70">›</button>
+          </>
+        )}
+        <button type="button" onClick={onZu} aria-label={t("common.close")}
+          className="absolute -top-2 right-0 rounded-full bg-black/60 px-3 py-1 text-xl text-white hover:bg-black/80">×</button>
+      </div>
+    </div>,
+    document.body,
   );
 }
 

@@ -3014,6 +3014,8 @@ const fr: Record<string, string> = {
   "kunst.err.ort_verborgen": "Le rider a masqué son lieu.",
   "kunst.err.noch_nicht_aufgeloest": "La carte n'apparaît qu'après les résultats.",
   "kunst.eigenAbstimmung": "Ton image est soumise au vote.",
+  "kunst.zurueck": "Image précédente",
+  "kunst.weiter": "Image suivante",
   "kunst.intro": "Dessine une image sur l'eau avec ton tracé. Une image par manche, tirée d'une session de cette manche, puis la communauté vote — anonymement, seule la ligne compte. Chacun a {n} cœurs par manche, pas pour sa propre image.",
   "kunst.runde": "Manche {n}",
   "kunst.phase.kommt": "à venir",

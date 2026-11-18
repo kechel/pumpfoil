@@ -3102,6 +3102,8 @@ const nb: Record<string, string> = {
   "kunst.err.ort_verborgen": "Rytteren har skjult stedet sitt.",
   "kunst.err.noch_nicht_aufgeloest": "Kartet vises først etter resultatet.",
   "kunst.eigenAbstimmung": "Bildet ditt er med i avstemningen.",
+  "kunst.zurueck": "Forrige bilde",
+  "kunst.weiter": "Neste bilde",
   "kunst.intro": "Tegn et bilde på vannet med sporet ditt. Ett bilde per runde fra en økt i den runden, og så stemmer fellesskapet — anonymt, bare linjen teller. Alle har {n} hjerter per runde, ikke til sitt eget bilde.",
   "kunst.runde": "Runde {n}",
   "kunst.phase.kommt": "kommer",

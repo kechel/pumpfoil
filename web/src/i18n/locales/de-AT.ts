@@ -3017,6 +3017,8 @@ const deAT: Record<string, string> = {
   "kunst.err.ort_verborgen": "Der Fahrer hat seinen Ort verborgen.",
   "kunst.err.noch_nicht_aufgeloest": "Die Karte gibt es erst nach der Auflösung.",
   "kunst.eigenAbstimmung": "Dein Bild ist in der Abstimmung.",
+  "kunst.zurueck": "Vorheriges Bild",
+  "kunst.weiter": "Nächstes Bild",
   "kunst.intro": "Mal mit deinem Track ein Bild aufs Wasser. Pro Runde ein Bild aus einer Session dieser Runde, danach stimmt die Community ab — anonym, nur die Linie zählt. Jeder hat {n} Herzen pro Runde, nicht für das eigene Bild.",
   "kunst.runde": "Runde {n}",
   "kunst.phase.kommt": "kommt",
