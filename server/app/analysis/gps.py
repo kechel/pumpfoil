@@ -277,6 +277,46 @@ FROST_MAX_S = 20.0          # laengster eingefrorener Abschnitt, der repariert w
 FROST_MIN_LUFTLINIE = 1.5   # darunter (m/s ueber die ganze Luecke) ist es ein echter Stopp -> nichts anfassen
 
 
+BUENDEL_MIN_N = 4         # Punkte im Buendel (inkl. erstem nach der Luecke)
+BUENDEL_MAX_DT_MS = 50    # Abstand innerhalb des Buendels
+BUENDEL_SCHRITT_MS = 1000 # hoechstens 1 Punkt je Sekunde zurueckverteilen
+
+
+def buendel_verteilen(samples: list) -> tuple[list, int]:
+    """GPS-Buendel mit Zustellzeit statt Messzeit entzerren (18.11.2026, Jans OK; Befund #21529 „140 m in 0:00").
+
+    Manche Wear-Uhren (v. a. OnePlus OWWE251/OPWWE251 ueber Health Services) liefern nach einer GPS-Stille alle
+    zurueckgehaltenen Positionen auf einmal und stempeln sie mit der Zustellzeit: 19 Punkte in 25 ms, ein Lauf mit
+    Strecke, aber 0 s Dauer. Ein Buendel (>= BUENDEL_MIN_N Punkte, je <= BUENDEL_MAX_DT_MS Abstand) wird rueckwaerts
+    gleichmaessig in die Luecke davor verteilt (Abstand <= 1 s, der letzte Punkt behaelt seine Zeit). Positionen und
+    Tempo bleiben, nur die Zeiten aendern sich; Reihenfolge und Indizes bleiben (Segmente zeigen per Index).
+    Trockenlauf scripts/gps-buendel-trocken.py: 292 Wear-Sessions, 4 geaendert, Sprints unveraendert.
+    -> (Samples, Zahl der Buendel)."""
+    n = len(samples)
+    if n < BUENDEL_MIN_N + 1:
+        return samples, 0
+    t = [float(p[0]) for p in samples]
+    neu = None
+    zahl = 0
+    i = 1
+    while i < n:
+        j = i
+        while j + 1 < n and t[j + 1] - t[j] <= BUENDEL_MAX_DT_MS:
+            j += 1
+        if j - i + 1 >= BUENDEL_MIN_N:
+            if neu is None:
+                neu = [list(p) for p in samples]
+            k_n = j - i + 1
+            schritt = min(BUENDEL_SCHRITT_MS, (t[j] - t[i - 1]) / k_n)
+            for k in range(k_n):
+                neu[i + k][0] = int(round(t[j] - (k_n - 1 - k) * schritt))
+            zahl += 1
+            i = j + 1
+        else:
+            i += 1
+    return (neu if neu is not None else samples), zahl
+
+
 def eingefroren_reparieren(samples: list) -> tuple[list, int]:
     """NOCH NICHT EINGEHAENGT (13.11.2026): Regression `scripts/v3/regression-eingefroren.py` — 145 Sessions betroffen,
     nur in detect_v2 eingehaengt aendern sich 7; v3 vermisst geaenderte Laeufe aber aus der UNreparierten Zeitachse

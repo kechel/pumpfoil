@@ -404,6 +404,9 @@ def load_gps(session_uuid: str, roh: bool = False) -> list:
     # Doppler-Nullen, an denen die Reparatur den eingefrorenen Abschnitt erkennt. Zur Laufzeit ueber das Modul aufgerufen,
     # damit Regressionen sie abschalten koennen (scripts/v3/regression-eingefroren.py).
     from .analysis import gps as _G
+    # GPS-Buendel mit Zustellzeit entzerren (18.11.2026, analysis.gps.buendel_verteilen) — vor allem anderen, weil
+    # alles Weitere die Zeitachse braucht.
+    out, _ = _G.buendel_verteilen(out)
     out, _ = _G.eingefroren_reparieren(out)
     return tempo_auffuellen(out)
 
