@@ -137,7 +137,7 @@ export default function KunstBereich({ eventId }: { eventId: number }) {
       )}
       <p className="mb-3 text-sm font-medium text-slate-200">
         {runde.phase === "kommt" && t("kunst.info.kommt", { datum: datum(runde.start) })}
-        {runde.phase === "einreichen" && t("kunst.info.einreichen", { datum: datum(runde.ende), n: String(runde.anzahl) })}
+        {runde.phase === "einreichen" && t("kunst.info.einreichen", { datum: datum(runde.einreichen_bis ?? runde.ende), n: String(runde.anzahl) })}
         {runde.phase === "abstimmen" && t("kunst.info.abstimmen", { datum: datum(runde.abstimmen_bis),
           rest: String(d.herzen_je_runde - runde.herzen_vergeben), n: String(d.herzen_je_runde) })}
         {runde.phase === "fertig" && t("kunst.info.fertig", { n: String(runde.ergebnis?.length ?? 0) })}

@@ -29,6 +29,9 @@ from . import models
 
 VORLAGE = "gpskunst"
 HERZEN_JE_RUNDE = 3
+# Nachfrist (Jan 18.11.2026): wer Samstag faehrt und erst Sonntag synchronisiert, kann die Fahrt der abgelaufenen Woche noch
+# bis Sonntag 12:00 einreichen; die Abstimmung beginnt danach. Gezaehlt werden weiter nur Sessions aus der Runde selbst.
+NACHFRIST = timedelta(hours=12)
 RUNDEN_TAGE_STANDARD = 7
 ABSTIMMEN_TAGE_STANDARD = 2
 # Nicht auf dem Wasser (Jan 18.11.: „alle Sportarten auf dem Wasser").
@@ -66,7 +69,8 @@ TEST_TAGE = 60
 
 
 def runden(e: models.TeamEvent, jetzt: datetime | None = None) -> list[dict]:
-    """[{nr, start, ende, abstimmen_bis, phase}] — phase: kommt | einreichen | abstimmen | fertig."""
+    """[{nr, start, ende, einreichen_bis, abstimmen_bis, phase}] — phase: kommt | einreichen | abstimmen | fertig.
+    `ende` begrenzt die Sessions der Runde, `einreichen_bis` (= ende + NACHFRIST) das Einreichen."""
     jetzt = jetzt or datetime.now(timezone.utc)
     k = einstellungen(e)
     a, z = _aware(e.start), _aware(e.ende)
@@ -79,10 +83,11 @@ def runden(e: models.TeamEvent, jetzt: datetime | None = None) -> list[dict]:
         if z - en < schritt / 2:
             en = z
         ab = en + timedelta(days=k["abstimmen_tage"])
-        phase = "kommt" if jetzt < s else "einreichen" if jetzt < en else "abstimmen" if jetzt < ab else "fertig"
+        eb = en + NACHFRIST
+        phase = "kommt" if jetzt < s else "einreichen" if jetzt < eb else "abstimmen" if jetzt < ab else "fertig"
         if k["test"] and str(nr) in k["phasen"]:
             phase = k["phasen"][str(nr)]
-        out.append({"nr": nr, "start": s, "ende": en, "abstimmen_bis": ab, "phase": phase})
+        out.append({"nr": nr, "start": s, "ende": en, "einreichen_bis": eb, "abstimmen_bis": ab, "phase": phase})
         s, nr = en, nr + 1
     return out
 

@@ -75,7 +75,8 @@ def kunst_event(event_id: int, user: models.User = Depends(current_user), db: Se
         galerie = [{**_bild_out(b), "eigen": b.user_id == user.id, "herz": b.id in meine_herzen,
                     **({"entfernt": b.entfernt_grund, "meldungen": meldungen.get(b.id, 0)} if mod else {})}
                    for b in sichtbar] if r["phase"] != "kommt" else []
-        x = {"nr": nr, "start": _iso(r["start"]), "ende": _iso(r["ende"]), "abstimmen_bis": _iso(r["abstimmen_bis"]),
+        x = {"nr": nr, "start": _iso(r["start"]), "ende": _iso(r["ende"]), "einreichen_bis": _iso(r["einreichen_bis"]),
+             "abstimmen_bis": _iso(r["abstimmen_bis"]),
              "phase": r["phase"], "anzahl": sum(1 for b in bilder if b.runde == nr and b.entfernt_grund is None),
              "herzen_vergeben": sum(1 for b in bilder if b.runde == nr and b.id in meine_herzen),
              "eigen": ({**_bild_out(eigen), "session_id": eigen.session_id, "von_ms": eigen.von_ms, "bis_ms": eigen.bis_ms,

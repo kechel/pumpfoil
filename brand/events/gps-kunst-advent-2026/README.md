@@ -21,7 +21,11 @@ Im offiziellen Team, global, Vorlage GPS-Kunst, Testmodus aus. Start So 29.11. 0
 
 **Titel:** GPS Art on the Water — Advent 2026
 
-**Beschreibung:** Draw a picture on the water with your track — a tree, a star, a heart, anything you like. One round
-for each Advent week: submit one picture from a session of that week, trim it and rotate it, and only your time on the
-foil is drawn. Then everyone votes anonymously with 3 hearts. Every Sunday the previous round is revealed, with names
-and spots. Have fun, keep pumping!
+**Beschreibung** (Jan 18.11.: „kuerzer wenn moeglich"):
+
+    Draw a picture on the water with your track. One round per Advent week: ride it Sunday to Saturday and submit it
+    by Sunday noon — trimmed, rotated, only your time on the foil counts. Then everyone votes anonymously with 3
+    hearts for a week, and every Sunday the previous round is revealed. Have fun, keep pumping!
+
+Die Einzelregeln (eine Einreichung je Runde, alle Sportarten auf dem Wasser, nichts fuers eigene Bild, Spot nur wenn nicht
+verborgen, Humor erlaubt) stehen im Regelkasten der Eventseite (`kunst.regeln`, 18 Sprachen).
