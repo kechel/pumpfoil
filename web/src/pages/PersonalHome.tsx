@@ -476,7 +476,7 @@ export default function PersonalHome() {
         <FreundePumpen />
       </div>
 
-      <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} unter={tab === "stats" || tab === "spots"} />
+      <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} unter={tab === "stats" || tab === "spots" || tab === "performance"} />
 
       {tab === "uebersicht" && <>
         {/* Laufendes oder bald beginnendes globales Event (Jan, 06.11.2026). */}

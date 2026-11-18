@@ -1556,6 +1556,12 @@ neues Tab 'Performance' in Home". Datenlage 18.11.: Pumpfoil weltweit Median 36 
 - ✅ 18.11. abends: Auswahl nur noch Pumpfoil | Pumpfoil + Foil Scoot (Jan: zu wenige Scooter fuer ein eigenes Feld;
   altes `foil_scoot` -> Mischung). Apps: Android `PerformanceBereich.kt` (kompiliert), iOS am Ende von HomeView.swift
   (nur Parse-Check, kein xcodegen noetig).
+- ✅ 18.11. spaet (Jan: „erstmal das was gut und schnell umsetzbar ist", aus den Entwuerfen des Fahrers): Unterreiter
+  Uebersicht | Verlauf; Kategorie-Tabelle (Tage, Ø Platz von Ø Feld, bester Platz, Top 3, Siege), Bestleistungen je Kategorie
+  (zur Session), Platz je Tag je Kategorie (Hoehe = Perzentil, Zahl = Platz, Baender 80/50 %), Zeitraum „letzte 25 Tage mit
+  Wertung". Web + Android + iOS. Offen (vorgeschlagen, nicht gebaut): Entwicklung der eigenen Werte, Vergleich mit Freunden,
+  Saison 2027/Punkte (Vorschlag: Punkte = geschlagene Fahrer), Kategorie fliegender 1 km. Bewusst weggelassen: Donut,
+  „Konsistenz-Score", Wertung je Session statt je Tag, Laenderflagge.
 
 ### 18.11.2026 — Wing-Feedback u655 (Wear, OnePlus Watch 2) — NUR GEMERKT (Jan: „rest erstmal nur merken")
 Feedback-Formular 18.11., Sessions https://pumpfoil.org/sessions/21529 und https://pumpfoil.org/sessions/22414.

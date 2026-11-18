@@ -1069,16 +1069,27 @@ private func perfFarbe(_ perz: Double) -> Color {
 struct PerformanceBereich: View {
     let lang: String
     @State private var sport: String = "pumpfoil"
-    @State private var nur30: Bool = false
+    @State private var zeitraum: String = "alle"   // alle | 30 | 25 (letzte 25 Tage mit Wertung)
     @State private var daten: PerfAntwort?
     @State private var fehler: String?
+    // Unterreiter Uebersicht | Verlauf (Web 18.11.2026 abends) und die Kategorie des Platzverlaufs.
+    @State private var sub: String = ReiterSpeicher.von("homeperf", "uebersicht")
+    @State private var kat: String = "sprint_100m"
 
     private var grenze: String {
-        guard nur30 else { return "" }
+        if zeitraum == "25" {
+            let alleTage: [String] = Array(Set(perfKats.flatMap { k in (daten?.kategorien[k] ?? []).map { $0.tag } })).sorted(by: >)
+            return alleTage.count > 24 ? alleTage[24] : ""
+        }
+        guard zeitraum == "30" else { return "" }
         let d: Date = Date().addingTimeInterval(-30 * 86400)
         let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; f.timeZone = TimeZone(identifier: "UTC")
         return f.string(from: d)
     }
+    private var perfReiter: [ReiterDef] {
+        [ReiterDef(id: "uebersicht", label: Loc.t("perf.tabUebersicht", lang)), ReiterDef(id: "verlauf", label: Loc.t("perf.tabVerlauf", lang))]
+    }
+    private func schnitt(_ xs: [Double]) -> Double { xs.isEmpty ? 0 : xs.reduce(0, +) / Double(xs.count) }
     private func je(_ k: String) -> [PerfZeile] { (daten?.kategorien[k] ?? []).filter { $0.tag >= grenze } }
     private var alle: [PerfZeile] { perfKats.flatMap { je($0) } }
     private var tage: [String] { Array(Set(alle.map { $0.tag })).sorted(by: >) }
@@ -1089,6 +1100,8 @@ struct PerformanceBereich: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            Reiterleiste(reiter: perfReiter, aktiv: Binding(get: { sub }, set: { sub = $0; ReiterSpeicher.setze("homeperf", $0) }),
+                         stufe: 2)
             auswahl
             Text(Loc.t("perf.intro", lang).replacingOccurrences(of: "{n}", with: String(daten?.min_feld ?? 5)))
                 .font(.subheadline).foregroundStyle(.secondary)
@@ -1108,10 +1121,11 @@ struct PerformanceBereich: View {
                 Text(sportName("pumpfoil")).tag("pumpfoil")
                 Text(sportName("pumpfoil+foil_scoot")).tag("pumpfoil+foil_scoot")
             }.pickerStyle(.segmented)
-            Picker("", selection: $nur30) {
-                Text(Loc.t("perf.seit", lang).replacingOccurrences(of: "{datum}", with: daten?.ab ?? "…")).tag(false)
-                Text(Loc.t("perf.tage30", lang)).tag(true)
-            }.pickerStyle(.segmented)
+            Picker(Loc.t("perf.tage", lang), selection: $zeitraum) {
+                Text(Loc.t("perf.seit", lang).replacingOccurrences(of: "{datum}", with: daten?.ab ?? "…")).tag("alle")
+                Text(Loc.t("perf.tage30", lang)).tag("30")
+                Text(Loc.t("perf.letzte25", lang)).tag("25")
+            }.pickerStyle(.menu)
         }
     }
 
@@ -1123,13 +1137,116 @@ struct PerformanceBereich: View {
         } else if alle.isEmpty {
             Text(Loc.t("perf.leer", lang)).frame(maxWidth: .infinity).padding()
                 .background(Color(.secondarySystemBackground)).clipShape(RoundedRectangle(cornerRadius: 12))
-        } else {
-            kennzahlen
-            ForEach(perfKats, id: \.self) { k in kategorieKarte(k) }
+        } else if sub == "verlauf" {
+            platzVerlauf
             raster
             verlauf
+        } else {
+            kennzahlen
+            kategorieTabelle
+            bestleistungen
+            ForEach(perfKats, id: \.self) { k in kategorieKarte(k) }
             Text(Loc.t("perf.hinweis", lang)).font(.caption).foregroundStyle(.secondary)
         }
+    }
+
+    // Kategorie-Tabelle: Ø Platz immer mit Ø Feld, sonst sagt die Zahl nichts.
+    private var kategorieTabelle: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(Loc.t("perf.tabelle", lang)).fontWeight(.semibold)
+            ForEach(perfKats, id: \.self) { k in tabellenZeile(k) }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading).padding(12)
+        .background(Color(.secondarySystemBackground)).clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func tabellenZeile(_ k: String) -> some View {
+        let z: [PerfZeile] = je(k)
+        return VStack(alignment: .leading, spacing: 4) {
+            Divider()
+            Text(Loc.t("perf.kat." + k, lang)).font(.subheadline).fontWeight(.medium)
+            if z.isEmpty {
+                Text(Loc.t("perf.keineTage", lang)).font(.caption).foregroundStyle(.secondary)
+            } else {
+                let schnittText: String = Loc.t("perf.schnittVon", lang)
+                    .replacingOccurrences(of: "{platz}", with: String(format: "%.1f", schnitt(z.map { Double($0.platz) })))
+                    .replacingOccurrences(of: "{feld}", with: String(Int(schnitt(z.map { Double($0.feld) }).rounded())))
+                let top3: Int = Int((100.0 * Double(z.filter { $0.platz <= 3 }.count) / Double(z.count)).rounded())
+                HStack {
+                    tabZelle(Loc.t("perf.tage", lang), String(z.count))
+                    Spacer(); tabZelle(Loc.t("perf.spSchnitt", lang), schnittText)
+                    Spacer(); tabZelle(Loc.t("perf.spBester", lang), String(z.map { $0.platz }.min() ?? 0))
+                    Spacer(); tabZelle(Loc.t("perf.spTop3", lang), "\(top3) %")
+                    Spacer(); tabZelle(Loc.t("perf.siege", lang), String(z.filter { $0.platz == 1 }.count))
+                }
+            }
+        }
+    }
+
+    private func tabZelle(_ label: String, _ wert: String) -> some View {
+        VStack(spacing: 2) {
+            Text(wert).font(.callout).fontWeight(.medium).foregroundStyle(Color.accentColor)
+            Text(label).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+        }
+    }
+
+    // Bestleistungen: bester eigener Wert je Kategorie im Zeitraum, Tippen oeffnet die Session.
+    private var bestleistungen: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(Loc.t("perf.bestleistungen", lang)).fontWeight(.semibold)
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                ForEach(perfKats, id: \.self) { k in bestKachel(k) }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading).padding(12)
+        .background(Color(.secondarySystemBackground)).clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    @ViewBuilder private func bestKachel(_ k: String) -> some View {
+        let b: PerfZeile? = je(k).max { $0.wert < $1.wert }
+        if let b {
+            NavigationLink { SessionDetailView(id: b.session_id) } label: { bestInhalt(k, b) }.buttonStyle(.plain)
+        } else {
+            bestInhalt(k, nil)
+        }
+    }
+
+    private func bestInhalt(_ k: String, _ b: PerfZeile?) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(Loc.t("perf.kat." + k, lang)).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+            Text(b.map { perfWertText(k, $0.wert) } ?? "–").font(.headline).foregroundStyle(b == nil ? Color.secondary : perfCyan)
+            if let b {
+                Text(tagKurz(b.tag) + " · " + Loc.t("perf.platzVon", lang).replacingOccurrences(of: "{platz}", with: String(b.platz))
+                    .replacingOccurrences(of: "{feld}", with: String(b.feld))).font(.caption2).foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading).padding(8)
+        .background(Color(.tertiarySystemFill).opacity(0.5)).clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    // Platz je Tag in EINER Kategorie: Hoehe = Anteil geschlagener Fahrer, Zahl = Platz; Baender ab 80 % / 50 %.
+    private var platzVerlauf: some View {
+        let reihe: [PerfZeile] = je(kat).sorted { $0.tag < $1.tag }
+        return VStack(alignment: .leading, spacing: 8) {
+            Text(Loc.t("perf.platzverlauf", lang)).fontWeight(.semibold)
+            Picker("", selection: $kat) {
+                ForEach(perfKats, id: \.self) { k in Text(Loc.t("perf.kat." + k, lang)).tag(k) }
+            }.pickerStyle(.menu)
+            if reihe.isEmpty {
+                Text(Loc.t("perf.keineTage", lang)).font(.caption).foregroundStyle(.secondary)
+            } else {
+                PerfLinie(punkte: reihe.map { $0.perzentil }, baender: true,
+                          zahlen: reihe.map { String($0.platz) }).frame(height: 150).padding(.top, 10)
+                HStack {
+                    Text(reihe.first?.tag ?? "").font(.caption2).foregroundStyle(.secondary)
+                    Spacer()
+                    Text(reihe.last?.tag ?? "").font(.caption2).foregroundStyle(.secondary)
+                }
+            }
+            Text(Loc.t("perf.platzverlaufHint", lang)).font(.caption).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading).padding(12)
+        .background(Color(.secondarySystemBackground)).clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private var kennzahlen: some View {
@@ -1167,11 +1284,6 @@ struct PerformanceBereich: View {
                 ForEach(perfBuckets.indices, id: \.self) { i in
                     bucketZeile(perfBuckets[i].0, z.filter { perfBuckets[i].1($0.platz) }.count, maxN)
                 }
-                let bestPlatz: Int = z.map { $0.platz }.min() ?? 0
-                let bestWert: Double = z.map { $0.wert }.max() ?? 0
-                Text(Loc.t("perf.bester", lang).replacingOccurrences(of: "{platz}", with: String(bestPlatz))
-                    .replacingOccurrences(of: "{wert}", with: perfWertText(k, bestWert)))
-                    .font(.caption).foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading).padding(12)
@@ -1277,12 +1389,30 @@ struct PerformanceBereich: View {
 
 private struct PerfLinie: View {
     let punkte: [Double]
+    var baender: Bool = false        // ab 80 % / 50 % geschlagener Fahrer hinterlegt
+    var zahlen: [String]? = nil      // Platz ueber jedem Punkt (bei vielen Punkten nur jeder n-te)
+    private func px(_ i: Int, _ w: CGFloat) -> CGFloat { punkte.count == 1 ? w / 2 : w * CGFloat(i) / CGFloat(punkte.count - 1) }
+    private func py(_ p: Double, _ h: CGFloat) -> CGFloat { h * CGFloat((100 - p) / 100) }
     var body: some View {
         GeometryReader { g in
             let w: CGFloat = g.size.width
             let h: CGFloat = g.size.height
             let n: Int = punkte.count
+            let jeder: Int = n > 20 ? (n + 19) / 20 : 1
             ZStack {
+                if baender {
+                    Rectangle().fill(Color.green.opacity(0.15)).frame(width: w, height: py(80, h)).position(x: w / 2, y: py(80, h) / 2)
+                    Rectangle().fill(Color.orange.opacity(0.10)).frame(width: w, height: py(50, h) - py(80, h))
+                        .position(x: w / 2, y: (py(50, h) + py(80, h)) / 2)
+                }
+                if let zahlen {
+                    ForEach(Array(zahlen.enumerated()), id: \.offset) { e in
+                        if e.offset % jeder == 0 {
+                            Text(e.element).font(.system(size: 10, weight: .semibold))
+                                .position(x: px(e.offset, w), y: py(punkte[e.offset], h) - 9)
+                        }
+                    }
+                }
                 ForEach([0.0, 50.0, 100.0], id: \.self) { p in
                     Path { pf in
                         let y: CGFloat = h * CGFloat((100 - p) / 100)
@@ -1291,13 +1421,13 @@ private struct PerfLinie: View {
                 }
                 Path { pf in
                     for i in 0..<n {
-                        let pt = CGPoint(x: w * CGFloat(i) / CGFloat(n - 1), y: h * CGFloat((100 - punkte[i]) / 100))
+                        let pt = CGPoint(x: px(i, w), y: py(punkte[i], h))
                         if i == 0 { pf.move(to: pt) } else { pf.addLine(to: pt) }
                     }
                 }.stroke(perfCyan, lineWidth: 2)
                 ForEach(0..<n, id: \.self) { i in
                     Circle().fill(perfCyan).frame(width: 7, height: 7)
-                        .position(x: w * CGFloat(i) / CGFloat(n - 1), y: h * CGFloat((100 - punkte[i]) / 100))
+                        .position(x: px(i, w), y: py(punkte[i], h))
                 }
             }
         }
