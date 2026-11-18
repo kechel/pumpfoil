@@ -1563,8 +1563,14 @@ neues Tab 'Performance' in Home". Datenlage 18.11.: Pumpfoil weltweit Median 36 
   Saison 2027/Punkte (Vorschlag: Punkte = geschlagene Fahrer), Kategorie fliegender 1 km. Bewusst weggelassen: Donut,
   „Konsistenz-Score", Wertung je Session statt je Tag, Laenderflagge.
 - 🔲 18.11. NUR GEMERKT (Jan: „noch merken"): Punkte/Saison ab 1.1.2027 — im Performance-Reiter schon vorher ein
-  Platzhalter, der das ankuendigt (z. B. Kachel „Saison 2027 · Punkte ab 1. Januar"). Regel noch offen (Vorschlag:
-  Punkte = geschlagene Fahrer je Tag und Kategorie).
+  Platzhalter, der das ankuendigt (z. B. Kachel „Saison 2027 · Punkte ab 1. Januar").
+  **Punkteregel, Stand 18.11. abends (Vorschlag eines Fahrers im Chat + Jan):** Platz 1-10 je Kategorie und Tag
+  25/20/16/13/11/9/7/5/3/2 (wie F1), dazu **1 Punkt fuers Mitmachen** (Jan: „1 fuers mitmachen / war auf dem wasser").
+  Mein Entwurf dazu (noch nicht entschieden): Mitmach-Punkt 1x je Tag (nicht je Kategorie), auch an Tagen < 5 Fahrer,
+  nur mit mind. einem erkannten Lauf; Platzpunkte wie heute ab 5 Fahrern, max. 101/Tag; Gleichstand = gleiche Punkte;
+  Feldgroesse egal; getrennt je Ansicht (Pumpfoil | Pumpfoil + Foil Scoot); Saison 1.1.-31.12.2027, alle bei 0, nie
+  rueckwirkend; aus gespeicherten Werten taeglich neu gerechnet (aussortierte/umklassifizierte Laeufe fallen raus).
+  OFFEN fuer Jan: (a) Saison-Rangliste aller Fahrer oder nur eigene Punkte, (b) Umgang mit Fehlwerten wie vorgeschlagen.
 
 ### 18.11.2026 — Wing-Feedback u655 (Wear, OnePlus Watch 2) — NUR GEMERKT (Jan: „rest erstmal nur merken")
 Feedback-Formular 18.11., Sessions https://pumpfoil.org/sessions/21529 und https://pumpfoil.org/sessions/22414.
