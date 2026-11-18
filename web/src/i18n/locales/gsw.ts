@@ -3021,6 +3021,7 @@ const gsw: Record<string, string> = {
   "kunst.galerieSpaeter": "D Bilder vo de andere gsehsch ab de Abstimmig.",
   "kunst.uebrig": "no {rest} vo {n} Härz",
   "kunst.gross": "Gross aaluege",
+  "kunst.noch": "no {zeit}",
   "kunst.intro": "Mal mit dim Track es Bild uufs Wasser. Pro Rundi es Bild vonere Session vo dere Rundi, denn stimmt d Community ab — anonym, nume d Linie zellt. Jede het {n} Härz pro Rundi, nöd fürs eigete Bild.",
   "kunst.runde": "Rundi {n}",
   "kunst.phase.kommt": "chunnt",

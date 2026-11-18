@@ -3019,6 +3019,7 @@ const fr: Record<string, string> = {
   "kunst.galerieSpaeter": "Tu verras les images des autres dès le début du vote.",
   "kunst.uebrig": "encore {rest} cœurs sur {n}",
   "kunst.gross": "Voir en grand",
+  "kunst.noch": "encore {zeit}",
   "kunst.intro": "Dessine une image sur l'eau avec ton tracé. Une image par manche, tirée d'une session de cette manche, puis la communauté vote — anonymement, seule la ligne compte. Chacun a {n} cœurs par manche, pas pour sa propre image.",
   "kunst.runde": "Manche {n}",
   "kunst.phase.kommt": "à venir",

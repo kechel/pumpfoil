@@ -3189,6 +3189,7 @@ const cs: Record<string, string> = {
   "kunst.galerieSpaeter": "Obrázky ostatních uvidíš, až začne hlasování.",
   "kunst.uebrig": "zbývá {rest} z {n} srdcí",
   "kunst.gross": "Zobrazit velké",
+  "kunst.noch": "zbývá {zeit}",
   "kunst.intro": "Nakresli svou stopou obrázek na vodu. Jeden obrázek na kolo z session tohoto kola, poté hlasuje komunita — anonymně, počítá se jen čára. Každý má {n} srdíček na kolo, ne pro vlastní obrázek.",
   "kunst.runde": "Kolo {n}",
   "kunst.phase.kommt": "připravuje se",

@@ -3018,6 +3018,7 @@ const es: Record<string, string> = {
   "kunst.galerieSpaeter": "Verás las imágenes de los demás cuando empiece la votación.",
   "kunst.uebrig": "quedan {rest} de {n} corazones",
   "kunst.gross": "Ver en grande",
+  "kunst.noch": "quedan {zeit}",
   "kunst.intro": "Dibuja una imagen sobre el agua con tu track. Una imagen por ronda de una sesión de esa ronda y después vota la comunidad — de forma anónima, solo cuenta la línea. Cada uno tiene {n} corazones por ronda, no para su propia imagen.",
   "kunst.runde": "Ronda {n}",
   "kunst.phase.kommt": "próxima",

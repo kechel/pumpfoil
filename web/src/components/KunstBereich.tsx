@@ -75,6 +75,17 @@ const zeitraum = (a: string, z: string) => {
   const f = (d: Date) => d.toLocaleDateString(undefined, { day: "numeric", month: "numeric" });
   return `${f(new Date(a))}–${f(new Date(new Date(z).getTime() - 1))}`;
 };
+// Naechster Schritt einer Runde: kommt -> Start, einreichen -> Einreichschluss, abstimmen -> Aufloesung; fertig -> keiner.
+const ziel = (r: KunstRunde): string | null =>
+  r.phase === "kommt" ? r.start : r.phase === "einreichen" ? (r.einreichen_bis ?? r.ende) : r.phase === "abstimmen" ? r.abstimmen_bis : null;
+// „2d 5h 14m", in der letzten Stunde „14m 33s" — sprachneutral, wie die Event-Countdowns.
+function restText(iso: string, jetzt: number): string {
+  const s = Math.max(0, Math.floor((new Date(iso).getTime() - jetzt) / 1000));
+  const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), sek = s % 60;
+  if (d > 0) return `${d}d ${h}h ${m}m`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m ${String(sek).padStart(2, "0")}s`;
+}
 const datum = (iso: string) => new Date(iso).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
 export default function KunstBereich({ eventId }: { eventId: number }) {
@@ -83,6 +94,8 @@ export default function KunstBereich({ eventId }: { eventId: number }) {
   const [fehler, setFehler] = useState<string | null>(null);
   const [nr, setNr] = useState<number | null>(null);
   const [editor, setEditor] = useState(false);
+  const [jetzt, setJetzt] = useState(() => Date.now());
+  useEffect(() => { const h = setInterval(() => setJetzt(Date.now()), 1000); return () => clearInterval(h); }, []);
   // Vollbild beim Abstimmen: Reihenfolge beim Oeffnen festgehalten, damit nach einem Herz nichts wegspringt.
   const [voll, setVoll] = useState<{ ids: number[]; start: number } | null>(null);
   const laden = () => api.kunst(eventId).then((x) => { setD(x); setFehler(null); }).catch((e) => setFehler(String(e)));
@@ -133,6 +146,8 @@ export default function KunstBereich({ eventId }: { eventId: number }) {
             <button key={r.nr} type="button" onClick={() => setNr(r.nr)} aria-pressed={r.nr === runde.nr}
               className={`rounded-lg px-3 py-1.5 text-sm ${r.nr === runde.nr ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300 hover:text-slate-100"}`}>
               {t("kunst.runde", { n: String(r.nr) })} · {zeitraum(r.start, r.ende)} · {t(`kunst.phase.${r.phase}`)}
+              {/* Countdown bis zum naechsten Schritt der Runde (Jan 18.11.2026: „eigene countdowns als 2te zeile"). */}
+              {ziel(r) && <span className="block text-xs font-normal tabular-nums opacity-80">{t("kunst.noch", { zeit: restText(ziel(r)!, jetzt) })}</span>}
             </button>
           ))}
         </div>

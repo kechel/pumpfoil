@@ -3298,6 +3298,7 @@ const de: Record<string, string> = {
   "kunst.galerieSpaeter": "Die Bilder der anderen siehst du ab der Abstimmung.",
   "kunst.uebrig": "noch {rest} von {n} Herzen",
   "kunst.gross": "Groß ansehen",
+  "kunst.noch": "noch {zeit}",
   "kunst.intro": "Male mit deinem Track ein Bild aufs Wasser. Je Runde ein Bild aus einer Session dieser Runde, danach stimmt die Community ab — anonym, nur die Linie zählt. Jeder hat {n} Herzen je Runde, nicht für das eigene Bild.",
   "kunst.runde": "Runde {n}",
   "kunst.phase.kommt": "kommt",
