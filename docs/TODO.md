@@ -2131,6 +2131,14 @@ eigene Ordner — Verursacher nicht gefunden. Die 8 davon, die neu ausgewertet w
 `manuell-20261111-empfindlichkeit` zurueckgeholt und festgehalten (`scripts/auswertung-zurueckholen.py`).
 ERLEDIGT 11.11.: die 4 Ordner aus den Snapshots zurueckkopiert (1309, 3091, 3192, 3113); Schutz in `run_analysis`:
 ohne Roh-Daten bleibt eine vorhandene Auswertung stehen. Ursache: laut Jan nicht so wichtig, offen mit niedriger Prioritaet.
+**URSACHE (18.11.2026, sehr wahrscheinlich): gescheiterte Kontoloeschung vor dem Fix vom 19.09. (loeschung.py).** Bei allen 4
+Konten (u159, u172, u256, u394) fehlten SAEMTLICHE Sessions (inkl. der 4 zurueckgeholten), alle angelegt bis 03.09., danach
+keine neue; Muster wie u588 am 18.09.: `_purge_session` loeschte die Ordner mitten in der Transaktion, die Loeschung scheiterte
+(ForeignKeyViolation), Rollback -> Zeilen zurueck, Dateien weg; auch `last_seen_at` wurde mit zurueckgerollt (liegt bei zweien
+vor dem Verlust). Server-Log reicht nur bis 17.11., also nicht direkt belegt. Scan 18.11.: seit 11.11. KEINE weiteren aktiven
+Sessions ohne Ordner (nur die bekannten 6). Gleiches Muster (Ordner vor dem Commit loeschen) noch in `merge.unmerge_session`
+und `split.unsplit_session` -> umgestellt auf „erst Commit, dann Dateien". `admin._purge_session` hat keine Aufrufer mehr.
+**Offene Frage an Jan (DSGVO):** wollten diese 4 ihr Konto loeschen? Dann bestehen sie bis heute weiter (u394 zuletzt gesehen 27.10.).
 
 - **🔲 08.11. Gruene Spots: versehentlicher Stopp meldet den Fahrer ab (andermal ueberlegen).** Versehentlich
   gestoppte Uhr-Aufnahme (3 min, 0 Laeufe) kam nach der Positionsmeldung hoch; nach der Regel vom 15.10. heisst

@@ -266,6 +266,7 @@ def unsplit_session(db: DbSession, teil: models.Session) -> models.Session:
     if any(db.query(models.Session).filter(models.Session.merged_into == t.id).count() for t in teile):
         raise ValueError("Ein Teil wurde zusammengefuehrt — bitte erst dort aufloesen")
     orig.deleted = False
+    weg: list = []                      # Rohdaten-Ordner der Teile, geloescht erst NACH dem Commit
     for t in teile:
         for p in db.query(models.SessionPhoto).filter_by(session_id=t.id).all():
             p.session_id = p.merged_from_session_id or orig.id
@@ -294,11 +295,13 @@ def unsplit_session(db: DbSession, teil: models.Session) -> models.Session:
                   models.BoardAttitudeCache, models.IngestChunk):
             db.query(m).filter_by(session_id=t.id).delete()
         try:
-            d = storage.session_dir(t.session_uuid)
-            if d.exists():
-                shutil.rmtree(d, ignore_errors=True)
+            weg.append(storage.session_dir(t.session_uuid))
         except ValueError:
             pass
         db.delete(t)
     db.commit()
+    # Erst die Datenbank, dann die Dateien (wie loeschung.py, Befund 18.11.2026): scheitert der Commit, bleiben die Ordner.
+    for d in weg:
+        if d.exists():
+            shutil.rmtree(d, ignore_errors=True)
     return orig

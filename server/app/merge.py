@@ -377,14 +377,16 @@ def unmerge_session(db: DbSession, merged: models.Session) -> list[models.Sessio
     db.query(models.Label).filter_by(session_id=merged.id).delete()
     db.query(models.SessionLike).filter_by(session_id=merged.id).delete()
     db.query(models.SessionVote).filter_by(session_id=merged.id).delete()
+    # Erst die Datenbank, dann die Dateien (wie loeschung.py): scheitert der Commit, darf der Ordner nicht schon weg sein.
+    # Befund 18.11.2026: vor dem 19.09. verloren so 4 Konten ALLE Rohdaten (gescheiterte Kontoloeschung, Rollback).
     try:
         d = storage.session_dir(merged.session_uuid)
-        if d.exists():
-            shutil.rmtree(d, ignore_errors=True)
     except ValueError:
-        pass
+        d = None
     db.delete(merged)
     db.commit()
+    if d is not None and d.exists():
+        shutil.rmtree(d, ignore_errors=True)
     return sources
 
 
