@@ -12,7 +12,7 @@ const deAT: Record<string, string> = {
   "activespot.hint": "Grüne Spots auf der Karte zeigen, wo vermutlich gerade jemand pumpt. Kleine Spots werden nie allein grün, so kann niemand erkennen, dass du es bist. Im Gesamtzähler „gerade am Pumpen“ zählt deine Uhr oder dein Handy weiter mit.",
   "activespot.switch": "Mich auf der Spot-Karte als aktiv zählen",
   "globalev.title": "Globale Events",
-  "globalev.hint": "Globale Events von pumpfoil.org werten automatisch alle, die passende Sessions haben – ohne Anmeldung. Da kannst du das für dich abschalten; dann fehlst du in deren Bestenlisten, Team-Wertungen und Summen.",
+  "globalev.hint": "Globale Events von pumpfoil.org werten automatisch alle, die passende Sessions haben – ohne Anmeldung. Ohne Hakerl fehlst du in deren Bestenlisten, Team-Wertungen und Summen.",
   "globalev.switch": "An globalen Events teilnehmen",
   "globalev.ausBadge": "Du hast dich abgemeldet",
   "globalev.ausAendern": "ändern",

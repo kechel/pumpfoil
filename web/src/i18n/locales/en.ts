@@ -124,7 +124,7 @@ const en: Record<string, string> = {
   "board.rigAssumed": "fuselage {fuse} cm and the fore-aft positions are still estimates",
   "sd.boardAsk": "Was your phone mounted on the board?",
   "globalev.title": "Global events",
-  "globalev.hint": "Global events from pumpfoil.org automatically rank everyone with matching sessions – no signing up. You can switch this off for yourself here; you then won't appear in their leaderboards, team rankings or totals.",
+  "globalev.hint": "Global events from pumpfoil.org automatically rank everyone with matching sessions – no signing up. Without the tick you won't appear in their leaderboards, team rankings or totals.",
   "globalev.switch": "Take part in global events",
   "globalev.ausBadge": "You have opted out",
   "globalev.ausAendern": "change",

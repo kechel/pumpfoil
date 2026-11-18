@@ -11,7 +11,7 @@ const zh: Record<string, string> = {
   "activespot.hint": "绿色地点表示现在可能有人在 pump。小地点永远不会单独变绿，所以没人能看出是你。你的手表或手机仍会计入“正在 pump”的总数。",
   "activespot.switch": "在地点地图上把我算作活跃",
   "globalev.title": "全球活动",
-  "globalev.hint": "pumpfoil.org 的全球活动会自动为所有有相应记录的人排名，无需报名。你可以在这里为自己关闭；之后你不会出现在其排行榜、团队排名和总计中。",
+  "globalev.hint": "pumpfoil.org 的全球活动会自动为所有有相应记录的人排名，无需报名。不勾选时，你不会出现在其排行榜、团队排名和总计中。",
   "globalev.switch": "参加全球活动",
   "globalev.ausBadge": "你已退出",
   "globalev.ausAendern": "更改",

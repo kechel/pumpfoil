@@ -13,7 +13,7 @@ const nl: Record<string, string> = {
   "activespot.hint": "Groene spots tonen waar waarschijnlijk nu iemand pompt. Kleine spots worden nooit alleen groen, dus niemand kan zien dat jij het bent. Je horloge of telefoon telt wel mee in het totaal ‘nu aan het pompen’.",
   "activespot.switch": "Tel mij als actief op de spotkaart",
   "globalev.title": "Globale events",
-  "globalev.hint": "Globale events van pumpfoil.org rangschikken automatisch iedereen met passende sessies – zonder aanmelden. Hier kun je dat voor jezelf uitzetten; je staat dan niet meer in hun klassementen, teamklassementen en totalen.",
+  "globalev.hint": "Globale events van pumpfoil.org rangschikken automatisch iedereen met passende sessies – zonder aanmelden. Zonder vinkje sta je niet in hun klassementen, teamklassementen en totalen.",
   "globalev.switch": "Meedoen aan globale events",
   "globalev.ausBadge": "Je hebt je afgemeld",
   "globalev.ausAendern": "wijzigen",

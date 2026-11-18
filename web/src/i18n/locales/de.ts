@@ -125,7 +125,7 @@ const de: Record<string, string> = {
   "board.rigAssumed": "Rumpf {fuse} cm und die Längspositionen sind noch geschätzt",
   "sd.boardAsk": "War dein Handy am Brett befestigt?",
   "globalev.title": "Globale Events",
-  "globalev.hint": "Globale Events von pumpfoil.org werten automatisch alle, die passende Sessions haben – ohne Anmeldung. Hier kannst du das für dich abschalten; dann fehlst du in deren Bestenlisten, Team-Wertungen und Summen.",
+  "globalev.hint": "Globale Events von pumpfoil.org werten automatisch alle, die passende Sessions haben – ohne Anmeldung. Ohne Haken fehlst du in deren Bestenlisten, Team-Wertungen und Summen.",
   "globalev.switch": "An globalen Events teilnehmen",
   "globalev.ausBadge": "Du hast dich abgemeldet",
   "globalev.ausAendern": "ändern",

@@ -11,7 +11,7 @@ const fi: Record<string, string> = {
   "activespot.hint": "Vihreät spotit näyttävät, missä joku luultavasti pumppaa juuri nyt. Pienet spotit eivät koskaan muutu vihreiksi yksinään, joten kukaan ei voi päätellä, että se olet sinä. Kellosi tai puhelimesi lasketaan silti mukaan kokonaismäärään ”pumppaa nyt”.",
   "activespot.switch": "Laske minut aktiiviseksi spottikartalla",
   "globalev.title": "Globaalit tapahtumat",
-  "globalev.hint": "pumpfoil.orgin globaalit tapahtumat listaavat automaattisesti kaikki, joilla on sopivia sessioita – ilman ilmoittautumista. Voit poistaa sen käytöstä itseltäsi täällä; et silloin näy niiden tulostauluissa, joukkuetuloksissa etkä summissa.",
+  "globalev.hint": "pumpfoil.orgin globaalit tapahtumat listaavat automaattisesti kaikki, joilla on sopivia sessioita – ilman ilmoittautumista. Ilman valintaa et näy niiden tulostauluissa, joukkuetuloksissa etkä summissa.",
   "globalev.switch": "Osallistu globaaleihin tapahtumiin",
   "globalev.ausBadge": "Olet jättäytynyt pois",
   "globalev.ausAendern": "muuta",

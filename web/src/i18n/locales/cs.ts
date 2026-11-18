@@ -13,7 +13,7 @@ const cs: Record<string, string> = {
   "activespot.hint": "Zelené spoty ukazují, kde teď pravděpodobně někdo pumpuje. Malé spoty nikdy nezezelenají samy, takže nikdo nepozná, že jsi to ty. Tvoje hodinky nebo telefon se dál započítávají do celkového počtu „právě pumpuje“.",
   "activespot.switch": "Počítat mě jako aktivního na mapě spotů",
   "globalev.title": "Globální eventy",
-  "globalev.hint": "Globální eventy pumpfoil.org automaticky hodnotí všechny s odpovídajícími sessiony – bez přihlášení. Tady to můžeš pro sebe vypnout; pak nebudeš v jejich žebříčcích, pořadí týmů ani součtech.",
+  "globalev.hint": "Globální eventy pumpfoil.org automaticky hodnotí všechny s odpovídajícími sessiony – bez přihlášení. Bez zaškrtnutí nebudeš v jejich žebříčcích, pořadí týmů ani součtech.",
   "globalev.switch": "Účastnit se globálních eventů",
   "globalev.ausBadge": "Odhlásil ses",
   "globalev.ausAendern": "změnit",

@@ -12,7 +12,7 @@ const gsw: Record<string, string> = {
   "activespot.hint": "Grüeni Spots uf de Charte zeiged, wo wahrschinlich grad öpper pumpet. Chliini Spots werded nie elei grüen, so cha niemer gseh, dass du's bisch. Im Gsamtzähler „grad am Pumpe“ zellt dini Uhr oder dis Handy wiiterhin mit.",
   "activespot.switch": "Mich uf de Spot-Charte als aktiv zelle",
   "globalev.title": "Globali Events",
-  "globalev.hint": "Globali Events vo pumpfoil.org wärted automatisch alli, wo passendi Sessions händ – ohni Aamäldig. Do chasch das für di abschalte; dänn fehlsch i dene ihrne Beschtelischte, Teamwärtige und Summe.",
+  "globalev.hint": "Globali Events vo pumpfoil.org wärted automatisch alli, wo passendi Sessions händ – ohni Aamäldig. Ohni Hääggli fehlsch i dene ihrne Beschtelischte, Teamwärtige und Summe.",
   "globalev.switch": "A globale Events teilneh",
   "globalev.ausBadge": "Du häsch di abgmäldet",
   "globalev.ausAendern": "ändere",

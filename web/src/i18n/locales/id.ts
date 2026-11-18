@@ -11,7 +11,7 @@ const id: Record<string, string> = {
   "activespot.hint": "Spot hijau menunjukkan di mana kemungkinan ada yang sedang pumping. Spot kecil tidak pernah hijau sendiri, jadi tidak ada yang bisa tahu bahwa itu kamu. Jam tangan atau ponselmu tetap dihitung dalam total \"sedang pumping\".",
   "activespot.switch": "Hitung saya sebagai aktif di peta spot",
   "globalev.title": "Event global",
-  "globalev.hint": "Event global pumpfoil.org otomatis memeringkat semua orang yang punya sesi yang cocok – tanpa mendaftar. Di sini kamu bisa mematikannya untuk dirimu; kamu lalu tidak muncul di papan peringkat, peringkat tim, atau totalnya.",
+  "globalev.hint": "Event global pumpfoil.org otomatis memeringkat semua orang yang punya sesi yang cocok – tanpa mendaftar. Tanpa centang kamu tidak muncul di papan peringkat, peringkat tim, atau totalnya.",
   "globalev.switch": "Ikut event global",
   "globalev.ausBadge": "Kamu sudah keluar",
   "globalev.ausAendern": "ubah",

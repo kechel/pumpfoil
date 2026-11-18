@@ -11,7 +11,7 @@ const es: Record<string, string> = {
   "activespot.hint": "Los spots verdes muestran dónde probablemente alguien está pumpeando ahora. Los spots pequeños nunca se ponen verdes solos, así nadie puede saber que eres tú. Tu reloj o móvil sigue contando en el total «pumpeando ahora».",
   "activespot.switch": "Contarme como activo en el mapa de spots",
   "globalev.title": "Eventos globales",
-  "globalev.hint": "Los eventos globales de pumpfoil.org clasifican automáticamente a todos los que tienen sesiones adecuadas – sin inscribirse. Aquí puedes desactivarlo para ti; entonces no aparecerás en sus clasificaciones, clasificaciones por equipos ni totales.",
+  "globalev.hint": "Los eventos globales de pumpfoil.org clasifican automáticamente a todos los que tienen sesiones adecuadas – sin inscribirse. Sin la marca no apareces en sus clasificaciones, clasificaciones por equipos ni totales.",
   "globalev.switch": "Participar en eventos globales",
   "globalev.ausBadge": "Te diste de baja",
   "globalev.ausAendern": "cambiar",

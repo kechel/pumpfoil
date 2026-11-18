@@ -11,7 +11,7 @@ const nb: Record<string, string> = {
   "activespot.hint": "Grønne spots viser hvor noen trolig pumper akkurat nå. Små spots blir aldri grønne alene, så ingen kan se at det er deg. Klokken eller telefonen din teller fortsatt med i totalen «pumper nå».",
   "activespot.switch": "Tell meg som aktiv på spotkartet",
   "globalev.title": "Globale eventer",
-  "globalev.hint": "Globale eventer fra pumpfoil.org rangerer automatisk alle med passende økter – uten påmelding. Her kan du slå det av for deg selv; da vises du ikke i topplistene, lagrangeringene eller summene deres.",
+  "globalev.hint": "Globale eventer fra pumpfoil.org rangerer automatisk alle med passende økter – uten påmelding. Uten hake vises du ikke i topplistene, lagrangeringene eller summene deres.",
   "globalev.switch": "Delta i globale eventer",
   "globalev.ausBadge": "Du har reservert deg",
   "globalev.ausAendern": "endre",
