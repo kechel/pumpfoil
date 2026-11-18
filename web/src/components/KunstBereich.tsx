@@ -270,7 +270,11 @@ function AbstimmGalerie({ ids, start, runde, d, neu, meldung, onZu }: { ids: num
   if (!b) return null;
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3" onClick={onZu}>
-      <div className="relative w-full max-w-[min(92vw,78vh)]" onClick={(e) => e.stopPropagation()}>
+      {/* Eigene Karte (Jan 18.11.2026: „braucht noch einen rahmen und hintergrund"): im dunklen Modus verschwamm das Bild
+          sonst mit der abgedunkelten Seite. Feste Farben, weil der Kasten in beiden Farbschemata gleich aussieht. */}
+      <div className="relative w-full max-w-[min(92vw,74vh)] rounded-3xl p-3 shadow-2xl sm:p-4"
+        style={{ background: "#020617", border: "1px solid rgba(34,211,238,0.35)", boxShadow: "0 0 0 1px rgba(255,255,255,0.06), 0 25px 60px rgba(0,0,0,0.6)" }}
+        onClick={(e) => e.stopPropagation()}>
         <div className={`rounded-2xl p-1.5 ${b.herz ? "bg-brand-500" : ""}`}>
           <KunstLinie linie={b.linie} saat={b.id} />
         </div>
@@ -294,13 +298,13 @@ function AbstimmGalerie({ ids, start, runde, d, neu, meldung, onZu }: { ids: num
         {ids.length > 1 && (
           <>
             <button type="button" onClick={() => weiter(-1)} aria-label={t("kunst.zurueck")}
-              className="absolute left-1 top-[40%] rounded-full bg-black/50 px-3 py-2 text-2xl text-white hover:bg-black/70">‹</button>
+              className="absolute left-4 top-[42%] rounded-full bg-black/55 px-3 py-2 text-2xl text-white hover:bg-black/75">‹</button>
             <button type="button" onClick={() => weiter(1)} aria-label={t("kunst.weiter")}
-              className="absolute right-1 top-[40%] rounded-full bg-black/50 px-3 py-2 text-2xl text-white hover:bg-black/70">›</button>
+              className="absolute right-4 top-[42%] rounded-full bg-black/55 px-3 py-2 text-2xl text-white hover:bg-black/75">›</button>
           </>
         )}
         <button type="button" onClick={onZu} aria-label={t("common.close")}
-          className="absolute -top-2 right-0 rounded-full bg-black/60 px-3 py-1 text-xl text-white hover:bg-black/80">×</button>
+          className="absolute -right-3 -top-3 flex h-9 w-9 items-center justify-center rounded-full text-xl text-white" style={{ background: "#0f172a", border: "1px solid rgba(34,211,238,0.5)" }}>×</button>
       </div>
     </div>,
     document.body,
@@ -429,7 +433,11 @@ function Galerie({ liste, start, onZu }: { liste: Ergebnis[]; start: number; onZ
   const p = Math.min(z.platz, 4);
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3" onClick={onZu}>
-      <div className="relative w-full max-w-[min(92vw,78vh)]" onClick={(e) => e.stopPropagation()}>
+      {/* Eigene Karte (Jan 18.11.2026: „braucht noch einen rahmen und hintergrund"): im dunklen Modus verschwamm das Bild
+          sonst mit der abgedunkelten Seite. Feste Farben, weil der Kasten in beiden Farbschemata gleich aussieht. */}
+      <div className="relative w-full max-w-[min(92vw,74vh)] rounded-3xl p-3 shadow-2xl sm:p-4"
+        style={{ background: "#020617", border: "1px solid rgba(34,211,238,0.35)", boxShadow: "0 0 0 1px rgba(255,255,255,0.06), 0 25px 60px rgba(0,0,0,0.6)" }}
+        onClick={(e) => e.stopPropagation()}>
         <div className="rounded-2xl p-1.5" style={{ background: p <= 3 ? METALL[p - 1] : "transparent" }}>
           {karte ? <KunstKarte bildId={z.bild_id} /> : <KunstLinie linie={z.linie} saat={z.bild_id} />}
         </div>
@@ -455,13 +463,13 @@ function Galerie({ liste, start, onZu }: { liste: Ergebnis[]; start: number; onZ
         {liste.length > 1 && (
           <>
             <button type="button" onClick={() => weiter(-1)} aria-label={t("kunst.zurueck")}
-              className="absolute left-1 top-[40%] rounded-full bg-black/50 px-3 py-2 text-2xl text-white hover:bg-black/70">‹</button>
+              className="absolute left-4 top-[42%] rounded-full bg-black/55 px-3 py-2 text-2xl text-white hover:bg-black/75">‹</button>
             <button type="button" onClick={() => weiter(1)} aria-label={t("kunst.weiter")}
-              className="absolute right-1 top-[40%] rounded-full bg-black/50 px-3 py-2 text-2xl text-white hover:bg-black/70">›</button>
+              className="absolute right-4 top-[42%] rounded-full bg-black/55 px-3 py-2 text-2xl text-white hover:bg-black/75">›</button>
           </>
         )}
         <button type="button" onClick={onZu} aria-label={t("common.close")}
-          className="absolute -top-2 right-0 rounded-full bg-black/60 px-3 py-1 text-xl text-white hover:bg-black/80">×</button>
+          className="absolute -right-3 -top-3 flex h-9 w-9 items-center justify-center rounded-full text-xl text-white" style={{ background: "#0f172a", border: "1px solid rgba(34,211,238,0.5)" }}>×</button>
       </div>
     </div>,
     document.body,
