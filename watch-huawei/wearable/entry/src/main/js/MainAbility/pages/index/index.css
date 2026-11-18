@@ -133,3 +133,13 @@
     width: 100%;
     height: 100%;
 }
+
+/* Unsichtbarer Kronen-Empfaenger (s. index.hml), 1 px, faengt keine Finger ab. */
+.krone {
+    width: 1px;
+    height: 1px;
+}
+.kronenseite {
+    width: 1px;
+    height: 1px;
+}

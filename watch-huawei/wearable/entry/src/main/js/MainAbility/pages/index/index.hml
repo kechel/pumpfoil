@@ -55,4 +55,13 @@
         </div>
         <text class="klein">{{ info }}</text>
     </div>
+
+    <!-- Krone (AppGallery-Pruefung 18.11.2026 auf GT 6/Fit 5, Regel 3.1: „watch faces … not adapted to the rotating
+         crown"). Lite liefert die Krone nur an list/swiper/slider mit Fokus. Dieser 1-px-Swiper (drei Seiten im Kreis)
+         bekommt den Fokus; jeder Seitenwechsel wird in index.js (krone) zu hoch/runter wie Wischen. -->
+    <swiper class="krone" ref="krone" vertical="true" loop="true" index="1" onchange="krone">
+        <div class="kronenseite"></div>
+        <div class="kronenseite"></div>
+        <div class="kronenseite"></div>
+    </swiper>
 </div>
