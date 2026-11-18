@@ -24,3 +24,10 @@ Aufruf aus `server/` (mit `DATABASE_URL` im Env), Ausgaben ins Scratchpad:
 
 FALLE: Uebereinstimmung allein belohnt Verfahren, die alle Werte schrumpfen (starke Glaettung). Immer das Niveau
 mitpruefen (`alle_fenster.py` je Plattform, `brett_ref.py`).
+
+Trockenlauf VERSION-7-Kandidat (18.11.2026, rein lesend):
+
+- `v7.py` — patcht `app.analysis.sprint.lauf_sprints` (Mischung im Fensterzaehler, alle V6-Regeln bleiben); `CFG["W"]`.
+- `paar_v7.py <ordner mit daten.pkl>` — Produktivform auf den Paar-Daten, inkl. V7a (Apple bleibt Uhr-Tempo).
+- `trocken_alle.py out.jsonl` + `alle_ausw.py out.jsonl` — alle Sessions V6 vs. V7 je Plattform (ueber `mit_env`, volle `.env`).
+- `event_v7.py <event-id> ...` — Event-Ranglisten gespeichert / V6 frisch / V7 / V7a (Cache aus, rollback).

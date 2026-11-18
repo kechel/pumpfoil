@@ -1654,6 +1654,20 @@ Entwurf zusammen mit A1.
   - Empfehlung (wartet auf Jan): Sprint-Wert = 50 % Uhr-Tempo + 50 % Strecke der 5-s-geglaetteten Positionen (einfach,
     erklaerbar), ggf. Apple nur Uhr-Tempo. Vor Umstellung: Trockenlauf ueber alle Sessions + Event-WE, Aenderungen
     der Ranglisten zeigen, sprint VERSION 7.
+  - **Trockenlauf 18.11. (Jans OK, nichts geschrieben; `v7.py` patcht `lauf_sprints`, alle V6-Regeln bleiben):**
+    Produktivform = Mischung im Fensterzaehler, Positionen 5 s (+-2,5 s) geglaettet, nicht ueber Luecken, am Rand
+    symmetrisch verkuerzt (sonst rutschen Randpunkte nach innen und kurze Laeufe verlieren ihre 100 m).
+    Paar-Daten (`paar_v7.py`): V7a (Apple bleibt Uhr-Tempo) 100 m mittlere |A-B| 0,55 -> 0,41 (KI +0,04..+0,26),
+    Minute 0,36 -> 0,24 (+0,05..+0,19); Uhr gegen Brett 100 m 0,53 -> 0,30, Niveau Uhr-Brett +0,20 -> -0,07.
+    V7 mit Apple: Apple-Paare schlechter (0,59 -> 0,81) -> V7a.
+    Alle Sessions (`trocken_alle.py`/`alle_ausw.py`, 10443, 0 Fehler): 100 m Median -0,08 km/h (p10 -0,69, p90 +0,32),
+    Garmin -0,24, Suunto -0,08, Polar -0,16, Handy/Wear +0,1; 60 s Median -0,09. Werte verlieren: 100 m 40 Sessions
+    (meist kurze Laeufe knapp ueber 100 m), 200 m 89, neu 4/26. Gespeichert = V6 frisch bis auf #21668 (sprint v3,
+    60-s-Wert, den V6 nicht mehr gibt).
+    Event 11 (`event_v7.py`): Werte Median -0,04 km/h, Mittelfeld dicht -> viele Platzwechsel (100 m: 35/86 > 3 Plaetze);
+    Spitze in V7a: 60 s Platz 1 bleibt, Platz 2/3 tauschen; 100 m Platz 1/2 bleiben, Platz 3-5 tauschen; 1 Fahrer
+    faellt aus 100 m (einziger Lauf knapp 100 m). Entscheidung Jan: Umstellung (VERSION 7) ja/nein, eingefrorene Events
+    nicht anfassen.
 - C3 GPS-Wiederfinden nach Unterwasser-Luecke: heutige Erkennung (v3) macht es richtig (#20528 Trockenlauf 4 -> 2 Laeufe,
   Schein-Lauf weg); #20528 ist absichtlich festgehalten (auswertung_fest, u972). Nichts zu tun.
 - C4 Autofahrt verschiebt Wasser-Suchpunkt: die erkannten Fahrten waren schon raus (analyse_ausschluss), aber der langsame
