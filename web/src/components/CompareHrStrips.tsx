@@ -57,7 +57,7 @@ const MAX_LUECKE_M = 200;
 const ZEILE_H = 13;
 const ZEILE_LUECKE = 8;
 
-export function CompareHrStrips({ items, markiert, onKlick, vergleich, sortierung, onSortieren }: {
+export function CompareHrStrips({ items, markiert, onKlick, vergleich, sortierung, onSortieren, zugeklappt = false }: {
   items: HrStripItem[];
   // Optional (Seite „Laengste Laeufe", Jan 02.10.2026): Zeilen anklickbar und hervorgehoben.
   // Schluessel ist `HrStripItem.key`; die Reihenfolge bestimmt der Aufrufer ueber `items`.
@@ -69,8 +69,11 @@ export function CompareHrStrips({ items, markiert, onKlick, vergleich, sortierun
   // Die Reihenfolge der Zeilen bestimmt weiterhin der Aufrufer ueber `items`.
   sortierung?: { puls: boolean; m: boolean; kmh: boolean; auf: boolean };
   onSortieren?: (spalte: "puls" | "m" | "kmh") => void;
+  // Session-Detail (Jan 18.11.2026): zugeklappt starten, Klick auf den Titel klappt auf.
+  zugeklappt?: boolean;
 }) {
   const t = useT();
+  const [offen, setOffen] = useState(!zugeklappt);
   // Zwei Lesarten derselben Streifen (Jan, 11.09.2026): der absolute Puls, oder der ANSTIEG
   // gegenüber dem Start-Puls DESSELBEN Laufs. Der Anstieg macht Läufe vergleichbar, deren
   // Ausgangspuls verschieden hoch lag. Dieselbe Wahl wie in der Trainingskurve, deshalb auch
@@ -253,19 +256,33 @@ export function CompareHrStrips({ items, markiert, onKlick, vergleich, sortierun
       g.fillStyle = hell ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.8)";
       g.fillRect(Math.round(x), 0, 1, h);
     }
-  }, [zeilen, maxLen, bereich, hell, hoverI, anstieg, dLo, dHi]);
+  }, [zeilen, maxLen, bereich, hell, hoverI, anstieg, dLo, dHi, offen]);
 
   const dauer = (n: number) => `${Math.floor(n / 60)}:${String(n % 60).padStart(2, "0")}`;
 
   if (!zeilen.length) return null;
+  const titel = `${t("field.2")} · ${t("compare.runsTitle").replace("{count}", String(zeilen.length))}`;
+  if (!offen) {
+    return (
+      <button type="button" onClick={() => setOffen(true)} aria-expanded={false}
+        className="flex items-center gap-1 text-sm font-semibold text-slate-200 hover:text-brand-500">
+        <span aria-hidden="true" className="inline-block w-3">▸</span>{titel}
+      </button>
+    );
+  }
 
   return (
     <Card className="p-3">
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="text-sm font-semibold text-slate-200">
-            {t("field.2")} · {t("compare.runsTitle").replace("{count}", String(zeilen.length))}
-          </h3>
+          {zugeklappt ? (
+            <button type="button" onClick={() => setOffen(false)} aria-expanded={true}
+              className="flex items-center gap-1 text-sm font-semibold text-slate-200 hover:text-brand-500">
+              <span aria-hidden="true" className="inline-block w-3">▾</span>{titel}
+            </button>
+          ) : (
+            <h3 className="text-sm font-semibold text-slate-200">{titel}</h3>
+          )}
           <div className="inline-flex rounded-lg border border-slate-700 p-0.5">
             {[false, true].map((v) => (
               <button key={String(v)} type="button" onClick={() => setzeAnstieg(v)}

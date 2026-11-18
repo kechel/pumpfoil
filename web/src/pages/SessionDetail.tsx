@@ -3195,7 +3195,7 @@ export default function SessionDetail() {
           Ohne Fahrer-Beschriftung (jede Zeile waere derselbe Name), nur mit der Lauf-Nummer.
           Zeigt sich von selbst nicht, wenn die Session keinen Puls hat. */}
       <div className="mt-4">
-        <CompareHrStrips items={[{ key: `s${session.id}`, label: "", session, runIdx: null }]} />
+        <CompareHrStrips items={[{ key: `s${session.id}`, label: "", session, runIdx: null }]} zugeklappt />
       </div>
 
       {/* Kommentare (02.11.2026) — auf der Chat-Technik, Raum session:<id>; nicht im geteilten Link. Direkt nach den
