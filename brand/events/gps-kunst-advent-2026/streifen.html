@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* Short-Overlay 1080x480 (1/4 von 1920) wie beim Flying Sprint Weekend; ?stufe=1..4&weiss=1, sonst transparent */
+@font-face{font-family:M;src:local("Montserrat Black");font-weight:900}
+@font-face{font-family:M;src:local("Montserrat ExtraBold");font-weight:800}
+html,body{margin:0;background:transparent}
+#b{position:relative;width:1080px;height:480px;overflow:hidden;font-family:M,sans-serif;color:#fff}
+.t{position:absolute;left:64px;top:34px;text-shadow:0 3px 22px rgba(2,6,23,.8),0 2px 5px rgba(2,6,23,.65)}
+.k{font-weight:800;font-size:27px;letter-spacing:.14em;color:#22d3ee}
+.h{font-weight:900;font-size:96px;line-height:.95;letter-spacing:-.01em;margin-top:10px}
+.h span{color:#22d3ee}
+.tag{display:inline-block;margin-top:22px;background:#22d3ee;color:#020617;font-weight:900;font-size:40px;padding:9px 26px;transform:skewX(-10deg);text-shadow:none}
+.tag i{display:inline-block;transform:skewX(10deg);font-style:normal}
+.d{display:table;margin-top:24px;text-shadow:none;font-weight:800;font-size:33px;letter-spacing:.05em;background:rgba(2,6,23,.78);padding:12px 22px;border-radius:16px}
+.d b{color:#22d3ee}
+.aus{visibility:hidden}
+body.weiss #b{background:#fff;color:#020617}
+body.weiss .t{text-shadow:none}
+body.weiss .k,body.weiss .h span{color:#0891b2}
+body.weiss .d{color:#fff;background:#020617}
+</style></head><body><div id="b">
+<div class="t"><div class="k">GLOBAL EVENT · ADVENT 2026</div><div class="h">GPS ART<br><span id="s2">ON THE WATER</span></div><div class="tag" id="s3"><i>DRAW WITH YOUR TRACK</i></div><div class="d" id="s4">29 NOV – 27 DEC · <b>4 ROUNDS</b></div></div>
+</div><script>
+const q = new URLSearchParams(location.search), st = +(q.get("stufe") || 4);
+if (q.get("weiss")) document.body.classList.add("weiss");
+for (const i of [2, 3, 4]) if (st < i) document.getElementById("s" + i).classList.add("aus");
+</script></body></html>

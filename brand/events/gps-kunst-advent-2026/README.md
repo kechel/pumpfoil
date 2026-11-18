@@ -2,15 +2,17 @@
 
 HTML-Vorlagen wie beim Flying Sprint Weekend, gerendert mit Playwright (Headless-Chromium), Schrift Montserrat (lokal).
 Motiv passend zur Galerie des GPS-Kunst-Events (web/src/components/KunstBereich.tsx): Winternacht `#0b1a33`, Schnee,
-Tannenbaum + Stern als leuchtende GPS-Spur in Marken-Cyan `#22d3ee`. Keine Fotos, keine Verlaeufe.
+Tannenbaum + Stern als EINE durchgehende, offene GPS-Spur (Ecken als Kurvenboegen, Pump-Wellen) in Marken-Cyan `#22d3ee`. Keine Fotos, keine Verlaeufe.
 
 | Datei | Format | Inhalt |
 |---|---|---|
 | `banner.html` | 1600×400 | Event-Banner (Event-Seite); `?rahmen=1` zeigt den Sicherheitsrahmen (mittlere 1000 px) |
 | `quadrat.html` | 1080×1080 | Social-Post quadratisch |
+| `hochkant.html` | 1080×1350 | Social-Post hochkant |
+| `streifen.html` | 1080×480 (¼ Short) | Text-Overlay fuers Short, `?stufe=1..4` (aufbauend), `&weiss=1` weisser Grund, sonst transparent |
 | `kunst.js` | — | Schnee, Baum, Stern (gemeinsam fuer alle Formate) |
 
-    node render.mjs <zielordner>      # banner.png, banner-rahmen.png, quadrat.png
+    node render.mjs <zielordner>      # banner, banner-rahmen, quadrat, hochkant, streifen-<1..4>-<transparent|weiss>
 
 ## Event (Entwurf, 18.11.2026)
 
