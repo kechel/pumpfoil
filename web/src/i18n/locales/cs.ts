@@ -1,8 +1,8 @@
 // Tschechisch (cs / Čeština). Struktur 1:1 zu de.ts (Quelle der Wahrheit).
 // Erstübersetzung maschinell; Muttersprachler-Review empfohlen.
 const cs: Record<string, string> = {
-  "hideloc.hint": "Bez zaškrtnutí: tvoje nahrávky zůstanou viditelné — jen ne to, kde jsi jezdil. Mapa a název spotu pak ukážou Point Nemo uprostřed Tichého oceánu. Tam nikdo nepumpuje a je to hned vidět.",
-  "hideloc.scope": "Zůstává viditelné: projetá stopa, všechna čísla, tvoje jméno a vybavení. Skryje se: spot, poloha na mapě a místní čas.",
+  "hideloc.hint": "Bez zaškrtnutí: tvoje záznamy zůstanou viditelné — jen ne to, kde jsi jezdil. Všichni kromě tebe a tvých přátel pak na mapě a jako název spotu uvidí Point Nemo uprostřed Pacifiku. Tam nikdo nepumpuje, a každý to hned pozná.",
+  "hideloc.scope": "Viditelné pro všechny: ujetá trasa, všechna čísla, tvoje jméno a vybavení. Skryté pro všechny kromě tebe a tvých přátel: spot, poloha na mapě a místní čas.",
   "hideloc.single": "Platí hned pro všechny tvoje nahrávky, i ty starší. Jednotlivé můžeš znovu zveřejnit v jejich detailu — nebo naopak skrýt jen některé.",
   "hideloc.switch": "Zobrazovat místo mých nahrávek",
   "hidetime.title": "Zobrazit čas",
@@ -28,10 +28,10 @@ const cs: Record<string, string> = {
   "badge.appstore": "Stáhnout v App Store",
   "badge.play": "Nyní na Google Play",
   "hideloc.title": "Zobrazit místo",
-  "sd.ortAktiv": "skryto",
+  "sd.ortAktiv": "skryto před ostatními",
   "sd.ortLabel": "Místo této nahrávky",
   "sd.ortProfil": "Místo: jako v profilu",
-  "sd.ortTitle": "Skryto znamená, že mapa a název spotu ukazují Point Nemo — všem, i tobě. Samotná stopa zůstane viditelná.",
+  "sd.ortTitle": "Skryté znamená: ostatní vidí na mapě a jako název spotu Point Nemo. Skutečné místo vidíš jen ty a tvoji přátelé. Trasa sama zůstává viditelná.",
   "sd.ortVerbergen": "Místo: skrýt",
   "sd.ortZeigen": "Místo: zobrazit",
   "shared.hint": "Tyto nahrávky mají odkaz, přes který se na ně může podívat kdokoli — bez účtu. Tady ho vezmeš zpět.",

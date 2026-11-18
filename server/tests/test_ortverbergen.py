@@ -140,7 +140,8 @@ def test_sichtbar_solange_niemand_etwas_umstellt(client):
 def test_einzelne_aufnahme_verbergen(client):
     kopf = _konto(client, "ort-einzeln@b.de")
     uid = client.get("/api/auth/me", headers=kopf).json()["id"]
-    d = _detail(client, kopf, _session_mit_spur(uid, ort_sichtbarkeit="hide"))
+    fremd = _konto(client, "ort-einzeln-fremd@b.de")
+    d = _detail(client, fremd, _session_mit_spur(uid, ort_sichtbarkeit="hide"))
     assert d["ort_verborgen"] is True
     assert d["place_name"] == "Point Nemo"
     assert d["place_water"] is None, "der Gewaessername waere ein Hinweis"
@@ -163,13 +164,31 @@ def test_profil_verbirgt_rueckwirkend_und_einzeln_freigeben_geht(client):
     assert _detail(client, kopf, frei)["ort_verborgen"] is False
 
 
-def test_besitzer_sieht_sich_selbst_an_point_nemo(client):
-    """Jan, 25.09.2026: „dann sieht man sich selber an Point Nemo und weiss: so darf auch jeder
-    andere sehen." Kein Sonderweg fuer den Besitzer — das IST die Verifikation."""
+def _befreunden(client, ka, kb):
+    ida = client.get("/api/auth/me", headers=ka).json()["id"]
+    idb = client.get("/api/auth/me", headers=kb).json()["id"]
+    assert client.post(f"/api/friends/{idb}/request", headers=ka).json()["status"] == "angefragt"
+    assert client.post(f"/api/friends/{ida}/accept", headers=kb).json()["status"] == "freund"
+
+
+def test_besitzer_und_freunde_sehen_den_echten_ort(client):
+    """Jan, 18.11.2026 (kehrt 25.09. und 15.10. um): Besitzer und bestaetigte Freunde sehen Spot, Spur und Ortszeit
+    echt; alle anderen Point Nemo. `ort_verborgen` bleibt die EINSTELLUNG (Abzeichen „fuer andere verborgen")."""
     kopf = _konto(client, "ort-selbst@b.de")
     uid = client.get("/api/auth/me", headers=kopf).json()["id"]
+    freund = _konto(client, "ort-selbst-freund@b.de")
+    fremd = _konto(client, "ort-selbst-fremd@b.de")
+    _befreunden(client, kopf, freund)
     sid = _session_mit_spur(uid, ort_sichtbarkeit="hide")
-    assert _detail(client, kopf, sid)["place_name"] == "Point Nemo"
+    for k in (kopf, freund):
+        d = _detail(client, k, sid)
+        assert d["place_name"] == "Jettkofen" and d["ort_verborgen"] is True
+        lon, lat = d["analysis"]["track_geojson"]["coordinates"][0]
+        assert abs(lat - 48.07) < 0.01 and abs(lon - 9.35) < 0.01, (lat, lon)
+    d = _detail(client, fremd, sid)
+    assert d["place_name"] == "Point Nemo"
+    lon, lat = d["analysis"]["track_geojson"]["coordinates"][0]
+    assert lat < -40 and lon < -100, (lat, lon)
 
 
 def test_feed_zeigt_point_nemo_statt_des_spots(client):
@@ -307,8 +326,8 @@ def test_teilen_link_verbirgt_ebenfalls(client):
     assert lat < -40 and lon < -100, (lat, lon)
 
 
-def test_rohdaten_sind_ebenfalls_versetzt(client):
-    """Der direkteste Weg an die Koordinaten — hier ist die Versetzung am wichtigsten."""
+def test_rohdaten_nur_fuer_den_besitzer_und_echt(client):
+    """Der direkteste Weg an die Koordinaten: nur der Besitzer kommt hin, und der sieht seit 18.11.2026 echt."""
     kopf = _konto(client, "ort-roh@b.de")
     uid = client.get("/api/auth/me", headers=kopf).json()["id"]
     sid = _session_mit_spur(uid, ort_sichtbarkeit="hide")
@@ -323,11 +342,11 @@ def test_rohdaten_sind_ebenfalls_versetzt(client):
     storage.save_gps_chunk(uuid, 0, [[0, 48.07, 9.35, 5.0, 120, 3.0],
                                      [1000, 48.071, 9.351, 5.2, 121, 3.0]])
 
-    r = client.get(f"/api/sessions/{sid}/raw", headers=kopf)
-    assert r.status_code == 200, r.text
-    d = r.json()
-    assert d["gps_lat"] and d["gps_lat"][0] < -40, d["gps_lat"]
-    assert d["gps_lon"][0] < -100, d["gps_lon"]
+    # Rohdaten gibt es nur fuer den Besitzer (Fremde: 404) — und der sieht seit 18.11.2026 den echten Ort.
+    fremd = _konto(client, "ort-roh-fremd@b.de")
+    assert client.get(f"/api/sessions/{sid}/raw", headers=fremd).status_code == 404
+    eigen = client.get(f"/api/sessions/{sid}/raw", headers=kopf).json()
+    assert abs(eigen["gps_lat"][0] - 48.07) < 0.01, eigen["gps_lat"]
 
 
 def test_spotkarte_zaehlt_verborgene_nicht_mit(client):

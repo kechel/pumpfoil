@@ -1,7 +1,7 @@
 // Österreichisch (mit a bissl Dialekt-Färbung). Fehlendi Keys falln auf de zruck.
 const deAT: Record<string, string> = {
-  "hideloc.hint": "Ohne Hakerl: deine Aufnahmen bleibn sichtbar — nur net, wost gfahrn bist. D'Kartn und da Spot-Name zeigen dann Point Nemo, mittn im Pazifik. Dass dort kaner pumpt, siagt a jeder sofort.",
-  "hideloc.scope": "Sichtbar bleibn: d'Streckn, olle Zahlen, dei Name und dei Ausruestung. Versteckt wird: da Spot, d'Position auf da Kartn und d'Ortszeit.",
+  "hideloc.hint": "Ohne Hakerl: deine Aufnahmen bleiben sichtbar — nur nicht, wo du gefahren bist. Alle außer dir und deinen Freunden sehen dann auf der Karte und als Spotname Point Nemo, mitten im Pazifik. Dass dort niemand pumpt, sieht jeder sofort.",
+  "hideloc.scope": "Für alle sichtbar: die gefahrene Strecke, alle Zahlen, dein Name und deine Ausrüstung. Verborgen vor allen außer dir und deinen Freunden: der Spot, die Position auf der Karte und die Ortszeit.",
   "hideloc.single": "Gilt sofort fuer olle deine Aufnahmen, a fuer de aeltern. Einzelne kannst in ihrer Detailansicht wieda freigeben — oda umgekehrt nur einzelne verstecken.",
   "hideloc.switch": "Den Ort von meine Aufnahmen anzeigen",
   "hidetime.title": "Uhrzeit anzeigen",
@@ -27,10 +27,10 @@ const deAT: Record<string, string> = {
   "badge.appstore": "Laden im App Store",
   "badge.play": "Jetzt bei Google Play",
   "hideloc.title": "Ort anzeigen",
-  "sd.ortAktiv": "versteckt",
+  "sd.ortAktiv": "für andere verborgen",
   "sd.ortLabel": "Ort von dera Aufnahme",
   "sd.ortProfil": "Ort: wia im Profil",
-  "sd.ortTitle": "Versteckt haasst: Kartn und Spot-Name zeigen Point Nemo — fuer olle, a fuer di. D'Streckn selba bleibt sichtbar.",
+  "sd.ortTitle": "Verborgen heißt: andere sehen auf der Karte und als Spotname Point Nemo. Nur du und deine Freunde sehen den echten Ort. Die Strecke selbst bleibt sichtbar.",
   "sd.ortVerbergen": "Ort: verstecken",
   "sd.ortZeigen": "Ort: zeigen",
   "shared.hint": "Fuer de Aufnahmen gibts an Link, mit dem sie a jeder anschaun kann — a ohne Anmeldung. Do nimmst'n wieda zrugg.",

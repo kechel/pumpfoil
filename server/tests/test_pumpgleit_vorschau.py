@@ -74,7 +74,7 @@ def test_vorschau_nur_admin_und_schreibt_nichts(client, monkeypatch):
     stempel, res_vorher = s.updated_at, (s.result.segments_json, s.result.pump_count, s.result.best_glide_s)
     db.close()
     r = client.get(f"/api/sessions/{sid}?pumpgleit=1", headers=auth)
-    assert r.status_code == 200 and r.headers["etag"].endswith('-pg"')
+    assert r.status_code == 200 and '-pg' in r.headers["etag"]
     a = r.json()["analysis"]
     assert a and a.get("segments"), "Testsession braucht mindestens einen Lauf"
     assert a["metrics"]["pumpgleit"]["version"] == PG.VERSION

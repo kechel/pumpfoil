@@ -11,8 +11,8 @@
 // beim Build). YouTube und die Kanalbeschreibung folgen derselben Trennung — Details in
 // brand/social/kanal-beschreibung-README.md.
 const ptPT: Record<string, string> = {
-  "hideloc.hint": "Sem o visto: as tuas gravações continuam visíveis — só não onde andaste. O mapa e o nome do spot mostram então Point Nemo, no meio do Pacífico. Ali não bombeia ninguém, e vê-se logo.",
-  "hideloc.scope": "Continuam visíveis: o percurso, todos os números, o teu nome e o teu material. Ficam escondidos: o spot, a posição no mapa e a hora local.",
+  "hideloc.hint": "Sem o visto: as tuas gravações continuam visíveis — só não o sítio onde andaste. Todos menos tu e os teus amigos veem então Point Nemo no mapa e como nome do spot, no meio do Pacífico. Ninguém faz pump lá, e toda a gente percebe logo.",
+  "hideloc.scope": "Visível para todos: o percurso, todos os números, o teu nome e o teu equipamento. Oculto para todos menos tu e os teus amigos: o spot, a posição no mapa e a hora local.",
   "hideloc.single": "Vale já para todas as tuas gravações, incluindo as antigas. Podes voltar a mostrar algumas no ecrã de detalhe delas — ou, ao contrário, esconder só algumas.",
   "hideloc.switch": "Mostrar o local das minhas gravações",
   "hidetime.title": "Mostrar a hora",
@@ -38,10 +38,10 @@ const ptPT: Record<string, string> = {
   "badge.appstore": "Descarregar na App Store",
   "badge.play": "Disponível no Google Play",
   "hideloc.title": "Mostrar o local",
-  "sd.ortAktiv": "escondido",
+  "sd.ortAktiv": "oculto para os outros",
   "sd.ortLabel": "Local desta gravação",
   "sd.ortProfil": "Local: como no perfil",
-  "sd.ortTitle": "Escondido quer dizer que o mapa e o nome do spot mostram Point Nemo — para todos, tu incluído. O percurso em si continua visível.",
+  "sd.ortTitle": "Oculto significa: os outros veem Point Nemo no mapa e como nome do spot. Só tu e os teus amigos veem o sítio real. O percurso continua visível.",
   "sd.ortVerbergen": "Local: esconder",
   "sd.ortZeigen": "Local: mostrar",
   "shared.hint": "Estas gravações têm uma ligação com que qualquer pessoa as pode ver — sem conta. É aqui que a retiras.",

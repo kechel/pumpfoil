@@ -228,13 +228,32 @@ _VALID_LABELS = {"pump", "glide", "not_foiling"}
 _OUT_VERSION = 14
 
 
-def _ort_verborgen(s: models.Session) -> bool:
-    """Gilt „Ort verbergen" fuer diese Aufnahme? Aufnahme schlaegt Profil (s. ortverbergen).
+def _ort_verborgen(s: models.Session, echt: bool = False) -> bool:
+    """Wird der Ort dieser Aufnahme fuer DIESEN Betrachter versetzt? Aufnahme schlaegt Profil (s. ortverbergen).
 
-    AUCH FUER DEN BESITZER (Jan, 25.09.2026): wer verbirgt, soll sich selbst an Point Nemo sehen
-    — „dann weiss man: so darf auch jeder andere sehen". Deshalb kein Betrachter-Argument.
+    `echt` = der Betrachter darf den echten Ort sehen (`_sieht_echten_ort`): Besitzer und bestaetigte Freunde
+    (Jan, 18.11.2026 — kehrt die Fassung vom 25.09. „auch der Besitzer sieht Point Nemo" und die Freunde-Regel vom
+    15.10. „verborgene Orte bleiben verborgen" um). Alles, was fuer alle gleich ist (Feed, Spot-Seiten, Teilen-Link
+    und -Karte, Chat, MCP), ruft ohne `echt` und versetzt weiter.
     """
+    if echt:
+        return False
     return ortverbergen.ist_verborgen(s, ortverbergen.profil_verbirgt(getattr(s, "user", None)))
+
+
+def _ort_fuer_andere_verborgen(s: models.Session) -> bool:
+    """Die Einstellung selbst (fuer das Abzeichen „fuer andere verborgen"), unabhaengig vom Betrachter."""
+    return ortverbergen.ist_verborgen(s, ortverbergen.profil_verbirgt(getattr(s, "user", None)))
+
+
+def _sieht_echten_ort(db: DbSession, s: models.Session, uid: int | None) -> bool:
+    """Besitzer oder bestaetigter Freund des Besitzers (Jan, 18.11.2026)."""
+    if not uid:
+        return False
+    if uid == s.user_id:
+        return True
+    from .. import freunde
+    return freunde.ist_freund(db, uid, s.user_id)
 
 
 def _spur_fuer_ausgabe(result: models.AnalysisResult, verbergen: bool):
@@ -607,12 +626,15 @@ def _owner_weight_kg(s: models.Session, owned: bool = True) -> int | None:
 
 def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, owned: bool = True,
                  owner_name: str | None = None, owner_avatar_url: str | None = None,
-                 sens: str | None = None, video_url: str | None = None) -> SessionOut:
+                 sens: str | None = None, video_url: str | None = None, ort_echt: bool | None = None) -> SessionOut:
+    # Echter Ort trotz Ort verbergen: Besitzer (owned) immer, Freunde nur, wenn der Aufrufer es sagt (Jan 18.11.2026).
+    if ort_echt is None:
+        ort_echt = owned
     # „Uhrzeit verbergen" (17.11.2026, app/zeitverbergen.py): fuer ANDERE auf 12:00 Ortszeit des Tages geschoben, Dauer
     # bleibt; der Besitzer (owned) sieht immer die echte Zeit. Ortszeit wie unten in `tz`.
     _zv = (not owned) and zeitverbergen.profil_verbirgt(getattr(s, "user", None))
     _zd = (zeitverbergen.verschiebung(s.started_at, ortverbergen.ort_fuer_ausgabe(
-        _ort_verborgen(s), s.place_name, s.place_lat, s.place_lon)[1]) if _zv else timedelta(0))
+        _ort_verborgen(s, ort_echt), s.place_name, s.place_lat, s.place_lon)[1]) if _zv else timedelta(0))
     return SessionOut(
         id=s.id,
         owner_id=s.user_id,
@@ -660,13 +682,15 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         # ORT VERBERGEN: statt des echten Spots der Platzhalter. Kein Gewaessername (der waere
         # ein Hinweis) und keine Spot-ID (sonst haengt die Aufnahme weiter an der echten
         # Spot-Seite). Das Abzeichen „Position verborgen" setzt die Oberflaeche aus `ort_verborgen`.
-        place_name=(ortverbergen.NEMO_NAME if _ort_verborgen(s) else (s.place_name or None)),
-        place_water=(None if _ort_verborgen(s) else (s.place_water or None)),
-        spot_id=(None if _ort_verborgen(s) else s.spot_id),
-        ort_verborgen=_ort_verborgen(s),
+        place_name=(ortverbergen.NEMO_NAME if _ort_verborgen(s, ort_echt) else (s.place_name or None)),
+        place_water=(None if _ort_verborgen(s, ort_echt) else (s.place_water or None)),
+        spot_id=(None if _ort_verborgen(s, ort_echt) else s.spot_id),
+        # Die EINSTELLUNG (fuer andere verborgen), nicht ob DIESE Antwort versetzt ist — der Besitzer sieht seinen
+        # echten Ort und trotzdem das Abzeichen „fuer andere verborgen".
+        ort_verborgen=_ort_fuer_andere_verborgen(s),
         ort_sichtbarkeit=s.ort_sichtbarkeit,
         # Ortszeit des Spots — Clients formatieren damit; bei „Ort verbergen" UTC (Ortszeit = Ortsangabe).
-        tz=ortverbergen.ort_fuer_ausgabe(_ort_verborgen(s), s.place_name, s.place_lat, s.place_lon)[1],
+        tz=ortverbergen.ort_fuer_ausgabe(_ort_verborgen(s, ort_echt), s.place_name, s.place_lat, s.place_lon)[1],
         caption=s.caption or None,
         youtube_url=s.youtube_url or None,
         # Erstes Video EGAL welcher Plattform (IG/TikTok/YouTube) — nur für anzeige-fähige
@@ -685,7 +709,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
             sens=((sens if sens is not None else (s.user.foil_sensitivity or "normal") if (owned and s.user) else "normal")
                   if (with_analysis and owned) else "normal"),
             session=s,
-            ort_verbergen=_ort_verborgen(s),
+            ort_verbergen=_ort_verborgen(s, ort_echt),
         ) if with_analysis else None,
     )
 
@@ -2822,6 +2846,9 @@ def get_session(
     # im Katalog aendert die Session nicht. Ohne das zeigte die Detailseite nach der
     # Zusammenfuehrung „Gong TRAIL V3 / V3 ATMO PERF" weiter den alten Namen (Jans Befund 04.10.).
     import zlib as _zlib
+    # Echter Ort fuer Besitzer und Freunde (18.11.2026): haengt am Betrachter -> ins ETag, sonst bekaeme ein neuer Freund
+    # per 304 weiter die versetzte Fassung.
+    _ort_echt = _sieht_echten_ort(db, s, user.id)
     try:
         from .. import teams as _teams
         _events = _teams.session_events(db, s, user.id)
@@ -2831,7 +2858,7 @@ def get_session(
     _ausr = json.dumps([_resolve_foil(db, s), _resolve_setup(db, s, s.user_id == user.id), _events,
                         (s.result.sprint_json if s.result else None)],
                        sort_keys=True, default=str)
-    etag = f'W/"{_OUT_VERSION}-{dv}-{like_count}-{int(liked)}-c{comment_count}{"k" if kommentare.aus(s.user) else ""}-{_zlib.crc32(_ausr.encode()):08x}{"-brett" if brett_neu else ""}{("-v3" + v3_name) if v3_name else ""}{"-pg" if pg_neu else ""}{PA.etag_teil()}"'
+    etag = f'W/"{_OUT_VERSION}-{dv}-{like_count}-{int(liked)}-c{comment_count}{"k" if kommentare.aus(s.user) else ""}-{_zlib.crc32(_ausr.encode()):08x}{"-brett" if brett_neu else ""}{("-v3" + v3_name) if v3_name else ""}{"-pg" if pg_neu else ""}{PA.etag_teil()}{"-oe" if _ort_echt else ""}"'
     if request.headers.get("if-none-match") == etag:
         return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "private, no-cache"})
     # Gewässer-Name per OSM auflösen — im HINTERGRUND (nicht blockierend). place_name is None
@@ -2843,6 +2870,7 @@ def get_session(
         s, with_analysis=True, owned=(s.user_id == user.id),
         owner_name=owner_label(s.user.display_name, s.user.id) if s.user else None,
         owner_avatar_url=s.user.avatar_url if s.user else None,
+        ort_echt=_ort_echt,
     )
     out.foil = _resolve_foil(db, s)
     out.setup = _resolve_setup(db, s, s.user_id == user.id)
@@ -3806,7 +3834,7 @@ def get_raw(
     # ORT VERBERGEN: die Rohdaten sind der direkteste Weg an die Koordinaten — hier ist die
     # Versetzung am wichtigsten. Versetzt wird die ganze Spur auf einmal, damit die Abstaende
     # untereinander stimmen; Luecken (None) bleiben Luecken.
-    if _ort_verborgen(s):
+    if _ort_verborgen(s, _sieht_echten_ort(db, s, user.id)):
         paare = [(la, lo) for la, lo in zip(gps_lat, gps_lon) if la is not None and lo is not None]
         if paare:
             versetzt = iter(ortverbergen.versetzen(paare))
@@ -4013,7 +4041,7 @@ def get_raw_track(
     if gps and pts[-1] is not gps[-1]:
         pts.append(gps[-1])
     zeilen = [[round(float(r[1]), 6), round(float(r[2]), 6), int(r[0])] for r in pts]
-    if _ort_verborgen(s):
+    if _ort_verborgen(s, _sieht_echten_ort(db, s, user.id)):
         zeilen = _wie_spur_versetzen(s, zeilen)
     return {"punkte": [[z[2], z[0], z[1]] for z in zeilen]}
 
@@ -4045,7 +4073,7 @@ def get_attempts(
     Bereichs liegt (also in keiner Statistik der Session auftaucht).
     """
     s = _readable(db, session_id, user)
-    verborgen = _ort_verborgen(s)
+    verborgen = _ort_verborgen(s, _sieht_echten_ort(db, s, user.id))
     leer: dict = {"attempts": []}
     gps = storage.load_gps(s.session_uuid)
     if len(gps) < 3:
@@ -4195,7 +4223,7 @@ def get_carves(
     counts = {"s": 0, "m": 0, "l": 0}
     for cv in carves:
         counts[cv["bucket"]] += 1
-    if _ort_verborgen(s):
+    if _ort_verborgen(s, _sieht_echten_ort(db, s, user.id)):
         arcs = [_wie_spur_versetzen(s, arc) for arc in arcs]
     return {"g": [round(float(x), 2) for x in g_out], "carves": carves,
             "arcs": arcs, "counts": counts}
@@ -4385,7 +4413,7 @@ def session_wind(
 
     Bei „Ort verbergen" nichts: die Windwerte einer Koordinate verraten grob den Ort."""
     s = _readable(db, session_id, _user)
-    if _ort_verborgen(s) or zeitverbergen.gilt(s.user, _user.id):   # Stundenwerte verraeten die Uhrzeit
+    if _ort_verborgen(s, _sieht_echten_ort(db, s, _user.id)) or zeitverbergen.gilt(s.user, _user.id):   # Stundenwerte verraeten die Uhrzeit
         return {"wind": None}
     from ..sessionwind import session_wind as _wind
     w = _wind(s.id, s.place_lat, s.place_lon, s.started_at, s.ended_at)
@@ -4437,7 +4465,7 @@ def session_manoever(
     `items[].i` ist der Index in die getrimmte Spur (= track_geojson). Ohne Windrichtung (kein Ort,
     Ort verborgen, Open-Meteo nicht erreichbar) gibt es keine Einordnung -> leer."""
     s = _readable(db, session_id, _user)
-    if (sportprofil.profil(s.sport_class)["gruppe"] != "wind" or _ort_verborgen(s)
+    if (sportprofil.profil(s.sport_class)["gruppe"] != "wind" or _ort_verborgen(s, _sieht_echten_ort(db, s, _user.id))
             or zeitverbergen.gilt(s.user, _user.id)):   # Wind je Stunde -> grob die Uhrzeit
         return dict(MANOEVER_LEER)
     return manoever_gecacht(db, s)

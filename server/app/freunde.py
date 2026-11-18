@@ -161,21 +161,9 @@ def push(db: Session, an: int, art: str, url: str, **kw) -> None:
 
 
 def _spot_fuer_freunde(db: Session, u: models.User, spots: dict) -> int | None:
-    """Der Spot, den Freunde sehen — `None` bei „Ort verbergen" (S-037, Jan 29.10.2026).
-
-    Dann heisst es nur „pumpt gerade", ohne Spot, in Liste UND Push. Verborgen ist es, wenn das
-    Profil verbirgt oder eine Aufnahme aus dem Signal-Fenster selbst auf „verbergen" steht — der
-    Spot kommt aus genau diesen Aufnahmen (`devices._zustand`), und welche es war, sagt `_zustand`
-    nicht. Lieber einmal zu vorsichtig als den Ort einer verborgenen Session verraten."""
-    from . import ortverbergen
-    from .api.devices import SIGNAL_FENSTER_H, _spot_des_nutzers
-    if ortverbergen.profil_verbirgt(u):
-        return None
-    seit = datetime.now(timezone.utc) - timedelta(hours=SIGNAL_FENSTER_H)
-    if (db.query(models.Session.id)
-            .filter(models.Session.user_id == u.id, models.Session.ort_sichtbarkeit == "hide",
-                    models.Session.started_at > seit).first()) is not None:
-        return None
+    """Der Spot, den Freunde sehen — seit 18.11.2026 AUCH bei „Ort verbergen" (Jan: Besitzer und Freunde sehen den
+    echten Ort; vorher S-037 vom 29.10.: dann nur „pumpt gerade" ohne Spot). Geht nur an bestaetigte Freunde."""
+    from .api.devices import _spot_des_nutzers
     return _spot_des_nutzers(db, u.id, spots)
 
 

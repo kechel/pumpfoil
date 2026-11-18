@@ -1,7 +1,7 @@
 // Schwiizerdütsch (Schweizer Mundart). Fehlendi Keys falled uf Hochdütsch (de) zrugg.
 const gsw: Record<string, string> = {
-  "hideloc.hint": "Ohni Hääggli: dini Ufnahme blibed sichtbar — nur nid, wo du gfahre bisch. D Charte und de Spot-Name zeiged dann Point Nemo, mitte im Pazifik. Dass det niemert pumpt, gseht jede sofort.",
-  "hideloc.scope": "Sichtbar blibed: d Strecki, alli Zahle, din Name und dini Uusruestig. Versteckt wird: de Spot, d Position uf de Charte und d Ortsziit.",
+  "hideloc.hint": "Ohni Hääggli: dini Ufnahme blibed sichtbar — nur nid, wo du gfahre bisch. Alli usser dir und dine Fründ gseh dänn uf de Charte und als Spot-Name Point Nemo, mitte im Pazifik. Dass det niemert pumpt, gseht jede sofort.",
+  "hideloc.scope": "Für alli sichtbar: d Strecki, alli Zahle, din Name und dini Uusruestig. Versteckt vor allne usser dir und dine Fründ: de Spot, d Position uf de Charte und d Ortsziit.",
   "hideloc.single": "Gilt sofort fuer alli dini Ufnahme, au fuer die eltere. Einzelni chasch i ihrer Detail-Aasicht wieder frei gee — oder umgekehrt nur einzelni verstecke.",
   "hideloc.switch": "De Ort vo mine Ufnahme aazeige",
   "hidetime.title": "Uhrziit aazeige",
@@ -27,10 +27,10 @@ const gsw: Record<string, string> = {
   "badge.appstore": "Laden im App Store",
   "badge.play": "Jetzt bei Google Play",
   "hideloc.title": "Ort aazeige",
-  "sd.ortAktiv": "versteckt",
+  "sd.ortAktiv": "für anderi versteckt",
   "sd.ortLabel": "Ort vo dere Ufnahm",
   "sd.ortProfil": "Ort: wie im Profil",
-  "sd.ortTitle": "Versteckt heisst: Charte und Spot-Name zeiged Point Nemo — fuer alli, au fuer di. D Strecki selber blibt sichtbar.",
+  "sd.ortTitle": "Versteckt heisst: anderi gseh uf de Charte und als Spot-Name Point Nemo. Nur du und dini Fründ gseh de echt Ort. D Strecki selber blibt sichtbar.",
   "sd.ortVerbergen": "Ort: verstecke",
   "sd.ortZeigen": "Ort: zeige",
   "shared.hint": "Fuer die Ufnahme gits en Link, mit dem sie jede aaluege cha — au ohni Aameldig. Da nimmsch ne wieder zrugg.",

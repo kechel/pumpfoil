@@ -190,14 +190,15 @@ def test_push_texte_sprache(art):
 
 
 @pytest.mark.parametrize("wie", ["profil", "session"])
-def test_ort_verbergen_zeigt_freunden_keinen_spot(client, monkeypatch, wie):
-    """S-037 (29.10.2026): wer seinen Ort verbirgt, „pumpt gerade" fuer Freunde ohne Spot —
-    in der Liste, auf der Spot-Seite und im Push."""
+def test_ort_verbergen_zeigt_freunden_trotzdem_den_spot(client, monkeypatch, wie):
+    """Jan, 18.11.2026: Besitzer und Freunde sehen den echten Ort, auch bei „Ort verbergen" (kehrt S-037 vom
+    29.10.2026 um). Fremde sehen weiter nichts davon."""
     from app import freunde, models
     from app.api import devices
     from app.db import SessionLocal
     k = secrets.token_hex(3)
     a, b = _konto(client, f"fr-hide-a-{k}@t.de"), _konto(client, f"fr-hide-b-{k}@t.de")
+    c = _konto(client, f"fr-hide-c-{k}@t.de")
     _befreunden(client, a, b)
     sid_b = _session(b[0], tage=0)
     db = SessionLocal()
@@ -217,19 +218,16 @@ def test_ort_verbergen_zeigt_freunden_keinen_spot(client, monkeypatch, wie):
     monkeypatch.setattr(devices, "_aktive_nutzer", lambda db: {b[0]})
     monkeypatch.setattr(devices, "_spot_des_nutzers", lambda db, uid, spots: spot_id)
     aktiv = client.get("/api/friends/active", headers=a[1]).json()
-    assert [(f["user_id"], f["spot_id"], f["spot"]) for f in aktiv] == [(b[0], None, None)]
-    fa = client.get("/api/community/spot-active", headers=a[1]).json()
-    assert fa["friends"] == []
-    hier = client.get(f"/api/community/sessions-today?since_ms=0&spot={spot_id}&sport=all", headers=a[1]).json()
-    assert not hier.get("friends_here")
+    assert [(f["user_id"], f["spot_id"]) for f in aktiv] == [(b[0], spot_id)]
+    assert client.get("/api/friends/active", headers=c[1]).json() == []
     gesendet = []
-    monkeypatch.setattr(freunde, "push", lambda db, an, art, url, **kw: gesendet.append((an, art, kw)))
+    monkeypatch.setattr(freunde, "push", lambda db, an, art, url, **kw: gesendet.append((an, art)))
     db = SessionLocal()
     try:
         freunde.melden(db)
     finally:
         db.close()
-    assert gesendet == [(a[0], "pumpt_ohne", {"n": gesendet[0][2]["n"]})]
+    assert gesendet == [(a[0], "pumpt")]
 
 
 def test_namenssuche_ohne_vollstaendige_sessionliste(client):

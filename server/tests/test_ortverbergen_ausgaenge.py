@@ -153,20 +153,25 @@ def test_kein_endpunkt_verraet_den_echten_ort(client):
     r = client.get("/api/community/spot/weather?spot=Point%20Nemo", headers=fremd)
     assert r.status_code == 404, r.text
 
-    # Detailseite: Zeitzone UTC, auch fuer den Besitzer selbst.
-    assert client.get(f"/api/sessions/{sid}", headers=kopf).json()["tz"] == "UTC"
+    # Detailseite: Zeitzone UTC fuer Fremde; der Besitzer sieht seit 18.11.2026 die echte Ortszeit (Jan).
+    assert client.get(f"/api/sessions/{sid}", headers=fremd).json()["tz"] == "UTC"
+    assert client.get(f"/api/sessions/{sid}", headers=kopf).json()["tz"] != "UTC"
 
 
-def test_startversuche_und_rohspur_liegen_an_point_nemo(client):
+def test_startversuche_fremd_an_point_nemo_besitzer_echt(client):
+    """Fremde: Startversuche an Point Nemo. Besitzer (Jan 18.11.2026): Versuche und Rohspur am echten Ort."""
     kopf, uid = _konto(client, "ort-versuche@b.de")
+    fremd, _ = _konto(client, "ort-versuche-fremd@b.de")
     sid = _verborgene_session(uid, _spot())
     _cache_leeren()
-    versuche = client.get(f"/api/sessions/{sid}/attempts", headers=kopf).json()["attempts"]
+    versuche = client.get(f"/api/sessions/{sid}/attempts", headers=fremd).json()["attempts"]
     assert versuche, "Testspur ohne Startversuch — der Test prueft dann nichts"
     for v in versuche:
         assert all(p[0] < -40 and p[1] < -100 for p in v["points"]), v["points"][:2]
+    eigen = client.get(f"/api/sessions/{sid}/attempts", headers=kopf).json()["attempts"]
+    assert all(p[0] > 40 for v in eigen for p in v["points"])
     roh = client.get(f"/api/sessions/{sid}/raw-track", headers=kopf).json()["punkte"]
-    assert roh and all(p[1] < -40 and p[2] < -100 for p in roh), roh[:2]
+    assert roh and all(p[1] > 40 for p in roh), roh[:2]
     assert isinstance(roh[0][0], int), "Spalte 0 bleibt die Zeit"
 
 

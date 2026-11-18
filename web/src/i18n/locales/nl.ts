@@ -1,8 +1,8 @@
 // Niederländisch (nl). Struktur 1:1 zu de.ts (Quelle der Wahrheit).
 // Erstübersetzung maschinell (informelles je/jij); Muttersprachler-Review empfohlen.
 const nl: Record<string, string> = {
-  "hideloc.hint": "Zonder vinkje: je opnames blijven zichtbaar — alleen niet waar je hebt gevaren. De kaart en de spotnaam tonen dan Point Nemo, midden in de Stille Oceaan. Daar pompt niemand, en dat zie je meteen.",
-  "hideloc.scope": "Blijft zichtbaar: het gevaren spoor, alle cijfers, je naam en je materiaal. Verborgen worden: de spot, de positie op de kaart en de lokale tijd.",
+  "hideloc.hint": "Zonder vinkje: je opnames blijven zichtbaar — alleen niet waar je hebt gevaren. Iedereen behalve jij en je vrienden ziet dan Point Nemo op de kaart en als spotnaam, midden in de Stille Oceaan. Daar pompt niemand, en dat ziet iedereen meteen.",
+  "hideloc.scope": "Zichtbaar voor iedereen: de gevaren route, alle cijfers, je naam en je uitrusting. Verborgen voor iedereen behalve jij en je vrienden: de spot, de positie op de kaart en de lokale tijd.",
   "hideloc.single": "Geldt meteen voor al je opnames, ook de oudere. Losse opnames kun je in hun detailweergave weer vrijgeven — of juist alleen losse verbergen.",
   "hideloc.switch": "De locatie van mijn opnames tonen",
   "hidetime.title": "Tijd tonen",
@@ -28,10 +28,10 @@ const nl: Record<string, string> = {
   "badge.appstore": "Download in de App Store",
   "badge.play": "Ontdek het op Google Play",
   "hideloc.title": "Locatie tonen",
-  "sd.ortAktiv": "verborgen",
+  "sd.ortAktiv": "verborgen voor anderen",
   "sd.ortLabel": "Locatie van deze opname",
   "sd.ortProfil": "Locatie: zoals in je profiel",
-  "sd.ortTitle": "Verborgen betekent dat kaart en spotnaam Point Nemo tonen — voor iedereen, ook voor jou. Het spoor zelf blijft zichtbaar.",
+  "sd.ortTitle": "Verborgen betekent: anderen zien Point Nemo op de kaart en als spotnaam. Alleen jij en je vrienden zien de echte plek. De route zelf blijft zichtbaar.",
   "sd.ortVerbergen": "Locatie: verbergen",
   "sd.ortZeigen": "Locatie: tonen",
   "shared.hint": "Deze opnames hebben een link waarmee iedereen ze kan bekijken — zonder account. Hier neem je die terug.",
