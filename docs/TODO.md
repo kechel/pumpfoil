@@ -1690,6 +1690,9 @@ Entwurf zusammen mit A1.
     2 m/s^2 verwirft echte Werte (V6-Minute schlechter) -> verworfen. Erste 2/4 s nach Luecke verwerfen: keine Wirkung.
     Gewicht je Lauf nach Guete: schlechter (0,46). Guete je Sprint-Fenster statt je Lauf: nicht besser (rho 0,41-0,62 wie
     je Lauf). Offen als Idee: Mittel zweier gleichzeitiger Aufnahmen (ungetestet, braucht Dreier mit Brett).
+  - **Wiedervorlage ~Mitte Februar 2027 (Jan 18.11.):** mit mehr Paaren nachmessen — `bauen.py` neu (sammelt alle Paare
+    bis heute), dann `paar_kombi.py`, `varianten.py`/`var_ausw.py raster`, `guete_paare.py`. Besonders: Paare von Suunto/
+    Polar/COROS/Amazfit/Huawei, Apple-Frage, Mittel zweier Aufnahmen. Anpassung = neue VERSION mit eigenem Stichtag.
 - C3 GPS-Wiederfinden nach Unterwasser-Luecke: heutige Erkennung (v3) macht es richtig (#20528 Trockenlauf 4 -> 2 Laeufe,
   Schein-Lauf weg); #20528 ist absichtlich festgehalten (auswertung_fest, u972). Nichts zu tun.
 - C4 Autofahrt verschiebt Wasser-Suchpunkt: die erkannten Fahrten waren schon raus (analyse_ausschluss), aber der langsame
