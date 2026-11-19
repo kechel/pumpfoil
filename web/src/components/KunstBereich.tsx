@@ -48,13 +48,15 @@ export function KunstLinie({ linie, klein = false, saat = 0, zeichnen }: { linie
     let t = 0;
     return len.map((l) => { const d = (zeichnen * l) / summe, v = t; t += d; return { l, d, v }; });
   }, [linie, zeichnen]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // opacity 0 bis zum eigenen Start (Jan 19.11.: sonst stand das runde Linienende eines spaeteren Laufs als Punkt
+  // schon die ganze Zeit da); `forwards` statt `both`, damit die Wartezeit den Grundstil (unsichtbar) behaelt.
   const anim = (i: number) => zeit ? {
-    strokeDasharray: zeit[i].l, strokeDashoffset: zeit[i].l,
+    strokeDasharray: zeit[i].l, strokeDashoffset: zeit[i].l, opacity: 0,
     animation: `kunstZiehen ${zeit[i].d}ms linear ${zeit[i].v}ms forwards`,
   } : undefined;
   return (
     <svg viewBox={`0 0 ${BOX} ${BOX}`} className="aspect-square w-full rounded-lg" style={{ background: NACHT }} role="img" aria-hidden="true">
-      {zeit && <style>{"@keyframes kunstZiehen{to{stroke-dashoffset:0}}"}</style>}
+      {zeit && <style>{"@keyframes kunstZiehen{from{opacity:1}to{stroke-dashoffset:0;opacity:1}}"}</style>}
       {flocken.map((f, i) => <circle key={i} cx={f.x} cy={f.y} r={f.r} fill="#ffffff" opacity={f.o} />)}
       {striche.map((p, i) => <polyline key={`g${i}`} points={p} fill="none" stroke={CYAN} strokeOpacity={0.22} strokeWidth={dick * 2.6} strokeLinecap="round" strokeLinejoin="round" style={anim(i)} />)}
       {striche.map((p, i) => <polyline key={`l${i}`} points={p} fill="none" stroke={CYAN} strokeWidth={dick} strokeLinecap="round" strokeLinejoin="round" style={anim(i)} />)}
