@@ -379,12 +379,21 @@ function LatestMedia() {
   const [soc, setSoc] = useState<Record<number, { liked: boolean; like_count: number; my_inappropriate: boolean }>>({});
   const [gemeldet, setGemeldet] = useState<Set<string>>(new Set());
   useEffect(() => {
-    api.communityLatestPhotos(30).then((ps) => {
+    // Erst der gespeicherte Stand (Service Worker, sofort da), dann frisch vom Netz und austauschen, sobald die Antwort
+    // kommt (Jan, 19.11.2026: „ruhig lokal first aber dann on-the-fly updaten") — vorher brauchte es ein zweites Neuladen.
+    let aktiv = true;
+    let frischDa = false;
+    const setzen = (ps: CommunityPhoto[], frisch = false) => {
+      if (!aktiv || (frischDa && !frisch)) return;     // kam der frische Stand zuerst, nicht mit dem alten ueberschreiben
+      if (frisch) frischDa = true;
       setMedia(ps);
       const init: Record<number, { liked: boolean; like_count: number; my_inappropriate: boolean }> = {};
       ps.forEach((p) => { init[p.session_id] = { liked: !!p.liked, like_count: p.like_count ?? 0, my_inappropriate: !!p.my_inappropriate }; });
       setSoc(init);
-    }).catch(() => {});
+    };
+    api.communityLatestPhotos(30).then((ps) => setzen(ps)).catch(() => {});
+    api.communityLatestPhotos(30, true).then((ps) => setzen(ps, true)).catch(() => {});
+    return () => { aktiv = false; };
   }, []);
   if (!media || media.length === 0) return null;
 

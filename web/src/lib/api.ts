@@ -1948,7 +1948,10 @@ export const api = {
   reportMedia: (art: "photo" | "video", id: number) =>
     req<{ reported: boolean; report_count: number; hidden: boolean }>(`/api/community/media/${art}/${id}/report`, { method: "POST" }),
   sessionBlockedMedia: (id: number) => req<{ photos: number; videos: number; total: number }>(`/api/sessions/${id}/blocked-media`),
-  communityLatestPhotos: (limit = 5) => req<CommunityPhoto[]>(`/api/community/latest-photos?limit=${limit}`),
+  // fresh: am Service Worker vorbei (dessen StaleWhileRevalidate-Regel laesst `fresh` aus) — „Latest media" zeigt erst den
+  // gespeicherten Stand und tauscht ihn gegen den frischen, sobald der da ist (Jan, 19.11.2026).
+  communityLatestPhotos: (limit = 5, fresh = false) =>
+    req<CommunityPhoto[]>(`/api/community/latest-photos?limit=${limit}${fresh ? "&fresh=1" : ""}`),
   topLiked: (period = "all") => req<CommunitySession[]>(`/api/community/top-liked?period=${period}`),
   topCommented: (period = "all") => req<CommunitySession[]>(`/api/community/top-commented?period=${period}`),
   toggleLike: (id: number) =>
