@@ -211,7 +211,8 @@ def linie(gps: list, von_ms: int, bis_ms: int, drehung: int, max_punkte: int = L
     return [[[int(round(x)), int(round(y))] for x, y in st] for st in z]
 
 
-def karte(gps: list, von_ms: int, bis_ms: int, fenster: list[tuple[int, int]], max_je_strich: int = 600) -> list[list[list[float]]]:
+def karte(gps: list, von_ms: int, bis_ms: int, fenster: list[tuple[int, int]], max_je_strich: int = 600,
+          mit_tempo: bool = False) -> list[list[list[float]]]:
     """Der echte Track zum Bild (Aufloesung, Jan 18.11.2026): dieselben Striche wie `linie`, aber als [lat, lon] ohne
     Drehung — Norden oben auf der Karte. Nur Punkte in Laeufen, je Strich gleichmaessig ausgeduennt."""
     striche, akt, akt_f = [], [], None
@@ -228,7 +229,10 @@ def karte(gps: list, von_ms: int, bis_ms: int, fenster: list[tuple[int, int]], m
             striche.append(akt)
             akt = []
         akt_f = f
-        akt.append([round(float(p[1]), 6), round(float(p[2]), 6)])
+        pt = [round(float(p[1]), 6), round(float(p[2]), 6)]
+        if mit_tempo:   # [lat, lon, m/s] — nur fuers Kartenbild (Speed-Farben); die JSON-Antwort bleibt [lat, lon]
+            pt.append(float(p[3]) if len(p) > 3 and p[3] is not None and float(p[3]) > 0 else 0.0)
+        akt.append(pt)
     if akt:
         striche.append(akt)
     out = []
@@ -309,7 +313,7 @@ def ergebnis(db: Session, e: models.TeamEvent, nr: int) -> list[dict]:
 # ---------------------------------------------------------------------------------------------- Karte als Bild ----
 
 KARTE_PX = 900          # Kantenlaenge des Kartenbildes (quadratisch wie die Linie)
-KARTE_FASSUNG = 2       # hochzaehlen, wenn sich das Aussehen aendert -> neuer Cache-Name
+KARTE_FASSUNG = 3       # hochzaehlen, wenn sich das Aussehen aendert -> neuer Cache-Name
 
 
 def karte_png(striche: list[list[list[float]]], ebene: str = "satellit", groesse: int = KARTE_PX) -> bytes:
@@ -317,6 +321,7 @@ def karte_png(striche: list[list[list[float]]], ebene: str = "satellit", groesse
     zoomen geht in den Session-Details). Kacheln wie das Teilen-Bild ueber `maptiles` (Plattencache, User-Agent,
     stiller Rueckfall auf Nachtblau); die Quellennennung wird wie dort FEST ins Bild gebrannt. Norden oben,
     flache Naeherung wie `sharecard` (ueber einen Spot genau genug, s. maptiles.hintergrund)."""
+    import colorsys
     import io
     import math
     from PIL import Image, ImageDraw
@@ -343,14 +348,33 @@ def karte_png(striche: list[list[list[float]]], ebene: str = "satellit", groesse
             img = hg.convert("RGB")
         d = ImageDraw.Draw(img)
         dick = max(3, round(W / 110))
-        # Dunkler Rand unter Cyan, sonst verschwindet die Linie auf hellem Wasser/Sand (wie die Leaflet-Karte).
-        for farbe, breite in (((11, 26, 51), dick * 2 + 4), ((34, 211, 238), dick)):
-            for st in striche:
-                if len(st) >= 2:
-                    pts = [xy(p[0], p[1]) for p in st]
-                    d.line(pts, fill=farbe, width=breite, joint="curve")
-                    for qx, qy in (pts[0], pts[-1]):          # runde Enden wie stroke-linecap: round
-                        d.ellipse((qx - breite / 2, qy - breite / 2, qx + breite / 2, qy + breite / 2), fill=farbe)
+        # Speed-Farben (Jan 19.11.2026) wie die Session-Karte im Web (trackColors.rampColor: hsl 240 -> 0, 85 %, 55 %),
+        # relativ zur Spur; 5./95. Perzentil, damit ein Doppler-Ausreisser die Skala nicht verzieht. Ohne Tempo: Cyan.
+        tempi = sorted(p[2] for p in pkte if len(p) > 2 and p[2] > 0)
+        lo, hi = (tempi[int(len(tempi) * 0.05)], tempi[int(len(tempi) * 0.95) - 1 if len(tempi) > 1 else 0]) if tempi else (0, 0)
+        def farbe_bei(v):
+            if hi <= lo:
+                return (34, 211, 238)
+            c = max(0.0, min(1.0, (v - lo) / (hi - lo)))
+            r, g, b = colorsys.hls_to_rgb((1 - c) * 240 / 360, 0.55, 0.85)
+            return (round(r * 255), round(g * 255), round(b * 255))
+        def rund(q, br, f):   # runde Enden/Gelenke wie stroke-linecap: round
+            d.ellipse((q[0] - br / 2, q[1] - br / 2, q[0] + br / 2, q[1] + br / 2), fill=f)
+        rand = dick * 2 + 4
+        for st in striche:    # dunkler Rand darunter, sonst verschwindet die Linie auf hellem Wasser/Sand
+            if len(st) >= 2:
+                pts = [xy(p[0], p[1]) for p in st]
+                d.line(pts, fill=(11, 26, 51), width=rand, joint="curve")
+                rund(pts[0], rand, (11, 26, 51)); rund(pts[-1], rand, (11, 26, 51))
+        for st in striche:
+            if len(st) >= 2:
+                pts = [xy(p[0], p[1]) for p in st]
+                for j in range(1, len(pts)):
+                    v = (st[j - 1][2] + st[j][2]) / 2 if len(st[j]) > 2 else 0
+                    f = farbe_bei(v)
+                    d.line((pts[j - 1], pts[j]), fill=f, width=dick)
+                    rund(pts[j], dick, f)
+                rund(pts[0], dick, farbe_bei(st[0][2] if len(st[0]) > 2 else 0))
         if hg is not None:
             fs = max(12, round(W / 36))
             d.text((round(W * 0.025), H - round(W * 0.025) - fs), maptiles.nennung(ebene), font=_font(fs, False),

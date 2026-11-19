@@ -386,7 +386,7 @@ def bild_karte_png(bild_id: int, ebene: str = "satellit", user: models.User = De
     if pfad.exists():
         daten = pfad.read_bytes()
     else:
-        daten = K.karte_png(K.karte(storage.load_gps(s.session_uuid), b.von_ms, b.bis_ms, _laeufe(db, s)), ebene)
+        daten = K.karte_png(K.karte(storage.load_gps(s.session_uuid), b.von_ms, b.bis_ms, _laeufe(db, s), mit_tempo=True), ebene)
         try:
             pfad.parent.mkdir(parents=True, exist_ok=True)
             tmp = pfad.with_suffix(".tmp")

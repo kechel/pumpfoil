@@ -237,16 +237,47 @@ export default function KunstBereich({ eventId }: { eventId: number }) {
   );
 }
 
+/** Doppeltipp/Doppelklick erkennen (Jan 19.11.2026: „double-tap / doubleclick auf das bild vergibt ein herz oder nimmt es
+ *  wieder weg"). Eigene Zeitmessung statt onDoubleClick — mobil feuert dblclick nicht ueberall verlaesslich. Ein einfacher
+ *  Klick wird um DOPPEL ms verzoegert, damit er beim zweiten Tipp verworfen werden kann. */
+const DOPPEL = 280;
+function useDoppeltipp(einfach: (() => void) | null, doppel: () => void) {
+  const uhr = useRef<number | null>(null);
+  useEffect(() => () => { if (uhr.current) clearTimeout(uhr.current); }, []);
+  return () => {
+    if (uhr.current) { clearTimeout(uhr.current); uhr.current = null; doppel(); return; }
+    uhr.current = window.setTimeout(() => { uhr.current = null; einfach?.(); }, DOPPEL);
+  };
+}
+
+/** Kurz aufleuchtendes grosses Herz in der Bildmitte nach einem Doppeltipp. */
+function HerzPuls({ an, voll }: { an: number; voll: boolean }) {
+  if (!an) return null;
+  return (
+    <span key={an} className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
+      <style>{"@keyframes kunstHerzPuls{0%{transform:scale(.4);opacity:0}25%{transform:scale(1.1);opacity:.95}70%{transform:scale(1);opacity:.9}100%{transform:scale(1.15);opacity:0}}"}</style>
+      <svg viewBox="0 0 24 24" className="h-1/3 w-1/3 drop-shadow-lg" fill={voll ? "#22d3ee" : "none"} stroke="#22d3ee" strokeWidth="2"
+        style={{ animation: "kunstHerzPuls 700ms ease-out forwards" }}>
+        <path d="M12 21s-7-4.35-9.5-8.5C.9 9.6 2.4 5.5 6.2 5.1 8.4 4.9 10 6.2 12 8.3c2-2.1 3.6-3.4 5.8-3.2 3.8.4 5.3 4.5 3.7 7.4C19 16.65 12 21 12 21z" />
+      </svg>
+    </span>
+  );
+}
+
 function GalerieBild({ b, runde, d, neu, meldung, onOeffnen }: { b: KunstBild; runde: KunstRunde; d: KunstEvent; neu: () => void;
   meldung: (x: unknown) => void; onOeffnen: () => void }) {
   const t = useT();
   const [gemeldet, setGemeldet] = useState(false);
   const abstimmen = runde.phase === "abstimmen" && d.teilnehmen && !b.eigen && !b.entfernt;
   const voll = runde.herzen_vergeben >= d.herzen_je_runde && !b.herz;
+  const [puls, setPuls] = useState(0);
+  const herzTippen = () => { if (abstimmen && !voll) { setPuls((x) => x + 1); api.kunstHerz(b.id).then(neu).catch(meldung); } };
+  const tipp = useDoppeltipp(onOeffnen, herzTippen);
   return (
     <div className={`rounded-xl border p-2 ${b.herz ? "border-brand-500" : "border-slate-700"} ${b.entfernt ? "opacity-50" : ""}`}>
-      <button type="button" onClick={onOeffnen} className="block w-full" aria-label={t("kunst.gross")}>
+      <button type="button" onClick={tipp} className="relative block w-full touch-manipulation select-none" aria-label={t("kunst.gross")}>
         <KunstLinie linie={b.linie} saat={b.id} />
+        <HerzPuls an={puls} voll={!b.herz} />
       </button>
       <div className="mt-2 flex items-center gap-2">
         {abstimmen && (
@@ -300,6 +331,8 @@ function AbstimmGalerie({ ids, start, runde, d, neu, meldung, onZu }: { ids: num
   const abstimmen = !!b && runde.phase === "abstimmen" && d.teilnehmen && !b.eigen && !b.entfernt;
   const voll = !!b && runde.herzen_vergeben >= d.herzen_je_runde && !b.herz;
   const herz = () => { if (b && abstimmen && !voll) api.kunstHerz(b.id).then(neu).catch(meldung); };
+  const [puls, setPuls] = useState(0);
+  const tipp = useDoppeltipp(null, () => { if (abstimmen && !voll) { setPuls((x) => x + 1); herz(); } });
   useEffect(() => {
     const taste = (e: KeyboardEvent) => {
       if (e.key === "Escape") onZu();
@@ -317,8 +350,9 @@ function AbstimmGalerie({ ids, start, runde, d, neu, meldung, onZu }: { ids: num
       <div className="relative w-full max-w-[min(92vw,74vh)] rounded-3xl p-3 shadow-2xl sm:p-4"
         style={{ background: "#020617", border: "1px solid rgba(34,211,238,0.35)", boxShadow: "0 0 0 1px rgba(255,255,255,0.06), 0 25px 60px rgba(0,0,0,0.6)" }}
         onClick={(e) => e.stopPropagation()}>
-        <div className={`rounded-2xl p-1.5 ${b.herz ? "bg-brand-500" : ""}`}>
+        <div className={`relative touch-manipulation select-none rounded-2xl p-1.5 ${b.herz ? "bg-brand-500" : ""}`} onClick={tipp}>
           <KunstLinie linie={b.linie} saat={b.id} />
+          <HerzPuls an={puls} voll={!b.herz} />
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-3" style={{ color: "#e2e8f0" }}>
           <span className="text-sm tabular-nums">{i + 1} / {ids.length}</span>
@@ -394,6 +428,7 @@ type Ergebnis = NonNullable<KunstRunde["ergebnis"]>[number];
 const TON_KUNST = "/media/sounds/gpskunst.mp3";
 const TON = "/media/sounds/winner-awards-484333.mp3";
 const STUMM = "podest-stumm";
+const ANSICHT = "kunst-ansicht";   // Galerie: "karte" oder leer (= Bild)
 const ZIEHEN = 5000;   // ms je Treppchen-Bild (Jan 19.11.: erst 3 s probiert, dann „mach mal 5s statt 3")
 const BLINK = 400;     // ms je Blinken (zweimal), danach Name + Herzen
 const STEHEN = 2000;   // ms steht das fertige Bild mit Name
@@ -586,10 +621,14 @@ function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: num
 function Galerie({ liste, start, onZu }: { liste: (Ergebnis & { runde?: number })[]; start: number; onZu: () => void }) {
   const t = useT();
   const [i, setI] = useState(start);
-  const [karte, setKarte] = useState(false);
+  // Bild | Karte wird gemerkt (Jan 19.11.2026) und gilt beim Blaettern weiter; Bilder ohne freigegebenen Ort zeigen
+  // trotzdem das Bild, ohne die Wahl zu aendern. „Abspielen" zeigt bis zum Blaettern das Bild.
+  const [karteGewaehlt, setKarteGewaehlt] = useState(() => lies(ANSICHT) === "karte");
+  const setKarte = (k: boolean) => { setKarteGewaehlt(k); setSpiel(0); schreib(ANSICHT, k ? "karte" : null); };
   const [spiel, setSpiel] = useState(0);   // „Abspielen" (Jan 19.11.2026): Linie nochmal fahren wie in der Enthuellung
   const z = liste[i];
-  const weiter = (d: number) => { setKarte(false); setSpiel(0); setI((x) => (x + d + liste.length) % liste.length); };
+  const karte = karteGewaehlt && !!z.karte && !spiel;
+  const weiter = (d: number) => { setSpiel(0); setI((x) => (x + d + liste.length) % liste.length); };
   useEffect(() => {
     const taste = (e: KeyboardEvent) => {
       if (e.key === "Escape") onZu();
@@ -619,17 +658,18 @@ function Galerie({ liste, start, onZu }: { liste: (Ergebnis & { runde?: number }
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-3 text-sm" style={{ color: "#cbd5e1" }}>
           {z.spot && <span>{z.spot}</span>}
-          <button type="button" onClick={() => { setKarte(false); setSpiel((x) => x + 1); }}
-            className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-2 py-0.5 text-xs font-semibold text-slate-100 hover:bg-slate-700">
+          <button type="button" onClick={() => setSpiel((x) => x + 1)}
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold" style={{ background: "#1e293b", color: "#f1f5f9" }}>
             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" /></svg>
             {t("kunst.abspielen")}
           </button>
           {z.session_id && <Link to={`/sessions/${z.session_id}`} className="text-brand-400 hover:underline">{t("kunst.zurSession")}</Link>}
           {z.karte && (
-            <span className="ml-auto inline-flex rounded-lg bg-slate-800 p-0.5 text-xs">
+            <span className="ml-auto inline-flex rounded-lg p-0.5 text-xs" style={{ background: "#1e293b" }}>   {/* feste Farben: Kasten immer dunkel */}
               {([false, true] as const).map((k) => (
                 <button key={String(k)} type="button" onClick={() => setKarte(k)} aria-pressed={karte === k}
-                  className={`rounded-md px-2 py-0.5 ${karte === k ? "bg-brand-500 font-semibold text-slate-950" : "text-slate-300 hover:text-slate-100"}`}>
+                  className="rounded-md px-2 py-0.5"
+                  style={karte === k ? { background: "#22d3ee", color: "#020617", fontWeight: 600 } : { color: "#cbd5e1" }}>
                   {k ? t("kunst.ansichtKarte") : t("kunst.ansichtBild")}
                 </button>
               ))}
