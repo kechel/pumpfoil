@@ -670,7 +670,15 @@ struct KunstErgebnisZeile: Decodable, Identifiable {
     var foto: String? = nil
     /// Nur in der Gesamtuebersicht gesetzt (nicht vom Server): Runde des Bilds.
     var runde: Int? = nil
+    /// Dauer und Strecke je Lauf, Index = Strich der Linie (Zaehler beim Abspielen, web 9557b224)
+    var laeufe: [KunstLaufWert]? = nil
     var id: Int { bild_id }
+}
+
+/// Ein Lauf eines Bilds: `s` Sekunden, `m` Meter (Server rundet m auf ganze; Double, falls doch mal Komma).
+struct KunstLaufWert: Decodable {
+    let s: Double
+    let m: Double
 }
 
 struct KunstRundeDaten: Decodable {
@@ -977,6 +985,20 @@ private func kunstAnteile(_ laengen: [Double], _ f: Double) -> [CGFloat] {
     return aus
 }
 
+/// Aktiver Strich und Anteil darin (web `LaufZaehler`): erster noch nicht fertiger Strich, am Ende der letzte.
+/// Gleicher Zeitplan wie die Linie (`kunstAnteile`), damit Zahl und Strich zusammenpassen.
+private func kunstStand(_ laengen: [Double], _ f: Double) -> (i: Int, f: Double) {
+    let anteile: [CGFloat] = kunstAnteile(laengen, f)
+    guard !anteile.isEmpty else { return (i: 0, f: 0) }
+    let i: Int = anteile.firstIndex { (a: CGFloat) -> Bool in a < 1 } ?? (anteile.count - 1)
+    return (i: i, f: Double(anteile[i]))
+}
+
+/// Fortschritt 0…1 der Gesamtzeit seit `start`.
+private func kunstFortschritt(_ start: Date, _ jetzt: Date, _ dauer: Double, _ fertig: Bool) -> Double {
+    fertig ? 1 : min(1, max(0, jetzt.timeIntervalSince(start) / max(dauer, 0.1)))
+}
+
 /// Dauer, in der die Linie in Enthuellung und „Abspielen" gefahren wird (web ZIEHEN, 5 s).
 private let KUNST_ZIEHEN: Double = 5
 
@@ -1007,11 +1029,63 @@ private struct KunstLinieGefahren: View {
     private func leinwand(_ jetzt: Date) -> some View {
         let flocken: [KunstFlocke] = kunstSchnee(saat)
         let linien: [[CGPoint]] = striche
-        let f: Double = fertig ? 1 : min(1, max(0, jetzt.timeIntervalSince(start) / max(dauer, 0.1)))
+        let f: Double = kunstFortschritt(start, jetzt, dauer, fertig)
         let anteile: [CGFloat] = kunstAnteile(kunstLaengen(striche), f)
         return Canvas { (c: inout GraphicsContext, size: CGSize) in
             kunstZeichnen(&c, size, flocken, linien, 22, anteile)
         }
+    }
+}
+
+/// Zaehler unter der fahrenden Linie (web `LaufZaehler`, Jan 19.11.2026): Lauf n, Zeit und Strecke zaehlen live hoch,
+/// je Lauf ab 0; am Ende bleiben die Werte des letzten Laufs. Nur wenn je Strich ein Wert da ist. Neustart ueber
+/// `.id(...)` — dieselbe wie bei `KunstLinieGefahren`, damit beide im selben Moment starten.
+private struct KunstLaufZaehler: View {
+    let striche: [[CGPoint]]
+    let werte: [KunstLaufWert]?
+    let lang: String
+    var dauer: Double = KUNST_ZIEHEN
+    @State private var start = Date()
+    @State private var fertig = false
+
+    private var gueltig: [KunstLaufWert]? {
+        guard let w = werte, !w.isEmpty, w.count == striche.count else { return nil }
+        return w
+    }
+
+    var body: some View {
+        if let w = gueltig {
+            TimelineView(.animation(minimumInterval: nil, paused: fertig)) { ctx in
+                zeile(w, ctx.date)
+            }
+            .task {
+                start = Date()
+                fertig = false
+                try? await Task.sleep(nanoseconds: UInt64((dauer + 0.1) * 1_000_000_000))
+                if !Task.isCancelled { fertig = true }
+            }
+        }
+    }
+
+    private func zeile(_ w: [KunstLaufWert], _ jetzt: Date) -> some View {
+        let stand: (i: Int, f: Double) = kunstStand(kunstLaengen(striche), kunstFortschritt(start, jetzt, dauer, fertig))
+        let wert: KunstLaufWert = w[min(stand.i, w.count - 1)]
+        let sek: Int = Int((wert.s * stand.f).rounded())
+        let meter: Int = Int((wert.m * stand.f).rounded())
+        let zeit: String = String(sek / 60) + ":" + String(format: "%02d", sek % 60)
+        let weg: String = meter >= 1000 ? String(format: "%.2f km", Double(meter) / 1000) : String(meter) + " m"
+        return HStack(spacing: 12) {
+            if w.count > 1 {
+                Text(teamText("kunst.zaehler.lauf", lang, ["n": String(stand.i + 1)]))
+                    .foregroundStyle(Color(red: 148 / 255, green: 163 / 255, blue: 184 / 255))
+            }
+            Text(zeit).fontWeight(.semibold).foregroundStyle(Color(red: 241 / 255, green: 245 / 255, blue: 249 / 255))
+            Text(weg).fontWeight(.semibold).foregroundStyle(Color(red: 241 / 255, green: 245 / 255, blue: 249 / 255))
+        }
+        .font(.subheadline)
+        .monospacedDigit()
+        .lineLimit(1)
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -2365,6 +2439,7 @@ private struct KunstEnthuellung: View {
         return VStack(alignment: .leading, spacing: 12) {
             kopf(z, p)
             bild(z, p)
+            zaehler(z)
             nameZeile(z)
             fuss
         }
@@ -2415,6 +2490,13 @@ private struct KunstEnthuellung: View {
     }
 
     private var nameDa: Bool { mitExtras || phase == .ende }
+
+    /// Zwischen Bild und Name; feste Hoehe, damit der Kasten nicht springt (web min-h).
+    private func zaehler(_ z: KunstErgebnisZeile) -> some View {
+        KunstLaufZaehler(striche: z.linie.striche, werte: z.laeufe, lang: lang)
+            .id(k)
+            .frame(minHeight: 20)
+    }
 
     private func nameZeile(_ z: KunstErgebnisZeile) -> some View {
         HStack(spacing: 12) {
@@ -2657,6 +2739,10 @@ private struct KunstErgebnisGalerie: View {
                 .background(metall(p), in: RoundedRectangle(cornerRadius: 16))
                 .overlay { if liste.count > 1 { KunstPfeile(lang: lang, weiter: { (d: Int) in weiter(d) }) } }
                 .gesture(kunstWischen { (d: Int) in weiter(d) })
+            if spiel > 0 {
+                KunstLaufZaehler(striche: x.linie.striche, werte: x.laeufe, lang: lang)
+                    .id(String(i) + "-" + String(spiel))
+            }
             kopfZeile(x, p)
             fussZeile(x)
         }
