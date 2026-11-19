@@ -619,7 +619,8 @@ function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: num
             <button type="button" onClick={onZu}
               className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400">{t("kunst.enth.alle")}</button>
           ) : (
-            <button type="button" onClick={onZu} className="rounded-lg px-3 py-2 text-sm hover:bg-slate-800" style={{ color: "#cbd5e1" }}>{t("kunst.enth.skip")}</button>
+            <button type="button" onClick={() => { if (letzter) setPhase("ende"); else { setK(k + 1); setPhase("ziehen"); } }}
+              className="rounded-lg px-3 py-2 text-sm hover:bg-slate-800" style={{ color: "#cbd5e1" }}>{t("kunst.enth.skip")}</button>
           )}
         </div>
         <button type="button" onClick={onZu} aria-label={t("common.close")}
