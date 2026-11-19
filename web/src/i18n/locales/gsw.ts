@@ -3024,6 +3024,7 @@ const gsw: Record<string, string> = {
   "kunst.noch": "no {zeit}",
   "kunst.alle": "Alli",
   "kunst.platzN": "Platz {n}",
+  "kunst.zaehler.lauf": "Lauf {n}",
   "kunst.abspielen": "Abspiele",
   "kunst.enth.naechster": "Nöchschte Platz in {n} …",
   "kunst.enth.nochmal": "Uflösig nomol abspiele",

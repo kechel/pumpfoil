@@ -3025,6 +3025,7 @@ const deAT: Record<string, string> = {
   "kunst.noch": "noch {zeit}",
   "kunst.alle": "Alle",
   "kunst.platzN": "Platz {n}",
+  "kunst.zaehler.lauf": "Lauf {n}",
   "kunst.abspielen": "Abspielen",
   "kunst.enth.naechster": "Nächster Platz in {n} …",
   "kunst.enth.nochmal": "Auflösung nochmal abspielen",

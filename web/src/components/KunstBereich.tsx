@@ -31,6 +31,49 @@ function alsStriche(l: KunstLinieDaten): [number, number][][] {
   return Array.isArray((l as [number, number][][])[0][0]) ? (l as [number, number][][]) : [l as [number, number][]];
 }
 
+/** Zeitplan beim „Fahren": Laenge je Strich -> Anteil an der Gesamtzeit; Strich k startet, wenn k-1 fertig ist
+ *  (l = Laenge in Bild-Einheiten, d = Dauer ms, v = Start ms). Gemeinsam fuer Linie und Lauf-Zaehler. */
+function zeitplan(linie: KunstLinieDaten, dauer: number): { l: number; d: number; v: number }[] {
+  const len = alsStriche(linie).map((st) => st.reduce((s, [x, y], i) => i ? s + Math.hypot(x - st[i - 1][0], y - st[i - 1][1]) : 0, 0) || 1);
+  const summe = len.reduce((a, b) => a + b, 0);
+  let t = 0;
+  return len.map((l) => { const d = (dauer * l) / summe, v = t; t += d; return { l, d, v }; });
+}
+
+/** Zaehler unter der fahrenden Linie (Jan 19.11.2026): Lauf n, Zeit und Strecke zaehlen live hoch, je Lauf wieder ab 0.
+ *  Gleicher Zeitplan wie KunstLinie, damit Zahl und Strich zusammenpassen; am Ende bleiben die Werte des letzten Laufs. */
+function LaufZaehler({ linie, werte, dauer }: { linie: KunstLinieDaten; werte?: { s: number; m: number }[] | null; dauer: number }) {
+  const t = useT();
+  const plan = useMemo(() => zeitplan(linie, dauer), [linie, dauer]);
+  const [stand, setStand] = useState({ i: 0, f: 0 });
+  useEffect(() => {
+    let rahmen = 0;
+    const start = performance.now();
+    const tick = () => {
+      const ms = performance.now() - start;
+      let i = plan.findIndex((z) => ms < z.v + z.d);
+      if (i < 0) i = plan.length - 1;
+      const f = Math.max(0, Math.min(1, (ms - plan[i].v) / Math.max(plan[i].d, 1)));
+      setStand({ i, f });
+      if (ms < dauer) rahmen = requestAnimationFrame(tick);
+    };
+    rahmen = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rahmen);
+  }, [plan, dauer]);
+  if (!werte || werte.length !== plan.length || !werte.length) return null;
+  const w = werte[stand.i];
+  const sek = Math.round(w.s * stand.f), meter = Math.round(w.m * stand.f);
+  const zeitText = `${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, "0")}`;
+  const wegText = meter >= 1000 ? `${(meter / 1000).toFixed(2)} km` : `${meter} m`;
+  return (
+    <div className="flex items-center justify-center gap-3 text-sm tabular-nums" style={{ color: "#cbd5e1" }}>
+      {werte.length > 1 && <span style={{ color: "#94a3b8" }}>{t("kunst.zaehler.lauf", { n: String(stand.i + 1) })}</span>}
+      <span className="font-semibold" style={{ color: "#f1f5f9" }}>{zeitText}</span>
+      <span className="font-semibold" style={{ color: "#f1f5f9" }}>{wegText}</span>
+    </div>
+  );
+}
+
 /** `zeichnen` (ms): die Linie wird ueber diese Zeit „gefahren" — Striche nacheinander, je nach Laenge (Jan 19.11.2026:
  *  Aufloesung, fix 3 s je Bild). Ohne `zeichnen` steht sie sofort da. */
 export function KunstLinie({ linie, klein = false, saat = 0, zeichnen }: { linie: KunstLinieDaten; klein?: boolean; saat?: number; zeichnen?: number }) {
@@ -38,14 +81,7 @@ export function KunstLinie({ linie, klein = false, saat = 0, zeichnen }: { linie
   const striche = roh.map((st) => st.map(([x, y]) => `${x},${y}`).join(" "));
   const flocken = useMemo(() => schnee(saat), [saat]);
   const dick = klein ? 30 : 22;
-  // Laenge je Strich -> Anteil an der Gesamtzeit; Strich k startet, wenn k-1 fertig ist.
-  const zeit = useMemo(() => {
-    if (!zeichnen) return null;
-    const len = roh.map((st) => st.reduce((s, [x, y], i) => i ? s + Math.hypot(x - st[i - 1][0], y - st[i - 1][1]) : 0, 0) || 1);
-    const summe = len.reduce((a, b) => a + b, 0);
-    let t = 0;
-    return len.map((l) => { const d = (zeichnen * l) / summe, v = t; t += d; return { l, d, v }; });
-  }, [linie, zeichnen]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const zeit = useMemo(() => (zeichnen ? zeitplan(linie, zeichnen) : null), [linie, zeichnen]);
   // opacity 0 bis zum eigenen Start (Jan 19.11.: sonst stand das runde Linienende eines spaeteren Laufs als Punkt
   // schon die ganze Zeit da); `forwards` statt `both`, damit die Wartezeit den Grundstil (unsichtbar) behaelt.
   const anim = (i: number) => zeit ? {
@@ -631,7 +667,8 @@ function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: num
             </div>
           )}
         </div>
-        <div className={`mt-3 flex min-h-[2.5rem] items-center gap-3 text-white transition-opacity duration-500 ${nameDa ? "opacity-100" : "opacity-0"}`}>
+        <div className="mt-2 min-h-[1.25rem]"><LaufZaehler key={k} linie={z.linie} werte={z.laeufe} dauer={ZIEHEN} /></div>
+        <div className={`mt-1 flex min-h-[2.5rem] items-center gap-3 text-white transition-opacity duration-500 ${nameDa ? "opacity-100" : "opacity-0"}`}>
           <span className="min-w-0 flex-1 truncate text-xl font-extrabold">{z.name ?? "—"}</span>
           <Herzen n={z.herzen} gross hell />
         </div>
@@ -689,6 +726,7 @@ function Galerie({ liste, start, onZu }: { liste: (Ergebnis & { runde?: number }
           {karte ? <KunstKarte bildId={z.bild_id} />
             : <KunstLinie key={`${i}-${spiel}`} linie={z.linie} saat={z.bild_id} zeichnen={spiel ? ZIEHEN : undefined} />}
         </div>
+        {spiel > 0 && !karte && <div className="mt-2"><LaufZaehler key={`${i}-${spiel}`} linie={z.linie} werte={z.laeufe} dauer={ZIEHEN} /></div>}
         <div className="mt-3 flex flex-wrap items-center gap-3 text-white">
           <span className="text-2xl font-extrabold tabular-nums" style={{ color: p <= 3 ? METALL[p - 1] : "#e2e8f0" }}>{z.platz}.</span>
           <span className="min-w-0 flex-1 truncate text-lg font-bold">{z.name ?? "—"}

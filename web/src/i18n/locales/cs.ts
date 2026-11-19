@@ -3192,6 +3192,7 @@ const cs: Record<string, string> = {
   "kunst.noch": "zbývá {zeit}",
   "kunst.alle": "Vše",
   "kunst.platzN": "Místo {n}",
+  "kunst.zaehler.lauf": "Jízda {n}",
   "kunst.abspielen": "Přehrát",
   "kunst.enth.naechster": "Další místo za {n} …",
   "kunst.enth.nochmal": "Přehrát odhalení znovu",

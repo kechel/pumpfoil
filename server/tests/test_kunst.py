@@ -332,3 +332,14 @@ def test_admin_karte_vor_aufloesung(client, monkeypatch):
     assert gal and gal[0]["karte"] is True                                   # Admin sieht die Galerie schon beim Einreichen
     assert "karte" not in client.get(f"/api/kunst/{eid}", headers=kb).json()["runden"][0].get("galerie", [{}])[0] \
         if client.get(f"/api/kunst/{eid}", headers=kb).json()["runden"][0]["galerie"] else True
+
+
+def test_lauf_werte_passen_zu_den_strichen():
+    """Zaehler beim Abspielen: je Strich der Linie eine Dauer und Laenge, gleiche Aufteilung wie `linie`."""
+    gps = [[i * 1000, 54.0 + i * 1e-4, 10.0, 4.0] for i in range(60)]           # ~11 m je Punkt nach Norden
+    fenster = [(0, 19_000), (30_000, 59_000)]
+    l = K.linie(gps, 0, 10**9, 0, fenster=fenster)
+    w = K.lauf_werte(gps, 0, 10**9, fenster)
+    assert len(w) == len(l) == 2
+    assert w[0]["s"] == 19.0 and w[1]["s"] == 29.0
+    assert 200 < w[0]["m"] < 220 and 310 < w[1]["m"] < 330

@@ -211,6 +211,34 @@ def linie(gps: list, von_ms: int, bis_ms: int, drehung: int, max_punkte: int = L
     return [[[int(round(x)), int(round(y))] for x, y in st] for st in z]
 
 
+def lauf_werte(gps: list, von_ms: int, bis_ms: int, fenster: list[tuple[int, int]] | None) -> list[dict]:
+    """Dauer (s) und Laenge (m) je Strich — dieselbe Aufteilung wie `linie` (ein Strich je Lauf, Striche mit < 2 Punkten
+    fallen weg), damit Index i zum i-ten Strich der Linie passt. Fuer den Zaehler beim Abspielen (Jan 19.11.2026)."""
+    striche: list[list[tuple[float, float, float]]] = []
+    akt, akt_f = [], None
+    for t, x, y in _projiziert(gps):
+        if not (von_ms <= t <= bis_ms):
+            continue
+        if fenster is not None:
+            f = next((i for i, (a, z) in enumerate(fenster) if a <= t <= z), None)
+            if f is None:
+                continue
+        else:
+            f = 0
+        if f != akt_f and akt:
+            striche.append(akt)
+            akt = []
+        akt_f = f
+        akt.append((t, x, y))
+    if akt:
+        striche.append(akt)
+    out = []
+    for st in (st for st in striche if len(st) >= 2):
+        m = sum(math.hypot(st[i][1] - st[i - 1][1], st[i][2] - st[i - 1][2]) for i in range(1, len(st)))
+        out.append({"s": round((st[-1][0] - st[0][0]) / 1000.0, 1), "m": round(m)})
+    return out
+
+
 def karte(gps: list, von_ms: int, bis_ms: int, fenster: list[tuple[int, int]], max_je_strich: int = 600,
           mit_tempo: bool = False) -> list[list[list[float]]]:
     """Der echte Track zum Bild (Aufloesung, Jan 18.11.2026): dieselben Striche wie `linie`, aber als [lat, lon] ohne

@@ -133,8 +133,28 @@ def _aufloesung(db: Session, e: models.TeamEvent, nr: int, wer: models.User) -> 
         out.append({**z, "linie": json.loads(b.linie_json), "name": (u.display_name if u else None),
                     "avatar_url": (u.avatar_url if u else None), "spot": spot, "karte": ort_sichtbar,
                     "session_id": z["session_id"] if s is not None and not s.deleted else None,
-                    "foto": fotos.get(z["session_id"]) if s is not None and not s.deleted else None})
+                    "foto": fotos.get(z["session_id"]) if s is not None and not s.deleted else None,
+                    "laeufe": _lauf_werte(db, s, b)})
     return out
+
+
+_LAUF_WERTE: dict[tuple, list[dict]] = {}     # (bild, session, von, bis) -> Werte; je Worker, nur fertige Runden
+
+
+def _lauf_werte(db: Session, s: models.Session | None, b: models.KunstBild) -> list[dict]:
+    """Dauer und Laenge je Lauf des Bildes (Zaehler beim Abspielen); still leer, wenn die Spur fehlt. Im Speicher
+    gemerkt, sonst laese jeder Aufruf der Eventseite alle GPS-Spuren der Runde."""
+    if s is None or s.deleted:
+        return []
+    k = (b.id, b.session_id, b.von_ms, b.bis_ms)
+    if k not in _LAUF_WERTE:
+        try:
+            _LAUF_WERTE[k] = K.lauf_werte(storage.load_gps(s.session_uuid), b.von_ms, b.bis_ms, _laeufe(db, s))
+        except Exception:
+            return []
+        if len(_LAUF_WERTE) > 5000:
+            _LAUF_WERTE.clear()
+    return _LAUF_WERTE[k]
 
 
 @router.get("/{event_id}/kandidaten")

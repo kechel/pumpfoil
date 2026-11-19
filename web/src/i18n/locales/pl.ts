@@ -3118,6 +3118,7 @@ const pl: Record<string, string> = {
   "kunst.noch": "zostało {zeit}",
   "kunst.alle": "Wszystkie",
   "kunst.platzN": "Miejsce {n}",
+  "kunst.zaehler.lauf": "Przejazd {n}",
   "kunst.abspielen": "Odtwórz",
   "kunst.enth.naechster": "Następne miejsce za {n} …",
   "kunst.enth.nochmal": "Odtwórz ogłoszenie ponownie",

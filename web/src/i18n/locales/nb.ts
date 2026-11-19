@@ -3110,6 +3110,7 @@ const nb: Record<string, string> = {
   "kunst.noch": "{zeit} igjen",
   "kunst.alle": "Alle",
   "kunst.platzN": "Plass {n}",
+  "kunst.zaehler.lauf": "Tur {n}",
   "kunst.abspielen": "Spill av",
   "kunst.enth.naechster": "Neste plass om {n} …",
   "kunst.enth.nochmal": "Spill av avsløringen igjen",

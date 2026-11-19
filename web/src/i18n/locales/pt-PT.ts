@@ -3133,6 +3133,7 @@ const ptPT: Record<string, string> = {
   "kunst.noch": "faltam {zeit}",
   "kunst.alle": "Todas",
   "kunst.platzN": "Posição {n}",
+  "kunst.zaehler.lauf": "Volta {n}",
   "kunst.abspielen": "Reproduzir",
   "kunst.enth.naechster": "Próxima posição em {n} …",
   "kunst.enth.nochmal": "Repetir a revelação",

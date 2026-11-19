@@ -3174,6 +3174,7 @@ const fi: Record<string, string> = {
   "kunst.noch": "{zeit} jäljellä",
   "kunst.alle": "Kaikki",
   "kunst.platzN": "Sija {n}",
+  "kunst.zaehler.lauf": "Veto {n}",
   "kunst.abspielen": "Toista",
   "kunst.enth.naechster": "Seuraava sija {n} …",
   "kunst.enth.nochmal": "Toista paljastus uudelleen",

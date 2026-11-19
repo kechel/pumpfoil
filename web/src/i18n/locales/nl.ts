@@ -3193,6 +3193,7 @@ const nl: Record<string, string> = {
   "kunst.noch": "nog {zeit}",
   "kunst.alle": "Alle",
   "kunst.platzN": "Plaats {n}",
+  "kunst.zaehler.lauf": "Run {n}",
   "kunst.abspielen": "Afspelen",
   "kunst.enth.naechster": "Volgende plaats over {n} …",
   "kunst.enth.nochmal": "Onthulling opnieuw afspelen",

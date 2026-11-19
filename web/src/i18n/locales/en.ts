@@ -3247,6 +3247,7 @@ const en: Record<string, string> = {
   "kunst.noch": "{zeit} left",
   "kunst.alle": "All",
   "kunst.platzN": "Place {n}",
+  "kunst.zaehler.lauf": "Run {n}",
   "kunst.abspielen": "Play",
   "kunst.enth.naechster": "Next place in {n} …",
   "kunst.enth.nochmal": "Replay the reveal",
