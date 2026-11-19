@@ -16,7 +16,7 @@ Tannenbaum + Stern als EINE durchgehende, offene GPS-Spur (Ecken als Kurvenboege
 
 Fertige Renderings (Stand 18.11.2026) liegen in `png/` — `banner.png` ist das Eventbild.
 
-## Event (Entwurf, 18.11.2026)
+## Event (angelegt 19.11.2026 als Event 18, https://pumpfoil.org/teams/pumpfoil/events/18)
 
 Im offiziellen Team, global, Vorlage GPS-Kunst, Testmodus aus. Start So 29.11. 00:00, Ende So 27.12. 00:00, Runde alle
 7 Tage, Abstimmung 7 Tage -> 4 Runden (je Adventswoche), Ergebnis jeden Sonntag, letzte Runde am 3.1.2027.
