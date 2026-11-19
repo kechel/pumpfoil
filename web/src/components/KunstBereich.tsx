@@ -432,7 +432,8 @@ const ANSICHT = "kunst-ansicht";   // Galerie: "karte" oder leer (= Bild)
 const ZIEHEN = 5000;   // ms je Treppchen-Bild (Jan 19.11.: erst 3 s probiert, dann „mach mal 5s statt 3")
 const BLINK = 400;     // ms je Blinken (zweimal), danach Name + Herzen
 const STEHEN = 2000;   // ms steht das fertige Bild mit Name
-const EXTRA = 2000;    // ms je Zusatzansicht danach: echte Karte (wenn der Ort gezeigt wird), dann Session-Foto (wenn vorhanden)
+const EXTRA = 2000;    // ms danach die echte Karte (wenn der Ort gezeigt wird)
+const FOTO = 4000;     // ms danach das Session-Foto, wenn vorhanden (Jan 19.11.: 2 s waren „zu kurz")
 const ruhig = () => { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } };
 const METALL = ["#facc15", "#cbd5e1", "#ea8a4a"];   // Gold, Silber, Bronze (wie EventPodest)
 const METALL_TEXT = ["#a16207", "#475569", "#9a3412"];   // dunklere Randfarben fuer Zahlen (lesbar auf hell), wie EventPodest
@@ -569,9 +570,9 @@ function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: num
     }
     const naechste: Phase = phase === "ziehen" ? "blinken" : phase === "blinken" ? "stehen"
       : extras[phase === "stehen" ? 0 : extras.indexOf(phase) + 1];
-    const dauer = phase === "ziehen" ? ZIEHEN : phase === "blinken" ? BLINK * 2 : phase === "stehen" ? STEHEN : EXTRA;
+    const dauer = phase === "ziehen" ? ZIEHEN : phase === "blinken" ? BLINK * 2 : phase === "stehen" ? STEHEN : phase === "foto" ? FOTO : EXTRA;
     const u = window.setTimeout(() => {
-      if (naechste === zaehlPhase) setRest(Math.round((naechste === "stehen" ? STEHEN : EXTRA) / 1000));
+      if (naechste === zaehlPhase) setRest(Math.round((naechste === "stehen" ? STEHEN : naechste === "foto" ? FOTO : EXTRA) / 1000));
       setPhase(naechste);
     }, dauer);
     return () => clearTimeout(u);
