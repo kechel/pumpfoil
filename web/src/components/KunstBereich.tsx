@@ -541,6 +541,12 @@ function Aufloesung({ runde, eventId }: { runde: KunstRunde; eventId: number }) 
 function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: number; onZu: () => void }) {
   const t = useT();
   const reihe = liste.slice(0, 3).map((_, i) => i).reverse();   // [2, 1, 0]
+  useEffect(() => {   // alles fuer die drei Plaetze sofort vorladen, nicht erst kurz vor dem Einblenden
+    for (const z of liste.slice(0, 3)) {
+      if (z.karte) ladeKarte(z.bild_id).catch(() => {});
+      if (z.foto) ladeFoto(z.foto);
+    }
+  }, [liste]);
   const [k, setK] = useState(0);
   type Phase = "ziehen" | "blinken" | "stehen" | "karte" | "foto" | "ende";
   const [phase, setPhase] = useState<Phase>("ziehen");
@@ -708,16 +714,35 @@ function Galerie({ liste, start, onZu }: { liste: (Ergebnis & { runde?: number }
 
 /** Echter Track als Satellitenbild vom Server (Jan 19.11.2026: keine interaktive Karte im Event — „hier ist das
  *  overkill", zoomen geht in den Session-Details). Norden oben, Quellennennung ist eingebrannt. */
+// Kartenbilder einmal je Seitenaufruf laden und behalten (Object-URLs) — die Enthuellung laedt alle drei Plaetze schon
+// beim Oeffnen vor (Jan 19.11.2026: „gepreloaded … fuer ein fluessiges abspielen"), Galerie und Blaettern nutzen denselben Speicher.
+const kartenSpeicher = new Map<number, Promise<string>>();
+function ladeKarte(bildId: number): Promise<string> {
+  let p = kartenSpeicher.get(bildId);
+  if (!p) {
+    p = api.kunstKartenBild(bildId).then((b) => URL.createObjectURL(b));
+    p.catch(() => kartenSpeicher.delete(bildId));   // Fehler nicht merken, beim naechsten Mal neu versuchen
+    kartenSpeicher.set(bildId, p);
+  }
+  return p;
+}
+/** Fotos vorladen: der Browser behaelt sie im Cache, das spaetere <img> ist dann sofort da. */
+const fotoVorrat = new Map<string, HTMLImageElement>();
+function ladeFoto(url: string) {
+  if (fotoVorrat.has(url)) return;
+  const i = new Image(); i.decoding = "async"; i.src = url; fotoVorrat.set(url, i);
+}
+
 function KunstKarte({ bildId }: { bildId: number }) {
   const t = useT();
   const [url, setUrl] = useState<string | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   useEffect(() => {
-    let aus = false, u: string | null = null;
+    let aus = false;
     setUrl(null); setFehler(null);
-    api.kunstKartenBild(bildId).then((b) => { if (aus) return; u = URL.createObjectURL(b); setUrl(u); })
+    ladeKarte(bildId).then((u) => { if (!aus) setUrl(u); })
       .catch((x) => { if (!aus) setFehler(t(`kunst.err.${fehlerCode(x)}`)); });
-    return () => { aus = true; if (u) URL.revokeObjectURL(u); };
+    return () => { aus = true; };
   }, [bildId]);   // eslint-disable-line react-hooks/exhaustive-deps
   if (fehler) return <p className="flex aspect-square items-center justify-center text-sm text-slate-400">{fehler}</p>;
   return url ? <img src={url} alt="" className="aspect-square w-full rounded-lg object-cover" />
