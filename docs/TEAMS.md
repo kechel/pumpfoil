@@ -475,6 +475,9 @@ also wie viele der Sportarten man schon gefahren ist.
 - Shadowban (19.11.2026): Bilder und Herzen versteckter (`users.hidden`) oder gesperrter Konten zaehlen fuer andere nicht
   und erscheinen nirgends (Galerie, Anzahl, Aufloesung, Einzelabruf per ID -> 404). Der Betroffene sieht alles wie immer
   (eigene Bilder, eigene Herzen gezaehlt), Admins sehen alles (`kunst.sieht_bild` / `zaehlt_herz`).
+- Gleichstand: GPS-Kunst kennt gleiche Plaetze (gleiche Herzenzahl) -> Treppchen mit mehreren Bildern je Stufe, Enthuellung
+  zeigt alle Plaetze <= 3. **Normale Events bleiben bei der Zeitregel** (gleicher Wert -> frueher gestartete Session vorn,
+  Raenge eindeutig; Jan 19.11.2026). Gleiche Plaetze dort waeren eine Regelaenderung, nur ab Stichtag.
 - Enthuellung zeigt nach der Karte das erste Session-Foto (2 s, nur sichtbare: nicht geblockt, Medienfreigabe beachtet).
 - Apps: Android/iOS-Port vom 18.11. (interaktive Karte) — Enthuellung, Kartenbild und Abspielen noch nachziehen.
 - Offen: Finale der Rundensieger, Teilen-Bild der Siegerehrung, Benachrichtigung bei Rundenstart/-ende.
