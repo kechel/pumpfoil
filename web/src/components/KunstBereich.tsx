@@ -214,7 +214,7 @@ export default function KunstBereich({ eventId }: { eventId: number }) {
       )}
 
       {runde.phase === "fertig" ? (
-        <Aufloesung runde={runde} />
+        <Aufloesung runde={runde} eventId={eventId} />
       ) : runde.galerie.length === 0 ? (
         runde.phase !== "kommt" && <p className="text-sm text-slate-400">
           {t(runde.phase === "einreichen" && !d.moderieren ? "kunst.galerieSpaeter" : "kunst.leer")}</p>
@@ -311,7 +311,7 @@ function AbstimmGalerie({ ids, start, runde, d, neu, meldung, onZu }: { ids: num
   }, [ids.length]);   // eslint-disable-line react-hooks/exhaustive-deps
   if (!b) return null;
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3" onClick={onZu}>
+    <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/85 p-3" onClick={onZu}>
       {/* Eigene Karte (Jan 18.11.2026: „braucht noch einen rahmen und hintergrund"): im dunklen Modus verschwamm das Bild
           sonst mit der abgedunkelten Seite. Feste Farben, weil der Kasten in beiden Farbschemata gleich aussieht. */}
       <div className="relative w-full max-w-[min(92vw,74vh)] rounded-3xl p-3 shadow-2xl sm:p-4"
@@ -395,7 +395,8 @@ const TON_KUNST = "/media/sounds/gpskunst.mp3";
 const TON = "/media/sounds/winner-awards-484333.mp3";
 const STUMM = "podest-stumm";
 const ZIEHEN = 5000;   // ms je Treppchen-Bild (Jan 19.11.: erst 3 s probiert, dann „mach mal 5s statt 3")
-const PAUSE = 700;     // ms Luft zwischen zwei Plaetzen
+const BLINK = 400;     // ms je Blinken (zweimal), danach Name + Herzen
+const STEHEN = 2000;   // ms steht das fertige Bild, bevor der naechste Platz kommt
 const ruhig = () => { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } };
 const METALL = ["#facc15", "#cbd5e1", "#ea8a4a"];   // Gold, Silber, Bronze (wie EventPodest)
 const METALL_TEXT = ["#a16207", "#475569", "#9a3412"];   // dunklere Randfarben fuer Zahlen (lesbar auf hell), wie EventPodest
@@ -416,12 +417,11 @@ function Herzen({ n, gross = false, hell = false }: { n: number; gross?: boolean
   );
 }
 
-function Aufloesung({ runde }: { runde: KunstRunde }) {
+function Aufloesung({ runde, eventId }: { runde: KunstRunde; eventId: number }) {
   const t = useT();
   const e = runde.ergebnis ?? [];
   const [offen, setOffen] = useState<number | null>(null);      // Index in e
   const [stumm, setStumm] = useState(() => lies(STUMM) === "1");
-  const [lauf, setLauf] = useState(0);   // Ton-Knopf spielt die Enthuellung neu ab
   const ton = useRef<HTMLAudioElement | null>(null);
   const fanfare = () => {
     try {
@@ -434,33 +434,27 @@ function Aufloesung({ runde }: { runde: KunstRunde }) {
       spiel(TON_KUNST, TON);
     } catch { /* egal */ }
   };
+  // Enthuellung im Vollbild (Jan 19.11.2026): beim ersten Ansehen einer fertigen Runde automatisch, danach per Knopf.
+  const gesehenKey = `kunst-gesehen-${eventId}-${runde.nr}`;
+  const [zeigen, setZeigen] = useState(false);
+  const enthuellen = () => { schreib(gesehenKey, "1"); setZeigen(true); if (!stumm) fanfare(); };
   useEffect(() => {
-    if (!stumm && e.length) fanfare();
+    setZeigen(false);
+    if (e.length && !ruhig() && lies(gesehenKey) !== "1") enthuellen();
     return () => { ton.current?.pause(); };
-  }, [runde.nr]);   // eslint-disable-line react-hooks/exhaustive-deps
-  // Enthuellung (Jan 19.11.2026): erst Platz 3, dann 2, dann 1 — jede Linie wird in ZIEHEN ms „gefahren" —, danach der Rest.
-  // `schritt` = wie viele der Treppchen-Plaetze schon sichtbar sind; schritt > Anzahl -> auch alle darunter.
-  const n3 = Math.min(e.length, 3);
-  const [schritt, setSchritt] = useState(() => (ruhig() ? 99 : 0));
-  useEffect(() => {
-    if (ruhig() || !e.length) { setSchritt(99); return; }
-    setSchritt(0);
-    const uhren = Array.from({ length: n3 + 1 }, (_, k) => window.setTimeout(() => setSchritt(k + 1), 300 + k * (ZIEHEN + PAUSE)));
-    return () => uhren.forEach(clearTimeout);
-  }, [runde.nr, lauf, e.length]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [runde.nr, eventId]);   // eslint-disable-line react-hooks/exhaustive-deps
   if (!e.length) return <p className="text-sm text-slate-400">{t("kunst.leer")}</p>;
   const top = e.slice(0, 3).map((z, i) => ({ z, i }));
   const treppe = top.length === 3 ? [top[1], top[0], top[2]] : top.length === 2 ? [top[1], top[0]] : top;
-  const sichtbar = (i: number) => schritt >= n3 - i;   // Index 2 (3. Platz) zuerst, Index 0 zuletzt
-  const restDa = schritt > n3;
   return (
     <>
       <div className="mb-2 flex flex-wrap items-center justify-end gap-2">
-        <button type="button" onClick={() => { fanfare(); setLauf((x) => x + 1); }} title={t("team.podest.ton")} aria-label={t("team.podest.ton")}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800">
+        <button type="button" onClick={enthuellen} title={t("kunst.enth.nochmal")} aria-label={t("kunst.enth.nochmal")}
+          className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-700 px-2.5 text-sm text-slate-300 hover:bg-slate-800">
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M19 5a10 10 0 0 1 0 14" />
           </svg>
+          <span className="hidden sm:inline">{t("kunst.enth.nochmal")}</span>
         </button>
         <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-slate-400">
           <input type="checkbox" checked={stumm} onChange={(x) => { setStumm(x.target.checked); schreib(STUMM, x.target.checked ? "1" : null); if (x.target.checked) ton.current?.pause(); }} />
@@ -472,10 +466,10 @@ function Aufloesung({ runde }: { runde: KunstRunde }) {
         {treppe.map(({ z, i }) => {
           const p = Math.min(z.platz, 3);
           return (
-            <button key={z.bild_id} type="button" onClick={() => setOffen(i)} disabled={!sichtbar(i)} aria-hidden={!sichtbar(i)}
-              className={`mx-auto flex w-full flex-col items-center gap-1.5 text-center transition-all duration-500 ${sichtbar(i) ? "opacity-100" : "translate-y-3 opacity-0"} ${p === 1 ? "max-w-[260px] pb-10" : p === 2 ? "max-w-[210px] pb-4" : "max-w-[190px]"}`}>
+            <button key={z.bild_id} type="button" onClick={() => setOffen(i)}
+              className={`mx-auto flex w-full flex-col items-center gap-1.5 text-center ${p === 1 ? "max-w-[260px] pb-10" : p === 2 ? "max-w-[210px] pb-4" : "max-w-[190px]"}`}>
               <div className="w-full rounded-xl p-1.5" style={{ background: METALL[p - 1] }}>
-                <KunstLinie key={`${lauf}-${sichtbar(i)}`} linie={z.linie} saat={z.bild_id} zeichnen={sichtbar(i) && schritt < 99 ? ZIEHEN : undefined} />
+                <KunstLinie linie={z.linie} saat={z.bild_id} />
               </div>
               <span className={`font-extrabold tabular-nums ${p === 1 ? "text-3xl" : "text-2xl"}`} style={{ color: METALL_TEXT[p - 1] }}>{z.platz}.</span>
               <span className={`max-w-full truncate font-extrabold text-slate-100 ${p === 1 ? "text-lg sm:text-xl" : "text-sm sm:text-base"}`}>{z.name ?? "—"}</span>
@@ -486,7 +480,7 @@ function Aufloesung({ runde }: { runde: KunstRunde }) {
       </div>
       {/* Alle weiteren */}
       {e.length > 3 && (
-        <div className={`grid grid-cols-3 gap-2 transition-opacity duration-700 sm:grid-cols-4 lg:grid-cols-6 ${restDa ? "opacity-100" : "pointer-events-none opacity-0"}`} aria-hidden={!restDa}>
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
           {e.slice(3).map((z, k) => (
             <button key={z.bild_id} type="button" onClick={() => setOffen(k + 3)} className="rounded-lg border border-slate-700 p-1.5 text-left hover:border-slate-500">
               <KunstLinie linie={z.linie} saat={z.bild_id} klein />
@@ -500,7 +494,67 @@ function Aufloesung({ runde }: { runde: KunstRunde }) {
         </div>
       )}
       {offen != null && <Galerie liste={e} start={offen} onZu={() => setOffen(null)} />}
+      {zeigen && <Enthuellung liste={e} rundeNr={runde.nr} onZu={() => setZeigen(false)} />}
     </>
+  );
+}
+
+/** Vollbild-Enthuellung (Jan 19.11.2026): Platz 3, dann 2, dann 1 — je Bild wird die Linie in ZIEHEN ms gefahren, blinkt
+ *  zweimal, dann erscheinen Name und Herzen und das Bild steht STEHEN ms, bevor das naechste kommt. Danach Knopf
+ *  „Alle Plaetze ansehen" zurueck zur Seite. Bei Gleichstand gilt die Reihenfolge der Liste (letzter Index zuerst). */
+function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: number; onZu: () => void }) {
+  const t = useT();
+  const reihe = liste.slice(0, 3).map((_, i) => i).reverse();   // [2, 1, 0]
+  const [k, setK] = useState(0);
+  const [phase, setPhase] = useState<"ziehen" | "blinken" | "stehen" | "ende">("ziehen");
+  useEffect(() => {
+    if (phase === "ende") return;
+    const dauer = phase === "ziehen" ? ZIEHEN : phase === "blinken" ? BLINK * 2 : STEHEN;
+    const u = window.setTimeout(() => {
+      if (phase === "ziehen") setPhase("blinken");
+      else if (phase === "blinken") setPhase("stehen");
+      else if (k + 1 < reihe.length) { setK(k + 1); setPhase("ziehen"); }
+      else setPhase("ende");
+    }, dauer);
+    return () => clearTimeout(u);
+  }, [k, phase, reihe.length]);
+  useEffect(() => {
+    const taste = (x: KeyboardEvent) => { if (x.key === "Escape") onZu(); };
+    document.addEventListener("keydown", taste);
+    return () => document.removeEventListener("keydown", taste);
+  }, [onZu]);
+  const z = liste[reihe[k]];
+  const p = Math.min(z.platz, 3);
+  const nameDa = phase === "stehen" || phase === "ende";
+  return createPortal(
+    <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/90 p-3">
+      <style>{"@keyframes kunstBlink{0%,100%{opacity:1}50%{opacity:.12}}"}</style>
+      <div className="relative w-full max-w-[min(92vw,70vh)] rounded-3xl p-3 shadow-2xl sm:p-4"
+        style={{ background: "#020617", border: "1px solid rgba(34,211,238,0.35)", boxShadow: "0 0 0 1px rgba(255,255,255,0.06), 0 25px 60px rgba(0,0,0,0.6)" }}>
+        <div className="mb-2 flex items-baseline justify-between gap-3">
+          <span className="text-sm font-semibold uppercase tracking-wider" style={{ color: "#94a3b8" }}>{t("kunst.enth.titel", { n: String(rundeNr) })}</span>
+          <span className="text-3xl font-extrabold tabular-nums" style={{ color: METALL[p - 1] }}>{t("kunst.platzN", { n: String(z.platz) })}</span>
+        </div>
+        <div className="rounded-2xl p-1.5" style={{ background: METALL[p - 1], animation: phase === "blinken" ? `kunstBlink ${BLINK}ms ease-in-out 0s 2` : undefined }}>
+          <KunstLinie key={k} linie={z.linie} saat={z.bild_id} zeichnen={ZIEHEN} />
+        </div>
+        <div className={`mt-3 flex min-h-[2.5rem] items-center gap-3 text-white transition-opacity duration-500 ${nameDa ? "opacity-100" : "opacity-0"}`}>
+          <span className="min-w-0 flex-1 truncate text-xl font-extrabold">{z.name ?? "—"}</span>
+          <Herzen n={z.herzen} gross hell />
+        </div>
+        <div className="mt-3 flex justify-end gap-2">
+          {phase === "ende" ? (
+            <button type="button" onClick={onZu}
+              className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400">{t("kunst.enth.alle")}</button>
+          ) : (
+            <button type="button" onClick={onZu} className="rounded-lg px-3 py-2 text-sm hover:bg-slate-800" style={{ color: "#cbd5e1" }}>{t("kunst.enth.skip")}</button>
+          )}
+        </div>
+        <button type="button" onClick={onZu} aria-label={t("common.close")}
+          className="absolute -right-3 -top-3 flex h-9 w-9 items-center justify-center rounded-full text-xl text-white" style={{ background: "#0f172a", border: "1px solid rgba(34,211,238,0.5)" }}>×</button>
+      </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -523,7 +577,7 @@ function Galerie({ liste, start, onZu }: { liste: (Ergebnis & { runde?: number }
   }, [liste.length]);   // eslint-disable-line react-hooks/exhaustive-deps
   const p = Math.min(z.platz, 4);
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3" onClick={onZu}>
+    <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/85 p-3" onClick={onZu}>
       {/* Eigene Karte (Jan 18.11.2026: „braucht noch einen rahmen und hintergrund"): im dunklen Modus verschwamm das Bild
           sonst mit der abgedunkelten Seite. Feste Farben, weil der Kasten in beiden Farbschemata gleich aussieht. */}
       <div className="relative w-full max-w-[min(92vw,74vh)] rounded-3xl p-3 shadow-2xl sm:p-4"
@@ -639,7 +693,7 @@ function Editor({ eventId, runde, onZu, onFertig }: { eventId: number; runde: Ku
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/60 p-4">
       <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-700 bg-white p-5 dark:bg-slate-900">
         <h3 className="mb-1 text-lg font-bold text-slate-100">{t("kunst.editorTitel", { n: String(runde.nr) })}</h3>
         <p className="mb-3 text-sm text-slate-400">{t("kunst.editorHinweis")}</p>
