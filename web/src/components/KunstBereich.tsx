@@ -559,9 +559,11 @@ function Aufloesung({ runde, eventId }: { runde: KunstRunde; eventId: number }) 
  *  „Alle Plaetze ansehen" zurueck zur Seite. Bei Gleichstand gilt die Reihenfolge der Liste (letzter Index zuerst). */
 function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: number; onZu: () => void }) {
   const t = useT();
-  const reihe = liste.slice(0, 3).map((_, i) => i).reverse();   // [2, 1, 0]
+  // Alle mit Platz <= 3, auch bei Gleichstand (Jan 19.11.2026: „bei 2 3. plaetzen dann auch alle 4"), von hinten nach vorn:
+  // erst alle Dritten, dann Zweiten, dann Ersten. Liste ist nach Platz sortiert -> Indizes umgekehrt.
+  const reihe = liste.map((z, i) => (z.platz <= 3 ? i : -1)).filter((i) => i >= 0).reverse();
   useEffect(() => {   // alles fuer die drei Plaetze sofort vorladen, nicht erst kurz vor dem Einblenden
-    for (const z of liste.slice(0, 3)) {
+    for (const z of liste.filter((x) => x.platz <= 3)) {
       if (z.karte) ladeKarte(z.bild_id).catch(() => {});
       if (z.foto) ladeFoto(z.foto);
     }
