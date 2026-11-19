@@ -1862,9 +1862,10 @@ object Api {
         http("POST", "/api/kunst/bild/$bildId/melden", buildJsonObject { put("grund", grund) }.toString(), auth = true)
         Unit
     }
-    /** Echter Track eines Bildes (erst nach der Aufloesung): Striche aus [lat, lon]. */
-    suspend fun kunstKarte(bildId: Int): KunstKarte = withContext(Dispatchers.IO) {
-        json.decodeFromString(KunstKarte.serializer(), http("GET", "/api/kunst/bild/$bildId/karte", null, auth = true))
+    /** Echter Track als fertiges PNG (19.11.2026, Web kunstKartenBild): Satellit, Norden oben, Nennung eingebrannt —
+     *  ersetzt die interaktive Karte im Event (der JSON-Endpunkt /karte bleibt fuer alte App-Fassungen). */
+    suspend fun kunstKartenBild(bildId: Int): ByteArray = withContext(Dispatchers.IO) {
+        httpBytes("/api/kunst/bild/$bildId/karte.png")
     }
 
     /** Primaeres Team setzen (10.11.2026, ab 11.11. jedes aktive Team ausser dem offiziellen; 409 team_nicht_waehlbar). */
@@ -2117,7 +2118,11 @@ object Api {
         }
         if (code !in 200..299) {
             if (code == 401) { appContext?.let { logout(it) }; onUnauthorized?.invoke() }
-            throw RuntimeException(if (code == 401) I18n.t("err.sessionExpired") else "Serverfehler ($code)")
+            // ApiFehler mit `detail` (z. B. GPS-Kunst kunst.err.<code>); Meldung wie bisher.
+            val detail = runCatching {
+                json.parseToJsonElement(conn.errorStream?.bufferedReader()?.readText() ?: "").jsonObject["detail"]?.jsonPrimitive?.contentOrNull
+            }.getOrNull()
+            throw ApiFehler(code, detail, if (code == 401) I18n.t("err.sessionExpired") else "Serverfehler ($code)")
         }
         return conn.inputStream.use { it.readBytes() }
     }

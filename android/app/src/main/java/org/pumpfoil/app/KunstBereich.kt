@@ -1,13 +1,20 @@
 package org.pumpfoil.app
 
+import android.graphics.BitmapFactory
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +28,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -31,10 +39,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -44,7 +53,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -54,11 +62,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,21 +76,33 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import coil.compose.AsyncImage
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -88,11 +110,6 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.floatOrNull
-import org.osmdroid.config.Configuration
-import org.osmdroid.util.BoundingBox
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.Polyline
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -104,6 +121,8 @@ import kotlin.math.sin
  * verborgen) -> Aufloesung mit Namen, Treppchen und Fanfare. Die Linie kommt normiert vom Server (0..1000, ohne
  * Koordinaten); im Editor wird dieselbe Rechnung zur Vorschau gemacht (normiere).
  * Nicht in der App (nur Web/Admins): Testmodus und die Moderation (entfernen/zurueckholen). Melden darf jeder.
+ * 19.11.2026 (Web): Enthuellung im Vollbild (Platz 3, 2, 1), Karte als Bild vom Server (karte.png) statt interaktiver
+ * Karte, Doppeltipp = Herz, „Abspielen" und gemerktes Bild|Karte in der Ergebnis-Galerie, Admins: Karte schon beim Abstimmen.
  */
 
 /** Vorlage eines GPS-Kunst-Events (Web lib/teamEvents.ts KUNST_VORLAGE). */
@@ -119,6 +138,7 @@ data class KunstBild(
     val eigen: Boolean = false,
     val herz: Boolean = false,
     val entfernt: String? = null,
+    val karte: Boolean? = null,    // nur fuer Admins: Ort darf auf der Karte gezeigt werden
 )
 
 @Serializable
@@ -142,6 +162,7 @@ data class KunstErgebnis(
     val name: String? = null,
     val spot: String? = null,
     val karte: Boolean = false,
+    val foto: String? = null,      // erstes sichtbares Session-Foto, relativ (/media/...)
 )
 
 @Serializable
@@ -166,6 +187,7 @@ data class KunstEvent(
     @SerialName("herzen_je_runde") val herzenJeRunde: Int = 3,
     val teilnehmen: Boolean = false,
     val moderieren: Boolean = false,
+    val admin: Boolean = false,
     val runden: List<KunstRunde> = emptyList(),
 )
 
@@ -185,10 +207,6 @@ data class KunstSpur(
     val punkte: List<List<Double>> = emptyList(),
     val laeufe: List<List<Double>> = emptyList(),
 )
-
-/** Echter Track eines Bildes: Striche aus [lat, lon]. */
-@Serializable
-data class KunstKarte(val striche: List<List<List<Double>>> = emptyList())
 
 // ------------------------------------------------------------------------------ Zeichnen ----
 
@@ -231,24 +249,54 @@ private fun alsStriche(l: JsonElement): List<List<Offset>> {
 }
 
 @Composable
-private fun KunstLinie(linie: JsonElement, saat: Int, modifier: Modifier = Modifier, klein: Boolean = false) {
+private fun KunstLinie(linie: JsonElement, saat: Int, modifier: Modifier = Modifier, klein: Boolean = false,
+                       fortschritt: Float? = null) {
     val striche = remember(linie) { alsStriche(linie) }
-    KunstLinie(striche, saat, modifier, klein)
+    KunstLinie(striche, saat, modifier, klein, fortschritt)
 }
 
-/** Bildkachel (Web KunstLinie): quadratisch, Nachtblau, Schnee, Track zweimal (breites Leuchten + Linie). */
+/** Bildkachel (Web KunstLinie): quadratisch, Nachtblau, Schnee, Track zweimal (breites Leuchten + Linie).
+ *  `fortschritt` 0..1: die Linie wird „gefahren" (Web `zeichnen`) — Striche nacheinander, Zeitanteil nach Laenge;
+ *  spaetere Striche sind unsichtbar, bis sie dran sind. Ohne `fortschritt` steht sie sofort da. */
 @Composable
-private fun KunstLinie(striche: List<List<Offset>>, saat: Int, modifier: Modifier = Modifier, klein: Boolean = false) {
+private fun KunstLinie(striche: List<List<Offset>>, saat: Int, modifier: Modifier = Modifier, klein: Boolean = false,
+                       fortschritt: Float? = null) {
     val flocken = remember(saat) { schnee(saat) }
     val dick = if (klein) 30f else 22f
+    // Laenge je Strich (0 zaehlt als 1 wie im Web)
+    val laengen = remember(striche) {
+        striche.map { st -> (1 until st.size).fold(0f) { a, i -> a + (st[i] - st[i - 1]).getDistance() }.takeIf { it > 0f } ?: 1f }
+    }
     Canvas(modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(8.dp)).background(NACHT)) {
         val k = size.width / BOX
         flocken.forEach { f -> drawCircle(Color.White, f.r * k, Offset(f.x * k, f.y * k), alpha = f.o) }
-        val pfade = striche.filter { it.size >= 2 }.map { st ->
-            Path().apply { moveTo(st[0].x * k, st[0].y * k); for (i in 1 until st.size) lineTo(st[i].x * k, st[i].y * k) }
+        val gesamt = laengen.sum()
+        var vorher = 0f
+        val pfade = striche.indices.mapNotNull { j ->
+            val st = striche[j]; val len = laengen[j]; val start = vorher
+            vorher += len
+            if (st.size < 2) return@mapNotNull null
+            val weg = if (fortschritt == null) len else (fortschritt * gesamt - start).coerceAtMost(len)
+            if (weg <= 0f) null else teilPfad(st, weg, k)
         }
         pfade.forEach { drawPath(it, CYAN, alpha = 0.22f, style = Stroke(dick * 2.6f * k, cap = StrokeCap.Round, join = StrokeJoin.Round)) }
         pfade.forEach { drawPath(it, CYAN, style = Stroke(dick * k, cap = StrokeCap.Round, join = StrokeJoin.Round)) }
+    }
+}
+
+/** Strich bis zur Weglaenge `weg` (in BOX-Einheiten), skaliert mit `k`. */
+private fun teilPfad(st: List<Offset>, weg: Float, k: Float): Path = Path().apply {
+    moveTo(st[0].x * k, st[0].y * k)
+    var rest = weg
+    for (i in 1 until st.size) {
+        val a = st[i - 1]; val b = st[i]; val d = (b - a).getDistance()
+        if (d >= rest) {
+            val p = if (d > 0f) a + (b - a) * (rest / d) else b
+            lineTo(p.x * k, p.y * k)
+            break
+        }
+        lineTo(b.x * k, b.y * k)
+        rest -= d
     }
 }
 
@@ -453,7 +501,7 @@ internal fun KunstBereich(eventId: Int, onOpenSession: (Int) -> Unit) {
         }
 
         when {
-            runde.phase == "fertig" -> Aufloesung(runde, onOpenSession)
+            runde.phase == "fertig" -> Aufloesung(eventId, runde, onOpenSession)
             runde.galerie.isEmpty() -> if (runde.phase != "kommt") {
                 Text(I18n.t(if (runde.phase == "einreichen" && !dd.moderieren) "kunst.galerieSpaeter" else "kunst.leer"),
                     style = MaterialTheme.typography.bodyMedium, color = grau)
@@ -466,10 +514,13 @@ internal fun KunstBereich(eventId: Int, onOpenSession: (Int) -> Unit) {
                     liste.chunked(2).forEach { reihe ->
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             reihe.forEach { b ->
-                                GalerieBild(b, runde, dd, gemeldet[b.id] == true, Modifier.weight(1f),
-                                    onHerz = { aktion { Api.kunstHerz(b.id) } },
-                                    onMelden = { melden = b.id },
-                                    onOeffnen = { voll = ids to ids.indexOf(b.id) })
+                                // key: Herz-Puls bleibt beim Bild, wenn es nach dem Herz nach vorn sortiert wird
+                                key(b.id) {
+                                    GalerieBild(b, runde, dd, gemeldet[b.id] == true, Modifier.weight(1f),
+                                        onHerz = { aktion { Api.kunstHerz(b.id) } },
+                                        onMelden = { melden = b.id },
+                                        onOeffnen = { voll = ids to ids.indexOf(b.id) })
+                                }
                             }
                             if (reihe.size == 1) Spacer(Modifier.weight(1f))
                         }
@@ -516,9 +567,18 @@ private fun GalerieBild(b: KunstBild, runde: KunstRunde, d: KunstEvent, gemeldet
                         onHerz: () -> Unit, onMelden: () -> Unit, onOeffnen: () -> Unit) {
     val abstimmen = runde.phase == "abstimmen" && d.teilnehmen && !b.eigen && b.entfernt == null
     val voll = runde.herzenVergeben >= d.herzenJeRunde && !b.herz
+    // Tipp oeffnet das Vollbild, Doppeltipp vergibt/nimmt ein Herz (Web 19.11.2026), mit Herz-Puls.
+    var puls by remember { mutableStateOf<Pair<Int, Boolean>?>(null) }
+    val herzTippen by rememberUpdatedState { puls = ((puls?.first ?: 0) + 1) to !b.herz; onHerz() }
+    val oeffnen by rememberUpdatedState(onOeffnen)
     Column(modifier.alpha(if (b.entfernt != null) 0.5f else 1f).clip(RoundedCornerShape(12.dp))
         .border(1.dp, if (b.herz) CYAN else MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp)).padding(8.dp)) {
-        Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onOeffnen)) { KunstLinie(b.linie, b.id) }
+        Box(Modifier.clip(RoundedCornerShape(8.dp)).pointerInput(b.id, abstimmen && !voll) {
+            detectTapGestures(onTap = { oeffnen() }, onDoubleTap = if (abstimmen && !voll) { _ -> herzTippen() } else null)
+        }) {
+            KunstLinie(b.linie, b.id)
+            HerzPuls(puls, Modifier.matchParentSize())
+        }
         Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             if (abstimmen) HerzKnopf(b.herz, !voll, onClick = onHerz)
             if (b.eigen) Text(I18n.t("kunst.deinBild"), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold,
@@ -555,9 +615,10 @@ private fun MeldenDialog(onZu: () -> Unit, onSenden: (String) -> Unit) {
  *  Blaettern mit Pfeilen bzw. Wischen). */
 @Composable
 private fun VollbildRahmen(anzahl: Int, onWeiter: (Int) -> Unit, onZu: () -> Unit, wischen: Boolean = true,
-                           bild: @Composable () -> Unit, unten: @Composable () -> Unit) {
+                           randSchliesst: Boolean = true, bild: @Composable () -> Unit, unten: @Composable () -> Unit) {
     Dialog(onDismissRequest = onZu, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.85f)).clickable(onClick = onZu).padding(12.dp),
+        Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = if (randSchliesst) 0.85f else 0.9f))
+            .then(if (randSchliesst) Modifier.clickable(onClick = onZu) else Modifier).padding(12.dp),
             contentAlignment = Alignment.Center) {
             Box(Modifier.widthIn(max = 560.dp).fillMaxWidth()) {
                 Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(24.dp)).background(DUNKEL)
@@ -601,16 +662,29 @@ private fun AbstimmGalerie(ids: List<Int>, start: Int, runde: KunstRunde, d: Kun
     val b = runde.galerie.firstOrNull { it.id == ids.getOrNull(i) } ?: return
     val abstimmen = runde.phase == "abstimmen" && d.teilnehmen && !b.eigen && b.entfernt == null
     val voll = runde.herzenVergeben >= d.herzenJeRunde && !b.herz
+    // Doppeltipp = Herz (Web 19.11.2026), mit Herz-Puls in der Bildmitte.
+    var puls by remember { mutableStateOf<Pair<Int, Boolean>?>(null) }
+    val herzTippen by rememberUpdatedState { puls = ((puls?.first ?: 0) + 1) to !b.herz; onHerz(b.id) }
+    // Admins: schon vor der Aufloesung Bild | Karte (Web 19.11.2026), Wahl gemerkt wie in der Ergebnis-Galerie.
+    val prefs = kunstPrefs()
+    var karteGewaehlt by remember { mutableStateOf(liesKarteGewaehlt(prefs)) }
+    val karteErlaubt = d.admin && b.karte == true
+    val karte = karteErlaubt && karteGewaehlt
     VollbildRahmen(ids.size, onWeiter = { r -> i = (i + r + ids.size) % ids.size }, onZu = onZu,
         bild = {
-            Box(Modifier.clip(RoundedCornerShape(16.dp)).background(if (b.herz) CYAN else Color.Transparent).padding(6.dp)) {
-                KunstLinie(b.linie, b.id)
+            Box(Modifier.clip(RoundedCornerShape(16.dp)).background(if (b.herz) CYAN else Color.Transparent).padding(6.dp)
+                .pointerInput(b.id, abstimmen && !voll) {
+                    if (abstimmen && !voll) detectTapGestures(onDoubleTap = { herzTippen() })
+                }) {
+                if (karte) KunstKarteBild(b.id) else KunstLinie(b.linie, b.id)
+                HerzPuls(puls, Modifier.matchParentSize())
             }
         },
         unten = {
             Row(Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text("${i + 1} / ${ids.size}", color = HELL_TEXT, style = MaterialTheme.typography.bodyMedium)
+                if (karteErlaubt) BildKarteUmschalter(karte) { k -> karteGewaehlt = k; schreibKarteGewaehlt(prefs, k) }
                 if (b.eigen) Text(I18n.t("kunst.deinBild"), color = CYAN, style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.weight(1f))
@@ -625,20 +699,49 @@ private fun AbstimmGalerie(ids: List<Int>, start: Int, runde: KunstRunde, d: Kun
 }
 
 // ---------------------------------------------------------------------------- Aufloesung ----
-// Platz 1-3 als Treppchen (2-1-3, Gold/Silber/Bronze) mit Fanfare (Stumm-Einstellung geteilt mit EventPodest), darunter
-// alle weiteren, Antippen -> Vollbild-Galerie mit Bild | Karte.
+// Platz 1-3 als Treppchen (2-1-3, Gold/Silber/Bronze, statisch), darunter alle weiteren, Antippen -> Vollbild-Galerie mit
+// Bild | Karte. Die Enthuellung (Platz 3, 2, 1 nacheinander) laeuft im Vollbild: automatisch beim ersten Ansehen je
+// Event+Runde, danach per Knopf; Jingle mit der Stumm-Einstellung von EventPodest.
 
 // Eigener Jingle (server/media/sounds/gpskunst.mp3) — fehlt die Datei, spielt die Event-Fanfare (Web TON_KUNST/TON).
 private const val TON_KUNST = "/media/sounds/gpskunst.mp3"
 private const val TON_ERSATZ = "/media/sounds/winner-awards-484333.mp3"
 private const val STUMM_PREF = "podest-stumm"   // derselbe Schluessel wie EventPodest
+private const val ANSICHT_PREF = "kunst-ansicht"   // Galerie: "karte" oder leer (= Bild), wie Web
 private val METALL = listOf(Color(0xFFFACC15), Color(0xFFCBD5E1), Color(0xFFEA8A4A))        // Gold, Silber, Bronze
 private val METALL_TEXT = listOf(Color(0xFFA16207), Color(0xFF475569), Color(0xFF9A3412))   // dunklere Randfarben
+// Zeiten der Enthuellung (Web ZIEHEN/BLINK/STEHEN/EXTRA/FOTO)
+private const val ZIEHEN_MS = 5000
+private const val BLINK_MS = 400      // je Blinken (zweimal)
+private const val STEHEN_MS = 2000
+private const val KARTE_MS = 2000
+private const val FOTO_MS = 4000
 
-/** Siegerton vom Server (wie EventPodest, Lizenz: nie in der App); bei Fehler einmal der Ersatz. */
+@Composable
+private fun kunstPrefs(): android.content.SharedPreferences {
+    val ctx = LocalContext.current
+    return remember { ctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE) }
+}
+private fun liesKarteGewaehlt(p: android.content.SharedPreferences) =
+    runCatching { p.getString(ANSICHT_PREF, null) == "karte" }.getOrDefault(false)
+private fun schreibKarteGewaehlt(p: android.content.SharedPreferences, k: Boolean) {
+    runCatching { p.edit().apply { if (k) putString(ANSICHT_PREF, "karte") else remove(ANSICHT_PREF) }.apply() }
+}
+
+/** „Animationen entfernen" in den System-Einstellungen (Web prefers-reduced-motion). */
+private fun animationenAus(ctx: android.content.Context): Boolean = runCatching {
+    android.provider.Settings.Global.getFloat(ctx.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+}.getOrDefault(false)
+
+/** Foto-URL vom Server: relativ (/media/...) -> mit API-Basis verbinden. */
+private fun fotoUrl(f: String) = if (f.startsWith("http")) f else Api.BASE.trimEnd('/') + f
+
+/** Siegerton vom Server (wie EventPodest, Lizenz: nie in der App); bei Fehler einmal der Ersatz. Laeuft zweimal
+ *  hintereinander (Web 19.11.2026: „sonst ist der zu kurz" fuer die Enthuellung). */
 private class KunstFanfare {
     private var mp: MediaPlayer? = null
-    fun start() = spiel(TON_KUNST, TON_ERSATZ)
+    private var nochmal = 0
+    fun start() { nochmal = 1; spiel(TON_KUNST, TON_ERSATZ) }
     private fun spiel(pfad: String, ersatz: String?) {
         stop()
         runCatching {
@@ -648,7 +751,11 @@ private class KunstFanfare {
             p.setDataSource(Api.BASE.trimEnd('/') + pfad)
             p.setVolume(0.6f, 0.6f)
             p.setOnPreparedListener { it.start() }
-            p.setOnCompletionListener { if (mp === it) stop() }
+            p.setOnCompletionListener {
+                if (mp === it) {
+                    if (nochmal > 0) { nochmal--; runCatching { it.seekTo(0); it.start() }.onFailure { stop() } } else stop()
+                }
+            }
             p.setOnErrorListener { x, _, _ ->
                 if (mp === x) { if (ersatz != null) spiel(ersatz, null) else stop() }
                 true
@@ -675,15 +782,61 @@ private fun Herzen(n: Int, gross: Boolean = false, farbe: Color = MaterialTheme.
     }
 }
 
+/** Kurz aufleuchtendes grosses Herz in der Bildmitte nach einem Doppeltipp (Web HerzPuls): `puls` = (Zaehler, gefuellt);
+ *  gefuellt beim Vergeben, Umriss beim Wegnehmen. */
 @Composable
-private fun Aufloesung(runde: KunstRunde, onOpenSession: (Int) -> Unit) {
+private fun HerzPuls(puls: Pair<Int, Boolean>?, modifier: Modifier) {
+    val p = puls ?: return
+    val t = remember { Animatable(1f) }
+    LaunchedEffect(p.first) { t.snapTo(0f); t.animateTo(1f, tween(700, easing = LinearEasing)) }
+    // Keyframes wie Web: 0 % 0.4/0 -> 25 % 1.1/0.95 -> 70 % 1.0/0.9 -> 100 % 1.15/0
+    val x = t.value
+    val (skala, deck) = when {
+        x < 0.25f -> (0.4f + 0.7f * x / 0.25f) to (0.95f * x / 0.25f)
+        x < 0.7f -> ((x - 0.25f) / 0.45f).let { u -> (1.1f - 0.1f * u) to (0.95f - 0.05f * u) }
+        else -> ((x - 0.7f) / 0.3f).let { u -> (1f + 0.15f * u) to (0.9f * (1f - u)) }
+    }
+    Box(modifier, contentAlignment = Alignment.Center) {
+        Icon(if (p.second) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder, contentDescription = null, tint = CYAN,
+            modifier = Modifier.fillMaxSize(1f / 3f).graphicsLayer { scaleX = skala; scaleY = skala; alpha = deck })
+    }
+}
+
+/** Bild | Karte (feste dunkle Farben, der Vollbild-Kasten ist immer dunkel). */
+@Composable
+private fun BildKarteUmschalter(karte: Boolean, onWahl: (Boolean) -> Unit) {
+    Row(Modifier.clip(RoundedCornerShape(8.dp)).background(Color(0xFF1E293B)).padding(2.dp)) {
+        listOf(false to "kunst.ansichtBild", true to "kunst.ansichtKarte").forEach { (k, key) ->
+            val an = karte == k
+            Text(I18n.t(key), style = MaterialTheme.typography.labelMedium,
+                color = if (an) DUNKEL else Color(0xFFCBD5E1), fontWeight = if (an) FontWeight.SemiBold else FontWeight.Normal,
+                modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(if (an) CYAN else Color.Transparent)
+                    .clickable { onWahl(k) }.padding(horizontal = 8.dp, vertical = 3.dp))
+        }
+    }
+}
+
+@Composable
+private fun Aufloesung(eventId: Int, runde: KunstRunde, onOpenSession: (Int) -> Unit) {
     val e = runde.ergebnis.orEmpty()
     val ctx = LocalContext.current
-    val prefs = remember { ctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE) }
+    val prefs = kunstPrefs()
     var stumm by remember { mutableStateOf(runCatching { prefs.getBoolean(STUMM_PREF, false) }.getOrDefault(false)) }
     var offen by remember { mutableStateOf<Int?>(null) }
+    var zeigen by remember { mutableStateOf(false) }
     val fanfare = remember { KunstFanfare() }
-    LaunchedEffect(runde.nr) { if (!stumm && e.isNotEmpty()) fanfare.start() }
+    val gesehenKey = "kunst-gesehen-$eventId-${runde.nr}"
+    fun enthuellen() {
+        runCatching { prefs.edit().putBoolean(gesehenKey, true).apply() }
+        zeigen = true
+        if (!stumm) fanfare.start()
+    }
+    // Beim ersten Ansehen der fertigen Runde automatisch (nicht bei „Animationen aus").
+    LaunchedEffect(eventId, runde.nr) {
+        zeigen = false
+        val gesehen = runCatching { prefs.getBoolean(gesehenKey, false) }.getOrDefault(false)
+        if (e.isNotEmpty() && !gesehen && !animationenAus(ctx)) enthuellen()
+    }
     DisposableEffect(Unit) { onDispose { fanfare.stop() } }
     if (e.isEmpty()) {
         Text(I18n.t("kunst.leer"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -695,49 +848,60 @@ private fun Aufloesung(runde: KunstRunde, onOpenSession: (Int) -> Unit) {
         if (v) fanfare.stop()
     }
     Column(Modifier.fillMaxWidth()) {
-        Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End) {
-            OutlinedIconButton(onClick = { fanfare.start() }, shape = RoundedCornerShape(12.dp), modifier = Modifier.size(40.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
-                Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = I18n.t("team.podest.ton"), modifier = Modifier.size(20.dp))
+        // Knopf zentriert ueber Platz 1, primaer (Web 178ffc3d); „Stumm" rechts daneben
+        Row(Modifier.fillMaxWidth().padding(bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Spacer(Modifier.weight(1f))
+            Button(onClick = { enthuellen() }, shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = CYAN, contentColor = DUNKEL),
+                contentPadding = PaddingValues(horizontal = 14.dp)) {
+                Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(I18n.t("kunst.enth.nochmal"), fontWeight = FontWeight.SemiBold)
             }
-            Spacer(Modifier.width(4.dp))
-            Row(Modifier.clip(RoundedCornerShape(8.dp)).clickable { stummSetzen(!stumm) }, verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = stumm, onCheckedChange = { stummSetzen(it) })
-                Text(I18n.t("team.podest.stumm"), style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(end = 6.dp))
+            Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                Row(Modifier.clip(RoundedCornerShape(8.dp)).clickable { stummSetzen(!stumm) }, verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = stumm, onCheckedChange = { stummSetzen(it) })
+                    Text(I18n.t("team.podest.stumm"), style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(end = 6.dp))
+                }
             }
         }
-        // Treppchen 2-1-3: Gold am hoechsten
-        val top = e.take(3).mapIndexed { i, z -> z to i }
-        val treppe = when (top.size) { 3 -> listOf(top[1], top[0], top[2]); 2 -> listOf(top[1], top[0]); else -> top }
+        // Treppchen 2-1-3: Gold am hoechsten; nach Platz gruppiert (Web 19.11.2026: Gleichstand -> mehrere Bilder je Stufe,
+        // leere Stufen fallen weg, z. B. 1., 1., 3. -> Gold mit zwei Bildern, Bronze).
+        val n3 = e.count { it.platz <= 3 }
+        val stufen = listOf(2, 1, 3).map { p -> p to e.withIndex().filter { it.value.platz == p } }.filter { it.second.isNotEmpty() }
         Row(Modifier.fillMaxWidth().padding(bottom = 16.dp), verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            treppe.forEach { (z, i) ->
-                val p = z.platz.coerceIn(1, 3)
-                Column(Modifier.weight(if (p == 1) 1.2f else 1f).clip(RoundedCornerShape(12.dp)).clickable { offen = i }
+            stufen.forEach { (p, l) ->
+                Row(Modifier.weight((if (p == 1) 1.2f else 1f) * minOf(l.size, 2))
                     .padding(bottom = when (p) { 1 -> 36.dp; 2 -> 14.dp; else -> 0.dp }),
-                    horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(METALL[p - 1]).padding(5.dp)) {
-                        KunstLinie(z.linie, z.bildId)
+                    verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    l.forEach { (i, z) ->
+                        val einzeln = l.size == 1
+                        Column(Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).clickable { offen = i },
+                            horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(METALL[p - 1]).padding(5.dp)) {
+                                KunstLinie(z.linie, z.bildId, klein = !einzeln)
+                            }
+                            Text("${z.platz}.", color = METALL_TEXT[p - 1], fontWeight = FontWeight.ExtraBold,
+                                fontSize = if (p == 1) 28.sp else 22.sp, lineHeight = if (p == 1) 30.sp else 24.sp)
+                            Text(z.name ?: "—", fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.Center, fontSize = if (p == 1 && einzeln) 16.sp else 13.sp)
+                            Herzen(z.herzen, gross = p == 1 && einzeln)
+                        }
                     }
-                    Text("${z.platz}.", color = METALL_TEXT[p - 1], fontWeight = FontWeight.ExtraBold,
-                        fontSize = if (p == 1) 28.sp else 22.sp, lineHeight = if (p == 1) 30.sp else 24.sp)
-                    Text(z.name ?: "—", fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center, fontSize = if (p == 1) 16.sp else 13.sp)
-                    Herzen(z.herzen, gross = p == 1)
                 }
             }
         }
         // Alle weiteren
-        if (e.size > 3) {
+        if (e.size > n3) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                e.drop(3).withIndex().chunked(3).forEach { reihe ->
+                e.drop(n3).withIndex().chunked(3).forEach { reihe ->
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         reihe.forEach { (k, z) ->
                             Column(Modifier.weight(1f).clip(RoundedCornerShape(8.dp))
                                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
-                                .clickable { offen = k + 3 }.padding(5.dp)) {
+                                .clickable { offen = k + n3 }.padding(5.dp)) {
                                 KunstLinie(z.linie, z.bildId, klein = true)
                                 Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Text("${z.platz}.", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
@@ -755,6 +919,7 @@ private fun Aufloesung(runde: KunstRunde, onOpenSession: (Int) -> Unit) {
         }
     }
     offen?.let { start -> ErgebnisGalerie(e, start, onZu = { offen = null }, onOpenSession = { sid -> offen = null; onOpenSession(sid) }) }
+    if (zeigen) Enthuellung(e, runde.nr, onZu = { zeigen = false })
 }
 
 /** Gesamtuebersicht (Web Gesamt): je Platz die Bilder aller fertigen Runden (nach Runde sortiert), jedes mit seiner Runde
@@ -809,20 +974,29 @@ private fun Gesamt(runden: List<KunstRunde>, onOpenSession: (Int) -> Unit) {
     }
 }
 
-/** Vollbild-Galerie der Aufloesung (Web Galerie): Bild | Karte, Platz, Name, Herzen, Spot, Link zur Session. */
+/** Vollbild-Galerie der Aufloesung (Web Galerie): Bild | Karte (gemerkt, gilt beim Blaettern; Bilder ohne freigegebenen
+ *  Ort zeigen das Bild, die Wahl bleibt), „Abspielen" faehrt die Linie nochmal, Platz, Name, Herzen, Spot, zur Session. */
 @Composable
 private fun ErgebnisGalerie(liste: List<KunstErgebnis>, start: Int, onZu: () -> Unit, onOpenSession: (Int) -> Unit,
                             runden: List<Int>? = null) {
     var i by remember { mutableIntStateOf(start.coerceIn(0, maxOf(0, liste.size - 1))) }
-    var karte by remember { mutableStateOf(false) }
+    val prefs = kunstPrefs()
+    var karteGewaehlt by remember { mutableStateOf(liesKarteGewaehlt(prefs)) }
+    // „Abspielen": Linie in ZIEHEN_MS fahren wie in der Enthuellung; zeigt bis zum Blaettern das Bild.
+    var spiel by remember { mutableStateOf(false) }
+    val zieh = remember { Animatable(1f) }
+    val scope = rememberCoroutineScope()
+    var spielJob by remember { mutableStateOf<Job?>(null) }
+    fun spielAus() { spielJob?.cancel(); spiel = false }
     val z = liste.getOrNull(i) ?: return
+    val karte = karteGewaehlt && z.karte && !spiel
     val p = z.platz.coerceIn(1, 4)
     val metall = METALL.getOrNull(p - 1)
-    VollbildRahmen(liste.size, onWeiter = { r -> karte = false; i = (i + r + liste.size) % liste.size }, onZu = onZu,
-        wischen = !karte,
+    VollbildRahmen(liste.size, onWeiter = { r -> spielAus(); i = (i + r + liste.size) % liste.size }, onZu = onZu,
         bild = {
             Box(Modifier.clip(RoundedCornerShape(16.dp)).background(metall ?: Color.Transparent).padding(6.dp)) {
-                if (karte) KunstKarteAnsicht(z.bildId) else KunstLinie(z.linie, z.bildId)
+                if (karte) KunstKarteBild(z.bildId)
+                else KunstLinie(z.linie, z.bildId, fortschritt = if (spiel) zieh.value else null)
             }
         },
         unten = {
@@ -841,82 +1015,192 @@ private fun ErgebnisGalerie(liste: List<KunstErgebnis>, start: Int, onZu: () -> 
                 Spacer(Modifier.width(8.dp))
                 Herzen(z.herzen, gross = true, farbe = Color.White)
             }
-            Row(Modifier.fillMaxWidth().padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            @OptIn(ExperimentalLayoutApi::class)
+            FlowRow(Modifier.fillMaxWidth().padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 z.spot?.let { Text(it, color = Color(0xFFCBD5E1), style = MaterialTheme.typography.bodyMedium, maxLines = 1,
-                    overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false)) }
-                z.sessionId?.let { sid ->
-                    Text(I18n.t("kunst.zurSession"), color = Color(0xFF67E8F9), style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.clip(RoundedCornerShape(4.dp)).clickable { onOpenSession(sid) }.padding(2.dp))
-                }
-                Spacer(Modifier.weight(1f))
-                if (z.karte) {
-                    Row(Modifier.clip(RoundedCornerShape(8.dp)).background(Color(0xFF1E293B)).padding(2.dp)) {
-                        listOf(false to "kunst.ansichtBild", true to "kunst.ansichtKarte").forEach { (k, key) ->
-                            val an = karte == k
-                            Text(I18n.t(key), style = MaterialTheme.typography.labelMedium,
-                                color = if (an) DUNKEL else Color(0xFFCBD5E1), fontWeight = if (an) FontWeight.SemiBold else FontWeight.Normal,
-                                modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(if (an) CYAN else Color.Transparent)
-                                    .clickable { karte = k }.padding(horizontal = 8.dp, vertical = 3.dp))
+                    overflow = TextOverflow.Ellipsis, modifier = Modifier.align(Alignment.CenterVertically)) }
+                Row(Modifier.align(Alignment.CenterVertically).clip(RoundedCornerShape(8.dp)).background(Color(0xFF1E293B))
+                    .clickable {
+                        spielJob?.cancel()
+                        spiel = true
+                        // UNDISPATCHED: auf 0 setzen, bevor das naechste Bild gezeichnet wird (sonst blitzt die volle Linie auf)
+                        spielJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                            zieh.snapTo(0f); zieh.animateTo(1f, tween(ZIEHEN_MS, easing = LinearEasing))
                         }
+                    }.padding(horizontal = 8.dp, vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.PlayArrow, contentDescription = null, tint = Color(0xFFF1F5F9), modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(3.dp))
+                    Text(I18n.t("kunst.abspielen"), color = Color(0xFFF1F5F9), style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold)
+                }
+                z.sessionId?.let { sid ->
+                    Row(Modifier.align(Alignment.CenterVertically).clip(RoundedCornerShape(8.dp)).background(CYAN)
+                        .clickable { onOpenSession(sid) }.padding(start = 8.dp, end = 4.dp, top = 3.dp, bottom = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        Text(I18n.t("kunst.zurSession"), color = DUNKEL, style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold)
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = DUNKEL,
+                            modifier = Modifier.size(16.dp))
+                    }
+                }
+                if (z.karte) {
+                    Box(Modifier.align(Alignment.CenterVertically)) {
+                        BildKarteUmschalter(karte) { k -> spielAus(); karteGewaehlt = k; schreibKarteGewaehlt(prefs, k) }
                     }
                 }
             }
         })
 }
 
-/** Echter Track auf der Karte (Strasse/Luftbild wie ueberall), Norden oben, auf den Track eingepasst. */
+private enum class EPhase { ZIEHEN, BLINKEN, STEHEN, KARTE, FOTO, ENDE }
+
+/** Vollbild-Enthuellung (Web Enthuellung): alle Eintraege mit Platz <= 3 in umgekehrter Listenreihenfolge (erst alle
+ *  Dritten, dann Zweiten, dann Ersten; Gleichstand -> mehrere Bilder je Platz). Je Bild wird die Linie in ZIEHEN_MS
+ *  gefahren, blinkt zweimal, dann Name und Herzen, STEHEN_MS stehen, danach Ueberblendung aufs Kartenbild (wenn der Ort
+ *  gezeigt werden darf) und aufs Session-Foto (wenn vorhanden). Countdown in der letzten dieser Ansichten. Am Ende
+ *  „Alle Plaetze ansehen"; Ueberspringen springt zum naechsten Platz bzw. ans Ende. */
 @Composable
-private fun KunstKarteAnsicht(bildId: Int) {
-    var daten by remember(bildId) { mutableStateOf<KunstKarte?>(null) }
+private fun Enthuellung(liste: List<KunstErgebnis>, rundeNr: Int, onZu: () -> Unit) {
+    val reihe = remember(liste) { liste.indices.filter { liste[it].platz <= 3 }.reversed() }
+    if (reihe.isEmpty()) { LaunchedEffect(Unit) { onZu() }; return }
+    val ctx = LocalContext.current
+    // Kartenbilder und Fotos aller Treppchen-Plaetze sofort vorladen, nicht erst kurz vor dem Einblenden.
+    LaunchedEffect(liste) {
+        reihe.map { liste[it] }.forEach { z ->
+            if (z.karte) KunstKarten.vorladen(z.bildId)
+            z.foto?.let { f -> runCatching { coil.Coil.imageLoader(ctx).enqueue(coil.request.ImageRequest.Builder(ctx).data(fotoUrl(f)).build()) } }
+        }
+    }
+    var k by remember { mutableIntStateOf(0) }
+    var phase by remember { mutableStateOf(EPhase.ZIEHEN) }
+    var rest by remember { mutableIntStateOf(0) }
+    val zieh = remember { Animatable(0f) }
+    val blink = remember { Animatable(1f) }
+    val scope = rememberCoroutineScope()
+    var lauf by remember { mutableStateOf<Job?>(null) }
+    fun folge(z: KunstErgebnis) = buildList {
+        add(EPhase.STEHEN to STEHEN_MS)
+        if (z.karte) add(EPhase.KARTE to KARTE_MS)
+        if (z.foto != null) add(EPhase.FOTO to FOTO_MS)
+    }
+    // Startet Platz n (Index in reihe) bzw. das Ende; UNDISPATCHED, damit die neue Linie nie einen Frame voll dasteht.
+    fun starte(n: Int) {
+        lauf = scope.launch(start = CoroutineStart.UNDISPATCHED) {
+            if (n >= reihe.size) { zieh.snapTo(1f); blink.snapTo(1f); phase = EPhase.ENDE; return@launch }
+            zieh.snapTo(0f); blink.snapTo(1f); rest = 0; k = n; phase = EPhase.ZIEHEN
+            zieh.animateTo(1f, tween(ZIEHEN_MS, easing = LinearEasing))
+            phase = EPhase.BLINKEN
+            repeat(2) { blink.animateTo(0.12f, tween(BLINK_MS / 2)); blink.animateTo(1f, tween(BLINK_MS / 2)) }
+            val f = folge(liste[reihe[n]])
+            f.forEachIndexed { j, (ph, ms) ->
+                if (j == f.lastIndex) rest = ms / 1000
+                phase = ph
+                if (j == f.lastIndex) { while (rest > 0) { delay(1000); rest-- } } else delay(ms.toLong())
+            }
+            starte(n + 1)
+        }
+    }
+    LaunchedEffect(Unit) { starte(0) }
+    val z = liste[reihe[k]]
+    val p = z.platz.coerceIn(1, 3)
+    val letzter = k + 1 >= reihe.size
+    val zaehlPhase = folge(z).last().first
+    val nameDa = phase == EPhase.STEHEN || phase == EPhase.KARTE || phase == EPhase.FOTO || phase == EPhase.ENDE
+    val nameA by animateFloatAsState(if (nameDa) 1f else 0f, tween(500), label = "name")
+    val karteA by animateFloatAsState(if (phase == EPhase.KARTE) 1f else 0f, tween(700), label = "karte")
+    val fotoA by animateFloatAsState(if (phase == EPhase.FOTO) 1f else 0f, tween(700), label = "foto")
+    val vorEnde = phase == EPhase.STEHEN || phase == EPhase.KARTE || phase == EPhase.FOTO
+    VollbildRahmen(1, onWeiter = {}, onZu = onZu, wischen = false, randSchliesst = false,
+        bild = {
+            Column {
+                Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(I18n.t("kunst.enth.titel").replace("{n}", rundeNr.toString()).uppercase(), color = Color(0xFF94A3B8),
+                        style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, letterSpacing = 1.sp,
+                        maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                    Spacer(Modifier.width(12.dp))
+                    // rechts Platz fuer den Schliessen-Knopf lassen
+                    Text(I18n.t("kunst.platzN").replace("{n}", z.platz.toString()), color = METALL[p - 1], fontSize = 28.sp,
+                        fontWeight = FontWeight.ExtraBold, maxLines = 1, modifier = Modifier.padding(end = 20.dp))
+                }
+                Box(Modifier.graphicsLayer { alpha = blink.value }.clip(RoundedCornerShape(16.dp)).background(METALL[p - 1]).padding(6.dp)) {
+                    KunstLinie(z.linie, z.bildId, fortschritt = if (phase == EPhase.ENDE) null else zieh.value)
+                    // Karte und Foto schon in „stehen" unsichtbar bereit, damit sie beim Ueberblenden da sind
+                    if (z.karte && vorEnde) Box(Modifier.matchParentSize().graphicsLayer { alpha = karteA }) { KunstKarteBild(z.bildId) }
+                    if (z.foto != null && vorEnde) {
+                        AsyncImage(model = fotoUrl(z.foto), contentDescription = null, contentScale = ContentScale.Crop,
+                            modifier = Modifier.matchParentSize().graphicsLayer { alpha = fotoA }.clip(RoundedCornerShape(8.dp)))
+                    }
+                }
+            }
+        },
+        unten = {
+            Row(Modifier.fillMaxWidth().padding(top = 10.dp).heightIn(min = 40.dp).graphicsLayer { alpha = nameA },
+                verticalAlignment = Alignment.CenterVertically) {
+                Text(z.name ?: "—", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1,
+                    overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                Spacer(Modifier.width(8.dp))
+                Herzen(z.herzen, gross = true, farbe = Color.White)
+            }
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (phase == zaehlPhase && !letzter && rest > 0) {
+                    Text(I18n.t("kunst.enth.naechster").replace("{n}", rest.toString()), color = Color(0xFF94A3B8),
+                        style = MaterialTheme.typography.bodyMedium)
+                }
+                Spacer(Modifier.weight(1f))
+                if (phase == EPhase.ENDE) {
+                    Button(onClick = onZu, colors = ButtonDefaults.buttonColors(containerColor = CYAN, contentColor = DUNKEL)) {
+                        Text(I18n.t("kunst.enth.alle"), fontWeight = FontWeight.SemiBold)
+                    }
+                } else {
+                    TextButton(onClick = { lauf?.cancel(); starte(k + 1) }) {
+                        Text(I18n.t("kunst.enth.skip"), color = Color(0xFFCBD5E1))
+                    }
+                }
+            }
+        })
+}
+
+/** Kartenbilder je App-Sitzung im Speicher (Web kartenSpeicher): die Enthuellung laedt die Treppchen-Plaetze beim
+ *  Oeffnen vor, Galerie und Blaettern nutzen denselben Vorrat. Fehler werden nicht gemerkt (naechstes Mal neu). */
+private object KunstKarten {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val fertig = java.util.concurrent.ConcurrentHashMap<Int, ImageBitmap>()
+    private val laufend = HashMap<Int, Deferred<ImageBitmap>>()
+    fun da(bildId: Int): ImageBitmap? = fertig[bildId]
+    private fun laden(bildId: Int): Deferred<ImageBitmap> = synchronized(laufend) {
+        laufend.getOrPut(bildId) {
+            scope.async(start = CoroutineStart.LAZY) {
+                try {
+                    val b = Api.kunstKartenBild(bildId)
+                    val bild = BitmapFactory.decodeByteArray(b, 0, b.size)?.asImageBitmap() ?: throw IllegalStateException("png")
+                    fertig[bildId] = bild
+                    bild
+                } finally { synchronized(laufend) { laufend.remove(bildId) } }
+            }.also { it.start() }
+        }
+    }
+    fun vorladen(bildId: Int) { if (fertig[bildId] == null) laden(bildId) }
+    suspend fun hole(bildId: Int): ImageBitmap = fertig[bildId] ?: laden(bildId).await()
+}
+
+/** Echter Track als Satellitenbild vom Server (Web KunstKarte, 19.11.2026: keine interaktive Karte im Event, zoomen geht
+ *  in den Session-Details). Norden oben, Quellennennung ist eingebrannt. */
+@Composable
+private fun KunstKarteBild(bildId: Int) {
+    var bild by remember(bildId) { mutableStateOf(KunstKarten.da(bildId)) }
     var fehler by remember(bildId) { mutableStateOf<String?>(null) }
     LaunchedEffect(bildId) {
-        try { daten = Api.kunstKarte(bildId) } catch (ex: Exception) { fehler = kunstFehlerText(ex) }
+        if (bild == null) try { bild = KunstKarten.hole(bildId) } catch (ex: CancellationException) { throw ex } catch (ex: Exception) {
+            fehler = kunstFehlerText(ex)
+        }
     }
-    val f = fehler
-    if (f != null) {
-        Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(8.dp)).background(NACHT), contentAlignment = Alignment.Center) {
-            Text(f, color = Color(0xFF94A3B8), style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center,
+    Box(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(8.dp)).background(NACHT), contentAlignment = Alignment.Center) {
+        bild?.let { Image(it, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) }
+        fehler?.let {
+            Text(it, color = Color(0xFF94A3B8), style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center,
                 modifier = Modifier.padding(16.dp))
         }
-        return
-    }
-    val k = daten
-    MapTiles.MitUmschalter(Modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(8.dp))) { ebene ->
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            onRelease = { it.onDetach() },
-            factory = { c ->
-                Configuration.getInstance().userAgentValue = c.packageName
-                MapView(c).apply { MapTiles.anwenden(this, ebene); setMultiTouchControls(true); controller.setZoom(3.0) }
-            },
-            update = { map ->
-                MapTiles.anwenden(map, ebene)
-                // Overlays nur bei neuen Daten (update laeuft bei jeder Recomposition, Merker am View).
-                if (k != null && map.tag !== k) {
-                    map.tag = k
-                    map.overlays.clear()
-                    val dens = map.context.resources.displayMetrics.density
-                    val alle = ArrayList<GeoPoint>()
-                    k.striche.forEach { st ->
-                        val pts = st.filter { it.size >= 2 }.map { GeoPoint(it[0], it[1]) }
-                        if (pts.size < 2) return@forEach
-                        alle.addAll(pts)
-                        // Dunkler Rand darunter: Cyan allein verschwindet auf hellblauem Wasser.
-                        map.overlays.add(Polyline(map).apply {
-                            setPoints(pts); outlinePaint.color = NACHT.copy(alpha = 0.85f).toArgb(); outlinePaint.strokeWidth = 7f * dens
-                            outlinePaint.strokeCap = android.graphics.Paint.Cap.ROUND
-                        })
-                        map.overlays.add(Polyline(map).apply {
-                            setPoints(pts); outlinePaint.color = CYAN.toArgb(); outlinePaint.strokeWidth = 4f * dens
-                            outlinePaint.strokeCap = android.graphics.Paint.Cap.ROUND
-                        })
-                    }
-                    if (alle.isNotEmpty()) map.einpassen(BoundingBox.fromGeoPoints(alle), (12 * dens).toInt(), 19.0)
-                    map.invalidate()
-                }
-            },
-        )
     }
 }
 
