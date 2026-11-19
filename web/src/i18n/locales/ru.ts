@@ -3139,6 +3139,7 @@ const ru: Record<string, string> = {
   "kunst.noch": "осталось {zeit}",
   "kunst.alle": "Все",
   "kunst.platzN": "Место {n}",
+  "kunst.enth.naechster": "Следующее место через {n} …",
   "kunst.enth.nochmal": "Показать объявление снова",
   "kunst.enth.alle": "Показать все места",
   "kunst.enth.skip": "Пропустить",

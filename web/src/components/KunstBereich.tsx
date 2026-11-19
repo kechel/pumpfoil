@@ -509,17 +509,23 @@ function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: num
   const reihe = liste.slice(0, 3).map((_, i) => i).reverse();   // [2, 1, 0]
   const [k, setK] = useState(0);
   const [phase, setPhase] = useState<"ziehen" | "blinken" | "stehen" | "ende">("ziehen");
+  const [rest, setRest] = useState(0);   // Sekunden bis zum naechsten Platz (Countdown unter dem Bild, Jan 19.11.)
+  const letzter = k + 1 >= reihe.length;
   useEffect(() => {
     if (phase === "ende") return;
-    const dauer = phase === "ziehen" ? ZIEHEN : phase === "blinken" ? BLINK * 2 : STEHEN;
+    if (phase === "stehen") {
+      // Steht in ganzen Sekunden herunter; beim letzten Platz ohne Countdown direkt nach STEHEN ans Ende.
+      if (letzter) { const u = window.setTimeout(() => setPhase("ende"), STEHEN); return () => clearTimeout(u); }
+      if (rest <= 0) { setK(k + 1); setPhase("ziehen"); return; }
+      const u = window.setTimeout(() => setRest(rest - 1), 1000);
+      return () => clearTimeout(u);
+    }
     const u = window.setTimeout(() => {
       if (phase === "ziehen") setPhase("blinken");
-      else if (phase === "blinken") setPhase("stehen");
-      else if (k + 1 < reihe.length) { setK(k + 1); setPhase("ziehen"); }
-      else setPhase("ende");
-    }, dauer);
+      else { setRest(Math.round(STEHEN / 1000)); setPhase("stehen"); }
+    }, phase === "ziehen" ? ZIEHEN : BLINK * 2);
     return () => clearTimeout(u);
-  }, [k, phase, reihe.length]);
+  }, [k, phase, rest, letzter]);
   useEffect(() => {
     const taste = (x: KeyboardEvent) => { if (x.key === "Escape") onZu(); };
     document.addEventListener("keydown", taste);
@@ -544,7 +550,10 @@ function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: num
           <span className="min-w-0 flex-1 truncate text-xl font-extrabold">{z.name ?? "—"}</span>
           <Herzen n={z.herzen} gross hell />
         </div>
-        <div className="mt-3 flex justify-end gap-2">
+        <div className="mt-3 flex items-center justify-end gap-2">
+          {phase === "stehen" && !letzter && rest > 0 && (
+            <span className="mr-auto text-sm tabular-nums" style={{ color: "#94a3b8" }}>{t("kunst.enth.naechster", { n: String(rest) })}</span>
+          )}
           {phase === "ende" ? (
             <button type="button" onClick={onZu}
               className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400">{t("kunst.enth.alle")}</button>

@@ -3135,6 +3135,7 @@ const ja: Record<string, string> = {
   "kunst.noch": "残り {zeit}",
   "kunst.alle": "すべて",
   "kunst.platzN": "{n}位",
+  "kunst.enth.naechster": "次の順位まで {n} …",
   "kunst.enth.nochmal": "結果発表をもう一度",
   "kunst.enth.alle": "全順位を見る",
   "kunst.enth.skip": "スキップ",

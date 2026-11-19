@@ -3021,6 +3021,7 @@ const es: Record<string, string> = {
   "kunst.noch": "quedan {zeit}",
   "kunst.alle": "Todas",
   "kunst.platzN": "Puesto {n}",
+  "kunst.enth.naechster": "Siguiente puesto en {n} …",
   "kunst.enth.nochmal": "Repetir la revelación",
   "kunst.enth.alle": "Ver todos los puestos",
   "kunst.enth.skip": "Saltar",

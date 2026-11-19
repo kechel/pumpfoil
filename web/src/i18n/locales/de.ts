@@ -3301,6 +3301,7 @@ const de: Record<string, string> = {
   "kunst.noch": "noch {zeit}",
   "kunst.alle": "Alle",
   "kunst.platzN": "Platz {n}",
+  "kunst.enth.naechster": "Nächster Platz in {n} …",
   "kunst.enth.nochmal": "Auflösung nochmal abspielen",
   "kunst.enth.alle": "Alle Plätze ansehen",
   "kunst.enth.skip": "Überspringen",

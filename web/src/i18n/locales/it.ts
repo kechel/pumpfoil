@@ -3022,6 +3022,7 @@ const it: Record<string, string> = {
   "kunst.noch": "ancora {zeit}",
   "kunst.alle": "Tutte",
   "kunst.platzN": "Posto {n}",
+  "kunst.enth.naechster": "Prossima posizione tra {n} …",
   "kunst.enth.nochmal": "Rivedi la rivelazione",
   "kunst.enth.alle": "Vedi tutte le posizioni",
   "kunst.enth.skip": "Salta",
