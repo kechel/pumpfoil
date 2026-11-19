@@ -569,6 +569,16 @@ def _brett_regeln_schreiben(db: DbSession, session, result, sens: str) -> None:
     db.commit()
 
 
+def gps_only_max_mps(sport_class: str | None) -> float:
+    """Tempogrenze fuer „ist Foilen" OHNE Bewegungsdaten (geglaetteter Max der Session). Pumpfoil 30 km/h (darueber =
+    angetrieben). Sportarten mit eigenen Grenzen (sportarten.json: Wing, Kite, Parawing …) nehmen ihre Lauf-Spitze, nie
+    weniger als 30 km/h — vorher galt 30 km/h fuer alle, und Wing-/Kitefoil-Sessions ohne Accel fielen aus Spot-Listen
+    und Bestenlisten (Jan 19.11.2026: „die sind ja schneller als 30km/h", Wingfoil-Session 22414)."""
+    from .gps import PUMPFOIL_GPS_MAX_MPS, SPORT_GRENZEN
+    g = SPORT_GRENZEN.get(sport_class or "pumpfoil")
+    return max(PUMPFOIL_GPS_MAX_MPS, g[1] / 3.6) if g else PUMPFOIL_GPS_MAX_MPS
+
+
 def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
                  erzwingen: bool = False) -> "models.AnalysisResult":
     """Lädt die Rohdaten der Session, rechnet die Analyse und persistiert das Ergebnis.
@@ -908,7 +918,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
     if detection == "model":
         is_pumpfoil = n_runs > 0
     elif detection == "gps_only":
-        is_pumpfoil = n_runs > 0 and max_sp <= PUMPFOIL_GPS_MAX_MPS
+        is_pumpfoil = n_runs > 0 and max_sp <= gps_only_max_mps(session.sport_class)
     else:
         is_pumpfoil = False
     # Keine Laeufe mit der Einstellung des Besitzers? Dann mit „light" pruefen, ob es trotzdem Pumpfoil
