@@ -1,4 +1,5 @@
 """GPS-Kunst-Event (18.11.2026, app/kunst.py): Runden, Einreichen, anonyme Galerie, Herzen, Aufloesung, Moderation."""
+import json
 import math
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -343,3 +344,43 @@ def test_lauf_werte_passen_zu_den_strichen():
     assert len(w) == len(l) == 2
     assert w[0]["s"] == 19.0 and w[1]["s"] == 29.0
     assert 200 < w[0]["m"] < 220 and 310 < w[1]["m"] < 330
+
+
+def test_ort_verbergen_gilt_auch_in_der_aufloesung(client, monkeypatch):
+    """„Ort verbergen" (Jan 19.11.2026): die Enthuellung zeigt fuer Fremde und Admins weder Spot noch Karte (Bild/Striche),
+    nur Besitzer und Freunde; die normierte Linie und die Laufwerte bleiben (keine Koordinaten)."""
+    from app.db import SessionLocal
+    from app import models
+    jetzt = datetime.now(timezone.utc)
+    eid = _event(jetzt - timedelta(days=1), jetzt + timedelta(days=6))
+    (ia, ka), (ib, kb), (ic, kc) = _nutzer("A"), _nutzer("B"), _nutzer("C")
+    sid, uuid = _session(ia, jetzt - timedelta(hours=2))
+    gps = {uuid: _kreis()}
+    monkeypatch.setattr("app.api.kunst.storage.load_gps", lambda u: gps.get(u, []))
+    monkeypatch.setattr("app.maptiles.hintergrund", lambda *a, **k: None)
+    db = SessionLocal()
+    db.get(models.User, ic).is_admin = True
+    sp = models.Spot(name="Geheimsee Testspot", name_source="manual", lat=54.0, lon=10.0)
+    db.add(sp); db.flush()
+    s = db.get(models.Session, sid)
+    s.spot_id, s.place_name, s.ort_sichtbarkeit = sp.id, sp.name, "hide"
+    db.commit(); db.close()
+    bid = client.post(f"/api/kunst/{eid}/bild", headers=ka, json={"runde": 1, "session_id": sid, "von_ms": 0,
+                                                                 "bis_ms": 10**9, "drehung": 0}).json()["id"]
+    # Admin schon vor der Aufloesung: keine Karte bei verborgenem Ort.
+    gal = client.get(f"/api/kunst/{eid}", headers=kc).json()["runden"][0]["galerie"]
+    assert gal and gal[0]["karte"] is False
+    assert client.get(f"/api/kunst/bild/{bid}/karte.png", headers=kc).status_code != 200
+    _verschieben(eid, 9)
+    for kopf in (kb, kc):                                       # Fremder und Admin
+        z = client.get(f"/api/kunst/{eid}", headers=kopf).json()["runden"][0]["ergebnis"][0]
+        assert z["karte"] is False and z["spot"] is None
+        assert z["linie"] and z["laeufe"] is not None
+        assert "Geheimsee" not in json.dumps(z) and "54.0" not in json.dumps(z)
+        assert client.get(f"/api/kunst/bild/{bid}/karte", headers=kopf).status_code != 200
+        assert client.get(f"/api/kunst/bild/{bid}/karte.png", headers=kopf).status_code != 200
+    z = client.get(f"/api/kunst/{eid}", headers=ka).json()["runden"][0]["ergebnis"][0]
+    assert z["karte"] is True and z["spot"] == "Geheimsee Testspot"   # Besitzer sieht seinen Ort
+    assert client.get(f"/api/kunst/bild/{bid}/karte.png", headers=ka).status_code == 200
+    # Nach dem Besitzer-Abruf liegt das Bild im Cache — Fremde bekommen es trotzdem nicht.
+    assert client.get(f"/api/kunst/bild/{bid}/karte.png", headers=kb).status_code != 200
