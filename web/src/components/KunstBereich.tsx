@@ -451,12 +451,10 @@ function Aufloesung({ runde, eventId }: { runde: KunstRunde; eventId: number }) 
   return (
     <>
       <div className="mb-2 flex flex-wrap items-center justify-end gap-2">
-        <button type="button" onClick={enthuellen} title={t("kunst.enth.nochmal")} aria-label={t("kunst.enth.nochmal")}
+        <button type="button" onClick={enthuellen}
           className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-700 px-2.5 text-sm text-slate-300 hover:bg-slate-800">
-          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M19 5a10 10 0 0 1 0 14" />
-          </svg>
-          <span className="hidden sm:inline">{t("kunst.enth.nochmal")}</span>
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" /></svg>
+          {t("kunst.enth.nochmal")}
         </button>
         <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-slate-400">
           <input type="checkbox" checked={stumm} onChange={(x) => { setStumm(x.target.checked); schreib(STUMM, x.target.checked ? "1" : null); if (x.target.checked) ton.current?.pause(); }} />
