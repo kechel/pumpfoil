@@ -163,7 +163,12 @@ data class KunstErgebnis(
     val spot: String? = null,
     val karte: Boolean = false,
     val foto: String? = null,      // erstes sichtbares Session-Foto, relativ (/media/...)
+    val laeufe: List<KunstLaufWert>? = null,   // je Strich: Dauer und Strecke des Laufs (Lauf-Zaehler)
 )
+
+/** Werte eines Laufs fuer den Zaehler: s = Sekunden, m = Meter (Double, falls der Server mal Kommazahlen schickt). */
+@Serializable
+data class KunstLaufWert(val s: Double = 0.0, val m: Double = 0.0)
 
 @Serializable
 data class KunstRunde(
@@ -263,10 +268,7 @@ private fun KunstLinie(striche: List<List<Offset>>, saat: Int, modifier: Modifie
                        fortschritt: Float? = null) {
     val flocken = remember(saat) { schnee(saat) }
     val dick = if (klein) 30f else 22f
-    // Laenge je Strich (0 zaehlt als 1 wie im Web)
-    val laengen = remember(striche) {
-        striche.map { st -> (1 until st.size).fold(0f) { a, i -> a + (st[i] - st[i - 1]).getDistance() }.takeIf { it > 0f } ?: 1f }
-    }
+    val laengen = remember(striche) { strichLaengen(striche) }
     Canvas(modifier.fillMaxWidth().aspectRatio(1f).clip(RoundedCornerShape(8.dp)).background(NACHT)) {
         val k = size.width / BOX
         flocken.forEach { f -> drawCircle(Color.White, f.r * k, Offset(f.x * k, f.y * k), alpha = f.o) }
@@ -281,6 +283,45 @@ private fun KunstLinie(striche: List<List<Offset>>, saat: Int, modifier: Modifie
         }
         pfade.forEach { drawPath(it, CYAN, alpha = 0.22f, style = Stroke(dick * 2.6f * k, cap = StrokeCap.Round, join = StrokeJoin.Round)) }
         pfade.forEach { drawPath(it, CYAN, style = Stroke(dick * k, cap = StrokeCap.Round, join = StrokeJoin.Round)) }
+    }
+}
+
+/** Laenge je Strich (0 zaehlt als 1 wie im Web) — Grundlage des Zeitplans beim „Fahren" (Linie und Lauf-Zaehler). */
+private fun strichLaengen(striche: List<List<Offset>>): List<Float> =
+    striche.map { st -> (1 until st.size).fold(0f) { a, i -> a + (st[i] - st[i - 1]).getDistance() }.takeIf { it > 0f } ?: 1f }
+
+/** Zeitplan (Web zeitplan): Gesamtfortschritt 0..1 -> (Strich-Index, Anteil 0..1 innerhalb des Strichs). Strich k
+ *  startet, wenn k-1 fertig ist; Zeitanteil nach Laenge. Nach dem Ende bleibt der letzte Strich bei 1. */
+private fun planStand(laengen: List<Float>, fortschritt: Float): Pair<Int, Float> {
+    if (laengen.isEmpty()) return 0 to 0f
+    val gesamt = laengen.sum()
+    val pos = fortschritt.coerceIn(0f, 1f) * gesamt
+    var start = 0f
+    laengen.forEachIndexed { i, l ->
+        if (pos < start + l) return i to ((pos - start) / l).coerceIn(0f, 1f)
+        start += l
+    }
+    return laengen.lastIndex to 1f
+}
+
+/** Zaehler unter der fahrenden Linie (Web LaufZaehler, Jan 19.11.2026): Lauf n (nur bei mehreren), Zeit und Strecke
+ *  zaehlen live hoch, je Lauf ab 0; gleicher Zeitplan wie KunstLinie. Nur wenn je Strich ein Wert da ist. */
+@Composable
+private fun LaufZaehler(linie: JsonElement, werte: List<KunstLaufWert>?, fortschritt: Float, modifier: Modifier = Modifier) {
+    val laengen = remember(linie) { strichLaengen(alsStriche(linie)) }
+    if (werte == null || werte.isEmpty() || werte.size != laengen.size) return
+    val (i, f) = planStand(laengen, fortschritt)
+    val w = werte[i]
+    val sek = (w.s * f).roundToInt()
+    val meter = (w.m * f).roundToInt()
+    val zeitText = "${sek / 60}:${(sek % 60).toString().padStart(2, '0')}"
+    val wegText = if (meter >= 1000) String.format(java.util.Locale.US, "%.2f km", meter / 1000.0) else "$meter m"
+    val zahl = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum")
+    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically) {
+        if (werte.size > 1) Text(I18n.t("kunst.zaehler.lauf").replace("{n}", (i + 1).toString()), color = Color(0xFF94A3B8), style = zahl)
+        Text(zeitText, color = Color(0xFFF1F5F9), style = zahl, fontWeight = FontWeight.SemiBold)
+        Text(wegText, color = Color(0xFFF1F5F9), style = zahl, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -1000,6 +1041,7 @@ private fun ErgebnisGalerie(liste: List<KunstErgebnis>, start: Int, onZu: () -> 
             }
         },
         unten = {
+            if (spiel && !karte) LaufZaehler(z.linie, z.laeufe, zieh.value, Modifier.padding(top = 8.dp))
             Row(Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text("${z.platz}.", color = metall ?: HELL_TEXT, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold)
                 Spacer(Modifier.width(10.dp))
@@ -1135,7 +1177,11 @@ private fun Enthuellung(liste: List<KunstErgebnis>, rundeNr: Int, onZu: () -> Un
             }
         },
         unten = {
-            Row(Modifier.fillMaxWidth().padding(top = 10.dp).heightIn(min = 40.dp).graphicsLayer { alpha = nameA },
+            // zwischen Bild und Namenszeile; Platz immer reserviert, damit die Namenszeile nicht springt
+            Box(Modifier.fillMaxWidth().padding(top = 8.dp).heightIn(min = 20.dp)) {
+                LaufZaehler(z.linie, z.laeufe, zieh.value)
+            }
+            Row(Modifier.fillMaxWidth().padding(top = 4.dp).heightIn(min = 40.dp).graphicsLayer { alpha = nameA },
                 verticalAlignment = Alignment.CenterVertically) {
                 Text(z.name ?: "—", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1,
                     overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
