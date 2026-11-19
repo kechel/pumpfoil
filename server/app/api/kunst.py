@@ -103,6 +103,14 @@ def _aufloesung(db: Session, e: models.TeamEvent, nr: int, betrachter: int) -> l
     sessions = {s.id: s for s in db.query(models.Session).filter(models.Session.id.in_([z["session_id"] for z in zeilen]))}
     spot_ids = {s.spot_id for s in sessions.values() if s.spot_id}
     spots = {sp.id: sp.name for sp in db.query(models.Spot).filter(models.Spot.id.in_(spot_ids))} if spot_ids else {}
+    # Erstes Foto der Session fuer die Enthuellung (Jan 19.11.2026: nach der Karte ueberblenden) — nur, was der Betrachter
+    # auch in den Session-Details saehe: nicht geblockt, Freigabe neuer Konten beachtet (medienfreigabe.sichtbar).
+    from ..medienfreigabe import sichtbar as medien_sichtbar
+    P = models.SessionPhoto
+    fotos: dict[int, str] = {}
+    for sid, url in (db.query(P.session_id, P.url).filter(P.session_id.in_(list(sessions)), P.blocked.isnot(True),
+                                                           medien_sichtbar(P)).order_by(P.id).all() if sessions else []):
+        fotos.setdefault(sid, url)
     out = []
     for z in zeilen:
         u, s, b = nutzer.get(z["user_id"]), sessions.get(z["session_id"]), bilder[z["bild_id"]]
@@ -112,7 +120,8 @@ def _aufloesung(db: Session, e: models.TeamEvent, nr: int, betrachter: int) -> l
             spot = spots.get(s.spot_id)
         out.append({**z, "linie": json.loads(b.linie_json), "name": (u.display_name if u else None),
                     "avatar_url": (u.avatar_url if u else None), "spot": spot, "karte": ort_sichtbar,
-                    "session_id": z["session_id"] if s is not None and not s.deleted else None})
+                    "session_id": z["session_id"] if s is not None and not s.deleted else None,
+                    "foto": fotos.get(z["session_id"]) if s is not None and not s.deleted else None})
     return out
 
 

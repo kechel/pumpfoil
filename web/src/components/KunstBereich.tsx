@@ -432,7 +432,7 @@ const ANSICHT = "kunst-ansicht";   // Galerie: "karte" oder leer (= Bild)
 const ZIEHEN = 5000;   // ms je Treppchen-Bild (Jan 19.11.: erst 3 s probiert, dann „mach mal 5s statt 3")
 const BLINK = 400;     // ms je Blinken (zweimal), danach Name + Herzen
 const STEHEN = 2000;   // ms steht das fertige Bild mit Name
-const KARTE = 2000;    // ms danach die echte Karte (wenn der Fahrer den Ort zeigt), dann der naechste Platz
+const EXTRA = 2000;    // ms je Zusatzansicht danach: echte Karte (wenn der Ort gezeigt wird), dann Session-Foto (wenn vorhanden)
 const ruhig = () => { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } };
 const METALL = ["#facc15", "#cbd5e1", "#ea8a4a"];   // Gold, Silber, Bronze (wie EventPodest)
 const METALL_TEXT = ["#a16207", "#475569", "#9a3412"];   // dunklere Randfarben fuer Zahlen (lesbar auf hell), wie EventPodest
@@ -542,16 +542,17 @@ function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: num
   const t = useT();
   const reihe = liste.slice(0, 3).map((_, i) => i).reverse();   // [2, 1, 0]
   const [k, setK] = useState(0);
-  const [phase, setPhase] = useState<"ziehen" | "blinken" | "stehen" | "karte" | "ende">("ziehen");
+  type Phase = "ziehen" | "blinken" | "stehen" | "karte" | "foto" | "ende";
+  const [phase, setPhase] = useState<Phase>("ziehen");
   const [rest, setRest] = useState(0);   // Sekunden bis zum naechsten Platz (Countdown unter dem Bild, Jan 19.11.)
   const letzter = k + 1 >= reihe.length;
-  const mitKarte = !!liste[reihe[k]]?.karte;   // echter Ort nur, wenn der Fahrer ihn zeigen darf (Server-Flag)
-  // Ablauf je Platz: ziehen -> blinken -> stehen (Name, STEHEN ms) -> karte (Ueberblendung auf die echte Karte, KARTE ms;
-  // Jan 19.11.2026) -> naechster Platz. Der Countdown laeuft in der letzten Phase vor dem Wechsel; nach dem letzten Platz
-  // geht es zurueck aufs Bild (ende).
+  const akt = liste[reihe[k]];
+  // Nach dem Namen je 2 s ueberblenden: echte Karte (nur wenn der Ort gezeigt werden darf) und danach das erste Foto der
+  // Session, falls es eins gibt (Jan 19.11.2026). Der Countdown laeuft in der letzten dieser Ansichten.
+  const extras: Phase[] = [...(akt?.karte ? ["karte" as const] : []), ...(akt?.foto ? ["foto" as const] : [])];
+  const zaehlPhase: Phase = extras.length ? extras[extras.length - 1] : "stehen";
   useEffect(() => {
     if (phase === "ende") return;
-    const zaehlPhase = mitKarte ? "karte" : "stehen";
     if (phase === zaehlPhase) {
       if (rest <= 0) {
         if (letzter) setPhase("ende"); else { setK(k + 1); setPhase("ziehen"); }
@@ -560,13 +561,15 @@ function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: num
       const u = window.setTimeout(() => setRest(rest - 1), 1000);
       return () => clearTimeout(u);
     }
+    const naechste: Phase = phase === "ziehen" ? "blinken" : phase === "blinken" ? "stehen"
+      : extras[phase === "stehen" ? 0 : extras.indexOf(phase) + 1];
+    const dauer = phase === "ziehen" ? ZIEHEN : phase === "blinken" ? BLINK * 2 : phase === "stehen" ? STEHEN : EXTRA;
     const u = window.setTimeout(() => {
-      if (phase === "ziehen") setPhase("blinken");
-      else if (phase === "blinken") { setRest(Math.round(STEHEN / 1000)); setPhase("stehen"); }
-      else { setRest(Math.round(KARTE / 1000)); setPhase("karte"); }   // stehen -> karte
-    }, phase === "ziehen" ? ZIEHEN : phase === "blinken" ? BLINK * 2 : STEHEN);
+      if (naechste === zaehlPhase) setRest(Math.round((naechste === "stehen" ? STEHEN : EXTRA) / 1000));
+      setPhase(naechste);
+    }, dauer);
     return () => clearTimeout(u);
-  }, [k, phase, rest, letzter, mitKarte]);
+  }, [k, phase, rest, letzter, zaehlPhase]);   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const taste = (x: KeyboardEvent) => { if (x.key === "Escape") onZu(); };
     document.addEventListener("keydown", taste);
@@ -574,7 +577,7 @@ function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: num
   }, [onZu]);
   const z = liste[reihe[k]];
   const p = Math.min(z.platz, 3);
-  const nameDa = phase === "stehen" || phase === "karte" || phase === "ende";
+  const nameDa = phase === "stehen" || phase === "karte" || phase === "foto" || phase === "ende";
   return createPortal(
     <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/90 p-3">
       <style>{"@keyframes kunstBlink{0%,100%{opacity:1}50%{opacity:.12}}"}</style>
@@ -586,10 +589,15 @@ function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: num
         </div>
         <div className="relative rounded-2xl p-1.5" style={{ background: METALL[p - 1], animation: phase === "blinken" ? `kunstBlink ${BLINK}ms ease-in-out 0s 2` : undefined }}>
           <KunstLinie key={k} linie={z.linie} saat={z.bild_id} zeichnen={ZIEHEN} />
-          {/* Karte schon in „stehen" unsichtbar laden, damit die Kacheln beim Ueberblenden da sind */}
-          {z.karte && (phase === "stehen" || phase === "karte") && (
+          {/* Karte und Foto schon in „stehen" unsichtbar laden, damit sie beim Ueberblenden da sind */}
+          {z.karte && (phase === "stehen" || phase === "karte" || phase === "foto") && (
             <div className={`absolute inset-1.5 transition-opacity duration-700 ${phase === "karte" ? "opacity-100" : "opacity-0"}`}>
               <KunstKarte key={z.bild_id} bildId={z.bild_id} />
+            </div>
+          )}
+          {z.foto && (phase === "stehen" || phase === "karte" || phase === "foto") && (
+            <div className={`absolute inset-1.5 transition-opacity duration-700 ${phase === "foto" ? "opacity-100" : "opacity-0"}`}>
+              <img src={z.foto} alt="" className="aspect-square w-full rounded-lg object-cover" />
             </div>
           )}
         </div>
@@ -598,7 +606,7 @@ function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: num
           <Herzen n={z.herzen} gross hell />
         </div>
         <div className="mt-3 flex items-center justify-end gap-2">
-          {phase === (mitKarte ? "karte" : "stehen") && !letzter && rest > 0 && (
+          {phase === zaehlPhase && !letzter && rest > 0 && (
             <span className="mr-auto text-sm tabular-nums" style={{ color: "#94a3b8" }}>{t("kunst.enth.naechster", { n: String(rest) })}</span>
           )}
           {phase === "ende" ? (
