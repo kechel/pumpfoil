@@ -499,8 +499,10 @@ function Aufloesung({ runde, eventId }: { runde: KunstRunde; eventId: number }) 
     return () => { ton.current?.pause(); };
   }, [runde.nr, eventId]);   // eslint-disable-line react-hooks/exhaustive-deps
   if (!e.length) return <p className="text-sm text-slate-400">{t("kunst.leer")}</p>;
-  const top = e.slice(0, 3).map((z, i) => ({ z, i }));
-  const treppe = top.length === 3 ? [top[1], top[0], top[2]] : top.length === 2 ? [top[1], top[0]] : top;
+  // Treppchen nach Platz gruppiert (Jan 19.11.2026: Gleichstand -> mehrere Bilder auf einer Stufe), Stufen 2 - 1 - 3,
+  // leere Stufen fallen weg (z. B. 1., 1., 3. -> Gold mit zwei Bildern, Bronze).
+  const n3 = e.filter((z) => z.platz <= 3).length;
+  const stufen = [2, 1, 3].map((p) => ({ p, l: e.map((z, i) => ({ z, i })).filter(({ z }) => z.platz === p) })).filter((x) => x.l.length);
   return (
     <>
       {/* Knopf zentriert ueber Platz 1, primaer (Jan 19.11.2026); „Stumm" rechts daneben */}
@@ -516,28 +518,29 @@ function Aufloesung({ runde, eventId }: { runde: KunstRunde; eventId: number }) 
           {t("team.podest.stumm")}
         </label>
       </div>
-      {/* Treppchen 2-1-3: Gold am hoechsten */}
-      <div className={`mb-5 grid items-end gap-3 sm:gap-5 ${treppe.length === 3 ? "grid-cols-3" : treppe.length === 2 ? "grid-cols-2" : "grid-cols-1"}`}>
-        {treppe.map(({ z, i }) => {
-          const p = Math.min(z.platz, 3);
-          return (
-            <button key={z.bild_id} type="button" onClick={() => setOffen(i)}
-              className={`mx-auto flex w-full flex-col items-center gap-1.5 text-center ${p === 1 ? "max-w-[260px] pb-10" : p === 2 ? "max-w-[210px] pb-4" : "max-w-[190px]"}`}>
-              <div className="w-full rounded-xl p-1.5" style={{ background: METALL[p - 1] }}>
-                <KunstLinie linie={z.linie} saat={z.bild_id} />
-              </div>
-              <span className={`font-extrabold tabular-nums ${p === 1 ? "text-3xl" : "text-2xl"}`} style={{ color: METALL_TEXT[p - 1] }}>{z.platz}.</span>
-              <span className={`max-w-full truncate font-extrabold text-slate-100 ${p === 1 ? "text-lg sm:text-xl" : "text-sm sm:text-base"}`}>{z.name ?? "—"}</span>
-              <Herzen n={z.herzen} gross={p === 1} />
-            </button>
-          );
-        })}
+      {/* Treppchen 2-1-3: Gold am hoechsten; je Stufe alle mit diesem Platz nebeneinander */}
+      <div className={`mb-5 grid items-end gap-3 sm:gap-5 ${stufen.length === 3 ? "grid-cols-3" : stufen.length === 2 ? "grid-cols-2" : "grid-cols-1"}`}>
+        {stufen.map(({ p, l }) => (
+          <div key={p} className={`mx-auto flex w-full items-end justify-center gap-2 ${p === 1 ? "pb-10" : p === 2 ? "pb-4" : ""}`}
+            style={{ maxWidth: (p === 1 ? 260 : p === 2 ? 210 : 190) * Math.min(l.length, 2) }}>
+            {l.map(({ z, i }) => (
+              <button key={z.bild_id} type="button" onClick={() => setOffen(i)} className="flex min-w-0 flex-1 flex-col items-center gap-1.5 text-center">
+                <div className="w-full rounded-xl p-1.5" style={{ background: METALL[p - 1] }}>
+                  <KunstLinie linie={z.linie} saat={z.bild_id} klein={l.length > 1} />
+                </div>
+                <span className={`font-extrabold tabular-nums ${p === 1 ? "text-3xl" : "text-2xl"}`} style={{ color: METALL_TEXT[p - 1] }}>{z.platz}.</span>
+                <span className={`max-w-full truncate font-extrabold text-slate-100 ${p === 1 && l.length === 1 ? "text-lg sm:text-xl" : "text-sm sm:text-base"}`}>{z.name ?? "—"}</span>
+                <Herzen n={z.herzen} gross={p === 1 && l.length === 1} />
+              </button>
+            ))}
+          </div>
+        ))}
       </div>
       {/* Alle weiteren */}
-      {e.length > 3 && (
+      {e.length > n3 && (
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
-          {e.slice(3).map((z, k) => (
-            <button key={z.bild_id} type="button" onClick={() => setOffen(k + 3)} className="rounded-lg border border-slate-700 p-1.5 text-left hover:border-slate-500">
+          {e.slice(n3).map((z, k) => (
+            <button key={z.bild_id} type="button" onClick={() => setOffen(k + n3)} className="rounded-lg border border-slate-700 p-1.5 text-left hover:border-slate-500">
               <KunstLinie linie={z.linie} saat={z.bild_id} klein />
               <div className="mt-1 flex items-center gap-1 text-xs">
                 <span className="font-bold tabular-nums text-slate-300">{z.platz}.</span>
