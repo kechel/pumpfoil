@@ -663,7 +663,13 @@ function Galerie({ liste, start, onZu }: { liste: (Ergebnis & { runde?: number }
             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" /></svg>
             {t("kunst.abspielen")}
           </button>
-          {z.session_id && <Link to={`/sessions/${z.session_id}`} className="text-brand-400 hover:underline">{t("kunst.zurSession")}</Link>}
+          {z.session_id && (
+            <Link to={`/sessions/${z.session_id}`} className="inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold"
+              style={{ background: "#22d3ee", color: "#020617" }}>
+              {t("kunst.zurSession")}
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+            </Link>
+          )}
           {z.karte && (
             <span className="ml-auto inline-flex rounded-lg p-0.5 text-xs" style={{ background: "#1e293b" }}>   {/* feste Farben: Kasten immer dunkel */}
               {([false, true] as const).map((k) => (
