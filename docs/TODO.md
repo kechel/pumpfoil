@@ -1538,6 +1538,17 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 19.11.2026 — 🐞 Garmin: Datenfeld „Temperatur" bleibt immer leer (Meldung u1091, fēnix 8) — naechste Garmin-Fassung
+
+`SessionRecorder.temperatureC()` (`watch/source/SessionRecorder.mc`) gibt immer `null` zurueck — `Activity.Info` hat
+kein Temperaturfeld. Das Feld `FIELD_TEMPERATURE` (11) ist trotzdem waehlbar und zeigt nichts. Vorschlag (Jan noch
+nicht entschieden, ich empfehle 1): **1.** Feld aus der Auswahl nehmen (Uhr + Layout-Editor in Web/Apps; alte Layouts mit
+Feld 11 muessen weiter laden, Feld dann leer/ersetzt), oder **2.** `SensorHistory.getTemperatureHistory` lesen (geraete-
+abhaengig, misst eher Handgelenkwaerme). Uhren-Apps nur Fehler beheben — beides zaehlt als Fix. Nutzer hat Antwort
+(„fix in the next watch update") am 19.11. bekommen.
+Nebenbei gefragt (kein Fehler): Uhr zeigt 2–3 Laeufe, Server 5+ — Uhr zaehlt live per Tempo-Regel (MIN_RUN 5 s,
+Ø 2 m/s, neuer Lauf erst nach Stopp < 1,5 m/s), Server mit Modell; beantwortet.
+
 ### 18.11.2026 — Idee „Performance"-Reiter (ranglistenorientierte Leistung) — NUR GEPLANT
 Vorschlag eines Fahrers (DM an Jan 16.11., vier KI-Mockups): je Tag die eigene Platzierung in mehreren Kategorien
 (100 m, 1 min, 1 km, Long Distance) festhalten und daraus eine persoenliche Uebersicht bauen — Ø Platz, Rang-Haeufigkeit,
