@@ -1790,9 +1790,9 @@ struct SessionDetailView: View {
                   sessionStart: TimeFmt.parseISO(s.started_at), tz: s.tz, zeitVerborgen: s.zeitVerborgen,
                   trimStartMs: s.trim_start_ms, pausen: s.pause_windows,
                   wattFuer: wattFuer(s),
-                  zugeklappt: s.sport_profil?.gruppe == "wind" && !ohneFoil,
                   canEdit: s.owned == true, busy: excludeBusy,
                   onExclude: { askExcludeRun($0) },
+                  zugeklappt: s.sport_profil?.gruppe == "wind" && !ohneFoil,
                   // Sprint-Fassung (Jan 18.11.2026, wie Web/Android): „100 m · V7" im Spaltenkopf, nur bei aktiver Ebene.
                   sprintKopf: sprintKopfText(s),
                   sprintTexte: sprintEbeneTexte,
