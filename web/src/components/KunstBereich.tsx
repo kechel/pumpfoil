@@ -428,9 +428,11 @@ function Aufloesung({ runde, eventId }: { runde: KunstRunde; eventId: number }) 
   const fanfare = () => {
     try {
       ton.current?.pause();
+      // Zweimal hintereinander (Jan 19.11.2026: „sonst ist der zu kurz" fuer die Enthuellung).
       const spiel = (url: string, ersatz?: string) => {
         const a = new Audio(url); a.volume = 0.6; ton.current = a;
         if (ersatz) a.addEventListener("error", () => spiel(ersatz), { once: true });
+        a.addEventListener("ended", () => { if (ton.current === a) { a.currentTime = 0; a.play().catch(() => {}); } }, { once: true });
         a.play().catch(() => { /* ohne vorherige Bedienung blockt der Browser — dann per Knopf */ });
       };
       spiel(TON_KUNST, TON);
