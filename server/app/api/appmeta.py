@@ -963,6 +963,18 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # iPhone + Apple Watch 1.1.68 (Build 79) am 19.11.2026 12:22 eingereicht (Jans Meldung, ASC „Warten auf Prüfung",
+    # Übermittlungskennung b5e04778-cd93-48f1-bf17-15f96d39fb83). Punkte = Changelog-Zeilen mit ios 1.1.68.
+    {"name": "iPhone + Apple Watch", "version": "1.1.68",
+     "eingereicht": "2026-11-19",
+     "items": [
+         "GPS Art events: draw a picture on the water with your track, vote with hearts and watch the weekly reveal.",
+         "The Performance tab is now also in the apps, with an overview per category, your personal bests and your place per day.",
+         "In Sessions, a small filter button now lets you show only sessions ridden with one particular foil.",
+         "The foil statistics can now count only long runs, and foils also ridden on a foil scooter get a second row.",
+         "In wind sports with a foil, the run list is called on-foil segments and the power column foil drag.",
+         "Tapping a name in the chat now opens that rider's profile, just like the profile picture.",
+     ]},
     # 12.11.2026: Android 1.1.49 (64) / Wear 1.2.49 (1060) gebaut, wird eingereicht, sobald 1.1.48 freigegeben ist
     # (Memory android-1-1-49-mitnehmen). Inhalt wie iOS 1.1.66 (ohne Google-Login, den hat Android nativ) plus die
     # Web-Neuerungen vom 12.11.; Port-Liste docs/TODO.md. Vor der Einreichung: Wear-Emulator Fall 3+4 (GPS-Luecke).
