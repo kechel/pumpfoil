@@ -33,15 +33,31 @@ function alsStriche(l: KunstLinieDaten): [number, number][][] {
   return Array.isArray((l as [number, number][][])[0][0]) ? (l as [number, number][][]) : [l as [number, number][]];
 }
 
-export function KunstLinie({ linie, klein = false, saat = 0 }: { linie: KunstLinieDaten; klein?: boolean; saat?: number }) {
-  const striche = alsStriche(linie).map((st) => st.map(([x, y]) => `${x},${y}`).join(" "));
+/** `zeichnen` (ms): die Linie wird ueber diese Zeit „gefahren" — Striche nacheinander, je nach Laenge (Jan 19.11.2026:
+ *  Aufloesung, fix 3 s je Bild). Ohne `zeichnen` steht sie sofort da. */
+export function KunstLinie({ linie, klein = false, saat = 0, zeichnen }: { linie: KunstLinieDaten; klein?: boolean; saat?: number; zeichnen?: number }) {
+  const roh = alsStriche(linie);
+  const striche = roh.map((st) => st.map(([x, y]) => `${x},${y}`).join(" "));
   const flocken = useMemo(() => schnee(saat), [saat]);
   const dick = klein ? 30 : 22;
+  // Laenge je Strich -> Anteil an der Gesamtzeit; Strich k startet, wenn k-1 fertig ist.
+  const zeit = useMemo(() => {
+    if (!zeichnen) return null;
+    const len = roh.map((st) => st.reduce((s, [x, y], i) => i ? s + Math.hypot(x - st[i - 1][0], y - st[i - 1][1]) : 0, 0) || 1);
+    const summe = len.reduce((a, b) => a + b, 0);
+    let t = 0;
+    return len.map((l) => { const d = (zeichnen * l) / summe, v = t; t += d; return { l, d, v }; });
+  }, [linie, zeichnen]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const anim = (i: number) => zeit ? {
+    strokeDasharray: zeit[i].l, strokeDashoffset: zeit[i].l,
+    animation: `kunstZiehen ${zeit[i].d}ms linear ${zeit[i].v}ms forwards`,
+  } : undefined;
   return (
     <svg viewBox={`0 0 ${BOX} ${BOX}`} className="aspect-square w-full rounded-lg" style={{ background: NACHT }} role="img" aria-hidden="true">
+      {zeit && <style>{"@keyframes kunstZiehen{to{stroke-dashoffset:0}}"}</style>}
       {flocken.map((f, i) => <circle key={i} cx={f.x} cy={f.y} r={f.r} fill="#ffffff" opacity={f.o} />)}
-      {striche.map((p, i) => <polyline key={`g${i}`} points={p} fill="none" stroke={CYAN} strokeOpacity={0.22} strokeWidth={dick * 2.6} strokeLinecap="round" strokeLinejoin="round" />)}
-      {striche.map((p, i) => <polyline key={`l${i}`} points={p} fill="none" stroke={CYAN} strokeWidth={dick} strokeLinecap="round" strokeLinejoin="round" />)}
+      {striche.map((p, i) => <polyline key={`g${i}`} points={p} fill="none" stroke={CYAN} strokeOpacity={0.22} strokeWidth={dick * 2.6} strokeLinecap="round" strokeLinejoin="round" style={anim(i)} />)}
+      {striche.map((p, i) => <polyline key={`l${i}`} points={p} fill="none" stroke={CYAN} strokeWidth={dick} strokeLinecap="round" strokeLinejoin="round" style={anim(i)} />)}
     </svg>
   );
 }
@@ -378,6 +394,9 @@ type Ergebnis = NonNullable<KunstRunde["ergebnis"]>[number];
 const TON_KUNST = "/media/sounds/gpskunst.mp3";
 const TON = "/media/sounds/winner-awards-484333.mp3";
 const STUMM = "podest-stumm";
+const ZIEHEN = 3000;   // ms je Treppchen-Bild (Jan: „fix ueber 3 sekunden je bild … probieren wir aus")
+const PAUSE = 700;     // ms Luft zwischen zwei Plaetzen
+const ruhig = () => { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } };
 const METALL = ["#facc15", "#cbd5e1", "#ea8a4a"];   // Gold, Silber, Bronze (wie EventPodest)
 const METALL_TEXT = ["#a16207", "#475569", "#9a3412"];   // dunklere Randfarben fuer Zahlen (lesbar auf hell), wie EventPodest
 const lies = (k: string) => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -402,6 +421,7 @@ function Aufloesung({ runde }: { runde: KunstRunde }) {
   const e = runde.ergebnis ?? [];
   const [offen, setOffen] = useState<number | null>(null);      // Index in e
   const [stumm, setStumm] = useState(() => lies(STUMM) === "1");
+  const [lauf, setLauf] = useState(0);   // Ton-Knopf spielt die Enthuellung neu ab
   const ton = useRef<HTMLAudioElement | null>(null);
   const fanfare = () => {
     try {
@@ -418,13 +438,25 @@ function Aufloesung({ runde }: { runde: KunstRunde }) {
     if (!stumm && e.length) fanfare();
     return () => { ton.current?.pause(); };
   }, [runde.nr]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // Enthuellung (Jan 19.11.2026): erst Platz 3, dann 2, dann 1 — jede Linie wird in ZIEHEN ms „gefahren" —, danach der Rest.
+  // `schritt` = wie viele der Treppchen-Plaetze schon sichtbar sind; schritt > Anzahl -> auch alle darunter.
+  const n3 = Math.min(e.length, 3);
+  const [schritt, setSchritt] = useState(() => (ruhig() ? 99 : 0));
+  useEffect(() => {
+    if (ruhig() || !e.length) { setSchritt(99); return; }
+    setSchritt(0);
+    const uhren = Array.from({ length: n3 + 1 }, (_, k) => window.setTimeout(() => setSchritt(k + 1), 300 + k * (ZIEHEN + PAUSE)));
+    return () => uhren.forEach(clearTimeout);
+  }, [runde.nr, lauf, e.length]);   // eslint-disable-line react-hooks/exhaustive-deps
   if (!e.length) return <p className="text-sm text-slate-400">{t("kunst.leer")}</p>;
   const top = e.slice(0, 3).map((z, i) => ({ z, i }));
   const treppe = top.length === 3 ? [top[1], top[0], top[2]] : top.length === 2 ? [top[1], top[0]] : top;
+  const sichtbar = (i: number) => schritt >= n3 - i;   // Index 2 (3. Platz) zuerst, Index 0 zuletzt
+  const restDa = schritt > n3;
   return (
     <>
       <div className="mb-2 flex flex-wrap items-center justify-end gap-2">
-        <button type="button" onClick={fanfare} title={t("team.podest.ton")} aria-label={t("team.podest.ton")}
+        <button type="button" onClick={() => { fanfare(); setLauf((x) => x + 1); }} title={t("team.podest.ton")} aria-label={t("team.podest.ton")}
           className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800">
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M11 5 6 9H2v6h4l5 4V5z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M19 5a10 10 0 0 1 0 14" />
@@ -440,10 +472,10 @@ function Aufloesung({ runde }: { runde: KunstRunde }) {
         {treppe.map(({ z, i }) => {
           const p = Math.min(z.platz, 3);
           return (
-            <button key={z.bild_id} type="button" onClick={() => setOffen(i)}
-              className={`mx-auto flex w-full flex-col items-center gap-1.5 text-center ${p === 1 ? "max-w-[260px] pb-10" : p === 2 ? "max-w-[210px] pb-4" : "max-w-[190px]"}`}>
+            <button key={z.bild_id} type="button" onClick={() => setOffen(i)} disabled={!sichtbar(i)} aria-hidden={!sichtbar(i)}
+              className={`mx-auto flex w-full flex-col items-center gap-1.5 text-center transition-all duration-500 ${sichtbar(i) ? "opacity-100" : "translate-y-3 opacity-0"} ${p === 1 ? "max-w-[260px] pb-10" : p === 2 ? "max-w-[210px] pb-4" : "max-w-[190px]"}`}>
               <div className="w-full rounded-xl p-1.5" style={{ background: METALL[p - 1] }}>
-                <KunstLinie linie={z.linie} saat={z.bild_id} />
+                <KunstLinie key={`${lauf}-${sichtbar(i)}`} linie={z.linie} saat={z.bild_id} zeichnen={sichtbar(i) && schritt < 99 ? ZIEHEN : undefined} />
               </div>
               <span className={`font-extrabold tabular-nums ${p === 1 ? "text-3xl" : "text-2xl"}`} style={{ color: METALL_TEXT[p - 1] }}>{z.platz}.</span>
               <span className={`max-w-full truncate font-extrabold text-slate-100 ${p === 1 ? "text-lg sm:text-xl" : "text-sm sm:text-base"}`}>{z.name ?? "—"}</span>
@@ -454,7 +486,7 @@ function Aufloesung({ runde }: { runde: KunstRunde }) {
       </div>
       {/* Alle weiteren */}
       {e.length > 3 && (
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+        <div className={`grid grid-cols-3 gap-2 transition-opacity duration-700 sm:grid-cols-4 lg:grid-cols-6 ${restDa ? "opacity-100" : "pointer-events-none opacity-0"}`} aria-hidden={!restDa}>
           {e.slice(3).map((z, k) => (
             <button key={z.bild_id} type="button" onClick={() => setOffen(k + 3)} className="rounded-lg border border-slate-700 p-1.5 text-left hover:border-slate-500">
               <KunstLinie linie={z.linie} saat={z.bild_id} klein />
