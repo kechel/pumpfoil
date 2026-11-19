@@ -304,3 +304,57 @@ def ergebnis(db: Session, e: models.TeamEvent, nr: int) -> list[dict]:
             platz, vorher = i + 1, n
         out.append({"bild_id": bid, "platz": platz, "herzen": int(n), "user_id": uid, "session_id": sid})
     return out
+
+
+# ---------------------------------------------------------------------------------------------- Karte als Bild ----
+
+KARTE_PX = 900          # Kantenlaenge des Kartenbildes (quadratisch wie die Linie)
+KARTE_FASSUNG = 2       # hochzaehlen, wenn sich das Aussehen aendert -> neuer Cache-Name
+
+
+def karte_png(striche: list[list[list[float]]], ebene: str = "satellit", groesse: int = KARTE_PX) -> bytes:
+    """Der echte Track als fertiges Bild (Jan 19.11.2026: „hier ist das overkill" — keine interaktive Karte im Event,
+    zoomen geht in den Session-Details). Kacheln wie das Teilen-Bild ueber `maptiles` (Plattencache, User-Agent,
+    stiller Rueckfall auf Nachtblau); die Quellennennung wird wie dort FEST ins Bild gebrannt. Norden oben,
+    flache Naeherung wie `sharecard` (ueber einen Spot genau genug, s. maptiles.hintergrund)."""
+    import io
+    import math
+    from PIL import Image, ImageDraw
+    from . import maptiles
+    from .sharecard import _font
+    W = H = groesse
+    img = Image.new("RGB", (W, H), (11, 26, 51))
+    pkte = [p for st in striche for p in st]
+    if len(pkte) >= 2:
+        latref = sorted(p[0] for p in pkte)[len(pkte) // 2]
+        mx, my = 111320.0 * math.cos(math.radians(latref)), 111320.0
+        xs, ys = [p[1] * mx for p in pkte], [p[0] * my for p in pkte]
+        minx, maxx, miny, maxy = min(xs), max(xs), min(ys), max(ys)
+        rand = 0.12 * W
+        sc = min((W - 2 * rand) / max(maxx - minx, 1.0), (H - 2 * rand) / max(maxy - miny, 1.0))
+        sc = min(sc, W / 120.0)          # winzige Spuren nicht endlos aufblasen: mindestens ~120 m Bildbreite
+        cx, cy = (minx + maxx) / 2, (miny + maxy) / 2
+        def xy(lat, lon): return (W / 2 + (lon * mx - cx) * sc, H / 2 - (lat * my - cy) * sc)
+        def geo(sx, sy): return (cy - (sy - H / 2) / sc) / my, (cx + (sx - W / 2) / sc) / mx
+        lat_o, lon_l = geo(0, 0)
+        lat_u, lon_r = geo(W, H)
+        hg = maptiles.hintergrund(lat_o, lat_u, lon_l, lon_r, W, H, ebene) if ebene in maptiles.EBENEN else None
+        if hg is not None:
+            img = hg.convert("RGB")
+        d = ImageDraw.Draw(img)
+        dick = max(3, round(W / 110))
+        # Dunkler Rand unter Cyan, sonst verschwindet die Linie auf hellem Wasser/Sand (wie die Leaflet-Karte).
+        for farbe, breite in (((11, 26, 51), dick * 2 + 4), ((34, 211, 238), dick)):
+            for st in striche:
+                if len(st) >= 2:
+                    pts = [xy(p[0], p[1]) for p in st]
+                    d.line(pts, fill=farbe, width=breite, joint="curve")
+                    for qx, qy in (pts[0], pts[-1]):          # runde Enden wie stroke-linecap: round
+                        d.ellipse((qx - breite / 2, qy - breite / 2, qx + breite / 2, qy + breite / 2), fill=farbe)
+        if hg is not None:
+            fs = max(12, round(W / 36))
+            d.text((round(W * 0.025), H - round(W * 0.025) - fs), maptiles.nennung(ebene), font=_font(fs, False),
+                   fill=(255, 255, 255), stroke_width=max(1, fs // 10), stroke_fill=(0, 0, 0))
+    buf = io.BytesIO()
+    img.save(buf, "PNG", optimize=True)
+    return buf.getvalue()

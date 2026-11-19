@@ -258,3 +258,23 @@ def test_karte_erst_nach_aufloesung(client, monkeypatch):
     k = client.get(f"/api/kunst/bild/{bid}/karte", headers=kb).json()["striche"]
     assert len(k) == 1 and abs(k[0][0][0] - 54.0) < 0.01          # echte Breite, nicht gedreht/normiert
     assert client.get(f"/api/kunst/{eid}", headers=kb).json()["runden"][0]["ergebnis"][0]["karte"] is True
+
+
+def test_karte_als_bild(client, monkeypatch):
+    """Kartenbild vom Server (19.11.2026): dieselben Sperren wie /karte, PNG zurueck; ohne Kacheln (Test ohne Netz)
+    bleibt der Hintergrund Nachtblau statt zu scheitern; falsche Ebene -> 400."""
+    jetzt = datetime.now(timezone.utc)
+    eid = _event(jetzt - timedelta(days=1), jetzt + timedelta(days=6))
+    (ia, ka), (ib, kb) = _nutzer("A"), _nutzer("B")
+    sid, uuid = _session(ia, jetzt - timedelta(hours=2))
+    gps = {uuid: _kreis()}
+    monkeypatch.setattr("app.api.kunst.storage.load_gps", lambda u: gps.get(u, []))
+    monkeypatch.setattr("app.maptiles.hintergrund", lambda *a, **k: None)
+    bid = client.post(f"/api/kunst/{eid}/bild", headers=ka, json={"runde": 1, "session_id": sid, "von_ms": 0,
+                                                                 "bis_ms": 10**9, "drehung": 0}).json()["id"]
+    assert client.get(f"/api/kunst/bild/{bid}/karte.png", headers=kb).status_code == 409
+    assert client.get(f"/api/kunst/bild/{bid}/karte.png?ebene=x", headers=ka).status_code == 400
+    _verschieben(eid, 9)
+    r = client.get(f"/api/kunst/bild/{bid}/karte.png", headers=kb)
+    assert r.status_code == 200 and r.headers["content-type"] == "image/png" and r.content[:4] == b"\x89PNG"
+    assert client.get(f"/api/kunst/bild/{bid}/karte.png", headers=kb).content == r.content   # aus dem Cache

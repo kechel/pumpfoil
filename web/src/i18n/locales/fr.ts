@@ -3022,6 +3022,7 @@ const fr: Record<string, string> = {
   "kunst.noch": "encore {zeit}",
   "kunst.alle": "Tout",
   "kunst.platzN": "Place {n}",
+  "kunst.abspielen": "Lire",
   "kunst.enth.naechster": "Place suivante dans {n} …",
   "kunst.enth.nochmal": "Rejouer la révélation",
   "kunst.enth.alle": "Voir tous les classements",

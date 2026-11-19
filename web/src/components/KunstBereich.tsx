@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import L from "leaflet";
-import { basiskarten, kartenTexte } from "../lib/mapTiles";
 import { Link } from "react-router-dom";
 import { api, type KunstBild, type KunstEvent, type KunstLinieDaten, type KunstRunde } from "../lib/api";
 import { useT } from "../i18n";
@@ -589,8 +587,9 @@ function Galerie({ liste, start, onZu }: { liste: (Ergebnis & { runde?: number }
   const t = useT();
   const [i, setI] = useState(start);
   const [karte, setKarte] = useState(false);
+  const [spiel, setSpiel] = useState(0);   // „Abspielen" (Jan 19.11.2026): Linie nochmal fahren wie in der Enthuellung
   const z = liste[i];
-  const weiter = (d: number) => { setKarte(false); setI((x) => (x + d + liste.length) % liste.length); };
+  const weiter = (d: number) => { setKarte(false); setSpiel(0); setI((x) => (x + d + liste.length) % liste.length); };
   useEffect(() => {
     const taste = (e: KeyboardEvent) => {
       if (e.key === "Escape") onZu();
@@ -609,7 +608,8 @@ function Galerie({ liste, start, onZu }: { liste: (Ergebnis & { runde?: number }
         style={{ background: "#020617", border: "1px solid rgba(34,211,238,0.35)", boxShadow: "0 0 0 1px rgba(255,255,255,0.06), 0 25px 60px rgba(0,0,0,0.6)" }}
         onClick={(e) => e.stopPropagation()}>
         <div className="rounded-2xl p-1.5" style={{ background: p <= 3 ? METALL[p - 1] : "transparent" }}>
-          {karte ? <KunstKarte bildId={z.bild_id} /> : <KunstLinie linie={z.linie} saat={z.bild_id} />}
+          {karte ? <KunstKarte bildId={z.bild_id} />
+            : <KunstLinie key={`${i}-${spiel}`} linie={z.linie} saat={z.bild_id} zeichnen={spiel ? ZIEHEN : undefined} />}
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-3 text-white">
           <span className="text-2xl font-extrabold tabular-nums" style={{ color: p <= 3 ? METALL[p - 1] : "#e2e8f0" }}>{z.platz}.</span>
@@ -619,6 +619,11 @@ function Galerie({ liste, start, onZu }: { liste: (Ergebnis & { runde?: number }
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-3 text-sm" style={{ color: "#cbd5e1" }}>
           {z.spot && <span>{z.spot}</span>}
+          <button type="button" onClick={() => { setKarte(false); setSpiel((x) => x + 1); }}
+            className="inline-flex items-center gap-1 rounded-lg bg-slate-800 px-2 py-0.5 text-xs font-semibold text-slate-100 hover:bg-slate-700">
+            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" /></svg>
+            {t("kunst.abspielen")}
+          </button>
           {z.session_id && <Link to={`/sessions/${z.session_id}`} className="text-brand-400 hover:underline">{t("kunst.zurSession")}</Link>}
           {z.karte && (
             <span className="ml-auto inline-flex rounded-lg bg-slate-800 p-0.5 text-xs">
@@ -647,32 +652,22 @@ function Galerie({ liste, start, onZu }: { liste: (Ergebnis & { runde?: number }
   );
 }
 
-/** Echter Track auf der Karte (Strasse/Luftbild wie ueberall), Norden oben, auf den Track eingepasst. */
+/** Echter Track als Satellitenbild vom Server (Jan 19.11.2026: keine interaktive Karte im Event — „hier ist das
+ *  overkill", zoomen geht in den Session-Details). Norden oben, Quellennennung ist eingebrannt. */
 function KunstKarte({ bildId }: { bildId: number }) {
   const t = useT();
-  const box = useRef<HTMLDivElement>(null);
+  const [url, setUrl] = useState<string | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   useEffect(() => {
-    if (!box.current) return;
-    // keyboard: false — sonst haengt Leaflets Tastatur-Handler am document und schluckt Tasten (Spots.tsx, 17.08.).
-    const m = L.map(box.current, { zoomControl: false, attributionControl: true, keyboard: false, maxZoom: 20 });
-    basiskarten(m, kartenTexte(t), { maxZoom: 20 });
-    let aus = false;
-    api.kunstKarte(bildId).then((r) => {
-      if (aus) return;
-      const grenzen = L.latLngBounds([]);
-      for (const st of r.striche) {
-        // Dunkler Rand darunter: Cyan allein verschwindet auf hellblauem Wasser.
-        L.polyline(st as L.LatLngExpression[], { color: "#0b1a33", weight: 7, opacity: 0.85 }).addTo(m);
-        L.polyline(st as L.LatLngExpression[], { color: "#22d3ee", weight: 4, opacity: 1 }).addTo(m);
-        st.forEach((p) => grenzen.extend(p as L.LatLngExpression));
-      }
-      if (grenzen.isValid()) m.fitBounds(grenzen, { padding: [12, 12] });
-    }).catch((x) => { if (!aus) setFehler(t(`kunst.err.${fehlerCode(x)}`)); });
-    return () => { aus = true; m.remove(); };
+    let aus = false, u: string | null = null;
+    setUrl(null); setFehler(null);
+    api.kunstKartenBild(bildId).then((b) => { if (aus) return; u = URL.createObjectURL(b); setUrl(u); })
+      .catch((x) => { if (!aus) setFehler(t(`kunst.err.${fehlerCode(x)}`)); });
+    return () => { aus = true; if (u) URL.revokeObjectURL(u); };
   }, [bildId]);   // eslint-disable-line react-hooks/exhaustive-deps
-  return fehler ? <p className="flex aspect-square items-center justify-center text-sm text-slate-400">{fehler}</p>
-    : <div ref={box} className="aspect-square w-full overflow-hidden rounded-lg" />;
+  if (fehler) return <p className="flex aspect-square items-center justify-center text-sm text-slate-400">{fehler}</p>;
+  return url ? <img src={url} alt="" className="aspect-square w-full rounded-lg object-cover" />
+    : <div className="aspect-square w-full rounded-lg" style={{ background: NACHT }} />;
 }
 
 function Editor({ eventId, runde, onZu, onFertig }: { eventId: number; runde: KunstRunde; onZu: () => void; onFertig: () => void }) {

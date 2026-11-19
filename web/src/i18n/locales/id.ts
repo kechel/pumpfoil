@@ -3139,6 +3139,7 @@ const id: Record<string, string> = {
   "kunst.noch": "sisa {zeit}",
   "kunst.alle": "Semua",
   "kunst.platzN": "Posisi {n}",
+  "kunst.abspielen": "Putar",
   "kunst.enth.naechster": "Peringkat berikutnya dalam {n} …",
   "kunst.enth.nochmal": "Putar ulang pengumuman",
   "kunst.enth.alle": "Lihat semua peringkat",

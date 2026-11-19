@@ -3139,6 +3139,7 @@ const pt: Record<string, string> = {
   "kunst.noch": "faltam {zeit}",
   "kunst.alle": "Todas",
   "kunst.platzN": "Posição {n}",
+  "kunst.abspielen": "Reproduzir",
   "kunst.enth.naechster": "Próxima posição em {n} …",
   "kunst.enth.nochmal": "Repetir a revelação",
   "kunst.enth.alle": "Ver todas as posições",

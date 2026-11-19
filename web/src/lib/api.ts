@@ -1638,6 +1638,13 @@ export const api = {
   kunstPhase: (eventId: number, runde: number, phase: string | null) =>
     req<unknown>(`/api/kunst/${eventId}/phase`, { method: "POST", body: JSON.stringify({ runde, phase }) }),
   kunstKarte: (bildId: number) => req<{ striche: [number, number][][] }>(`/api/kunst/bild/${bildId}/karte`),
+  /** Echter Track als fertiges Bild (Satellit, Norden oben, Quellennennung eingebrannt) — keine interaktive Karte im Event. */
+  kunstKartenBild: async (bildId: number) => {
+    const token = getToken();
+    const res = await fetch(`/api/kunst/bild/${bildId}/karte.png`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+    if (!res.ok) throw new Error(`${res.status}: ${await res.text()}`);
+    return res.blob();
+  },
   kunstZurueckholen: (bildId: number) => req<{ ok: boolean }>(`/api/kunst/bild/${bildId}/zurueck`, { method: "POST" }),
   pushKey: () => req<{ key: string }>("/api/push/key"),
   pushSubscribe: (sub: unknown) => req<{ ok: boolean }>("/api/push/subscribe", { method: "POST", body: JSON.stringify(sub) }),

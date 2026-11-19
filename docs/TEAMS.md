@@ -466,7 +466,14 @@ also wie viele der Sportarten man schon gefahren ist.
   die normierte Linie 0..1000 (`kunst_bilder.linie_json`), keine Koordinaten. Galerie je Betrachter zufaellig, stabil.
 - Moderation: Melden (jeder), Entfernen/Zurueckholen mit Grund (Admins, Leitung/Moderation des Teams); der Fahrer sieht
   den Grund, ein entferntes Bild kann er nicht still ersetzen.
-- Offen: Apps (Android/iOS), Finale der Rundensieger, Teilen-Bild der Siegerehrung, Benachrichtigung bei Rundenstart/-ende.
+- Aufloesung (19.11.2026): beim ersten Ansehen einer fertigen Runde Vollbild-Enthuellung Platz 3 -> 2 -> 1 (Linie in
+  5 s gefahren, zweimal blinken, Name + Herzen, 2 s, Ueberblendung auf die echte Karte 2 s mit Countdown), Jingle
+  zweimal; danach „Alle Plaetze ansehen". Erneut per Knopf; in der Ergebnis-Galerie „Abspielen" je Bild.
+- Karte im Event ist ein **Bild vom Server** (`GET /api/kunst/bild/{id}/karte.png`, Satellit, Norden oben, Nennung
+  eingebrannt, Kacheln ueber `maptiles` wie das Teilen-Bild, Cache `DATA_DIR/cache/kunst/`) — keine interaktive
+  Karte (Jan: „hier ist das overkill", zoomen in den Session-Details). Aussehen geaendert -> `KARTE_FASSUNG` hoch.
+- Apps: Android/iOS-Port vom 18.11. (interaktive Karte) — Enthuellung, Kartenbild und Abspielen noch nachziehen.
+- Offen: Finale der Rundensieger, Teilen-Bild der Siegerehrung, Benachrichtigung bei Rundenstart/-ende.
 
 Fuer das uebernaechste globale Event (nach dem Sprint-Wochenende). Nur festgehalten, nichts gebaut.
 

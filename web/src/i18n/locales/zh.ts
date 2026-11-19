@@ -3136,6 +3136,7 @@ const zh: Record<string, string> = {
   "kunst.noch": "还剩 {zeit}",
   "kunst.alle": "全部",
   "kunst.platzN": "第 {n} 名",
+  "kunst.abspielen": "播放",
   "kunst.enth.naechster": "{n} 秒后揭晓下一名 …",
   "kunst.enth.nochmal": "重播揭晓",
   "kunst.enth.alle": "查看全部名次",

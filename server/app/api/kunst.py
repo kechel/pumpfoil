@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from .. import kunst as K
 from .. import models, storage
 from .deps import current_user
+from ..config import get_settings
 from ..db import get_db
 
 router = APIRouter(prefix="/api/kunst", tags=["kunst"])
@@ -360,3 +361,37 @@ def bild_karte(bild_id: int, user: models.User = Depends(current_user), db: Sess
     if b.user_id != user.id and _ort_fuer_andere_verborgen(s) and not _sieht_echten_ort(db, s, user.id):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "ort_verborgen")
     return {"striche": K.karte(storage.load_gps(s.session_uuid), b.von_ms, b.bis_ms, _laeufe(db, s))}
+
+
+@router.get("/bild/{bild_id}/karte.png")
+def bild_karte_png(bild_id: int, ebene: str = "satellit", user: models.User = Depends(current_user),
+                   db: Session = Depends(get_db)) -> Response:
+    """Wie /karte, aber als fertiges Bild (Jan 19.11.2026): Web und Apps zeigen im Event nur noch dieses Bild statt einer
+    interaktiven Karte. Gleiche Pruefung (aufgeloest, Ort sichtbar); Plattencache je Bild, Ausschnitt und Ebene —
+    nachgerechnet wird nur, wenn sich das Bild aendert (eigenes Bild vor der Aufloesung) oder KARTE_FASSUNG steigt."""
+    from .sessions import _ort_fuer_andere_verborgen, _sieht_echten_ort
+    if ebene not in ("satellit", "karte"):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "ebene")
+    b, e = _bild(db, bild_id, user)
+    r = _runde(e, b.runde)
+    if r["phase"] != "fertig" and b.user_id != user.id:
+        raise HTTPException(status.HTTP_409_CONFLICT, "noch_nicht_aufgeloest")
+    s = db.get(models.Session, b.session_id)
+    if s is None or s.deleted or b.entfernt_grund is not None:
+        raise _404()
+    if b.user_id != user.id and _ort_fuer_andere_verborgen(s) and not _sieht_echten_ort(db, s, user.id):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "ort_verborgen")
+    pfad = (get_settings().data_dir / "cache" / "kunst"
+            / f"{b.id}-{b.session_id}-{b.von_ms}-{b.bis_ms}-{ebene}-v{K.KARTE_FASSUNG}.png")
+    if pfad.exists():
+        daten = pfad.read_bytes()
+    else:
+        daten = K.karte_png(K.karte(storage.load_gps(s.session_uuid), b.von_ms, b.bis_ms, _laeufe(db, s)), ebene)
+        try:
+            pfad.parent.mkdir(parents=True, exist_ok=True)
+            tmp = pfad.with_suffix(".tmp")
+            tmp.write_bytes(daten)
+            tmp.replace(pfad)
+        except OSError:
+            pass                                    # Cache ist Kuer
+    return Response(content=daten, media_type="image/png", headers={"Cache-Control": "private, max-age=86400"})
