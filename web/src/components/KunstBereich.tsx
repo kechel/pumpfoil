@@ -398,7 +398,8 @@ const TON = "/media/sounds/winner-awards-484333.mp3";
 const STUMM = "podest-stumm";
 const ZIEHEN = 5000;   // ms je Treppchen-Bild (Jan 19.11.: erst 3 s probiert, dann „mach mal 5s statt 3")
 const BLINK = 400;     // ms je Blinken (zweimal), danach Name + Herzen
-const STEHEN = 2000;   // ms steht das fertige Bild, bevor der naechste Platz kommt
+const STEHEN = 2000;   // ms steht das fertige Bild mit Name
+const KARTE = 2000;    // ms danach die echte Karte (wenn der Fahrer den Ort zeigt), dann der naechste Platz
 const ruhig = () => { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } };
 const METALL = ["#facc15", "#cbd5e1", "#ea8a4a"];   // Gold, Silber, Bronze (wie EventPodest)
 const METALL_TEXT = ["#a16207", "#475569", "#9a3412"];   // dunklere Randfarben fuer Zahlen (lesbar auf hell), wie EventPodest
@@ -508,24 +509,31 @@ function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: num
   const t = useT();
   const reihe = liste.slice(0, 3).map((_, i) => i).reverse();   // [2, 1, 0]
   const [k, setK] = useState(0);
-  const [phase, setPhase] = useState<"ziehen" | "blinken" | "stehen" | "ende">("ziehen");
+  const [phase, setPhase] = useState<"ziehen" | "blinken" | "stehen" | "karte" | "ende">("ziehen");
   const [rest, setRest] = useState(0);   // Sekunden bis zum naechsten Platz (Countdown unter dem Bild, Jan 19.11.)
   const letzter = k + 1 >= reihe.length;
+  const mitKarte = !!liste[reihe[k]]?.karte;   // echter Ort nur, wenn der Fahrer ihn zeigen darf (Server-Flag)
+  // Ablauf je Platz: ziehen -> blinken -> stehen (Name, STEHEN ms) -> karte (Ueberblendung auf die echte Karte, KARTE ms;
+  // Jan 19.11.2026) -> naechster Platz. Der Countdown laeuft in der letzten Phase vor dem Wechsel; nach dem letzten Platz
+  // geht es zurueck aufs Bild (ende).
   useEffect(() => {
     if (phase === "ende") return;
-    if (phase === "stehen") {
-      // Steht in ganzen Sekunden herunter; beim letzten Platz ohne Countdown direkt nach STEHEN ans Ende.
-      if (letzter) { const u = window.setTimeout(() => setPhase("ende"), STEHEN); return () => clearTimeout(u); }
-      if (rest <= 0) { setK(k + 1); setPhase("ziehen"); return; }
+    const zaehlPhase = mitKarte ? "karte" : "stehen";
+    if (phase === zaehlPhase) {
+      if (rest <= 0) {
+        if (letzter) setPhase("ende"); else { setK(k + 1); setPhase("ziehen"); }
+        return;
+      }
       const u = window.setTimeout(() => setRest(rest - 1), 1000);
       return () => clearTimeout(u);
     }
     const u = window.setTimeout(() => {
       if (phase === "ziehen") setPhase("blinken");
-      else { setRest(Math.round(STEHEN / 1000)); setPhase("stehen"); }
-    }, phase === "ziehen" ? ZIEHEN : BLINK * 2);
+      else if (phase === "blinken") { setRest(Math.round(STEHEN / 1000)); setPhase("stehen"); }
+      else { setRest(Math.round(KARTE / 1000)); setPhase("karte"); }   // stehen -> karte
+    }, phase === "ziehen" ? ZIEHEN : phase === "blinken" ? BLINK * 2 : STEHEN);
     return () => clearTimeout(u);
-  }, [k, phase, rest, letzter]);
+  }, [k, phase, rest, letzter, mitKarte]);
   useEffect(() => {
     const taste = (x: KeyboardEvent) => { if (x.key === "Escape") onZu(); };
     document.addEventListener("keydown", taste);
@@ -533,7 +541,7 @@ function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: num
   }, [onZu]);
   const z = liste[reihe[k]];
   const p = Math.min(z.platz, 3);
-  const nameDa = phase === "stehen" || phase === "ende";
+  const nameDa = phase === "stehen" || phase === "karte" || phase === "ende";
   return createPortal(
     <div className="fixed inset-0 z-[3000] flex items-center justify-center bg-black/90 p-3">
       <style>{"@keyframes kunstBlink{0%,100%{opacity:1}50%{opacity:.12}}"}</style>
@@ -543,15 +551,21 @@ function Enthuellung({ liste, rundeNr, onZu }: { liste: Ergebnis[]; rundeNr: num
           <span className="text-sm font-semibold uppercase tracking-wider" style={{ color: "#94a3b8" }}>{t("kunst.enth.titel", { n: String(rundeNr) })}</span>
           <span className="text-3xl font-extrabold tabular-nums" style={{ color: METALL[p - 1] }}>{t("kunst.platzN", { n: String(z.platz) })}</span>
         </div>
-        <div className="rounded-2xl p-1.5" style={{ background: METALL[p - 1], animation: phase === "blinken" ? `kunstBlink ${BLINK}ms ease-in-out 0s 2` : undefined }}>
+        <div className="relative rounded-2xl p-1.5" style={{ background: METALL[p - 1], animation: phase === "blinken" ? `kunstBlink ${BLINK}ms ease-in-out 0s 2` : undefined }}>
           <KunstLinie key={k} linie={z.linie} saat={z.bild_id} zeichnen={ZIEHEN} />
+          {/* Karte schon in „stehen" unsichtbar laden, damit die Kacheln beim Ueberblenden da sind */}
+          {z.karte && (phase === "stehen" || phase === "karte") && (
+            <div className={`absolute inset-1.5 transition-opacity duration-700 ${phase === "karte" ? "opacity-100" : "opacity-0"}`}>
+              <KunstKarte key={z.bild_id} bildId={z.bild_id} />
+            </div>
+          )}
         </div>
         <div className={`mt-3 flex min-h-[2.5rem] items-center gap-3 text-white transition-opacity duration-500 ${nameDa ? "opacity-100" : "opacity-0"}`}>
           <span className="min-w-0 flex-1 truncate text-xl font-extrabold">{z.name ?? "—"}</span>
           <Herzen n={z.herzen} gross hell />
         </div>
         <div className="mt-3 flex items-center justify-end gap-2">
-          {phase === "stehen" && !letzter && rest > 0 && (
+          {phase === (mitKarte ? "karte" : "stehen") && !letzter && rest > 0 && (
             <span className="mr-auto text-sm tabular-nums" style={{ color: "#94a3b8" }}>{t("kunst.enth.naechster", { n: String(rest) })}</span>
           )}
           {phase === "ende" ? (
