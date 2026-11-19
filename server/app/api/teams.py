@@ -399,7 +399,7 @@ def liste_events(user: models.User = Depends(current_user), db: Session = Depend
     """Community-Abschnitt (Jan, 01.11.2026): laufende Events und solche, die in den naechsten Tagen beginnen
     (T.EVENT_VORSCHAU), alle. Ohne Bestenlisten — die stehen auf der Event-Seite. Seit 08.11.2026 auch beendete, die
     noch nicht eingefroren sind („Results pending", Jan: „zeigen wir da trotzdem noch mit an"); seit 09.11.2026 alle bis
-    COMMUNITY_NACHLAUF (3 Tage) nach dem ENDE, eingefroren oder nicht (Jan: „3 tage lang nach ende"), und kommende ab 7 Tagen
+    COMMUNITY_NACHLAUF (3 Tage) nach dem ENDE, eingefroren oder nicht (Jan: „3 tage lang nach ende"), und kommende ab 10 Tagen
     vorher (T.EVENT_VORSCHAU).
     Reihenfolge: laufende, in Auswertung, beendete, dann kommende."""
     jetzt = T._jetzt()

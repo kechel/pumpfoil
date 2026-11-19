@@ -963,6 +963,21 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    # 12.11.2026: Android 1.1.49 (64) / Wear 1.2.49 (1060) gebaut, wird eingereicht, sobald 1.1.48 freigegeben ist
+    # (Memory android-1-1-49-mitnehmen). Inhalt wie iOS 1.1.66 (ohne Google-Login, den hat Android nativ) plus die
+    # Web-Neuerungen vom 12.11.; Port-Liste docs/TODO.md. Vor der Einreichung: Wear-Emulator Fall 3+4 (GPS-Luecke).
+    # Am 19.11.2026 eingereicht (Jans Meldung, Play-Konsole „Änderungen, die überprüft werden", Vorabpruefung laeuft);
+    # dazu GPS-Kunst (Enthuellung, Kartenbild, Lauf-Zaehler, 0fad1e38).
+    {"name": "Android phone + Wear OS", "version": "1.1.49 / 1.2.49",
+     "eingereicht": "2026-11-19",
+     "items": [
+         "GPS Art events: draw a picture on the water with your track, vote with hearts and watch the weekly reveal.",
+         "On global event pages, My team is now a single row; tap a greyed-out team to see why it does not count.",
+         "After an event, its page shows which team you competed for.",
+         "Tap a sprint value on the podium to open the run, with the stretch that counted highlighted on the map.",
+         "A short GPS dropout during a run, for example when your arm dips under water, no longer splits the run in two, and after a fall the run ends at the last GPS position.",
+         "Glides is now its own map colouring next to Carves and shows each glide in the speed colours, so you can see how you slow down.",
+     ]},
     # iPhone + Apple Watch 1.1.67 (Build 78) am 17.11. 06:02 eingereicht, am 17.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte im Changelog mit ios 1.1.67.
     # Amazfit 1.0.16 am 13.11.2026 ~19:00 eingereicht (Jans Meldung, Zepp-Konsole „Under Review").
     {"name": "Amazfit", "version": "1.0.16",
@@ -975,7 +990,7 @@ IN_REVIEW: list[dict] = [
     # Pumpfoil GT (HUAWEI WATCH GT/Fit/D, Lite, org.pumpfoil.gt, eigene AppGallery-App 6917621717624935972) 1.0.6 am
     # 13.11.2026 ~17:10 eingereicht, am 18.11. ABGELEHNT (Krone, STOPP-Halten, Rechtswischen; Fix 17d86201/f50d5d29),
     # am 18.11.2026 12:28 (Pekinger Zeit) als 1.0.6 NEU eingereicht (Jans Meldung, „Under pre-review"). Upload ueber
-    # Android 1.1.49 (noch nicht eingereicht).
+    # Android 1.1.49 (am 19.11. eingereicht).
     {"name": "Huawei Watch GT / Fit / D", "version": "1.0.6",
      "eingereicht": "2026-11-18",
      "items": [
@@ -1204,17 +1219,7 @@ NAECHSTES: list[dict] = [
          "A short GPS dropout during a run, for example when your arm dips under water, no longer splits the run in two, and after a fall the run ends at the last GPS position.",
      ]},
     # Amazfit 1.0.15 am 10.11. eingereicht -> IN_REVIEW.
-    # 12.11.2026: Android 1.1.49 (64) / Wear 1.2.49 (1060) gebaut, wird eingereicht, sobald 1.1.48 freigegeben ist
-    # (Memory android-1-1-49-mitnehmen). Inhalt wie iOS 1.1.66 (ohne Google-Login, den hat Android nativ) plus die
-    # Web-Neuerungen vom 12.11.; Port-Liste docs/TODO.md. Vor der Einreichung: Wear-Emulator Fall 3+4 (GPS-Luecke).
-    {"name": "Android phone + Wear OS", "version": "1.1.49 / 1.2.49",
-     "items": [
-         "On global event pages, My team is now a single row; tap a greyed-out team to see why it does not count.",
-         "After an event, its page shows which team you competed for.",
-         "Tap a sprint value on the podium to open the run, with the stretch that counted highlighted on the map.",
-         "A short GPS dropout during a run, for example when your arm dips under water, no longer splits the run in two, and after a fall the run ends at the last GPS position.",
-         "Glides is now its own map colouring next to Carves and shows each glide in the speed colours, so you can see how you slow down.",
-     ]},
+    # Android 1.1.49 / Wear 1.2.49 am 19.11. eingereicht -> IN_REVIEW.
     # 12.11.2026 (Jan: „3. koennten wir direkt bauen und releasen"): GPS-Luecke am Lauf-Ende wie Garmin 1.0.103 /
     # iOS 1.1.66 — Huawei fd3896b9 (Watch 5 Seiten.ets; Watch 3/4 luecke.js; Lite ohne, 48-KB-Heap), Zepp cc767beb,
     # Suunto d605f4c9. Versionen gebumpt: Huawei 1.0.6 (1000006), Amazfit 1.0.16 (19); Suunto bleibt 1.01 (nie eingereicht).

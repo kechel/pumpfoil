@@ -706,8 +706,8 @@ def test_community_aktuelle_events(client, monkeypatch):
             "global_event": glob}).json()["id"]
     laeuft = ev("Laeuft", timedelta(hours=-1), timedelta(days=1))
     bald = ev("Bald", timedelta(days=2), timedelta(days=3))
-    ev("Spaeter", timedelta(days=5), timedelta(days=6))       # Vorschau 7 Tage (09.11.2026)
-    ev("Zu spaet", timedelta(days=8), timedelta(days=9))      # mehr als 7 Tage hin: noch nicht
+    ev("Spaeter", timedelta(days=5), timedelta(days=6))       # Vorschau 10 Tage (19.11.2026)
+    ev("Zu spaet", timedelta(days=11), timedelta(days=12))    # mehr als 10 Tage hin: noch nicht
     ev("Vorbei", timedelta(days=-3), timedelta(hours=-1))
     ev("Fertig", timedelta(days=-3), timedelta(hours=-60))    # 2,5 Tage nach Ende: noch zu sehen (3 Tage, 09.11.2026)
     ev("Alt", timedelta(days=-5), timedelta(hours=-73))       # mehr als 3 Tage nach Ende: weg
