@@ -347,17 +347,18 @@ def test_lauf_werte_passen_zu_den_strichen():
 
 
 def test_ort_verbergen_gilt_auch_in_der_aufloesung(client, monkeypatch):
-    """„Ort verbergen" (Jan 19.11.2026): die Enthuellung zeigt fuer Fremde und Admins weder Spot noch Karte (Bild/Striche),
-    nur Besitzer und Freunde; die normierte Linie und die Laufwerte bleiben (keine Koordinaten)."""
+    """„Ort verbergen" (Jan 19.11.2026): Karte und Spotname zeigen Point Nemo fuer ALLE, auch den Fahrer selbst — das
+    echte Kartenbild wird nie gerendert, also kann es auch kein Cache ausliefern."""
     from app.db import SessionLocal
-    from app import models
+    from app import models, ortverbergen
     jetzt = datetime.now(timezone.utc)
     eid = _event(jetzt - timedelta(days=1), jetzt + timedelta(days=6))
     (ia, ka), (ib, kb), (ic, kc) = _nutzer("A"), _nutzer("B"), _nutzer("C")
     sid, uuid = _session(ia, jetzt - timedelta(hours=2))
     gps = {uuid: _kreis()}
     monkeypatch.setattr("app.api.kunst.storage.load_gps", lambda u: gps.get(u, []))
-    monkeypatch.setattr("app.maptiles.hintergrund", lambda *a, **k: None)
+    mitten: list = []
+    monkeypatch.setattr("app.maptiles.hintergrund", lambda lo, lu, ll, lr, *a, **k: mitten.append((lo + lu) / 2))
     db = SessionLocal()
     db.get(models.User, ic).is_admin = True
     sp = models.Spot(name="Geheimsee Testspot", name_source="manual", lat=54.0, lon=10.0)
@@ -367,20 +368,15 @@ def test_ort_verbergen_gilt_auch_in_der_aufloesung(client, monkeypatch):
     db.commit(); db.close()
     bid = client.post(f"/api/kunst/{eid}/bild", headers=ka, json={"runde": 1, "session_id": sid, "von_ms": 0,
                                                                  "bis_ms": 10**9, "drehung": 0}).json()["id"]
-    # Admin schon vor der Aufloesung: keine Karte bei verborgenem Ort.
     gal = client.get(f"/api/kunst/{eid}", headers=kc).json()["runden"][0]["galerie"]
-    assert gal and gal[0]["karte"] is False
-    assert client.get(f"/api/kunst/bild/{bid}/karte.png", headers=kc).status_code != 200
+    assert gal and gal[0]["karte"] is True                     # Admin vor der Aufloesung: Karte ja, aber Point Nemo
     _verschieben(eid, 9)
-    for kopf in (kb, kc):                                       # Fremder und Admin
+    for kopf in (ka, kb, kc):                                  # Fahrer, Fremder, Admin
         z = client.get(f"/api/kunst/{eid}", headers=kopf).json()["runden"][0]["ergebnis"][0]
-        assert z["karte"] is False and z["spot"] is None
-        assert z["linie"] and z["laeufe"] is not None
-        assert "Geheimsee" not in json.dumps(z) and "54.0" not in json.dumps(z)
-        assert client.get(f"/api/kunst/bild/{bid}/karte", headers=kopf).status_code != 200
-        assert client.get(f"/api/kunst/bild/{bid}/karte.png", headers=kopf).status_code != 200
-    z = client.get(f"/api/kunst/{eid}", headers=ka).json()["runden"][0]["ergebnis"][0]
-    assert z["karte"] is True and z["spot"] == "Geheimsee Testspot"   # Besitzer sieht seinen Ort
-    assert client.get(f"/api/kunst/bild/{bid}/karte.png", headers=ka).status_code == 200
-    # Nach dem Besitzer-Abruf liegt das Bild im Cache — Fremde bekommen es trotzdem nicht.
-    assert client.get(f"/api/kunst/bild/{bid}/karte.png", headers=kb).status_code != 200
+        assert z["karte"] is True and z["spot"] == ortverbergen.NEMO_NAME and "Geheimsee" not in json.dumps(z)
+        k = client.get(f"/api/kunst/bild/{bid}/karte", headers=kopf).json()["striche"]
+        assert all(abs(p[0] - ortverbergen.NEMO_LAT) < 0.01 and abs(p[1] - ortverbergen.NEMO_LON) < 0.01
+                   for st in k for p in st)
+        assert abs((max(p[0] for p in k[0]) - min(p[0] for p in k[0])) - 2 * 60 / 111195) < 1e-4   # formtreu (r 60 m)
+        assert client.get(f"/api/kunst/bild/{bid}/karte.png", headers=kopf).status_code == 200
+    assert len(mitten) == 1 and abs(mitten[0] - ortverbergen.NEMO_LAT) < 0.1   # einmal gerendert, nur an Point Nemo

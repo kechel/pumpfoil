@@ -74,9 +74,8 @@ def kunst_event(event_id: int, user: models.User = Depends(current_user), db: Se
     # Admins duerfen schon vor der Aufloesung in die Kartenansicht schalten (Jan 19.11.2026) — „Ort verbergen" gilt weiter.
     admin_karte: dict[int, bool] = {}
     if user.is_admin and bilder:
-        from .sessions import _ort_fuer_andere_verborgen, _sieht_echten_ort
         for s_ in db.query(models.Session).filter(models.Session.id.in_({b.session_id for b in bilder})):
-            admin_karte[s_.id] = not s_.deleted and (not _ort_fuer_andere_verborgen(s_) or _sieht_echten_ort(db, s_, user.id))
+            admin_karte[s_.id] = not s_.deleted      # bei „Ort verbergen" zeigt die Karte Point Nemo (_karten_striche)
     out_runden = []
     for r in K.runden(e):
         nr = r["nr"]
@@ -105,8 +104,8 @@ def kunst_event(event_id: int, user: models.User = Depends(current_user), db: Se
 
 
 def _aufloesung(db: Session, e: models.TeamEvent, nr: int, wer: models.User) -> list[dict]:
-    from .sessions import _ort_fuer_andere_verborgen, _sieht_echten_ort
-    betrachter = wer.id
+    from .sessions import _ort_fuer_andere_verborgen
+    from .. import ortverbergen
     zeilen = K.ergebnis(db, e, nr, wer)
     if not zeilen:
         return []
@@ -127,11 +126,13 @@ def _aufloesung(db: Session, e: models.TeamEvent, nr: int, wer: models.User) -> 
     for z in zeilen:
         u, s, b = nutzer.get(z["user_id"]), sessions.get(z["session_id"]), bilder[z["bild_id"]]
         spot = None
-        ort_sichtbar = s is not None and not s.deleted and (not _ort_fuer_andere_verborgen(s) or _sieht_echten_ort(db, s, betrachter))
-        if ort_sichtbar and s.spot_id:
-            spot = spots.get(s.spot_id)
+        if s is not None and not s.deleted:
+            # „Ort verbergen": Point Nemo fuer alle, auch den Fahrer selbst — passend zur Karte (_karte_versetzt).
+            spot = ortverbergen.NEMO_NAME if _ort_fuer_andere_verborgen(s) else spots.get(s.spot_id) if s.spot_id else None
         out.append({**z, "linie": json.loads(b.linie_json), "name": (u.display_name if u else None),
-                    "avatar_url": (u.avatar_url if u else None), "spot": spot, "karte": ort_sichtbar,
+                    "avatar_url": (u.avatar_url if u else None), "spot": spot,
+                    # Karte auch bei „Ort verbergen" — dann an Point Nemo versetzt (Jan 19.11.2026), siehe _karten_striche.
+                    "karte": s is not None and not s.deleted,
                     "session_id": z["session_id"] if s is not None and not s.deleted else None,
                     "foto": fotos.get(z["session_id"]) if s is not None and not s.deleted else None,
                     "laeufe": _lauf_werte(db, s, b)})
@@ -387,11 +388,36 @@ def phase_setzen(event_id: int, body: PhaseIn, user: models.User = Depends(curre
     return K.einstellungen(e)
 
 
+def _karte_versetzt(s: models.Session) -> bool:
+    """„Ort verbergen" an der Session? Dann zeigt die Karte die Spur an Point Nemo — fuer ALLE, auch den Fahrer selbst und
+    Freunde (Jan 19.11.2026: „bei hidden location vermutlich einfach direkt point nemo nehmen, auch fuer den fahrer
+    selber"), wie in den Session-Details (ortverbergen.py). Damit haengt das Kartenbild nicht vom Betrachter ab, und der
+    Plattencache kann nie das echte Bild an einen Fremden ausliefern."""
+    from .sessions import _ort_fuer_andere_verborgen
+    return _ort_fuer_andere_verborgen(s)
+
+
+def _karten_striche(db: Session, s: models.Session, b: models.KunstBild, user: models.User,
+                    mit_tempo: bool = False) -> list:
+    """Striche fuer Karte/Kartenbild; bei verborgenem Ort formtreu nach Point Nemo versetzt (ortverbergen.versetzen,
+    gemeinsamer Mittelpunkt aller Striche, damit die Laeufe zueinander an ihrer Stelle bleiben)."""
+    striche = K.karte(storage.load_gps(s.session_uuid), b.von_ms, b.bis_ms, _laeufe(db, s), mit_tempo=mit_tempo)
+    if not striche or not _karte_versetzt(s):
+        return striche
+    from .. import ortverbergen
+    alle = [(p[0], p[1]) for st in striche for p in st]
+    bezug = (sum(a for a, _ in alle) / len(alle), sum(o for _, o in alle) / len(alle))
+    out = []
+    for st in striche:
+        neu = ortverbergen.versetzen([(p[0], p[1]) for p in st], bezug)
+        out.append([[round(la, 6), round(lo, 6), *p[2:]] for (la, lo), p in zip(neu, st)])
+    return out
+
+
 @router.get("/bild/{bild_id}/karte")
 def bild_karte(bild_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    """Echter Track eines Bildes auf der Karte (Jan 18.11.2026) — erst nach der Aufloesung, und nur wenn der Betrachter
-    den Ort sehen darf (wie der Spotname: Besitzer, Freunde, oder „Ort verbergen" aus)."""
-    from .sessions import _ort_fuer_andere_verborgen, _sieht_echten_ort
+    """Echter Track eines Bildes auf der Karte (Jan 18.11.2026) — erst nach der Aufloesung; bei „Ort verbergen" fuer
+    Fremde an Point Nemo versetzt (_karten_striche)."""
     b, e = _bild(db, bild_id, user)
     r = _runde(e, b.runde)
     if r["phase"] != "fertig" and b.user_id != user.id and not user.is_admin:   # Admins schon vorher (Jan 19.11.2026)
@@ -399,18 +425,15 @@ def bild_karte(bild_id: int, user: models.User = Depends(current_user), db: Sess
     s = db.get(models.Session, b.session_id)
     if s is None or s.deleted or b.entfernt_grund is not None:
         raise _404()
-    if b.user_id != user.id and _ort_fuer_andere_verborgen(s) and not _sieht_echten_ort(db, s, user.id):
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "ort_verborgen")
-    return {"striche": K.karte(storage.load_gps(s.session_uuid), b.von_ms, b.bis_ms, _laeufe(db, s))}
+    return {"striche": _karten_striche(db, s, b, user)}
 
 
 @router.get("/bild/{bild_id}/karte.png")
 def bild_karte_png(bild_id: int, ebene: str = "satellit", user: models.User = Depends(current_user),
                    db: Session = Depends(get_db)) -> Response:
     """Wie /karte, aber als fertiges Bild (Jan 19.11.2026): Web und Apps zeigen im Event nur noch dieses Bild statt einer
-    interaktiven Karte. Gleiche Pruefung (aufgeloest, Ort sichtbar); Plattencache je Bild, Ausschnitt und Ebene —
+    interaktiven Karte. Gleiche Pruefung und Point-Nemo-Versetzung; Plattencache je Bild, Ausschnitt, Ebene und Nemo —
     nachgerechnet wird nur, wenn sich das Bild aendert (eigenes Bild vor der Aufloesung) oder KARTE_FASSUNG steigt."""
-    from .sessions import _ort_fuer_andere_verborgen, _sieht_echten_ort
     if ebene not in ("satellit", "karte"):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "ebene")
     b, e = _bild(db, bild_id, user)
@@ -420,14 +443,13 @@ def bild_karte_png(bild_id: int, ebene: str = "satellit", user: models.User = De
     s = db.get(models.Session, b.session_id)
     if s is None or s.deleted or b.entfernt_grund is not None:
         raise _404()
-    if b.user_id != user.id and _ort_fuer_andere_verborgen(s) and not _sieht_echten_ort(db, s, user.id):
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "ort_verborgen")
+    nemo = _karte_versetzt(s)
     pfad = (get_settings().data_dir / "cache" / "kunst"
-            / f"{b.id}-{b.session_id}-{b.von_ms}-{b.bis_ms}-{ebene}-v{K.KARTE_FASSUNG}.png")
+            / f"{b.id}-{b.session_id}-{b.von_ms}-{b.bis_ms}-{ebene}{'-nemo' if nemo else ''}-v{K.KARTE_FASSUNG}.png")
     if pfad.exists():
         daten = pfad.read_bytes()
     else:
-        daten = K.karte_png(K.karte(storage.load_gps(s.session_uuid), b.von_ms, b.bis_ms, _laeufe(db, s), mit_tempo=True), ebene)
+        daten = K.karte_png(_karten_striche(db, s, b, user, mit_tempo=True), ebene)
         try:
             pfad.parent.mkdir(parents=True, exist_ok=True)
             tmp = pfad.with_suffix(".tmp")

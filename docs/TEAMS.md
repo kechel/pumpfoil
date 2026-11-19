@@ -472,6 +472,9 @@ also wie viele der Sportarten man schon gefahren ist.
 - Karte im Event ist ein **Bild vom Server** (`GET /api/kunst/bild/{id}/karte.png`, Satellit, Norden oben, Nennung
   eingebrannt, Kacheln ueber `maptiles` wie das Teilen-Bild, Cache `DATA_DIR/cache/kunst/`) — keine interaktive
   Karte (Jan: „hier ist das overkill", zoomen in den Session-Details). Aussehen geaendert -> `KARTE_FASSUNG` hoch.
+- „Ort verbergen" (19.11.2026): Karte, Kartenbild und Spotname zeigen **Point Nemo fuer alle**, auch den Fahrer selbst
+  und Freunde (wie die Session-Details). Das echte Kartenbild wird dann nie gerendert, der Cache (Schluessel mit `-nemo`)
+  haengt nicht vom Betrachter ab. Linie, Laufwerte und Foto bleiben.
 - Shadowban (19.11.2026): Bilder und Herzen versteckter (`users.hidden`) oder gesperrter Konten zaehlen fuer andere nicht
   und erscheinen nirgends (Galerie, Anzahl, Aufloesung, Einzelabruf per ID -> 404). Der Betroffene sieht alles wie immer
   (eigene Bilder, eigene Herzen gezaehlt), Admins sehen alles (`kunst.sieht_bild` / `zaehlt_herz`).
