@@ -71,6 +71,12 @@ def kunst_event(event_id: int, user: models.User = Depends(current_user), db: Se
         meldungen = {bid: int(n) for bid, n in db.query(models.KunstMeldung.bild_id, func.count(models.KunstMeldung.id))
                      .join(B, B.id == models.KunstMeldung.bild_id).filter(B.event_id == e.id)
                      .group_by(models.KunstMeldung.bild_id).all()}
+    # Admins duerfen schon vor der Aufloesung in die Kartenansicht schalten (Jan 19.11.2026) — „Ort verbergen" gilt weiter.
+    admin_karte: dict[int, bool] = {}
+    if user.is_admin and bilder:
+        from .sessions import _ort_fuer_andere_verborgen, _sieht_echten_ort
+        for s_ in db.query(models.Session).filter(models.Session.id.in_({b.session_id for b in bilder})):
+            admin_karte[s_.id] = not s_.deleted and (not _ort_fuer_andere_verborgen(s_) or _sieht_echten_ort(db, s_, user.id))
     out_runden = []
     for r in K.runden(e):
         nr = r["nr"]
@@ -78,7 +84,8 @@ def kunst_event(event_id: int, user: models.User = Depends(current_user), db: Se
         sichtbar = [b for b in bilder if b.runde == nr and (b.entfernt_grund is None or mod)]
         sichtbar.sort(key=lambda b: K.reihenfolge(user.id, b.id))
         galerie = [{**_bild_out(b), "eigen": b.user_id == user.id, "herz": b.id in meine_herzen,
-                    **({"entfernt": b.entfernt_grund, "meldungen": meldungen.get(b.id, 0)} if mod else {})}
+                    **({"entfernt": b.entfernt_grund, "meldungen": meldungen.get(b.id, 0)} if mod else {}),
+                    **({"karte": admin_karte.get(b.session_id, False)} if user.is_admin else {})}
                    for b in sichtbar] if (r["phase"] in ("abstimmen", "fertig") or (r["phase"] == "einreichen" and mod)) else []
         # Galerie fuer Teilnehmer erst ab der Abstimmung (Jan 18.11.2026: in der Einreichwoche nur Admins) — sonst liessen
         # sich Ideen abschauen und fruehe Bilder waeren laenger sichtbar. Moderation sieht sie, um rechtzeitig zu pruefen.
@@ -367,7 +374,7 @@ def bild_karte(bild_id: int, user: models.User = Depends(current_user), db: Sess
     from .sessions import _ort_fuer_andere_verborgen, _sieht_echten_ort
     b, e = _bild(db, bild_id, user)
     r = _runde(e, b.runde)
-    if r["phase"] != "fertig" and b.user_id != user.id:
+    if r["phase"] != "fertig" and b.user_id != user.id and not user.is_admin:   # Admins schon vorher (Jan 19.11.2026)
         raise HTTPException(status.HTTP_409_CONFLICT, "noch_nicht_aufgeloest")
     s = db.get(models.Session, b.session_id)
     if s is None or s.deleted or b.entfernt_grund is not None:
@@ -388,7 +395,7 @@ def bild_karte_png(bild_id: int, ebene: str = "satellit", user: models.User = De
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "ebene")
     b, e = _bild(db, bild_id, user)
     r = _runde(e, b.runde)
-    if r["phase"] != "fertig" and b.user_id != user.id:
+    if r["phase"] != "fertig" and b.user_id != user.id and not user.is_admin:   # Admins schon vorher (Jan 19.11.2026)
         raise HTTPException(status.HTTP_409_CONFLICT, "noch_nicht_aufgeloest")
     s = db.get(models.Session, b.session_id)
     if s is None or s.deleted or b.entfernt_grund is not None:

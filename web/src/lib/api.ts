@@ -1151,7 +1151,7 @@ export type FoilStatWerte = { sessions: number; users: number; avg_speed_kmh: nu
 // GPS-Kunst-Event (18.11.2026, server app/api/kunst.py)
 /** Linie eines Bildes: Striche (einer je Lauf, seit 18.11.2026); aeltere Bilder sind ein einzelner Strich. */
 export type KunstLinieDaten = [number, number][][] | [number, number][];
-export type KunstBild = { id: number; linie: KunstLinieDaten; eigen?: boolean; herz?: boolean; entfernt?: string | null; meldungen?: number };
+export type KunstBild = { id: number; linie: KunstLinieDaten; eigen?: boolean; herz?: boolean; entfernt?: string | null; meldungen?: number; karte?: boolean };
 export type KunstErgebnis = { bild_id: number; platz: number; herzen: number; user_id: number; session_id: number | null;
   linie: KunstLinieDaten; name: string | null; avatar_url: string | null; spot: string | null; karte?: boolean; foto?: string | null };
 export type KunstRunde = { nr: number; start: string; ende: string; einreichen_bis?: string; abstimmen_bis: string; phase: "kommt" | "einreichen" | "abstimmen" | "fertig";

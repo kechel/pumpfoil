@@ -332,6 +332,10 @@ function AbstimmGalerie({ ids, start, runde, d, neu, meldung, onZu }: { ids: num
   const voll = !!b && runde.herzen_vergeben >= d.herzen_je_runde && !b.herz;
   const herz = () => { if (b && abstimmen && !voll) api.kunstHerz(b.id).then(neu).catch(meldung); };
   const [puls, setPuls] = useState(0);
+  // Admins: schon vor der Aufloesung Bild | Karte (Jan 19.11.2026), Wahl gemerkt wie in der Ergebnis-Galerie.
+  const [karteGewaehlt, setKarteGewaehlt] = useState(() => lies(ANSICHT) === "karte");
+  const karteErlaubt = !!d.admin && !!b?.karte;
+  const karte = karteErlaubt && karteGewaehlt;
   const tipp = useDoppeltipp(null, () => { if (abstimmen && !voll) { setPuls((x) => x + 1); herz(); } });
   useEffect(() => {
     const taste = (e: KeyboardEvent) => {
@@ -351,11 +355,23 @@ function AbstimmGalerie({ ids, start, runde, d, neu, meldung, onZu }: { ids: num
         style={{ background: "#020617", border: "1px solid rgba(34,211,238,0.35)", boxShadow: "0 0 0 1px rgba(255,255,255,0.06), 0 25px 60px rgba(0,0,0,0.6)" }}
         onClick={(e) => e.stopPropagation()}>
         <div className={`relative touch-manipulation select-none rounded-2xl p-1.5 ${b.herz ? "bg-brand-500" : ""}`} onClick={tipp}>
-          <KunstLinie linie={b.linie} saat={b.id} />
+          {karte ? <KunstKarte bildId={b.id} /> : <KunstLinie linie={b.linie} saat={b.id} />}
           <HerzPuls an={puls} voll={!b.herz} />
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-3" style={{ color: "#e2e8f0" }}>
           <span className="text-sm tabular-nums">{i + 1} / {ids.length}</span>
+          {karteErlaubt && (
+            <span className="inline-flex rounded-lg p-0.5 text-xs" style={{ background: "#1e293b" }}>
+              {([false, true] as const).map((k) => (
+                <button key={String(k)} type="button" aria-pressed={karte === k}
+                  onClick={() => { setKarteGewaehlt(k); schreib(ANSICHT, k ? "karte" : null); }}
+                  className="rounded-md px-2 py-0.5"
+                  style={karte === k ? { background: "#22d3ee", color: "#020617", fontWeight: 600 } : { color: "#cbd5e1" }}>
+                  {k ? t("kunst.ansichtKarte") : t("kunst.ansichtBild")}
+                </button>
+              ))}
+            </span>
+          )}
           {b.eigen && <span className="text-sm font-semibold" style={{ color: "#22d3ee" }}>{t("kunst.deinBild")}</span>}
           {runde.phase === "abstimmen" && d.teilnehmen && (
             <span className="ml-auto text-sm">{t("kunst.uebrig", { rest: String(d.herzen_je_runde - runde.herzen_vergeben), n: String(d.herzen_je_runde) })}</span>

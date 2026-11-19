@@ -310,3 +310,25 @@ def test_shadowban_bilder_und_herzen(client, monkeypatch):
     assert [(z["bild_id"], z["herzen"]) for z in erg_b] == [(bid[ia], 1), (bid[ib], 0)]    # C-Herz zaehlt nicht
     erg_c = client.get(f"/api/kunst/{eid}", headers=kc).json()["runden"][0]["ergebnis"]
     assert {z["bild_id"]: z["herzen"] for z in erg_c} == {bid[ia]: 1, bid[ib]: 1, bid[ic]: 0}  # eigene Sicht vollstaendig
+
+
+def test_admin_karte_vor_aufloesung(client, monkeypatch):
+    """Admins duerfen schon beim Einreichen/Abstimmen in die Kartenansicht (Jan 19.11.2026); andere erst im Ergebnis."""
+    from app.db import SessionLocal
+    from app import models
+    jetzt = datetime.now(timezone.utc)
+    eid = _event(jetzt - timedelta(days=1), jetzt + timedelta(days=6))
+    (ia, ka), (ib, kb), (ic, kc) = _nutzer("A"), _nutzer("B"), _nutzer("C")
+    sid, uuid = _session(ia, jetzt - timedelta(hours=2))
+    gps = {uuid: _kreis()}
+    monkeypatch.setattr("app.api.kunst.storage.load_gps", lambda u: gps.get(u, []))
+    monkeypatch.setattr("app.maptiles.hintergrund", lambda *a, **k: None)
+    db = SessionLocal(); db.get(models.User, ic).is_admin = True; db.commit(); db.close()
+    bid = client.post(f"/api/kunst/{eid}/bild", headers=ka, json={"runde": 1, "session_id": sid, "von_ms": 0,
+                                                                 "bis_ms": 10**9, "drehung": 0}).json()["id"]
+    assert client.get(f"/api/kunst/bild/{bid}/karte.png", headers=kb).status_code == 409
+    assert client.get(f"/api/kunst/bild/{bid}/karte.png", headers=kc).status_code == 200
+    gal = client.get(f"/api/kunst/{eid}", headers=kc).json()["runden"][0]["galerie"]
+    assert gal and gal[0]["karte"] is True                                   # Admin sieht die Galerie schon beim Einreichen
+    assert "karte" not in client.get(f"/api/kunst/{eid}", headers=kb).json()["runden"][0].get("galerie", [{}])[0] \
+        if client.get(f"/api/kunst/{eid}", headers=kb).json()["runden"][0]["galerie"] else True
