@@ -293,15 +293,40 @@ def reihenfolge(betrachter: int, bild_id: int) -> str:
     return hashlib.sha1(f"kunst:{betrachter}:{bild_id}".encode()).hexdigest()
 
 
-def ergebnis(db: Session, e: models.TeamEvent, nr: int) -> list[dict]:
-    """Rangliste einer fertigen Runde: [{bild_id, platz, herzen, user_id, session_id}] (Gleichstand = gleicher Platz)."""
-    from sqlalchemy import func
+def verdeckt(db: Session, uids) -> set[int]:
+    """Konten, deren Bilder und Herzen fuer andere nicht zaehlen: versteckt (Shadowban/Testkonto) oder gesperrt."""
+    uids = {u for u in uids if u is not None}
+    if not uids:
+        return set()
+    return {i for (i,) in db.query(models.User.id).filter(models.User.id.in_(uids),
+                                                         (models.User.hidden.is_(True)) | (models.User.blocked.is_(True)))}
+
+
+def sieht_bild(owner: int, betrachter: models.User | None, verdeckte: set[int]) -> bool:
+    """Shadowban richtig (Jan 19.11.2026): Bilder versteckter/gesperrter Konten sieht nur der Besitzer selbst und Admins;
+    der Besitzer merkt nichts."""
+    return owner not in verdeckte or (betrachter is not None and (betrachter.is_admin or betrachter.id == owner))
+
+
+def zaehlt_herz(voter: int, betrachter: models.User | None, verdeckte: set[int]) -> bool:
+    """Herzen versteckter/gesperrter Konten zaehlen nur in der eigenen Sicht (und fuer Admins) — sonst merkte es der Betroffene."""
+    return voter not in verdeckte or (betrachter is not None and (betrachter.is_admin or betrachter.id == voter))
+
+
+def ergebnis(db: Session, e: models.TeamEvent, nr: int, betrachter: models.User | None = None) -> list[dict]:
+    """Rangliste einer fertigen Runde: [{bild_id, platz, herzen, user_id, session_id}] (Gleichstand = gleicher Platz).
+    Je Betrachter: Bilder und Herzen versteckter/gesperrter Konten nur fuer sie selbst und Admins (s. sieht_bild)."""
     B, H = models.KunstBild, models.KunstHerz
-    zeilen = (db.query(B.id, B.user_id, B.session_id, func.count(H.id))
-              .outerjoin(H, H.bild_id == B.id)
-              .filter(B.event_id == e.id, B.runde == nr, B.entfernt_grund.is_(None))
-              .group_by(B.id).all())
-    zeilen = sorted(zeilen, key=lambda z: (-int(z[3]), z[0]))
+    bilder = (db.query(B.id, B.user_id, B.session_id)
+              .filter(B.event_id == e.id, B.runde == nr, B.entfernt_grund.is_(None)).all())
+    herzen = db.query(H.bild_id, H.user_id).filter(H.event_id == e.id, H.runde == nr).all()
+    verdeckte = verdeckt(db, {u for _, u, _ in bilder} | {u for _, u in herzen})
+    zahl: dict[int, int] = {}
+    for bid, voter in herzen:
+        if zaehlt_herz(voter, betrachter, verdeckte):
+            zahl[bid] = zahl.get(bid, 0) + 1
+    zeilen = [(bid, uid, sid, zahl.get(bid, 0)) for bid, uid, sid in bilder if sieht_bild(uid, betrachter, verdeckte)]
+    zeilen.sort(key=lambda z: (-z[3], z[0]))
     out, platz, vorher = [], 0, None
     for i, (bid, uid, sid, n) in enumerate(zeilen):
         if n != vorher:

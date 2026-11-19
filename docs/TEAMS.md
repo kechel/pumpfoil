@@ -472,6 +472,10 @@ also wie viele der Sportarten man schon gefahren ist.
 - Karte im Event ist ein **Bild vom Server** (`GET /api/kunst/bild/{id}/karte.png`, Satellit, Norden oben, Nennung
   eingebrannt, Kacheln ueber `maptiles` wie das Teilen-Bild, Cache `DATA_DIR/cache/kunst/`) — keine interaktive
   Karte (Jan: „hier ist das overkill", zoomen in den Session-Details). Aussehen geaendert -> `KARTE_FASSUNG` hoch.
+- Shadowban (19.11.2026): Bilder und Herzen versteckter (`users.hidden`) oder gesperrter Konten zaehlen fuer andere nicht
+  und erscheinen nirgends (Galerie, Anzahl, Aufloesung, Einzelabruf per ID -> 404). Der Betroffene sieht alles wie immer
+  (eigene Bilder, eigene Herzen gezaehlt), Admins sehen alles (`kunst.sieht_bild` / `zaehlt_herz`).
+- Enthuellung zeigt nach der Karte das erste Session-Foto (2 s, nur sichtbare: nicht geblockt, Medienfreigabe beachtet).
 - Apps: Android/iOS-Port vom 18.11. (interaktive Karte) — Enthuellung, Kartenbild und Abspielen noch nachziehen.
 - Offen: Finale der Rundensieger, Teilen-Bild der Siegerehrung, Benachrichtigung bei Rundenstart/-ende.
 

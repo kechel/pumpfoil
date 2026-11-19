@@ -61,6 +61,10 @@ def kunst_event(event_id: int, user: models.User = Depends(current_user), db: Se
     mod = K.darf_moderieren(db, user, e)
     teil = K.darf_teilnehmen(db, user, e)
     bilder = db.query(B).filter(B.event_id == e.id).all()
+    # Shadowban (Jan 19.11.2026): Bilder versteckter/gesperrter Konten nur fuer den Besitzer und Admins — auch nicht
+    # in der Anzahl. Der Besitzer sieht alles wie immer.
+    verdeckte = K.verdeckt(db, {b.user_id for b in bilder})
+    bilder = [b for b in bilder if K.sieht_bild(b.user_id, user, verdeckte)]
     meine_herzen = {b for (b,) in db.query(H.bild_id).filter(H.event_id == e.id, H.user_id == user.id).all()}
     meldungen: dict[int, int] = {}
     if mod:
@@ -86,16 +90,17 @@ def kunst_event(event_id: int, user: models.User = Depends(current_user), db: Se
                         "drehung": eigen.drehung, "entfernt": eigen.entfernt_grund} if eigen else None),
              "galerie": galerie}
         if r["phase"] == "fertig":
-            x["ergebnis"] = _aufloesung(db, e, nr, user.id)
+            x["ergebnis"] = _aufloesung(db, e, nr, user)
             x["galerie"] = []        # nach dem Ende zeigt die Aufloesung alle Bilder mit Namen
         out_runden.append(x)
     return {"event_id": e.id, "titel": e.titel, "herzen_je_runde": K.HERZEN_JE_RUNDE, "teilnehmen": teil,
             "moderieren": mod, "admin": bool(user.is_admin), **K.einstellungen(e), "runden": out_runden}
 
 
-def _aufloesung(db: Session, e: models.TeamEvent, nr: int, betrachter: int) -> list[dict]:
+def _aufloesung(db: Session, e: models.TeamEvent, nr: int, wer: models.User) -> list[dict]:
     from .sessions import _ort_fuer_andere_verborgen, _sieht_echten_ort
-    zeilen = K.ergebnis(db, e, nr)
+    betrachter = wer.id
+    zeilen = K.ergebnis(db, e, nr, wer)
     if not zeilen:
         return []
     bilder = {b.id: b for b in db.query(models.KunstBild).filter(models.KunstBild.id.in_([z["bild_id"] for z in zeilen]))}
@@ -226,8 +231,8 @@ def zurueckziehen(event_id: int, runde: int, user: models.User = Depends(current
 
 def _bild(db: Session, bild_id: int, user: models.User) -> tuple[models.KunstBild, models.TeamEvent]:
     b = db.get(models.KunstBild, bild_id)
-    if b is None:
-        raise _404()
+    if b is None or not K.sieht_bild(b.user_id, user, K.verdeckt(db, {b.user_id})):
+        raise _404()                  # Shadowban: fuer andere gibt es das Bild nicht
     return b, _event(db, b.event_id, user)
 
 

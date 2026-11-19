@@ -278,3 +278,35 @@ def test_karte_als_bild(client, monkeypatch):
     r = client.get(f"/api/kunst/bild/{bid}/karte.png", headers=kb)
     assert r.status_code == 200 and r.headers["content-type"] == "image/png" and r.content[:4] == b"\x89PNG"
     assert client.get(f"/api/kunst/bild/{bid}/karte.png", headers=kb).content == r.content   # aus dem Cache
+
+
+def test_shadowban_bilder_und_herzen(client, monkeypatch):
+    """Versteckte/gesperrte Konten (Jan 19.11.2026, „shadow ban richtig"): ihre Bilder und Herzen zaehlen fuer andere nicht
+    und erscheinen nirgends (Galerie, Anzahl, Aufloesung, Einzelabruf); der Betroffene selbst sieht alles wie immer."""
+    from app.db import SessionLocal
+    from app import models
+    jetzt = datetime.now(timezone.utc)
+    eid = _event(jetzt - timedelta(days=1), jetzt + timedelta(days=6))
+    (ia, ka), (ib, kb), (ic, kc) = _nutzer("A"), _nutzer("B"), _nutzer("C")
+    gps = {}
+    bid = {}
+    for uid, k in ((ia, ka), (ib, kb), (ic, kc)):
+        sid, uuid = _session(uid, jetzt - timedelta(hours=2))
+        gps[uuid] = _kreis()
+        monkeypatch.setattr("app.api.kunst.storage.load_gps", lambda u: gps.get(u, []))
+        bid[uid] = client.post(f"/api/kunst/{eid}/bild", headers=k, json={"runde": 1, "session_id": sid, "von_ms": 0,
+                                                                          "bis_ms": 10**9, "drehung": 0}).json()["id"]
+    db = SessionLocal(); db.get(models.User, ic).hidden = True; db.commit(); db.close()   # C ist versteckt
+    _verschieben(eid, 6.5)                                                                 # Abstimmung
+    gal_b = client.get(f"/api/kunst/{eid}", headers=kb).json()["runden"][0]
+    assert {g["id"] for g in gal_b["galerie"]} == {bid[ia], bid[ib]} and gal_b["anzahl"] == 2
+    gal_c = client.get(f"/api/kunst/{eid}", headers=kc).json()["runden"][0]
+    assert {g["id"] for g in gal_c["galerie"]} == set(bid.values()) and gal_c["anzahl"] == 3   # merkt nichts
+    assert client.post(f"/api/kunst/bild/{bid[ic]}/herz", headers=kb).status_code == 404
+    assert client.post(f"/api/kunst/bild/{bid[ib]}/herz", headers=kc).status_code == 200      # C herzt B
+    assert client.post(f"/api/kunst/bild/{bid[ia]}/herz", headers=kb).status_code == 200      # B herzt A
+    _verschieben(eid, 3)                                                                   # fertig
+    erg_b = client.get(f"/api/kunst/{eid}", headers=kb).json()["runden"][0]["ergebnis"]
+    assert [(z["bild_id"], z["herzen"]) for z in erg_b] == [(bid[ia], 1), (bid[ib], 0)]    # C-Herz zaehlt nicht
+    erg_c = client.get(f"/api/kunst/{eid}", headers=kc).json()["runden"][0]["ergebnis"]
+    assert {z["bild_id"]: z["herzen"] for z in erg_c} == {bid[ia]: 1, bid[ib]: 1, bid[ic]: 0}  # eigene Sicht vollstaendig
