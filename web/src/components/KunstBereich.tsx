@@ -503,13 +503,15 @@ function Aufloesung({ runde, eventId }: { runde: KunstRunde; eventId: number }) 
   const treppe = top.length === 3 ? [top[1], top[0], top[2]] : top.length === 2 ? [top[1], top[0]] : top;
   return (
     <>
-      <div className="mb-2 flex flex-wrap items-center justify-end gap-2">
+      {/* Knopf zentriert ueber Platz 1, primaer (Jan 19.11.2026); „Stumm" rechts daneben */}
+      <div className="mb-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+        <span />
         <button type="button" onClick={enthuellen}
-          className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-700 px-2.5 text-sm text-slate-300 hover:bg-slate-800">
+          className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-500 px-3.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" /></svg>
           {t("kunst.enth.nochmal")}
         </button>
-        <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-slate-400">
+        <label className="inline-flex cursor-pointer items-center gap-1.5 justify-self-end text-xs text-slate-400">
           <input type="checkbox" checked={stumm} onChange={(x) => { setStumm(x.target.checked); schreib(STUMM, x.target.checked ? "1" : null); if (x.target.checked) ton.current?.pause(); }} />
           {t("team.podest.stumm")}
         </label>
