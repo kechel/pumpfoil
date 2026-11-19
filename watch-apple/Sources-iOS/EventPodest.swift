@@ -1,7 +1,6 @@
 import SwiftUI
 import AVFoundation
 import UIKit
-import MapKit
 
 // Siegertreppchen ueber der Bestenliste beendeter Events — Port von web/src/components/EventPodest.tsx (09.11.2026).
 // Zeigt die gerade gewaehlte Bestenliste: Fahrer als drei schwebende Foils (Reihenfolge 2 – 1 – 3, Gold am hoechsten,
@@ -259,15 +258,23 @@ final class PodestTon {
     private var player: AVPlayer?
     /// Beobachtet beim Ton mit Ersatz, ob die Datei laedt (GPS-Kunst, 18.11.2026).
     private var beobachter: NSKeyValueObservation?
+    /// Wiederholung am Ende (GPS-Kunst-Enthuellung: Jingle zweimal, web 735a84a1).
+    private var endeBeobachter: NSObjectProtocol?
+
+    private func endeLoesen() {
+        if let e = endeBeobachter { NotificationCenter.default.removeObserver(e) }
+        endeBeobachter = nil
+    }
 
     /// Eigener Ton mit Ersatz (GPS-Kunst, 18.11.2026, web KunstBereich `spiel(TON_KUNST, TON)`): fehlt die Datei auf dem
-    /// Server (Status `failed`), spielt `ersatz`.
-    func abspielen(_ pfad: String, ersatz: String?) {
+    /// Server (Status `failed`), spielt `ersatz`. `zweimal`: direkt danach noch einmal (web 19.11.2026: „sonst zu kurz").
+    func abspielen(_ pfad: String, ersatz: String?, zweimal: Bool = false) {
         guard let url = Api.mediaURL(pfad) else { return }
         try? AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default, options: [.mixWithOthers])
         try? AVAudioSession.sharedInstance().setActive(true)
         player?.pause()
         beobachter = nil
+        endeLoesen()
         let item = AVPlayerItem(url: url)
         let p = AVPlayer(playerItem: item)
         p.volume = 0.6
@@ -275,7 +282,16 @@ final class PodestTon {
         if let ersatz {
             beobachter = item.observe(\.status, options: [.new]) { [weak self] (it: AVPlayerItem, _: NSKeyValueObservedChange<AVPlayerItem.Status>) in
                 guard it.status == .failed else { return }
-                DispatchQueue.main.async { self?.abspielen(ersatz, ersatz: nil) }
+                DispatchQueue.main.async { self?.abspielen(ersatz, ersatz: nil, zweimal: zweimal) }
+            }
+        }
+        if zweimal {
+            endeBeobachter = NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: item,
+                                                                    queue: .main) { [weak self, weak p] (_: Notification) in
+                guard let self, let p, self.player === p else { return }
+                self.endeLoesen()
+                p.seek(to: CMTime.zero)
+                p.play()
             }
         }
         p.play()
@@ -283,6 +299,7 @@ final class PodestTon {
 
     func abspielen() {
         beobachter = nil
+        endeLoesen()
         guard let url = Api.mediaURL(PODEST_TON) else { return }
         // .ambient: der Stummschalter gilt, laufende Musik spielt weiter (keine Unterbrechung).
         try? AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default, options: [.mixWithOthers])
@@ -296,6 +313,7 @@ final class PodestTon {
 
     func anhalten() {
         beobachter = nil
+        endeLoesen()
         player?.pause()
         player = nil
     }
@@ -623,6 +641,8 @@ struct KunstBildDaten: Decodable, Identifiable {
     /// nur fuer die Moderation: Grund, falls entfernt
     var entfernt: String? = nil
     var meldungen: Int? = nil
+    /// nur fuer Admins: Ort sichtbar -> Kartenansicht schon vor der Aufloesung (web 93472df1)
+    var karte: Bool? = nil
 }
 
 struct KunstEigenesBild: Decodable {
@@ -646,6 +666,8 @@ struct KunstErgebnisZeile: Decodable, Identifiable {
     var spot: String? = nil
     /// Ort sichtbar -> Kartenansicht moeglich
     var karte: Bool? = nil
+    /// Erstes sichtbares Foto der Session (relativ `/media/...`), fuer die Enthuellung
+    var foto: String? = nil
     /// Nur in der Gesamtuebersicht gesetzt (nicht vom Server): Runde des Bilds.
     var runde: Int? = nil
     var id: Int { bild_id }
@@ -673,6 +695,7 @@ struct KunstEventDaten: Decodable {
     var herzen_je_runde: Int? = nil
     var teilnehmen: Bool? = nil
     var moderieren: Bool? = nil
+    var admin: Bool? = nil
     let runden: [KunstRundeDaten]
 
     var herzenJeRunde: Int { herzen_je_runde ?? 3 }
@@ -691,10 +714,6 @@ struct KunstKandidat: Decodable, Identifiable {
 struct KunstSpur: Decodable {
     let punkte: [[Double]]
     let laeufe: [[Double]]
-}
-
-struct KunstKarteDaten: Decodable {
-    let striche: [[[Double]]]
 }
 
 /// Antworten der Schreib-Aufrufe — der Inhalt wird nicht gebraucht (danach wird neu geladen).
@@ -732,8 +751,68 @@ extension Api {
         let _: KunstAntwort = try await request("/api/kunst/bild/" + String(bildId) + "/melden", method: "POST", body: body, auth: true)
     }
 
-    static func kunstKarte(_ bildId: Int) async throws -> KunstKarteDaten {
-        try await request("/api/kunst/bild/" + String(bildId) + "/karte", method: "GET", body: nil, auth: true)
+    /// Echter Track als fertiges Bild (Satellit, Norden oben, Quellennennung eingebrannt; web 51ff59e0) — PNG-Bytes.
+    static func kunstKartenBild(_ bildId: Int) async throws -> Data {
+        guard let url = URL(string: baseURL + "/api/kunst/bild/" + String(bildId) + "/karte.png") else { throw ApiError.badURL }
+        var req = URLRequest(url: url)
+        req.timeoutInterval = 30
+        req.setValue(clientId, forHTTPHeaderField: "X-Pumpfoil-Client")
+        if let t = token { req.setValue("Bearer " + t, forHTTPHeaderField: "Authorization") }
+        let (data, resp) = try await URLSession.shared.data(for: req)
+        let code: Int = (resp as? HTTPURLResponse)?.statusCode ?? -1
+        guard (200..<300).contains(code) else { throw ApiError.http(code, String(data: data, encoding: .utf8) ?? "") }
+        return data
+    }
+}
+
+/// Kartenbilder je App-Sitzung im Speicher (web `kartenSpeicher`): die Enthuellung laedt die drei Plaetze beim Oeffnen
+/// vor, Galerie und Blaettern nutzen denselben Speicher. Fehler werden nicht gemerkt (naechstes Mal neu versuchen).
+@MainActor
+final class KunstKartenSpeicher {
+    static let shared = KunstKartenSpeicher()
+    private var bilder: [Int: UIImage] = [:]
+    private var laufend: [Int: Task<UIImage, Error>] = [:]
+
+    func fertig(_ id: Int) -> UIImage? { bilder[id] }
+
+    func laden(_ id: Int) async throws -> UIImage {
+        if let b = bilder[id] { return b }
+        let t: Task<UIImage, Error>
+        if let l = laufend[id] {
+            t = l
+        } else {
+            t = Task<UIImage, Error> { () async throws -> UIImage in
+                let daten: Data = try await Api.kunstKartenBild(id)
+                guard let b = UIImage(data: daten) else { throw ApiError.http(-1, "") }
+                return b
+            }
+            laufend[id] = t
+        }
+        do {
+            let b: UIImage = try await t.value
+            bilder[id] = b
+            laufend[id] = nil
+            return b
+        } catch {
+            laufend[id] = nil
+            throw error
+        }
+    }
+
+    func vorladen(_ id: Int) {
+        Task { _ = try? await self.laden(id) }
+    }
+}
+
+/// Session-Foto vorladen (landet in `BildCache`, das spaetere `NetzBild` ist dann sofort da).
+@MainActor
+func kunstFotoVorladen(_ pfad: String?) {
+    guard let url = Api.mediaURL(pfad), BildCache.shared.bild(url) == nil else { return }
+    Task {
+        guard let r = try? await URLSession.shared.data(from: url),
+              let http = r.1 as? HTTPURLResponse, (200..<300).contains(http.statusCode),
+              let b = UIImage(data: r.0) else { return }
+        BildCache.shared.merken(url, b)
     }
 }
 
@@ -830,14 +909,22 @@ private func kunstPfad(_ st: [CGPoint], _ s: CGFloat) -> Path {
     return p
 }
 
+/// `anteile`: je Strich, wie viel davon schon gefahren ist (0…1; nil = alles). Striche mit 0 bleiben unsichtbar
+/// (web dc67a1ce: kein vorzeitiger Startpunkt eines spaeteren Laufs).
 private func kunstZeichnen(_ ctx: inout GraphicsContext, _ size: CGSize, _ flocken: [KunstFlocke], _ striche: [[CGPoint]],
-                           _ dick: CGFloat) {
+                           _ dick: CGFloat, _ anteile: [CGFloat]? = nil) {
     let s: CGFloat = size.width / CGFloat(KUNST_BOX)
     for f in flocken {
         let r = CGRect(x: (f.x - f.r) * s, y: (f.y - f.r) * s, width: 2 * f.r * s, height: 2 * f.r * s)
         ctx.fill(Path(ellipseIn: r), with: .color(Color.white.opacity(f.o)))
     }
-    let pfade: [Path] = striche.map { (st: [CGPoint]) -> Path in kunstPfad(st, s) }
+    var pfade: [Path] = []
+    for (i, st) in striche.enumerated() {
+        let a: CGFloat = anteile.map { (l: [CGFloat]) -> CGFloat in i < l.count ? l[i] : 1 } ?? 1
+        if a <= 0 { continue }
+        let p: Path = kunstPfad(st, s)
+        pfade.append(a >= 1 ? p : p.trimmedPath(from: 0, to: a))
+    }
     let glow = StrokeStyle(lineWidth: dick * 2.6 * s, lineCap: .round, lineJoin: .round)
     let voll = StrokeStyle(lineWidth: dick * s, lineCap: .round, lineJoin: .round)
     for p in pfade { ctx.stroke(p, with: .color(kunstCyan.opacity(0.22)), style: glow) }
@@ -863,6 +950,143 @@ struct KunstLinienBild: View {
         .accessibilityHidden(true)
     }
 }
+
+/// Laenge je Strich in Box-Einheiten (0 -> 1, damit jeder Strich einen Zeitanteil bekommt).
+private func kunstLaengen(_ striche: [[CGPoint]]) -> [Double] {
+    striche.map { (st: [CGPoint]) -> Double in
+        var l: Double = 0
+        for i in st.indices.dropFirst() {
+            l += hypot(Double(st[i].x - st[i - 1].x), Double(st[i].y - st[i - 1].y))
+        }
+        return l > 0 ? l : 1
+    }
+}
+
+/// Fortschritt `f` (0…1 der Gesamtzeit) -> Anteil je Strich: Strich k startet, wenn k-1 fertig ist, Zeit nach Laenge.
+private func kunstAnteile(_ laengen: [Double], _ f: Double) -> [CGFloat] {
+    let summe: Double = laengen.reduce(0, +)
+    guard summe > 0 else { return laengen.map { (_: Double) -> CGFloat in 1 } }
+    var v: Double = 0
+    var aus: [CGFloat] = []
+    for l in laengen {
+        let d: Double = l / summe
+        let a: Double = d > 0 ? (f - v) / d : 1
+        aus.append(CGFloat(min(1, max(0, a))))
+        v += d
+    }
+    return aus
+}
+
+/// Dauer, in der die Linie in Enthuellung und „Abspielen" gefahren wird (web ZIEHEN, 5 s).
+private let KUNST_ZIEHEN: Double = 5
+
+/// Bild, dessen Linie ueber `dauer` s „gefahren" wird (web `KunstLinie zeichnen=…`). Neustart ueber `.id(...)`.
+private struct KunstLinieGefahren: View {
+    let striche: [[CGPoint]]
+    var saat: Int = 0
+    var dauer: Double = KUNST_ZIEHEN
+    @State private var start = Date()
+    @State private var fertig = false
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: nil, paused: fertig)) { ctx in
+            leinwand(ctx.date)
+        }
+        .aspectRatio(1, contentMode: .fit)
+        .background(kunstNacht)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .accessibilityHidden(true)
+        .task {
+            start = Date()
+            fertig = false
+            try? await Task.sleep(nanoseconds: UInt64((dauer + 0.1) * 1_000_000_000))
+            if !Task.isCancelled { fertig = true }
+        }
+    }
+
+    private func leinwand(_ jetzt: Date) -> some View {
+        let flocken: [KunstFlocke] = kunstSchnee(saat)
+        let linien: [[CGPoint]] = striche
+        let f: Double = fertig ? 1 : min(1, max(0, jetzt.timeIntervalSince(start) / max(dauer, 0.1)))
+        let anteile: [CGFloat] = kunstAnteile(kunstLaengen(striche), f)
+        return Canvas { (c: inout GraphicsContext, size: CGSize) in
+            kunstZeichnen(&c, size, flocken, linien, 22, anteile)
+        }
+    }
+}
+
+/// Kurz aufleuchtendes grosses Herz in der Bildmitte nach einem Doppeltipp (web HerzPuls): gefuellt beim Vergeben,
+/// Umriss beim Wegnehmen. Neustart ueber `.id(...)`.
+private struct KunstHerzPuls: View {
+    let voll: Bool
+    @State private var groesse: CGFloat = 0.4
+    @State private var sicht: Double = 0
+
+    var body: some View {
+        GeometryReader { (g: GeometryProxy) in
+            herz(g.size)
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+        .task {
+            withAnimation(.easeOut(duration: 0.18)) {
+                groesse = 1.1
+                sicht = 0.95
+            }
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            withAnimation(.easeIn(duration: 0.4)) {
+                groesse = 1.15
+                sicht = 0
+            }
+        }
+    }
+
+    private func herz(_ size: CGSize) -> some View {
+        let seite: CGFloat = min(size.width, size.height) / 3
+        return Image(systemName: voll ? "heart.fill" : "heart")
+            .resizable()
+            .scaledToFit()
+            .foregroundStyle(kunstCyan)
+            .shadow(color: Color.black.opacity(0.5), radius: 6)
+            .frame(width: seite, height: seite)
+            .scaleEffect(groesse)
+            .opacity(sicht)
+            .position(x: size.width / 2, y: size.height / 2)
+    }
+}
+
+/// Umschalter Bild | Karte mit festen dunklen Farben (web: Kasten immer dunkel, gewaehlt in Cyan).
+private struct KunstAnsichtWahl: View {
+    let karte: Bool
+    let lang: String
+    let setzen: (Bool) -> Void
+
+    var body: some View {
+        HStack(spacing: 2) {
+            teil(false, "kunst.ansichtBild")
+            teil(true, "kunst.ansichtKarte")
+        }
+        .padding(2)
+        .background(Color(red: 30 / 255, green: 41 / 255, blue: 59 / 255), in: RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func teil(_ k: Bool, _ key: String) -> some View {
+        let an: Bool = karte == k
+        return Button { setzen(k) } label: {
+            Text(Loc.t(key, lang))
+                .font(an ? Font.caption.weight(.semibold) : Font.caption)
+                .foregroundStyle(an ? kunstTief : Color(red: 203 / 255, green: 213 / 255, blue: 225 / 255))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(an ? kunstCyan : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(an ? AccessibilityTraits.isSelected : AccessibilityTraits())
+    }
+}
+
+/// Merk-Schluessel der Galerie-Ansicht (web ANSICHT): "karte" oder leer (= Bild).
+private let KUNST_ANSICHT = "kunst-ansicht"
 
 /// Vorschau wie server kunst.linie (web `normiere`): nur Punkte in Laeufen (ein Strich je Lauf), Norden oben, im
 /// Uhrzeigersinn drehen, mittig in die 1000er-Box einpassen.
@@ -1086,6 +1310,10 @@ struct KunstBereich: View {
     @State private var meldenZiel: Int = 0
     @State private var meldenText = ""
     @State private var gemeldet: Set<Int> = []
+    /// Herz-Puls nach Doppeltipp auf eine Kachel: welches Bild, Zaehler (Neustart), gefuellt oder Umriss.
+    @State private var pulsBild: Int?
+    @State private var pulsNr = 0
+    @State private var pulsVoll = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -1295,7 +1523,7 @@ struct KunstBereich: View {
 
     @ViewBuilder private func unten(_ dd: KunstEventDaten, _ r: KunstRundeDaten) -> some View {
         if r.phase == "fertig" {
-            KunstAufloesung(nr: r.nr, liste: r.ergebnis ?? [], lang: lang)
+            KunstAufloesung(eventId: eventId, nr: r.nr, liste: r.ergebnis ?? [], lang: lang)
         } else if r.bilder.isEmpty {
             if r.phase != "kommt" {
                 let key: String = r.phase == "einreichen" && dd.moderieren != true ? "kunst.galerieSpaeter" : "kunst.leer"
@@ -1333,15 +1561,39 @@ struct KunstBereich: View {
     private func kachel(_ dd: KunstEventDaten, _ r: KunstRundeDaten, _ b: KunstBildDaten, _ ids: [Int]) -> some View {
         let rand: Color = b.herz == true ? kunstCyan : Color.secondary.opacity(0.35)
         return VStack(alignment: .leading, spacing: 8) {
-            Button { oeffnen(ids, b.id) } label: { KunstLinienBild(striche: b.linie.striche, saat: b.id) }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Loc.t("kunst.gross", lang))
+            kachelBild(dd, r, b, ids)
             kachelFuss(dd, r, b)
             if let grund = b.entfernt { Text(grund).font(.caption).foregroundStyle(.secondary) }
         }
         .padding(8)
         .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(rand, lineWidth: 1.5))
         .opacity(b.entfernt != nil ? 0.5 : 1)
+    }
+
+    /// Tipp oeffnet das Vollbild, Doppeltipp vergibt bzw. nimmt ein Herz (web bccb5b86) — Doppeltipp zuerst angehaengt,
+    /// damit der einfache Tipp auf ihn wartet (plattformueblich).
+    private func kachelBild(_ dd: KunstEventDaten, _ r: KunstRundeDaten, _ b: KunstBildDaten, _ ids: [Int]) -> some View {
+        KunstLinienBild(striche: b.linie.striche, saat: b.id)
+            .overlay { kachelPuls(b.id) }
+            .contentShape(Rectangle())
+            .onTapGesture(count: 2) { doppelHerz(dd, r, b) }
+            .onTapGesture { oeffnen(ids, b.id) }
+            .accessibilityElement(children: .ignore)
+            .accessibilityAddTraits(AccessibilityTraits.isButton)
+            .accessibilityLabel(Loc.t("kunst.gross", lang))
+            .accessibilityAction { oeffnen(ids, b.id) }
+    }
+
+    @ViewBuilder private func kachelPuls(_ id: Int) -> some View {
+        if pulsBild == id { KunstHerzPuls(voll: pulsVoll).id(pulsNr) }
+    }
+
+    private func doppelHerz(_ dd: KunstEventDaten, _ r: KunstRundeDaten, _ b: KunstBildDaten) {
+        guard kannHerz(dd, r, b), !herzenVoll(dd, r, b), !busy else { return }
+        pulsVoll = b.herz != true
+        pulsBild = b.id
+        pulsNr += 1
+        herz(b.id)
     }
 
     private func kachelFuss(_ dd: KunstEventDaten, _ r: KunstRundeDaten, _ b: KunstBildDaten) -> some View {
@@ -1384,7 +1636,7 @@ struct KunstBereich: View {
     @ViewBuilder private func vollbild(_ v: KunstVollbild) -> some View {
         if let dd = d, let r = runde(dd) {
             KunstAbstimmGalerie(ids: v.ids, start: v.start, runde: r, herzenJeRunde: dd.herzenJeRunde,
-                                teilnehmen: dd.darfTeilnehmen, busy: busy, fehler: fehler, lang: lang,
+                                teilnehmen: dd.darfTeilnehmen, admin: dd.admin == true, busy: busy, fehler: fehler, lang: lang,
                                 onHerz: { (id: Int) in herz(id) }, onZu: { voll = nil })
         }
     }
@@ -1452,19 +1704,25 @@ private struct KunstAbstimmGalerie: View {
     let runde: KunstRundeDaten
     let herzenJeRunde: Int
     let teilnehmen: Bool
+    /// Admins duerfen schon vor der Aufloesung auf die Karte schalten (web 93472df1).
+    let admin: Bool
     let busy: Bool
     let fehler: String?
     let lang: String
     let onHerz: (Int) -> Void
     let onZu: () -> Void
     @State private var i: Int
+    @AppStorage(KUNST_ANSICHT) private var ansicht = ""
+    @State private var pulsNr = 0
+    @State private var pulsVoll = true
 
-    init(ids: [Int], start: Int, runde: KunstRundeDaten, herzenJeRunde: Int, teilnehmen: Bool, busy: Bool,
+    init(ids: [Int], start: Int, runde: KunstRundeDaten, herzenJeRunde: Int, teilnehmen: Bool, admin: Bool, busy: Bool,
          fehler: String?, lang: String, onHerz: @escaping (Int) -> Void, onZu: @escaping () -> Void) {
         self.ids = ids
         self.runde = runde
         self.herzenJeRunde = herzenJeRunde
         self.teilnehmen = teilnehmen
+        self.admin = admin
         self.busy = busy
         self.fehler = fehler
         self.lang = lang
@@ -1513,8 +1771,30 @@ private struct KunstAbstimmGalerie: View {
         .modifier(KunstVollKasten(lang: lang, onZu: onZu))
     }
 
+    private func karteErlaubt(_ b: KunstBildDaten) -> Bool { admin && b.karte == true }
+    private func zeigeKarte(_ b: KunstBildDaten) -> Bool { karteErlaubt(b) && ansicht == "karte" }
+
+    @ViewBuilder private func bildInhalt(_ b: KunstBildDaten) -> some View {
+        if zeigeKarte(b) {
+            KunstKarte(bildId: b.id, lang: lang)
+        } else {
+            KunstLinienBild(striche: b.linie.striche, saat: b.id)
+        }
+    }
+
+    /// Doppeltipp aufs Bild = Herz vergeben/wegnehmen (web bccb5b86), mit Herz-Puls.
+    private func doppel(_ b: KunstBildDaten) {
+        guard kannHerz(b), !(runde.vergeben >= herzenJeRunde && b.herz != true), !busy else { return }
+        pulsVoll = b.herz != true
+        pulsNr += 1
+        onHerz(b.id)
+    }
+
     private func bildRahmen(_ b: KunstBildDaten) -> some View {
-        KunstLinienBild(striche: b.linie.striche, saat: b.id)
+        bildInhalt(b)
+            .overlay { if pulsNr > 0 { KunstHerzPuls(voll: pulsVoll).id(pulsNr) } }
+            .contentShape(Rectangle())
+            .onTapGesture(count: 2) { doppel(b) }
             .padding(6)
             .background(b.herz == true ? kunstCyan : Color.clear, in: RoundedRectangle(cornerRadius: 16))
             .overlay { if ids.count > 1 { KunstPfeile(lang: lang, weiter: { (d: Int) in weiter(d) }) } }
@@ -1524,6 +1804,9 @@ private struct KunstAbstimmGalerie: View {
     private func leiste(_ b: KunstBildDaten) -> some View {
         HStack(spacing: 12) {
             Text(String(i + 1) + " / " + String(ids.count)).font(.subheadline).monospacedDigit()
+            if karteErlaubt(b) {
+                KunstAnsichtWahl(karte: zeigeKarte(b), lang: lang, setzen: { (k: Bool) in ansicht = k ? "karte" : "" })
+            }
             if b.eigen == true {
                 Text(Loc.t("kunst.deinBild", lang)).font(.subheadline.weight(.semibold)).foregroundStyle(kunstCyan)
             }
@@ -1829,61 +2112,76 @@ private struct KunstOffen: Identifiable {
     var id: Int { index }
 }
 
-/// Aufloesung (web Aufloesung): Platz 1–3 als Treppchen 2-1-3 in Gold/Silber/Bronze mit Fanfare (eigener Jingle, sonst
-/// die Event-Fanfare; Stumm-Einstellung geteilt mit dem Event-Treppchen), darunter alle weiteren; Tipp -> Vollbild.
+/// Aufloesung (web Aufloesung): Platz 1–3 als Treppchen 2-1-3 in Gold/Silber/Bronze, darunter alle weiteren (statisch);
+/// Tipp -> Vollbild. Die Enthuellung im Vollbild (mit Jingle, Stumm-Einstellung geteilt mit dem Event-Treppchen) startet
+/// beim ersten Ansehen der Runde von selbst (gemerkt je Event und Runde), sonst per Knopf ueber Platz 1.
 private struct KunstAufloesung: View {
+    let eventId: Int
     let nr: Int
     let liste: [KunstErgebnisZeile]
     let lang: String
     @AppStorage("podest-stumm") private var stumm = false
-    /// Fuer welche Runde der Ton schon lief — zurueck von einer Session spielt er nicht noch einmal.
-    @State private var gespielt: Int?
+    @Environment(\.accessibilityReduceMotion) private var bewegungAus
     @State private var offen: KunstOffen?
+    @State private var zeigen = false
+
+    private var gesehenKey: String { "kunst-gesehen-" + String(eventId) + "-" + String(nr) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if liste.isEmpty {
                 Text(Loc.t("kunst.leer", lang)).font(.subheadline).foregroundStyle(.secondary)
             } else {
-                tonZeile
+                knopfZeile
                 treppe
                 rest
             }
         }
-        .onAppear { fanfareBeimBetreten() }
-        .onChange(of: nr) { _ in fanfareBeimBetreten() }
-        .onDisappear { PodestTon.shared.anhalten() }
+        .task(id: nr) { automatisch() }
+        // Waehrend die Enthuellung offen ist, meldet die Seite unter dem Vollbild ein onDisappear — den Jingle dann laufen lassen.
+        .onDisappear { if !zeigen { PodestTon.shared.anhalten() } }
         .fullScreenCover(item: $offen) { (o: KunstOffen) in
             KunstErgebnisGalerie(liste: liste, start: o.index, lang: lang, onZu: { offen = nil })
         }
     }
 
-    private func fanfareBeimBetreten() {
-        guard gespielt != nr, !liste.isEmpty else { return }
-        gespielt = nr
-        if !stumm { fanfare() }
+    /// Beim ersten Ansehen einer fertigen Runde von selbst — nicht bei „Bewegung reduzieren".
+    private func automatisch() {
+        guard !liste.isEmpty, !bewegungAus, !UserDefaults.standard.bool(forKey: gesehenKey) else { return }
+        enthuellen()
     }
 
-    private func fanfare() {
-        PodestTon.shared.abspielen(KUNST_TON, ersatz: PODEST_TON)
+    private func enthuellen() {
+        UserDefaults.standard.set(true, forKey: gesehenKey)
+        zeigen = true
+        if !stumm { PodestTon.shared.abspielen(KUNST_TON, ersatz: PODEST_TON, zweimal: true) }
     }
 
-    private var tonZeile: some View {
-        HStack(spacing: 10) {
-            Spacer(minLength: 0)
-            stummSchalter
-            tonKnopf
+    /// Knopf zentriert ueber Platz 1 und primaer, „Stumm" rechts daneben (web 178ffc3d).
+    private var knopfZeile: some View {
+        HStack(spacing: 8) {
+            Color.clear.frame(maxWidth: .infinity, maxHeight: 1)
+            nochmalKnopf.layoutPriority(1)
+            stummSchalter.frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .fullScreenCover(isPresented: $zeigen) {
+            KunstEnthuellung(liste: liste, rundeNr: nr, lang: lang, onZu: { zeigen = false })
         }
     }
 
-    private var tonKnopf: some View {
-        Button { fanfare() } label: {
-            Image(systemName: "speaker.wave.2").font(.system(size: 17))
-                .frame(width: 40, height: 40)
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.5), lineWidth: 1))
+    private var nochmalKnopf: some View {
+        Button { enthuellen() } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "play.fill").font(.system(size: 13))
+                Text(Loc.t("kunst.enth.nochmal", lang)).font(.subheadline.weight(.semibold)).lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .foregroundStyle(kunstTief)
+            .padding(.horizontal, 14)
+            .frame(height: 36)
+            .background(kunstCyan, in: RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(Loc.t("team.podest.ton", lang))
     }
 
     private var stummSchalter: some View {
@@ -1901,21 +2199,35 @@ private struct KunstAufloesung: View {
         .buttonStyle(.plain)
     }
 
+    /// Treppchen nach Platz gruppiert (web 19.11.2026): Gleichstand -> mehrere Bilder je Stufe, leere Stufen fallen weg
+    /// (z. B. 1., 1., 3. -> Gold mit zwei Bildern, Bronze). Stufen 2 - 1 - 3.
+    private var stufen: [(p: Int, idx: [Int])] {
+        [2, 1, 3].map { p in (p: p, idx: liste.indices.filter { liste[$0].platz == p }) }.filter { !$0.idx.isEmpty }
+    }
+    private var n3: Int { liste.filter { $0.platz <= 3 }.count }
+
     private var treppe: some View {
-        let oben: [(x: KunstErgebnisZeile, platz: Int)] = podestTreppe(liste)
-        return HStack(alignment: .bottom, spacing: 10) {
-            ForEach(oben, id: \.platz) { e in
-                KunstPodestPlatz(z: e.x, lang: lang, aktion: { offen = KunstOffen(index: e.platz - 1) })
-                    .frame(maxWidth: .infinity)
-            }
+        HStack(alignment: .bottom, spacing: 10) {
+            ForEach(stufen, id: \.p) { st in stufe(st.idx) }
         }
         .padding(.top, 4)
     }
 
+    private func stufe(_ idx: [Int]) -> some View {
+        HStack(alignment: .bottom, spacing: 6) {
+            ForEach(idx, id: \.self) { (i: Int) in
+                KunstPodestPlatz(z: liste[i], lang: lang, mehrere: idx.count > 1, aktion: { offen = KunstOffen(index: i) })
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .layoutPriority(Double(min(idx.count, 2)))
+    }
+
     @ViewBuilder private var rest: some View {
-        if liste.count > 3 {
+        if liste.count > n3 {
             let spalten: [GridItem] = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
-            let weitere: [Int] = Array(liste.indices.dropFirst(3))
+            let weitere: [Int] = Array(liste.indices.dropFirst(n3))
             LazyVGrid(columns: spalten, spacing: 8) {
                 ForEach(weitere, id: \.self) { (k: Int) in restKachel(k) }
             }
@@ -1941,10 +2253,244 @@ private struct KunstAufloesung: View {
     }
 }
 
+// MARK: Enthuellung
+
+private enum KunstEnthPhase {
+    case ziehen, blinken, stehen, karte, foto, ende
+}
+
+private let KUNST_BLINK: Double = 0.4    // s je Blinken (zweimal)
+private let KUNST_STEHEN: Double = 2     // s steht das fertige Bild mit Name
+private let KUNST_EXTRA: Double = 2      // s danach das Kartenbild (wenn der Ort gezeigt wird)
+private let KUNST_FOTO: Double = 4       // s danach das Session-Foto (web 6ceaf56c)
+
+/// Vollbild-Enthuellung (web Enthuellung): alle Eintraege mit Platz <= 3 in umgekehrter Listenreihenfolge (bei
+/// Gleichstand mehrere je Platz) — je Bild wird die Linie in 5 s gefahren, der Rahmen blinkt zweimal, dann Name und
+/// Herzen, 2 s stehen, dann Ueberblendung aufs Kartenbild (2 s, nur wenn erlaubt) und aufs Session-Foto (4 s, falls da).
+/// In der letzten dieser Ansichten laeuft der Countdown zum naechsten Platz. Am Ende „Alle Plaetze ansehen".
+private struct KunstEnthuellung: View {
+    let liste: [KunstErgebnisZeile]
+    let rundeNr: Int
+    let lang: String
+    let onZu: () -> Void
+    @State private var k = 0
+    @State private var phase: KunstEnthPhase = .ziehen
+    @State private var rest = 0
+    @State private var blinkAus = false
+    /// Zaehlt je Platz bzw. Sprung hoch: startet den Ablauf neu.
+    @State private var lauf = 0
+
+    /// Indizes in `liste` mit Platz <= 3, letzter zuerst (web `reihe`).
+    private var reihe: [Int] { Array(liste.indices.filter { liste[$0].platz <= 3 }.reversed()) }
+    private var letzter: Bool { k + 1 >= reihe.count }
+    private var akt: KunstErgebnisZeile? { reihe.indices.contains(k) ? liste[reihe[k]] : nil }
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.92).ignoresSafeArea()
+            if let z = akt { kasten(z).padding(16) }
+        }
+        .onAppear { vorladen() }
+        .task(id: lauf) { await ablauf() }
+    }
+
+    /// Kartenbilder und Fotos aller Treppchen-Bilder sofort vorladen (web 6cbaa761).
+    @MainActor private func vorladen() {
+        for z in liste where z.platz <= 3 {
+            if z.karte == true { KunstKartenSpeicher.shared.vorladen(z.bild_id) }
+            if z.foto != nil { kunstFotoVorladen(z.foto) }
+        }
+    }
+
+    /// Nach dem Namen: Karte (wenn erlaubt), dann Foto (wenn da), jeweils mit Dauer.
+    private func extras(_ z: KunstErgebnisZeile) -> [(phase: KunstEnthPhase, dauer: Double)] {
+        var l: [(phase: KunstEnthPhase, dauer: Double)] = []
+        if z.karte == true { l.append((phase: .karte, dauer: KUNST_EXTRA)) }
+        if z.foto != nil { l.append((phase: .foto, dauer: KUNST_FOTO)) }
+        return l
+    }
+
+    private func warte(_ s: Double) async -> Bool {
+        try? await Task.sleep(nanoseconds: UInt64(s * 1_000_000_000))
+        return !Task.isCancelled
+    }
+
+    @MainActor private func ablauf() async {
+        guard phase != .ende, let z = akt else { return }
+        phase = .ziehen
+        rest = 0
+        blinkAus = false
+        guard await warte(KUNST_ZIEHEN) else { return }
+        phase = .blinken
+        for _ in 0..<2 {
+            withAnimation(.easeInOut(duration: KUNST_BLINK / 2)) { blinkAus = true }
+            guard await warte(KUNST_BLINK / 2) else { return }
+            withAnimation(.easeInOut(duration: KUNST_BLINK / 2)) { blinkAus = false }
+            guard await warte(KUNST_BLINK / 2) else { return }
+        }
+        let schritte: [(phase: KunstEnthPhase, dauer: Double)] = [(phase: .stehen, dauer: KUNST_STEHEN)] + extras(z)
+        for (n, sch) in schritte.enumerated() {
+            phase = sch.phase
+            if n < schritte.count - 1 {
+                guard await warte(sch.dauer) else { return }
+                continue
+            }
+            // Letzte Ansicht: Countdown zum naechsten Platz.
+            var r: Int = Int(sch.dauer.rounded())
+            while r > 0 {
+                rest = r
+                guard await warte(1) else { return }
+                r -= 1
+            }
+            rest = 0
+        }
+        naechster()
+    }
+
+    /// Naechster Platz, beim letzten ans Ende (schliesst nicht; web ef3665ad).
+    private func naechster() {
+        rest = 0
+        blinkAus = false
+        if letzter {
+            phase = .ende
+        } else {
+            k += 1
+            phase = .ziehen
+        }
+        lauf += 1
+    }
+
+    private func kasten(_ z: KunstErgebnisZeile) -> some View {
+        let p: Int = min(max(z.platz, 1), 3)
+        return VStack(alignment: .leading, spacing: 12) {
+            kopf(z, p)
+            bild(z, p)
+            nameZeile(z)
+            fuss
+        }
+        .modifier(KunstVollKasten(lang: lang, onZu: onZu))
+    }
+
+    private func kopf(_ z: KunstErgebnisZeile, _ p: Int) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            Text(teamText("kunst.enth.titel", lang, ["n": String(rundeNr)]).uppercased())
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color(red: 148 / 255, green: 163 / 255, blue: 184 / 255))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Spacer(minLength: 4)
+            Text(teamText("kunst.platzN", lang, ["n": String(z.platz)]))
+                .font(.system(size: 30, weight: .heavy)).monospacedDigit()
+                .foregroundStyle(PodestMetall.fuer(p).fill)
+        }
+    }
+
+    private var mitExtras: Bool { phase == .stehen || phase == .karte || phase == .foto }
+
+    private func bild(_ z: KunstErgebnisZeile, _ p: Int) -> some View {
+        KunstLinieGefahren(striche: z.linie.striche, saat: z.bild_id)
+            .id(k)
+            .overlay { karteSchicht(z) }
+            .overlay { fotoSchicht(z) }
+            .padding(6)
+            .background(PodestMetall.fuer(p).fill, in: RoundedRectangle(cornerRadius: 16))
+            .opacity(blinkAus ? 0.12 : 1)
+    }
+
+    /// Karte und Foto schon in „stehen" unsichtbar aufbauen, damit sie beim Ueberblenden da sind.
+    @ViewBuilder private func karteSchicht(_ z: KunstErgebnisZeile) -> some View {
+        if z.karte == true && mitExtras {
+            KunstKarte(bildId: z.bild_id, lang: lang)
+                .opacity(phase == .karte ? 1 : 0)
+                .animation(.easeInOut(duration: 0.7), value: phase)
+        }
+    }
+
+    @ViewBuilder private func fotoSchicht(_ z: KunstErgebnisZeile) -> some View {
+        if z.foto != nil && mitExtras {
+            KunstFoto(pfad: z.foto)
+                .opacity(phase == .foto ? 1 : 0)
+                .animation(.easeInOut(duration: 0.7), value: phase)
+        }
+    }
+
+    private var nameDa: Bool { mitExtras || phase == .ende }
+
+    private func nameZeile(_ z: KunstErgebnisZeile) -> some View {
+        HStack(spacing: 12) {
+            Text(z.name ?? "—").font(.title3.weight(.heavy)).foregroundStyle(Color.white).lineLimit(1)
+            Spacer(minLength: 4)
+            KunstHerzen(n: z.herzen, gross: true, hell: true, lang: lang)
+        }
+        .frame(minHeight: 36)
+        .opacity(nameDa ? 1 : 0)
+        .animation(.easeInOut(duration: 0.5), value: nameDa)
+    }
+
+    private var fuss: some View {
+        HStack(spacing: 8) {
+            if rest > 0 && !letzter && phase != .ende {
+                Text(teamText("kunst.enth.naechster", lang, ["n": String(rest)]))
+                    .font(.subheadline).monospacedDigit()
+                    .foregroundStyle(Color(red: 148 / 255, green: 163 / 255, blue: 184 / 255))
+            }
+            Spacer(minLength: 4)
+            if phase == .ende { alleKnopf } else { skipKnopf }
+        }
+    }
+
+    private var alleKnopf: some View {
+        Button(action: onZu) {
+            Text(Loc.t("kunst.enth.alle", lang)).font(.subheadline.weight(.semibold))
+                .foregroundStyle(kunstTief)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(kunstCyan, in: RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var skipKnopf: some View {
+        Button { naechster() } label: {
+            Text(Loc.t("kunst.enth.skip", lang)).font(.subheadline)
+                .foregroundStyle(Color(red: 203 / 255, green: 213 / 255, blue: 225 / 255))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+/// Session-Foto quadratisch zugeschnitten (Enthuellung).
+private struct KunstFoto: View {
+    let pfad: String?
+
+    var body: some View {
+        Color.clear
+            .aspectRatio(1, contentMode: .fit)
+            .overlay {
+                NetzBild(url: Api.mediaURL(pfad)) { (stand: BildStand) in fotoInhalt(stand) }
+            }
+            .background(kunstNacht)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .accessibilityHidden(true)
+    }
+
+    @ViewBuilder private func fotoInhalt(_ stand: BildStand) -> some View {
+        switch stand {
+        case .da(let img):
+            img.resizable().scaledToFill()
+        default:
+            Color.clear
+        }
+    }
+}
+
 /// Ein Platz auf dem Treppchen: Bild im Metallrahmen, Platz, Name, Herzen (Gold am hoechsten).
 private struct KunstPodestPlatz: View {
     let z: KunstErgebnisZeile
     let lang: String
+    var mehrere: Bool = false     // Gleichstand: mehrere Bilder auf dieser Stufe -> kleinere Schrift
     let aktion: () -> Void
 
     private var p: Int { min(max(z.platz, 1), 3) }
@@ -1958,14 +2504,14 @@ private struct KunstPodestPlatz: View {
 
     private var inhalt: some View {
         VStack(spacing: 6) {
-            KunstLinienBild(striche: z.linie.striche, saat: z.bild_id)
+            KunstLinienBild(striche: z.linie.striche, saat: z.bild_id, klein: mehrere)
                 .padding(5)
                 .background(PodestMetall.fuer(p).fill, in: RoundedRectangle(cornerRadius: 12))
                 .frame(maxWidth: breite)
             Text(String(z.platz) + ".").font(podestRangSchrift(p)).monospacedDigit()
                 .foregroundStyle(PodestMetall.fuer(p).rand)
-            Text(z.name ?? "—").font(podestNameSchrift(p)).lineLimit(1).truncationMode(.tail)
-            KunstHerzen(n: z.herzen, gross: p == 1, lang: lang)
+            Text(z.name ?? "—").font(podestNameSchrift(mehrere ? 3 : p)).lineLimit(1).truncationMode(.tail)
+            KunstHerzen(n: z.herzen, gross: p == 1 && !mehrere, lang: lang)
         }
         .padding(.bottom, abstandUnten)
     }
@@ -2060,14 +2606,17 @@ private struct KunstSessionZiel: Identifiable {
     let id: Int
 }
 
-/// Vollbild-Galerie der Aufloesung (web Galerie): grosses Bild mit Umschalter Bild | Karte, Platz, Name, Herzen, Spot,
-/// Weg zur Session; Pfeile/Wischen blaettern.
+/// Vollbild-Galerie der Aufloesung (web Galerie): grosses Bild mit Umschalter Bild | Karte (gemerkt, gilt beim Blaettern;
+/// Bilder ohne freigegebenen Ort zeigen das Bild, ohne die Wahl zu aendern), Platz, Name, Herzen, Spot, „Abspielen"
+/// (Linie nochmal fahren) und Knopf zur Session; Pfeile/Wischen blaettern.
 private struct KunstErgebnisGalerie: View {
     let liste: [KunstErgebnisZeile]
     let lang: String
     let onZu: () -> Void
     @State private var i: Int
-    @State private var karte = false
+    @AppStorage(KUNST_ANSICHT) private var ansicht = ""
+    /// „Abspielen" (web 51ff59e0): > 0 zeigt bis zum Blaettern das gefahrene Bild, Zaehler startet neu.
+    @State private var spiel = 0
     @State private var session: KunstSessionZiel?
 
     init(liste: [KunstErgebnisZeile], start: Int, lang: String, onZu: @escaping () -> Void) {
@@ -2081,9 +2630,11 @@ private struct KunstErgebnisGalerie: View {
 
     private func weiter(_ d: Int) {
         guard !liste.isEmpty else { return }
-        karte = false
+        spiel = 0
         i = (i + d + liste.count) % liste.count
     }
+
+    private func zeigeKarte(_ x: KunstErgebnisZeile) -> Bool { ansicht == "karte" && x.karte == true && spiel == 0 }
 
     var body: some View {
         ZStack {
@@ -2105,6 +2656,7 @@ private struct KunstErgebnisGalerie: View {
                 .padding(6)
                 .background(metall(p), in: RoundedRectangle(cornerRadius: 16))
                 .overlay { if liste.count > 1 { KunstPfeile(lang: lang, weiter: { (d: Int) in weiter(d) }) } }
+                .gesture(kunstWischen { (d: Int) in weiter(d) })
             kopfZeile(x, p)
             fussZeile(x)
         }
@@ -2112,11 +2664,13 @@ private struct KunstErgebnisGalerie: View {
     }
 
     @ViewBuilder private func bildOderKarte(_ x: KunstErgebnisZeile) -> some View {
-        if karte {
+        if zeigeKarte(x) {
             KunstKarte(bildId: x.bild_id, lang: lang)
+        } else if spiel > 0 {
+            KunstLinieGefahren(striche: x.linie.striche, saat: x.bild_id)
+                .id(String(i) + "-" + String(spiel))
         } else {
             KunstLinienBild(striche: x.linie.striche, saat: x.bild_id)
-                .gesture(kunstWischen { (d: Int) in weiter(d) })
         }
     }
 
@@ -2136,38 +2690,61 @@ private struct KunstErgebnisGalerie: View {
 
     private func fussZeile(_ x: KunstErgebnisZeile) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 12) {
-                if let spot = x.spot { Text(spot).lineLimit(1) }
-                if let sid = x.session_id {
-                    Button(Loc.t("kunst.zurSession", lang)) { session = KunstSessionZiel(id: sid) }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(kunstCyan)
+            if let spot = x.spot {
+                Text(spot).font(.subheadline).foregroundStyle(Color(white: 0.8)).lineLimit(1)
+            }
+            HStack(spacing: 10) {
+                abspielenKnopf
+                if let sid = x.session_id { sessionKnopf(sid) }
+                Spacer(minLength: 0)
+                if x.karte == true {
+                    KunstAnsichtWahl(karte: zeigeKarte(x), lang: lang, setzen: { (k: Bool) in
+                        ansicht = k ? "karte" : ""
+                        spiel = 0
+                    })
                 }
             }
-            .font(.subheadline)
-            .foregroundStyle(Color(white: 0.8))
-            if x.karte == true { ansichtWahl }
         }
     }
 
-    private var ansichtWahl: some View {
-        Picker("", selection: $karte) {
-            Text(Loc.t("kunst.ansichtBild", lang)).tag(false)
-            Text(Loc.t("kunst.ansichtKarte", lang)).tag(true)
+    private var abspielenKnopf: some View {
+        Button { spiel += 1 } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "play.fill").font(.system(size: 11))
+                Text(Loc.t("kunst.abspielen", lang)).font(.caption.weight(.semibold))
+            }
+            .foregroundStyle(Color(red: 241 / 255, green: 245 / 255, blue: 249 / 255))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color(red: 30 / 255, green: 41 / 255, blue: 59 / 255), in: RoundedRectangle(cornerRadius: 8))
         }
-        .pickerStyle(.segmented)
-        .fixedSize()
+        .buttonStyle(.plain)
+    }
+
+    /// „zur Session" als gefuellter Cyan-Knopf mit Chevron (web 2bef12af).
+    private func sessionKnopf(_ sid: Int) -> some View {
+        Button { session = KunstSessionZiel(id: sid) } label: {
+            HStack(spacing: 4) {
+                Text(Loc.t("kunst.zurSession", lang)).font(.caption.weight(.semibold))
+                Image(systemName: "chevron.right").font(.system(size: 11, weight: .bold))
+            }
+            .foregroundStyle(kunstTief)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(kunstCyan, in: RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
     }
 }
 
-// MARK: Karte der Aufloesung
+// MARK: Kartenbild
 
-/// Echter Track auf der Karte (Strasse/Luftbild wie ueberall), Norden oben, auf den Track eingepasst (web KunstKarte).
+/// Echter Track als Satellitenbild vom Server (web KunstKarte, 19.11.2026: keine interaktive Karte im Event — zoomen
+/// geht in den Session-Details). Norden oben, Quellennennung eingebrannt; Speicher je App-Sitzung.
 private struct KunstKarte: View {
     let bildId: Int
     let lang: String
-    @AppStorage(MapTiles.schluessel) private var ebene = MapTiles.karte
-    @State private var striche: [[CLLocationCoordinate2D]]?
+    @State private var bild: UIImage?
     @State private var fehler: String?
 
     var body: some View {
@@ -2176,83 +2753,29 @@ private struct KunstKarte: View {
             .overlay { inhalt }
             .background(kunstNacht)
             .clipShape(RoundedRectangle(cornerRadius: 8))
+            .accessibilityHidden(true)
             .task(id: bildId) { await laden() }
     }
 
     @ViewBuilder private var inhalt: some View {
-        if let f = fehler {
+        if let b = bild {
+            Image(uiImage: b).resizable().scaledToFill()
+        } else if let f = fehler {
             Text(f).font(.subheadline).foregroundStyle(Color(white: 0.75)).multilineTextAlignment(.center).padding()
-        } else if let s = striche {
-            KunstKartenAnsicht(striche: s, mapType: MapTiles.typ(ebene)).mitKartenUmschalter()
         } else {
-            ProgressView()
+            ProgressView().tint(Color.white)
         }
     }
 
-    private func laden() async {
+    @MainActor private func laden() async {
+        fehler = nil
+        bild = KunstKartenSpeicher.shared.fertig(bildId)
+        if bild != nil { return }
         do {
-            let k: KunstKarteDaten = try await Api.kunstKarte(bildId)
-            striche = k.striche.map { (st: [[Double]]) -> [CLLocationCoordinate2D] in
-                st.compactMap { (p: [Double]) -> CLLocationCoordinate2D? in
-                    p.count >= 2 ? CLLocationCoordinate2D(latitude: p[0], longitude: p[1]) : nil
-                }
-            }
+            let b: UIImage = try await KunstKartenSpeicher.shared.laden(bildId)
+            bild = b
         } catch {
             fehler = kunstFehlerText(error, lang)
-        }
-    }
-}
-
-/// MKMapView mit dem Track: dunkler Rand darunter (Cyan allein verschwindet auf hellblauem Wasser), Cyan darueber.
-/// Drehen aus, damit Norden oben bleibt.
-private struct KunstKartenAnsicht: UIViewRepresentable {
-    let striche: [[CLLocationCoordinate2D]]
-    let mapType: MKMapType
-
-    func makeCoordinator() -> Delegat { Delegat() }
-
-    func makeUIView(context: Context) -> MKMapView {
-        let map = MKMapView()
-        map.delegate = context.coordinator
-        map.showsCompass = false
-        map.isRotateEnabled = false
-        map.isPitchEnabled = false
-        map.pointOfInterestFilter = .excludingAll
-        map.mapType = mapType
-        var rect: MKMapRect = MKMapRect.null
-        for st in striche where st.count >= 2 {
-            let rand = FarbLinie(coordinates: st, count: st.count)
-            rand.farbe = UIColor(red: 11 / 255, green: 26 / 255, blue: 51 / 255, alpha: 0.85)
-            rand.breite = 7
-            let linie = FarbLinie(coordinates: st, count: st.count)
-            linie.farbe = UIColor(red: 34 / 255, green: 211 / 255, blue: 238 / 255, alpha: 1)
-            linie.breite = 4
-            map.addOverlay(rand, level: .aboveLabels)
-            map.addOverlay(linie, level: .aboveLabels)
-            rect = rect.union(linie.boundingMapRect)
-        }
-        // Erst nach dem Layout einpassen — vorher hat die Karte keine Groesse.
-        if !rect.isNull {
-            DispatchQueue.main.async { [weak map] in
-                map?.setVisibleMapRect(rect, edgePadding: UIEdgeInsets(top: 16, left: 16, bottom: 16, right: 16), animated: false)
-            }
-        }
-        return map
-    }
-
-    func updateUIView(_ map: MKMapView, context: Context) {
-        if map.mapType != mapType { map.mapType = mapType }
-    }
-
-    final class Delegat: NSObject, MKMapViewDelegate {
-        func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-            guard let l = overlay as? FarbLinie else { return MKOverlayRenderer(overlay: overlay) }
-            let r = MKPolylineRenderer(polyline: l)
-            r.strokeColor = l.farbe
-            r.lineWidth = l.breite
-            r.lineCap = .round
-            r.lineJoin = .round
-            return r
         }
     }
 }
