@@ -394,7 +394,7 @@ type Ergebnis = NonNullable<KunstRunde["ergebnis"]>[number];
 const TON_KUNST = "/media/sounds/gpskunst.mp3";
 const TON = "/media/sounds/winner-awards-484333.mp3";
 const STUMM = "podest-stumm";
-const ZIEHEN = 3000;   // ms je Treppchen-Bild (Jan: „fix ueber 3 sekunden je bild … probieren wir aus")
+const ZIEHEN = 5000;   // ms je Treppchen-Bild (Jan 19.11.: erst 3 s probiert, dann „mach mal 5s statt 3")
 const PAUSE = 700;     // ms Luft zwischen zwei Plaetzen
 const ruhig = () => { try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; } };
 const METALL = ["#facc15", "#cbd5e1", "#ea8a4a"];   // Gold, Silber, Bronze (wie EventPodest)
