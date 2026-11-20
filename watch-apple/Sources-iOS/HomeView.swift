@@ -1036,6 +1036,7 @@ struct PerfZeile: Codable {
     let feld: Int
     let perzentil: Double
     let session_id: Int
+    let run_idx: Int?      // Lauf in der Session (Server seit 20.11.2026, nur Einzel-Lauf-Kategorien) -> direkt dorthin
 }
 
 struct PerfRegel: Codable {
@@ -1069,6 +1070,21 @@ struct PerfAntwort: Codable {
 // laengster Laufzeit. Der Server liefert `run_time` fuer aeltere Apps weiter.
 private let perfKats: [String] = ["sprint_100m", "sprint_60s", "run_distance", "foil_time_day"]
 private let perfCyan = Color(red: 34 / 255, green: 211 / 255, blue: 238 / 255)   // Markenfarbe (brand-design)
+// Akzent wie Web text-brand-700 / dark:text-brand-400
+private let perfAkzent = Color(UIColor { $0.userInterfaceStyle == .dark
+    ? UIColor(red: 34 / 255, green: 211 / 255, blue: 238 / 255, alpha: 1)
+    : UIColor(red: 14 / 255, green: 116 / 255, blue: 144 / 255, alpha: 1) })
+// Eigene Icons wie im Web (scripts/perf-icons/bauen.py erzeugt die Assets aus web Icons.tsx, Jan 20.11.2026)
+private let perfKatIcon: [String: String] = ["sprint_100m": "PerfSprint100", "sprint_60s": "PerfSprintMinute",
+                                             "run_distance": "PerfLongestRun", "foil_time_day": "PerfFoilTime"]
+private func perfIcon(_ name: String, _ groesse: CGFloat) -> some View {
+    Image(name).renderingMode(.template).resizable().scaledToFit().frame(width: groesse, height: groesse)
+        .foregroundStyle(perfAkzent).accessibilityHidden(true)
+}
+/// Ziel eines Verweises: direkt der Lauf, bei Sprints mit Sprint-Anzeige (wie die Bestenlisten).
+private func perfZiel(_ k: String, _ z: PerfZeile) -> SessionDetailView {
+    SessionDetailView(id: z.session_id, vorwahlLauf: z.run_idx, sprintKz: z.run_idx != nil && k.hasPrefix("sprint_") ? k : nil)
+}
 private let perfBuckets: [(String, (Int) -> Bool)] = [
     ("1", { $0 == 1 }), ("2", { $0 == 2 }), ("3", { $0 == 3 }),
     ("4–5", { $0 >= 4 && $0 <= 5 }), ("6–10", { $0 >= 6 && $0 <= 10 }),
@@ -1099,6 +1115,8 @@ struct PerformanceBereich: View {
     // Unterreiter Uebersicht | Verlauf (Web 18.11.2026 abends) und die Kategorie des Platzverlaufs.
     @State private var sub: String = ReiterSpeicher.von("homeperf", "uebersicht")
     @State private var kat: String = "sprint_100m"
+    @State private var linienZiel: PerfZeile?      // angetippter Punkt im Platz-Verlauf
+    @State private var linienOffen: Bool = false
 
     private var grenze: String {
         if zeitraum == "25" {
@@ -1127,11 +1145,12 @@ struct PerformanceBereich: View {
             Reiterleiste(reiter: perfReiter, aktiv: Binding(get: { sub }, set: { sub = $0; ReiterSpeicher.setze("homeperf", $0) }),
                          stufe: 2)
             auswahl
-            Text(Loc.t("perf.intro", lang).replacingOccurrences(of: "{n}", with: String(daten?.min_feld ?? 5)))
-                .font(.subheadline).foregroundStyle(.secondary)
-            if let s = daten?.saison { saisonKachel(s) }
             inhalt
+            // Einleitung klein ganz unten (Web 20.11.2026)
+            Text(Loc.t("perf.intro", lang).replacingOccurrences(of: "{n}", with: String(daten?.min_feld ?? 5)))
+                .font(.caption).foregroundStyle(.secondary)
         }
+        .navigationDestination(isPresented: $linienOffen) { if let z = linienZiel { perfZiel(kat, z) } }
         .task(id: sport) { await laden() }
     }
 
@@ -1143,30 +1162,29 @@ struct PerformanceBereich: View {
             .replacingOccurrences(of: "{fahrer}", with: String(s.fahrer)).replacingOccurrences(of: "{tage}", with: String(s.tage))
     }
 
-    private func saisonKachel(_ s: PerfSaison) -> some View {
-        HStack {
-            Spacer(minLength: 0)
-            VStack(alignment: .trailing, spacing: 2) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(Loc.t("perf.saisonTitel", lang)).font(.caption).fontWeight(.semibold).foregroundStyle(perfCyan)
-                    Text(String(s.punkte)).font(.title2).fontWeight(.bold).monospacedDigit()
-                    Text(Loc.t("perf.saison.punkte", lang)).font(.caption).foregroundStyle(.secondary)
-                    Button { saisonInfo = true } label: { Image(systemName: "info.circle").foregroundStyle(.secondary) }
-                        .buttonStyle(.borderless)
-                }
-                Text(saisonZeile(s)).font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.trailing)
-            }
-            .padding(.vertical, 8).padding(.horizontal, 12)
-            .background(perfCyan.opacity(0.12)).clipShape(RoundedRectangle(cornerRadius: 12))
+    /// Kennzahl-Kachel wie im Web: Icon ueber die ganze Hoehe links, Wert und Label mittig daneben.
+    private func kachel(_ icon: String, _ wert: String, _ label: String, hervor: Bool = false) -> some View {
+        HStack(spacing: 6) {
+            perfIcon(icon, 30)
+            VStack(spacing: 1) {
+                Text(wert).font(.title3).fontWeight(.semibold).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+                Text(label).font(.caption2).fontWeight(hervor ? .semibold : .regular)
+                    .foregroundStyle(hervor ? perfAkzent : Color.secondary).multilineTextAlignment(.center).lineLimit(2)
+            }.frame(maxWidth: .infinity)
         }
-        .sheet(isPresented: $saisonInfo) { saisonInfoSheet(s) }
+        .padding(.horizontal, 8).padding(.vertical, 10).frame(maxWidth: .infinity, minHeight: 64)
+        .background(hervor ? perfCyan.opacity(0.12) : Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
     private func saisonInfoSheet(_ s: PerfSaison) -> some View {
         let kats: String = s.regel.kategorien.map { Loc.t("perf.kat." + $0, lang) }.joined(separator: " · ")
         return NavigationStack {
             List {
-                Section { Text(Loc.t("perf.saison.infoIntro", lang)).font(.subheadline) }
+                Section {
+                    Text(Loc.t("perf.saison.infoIntro", lang)).font(.subheadline)
+                    Text(saisonZeile(s)).font(.subheadline).fontWeight(.medium)
+                }
                 Section(header: HStack { Text(Loc.t("perf.saison.platz", lang)); Spacer(); Text(Loc.t("perf.saison.punkte", lang)) }) {
                     ForEach(Array(s.regel.platz.enumerated()), id: \.offset) { i, p in
                         HStack { Text("\(i + 1).").monospacedDigit(); Spacer(); Text(String(p)).fontWeight(.semibold).monospacedDigit() }
@@ -1239,7 +1257,10 @@ struct PerformanceBereich: View {
         let z: [PerfZeile] = je(k)
         return VStack(alignment: .leading, spacing: 4) {
             Divider()
-            Text(Loc.t("perf.kat." + k, lang)).font(.subheadline).fontWeight(.medium)
+            HStack(spacing: 6) {
+                perfIcon(perfKatIcon[k] ?? "", 18)
+                Text(Loc.t("perf.kat." + k, lang)).font(.subheadline).fontWeight(.medium)
+            }
             if z.isEmpty {
                 Text(Loc.t("perf.keineTage", lang)).font(.caption).foregroundStyle(.secondary)
             } else {
@@ -1250,19 +1271,23 @@ struct PerformanceBereich: View {
                 HStack {
                     tabZelle(Loc.t("perf.tage", lang), String(z.count))
                     Spacer(); tabZelle(Loc.t("perf.spSchnitt", lang), schnittText)
-                    Spacer(); tabZelle(Loc.t("perf.spBester", lang), String(z.map { $0.platz }.min() ?? 0))
+                    // bester Platz / genau ein Sieg = ein einzelner Lauf -> antippen fuehrt hin (bei Gleichstand der neueste)
+                    let best: PerfZeile? = z.min { $0.platz != $1.platz ? $0.platz < $1.platz : $0.tag > $1.tag }
+                    let siege: [PerfZeile] = z.filter { $0.platz == 1 }
+                    Spacer(); tabZelle(Loc.t("perf.spBester", lang), String(best?.platz ?? 0), ziel: best.map { perfZiel(k, $0) })
                     Spacer(); tabZelle(Loc.t("perf.spTop3", lang), "\(top3) %")
-                    Spacer(); tabZelle(Loc.t("perf.siege", lang), String(z.filter { $0.platz == 1 }.count))
+                    Spacer(); tabZelle(Loc.t("perf.siege", lang), String(siege.count), ziel: siege.count == 1 ? perfZiel(k, siege[0]) : nil)
                 }
             }
         }
     }
 
-    private func tabZelle(_ label: String, _ wert: String) -> some View {
-        VStack(spacing: 2) {
-            Text(wert).font(.callout).fontWeight(.medium).foregroundStyle(Color.accentColor)
+    @ViewBuilder private func tabZelle(_ label: String, _ wert: String, ziel: SessionDetailView? = nil) -> some View {
+        let inhalt = VStack(spacing: 2) {
+            Text(wert).font(.callout).fontWeight(ziel != nil ? .bold : .medium).foregroundStyle(ziel != nil ? perfAkzent : Color.primary)
             Text(label).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
         }
+        if let ziel { NavigationLink { ziel } label: { inhalt }.buttonStyle(.plain) } else { inhalt }
     }
 
     // Bestleistungen: bester eigener Wert je Kategorie im Zeitraum, Tippen oeffnet die Session.
@@ -1280,22 +1305,27 @@ struct PerformanceBereich: View {
     @ViewBuilder private func bestKachel(_ k: String) -> some View {
         let b: PerfZeile? = je(k).max { $0.wert < $1.wert }
         if let b {
-            NavigationLink { SessionDetailView(id: b.session_id) } label: { bestInhalt(k, b) }.buttonStyle(.plain)
+            NavigationLink { perfZiel(k, b) } label: { bestInhalt(k, b) }.buttonStyle(.plain)
         } else {
             bestInhalt(k, nil)
         }
     }
 
     private func bestInhalt(_ k: String, _ b: PerfZeile?) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(Loc.t("perf.kat." + k, lang)).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
-            Text(b.map { perfWertText(k, $0.wert) } ?? "–").font(.headline).foregroundStyle(b == nil ? Color.secondary : perfCyan)
-            if let b {
-                Text(tagKurz(b.tag) + " · " + Loc.t("perf.platzVon", lang).replacingOccurrences(of: "{platz}", with: String(b.platz))
-                    .replacingOccurrences(of: "{feld}", with: String(b.feld))).font(.caption2).foregroundStyle(.secondary)
-            }
+        // wie die Kennzahl-Kacheln: Icon ueber die ganze Hoehe, Wert und Label mittig (Web 20.11.2026)
+        HStack(spacing: 6) {
+            perfIcon(perfKatIcon[k] ?? "", 30)
+            VStack(spacing: 1) {
+                Text(b.map { perfWertText(k, $0.wert) } ?? "–").font(.headline).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+                    .foregroundStyle(b == nil ? Color.secondary : Color.primary)
+                Text(Loc.t("perf.kat." + k, lang)).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                if let b {
+                    Text(tagKurz(b.tag) + " · " + Loc.t("perf.platzVon", lang).replacingOccurrences(of: "{platz}", with: String(b.platz))
+                        .replacingOccurrences(of: "{feld}", with: String(b.feld))).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                }
+            }.frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity, alignment: .leading).padding(8)
+        .frame(maxWidth: .infinity).padding(8)
         .background(Color(.tertiarySystemFill).opacity(0.5)).clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
@@ -1303,15 +1333,16 @@ struct PerformanceBereich: View {
     private var platzVerlauf: some View {
         let reihe: [PerfZeile] = je(kat).sorted { $0.tag < $1.tag }
         return VStack(alignment: .leading, spacing: 8) {
-            Text(Loc.t("perf.platzverlauf", lang)).fontWeight(.semibold)
+            HStack(spacing: 6) { perfIcon("PerfPlaceLine", 20); Text(Loc.t("perf.platzverlauf", lang)).fontWeight(.semibold) }
             Picker("", selection: $kat) {
-                ForEach(perfKats, id: \.self) { k in Text(Loc.t("perf.kat." + k, lang)).tag(k) }
+                ForEach(perfKats, id: \.self) { k in Label { Text(Loc.t("perf.kat." + k, lang)) } icon: { Image(perfKatIcon[k] ?? "") }.tag(k) }
             }.pickerStyle(.menu)
             if reihe.isEmpty {
                 Text(Loc.t("perf.keineTage", lang)).font(.caption).foregroundStyle(.secondary)
             } else {
-                PerfLinie(punkte: reihe.map { $0.perzentil }, baender: true,
-                          zahlen: reihe.map { String($0.platz) }).frame(height: 150).padding(.top, 10)
+                // Punkt antippen -> Lauf dieses Tages (Web 20.11.2026)
+                PerfLinie(punkte: reihe.map { $0.perzentil }, baender: true, zahlen: reihe.map { String($0.platz) },
+                          antippen: { i in linienZiel = reihe[i]; linienOffen = true }).frame(height: 150).padding(.top, 10)
                 HStack {
                     Text(reihe.first?.tag ?? "").font(.caption2).foregroundStyle(.secondary)
                     Spacer()
@@ -1326,20 +1357,23 @@ struct PerformanceBereich: View {
 
     private var kennzahlen: some View {
         let besser: Int = Int((alle.reduce(0.0) { $0 + $1.perzentil } / Double(max(alle.count, 1))).rounded())
-        let werte: [(String, String)] = [
-            (Loc.t("perf.tage", lang), String(tage.count)),
-            (Loc.t("perf.besserAls", lang), "\(besser) %"),
-            (Loc.t("perf.siege", lang), String(alle.filter { $0.platz == 1 }.count)),
-            (Loc.t("perf.podium", lang), quote(alle.filter { $0.platz <= 3 }.count)),
-            (Loc.t("perf.top10", lang), quote(alle.filter { $0.platz <= 10 }.count))]
+        let werte: [(String, String, String)] = [
+            ("PerfCalendarCheck", String(tage.count), Loc.t("perf.tage", lang)),
+            ("PerfBeat", "\(besser) %", Loc.t("perf.besserAls", lang)),
+            ("PerfTrophy", String(alle.filter { $0.platz == 1 }.count), Loc.t("perf.siege", lang)),
+            ("PerfPodium", quote(alle.filter { $0.platz <= 3 }.count), Loc.t("perf.podium", lang)),
+            ("PerfMedal", quote(alle.filter { $0.platz <= 10 }.count), Loc.t("perf.top10", lang))]
+        // Saison als sechste Kachel (Web 20.11.2026); Antippen zeigt Status, Punktetabelle und Regeln
         return LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-            ForEach(werte, id: \.0) { w in
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(w.0).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
-                    Text(w.1).font(.title3).fontWeight(.semibold)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading).padding(8)
-                .background(Color(.secondarySystemBackground)).clipShape(RoundedRectangle(cornerRadius: 10))
+            ForEach(werte, id: \.0) { w in kachel(w.0, w.1, w.2) }
+            if let s = daten?.saison {
+                Button { saisonInfo = true } label: {
+                    kachel("PerfSeasonCup", String(s.punkte), Loc.t("perf.saisonTitel", lang), hervor: true)
+                        .overlay(alignment: .topTrailing) {
+                            Image(systemName: "info.circle").font(.caption2).foregroundStyle(.secondary).padding(4)
+                        }
+                }.buttonStyle(.plain)
+                .sheet(isPresented: $saisonInfo) { saisonInfoSheet(s) }
             }
         }
     }
@@ -1348,7 +1382,7 @@ struct PerformanceBereich: View {
         let z: [PerfZeile] = je(k)
         let maxN: Int = max(1, perfBuckets.map { b in z.filter { b.1($0.platz) }.count }.max() ?? 1)
         return VStack(alignment: .leading, spacing: 4) {
-            Text(Loc.t("perf.kat." + k, lang)).fontWeight(.semibold)
+            HStack(spacing: 6) { perfIcon(perfKatIcon[k] ?? "", 20); Text(Loc.t("perf.kat." + k, lang)).fontWeight(.semibold) }
             if z.isEmpty {
                 Text(Loc.t("perf.keineTage", lang)).font(.caption).foregroundStyle(.secondary)
             } else {
@@ -1389,13 +1423,15 @@ struct PerformanceBereich: View {
 
     private var raster: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(Loc.t("perf.raster", lang)).fontWeight(.semibold)
+            HStack(spacing: 6) { perfIcon("PerfPlacingGrid", 20); Text(Loc.t("perf.raster", lang)).fontWeight(.semibold) }
             HStack(alignment: .top, spacing: 6) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(" ").font(.caption2)
                     ForEach(perfKats, id: \.self) { k in
-                        Text(Loc.t("perf.kat." + k, lang)).font(.caption2).lineLimit(2)
-                            .frame(width: 90, height: 28, alignment: .leading)
+                        HStack(spacing: 4) {
+                            perfIcon(perfKatIcon[k] ?? "", 16)
+                            Text(Loc.t("perf.kat." + k, lang)).font(.caption2).lineLimit(2)
+                        }.frame(width: 100, height: 28, alignment: .leading)
                     }
                 }
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -1420,13 +1456,13 @@ struct PerformanceBereich: View {
     private func rasterSpalte(_ t: String) -> some View {
         VStack(spacing: 4) {
             Text(tagKurz(t)).font(.caption2).foregroundStyle(.secondary)
-            ForEach(perfKats, id: \.self) { k in rasterZelle(je(k).first { $0.tag == t }) }
+            ForEach(perfKats, id: \.self) { k in rasterZelle(k, je(k).first { $0.tag == t }) }
         }
     }
 
-    @ViewBuilder private func rasterZelle(_ z: PerfZeile?) -> some View {
+    @ViewBuilder private func rasterZelle(_ k: String, _ z: PerfZeile?) -> some View {
         if let z {
-            NavigationLink { SessionDetailView(id: z.session_id) } label: {
+            NavigationLink { perfZiel(k, z) } label: {
                 Text(String(z.platz)).font(.caption).fontWeight(.semibold).foregroundStyle(.primary)
                     .frame(width: 30, height: 28).background(perfFarbe(z.perzentil))
                     .clipShape(RoundedRectangle(cornerRadius: 4))
@@ -1446,7 +1482,7 @@ struct PerformanceBereich: View {
     private var verlauf: some View {
         let punkte: [Double] = verlaufPunkte
         return VStack(alignment: .leading, spacing: 6) {
-            Text(Loc.t("perf.verlauf", lang)).fontWeight(.semibold)
+            HStack(spacing: 6) { perfIcon("PerfDailyAverage", 20); Text(Loc.t("perf.verlauf", lang)).fontWeight(.semibold) }
             if punkte.count < 2 {
                 Text(Loc.t("perf.zuWenig", lang)).font(.caption).foregroundStyle(.secondary)
             } else {
@@ -1467,6 +1503,7 @@ private struct PerfLinie: View {
     let punkte: [Double]
     var baender: Bool = false        // ab 80 % / 50 % geschlagener Fahrer hinterlegt
     var zahlen: [String]? = nil      // Platz ueber jedem Punkt (bei vielen Punkten nur jeder n-te)
+    var antippen: ((Int) -> Void)? = nil   // naechster Punkt zur Tippstelle
     private func px(_ i: Int, _ w: CGFloat) -> CGFloat { punkte.count == 1 ? w / 2 : w * CGFloat(i) / CGFloat(punkte.count - 1) }
     private func py(_ p: Double, _ h: CGFloat) -> CGFloat { h * CGFloat((100 - p) / 100) }
     var body: some View {
@@ -1505,6 +1542,12 @@ private struct PerfLinie: View {
                     Circle().fill(perfCyan).frame(width: 7, height: 7)
                         .position(x: px(i, w), y: py(punkte[i], h))
                 }
+            }
+            .contentShape(Rectangle())
+            .onTapGesture { ort in
+                guard let antippen, n > 0 else { return }
+                let i: Int = (0..<n).min { abs(px($0, w) - ort.x) < abs(px($1, w) - ort.x) } ?? 0
+                antippen(i)
             }
         }
     }

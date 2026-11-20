@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- erzeugt von scripts/perf-icons/bauen.py aus web Icons.tsx (DailyAverageIcon) — nicht von Hand aendern -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:pathData="M3 12h2.2M7.4 12h2.2M11.8 12h2.2M16.2 12h2.2M20.6 12h0.4" android:strokeColor="#FF000000" android:strokeWidth="2"
+        android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000" />
+    <path android:pathData="M3 15.5l3.5-6 3.5 7 3.5-9 3.5 7.5 4-4" android:strokeColor="#FF000000" android:strokeWidth="2"
+        android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000" />
+</vector>

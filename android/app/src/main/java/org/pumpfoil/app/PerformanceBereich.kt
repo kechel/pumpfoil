@@ -43,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -61,7 +62,9 @@ import java.time.LocalDate
  */
 @Serializable
 data class PerfZeile(val tag: String, val wert: Double, val platz: Int, val feld: Int, val perzentil: Double,
-                     @SerialName("session_id") val sessionId: Int)
+                     @SerialName("session_id") val sessionId: Int,
+                     // Lauf in der Session (Server seit 20.11.2026, nur Einzel-Lauf-Kategorien) -> direkt dorthin
+                     @SerialName("run_idx") val runIdx: Int? = null)
 
 @Serializable
 data class PerfRegel(val platz: List<Int> = emptyList(), val mitmachen: Int = 1, @SerialName("min_feld") val minFeld: Int = 5,
@@ -97,6 +100,51 @@ private fun wertText(k: String, v: Double): String = when (k) {
 
 private fun tagKurz(tag: String) = tag.substring(8, 10).trimStart('0') + "." + tag.substring(5, 7).trimStart('0') + "."
 private fun schnitt(xs: List<Double>) = if (xs.isEmpty()) 0.0 else xs.sum() / xs.size
+
+// Eigene Icons wie im Web (scripts/perf-icons/bauen.py erzeugt die Drawables aus web Icons.tsx, Jan 20.11.2026)
+private val KAT_ICON = mapOf("sprint_100m" to R.drawable.perf_sprint100, "sprint_60s" to R.drawable.perf_sprint_minute,
+    "run_distance" to R.drawable.perf_longest_run, "foil_time_day" to R.drawable.perf_foil_time)
+
+/** Akzent wie Web text-brand-700 / dark:text-brand-400 */
+@Composable
+private fun perfAkzent(): Color = if (teamDunkel()) Color(0xFF22D3EE) else Color(0xFF0E7490)
+
+@Composable
+private fun PerfIcon(res: Int, groesse: androidx.compose.ui.unit.Dp) =
+    Icon(painterResource(res), contentDescription = null, tint = perfAkzent(), modifier = Modifier.size(groesse))
+
+/** Verweis auf einen einzelnen Lauf: direkt der Lauf, bei Sprints mit Sprint-Anzeige (wie die Bestenlisten). */
+@Composable
+private fun rememberOeffnen(onOpenSession: (Int) -> Unit): (String, PerfZeile) -> Unit {
+    val lauf = LocalOpenSessionLauf.current
+    return { k, z ->
+        if (z.runIdx != null && lauf != null) lauf(z.sessionId, z.runIdx, k.takeIf { it.startsWith("sprint_") })
+        else onOpenSession(z.sessionId)
+    }
+}
+
+/** Kennzahl-Kachel wie im Web: Icon ueber die ganze Hoehe links, Wert und Label mittig daneben. */
+@Composable
+private fun KennzahlKachel(icon: Int, wert: String, label: String, modifier: Modifier = Modifier, hervor: Boolean = false,
+                           labelFarbe: Color? = null, onClick: (() -> Unit)? = null, oben: (@Composable () -> Unit)? = null) {
+    Card(modifier.then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
+        colors = if (hervor) androidx.compose.material3.CardDefaults.cardColors(containerColor = PerfCyan.copy(alpha = 0.12f))
+                 else androidx.compose.material3.CardDefaults.cardColors()) {
+        Box(Modifier.fillMaxWidth()) {
+            Row(Modifier.padding(horizontal = 8.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                PerfIcon(icon, 32.dp)
+                Spacer(Modifier.width(6.dp))
+                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(wert, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                    Text(label, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center, maxLines = 2,
+                        color = labelFarbe ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = if (labelFarbe != null) FontWeight.SemiBold else null)
+                }
+            }
+            if (oben != null) Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) { oben() }
+        }
+    }
+}
 
 // Eine Farbe, Deckkraft nach Perzentil; die Platzzahl steht immer in der Zelle.
 private fun zellFarbe(perz: Double): Color = PerfCyan.copy(alpha = (0.12 + 0.78 * (perz / 100).coerceIn(0.0, 1.0)).toFloat())
@@ -137,9 +185,7 @@ fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
                 FilterChip(selected = zeitraum == id, onClick = { zeitraum = id }, colors = cyanChipColors(), label = { Text(label) })
             }
         }
-        Text(I18n.t("perf.intro").replace("{n}", "${daten?.minFeld ?: 5}"), style = MaterialTheme.typography.bodyMedium,
-            color = grau, modifier = Modifier.padding(vertical = 8.dp))
-        daten?.saison?.let { SaisonKarte(it) }
+        Spacer(Modifier.height(8.dp))
 
         val d = daten
         when {
@@ -149,35 +195,42 @@ fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
                 Text(I18n.t("perf.leer"), Modifier.padding(16.dp), textAlign = TextAlign.Center)
             }
             sub == "verlauf" -> VerlaufTeil(je, alle, tage, onOpenSession)
-            else -> UebersichtTeil(je, alle, tage, onOpenSession)
+            else -> UebersichtTeil(je, alle, tage, d.saison, onOpenSession)
         }
+        // Einleitung klein ganz unten (Jan 20.11.2026: „den hinweis weg oder ganz nach unten")
+        Text(I18n.t("perf.intro").replace("{n}", "${daten?.minFeld ?: 5}"), style = MaterialTheme.typography.bodySmall,
+            color = grau, modifier = Modifier.padding(bottom = 12.dp))
     }
 }
 
 @Composable
-private fun UebersichtTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>, tage: List<String>, onOpenSession: (Int) -> Unit) {
+private fun UebersichtTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>, tage: List<String>, saison: PerfSaison?,
+                           onOpenSession: (Int) -> Unit) {
     val grau = MaterialTheme.colorScheme.onSurfaceVariant
+    val oeffnen = rememberOeffnen(onOpenSession)
     fun quote(n: Int) = if (alle.isEmpty()) "–" else "${Math.round(100.0 * n / alle.size)} %"
-    // Kennzahlen
-    val kpis = listOf(
-        I18n.t("perf.tage") to "${tage.size}",
-        I18n.t("perf.besserAls") to "${Math.round(schnitt(alle.map { it.perzentil }))} %",
-        I18n.t("perf.siege") to "${alle.count { it.platz == 1 }}",
-        I18n.t("perf.podium") to quote(alle.count { it.platz <= 3 }),
-        I18n.t("perf.top10") to quote(alle.count { it.platz <= 10 }))
-    kpis.chunked(3).forEach { reihe ->
+    // Kennzahlen + Saison als sechste Kachel (wie Web 20.11.2026): 2 Reihen zu 3
+    var saisonOffen by remember { mutableStateOf(false) }
+    data class Kachel(val icon: Int, val wert: String, val label: String, val saison: Boolean = false)
+    val kacheln = listOf(
+        Kachel(R.drawable.perf_calendar_check, "${tage.size}", I18n.t("perf.tage")),
+        Kachel(R.drawable.perf_beat, "${Math.round(schnitt(alle.map { it.perzentil }))} %", I18n.t("perf.besserAls")),
+        Kachel(R.drawable.perf_trophy, "${alle.count { it.platz == 1 }}", I18n.t("perf.siege")),
+        Kachel(R.drawable.perf_podium, quote(alle.count { it.platz <= 3 }), I18n.t("perf.podium")),
+        Kachel(R.drawable.perf_medal, quote(alle.count { it.platz <= 10 }), I18n.t("perf.top10")),
+    ) + listOfNotNull(saison?.let { Kachel(R.drawable.perf_season_cup, "${it.punkte}", I18n.t("perf.saisonTitel"), saison = true) })
+    kacheln.chunked(3).forEach { reihe ->
         Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            reihe.forEach { (l, v) ->
-                Card(Modifier.weight(1f)) {
-                    Column(Modifier.padding(10.dp)) {
-                        Text(l, style = MaterialTheme.typography.labelSmall, color = grau, maxLines = 1)
-                        Text(v, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                    }
-                }
+            reihe.forEach { k ->
+                if (k.saison) KennzahlKachel(k.icon, k.wert, k.label, Modifier.weight(1f), hervor = true, labelFarbe = perfAkzent(),
+                    onClick = { saisonOffen = true },
+                    oben = { Icon(Icons.Outlined.Info, contentDescription = k.label, tint = grau, modifier = Modifier.size(14.dp)) })
+                else KennzahlKachel(k.icon, k.wert, k.label, Modifier.weight(1f))
             }
             repeat(3 - reihe.size) { Spacer(Modifier.weight(1f)) }
         }
     }
+    if (saisonOffen && saison != null) SaisonDialog(saison) { saisonOffen = false }
 
     // Kategorie-Tabelle: Ø Platz immer mit Ø Feld, sonst sagt die Zahl nichts
     Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
@@ -186,7 +239,10 @@ private fun UebersichtTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeil
             KATS.forEachIndexed { i, k ->
                 val z = je[k] ?: emptyList()
                 if (i > 0) HorizontalDivider(Modifier.padding(vertical = 6.dp))
-                Text(I18n.t("perf.kat.$k"), fontWeight = FontWeight.Medium)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    PerfIcon(KAT_ICON.getValue(k), 18.dp); Spacer(Modifier.width(6.dp))
+                    Text(I18n.t("perf.kat.$k"), fontWeight = FontWeight.Medium)
+                }
                 if (z.isEmpty()) {
                     Text(I18n.t("perf.keineTage"), style = MaterialTheme.typography.bodySmall, color = grau)
                 } else {
@@ -195,9 +251,12 @@ private fun UebersichtTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeil
                         tabZelle(I18n.t("perf.spSchnitt"), I18n.t("perf.schnittVon")
                             .replace("{platz}", "%.1f".format(schnitt(z.map { it.platz.toDouble() })))
                             .replace("{feld}", "${Math.round(schnitt(z.map { it.feld.toDouble() }))}"))
-                        tabZelle(I18n.t("perf.spBester"), "${z.minOf { it.platz }}")
+                        // bester Platz / genau ein Sieg = ein einzelner Lauf -> antippen fuehrt hin (bei Gleichstand der neueste)
+                        val best = z.minWith(compareBy<PerfZeile> { it.platz }.thenByDescending { it.tag })
+                        tabZelle(I18n.t("perf.spBester"), "${best.platz}") { oeffnen(k, best) }
                         tabZelle(I18n.t("perf.spTop3"), "${Math.round(100.0 * z.count { it.platz <= 3 } / z.size)} %")
-                        tabZelle(I18n.t("perf.siege"), "${z.count { it.platz == 1 }}")
+                        val siege = z.filter { it.platz == 1 }
+                        tabZelle(I18n.t("perf.siege"), "${siege.size}", if (siege.size == 1) ({ oeffnen(k, siege[0]) }) else null)
                     }
                 }
             }
@@ -212,16 +271,22 @@ private fun UebersichtTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeil
                 Row(Modifier.fillMaxWidth().padding(bottom = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     paar.forEach { k ->
                         val b = je[k]?.maxByOrNull { it.wert }
-                        Column(Modifier.weight(1f).clip(RoundedCornerShape(8.dp))
+                        // wie die Kennzahl-Kacheln: Icon ueber die ganze Hoehe, Wert und Label mittig (Web 20.11.2026)
+                        Row(Modifier.weight(1f).clip(RoundedCornerShape(8.dp))
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                            .then(if (b != null) Modifier.clickable { onOpenSession(b.sessionId) } else Modifier)
-                            .padding(8.dp)) {
-                            Text(I18n.t("perf.kat.$k"), style = MaterialTheme.typography.labelSmall, color = grau, maxLines = 1,
-                                overflow = TextOverflow.Ellipsis)
-                            Text(b?.let { wertText(k, it.wert) } ?: "–", style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold, color = if (b != null) PerfCyan else grau)
-                            if (b != null) Text(tagKurz(b.tag) + " · " + I18n.t("perf.platzVon").replace("{platz}", "${b.platz}")
-                                .replace("{feld}", "${b.feld}"), style = MaterialTheme.typography.labelSmall, color = grau)
+                            .then(if (b != null) Modifier.clickable { oeffnen(k, b) } else Modifier)
+                            .padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            PerfIcon(KAT_ICON.getValue(k), 32.dp)
+                            Spacer(Modifier.width(6.dp))
+                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(b?.let { wertText(k, it.wert) } ?: "–", style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold, maxLines = 1)
+                                Text(I18n.t("perf.kat.$k"), style = MaterialTheme.typography.labelSmall, color = grau, maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+                                if (b != null) Text(tagKurz(b.tag) + " · " + I18n.t("perf.platzVon").replace("{platz}", "${b.platz}")
+                                    .replace("{feld}", "${b.feld}"), style = MaterialTheme.typography.labelSmall, color = grau,
+                                    textAlign = TextAlign.Center)
+                            }
                         }
                     }
                 }
@@ -234,7 +299,10 @@ private fun UebersichtTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeil
         val z = je[k] ?: emptyList()
         Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
             Column(Modifier.padding(12.dp)) {
-                Text(I18n.t("perf.kat.$k"), fontWeight = FontWeight.SemiBold)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    PerfIcon(KAT_ICON.getValue(k), 20.dp); Spacer(Modifier.width(6.dp))
+                    Text(I18n.t("perf.kat.$k"), fontWeight = FontWeight.SemiBold)
+                }
                 if (z.isEmpty()) {
                     Text(I18n.t("perf.keineTage"), style = MaterialTheme.typography.bodySmall, color = grau)
                 } else {
@@ -263,9 +331,11 @@ private fun UebersichtTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeil
 }
 
 @Composable
-private fun tabZelle(label: String, wert: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(wert, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium)
+private fun tabZelle(label: String, wert: String, onClick: (() -> Unit)? = null) {
+    Column(Modifier.then(if (onClick != null) Modifier.clip(RoundedCornerShape(4.dp)).clickable { onClick() } else Modifier),
+        horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(wert, fontWeight = if (onClick != null) FontWeight.Bold else FontWeight.Medium,
+            color = if (onClick != null) perfAkzent() else MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.bodyMedium)
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
@@ -274,16 +344,21 @@ private fun tabZelle(label: String, wert: String) {
 private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>, tage: List<String>, onOpenSession: (Int) -> Unit) {
     val grau = MaterialTheme.colorScheme.onSurfaceVariant
     var kat by rememberSaveable { mutableStateOf("sprint_100m") }
+    val oeffnen = rememberOeffnen(onOpenSession)
     val reihe = (je[kat] ?: emptyList()).sortedBy { it.tag }
 
     // Platz je Tag in EINER Kategorie: Hoehe = Anteil geschlagener Fahrer, Zahl = Platz; Baender ab 80 % / 50 %
     Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
         Column(Modifier.padding(12.dp)) {
-            Text(I18n.t("perf.platzverlauf"), fontWeight = FontWeight.SemiBold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                PerfIcon(R.drawable.perf_place_line, 20.dp); Spacer(Modifier.width(6.dp))
+                Text(I18n.t("perf.platzverlauf"), fontWeight = FontWeight.SemiBold)
+            }
             Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 KATS.forEach { k ->
                     FilterChip(selected = kat == k, onClick = { kat = k }, colors = cyanChipColors(),
+                        leadingIcon = { Icon(painterResource(KAT_ICON.getValue(k)), null, Modifier.size(16.dp)) },
                         label = { Text(I18n.t("perf.kat.$k")) })
                 }
             }
@@ -307,7 +382,7 @@ private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>,
                 // Plaetze als Zahlenreihe darunter (Canvas kann hier keinen Text ohne TextMeasurer; so bleibt es lesbar)
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     reihe.forEachIndexed { i, z ->
-                        if (i % jeder == 0) Column(Modifier.clickable { onOpenSession(z.sessionId) }, horizontalAlignment = Alignment.CenterHorizontally) {
+                        if (i % jeder == 0) Column(Modifier.clickable { oeffnen(kat, z) }, horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("${z.platz}", fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                             Text(tagKurz(z.tag), fontSize = 9.sp, color = grau)
                         }
@@ -321,12 +396,16 @@ private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>,
     // Raster Kategorie x Tag: Zahl = Platz, Farbe = Anteil geschlagener Fahrer, Tippen oeffnet die Session
     Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
         Column(Modifier.padding(12.dp)) {
-            Text(I18n.t("perf.raster"), fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 6.dp))
+            Row(Modifier.padding(bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                PerfIcon(R.drawable.perf_placing_grid, 20.dp); Spacer(Modifier.width(6.dp))
+                Text(I18n.t("perf.raster"), fontWeight = FontWeight.SemiBold)
+            }
             Row {
                 Column {
                     Spacer(Modifier.height(18.dp))
                     KATS.forEach { k ->
-                        Box(Modifier.height(32.dp).widthIn(max = 110.dp), contentAlignment = Alignment.CenterStart) {
+                        Row(Modifier.height(32.dp).widthIn(max = 120.dp), verticalAlignment = Alignment.CenterVertically) {
+                            PerfIcon(KAT_ICON.getValue(k), 16.dp); Spacer(Modifier.width(4.dp))
                             Text(I18n.t("perf.kat.$k"), style = MaterialTheme.typography.labelSmall, maxLines = 2)
                         }
                     }
@@ -342,7 +421,7 @@ private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>,
                                 val z = je[k]?.firstOrNull { it.tag == tag }
                                 Box(Modifier.padding(2.dp).size(width = 30.dp, height = 28.dp).clip(RoundedCornerShape(4.dp))
                                     .background(if (z != null) zellFarbe(z.perzentil) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                                    .then(if (z != null) Modifier.clickable { onOpenSession(z.sessionId) } else Modifier),
+                                    .then(if (z != null) Modifier.clickable { oeffnen(k, z) } else Modifier),
                                     contentAlignment = Alignment.Center) {
                                     if (z != null) Text("${z.platz}", fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                                 }
@@ -365,7 +444,10 @@ private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>,
     // Verlauf: Ø Perzentil je Tag ueber alle Kategorien
     Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
         Column(Modifier.padding(12.dp)) {
-            Text(I18n.t("perf.verlauf"), fontWeight = FontWeight.SemiBold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                PerfIcon(R.drawable.perf_daily_average, 20.dp); Spacer(Modifier.width(6.dp))
+                Text(I18n.t("perf.verlauf"), fontWeight = FontWeight.SemiBold)
+            }
             val punkte = tage.reversed().map { tag -> schnitt(alle.filter { it.tag == tag }.map { it.perzentil }) }
             if (punkte.size < 2) {
                 Text(I18n.t("perf.zuWenig"), style = MaterialTheme.typography.bodySmall, color = grau)
@@ -389,39 +471,25 @@ private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>,
 }
 
 
-/** Saison mit Punkten (wie Web): Punkte + Rang, (i) oeffnet Punktetabelle und Regeln. */
+/** Saison-Fenster (wie Web (i)): Status (startet am … / Rang), Punktetabelle und Regeln. */
 @Composable
-private fun SaisonKarte(s: PerfSaison) {
-    var offen by remember { mutableStateOf(false) }
+private fun SaisonDialog(s: PerfSaison, schliessen: () -> Unit) {
     val grau = MaterialTheme.colorScheme.onSurfaceVariant
-    Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
-        Box(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(12.dp)) {
-                Text(I18n.t("perf.saisonTitel"), fontWeight = FontWeight.SemiBold, color = PerfCyan)
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text("${s.punkte}", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.width(6.dp))
-                    Text(I18n.t("perf.saison.punkte"), color = grau, modifier = Modifier.padding(bottom = 6.dp))
-                }
-                Text(when {
-                    !s.gestartet -> I18n.t("perf.saison.startet").replace("{jahr}", "${s.jahr}")
-                    s.rang != null -> I18n.t("perf.saison.rang").replace("{rang}", "${s.rang}").replace("{fahrer}", "${s.fahrer}")
-                        .replace("{tage}", "${s.tage}")
-                    else -> I18n.t("perf.saison.nochKeine")
-                }, style = MaterialTheme.typography.bodySmall, color = grau)
-            }
-            IconButton(onClick = { offen = true }, modifier = Modifier.align(Alignment.TopEnd)) {
-                Icon(Icons.Outlined.Info, contentDescription = I18n.t("perf.saisonTitel"), tint = grau)
-            }
-        }
+    val status = when {
+        !s.gestartet -> I18n.t("perf.saison.startet").replace("{jahr}", "${s.jahr}")
+        s.rang != null -> I18n.t("perf.saison.rang").replace("{rang}", "${s.rang}").replace("{fahrer}", "${s.fahrer}")
+            .replace("{tage}", "${s.tage}")
+        else -> I18n.t("perf.saison.nochKeine")
     }
-    if (offen) {
-        AlertDialog(onDismissRequest = { offen = false },
-            confirmButton = { TextButton(onClick = { offen = false }) { Text(I18n.t("common.close")) } },
+    AlertDialog(onDismissRequest = schliessen,
+            confirmButton = { TextButton(onClick = schliessen) { Text(I18n.t("common.close")) } },
             title = { Text(I18n.t("perf.saisonTitel")) },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
                     Text(I18n.t("perf.saison.infoIntro"), style = MaterialTheme.typography.bodyMedium)
+                    Spacer(Modifier.height(8.dp))
+                    Text(status, fontWeight = FontWeight.Medium,
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(PerfCyan.copy(alpha = 0.12f)).padding(8.dp))
                     Spacer(Modifier.height(8.dp))
                     Row(Modifier.fillMaxWidth()) {
                         Text(I18n.t("perf.saison.platz"), style = MaterialTheme.typography.labelSmall, color = grau, modifier = Modifier.weight(1f))
@@ -444,5 +512,4 @@ private fun SaisonKarte(s: PerfSaison) {
                         .replace("{jahr}", "${s.jahr}"), style = MaterialTheme.typography.bodySmall, color = grau)
                 }
             })
-    }
 }
