@@ -139,11 +139,13 @@ function SaisonKarte({ s }: { s: Saison }) {
           Punkte mittig, „Season 2027" als Label; Status (startet am …, Rang) und Regeln im (i)-Fenster. */}
       <div className="relative rounded-xl border border-brand-500/40 bg-brand-500/10 p-3">
         <InfoKnopf label={t("perf.saisonTitel")} onClick={() => setOffen(true)} />
-        <div className="flex items-center gap-2">
-          <SeasonCupIcon className="h-7 w-7 shrink-0 text-brand-700 dark:text-brand-400" />
-          <span className="flex-1 text-center text-2xl font-bold tabular-nums text-slate-100">{s.punkte}</span>
+        <div className="flex items-center gap-3">
+          <SeasonCupIcon className="h-12 w-12 shrink-0 text-brand-700 dark:text-brand-400" />
+          <div className="min-w-0 flex-1">
+            <div className="text-center text-2xl font-bold tabular-nums text-slate-100">{s.punkte}</div>
+            <div className="text-center text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">{t("perf.saisonTitel")}</div>
+          </div>
         </div>
-        <div className="mt-1 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">{t("perf.saisonTitel")}</div>
       </div>
       {offen && (
         <InfoDialog title={t("perf.saisonTitel")} text={t("perf.saison.infoIntro")} onClose={() => setOffen(false)}>
@@ -187,12 +189,14 @@ function UebersichtTab({ je, alle, tage, saison }: { je: Record<Kat, Zeile[]>; a
           [t("perf.top10"), quote(alle.filter((z) => z.platz <= 10).length), MedalIcon],
         ] as const).map(([l, v, I]) => (
           <Card key={l} className="p-3">
-            {/* Icon so gross wie der Wert, in einer Zeile; Wert mittig im freien Platz, Label klein darunter (Jan 20.11.2026) */}
-            <div className="flex items-center gap-2">
-              <I className="h-7 w-7 shrink-0 text-brand-700 dark:text-brand-400" />
-              <span className="flex-1 text-center text-2xl font-semibold tabular-nums text-slate-100">{v}</span>
+            {/* Icon ueber die ganze Hoehe links; rechts Wert und Label mittig darunter (Jan 20.11.2026) */}
+            <div className="flex items-center gap-3">
+              <I className="h-12 w-12 shrink-0 text-brand-700 dark:text-brand-400" />
+              <div className="min-w-0 flex-1">
+                <div className="text-center text-2xl font-semibold tabular-nums text-slate-100">{v}</div>
+                <div className="text-center text-xs text-slate-400">{l}</div>
+              </div>
             </div>
-            <div className="mt-1 text-xs text-slate-400">{l}</div>
           </Card>
         ))}
         {saison && <SaisonKarte s={saison} />}
@@ -251,15 +255,17 @@ function UebersichtTab({ je, alle, tage, saison }: { je: Record<Kat, Zeile[]>; a
             const b = z.length ? z.reduce((a, x) => (x.wert > a.wert ? x : a)) : null;
             return (
               <div key={k} className="rounded-lg bg-slate-800/50 p-2.5">
-                <div className="flex items-center gap-2">
-                  {/* wie die Kennzahl-Kacheln: Icon links, Wert gleich gross mittig im freien Platz (Jan 20.11.2026) */}
-                  <KatIcon k={k} className="h-7 w-7 shrink-0 text-brand-700 dark:text-brand-400" />
-                  {b ? (
-                    <Link to={`/sessions/${b.session_id}`} className="flex-1 text-center text-2xl font-semibold tabular-nums text-slate-100 hover:text-brand-700 dark:hover:text-brand-300">{wertText(k, b.wert)}</Link>
-                  ) : <span className="flex-1 text-center text-2xl text-slate-400">–</span>}
+                {/* wie die Kennzahl-Kacheln: Icon ueber die ganze Hoehe, Wert und Label mittig (Jan 20.11.2026) */}
+                <div className="flex items-center gap-3">
+                  <KatIcon k={k} className="h-12 w-12 shrink-0 text-brand-700 dark:text-brand-400" />
+                  <div className="min-w-0 flex-1">
+                    {b ? (
+                      <Link to={`/sessions/${b.session_id}`} className="block text-center text-2xl font-semibold tabular-nums text-slate-100 hover:text-brand-700 dark:hover:text-brand-300">{wertText(k, b.wert)}</Link>
+                    ) : <div className="text-center text-2xl text-slate-400">–</div>}
+                    <div className="text-center text-xs text-slate-400">{katName(k)}</div>
+                    {b && <div className="text-center text-xs text-slate-400">{tagKurz(b.tag)} · {t("perf.platzVon", { platz: b.platz, feld: b.feld })}</div>}
+                  </div>
                 </div>
-                <div className="mt-0.5 text-xs text-slate-400">{katName(k)}</div>
-                {b && <div className="text-xs text-slate-400">{tagKurz(b.tag)} · {t("perf.platzVon", { platz: b.platz, feld: b.feld })}</div>}
               </div>
             );
           })}
