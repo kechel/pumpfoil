@@ -5,7 +5,7 @@ import { useT } from "../i18n";
 import { Card, InfoDialog, InfoKnopf, Spinner } from "./ui";
 import { sportLabel } from "../lib/sportClass";
 import { Reiterleiste, useReiter } from "./Reiter";
-import { BeatIcon, CalendarCheckIcon, FoilTimeIcon, LongestRunIcon, MedalIcon, PodiumIcon, SeasonCupIcon, Sprint100Icon, SprintMinuteIcon, TrophyIcon } from "./Icons";
+import { BeatIcon, CalendarCheckIcon, DailyAverageIcon, PlaceLineIcon, PlacingGridIcon, FoilTimeIcon, LongestRunIcon, MedalIcon, PodiumIcon, SeasonCupIcon, Sprint100Icon, SprintMinuteIcon, TrophyIcon } from "./Icons";
 
 /**
  * Home › Performance (Idee eines Fahrers, DM 16.11.2026; Jan 18.11.: „so wie empfohlen umsetzen").
@@ -15,7 +15,13 @@ import { BeatIcon, CalendarCheckIcon, FoilTimeIcon, LongestRunIcon, MedalIcon, P
  * 18.11. abends (Jan: „erstmal das was gut und schnell umsetzbar ist"): aus den Entwuerfen des Fahrers Kategorie-Tabelle,
  * Bestleistungen, Platzverlauf je Kategorie, Zeitraum „letzte 25 Tage", aufgeteilt in Uebersicht | Verlauf.
  */
-type Zeile = { tag: string; wert: number; platz: number; feld: number; perzentil: number; session_id: number };
+type Zeile = { tag: string; wert: number; platz: number; feld: number; perzentil: number; session_id: number; run_idx?: number };
+// Ziel eines Verweises: direkt der Lauf (?run=), bei Sprints mit eingeschalteter Sprint-Anzeige (&sprint=) — wie die
+// Bestenlisten (Jan 20.11.2026). Tagessumme (foil_time_day) hat keinen Lauf -> nur die Session.
+function zielUrl(k: string, z: { session_id: number; run_idx?: number }): string {
+  if (z.run_idx == null) return `/sessions/${z.session_id}`;
+  return `/sessions/${z.session_id}?run=${z.run_idx}${k.startsWith("sprint_") ? `&sprint=${k}` : ""}`;
+}
 // Zwei Tempo-, zwei Ausdauer-Kategorien (Vorschlag eines Fahrers 19.11.2026, Jan 20.11.): `run_time` (laengste Laufzeit)
 // ersetzt durch die Zeit auf dem Foil des ganzen Tages — die Laufzeit war dem laengsten Lauf zu aehnlich.
 const KATS = ["sprint_100m", "sprint_60s", "run_distance", "foil_time_day"] as const;
@@ -229,14 +235,14 @@ function UebersichtTab({ je, alle, tage, saison }: { je: Record<Kat, Zeile[]>; a
                   {/* bester Platz = ein einzelner Tag/Lauf -> direkt zur Session (Jan 20.11.2026); bei Gleichstand der neueste */}
                   <td className="px-2 py-1.5 text-right tabular-nums">{z.length ? (() => {
                     const b = z.reduce((a, x) => (x.platz < a.platz || (x.platz === a.platz && x.tag > a.tag) ? x : a));
-                    return <Link to={`/sessions/${b.session_id}`} title={b.tag} className="font-semibold text-brand-700 hover:underline dark:text-brand-300">{b.platz}</Link>;
+                    return <Link to={zielUrl(k, b)} title={b.tag} className="font-semibold text-brand-700 hover:underline dark:text-brand-300">{b.platz}</Link>;
                   })() : "–"}</td>
                   <td className="px-2 py-1.5 text-right tabular-nums">{z.length ? `${Math.round((100 * z.filter((x) => x.platz <= 3).length) / z.length)} %` : "–"}</td>
                   {/* genau ein Sieg = ein Lauf -> verlinkt */}
                   <td className="px-2 py-1.5 text-right tabular-nums">{z.length ? (() => {
                     const s1 = z.filter((x) => x.platz === 1);
                     return s1.length === 1
-                      ? <Link to={`/sessions/${s1[0].session_id}`} title={s1[0].tag} className="font-semibold text-brand-700 hover:underline dark:text-brand-300">1</Link>
+                      ? <Link to={zielUrl(k, s1[0])} title={s1[0].tag} className="font-semibold text-brand-700 hover:underline dark:text-brand-300">1</Link>
                       : s1.length;
                   })() : "–"}</td>
                 </tr>
@@ -260,7 +266,7 @@ function UebersichtTab({ je, alle, tage, saison }: { je: Record<Kat, Zeile[]>; a
                   <KatIcon k={k} className="h-12 w-12 shrink-0 text-brand-700 dark:text-brand-400" />
                   <div className="min-w-0 flex-1">
                     {b ? (
-                      <Link to={`/sessions/${b.session_id}`} className="block text-center text-2xl font-semibold tabular-nums text-slate-100 hover:text-brand-700 dark:hover:text-brand-300">{wertText(k, b.wert)}</Link>
+                      <Link to={zielUrl(k, b)} className="block text-center text-2xl font-semibold tabular-nums text-slate-100 hover:text-brand-700 dark:hover:text-brand-300">{wertText(k, b.wert)}</Link>
                     ) : <div className="text-center text-2xl text-slate-400">–</div>}
                     <div className="text-center text-xs text-slate-400">{katName(k)}</div>
                     {b && <div className="text-center text-xs text-slate-400">{tagKurz(b.tag)} · {t("perf.platzVon", { platz: b.platz, feld: b.feld })}</div>}
@@ -319,7 +325,7 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
           am Punkt ist der Platz. Baender ab 80 % / 50 % statt fester Plaetze — Platz 6 von 80 ist stark, 6 von 8 nicht. */}
       <Card className="p-3">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="font-semibold text-slate-100">{t("perf.platzverlauf")}</span>
+          <span className="flex items-center gap-2 font-semibold text-slate-100"><PlaceLineIcon className="h-5 w-5 shrink-0 text-brand-700 dark:text-brand-400" />{t("perf.platzverlauf")}</span>
           <div className="ml-auto flex flex-wrap gap-1">
             {KATS.map((k) => (
               <button key={k} type="button" onClick={() => setKat(k)} aria-pressed={kat === k}
@@ -330,7 +336,7 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
           </div>
         </div>
         {reihe.length === 0 ? <div className="text-sm text-slate-400">{t("perf.keineTage")}</div> : (
-          <PlatzLinie reihe={reihe} />
+          <PlatzLinie reihe={reihe} kat={kat} />
         )}
         <p className="mt-1 text-xs text-slate-400">{t("perf.platzverlaufHint")}</p>
       </Card>
@@ -338,7 +344,7 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
       {/* Raster Kategorie x Tag: Zahl = Platz, Farbe = Anteil geschlagener Fahrer. Zeit laeuft von links nach rechts wie in
           den anderen Darstellungen (Hinweis eines Fahrers, 19.11.2026). */}
       <Card className="p-3">
-        <div className="mb-2 font-semibold text-slate-100">{t("perf.raster")}</div>
+        <div className="mb-2 flex items-center gap-2 font-semibold text-slate-100"><PlacingGridIcon className="h-5 w-5 shrink-0 text-brand-700 dark:text-brand-400" />{t("perf.raster")}</div>
         <div className="overflow-x-auto">
           <table className="text-xs">
             <thead>
@@ -361,7 +367,7 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
                       return (
                         <td key={d} className="p-0.5">
                           {z ? (
-                            <Link to={`/sessions/${z.session_id}`}
+                            <Link to={zielUrl(k, z)}
                               title={`${d} · ${t("perf.platzVon", { platz: z.platz, feld: z.feld })} · ${wertText(k, z.wert)}`}
                               className="flex h-7 w-8 items-center justify-center rounded font-semibold tabular-nums text-slate-50"
                               style={{ background: zellFarbe(z.perzentil) }}>
@@ -389,7 +395,7 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
 
       {/* Ø Perzentil je Tag ueber alle Kategorien */}
       <Card className="p-3">
-        <div className="mb-2 font-semibold text-slate-100">{t("perf.verlauf")}</div>
+        <div className="mb-2 flex items-center gap-2 font-semibold text-slate-100"><DailyAverageIcon className="h-5 w-5 shrink-0 text-brand-700 dark:text-brand-400" />{t("perf.verlauf")}</div>
         <Verlauf punkte={[...tage].reverse().map((d) => ({ tag: d, perz: schnitt(alle.filter((x) => x.tag === d).map((x) => x.perzentil)) }))} />
       </Card>
     </>
@@ -415,7 +421,7 @@ function useViewBreite(hoeheEinheiten: number, hoehePx: number) {
   return [ref, b] as const;
 }
 
-function PlatzLinie({ reihe }: { reihe: Zeile[] }) {
+function PlatzLinie({ reihe, kat }: { reihe: Zeile[]; kat: string }) {
   const t = useT();
   const nav = useNavigate();
   const [ref, B] = useViewBreite(H, 192);   // h-48
@@ -438,7 +444,7 @@ function PlatzLinie({ reihe }: { reihe: Zeile[] }) {
       {reihe.map((z, i) => (
         <g key={z.tag}>
           {/* jeder Punkt = ein Tag, eine Session -> antippen fuehrt hin (Jan 20.11.2026); grosse Trefferflaeche */}
-          <circle cx={x(i)} cy={y(z.perzentil)} r={11} fill="transparent" className="cursor-pointer" onClick={() => nav(`/sessions/${z.session_id}`)}>
+          <circle cx={x(i)} cy={y(z.perzentil)} r={11} fill="transparent" className="cursor-pointer" onClick={() => nav(zielUrl(kat, z))}>
             <title>{`${z.tag} · ${t("perf.platzVon", { platz: z.platz, feld: z.feld })}`}</title>
           </circle>
           <circle cx={x(i)} cy={y(z.perzentil)} r={4} fill="#22d3ee" className="pointer-events-none">

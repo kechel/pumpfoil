@@ -33,9 +33,10 @@ def _session(uid, tag, sprint_mps, dist_m, foil_s=None):
         db.add(s); db.flush()
         db.add(models.AnalysisResult(session_id=s.id, algo_version="test", detection="model", num_runs=3,
                                      best_distance_m=dist_m, best_duration_s=dist_m / 4, best_speed_mps=sprint_mps + 1,
-                                     foiling_time_s=foil_s,
+                                     foiling_time_s=foil_s, best_distance_idx=2,
                                      sprint_100m_mps=sprint_mps, sprint_60s_mps=None,
-                                     sprint_json=json.dumps({"v": 7, "best": {"sprint_100m": sprint_mps}})))
+                                     sprint_json=json.dumps({"v": 7, "best": {"sprint_100m": sprint_mps},
+                                                             "lauf": {"sprint_100m": 1}})))
         db.commit()
         return s.id
     finally:
@@ -60,6 +61,8 @@ def test_platz_feld_und_mindestfeld(client):
     assert not [z for z in d["kategorien"]["sprint_100m"] if z["tag"] == "2026-09-04"]
     ld = [z for z in d["kategorien"]["run_distance"] if z["tag"] == "2026-09-03"][0]
     assert ld["platz"] == 1 and ld["perzentil"] == 100.0
+    # Einzel-Lauf-Kategorien verweisen auf den Lauf, die Tagessumme nicht
+    assert sp[0]["run_idx"] == 1 and ld["run_idx"] == 2
 
 
 def test_performance_foil_scoot_nur_mit_pumpfoil(client):
@@ -86,6 +89,7 @@ def test_zeit_auf_dem_foil_ist_tagessumme(client):
         _session(uid, tag, 4.0, 100.0, foil_s=[600, 700, 800, 1000, 1100][i])
     d = client.get("/api/community/performance?sport=pumpfoil", headers=kopf).json()
     z = [x for x in d["kategorien"]["foil_time_day"] if x["tag"] == "2026-09-10"][0]
+    assert "run_idx" not in z
     assert z["wert"] == 900 and z["platz"] == 3 and z["session_id"] == gross     # Summe schlaegt 600/700/800
     assert "run_time" in d["kategorien"]
 

@@ -3957,6 +3957,12 @@ def performance(
             zeilen.append({"tag": k, "wert": round(mein, 3), "platz": platz, "feld": feld,
                            "perzentil": round(100.0 * schlechter / max(feld - 1, 1), 1), "session_id": sid})
         zeilen.sort(key=lambda z: z["tag"], reverse=True)
+        # Einzel-Lauf-Kategorien verweisen direkt auf den Lauf (`run_idx`, wie die Bestenlisten; Jan 20.11.2026) —
+        # die Tagessumme (foil_time_day) nicht, die ist kein einzelner Lauf.
+        lk = {"run_distance": "distance", "run_time": "duration"}.get(kat, kat)
+        if kat not in _PERF_SUMME:
+            from ..teams import lauf_dazu
+            lauf_dazu(db, lk, zeilen)
         out["kategorien"][kat] = zeilen
     out["saison"] = _saison(db, sport, user.id)
     return out

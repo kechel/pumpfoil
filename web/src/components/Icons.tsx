@@ -583,6 +583,30 @@ export const SeasonCupIcon = ({ className = base }: P) => (
     <path d="M12 14v3" /><path d="M8 17h8l1 3.5H7L8 17Z" />
   </svg>
 );
+// Performance › Verlauf (Jan 20.11.2026): Kopf-Icons der drei Karten.
+// Platz je Tag: Achsen + Linie mit Punkten, darueber ein Band (der gruene Bereich im Diagramm).
+export const PlaceLineIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M3.5 3.5v17h17" /><path d="M7 15l4-5 3.5 3 5-6" />
+    <circle cx="7" cy="15" r="1.3" /><circle cx="11" cy="10" r="1.3" /><circle cx="14.5" cy="13" r="1.3" /><circle cx="19.5" cy="7" r="1.3" />
+  </svg>
+);
+// Platzierung je Tag: Raster aus Zellen, unterschiedlich gefuellt wie die Heatmap.
+export const PlacingGridIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <rect x="3" y="3" width="5" height="5" rx="1.2" /><rect x="9.5" y="3" width="5" height="5" rx="1.2" fill="currentColor" />
+    <rect x="16" y="3" width="5" height="5" rx="1.2" /><rect x="3" y="9.5" width="5" height="5" rx="1.2" fill="currentColor" />
+    <rect x="9.5" y="9.5" width="5" height="5" rx="1.2" /><rect x="16" y="9.5" width="5" height="5" rx="1.2" fill="currentColor" />
+    <rect x="3" y="16" width="5" height="5" rx="1.2" /><rect x="9.5" y="16" width="5" height="5" rx="1.2" />
+    <rect x="16" y="16" width="5" height="5" rx="1.2" fill="currentColor" />
+  </svg>
+);
+// Tagesschnitt: Zickzack-Kurve, durchgezogen von einer gestrichelten Mittellinie (der Durchschnitt).
+export const DailyAverageIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M3 12h18" strokeDasharray="2.2 2.2" /><path d="M3 15.5l3.5-6 3.5 7 3.5-9 3.5 7.5 4-4" />
+  </svg>
+);
 // Podium (Top 3): drei Stufen, die mittlere am hoechsten.
 export const PodiumIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>
