@@ -53,7 +53,9 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.67",   # FREIGEGEBEN 2026-11-17 (Jans Meldung 18.11.), Apple-Mail eligible for distribution, 1.1.67 for iOS
+        "latest": "1.1.68",   # FREIGEGEBEN 2026-11-20 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.68 for iOS
+        # (Submission b5e04778-cd93-48f1-bf17-15f96d39fb83, Build 79); Store-Lookup de/us/nl/no 1.1.68 (released 2026-11-20T00:13:52Z).
+        # ALT: "latest": "1.1.67",   # FREIGEGEBEN 2026-11-17 (Jans Meldung 18.11.), Apple-Mail eligible for distribution, 1.1.67 for iOS
         # (Submission 640546f6-64a8-4eae-bf30-5a937970dfeb, Build 78); Store-Lookup de/us/nl/no 1.1.67 (2026-11-17T22:29:12Z).
         # ALT: "latest": "1.1.66",   # FREIGEGEBEN 2026-11-12 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.66 for iOS
         # (Submission 4151a892-5045-49ff-ba41-57e9369963ae, Build 77 mit GPS-Luecken-Fix).
@@ -536,7 +538,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.67",   # FREIGEGEBEN 2026-11-17 — dieselbe Einreichung wie "ios" (ein Bundle; Watch unveraendert).
+        "latest": "1.1.68",   # FREIGEGEBEN 2026-11-20 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.67",   # FREIGEGEBEN 2026-11-17 — dieselbe Einreichung wie "ios" (ein Bundle; Watch unveraendert).
         # ALT: "latest": "1.1.66",   # FREIGEGEBEN 2026-11-12 — dieselbe Einreichung wie "ios" (ein Bundle; GPS-Luecke am Lauf-Ende).
         # ALT: "latest": "1.1.65",   # FREIGEGEBEN 2026-11-11 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.64",   # FREIGEGEBEN 2026-11-11 — dieselbe Einreichung wie "ios" (ein Bundle; V-max wie der Server).
@@ -616,7 +619,8 @@ _APP_META: dict[str, dict[str, str]] = {
         # store_url bleibt LEER, und das aendert sich nicht mehr: fuer die Pumpfoil-App im
         # Zepp-Store existiert keine Web-Adresse (Jan, 07.08.) — man kommt nur ueber die
         # Zepp-Handy-App dran, die auf /uhr verlinkt ist (ZeppAppBadges -> App Store / Play).
-        "latest": "1.0.15",  # FREIGEGEBEN 2026-11-11 (Zepp-Mail „The application Pumpfoil (1.0.15) you submitted has been approved and added to the ZEPP app store", Jans Meldung; eingereicht 10.11., ein Tag). Changelog: 2 neue Punkte zepp 1.0.15 + 990 (V-max) um zepp ergaenzt, Ereignis.
+        "latest": "1.0.16",  # FREIGEGEBEN 2026-11-20 (Zepp-Mail „The application Pumpfoil (1.0.16) you submitted has been approved and added to the ZEPP app store", Jans Meldung; eingereicht 13.11., sieben Tage). Changelog: 1028 (GPS-Luecke) um zepp 1.0.16 ergaenzt, Ereignis.
+        # ALT: "latest": "1.0.15",  # FREIGEGEBEN 2026-11-11 (Zepp-Mail „The application Pumpfoil (1.0.15) you submitted has been approved and added to the ZEPP app store", Jans Meldung; eingereicht 10.11., ein Tag). Changelog: 2 neue Punkte zepp 1.0.15 + 990 (V-max) um zepp ergaenzt, Ereignis.
         # ALT: "latest": "1.0.14",  # FREIGEGEBEN 2026-10-22 (Zepp-Mail „The application Pumpfoil (1.0.14) you submitted has been approved", Jans Meldung; eingereicht 18.10., vier Tage). Changelog: 596/597/598/628 + zepp, Ereignis.
         # ALT: "latest": "1.0.13",  # FREIGEGEBEN 2026-10-10 (Zepp-Mail „The application Pumpfoil (1.0.13) you submitted has been approved", Jans Meldung; eingereicht 01.10., neun Tage).
         # ALT: "latest": "1.0.12",  # FREIGEGEBEN 2026-09-30 (Zepp-Mail: „The application Pumpfoil
@@ -963,18 +967,7 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    # iPhone + Apple Watch 1.1.68 (Build 79) am 19.11.2026 12:22 eingereicht (Jans Meldung, ASC „Warten auf Prüfung",
-    # Übermittlungskennung b5e04778-cd93-48f1-bf17-15f96d39fb83). Punkte = Changelog-Zeilen mit ios 1.1.68.
-    {"name": "iPhone + Apple Watch", "version": "1.1.68",
-     "eingereicht": "2026-11-19",
-     "items": [
-         "GPS Art events: draw a picture on the water with your track, vote with hearts and watch the weekly reveal.",
-         "The Performance tab is now also in the apps, with an overview per category, your personal bests and your place per day.",
-         "In Sessions, a small filter button now lets you show only sessions ridden with one particular foil.",
-         "The foil statistics can now count only long runs, and foils also ridden on a foil scooter get a second row.",
-         "In wind sports with a foil, the run list is called on-foil segments and the power column foil drag.",
-         "Tapping a name in the chat now opens that rider's profile, just like the profile picture.",
-     ]},
+    # iPhone + Apple Watch 1.1.68 (Build 79) am 19.11. 12:22 eingereicht, am 20.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte im Changelog mit ios 1.1.68.
     # 12.11.2026: Android 1.1.49 (64) / Wear 1.2.49 (1060) gebaut, wird eingereicht, sobald 1.1.48 freigegeben ist
     # (Memory android-1-1-49-mitnehmen). Inhalt wie iOS 1.1.66 (ohne Google-Login, den hat Android nativ) plus die
     # Web-Neuerungen vom 12.11.; Port-Liste docs/TODO.md. Vor der Einreichung: Wear-Emulator Fall 3+4 (GPS-Luecke).
@@ -991,12 +984,7 @@ IN_REVIEW: list[dict] = [
          "Glides is now its own map colouring next to Carves and shows each glide in the speed colours, so you can see how you slow down.",
      ]},
     # iPhone + Apple Watch 1.1.67 (Build 78) am 17.11. 06:02 eingereicht, am 17.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte im Changelog mit ios 1.1.67.
-    # Amazfit 1.0.16 am 13.11.2026 ~19:00 eingereicht (Jans Meldung, Zepp-Konsole „Under Review").
-    {"name": "Amazfit", "version": "1.0.16",
-     "eingereicht": "2026-11-13",
-     "items": [
-         "A short GPS dropout during a run, for example when your arm dips under water, no longer splits the run in two, and after a fall the run ends at the last GPS position.",
-     ]},
+    # Amazfit 1.0.16 am 13.11. ~19:00 eingereicht, am 20.11. FREIGEGEBEN (s. _APP_META["zepp"]).
     # Huawei Watch 5 1.0.6 am 13.11.2026 ~16:40 eingereicht (Jans Meldung, AppGallery „Under pre-review"). GT/Fit/D (Lite)
     # liess sich in dieser App nicht auswaehlen („Unavailable") -> eigene App noetig, offen.
     # Pumpfoil GT (HUAWEI WATCH GT/Fit/D, Lite, org.pumpfoil.gt, eigene AppGallery-App 6917621717624935972) 1.0.6 am
@@ -1205,7 +1193,7 @@ NAECHSTES: list[dict] = [
     # iPhone + Apple Watch 1.1.62 am 07.11. 01:26 eingereicht -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.64 am 10.11. 11:47 eingereicht -> IN_REVIEW.
     # Huawei Watch 5 1.0.5 am 10.11. eingereicht -> IN_REVIEW.
-    # Amazfit 1.0.17 (code 20) am 15.11.2026 gebaut, 1.0.16 liegt noch im Review. Bei Einreichung -> IN_REVIEW.
+    # Amazfit 1.0.17 (code 20) am 15.11.2026 gebaut; 1.0.16 seit 20.11. freigegeben -> kann eingereicht werden. Bei Einreichung -> IN_REVIEW.
     {"name": "Amazfit", "version": "1.0.17",
      "items": [
          "If the watch loses its GPS position, for example after a fall into the water, the app now restarts positioning on its own instead of waiting, so runs after a fall are recorded again.",
