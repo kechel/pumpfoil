@@ -3150,6 +3150,8 @@ const fi: Record<string, string> = {
   "perf.raster": "Sijoitus päivittäin",
   "perf.platzVon": "sija {platz}/{feld}",
   "perf.legende": "Väri = voitettujen ajajien osuus:",
+  "perf.vorlaeufig": "alustava",
+  "perf.vorlaeufigLegende": "Alustavat tulokset: päivä on vielä kesken — sijoitus ja osallistujat muuttuvat jokaisen uuden session myötä, lasketaan uudelleen 10 minuutin välein.",
   "perf.verlauf": "Päivän keskiarvo (voitettujen osuus)",
   "perf.hinweis": "Sijoitukset perustuvat mitattuihin arvoihin. Tiukat sijat sprinteissä ovat usein kellojen mittatarkkuuden sisällä — pidä niitä pelinä, ei tuomiona.",
   "perf.zuWenig": "Tarvitaan vähintään kaksi sijoituspäivää.",

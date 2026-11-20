@@ -3168,6 +3168,8 @@ const cs: Record<string, string> = {
   "perf.raster": "Umístění po dnech",
   "perf.platzVon": "místo {platz} z {feld}",
   "perf.legende": "Barva = podíl poražených jezdců:",
+  "perf.vorlaeufig": "předběžně",
+  "perf.vorlaeufigLegende": "Předběžné výsledky: dnešek ještě běží — pořadí a počet jezdců se mění s každou novou session, přepočet každých 10 minut.",
   "perf.verlauf": "Denní průměr (podíl poražených jezdců)",
   "perf.hinweis": "Umístění vychází z naměřených hodnot. Těsná místa ve sprintech jsou často v rámci přesnosti hodinek — ber je jako hru, ne jako verdikt.",
   "perf.zuWenig": "Potřebuje aspoň dva hodnocené dny.",

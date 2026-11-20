@@ -2997,6 +2997,8 @@ const es: Record<string, string> = {
   "perf.raster": "Puesto por día",
   "perf.platzVon": "puesto {platz} de {feld}",
   "perf.legende": "Color = parte de riders superados:",
+  "perf.vorlaeufig": "provisional",
+  "perf.vorlaeufigLegende": "Resultados provisionales: hoy sigue en curso — puesto y participantes cambian con cada nueva sesión, se recalcula cada 10 minutos.",
   "perf.verlauf": "Media del día (parte de riders superados)",
   "perf.hinweis": "Los puestos salen de los valores medidos. En los sprints, puestos ajustados suelen estar dentro de la precisión de los relojes: tómalos como un juego, no como un veredicto.",
   "perf.zuWenig": "Hacen falta al menos dos días clasificados.",

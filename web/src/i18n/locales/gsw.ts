@@ -3000,6 +3000,8 @@ const gsw: Record<string, string> = {
   "perf.raster": "Platzierig pro Tag",
   "perf.platzVon": "Platz {platz} vo {feld}",
   "perf.legende": "Farb = Aateil vo de Fahrer, wo du gschlage häsch:",
+  "perf.vorlaeufig": "vorläufig",
+  "perf.vorlaeufigLegende": "Vorläufig: hüt lauft no — Platz und Fäld ändered sich mit jedere neue Session, all 10 Minute neu grächnet.",
   "perf.verlauf": "Tagesschnitt (Aateil gschlageni Fahrer)",
   "perf.hinweis": "D Platzierige chömed us de gmässne Wärt. Knappi Plätz bi de Sprints ligged oft innerhalb vo de Mässgnauigkeit vo de Uhre — nimm sie als Spiel, nöd als Urteil.",
   "perf.zuWenig": "Bruucht mindeschtens zwei gwerteti Täg.",

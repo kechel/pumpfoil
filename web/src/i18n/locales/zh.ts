@@ -3112,6 +3112,8 @@ const zh: Record<string, string> = {
   "perf.raster": "每日名次",
   "perf.platzVon": "{feld} 人中第 {platz} 名",
   "perf.legende": "颜色 = 你超过的骑手比例：",
+  "perf.vorlaeufig": "初步",
+  "perf.vorlaeufigLegende": "初步结果：今天尚未结束——每有新的训练，名次和人数都会变化，每 10 分钟重新计算。",
   "perf.verlauf": "每日平均（超过的骑手比例）",
   "perf.hinweis": "名次来自测量值。冲刺项目中相近的名次常在手表测量精度之内——把它当作游戏，而不是定论。",
   "perf.zuWenig": "至少需要两个计入排名的日子。",

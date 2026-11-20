@@ -123,3 +123,22 @@ def test_saison_punkte(client):
     assert s["jahr"] == 2027 and s["regel"]["platz"][:3] == [25, 20, 16] and s["regel"]["max_tag"] == 101
     if not s["gestartet"]:
         assert s["punkte"] == 0 and s["rang"] is None
+
+
+def test_heute_ist_vorlaeufig(client):
+    """Der laufende Tag (UTC) traegt `vorlaeufig` (Web/Apps hinterlegen ihn gelb), vergangene Tage nicht."""
+    from app.api import community
+    community._PERF_CACHE.clear()
+    k = secrets.token_hex(3)
+    jetzt = datetime.now(timezone.utc).replace(hour=0, minute=5, second=0, microsecond=0)
+    ich, kopf = _konto(client, f"perf-heute-{k}@t.de")
+    andere = [_nutzer(f"perf-h{i}-{k}@t.de") for i in range(5)]
+    for t in (jetzt, jetzt - timedelta(days=1)):
+        _session(ich, t, 5.0, 300.0)
+        for i, uid in enumerate(andere):
+            _session(uid, t, 4.0 + i * 0.1, 100.0 + i)
+    d = client.get("/api/community/performance?sport=pumpfoil", headers=kopf).json()
+    z = {x["tag"]: x for x in d["kategorien"]["sprint_100m"]}
+    assert z[jetzt.date().isoformat()].get("vorlaeufig") is True
+    assert "vorlaeufig" not in z[(jetzt - timedelta(days=1)).date().isoformat()]
+    assert d["aktualisierung_min"] == 10

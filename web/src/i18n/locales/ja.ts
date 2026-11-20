@@ -3111,6 +3111,8 @@ const ja: Record<string, string> = {
   "perf.raster": "日別順位",
   "perf.platzVon": "{feld}人中{platz}位",
   "perf.legende": "色 = 上回ったライダーの割合：",
+  "perf.vorlaeufig": "暫定",
+  "perf.vorlaeufigLegende": "暫定結果：本日はまだ進行中です。新しいセッションごとに順位と参加者数が変わり、10分ごとに再計算されます。",
   "perf.verlauf": "日別平均（上回ったライダーの割合）",
   "perf.hinweis": "順位は計測値に基づきます。スプリントの僅差の順位はウォッチの計測精度の範囲内のことが多いので、判定ではなくゲームとして楽しんでください。",
   "perf.zuWenig": "順位のついた日が2日以上必要です。",

@@ -2998,6 +2998,8 @@ const fr: Record<string, string> = {
   "perf.raster": "Classement par jour",
   "perf.platzVon": "place {platz} sur {feld}",
   "perf.legende": "Couleur = part des riders battus :",
+  "perf.vorlaeufig": "provisoire",
+  "perf.vorlaeufigLegende": "Résultats provisoires : la journée n'est pas finie — place et nombre de riders changent à chaque nouvelle session, recalcul toutes les 10 minutes.",
   "perf.verlauf": "Moyenne du jour (part des riders battus)",
   "perf.hinweis": "Les classements viennent des valeurs mesurées. Dans les sprints, des places serrées sont souvent dans la marge de précision des montres : vois-les comme un jeu, pas un verdict.",
   "perf.zuWenig": "Il faut au moins deux jours classés.",

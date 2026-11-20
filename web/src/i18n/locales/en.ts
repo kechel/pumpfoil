@@ -3220,6 +3220,8 @@ const en: Record<string, string> = {
   "perf.raster": "Placing per day",
   "perf.platzVon": "place {platz} of {feld}",
   "perf.legende": "Colour = share of riders you beat:",
+  "perf.vorlaeufig": "preliminary",
+  "perf.vorlaeufigLegende": "Preliminary results: today is still running — place and field change with every new session, recalculated every 10 minutes.",
   "perf.verlauf": "Daily average (share of riders beaten)",
   "perf.hinweis": "Placings come from the measured values. Close places in the sprints are often within the measuring accuracy of the watches, so take them as a game, not a verdict.",
   "perf.zuWenig": "Needs at least two ranked days.",

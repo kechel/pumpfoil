@@ -3001,6 +3001,8 @@ const deAT: Record<string, string> = {
   "perf.raster": "Platzierung je Tag",
   "perf.platzVon": "Platz {platz} von {feld}",
   "perf.legende": "Farbe = Anteil der Fahrer, die du geschlagen hast:",
+  "perf.vorlaeufig": "vorläufig",
+  "perf.vorlaeufigLegende": "Vorläufig: heute läuft noch — Platz und Feld ändern sich mit jeder neuen Session, alle 10 Minuten neu berechnet.",
   "perf.verlauf": "Tagesschnitt (Anteil geschlagener Fahrer)",
   "perf.hinweis": "Die Platzierungen kommen aus den gemessenen Werten. Knappe Plätze bei den Sprints liegen oft innerhalb der Messgenauigkeit der Uhren — nimm sie als Spiel, nicht als Urteil.",
   "perf.zuWenig": "Braucht mindestens zwei gewertete Tage.",

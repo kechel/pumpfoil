@@ -15,7 +15,9 @@ import { BeatIcon, CalendarCheckIcon, DailyAverageIcon, PlaceLineIcon, PlacingGr
  * 18.11. abends (Jan: „erstmal das was gut und schnell umsetzbar ist"): aus den Entwuerfen des Fahrers Kategorie-Tabelle,
  * Bestleistungen, Platzverlauf je Kategorie, Zeitraum „letzte 25 Tage", aufgeteilt in Uebersicht | Verlauf.
  */
-type Zeile = { tag: string; wert: number; platz: number; feld: number; perzentil: number; session_id: number; run_idx?: number };
+type Zeile = { tag: string; wert: number; platz: number; feld: number; perzentil: number; session_id: number; run_idx?: number;
+  // laufender Tag (UTC): Platz und Feld aendern sich noch, Server rechnet alle ~10 min neu -> gelb hinterlegt
+  vorlaeufig?: boolean };
 // Ziel eines Verweises: direkt der Lauf (?run=), bei Sprints mit eingeschalteter Sprint-Anzeige (&sprint=) — wie die
 // Bestenlisten (Jan 20.11.2026). Tagessumme (foil_time_day) hat keinen Lauf -> nur die Session.
 function zielUrl(k: string, z: { session_id: number; run_idx?: number }): string {
@@ -74,7 +76,12 @@ export function PerformanceBereich() {
     let aus = false;
     setDaten(null); setFehler(null);
     api.performance(sport).then((d) => { if (!aus) setDaten(d); }).catch((e) => { if (!aus) setFehler(String(e)); });
-    return () => { aus = true; };
+    // Der laufende Tag ist vorlaeufig und wird serverseitig alle ~10 min neu gerechnet: offene Seite still nachladen
+    // (nur sichtbar, Fehler beim Nachladen ignorieren — die alten Zahlen bleiben stehen).
+    const iv = window.setInterval(() => {
+      if (document.visibilityState === "visible") api.performance(sport).then((d) => { if (!aus) setDaten(d); }).catch(() => {});
+    }, 5 * 60 * 1000);
+    return () => { aus = true; window.clearInterval(iv); };
   }, [sport]);
 
   const grenze = useMemo(() => {
@@ -319,6 +326,7 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
   const [kat, setKat] = useState<Kat>("sprint_100m");
   const katName = (k: Kat) => t(`perf.kat.${k}`);
   const reihe = [...je[kat]].sort((a, b) => a.tag.localeCompare(b.tag));
+  const vorl = new Set(alle.filter((z) => z.vorlaeufig).map((z) => z.tag));
   return (
     <>
       {/* Platz je Tag in EINER Kategorie: Hoehe = Anteil geschlagener Fahrer (vergleichbar ueber Feldgroessen), die Zahl
@@ -338,6 +346,7 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
         {reihe.length === 0 ? <div className="text-sm text-slate-400">{t("perf.keineTage")}</div> : (
           <PlatzLinie reihe={reihe} kat={kat} />
         )}
+        {reihe.some((z) => z.vorlaeufig) && <VorlHinweis />}
         <p className="mt-1 text-xs text-slate-400">{t("perf.platzverlaufHint")}</p>
       </Card>
 
@@ -345,13 +354,16 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
           den anderen Darstellungen (Hinweis eines Fahrers, 19.11.2026). */}
       <Card className="p-3">
         <div className="mb-2 flex items-center gap-2 font-semibold text-slate-100"><PlacingGridIcon className="h-5 w-5 shrink-0 text-brand-700 dark:text-brand-400" />{t("perf.raster")}</div>
-        <div className="overflow-x-auto">
-          <table className="text-xs">
+        {/* steht beim Oeffnen ganz rechts (neueste Tage, heute): rtl-Rollbereich beginnt von selbst am rechten Ende, auch
+            wenn sich die Breite nach dem ersten Zeichnen noch aendert; die Tabelle selbst bleibt ltr */}
+        <div className="overflow-x-auto" dir="rtl">
+          <table className="text-xs" dir="ltr">
             <thead>
               <tr>
-                <th />
+                <th className="sticky left-0 z-10 bg-slate-900 dark:bg-[#0a1121]" />
                 {[...tage].reverse().map((d) => (
-                  <th key={d} className="px-0.5 pb-1 font-normal text-slate-400" title={d}>{tagKurz(d)}</th>
+                  <th key={d} className={`px-0.5 pb-1 font-normal ${vorl.has(d) ? "rounded-t bg-amber-300/40 text-amber-800 dark:bg-amber-400/25 dark:text-amber-200" : "text-slate-400"}`}
+                    title={vorl.has(d) ? `${d} · ${t("perf.vorlaeufig")}` : d}>{tagKurz(d)}</th>
                 ))}
               </tr>
             </thead>
@@ -360,15 +372,15 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
                 const m = new Map(je[k].map((z) => [z.tag, z]));
                 return (
                   <tr key={k}>
-                    <th className="whitespace-nowrap pr-2 text-left font-medium text-slate-300" title={katName(k)}>
+                    <th className="sticky left-0 z-10 whitespace-nowrap bg-slate-900 pr-2 dark:bg-[#0a1121] text-left font-medium text-slate-300" title={katName(k)}>
                       <span className="flex items-center gap-1.5"><KatIcon k={k} className="h-4 w-4 text-brand-700 dark:text-brand-400" /><span className="hidden sm:inline">{katName(k)}</span></span></th>
                     {[...tage].reverse().map((d) => {
                       const z = m.get(d);
                       return (
-                        <td key={d} className="p-0.5">
+                        <td key={d} className={`p-0.5 ${vorl.has(d) ? "bg-amber-300/40 dark:bg-amber-400/25" : ""}`}>
                           {z ? (
                             <Link to={zielUrl(k, z)}
-                              title={`${d} · ${t("perf.platzVon", { platz: z.platz, feld: z.feld })} · ${wertText(k, z.wert)}`}
+                              title={`${d} · ${t("perf.platzVon", { platz: z.platz, feld: z.feld })} · ${wertText(k, z.wert)}${z.vorlaeufig ? ` · ${t("perf.vorlaeufig")}` : ""}`}
                               className="flex h-7 w-8 items-center justify-center rounded font-semibold tabular-nums text-slate-50"
                               style={{ background: zellFarbe(z.perzentil) }}>
                               {z.platz}
@@ -391,12 +403,14 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
             </span>
           ))}
         </div>
+        {vorl.size > 0 && <VorlHinweis />}
       </Card>
 
       {/* Ø Perzentil je Tag ueber alle Kategorien */}
       <Card className="p-3">
         <div className="mb-2 flex items-center gap-2 font-semibold text-slate-100"><DailyAverageIcon className="h-5 w-5 shrink-0 text-brand-700 dark:text-brand-400" />{t("perf.verlauf")}</div>
-        <Verlauf punkte={[...tage].reverse().map((d) => ({ tag: d, perz: schnitt(alle.filter((x) => x.tag === d).map((x) => x.perzentil)) }))} />
+        <Verlauf punkte={[...tage].reverse().map((d) => ({ tag: d, perz: schnitt(alle.filter((x) => x.tag === d).map((x) => x.perzentil)), vorl: vorl.has(d) }))} />
+        {vorl.size > 0 && <VorlHinweis />}
       </Card>
     </>
   );
@@ -440,6 +454,7 @@ function PlatzLinie({ reihe, kat }: { reihe: Zeile[]; kat: string }) {
           <text x={L - 4} y={y(p) + 4} textAnchor="end" className="fill-slate-400" fontSize={11}>{p}%</text>
         </g>
       ))}
+      {reihe.map((z, i) => z.vorlaeufig && <rect key={`v${z.tag}`} x={x(i) - 9} y={y(100)} width={18} height={y(0) - y(100)} rx={3} className="fill-amber-300/50 dark:fill-amber-400/25" />)}
       {n > 1 && <polyline fill="none" stroke="#22d3ee" strokeWidth={2} points={reihe.map((z, i) => `${x(i)},${y(z.perzentil)}`).join(" ")} />}
       {reihe.map((z, i) => (
         <g key={z.tag}>
@@ -447,7 +462,7 @@ function PlatzLinie({ reihe, kat }: { reihe: Zeile[]; kat: string }) {
           <circle cx={x(i)} cy={y(z.perzentil)} r={11} fill="transparent" className="cursor-pointer" onClick={() => nav(zielUrl(kat, z))}>
             <title>{`${z.tag} · ${t("perf.platzVon", { platz: z.platz, feld: z.feld })}`}</title>
           </circle>
-          <circle cx={x(i)} cy={y(z.perzentil)} r={4} fill="#22d3ee" className="pointer-events-none">
+          <circle cx={x(i)} cy={y(z.perzentil)} r={4} fill={z.vorlaeufig ? "#f59e0b" : "#22d3ee"} className="pointer-events-none">
             <title>{`${z.tag} · ${t("perf.platzVon", { platz: z.platz, feld: z.feld })} · ${Math.round(z.perzentil)} %`}</title>
           </circle>
           {i % nurZahlenJeder === 0 && (
@@ -461,7 +476,17 @@ function PlatzLinie({ reihe, kat }: { reihe: Zeile[]; kat: string }) {
   );
 }
 
-function Verlauf({ punkte }: { punkte: { tag: string; perz: number }[] }) {
+// Legende fuer den gelb hinterlegten laufenden Tag (Jan 20.11.2026: „drunter in der Legende … Preliminary Results")
+function VorlHinweis() {
+  const t = useT();
+  return (
+    <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
+      <span className="inline-block h-3 w-5 shrink-0 rounded bg-amber-300/60 dark:bg-amber-400/40" />{t("perf.vorlaeufigLegende")}
+    </div>
+  );
+}
+
+function Verlauf({ punkte }: { punkte: { tag: string; perz: number; vorl?: boolean }[] }) {
   const t = useT();
   const H2 = 160, O2 = 8;
   const [ref, B] = useViewBreite(H2, 176);  // h-44
@@ -476,9 +501,10 @@ function Verlauf({ punkte }: { punkte: { tag: string; perz: number }[] }) {
           <text x={L - 4} y={y(p) + 4} textAnchor="end" className="fill-slate-400" fontSize={11}>{p}%</text>
         </g>
       ))}
+      {punkte.map((p, i) => p.vorl && <rect key={`v${p.tag}`} x={x(i) - 9} y={y(100)} width={18} height={y(0) - y(100)} rx={3} className="fill-amber-300/50 dark:fill-amber-400/25" />)}
       <polyline fill="none" stroke="#22d3ee" strokeWidth={2} points={punkte.map((p, i) => `${x(i)},${y(p.perz)}`).join(" ")} />
       {punkte.map((p, i) => (
-        <circle key={p.tag} cx={x(i)} cy={y(p.perz)} r={4} fill="#22d3ee">
+        <circle key={p.tag} cx={x(i)} cy={y(p.perz)} r={4} fill={p.vorl ? "#f59e0b" : "#22d3ee"}>
           <title>{`${p.tag} · ${Math.round(p.perz)} %`}</title>
         </circle>
       ))}

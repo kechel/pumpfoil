@@ -3115,6 +3115,8 @@ const id: Record<string, string> = {
   "perf.raster": "Peringkat per hari",
   "perf.platzVon": "posisi {platz} dari {feld}",
   "perf.legende": "Warna = bagian rider yang kamu kalahkan:",
+  "perf.vorlaeufig": "sementara",
+  "perf.vorlaeufigLegende": "Hasil sementara: hari ini masih berjalan — peringkat dan jumlah rider berubah dengan setiap sesi baru, dihitung ulang setiap 10 menit.",
   "perf.verlauf": "Rata-rata harian (bagian rider dikalahkan)",
   "perf.hinweis": "Peringkat berasal dari nilai yang diukur. Posisi yang tipis di sprint sering masih dalam akurasi jam tangan — anggap sebagai permainan, bukan vonis.",
   "perf.zuWenig": "Perlu minimal dua hari yang dinilai.",

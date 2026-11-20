@@ -3169,6 +3169,8 @@ const nl: Record<string, string> = {
   "perf.raster": "Klassering per dag",
   "perf.platzVon": "plaats {platz} van {feld}",
   "perf.legende": "Kleur = deel van de riders dat je verslaat:",
+  "perf.vorlaeufig": "voorlopig",
+  "perf.vorlaeufigLegende": "Voorlopige uitslag: vandaag loopt nog — plaats en deelnemers veranderen met elke nieuwe sessie, elke 10 minuten opnieuw berekend.",
   "perf.verlauf": "Daggemiddelde (deel verslagen riders)",
   "perf.hinweis": "Klasseringen komen uit de gemeten waarden. Nipte plaatsen bij de sprints liggen vaak binnen de meetnauwkeurigheid van de horloges — zie het als spel, niet als oordeel.",
   "perf.zuWenig": "Minstens twee geklasseerde dagen nodig.",

@@ -3094,6 +3094,8 @@ const pl: Record<string, string> = {
   "perf.raster": "Miejsce w każdym dniu",
   "perf.platzVon": "miejsce {platz} z {feld}",
   "perf.legende": "Kolor = odsetek pokonanych zawodników:",
+  "perf.vorlaeufig": "wstępnie",
+  "perf.vorlaeufigLegende": "Wyniki wstępne: dzisiejszy dzień trwa — miejsce i liczba zawodników zmieniają się z każdą nową sesją, przeliczane co 10 minut.",
   "perf.verlauf": "Średnia dnia (odsetek pokonanych)",
   "perf.hinweis": "Miejsca wynikają ze zmierzonych wartości. Bliskie miejsca w sprintach często mieszczą się w dokładności pomiaru zegarków — traktuj je jak zabawę, nie werdykt.",
   "perf.zuWenig": "Potrzeba co najmniej dwóch sklasyfikowanych dni.",

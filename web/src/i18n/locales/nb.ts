@@ -3086,6 +3086,8 @@ const nb: Record<string, string> = {
   "perf.raster": "Plassering per dag",
   "perf.platzVon": "plass {platz} av {feld}",
   "perf.legende": "Farge = andel utøvere du slo:",
+  "perf.vorlaeufig": "foreløpig",
+  "perf.vorlaeufigLegende": "Foreløpige resultater: dagen er ikke over — plassering og antall utøvere endres med hver nye økt, beregnes på nytt hvert 10. minutt.",
   "perf.verlauf": "Dagssnitt (andel slåtte utøvere)",
   "perf.hinweis": "Plasseringene kommer fra målte verdier. Jevne plasser i sprintene ligger ofte innenfor klokkenes målenøyaktighet — ta dem som en lek, ikke en dom.",
   "perf.zuWenig": "Trenger minst to rangerte dager.",

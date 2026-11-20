@@ -3109,6 +3109,8 @@ const ptPT: Record<string, string> = {
   "perf.raster": "Classificação por dia",
   "perf.platzVon": "lugar {platz} de {feld}",
   "perf.legende": "Cor = parte dos riders superados:",
+  "perf.vorlaeufig": "provisório",
+  "perf.vorlaeufigLegende": "Resultados provisórios: hoje ainda está a decorrer — posição e participantes mudam a cada nova sessão, recalculado a cada 10 minutos.",
   "perf.verlauf": "Média do dia (parte dos riders superados)",
   "perf.hinweis": "As classificações vêm dos valores medidos. Lugares renhidos nos sprints estão muitas vezes dentro da precisão dos relógios — vê-os como um jogo, não como um veredito.",
   "perf.zuWenig": "São precisos pelo menos dois dias classificados.",

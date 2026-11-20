@@ -3927,7 +3927,8 @@ def performance(
     if sport not in PERF_SPORTARTEN:
         sport = "pumpfoil"
     tag = func.date(func.timezone("UTC", S.started_at))
-    out: dict = {"sport": sport, "min_feld": PERF_MIN_FELD, "ab": PERF_AB.date().isoformat(), "kategorien": {}}
+    out: dict = {"sport": sport, "min_feld": PERF_MIN_FELD, "ab": PERF_AB.date().isoformat(), "kategorien": {},
+                 "aktualisierung_min": _PERF_TTL_S // 60}
     for kat, col in _perf_kategorien().items():
         alle = _perf_tageswerte(db, sport, kat, col)
         # Eigene Session je Tag mit dem besten Wert (zum Hinspringen). Ohne viewer-Ausnahme fiele ein verstecktes Konto
@@ -3945,6 +3946,7 @@ def performance(
         if kat in _PERF_SUMME:
             eigene = {k: (sid, summe[k]) for k, (sid, _v) in eigene.items()}
         zeilen = []
+        heute = datetime.now(timezone.utc).date().isoformat()
         for k, (sid, v) in eigene.items():
             werte = dict(alle.get(k, {}))
             werte[user.id] = max(v, werte.get(user.id, 0.0))
@@ -3956,6 +3958,10 @@ def performance(
             schlechter = sum(1 for x in werte.values() if x < mein)
             zeilen.append({"tag": k, "wert": round(mein, 3), "platz": platz, "feld": feld,
                            "perzentil": round(100.0 * schlechter / max(feld - 1, 1), 1), "session_id": sid})
+            if k >= heute:
+                # Der laufende Tag (UTC) ist vorlaeufig: neue Uploads verschieben Platz und Feld noch, neu gerechnet alle
+                # _PERF_TTL_S (Jan 20.11.2026: „aktuellen Tag … alle 10 Minuten … gelb hinterlegen … Preliminary").
+                zeilen[-1]["vorlaeufig"] = True
         zeilen.sort(key=lambda z: z["tag"], reverse=True)
         # Einzel-Lauf-Kategorien verweisen direkt auf den Lauf (`run_idx`, wie die Bestenlisten; Jan 20.11.2026) —
         # die Tagessumme (foil_time_day) nicht, die ist kein einzelner Lauf.
