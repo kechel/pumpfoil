@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type React from "react";
 import { ChevronIcon } from "./Icons";
 import { useSearchParams } from "react-router-dom";
 
@@ -84,14 +85,16 @@ export function useWischleiste(aktiv: string, anzahl: number) {
  * darunter, damit man sieht, was zusammengehoert (Jan, 02.11.2026). `stufe={2}` ist diese zweite Zeile selbst:
  * gleiche Schriftgroesse, als Flaeche direkt unter der ersten. Ueberall identisch.
  */
-export function Reiterleiste({ reiter, aktiv, onWahl, className = "", unter = false, stufe = 1 }:
-  { reiter: ReiterDef[]; aktiv: string; onWahl: (id: string) => void; className?: string; unter?: boolean; stufe?: 1 | 2 }) {
+export function Reiterleiste({ reiter, aktiv, onWahl, className = "", unter = false, stufe = 1, rechts }:
+  { reiter: ReiterDef[]; aktiv: string; onWahl: (id: string) => void; className?: string; unter?: boolean; stufe?: 1 | 2;
+    /** nur Stufe 2: Bedienelemente rechts in derselben Leiste (z. B. Filter; Jan 20.11.2026), brechen schmal um */
+    rechts?: React.ReactNode }) {
   const { leiste, rand, pfeil } = useWischleiste(aktiv, reiter.length);
   if (stufe === 2) {
     return (
-      <div className={`relative -mt-4 mb-6 ${className}`}>
+      <div className={`relative -mt-4 mb-6 ${rechts ? "flex flex-wrap items-center gap-2 rounded-b-xl bg-slate-800/70 p-1.5" : ""} ${className}`}>
         <div ref={leiste} role="tablist"
-          className="flex gap-1 overflow-x-auto rounded-b-xl bg-slate-800/70 p-1.5 [scrollbar-width:none]">
+          className={`flex gap-1 overflow-x-auto [scrollbar-width:none] ${rechts ? "min-w-0" : "rounded-b-xl bg-slate-800/70 p-1.5"}`}>
           {reiter.map((r) => (
             <button key={r.id} role="tab" aria-selected={r.id === aktiv} onClick={() => onWahl(r.id)}
               className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm ${
@@ -100,6 +103,7 @@ export function Reiterleiste({ reiter, aktiv, onWahl, className = "", unter = fa
             </button>
           ))}
         </div>
+        {rechts && <div className="ml-auto flex flex-wrap items-center gap-2">{rechts}</div>}
         {rand.links && pfeil(-1)}
         {rand.rechts && pfeil(1)}
       </div>

@@ -89,13 +89,12 @@ export function PerformanceBereich() {
 
   return (
     <div>
-      <Reiterleiste reiter={reiter} aktiv={sub} onWahl={setSub} stufe={2} />
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
+      {/* Sportart + Zeitraum rechts in der Reiterleiste (Jan 20.11.2026: „sportarten & zeitraum mit in die tab-zeile") */}
+      <Reiterleiste reiter={reiter} aktiv={sub} onWahl={setSub} stufe={2} rechts={<>
           {/* Foil Scoot nur zusammen mit Pumpfoil — allein zu wenige Fahrer fuer ein Feld (Jan 18.11.2026). */}
           {(["pumpfoil", "pumpfoil+foil_scoot"] as const).map((s) => (
             <button key={s} type="button" onClick={() => setSport(s)} aria-pressed={sport === s}
-              className={`rounded-lg px-3 py-1.5 text-sm ${sport === s ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300 hover:text-slate-100"}`}>
+              className={`rounded-lg px-3 py-1.5 text-sm ${sport === s ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-950/60 text-slate-300 hover:text-slate-100"}`}>
               {sportLabel(s, t)}
             </button>
           ))}
@@ -105,12 +104,9 @@ export function PerformanceBereich() {
             <option value="30">{t("perf.tage30")}</option>
             <option value="25">{t("perf.letzte25")}</option>
           </select>
-          {/* Saison rechts in derselben Zeile (Jan 20.11.2026: „das kann alles in eine zeile") */}
-        </div>
+      </>} />
+      <div className="space-y-4">
 
-        {/* Saison kompakt, farblich abgesetzt, rechtsbuendig in der Zeile unter den Knoepfen (Jan 20.11.2026: „muss doch
-            nicht ueber die ganze breite … farblich abgehoben etwas und in die zeile drunter rechtsbuendig"); die Einleitung
-            steht klein ganz unten („den hinweis weg oder ganz nach unten"). */}
 
 
         {fehler ? <Card className="p-4 text-sm text-red-700 dark:text-red-400">{fehler}</Card> : !daten ? <Spinner /> : alle.length === 0 ? (
