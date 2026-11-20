@@ -984,6 +984,13 @@ IN_REVIEW: list[dict] = [
          "Glides is now its own map colouring next to Carves and shows each glide in the speed colours, so you can see how you slow down.",
      ]},
     # iPhone + Apple Watch 1.1.67 (Build 78) am 17.11. 06:02 eingereicht, am 17.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte im Changelog mit ios 1.1.67.
+    # Amazfit 1.0.17 (code 20) am 20.11.2026 eingereicht (Jans Meldung, Zepp-Konsole „Under Review (Can be Withdrawn)",
+    # 86 Geraete-Eintraege). Paket aus 1ec78e9a, mit neuer zeus-cli gebaut; Simulator-Session 22612 vollstaendig.
+    {"name": "Amazfit", "version": "1.0.17",
+     "eingereicht": "2026-11-20",
+     "items": [
+         "If the watch loses its GPS position, for example after a fall into the water, the app now restarts positioning on its own instead of waiting, so runs after a fall are recorded again.",
+     ]},
     # Amazfit 1.0.16 am 13.11. ~19:00 eingereicht, am 20.11. FREIGEGEBEN (s. _APP_META["zepp"]).
     # Huawei Watch 5 1.0.6 am 13.11.2026 ~16:40 eingereicht (Jans Meldung, AppGallery „Under pre-review"). GT/Fit/D (Lite)
     # liess sich in dieser App nicht auswaehlen („Unavailable") -> eigene App noetig, offen.
@@ -1193,11 +1200,7 @@ NAECHSTES: list[dict] = [
     # iPhone + Apple Watch 1.1.62 am 07.11. 01:26 eingereicht -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.64 am 10.11. 11:47 eingereicht -> IN_REVIEW.
     # Huawei Watch 5 1.0.5 am 10.11. eingereicht -> IN_REVIEW.
-    # Amazfit 1.0.17 (code 20) am 15.11.2026 gebaut; 1.0.16 seit 20.11. freigegeben -> kann eingereicht werden. Bei Einreichung -> IN_REVIEW.
-    {"name": "Amazfit", "version": "1.0.17",
-     "items": [
-         "If the watch loses its GPS position, for example after a fall into the water, the app now restarts positioning on its own instead of waiting, so runs after a fall are recorded again.",
-     ]},
+    # Amazfit 1.0.17 am 20.11. eingereicht -> IN_REVIEW.
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
      "items": [
