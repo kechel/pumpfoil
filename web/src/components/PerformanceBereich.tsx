@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useT } from "../i18n";
 import { Card, InfoDialog, InfoKnopf, Spinner } from "./ui";
@@ -106,7 +106,6 @@ export function PerformanceBereich() {
             <option value="25">{t("perf.letzte25")}</option>
           </select>
           {/* Saison rechts in derselben Zeile (Jan 20.11.2026: „das kann alles in eine zeile") */}
-          {daten?.saison && <div className="ml-auto"><SaisonKarte s={daten.saison} /></div>}
         </div>
 
         {/* Saison kompakt, farblich abgesetzt, rechtsbuendig in der Zeile unter den Knoepfen (Jan 20.11.2026: „muss doch
@@ -119,7 +118,7 @@ export function PerformanceBereich() {
         ) : sub === "verlauf" ? (
           <VerlaufTab je={je} alle={alle} tage={tage} />
         ) : (
-          <UebersichtTab je={je} alle={alle} tage={tage} />
+          <UebersichtTab je={je} alle={alle} tage={tage} saison={daten?.saison} />
         )}
         <p className="text-xs text-slate-400">{t("perf.intro", { n: daten?.min_feld ?? 5 })}</p>
       </div>
@@ -140,14 +139,13 @@ function SaisonKarte({ s }: { s: Saison }) {
     : t("perf.saison.nochKeine");
   return (
     <>
-      {/* Aufbau wie die Kennzahl-Kacheln: Pokal links, Punkte gleich gross, „Season 2027" als Label darunter; der
-          Status (startet am …, Rang) steht im (i)-Fenster (Jan 20.11.2026). */}
-      <div className="relative rounded-xl border border-brand-500/40 bg-brand-500/10 py-2 pl-3 pr-8 sm:whitespace-nowrap">
+      {/* Sechste Kennzahl-Kachel (Jan 20.11.2026: „mach die gesamtpunkte doch in die zeile drunter"): Pokal links,
+          Punkte mittig, „Season 2027" als Label; Status (startet am …, Rang) und Regeln im (i)-Fenster. */}
+      <div className="relative rounded-xl border border-brand-500/40 bg-brand-500/10 p-3">
         <InfoKnopf label={t("perf.saisonTitel")} onClick={() => setOffen(true)} />
         <div className="flex items-center gap-2">
           <SeasonCupIcon className="h-7 w-7 shrink-0 text-brand-700 dark:text-brand-400" />
-          <span className="text-2xl font-bold tabular-nums text-slate-100">{s.punkte}</span>
-          <span className="text-xs text-slate-400">{t("perf.saison.punkte")}</span>
+          <span className="flex-1 text-center text-2xl font-bold tabular-nums text-slate-100">{s.punkte}</span>
         </div>
         <div className="mt-1 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">{t("perf.saisonTitel")}</div>
       </div>
@@ -177,14 +175,14 @@ function SaisonKarte({ s }: { s: Saison }) {
   );
 }
 
-function UebersichtTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[]; tage: string[] }) {
+function UebersichtTab({ je, alle, tage, saison }: { je: Record<Kat, Zeile[]>; alle: Zeile[]; tage: string[]; saison?: Saison | null }) {
   const t = useT();
   const quote = (n: number) => (alle.length ? `${Math.round((100 * n) / alle.length)} %` : "–");
   const katName = (k: Kat) => t(`perf.kat.${k}`);
   return (
     <>
       {/* Kennzahlen */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {([
           [t("perf.tage"), String(tage.length), CalendarCheckIcon],
           [t("perf.besserAls"), `${Math.round(schnitt(alle.map((z) => z.perzentil)))} %`, BeatIcon],
@@ -201,6 +199,7 @@ function UebersichtTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zei
             <div className="mt-1 text-xs text-slate-400">{l}</div>
           </Card>
         ))}
+        {saison && <SaisonKarte s={saison} />}
       </div>
 
       {/* Kategorie-Tabelle: Ø Platz immer mit Ø Feld, sonst sagt die Zahl nichts */}
@@ -227,9 +226,19 @@ function UebersichtTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zei
                   <td className="whitespace-nowrap px-2 py-1.5 text-right tabular-nums">{z.length
                     ? t("perf.schnittVon", { platz: schnitt(z.map((x) => x.platz)).toFixed(1), feld: Math.round(schnitt(z.map((x) => x.feld))) })
                     : "–"}</td>
-                  <td className="px-2 py-1.5 text-right tabular-nums">{z.length ? Math.min(...z.map((x) => x.platz)) : "–"}</td>
+                  {/* bester Platz = ein einzelner Tag/Lauf -> direkt zur Session (Jan 20.11.2026); bei Gleichstand der neueste */}
+                  <td className="px-2 py-1.5 text-right tabular-nums">{z.length ? (() => {
+                    const b = z.reduce((a, x) => (x.platz < a.platz || (x.platz === a.platz && x.tag > a.tag) ? x : a));
+                    return <Link to={`/sessions/${b.session_id}`} title={b.tag} className="font-semibold text-brand-700 hover:underline dark:text-brand-300">{b.platz}</Link>;
+                  })() : "–"}</td>
                   <td className="px-2 py-1.5 text-right tabular-nums">{z.length ? `${Math.round((100 * z.filter((x) => x.platz <= 3).length) / z.length)} %` : "–"}</td>
-                  <td className="px-2 py-1.5 text-right tabular-nums">{z.length ? z.filter((x) => x.platz === 1).length : "–"}</td>
+                  {/* genau ein Sieg = ein Lauf -> verlinkt */}
+                  <td className="px-2 py-1.5 text-right tabular-nums">{z.length ? (() => {
+                    const s1 = z.filter((x) => x.platz === 1);
+                    return s1.length === 1
+                      ? <Link to={`/sessions/${s1[0].session_id}`} title={s1[0].tag} className="font-semibold text-brand-700 hover:underline dark:text-brand-300">1</Link>
+                      : s1.length;
+                  })() : "–"}</td>
                 </tr>
               );
             })}
@@ -406,6 +415,7 @@ function useViewBreite(hoeheEinheiten: number, hoehePx: number) {
 
 function PlatzLinie({ reihe }: { reihe: Zeile[] }) {
   const t = useT();
+  const nav = useNavigate();
   const [ref, B] = useViewBreite(H, 192);   // h-48
   const n = reihe.length;
   const x = (i: number) => (n === 1 ? (L + B - R) / 2 : L + ((B - L - R) * i) / (n - 1));
@@ -425,7 +435,11 @@ function PlatzLinie({ reihe }: { reihe: Zeile[] }) {
       {n > 1 && <polyline fill="none" stroke="#22d3ee" strokeWidth={2} points={reihe.map((z, i) => `${x(i)},${y(z.perzentil)}`).join(" ")} />}
       {reihe.map((z, i) => (
         <g key={z.tag}>
-          <circle cx={x(i)} cy={y(z.perzentil)} r={4} fill="#22d3ee">
+          {/* jeder Punkt = ein Tag, eine Session -> antippen fuehrt hin (Jan 20.11.2026); grosse Trefferflaeche */}
+          <circle cx={x(i)} cy={y(z.perzentil)} r={11} fill="transparent" className="cursor-pointer" onClick={() => nav(`/sessions/${z.session_id}`)}>
+            <title>{`${z.tag} · ${t("perf.platzVon", { platz: z.platz, feld: z.feld })}`}</title>
+          </circle>
+          <circle cx={x(i)} cy={y(z.perzentil)} r={4} fill="#22d3ee" className="pointer-events-none">
             <title>{`${z.tag} · ${t("perf.platzVon", { platz: z.platz, feld: z.feld })} · ${Math.round(z.perzentil)} %`}</title>
           </circle>
           {i % nurZahlenJeder === 0 && (
