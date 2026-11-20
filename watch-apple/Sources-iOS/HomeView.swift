@@ -1037,7 +1037,11 @@ struct PerfZeile: Codable {
     let perzentil: Double
     let session_id: Int
     let run_idx: Int?      // Lauf in der Session (Server seit 20.11.2026, nur Einzel-Lauf-Kategorien) -> direkt dorthin
+    let vorlaeufig: Bool?  // laufender Tag (UTC): noch vorlaeufig, Server rechnet alle ~10 min neu -> gelb hinterlegt
 }
+
+let perfVorlGelb = Color(red: 0.99, green: 0.83, blue: 0.30)   // Hinterlegung des laufenden Tags (Web amber-300)
+let perfVorlPunkt = Color(red: 0.96, green: 0.62, blue: 0.04)  // Punkt des laufenden Tags (Web amber-500)
 
 struct PerfRegel: Codable {
     let platz: [Int]
@@ -1151,7 +1155,23 @@ struct PerformanceBereich: View {
                 .font(.caption).foregroundStyle(.secondary)
         }
         .navigationDestination(isPresented: $linienOffen) { if let z = linienZiel { perfZiel(kat, z) } }
-        .task(id: sport) { await laden() }
+        .task(id: sport) {
+            await laden()
+            // Der laufende Tag ist vorlaeufig (Server rechnet alle ~10 min neu): solange offen, alle 5 min still nachladen
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 300 * 1_000_000_000)
+                if Task.isCancelled { break }
+                if let neu = try? await Api.performance(sport: sport) { daten = neu }
+            }
+        }
+    }
+
+    // Legende fuer den gelb hinterlegten laufenden Tag (wie Web, Jan 20.11.2026: „Preliminary Results")
+    private var vorlHinweis: some View {
+        HStack(spacing: 6) {
+            RoundedRectangle(cornerRadius: 3).fill(perfVorlGelb.opacity(0.6)).frame(width: 18, height: 10)
+            Text(Loc.t("perf.vorlaeufigLegende", lang)).font(.caption2).foregroundStyle(.secondary)
+        }
     }
 
     // Saison mit Punkten (wie Web, Jan 20.11.2026): kompakt rechtsbuendig, (i) zeigt Punktetabelle und Regeln.
@@ -1342,6 +1362,7 @@ struct PerformanceBereich: View {
             } else {
                 // Punkt antippen -> Lauf dieses Tages (Web 20.11.2026)
                 PerfLinie(punkte: reihe.map { $0.perzentil }, baender: true, zahlen: reihe.map { String($0.platz) },
+                          vorl: reihe.map { $0.vorlaeufig == true },
                           antippen: { i in linienZiel = reihe[i]; linienOffen = true }).frame(height: 150).padding(.top, 10)
                 HStack {
                     Text(reihe.first?.tag ?? "").font(.caption2).foregroundStyle(.secondary)
@@ -1349,6 +1370,7 @@ struct PerformanceBereich: View {
                     Text(reihe.last?.tag ?? "").font(.caption2).foregroundStyle(.secondary)
                 }
             }
+            if reihe.contains(where: { $0.vorlaeufig == true }) { vorlHinweis }
             Text(Loc.t("perf.platzverlaufHint", lang)).font(.caption).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading).padding(12)
@@ -1434,11 +1456,16 @@ struct PerformanceBereich: View {
                         }.frame(width: 100, height: 28, alignment: .leading)
                     }
                 }
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 4) {
-                        // Zeit von links nach rechts wie in den anderen Darstellungen (Hinweis eines Fahrers, 19.11.2026)
-                        ForEach(tage.reversed(), id: \.self) { t in rasterSpalte(t) }
+                ScrollViewReader { roll in
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 4) {
+                            // Zeit von links nach rechts wie in den anderen Darstellungen (Hinweis eines Fahrers, 19.11.2026)
+                            ForEach(tage.reversed(), id: \.self) { t in rasterSpalte(t).id(t) }
+                        }
                     }
+                    // beim Oeffnen ganz rechts (neueste Tage, heute) — wie Web
+                    .onAppear { if let t = tage.first { roll.scrollTo(t, anchor: .trailing) } }
+                    .onChange(of: tage.first) { _ in if let t = tage.first { roll.scrollTo(t, anchor: .trailing) } }
                 }
             }
             HStack(spacing: 6) {
@@ -1448,16 +1475,23 @@ struct PerformanceBereich: View {
                     Text("\(p) %").font(.caption2).foregroundStyle(.secondary)
                 }
             }
+            if alle.contains(where: { $0.vorlaeufig == true }) { vorlHinweis }
         }
         .frame(maxWidth: .infinity, alignment: .leading).padding(12)
         .background(Color(.secondarySystemBackground)).clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
+    private func istVorl(_ t: String) -> Bool { alle.contains { $0.tag == t && $0.vorlaeufig == true } }
+
     private func rasterSpalte(_ t: String) -> some View {
-        VStack(spacing: 4) {
+        let vorl: Bool = istVorl(t)
+        return VStack(spacing: 4) {
             Text(tagKurz(t)).font(.caption2).foregroundStyle(.secondary)
             ForEach(perfKats, id: \.self) { k in rasterZelle(k, je(k).first { $0.tag == t }) }
         }
+        .padding(2)
+        .background(vorl ? perfVorlGelb.opacity(0.35) : Color.clear)
+        .clipShape(RoundedRectangle(cornerRadius: 4))
     }
 
     @ViewBuilder private func rasterZelle(_ k: String, _ z: PerfZeile?) -> some View {
@@ -1486,12 +1520,13 @@ struct PerformanceBereich: View {
             if punkte.count < 2 {
                 Text(Loc.t("perf.zuWenig", lang)).font(.caption).foregroundStyle(.secondary)
             } else {
-                PerfLinie(punkte: punkte).frame(height: 130)
+                PerfLinie(punkte: punkte, vorl: tage.reversed().map { istVorl($0) }).frame(height: 130)
                 HStack {
                     Text(tage.last ?? "").font(.caption2).foregroundStyle(.secondary)
                     Spacer()
                     Text(tage.first ?? "").font(.caption2).foregroundStyle(.secondary)
                 }
+                if tage.contains(where: { istVorl($0) }) { vorlHinweis }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading).padding(12)
@@ -1503,6 +1538,7 @@ private struct PerfLinie: View {
     let punkte: [Double]
     var baender: Bool = false        // ab 80 % / 50 % geschlagener Fahrer hinterlegt
     var zahlen: [String]? = nil      // Platz ueber jedem Punkt (bei vielen Punkten nur jeder n-te)
+    var vorl: [Bool] = []            // je Punkt: laufender Tag -> gelb hinterlegt, Punkt orange
     var antippen: ((Int) -> Void)? = nil   // naechster Punkt zur Tippstelle
     private func px(_ i: Int, _ w: CGFloat) -> CGFloat { punkte.count == 1 ? w / 2 : w * CGFloat(i) / CGFloat(punkte.count - 1) }
     private func py(_ p: Double, _ h: CGFloat) -> CGFloat { h * CGFloat((100 - p) / 100) }
@@ -1517,6 +1553,12 @@ private struct PerfLinie: View {
                     Rectangle().fill(Color.green.opacity(0.15)).frame(width: w, height: py(80, h)).position(x: w / 2, y: py(80, h) / 2)
                     Rectangle().fill(Color.orange.opacity(0.10)).frame(width: w, height: py(50, h) - py(80, h))
                         .position(x: w / 2, y: (py(50, h) + py(80, h)) / 2)
+                }
+                ForEach(0..<n, id: \.self) { i in
+                    if i < vorl.count && vorl[i] {
+                        RoundedRectangle(cornerRadius: 3).fill(perfVorlGelb.opacity(0.35)).frame(width: 18, height: h)
+                            .position(x: px(i, w), y: h / 2)
+                    }
                 }
                 if let zahlen {
                     ForEach(Array(zahlen.enumerated()), id: \.offset) { e in
@@ -1539,7 +1581,7 @@ private struct PerfLinie: View {
                     }
                 }.stroke(perfCyan, lineWidth: 2)
                 ForEach(0..<n, id: \.self) { i in
-                    Circle().fill(perfCyan).frame(width: 7, height: 7)
+                    Circle().fill(i < vorl.count && vorl[i] ? perfVorlPunkt : perfCyan).frame(width: 7, height: 7)
                         .position(x: px(i, w), y: py(punkte[i], h))
                 }
             }

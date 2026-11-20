@@ -44,6 +44,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import kotlinx.coroutines.delay
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,7 +67,9 @@ import java.time.LocalDate
 data class PerfZeile(val tag: String, val wert: Double, val platz: Int, val feld: Int, val perzentil: Double,
                      @SerialName("session_id") val sessionId: Int,
                      // Lauf in der Session (Server seit 20.11.2026, nur Einzel-Lauf-Kategorien) -> direkt dorthin
-                     @SerialName("run_idx") val runIdx: Int? = null)
+                     @SerialName("run_idx") val runIdx: Int? = null,
+                     // laufender Tag (UTC): noch vorlaeufig, Server rechnet alle ~10 min neu -> gelb hinterlegt (20.11.2026)
+                     val vorlaeufig: Boolean = false)
 
 @Serializable
 data class PerfRegel(val platz: List<Int> = emptyList(), val mitmachen: Int = 1, @SerialName("min_feld") val minFeld: Int = 5,
@@ -85,6 +90,17 @@ private val KATS = listOf("sprint_100m", "sprint_60s", "run_distance", "foil_tim
 private val PerfCyan = Color(0xFF22D3EE)   // Markenfarbe (brand-design)
 private val BandGruen = Color(0xFF10B981)
 private val BandGelb = Color(0xFFF59E0B)
+private val VorlGelb = Color(0xFFFCD34D)   // Hinterlegung des laufenden (vorlaeufigen) Tags, wie Web amber-300
+
+/** Legende fuer den gelb hinterlegten laufenden Tag (wie Web, Jan 20.11.2026: „Preliminary Results"). */
+@Composable
+private fun VorlHinweis() {
+    Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(width = 18.dp, height = 10.dp).clip(RoundedCornerShape(3.dp)).background(VorlGelb.copy(alpha = 0.6f)))
+        Spacer(Modifier.width(6.dp))
+        Text(I18n.t("perf.vorlaeufigLegende"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
 private val BUCKETS: List<Pair<String, (Int) -> Boolean>> = listOf(
     "1" to { p -> p == 1 }, "2" to { p -> p == 2 }, "3" to { p -> p == 3 },
     "4–5" to { p -> p in 4..5 }, "6–10" to { p -> p in 6..10 },
@@ -157,9 +173,17 @@ fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
     var fehler by remember { mutableStateOf<String?>(null) }
     val reiter = listOf(ReiterDef("uebersicht", I18n.t("perf.tabUebersicht")), ReiterDef("verlauf", I18n.t("perf.tabVerlauf")))
     var sub by rememberReiter("homeperf", reiter.map { it.id }, "uebersicht")
+    val lebenszyklus = LocalLifecycleOwner.current.lifecycle
     LaunchedEffect(sport) {
         daten = null; fehler = null
         try { daten = Api.performance(sport) } catch (e: Exception) { fehler = e.message ?: "?" }
+        // Der laufende Tag ist vorlaeufig (Server rechnet alle ~10 min neu): offen und sichtbar alle 5 min still nachladen
+        while (true) {
+            delay(5 * 60 * 1000L)
+            if (lebenszyklus.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                try { Api.performance(sport).let { daten = it } } catch (_: Exception) {}
+            }
+        }
     }
     val grenze = when (zeitraum) {
         "30" -> LocalDate.now().minusDays(30).toString()
@@ -375,20 +399,28 @@ private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>,
                         drawRect(BandGruen.copy(alpha = 0.15f), Offset(0f, y(100.0)), Size(size.width, y(80.0) - y(100.0)))
                         drawRect(BandGelb.copy(alpha = 0.10f), Offset(0f, y(80.0)), Size(size.width, y(50.0) - y(80.0)))
                         listOf(0.0, 50.0, 80.0, 100.0).forEach { p -> drawLine(linie, Offset(0f, y(p)), Offset(size.width, y(p)), 1f) }
+                        reihe.forEachIndexed { i, z ->
+                            if (z.vorlaeufig) drawRect(VorlGelb.copy(alpha = 0.35f), Offset(x(i) - 22f, 0f), Size(44f, size.height))
+                        }
                         for (i in 1 until n) drawLine(PerfCyan, Offset(x(i - 1), y(reihe[i - 1].perzentil)), Offset(x(i), y(reihe[i].perzentil)), 4f)
-                        reihe.forEachIndexed { i, z -> drawCircle(PerfCyan, 7f, Offset(x(i), y(z.perzentil))) }
+                        reihe.forEachIndexed { i, z -> drawCircle(if (z.vorlaeufig) BandGelb else PerfCyan, 7f, Offset(x(i), y(z.perzentil))) }
                     }
                 }
                 // Plaetze als Zahlenreihe darunter (Canvas kann hier keinen Text ohne TextMeasurer; so bleibt es lesbar)
-                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                val zahlenRoll = rememberScrollState()
+                LaunchedEffect(zahlenRoll.maxValue) { zahlenRoll.scrollTo(zahlenRoll.maxValue) }   // neueste Tage zuerst sichtbar
+                Row(Modifier.fillMaxWidth().horizontalScroll(zahlenRoll), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     reihe.forEachIndexed { i, z ->
-                        if (i % jeder == 0) Column(Modifier.clickable { oeffnen(kat, z) }, horizontalAlignment = Alignment.CenterHorizontally) {
+                        if (i % jeder == 0 || z.vorlaeufig) Column(Modifier.clip(RoundedCornerShape(4.dp))
+                            .background(if (z.vorlaeufig) VorlGelb.copy(alpha = 0.35f) else Color.Transparent)
+                            .clickable { oeffnen(kat, z) }.padding(horizontal = 2.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("${z.platz}", fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                             Text(tagKurz(z.tag), fontSize = 9.sp, color = grau)
                         }
                     }
                 }
             }
+            if (reihe.any { it.vorlaeufig }) VorlHinweis()
             Text(I18n.t("perf.platzverlaufHint"), style = MaterialTheme.typography.bodySmall, color = grau, modifier = Modifier.padding(top = 6.dp))
         }
     }
@@ -412,9 +444,14 @@ private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>,
                 }
                 Spacer(Modifier.width(6.dp))
                 // Zeit von links nach rechts wie in den anderen Darstellungen (Hinweis eines Fahrers, 19.11.2026)
-                Row(Modifier.horizontalScroll(rememberScrollState())) {
+                val rasterRoll = rememberScrollState()
+                // beim Oeffnen ganz rechts (neueste Tage, heute) — wie Web
+                LaunchedEffect(rasterRoll.maxValue) { rasterRoll.scrollTo(rasterRoll.maxValue) }
+                Row(Modifier.horizontalScroll(rasterRoll)) {
                     tage.reversed().forEach { tag ->
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        val vorl = alle.any { it.tag == tag && it.vorlaeufig }
+                        Column(Modifier.clip(RoundedCornerShape(4.dp)).background(if (vorl) VorlGelb.copy(alpha = 0.35f) else Color.Transparent),
+                            horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(tagKurz(tag), style = MaterialTheme.typography.labelSmall, color = grau, fontSize = 10.sp,
                                 modifier = Modifier.height(18.dp))
                             KATS.forEach { k ->
@@ -438,6 +475,7 @@ private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>,
                     Text(" $p %", style = MaterialTheme.typography.labelSmall, color = grau)
                 }
             }
+            if (alle.any { it.vorlaeufig }) VorlHinweis()
         }
     }
 
@@ -449,6 +487,7 @@ private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>,
                 Text(I18n.t("perf.verlauf"), fontWeight = FontWeight.SemiBold)
             }
             val punkte = tage.reversed().map { tag -> schnitt(alle.filter { it.tag == tag }.map { it.perzentil }) }
+            val vorlTage = tage.reversed().map { tag -> alle.any { it.tag == tag && it.vorlaeufig } }
             if (punkte.size < 2) {
                 Text(I18n.t("perf.zuWenig"), style = MaterialTheme.typography.bodySmall, color = grau)
             } else {
@@ -457,14 +496,16 @@ private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>,
                     fun x(i: Int) = size.width * i / (punkte.size - 1)
                     fun y(p: Double) = (size.height * (100 - p) / 100).toFloat()
                     listOf(0.0, 50.0, 100.0).forEach { p -> drawLine(linie, Offset(0f, y(p)), Offset(size.width, y(p)), 1f) }
+                    vorlTage.forEachIndexed { i, v -> if (v) drawRect(VorlGelb.copy(alpha = 0.35f), Offset(x(i) - 22f, 0f), Size(44f, size.height)) }
                     for (i in 1 until punkte.size) drawLine(PerfCyan, Offset(x(i - 1), y(punkte[i - 1])), Offset(x(i), y(punkte[i])), 4f)
-                    punkte.forEachIndexed { i, p -> drawCircle(PerfCyan, 7f, Offset(x(i), y(p))) }
+                    punkte.forEachIndexed { i, p -> drawCircle(if (vorlTage[i]) BandGelb else PerfCyan, 7f, Offset(x(i), y(p))) }
                 }
                 Row(Modifier.fillMaxWidth()) {
                     Text(tage.last(), style = MaterialTheme.typography.labelSmall, color = grau)
                     Spacer(Modifier.weight(1f))
                     Text(tage.first(), style = MaterialTheme.typography.labelSmall, color = grau)
                 }
+                if (vorlTage.any { it }) VorlHinweis()
             }
         }
     }
