@@ -360,7 +360,7 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
           <table className="text-xs" dir="ltr">
             <thead>
               <tr>
-                <th className="sticky left-0 z-10 bg-slate-900 dark:bg-[#0a1121]" />
+                <th className="sticky left-0 z-10 bg-[color-mix(in_srgb,rgb(var(--s-900))_60%,rgb(var(--s-950)))]" />
                 {[...tage].reverse().map((d) => (
                   <th key={d} className={`px-0.5 pb-1 font-normal ${vorl.has(d) ? "rounded-t bg-amber-300/40 text-amber-800 dark:bg-amber-400/25 dark:text-amber-200" : "text-slate-400"}`}
                     title={vorl.has(d) ? `${d} · ${t("perf.vorlaeufig")}` : d}>{tagKurz(d)}</th>
@@ -372,7 +372,7 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
                 const m = new Map(je[k].map((z) => [z.tag, z]));
                 return (
                   <tr key={k}>
-                    <th className="sticky left-0 z-10 whitespace-nowrap bg-slate-900 pr-2 dark:bg-[#0a1121] text-left font-medium text-slate-300" title={katName(k)}>
+                    <th className="sticky left-0 z-10 whitespace-nowrap bg-[color-mix(in_srgb,rgb(var(--s-900))_60%,rgb(var(--s-950)))] pr-2 text-left font-medium text-slate-300" title={katName(k)}>
                       <span className="flex items-center gap-1.5"><KatIcon k={k} className="h-4 w-4 text-brand-700 dark:text-brand-400" /><span className="hidden sm:inline">{katName(k)}</span></span></th>
                     {[...tage].reverse().map((d) => {
                       const z = m.get(d);
