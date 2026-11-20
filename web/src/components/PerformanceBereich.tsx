@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { useT } from "../i18n";
@@ -135,24 +135,25 @@ function SaisonKarte({ s }: { s: Saison }) {
   const t = useT();
   const [offen, setOffen] = useState(false);
   const kats = s.regel.kategorien.map((k) => t(`perf.kat.${k}`)).join(" · ");
+  const status = !s.gestartet ? t("perf.saison.startet", { jahr: String(s.jahr) })
+    : s.rang ? t("perf.saison.rang", { rang: String(s.rang), fahrer: String(s.fahrer), tage: String(s.tage) })
+    : t("perf.saison.nochKeine");
   return (
     <>
-      <div className="relative rounded-xl border border-brand-500/40 bg-brand-500/10 py-2 pl-3 pr-7 text-right sm:whitespace-nowrap">
+      {/* Aufbau wie die Kennzahl-Kacheln: Pokal links, Punkte gleich gross, „Season 2027" als Label darunter; der
+          Status (startet am …, Rang) steht im (i)-Fenster (Jan 20.11.2026). */}
+      <div className="relative rounded-xl border border-brand-500/40 bg-brand-500/10 py-2 pl-3 pr-8 sm:whitespace-nowrap">
         <InfoKnopf label={t("perf.saisonTitel")} onClick={() => setOffen(true)} />
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center gap-2">
           <SeasonCupIcon className="h-7 w-7 shrink-0 text-brand-700 dark:text-brand-400" />
-          <span className="text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">{t("perf.saisonTitel")}</span>
           <span className="text-2xl font-bold tabular-nums text-slate-100">{s.punkte}</span>
           <span className="text-xs text-slate-400">{t("perf.saison.punkte")}</span>
         </div>
-        <div className="text-xs text-slate-300">
-          {!s.gestartet ? t("perf.saison.startet", { jahr: String(s.jahr) })
-            : s.rang ? t("perf.saison.rang", { rang: String(s.rang), fahrer: String(s.fahrer), tage: String(s.tage) })
-            : t("perf.saison.nochKeine")}
-        </div>
+        <div className="mt-1 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">{t("perf.saisonTitel")}</div>
       </div>
       {offen && (
         <InfoDialog title={t("perf.saisonTitel")} text={t("perf.saison.infoIntro")} onClose={() => setOffen(false)}>
+          <p className="mt-2 rounded-lg bg-brand-500/10 px-3 py-2 text-sm font-medium text-slate-100">{status}</p>
           <table className="mt-3 w-full text-sm">
             <thead>
               <tr className="text-xs text-slate-400"><th className="text-left font-normal">{t("perf.saison.platz")}</th>
@@ -246,10 +247,11 @@ function UebersichtTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zei
             return (
               <div key={k} className="rounded-lg bg-slate-800/50 p-2.5">
                 <div className="flex items-center gap-2">
-                  <KatIcon k={k} className="h-6 w-6 text-brand-700 dark:text-brand-400" />
+                  {/* wie die Kennzahl-Kacheln: Icon links, Wert gleich gross mittig im freien Platz (Jan 20.11.2026) */}
+                  <KatIcon k={k} className="h-7 w-7 shrink-0 text-brand-700 dark:text-brand-400" />
                   {b ? (
-                    <Link to={`/sessions/${b.session_id}`} className="text-lg font-semibold tabular-nums text-slate-100 hover:text-brand-700 dark:hover:text-brand-300">{wertText(k, b.wert)}</Link>
-                  ) : <span className="text-lg text-slate-400">–</span>}
+                    <Link to={`/sessions/${b.session_id}`} className="flex-1 text-center text-2xl font-semibold tabular-nums text-slate-100 hover:text-brand-700 dark:hover:text-brand-300">{wertText(k, b.wert)}</Link>
+                  ) : <span className="flex-1 text-center text-2xl text-slate-400">–</span>}
                 </div>
                 <div className="mt-0.5 text-xs text-slate-400">{katName(k)}</div>
                 {b && <div className="text-xs text-slate-400">{tagKurz(b.tag)} · {t("perf.platzVon", { platz: b.platz, feld: b.feld })}</div>}
@@ -383,16 +385,34 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
   );
 }
 
-const B = 600, H = 170, L = 34, R = 10, O = 14, U = 22;
+const B0 = 600, H = 170, L = 34, R = 10, O = 14, U = 22;
+
+// Diagramme auf volle Breite (Jan 20.11.2026): feste Hoehe in px, die viewBox-Breite folgt der gemessenen Breite —
+// so fuellt die Linie die Karte, Schrift und Punkte bleiben unverzerrt (kein preserveAspectRatio="none").
+function useViewBreite(hoeheEinheiten: number, hoehePx: number) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [b, setB] = useState(B0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const messen = () => { const w = el.clientWidth; if (w > 0) setB(Math.max(300, (w * hoeheEinheiten) / hoehePx)); };
+    messen();
+    const ro = new ResizeObserver(messen);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [hoeheEinheiten, hoehePx]);
+  return [ref, b] as const;
+}
 
 function PlatzLinie({ reihe }: { reihe: Zeile[] }) {
   const t = useT();
+  const [ref, B] = useViewBreite(H, 192);   // h-48
   const n = reihe.length;
   const x = (i: number) => (n === 1 ? (L + B - R) / 2 : L + ((B - L - R) * i) / (n - 1));
   const y = (p: number) => O + ((H - O - U) * (100 - p)) / 100;
   const nurZahlenJeder = n > 30 ? Math.ceil(n / 30) : 1;   // bei vielen Tagen nicht jede Zahl, sonst ueberlappen sie
   return (
-    <svg viewBox={`0 0 ${B} ${H}`} className="h-48 w-full" role="img" aria-label={t("perf.platzverlauf")}>
+    <div ref={ref} className="w-full"><svg viewBox={`0 0 ${B} ${H}`} className="h-48 w-full" role="img" aria-label={t("perf.platzverlauf")}>
       {/* Baender: ab 80 % und ab 50 % geschlagener Fahrer */}
       <rect x={L} y={y(100)} width={B - L - R} height={y(80) - y(100)} className="fill-emerald-500/15" />
       <rect x={L} y={y(80)} width={B - L - R} height={y(50) - y(80)} className="fill-amber-500/10" />
@@ -415,18 +435,19 @@ function PlatzLinie({ reihe }: { reihe: Zeile[] }) {
       ))}
       <text x={L} y={H - 6} className="fill-slate-400" fontSize={11}>{reihe[0].tag}</text>
       <text x={B - R} y={H - 6} textAnchor="end" className="fill-slate-400" fontSize={11}>{reihe[n - 1].tag}</text>
-    </svg>
+    </svg></div>
   );
 }
 
 function Verlauf({ punkte }: { punkte: { tag: string; perz: number }[] }) {
   const t = useT();
   const H2 = 160, O2 = 8;
+  const [ref, B] = useViewBreite(H2, 176);  // h-44
   if (punkte.length < 2) return <div className="text-sm text-slate-400">{t("perf.zuWenig")}</div>;
   const x = (i: number) => L + ((B - L - R) * i) / (punkte.length - 1);
   const y = (p: number) => O2 + ((H2 - O2 - U) * (100 - p)) / 100;
   return (
-    <svg viewBox={`0 0 ${B} ${H2}`} className="h-44 w-full" role="img" aria-label={t("perf.verlauf")}>
+    <div ref={ref} className="w-full"><svg viewBox={`0 0 ${B} ${H2}`} className="h-44 w-full" role="img" aria-label={t("perf.verlauf")}>
       {[0, 50, 100].map((p) => (
         <g key={p}>
           <line x1={L} x2={B - R} y1={y(p)} y2={y(p)} stroke="currentColor" className="text-slate-700" strokeWidth={1} />
@@ -441,6 +462,6 @@ function Verlauf({ punkte }: { punkte: { tag: string; perz: number }[] }) {
       ))}
       <text x={L} y={H2 - 6} className="fill-slate-400" fontSize={11}>{punkte[0].tag}</text>
       <text x={B - R} y={H2 - 6} textAnchor="end" className="fill-slate-400" fontSize={11}>{punkte[punkte.length - 1].tag}</text>
-    </svg>
+    </svg></div>
   );
 }
