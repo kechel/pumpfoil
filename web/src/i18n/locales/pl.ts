@@ -592,6 +592,7 @@ const pl: Record<string, string> = {
   "metric.maxPumpFreq": "Maks. częstotliwość pomp",
   "history.aggTitle": "Narastająco",
   "metric.pumpsPerSession": "Pompy / sesja",
+  "metric.avgRunTime": "Śr. czas przejazdu",
   "metric.avgPumpFreq": "Śr. częstotliwość pomp",
   "metric.foilingPerSession": "Foiling / sesja",
   "all.filterName": "Filtruj po nazwie…",

@@ -1906,6 +1906,7 @@ const deAT: Record<string, string> = {
   "metric.avgPumpFreq": "Ø Pump-Frequenz",
   "metric.metersPerPump": "Meter / Pump",
   "metric.pumpsPerSession": "Pumps / Session",
+  "metric.avgRunTime": "Ø Laufzeit",
   "reset.invalidAction": "Login → Passwort vergessen",
   "reset.invalidPost": " an.",
   "reset.invalidPre": "Kein gültiger Link. Fordere einen neuen über ",

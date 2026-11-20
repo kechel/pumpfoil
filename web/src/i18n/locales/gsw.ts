@@ -1943,6 +1943,7 @@ const gsw: Record<string, string> = {
   "metric.avgPumpFreq": "Ø Pump-Frequänz",
   "metric.metersPerPump": "Meter / Pump",
   "metric.pumpsPerSession": "Pumps / Session",
+  "metric.avgRunTime": "Ø Laufziit",
   "reset.invalidAction": "Login → Passwort vergässe",
   "reset.invalidPost": " aa.",
   "reset.invalidPre": "Kei gültige Link. Forder en neue über ",

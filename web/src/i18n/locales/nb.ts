@@ -591,6 +591,7 @@ const nb: Record<string, string> = {
   "metric.maxPumpFreq": "Maks pumpefrekvens",
   "history.aggTitle": "Kumulativt",
   "metric.pumpsPerSession": "Pumper / økt",
+  "metric.avgRunTime": "Snitt varighet per tur",
   "metric.avgPumpFreq": "Snitt pumpefrekvens",
   "metric.foilingPerSession": "Foiling / økt",
   "all.filterName": "Filtrer etter navn…",

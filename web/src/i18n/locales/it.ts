@@ -535,6 +535,7 @@ const it: Record<string, string> = {
   "metric.maxPumpFreq": "Frequenza pump max",
   "history.aggTitle": "Cumulativo",
   "metric.pumpsPerSession": "Pumps / sessione",
+  "metric.avgRunTime": "Durata media di un run",
   "metric.avgPumpFreq": "Frequenza pump media",
   "metric.foilingPerSession": "Foiling / sessione",
 

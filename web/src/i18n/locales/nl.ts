@@ -592,6 +592,7 @@ const nl: Record<string, string> = {
   "metric.maxPumpFreq": "Max pompfrequentie",
   "history.aggTitle": "Cumulatief",
   "metric.pumpsPerSession": "Pumps / sessie",
+  "metric.avgRunTime": "Gem. duur per run",
   "metric.metersPerPump": "Meter / pump",
   "metric.avgPumpFreq": "Ø pompfrequentie",
   "metric.foilingPerSession": "Foiling / sessie",

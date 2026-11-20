@@ -523,6 +523,8 @@ export interface HistoryPoint {
   pumps: number;
   runs: number;
   foiling_km: number;
+  run_s?: number;          // Summe der Laufzeiten (s) — fuer die Ø Laufzeit (Σ run_s / Σ run_n), 20.11.2026
+  run_n?: number;          // Zahl der Laeufe mit Dauer
   run_idx: Partial<Record<"distance" | "duration" | "speed" | "glide", number | null>>;
 }
 

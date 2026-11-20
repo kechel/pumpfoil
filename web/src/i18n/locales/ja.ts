@@ -575,6 +575,7 @@ const ja: Record<string, string> = {
   "metric.maxPumpFreq": "最大ポンプ頻度",
   "history.aggTitle": "累計",
   "metric.pumpsPerSession": "ポンプ / セッション",
+  "metric.avgRunTime": "平均ラン時間",
   "metric.avgPumpFreq": "平均ポンプ頻度",
   "metric.foilingPerSession": "フォイリング / セッション",
 

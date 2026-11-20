@@ -575,6 +575,7 @@ const ru: Record<string, string> = {
   "metric.maxPumpFreq": "Макс. частота помпинга",
   "history.aggTitle": "Накопительно",
   "metric.pumpsPerSession": "Помпинг / сессия",
+  "metric.avgRunTime": "Средняя длительность заезда",
   "metric.avgPumpFreq": "Ср. частота помпинга",
   "metric.foilingPerSession": "Фойлинг / сессия",
 

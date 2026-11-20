@@ -622,6 +622,7 @@ const de: Record<string, string> = {
   "metric.maxPumpFreq": "Max Pump-Frequenz",
   "history.aggTitle": "Kumuliert",
   "metric.pumpsPerSession": "Pumps / Session",
+  "metric.avgRunTime": "Ø Laufzeit",
   "metric.metersPerPump": "Meter / Pump",
   "metric.avgPumpFreq": "Ø Pump-Frequenz",
   "metric.foilingPerSession": "Foiling / Session",

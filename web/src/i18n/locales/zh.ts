@@ -575,6 +575,7 @@ const zh: Record<string, string> = {
   "metric.maxPumpFreq": "最高泵动频率",
   "history.aggTitle": "累计",
   "metric.pumpsPerSession": "泵动 / 每次",
+  "metric.avgRunTime": "平均滑行时长",
   "metric.avgPumpFreq": "平均泵动频率",
   "metric.foilingPerSession": "水翼滑行 / 每次",
 

@@ -592,6 +592,7 @@ const cs: Record<string, string> = {
   "metric.maxPumpFreq": "Max frekvence pumpnutí",
   "history.aggTitle": "Kumulativně",
   "metric.pumpsPerSession": "Pumpnutí / vyjížďka",
+  "metric.avgRunTime": "Prům. délka jízdy",
   "metric.metersPerPump": "Metry / pumpnutí",
   "metric.avgPumpFreq": "Ø frekvence pumpnutí",
   "metric.foilingPerSession": "Foiling / vyjížďka",

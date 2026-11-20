@@ -531,6 +531,8 @@ data class HistoryPoint(
     val glide: Double = 0.0,            // längster Gleit (s)
     @SerialName("avg_speed") val avgSpeed: Double? = null,   // Ø-Speed der Session (m/s)
     @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
+    @SerialName("run_s") val runS: Double? = null,      // Summe der Laufzeiten (s), fuer die Ø Laufzeit (20.11.2026)
+    @SerialName("run_n") val runN: Int? = null,         // Zahl der Laeufe mit Dauer
 )
 
 // Bestenliste (GET /api/community/leaders) — je Metrik eine Rangliste.

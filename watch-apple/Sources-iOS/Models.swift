@@ -491,6 +491,8 @@ struct HistoryPoint: Codable, Identifiable {
     let glide: Double?           // längster Gleit (s)
     let avg_speed: Double?       // Ø-Speed der Session (m/s)
     let avg_pump_hz: Double?
+    let run_s: Double?           // Summe der Laufzeiten (s), fuer die Ø Laufzeit (20.11.2026)
+    let run_n: Int?              // Zahl der Laeufe mit Dauer
     var id: Int { session_id }
 }
 

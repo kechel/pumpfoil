@@ -584,6 +584,7 @@ const ptPT: Record<string, string> = {
   "metric.maxPumpFreq": "Frequência máx. de pump",
   "history.aggTitle": "Acumulado",
   "metric.pumpsPerSession": "Pumps / sessão",
+  "metric.avgRunTime": "Duração média de um run",
   "metric.avgPumpFreq": "Frequência média de pump",
   "metric.foilingPerSession": "Foil / sessão",
 

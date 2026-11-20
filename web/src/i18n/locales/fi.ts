@@ -574,6 +574,7 @@ const fi: Record<string, string> = {
   "metric.maxPumpFreq": "Maksimi-pumppaustaajuus",
   "history.aggTitle": "Kumulatiivinen",
   "metric.pumpsPerSession": "Pumps / sessio",
+  "metric.avgRunTime": "Keskim. ajon kesto",
   "metric.metersPerPump": "Metriä / pump",
   "metric.avgPumpFreq": "Ø pumppaustaajuus",
   "metric.foilingPerSession": "Foiling / sessio",

@@ -2209,6 +2209,9 @@ def history(
         # je Kennzahl Bestwert + Index des ausschlaggebenden Laufs (zum Verlinken).
         best = {"distance": (0.0, None), "duration": (0.0, None), "speed": (0.0, None), "glide": (0.0, None)}
         seg_keys = {"distance": "distance_m", "duration": "duration_s", "speed": "max_speed_mps", "glide": "longest_glide_s"}
+        # Ø Laufzeit (Nutzerwunsch im Feedback 20.11.2026: „temps moyen par run … voir si l'on augmente la duree"):
+        # Summe und Zahl der Laufzeiten — die Kurve rechnet Σ Zeit / Σ Laeufe ueber das Fenster.
+        run_s, run_n = 0.0, 0
         if sj:
             try:
                 for j, seg in enumerate(PA.segs(json.loads(sj))):
@@ -2216,6 +2219,9 @@ def history(
                         v = seg.get(sk) or 0.0
                         if v > best[k][0]:
                             best[k] = (v, j)
+                    if (seg.get("duration_s") or 0) > 0:
+                        run_s += float(seg["duration_s"])
+                        run_n += 1
             except ValueError:
                 pass
         out.append({
@@ -2232,6 +2238,8 @@ def history(
             "pumps": int(pumpcnt or 0),
             "runs": int(metrics.get("num_segments") or 0),
             "foiling_km": round((fdist or 0.0) / 1000.0, 2),
+            "run_s": round(run_s, 1),
+            "run_n": run_n,
             "run_idx": {k: best[k][1] for k in seg_keys},
         })
     return out
