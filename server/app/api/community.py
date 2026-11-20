@@ -3818,12 +3818,21 @@ _PERF_TTL_S = 600
 
 
 def _perf_kategorien() -> dict:
+    # Kategorien nach dem Vorschlag eines Fahrers (Chat 19.11.2026, Jan 20.11.: „bau es so wie er es vorschlaegt, der ist da
+    # der experte"): zwei fuer Tempo (100 m, Minute), zwei fuer Ausdauer (laengster Lauf, Zeit auf dem Foil am ganzen Tag).
+    # `run_time` (laengste Laufzeit) bleibt in der Antwort fuer Apps, die schon im Feld sind — neue Fassungen zeigen ihn
+    # nicht mehr (er war dem laengsten Lauf zu aehnlich).
     return {
         "sprint_100m": _sprint_plausibel("sprint_100m"),
         "sprint_60s": _sprint_plausibel("sprint_60s"),
         "run_distance": REC_COL["distance"][0],
+        "foil_time_day": AR.foiling_time_s,
         "run_time": REC_COL["duration"][0],
     }
+
+
+# Tagessumme statt Bestwert des Tages (alle Sessions eines Tages zusammen)
+_PERF_SUMME = {"foil_time_day"}
 
 
 def _perf_tageswerte(db: Session, sport: str, kat: str, col) -> dict:
@@ -3833,7 +3842,8 @@ def _perf_tageswerte(db: Session, sport: str, kat: str, col) -> dict:
     if hit and time.time() - hit[0] < _PERF_TTL_S:
         return hit[1]
     tag = func.date(func.timezone("UTC", S.started_at))
-    q = (_community(db.query(tag.label("tag"), S.user_id, func.max(col)), None, False, sport)
+    agg = func.sum(col) if kat in _PERF_SUMME else func.max(col)
+    q = (_community(db.query(tag.label("tag"), S.user_id, agg), None, False, sport)
          .filter(S.started_at >= PERF_AB)
          .group_by(tag, S.user_id))
     aus: dict = {}
@@ -3842,6 +3852,64 @@ def _perf_tageswerte(db: Session, sport: str, kat: str, col) -> dict:
             aus.setdefault(d.isoformat(), {})[uid] = float(v)
     _PERF_CACHE[schluessel] = (time.time(), aus)
     return aus
+
+
+# Saison mit Punkten (Vorschlag eines Fahrers im Chat 18./19.11.2026, Jan 18.11. entschieden, 20.11. „schon richtig bauen"):
+# je Tag und Kategorie Platz 1-10 -> 25/20/16/13/11/9/7/5/3/2 (wie die Formel 1, nur gewertete Tage mit >= PERF_MIN_FELD
+# Fahrern, Gleichstand = gleiche Punkte), dazu 1 Punkt je Tag auf dem Wasser (mind. ein erkannter Lauf, auch an kleinen Tagen).
+# Hoechstens 4 x 25 + 1 = 101 Punkte am Tag. Alle starten am 1.1.2027 bei null; taeglich aus den GESPEICHERTEN Werten — was
+# aussortiert, korrigiert oder geloescht wird, faellt raus, nichts wird rueckwirkend neu ausgewertet.
+SAISON_JAHR = 2027
+SAISON_PUNKTE = (25, 20, 16, 13, 11, 9, 7, 5, 3, 2)
+SAISON_KATS = ("sprint_100m", "sprint_60s", "run_distance", "foil_time_day")
+_SAISON_CACHE: dict = {}
+
+
+def _saison_tabelle(db: Session, sport: str, ab: str, bis: str) -> dict:
+    """{user_id: {"punkte", "platzpunkte", "tage"}} fuer alle Fahrer im Zeitraum [ab, bis] (ISO-Tage, 10 min gecacht)."""
+    k = (sport, ab, bis)
+    hit = _SAISON_CACHE.get(k)
+    if hit and time.time() - hit[0] < _PERF_TTL_S:
+        return hit[1]
+    aus: dict = {}
+    kats = _perf_kategorien()
+    for kat in SAISON_KATS:
+        for tag_, werte in _perf_tageswerte(db, sport, kat, kats[kat]).items():
+            if not (ab <= tag_ <= bis) or len(werte) < PERF_MIN_FELD:
+                continue
+            for uid, v in werte.items():
+                platz = 1 + sum(1 for x in werte.values() if x > v)
+                if platz <= len(SAISON_PUNKTE):
+                    e = aus.setdefault(uid, {"punkte": 0, "platzpunkte": 0, "tage": 0})
+                    e["punkte"] += SAISON_PUNKTE[platz - 1]
+                    e["platzpunkte"] += SAISON_PUNKTE[platz - 1]
+    tag = func.date(func.timezone("UTC", S.started_at))
+    for uid, d in (_community(db.query(S.user_id, tag), None, False, sport)
+                   .filter(AR.num_runs > 0, S.started_at >= datetime.fromisoformat(ab).replace(tzinfo=timezone.utc),
+                           S.started_at < datetime.fromisoformat(bis).replace(tzinfo=timezone.utc) + timedelta(days=1))
+                   .distinct().all()):
+        e = aus.setdefault(uid, {"punkte": 0, "platzpunkte": 0, "tage": 0})
+        e["punkte"] += 1                       # Mitmach-Punkt: einmal je Tag auf dem Wasser
+        e["tage"] += 1
+    _SAISON_CACHE[k] = (time.time(), aus)
+    return aus
+
+
+def _saison(db: Session, sport: str, uid: int, jahr: int = SAISON_JAHR) -> dict:
+    ab, bis = f"{jahr}-01-01", f"{jahr}-12-31"
+    heute = datetime.now(timezone.utc).date().isoformat()
+    out = {"jahr": jahr, "ab": ab, "bis": bis, "gestartet": heute >= ab, "punkte": 0, "platzpunkte": 0, "tage": 0,
+           "rang": None, "fahrer": 0, "regel": {"platz": list(SAISON_PUNKTE), "mitmachen": 1, "min_feld": PERF_MIN_FELD,
+                                                 "kategorien": list(SAISON_KATS), "max_tag": 4 * SAISON_PUNKTE[0] + 1}}
+    if not out["gestartet"]:
+        return out
+    tab = _saison_tabelle(db, sport, ab, bis)
+    mein = tab.get(uid) or {"punkte": 0, "platzpunkte": 0, "tage": 0}
+    out.update(mein)
+    out["fahrer"] = sum(1 for e in tab.values() if e["punkte"] > 0)
+    if mein["punkte"] > 0:
+        out["rang"] = 1 + sum(1 for e in tab.values() if e["punkte"] > mein["punkte"])
+    return out
 
 
 @router.get("/performance")
@@ -3865,13 +3933,17 @@ def performance(
         # Eigene Session je Tag mit dem besten Wert (zum Hinspringen). Ohne viewer-Ausnahme fiele ein verstecktes Konto
         # aus seinen eigenen Tagen; deshalb hier mit viewer_id.
         eigene: dict = {}
+        summe: dict = {}
         for d, sid, v in (_community(db.query(tag, S.id, col), user.id, False, sport)
                           .filter(S.user_id == user.id, S.started_at >= PERF_AB).all()):
             if v is None or float(v) <= 0:
                 continue
             k = d.isoformat()
+            summe[k] = summe.get(k, 0.0) + float(v)
             if k not in eigene or float(v) > eigene[k][1]:
-                eigene[k] = (sid, float(v))
+                eigene[k] = (sid, float(v))        # Session mit dem groessten Beitrag (zum Hinspringen)
+        if kat in _PERF_SUMME:
+            eigene = {k: (sid, summe[k]) for k, (sid, _v) in eigene.items()}
         zeilen = []
         for k, (sid, v) in eigene.items():
             werte = dict(alle.get(k, {}))
@@ -3886,4 +3958,5 @@ def performance(
                            "perzentil": round(100.0 * schlechter / max(feld - 1, 1), 1), "session_id": sid})
         zeilen.sort(key=lambda z: z["tag"], reverse=True)
         out["kategorien"][kat] = zeilen
+    out["saison"] = _saison(db, sport, user.id)
     return out

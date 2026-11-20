@@ -87,14 +87,15 @@ export function Button({
 // Zum Hintergrund: `Card` ist `bg-slate-900/60`, und slate kippt im Light-Mode automatisch — das
 // ergibt ueber dem dunklen Schleier ein Grau. Hier deshalb bewusst `bg-white dark:bg-slate-900`,
 // die eine Stelle, an der eine weisse Basis richtig ist (s. Memory light-mode-contrast-pattern).
-export function InfoDialog({ title, text, onClose }: { title: string; text: string; onClose: () => void }) {
+export function InfoDialog({ title, text, onClose, children }: { title: string; text: string; onClose: () => void; children?: React.ReactNode }) {
   const t = useT();
   return (
     <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
       <div className="max-w-md" onClick={(e) => e.stopPropagation()}>
         <div className="rounded-2xl border border-slate-800 bg-white p-4 shadow-xl dark:bg-slate-900">
           <h3 className="mb-2 text-base font-bold text-slate-100">{title}</h3>
-          <p className="whitespace-pre-line text-sm text-slate-200">{text}</p>
+          {text && <p className="whitespace-pre-line text-sm text-slate-200">{text}</p>}
+          {children}
           <button type="button" onClick={onClose}
             className="mt-3 rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
             {t("common.close")}

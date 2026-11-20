@@ -1920,7 +1920,10 @@ export const api = {
   },
   // Performance-Reiter (18.11.2026): eigene Tagesplatzierungen je Kategorie, weltweit je Sportart.
   performance: (sport = "pumpfoil") => req<{ sport: string; min_feld: number; ab: string;
-    kategorien: Record<string, { tag: string; wert: number; platz: number; feld: number; perzentil: number; session_id: number }[]> }>(
+    kategorien: Record<string, { tag: string; wert: number; platz: number; feld: number; perzentil: number; session_id: number }[]>;
+    // Saison mit Punkten ab 1.1.2027 (fehlt bei aelteren Servern)
+    saison?: { jahr: number; ab: string; bis: string; gestartet: boolean; punkte: number; platzpunkte: number; tage: number;
+      rang: number | null; fahrer: number; regel: { platz: number[]; mitmachen: number; min_feld: number; kategorien: string[]; max_tag: number } } }>(
     `/api/community/performance?sport=${encodeURIComponent(sport)}`),
   communitySessionsGrouped: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean;
       // "all" = alle Sportarten (Liste "was ist neu"); sonst genau eine (Community-Ansichten).

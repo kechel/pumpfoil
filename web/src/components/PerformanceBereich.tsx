@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { useT } from "../i18n";
-import { Card, Spinner } from "./ui";
+import { Card, InfoDialog, InfoKnopf, Spinner } from "./ui";
 import { sportLabel } from "../lib/sportClass";
 import { Reiterleiste, useReiter } from "./Reiter";
+import { BeatIcon, CalendarCheckIcon, FoilTimeIcon, LongestRunIcon, MedalIcon, PodiumIcon, SeasonCupIcon, Sprint100Icon, SprintMinuteIcon, TrophyIcon } from "./Icons";
 
 /**
  * Home › Performance (Idee eines Fahrers, DM 16.11.2026; Jan 18.11.: „so wie empfohlen umsetzen").
@@ -15,7 +16,17 @@ import { Reiterleiste, useReiter } from "./Reiter";
  * Bestleistungen, Platzverlauf je Kategorie, Zeitraum „letzte 25 Tage", aufgeteilt in Uebersicht | Verlauf.
  */
 type Zeile = { tag: string; wert: number; platz: number; feld: number; perzentil: number; session_id: number };
-const KATS = ["sprint_100m", "sprint_60s", "run_distance", "run_time"] as const;
+// Zwei Tempo-, zwei Ausdauer-Kategorien (Vorschlag eines Fahrers 19.11.2026, Jan 20.11.): `run_time` (laengste Laufzeit)
+// ersetzt durch die Zeit auf dem Foil des ganzen Tages — die Laufzeit war dem laengsten Lauf zu aehnlich.
+const KATS = ["sprint_100m", "sprint_60s", "run_distance", "foil_time_day"] as const;
+// Eigene Icons je Kategorie (Jan 20.11.2026: „zu textlastig") — Icons.tsx
+const KAT_ICON: Record<string, (p: { className?: string }) => JSX.Element> = {
+  sprint_100m: Sprint100Icon, sprint_60s: SprintMinuteIcon, run_distance: LongestRunIcon, foil_time_day: FoilTimeIcon,
+};
+function KatIcon({ k, className = "h-4 w-4" }: { k: string; className?: string }) {
+  const I = KAT_ICON[k];
+  return I ? <I className={`${className} shrink-0`} /> : null;
+}
 type Kat = typeof KATS[number];
 const BUCKETS: [string, (p: number) => boolean][] = [
   ["1", (p) => p === 1], ["2", (p) => p === 2], ["3", (p) => p === 3],
@@ -30,6 +41,7 @@ function wertText(k: Kat, v: number): string {
   if (k === "sprint_100m" || k === "sprint_60s") return `${(v * 3.6).toFixed(1)} km/h`;
   if (k === "run_distance") return `${Math.round(v)} m`;
   const s = Math.round(v);
+  if (s >= 3600) return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")} h`;
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")} min`;
 }
 
@@ -88,20 +100,19 @@ export function PerformanceBereich() {
             </button>
           ))}
           <select value={zeitraum} onChange={(e) => setZeitraum(e.target.value as Zeitraum)}
-            className="ml-auto rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100">
+            className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100">
             <option value="alle">{t("perf.seit", { datum: daten?.ab ? new Date(daten.ab).toLocaleDateString() : "…" })}</option>
             <option value="30">{t("perf.tage30")}</option>
             <option value="25">{t("perf.letzte25")}</option>
           </select>
+          {/* Saison rechts in derselben Zeile (Jan 20.11.2026: „das kann alles in eine zeile") */}
+          {daten?.saison && <div className="ml-auto"><SaisonKarte s={daten.saison} /></div>}
         </div>
 
-        <p className="text-sm text-slate-400">{t("perf.intro", { n: daten?.min_feld ?? 5 })}</p>
-        {/* Ankuendigung Saison 2027 (Jan 18.11.2026: Punkte ab 1.1.2027 mit Saison-Rangliste), bis die Saison startet. */}
-        {Date.now() < Date.UTC(2027, 0, 1) && (
-          <div className="rounded-xl border border-brand-500/40 bg-brand-500/10 p-3 text-sm text-slate-200">
-            <span className="font-semibold text-brand-700 dark:text-brand-300">{t("perf.saisonTitel")}</span> · {t("perf.saisonText")}
-          </div>
-        )}
+        {/* Saison kompakt, farblich abgesetzt, rechtsbuendig in der Zeile unter den Knoepfen (Jan 20.11.2026: „muss doch
+            nicht ueber die ganze breite … farblich abgehoben etwas und in die zeile drunter rechtsbuendig"); die Einleitung
+            steht klein ganz unten („den hinweis weg oder ganz nach unten"). */}
+
 
         {fehler ? <Card className="p-4 text-sm text-red-700 dark:text-red-400">{fehler}</Card> : !daten ? <Spinner /> : alle.length === 0 ? (
           <Card className="p-6 text-center text-slate-300">{t("perf.leer")}</Card>
@@ -110,8 +121,58 @@ export function PerformanceBereich() {
         ) : (
           <UebersichtTab je={je} alle={alle} tage={tage} />
         )}
+        <p className="text-xs text-slate-400">{t("perf.intro", { n: daten?.min_feld ?? 5 })}</p>
       </div>
     </div>
+  );
+}
+
+type Saison = NonNullable<Awaited<ReturnType<typeof api.performance>>["saison"]>;
+
+/** Saison mit Punkten (Jan 20.11.2026: „die ab 1.1.27 zu fuellende gesamtpunkte-anzeige schon richtig, und die info was das
+ *  ist … hinter einem (i) das das in einem popup anzeigt"). Server: community._saison. */
+function SaisonKarte({ s }: { s: Saison }) {
+  const t = useT();
+  const [offen, setOffen] = useState(false);
+  const kats = s.regel.kategorien.map((k) => t(`perf.kat.${k}`)).join(" · ");
+  return (
+    <>
+      <div className="relative rounded-xl border border-brand-500/40 bg-brand-500/10 py-2 pl-3 pr-7 text-right sm:whitespace-nowrap">
+        <InfoKnopf label={t("perf.saisonTitel")} onClick={() => setOffen(true)} />
+        <div className="flex items-center justify-end gap-2">
+          <SeasonCupIcon className="h-7 w-7 shrink-0 text-brand-700 dark:text-brand-400" />
+          <span className="text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">{t("perf.saisonTitel")}</span>
+          <span className="text-2xl font-bold tabular-nums text-slate-100">{s.punkte}</span>
+          <span className="text-xs text-slate-400">{t("perf.saison.punkte")}</span>
+        </div>
+        <div className="text-xs text-slate-300">
+          {!s.gestartet ? t("perf.saison.startet", { jahr: String(s.jahr) })
+            : s.rang ? t("perf.saison.rang", { rang: String(s.rang), fahrer: String(s.fahrer), tage: String(s.tage) })
+            : t("perf.saison.nochKeine")}
+        </div>
+      </div>
+      {offen && (
+        <InfoDialog title={t("perf.saisonTitel")} text={t("perf.saison.infoIntro")} onClose={() => setOffen(false)}>
+          <table className="mt-3 w-full text-sm">
+            <thead>
+              <tr className="text-xs text-slate-400"><th className="text-left font-normal">{t("perf.saison.platz")}</th>
+                <th className="text-right font-normal">{t("perf.saison.punkte")}</th></tr>
+            </thead>
+            <tbody className="tabular-nums">
+              {s.regel.platz.map((p, i) => (
+                <tr key={i} className="border-t border-slate-800">
+                  <td className="py-0.5 text-slate-200">{i + 1}.</td>
+                  <td className="py-0.5 text-right font-semibold text-slate-100">{p}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-3 rounded-lg bg-brand-500/10 px-3 py-2 text-sm text-slate-200">{t("perf.saison.mitmachen", { n: String(s.regel.mitmachen) })}</p>
+          <p className="mt-3 text-sm text-slate-300">{t("perf.saison.kategorien", { kats })}</p>
+          <p className="mt-2 text-xs text-slate-400">{t("perf.saison.regeln", { n: String(s.regel.min_feld), max: String(s.regel.max_tag), jahr: String(s.jahr) })}</p>
+        </InfoDialog>
+      )}
+    </>
   );
 }
 
@@ -123,16 +184,20 @@ function UebersichtTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zei
     <>
       {/* Kennzahlen */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        {[
-          [t("perf.tage"), String(tage.length)],
-          [t("perf.besserAls"), `${Math.round(schnitt(alle.map((z) => z.perzentil)))} %`],
-          [t("perf.siege"), String(alle.filter((z) => z.platz === 1).length)],
-          [t("perf.podium"), quote(alle.filter((z) => z.platz <= 3).length)],
-          [t("perf.top10"), quote(alle.filter((z) => z.platz <= 10).length)],
-        ].map(([l, v]) => (
+        {([
+          [t("perf.tage"), String(tage.length), CalendarCheckIcon],
+          [t("perf.besserAls"), `${Math.round(schnitt(alle.map((z) => z.perzentil)))} %`, BeatIcon],
+          [t("perf.siege"), String(alle.filter((z) => z.platz === 1).length), TrophyIcon],
+          [t("perf.podium"), quote(alle.filter((z) => z.platz <= 3).length), PodiumIcon],
+          [t("perf.top10"), quote(alle.filter((z) => z.platz <= 10).length), MedalIcon],
+        ] as const).map(([l, v, I]) => (
           <Card key={l} className="p-3">
-            <div className="text-xs text-slate-400">{l}</div>
-            <div className="mt-1 text-2xl font-semibold tabular-nums text-slate-100">{v}</div>
+            {/* Icon so gross wie der Wert, in einer Zeile; Wert mittig im freien Platz, Label klein darunter (Jan 20.11.2026) */}
+            <div className="flex items-center gap-2">
+              <I className="h-7 w-7 shrink-0 text-brand-700 dark:text-brand-400" />
+              <span className="flex-1 text-center text-2xl font-semibold tabular-nums text-slate-100">{v}</span>
+            </div>
+            <div className="mt-1 text-xs text-slate-400">{l}</div>
           </Card>
         ))}
       </div>
@@ -156,7 +221,7 @@ function UebersichtTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zei
               const z = je[k];
               return (
                 <tr key={k} className="border-t border-slate-800">
-                  <td className="py-1.5 pr-3 font-medium text-slate-200">{katName(k)}</td>
+                  <td className="py-1.5 pr-3 font-medium text-slate-200"><span className="flex items-center gap-1.5"><KatIcon k={k} className="h-4 w-4 text-brand-700 dark:text-brand-400" />{katName(k)}</span></td>
                   <td className="px-2 py-1.5 text-right tabular-nums">{z.length || "–"}</td>
                   <td className="whitespace-nowrap px-2 py-1.5 text-right tabular-nums">{z.length
                     ? t("perf.schnittVon", { platz: schnitt(z.map((x) => x.platz)).toFixed(1), feld: Math.round(schnitt(z.map((x) => x.feld))) })
@@ -180,13 +245,14 @@ function UebersichtTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zei
             const b = z.length ? z.reduce((a, x) => (x.wert > a.wert ? x : a)) : null;
             return (
               <div key={k} className="rounded-lg bg-slate-800/50 p-2.5">
-                <div className="text-xs text-slate-400">{katName(k)}</div>
-                {b ? (
-                  <Link to={`/sessions/${b.session_id}`} className="group block">
-                    <div className="text-lg font-semibold tabular-nums text-slate-100 group-hover:text-brand-700 dark:group-hover:text-brand-300">{wertText(k, b.wert)}</div>
-                    <div className="text-xs text-slate-400">{tagKurz(b.tag)} · {t("perf.platzVon", { platz: b.platz, feld: b.feld })}</div>
-                  </Link>
-                ) : <div className="text-lg text-slate-400">–</div>}
+                <div className="flex items-center gap-2">
+                  <KatIcon k={k} className="h-6 w-6 text-brand-700 dark:text-brand-400" />
+                  {b ? (
+                    <Link to={`/sessions/${b.session_id}`} className="text-lg font-semibold tabular-nums text-slate-100 hover:text-brand-700 dark:hover:text-brand-300">{wertText(k, b.wert)}</Link>
+                  ) : <span className="text-lg text-slate-400">–</span>}
+                </div>
+                <div className="mt-0.5 text-xs text-slate-400">{katName(k)}</div>
+                {b && <div className="text-xs text-slate-400">{tagKurz(b.tag)} · {t("perf.platzVon", { platz: b.platz, feld: b.feld })}</div>}
               </div>
             );
           })}
@@ -200,7 +266,7 @@ function UebersichtTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zei
           const max = Math.max(1, ...BUCKETS.map(([, f]) => z.filter((x) => f(x.platz)).length));
           return (
             <Card key={k} className="p-3">
-              <div className="font-semibold text-slate-100">{katName(k)}</div>
+              <div className="flex items-center gap-1.5 font-semibold text-slate-100"><KatIcon k={k} className="h-4 w-4 text-brand-700 dark:text-brand-400" />{katName(k)}</div>
               {z.length === 0 ? <div className="mt-2 text-sm text-slate-400">{t("perf.keineTage")}</div> : <>
                 <div className="mt-1 text-xs text-slate-400">
                   {t("perf.katZeile", { n: z.length, perz: Math.round(schnitt(z.map((x) => x.perzentil))) })}
@@ -245,7 +311,7 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
             {KATS.map((k) => (
               <button key={k} type="button" onClick={() => setKat(k)} aria-pressed={kat === k}
                 className={`rounded-lg px-2.5 py-1 text-xs ${kat === k ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300 hover:text-slate-100"}`}>
-                {katName(k)}
+                <span className="flex items-center gap-1"><KatIcon k={k} className="h-3.5 w-3.5" />{katName(k)}</span>
               </button>
             ))}
           </div>
@@ -256,7 +322,8 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
         <p className="mt-1 text-xs text-slate-400">{t("perf.platzverlaufHint")}</p>
       </Card>
 
-      {/* Raster Kategorie x Tag: Zahl = Platz, Farbe = Anteil geschlagener Fahrer */}
+      {/* Raster Kategorie x Tag: Zahl = Platz, Farbe = Anteil geschlagener Fahrer. Zeit laeuft von links nach rechts wie in
+          den anderen Darstellungen (Hinweis eines Fahrers, 19.11.2026). */}
       <Card className="p-3">
         <div className="mb-2 font-semibold text-slate-100">{t("perf.raster")}</div>
         <div className="overflow-x-auto">
@@ -264,7 +331,7 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
             <thead>
               <tr>
                 <th />
-                {tage.map((d) => (
+                {[...tage].reverse().map((d) => (
                   <th key={d} className="px-0.5 pb-1 font-normal text-slate-400" title={d}>{tagKurz(d)}</th>
                 ))}
               </tr>
@@ -274,8 +341,9 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
                 const m = new Map(je[k].map((z) => [z.tag, z]));
                 return (
                   <tr key={k}>
-                    <th className="whitespace-nowrap pr-2 text-left font-medium text-slate-300">{katName(k)}</th>
-                    {tage.map((d) => {
+                    <th className="whitespace-nowrap pr-2 text-left font-medium text-slate-300" title={katName(k)}>
+                      <span className="flex items-center gap-1.5"><KatIcon k={k} className="h-4 w-4 text-brand-700 dark:text-brand-400" /><span className="hidden sm:inline">{katName(k)}</span></span></th>
+                    {[...tage].reverse().map((d) => {
                       const z = m.get(d);
                       return (
                         <td key={d} className="p-0.5">

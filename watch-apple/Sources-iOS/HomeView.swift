@@ -1038,15 +1038,36 @@ struct PerfZeile: Codable {
     let session_id: Int
 }
 
+struct PerfRegel: Codable {
+    let platz: [Int]
+    let mitmachen: Int
+    let min_feld: Int
+    let kategorien: [String]
+    let max_tag: Int
+}
+
+// Saison mit Punkten ab 1.1.2027 (Jan 20.11.2026), Server community._saison; fehlt bei aelteren Servern
+struct PerfSaison: Codable {
+    let jahr: Int
+    let gestartet: Bool
+    let punkte: Int
+    let tage: Int
+    let rang: Int?
+    let fahrer: Int
+    let regel: PerfRegel
+}
+
 struct PerfAntwort: Codable {
     let sport: String
     let min_feld: Int
     let ab: String
     let kategorien: [String: [PerfZeile]]
+    let saison: PerfSaison?
 }
 
-private let perfKats: [String] = ["sprint_100m", "sprint_60s", "run_distance", "run_time"]
-private let perfSaisonStart: Date = ISO8601DateFormatter().date(from: "2027-01-01T00:00:00Z") ?? Date.distantFuture
+// Zwei Tempo-, zwei Ausdauer-Kategorien (Vorschlag eines Fahrers 19.11.2026, Jan 20.11.): Zeit auf dem Foil am Tag statt
+// laengster Laufzeit. Der Server liefert `run_time` fuer aeltere Apps weiter.
+private let perfKats: [String] = ["sprint_100m", "sprint_60s", "run_distance", "foil_time_day"]
 private let perfCyan = Color(red: 34 / 255, green: 211 / 255, blue: 238 / 255)   // Markenfarbe (brand-design)
 private let perfBuckets: [(String, (Int) -> Bool)] = [
     ("1", { $0 == 1 }), ("2", { $0 == 2 }), ("3", { $0 == 3 }),
@@ -1059,6 +1080,7 @@ private func perfWertText(_ k: String, _ v: Double) -> String {
     if k == "sprint_100m" || k == "sprint_60s" { return String(format: "%.1f km/h", v * 3.6) }
     if k == "run_distance" { return "\(Int(v.rounded())) m" }
     let s: Int = Int(v.rounded())
+    if s >= 3600 { return String(format: "%d:%02d h", s / 3600, (s % 3600) / 60) }
     return String(format: "%d:%02d min", s / 60, s % 60)
 }
 
@@ -1073,6 +1095,7 @@ struct PerformanceBereich: View {
     @State private var zeitraum: String = "25"   // alle | 30 | 25 (letzte 25 Tage mit Wertung, Standard seit Jan 18.11.)
     @State private var daten: PerfAntwort?
     @State private var fehler: String?
+    @State private var saisonInfo: Bool = false
     // Unterreiter Uebersicht | Verlauf (Web 18.11.2026 abends) und die Kategorie des Platzverlaufs.
     @State private var sub: String = ReiterSpeicher.von("homeperf", "uebersicht")
     @State private var kat: String = "sprint_100m"
@@ -1106,20 +1129,60 @@ struct PerformanceBereich: View {
             auswahl
             Text(Loc.t("perf.intro", lang).replacingOccurrences(of: "{n}", with: String(daten?.min_feld ?? 5)))
                 .font(.subheadline).foregroundStyle(.secondary)
-            if Date() < perfSaisonStart { saisonKachel }
+            if let s = daten?.saison { saisonKachel(s) }
             inhalt
         }
         .task(id: sport) { await laden() }
     }
 
-    // Ankuendigung Saison 2027 (Jan 18.11.2026: Punkte ab 1.1.2027 mit Saison-Rangliste), bis die Saison startet.
-    private var saisonKachel: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(Loc.t("perf.saisonTitel", lang)).fontWeight(.semibold).foregroundStyle(perfCyan)
-            Text(Loc.t("perf.saisonText", lang)).font(.caption)
+    // Saison mit Punkten (wie Web, Jan 20.11.2026): kompakt rechtsbuendig, (i) zeigt Punktetabelle und Regeln.
+    private func saisonZeile(_ s: PerfSaison) -> String {
+        if !s.gestartet { return Loc.t("perf.saison.startet", lang).replacingOccurrences(of: "{jahr}", with: String(s.jahr)) }
+        guard let r = s.rang else { return Loc.t("perf.saison.nochKeine", lang) }
+        return Loc.t("perf.saison.rang", lang).replacingOccurrences(of: "{rang}", with: String(r))
+            .replacingOccurrences(of: "{fahrer}", with: String(s.fahrer)).replacingOccurrences(of: "{tage}", with: String(s.tage))
+    }
+
+    private func saisonKachel(_ s: PerfSaison) -> some View {
+        HStack {
+            Spacer(minLength: 0)
+            VStack(alignment: .trailing, spacing: 2) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(Loc.t("perf.saisonTitel", lang)).font(.caption).fontWeight(.semibold).foregroundStyle(perfCyan)
+                    Text(String(s.punkte)).font(.title2).fontWeight(.bold).monospacedDigit()
+                    Text(Loc.t("perf.saison.punkte", lang)).font(.caption).foregroundStyle(.secondary)
+                    Button { saisonInfo = true } label: { Image(systemName: "info.circle").foregroundStyle(.secondary) }
+                        .buttonStyle(.borderless)
+                }
+                Text(saisonZeile(s)).font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.trailing)
+            }
+            .padding(.vertical, 8).padding(.horizontal, 12)
+            .background(perfCyan.opacity(0.12)).clipShape(RoundedRectangle(cornerRadius: 12))
         }
-        .frame(maxWidth: .infinity, alignment: .leading).padding(12)
-        .background(perfCyan.opacity(0.12)).clipShape(RoundedRectangle(cornerRadius: 12))
+        .sheet(isPresented: $saisonInfo) { saisonInfoSheet(s) }
+    }
+
+    private func saisonInfoSheet(_ s: PerfSaison) -> some View {
+        let kats: String = s.regel.kategorien.map { Loc.t("perf.kat." + $0, lang) }.joined(separator: " · ")
+        return NavigationStack {
+            List {
+                Section { Text(Loc.t("perf.saison.infoIntro", lang)).font(.subheadline) }
+                Section(header: HStack { Text(Loc.t("perf.saison.platz", lang)); Spacer(); Text(Loc.t("perf.saison.punkte", lang)) }) {
+                    ForEach(Array(s.regel.platz.enumerated()), id: \.offset) { i, p in
+                        HStack { Text("\(i + 1).").monospacedDigit(); Spacer(); Text(String(p)).fontWeight(.semibold).monospacedDigit() }
+                    }
+                }
+                Section {
+                    Text(Loc.t("perf.saison.mitmachen", lang).replacingOccurrences(of: "{n}", with: String(s.regel.mitmachen)))
+                    Text(Loc.t("perf.saison.kategorien", lang).replacingOccurrences(of: "{kats}", with: kats)).font(.subheadline)
+                    Text(Loc.t("perf.saison.regeln", lang).replacingOccurrences(of: "{n}", with: String(s.regel.min_feld))
+                        .replacingOccurrences(of: "{max}", with: String(s.regel.max_tag)).replacingOccurrences(of: "{jahr}", with: String(s.jahr)))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle(Loc.t("perf.saisonTitel", lang)).navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button(Loc.t("common.close", lang)) { saisonInfo = false } } }
+        }
     }
 
     private func laden() async {
@@ -1337,7 +1400,8 @@ struct PerformanceBereich: View {
                 }
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 4) {
-                        ForEach(tage, id: \.self) { t in rasterSpalte(t) }
+                        // Zeit von links nach rechts wie in den anderen Darstellungen (Hinweis eines Fahrers, 19.11.2026)
+                        ForEach(tage.reversed(), id: \.self) { t in rasterSpalte(t) }
                     }
                 }
             }

@@ -16,13 +16,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -57,10 +64,21 @@ data class PerfZeile(val tag: String, val wert: Double, val platz: Int, val feld
                      @SerialName("session_id") val sessionId: Int)
 
 @Serializable
-data class PerfAntwort(val sport: String = "pumpfoil", @SerialName("min_feld") val minFeld: Int = 5, val ab: String = "",
-                       val kategorien: Map<String, List<PerfZeile>> = emptyMap())
+data class PerfRegel(val platz: List<Int> = emptyList(), val mitmachen: Int = 1, @SerialName("min_feld") val minFeld: Int = 5,
+                     val kategorien: List<String> = emptyList(), @SerialName("max_tag") val maxTag: Int = 101)
 
-private val KATS = listOf("sprint_100m", "sprint_60s", "run_distance", "run_time")
+// Saison mit Punkten ab 1.1.2027 (Jan 20.11.2026), Server community._saison; fehlt bei aelteren Servern
+@Serializable
+data class PerfSaison(val jahr: Int = 2027, val gestartet: Boolean = false, val punkte: Int = 0, val tage: Int = 0,
+                      val rang: Int? = null, val fahrer: Int = 0, val regel: PerfRegel = PerfRegel())
+
+@Serializable
+data class PerfAntwort(val sport: String = "pumpfoil", @SerialName("min_feld") val minFeld: Int = 5, val ab: String = "",
+                       val kategorien: Map<String, List<PerfZeile>> = emptyMap(), val saison: PerfSaison? = null)
+
+// Zwei Tempo-, zwei Ausdauer-Kategorien (Vorschlag eines Fahrers 19.11.2026, Jan 20.11.): Zeit auf dem Foil am Tag statt
+// laengster Laufzeit (die war dem laengsten Lauf zu aehnlich). Der Server liefert `run_time` fuer aeltere Apps weiter.
+private val KATS = listOf("sprint_100m", "sprint_60s", "run_distance", "foil_time_day")
 private val PerfCyan = Color(0xFF22D3EE)   // Markenfarbe (brand-design)
 private val BandGruen = Color(0xFF10B981)
 private val BandGelb = Color(0xFFF59E0B)
@@ -73,7 +91,8 @@ private val BUCKETS: List<Pair<String, (Int) -> Boolean>> = listOf(
 private fun wertText(k: String, v: Double): String = when (k) {
     "sprint_100m", "sprint_60s" -> "%.1f km/h".format(v * 3.6)
     "run_distance" -> "${Math.round(v)} m"
-    else -> { val s = Math.round(v).toInt(); "%d:%02d min".format(s / 60, s % 60) }
+    else -> { val s = Math.round(v).toInt()
+        if (s >= 3600) "%d:%02d h".format(s / 3600, (s % 3600) / 60) else "%d:%02d min".format(s / 60, s % 60) }
 }
 
 private fun tagKurz(tag: String) = tag.substring(8, 10).trimStart('0') + "." + tag.substring(5, 7).trimStart('0') + "."
@@ -120,15 +139,7 @@ fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
         }
         Text(I18n.t("perf.intro").replace("{n}", "${daten?.minFeld ?: 5}"), style = MaterialTheme.typography.bodyMedium,
             color = grau, modifier = Modifier.padding(vertical = 8.dp))
-        // Ankuendigung Saison 2027 (Jan 18.11.2026: Punkte ab 1.1.2027 mit Saison-Rangliste), bis die Saison startet.
-        if (LocalDate.now() < LocalDate.of(2027, 1, 1)) {
-            Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
-                Column(Modifier.padding(12.dp)) {
-                    Text(I18n.t("perf.saisonTitel"), fontWeight = FontWeight.SemiBold, color = PerfCyan)
-                    Text(I18n.t("perf.saisonText"), style = MaterialTheme.typography.bodySmall)
-                }
-            }
-        }
+        daten?.saison?.let { SaisonKarte(it) }
 
         val d = daten
         when {
@@ -321,8 +332,9 @@ private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>,
                     }
                 }
                 Spacer(Modifier.width(6.dp))
+                // Zeit von links nach rechts wie in den anderen Darstellungen (Hinweis eines Fahrers, 19.11.2026)
                 Row(Modifier.horizontalScroll(rememberScrollState())) {
-                    tage.forEach { tag ->
+                    tage.reversed().forEach { tag ->
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(tagKurz(tag), style = MaterialTheme.typography.labelSmall, color = grau, fontSize = 10.sp,
                                 modifier = Modifier.height(18.dp))
@@ -373,5 +385,64 @@ private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>,
                 }
             }
         }
+    }
+}
+
+
+/** Saison mit Punkten (wie Web): Punkte + Rang, (i) oeffnet Punktetabelle und Regeln. */
+@Composable
+private fun SaisonKarte(s: PerfSaison) {
+    var offen by remember { mutableStateOf(false) }
+    val grau = MaterialTheme.colorScheme.onSurfaceVariant
+    Card(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+        Box(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(12.dp)) {
+                Text(I18n.t("perf.saisonTitel"), fontWeight = FontWeight.SemiBold, color = PerfCyan)
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text("${s.punkte}", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.width(6.dp))
+                    Text(I18n.t("perf.saison.punkte"), color = grau, modifier = Modifier.padding(bottom = 6.dp))
+                }
+                Text(when {
+                    !s.gestartet -> I18n.t("perf.saison.startet").replace("{jahr}", "${s.jahr}")
+                    s.rang != null -> I18n.t("perf.saison.rang").replace("{rang}", "${s.rang}").replace("{fahrer}", "${s.fahrer}")
+                        .replace("{tage}", "${s.tage}")
+                    else -> I18n.t("perf.saison.nochKeine")
+                }, style = MaterialTheme.typography.bodySmall, color = grau)
+            }
+            IconButton(onClick = { offen = true }, modifier = Modifier.align(Alignment.TopEnd)) {
+                Icon(Icons.Outlined.Info, contentDescription = I18n.t("perf.saisonTitel"), tint = grau)
+            }
+        }
+    }
+    if (offen) {
+        AlertDialog(onDismissRequest = { offen = false },
+            confirmButton = { TextButton(onClick = { offen = false }) { Text(I18n.t("common.close")) } },
+            title = { Text(I18n.t("perf.saisonTitel")) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    Text(I18n.t("perf.saison.infoIntro"), style = MaterialTheme.typography.bodyMedium)
+                    Spacer(Modifier.height(8.dp))
+                    Row(Modifier.fillMaxWidth()) {
+                        Text(I18n.t("perf.saison.platz"), style = MaterialTheme.typography.labelSmall, color = grau, modifier = Modifier.weight(1f))
+                        Text(I18n.t("perf.saison.punkte"), style = MaterialTheme.typography.labelSmall, color = grau)
+                    }
+                    s.regel.platz.forEachIndexed { i, p ->
+                        Row(Modifier.fillMaxWidth().padding(vertical = 1.dp)) {
+                            Text("${i + 1}.", modifier = Modifier.weight(1f))
+                            Text("$p", fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Text(I18n.t("perf.saison.mitmachen").replace("{n}", "${s.regel.mitmachen}"),
+                        modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(PerfCyan.copy(alpha = 0.12f)).padding(8.dp))
+                    Spacer(Modifier.height(8.dp))
+                    Text(I18n.t("perf.saison.kategorien").replace("{kats}", s.regel.kategorien.joinToString(" · ") { I18n.t("perf.kat.$it") }),
+                        style = MaterialTheme.typography.bodySmall)
+                    Spacer(Modifier.height(6.dp))
+                    Text(I18n.t("perf.saison.regeln").replace("{n}", "${s.regel.minFeld}").replace("{max}", "${s.regel.maxTag}")
+                        .replace("{jahr}", "${s.jahr}"), style = MaterialTheme.typography.bodySmall, color = grau)
+                }
+            })
     }
 }

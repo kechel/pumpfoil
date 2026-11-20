@@ -518,3 +518,82 @@ export const ReplyIcon = ({ className = base }: P) => (
     <path d="M4 9h10a6 6 0 0 1 6 6v5" />
   </svg>
 );
+
+// ---- Performance (20.11.2026, Jan: „passende schicke eigene icons … das ist viel zu textlastig") ----------------------
+// Fliegende 100 m: Tempo-Striche + Pfeil ueber einer Messlatte (Strecke fest, Tempo zaehlt).
+export const Sprint100Icon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M2 8h5" /><path d="M3.5 12h4" />
+    <path d="M10 10h11" /><path d="M17.5 6.5 21 10l-3.5 3.5" />
+    <path d="M3 19h18" /><path d="M3 17v2" /><path d="M12 17.5V19" /><path d="M21 17v2" />
+  </svg>
+);
+// Fliegende Minute: Tacho mit Nadel (Tempo ueber eine feste Zeit). Wie im Entwurf eines Fahrers (19.11.2026) — die
+// Stoppuhr stand dort fuer die Zeit auf dem Foil und haette hier verwechselt werden koennen.
+export const SprintMinuteIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M3.5 17.5a8.5 8.5 0 1 1 17 0" /><path d="M12 17.5l4.2-4.8" /><circle cx="12" cy="17.5" r="1.2" />
+    <path d="M6.6 11.6l1 1" /><path d="M12 9v1.4" /><path d="M17.4 11.6l-1 1" /><path d="M3.5 20.5h17" />
+  </svg>
+);
+// Laengster Lauf: geschwungene Spur vom Start (Punkt) zum Ziel (Fahne).
+export const LongestRunIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <circle cx="4" cy="19" r="1.8" />
+    <path d="M5.8 18.4C10 17 7 12.5 11 11.2s5.5 1.3 8.2-2.2" />
+    <path d="M18.5 9V3" /><path d="M18.5 3h3.5l-1 1.6 1 1.6h-3.5" />
+  </svg>
+);
+// Zeit auf dem Foil (Tag): Foil in der Seitenansicht (Brett flach, Mast hinten, Frontfluegel vorne, Stab hinten —
+// Memory foil-zeichnen-seitenansicht) mit einer Uhr daneben.
+export const FoilTimeIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M1.5 6.5h11.5" /><path d="M10.5 6.5v9" /><path d="M2.5 15.5h10" />
+    <path d="M2 14.5c1.2-.9 3.3-.9 4.5 0" /><path d="M11.5 14.7h2" />
+    <circle cx="18.5" cy="16.5" r="4" /><path d="M18.5 14.6v1.9l1.3.9" />
+  </svg>
+);
+// Gewertete Tage: Kalenderblatt mit Haken.
+export const CalendarCheckIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <rect x="3.5" y="5" width="17" height="15.5" rx="2" /><path d="M3.5 10h17" /><path d="M8 3v4" /><path d="M16 3v4" />
+    <path d="m9 15 2 2 4-4" />
+  </svg>
+);
+// Besser als: Balken mit Pfeil nach oben (Anteil geschlagener Fahrer).
+export const BeatIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M4 20v-5" /><path d="M9.5 20v-8" /><path d="M15 20v-4" />
+    <path d="M13 8.5 17.5 4 22 8.5" /><path d="M17.5 4v10" />
+  </svg>
+);
+// Siege: Pokal.
+export const TrophyIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" /><path d="M7 6H4.5a2.5 2.5 0 0 0 2.6 4" /><path d="M17 6h2.5a2.5 2.5 0 0 1-2.6 4" />
+    <path d="M12 14v3.5" /><path d="M8.5 20.5h7" /><path d="M9.5 20.5 10 17.5h4l.5 3" />
+  </svg>
+);
+// Saison-Pokal (Gesamtwertung): breiter Becher mit Stern, Griffe, Sockel — anders als TrophyIcon (Siege),
+// damit Saison und Tagessiege nicht verwechselt werden. Idee aus Oleks Saison-Entwurf (Pokal + Stern).
+export const SeasonCupIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M6 3.5h12v4.5a6 6 0 0 1-12 0V3.5Z" /><path d="M6 5.5H3.5v1a3.5 3.5 0 0 0 3.2 3.5" /><path d="M18 5.5h2.5v1a3.5 3.5 0 0 1-3.2 3.5" />
+    <path d="m12 5.4.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 7.5l2-.3.9-1.8Z" />
+    <path d="M12 14v3" /><path d="M8 17h8l1 3.5H7L8 17Z" />
+  </svg>
+);
+// Podium (Top 3): drei Stufen, die mittlere am hoechsten.
+export const PodiumIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M2.5 20.5V14h6v6.5" /><path d="M8.5 20.5V8h7v12.5" /><path d="M15.5 20.5V16h6v4.5" /><path d="M1.5 20.5h21" />
+    <path d="m12 2.8.8 1.6 1.7.3-1.2 1.2.3 1.7-1.6-.8-1.6.8.3-1.7-1.2-1.2 1.7-.3.8-1.6Z" />
+  </svg>
+);
+// Top 10: Medaille am Band.
+export const MedalIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M8 2.5 10.5 9" /><path d="M16 2.5 13.5 9" /><path d="M6.5 2.5h3" /><path d="M14.5 2.5h3" />
+    <circle cx="12" cy="15" r="6" /><path d="m12 12 .9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3L12 12Z" />
+  </svg>
+);
