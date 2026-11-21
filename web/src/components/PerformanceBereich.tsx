@@ -408,7 +408,10 @@ function VerlaufTab({ je, alle, tage, regel }: { je: Record<Kat, Zeile[]>; alle:
         {/* steht beim Oeffnen ganz rechts (neueste Tage, heute): rtl-Rollbereich beginnt von selbst am rechten Ende, auch
             wenn sich die Breite nach dem ersten Zeichnen noch aendert; die Tabelle selbst bleibt ltr */}
         <div className="overflow-x-auto" dir="rtl">
-          <table className="text-xs" dir="ltr">
+          {/* innerer ltr-Block mindestens so breit wie der Rollbereich: passt die Tabelle hinein, steht sie links (Jan
+              21.11.2026: „sollte trotzdem linksbuendig starten"); ist sie breiter, startet das Rollen weiter rechts */}
+          <div dir="ltr" className="w-max min-w-full">
+          <table className="text-xs">
             <thead>
               <tr>
                 <th className="sticky left-0 z-10 bg-[color-mix(in_srgb,rgb(var(--s-900))_60%,rgb(var(--s-950)))]" />
@@ -464,6 +467,7 @@ function VerlaufTab({ je, alle, tage, regel }: { je: Record<Kat, Zeile[]>; alle:
               )}
             </tbody>
           </table>
+          </div>
         </div>
         {punkte.size > 0 && <p className="mt-1 text-xs text-slate-400">{t("perf.punkteHint")}</p>}
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
