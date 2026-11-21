@@ -5817,6 +5817,14 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     wird (s. `docs/WATCH-STORAGE.md`), und ob der Neustart am Settings-/Aktivitaets-Sync haengt.
     Er faehrt lange Sessions (87 und 96 Minuten am 14./15.09.), inzwischen auf 1.0.86.
   - **Ihm steht eine Antwort zu:** wir hatten auf Garmin gezeigt, er hat das sauber widerlegt.
+  - **21.11.: wieder gemeldet, jetzt 1.0.99.** Speichern 14:04, Uhr steht 14:09, Garmin-Logo ~14:15, bedienbar 14:39
+    (67-min-Session; laengere Session = laenger eingefroren). Server: zwischen 14:04 und Neustart KEIN Kontakt der Uhr,
+    Upload erst 14:40 komplett (45 GPS, 71 Accel) -> nicht der Upload, App laeuft da schon nicht mehr. Speicher-Spitze
+    102/123 KB, keine Garmin-Verknuepfung. **Verdacht:** der SensorLogger schreibt die Roh-Beschleunigung in die
+    FIT-Datei (`SessionRecorder.mc`, `Wege.fitAccel`) — das haben native Aktivitaeten nicht; die Firmware verschluckt
+    sich beim Nachverarbeiten. **Test angefragt** (DM vom Assistenten-Konto): eine lange Session mit „GPS only".
+    Friert sie dann nicht ein -> fuer die Uhr nur `fitAccel` aus, Roh-Bloecke behalten. Dafuer muss die Ueberschreibung
+    `UHR_WEGE_NUTZER` auch OHNE Garmin-Verknuepfung greifen (`devices._datenwege` gibt heute ohne `gc` nichts zurueck).
 
 
 - **🟡 14./15.09. — PeterH (u171) bekommt seit dem 08.09. keinen Puls mehr. Befund: mit hoher
