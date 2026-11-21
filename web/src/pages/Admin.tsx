@@ -119,6 +119,7 @@ export default function Admin() {
 // Als globales Event vorgeschlagen (16.11.2026): ansehen (Link zur Eventseite), annehmen oder mit Grund ablehnen.
 // Annehmen macht das Event global; es bleibt beim Team („promoted by"), Titel/Zeitraum/Wertung danach nur noch hier/Admin.
 function EventVorschlaegeAdmin() {
+  const t = useT();
   const [rows, setRows] = useState<AdminEventVorschlag[] | null>(null);
   const [notiz, setNotiz] = useState<Record<number, string>>({});
   const laden = () => api.adminEventVorschlaege().then(setRows).catch(() => setRows([]));
@@ -126,7 +127,7 @@ function EventVorschlaegeAdmin() {
   if (!rows?.length) return null;
   return (
     <div className="mb-6 space-y-3">
-      <h3 className="text-lg font-bold text-slate-100">Als globales Event vorgeschlagen</h3>
+      <h3 className="text-lg font-bold text-slate-100">{t("adm.x.globalVorgeschlagen")}</h3>
       {rows.map((r) => (
         <Card key={r.id} className="p-4">
           <div className="mb-2 flex items-center gap-3">
@@ -135,7 +136,7 @@ function EventVorschlaegeAdmin() {
               <Link to={`/teams/${r.team.slug}/events/${r.id}`} className="font-semibold text-brand-700 underline dark:text-brand-300">{r.titel}</Link>
               <p className="text-xs text-slate-400">
                 {r.team.name} · {new Date(r.start).toLocaleString()} – {new Date(r.ende).toLocaleString()}
-                {r.von && <> · vorgeschlagen von <Link to={`/foiler/${r.von.user_id}`} className="underline">{r.von.name ?? r.von.user_id}</Link></>}
+                {r.von && <> · {t("adm.x.vorgeschlagenVon")} <Link to={`/foiler/${r.von.user_id}`} className="underline">{r.von.name ?? r.von.user_id}</Link></>}
               </p>
             </div>
           </div>
@@ -145,13 +146,13 @@ function EventVorschlaegeAdmin() {
           </p>
           {r.beschreibung && <p className="mb-2 whitespace-pre-line text-sm text-slate-400">{r.beschreibung}</p>}
           <input value={notiz[r.id] ?? ""} onChange={(e) => setNotiz({ ...notiz, [r.id]: e.target.value })}
-            placeholder="Notiz an das Team (Pflicht bei Ablehnung)"
+            placeholder={t("adm.x.notizTeam")}
             className="mb-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
           <div className="flex gap-2">
             <button onClick={() => api.adminEventVorschlagEntscheiden(r.id, true, notiz[r.id]).then(laden)}
-              className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400">Als global annehmen</button>
+              className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400">{t("adm.x.globalAnnehmen")}</button>
             <button disabled={!(notiz[r.id] ?? "").trim()} onClick={() => api.adminEventVorschlagEntscheiden(r.id, false, notiz[r.id]).then(laden)}
-              className="rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-40">Ablehnen</button>
+              className="rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-40">{t("adm.x.ablehnen")}</button>
           </div>
         </Card>
       ))}
@@ -164,16 +165,17 @@ function TeamsFreigabeTab() {
 }
 
 function TeamsFreigabeListe() {
+  const t = useT();
   const [rows, setRows] = useState<AdminTeamFreigabe[] | null>(null);
   const [notiz, setNotiz] = useState<Record<number, string>>({});
   const laden = () => api.adminTeams().then(setRows).catch(() => setRows([]));
   useEffect(() => { laden(); }, []);
   if (!rows) return <p className="text-sm text-slate-400">…</p>;
-  if (!rows.length) return <p className="text-sm text-slate-400">Keine Teams warten auf Freigabe.</p>;
+  if (!rows.length) return <p className="text-sm text-slate-400">{t("adm.x.keineTeams")}</p>;
   const Fassung = ({ f, titel }: { f: AdminTeamFreigabe["neu"] | null; titel: string }) => (
     <div className="min-w-0 flex-1 rounded-xl border border-slate-800 p-3" style={teamFarbStil(f?.farbe)}>
       <p className="mb-2 text-xs uppercase tracking-wide text-slate-400">{titel}</p>
-      {!f ? <p className="text-sm text-slate-400">— (noch nie freigegeben)</p> : (
+      {!f ? <p className="text-sm text-slate-400">{t("adm.x.nieFrei")}</p> : (
         <div className="team-farbe" style={teamFarbStil(f.farbe)}>
           {f.banner_url && <img src={f.banner_url} alt="" className="mb-2 w-full rounded-lg" />}
           <div className="mb-2 flex items-center gap-2">
@@ -194,20 +196,20 @@ function TeamsFreigabeListe() {
         <Card key={r.id} className="p-4">
           <p className="mb-2 text-sm text-slate-300">
             Team #{r.id} · Leitung: {r.leiter ? <Link to={`/foiler/${r.leiter.user_id}`} className="underline">{r.leiter.name ?? r.leiter.user_id}</Link> : "—"}
-            {r.oeffentlich && " · Bestenlisten sollen öffentlich sein"}
+            {r.oeffentlich && ` · ${t("adm.x.bestenlistenOeffentlich")}`}
           </p>
           <div className="mb-3 flex flex-col gap-3 sm:flex-row">
             <Fassung f={r.alt} titel="Bisher freigegeben" />
             <Fassung f={r.neu} titel="Neu" />
           </div>
           <input value={notiz[r.id] ?? ""} onChange={(e) => setNotiz({ ...notiz, [r.id]: e.target.value })}
-            placeholder="Grund bei Ablehnung (sieht die Teamleitung)"
+            placeholder={t("adm.x.grundAblehnung")}
             className="mb-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100" />
           <div className="flex gap-2">
             <button onClick={() => api.adminTeamEntscheiden(r.id, true).then(laden)}
-              className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400">Freigeben</button>
+              className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400">{t("adm.x.freigeben")}</button>
             <button onClick={() => api.adminTeamEntscheiden(r.id, false, notiz[r.id]).then(laden)}
-              className="rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800">Ablehnen</button>
+              className="rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-800">{t("adm.x.ablehnen")}</button>
           </div>
         </Card>
       ))}
@@ -633,20 +635,20 @@ function StatsSection() {
       {/* Die zwei Schalter stehen GANZ OBEN und gelten fuer alles darunter. */}
       <Card className="flex flex-col gap-2 p-3">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="w-28 shrink-0 text-xs text-slate-400">Zeitraum</span>
+          <span className="w-28 shrink-0 text-xs text-slate-400">{t("adm.x.zeitraum")}</span>
           {ZEITRAUM.map(([n, label]) => (
             <button key={n} onClick={() => setTage(n)} className={knopf(tage === n)}>{label}</button>
           ))}
-          <span className="text-[11px] text-slate-500">welcher Ausschnitt zu sehen ist</span>
+          <span className="text-[11px] text-slate-500">{t("adm.x.ausschnitt")}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="w-28 shrink-0 text-xs text-slate-400">Summiert über</span>
+          <span className="w-28 shrink-0 text-xs text-slate-400">{t("adm.x.summiert")}</span>
           {FENSTER.map((n) => (
             <button key={String(n)} onClick={() => setFenster(n)} className={knopf(fenster === n)}>
               {fensterLabel(n)}
             </button>
           ))}
-          <span className="text-[11px] text-slate-500">worüber ein Punkt zählt</span>
+          <span className="text-[11px] text-slate-500">{t("adm.x.punktZaehlt")}</span>
         </div>
         <p className="text-[11px] text-slate-500">
           Beides ist unabhängig: das Fenster wird über die ganze Historie gerechnet und erst danach
@@ -657,17 +659,17 @@ function StatsSection() {
 
       {!data ? <Spinner /> : (
         <>
-          <h3 className="pt-2 text-sm font-semibold text-slate-100">Nutzung</h3>
+          <h3 className="pt-2 text-sm font-semibold text-slate-100">{t("adm.x.nutzung")}</h3>
           {raster(STATS_METRICS, true)}
 
-          <h3 className="pt-4 text-sm font-semibold text-slate-100">Aktivität je Plattform</h3>
+          <h3 className="pt-4 text-sm font-semibold text-slate-100">{t("adm.x.aktivPlattform")}</h3>
           <p className="-mt-1 text-xs text-slate-400">
             Nutzer, die über diese Plattform etwas übertragen haben. Ein Knick nach unten heißt:
             von dort kommt weniger.
           </p>
           {raster(PLATTFORM_METRICS, false)}
 
-          <h3 className="pt-4 text-sm font-semibold text-slate-100">Wer schaut herein</h3>
+          <h3 className="pt-4 text-sm font-semibold text-slate-100">{t("adm.x.werSchaut")}</h3>
           <p className="-mt-1 text-xs text-slate-400">
             Aufrufe der öffentlichen Website und angemeldete Nutzer je Client. Beides zählt die
             laufende Seite selbst, nicht das Zugriffs-Log — dort sind 87 % der Aufrufe unsere
@@ -677,10 +679,10 @@ function StatsSection() {
             gezeichnet, weil damals nicht gezählt wurde.
           </p>
           {raster(HIT_METRICS, false)}
-          <h3 className="pt-4 text-sm font-semibold text-slate-100">Angemeldete je Client</h3>
+          <h3 className="pt-4 text-sm font-semibold text-slate-100">{t("adm.x.jeClient")}</h3>
           {raster(CLIENT_METRICS, false)}
 
-          <h3 className="pt-4 text-sm font-semibold text-slate-100">KI-Zugang (MCP)</h3>
+          <h3 className="pt-4 text-sm font-semibold text-slate-100">{t("adm.x.mcp")}</h3>
           <p className="-mt-1 text-xs text-slate-400">
             Wie viele Nutzer ihre eigenen Aufnahmen von einem KI-Programm lesen lassen, und wie
             viele Abfragen das waren. Gespeichert wird ein Zähler je Tag, Nutzer und Werkzeug —
@@ -783,6 +785,7 @@ const VERLAUF_REIHEN: { key: keyof SystemVerlauf["punkte"][number]; titel: strin
 ];
 
 function VerlaufsDiagramme() {
+  const tv = useT();
   const [fenster, setFenster] = useState(24);
   const [v, setV] = useState<SystemVerlauf | null>(null);
   useEffect(() => {
@@ -806,7 +809,7 @@ function VerlaufsDiagramme() {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        <h3 className="text-sm font-semibold text-slate-100">Verlauf</h3>
+        <h3 className="text-sm font-semibold text-slate-100">{tv("adm.x.verlauf")}</h3>
         {VERLAUF_FENSTER.map(([h, label]) => (
           <button key={h} onClick={() => setFenster(h)}
             className={`rounded-lg px-3 py-1.5 text-xs transition-colors ${fenster === h
@@ -896,6 +899,7 @@ function ZustandsPille({ zustand }: { zustand: string }) {
  *  `server/data` sind rund 620.000 Dateien, das dauert Sekunden (s. scripts/speicher-messen.py).
  */
 function SpeicherKarte() {
+  const t = useT();
   const [d, setD] = useState<Awaited<ReturnType<typeof api.adminSpeicher>> | null>(null);
   useEffect(() => { api.adminSpeicher().then(setD).catch(() => setD(null)); }, []);
   if (!d) return null;
@@ -918,7 +922,7 @@ function SpeicherKarte() {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
       <div className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h3 className="text-sm font-bold text-slate-100">Platzbedarf des Projekts</h3>
+        <h3 className="text-sm font-bold text-slate-100">{t("adm.x.platz")}</h3>
         <span className="text-lg font-semibold text-slate-100">{gb(s.projekt)}</span>
         <span className="text-xs text-slate-400">
           Stand {s.tag} · Platte {gb(s.platte_belegt)} von {gb(s.platte_gesamt)} belegt
@@ -954,6 +958,7 @@ function SpeicherKarte() {
 }
 
 function SystemTab() {
+  const t = useT();
   const [d, setD] = useState<SystemHealth | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [auto, setAuto] = useState(true);
@@ -1111,8 +1116,8 @@ function SystemTab() {
           </div>
           <div className="text-xs text-slate-400">
             {d.backup.secrets_da === undefined ? "" : d.backup.secrets_da
-              ? "Verschlüsselter Umschlag mit Zugangsdaten liegt bei"
-              : "Der verschlüsselte Umschlag mit den Zugangsdaten FEHLT"}
+              ? t("adm.x.umschlagDa")
+              : t("adm.x.umschlagFehlt")}
           </div>
           <div className="font-mono text-xs text-slate-500">{d.backup.pfad}</div>
           <div className="border-t border-slate-800 pt-2 text-xs text-slate-400">
@@ -1246,7 +1251,7 @@ function NewsTab() {
       <div className="mb-0.5 flex items-center gap-2 text-xs text-slate-400">
         <span>{label}</span>
         <span className="font-mono text-[10px] text-slate-500">{code}</span>
-        {(n.texts[code] || "").trim() && <span className="rounded bg-brand-500/20 px-1.5 text-[10px] font-semibold text-brand-600 dark:text-brand-300">belegt</span>}
+        {(n.texts[code] || "").trim() && <span className="rounded bg-brand-500/20 px-1.5 text-[10px] font-semibold text-brand-600 dark:text-brand-300">{t("adm.x.belegt")}</span>}
       </div>
       <textarea value={n.texts[code] || ""} onChange={(e) => setText(code, e.target.value)} rows={2}
         className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100" />
@@ -1273,8 +1278,8 @@ function NewsTab() {
             durchscrollen, um zu sehen, ob ueberhaupt ein Text aktiv ist. */}
         <div className="border-t border-slate-700 pt-3 text-sm text-slate-300">
           {belegt.length === 0
-            ? <span>Aktuell kein Text hinterlegt — es erscheint nur der Standard-Willkommenstext.</span>
-            : <span>Text hinterlegt in: <span className="font-semibold text-slate-100">{belegt.join(", ")}</span>
+            ? <span>{t("adm.x.keinText")}</span>
+            : <span>{t("adm.x.textIn")} <span className="font-semibold text-slate-100">{belegt.join(", ")}</span>
                 {" "}({belegt.length === 1 ? "eine Sprache" : `${belegt.length} Sprachen`})</span>}
           {n.updated_at && <span className="text-slate-400"> · zuletzt geändert {fmtDate(n.updated_at)}</span>}
         </div>
@@ -1304,7 +1309,7 @@ function NewsTab() {
       </div>
       {/* Die harte Regel steht in CLAUDE.md; sie gehoert auch dorthin, wo man tippt. */}
       <div className="text-sm text-slate-300">
-        Der Banner ist <span className="font-semibold text-slate-100">global</span> — alle Nutzer, alle Sprachen.
+        {t("adm.x.bannerGlobal")}
         Nur allgemeine Ankündigungen; nichts Persönliches und nichts an einzelne Nutzer Gerichtetes (dafür 1:1-Chat).
       </div>
     </div>
@@ -1900,6 +1905,7 @@ function BewertungenTab() {
 // Supporter (23.10.2026): wer uns wann geholfen hat (Tabelle feedback_beitraege, alle Quellen), Badge-Stufe,
 // Beitraege je Nutzer ansehen/loeschen und von Hand nachtragen (Mail, Test, GitHub …). Nur Deutsch (Admin).
 function SupporterTab() {
+  const t = useT();
   const { data, error, reload } = useAsync(() => api.adminSupporter());
   const [nurSichtbar, setNurSichtbar] = useState(true);
   const [offen, setOffen] = useState<number | null>(null);
@@ -1932,26 +1938,26 @@ function SupporterTab() {
         </div>
       </Card>
       <Card className="flex flex-wrap items-end gap-2 p-3 text-sm">
-        <span className="font-medium text-slate-200">Von Hand nachtragen:</span>
-        <input className="w-20 rounded border border-slate-700 bg-slate-900 px-2 py-1" placeholder="User-ID" value={neu.user_id}
+        <span className="font-medium text-slate-200">{t("adm.x.handNachtragen")}</span>
+        <input className="w-20 rounded border border-slate-700 bg-slate-900 px-2 py-1" placeholder={t("adm.x.userId")} value={neu.user_id}
           onChange={(e) => setNeu({ ...neu, user_id: e.target.value })} />
         <select className="rounded border border-slate-700 bg-slate-900 px-2 py-1" value={neu.quelle}
           onChange={(e) => setNeu({ ...neu, quelle: e.target.value })}>
           {data.quellen.map((q) => <option key={q} value={q}>{q}</option>)}
         </select>
-        <input className="min-w-0 flex-1 rounded border border-slate-700 bg-slate-900 px-2 py-1" placeholder="Notiz (was?)" value={neu.notiz}
+        <input className="min-w-0 flex-1 rounded border border-slate-700 bg-slate-900 px-2 py-1" placeholder={t("adm.x.notizWas")} value={neu.notiz}
           onChange={(e) => setNeu({ ...neu, notiz: e.target.value })} />
         <input type="date" className="rounded border border-slate-700 bg-slate-900 px-2 py-1" value={neu.am}
           onChange={(e) => setNeu({ ...neu, am: e.target.value })} />
         <Act tone="green" onClick={() => api.adminSupporterHinzu({ user_id: Number(neu.user_id), quelle: neu.quelle, notiz: neu.notiz, am: neu.am || undefined })
-          .then(() => { setNeu({ ...neu, notiz: "" }); reload(); })}>Eintragen</Act>
+          .then(() => { setNeu({ ...neu, notiz: "" }); reload(); })}>{t("adm.x.eintragen")}</Act>
       </Card>
       <Card className="overflow-x-auto">
         <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-b border-slate-800 text-left text-xs uppercase tracking-wide text-slate-400">
-              <th className="px-3 py-2">Badge</th><th className="px-3 py-2">Nutzer</th><th className="px-3 py-2">Tage/Jahr</th>
-              <th className="px-3 py-2">Beiträge</th><th className="px-3 py-2">zuletzt</th><th className="px-3 py-2">Quellen</th>
+              <th className="px-3 py-2">{t("adm.x.badge")}</th><th className="px-3 py-2">{t("adm.x.nutzer")}</th><th className="px-3 py-2">{t("adm.x.tageJahr")}</th>
+              <th className="px-3 py-2">{t("adm.x.beitraege")}</th><th className="px-3 py-2">{t("adm.x.zuletzt")}</th><th className="px-3 py-2">{t("adm.x.quellen")}</th>
             </tr>
           </thead>
           <tbody>
@@ -1974,7 +1980,7 @@ function SupporterTab() {
                             <span className="w-20 shrink-0 tabular-nums">{new Date(d.at).toLocaleDateString()}</span>
                             <span className="w-20 shrink-0 font-medium text-slate-200">{d.quelle}</span>
                             <span className="min-w-0 flex-1 truncate">{d.notiz}</span>
-                            <Act tone="red" confirm="Diesen Beitrag löschen?" onClick={() => api.adminSupporterWeg(d.id)
+                            <Act tone="red" confirm={t("adm.x.beitragLoeschen")} onClick={() => api.adminSupporterWeg(d.id)
                               .then(() => { setDetails(details.filter((x) => x.id !== d.id)); reload(); })}>×</Act>
                           </li>
                         ))}
