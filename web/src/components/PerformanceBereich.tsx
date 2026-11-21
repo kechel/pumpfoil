@@ -221,7 +221,7 @@ function umbruchAmPlatz(text: string, platz: string): string {
 function UebersichtTab({ je, alle, tage, saison, onSaison }: { je: Record<Kat, Zeile[]>; alle: Zeile[]; tage: string[]; saison?: Saison | null;
   onSaison?: () => void }) {
   const t = useT();
-  const quote = (n: number) => (alle.length ? `${Math.round((100 * n) / alle.length)} %` : "–");
+  const quote = (n: number) => (alle.length ? `${Math.round((100 * n) / alle.length)}\u00a0%` : "–");
   const katName = (k: Kat) => t(`perf.kat.${k}`);
   return (
     <>
@@ -231,7 +231,7 @@ function UebersichtTab({ je, alle, tage, saison, onSaison }: { je: Record<Kat, Z
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
         {([
           [t("perf.tage"), String(tage.length), CalendarCheckIcon],
-          [t("perf.besserAls"), `${Math.round(schnitt(alle.map((z) => z.perzentil)))} %`, BeatIcon],
+          [t("perf.besserAls"), `${Math.round(schnitt(alle.map((z) => z.perzentil)))}\u00a0%`, BeatIcon],
           [t("perf.siege"), String(alle.filter((z) => z.platz === 1).length), TrophyIcon],
           [t("perf.podium"), quote(alle.filter((z) => z.platz <= 3).length), PodiumIcon],
           [t("perf.top10"), quote(alle.filter((z) => z.platz <= 10).length), MedalIcon],
@@ -282,7 +282,7 @@ function UebersichtTab({ je, alle, tage, saison, onSaison }: { je: Record<Kat, Z
                     const b = z.reduce((a, x) => (x.platz < a.platz || (x.platz === a.platz && x.tag > a.tag) ? x : a));
                     return <Link to={zielUrl(k, b)} title={b.tag} className="font-semibold text-brand-700 hover:underline dark:text-brand-300">{b.platz}</Link>;
                   })() : "–"}</td>
-                  <td className="px-2 py-1.5 text-right tabular-nums">{z.length ? `${Math.round((100 * z.filter((x) => x.platz <= 3).length) / z.length)} %` : "–"}</td>
+                  <td className="whitespace-nowrap px-2 py-1.5 text-right tabular-nums">{z.length ? `${Math.round((100 * z.filter((x) => x.platz <= 3).length) / z.length)}\u00a0%` : "–"}</td>
                   {/* genau ein Sieg = ein Lauf -> verlinkt */}
                   <td className="px-2 py-1.5 text-right tabular-nums">{z.length ? (() => {
                     const s1 = z.filter((x) => x.platz === 1);

@@ -3234,7 +3234,7 @@ const ru: Record<string, string> = {
   "perf.spSchnitt": "Ø место",
   "perf.spBester": "Лучшее место",
   "perf.spTop3": "Топ-3",
-  "perf.schnittVon": "{platz} из ~{feld}",
+  "perf.schnittVon": "{platz} из Ø {feld}",
   "perf.bestleistungen": "Личные рекорды",
   "perf.platzverlauf": "Место по дням",
   "perf.platzverlaufHint": "Высота = доля обойдённых райдеров, число = место. Зелёный: лучше 80 %, жёлтый: лучше половины.",
