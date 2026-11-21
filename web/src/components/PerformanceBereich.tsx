@@ -209,6 +209,15 @@ function SaisonKarte({ s, onWahl }: { s: Saison; onWahl?: () => void }) {
   );
 }
 
+/** Text mit dem Platz darin: nur die Leerzeichen direkt am Platz duerfen umbrechen, alle anderen werden geschuetzt. */
+function umbruchAmPlatz(text: string, platz: string): string {
+  const i = text.indexOf(platz);
+  if (i < 0) return text;
+  const nb = (x: string) => x.replace(/ /g, "\u00a0");
+  const vor = text.slice(0, i), nach = text.slice(i + platz.length);
+  return nb(vor.trimEnd()) + (vor.endsWith(" ") ? " " : "") + platz + (nach.startsWith(" ") ? " " : "") + nb(nach.trimStart());
+}
+
 function UebersichtTab({ je, alle, tage, saison, onSaison }: { je: Record<Kat, Zeile[]>; alle: Zeile[]; tage: string[]; saison?: Saison | null;
   onSaison?: () => void }) {
   const t = useT();
@@ -262,8 +271,11 @@ function UebersichtTab({ je, alle, tage, saison, onSaison }: { je: Record<Kat, Z
                 <tr key={k} className="border-t border-slate-800">
                   <td className="py-1.5 pr-3 font-medium text-slate-200"><span className="flex items-center gap-1.5"><KatIcon k={k} className="h-4 w-4 text-brand-700 dark:text-brand-400" />{katName(k)}</span></td>
                   <td className="px-2 py-1.5 text-right tabular-nums">{z.length || "–"}</td>
-                  <td className="whitespace-nowrap px-2 py-1.5 text-right tabular-nums">{z.length
-                    ? t("perf.schnittVon", { platz: schnitt(z.map((x) => x.platz)).toFixed(1), feld: Math.round(schnitt(z.map((x) => x.feld))) })
+                  {/* Am Handy zweizeilig (Jan 21.11.2026): umbrechen nur direkt am Platz, der Rest („of avg 43") bleibt
+                      zusammen — sprachunabhaengig, weil nur die Leerzeichen ausserhalb des Platzes geschuetzt werden */}
+                  <td className="px-2 py-1.5 text-right tabular-nums sm:whitespace-nowrap">{z.length
+                    ? umbruchAmPlatz(t("perf.schnittVon", { platz: schnitt(z.map((x) => x.platz)).toFixed(1), feld: Math.round(schnitt(z.map((x) => x.feld))) }),
+                                     schnitt(z.map((x) => x.platz)).toFixed(1))
                     : "–"}</td>
                   {/* bester Platz = ein einzelner Tag/Lauf -> direkt zur Session (Jan 20.11.2026); bei Gleichstand der neueste */}
                   <td className="px-2 py-1.5 text-right tabular-nums">{z.length ? (() => {
