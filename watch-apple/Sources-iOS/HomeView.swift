@@ -167,14 +167,15 @@ struct HomeView: View {
     }
 
     private var homeReiter: [ReiterDef] {
+        // Reihenfolge wie im Web (Jan 21.11.2026): Overview, Performance, Spots, Team, Records, Stats, Watches, Profile
         var r: [ReiterDef] = [ReiterDef(id: "uebersicht", label: Loc.t("tab.overview", lang)),
-                              ReiterDef(id: "rekorde", label: Loc.t("side.records", lang)),
-                              // Abzeichen: LIVE bzw. Zahl der kommenden Events der eigenen Teams (web 03fd4574).
-                              ReiterDef(id: "team", label: Loc.t("tab.team", lang), abzeichen: reiterAbzeichen(teamEvents))]
+                              ReiterDef(id: "performance", label: Loc.t("tab.performance", lang))]
         // „Spots" nur mit Homespot oder eigenen Spots (wie im Web).
         if homespotName != nil || !(meineSpots ?? []).isEmpty { r.append(ReiterDef(id: "spots", label: Loc.t("nav.spots", lang))) }
+        // Abzeichen: LIVE bzw. Zahl der kommenden Events der eigenen Teams (web 03fd4574).
+        r.append(ReiterDef(id: "team", label: Loc.t("tab.team", lang), abzeichen: reiterAbzeichen(teamEvents)))
+        r.append(ReiterDef(id: "rekorde", label: Loc.t("side.records", lang)))
         r.append(ReiterDef(id: "stats", label: Loc.t("tab.stats", lang)))
-        r.append(ReiterDef(id: "performance", label: Loc.t("tab.performance", lang)))
         r.append(ReiterDef(id: "uhren", label: Loc.t("ptab.watches", lang)))
         if session.profile?.id != nil { r.append(ReiterDef(id: "profil", label: Loc.t("nav.profile", lang))) }
         return r

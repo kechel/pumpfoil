@@ -350,13 +350,15 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
             // „Spots" nur mit Homespot oder eigenen Spots, „Profil" nur mit bekannter eigener ID (wie PersonalHome.tsx).
             // Abzeichen am Reiter „Team" (Web 06.11.2026): LIVE bzw. Zahl der kommenden Events der eigenen Teams.
             val teamEvAbz = rememberEventAbzeichen(meine = true)
+            // Reihenfolge wie im Web (Jan 21.11.2026): Overview, Performance, Spots, Team, Records, Stats, Watches, Profile
             val homeReiter = listOfNotNull(
-                ReiterDef("uebersicht", I18n.t("tab.overview")), ReiterDef("rekorde", I18n.t("side.records")),
+                ReiterDef("uebersicht", I18n.t("tab.overview")),
+                ReiterDef("performance", I18n.t("tab.performance")),
+                if (homespotId != null || !meineSpots.isNullOrEmpty()) ReiterDef("spots", I18n.t("nav.spots")) else null,
                 ReiterDef("team", I18n.t("tab.team"),
                     badge = if (teamEvAbz.live || teamEvAbz.bald > 0) ({ EventAbzeichen(teamEvAbz.live, teamEvAbz.bald) }) else null),
-                if (homespotId != null || !meineSpots.isNullOrEmpty()) ReiterDef("spots", I18n.t("nav.spots")) else null,
+                ReiterDef("rekorde", I18n.t("side.records")),
                 ReiterDef("stats", I18n.t("tab.stats")),
-                ReiterDef("performance", I18n.t("tab.performance")),
                 ReiterDef("uhren", I18n.t("ptab.watches")),
                 if ((profile?.id ?: 0) > 0) ReiterDef("profil", I18n.t("nav.profile")) else null)
             var tab by rememberReiter("home", homeReiter.map { it.id }, "uebersicht")

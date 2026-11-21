@@ -441,16 +441,17 @@ export default function PersonalHome() {
   // zuerst hin —, deshalb ohne `merken`.
   const teamEvAbz = useTeamEventAbzeichen();
   const reiter: ReiterDef[] = [
+    // Reihenfolge (Jan 21.11.2026): Overview, Performance, Spots, Team, Records, (Stats), Watches, Profile
     { id: "uebersicht", label: t("tab.overview") },
-    { id: "rekorde", label: t("side.records") },
-    // Abzeichen: LIVE bzw. Zahl der kommenden Events der eigenen Teams (Jan, 06.11.2026).
-    { id: "team", label: t("tab.team"), badge: <EventAbzeichen {...teamEvAbz} /> },
-    // „Spots" statt „Homespot" (Jan, 04.11.2026): darunter alle eigenen Spots, der Homespot vorgewaehlt.
-    ...(homespotId != null || (meineSpots?.length ?? 0) > 0 ? [{ id: "spots", label: t("nav.spots") }] : []),
-    // „Stats" statt „Verlauf" (Jan, 02.11.2026), darin eine zweite Reiterzeile fuer die einzelnen Auswertungen.
-    { id: "stats", label: t("tab.stats") },
     // Tagesplatzierungen je Kategorie (Idee eines Fahrers, Jan 18.11.2026).
     { id: "performance", label: t("tab.performance") },
+    // „Spots" statt „Homespot" (Jan, 04.11.2026): darunter alle eigenen Spots, der Homespot vorgewaehlt.
+    ...(homespotId != null || (meineSpots?.length ?? 0) > 0 ? [{ id: "spots", label: t("nav.spots") }] : []),
+    // Abzeichen: LIVE bzw. Zahl der kommenden Events der eigenen Teams (Jan, 06.11.2026).
+    { id: "team", label: t("tab.team"), badge: <EventAbzeichen {...teamEvAbz} /> },
+    { id: "rekorde", label: t("side.records") },
+    // „Stats" statt „Verlauf" (Jan, 02.11.2026), darin eine zweite Reiterzeile fuer die einzelnen Auswertungen.
+    { id: "stats", label: t("tab.stats") },
     // Uhr & Konten (Jan, 02.11.2026): die eigenen Uhren und verknuepften Konten, sonst die beiden Einstiege.
     { id: "uhr", label: t("ptab.watches") },
     // Die eigene Profilseite, so wie andere sie sehen (Jan, 04.11.2026) — vorher fuehrte das Profilbild links oben dorthin.
