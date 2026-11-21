@@ -1640,6 +1640,23 @@ def _laender(db: Session, uids: set[int]) -> dict[int, str]:
 
 
 # ------------------------------------------------------------------- Leaders ----
+def rang_tag(t) -> str:
+    """Gleichstand-Schluessel der Bestenlisten: der TAG der Session (UTC). Nur der Tag, weil die Uhrzeit verborgen sein
+    kann (zeitverbergen) und Partner-Knoten fremde Startzeiten nur grob kennen — so rechnet jeder Knoten gleich."""
+    if t is None:
+        return "9999"
+    if isinstance(t, str):
+        return t[:10]
+    if t.tzinfo is not None:
+        t = t.astimezone(timezone.utc)
+    return t.strftime("%Y-%m-%d")
+
+
+def rang_schluessel(x: dict, key: str) -> tuple:
+    """Sortierung einer Bestenlisten-Zeile: Wert absteigend, dann Tag (frueher zuerst), dann Name ohne Gross/klein."""
+    return (-(x.get(key) or 0), x.get("_tag") or "9999", (x.get("name") or "").casefold())
+
+
 @router.get("/leaders")
 def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil", foil_band: str = "all",
             spot: str | None = Query(None),
@@ -1660,6 +1677,7 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
         # Fliegende Sprints (17.11.2026), Plausibilitaet wie bei den Rekorden (s. _sprint_plausibel).
         func.coalesce(func.max(_sprint_plausibel("sprint_100m")), 0),
         func.coalesce(func.max(_sprint_plausibel("sprint_60s")), 0),
+        func.max(S.started_at),
     ), _user.id, accel_only, sport)
     q = _band_filter(db, q, foil_band, _user.id)
     if cut is not None:
@@ -1672,23 +1690,34 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
              "distance_m": round(float(dm or 0), 1), "time_s": round(float(ts or 0), 1),
              "run_distance_m": round(float(rd or 0), 1), "run_time_s": round(float(rt or 0), 1),
              "ride_total_m": round(float(gt or 0), 1),
-             "sprint_100m_mps": round(float(s1 or 0), 3), "sprint_60s_mps": round(float(s6 or 0), 3)}
-            for name, av, uid, ns, nr, nsp, np, dm, ts, rd, rt, gt, s1, s6 in rows]
-    top = lambda key: [x for x in sorted(flat, key=lambda y: y[key], reverse=True) if x[key] > 0][:10]  # noqa: E731
+             "sprint_100m_mps": round(float(s1 or 0), 3), "sprint_60s_mps": round(float(s6 or 0), 3),
+             "_tag": rang_tag(zuletzt)}
+            for name, av, uid, ns, nr, nsp, np, dm, ts, rd, rt, gt, s1, s6, zuletzt in rows]
 
     def mit_session(zeilen: list[dict], col) -> list[dict]:
         """Bester EINZELNER Lauf: die Session dazu, damit die Zeile direkt dorthin fuehrt (Jan, 01.11.2026). Dieselben
         Filter wie oben; je Zeile eine kleine Abfrage (hoechstens 10)."""
         aus = []
         for x in zeilen:
-            qq = _band_filter(db, _community(db.query(S.id), _user.id, accel_only, sport), foil_band, _user.id)
+            qq = _band_filter(db, _community(db.query(S.id, S.started_at), _user.id, accel_only, sport), foil_band, _user.id)
             if cut is not None:
                 qq = _ab(qq, cut, S.started_at)
             if spot:
                 qq = qq.filter(_spot_cond(spot, db))
-            r = qq.filter(S.user_id == x["user_id"]).order_by(col.desc().nullslast(), S.id.desc()).first()
-            aus.append({**x, "session_id": r[0] if r else None})
+            # bei gleichem Bestwert die frueheste Session — ihr Tag ist der Gleichstand-Schluessel
+            r = (qq.filter(S.user_id == x["user_id"])
+                 .order_by(col.desc().nullslast(), S.started_at.asc().nullslast(), S.id.asc()).first())
+            aus.append({**x, "session_id": r[0] if r else None, "_tag": rang_tag(r[1] if r else None)})
         return aus
+
+    def top(key: str, col) -> list[dict]:
+        """Top 10 mit fester Reihenfolge bei Gleichstand (Jan 21.11.2026: auf jedem Knoten dieselbe): Wert, dann wer ihn
+        zuerst hatte (Tag: bei Summen die letzte Session im Zeitraum, beim Bestwert dessen Session), dann Name. Beim
+        Bestwert steht die Session erst nach der Auswahl fest — darum alle Kandidaten bis zum Wert von Platz 10."""
+        z = sorted((x for x in flat if x[key] > 0), key=lambda y: y[key], reverse=True)
+        if col is not None:
+            z = mit_session([x for x in z if len(z) <= 10 or x[key] >= z[9][key]], col)
+        return sorted(z, key=lambda y: rang_schluessel(y, key))[:10]
 
     listen = {"sessions": ("sessions", None), "runs": ("runs", None), "spots": ("spots", None),
               "pumps": ("pumps", None), "distance": ("distance_m", None), "time": ("time_s", None),
@@ -1701,8 +1730,7 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
         listen["sprint_60s"] = ("sprint_60s_mps", _sprint_plausibel("sprint_60s"))
     out: dict = {}
     for name, (key, col) in listen.items():
-        zeilen = top(key)
-        out[name] = mit_session(zeilen, col) if col is not None else zeilen
+        out[name] = top(key, col)
     # Die eigene Zeile unter Platz 10 (Olek, 01.11.2026): wer nicht unter den ersten 10 steht, sieht trotzdem
     # Rang und Wert. Rang = 1 + Zahl derer mit MEHR, damit Gleichstand ehrlich gezaehlt wird (heute 1 Session haben
     # oft Dutzende; die Stelle in der Sortierung waere dann Zufall, etwa 39). Steht man gleichauf mit der Liste,
@@ -1737,6 +1765,11 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
             mix_abzeichen(db, sport, out[name] + ([me[name]] if me.get(name) else []), nq)
     out["quellen"] = quellen(db, user_ids=uids, viewer_id=_user.id, accel_only=accel_only, sport=sport,
                              cut=cut, spot=spot, foil_band=foil_band)
+    for liste in list(out.values()) + [list(me.values())]:    # Gleichstand-Schluessel nur intern
+        if isinstance(liste, list):
+            for x in liste:
+                if isinstance(x, dict):
+                    x.pop("_tag", None)
     return out
 
 

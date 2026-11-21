@@ -187,3 +187,14 @@ def test_zeitraum_gestern_hat_obergrenze(client):
     d = client.get("/api/community/leaders?period=yesterday&accel_only=false&sport=pumpfoil", headers=kopf).json()
     ich = next(x for x in d["distance"] if x["user_id"] == uid)
     assert abs(ich["distance_m"] - basis) < 1                    # nur die Session von gestern
+
+
+def test_gleichstand_feste_reihenfolge():
+    """Gleicher Wert -> frueherer Tag zuerst, dann Name ohne Gross/klein (Jan 21.11.2026: auf jedem Knoten gleich)."""
+    from datetime import datetime, timezone
+    from app.api.community import rang_schluessel, rang_tag
+    assert rang_tag(datetime(2026, 11, 20, 23, 30, tzinfo=timezone.utc)) == "2026-11-20"
+    assert rang_tag("2026-11-19T10:00:00") == "2026-11-19" and rang_tag(None) == "9999"
+    z = [{"name": "bert", "d": 5, "_tag": "2026-11-20"}, {"name": "Anna", "d": 5, "_tag": "2026-11-20"},
+         {"name": "Zoe", "d": 5, "_tag": "2026-11-18"}, {"name": "Max", "d": 7, "_tag": "2026-11-21"}]
+    assert [x["name"] for x in sorted(z, key=lambda y: rang_schluessel(y, "d"))] == ["Max", "Zoe", "Anna", "bert"]
