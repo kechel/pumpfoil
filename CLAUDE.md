@@ -1,7 +1,7 @@
 # PumpFoil — Arbeitsregeln für Claude
 
 Multi-Plattform-Pumpfoil-Tracker (FastAPI + Postgres, Web-PWA, Garmin/Wear/Apple/Huawei/Zepp/Suunto-Recorder,
-Android/iOS-Apps), 300+ Fahrer im Monat aktiv (1.100 Konten, Stand 21.11.2026), Repo **öffentlich** (AGPL). Die ausführliche Projektübersicht steht in
+Android/iOS-Apps), ±300 aktive Fahrer im November 2026 (1.100 Konten), Repo **öffentlich** (AGPL). Die ausführliche Projektübersicht steht in
 `docs/PROJEKT.md` (bis 06.11.2026 war sie diese Datei); alles Weitere findet der Projekt-Atlas.
 
 ## Erst nachschlagen, dann handeln
