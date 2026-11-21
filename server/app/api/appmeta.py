@@ -368,7 +368,10 @@ _APP_META: dict[str, dict[str, str]] = {
     "garmin": {
         # NUR auf eine im Connect-IQ-Store FREIGEGEBENE Version setzen (Pruefung durch)!
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
-        "latest": "1.0.104",   # LIVE 2026-11-17: am Tag der Einreichung freigegeben (Jans Meldung, aus dem IQ Store auf die
+        "latest": "1.0.105",   # LIVE 2026-11-21: am Tag der Einreichung freigegeben (Jans Meldung, Store-Seite „Latest Release
+        # November 21, 2026, 1.0.105"). Inhalt: GPS + Beschleunigungs-Listener in onStop selbst abschalten (Anlass: Uhr-Neustart
+        # nach der Session, u244 Instinct 3). .iq aus 000fd37c, Test 1.0.105-ta im Simulator (#22956-#22958). Changelog-Punkt + Ereignis.
+        # ALT: "latest": "1.0.104",   # LIVE 2026-11-17: am Tag der Einreichung freigegeben (Jans Meldung, aus dem IQ Store auf die
         # echte Uhr geholt). Inhalt: Menuepunkt „Aufnahmen loeschen" (eigene Rueckfrage, START 2 s halten; nicht im Lite-Build),
         # kein Auto-Start unter Menues. .iq aus af8a563b. Dazu Server: wartende Uhr-Aufnahme gilt als erledigt, wenn sie ueber
         # Garmin Connect/FIT schon da ist (abaf287c).
@@ -1006,6 +1009,7 @@ IN_REVIEW: list[dict] = [
     # Huawei Watch 5 1.0.6 am 18.11. FREIGEGEBEN (s. _APP_META["huawei-watch5"]); Wisch-Punkt neu im Changelog, GPS-Luecke an #1028.
     # 12.11.2026: GPS-Luecke am Lauf-Ende (LaufLuecke.mc, baf2244d/bddabe64), im Simulator auf fenix 7X Pro, FR55 und
     # Instinct 2 getestet. Version 1.0.103 fuer die Einreichung gebumpt.
+    # Garmin 1.0.105 am 21.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt + Ereignis im Changelog mit garmin 1.0.105.
     # Garmin 1.0.104 am 17.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); 2 Punkte + Ereignis im Changelog mit garmin 1.0.104.
     # Garmin 1.0.103 am 12.11. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt mit 5 Bildern im Changelog mit garmin 1.0.103.
     # Huawei Watch 5 1.0.5 am 12.11. FREIGEGEBEN (s. _APP_META["huawei-watch5"]); Punkt im Changelog mit huawei-watch5 1.0.5.
