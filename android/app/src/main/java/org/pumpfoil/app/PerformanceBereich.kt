@@ -82,7 +82,9 @@ data class PerfSaison(val jahr: Int = 2027, val gestartet: Boolean = false, val 
 
 @Serializable
 data class PerfAntwort(val sport: String = "pumpfoil", @SerialName("min_feld") val minFeld: Int = 5, val ab: String = "",
-                       val kategorien: Map<String, List<PerfZeile>> = emptyMap(), val saison: PerfSaison? = null)
+                       val kategorien: Map<String, List<PerfZeile>> = emptyMap(), val saison: PerfSaison? = null,
+                       // begonnene Saisons -> Zeitraum „Seit 1.1.<jahr>" (Web 21.11.2026)
+                       @SerialName("saison_jahre") val saisonJahre: List<Int> = emptyList())
 
 // Zwei Tempo-, zwei Ausdauer-Kategorien (Vorschlag eines Fahrers 19.11.2026, Jan 20.11.): Zeit auf dem Foil am Tag statt
 // laengster Laufzeit (die war dem laengsten Lauf zu aehnlich). Der Server liefert `run_time` fuer aeltere Apps weiter.
@@ -184,12 +186,14 @@ fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
             }
         }
     }
-    val grenze = when (zeitraum) {
+    val saisonJahr = if (zeitraum.startsWith("s")) zeitraum.drop(1).toIntOrNull() else null
+    val bis = if (saisonJahr != null) "$saisonJahr-12-31" else "9999-12-31"
+    val grenze = if (saisonJahr != null) "$saisonJahr-01-01" else when (zeitraum) {
         "30" -> LocalDate.now().minusDays(30).toString()
         "25" -> KATS.flatMap { k -> daten?.kategorien?.get(k)?.map { it.tag } ?: emptyList() }.distinct().sortedDescending().getOrNull(24) ?: ""
         else -> ""
     }
-    val je = KATS.associateWith { k -> (daten?.kategorien?.get(k) ?: emptyList()).filter { it.tag >= grenze } }
+    val je = KATS.associateWith { k -> (daten?.kategorien?.get(k) ?: emptyList()).filter { it.tag >= grenze && it.tag <= bis } }
     val alle = KATS.flatMap { je[it] ?: emptyList() }
     val tage = alle.map { it.tag }.distinct().sortedDescending()
     val grau = MaterialTheme.colorScheme.onSurfaceVariant
@@ -198,7 +202,8 @@ fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
         // Keine Unterreiter mehr (Web 21.11.2026): Uebersicht und Verlauf auf einer Seite
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf("alle" to I18n.t("perf.seit").replace("{datum}", daten?.ab ?: "…"), "30" to I18n.t("perf.tage30"),
-                "25" to I18n.t("perf.letzte25")).forEach { (id, label) ->
+                "25" to I18n.t("perf.letzte25")).plus((daten?.saisonJahre ?: emptyList()).map { j ->
+                "s$j" to I18n.t("perf.seit").replace("{datum}", "1.1.$j") }).forEach { (id, label) ->
                 FilterChip(selected = zeitraum == id, onClick = { zeitraum = id }, colors = cyanChipColors(), label = { Text(label) })
             }
         }
@@ -212,7 +217,9 @@ fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
                 Text(I18n.t("perf.leer"), Modifier.padding(16.dp), textAlign = TextAlign.Center)
             }
             else -> {
-                UebersichtTeil(je, alle, tage, d.saison, onOpenSession)
+                // Tipp auf die Punkte-Kachel waehlt die Saison als Zeitraum (ab Saisonbeginn); ist sie schon gewaehlt: Regeln
+                UebersichtTeil(je, alle, tage, d.saison, onOpenSession,
+                    onSaison = d.saison?.takeIf { it.gestartet && zeitraum != "s${it.jahr}" }?.let { sz -> { zeitraum = "s${sz.jahr}" } })
                 VerlaufTeil(je, alle, tage, onOpenSession)
                 Text(I18n.t("perf.hinweis"), style = MaterialTheme.typography.bodySmall, color = grau, modifier = Modifier.padding(bottom = 12.dp))
             }
@@ -232,7 +239,7 @@ fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
 
 @Composable
 private fun UebersichtTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>, tage: List<String>, saison: PerfSaison?,
-                           onOpenSession: (Int) -> Unit) {
+                           onOpenSession: (Int) -> Unit, onSaison: (() -> Unit)? = null) {
     val grau = MaterialTheme.colorScheme.onSurfaceVariant
     val oeffnen = rememberOeffnen(onOpenSession)
     fun quote(n: Int) = if (alle.isEmpty()) "–" else "${Math.round(100.0 * n / alle.size)} %"
@@ -250,7 +257,7 @@ private fun UebersichtTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeil
         Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             reihe.forEach { k ->
                 if (k.saison) KennzahlKachel(k.icon, k.wert, k.label, Modifier.weight(1f), hervor = true, labelFarbe = perfAkzent(),
-                    onClick = { saisonOffen = true },
+                    onClick = { if (onSaison != null) onSaison() else saisonOffen = true },
                     oben = { Icon(Icons.Outlined.Info, contentDescription = k.label, tint = grau, modifier = Modifier.size(14.dp)) })
                 else KennzahlKachel(k.icon, k.wert, k.label, Modifier.weight(1f))
             }

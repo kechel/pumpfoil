@@ -42,7 +42,8 @@ const BUCKETS: [string, (p: number) => boolean][] = [
   ["11–20", (p) => p >= 11 && p <= 20], ["21–30", (p) => p >= 21 && p <= 30], ["31–50", (p) => p >= 31 && p <= 50],
   ["51+", (p) => p > 50],
 ];
-type Zeitraum = "alle" | "30" | "25";
+// `s2027` = Saison 2027 (1.1.–31.12.), je begonnener Saison ein Eintrag (Jan 21.11.2026)
+type Zeitraum = "alle" | "30" | "25" | `s${number}`;
 
 function wertText(k: Kat, v: number): string {
   if (k === "sprint_100m" || k === "sprint_60s") return `${(v * 3.6).toFixed(1)} km/h`;
@@ -84,19 +85,22 @@ export function PerformanceBereich() {
     return () => { aus = true; window.clearInterval(iv); };
   }, [sport]);
 
+  const saisonJahr = zeitraum.startsWith("s") ? Number(zeitraum.slice(1)) : null;
+  const bis = saisonJahr ? `${saisonJahr}-12-31` : "9999-12-31";
   const grenze = useMemo(() => {
+    if (saisonJahr) return `${saisonJahr}-01-01`;
     if (zeitraum === "30") return new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
     if (zeitraum === "25") {
       const alleTage = [...new Set(KATS.flatMap((k) => (daten?.kategorien[k] ?? []).map((z) => z.tag)))].sort().reverse();
       return alleTage[24] ?? "";
     }
     return "";
-  }, [zeitraum, daten]);
+  }, [zeitraum, daten, saisonJahr]);
   const je: Record<Kat, Zeile[]> = useMemo(() => {
     const o = {} as Record<Kat, Zeile[]>;
-    for (const k of KATS) o[k] = (daten?.kategorien[k] ?? []).filter((z) => z.tag >= grenze);
+    for (const k of KATS) o[k] = (daten?.kategorien[k] ?? []).filter((z) => z.tag >= grenze && z.tag <= bis);
     return o;
-  }, [daten, grenze]);
+  }, [daten, grenze, bis]);
   const alle = KATS.flatMap((k) => je[k]);
   const tage = [...new Set(alle.map((z) => z.tag))].sort().reverse();
 
@@ -111,6 +115,9 @@ export function PerformanceBereich() {
             <option value="alle">{t("perf.seit", { datum: daten?.ab ? new Date(daten.ab).toLocaleDateString() : "…" })}</option>
             <option value="30">{t("perf.tage30")}</option>
             <option value="25">{t("perf.letzte25")}</option>
+            {(daten?.saison_jahre ?? []).map((j) => (
+              <option key={j} value={`s${j}`}>{t("perf.seit", { datum: new Date(`${j}-01-01T12:00:00Z`).toLocaleDateString() })}</option>
+            ))}
           </select>
       </div>
       <div className="space-y-4">
@@ -121,7 +128,8 @@ export function PerformanceBereich() {
           <Card className="p-6 text-center text-slate-300">{t("perf.leer")}</Card>
         ) : (
           <>
-            <UebersichtTab je={je} alle={alle} tage={tage} saison={daten?.saison} />
+            <UebersichtTab je={je} alle={alle} tage={tage} saison={daten?.saison}
+              onSaison={daten?.saison?.gestartet ? () => setZeitraum(`s${daten.saison!.jahr}`) : undefined} />
             <VerlaufTab je={je} alle={alle} tage={tage} />
             <p className="text-xs text-slate-400">{t("perf.hinweis")}</p>
           </>
@@ -146,7 +154,7 @@ type Saison = NonNullable<Awaited<ReturnType<typeof api.performance>>["saison"]>
 
 /** Saison mit Punkten (Jan 20.11.2026: „die ab 1.1.27 zu fuellende gesamtpunkte-anzeige schon richtig, und die info was das
  *  ist … hinter einem (i) das das in einem popup anzeigt"). Server: community._saison. */
-function SaisonKarte({ s }: { s: Saison }) {
+function SaisonKarte({ s, onWahl }: { s: Saison; onWahl?: () => void }) {
   const t = useT();
   const [offen, setOffen] = useState(false);
   const kats = s.regel.kategorien.map((k) => t(`perf.kat.${k}`)).join(" · ");
@@ -157,8 +165,10 @@ function SaisonKarte({ s }: { s: Saison }) {
     <>
       {/* Sechste Kennzahl-Kachel (Jan 20.11.2026: „mach die gesamtpunkte doch in die zeile drunter"): Pokal links,
           Punkte mittig, „Season 2027" als Label; Status (startet am …, Rang) und Regeln im (i)-Fenster. */}
-      <div className="relative rounded-xl border border-brand-500/40 bg-brand-500/10 px-2.5 py-2">
-        <InfoKnopf label={t("perf.saisonTitel")} onClick={() => setOffen(true)} />
+      {/* Klick auf die Kachel waehlt die Saison als Zeitraum (ab Saisonbeginn), das (i) zeigt die Regeln */}
+      <div className={`relative rounded-xl border border-brand-500/40 bg-brand-500/10 px-2.5 py-2 ${onWahl ? "cursor-pointer hover:bg-brand-500/20" : ""}`}
+        onClick={onWahl} role={onWahl ? "button" : undefined}>
+        <span onClick={(e) => e.stopPropagation()}><InfoKnopf label={t("perf.saisonTitel")} onClick={() => setOffen(true)} /></span>
         <div className="flex items-center gap-2">
           <SeasonCupIcon className="h-8 w-8 shrink-0 text-brand-700 dark:text-brand-400" />
           <div className="min-w-0 flex-1">
@@ -193,7 +203,8 @@ function SaisonKarte({ s }: { s: Saison }) {
   );
 }
 
-function UebersichtTab({ je, alle, tage, saison }: { je: Record<Kat, Zeile[]>; alle: Zeile[]; tage: string[]; saison?: Saison | null }) {
+function UebersichtTab({ je, alle, tage, saison, onSaison }: { je: Record<Kat, Zeile[]>; alle: Zeile[]; tage: string[]; saison?: Saison | null;
+  onSaison?: () => void }) {
   const t = useT();
   const quote = (n: number) => (alle.length ? `${Math.round((100 * n) / alle.length)} %` : "–");
   const katName = (k: Kat) => t(`perf.kat.${k}`);
@@ -221,7 +232,7 @@ function UebersichtTab({ je, alle, tage, saison }: { je: Record<Kat, Zeile[]>; a
             </div>
           </Card>
         ))}
-        {saison && <SaisonKarte s={saison} />}
+        {saison && <SaisonKarte s={saison} onWahl={onSaison} />}
       </div>
 
       {/* Kategorie-Tabelle: Ø Platz immer mit Ø Feld, sonst sagt die Zahl nichts */}

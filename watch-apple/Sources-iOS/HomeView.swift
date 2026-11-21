@@ -1069,6 +1069,7 @@ struct PerfAntwort: Codable {
     let ab: String
     let kategorien: [String: [PerfZeile]]
     let saison: PerfSaison?
+    let saison_jahre: [Int]?          // begonnene Saisons -> Zeitraum „Seit 1.1.<jahr>" (Web 21.11.2026)
 }
 
 // Zwei Tempo-, zwei Ausdauer-Kategorien (Vorschlag eines Fahrers 19.11.2026, Jan 20.11.): Zeit auf dem Foil am Tag statt
@@ -1124,7 +1125,9 @@ struct PerformanceBereich: View {
     @State private var linienZiel: PerfZeile?      // angetippter Punkt im Platz-Verlauf
     @State private var linienOffen: Bool = false
 
+    private var saisonJahr: Int? { zeitraum.hasPrefix("s") ? Int(zeitraum.dropFirst()) : nil }
     private var grenze: String {
+        if let j = saisonJahr { return "\(j)-01-01" }
         if zeitraum == "25" {
             let alleTage: [String] = Array(Set(perfKats.flatMap { k in (daten?.kategorien[k] ?? []).map { $0.tag } })).sorted(by: >)
             return alleTage.count > 24 ? alleTage[24] : ""
@@ -1138,7 +1141,10 @@ struct PerformanceBereich: View {
         [ReiterDef(id: "uebersicht", label: Loc.t("perf.tabUebersicht", lang)), ReiterDef(id: "verlauf", label: Loc.t("perf.tabVerlauf", lang))]
     }
     private func schnitt(_ xs: [Double]) -> Double { xs.isEmpty ? 0 : xs.reduce(0, +) / Double(xs.count) }
-    private func je(_ k: String) -> [PerfZeile] { (daten?.kategorien[k] ?? []).filter { $0.tag >= grenze } }
+    private func je(_ k: String) -> [PerfZeile] {
+        let bis: String = saisonJahr.map { "\($0)-12-31" } ?? "9999-12-31"
+        return (daten?.kategorien[k] ?? []).filter { $0.tag >= grenze && $0.tag <= bis }
+    }
     private var alle: [PerfZeile] { perfKats.flatMap { je($0) } }
     private var tage: [String] { Array(Set(alle.map { $0.tag })).sorted(by: >) }
     private func quote(_ n: Int) -> String { alle.isEmpty ? "–" : "\(Int((100.0 * Double(n) / Double(alle.count)).rounded())) %" }
@@ -1240,6 +1246,9 @@ struct PerformanceBereich: View {
                 Text(Loc.t("perf.seit", lang).replacingOccurrences(of: "{datum}", with: daten?.ab ?? "…")).tag("alle")
                 Text(Loc.t("perf.tage30", lang)).tag("30")
                 Text(Loc.t("perf.letzte25", lang)).tag("25")
+                ForEach(daten?.saison_jahre ?? [], id: \.self) { j in
+                    Text(Loc.t("perf.seit", lang).replacingOccurrences(of: "{datum}", with: "1.1.\(j)")).tag("s\(j)")
+                }
             }.pickerStyle(.menu)
         }
     }
@@ -1390,7 +1399,8 @@ struct PerformanceBereich: View {
         return LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
             ForEach(werte, id: \.0) { w in kachel(w.0, w.1, w.2) }
             if let s = daten?.saison {
-                Button { saisonInfo = true } label: {
+                // Antippen waehlt die Saison als Zeitraum (ab Saisonbeginn, Web 21.11.2026); ist sie schon gewaehlt: Regeln
+                Button { if s.gestartet && zeitraum != "s\(s.jahr)" { zeitraum = "s\(s.jahr)" } else { saisonInfo = true } } label: {
                     kachel("PerfSeasonCup", String(s.punkte), Loc.t("perf.saisonTitel", lang), hervor: true)
                         .overlay(alignment: .topTrailing) {
                             Image(systemName: "info.circle").font(.caption2).foregroundStyle(.secondary).padding(4)

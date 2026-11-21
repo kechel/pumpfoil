@@ -120,6 +120,9 @@ def test_saison_punkte(client):
     assert tab[andere[4]]["platzpunkte"] == 20 * 3 and tab[andere[0]]["platzpunkte"] == 9 * 3
     d = client.get("/api/community/performance?sport=pumpfoil", headers=kopf).json()
     s = d["saison"]
+    # Zeitraum-Auswahl je begonnener Saison (21.11.2026): vor dem 1.1.2027 noch keine
+    from datetime import datetime as _dt, timezone as _tz
+    assert d["saison_jahre"] == ([] if _dt.now(_tz.utc).year < 2027 else list(range(2027, _dt.now(_tz.utc).year + 1)))
     assert s["jahr"] == 2027 and s["regel"]["platz"][:3] == [25, 20, 16] and s["regel"]["max_tag"] == 101
     if not s["gestartet"]:
         assert s["punkte"] == 0 and s["rang"] is None

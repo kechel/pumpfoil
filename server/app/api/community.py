@@ -3970,5 +3970,9 @@ def performance(
             from ..teams import lauf_dazu
             lauf_dazu(db, lk, zeilen)
         out["kategorien"][kat] = zeilen
-    out["saison"] = _saison(db, sport, user.id)
+    # Saison = laufendes Kalenderjahr ab SAISON_JAHR; `saison_jahre` = alle schon begonnenen Saisons (Jan 21.11.2026:
+    # Zeitraum-Auswahl „Seit 1.1.2027" je Saison, generisch fuer weitere Jahre)
+    jahr = max(SAISON_JAHR, datetime.now(timezone.utc).year)
+    out["saison"] = _saison(db, sport, user.id, jahr)
+    out["saison_jahre"] = [j for j in range(SAISON_JAHR, jahr + 1) if datetime.now(timezone.utc).date().isoformat() >= f"{j}-01-01"]
     return out
