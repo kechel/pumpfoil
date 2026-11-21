@@ -108,6 +108,46 @@ class PairingCode(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class DeviceCrash(Base):
+    """Logbuch der Absturz-Meldungen der Uhren (Jan, 21.11.2026: „fuehren wir logbuch ueber die crash-reports? … und einen
+    zaehler je modell"). Bis dahin stand je Uhr nur ein Zaehler plus Phase/Zeit der LETZTEN Meldung — jede neue
+    ueberschrieb die vorige. Eine Zeile je GEZAEHLTEM Ereignis (gleiche Entprellung wie die Zaehler in device_tokens).
+    Nur fuer den Betreiber (Admin › Abstuerze)."""
+
+    __tablename__ = "device_crashes"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    device_id: Mapped[int] = mapped_column(ForeignKey("device_tokens.id"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, index=True)
+    # lauf = Lauf-Canary (App-Lauf nicht ueber onStop beendet), layout = Layout-Canary, speicher = Object Store voll
+    art: Mapped[str] = mapped_column(String(12))
+    phase: Mapped[int | None] = mapped_column(Integer)        # nur lauf: 1 Start, 2 Startbildschirm, 3 Aufnahme, 4 Upload
+    kb: Mapped[int | None] = mapped_column(Integer)           # nur speicher: gemeldetes Puffervolumen
+    app_version: Mapped[str | None] = mapped_column(String(20))
+    part_number: Mapped[str | None] = mapped_column(String(32))
+    platform: Mapped[str | None] = mapped_column(String(16))
+
+
+class ModellAbsturzTag(Base):
+    """Tageszaehlung der Absturz-Meldungen je Modell — NICHT personenbezogen (kein Nutzer, keine Uhr) und deshalb von
+    Konto-/Uhr-Loeschungen unberuehrt (Jan, 21.11.2026: „der zaehler ist eine … taegliche zaehlung die von loeschungen
+    nicht beeintraechtigt wird? … nicht personenbezogen"). Das Logbuch je Uhr (DeviceCrash) geht mit dem Konto."""
+
+    __tablename__ = "modell_absturz_tag"
+    __table_args__ = (UniqueConstraint("tag", "modell", "platform", "app_version", "art", "phase",
+                                       name="uq_modell_absturz_tag"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tag: Mapped[date] = mapped_column(Date, index=True)
+    modell: Mapped[str] = mapped_column(String(120))          # Garmin: Part-Number, sonst Modellname der Uhr
+    platform: Mapped[str] = mapped_column(String(16), default="")
+    app_version: Mapped[str] = mapped_column(String(20), default="")
+    art: Mapped[str] = mapped_column(String(12))              # lauf | speicher | layout
+    phase: Mapped[int] = mapped_column(Integer, default=-1)   # nur lauf: 1-4; sonst -1
+    anzahl: Mapped[int] = mapped_column(Integer, default=0)
+
+
 class DeviceContact(Base):
     """Wann hat sich welches Geraet beim Server gemeldet, und wobei (Jan, 14.10.2026: „mit loggen
     wann sich welche Uhr gemeldet hat, damit wir Daten haben"). Grundlage, um zu sehen, ob „nimmt

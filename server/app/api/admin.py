@@ -1309,6 +1309,61 @@ def merge_spots(body: dict, admin: models.User = Depends(current_admin), db: Ses
     return {"ok": True, "into": target.id, "merged": moved}
 
 
+@router.get("/abstuerze")
+def abstuerze(tage: int = Query(30, ge=1, le=3650), _a: models.User = Depends(current_admin),
+              db: Session = Depends(get_db)) -> dict:
+    """Absturz-Meldungen der Uhren je Modell (Jan, 21.11.2026: Logbuch + Zaehler je Modell).
+    `bisher_*` = die Zaehler der heute verknuepften Uhren (seit Einfuehrung, ohne Zeitpunkte, gehen mit Loeschungen);
+    `log_*` = die Tageszaehlung je Modell (models.ModellAbsturzTag, seit 21.11.2026, ohne Personenbezug) im Zeitraum
+    `tage`. Dazu die letzten 100 Zeilen des Logbuchs je Uhr (personenbezogen, nur Admin)."""
+    from datetime import timedelta
+    from ..api.devices import _partmap
+    pm = _partmap()
+
+    def modell(pn: str | None, label: str | None, platform: str | None) -> str:
+        m = pm.get(pn) if pn else None
+        return (m["name"] if m else None) or label or pn or platform or "?"
+
+    agg: dict[str, dict] = {}
+    for pn, label, pf, n, n_crash, s_crash, s_sf, s_layout in (
+            db.query(models.DeviceToken.part_number, models.DeviceToken.label, models.DeviceToken.platform,
+                     func.count(models.DeviceToken.id),
+                     func.sum(case((models.DeviceToken.crash_count > 0, 1), else_=0)),
+                     func.sum(func.coalesce(models.DeviceToken.crash_count, 0)),
+                     func.sum(func.coalesce(models.DeviceToken.storage_full_count, 0)),
+                     func.sum(func.coalesce(models.DeviceToken.layout_canary_count, 0)))
+            .filter(models.DeviceToken.revoked_at.is_(None))
+            .group_by(models.DeviceToken.part_number, models.DeviceToken.label, models.DeviceToken.platform).all()):
+        name = modell(pn, label, pf)
+        a = agg.setdefault(name, {"modell": name, "plattform": pf, "geraete": 0, "geraete_mit_absturz": 0,
+                                  "bisher_lauf": 0, "bisher_speicher": 0, "bisher_layout": 0,
+                                  "log_lauf": 0, "log_speicher": 0, "log_layout": 0, "log_phasen": {}})
+        a["geraete"] += int(n or 0); a["geraete_mit_absturz"] += int(n_crash or 0)
+        a["bisher_lauf"] += int(s_crash or 0); a["bisher_speicher"] += int(s_sf or 0); a["bisher_layout"] += int(s_layout or 0)
+    # Zeitraum aus der Tageszaehlung (nicht personenbezogen, ueberlebt Loeschungen; models.ModellAbsturzTag)
+    seit = (datetime.now(timezone.utc) - timedelta(days=tage - 1)).date()
+    T = models.ModellAbsturzTag
+    for m, pf, art, phase, n in (db.query(T.modell, T.platform, T.art, T.phase, func.sum(T.anzahl))
+                                 .filter(T.tag >= seit).group_by(T.modell, T.platform, T.art, T.phase).all()):
+        name = modell(m, m, pf or None)
+        a = agg.setdefault(name, {"modell": name, "plattform": pf or None, "geraete": 0, "geraete_mit_absturz": 0,
+                                  "bisher_lauf": 0, "bisher_speicher": 0, "bisher_layout": 0,
+                                  "log_lauf": 0, "log_speicher": 0, "log_layout": 0, "log_phasen": {}})
+        a[f"log_{art}"] = a.get(f"log_{art}", 0) + int(n or 0)
+        if art == "lauf" and phase is not None and phase >= 0:
+            a["log_phasen"][str(phase)] = a["log_phasen"].get(str(phase), 0) + int(n or 0)
+    C = models.DeviceCrash
+    D = models.DeviceToken
+    modelle = [a for a in agg.values() if a["bisher_lauf"] or a["bisher_speicher"] or a["bisher_layout"]
+               or a["log_lauf"] or a["log_speicher"] or a["log_layout"]]
+    modelle.sort(key=lambda a: (-(a["log_lauf"] + a["log_speicher"] + a["log_layout"]), -a["bisher_lauf"], a["modell"]))
+    letzte = [{"at": c.at.isoformat(), "art": c.art, "phase": c.phase, "kb": c.kb, "app_version": c.app_version,
+               "modell": modell(c.part_number, label, c.platform), "device_id": c.device_id, "user_id": c.user_id}
+              for c, label in db.query(C, D.label).join(D, D.id == C.device_id)
+              .order_by(C.at.desc(), C.id.desc()).limit(100)]
+    return {"tage": tage, "modelle": modelle, "letzte": letzte}
+
+
 @router.get("/layout-health")
 def layout_health(_a: models.User = Depends(current_admin), db: Session = Depends(get_db)) -> list[dict]:
     """Zustand der dynamischen Uhr-Layouts je Modell — Grundlage des selbstlernenden

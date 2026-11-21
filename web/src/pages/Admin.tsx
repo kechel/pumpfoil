@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { SupporterBadge } from "../components/SupporterBadge";
 import { Link, useSearchParams } from "react-router-dom";
-import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket, AdminBewertung, BewertungStatus, AdminTeamFreigabe, AdminEventVorschlag, AdminMediaReport, AdminMediaPending, AdminMedium } from "../lib/api";
+import { api, SystemHealth, SystemVerlauf, AdminSession, AdminUser, AdminOverview, AdminAuditEntry, AdminFeedback, OverallStats, ChatMsg, UserFilter, UserSort, AdminUserActivity, StatKey, NewsBanner, AdminBlock, AdminStatsSeries, AdminPending, AdminUserSport, AdminSocialChannel, AdminSocialItem, AdminStatsBucket, AdminBewertung, BewertungStatus, AdminTeamFreigabe, AdminEventVorschlag, AdminMediaReport, AdminMediaPending, AdminMedium, AdminAbstuerze } from "../lib/api";
 import TeamWappen from "../components/TeamWappen";
 import { teamFarbStil } from "../lib/teamFarben";
 import { Card, Spinner, ErrorBox, Avatar, NewBadge } from "../components/ui";
@@ -13,7 +13,7 @@ import { demoGewuenscht, demoSetzen, demoAnzahl, demoBeobachten } from "../lib/d
 import { maxVon } from "../lib/minmax";
 import { ytId } from "../components/VideoModal";
 
-type Tab = "overview" | "classify" | "sportregel" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "teams" | "audit" | "feedback" | "bewertungen" | "supporter" | "news" | "promo" | "blocks" | "social" | "system";
+type Tab = "overview" | "classify" | "sportregel" | "flagged" | "fake" | "suspect" | "sessions" | "deleted" | "users" | "photos" | "chat" | "spots" | "teams" | "audit" | "feedback" | "bewertungen" | "supporter" | "news" | "promo" | "blocks" | "social" | "system" | "abstuerze";
 const TABS: [Tab, string][] = [
   ["overview", "adm.tab.overview"],
   ["classify", "adm.tab.classify"],
@@ -37,6 +37,7 @@ const TABS: [Tab, string][] = [
   ["blocks", "adm.tab.blocks"],
   ["audit", "adm.tab.audit"],
   ["system", "adm.tab.system"],
+  ["abstuerze", "adm.tab.abstuerze"],
 ];
 
 export default function Admin() {
@@ -107,6 +108,7 @@ export default function Admin() {
       {tab === "social" && <SocialTab />}
       {tab === "blocks" && <BlocksTab />}
       {tab === "audit" && <AuditTab />}
+      {tab === "abstuerze" && <AbstuerzeTab />}
     </div>
   );
 }
@@ -952,6 +954,74 @@ function SpeicherKarte() {
         <p className="mt-2 text-xs text-slate-400">
           Größte Tabellen: {s.db_tabellen.slice(0, 4).map(([n, b]) => `${n} ${gb(b)}`).join(" · ")}
         </p>
+      )}
+    </div>
+  );
+}
+
+/** Absturz-Meldungen der Uhren (Jan, 21.11.2026: „logbuch ueber die crash-reports … zaehler je modell"). Je Modell
+ *  ueber alle Uhren und Nutzer; „Uhren mit Meldung" zeigt, ob es viele trifft oder eine einzelne Uhr. */
+function AbstuerzeTab() {
+  const t = useT();
+  const [tage, setTage] = useState(30);
+  const [d, setD] = useState<AdminAbstuerze | null>(null);
+  const [fehler, setFehler] = useState<string | null>(null);
+  useEffect(() => { setD(null); api.adminAbstuerze(tage).then(setD).catch((e) => setFehler(String(e?.message ?? e))); }, [tage]);
+  if (fehler) return <ErrorBox message={fehler} />;
+  if (!d) return <Spinner />;
+  const phase = (p: number | null) => (p == null ? "" : t(`adm.abs.phase${p}`));
+  const art = (a: string) => t(`adm.abs.art.${a}`);
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-slate-300">{t("adm.abs.erklaerung")}</p>
+      <div className="flex flex-wrap gap-1">
+        {[7, 30, 90, 365].map((n) => (
+          <button key={n} onClick={() => setTage(n)}
+            className={`rounded-lg px-3 py-1 text-sm ${tage === n ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-300"}`}>
+            {t("adm.abs.tage", { n: String(n) })}
+          </button>
+        ))}
+      </div>
+      <div className="overflow-x-auto rounded-xl border border-slate-800">
+        <table className="w-full min-w-[720px] text-sm">
+          <thead><tr className="bg-slate-900/70 text-left text-slate-300">
+            <th className="px-3 py-2">{t("adm.abs.modell")}</th>
+            <th className="px-3 py-2 text-right">{t("adm.abs.uhren")}</th>
+            <th className="px-3 py-2 text-right">{t("adm.abs.uhrenMit")}</th>
+            <th className="px-3 py-2 text-right">{t("adm.abs.lauf", { n: String(d.tage) })}</th>
+            <th className="px-3 py-2 text-right">{t("adm.abs.speicher", { n: String(d.tage) })}</th>
+            <th className="px-3 py-2 text-right">{t("adm.abs.layout", { n: String(d.tage) })}</th>
+            <th className="px-3 py-2 text-right">{t("adm.abs.bisher")}</th>
+          </tr></thead>
+          <tbody>{d.modelle.map((m) => (
+            <tr key={m.modell} className="border-t border-slate-800">
+              <td className="px-3 py-2 font-semibold">{m.modell}<div className="text-xs font-normal text-slate-400">{m.plattform}</div></td>
+              <td className="px-3 py-2 text-right tabular-nums">{m.geraete}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{m.geraete_mit_absturz}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{m.log_lauf}
+                {Object.keys(m.log_phasen).length > 0 && <div className="text-xs text-slate-400">
+                  {Object.entries(m.log_phasen).map(([p, n]) => `${phase(Number(p))} ${n}`).join(" · ")}</div>}
+              </td>
+              <td className="px-3 py-2 text-right tabular-nums">{m.log_speicher}</td>
+              <td className="px-3 py-2 text-right tabular-nums">{m.log_layout}</td>
+              <td className="px-3 py-2 text-right tabular-nums text-slate-400">{m.bisher_lauf} / {m.bisher_speicher} / {m.bisher_layout}</td>
+            </tr>))}</tbody>
+        </table>
+      </div>
+      <h3 className="font-semibold">{t("adm.abs.letzte")}</h3>
+      {d.letzte.length === 0 ? <p className="text-sm text-slate-400">{t("adm.abs.keine")}</p> : (
+        <div className="overflow-x-auto rounded-xl border border-slate-800">
+          <table className="w-full min-w-[640px] text-sm">
+            <tbody>{d.letzte.map((z, i) => (
+              <tr key={i} className="border-t border-slate-800">
+                <td className="px-3 py-1.5 tabular-nums text-slate-400">{new Date(z.at).toLocaleString()}</td>
+                <td className="px-3 py-1.5">{z.modell}</td>
+                <td className="px-3 py-1.5">{art(z.art)}{z.phase != null ? ` · ${phase(z.phase)}` : ""}{z.kb ? ` · ${z.kb} KB` : ""}</td>
+                <td className="px-3 py-1.5 text-slate-400">{z.app_version ?? ""}</td>
+                <td className="px-3 py-1.5 text-slate-400">u{z.user_id} · #{z.device_id}</td>
+              </tr>))}</tbody>
+          </table>
+        </div>
       )}
     </div>
   );

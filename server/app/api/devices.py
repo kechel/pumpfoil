@@ -404,6 +404,7 @@ def device_config(
         db.execute(sa_text(
             "UPDATE device_tokens SET layout_canary_count = COALESCE(layout_canary_count,0) + 1,"
             " layout_canary_at = now() WHERE id = :i"), {"i": device.id})
+        _absturz_loggen(db, device, "layout")
         db.commit()
         db.refresh(device)
     # Voller Object Store der Uhr. Zaehlen und das GROESSTE gemeldete Volumen behalten: daraus
@@ -415,6 +416,7 @@ def device_config(
     # noch nicht da war). Gezaehlt werden soll das EREIGNIS „Store war voll", nicht der Abruf.
     # Das Volumen wird trotzdem immer mitgenommen — es kostet nichts und kann nur wachsen.
     if sf:
+        zaehlt = _neues_ereignis(db, device, "storage_full_at")
         db.execute(sa_text(
             "UPDATE device_tokens SET"
             "   storage_full_count = COALESCE(storage_full_count,0)"
@@ -424,6 +426,8 @@ def device_config(
             "   storage_full_at = now()"
             " WHERE id = :i"),
             {"i": device.id, "kb": int(kb or 0), "deb": SF_DEBOUNCE_S})
+        if zaehlt:
+            _absturz_loggen(db, device, "speicher", kb=int(kb or 0))
         db.commit()
         db.refresh(device)
     # Lauf-Canary (Uhr ab 1.0.77): der letzte App-Lauf ist nicht durch `onStop` gegangen. Anders
@@ -432,6 +436,7 @@ def device_config(
     # Config-Abrufe, die beide dasselbe Flag tragen — gezaehlt werden soll das EREIGNIS.
     # Rein diagnostisch, es haengt keine Abschaltung daran (s. models.py).
     if crash:
+        zaehlt = _neues_ereignis(db, device, "crash_at")
         db.execute(sa_text(
             "UPDATE device_tokens SET"
             "   crash_count = COALESCE(crash_count,0)"
@@ -441,6 +446,8 @@ def device_config(
             "   crash_at = now()"
             " WHERE id = :i"),
             {"i": device.id, "ph": max(0, min(int(crash), 9)), "deb": SF_DEBOUNCE_S})
+        if zaehlt:
+            _absturz_loggen(db, device, "lauf", phase=max(0, min(int(crash), 9)))
         db.commit()
         db.refresh(device)
     # Speicherverbrauch der App (Amazfit ab 1.0.12, s. models.DeviceToken). Der SPITZENWERT
@@ -1399,6 +1406,30 @@ CANARY_HARD_BLOCK_AT = 5
 # Ein App-Start meldet „Store voll" zweimal (Sofortversuch + regulaerer Abruf). Innerhalb
 # dieses Fensters zaehlt das als EIN Ereignis; das Volumen wird trotzdem uebernommen.
 SF_DEBOUNCE_S = 60
+
+
+def _neues_ereignis(db: Session, device: models.DeviceToken, spalte: str) -> bool:
+    """Wird diese Meldung als NEUES Ereignis gezaehlt (gleiche Entprellung wie die Zaehler)? Sperrt die Zeile bis zum
+    Commit — die zwei Abrufe eines App-Starts landen auf verschiedenen Workern und duerfen nicht beide loggen."""
+    assert spalte in ("crash_at", "storage_full_at")
+    return bool(db.execute(sa_text(
+        f"SELECT ({spalte} IS NULL OR {spalte} < now() - make_interval(secs => :deb))"
+        " FROM device_tokens WHERE id = :i FOR UPDATE"), {"i": device.id, "deb": SF_DEBOUNCE_S}).scalar())
+
+
+def _absturz_loggen(db: Session, device: models.DeviceToken, art: str, phase: int | None = None,
+                    kb: int | None = None) -> None:
+    """Eine Zeile ins Absturz-Logbuch (models.DeviceCrash); committet der Aufrufer."""
+    db.add(models.DeviceCrash(device_id=device.id, user_id=device.user_id, art=art, phase=phase, kb=kb,
+                              app_version=device.app_version, part_number=device.part_number,
+                              platform=device.platform))
+    # Tageszaehlung je Modell, ohne Personenbezug (models.ModellAbsturzTag) — ueberlebt Loeschungen.
+    db.execute(sa_text(
+        "INSERT INTO modell_absturz_tag (tag, modell, platform, app_version, art, phase, anzahl)"
+        " VALUES ((now() AT TIME ZONE 'UTC')::date, :m, :pf, :v, :a, :ph, 1)"
+        " ON CONFLICT ON CONSTRAINT uq_modell_absturz_tag DO UPDATE SET anzahl = modell_absturz_tag.anzahl + 1"),
+        {"m": (device.part_number or device.label or "?")[:120], "pf": (device.platform or "")[:16],
+         "v": (device.app_version or "")[:20], "a": art, "ph": phase if phase is not None else -1})
 # Ab diesem Budget darf eine Uhr Layouts ANFORDERN (`lay=1`), auch wenn wir sie nicht von selbst
 # ausliefern.
 #

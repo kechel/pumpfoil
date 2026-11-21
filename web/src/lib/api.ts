@@ -1136,6 +1136,15 @@ export interface TanzDaten { abschnitte: TanzAbschnitt[]; taenze: string[]; serv
 
 // Eine Zeile der Uhren-Auswertung (scripts/uhren-qualitaet.py). `weg`: "app" = mit unserer App aufgenommen,
 // "gc" = ueber die Garmin-Connect-Verknuepfung importiert (15.11.2026). `vollstaendig` = % ganz angekommener Sessions.
+export type AdminAbstuerze = {
+  tage: number;
+  modelle: { modell: string; plattform: string | null; geraete: number; geraete_mit_absturz: number;
+    bisher_lauf: number; bisher_speicher: number; bisher_layout: number;
+    log_lauf: number; log_speicher: number; log_layout: number; log_phasen: Record<string, number> }[];
+  letzte: { at: string; art: string; phase: number | null; kb: number | null; app_version: string | null;
+    modell: string; device_id: number; user_id: number }[];
+};
+
 export interface WatchQualityRow {
   plattform: string; modell: string; sessions: number; nutzer: number;
   accel_hz: number | null; gps_only: number; ortung_steht: number | null;
@@ -1318,6 +1327,7 @@ export const api = {
   bewertung: (sid: number) => req<{ bewertung: Bewertung | null; laeufe_jetzt: number | null }>(`/api/sessions/${sid}/bewertung`),
   bewertungSpeichern: (sid: number, antworten: BewertungAntworten, kommentar: string) =>
     req<{ bewertung: Bewertung }>(`/api/sessions/${sid}/bewertung`, { method: "PUT", body: JSON.stringify({ antworten, kommentar }) }),
+  adminAbstuerze: (tage = 30) => req<AdminAbstuerze>(`/api/admin/abstuerze?tage=${tage}`),
   adminBewertungen: (erledigte = false) => req<{ bewertungen: AdminBewertung[]; anzahl_erledigt: number }>(`/api/admin/bewertungen${erledigte ? "?erledigte=true" : ""}`),
   adminBewertungStatus: (id: number, status: BewertungStatus, notiz?: string, antwort?: string) =>
     req<{ id: number; status: BewertungStatus; status_notiz: string; antwort_fahrer: string }>(`/api/admin/bewertungen/${id}`, { method: "PUT", body: JSON.stringify({ status, notiz, antwort }) }),
