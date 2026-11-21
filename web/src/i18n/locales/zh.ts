@@ -3231,6 +3231,7 @@ const zh: Record<string, string> = {
   "perf.spSchnitt": "平均名次",
   "perf.spBester": "最佳名次",
   "perf.spTop3": "前三",
+  "perf.spTop20": "前二十",
   "perf.schnittVon": "平均 {feld} 人中第 {platz}",
   "perf.bestleistungen": "个人最佳",
   "perf.platzverlauf": "每日名次",

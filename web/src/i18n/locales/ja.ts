@@ -3230,6 +3230,7 @@ const ja: Record<string, string> = {
   "perf.spSchnitt": "平均順位",
   "perf.spBester": "最高順位",
   "perf.spTop3": "トップ3",
+  "perf.spTop20": "トップ20",
   "perf.schnittVon": "平均 {feld} 人中 {platz} 位",
   "perf.bestleistungen": "自己ベスト",
   "perf.platzverlauf": "日ごとの順位",

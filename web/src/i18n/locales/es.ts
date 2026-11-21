@@ -3116,6 +3116,7 @@ const es: Record<string, string> = {
   "perf.spSchnitt": "Puesto medio",
   "perf.spBester": "Mejor puesto",
   "perf.spTop3": "Top 3",
+  "perf.spTop20": "Top 20",
   "perf.schnittVon": "{platz} de Ø {feld} riders",
   "perf.bestleistungen": "Mejores marcas",
   "perf.platzverlauf": "Puesto por día",

@@ -3205,6 +3205,7 @@ const nb: Record<string, string> = {
   "perf.spSchnitt": "Ø plass",
   "perf.spBester": "Beste plass",
   "perf.spTop3": "Topp 3",
+  "perf.spTop20": "Topp 20",
   "perf.schnittVon": "{platz} av Ø {feld} utøvere",
   "perf.bestleistungen": "Personlige rekorder",
   "perf.platzverlauf": "Plass per dag",

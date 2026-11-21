@@ -3119,6 +3119,7 @@ const gsw: Record<string, string> = {
   "perf.spSchnitt": "Ø Platz",
   "perf.spBester": "Beschte Platz",
   "perf.spTop3": "Top 3",
+  "perf.spTop20": "Top 20",
   "perf.schnittVon": "{platz} vo Ø {feld} Fahrer",
   "perf.bestleistungen": "Beschtleischtige",
   "perf.platzverlauf": "Platz pro Tag",

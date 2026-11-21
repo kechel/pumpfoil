@@ -252,6 +252,7 @@ function UebersichtTab({ je, alle, tage, saison, onSaison }: { je: Record<Kat, Z
               <th className="px-2 py-1 text-right font-normal">{t("perf.spSchnitt")}</th>
               <th className="px-2 py-1 text-right font-normal">{t("perf.spBester")}</th>
               <th className="px-2 py-1 text-right font-normal">{t("perf.spTop3")}</th>
+              <th className="px-2 py-1 text-right font-normal">{t("perf.spTop20")}</th>
               <th className="px-2 py-1 text-right font-normal">{t("perf.siege")}</th>
             </tr>
           </thead>
@@ -277,6 +278,7 @@ function UebersichtTab({ je, alle, tage, saison, onSaison }: { je: Record<Kat, Z
                     return <Link to={zielUrl(k, b)} title={b.tag} className="font-semibold text-brand-700 hover:underline dark:text-brand-300">{b.platz}</Link>;
                   })() : "–"}</td>
                   <td className="whitespace-nowrap px-2 py-1.5 text-right tabular-nums">{z.length ? `${Math.round((100 * z.filter((x) => x.platz <= 3).length) / z.length)}\u00a0%` : "–"}</td>
+                  <td className="whitespace-nowrap px-2 py-1.5 text-right tabular-nums">{z.length ? `${Math.round((100 * z.filter((x) => x.platz <= 20).length) / z.length)}\u00a0%` : "–"}</td>
                   {/* genau ein Sieg = ein Lauf -> verlinkt */}
                   <td className="px-2 py-1.5 text-right tabular-nums">{z.length ? (() => {
                     const s1 = z.filter((x) => x.platz === 1);

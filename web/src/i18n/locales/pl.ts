@@ -3213,6 +3213,7 @@ const pl: Record<string, string> = {
   "perf.spSchnitt": "Śr. miejsce",
   "perf.spBester": "Najlepsze miejsce",
   "perf.spTop3": "Top 3",
+  "perf.spTop20": "Top 20",
   "perf.schnittVon": "{platz} z Ø {feld} zawodników",
   "perf.bestleistungen": "Rekordy osobiste",
   "perf.platzverlauf": "Miejsce na dzień",

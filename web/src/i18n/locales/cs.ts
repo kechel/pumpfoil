@@ -3287,6 +3287,7 @@ const cs: Record<string, string> = {
   "perf.spSchnitt": "Ø pořadí",
   "perf.spBester": "Nejlepší pořadí",
   "perf.spTop3": "Top 3",
+  "perf.spTop20": "Top 20",
   "perf.schnittVon": "{platz} z Ø {feld} jezdců",
   "perf.bestleistungen": "Osobní rekordy",
   "perf.platzverlauf": "Pořadí po dnech",

@@ -3120,6 +3120,7 @@ const deAT: Record<string, string> = {
   "perf.spSchnitt": "Ø Platz",
   "perf.spBester": "Bester Platz",
   "perf.spTop3": "Top 3",
+  "perf.spTop20": "Top 20",
   "perf.schnittVon": "{platz} von Ø {feld} Fahrern",
   "perf.bestleistungen": "Bestleistungen",
   "perf.platzverlauf": "Platz je Tag",
