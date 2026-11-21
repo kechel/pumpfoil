@@ -1,6 +1,8 @@
 using Toybox.Application;
 using Toybox.WatchUi;
 using Toybox.Time;
+using Toybox.Position;
+using Toybox.Sensor;
 
 // App-Einstieg. Hält den SessionRecorder und reicht ihn an die View/Delegate.
 //
@@ -32,6 +34,14 @@ class FoilApp extends Application.AppBase {
     function onStop(state) {
         Mem.sichern();
         try { if (_recorder != null) { _recorder.runClear(); } } catch (e) {}
+        // GPS und Beschleunigungs-Listener beim Beenden SELBST abschalten, wie Garmins eigene Beispiele (PositionSample,
+        // RecordSample: LOCATION_DISABLE in onStop; PitchCounter: unregisterSensorDataListener). Bis 1.0.104 blieb das der
+        // Firmware ueberlassen — auf dem Startbildschirm laeuft GPS (auch nach dem Speichern), in der hoechsten
+        // GNSS-Stufe. Anlass: eine Instinct 3 friert ~5 min nach jeder Session ein und startet neu, waehrend unsere App
+        // schon sauber beendet ist (21.11.2026, docs/TODO.md). Eigene Funktion hier statt im SessionRecorder (253-Member-
+        // Grenze des 128-KB-Builds).
+        try { Position.enableLocationEvents(Position.LOCATION_DISABLE, null); } catch (e) {}
+        try { if (Sensor has :unregisterSensorDataListener) { Sensor.unregisterSensorDataListener(); } } catch (e) {}
         // App ohne laufende Aufnahme verlassen -> dem Server sagen, damit die Website nicht eine
         // Stunde lang „nimmt vermutlich auf" zeigt (Jan, 14.10.2026). Best effort: ob Connect IQ
         // die Anfrage beim Beenden noch rausschickt, ist nur auf echter Uhr pruefbar.
