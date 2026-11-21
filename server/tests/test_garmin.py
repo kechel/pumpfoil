@@ -567,6 +567,42 @@ def test_datenwege_der_uhr(client, garmin, monkeypatch):
         db.close()
 
 
+def test_fit_accel_je_uhr(client, garmin, monkeypatch):
+    # Bewegungsdaten in Garmins Datei je Uhr (21.11.2026): wirkt auch OHNE Verknuepfung; nie angefasst -> nichts Neues;
+    # „auto" nach An/Aus schickt den Auto-Wert ausdruecklich (die Uhr merkt sich Schalter dauerhaft).
+    from app.api import devices
+    from app.db import SessionLocal
+    from app import models
+    uid, h = _konto(client)
+    db = SessionLocal()
+    try:
+        dev = models.DeviceToken(user_id=uid, label="instinct3", token=secrets.token_hex(16), platform="garmin")
+        db.add(dev); db.commit()
+        did = dev.id
+        assert devices._datenwege(db, dev, memtot=123, minimal=None, record_mode="full") == {}
+    finally:
+        db.close()
+    assert client.put(f"/api/devices/{did}/fit-accel", headers=h, json={"fit_accel": "kaputt"}).status_code == 400
+    r = client.put(f"/api/devices/{did}/fit-accel", headers=h, json={"fit_accel": "off"})
+    assert r.status_code == 200 and r.json()["fit_accel_jetzt"] is False
+    db = SessionLocal()
+    try:
+        dev = db.get(models.DeviceToken, did)
+        assert devices._datenwege(db, dev, memtot=123, minimal=None, record_mode="full") == {"fitAccel": False}
+        dev.fit_accel = "auto"; db.commit()
+        assert devices._datenwege(db, dev, memtot=123, minimal=None, record_mode="full") == {"fitAccel": True}
+        assert devices._datenwege(db, dev, memtot=123, minimal=None, record_mode="gps") == {"fitAccel": False}
+        assert devices._datenwege(db, dev, memtot=92, minimal=1, record_mode="full") == {"fitAccel": False}
+        dev.fit_accel = "off"; db.commit()
+        _link(uid)                                              # mit Verknuepfung: Wahl schlaegt die Regel
+        w = devices._datenwege(db, dev, memtot=92, minimal=1, record_mode="full")
+        assert w["gc"] is True and w["fitAccel"] is False and w["rohAccel"] is False
+    finally:
+        db.close()
+    zeile = next(x for x in client.get("/api/devices/list", headers=h).json() if x["id"] == did)
+    assert zeile["fit_accel"] == "off" and zeile["fit_accel_moeglich"] is True and zeile["fit_accel_jetzt"] is False
+
+
 def _duenne_eigene(uid, start, tmp_path, minuten=30):
     """Eigene Aufnahme mit `duenn` in der meta.json (Datenwege aus), Sportart + Foil von der Uhr."""
     import json

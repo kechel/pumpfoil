@@ -610,6 +610,7 @@ def _migrate_add_columns() -> None:
             "record_mode": "VARCHAR(8)",
             "gnss_mode": "VARCHAR(8)",
             "gps_sparen": "BOOLEAN",
+            "fit_accel": "VARCHAR(8)",
         },
         "foils": {
             "thickness_estimated": "BOOLEAN DEFAULT false",

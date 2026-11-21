@@ -178,6 +178,9 @@ class DeviceToken(Base):
     # GPS nur um bewegte Abschnitte speichern (Garmin 96/128-KB-Uhren ab 1.0.92, Jan 09.10.2026):
     # None/True = an (Standard), False = jeden Punkt speichern. Je Uhr in „Meine Uhren".
     gps_sparen: Mapped[bool | None] = mapped_column(Boolean)
+    # Bewegungsdaten in Garmins Aktivitaetsdatei (SensorLogger, Uhr ab 1.0.100): "auto" | "on" | "off"; NULL = nie angefasst
+    # (dann schickt der Server nichts Neues). Getrennt vom Aufzeichnungsmodus, der unsere eigenen Bloecke regelt (21.11.2026).
+    fit_accel: Mapped[str | None] = mapped_column(String(8))
     # Uhr-App ohne laufende Aufnahme verlassen (POST /devices/app-closed, Garmin ab 1.0.93): dann ist
     # „Meldung in der letzten Stunde" KEIN Hinweis auf eine laufende Aufnahme (devices._uhren_status).
     app_closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

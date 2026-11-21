@@ -146,6 +146,19 @@ beim alten Verhalten. Mit Verknuepfung (`GET /api/devices/config`, Regel `device
   SensorLogger dort Heap? (Spitze 89/92 KB gemessen.) Kommt die FIT mit Beschleunigung an, geht die duenne Session
   darin auf? Und eine Aufnahme bei absichtlich vollem Puffer.
 
+### Bewegungsdaten in Garmins Datei je Uhr (21.11.2026)
+
+Profil › Uhr › „Bewegungsdaten in der Garmin-Aktivitaet": Auto / An / Aus (`device_tokens.fit_accel`,
+`PUT /api/devices/{id}/fit-accel`). Getrennt vom Aufzeichnungsmodus, der unsere eigenen Bloecke regelt. Wirkt **auch
+ohne Garmin-Verknuepfung** — die Uhr befolgt `fitAccel` immer (`Wege.fitAccel`, ab App 1.0.100); dass der Server ihn
+ohne Verknuepfung bisher nicht schickte, war unsere Entscheidung vom 05.11., keine Grenze der Uhr.
+- `NULL` (nie angefasst): wie bisher, ohne Verknuepfung kein Schluessel.
+- `on`/`off`: schlaegt die Regel, auch mit Verknuepfung.
+- `auto` nach einem An/Aus: der Auto-Wert geht AUSDRUECKLICH raus, weil die Uhr einen Schalter dauerhaft behaelt —
+  ohne Verknuepfung `not (Modus gps oder speicherarm)`, genau wie die Uhr selbst entschiede.
+Anlass: eine Instinct 3 (u244) startet nach jeder Session neu, waehrend unsere eigenen Bloecke vollstaendig ankommen
+(bis ~600 KB im Puffer, nie voll) — Verdacht auf die FIT mit Roh-Beschleunigung (docs/TODO.md).
+
 ## Von Hand hochgeladene FIT-Dateien derselben Aufnahme (09.11.2026)
 
 Anlass: FIT-Datei einer Fahrt von Hand hochgeladen, weil die Uhr noch nicht synchronisiert hatte; spaeter kam der

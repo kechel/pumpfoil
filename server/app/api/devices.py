@@ -680,7 +680,7 @@ def device_config(
         **layout_block,
         **_suunto_standard(device, p, settings),
         # Zwei Datenwege der Garmin-App, getrennt schaltbar (Jan, 05.11.2026), s. `_datenwege`.
-        **(_datenwege(db, device, memtot, minimal) if is_garmin else {}),
+        **(_datenwege(db, device, memtot, minimal, _effective_record_mode(device, settings)) if is_garmin else {}),
     }
     # Sportart-Wahl an der Uhr (19.10.2026, Stand-Buch: sport_auf_uhr): NUR fuer Uhren, die mit
     # `sp=1` fragen — ausgelieferte Apps (Garmin mit wenig Speicher!) bekommen kein Byte mehr.
@@ -732,13 +732,27 @@ def garmin_connect_aktiv(db: Session, user_id: int) -> bool:
     return perm != "" and (perm is None or "ACTIVITY_EXPORT" in perm)
 
 
-def _datenwege(db: Session, device: models.DeviceToken, memtot: int | None, minimal: int | None) -> dict:
+def _fit_accel_auto_ohne_gc(record_mode: str | None, lowmem: bool) -> bool:
+    """Was die Uhr OHNE Schalter selbst taete (SessionRecorder: `Wege.fitAccel(!gpsOnly)`, gpsOnly = Modus gps oder
+    speicherarm) — damit „Auto" nach einem An/Aus wieder genau das alte Verhalten ergibt."""
+    return not (record_mode == "gps" or lowmem)
+
+
+def _datenwege(db: Session, device: models.DeviceToken, memtot: int | None, minimal: int | None,
+               record_mode: str | None = None) -> dict:
     gc = garmin_connect_aktiv(db, device.user_id)
-    if not gc:
-        # Ohne Garmin-Verknuepfung aendert sich NICHTS (Jan, 05.11.2026): kein Schluessel, die Uhr bleibt beim alten
-        # Verhalten — auch kein zusaetzliches Byte fuer die Minimal-Recorder.
-        return {}
     lowmem = minimal == 1 or (memtot is not None and memtot <= LOWMEM_KB)
+    # Bewegungsdaten in Garmins Datei je Uhr (Profil › Uhren, 21.11.2026; Anlass: eine Uhr startet nach jeder Session
+    # neu, Verdacht auf die FIT mit Roh-Beschleunigung). Wirkt auch OHNE Garmin-Verknuepfung — die Uhr befolgt den
+    # Schalter immer (Wege.fitAccel). Die Uhr merkt sich einen Schalter dauerhaft; deshalb bekommt „auto" nach einem
+    # An/Aus den Auto-Wert ausdruecklich, und nur nie angefasste Uhren (NULL) bekommen weiter nichts.
+    wahl = device.fit_accel if device.fit_accel in ("auto", "on", "off") else None
+    if not gc:
+        # Ohne Garmin-Verknuepfung aendert sich sonst NICHTS (Jan, 05.11.2026): kein Schluessel, die Uhr bleibt beim alten
+        # Verhalten — auch kein zusaetzliches Byte fuer die Minimal-Recorder.
+        if wahl is None:
+            return {}
+        return {"fitAccel": (wahl == "on") if wahl != "auto" else _fit_accel_auto_ohne_gc(record_mode, lowmem)}
     nur_fit = gc and lowmem and _schalter("UHR_LOWMEM_GC_NUR_FIT")
     wege = {
         "gc": gc,
@@ -747,6 +761,8 @@ def _datenwege(db: Session, device: models.DeviceToken, memtot: int | None, mini
         # Ohne Verknuepfung wie bisher: SensorLogger nur auf Uhren mit genug Speicher.
         "fitAccel": _schalter("UHR_WEG_FIT") and (not lowmem or nur_fit),
     }
+    if wahl in ("on", "off"):
+        wege["fitAccel"] = wahl == "on"
     # Je Nutzer und je Schalter ueberschreiben (Jan, 05.11.2026: Tests „immer nur genau fuer meinen account … es sind
     # einige live am pumpen"): UHR_WEGE_NUTZER={"2": {"rohGps": false, "rohAccel": false}}. Nicht genannte Schalter folgen
     # der Regel oben. Spaeter kann dieselbe Ueberschreibung aus dem Profil kommen.
@@ -1034,6 +1050,11 @@ def list_devices(
             "gps_sparen": _gps_sparen(db, d, model["id"] if model else None),
             "gps_sparen_standard": _gps_sparen_standard(db, d, model["id"] if model else None),
             "gps_sparen_moeglich": d.platform == "garmin",
+            # Bewegungsdaten in Garmins Aktivitaetsdatei (auto|on|off), Uhr ab 1.0.100; `fit_accel_jetzt` = was gerade gilt.
+            "fit_accel": d.fit_accel if d.fit_accel in ("on", "off") else "auto",
+            "fit_accel_moeglich": d.platform == "garmin",
+            "fit_accel_alt": d.platform == "garmin" and bool(d.app_version) and _version_lt(d.app_version, "1.0.100"),
+            "fit_accel_jetzt": _fit_accel_jetzt(db, d, d.record_mode or udefault) if d.platform == "garmin" else None,
             # Geraetebild der verknuepften Uhr (nur im eigenen Profil gezeigt). Die Bilder liegen NICHT im
             # Repo, sondern unter server/media/uhrbilder/<model_id>.webp (Rahmen = Garmin-SDK-Bild, darf nicht
             # ins oeffentliche Repo; Jan, 09.10.2026). Fehlt die Datei: None, die Seite zeigt das Symbol.
@@ -1165,6 +1186,41 @@ def set_device_gps_sparen(
     d.gps_sparen = an
     db.commit()
     return {"ok": True, "gps_sparen": an}
+
+
+def _fit_accel_jetzt(db: Session, d: models.DeviceToken, record_mode: str | None) -> bool:
+    """Gilt fuer diese Uhr gerade „Bewegungsdaten in Garmins Datei"? Dieselbe Regel wie im Config-Abruf; speicherarm nach
+    dem zuletzt gemeldeten Gesamtspeicher der Uhr."""
+    lowmem = d.mem_total_kb is not None and 0 < d.mem_total_kb <= LOWMEM_KB
+    wege = _datenwege(db, d, d.mem_total_kb or None, None, record_mode)
+    if "fitAccel" in wege:
+        return bool(wege["fitAccel"])
+    return _fit_accel_auto_ohne_gc(record_mode, lowmem)
+
+
+@router.put("/{device_id}/fit-accel")
+def set_device_fit_accel(
+    device_id: int, body: dict,
+    user: models.User = Depends(current_user), db: Session = Depends(get_db),
+) -> dict:
+    """Bewegungsdaten in Garmins Aktivitaetsdatei fuer EINE Uhr: auto | on | off. Greift ab der naechsten Aufnahme nach
+    dem naechsten Config-Abruf der Uhr (App-Start); Uhren vor 1.0.100 kennen den Schalter nicht."""
+    d = db.get(models.DeviceToken, device_id)
+    if d is None or d.user_id != user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Gerät nicht gefunden")
+    if d.revoked_at is not None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Gerät ist widerrufen")
+    wahl = (body or {}).get("fit_accel")
+    if wahl not in ("auto", "on", "off"):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "fit_accel muss auto, on oder off sein")
+    d.fit_accel = wahl
+    db.commit()
+    u = db.get(models.User, d.user_id)
+    try:
+        udef = (json.loads(u.settings_json) if u and u.settings_json else {}).get("record_mode", "full")
+    except ValueError:
+        udef = "full"
+    return {"ok": True, "fit_accel": wahl, "fit_accel_jetzt": _fit_accel_jetzt(db, d, d.record_mode or udef)}
 
 
 @router.put("/{device_id}/gnss-mode")

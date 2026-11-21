@@ -285,6 +285,13 @@ export function PairedDevices({ onDownload }: { onDownload?: () => void }) {
     setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, gps_sparen: an } : x)) : ds));
     speichern(`${id}:gpsSparen`, api.setDeviceGpsSparen(id, an));
   };
+  const setFitAccel = (id: number, wahl: "auto" | "on" | "off") => {
+    setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, fit_accel: wahl } : x)) : ds));
+    const p = api.setDeviceFitAccel(id, wahl);
+    p.then((r) => setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, fit_accel_jetzt: r.fit_accel_jetzt } : x)) : ds)))
+      .catch(() => {});
+    speichern(`${id}:fitAccel`, p);
+  };
   const setWaterLock = (id: number, mode: string) => {
     setDevices((ds) => (ds ? ds.map((x) => (x.id === id ? { ...x, water_lock: mode } : x)) : ds));
     speichern(`${id}:water`, api.setDeviceWaterLock(id, mode));
@@ -425,6 +432,28 @@ export function PairedDevices({ onDownload }: { onDownload?: () => void }) {
                     </div>
                   );
                 })()}
+                {/* Bewegungsdaten in Garmins Aktivitaetsdatei, getrennt von unseren eigenen Bloecken (Aufzeichnungsmodus oben).
+                    Jan 21.11.2026: „am besten getrennt einstellen koennen in den settings je uhr, was aufzeichnen bei uns,
+                    was bei garmin connect". Anlass: eine Uhr startet nach jeder Session neu (Verdacht: Garmins Datei). */}
+                {!d.revoked_at && d.fit_accel_moeglich && (
+                  <div className="mt-2">
+                    <label className="mb-1 block text-xs text-slate-400">{t("account.fitAccel")}</label>
+                    <select value={d.fit_accel ?? "auto"} onChange={(e) => setFitAccel(d.id, e.target.value as "auto" | "on" | "off")}
+                      className="w-full max-w-sm truncate rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-100">
+                      <option value="auto">{t("account.fitAccelAuto", { jetzt: d.fit_accel_jetzt ? t("account.fitAccelJetztAn") : t("account.fitAccelJetztAus") })}</option>
+                      <option value="on">{t("account.fitAccelOn")}</option>
+                      <option value="off">{t("account.fitAccelOff")}</option>
+                    </select>
+                    <Rueck k={`${d.id}:fitAccel`} />
+                    <p className="mt-1 text-sm text-slate-400">{t("account.fitAccelHint")}</p>
+                    {d.record_mode === "gps" && d.fit_accel_jetzt === false && (
+                      <p className="mt-1 text-sm font-semibold text-amber-700 dark:text-amber-300">{t("account.fitAccelNirgends")}</p>
+                    )}
+                    {d.fit_accel_alt && (
+                      <p className="mt-1 text-sm font-semibold text-amber-700 dark:text-amber-300">{t("account.fitAccelUpdate")}</p>
+                    )}
+                  </div>
+                )}
                 {/* Wassersperre je Uhr — NICHT fuer Garmin: unser Aufnahme-Bildschirm hat dort
                     gar keine Tipp-Behandlung (`RecordDelegate` kennt nur Tasten), ein
                     Wassertropfen kann also nichts ausloesen. Ueberall sonst schon: beim Pumpen

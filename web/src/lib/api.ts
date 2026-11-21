@@ -1731,6 +1731,10 @@ export const api = {
   // Absturz-Zähler dieser Uhr zurücksetzen -> sie bekommt wieder eigene Layouts.
   resetLayoutCanary: (id: number) =>
     req<{ ok: boolean }>(`/api/devices/${id}/layout-canary/reset`, { method: "POST" }),
+  setDeviceFitAccel: (id: number, fit_accel: "auto" | "on" | "off") =>
+    req<{ ok: boolean; fit_accel: string; fit_accel_jetzt: boolean }>(`/api/devices/${id}/fit-accel`, {
+      method: "PUT", body: JSON.stringify({ fit_accel }),
+    }),
   setDeviceGpsSparen: (id: number, gps_sparen: boolean) =>
     req<{ ok: boolean; gps_sparen: boolean }>(`/api/devices/${id}/gps-sparen`, {
       method: "PUT", body: JSON.stringify({ gps_sparen }),
@@ -2721,6 +2725,10 @@ export interface PairedDevice {
   gnss_mode?: string;         // GNSS-Stufe dieser Uhr (best|l1|two|gps), nur Garmin ab 1.0.77
   gps_sparen?: boolean;       // Speicher sparen: GPS + Accel nur um bewegte Abschnitte (Standard nach Ablage)
   gps_sparen_moeglich?: boolean;  // alle Garmin-Uhren, wirkt ab Uhr 1.0.92
+  fit_accel?: "auto" | "on" | "off";  // Bewegungsdaten in Garmins Aktivitaetsdatei (21.11.2026), Uhr ab 1.0.100
+  fit_accel_moeglich?: boolean;
+  fit_accel_alt?: boolean;            // App-Version der Uhr kennt den Schalter noch nicht
+  fit_accel_jetzt?: boolean | null;   // was gerade gilt (bei „auto" nach der Regel)
   speicher_kb?: number;
   bild_url?: string | null;   // Geraetebild der Uhr (/media/uhrbilder/<id>.webp), nur Garmin       // gemessene Speichergrenze dieser Uhr bzw. des Modells (0 = nicht gemessen)
   water_lock?: string;        // Wassersperre dieser Uhr (auto|on|off); nicht fuer Garmin
