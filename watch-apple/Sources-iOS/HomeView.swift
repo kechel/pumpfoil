@@ -1099,7 +1099,7 @@ private let perfBuckets: [(String, (Int) -> Bool)] = [
 
 private func perfWertText(_ k: String, _ v: Double) -> String {
     if k == "sprint_100m" || k == "sprint_60s" { return String(format: "%.1f km/h", v * 3.6) }
-    if k == "run_distance" { return "\(Int(v.rounded())) m" }
+    if k == "run_distance" { return v >= 1000 ? String(format: "%.1f km", v / 1000) : "\(Int(v.rounded())) m" }   // ab 1000 m in km (Web 21.11.2026)
     let s: Int = Int(v.rounded())
     if s >= 3600 { return String(format: "%d:%02d h", s / 3600, (s % 3600) / 60) }
     return String(format: "%d:%02d min", s / 60, s % 60)
@@ -1147,8 +1147,7 @@ struct PerformanceBereich: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Reiterleiste(reiter: perfReiter, aktiv: Binding(get: { sub }, set: { sub = $0; ReiterSpeicher.setze("homeperf", $0) }),
-                         stufe: 2)
+            // Keine Unterreiter mehr (Web 21.11.2026): Uebersicht und Verlauf auf einer Seite
             auswahl
             inhalt
             // Einleitung klein ganz unten (Web 20.11.2026)
@@ -1251,15 +1250,14 @@ struct PerformanceBereich: View {
         } else if alle.isEmpty {
             Text(Loc.t("perf.leer", lang)).frame(maxWidth: .infinity).padding()
                 .background(Color(.secondarySystemBackground)).clipShape(RoundedRectangle(cornerRadius: 12))
-        } else if sub == "verlauf" {
-            platzVerlauf
-            raster
-            verlauf
         } else {
             kennzahlen
             kategorieTabelle
             bestleistungen
             ForEach(perfKats, id: \.self) { k in kategorieKarte(k) }
+            platzVerlauf
+            raster
+            verlauf
             Text(Loc.t("perf.hinweis", lang)).font(.caption).foregroundStyle(.secondary)
         }
     }

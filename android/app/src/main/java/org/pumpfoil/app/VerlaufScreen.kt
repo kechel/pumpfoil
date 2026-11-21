@@ -101,7 +101,7 @@ private val METRICS = listOf(
     HMetric("verlauf.pumpsPerSession", Color(0xFFFB7185), Kind.RATIO, { null },
         num = { it.pumps.toDouble() }, den = { 1.0 }, fmt = { "%.0f".format(it) }),
     // Ø Laufzeit (Nutzerwunsch 20.11.2026): Σ Laufzeit / Σ Laeufe im Fenster
-    HMetric("verlauf.avgRunTime", Color(0xFFFACC15), Kind.RATIO, { null },
+    HMetric("verlauf.avgRunTime", Color(0xFFCA8A04), Kind.RATIO, { null },
         num = { it.runS }, den = { it.runN?.toDouble() }, fmt = { mmssMin(it) }),
     HMetric("sd.avgDistPerPump", Color(0xFF2DD4BF), Kind.RATIO, { null },
         num = { it.foilingKm }, den = { it.pumps.toDouble() }, fmt = { "%.1f m".format(it * 1000) }),

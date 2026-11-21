@@ -38,7 +38,7 @@ const AGG_TOP: Agg[] = [
   { key: "avg_pump_hz", field: "avg_pump_hz", kind: "max", labelKey: "metric.avgPumpFreq", fmt: (v, pf) => pf.fmt(v), color: "#f472b6" },
   { key: "pumps_per_session", kind: "ratio", num: "pumps", den: "count", labelKey: "metric.pumpsPerSession", fmt: (v) => v.toFixed(0), color: "#fb7185" },
   // Ø Laufzeit (Nutzerwunsch 20.11.2026: werden meine Laeufe ueber die Zeit laenger?) — Σ Laufzeit / Σ Laeufe im Fenster
-  { key: "avg_run_s", kind: "ratio", num: "run_s", den: "run_n", labelKey: "metric.avgRunTime", fmt: (v) => fmtLaufDauerEinheit(v), color: "#facc15" },
+  { key: "avg_run_s", kind: "ratio", num: "run_s", den: "run_n", labelKey: "metric.avgRunTime", fmt: (v) => fmtLaufDauerEinheit(v), color: "#ca8a04" },   // yellow-600: yellow-400 war im Light-Mode unlesbar (Jan 21.11.2026)
   // Meter pro Pump im Zeitverlauf: Σ Foiling-km / Σ Pumps (×1000 = m), als Verhältnis
   // (kein Summen-Wert -> bewusst nicht in der Kumuliert-/Summen-Sektion).
   { key: "meters_per_pump", kind: "ratio", num: "foiling_km", den: "pumps", labelKey: "metric.metersPerPump", fmt: (v) => `${(v * 1000).toFixed(1)} m`, color: "#2dd4bf" },

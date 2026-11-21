@@ -4,7 +4,6 @@ import { api } from "../lib/api";
 import { useT } from "../i18n";
 import { Card, InfoDialog, InfoKnopf, Spinner } from "./ui";
 import { sportLabel } from "../lib/sportClass";
-import { Reiterleiste, useReiter } from "./Reiter";
 import { BeatIcon, CalendarCheckIcon, DailyAverageIcon, PlaceLineIcon, PlacingGridIcon, FoilTimeIcon, LongestRunIcon, MedalIcon, PodiumIcon, SeasonCupIcon, Sprint100Icon, SprintMinuteIcon, TrophyIcon } from "./Icons";
 
 /**
@@ -47,7 +46,8 @@ type Zeitraum = "alle" | "30" | "25";
 
 function wertText(k: Kat, v: number): string {
   if (k === "sprint_100m" || k === "sprint_60s") return `${(v * 3.6).toFixed(1)} km/h`;
-  if (k === "run_distance") return `${Math.round(v)} m`;
+  // ab 1000 m in km (Hinweis eines Fahrers, 20.11.2026: „13199 m" -> „13.2 km")
+  if (k === "run_distance") return v >= 1000 ? `${(v / 1000).toFixed(1)} km` : `${Math.round(v)} m`;
   const s = Math.round(v);
   if (s >= 3600) return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")} h`;
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")} min`;
@@ -69,8 +69,6 @@ export function PerformanceBereich() {
   const [zeitraum, setZeitraum] = useState<Zeitraum>("25");
   const [daten, setDaten] = useState<Awaited<ReturnType<typeof api.performance>> | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
-  const reiter = [{ id: "uebersicht", label: t("perf.tabUebersicht") }, { id: "verlauf", label: t("perf.tabVerlauf") }];
-  const [sub, setSub] = useReiter("homeperf", reiter.map((r) => r.id), "uebersicht", { param: "sub" });
 
   useEffect(() => {
     let aus = false;
@@ -103,7 +101,9 @@ export function PerformanceBereich() {
   return (
     <div>
       {/* Sportart + Zeitraum rechts in der Reiterleiste (Jan 20.11.2026: „sportarten & zeitraum mit in die tab-zeile") */}
-      <Reiterleiste reiter={reiter} aktiv={sub} onWahl={setSub} stufe={2} rechts={<>
+      {/* Keine Unterreiter mehr (Vorschlag eines Fahrers, 20.11.2026: „…dann koennte man den Tab Verlauf eigentlich auch raus
+          nehmen. Dann braucht es keine Tabs. Einfach nur PERFORMANCE") — alles auf einer Seite, Auswahl oben rechts. */}
+      <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
           {/* Foil Scoot nur zusammen mit Pumpfoil — allein zu wenige Fahrer fuer ein Feld (Jan 18.11.2026). */}
           {(["pumpfoil", "pumpfoil+foil_scoot"] as const).map((s) => (
             <button key={s} type="button" onClick={() => setSport(s)} aria-pressed={sport === s}
@@ -117,17 +117,19 @@ export function PerformanceBereich() {
             <option value="30">{t("perf.tage30")}</option>
             <option value="25">{t("perf.letzte25")}</option>
           </select>
-      </>} />
+      </div>
       <div className="space-y-4">
 
 
 
         {fehler ? <Card className="p-4 text-sm text-red-700 dark:text-red-400">{fehler}</Card> : !daten ? <Spinner /> : alle.length === 0 ? (
           <Card className="p-6 text-center text-slate-300">{t("perf.leer")}</Card>
-        ) : sub === "verlauf" ? (
-          <VerlaufTab je={je} alle={alle} tage={tage} />
         ) : (
-          <UebersichtTab je={je} alle={alle} tage={tage} saison={daten?.saison} />
+          <>
+            <UebersichtTab je={je} alle={alle} tage={tage} saison={daten?.saison} />
+            <VerlaufTab je={je} alle={alle} tage={tage} />
+            <p className="text-xs text-slate-400">{t("perf.hinweis")}</p>
+          </>
         )}
         <p className="text-xs text-slate-400">{t("perf.intro", { n: daten?.min_feld ?? 5 })}</p>
       </div>
@@ -155,7 +157,7 @@ function SaisonKarte({ s }: { s: Saison }) {
         <div className="flex items-center gap-3">
           <SeasonCupIcon className="h-12 w-12 shrink-0 text-brand-700 dark:text-brand-400" />
           <div className="min-w-0 flex-1">
-            <div className="text-center text-2xl font-bold tabular-nums text-slate-100">{s.punkte}</div>
+            <div className="whitespace-nowrap text-center text-2xl font-bold tabular-nums text-slate-100">{s.punkte}</div>
             <div className="text-center text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">{t("perf.saisonTitel")}</div>
           </div>
         </div>
@@ -193,7 +195,8 @@ function UebersichtTab({ je, alle, tage, saison }: { je: Record<Kat, Zeile[]>; a
   return (
     <>
       {/* Kennzahlen */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      {/* sechs in einer Zeile erst ab 2xl — bei 1600 px mit Seitenleiste brachen Wert und „%" um (Hinweis eines Fahrers, 20.11.2026) */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-6">
         {([
           [t("perf.tage"), String(tage.length), CalendarCheckIcon],
           [t("perf.besserAls"), `${Math.round(schnitt(alle.map((z) => z.perzentil)))} %`, BeatIcon],
@@ -206,7 +209,7 @@ function UebersichtTab({ je, alle, tage, saison }: { je: Record<Kat, Zeile[]>; a
             <div className="flex items-center gap-3">
               <I className="h-12 w-12 shrink-0 text-brand-700 dark:text-brand-400" />
               <div className="min-w-0 flex-1">
-                <div className="text-center text-2xl font-semibold tabular-nums text-slate-100">{v}</div>
+                <div className="whitespace-nowrap text-center text-2xl font-semibold tabular-nums text-slate-100">{v}</div>
                 <div className="text-center text-xs text-slate-400">{l}</div>
               </div>
             </div>
@@ -273,7 +276,7 @@ function UebersichtTab({ je, alle, tage, saison }: { je: Record<Kat, Zeile[]>; a
                   <KatIcon k={k} className="h-12 w-12 shrink-0 text-brand-700 dark:text-brand-400" />
                   <div className="min-w-0 flex-1">
                     {b ? (
-                      <Link to={zielUrl(k, b)} className="block text-center text-2xl font-semibold tabular-nums text-slate-100 hover:text-brand-700 dark:hover:text-brand-300">{wertText(k, b.wert)}</Link>
+                      <Link to={zielUrl(k, b)} className="block whitespace-nowrap text-center text-2xl font-semibold tabular-nums text-slate-100 hover:text-brand-700 dark:hover:text-brand-300">{wertText(k, b.wert)}</Link>
                     ) : <div className="text-center text-2xl text-slate-400">–</div>}
                     <div className="text-center text-xs text-slate-400">{katName(k)}</div>
                     {b && <div className="text-center text-xs text-slate-400">{tagKurz(b.tag)} · {t("perf.platzVon", { platz: b.platz, feld: b.feld })}</div>}
@@ -316,7 +319,6 @@ function UebersichtTab({ je, alle, tage, saison }: { je: Record<Kat, Zeile[]>; a
           );
         })}
       </div>
-      <p className="text-xs text-slate-400">{t("perf.hinweis")}</p>
     </>
   );
 }

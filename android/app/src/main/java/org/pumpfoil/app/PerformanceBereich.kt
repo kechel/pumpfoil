@@ -109,7 +109,7 @@ private val BUCKETS: List<Pair<String, (Int) -> Boolean>> = listOf(
 
 private fun wertText(k: String, v: Double): String = when (k) {
     "sprint_100m", "sprint_60s" -> "%.1f km/h".format(v * 3.6)
-    "run_distance" -> "${Math.round(v)} m"
+    "run_distance" -> if (v >= 1000) String.format(java.util.Locale.ROOT, "%.1f km", v / 1000) else "${Math.round(v)} m"   // ab 1000 m in km (Web 21.11.2026)
     else -> { val s = Math.round(v).toInt()
         if (s >= 3600) "%d:%02d h".format(s / 3600, (s % 3600) / 60) else "%d:%02d min".format(s / 60, s % 60) }
 }
@@ -171,8 +171,6 @@ fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
     var zeitraum by rememberSaveable { mutableStateOf("25") }   // alle | 30 | 25; Standard „letzte 25 Tage" (Jan 18.11.)
     var daten by remember { mutableStateOf<PerfAntwort?>(null) }
     var fehler by remember { mutableStateOf<String?>(null) }
-    val reiter = listOf(ReiterDef("uebersicht", I18n.t("perf.tabUebersicht")), ReiterDef("verlauf", I18n.t("perf.tabVerlauf")))
-    var sub by rememberReiter("homeperf", reiter.map { it.id }, "uebersicht")
     val lebenszyklus = LocalLifecycleOwner.current.lifecycle
     LaunchedEffect(sport) {
         daten = null; fehler = null
@@ -196,7 +194,7 @@ fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
     val grau = MaterialTheme.colorScheme.onSurfaceVariant
 
     Column(Modifier.fillMaxWidth()) {
-        Reiterleiste(reiter, sub, { sub = it }, stufe = 2, modifier = Modifier.padding(bottom = 10.dp))
+        // Keine Unterreiter mehr (Web 21.11.2026): Uebersicht und Verlauf auf einer Seite
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf("pumpfoil", "pumpfoil+foil_scoot").forEach { s ->
                 FilterChip(selected = sport == s, onClick = { sport = s }, colors = cyanChipColors(),
@@ -218,8 +216,11 @@ fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
             alle.isEmpty() -> Card(Modifier.fillMaxWidth()) {
                 Text(I18n.t("perf.leer"), Modifier.padding(16.dp), textAlign = TextAlign.Center)
             }
-            sub == "verlauf" -> VerlaufTeil(je, alle, tage, onOpenSession)
-            else -> UebersichtTeil(je, alle, tage, d.saison, onOpenSession)
+            else -> {
+                UebersichtTeil(je, alle, tage, d.saison, onOpenSession)
+                VerlaufTeil(je, alle, tage, onOpenSession)
+                Text(I18n.t("perf.hinweis"), style = MaterialTheme.typography.bodySmall, color = grau, modifier = Modifier.padding(bottom = 12.dp))
+            }
         }
         // Einleitung klein ganz unten (Jan 20.11.2026: „den hinweis weg oder ganz nach unten")
         Text(I18n.t("perf.intro").replace("{n}", "${daten?.minFeld ?: 5}"), style = MaterialTheme.typography.bodySmall,
@@ -351,7 +352,6 @@ private fun UebersichtTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeil
             }
         }
     }
-    Text(I18n.t("perf.hinweis"), style = MaterialTheme.typography.bodySmall, color = grau, modifier = Modifier.padding(bottom = 12.dp))
 }
 
 @Composable

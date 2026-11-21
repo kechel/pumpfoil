@@ -185,7 +185,7 @@ struct VerlaufView: View {
         VMetric("verlauf.pumpsPerSession", 0xFB7185, .ratio, { _ in nil },
                 num: { Double($0.pumps) }, den: { _ in 1.0 }, fmt: { String(format: "%.0f", $0) }),
         // Ø Laufzeit (Nutzerwunsch 20.11.2026): Σ Laufzeit / Σ Laeufe im Fenster
-        VMetric("verlauf.avgRunTime", 0xFACC15, .ratio, { _ in nil },
+        VMetric("verlauf.avgRunTime", 0xCA8A04, .ratio, { _ in nil },
                 num: { $0.run_s }, den: { $0.run_n.map(Double.init) }, fmt: { mmssMin($0) }),
         VMetric("sd.avgDistPerPump", 0x2DD4BF, .ratio, { _ in nil },
                 num: { $0.foiling_km }, den: { Double($0.pumps) }, fmt: { String(format: "%.1f m", $0 * 1000) }),
