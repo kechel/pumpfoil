@@ -16,7 +16,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
-from sqlalchemy import Float, Integer, and_, case, cast, false, func, literal, not_, or_, true
+from sqlalchemy import Float, Integer, Numeric, and_, case, cast, false, func, literal, not_, or_, true
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session, joinedload
 
@@ -863,7 +863,11 @@ def _record_entry(db: Session, metric: str, cut: datetime | None, spot: str | No
     # Gleichstand: wer den Wert ZUERST gefahren ist, haelt den Rekord. Ohne zweites Sortierkriterium
     # waehlte Postgres beliebig — der volle Satz und `period=X` lieferten verschiedene Halter
     # (CI rot am 23.10.2026, test_einzelner_zeitraum_ist_inhaltlich_derselbe, zwei Sessions mit 3 Laeufen).
-    row = q.order_by(valcol.desc(), S.started_at.asc(), S.id.asc()).first()
+    # Seit 21.11.2026 global eindeutig (Jan: „ueberall auf global eindeutige sortierung achten"): Wert so genau wie
+    # angezeigt (2 Stellen), dann der fruehere TAG (UTC — die Uhrzeit kann verborgen sein), dann der Name; erst danach
+    # Uhrzeit und ID. So ist der Halter immer eindeutig und nachvollziehbar.
+    row = q.order_by(func.round(cast(valcol, Numeric), 2).desc(), func.date(func.timezone("UTC", S.started_at)).asc(),
+                     func.lower(NAME).asc(), S.started_at.asc(), S.id.asc()).first()
     if row is None:
         return dict(_EMPTY_REC)
     val, idx, sid, ts, name, place, avatar, preview, lat, lon, uid, sicht = row
@@ -1059,7 +1063,7 @@ def _carve_record(db: Session, cut: datetime | None, spot: str | None = None, vi
         q = _ab(q, cut, S.started_at)
     if spot is not None:
         q = q.filter(_spot_cond(spot, db))
-    row = q.group_by(U.id, U.display_name, U.avatar_url).order_by(total.desc()).first()
+    row = q.group_by(U.id, U.display_name, U.avatar_url).order_by(total.desc(), func.lower(NAME).asc(), U.id.asc()).first()
     if row is None or not row[2]:
         return dict(_EMPTY_REC)
     name, avatar, val, uid = row
