@@ -288,21 +288,21 @@ function UebersichtTab({ je, alle, tage, saison, onSaison }: { je: Record<Kat, Z
       {/* Bestleistungen: der beste eigene Wert je Kategorie im Zeitraum, mit Tag und Platz, fuehrt zur Session */}
       <Card className="p-3">
         <div className="mb-2 font-semibold text-slate-100">{t("perf.bestleistungen")}</div>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 xl:grid-cols-4">
           {KATS.map((k) => {
             const z = je[k];
             const b = z.length ? z.reduce((a, x) => (x.wert > a.wert ? x : a)) : null;
             return (
-              <div key={k} className="rounded-lg bg-slate-800/50 p-2.5">
-                {/* wie die Kennzahl-Kacheln: Icon ueber die ganze Hoehe, Wert und Label mittig (Jan 20.11.2026) */}
-                <div className="flex items-center gap-3">
-                  <KatIcon k={k} className="h-12 w-12 shrink-0 text-brand-700 dark:text-brand-400" />
+              <div key={k} className="rounded-lg bg-slate-800/50 px-2.5 py-2">
+                {/* kompakt wie die Kennzahl-Kacheln oben (Jan 21.11.2026: „die kacheln unten noch bitte genauso") */}
+                <div className="flex items-center gap-2">
+                  <KatIcon k={k} className="h-8 w-8 shrink-0 text-brand-700 dark:text-brand-400" />
                   <div className="min-w-0 flex-1">
                     {b ? (
-                      <Link to={zielUrl(k, b)} className="block whitespace-nowrap text-center text-2xl font-semibold tabular-nums text-slate-100 hover:text-brand-700 dark:hover:text-brand-300">{wertText(k, b.wert)}</Link>
-                    ) : <div className="text-center text-2xl text-slate-400">–</div>}
-                    <div className="text-center text-xs text-slate-400">{katName(k)}</div>
-                    {b && <div className="text-center text-xs text-slate-400">{tagKurz(b.tag)} · {t("perf.platzVon", { platz: b.platz, feld: b.feld })}</div>}
+                      <Link to={zielUrl(k, b)} className="block whitespace-nowrap text-center text-lg font-semibold leading-tight tabular-nums text-slate-100 hover:text-brand-700 dark:hover:text-brand-300">{wertText(k, b.wert)}</Link>
+                    ) : <div className="text-center text-lg leading-tight text-slate-400">–</div>}
+                    <div className="truncate text-center text-[11px] leading-tight text-slate-400">{katName(k)}</div>
+                    {b && <div className="truncate text-center text-[11px] leading-tight text-slate-400">{tagKurz(b.tag)} · {t("perf.platzVon", { platz: b.platz, feld: b.feld })}</div>}
                   </div>
                 </div>
               </div>
