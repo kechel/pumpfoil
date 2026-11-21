@@ -3359,7 +3359,7 @@ const en: Record<string, string> = {
   "perf.letzte25": "Last 25 ranked days",
   "perf.tabelle": "Categories",
   "perf.spKategorie": "Category",
-  "perf.spSchnitt": "Avg place",
+  "perf.spSchnitt": "Ø place",
   "perf.spBester": "Best place",
   "perf.spTop3": "Top 3",
   "perf.schnittVon": "{platz} of Ø {feld} riders",
