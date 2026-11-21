@@ -159,11 +159,11 @@ function SaisonKarte({ s }: { s: Saison }) {
           Punkte mittig, „Season 2027" als Label; Status (startet am …, Rang) und Regeln im (i)-Fenster. */}
       <div className="relative rounded-xl border border-brand-500/40 bg-brand-500/10 px-2.5 py-2">
         <InfoKnopf label={t("perf.saisonTitel")} onClick={() => setOffen(true)} />
-        <div className="flex items-center gap-2">
-          <SeasonCupIcon className="h-8 w-8 shrink-0 text-brand-700 dark:text-brand-400" />
+        <div className="flex items-center gap-2 xl:gap-1.5 2xl:gap-2">
+          <SeasonCupIcon className="h-8 w-8 shrink-0 text-brand-700 xl:h-6 xl:w-6 2xl:h-8 2xl:w-8 dark:text-brand-400" />
           <div className="min-w-0 flex-1">
             <div className="whitespace-nowrap text-center text-lg font-bold leading-tight tabular-nums text-slate-100">{s.punkte}</div>
-            <div className="truncate text-center text-[11px] font-semibold uppercase leading-tight tracking-wide text-brand-700 dark:text-brand-300">{t("perf.saisonTitel")}</div>
+            <div className="text-center text-[11px] font-semibold uppercase leading-tight tracking-wide text-brand-700 dark:text-brand-300">{t("perf.saisonTitel")}</div>
           </div>
         </div>
       </div>
@@ -212,11 +212,12 @@ function UebersichtTab({ je, alle, tage, saison }: { je: Record<Kat, Zeile[]>; a
         ] as const).map(([l, v, I]) => (
           <Card key={l} className="px-2.5 py-2">
             {/* Icon ueber die ganze Hoehe links; rechts Wert und Label mittig darunter (Jan 20.11.2026) */}
-            <div className="flex items-center gap-2">
-              <I className="h-8 w-8 shrink-0 text-brand-700 dark:text-brand-400" />
+            {/* knapp ueber xl wird es eng: Icon kleiner, Beschriftung darf zweizeilig umbrechen statt abgeschnitten zu werden */}
+            <div className="flex items-center gap-2 xl:gap-1.5 2xl:gap-2">
+              <I className="h-8 w-8 shrink-0 text-brand-700 xl:h-6 xl:w-6 2xl:h-8 2xl:w-8 dark:text-brand-400" />
               <div className="min-w-0 flex-1">
                 <div className="whitespace-nowrap text-center text-lg font-semibold leading-tight tabular-nums text-slate-100">{v}</div>
-                <div className="truncate text-center text-[11px] leading-tight text-slate-400" title={l}>{l}</div>
+                <div className="text-center text-[11px] leading-tight text-slate-400">{l}</div>
               </div>
             </div>
           </Card>
