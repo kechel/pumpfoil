@@ -5832,6 +5832,11 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     Friert sie dann nicht ein -> fuer die Uhr nur `fitAccel` aus, Roh-Bloecke behalten: **seit 21.11. als Einstellung
     je Uhr gebaut** („Bewegungsdaten in der Garmin-Aktivitaet", wirkt auch ohne Verknuepfung, s. WATCH-STORAGE.md).
     u244 hat aber noch App 1.0.99 — kennt den Schalter erst nach dem Update (>= 1.0.100).
+  - **21.11. abends: FIT-Accel widerlegt.** u244 auf 1.0.104, `fit_accel = off`, Config vor der Aufnahme geholt: 1-h-
+    (normal) und 1,5-h-Test (ohne Accel in der FIT) zu Hause — beide Male Neustart ~5 min nach dem Speichern. App jedes Mal
+    sauber beendet (`app-closed` 18:48/21:09, keine Absturzmeldung, Logbuch leer), Upload vorher fertig. **Naechster
+    Verdacht:** Aktivitaetstyp „pumpfoil" = `SPORT_GENERIC` + `SUB_SPORT_OPEN_WATER` (keine Garmin-Profilkombination) ->
+    Firmware-Nachverarbeitung. Test angefragt: Typ „Surfing"; dazu `GARMIN/Debug/err_log.txt` nach dem naechsten Neustart.
 
 
 - **🟡 14./15.09. — PeterH (u171) bekommt seit dem 08.09. keinen Puls mehr. Befund: mit hoher
