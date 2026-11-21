@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useT } from "../i18n";
@@ -85,6 +86,9 @@ export function PerformanceBereich() {
     return () => { aus = true; window.clearInterval(iv); };
   }, [sport]);
 
+  // Ziel in der Titelzeile der Startseite (PersonalHome #home-kopf-rechts); fehlt es, steht die Auswahl ueber dem Inhalt
+  const [kopf, setKopf] = useState<HTMLElement | null>(null);
+  useEffect(() => { setKopf(document.getElementById("home-kopf-rechts")); }, []);
   const saisonJahr = zeitraum.startsWith("s") ? Number(zeitraum.slice(1)) : null;
   const bis = saisonJahr ? `${saisonJahr}-12-31` : "9999-12-31";
   const grenze = useMemo(() => {
@@ -104,12 +108,7 @@ export function PerformanceBereich() {
   const alle = KATS.flatMap((k) => je[k]);
   const tage = [...new Set(alle.map((z) => z.tag))].sort().reverse();
 
-  return (
-    <div>
-      {/* Sportart + Zeitraum rechts in der Reiterleiste (Jan 20.11.2026: „sportarten & zeitraum mit in die tab-zeile") */}
-      {/* Keine Unterreiter mehr (Vorschlag eines Fahrers, 20.11.2026: „…dann koennte man den Tab Verlauf eigentlich auch raus
-          nehmen. Dann braucht es keine Tabs. Einfach nur PERFORMANCE") — alles auf einer Seite, Auswahl oben rechts. */}
-      <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
+  const zeitraumWahl = (
           <select value={zeitraum} onChange={(e) => setZeitraum(e.target.value as Zeitraum)}
             className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100">
             <option value="alle">{t("perf.seit", { datum: daten?.ab ? new Date(daten.ab).toLocaleDateString() : "…" })}</option>
@@ -119,7 +118,14 @@ export function PerformanceBereich() {
               <option key={j} value={`s${j}`}>{t("perf.seit", { datum: new Date(`${j}-01-01T12:00:00Z`).toLocaleDateString() })}</option>
             ))}
           </select>
-      </div>
+  );
+  return (
+    <div>
+      {/* Sportart + Zeitraum rechts in der Reiterleiste (Jan 20.11.2026: „sportarten & zeitraum mit in die tab-zeile") */}
+      {/* Keine Unterreiter mehr (Vorschlag eines Fahrers, 20.11.2026: „…dann koennte man den Tab Verlauf eigentlich auch raus
+          nehmen. Dann braucht es keine Tabs. Einfach nur PERFORMANCE") — alles auf einer Seite, Auswahl oben rechts. */}
+      {/* Zeitraum oben in der Titelzeile der Startseite (rechts vom Changelog), sonst hier */}
+      {kopf ? createPortal(zeitraumWahl, kopf) : <div className="mb-3 flex justify-end">{zeitraumWahl}</div>}
       <div className="space-y-4">
 
 

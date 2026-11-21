@@ -473,7 +473,13 @@ export default function PersonalHome() {
         <h2 className="min-w-0 truncate text-2xl font-bold">
           {profile?.display_name ? t("phome.hello", { name: profile.display_name }) : t("nav.home")}
         </h2>
-        <ChangelogBadge />
+        {/* Changelog-Knopf und rechts daneben Platz fuer Reiter-eigene Auswahl (Performance: Zeitraum, Jan 21.11.2026: „das
+            drop-down kann noch nach ganz oben mit in der titelzeile … rechts von dem changelog button") — per Portal
+            gefuellt; gemeinsamer Block, damit beide rechts bleiben, auch wenn er am Handy in die naechste Zeile rutscht */}
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          <ChangelogBadge />
+          <div id="home-kopf-rechts" className="flex items-center empty:hidden" />
+        </div>
         <FreundePumpen />
       </div>
 
