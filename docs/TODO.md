@@ -1831,6 +1831,12 @@ Entwurf zusammen mit A1.
   glaetten, Fusion zweier Aufnahmen (s. Memory mehrfach-aufnahmen-zusammen), Hinweis auf Messunsicherheit bei knappen
   Abstaenden in der Event-Wertung. NICHT gebaut.
 - Optional DM an u352 (GTR 4, GPS-Luecken), wenn Zepp 1.0.17 live ist.
+- **Beobachtung u352 (GTR 4, Store-1.0.16, Sprachnachricht an Jan 21.11.) — nur gemerkt, nichts zu tun:** beim Laufen
+  mit Blick aufs Display vibriert die Uhr bei ~7 km/h (On-Foil erkannt) und hoert beim Stehenbleiben auf. Haelt er die
+  Uhr unten (Display aus) und laeuft erst dann los, vibriert sie bei 7 km/h NICHT. Passt zur gedrosselten Ortung bei
+  dunklem Display/Ruhezustand (Amazfit-GPS-Abdeckung 21-56 %). 1.0.17 (GPS-Neustart nach 20 s Funkstille, eingereicht
+  20.11.) koennte das beheben — nach Freigabe genau diesen Test mit ihm wiederholen; `messweg.gps_aus_s`/`gps_neustart`
+  im /complete zeigen, ob der Neustart greift.
 - Lob als Zitate sammeln (bei Gelegenheit, 15.11.).
 - ✅ 16.11. Antwort an u1124 (Suunto: Uhrname + Takt laut Uhr) gesendet (Konto 230).
 
