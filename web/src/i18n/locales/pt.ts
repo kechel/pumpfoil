@@ -3234,7 +3234,7 @@ const pt: Record<string, string> = {
   "perf.spSchnitt": "Posição média",
   "perf.spBester": "Melhor posição",
   "perf.spTop3": "Top 3",
-  "perf.schnittVon": "{platz} de Ø {feld}",
+  "perf.schnittVon": "{platz} de Ø {feld} riders",
   "perf.bestleistungen": "Recordes pessoais",
   "perf.platzverlauf": "Posição por dia",
   "perf.platzverlaufHint": "Altura = parcela de riders superados, número = posição. Verde: melhor que 80 %, amarelo: melhor que a metade.",

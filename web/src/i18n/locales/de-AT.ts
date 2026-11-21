@@ -3120,7 +3120,7 @@ const deAT: Record<string, string> = {
   "perf.spSchnitt": "Ø Platz",
   "perf.spBester": "Bester Platz",
   "perf.spTop3": "Top 3",
-  "perf.schnittVon": "{platz} von Ø {feld}",
+  "perf.schnittVon": "{platz} von Ø {feld} Fahrern",
   "perf.bestleistungen": "Bestleistungen",
   "perf.platzverlauf": "Platz je Tag",
   "perf.platzverlaufHint": "Höhe = Anteil der geschlagenen Fahrer, Zahl = Platz. Grün: besser als 80 %, gelb: besser als die Hälfte.",

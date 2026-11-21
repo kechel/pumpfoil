@@ -3269,7 +3269,7 @@ const fi: Record<string, string> = {
   "perf.spSchnitt": "Ø sija",
   "perf.spBester": "Paras sija",
   "perf.spTop3": "Top 3",
-  "perf.schnittVon": "{platz} / Ø {feld}",
+  "perf.schnittVon": "{platz} / Ø {feld} ajajaa",
   "perf.bestleistungen": "Ennätykset",
   "perf.platzverlauf": "Sija päivittäin",
   "perf.platzverlaufHint": "Korkeus = voitettujen ajajien osuus, numero = sija. Vihreä: parempi kuin 80 %, keltainen: parempi kuin puolet.",

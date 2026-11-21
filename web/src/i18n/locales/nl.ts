@@ -3288,7 +3288,7 @@ const nl: Record<string, string> = {
   "perf.spSchnitt": "Gem. plaats",
   "perf.spBester": "Beste plaats",
   "perf.spTop3": "Top 3",
-  "perf.schnittVon": "{platz} van Ø {feld}",
+  "perf.schnittVon": "{platz} van Ø {feld} riders",
   "perf.bestleistungen": "Persoonlijke records",
   "perf.platzverlauf": "Plaats per dag",
   "perf.platzverlaufHint": "Hoogte = aandeel verslagen riders, getal = plaats. Groen: beter dan 80 %, geel: beter dan de helft.",

@@ -3287,7 +3287,7 @@ const cs: Record<string, string> = {
   "perf.spSchnitt": "Ø pořadí",
   "perf.spBester": "Nejlepší pořadí",
   "perf.spTop3": "Top 3",
-  "perf.schnittVon": "{platz} z Ø {feld}",
+  "perf.schnittVon": "{platz} z Ø {feld} jezdců",
   "perf.bestleistungen": "Osobní rekordy",
   "perf.platzverlauf": "Pořadí po dnech",
   "perf.platzverlaufHint": "Výška = podíl poražených jezdců, číslo = pořadí. Zelená: lepší než 80 %, žlutá: lepší než polovina.",

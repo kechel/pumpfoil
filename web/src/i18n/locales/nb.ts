@@ -3205,7 +3205,7 @@ const nb: Record<string, string> = {
   "perf.spSchnitt": "Ø plass",
   "perf.spBester": "Beste plass",
   "perf.spTop3": "Topp 3",
-  "perf.schnittVon": "{platz} av Ø {feld}",
+  "perf.schnittVon": "{platz} av Ø {feld} utøvere",
   "perf.bestleistungen": "Personlige rekorder",
   "perf.platzverlauf": "Plass per dag",
   "perf.platzverlaufHint": "Høyde = andel slåtte ryttere, tall = plass. Grønn: bedre enn 80 %, gul: bedre enn halvparten.",

@@ -3234,7 +3234,7 @@ const id: Record<string, string> = {
   "perf.spSchnitt": "Rata-rata posisi",
   "perf.spBester": "Posisi terbaik",
   "perf.spTop3": "Top 3",
-  "perf.schnittVon": "{platz} dari Ø {feld}",
+  "perf.schnittVon": "{platz} dari Ø {feld} rider",
   "perf.bestleistungen": "Rekor pribadi",
   "perf.platzverlauf": "Posisi per hari",
   "perf.platzverlaufHint": "Tinggi = porsi rider yang dikalahkan, angka = posisi. Hijau: lebih baik dari 80 %, kuning: lebih baik dari separuh.",
