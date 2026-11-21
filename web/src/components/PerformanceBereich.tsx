@@ -136,7 +136,7 @@ export function PerformanceBereich() {
           <>
             <UebersichtTab je={je} alle={alle} tage={tage} saison={daten?.saison}
               onSaison={daten?.saison?.gestartet ? () => setZeitraum(`s${daten.saison!.jahr}`) : undefined} />
-            <VerlaufTab je={je} alle={alle} tage={tage} />
+            <VerlaufTab je={je} alle={alle} tage={tage} regel={daten?.saison?.regel} />
             <p className="text-xs text-slate-400">{t("perf.hinweis")}</p>
           </>
         )}
@@ -346,8 +346,28 @@ function UebersichtTab({ je, alle, tage, saison, onSaison }: { je: Record<Kat, Z
   );
 }
 
-function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[]; tage: string[] }) {
+/** Punkte eines Tages nach der Saisonregel (community._saison_tabelle): Platzpunkte je Kategorie ab `min_feld` Fahrern
+ *  plus Mitmach-Punkt. Fuer JEDEN Tag, auch vor dem ersten Saisonstart (Jan 21.11.2026: „einfach jetzt schon in der
+ *  tabelle anzeigen, zaehlt halt nicht zur saison 27"). */
+function tagesPunkte(je: Record<Kat, Zeile[]>, tag: string, r: Saison["regel"]): number | null {
+  let p = 0, da = false;
+  for (const k of KATS) {
+    const z = je[k].find((x) => x.tag === tag);
+    if (!z) continue;
+    da = true;
+    if ((r.kategorien as string[]).includes(k) && z.feld >= r.min_feld && z.platz <= r.platz.length) p += r.platz[z.platz - 1];
+  }
+  return da ? p + r.mitmachen : null;
+}
+
+function VerlaufTab({ je, alle, tage, regel }: { je: Record<Kat, Zeile[]>; alle: Zeile[]; tage: string[]; regel?: Saison["regel"] }) {
   const t = useT();
+  // Punkte je Tag + bester Tag (Vorschlag eines Fahrers, 21.11.2026: Punkte-Zeile unter dem Raster, feste Spalte „best").
+  // Bester Tag bei Gleichstand: der fruehere (wer zuerst).
+  const punkte = new Map<string, number>();
+  if (regel) for (const d of tage) { const p = tagesPunkte(je, d, regel); if (p != null) punkte.set(d, p); }
+  const best = [...punkte.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0]?.[0] ?? null;
+  const stickyBg = "bg-[color-mix(in_srgb,rgb(var(--s-900))_60%,rgb(var(--s-950)))]";
   const [kat, setKat] = useState<Kat>("sprint_100m");
   const katName = (k: Kat) => t(`perf.kat.${k}`);
   const reihe = [...je[kat]].sort((a, b) => a.tag.localeCompare(b.tag));
@@ -390,6 +410,9 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
                   <th key={d} className={`px-0.5 pb-1 font-normal ${vorl.has(d) ? "rounded-t bg-amber-300/40 text-amber-800 dark:bg-amber-400/25 dark:text-amber-200" : "text-slate-400"}`}
                     title={vorl.has(d) ? `${d} · ${t("perf.vorlaeufig")}` : d}>{tagKurz(d)}</th>
                 ))}
+                {best && <th className={`sticky right-0 z-10 border-l-2 border-brand-500 pb-1 pl-1.5 font-normal ${stickyBg}`}>
+                  <div className="text-[10px] font-semibold uppercase leading-none text-brand-700 dark:text-brand-300">{t("perf.best")}</div>
+                  <div className="text-slate-400">{tagKurz(best)}</div></th>}
               </tr>
             </thead>
             <tbody>
@@ -399,10 +422,13 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
                   <tr key={k}>
                     <th className="sticky left-0 z-10 whitespace-nowrap bg-[color-mix(in_srgb,rgb(var(--s-900))_60%,rgb(var(--s-950)))] pr-2 text-left font-medium text-slate-300" title={katName(k)}>
                       <span className="flex items-center gap-1.5"><KatIcon k={k} className="h-4 w-4 text-brand-700 dark:text-brand-400" /><span className="hidden sm:inline">{katName(k)}</span></span></th>
-                    {[...tage].reverse().map((d) => {
+                    {[...tage].reverse().concat(best ? [`best:${best}`] : []).map((dd) => {
+                      const istBest = dd.startsWith("best:");
+                      const d = istBest ? dd.slice(5) : dd;
                       const z = m.get(d);
                       return (
-                        <td key={d} className={`p-0.5 ${vorl.has(d) ? "bg-amber-300/40 dark:bg-amber-400/25" : ""}`}>
+                        <td key={dd} className={istBest ? `sticky right-0 z-10 border-l-2 border-brand-500 p-0.5 pl-1.5 ${stickyBg}`
+                          : `p-0.5 ${vorl.has(d) ? "bg-amber-300/40 dark:bg-amber-400/25" : ""}`}>
                           {z ? (
                             <Link to={zielUrl(k, z)}
                               title={`${d} · ${t("perf.platzVon", { platz: z.platz, feld: z.feld })} · ${wertText(k, z.wert)}${z.vorlaeufig ? ` · ${t("perf.vorlaeufig")}` : ""}`}
@@ -417,9 +443,23 @@ function VerlaufTab({ je, alle, tage }: { je: Record<Kat, Zeile[]>; alle: Zeile[
                   </tr>
                 );
               })}
+              {punkte.size > 0 && (
+                <tr className="border-t-2 border-slate-700">
+                  <th className={`sticky left-0 z-10 whitespace-nowrap pr-2 pt-1 text-left font-semibold text-slate-200 ${stickyBg}`}>
+                    <span className="flex items-center gap-1.5"><span className="inline-block w-4 text-center text-brand-700 dark:text-brand-400">Σ</span>
+                      <span className="hidden sm:inline">{t("perf.punkteTag")}</span></span></th>
+                  {[...tage].reverse().map((d) => (
+                    <td key={d} className={`pt-1 text-center text-sm font-bold tabular-nums text-slate-100 ${vorl.has(d) ? "bg-amber-300/40 dark:bg-amber-400/25" : ""}`}
+                      title={`${d} · ${t("perf.punkteTag")}`}>{punkte.get(d) ?? ""}</td>
+                  ))}
+                  {best && <td className={`sticky right-0 z-10 border-l-2 border-brand-500 pl-1.5 pt-1 text-center text-sm font-bold tabular-nums text-brand-700 dark:text-brand-300 ${stickyBg}`}>
+                    {punkte.get(best)}</td>}
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
+        {punkte.size > 0 && <p className="mt-1 text-xs text-slate-400">{t("perf.punkteHint")}</p>}
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-400">
           <span>{t("perf.legende")}</span>
           {[10, 50, 90].map((p) => (
