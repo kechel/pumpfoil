@@ -1112,7 +1112,8 @@ private func perfFarbe(_ perz: Double) -> Color {
 
 struct PerformanceBereich: View {
     let lang: String
-    @State private var sport: String = "pumpfoil"
+    // Vorgabe nach der eigenen Standard-Sportart (Web 21.11.2026): Foil-Scoot-Fahrer sehen die Mischung
+    @State private var sport: String = standardSport == "foil_scoot" ? "pumpfoil+foil_scoot" : "pumpfoil"
     @State private var zeitraum: String = "25"   // alle | 30 | 25 (letzte 25 Tage mit Wertung, Standard seit Jan 18.11.)
     @State private var daten: PerfAntwort?
     @State private var fehler: String?
@@ -1150,6 +1151,11 @@ struct PerformanceBereich: View {
             // Keine Unterreiter mehr (Web 21.11.2026): Uebersicht und Verlauf auf einer Seite
             auswahl
             inhalt
+            // Sportart-Umschalter ganz unten (Web 21.11.2026)
+            Picker("", selection: $sport) {
+                Text(sportName("pumpfoil")).tag("pumpfoil")
+                Text(sportName("pumpfoil+foil_scoot")).tag("pumpfoil+foil_scoot")
+            }.pickerStyle(.segmented)
             // Einleitung klein ganz unten (Web 20.11.2026)
             Text(Loc.t("perf.intro", lang).replacingOccurrences(of: "{n}", with: String(daten?.min_feld ?? 5)))
                 .font(.caption).foregroundStyle(.secondary)
@@ -1230,10 +1236,6 @@ struct PerformanceBereich: View {
 
     private var auswahl: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Picker("", selection: $sport) {
-                Text(sportName("pumpfoil")).tag("pumpfoil")
-                Text(sportName("pumpfoil+foil_scoot")).tag("pumpfoil+foil_scoot")
-            }.pickerStyle(.segmented)
             Picker(Loc.t("perf.tage", lang), selection: $zeitraum) {
                 Text(Loc.t("perf.seit", lang).replacingOccurrences(of: "{datum}", with: daten?.ab ?? "…")).tag("alle")
                 Text(Loc.t("perf.tage30", lang)).tag("30")

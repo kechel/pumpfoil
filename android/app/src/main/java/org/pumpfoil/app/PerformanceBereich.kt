@@ -167,7 +167,8 @@ private fun zellFarbe(perz: Double): Color = PerfCyan.copy(alpha = (0.12 + 0.78 
 
 @Composable
 fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
-    var sport by rememberSaveable { mutableStateOf("pumpfoil") }
+    // Vorgabe nach der eigenen Standard-Sportart (Web 21.11.2026): Foil-Scoot-Fahrer sehen die Mischung
+    var sport by rememberSaveable { mutableStateOf(if (standardSport == "foil_scoot") "pumpfoil+foil_scoot" else "pumpfoil") }
     var zeitraum by rememberSaveable { mutableStateOf("25") }   // alle | 30 | 25; Standard „letzte 25 Tage" (Jan 18.11.)
     var daten by remember { mutableStateOf<PerfAntwort?>(null) }
     var fehler by remember { mutableStateOf<String?>(null) }
@@ -196,12 +197,6 @@ fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
     Column(Modifier.fillMaxWidth()) {
         // Keine Unterreiter mehr (Web 21.11.2026): Uebersicht und Verlauf auf einer Seite
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            listOf("pumpfoil", "pumpfoil+foil_scoot").forEach { s ->
-                FilterChip(selected = sport == s, onClick = { sport = s }, colors = cyanChipColors(),
-                    label = { Text(s.split("+").joinToString(" + ") { I18n.t("cls.sport.$it") }) })
-            }
-        }
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf("alle" to I18n.t("perf.seit").replace("{datum}", daten?.ab ?: "…"), "30" to I18n.t("perf.tage30"),
                 "25" to I18n.t("perf.letzte25")).forEach { (id, label) ->
                 FilterChip(selected = zeitraum == id, onClick = { zeitraum = id }, colors = cyanChipColors(), label = { Text(label) })
@@ -220,6 +215,13 @@ fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
                 UebersichtTeil(je, alle, tage, d.saison, onOpenSession)
                 VerlaufTeil(je, alle, tage, onOpenSession)
                 Text(I18n.t("perf.hinweis"), style = MaterialTheme.typography.bodySmall, color = grau, modifier = Modifier.padding(bottom = 12.dp))
+            }
+        }
+        // Sportart-Umschalter ganz unten (Web 21.11.2026)
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf("pumpfoil", "pumpfoil+foil_scoot").forEach { s ->
+                FilterChip(selected = sport == s, onClick = { sport = s }, colors = cyanChipColors(),
+                    label = { Text(s.split("+").joinToString(" + ") { I18n.t("cls.sport.$it") }) })
             }
         }
         // Einleitung klein ganz unten (Jan 20.11.2026: „den hinweis weg oder ganz nach unten")

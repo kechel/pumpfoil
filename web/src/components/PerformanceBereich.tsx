@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useT } from "../i18n";
 import { Card, InfoDialog, InfoKnopf, Spinner } from "./ui";
-import { sportLabel } from "../lib/sportClass";
+import { sportLabel, standardSportart } from "../lib/sportClass";
 import { BeatIcon, CalendarCheckIcon, DailyAverageIcon, PlaceLineIcon, PlacingGridIcon, FoilTimeIcon, LongestRunIcon, MedalIcon, PodiumIcon, SeasonCupIcon, Sprint100Icon, SprintMinuteIcon, TrophyIcon } from "./Icons";
 
 /**
@@ -65,7 +65,9 @@ function zellFarbe(perz: number): string {
 
 export function PerformanceBereich() {
   const t = useT();
-  const [sport, setSport] = useState<"pumpfoil" | "pumpfoil+foil_scoot">("pumpfoil");
+  // Vorgabe nach der eigenen Standard-Sportart (Jan 21.11.2026): wer Foil Scoot faehrt, sieht die Mischung — Foil Scoot
+  // allein hat zu wenige Fahrer fuer ein Feld (18.11.2026)
+  const [sport, setSport] = useState<"pumpfoil" | "pumpfoil+foil_scoot">(standardSportart() === "foil_scoot" ? "pumpfoil+foil_scoot" : "pumpfoil");
   const [zeitraum, setZeitraum] = useState<Zeitraum>("25");
   const [daten, setDaten] = useState<Awaited<ReturnType<typeof api.performance>> | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
@@ -104,13 +106,6 @@ export function PerformanceBereich() {
       {/* Keine Unterreiter mehr (Vorschlag eines Fahrers, 20.11.2026: „…dann koennte man den Tab Verlauf eigentlich auch raus
           nehmen. Dann braucht es keine Tabs. Einfach nur PERFORMANCE") — alles auf einer Seite, Auswahl oben rechts. */}
       <div className="mb-3 flex flex-wrap items-center justify-end gap-2">
-          {/* Foil Scoot nur zusammen mit Pumpfoil — allein zu wenige Fahrer fuer ein Feld (Jan 18.11.2026). */}
-          {(["pumpfoil", "pumpfoil+foil_scoot"] as const).map((s) => (
-            <button key={s} type="button" onClick={() => setSport(s)} aria-pressed={sport === s}
-              className={`rounded-lg px-3 py-1.5 text-sm ${sport === s ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-950/60 text-slate-300 hover:text-slate-100"}`}>
-              {sportLabel(s, t)}
-            </button>
-          ))}
           <select value={zeitraum} onChange={(e) => setZeitraum(e.target.value as Zeitraum)}
             className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-100">
             <option value="alle">{t("perf.seit", { datum: daten?.ab ? new Date(daten.ab).toLocaleDateString() : "…" })}</option>
@@ -131,6 +126,16 @@ export function PerformanceBereich() {
             <p className="text-xs text-slate-400">{t("perf.hinweis")}</p>
           </>
         )}
+        {/* Sportart-Umschalter ganz unten (Jan 21.11.2026), Vorgabe nach der eigenen Standard-Sportart */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Foil Scoot nur zusammen mit Pumpfoil — allein zu wenige Fahrer fuer ein Feld (Jan 18.11.2026). */}
+          {(["pumpfoil", "pumpfoil+foil_scoot"] as const).map((s) => (
+            <button key={s} type="button" onClick={() => setSport(s)} aria-pressed={sport === s}
+              className={`rounded-lg px-3 py-1.5 text-sm ${sport === s ? "bg-brand-500 font-semibold text-slate-950" : "bg-slate-950/60 text-slate-300 hover:text-slate-100"}`}>
+              {sportLabel(s, t)}
+            </button>
+          ))}
+        </div>
         <p className="text-xs text-slate-400">{t("perf.intro", { n: daten?.min_feld ?? 5 })}</p>
       </div>
     </div>
@@ -152,13 +157,13 @@ function SaisonKarte({ s }: { s: Saison }) {
     <>
       {/* Sechste Kennzahl-Kachel (Jan 20.11.2026: „mach die gesamtpunkte doch in die zeile drunter"): Pokal links,
           Punkte mittig, „Season 2027" als Label; Status (startet am …, Rang) und Regeln im (i)-Fenster. */}
-      <div className="relative rounded-xl border border-brand-500/40 bg-brand-500/10 p-3">
+      <div className="relative rounded-xl border border-brand-500/40 bg-brand-500/10 px-2.5 py-2">
         <InfoKnopf label={t("perf.saisonTitel")} onClick={() => setOffen(true)} />
-        <div className="flex items-center gap-3">
-          <SeasonCupIcon className="h-12 w-12 shrink-0 text-brand-700 dark:text-brand-400" />
+        <div className="flex items-center gap-2">
+          <SeasonCupIcon className="h-8 w-8 shrink-0 text-brand-700 dark:text-brand-400" />
           <div className="min-w-0 flex-1">
-            <div className="whitespace-nowrap text-center text-2xl font-bold tabular-nums text-slate-100">{s.punkte}</div>
-            <div className="text-center text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-300">{t("perf.saisonTitel")}</div>
+            <div className="whitespace-nowrap text-center text-lg font-bold leading-tight tabular-nums text-slate-100">{s.punkte}</div>
+            <div className="truncate text-center text-[11px] font-semibold uppercase leading-tight tracking-wide text-brand-700 dark:text-brand-300">{t("perf.saisonTitel")}</div>
           </div>
         </div>
       </div>
@@ -195,8 +200,9 @@ function UebersichtTab({ je, alle, tage, saison }: { je: Record<Kat, Zeile[]>; a
   return (
     <>
       {/* Kennzahlen */}
-      {/* sechs in einer Zeile erst ab 2xl — bei 1600 px mit Seitenleiste brachen Wert und „%" um (Hinweis eines Fahrers, 20.11.2026) */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 2xl:grid-cols-6">
+      {/* kompakt, sechs in einer Zeile ab lg (Jan 21.11.2026: „lieber etwas kleiner so das es noch in eine zeile passt ohne
+          umbruch"); Werte brechen nie um (bei 1600 px mit Seitenleiste brachen Wert und „%" frueher um) */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
         {([
           [t("perf.tage"), String(tage.length), CalendarCheckIcon],
           [t("perf.besserAls"), `${Math.round(schnitt(alle.map((z) => z.perzentil)))} %`, BeatIcon],
@@ -204,13 +210,13 @@ function UebersichtTab({ je, alle, tage, saison }: { je: Record<Kat, Zeile[]>; a
           [t("perf.podium"), quote(alle.filter((z) => z.platz <= 3).length), PodiumIcon],
           [t("perf.top10"), quote(alle.filter((z) => z.platz <= 10).length), MedalIcon],
         ] as const).map(([l, v, I]) => (
-          <Card key={l} className="p-3">
+          <Card key={l} className="px-2.5 py-2">
             {/* Icon ueber die ganze Hoehe links; rechts Wert und Label mittig darunter (Jan 20.11.2026) */}
-            <div className="flex items-center gap-3">
-              <I className="h-12 w-12 shrink-0 text-brand-700 dark:text-brand-400" />
+            <div className="flex items-center gap-2">
+              <I className="h-8 w-8 shrink-0 text-brand-700 dark:text-brand-400" />
               <div className="min-w-0 flex-1">
-                <div className="whitespace-nowrap text-center text-2xl font-semibold tabular-nums text-slate-100">{v}</div>
-                <div className="text-center text-xs text-slate-400">{l}</div>
+                <div className="whitespace-nowrap text-center text-lg font-semibold leading-tight tabular-nums text-slate-100">{v}</div>
+                <div className="truncate text-center text-[11px] leading-tight text-slate-400" title={l}>{l}</div>
               </div>
             </div>
           </Card>
