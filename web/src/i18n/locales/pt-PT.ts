@@ -1785,6 +1785,7 @@ const ptPT: Record<string, string> = {
   "watchQuality.since": "app {v}+",
   "watchQuality.oldApp": "só app antiga",
   "watchQuality.colComplete": "Completas",
+  "watchQuality.colLongest": "Mais longa com dados de movimento",
   "watchQuality.viaApp": "App",
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "só GPS",

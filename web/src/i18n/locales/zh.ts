@@ -1788,6 +1788,7 @@ const zh: Record<string, string> = {
   "watchQuality.since": "应用 {v} 起",
   "watchQuality.oldApp": "仅旧版应用",
   "watchQuality.colComplete": "完整",
+  "watchQuality.colLongest": "含运动数据的最长记录",
   "watchQuality.viaApp": "应用",
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "仅 GPS",

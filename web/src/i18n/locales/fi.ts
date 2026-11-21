@@ -1877,6 +1877,7 @@ const fi: Record<string, string> = {
   "watchQuality.since": "sovellus {v}+",
   "watchQuality.oldApp": "vain vanha sovellus",
   "watchQuality.colComplete": "Täydelliset",
+  "watchQuality.colLongest": "Pisin liikedatalla",
   "watchQuality.viaApp": "Sovellus",
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "vain GPS",

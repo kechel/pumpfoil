@@ -1398,6 +1398,7 @@ const gsw: Record<string, string> = {
   "watchQuality.since": "ab App {v}",
   "watchQuality.oldApp": "nume älteri App",
   "watchQuality.colComplete": "Vollständig",
+  "watchQuality.colLongest": "Längschti mit Bewegigsdate",
   "watchQuality.viaApp": "App",
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "nume GPS",

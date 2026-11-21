@@ -1339,6 +1339,7 @@ const deAT: Record<string, string> = {
   "watchQuality.since": "ab App {v}",
   "watchQuality.oldApp": "nur ältere App",
   "watchQuality.colComplete": "Vollständig",
+  "watchQuality.colLongest": "Längste mit Bewegungsdaten",
   "watchQuality.viaApp": "App",
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "nur GPS",

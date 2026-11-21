@@ -1485,6 +1485,7 @@ const it: Record<string, string> = {
   "watchQuality.since": "app {v}+",
   "watchQuality.oldApp": "solo app vecchia",
   "watchQuality.colComplete": "Complete",
+  "watchQuality.colLongest": "Più lunga con dati di movimento",
   "watchQuality.viaApp": "App",
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "solo GPS",

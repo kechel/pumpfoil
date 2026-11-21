@@ -1788,6 +1788,7 @@ const ja: Record<string, string> = {
   "watchQuality.since": "アプリ {v} 以降",
   "watchQuality.oldApp": "古いアプリのみ",
   "watchQuality.colComplete": "完全",
+  "watchQuality.colLongest": "モーションデータ付き最長",
   "watchQuality.viaApp": "アプリ",
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "GPSのみ",

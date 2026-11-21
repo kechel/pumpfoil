@@ -1146,6 +1146,7 @@ export interface WatchQualityRow {
   puls_ab?: string | null; puls_alt?: boolean;
   urteil: string;
   weg?: string; vollstaendig?: number; mit_accel?: number;   // % Sessions mit Beschleunigung >= 15 Hz
+  laengste_accel_s?: number | null;   // laengste vollstaendige Session mit Bewegungsdaten (21.11.2026)
 }
 
 export type FoilStatWerte = { sessions: number; users: number; avg_speed_kmh: number | null; meters_per_pump: number | null; best_distance_m: number | null; best_duration_s: number | null; avg_pump_hz: number | null; laeufe?: number };

@@ -357,6 +357,9 @@ def main() -> None:
             "gps_only": sum(1 for w in L if w["gps_only"]) / len(L),
             "vollstaendig": sum(1 for w in L if w["vollstaendig"]) / len(L),
             "mit_accel": sum(1 for w in L if w["mit_accel"]) / len(L),
+            # Laengste Session MIT Bewegungsdaten, vollstaendig angekommen (Jan 21.11.2026: „laengste sessions mit motion
+            # data so far") — zeigt, wie lange die Uhr mit unserer App sicher durchhaelt.
+            "laengste_accel_s": max((w["dauer_s"] for w in L if w["mit_accel"] and w["vollstaendig"]), default=None),
             "ortung_steht": med("ortung_steht"),
             "guete_gut": med("guete_gut"),
             "hacc": med("hacc"),
@@ -399,6 +402,8 @@ def main() -> None:
             # Nutzer, bei denen etwas fehlt — und um die geht es in dieser Spalte.
             "vollstaendig": round(sum(n["vollstaendig"] for n in N) / len(N) * 100, 1),
             "mit_accel": round(sum(n["mit_accel"] for n in N) / len(N) * 100, 1),
+            "laengste_accel_s": (round(max(x)) if (x := [n["laengste_accel_s"] for n in N
+                                                          if n["laengste_accel_s"] is not None]) else None),
             "ortung_steht": round(o * 100, 1) if o is not None else None,
             "guete_gut": round(g * 100, 1) if plattform == "garmin" and g is not None else None,
             "hacc_m": round(h, 1) if plattform != "garmin" and h is not None else None,

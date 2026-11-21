@@ -1925,6 +1925,7 @@ const nl: Record<string, string> = {
   "watchQuality.since": "app {v}+",
   "watchQuality.oldApp": "alleen oudere app",
   "watchQuality.colComplete": "Volledig",
+  "watchQuality.colLongest": "Langste met bewegingsdata",
   "watchQuality.viaApp": "App",
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "alleen GPS",

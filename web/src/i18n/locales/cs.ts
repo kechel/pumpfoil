@@ -1925,6 +1925,7 @@ const cs: Record<string, string> = {
   "watchQuality.since": "aplikace {v}+",
   "watchQuality.oldApp": "jen starší aplikace",
   "watchQuality.colComplete": "Úplné",
+  "watchQuality.colLongest": "Nejdelší s pohybovými daty",
   "watchQuality.viaApp": "Aplikace",
   "watchQuality.viaGc": "Garmin Connect",
   "watchQuality.gpsOnly": "jen GPS",

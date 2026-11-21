@@ -96,12 +96,43 @@ function QualiZeile({ r, unter, wegZeigen }: { r: WatchQualityRow; unter: boolea
       <td className="px-4 py-3 text-right tabular-nums">
         {r.vollstaendig != null ? `${r.vollstaendig.toFixed(0)} %` : "–"}
       </td>
+      <td className="px-4 py-3 text-right tabular-nums">{dauerHm(r.laengste_accel_s)}</td>
     </tr>
   );
 }
 
+/** Sekunden -> „1:32 h" */
+function dauerHm(s?: number | null): string {
+  if (s == null) return "–";
+  const m = Math.round(s / 60);
+  return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")} h`;
+}
+
+/** Sortierwert eines Modells (alle Zeilen: App und Garmin Connect) je Spalte — Jan 21.11.2026: „spalten … direkt sortierbar
+ *  bei klick auf den spaltentitel". Bei zwei Wegen zaehlt der bessere Wert; leere Werte landen unten (useSort-Regel). */
+const QUALI_SORT: Record<string, (rs: WatchQualityRow[]) => string | number | null> = {
+  modell: (rs) => rs[0].modell,
+  nutzer: (rs) => Math.max(...rs.map((r) => r.nutzer)),
+  sessions: (rs) => rs.reduce((n, r) => n + r.sessions, 0),
+  pump: (rs) => best(rs.map((r) => r.accel_hz)),
+  // Ortung: Garmin liefert eine Guete-Stufe, die anderen Meter — nicht vergleichbar; sortiert wird nach der Garmin-Guete,
+  // die anderen stehen unten.
+  gps: (rs) => best(rs.map((r) => r.guete_gut)),
+  puls: (rs) => best(rs.map((r) => r.puls_wechsel)),
+  komplett: (rs) => best(rs.map((r) => r.vollstaendig ?? null)),
+  laengste: (rs) => best(rs.map((r) => r.laengste_accel_s ?? null)),
+};
+function best(werte: (number | null | undefined)[]): number | null {
+  const w = werte.filter((x): x is number => x != null);
+  return w.length ? Math.max(...w) : null;
+}
+
 function Uhrenqualitaet({ d, suche }: { d: Qualitaet; suche: string }) {
   const t = useT();
+  const [sk, setSk] = useState("sessions");
+  const [sd, setSd] = useState<"asc" | "desc">("desc");
+  const sort = { key: sk, dir: sd, toggle: (k: string, def: "asc" | "desc" = "desc") => {
+    if (k === sk) setSd(sd === "asc" ? "desc" : "asc"); else { setSk(k); setSd(def); } } };
   if (!d || !d.modelle?.length) return null;
 
   // Je Modell beide Wege (App, Garmin Connect, 15.11.2026) untereinander. Nach Sessions sortiert -- das Urteil ist
@@ -113,9 +144,17 @@ function Uhrenqualitaet({ d, suche }: { d: Qualitaet; suche: string }) {
   for (const r of passend(alle, (m) => m.modell, suche)) {
     gruppen.set(r.modell, [...(gruppen.get(r.modell) ?? []), r]);
   }
+  const wert = QUALI_SORT[sk] ?? QUALI_SORT.sessions;
   const zeilen = [...gruppen.entries()]
     .map(([modell, rs]) => ({ modell, rs: rs.sort((a, b) => (a.weg === "gc" ? 1 : 0) - (b.weg === "gc" ? 1 : 0)) }))
-    .sort((a, b) => b.rs.reduce((n, r) => n + r.sessions, 0) - a.rs.reduce((n, r) => n + r.sessions, 0));
+    .sort((a, b) => {
+      const av = wert(a.rs), bv = wert(b.rs);
+      if (av == null && bv == null) return a.modell.localeCompare(b.modell);
+      if (av == null) return 1;                     // leere immer unten
+      if (bv == null) return -1;
+      const c = typeof av === "number" && typeof bv === "number" ? av - bv : String(av).localeCompare(String(bv));
+      return (sd === "asc" ? c : -c) || a.modell.localeCompare(b.modell);   // eindeutig: bei Gleichstand der Name
+    });
 
   return (
     <section id="wie-gut">
@@ -133,16 +172,17 @@ function Uhrenqualitaet({ d, suche }: { d: Qualitaet; suche: string }) {
         <Card className="p-6 text-center text-slate-300">{t("watchStats.noMatch")}</Card>
       ) : (
       <div className="overflow-x-auto rounded-2xl border border-slate-800">
-        <table className="w-full min-w-[640px] border-collapse text-sm">
+        <table className="w-full min-w-[720px] border-collapse text-sm">
           <thead>
             <tr className="bg-slate-900/70 text-left text-slate-300">
-              <th className="max-w-[11rem] px-3 py-3">{t("watchStats.colWatch")}</th>
-              <th className="px-4 py-3 text-right">{t("watchStats.colUsers")}</th>
-              <th className="px-4 py-3 text-right">{t("watchStats.colSessions")}</th>
-              <th className="px-4 py-3 text-right">{t("watchQuality.colPump")}</th>
-              <th className="px-4 py-3 text-right">{t("watchQuality.colGps")}</th>
-              <th className="px-4 py-3 text-right">{t("watchQuality.colHr")}</th>
-              <th className="px-4 py-3 text-right">{t("watchQuality.colComplete")}</th>
+              <SortHead label={t("watchStats.colWatch")} sortKey="modell" sort={sort} align="left" defaultDir="asc" />
+              <SortHead label={t("watchStats.colUsers")} sortKey="nutzer" sort={sort} />
+              <SortHead label={t("watchStats.colSessions")} sortKey="sessions" sort={sort} />
+              <SortHead label={t("watchQuality.colPump")} sortKey="pump" sort={sort} />
+              <SortHead label={t("watchQuality.colGps")} sortKey="gps" sort={sort} />
+              <SortHead label={t("watchQuality.colHr")} sortKey="puls" sort={sort} />
+              <SortHead label={t("watchQuality.colComplete")} sortKey="komplett" sort={sort} />
+              <SortHead label={t("watchQuality.colLongest")} sortKey="laengste" sort={sort} />
             </tr>
           </thead>
           <tbody>
@@ -152,7 +192,7 @@ function Uhrenqualitaet({ d, suche }: { d: Qualitaet; suche: string }) {
               <Fragment key={modell}>
                 {/* Kopfzeile nur mit dem Namen: Nutzer lassen sich nicht addieren (dieselben fahren oft beide Wege). */}
                 <tr className="border-t border-slate-800">
-                  <td colSpan={7} className="px-3 pb-1 pt-3 font-semibold leading-snug">{modell}</td>
+                  <td colSpan={8} className="px-3 pb-1 pt-3 font-semibold leading-snug">{modell}</td>
                 </tr>
                 {rs.map((r) => <QualiZeile key={`${modell}-${r.weg}`} r={r} unter wegZeigen />)}
               </Fragment>
