@@ -1541,6 +1541,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 ## 📥 Inbox
 
 ### 22.11.2026 — Alte Uhren-Versionen anschreiben (WARTET auf den 1.0.105-Test von u244)
+**22.11. abends: Test da, 1.0.105 behebt den Instinct-3-Neustart nicht** (s. Eintrag u244). Fuer das Anschreiben heisst das nur:
+„Instinct-Fix" nicht als Grund nennen; Entscheidung Jan.
 Jan: „warten wir noch romans test ab" (Instinct 3 startet nach Sessions neu; 1.0.105 schaltet GPS/Accel beim Beenden
 selbst ab). Stand 22.11. (Uhren mit Kontakt in 60 Tagen, je Fahrer neueste Version, ohne Amazfit — deren Pruefung laeuft):
 Garmin 204/249 aelter als 1.0.103 (109 mit Session in 30 Tagen; 173 aelter als 1.0.100), Apple Watch 54/97 aelter als
@@ -5847,6 +5849,11 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     sauber beendet (`app-closed` 18:48/21:09, keine Absturzmeldung, Logbuch leer), Upload vorher fertig. **Naechster
     Verdacht:** Aktivitaetstyp „pumpfoil" = `SPORT_GENERIC` + `SUB_SPORT_OPEN_WATER` (keine Garmin-Profilkombination) ->
     Firmware-Nachverarbeitung. Test angefragt: Typ „Surfing"; dazu `GARMIN/Debug/err_log.txt` nach dem naechsten Neustart.
+  - **22.11.: 1.0.105 hilft NICHT.** 1,4-h-Test zu Hause (15:41–17:05, Store-1.0.105, `fit_accel = auto`, Typ pumpfoil):
+    Upload 17:05:32 komplett, `app-closed` 17:05:37, keine Absturzmeldung — Uhr friert ~5 min danach wieder ein. Das
+    Abschalten von GPS/Accel in `onStop` ist damit als Ursache raus (bleibt als sauberer Abbau drin). Bleibt der
+    Aktivitaetstyp: u244 testet als Naechstes selbst „Surfing" (Einstellung auf der Uhr, `SPORT_SURFING` ohne Subsport)
+    und schickt `GARMIN/Debug/err_log.txt`. Danach ggf. „Open Water" (`SPORT_SWIMMING` + OW) zum Gegencheck.
 
 
 - **🟡 14./15.09. — PeterH (u171) bekommt seit dem 08.09. keinen Puls mehr. Befund: mit hoher
