@@ -5857,7 +5857,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     Weitere Spur (Jan, 22.11.): seine Uhr ist eine Instinct 3 **Tactical** — fuer Connect IQ dieselbe Kennung wie die
     Solar 45 mm (`006-B4585-00`), aber eigene Firmware (Stealth-Modus u. a.), die gespeicherte Aktivitaeten evtl. anders
     nachbearbeitet. Vermutung, nicht belegt. Nichts geschrieben — erst den Surfing-Test abwarten, den er selbst angekuendigt hat.
-    Testreihe laut Chat: 1. Surfing (+ err_log.txt), 2. Satellitensysteme „GPS only". 22.11. ergaenzt (DM, Jans OK):
+    Testreihe laut Chat: 1. Surfing (+ `GARMIN/Debug/err_log.bak` — die .txt liess sich bei Jans fenix nie kopieren, 22.11. so an u244), 2. Satellitensysteme „GPS only". 22.11. ergaenzt (DM, Jans OK):
     **Aufnahme verwerfen statt speichern** — friert sie auch dann ein, ist es nicht die Nachbearbeitung der gespeicherten
     Aktivitaet, sondern der Zustand waehrend der Aufnahme (GPS-Modus/Sensoren). Hinweis: er nimmt „nur um die Laeufe" auf,
     zu Hause also kaum Daten — trotzdem laengere Aufnahme = laenger eingefroren -> eher Garmins eigene Aktivitaet.
