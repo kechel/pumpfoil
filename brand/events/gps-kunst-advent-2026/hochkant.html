@@ -20,6 +20,7 @@ svg{position:absolute;inset:0}
 <div class="t"><div class="k">GLOBAL EVENT · ADVENT 2026</div><div class="h">GPS ART<br><span>ON THE WATER</span></div></div>
 <div class="u"><div class="tag"><i>DRAW WITH YOUR TRACK</i></div><div class="d">29 NOV – 27 DEC · <b>4 ROUNDS</b><br>ONE PICTURE EACH ADVENT WEEK · VOTE WITH <b class="herz">♥</b></div><img class="logo" src="logo.png"></div>
 </div><script>
+if (new URLSearchParams(location.search).has("transparent")) document.getElementById("b").style.background = "transparent";   // hochkant-transparent.png (Jan 22.11.)
 const s = document.getElementById("s");
 schnee(s, 1080, 1350, 320, 11);
 spur(s, baumMitStern(540, 470, 420, 380, 40, 3), 8);
