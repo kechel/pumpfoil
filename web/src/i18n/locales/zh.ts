@@ -1838,6 +1838,7 @@ const zh: Record<string, string> = {
   "friends.nPumping": "{n} 位好友正在 pumping",
   "friends.howTo": "在骑手的个人主页发送请求，例如通过会话上的名字进入。",
   "notif.typeFriend": "好友：请求和谁在 pumping",
+  "notif.typeReferee": "裁判面板：新的审核请求（队长、版主）",
   "hr.pickTitle": "自选时间点",
   "hr.pickHint": "把滑块拖到你关心的秒数。只统计至少这么长的滑行。",
   "hr.pickCount": "{total} 次中有 {n} 次在此处有数值。",

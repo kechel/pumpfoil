@@ -1997,6 +1997,7 @@ const pl: Record<string, string> = {
   "friends.nPumping": "{n} znajomych teraz pompuje",
   "friends.howTo": "Zaproszenia wysyłasz ze strony profilu ridera, np. przez jego imię przy sesji.",
   "notif.typeFriend": "Znajomi: zaproszenia i kto pompuje",
+  "notif.typeReferee": "Referee board: nowe prośby o sprawdzenie (liderzy, moderatorzy)",
   "hr.pickTitle": "Własny moment",
   "hr.pickHint": "Przesuń suwak na sekundę, która cię interesuje. Liczą się tylko przejazdy co najmniej tak długie.",
   "hr.pickCount": "{n} z {total} sesji ma tu wartość.",

@@ -1975,6 +1975,7 @@ const nl: Record<string, string> = {
   "friends.nPumping": "{n} vrienden pumpen nu",
   "friends.howTo": "Verzoeken stuur je vanaf de profielpagina van een rider, bijvoorbeeld via zijn naam bij een sessie.",
   "notif.typeFriend": "Vrienden: verzoeken en wie er pumpt",
+  "notif.typeReferee": "Referee board: nieuwe controleverzoeken (teamleiding, moderators)",
   "hr.pickTitle": "Je eigen moment",
   "hr.pickHint": "Sleep de schuif naar de seconde die je interesseert. Alleen runs die minstens zo lang duurden tellen mee.",
   "hr.pickCount": "{n} van {total} sessies hebben hier een waarde.",

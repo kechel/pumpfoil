@@ -2247,6 +2247,7 @@ const de: Record<string, string> = {
   "friends.nPumping": "{n} Freunde pumpen gerade",
   "friends.howTo": "Anfragen stellst du auf der Profilseite eines Foilers, z. B. über seinen Namen an einer Session.",
   "notif.typeFriend": "Freunde: Anfragen und wer gerade pumpt",
+  "notif.typeReferee": "Referee Board: neue Prüfbitten (Teamleitung, Moderation)",
   "hr.pickTitle": "Eigener Zeitpunkt",
   "hr.pickHint": "Zieh den Regler auf die Sekunde, die dich interessiert. Es zählen nur Läufe, die mindestens so lang waren.",
   "hr.pickCount": "{n} von {total} Sessions haben hier einen Wert.",

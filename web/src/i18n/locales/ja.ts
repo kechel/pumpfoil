@@ -1838,6 +1838,7 @@ const ja: Record<string, string> = {
   "friends.nPumping": "友達{n}人がいまパンピング中",
   "friends.howTo": "リクエストはライダーのプロフィールページから送ります。セッションに表示される名前からも開けます。",
   "notif.typeFriend": "友だち：リクエストとパンピング中のお知らせ",
+  "notif.typeReferee": "レフェリーボード：新しい確認依頼（チームリーダー、モデレーター）",
   "hr.pickTitle": "好きな時点を選ぶ",
   "hr.pickHint": "気になる秒数までスライダーを動かしてください。その長さ以上のランだけが対象です。",
   "hr.pickCount": "{total} 件中 {n} 件のセッションに値があります。",

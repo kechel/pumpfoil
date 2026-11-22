@@ -1528,6 +1528,7 @@ const fr: Record<string, string> = {
   "friends.nPumping": "{n} amis pumpent en ce moment",
   "friends.howTo": "Les demandes s'envoient depuis la page de profil d'un rider, par exemple via son nom sur une session.",
   "notif.typeFriend": "Amis : demandes et qui pumpe",
+  "notif.typeReferee": "Referee board : nouvelles demandes de vérification (responsables, modérateurs)",
   "hr.pickTitle": "Ton propre repère",
   "hr.pickHint": "Fais glisser le curseur sur la seconde qui t'intéresse. Seuls les runs au moins aussi longs comptent.",
   "hr.pickCount": "{n} sessions sur {total} ont une valeur ici.",

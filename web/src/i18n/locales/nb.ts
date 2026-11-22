@@ -1888,6 +1888,7 @@ const nb: Record<string, string> = {
   "friends.nPumping": "{n} venner pumper nå",
   "friends.howTo": "Forespørsler sender du fra profilsiden til en rider, for eksempel via navnet på en økt.",
   "notif.typeFriend": "Venner: forespørsler og hvem som pumper",
+  "notif.typeReferee": "Referee board: nye kontrollforespørsler (lagledere, moderatorer)",
   "hr.pickTitle": "Ditt eget tidspunkt",
   "hr.pickHint": "Dra glideren til sekundet du er interessert i. Bare turer som varte minst så lenge teller.",
   "hr.pickCount": "{n} av {total} økter har en verdi her.",

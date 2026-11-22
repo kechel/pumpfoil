@@ -1595,3 +1595,38 @@ def test_event_einladung_verraet_keine_internen_teamdaten(client):
     tbs = client.post(url, headers=ka, json={"team": tc}).json()["teams_beteiligt"]
     intern = next(x for x in tbs if x["slug"] == tc)
     assert intern["name"] == tc and intern["logo_url"] is None, intern
+
+
+def test_referee_push_eigener_schalter(client, monkeypatch):
+    """Jan 22.11.2026 (zu R2-T9): Admins bekommen Pruefbitten aller Events — ok, solange man sie im Profil getrennt
+    ausschalten kann. Dabei nachgezogen: der Schalter „comment" wurde beim Speichern verworfen."""
+    from app import models, referee as R
+    from app.db import SessionLocal
+    gesendet = []
+    monkeypatch.setattr("app.push.push_enabled", lambda: True)
+    monkeypatch.setattr("app.push.send_push", lambda db, uid, *a, **k: gesendet.append(uid))
+    db = SessionLocal(); db.query(models.RateEvent).delete(); db.commit(); db.close()
+    (il, kl) = _konto(client, "rp-leit@t.de")
+    (im, km) = _konto(client, "rp-mod@t.de")
+    slug, links = _team_mit(client, kl, km, "RP Team")
+    db = SessionLocal()
+    try:
+        t = db.query(models.Team).filter_by(slug=slug).one()
+        db.query(models.TeamMitglied).filter_by(team_id=t.id, user_id=im).update({"rolle": "moderator", "status": "aktiv"})
+        db.commit()
+    finally:
+        db.close()
+    r = client.put("/api/settings", headers=km, json={"notify_prefs": {"referee": False, "comment": False}})
+    assert r.status_code == 200 and r.json()["notify_prefs"]["referee"] is False and r.json()["notify_prefs"]["comment"] is False
+    jetzt = datetime.now(timezone.utc)
+    eid = client.post(f"/api/teams/{slug}/events", headers=kl, json={
+        "titel": "RP", "start": (jetzt - timedelta(days=1)).isoformat(), "ende": (jetzt + timedelta(days=1)).isoformat(),
+        "tafeln": [{"kennzahl": "distance", "accel_only": False}]}).json()["id"]
+    db = SessionLocal()
+    try:
+        t = db.query(models.Team).filter_by(slug=slug).one()
+        e = db.get(models.TeamEvent, eid)
+        R.referees_benachrichtigen(db, t, e, ausser=-1)
+    finally:
+        db.close()
+    assert il in gesendet and im not in gesendet, gesendet

@@ -1835,6 +1835,7 @@ const ptPT: Record<string, string> = {
   "friends.nPumping": "{n} amigos a pumpar agora",
   "friends.howTo": "Os pedidos enviam-se a partir da página de perfil de um rider, por exemplo pelo nome numa sessão.",
   "notif.typeFriend": "Amigos: pedidos e quem está a pumpar",
+  "notif.typeReferee": "Referee board: novos pedidos de revisão (líderes, moderadores)",
   "hr.pickTitle": "O teu próprio momento",
   "hr.pickHint": "Arrasta o cursor para o segundo que te interessa. Só contam os runs que duraram pelo menos isso.",
   "hr.pickCount": "{n} de {total} sessões têm valor aqui.",

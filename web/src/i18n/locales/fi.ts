@@ -1927,6 +1927,7 @@ const fi: Record<string, string> = {
   "friends.nPumping": "{n} kaveria pumppaa nyt",
   "friends.howTo": "Pyynnöt lähetetään ajajan profiilisivulta, esimerkiksi session nimen kautta.",
   "notif.typeFriend": "Kaverit: pyynnöt ja kuka pumppaa",
+  "notif.typeReferee": "Referee board: uudet tarkistuspyynnöt (tiimin vetäjät, moderaattorit)",
   "hr.pickTitle": "Oma ajankohta",
   "hr.pickHint": "Vedä liukusäädin sekuntiin, joka kiinnostaa. Vain vähintään sen mittaiset vedot lasketaan.",
   "hr.pickCount": "{n}/{total} sessiolla on tässä arvo.",

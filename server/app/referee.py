@@ -140,7 +140,10 @@ def referees_benachrichtigen(db: Session, t: models.Team, e: models.TeamEvent, a
     try:
         if not push_enabled() or push_aus(e):
             return
+        from .push import wants
         for uid in referee_ids(db, t, e) - {ausser}:
+            if not wants(db, uid, "referee"):   # eigener Schalter im Profil (Jan 22.11.2026)
+                continue
             u = db.get(models.User, uid)
             de = ((getattr(u, "language", None) or "en").lower()).startswith(("de", "gsw"))
             send_push(db, uid, "Pumpfoil", (f"Neue Prüfbitte im Referee Board: „{e.titel}“" if de

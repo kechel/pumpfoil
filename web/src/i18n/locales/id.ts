@@ -1838,6 +1838,7 @@ const id: Record<string, string> = {
   "friends.nPumping": "{n} teman sedang pumping",
   "friends.howTo": "Permintaan dikirim dari halaman profil rider, misalnya lewat namanya di sebuah sesi.",
   "notif.typeFriend": "Teman: permintaan dan siapa yang sedang pumping",
+  "notif.typeReferee": "Referee board: permintaan peninjauan baru (pemimpin tim, moderator)",
   "hr.pickTitle": "Pilih momenmu sendiri",
   "hr.pickHint": "Geser slider ke detik yang kamu mau. Hanya run yang setidaknya selama itu yang dihitung.",
   "hr.pickCount": "{n} dari {total} sesi punya nilai di sini.",

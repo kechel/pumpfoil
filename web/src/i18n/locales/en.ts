@@ -2110,6 +2110,7 @@ const en: Record<string, string> = {
   "friends.nPumping": "{n} friends pumping right now",
   "friends.howTo": "Send requests from a rider's profile page, for example via their name on a session.",
   "notif.typeFriend": "Friends: requests and who is pumping",
+  "notif.typeReferee": "Referee board: new review requests (team leads, moderators)",
   "hr.pickTitle": "Pick your own moment",
   "hr.pickHint": "Drag the slider to the second you care about. Only runs that lasted at least that long are counted.",
   "hr.pickCount": "{n} of {total} sessions have a value here.",

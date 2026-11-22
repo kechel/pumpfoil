@@ -33,6 +33,8 @@ export function NotificationsToggle() {
     { key: "comment", label: t("notif.typeComment") },
     // Freunde (15.10.2026): Anfragen und „X pumpt gerade am Spot Y".
     { key: "friend", label: t("notif.typeFriend") },
+    // Referee Board (22.11.2026): Admins sind Referees aller Events, Leitung/Moderation ihrer Team-Events.
+    { key: "referee", label: t("notif.typeReferee") },
   ];
 
   useEffect(() => {

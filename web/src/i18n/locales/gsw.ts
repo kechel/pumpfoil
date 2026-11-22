@@ -1439,6 +1439,7 @@ const gsw: Record<string, string> = {
   "friends.nPumping": "{n} Fründe pumped grad",
   "friends.howTo": "Aafroge stellsch uf de Profilsiite vo me Foiler, z. B. über sin Name binere Session.",
   "notif.typeFriend": "Fründe: Aafroge und wer grad pumpt",
+  "notif.typeReferee": "Referee Board: neui Prüefbitte (Teamleitig, Moderation)",
   "hr.pickTitle": "Eigene Ziitpunkt",
   "hr.pickHint": "Zieh de Regler uf d Sekunde, wo di interessiert. Es zellet nume Läuf, wo mindestens so lang gsi sind.",
   "hr.pickCount": "{n} vo {total} Sessions hend do en Wert.",

@@ -1975,6 +1975,7 @@ const cs: Record<string, string> = {
   "friends.nPumping": "{n} přátel právě pumpuje",
   "friends.howTo": "Žádosti posíláš z profilové stránky jezdce, např. přes jeho jméno u session.",
   "notif.typeFriend": "Přátelé: žádosti a kdo pumpuje",
+  "notif.typeReferee": "Referee board: nové žádosti o kontrolu (vedení týmu, moderátoři)",
   "hr.pickTitle": "Vlastní okamžik",
   "hr.pickHint": "Posuň jezdec na sekundu, která tě zajímá. Počítají se jen jízdy, které trvaly aspoň tak dlouho.",
   "hr.pickCount": "{n} z {total} sessions tu má hodnotu.",

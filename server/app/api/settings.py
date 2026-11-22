@@ -292,7 +292,10 @@ PUBLIC_PROFILE_KEYS = ("join", "watch", "foil", "homespot", "records", "media", 
 # Bekannte Push-Typen (Quelle der Wahrheit, auch im Frontend gespiegelt).
 # chat: fehlte bis 18.10.2026 — chat.py fragt push.wants(…, "chat"), der Schalter (Web + Apps) wurde aber
 # beim Speichern verworfen, Chat-Push liess sich also nie abschalten.
-NOTIFY_TYPES = ("like", "analyzed", "record", "friend", "chat")   # friend: Anfragen + „pumpt gerade" (15.10.2026)
+NOTIFY_TYPES = ("like", "analyzed", "record", "friend", "chat", "comment", "referee")   # friend: Anfragen + „pumpt gerade" (15.10.2026)
+# comment: der Schalter stand seit 02.11. im Web, wurde aber hier verworfen (22.11.2026 nachgezogen).
+# referee: neue Pruefbitten im Referee Board (Jan 22.11.2026: Admins bekommen sie bei allen Events, „solange man das
+# getrennt ausschalten kann im profil").
 
 # Erlaubte Vibrationsmuster + Modi (IDs identisch mit Web + Uhr).
 ALARM_PATTERNS = {"short1", "short2", "long2", "lsl"}
