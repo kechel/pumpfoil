@@ -201,7 +201,12 @@ def test_feed_zeigt_point_nemo_statt_des_spots(client):
     from app.api import community
     community._VERBERGER_CACHE.update({"zeit": 0.0, "ids": frozenset()})   # Cache nicht mitschleppen
 
-    r = client.get("/api/community/sessions?period=all&accel_only=false", headers=kopf)
+    # Nach dem eigenen Namen filtern: die erste Feed-Seite (20) haengt sonst davon ab, wie viele frische Sessions andere
+    # Tests derselben Suite angelegt haben (22.11.2026 im Gesamtlauf herausgerutscht).
+    import secrets as _s
+    name = "Ortfeed" + _s.token_hex(3)
+    client.put("/api/auth/me", headers=kopf, json={"display_name": name})
+    r = client.get(f"/api/community/sessions?period=all&accel_only=false&name={name}", headers=kopf)
     assert r.status_code == 200, r.text
     je_id = {z["session_id"]: z for z in r.json()}
     assert je_id[offen]["spot"] == "Jettkofen"
