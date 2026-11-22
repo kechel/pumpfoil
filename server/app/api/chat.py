@@ -284,7 +284,7 @@ def list_messages(
     _require_access(scope, user.id, db)
     if kommentare.session_id(scope) is not None and not user.is_admin:
         # Kommentare (app/kommentare.py): geloeschte Session oder vom Inhaber abgeschaltet -> nichts zeigen.
-        s = kommentare.session_fuer(db, scope)
+        s = kommentare.session_fuer(db, scope, user)
         if s is None or kommentare.aus(s.user):
             return []
     lim = min(max(limit, 1), 100)
@@ -381,7 +381,7 @@ def post_message(
     if kommentare.session_id(scope) is not None:
         # Kommentar zu einer Session (app/kommentare.py): es muss sie geben, der Inhaber darf sie nicht
         # abgeschaltet haben, und zwischen Inhaber und Schreibendem darf keine Sperre bestehen.
-        _kommentar_session = kommentare.session_fuer(db, scope)
+        _kommentar_session = kommentare.session_fuer(db, scope, user)
         if _kommentar_session is None:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Session nicht gefunden")
         if kommentare.aus(_kommentar_session.user):

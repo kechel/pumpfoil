@@ -518,7 +518,15 @@ def friends_latest(request: Request, user: models.User = Depends(current_user), 
              .filter(S.user_id == fid).order_by(S.started_at.desc()).first())
         if r is not None:
             rows.append(r)
-    rows.sort(key=lambda r: r[S_STARTED_IDX] or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+    # Reihenfolge wie die Feeds (R2-G4): bei „Uhrzeit verbergen" zaehlt der Tag (Mittag UTC), nicht die Uhrzeit.
+    _zv = zeitverbergen.nutzer_ids(db)
+
+    def _schluessel(r):
+        t = r[S_STARTED_IDX] or datetime.min.replace(tzinfo=timezone.utc)
+        if r[S_USER_ID_IDX] in _zv and r[S_USER_ID_IDX] != user.id and r[S_STARTED_IDX]:
+            t = t.astimezone(timezone.utc).replace(hour=12, minute=0, second=0, microsecond=0)
+        return t
+    rows.sort(key=_schluessel, reverse=True)
     verb = _verbergende_nutzer(db)
     return _attach_first_video(db, _attach_social(db, user, [_brief(*r, verbergende=verb) for r in rows[:10]]), request)
 
@@ -603,7 +611,7 @@ def team_latest(team: str, request: Request, user: models.User = Depends(current
     je: dict[int, int] = {}
     rows = []
     for r in (_community(db.query(*BRIEF_COLS), user.id, accel_only=False, sport="all")
-              .filter(S.user_id.in_(ids)).order_by(S.started_at.desc()).limit(60).all()):
+              .filter(S.user_id.in_(ids)).order_by(_feed_ordnung(db).desc()).limit(60).all()):   # R2-G4
         je[r[S_USER_ID_IDX]] = je.get(r[S_USER_ID_IDX], 0) + 1
         if je[r[S_USER_ID_IDX]] > 3:
             continue
@@ -741,12 +749,26 @@ def sessions_grouped(
         q = q.filter(_such_alles(name, [U.display_name]))
     if spot:
         q = q.filter(_spot_cond(spot, db))
+    if name and offset > 0:
+        return []   # S-043/R2-G5: keine Sessionliste je Nutzer ueber die Namenssuche, wie /community/sessions
     rows = q.order_by(_feed_ordnung(db).desc()).limit(_GROUP_SCAN_CAP + 1).all()
     truncated = len(rows) > _GROUP_SCAN_CAP
     if truncated:
         rows = rows[:_GROUP_SCAN_CAP]
         log.warning("sessions-grouped: Scan-Cap %d erreicht (name=%r spot=%r) — älteste Gruppen fehlen evtl.",
                     _GROUP_SCAN_CAP, name, spot)
+    if name:
+        # hoechstens NAMENSSUCHE_PRO_NUTZER Sessions je fremdem Fahrer (R2-G5, gleiche Regel wie community_sessions)
+        _je: dict[int, int] = {}
+        _rest = []
+        for r in rows:
+            o = r[S_USER_ID_IDX]
+            if o != user.id:
+                _je[o] = _je.get(o, 0) + 1
+                if _je[o] > NAMENSSUCHE_PRO_NUTZER:
+                    continue
+            _rest.append(r)
+        rows = _rest
 
     nb = len(BRIEF_COLS)
     groups: dict[tuple, dict] = {}
@@ -3519,9 +3541,8 @@ def _vote_counts(db: Session, sid: int, user: models.User) -> dict:
 
 @router.post("/sessions/{session_id}/like")
 def toggle_like(session_id: int, user: models.User = Depends(require_social), db: Session = Depends(get_db)) -> dict:
-    if db.get(models.Session, session_id) is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
-    sess = db.get(models.Session, session_id)
+    from .sessions import _readable
+    sess = _readable(db, session_id, user)   # gemeldet/gesperrt/versteckt: wie das Lesen (R2-G6)
     row = db.query(models.SessionLike).filter_by(user_id=user.id, session_id=session_id).first()
     if row:
         db.delete(row)
@@ -3572,10 +3593,16 @@ def toggle_vote(
 ) -> dict:
     if kind not in VOTE_KINDS:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "kind must be fake|inappropriate")
-    sess = db.get(models.Session, session_id)
+    row = db.query(models.SessionVote).filter_by(user_id=user.id, session_id=session_id, kind=kind).first()
+    if row is None:
+        # Neue Stimme nur, wo man die Session lesen darf (R2-G6); die eigene zuruecknehmen geht immer — auch wenn die
+        # Session inzwischen gemeldet ist (sonst bliebe ein Fehlgriff fuer immer stehen, #8970).
+        from .sessions import _readable
+        sess = _readable(db, session_id, user)
+    else:
+        sess = db.get(models.Session, session_id)
     if sess is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
-    row = db.query(models.SessionVote).filter_by(user_id=user.id, session_id=session_id, kind=kind).first()
     added = row is None
     if row:
         db.delete(row)
@@ -3602,8 +3629,8 @@ def toggle_vote(
 
 @router.get("/sessions/{session_id}/social")
 def session_social(session_id: int, request: Request, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
-    if db.get(models.Session, session_id) is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
+    from .sessions import _readable
+    _readable(db, session_id, user)   # R2-G6
     photos = (
         db.query(models.SessionPhoto.id, models.SessionPhoto.url)
         .filter_by(session_id=session_id, blocked=False).filter(sichtbar(models.SessionPhoto)).order_by(models.SessionPhoto.id).all()

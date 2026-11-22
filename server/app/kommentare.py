@@ -47,14 +47,20 @@ def aus(user: models.User | None) -> bool:
         return False
 
 
-def session_fuer(db: Session, sc: str) -> models.Session | None:
-    """Die Session eines Kommentar-Raums, sofern es sie (noch) gibt."""
+def session_fuer(db: Session, sc: str, viewer: models.User | None = None) -> models.Session | None:
+    """Die Session eines Kommentar-Raums, sofern es sie (noch) gibt. Mit `viewer`: dieselben Riegel wie das Lesen der
+    Session (`sessions._readable`, R2-G6) — gemeldete Sessions und die gesperrter/versteckter Konten nur fuer Besitzer
+    und Admins."""
     sid = session_id(sc)
     if sid is None:
         return None
     s = db.get(models.Session, sid)
     if s is None or s.deleted:
         return None
+    if viewer is not None and viewer.id != s.user_id and not viewer.is_admin:
+        b = s.user
+        if s.flagged or (b is not None and (b.blocked or b.hidden)):
+            return None
     return s
 
 

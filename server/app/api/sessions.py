@@ -2986,6 +2986,9 @@ def public_shared_session(token: str, request: Request, db: Session = Depends(ge
          .first())
     if s is None or teilen.aufraeumen(db, s):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Kein geteilter Link (oder widerrufen)")
+    # Gemeldete Sessions und die gesperrter Konten auch nicht ueber den Teilen-Link (R2-G6, wie `_readable`).
+    if s.flagged or (s.user is not None and s.user.blocked):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Kein geteilter Link (oder widerrufen)")
     out = _session_out(
         s, with_analysis=True, owned=False,
         owner_name=owner_label(s.user.display_name, s.user.id) if s.user else None,
@@ -3136,6 +3139,30 @@ def session_neighbors(
             base = base.filter(_such_alles(name, [models.User.display_name]))
         if foil_id:
             base = base.filter(models.Session.foil_id == foil_id)
+        if name:
+            # S-043/R2-G5: die Namenssuche zeigt je fremdem Fahrer hoechstens NAMENSSUCHE_PRO_NUTZER Sessions — die
+            # Nachbarn bleiben in genau dieser Liste, sonst blaettert man per „weiter" durch alle Sessions einer Person.
+            from .community import NAMENSSUCHE_PRO_NUTZER, NAMENSSUCHE_VORRAT, _feed_ordnung
+            je: dict[int, int] = {}
+            erlaubt = []
+            for i, o in (base.with_entities(models.Session.id, models.Session.user_id)
+                         .order_by(_feed_ordnung(db).desc()).limit(NAMENSSUCHE_VORRAT).all()):
+                if o != user.id:
+                    je[o] = je.get(o, 0) + 1
+                    if je[o] > NAMENSSUCHE_PRO_NUTZER:
+                        continue
+                erlaubt.append(i)
+            base = base.filter(models.Session.id.in_(erlaubt or [-1]))
+        # R2-G4: Reihenfolge wie im Feed — bei „Uhrzeit verbergen" der Tag statt der Uhrzeit, sonst grenzen die
+        # Nachbarn mit sichtbarer Zeit die verborgene ein.
+        from .community import _feed_ordnung
+        _ord = _feed_ordnung(db)
+        hier_k = db.query(_ord).filter(models.Session.id == s.id).scalar()
+        paar = tuple_(_ord, models.Session.id)
+        hier = (hier_k, s.id)
+        older = base.filter(paar < hier).order_by(_ord.desc(), models.Session.id.desc()).first()
+        newer = base.filter(paar > hier).order_by(_ord.asc(), models.Session.id.asc()).first()
+        return {"older": older[0] if older else None, "newer": newer[0] if newer else None}
     else:
         # „Gleiche Art" mit der IDENTISCHEN Definition wie die Liste (inkl. persönlichem
         # Empfindlichkeits-Preset) — sonst springt man im Aussortiert-Filter zu Pump-Sessions.
@@ -5699,7 +5726,7 @@ def public_board_lage(
     s = (db.query(models.Session)
          .filter(models.Session.share_token == token, models.Session.deleted.isnot(True))
          .first())
-    if s is None or teilen.aufraeumen(db, s):
+    if s is None or teilen.aufraeumen(db, s) or s.flagged or (s.user is not None and s.user.blocked):   # R2-G6
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Kein geteilter Link (oder widerrufen)")
     return _lage_antwort(db, s, **p)
 
