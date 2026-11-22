@@ -38,6 +38,7 @@ from ..suche import wort_bedingung as _such
 from ..db import get_db
 from .. import ortverbergen
 from .. import mcp_uhren
+from .. import mcp_foils
 from .. import pumpgleit_anzeige as PA
 from ..ratelimit import enforce_user_tiers
 from ..tzlookup import tz_name
@@ -116,9 +117,9 @@ anderer Fahrer, keine Rekorde, keine Bestenlisten, keine Vergleichswerte vom sel
 nicht aggregiert. Keine Fotos, Videos, Chats oder Bewertungen. Aussortierte und geloeschte
 Aufnahmen fehlen ebenfalls. Wenn eine Frage Vergleichsdaten braeuchte, sage das, statt zu raten.
 
-EINZIGE AUSNAHME: die oeffentliche Uhren-Tabelle von pumpfoil.org/watch-stats — `list_watches` und
-`get_watch_stats`. Gesamtzahlen je Uhr-Modell (Foiling je Uhr, wie gut sie aufnimmt), nur Modelle mit mehr als drei
-Fahrern, nichts je Fahrer, Spot oder Zeitraum.
+EINZIGE AUSNAHME: die oeffentlichen Tabellen von pumpfoil.org/watch-stats (`list_watches`, `get_watch_stats`:
+Foiling je Uhr, wie gut sie aufnimmt) und pumpfoil.org/foil-stats (`list_foils`, `get_foil_stats`: Kennzahlen je Foil).
+Gesamtzahlen je Modell, nur wo mehr als drei Fahrer dahinterstehen, nichts je Fahrer, Spot oder Zeitraum.
 
 WAS GEMESSEN IST UND WAS GERECHNET
 Jede Zahl traegt, woher sie kommt. Achte darauf, bevor du sie deutest:
@@ -270,6 +271,25 @@ WERKZEUGE = [
      "inputSchema": {"type": "object", "properties": {
          "name": {"type": "string", "description": "Modellname, woertlich aus list_watches"}},
          "required": ["name"]}},
+    {"name": "list_foils",
+     "description": "Foils in der oeffentlichen Foil-Statistik von pumpfoil.org/foil-stats suchen (Woerter aus Marke, "
+                    "Modell, Groesse; ohne Angabe alle). Liefert foil_id und Namen fuer get_foil_stats. Nur wo mehr "
+                    "als drei Fahrer dahinterstehen.",
+     "inputSchema": {"type": "object", "properties": {
+         "name": {"type": "string", "description": "z. B. „gong veloce“ oder „axis 1099“"},
+         "nur_brett": {"type": "boolean", "description": "Nur Aufnahmen mit dem Handy am Brett (wie der Schalter "
+                                                         "der Seite)."},
+         "min_lauf_s": {"type": "integer", "minimum": 0, "maximum": 600,
+                        "description": "Nur Laeufe ab dieser Laenge, s (wie der Schalter der Seite)."}}}},
+    {"name": "get_foil_stats",
+     "description": "Alle Zahlen eines Foils aus der Foil-Statistik von pumpfoil.org/foil-stats: Aufnahmen, Fahrer, "
+                    "Streckung, Tempo, Strecke je Pump, Bestwerte, Pumptakt, Low End, dazu eine Foil-Scoot-Zeile. "
+                    "`felder` erklaert jede Spalte. Gesamtzahlen aller Fahrer, nichts ueber einzelne.",
+     "inputSchema": {"type": "object", "properties": {
+         "foil_id": {"type": "integer", "description": "aus list_foils"},
+         "name": {"type": "string", "description": "Name woertlich aus list_foils (statt foil_id)"},
+         "nur_brett": {"type": "boolean"},
+         "min_lauf_s": {"type": "integer", "minimum": 0, "maximum": 600}}}},
 ]
 
 
@@ -926,6 +946,8 @@ _HANDLER = {
     "list_equipment": _list_equipment,
     "list_watches": lambda db, uid, arg: mcp_uhren.suchen(db, db.get(models.User, uid), arg),
     "get_watch_stats": lambda db, uid, arg: mcp_uhren.details(db, db.get(models.User, uid), arg),
+    "list_foils": lambda db, uid, arg: mcp_foils.suchen(db, db.get(models.User, uid), arg),
+    "get_foil_stats": lambda db, uid, arg: mcp_foils.details(db, db.get(models.User, uid), arg),
 }
 
 
@@ -984,7 +1006,8 @@ async def mcp(request: Request, db: Session = Depends(get_db)):
             # offenen Ereignis-Strom (GET /mcp), den wir nicht anbieten.
             # 1.1.0 (26.09.2026): Puls je Aufnahme und Lauf, `get_run_heart_rate`.
             # 1.2.0 (22.11.2026): oeffentliche Uhren-Statistik, `list_watches` / `get_watch_stats`.
-            "serverInfo": {"name": "pumpfoil", "version": "1.2.0"},
+            # 1.3.0 (22.11.2026): oeffentliche Foil-Statistik, `list_foils` / `get_foil_stats`.
+            "serverInfo": {"name": "pumpfoil", "version": "1.3.0"},
             "instructions": ANLEITUNG,
         }})
     if methode in ("notifications/initialized", "ping"):
