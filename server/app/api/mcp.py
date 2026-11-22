@@ -37,6 +37,7 @@ from .. import models
 from ..suche import wort_bedingung as _such
 from ..db import get_db
 from .. import ortverbergen
+from .. import mcp_uhren
 from .. import pumpgleit_anzeige as PA
 from ..ratelimit import enforce_user_tiers
 from ..tzlookup import tz_name
@@ -114,6 +115,10 @@ Nur die Aufnahmen des Nutzers, der diesen Zugang genehmigt hat, und nur lesend. 
 anderer Fahrer, keine Rekorde, keine Bestenlisten, keine Vergleichswerte vom selben Spot — auch
 nicht aggregiert. Keine Fotos, Videos, Chats oder Bewertungen. Aussortierte und geloeschte
 Aufnahmen fehlen ebenfalls. Wenn eine Frage Vergleichsdaten braeuchte, sage das, statt zu raten.
+
+EINZIGE AUSNAHME: die oeffentliche Uhren-Tabelle von pumpfoil.org/watch-stats — `list_watches` und
+`get_watch_stats`. Gesamtzahlen je Uhr-Modell (Foiling je Uhr, wie gut sie aufnimmt), nur Modelle mit mehr als drei
+Fahrern, nichts je Fahrer, Spot oder Zeitraum.
 
 WAS GEMESSEN IST UND WAS GERECHNET
 Jede Zahl traegt, woher sie kommt. Achte darauf, bevor du sie deutest:
@@ -250,6 +255,21 @@ WERKZEUGE = [
      "description": "Die eigene Ausruestung: Foils, Stabilisatoren, Boards — je Mass mit der "
                     "Angabe, ob es aus dem Katalog stammt oder geschaetzt ist.",
      "inputSchema": {"type": "object", "properties": {}}},
+    # Einzige Ausnahme von „nur eigene Daten": die oeffentliche Uhren-Tabelle (Jan, 22.11.2026), s. app/mcp_uhren.py.
+    {"name": "list_watches",
+     "description": "Uhr-Modelle in der oeffentlichen Uhren-Statistik von pumpfoil.org/watch-stats suchen (Teil des "
+                    "Namens, ohne Angabe alle). Liefert die Namen fuer get_watch_stats. Nur Modelle mit mehr als drei "
+                    "Fahrern.",
+     "inputSchema": {"type": "object", "properties": {
+         "name": {"type": "string", "description": "Teil des Modellnamens, z. B. „fenix 8“ oder „Apple Watch“"}}}},
+    {"name": "get_watch_stats",
+     "description": "Alle Zahlen eines Uhr-Modells aus der Uhren-Statistik von pumpfoil.org/watch-stats: Foiling je "
+                    "Uhr (Aufnahmen, Fahrer, Strecke, Tempo, Bestwerte, Pumptakt) und wie gut sie aufnimmt (Rate der "
+                    "Bewegungsdaten, Vollstaendigkeit, Ortung, Puls), je Weg (App / Garmin Connect). `felder` erklaert "
+                    "jede Spalte. Gesamtzahlen aller Fahrer des Modells, nichts ueber einzelne.",
+     "inputSchema": {"type": "object", "properties": {
+         "name": {"type": "string", "description": "Modellname, woertlich aus list_watches"}},
+         "required": ["name"]}},
 ]
 
 
@@ -904,6 +924,8 @@ _HANDLER = {
     "get_download_link": _get_download_link,
     "get_stats": _get_stats,
     "list_equipment": _list_equipment,
+    "list_watches": lambda db, uid, arg: mcp_uhren.suchen(db, db.get(models.User, uid), arg),
+    "get_watch_stats": lambda db, uid, arg: mcp_uhren.details(db, db.get(models.User, uid), arg),
 }
 
 
@@ -961,7 +983,8 @@ async def mcp(request: Request, db: Session = Depends(get_db)):
             # jeder neuen Verbindung abfragt. Ein `listChanged`-Push ginge nur ueber einen
             # offenen Ereignis-Strom (GET /mcp), den wir nicht anbieten.
             # 1.1.0 (26.09.2026): Puls je Aufnahme und Lauf, `get_run_heart_rate`.
-            "serverInfo": {"name": "pumpfoil", "version": "1.1.0"},
+            # 1.2.0 (22.11.2026): oeffentliche Uhren-Statistik, `list_watches` / `get_watch_stats`.
+            "serverInfo": {"name": "pumpfoil", "version": "1.2.0"},
             "instructions": ANLEITUNG,
         }})
     if methode in ("notifications/initialized", "ping"):
