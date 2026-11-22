@@ -1893,15 +1893,17 @@ def latest_photos(
 @spot_router.get("/spots")
 def spots(accel_only: bool = True, sport: str = "pumpfoil", user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
     has_place = (S.place_name.isnot(None), S.place_name != "")
-    qual = sorted({p for (p,) in _community(db.query(S.place_name), user.id, accel_only, sport).filter(*has_place).distinct().all()})
+    # Verborgene Orte zaehlen als Point Nemo (R2-G7): sonst stand ein Ort in der Liste, den nur eine verborgene Aufnahme
+    # kennt. Die eigenen bleiben unten in `mine` mit echtem Namen (der Besitzer sieht seinen Ort immer).
+    _ort = case((_verborgen_cond(db), literal(ortverbergen.NEMO_NAME)), else_=S.place_name)
+    qual = sorted({p for (p,) in _community(db.query(_ort), user.id, accel_only, sport).filter(*has_place).distinct().all()})
     mine_rows = (
         _community(db.query(S.place_name), user.id, accel_only, sport).filter(S.user_id == user.id, *has_place)
         .order_by(S.started_at.desc()).all()
     )
-    qualset = set(qual)
     mine: list[str] = []
-    for (p,) in mine_rows:
-        if p in qualset and p not in mine:
+    for (p,) in mine_rows:     # schon durch _community gefiltert; eigene verborgene Orte mit echtem Namen
+        if p not in mine:
             mine.append(p)
         if len(mine) >= 3:
             break

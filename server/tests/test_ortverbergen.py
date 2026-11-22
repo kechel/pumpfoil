@@ -368,3 +368,33 @@ def test_spotkarte_zaehlt_verborgene_nicht_mit(client):
     assert meiner[0]["sessions"] == 1, meiner[0]
     # Und keiner der Marker liegt im Pazifik.
     assert not [m for m in r.json() if m.get("lat", 0) < -40], "Point Nemo gehoert nicht auf die Uebersichtskarte"
+
+
+def test_spotliste_nennt_verborgene_orte_nicht(client):
+    """R2-G7 (Security-Review 22.11.2026): /api/spots listete echte Ortsnamen verborgener Aufnahmen."""
+    import secrets as _s
+    from datetime import datetime as _dt, timedelta as _td, timezone as _tz
+    from app import models as _m
+    from app.db import SessionLocal as _SL
+    ort = "Geheimsee-" + _s.token_hex(3)
+    r = client.post("/api/auth/register", json={"email": f"g7-{_s.token_hex(3)}@t.de", "password": "supersecret"})
+    kv = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    uid = client.get("/api/auth/me", headers=kv).json()["id"]
+    r = client.post("/api/auth/register", json={"email": f"g7b-{_s.token_hex(3)}@t.de", "password": "supersecret"})
+    kb = {"Authorization": f"Bearer {r.json()['access_token']}"}
+    db = _SL()
+    try:
+        t = _dt.now(_tz.utc) - _td(days=1)
+        s = _m.Session(session_uuid=_s.token_hex(16), user_id=uid, started_at=t, ended_at=t + _td(minutes=30),
+                       sport="pumpfoil", sport_class="pumpfoil", is_pumpfoil=True, status="analyzed", data_quality="ok",
+                       place_name=ort, ort_sichtbarkeit="hide")
+        db.add(s); db.flush()
+        db.add(_m.AnalysisResult(session_id=s.id, algo_version="test", detection="model", num_runs=1,
+                                 foiling_distance_m=100.0, best_distance_m=100.0, pump_count=10))
+        db.commit()
+    finally:
+        db.close()
+    fremd = client.get("/api/community/spots", params={"accel_only": False, "sport": "all"}, headers=kb).json()
+    assert ort not in fremd["all"]
+    eigen = client.get("/api/community/spots", params={"accel_only": False, "sport": "all"}, headers=kv).json()
+    assert ort in eigen["mine"]
