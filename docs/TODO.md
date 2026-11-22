@@ -5854,6 +5854,9 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     Abschalten von GPS/Accel in `onStop` ist damit als Ursache raus (bleibt als sauberer Abbau drin). Bleibt der
     Aktivitaetstyp: u244 testet als Naechstes selbst „Surfing" (Einstellung auf der Uhr, `SPORT_SURFING` ohne Subsport)
     und schickt `GARMIN/Debug/err_log.txt`. Danach ggf. „Open Water" (`SPORT_SWIMMING` + OW) zum Gegencheck.
+    Weitere Spur (Jan, 22.11.): seine Uhr ist eine Instinct 3 **Tactical** — fuer Connect IQ dieselbe Kennung wie die
+    Solar 45 mm (`006-B4585-00`), aber eigene Firmware (Stealth-Modus u. a.), die gespeicherte Aktivitaeten evtl. anders
+    nachbearbeitet. Vermutung, nicht belegt. Nichts geschrieben — erst den Surfing-Test abwarten, den er selbst angekuendigt hat.
 
 
 - **🟡 14./15.09. — PeterH (u171) bekommt seit dem 08.09. keinen Puls mehr. Befund: mit hoher
