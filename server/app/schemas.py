@@ -142,6 +142,14 @@ class SessionStartIn(BaseModel):
     session_uuid: str = Field(pattern=r"^[A-Za-z0-9_-]{1,80}$")
     started_at: datetime
     sport: str = "pumpfoil"
+
+    @field_validator("session_uuid")
+    @classmethod
+    def _kein_systemordner(cls, v: str) -> str:
+        from .storage import uuid_erlaubt   # Systemordner in data_dir (R2-G1)
+        if not uuid_erlaubt(v):
+            raise ValueError("invalid session_uuid")
+        return v
     gps_hz: int = 1
     accel_hz: int = 25
     accel_scale: int = 2048

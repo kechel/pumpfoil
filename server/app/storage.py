@@ -26,10 +26,20 @@ settings = get_settings()
 # session_uuid fließt in den Dateipfad ein -> nur unbedenkliche Zeichen zulassen
 # (kein "/" oder ".." -> kein Path-Traversal aus data_dir heraus).
 _SAFE_UUID = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
+# Neben den Session-Ordnern liegen in data_dir Systemordner (cache, feedback, heatmap, geo, wind, manoever,
+# _nicht-lesbar, garmin-eingang …). Sie heissen alle nur aus Kleinbuchstaben, „_“ und „-“, keine Session-Kennung
+# tut das (UUID, Startsekunde, Praefix + Zufall/Ziffern; Stand 22.11.2026 geprueft). Ohne diese Sperre konnte eine
+# Uhr eine Session „cache“ anlegen, und die Kontoloeschung haette den Systemordner mit rmtree geloescht (R2-G1).
+_SYSTEM_NAME = re.compile(r"^[a-z_-]{1,24}$")
+
+
+def uuid_erlaubt(session_uuid: str | None) -> bool:
+    s = session_uuid or ""
+    return bool(_SAFE_UUID.match(s)) and not _SYSTEM_NAME.match(s)
 
 
 def session_dir(session_uuid: str) -> Path:
-    if not _SAFE_UUID.match(session_uuid or ""):
+    if not uuid_erlaubt(session_uuid):
         raise ValueError("invalid session_uuid")
     return settings.data_dir / session_uuid
 
