@@ -408,3 +408,26 @@ def test_ort_verbergen_gilt_auch_in_der_aufloesung(client, monkeypatch):
         assert abs((max(p[0] for p in k[0]) - min(p[0] for p in k[0])) - 2 * 60 / 111195) < 1e-4   # formtreu (r 60 m)
         assert client.get(f"/api/kunst/bild/{bid}/karte.png", headers=kopf).status_code == 200
     assert len(mitten) == 1 and abs(mitten[0] - ortverbergen.NEMO_LAT) < 0.1   # einmal gerendert, nur an Point Nemo
+
+
+def test_unter_13_kann_nicht_einreichen_herzen_melden(client, monkeypatch):
+    """R2-T4 (Security-Review 22.11.2026): der Kunst-Router hatte kein Age-Gate. Ansehen bleibt, Schreiben nicht."""
+    from app import models
+    from app.db import SessionLocal
+    jetzt = datetime.now(timezone.utc)
+    eid = _event(jetzt - timedelta(days=1), jetzt + timedelta(days=6))
+    (ik, kk) = _nutzer("Kind")
+    sid, uuid = _session(ik, jetzt - timedelta(hours=3))
+    monkeypatch.setattr("app.api.kunst.storage.load_gps", lambda u: _kreis())
+    db = SessionLocal()
+    try:
+        db.get(models.User, ik).social_allowed = False
+        db.commit()
+    finally:
+        db.close()
+    r = client.post(f"/api/kunst/{eid}/bild", headers=kk, json={"runde": 1, "session_id": sid, "von_ms": 0,
+                                                                "bis_ms": 200000, "drehung": 0})
+    assert r.status_code == 403 and r.json()["detail"] == "social_disabled", r.text
+    assert client.delete(f"/api/kunst/{eid}/bild?runde=1", headers=kk).status_code == 403
+    assert client.post("/api/kunst/bild/1/herz", headers=kk).status_code == 403
+    assert client.post("/api/kunst/bild/1/melden", headers=kk, json={"grund": "x"}).status_code == 403

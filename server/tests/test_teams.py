@@ -1448,3 +1448,113 @@ def test_global_vorschlagen(client, monkeypatch):
     r = client.post(f"/api/admin/teams/event-vorschlaege/{e2}", headers=adm, json={"annehmen": False, "notiz": "Zu kurz"}).json()
     assert not r["global"] and r["vorschlag"]["status"] == "abgelehnt"
     assert marker() == 1
+
+
+def test_referee_nur_sessions_aus_dem_event(client, monkeypatch):
+    """R2-T1 (Security-Review 22.11.2026): ein Referee (jede Teamleitung ist Referee ihrer Events) konnte gegen jede
+    fremde Session eine Korrektur anlegen (Push an den Fahrer, Name auf der Event-Seite). Jetzt nur Sessions von
+    Teilnehmern im Zeitfenster."""
+    from app.db import SessionLocal
+    from app import models
+    db = SessionLocal()
+    db.query(models.RateEvent).delete()
+    db.commit()
+    db.close()
+    (_il, kl) = _konto(client, "t1-leit@t.de", "T1 Leitung")
+    (ifr, _kf) = _konto(client, "t1-fremd@t.de", "T1 Fremd")
+    slug = _team(client, kl, "T1 Team")
+    fremd = _session(ifr, 300, tage=1, dist=150.0)
+    jetzt = datetime.now(timezone.utc)
+    r = client.post(f"/api/teams/{slug}/events", headers=kl, json={
+        "titel": "T1", "start": (jetzt - timedelta(days=3)).isoformat(), "ende": (jetzt + timedelta(days=1)).isoformat(),
+        "tafeln": [{"kennzahl": "distance", "accel_only": False}]})
+    assert r.status_code == 200, r.text
+    eid = r.json()["id"]
+    from app import event_laeufe as EL
+    db = SessionLocal()
+    try:
+        s = db.get(models.Session, fremd)
+        trim = int(s.trim_start_ms or 0)
+        ab = next(EL.lauf_ms(g, trim)[0] for _k, _a, _b, g in EL._laeufe(s.started_at, s.result.segments_json, trim)
+                  if EL.lauf_ms(g, trim))
+    finally:
+        db.close()
+    r = client.post(f"/api/teams/{slug}/events/{eid}/referee", headers=kl, json={
+        "session_id": fremd, "lauf_start_ms": int(ab), "grund": "messfehler"})
+    assert r.status_code == 422 and r.json()["detail"] == "kein_lauf", r.text
+    db = SessionLocal()
+    try:
+        assert db.query(models.EventKorrektur).filter_by(session_id=fremd).count() == 0
+    finally:
+        db.close()
+
+
+def test_event_anlegen_aendern_beachten_uhrzeit_verbergen(client):
+    """R2-T2 (Security-Review 22.11.2026): POST/PUT eines Events gaben die Bestenlisten mit der echten Startzeit der
+    Mitglieder-Sessions zurueck, auch bei „Uhrzeit verbergen"."""
+    from app import models, zeitverbergen
+    from app.db import SessionLocal
+    db = SessionLocal()
+    db.query(models.RateEvent).delete()
+    db.commit()
+    db.close()
+    (_il, kl) = _konto(client, "t2-leit@t.de", "T2 Leitung")
+    (im, km) = _konto(client, "t2-mit@t.de", "T2 Mitglied")
+    slug, _l = _team_mit(client, kl, km, "T2 Team")
+    client.put("/api/settings", headers=km, json={"hide_time": True})
+    zeitverbergen.cache_leeren()
+    sid = _session(im, 300, tage=1, dist=150.0)
+    db = SessionLocal()
+    try:
+        echt = db.get(models.Session, sid).started_at.astimezone(timezone.utc).strftime("%H:%M:%S")
+    finally:
+        db.close()
+    jetzt = datetime.now(timezone.utc)
+    ev = {"titel": "T2", "start": (jetzt - timedelta(days=3)).isoformat(), "ende": (jetzt + timedelta(days=1)).isoformat(),
+          "tafeln": [{"kennzahl": "distance", "accel_only": False}]}
+
+    def zeiten(j):
+        out = []
+        def lauf(x):
+            if isinstance(x, dict):
+                if x.get("session_id") == sid and x.get("started_at"):
+                    out.append(datetime.fromisoformat(x["started_at"]).astimezone(timezone.utc).strftime("%H:%M:%S"))
+                for v in x.values():
+                    lauf(v)
+            elif isinstance(x, list):
+                for v in x:
+                    lauf(v)
+        lauf(j)
+        return out
+    r = client.post(f"/api/teams/{slug}/events", headers=kl, json=ev)
+    assert r.status_code == 200, r.text
+    z = zeiten(r.json())
+    assert z and echt not in z, z
+    r = client.put(f"/api/teams/{slug}/events/{r.json()['id']}", headers=kl, json=dict(ev, titel="T2b"))
+    assert r.status_code == 200, r.text
+    z = zeiten(r.json())
+    assert z and echt not in z, z
+
+
+def test_anfrage_profil_beachtet_ort_verbergen():
+    """R2-T3 (Security-Review 22.11.2026): das Profil zur Beitrittsanfrage nannte der Teamleitung echte Spotnamen,
+    auch fuer verborgene Sessions. Jetzt zaehlen sie als Point Nemo; ausdruecklich gezeigte bleiben sichtbar."""
+    import json as _json
+    from app import models, ortverbergen, teams as T
+    from app.db import SessionLocal
+    db = SessionLocal()
+    try:
+        u = models.User(email=f"t3-{secrets.token_hex(3)}@t.de", password_hash="x", display_name=f"T3 {secrets.token_hex(3)}",
+                        settings_json=_json.dumps({"hide_location": True}))
+        db.add(u)
+        db.commit()
+        t = datetime.now(timezone.utc) - timedelta(days=1)
+        for i, (ort, sicht) in enumerate((("Geheimweiher", None), ("Geheimweiher", "hide"), ("Offener See", "show"))):
+            db.add(models.Session(session_uuid=secrets.token_hex(16), user_id=u.id, started_at=t + timedelta(hours=i),
+                                  ended_at=t + timedelta(hours=i, minutes=30), sport="pumpfoil", status="analyzed",
+                                  place_name=ort, ort_sichtbarkeit=sicht, data_quality="ok"))
+        db.commit()
+        spots = {x["name"]: x["n"] for x in T.anfrage_profil(db, u.id)["spots"]}
+        assert spots == {ortverbergen.NEMO_NAME: 2, "Offener See": 1}, spots
+    finally:
+        db.close()

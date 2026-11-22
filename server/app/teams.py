@@ -648,7 +648,7 @@ def anfrage_profil(db: Session, uid: int, spots_max: int = 10) -> dict:
     01.11.2026). Nur Zaehlungen je Spot und Sportart aus den eigenen fertigen Sessions (dieselben Filter wie die
     Community: nicht geloescht/gemeldet/unklassifiziert/Datenmuell), keine Daten, keine Sessionliste. Wer anfragt,
     wird im Beitritts-Dialog darauf hingewiesen."""
-    from sqlalchemy import func, or_
+    from sqlalchemy import and_, func, or_
     S, Sp = models.Session, models.Spot
     basis = (db.query(S).filter(S.user_id == uid, S.deleted.isnot(True), S.flagged.isnot(True),
                                 S.status.notin_(("recording", "live")), S.needs_classification.isnot(True),
@@ -656,7 +656,14 @@ def anfrage_profil(db: Session, uid: int, spots_max: int = 10) -> dict:
     sport = func.coalesce(S.sport_class, "pumpfoil")
     sportarten = [{"sport": sp, "n": int(n)} for sp, n in
                   basis.with_entities(sport, func.count(S.id)).group_by(sport).order_by(func.count(S.id).desc()).all()]
-    name = func.coalesce(Sp.name, S.place_name)
+    # „Ort verbergen" (R2-T3, Security-Review 22.11.2026): verborgene Sessions zaehlen als Point Nemo, wie ueberall.
+    from sqlalchemy import case, literal
+    from . import ortverbergen
+    u = db.get(models.User, uid)
+    verborgen = or_(S.ort_sichtbarkeit == "hide",
+                    and_(or_(S.ort_sichtbarkeit.is_(None), S.ort_sichtbarkeit != "show"),
+                         literal(ortverbergen.profil_verbirgt(u))))
+    name = case((verborgen, literal(ortverbergen.NEMO_NAME)), else_=func.coalesce(Sp.name, S.place_name))
     spots = [{"name": nm, "n": int(n)} for nm, n in
              basis.outerjoin(Sp, Sp.id == S.spot_id).with_entities(name, func.count(S.id))
              .filter(name.isnot(None)).group_by(name).order_by(func.count(S.id).desc()).limit(spots_max).all()]

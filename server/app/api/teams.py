@@ -682,6 +682,7 @@ def events(slug: str, mix: bool = False, sprint: bool = False, user: models.User
 
 
 @router.post("/{slug}/events")
+@zeitverbergen.antwort   # Antwort enthaelt die Bestenlisten wie event_einzeln (R2-T2)
 def event_anlegen(slug: str, body: EventIn, sprint: bool = False, user: models.User = Depends(current_user),
                   db: Session = Depends(get_db)) -> dict:
     t, _m = _verwalter(db, slug, user)   # Events auch fuer Moderatoren (Jan, 01.11.2026)
@@ -793,6 +794,18 @@ def _referee_event(db: Session, slug: str, event_id: int, user: models.User) -> 
     return t, e
 
 
+def _session_im_event(db: Session, t: models.Team, e: models.TeamEvent, s: models.Session) -> bool:
+    ids = T.event_teilnehmer(db, t, e)
+    if ids != T.ALLE and s.user_id not in ids:
+        return False
+    a, b = T._aware(e.start), T._aware(e.ende)
+    st = T._aware(s.started_at)
+    en = T._aware(s.ended_at) if s.ended_at else st
+    if st < b and en > a:
+        return True
+    return any(z.get("session_id") == s.id for tf in T._event_voll(db, t, e) for z in tf.get("zeilen") or [])
+
+
 def _korrektur(db: Session, e: models.TeamEvent, kid: int) -> models.EventKorrektur:
     k = db.get(models.EventKorrektur, kid)
     if k is None or k.event_id != e.id:
@@ -877,6 +890,11 @@ def referee_anlegen(slug: str, event_id: int, body: KorrekturIn, user: models.Us
     s = db.get(models.Session, body.session_id)
     if s is None or s.deleted or s.result is None:
         raise _404()
+    # Nur Sessions, die im Event zaehlen koennen (R2-T1, Security-Review 22.11.2026): Fahrer nimmt teil und die Session
+    # liegt im Zeitfenster — oder steht in einer Bestenliste des Events (Testmodus-Sessions ausserhalb des Fensters).
+    # Vorher ging jede Session jedes Nutzers (Push an ihn, Name auf der Event-Seite).
+    if not _session_im_event(db, t, e, s):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "kein_lauf")
     trim = int(s.trim_start_ms or 0)
     lauf = next((a for _k, a, _b, g in EL._laeufe(s.started_at, s.result.segments_json, trim)
                  if abs((EL.lauf_ms(g, trim) or (-1e12, 0))[0] - body.lauf_start_ms) <= R.TOLERANZ_MS), None)
@@ -1141,6 +1159,7 @@ def _nicht_eingefroren(e: models.TeamEvent) -> None:
 
 
 @router.put("/{slug}/events/{event_id}")
+@zeitverbergen.antwort   # Antwort enthaelt die Bestenlisten wie event_einzeln (R2-T2)
 def event_aendern(slug: str, event_id: int, body: EventIn, sprint: bool = False, user: models.User = Depends(current_user),
                   db: Session = Depends(get_db)) -> dict:
     """Aenderbar bis zum Einfrieren — danach steht das Ergebnis."""

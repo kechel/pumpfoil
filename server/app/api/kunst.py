@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from .. import kunst as K
 from .. import models, storage
-from .deps import current_user
+from .deps import current_user, require_social   # Age-Gate unter 13 an Einreichen/Herz/Melden (R2-T4)
 from ..config import get_settings
 from ..db import get_db
 
@@ -210,7 +210,7 @@ class BildIn(BaseModel):
 
 
 @router.post("/{event_id}/bild")
-def einreichen(event_id: int, body: BildIn, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+def einreichen(event_id: int, body: BildIn, user: models.User = Depends(require_social), db: Session = Depends(get_db)) -> dict:
     """Bild einreichen oder das eigene der Runde ersetzen — nur waehrend die Runde laeuft."""
     e = _event(db, event_id, user)
     if not K.darf_teilnehmen(db, user, e):
@@ -247,7 +247,7 @@ def einreichen(event_id: int, body: BildIn, user: models.User = Depends(current_
 
 
 @router.delete("/{event_id}/bild")
-def zurueckziehen(event_id: int, runde: int, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+def zurueckziehen(event_id: int, runde: int, user: models.User = Depends(require_social), db: Session = Depends(get_db)) -> dict:
     e = _event(db, event_id, user)
     r = _runde(e, runde)
     if r["phase"] != "einreichen":
@@ -269,7 +269,7 @@ def _bild(db: Session, bild_id: int, user: models.User) -> tuple[models.KunstBil
 
 
 @router.post("/bild/{bild_id}/herz")
-def herz(bild_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+def herz(bild_id: int, user: models.User = Depends(require_social), db: Session = Depends(get_db)) -> dict:
     """Herz setzen oder wegnehmen — nur in der Abstimmung, nicht fuers eigene, hoechstens HERZEN_JE_RUNDE je Runde."""
     b, e = _bild(db, bild_id, user)
     if not K.darf_teilnehmen(db, user, e):
@@ -303,7 +303,7 @@ class MeldungIn(BaseModel):
 
 
 @router.post("/bild/{bild_id}/melden")
-def melden(bild_id: int, body: MeldungIn, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+def melden(bild_id: int, body: MeldungIn, user: models.User = Depends(require_social), db: Session = Depends(get_db)) -> dict:
     b, _e = _bild(db, bild_id, user)
     if b.user_id == user.id:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "eigenes_bild")
