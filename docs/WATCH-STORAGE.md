@@ -175,7 +175,7 @@ gespeichert werden, am ende wollen wir immer die besseren daten zur analyse und 
   deutlich hoeherer Beschleunigungsrate) — die eigene geht darin auf (`merged_into`, Ordner bleibt). Sonst haengt die
   Datei als `fit-upload-<hash>.fit` an der eigenen Session.
 
-## Lokale Aufnahmen loeschen (Garmin, 17.11.2026, noch nicht im Store)
+## Lokale Aufnahmen loeschen (Garmin, seit 1.0.104 im Store, freigegeben 17.11.2026)
 
 Anlass: ein Fahrer ohne Handy (Forerunner 245) laedt seine FIT-Dateien per USB von Hand hoch; unsere Puffer im
 Object Store wurden nie abgeholt und fuellten ihn. Leeren des Activities-Ordners hilft nicht (das sind Garmins Dateien),
