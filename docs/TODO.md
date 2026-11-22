@@ -1540,6 +1540,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 22.11.2026 — Alte Uhren-Versionen anschreiben (WARTET auf den 1.0.105-Test von u244)
+Jan: „warten wir noch romans test ab" (Instinct 3 startet nach Sessions neu; 1.0.105 schaltet GPS/Accel beim Beenden
+selbst ab). Stand 22.11. (Uhren mit Kontakt in 60 Tagen, je Fahrer neueste Version, ohne Amazfit — deren Pruefung laeuft):
+Garmin 204/249 aelter als 1.0.103 (109 mit Session in 30 Tagen; 173 aelter als 1.0.100), Apple Watch 54/97 aelter als
+1.1.66 (24), Wear 25/58 aelter als 1.2.44 (5). Vorschlag: nur mit Session in 30 Tagen, Garmin-Grenze 1.0.100 (inhaltlich:
+Datenwege, Start bei vollem Speicher, Instinct-Fixes), Apple/Wear „mehr als 2 zurueck"; je Plattform ein Text mit Version,
+was fehlt, wie aktualisieren; Assistenten-Konto, gestaffelt (Memory bulk-dm-rate-limits), Entwuerfe + Empfaengerzahl
+vorher an Jan.
+
 ### 19.11.2026 — 🐞 Garmin: Datenfeld „Temperatur" bleibt immer leer (Meldung u1091, fēnix 8) — naechste Garmin-Fassung
 
 `SessionRecorder.temperatureC()` (`watch/source/SessionRecorder.mc`) gibt immer `null` zurueck — `Activity.Info` hat
