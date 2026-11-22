@@ -624,6 +624,12 @@ def _owner_weight_kg(s: models.Session, owned: bool = True) -> int | None:
     return w if 20 <= w <= 300 else None
 
 
+def _data_version(s, zv: bool) -> int | None:
+    t = getattr(s, "updated_at", None) or s.created_at
+    dv = int(t.timestamp()) if t else None
+    return zeitverbergen.stempel(dv) if zv else dv   # R2-G2: Auswertungszeit verraet das Fahrtende
+
+
 def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, owned: bool = True,
                  owner_name: str | None = None, owner_avatar_url: str | None = None,
                  sens: str | None = None, video_url: str | None = None, ort_echt: bool | None = None) -> SessionOut:
@@ -638,7 +644,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
     return SessionOut(
         id=s.id,
         owner_id=s.user_id,
-        session_uuid=s.session_uuid,
+        session_uuid=(zeitverbergen.kennung(s.session_uuid) if _zv else s.session_uuid),
         sport=s.sport,
         # Nur in der Einzelansicht (slim=True sind die Listen — dort gibt es keine
         # Leistungsanzeige, und ein Profil-Lookup je Zeile waere ein N+1).
@@ -674,8 +680,7 @@ def _session_out(s: models.Session, with_analysis: bool, slim: bool = False, own
         pause_windows=[[t, d] for t, d in _pausen(s)],
         excluded_ranges=[[a, b] for a, b in excluded_windows(s)],
         fremdkraft_keep=_fremdkraft_keep(s),
-        data_version=int((getattr(s, "updated_at", None) or s.created_at).timestamp())
-                     if (getattr(s, "updated_at", None) or s.created_at) else None,
+        data_version=_data_version(s, _zv),
         owned=owned,
         owner_name=owner_name,
         owner_avatar_url=owner_avatar_url,
@@ -2844,6 +2849,8 @@ def get_session(
     from .. import kommentare
     comment_count = kommentare.anzahl(db, [s.id], user).get(s.id, 0)
     dv = int((s.updated_at or s.created_at).timestamp()) if (s.updated_at or s.created_at) else 0
+    if zeitverbergen.gilt(s.user, user.id):
+        dv = zeitverbergen.stempel(dv)   # R2-G2: das ETag ist fuer jeden lesbar
     # `_OUT_VERSION` MUSS mit ins ETag: es beschreibt die FORM der Antwort, nicht die Daten.
     # Ohne das bekommt ein Client, dessen Session sich nicht geaendert hat, ewig 304 und behaelt
     # seinen alten Rumpf — ein NEUES FELD kommt bei ihm dann nie an, egal wie oft er neu laedt

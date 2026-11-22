@@ -165,3 +165,29 @@ def test_sprint_rekorde_nur_pumpfoil(client):
     assert lb["sprint_100m"][0]["user_id"] == uid and lb["sprint_100m"][0]["session_id"] == sid, lb["sprint_100m"][:1]
     assert "sprint_100m" not in client.get("/api/community/leaders?accel_only=false&sport=wingfoil&period=all",
                                            headers=kopf).json()
+
+
+def test_kennung_und_stempel_verraten_keine_zeit(client):
+    """R2-G2 (Security-Review 22.11.2026): session_uuid (Garmin = Unix-Startsekunde), data_version und ETag verrieten die
+    echte Zeit. Fremde bekommen jetzt eine Ersatz-Kennung und einen Ersatz-Stempel, der Besitzer weiter das Echte."""
+    kopf, uid = _konto(client, "zv-kennung@example.com")
+    client.put("/api/settings", headers=kopf, json={"hide_time": True})
+    sid = _session(uid)
+    db = SessionLocal()
+    try:
+        s = db.get(models.Session, sid)
+        uuid, dv = s.session_uuid, int((s.updated_at or s.created_at).timestamp())
+    finally:
+        db.close()
+    fremd, _ = _konto(client, "zv-kennung-fremd@example.com")
+    r = client.get(f"/api/sessions/{sid}", headers=fremd)
+    assert r.status_code == 200, r.text
+    j = r.json()
+    assert j["session_uuid"] != uuid and j["session_uuid"].startswith("zv-")
+    assert j["data_version"] != dv and str(dv) not in r.headers.get("etag", "")
+    assert uuid not in r.text and str(dv) not in r.text
+    # stabil: zweiter Abruf gleich (Vergleich in der Oberflaeche, Merken in den Apps)
+    j2 = client.get(f"/api/sessions/{sid}", headers=fremd).json()
+    assert (j2["session_uuid"], j2["data_version"]) == (j["session_uuid"], j["data_version"])
+    eigen = client.get(f"/api/sessions/{sid}", headers=kopf).json()
+    assert eigen["session_uuid"] == uuid and eigen["data_version"] == dv

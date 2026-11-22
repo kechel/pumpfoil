@@ -43,6 +43,26 @@ def gilt(besitzer, betrachter_id) -> bool:
     return betrachter_id is None or betrachter_id != getattr(besitzer, "id", None)
 
 
+def _hmac(wert: str) -> str:
+    import hashlib
+    import hmac
+    from .config import get_settings
+    return hmac.new(get_settings().jwt_secret.encode(), b"zeitverbergen:" + wert.encode(), hashlib.sha256).hexdigest()
+
+
+def kennung(session_uuid: str) -> str:
+    """Ersatz-Kennung fuer ANDERE bei verborgener Uhrzeit (R2-G2): die session_uuid der Garmin-App ist die Unix-
+    Startsekunde, eine Huawei-Kennung kodiert die Startzeit. Stabil je Session (Clients merken sich Sessions daran),
+    mit Server-Schluessel, also nicht durch Durchprobieren der Sekunden eines Tages umkehrbar."""
+    return "zv-" + _hmac(session_uuid or "")[:32]
+
+
+def stempel(dv: int | None) -> int | None:
+    """Ersatz fuer `data_version` (= Zeitpunkt der letzten Auswertung, also ungefaehr das Ende der Fahrt): bleibt bei
+    gleicher Fassung gleich und aendert sich mit ihr — mehr braucht der Vergleich in der Oberflaeche nicht."""
+    return None if dv is None else int(_hmac(str(dv))[:8], 16)
+
+
 def verschiebung(start: datetime | None, tz: str | None) -> timedelta:
     """Wie weit eine Session zu verschieben ist, damit sie um 12:00 Ortszeit ihres Tages beginnt (0 ohne Start)."""
     if start is None:
