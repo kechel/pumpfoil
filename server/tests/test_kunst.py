@@ -202,7 +202,7 @@ def test_anlegen_ueber_den_event_dialog(client):
             "tafeln": [], "vorlage": "gpskunst", "kunst_runden_tage": 7, "kunst_abstimmen_tage": 2}
     ev = client.post(f"/api/teams/{slug}/events", headers=kopf, json=body)
     assert ev.status_code == 200, ev.text
-    assert ev.json()["kunst"] == {"runden_tage": 7, "abstimmen_tage": 2, "test": False, "phasen": {}}
+    assert ev.json()["kunst"] == {"runden_tage": 7, "abstimmen_tage": 2, "test": False, "phasen": {}, "test_sessions": []}
     d = client.get(f"/api/kunst/{ev.json()['id']}", headers=kopf).json()
     assert len(d["runden"]) == 4 and d["teilnehmen"] and d["moderieren"]
     # Ohne Vorlage bleibt eine leere Bestenliste verboten.
@@ -241,6 +241,34 @@ def test_testmodus_nur_admin_alte_sessions_und_phasen(client, monkeypatch):
     # Aus: Phasen verworfen, wieder nach der Uhr.
     client.post(f"/api/kunst/{eid}/test", headers=kadm, json={"test": False})
     assert client.get(f"/api/kunst/{eid}", headers=ka).json()["runden"][0]["phase"] == "einreichen"
+
+
+def test_testmodus_feste_zusatz_sessions(client, monkeypatch):
+    """Testmodus: feste Zusatz-Sessions (kunst_json test_sessions) zaehlen ausserhalb jedes Fensters, stehen oben —
+    nur fuer ihren Besitzer, und nur solange der Testmodus an ist (Jan 22.11.2026, Werbevideo)."""
+    from app import models
+    from app.db import SessionLocal
+    jetzt = datetime.now(timezone.utc)
+    eid = _event(jetzt - timedelta(hours=1), jetzt + timedelta(days=20))
+    (ia, ka), (ib, kb) = _nutzer("A"), _nutzer("B")
+    _adm, kadm = _nutzer("Adm", admin=True)
+    uralt, u1 = _session(ia, jetzt - timedelta(days=200))
+    neu, u2 = _session(ia, jetzt - timedelta(days=3))
+    gps = {u1: _kreis(), u2: _kreis()}
+    monkeypatch.setattr("app.api.kunst.storage.load_gps", lambda u: gps.get(u, []))
+    client.post(f"/api/kunst/{eid}/test", headers=kadm, json={"test": True})
+    with SessionLocal() as db:
+        e = db.get(models.TeamEvent, eid)
+        e.kunst_json = json.dumps({**json.loads(e.kunst_json or "{}"), "test_sessions": [uralt]})
+        db.commit()
+    assert [k["id"] for k in client.get(f"/api/kunst/{eid}/kandidaten?runde=1", headers=ka).json()] == [uralt, neu]
+    assert client.get(f"/api/kunst/{eid}/kandidaten?runde=1", headers=kb).json() == []
+    assert client.post(f"/api/kunst/{eid}/bild", headers=kb, json={"runde": 1, "session_id": uralt, "von_ms": 0,
+                                                                  "bis_ms": 10**9}).status_code == 422
+    assert client.post(f"/api/kunst/{eid}/bild", headers=ka, json={"runde": 1, "session_id": uralt, "von_ms": 0,
+                                                                  "bis_ms": 10**9}).status_code == 200
+    client.post(f"/api/kunst/{eid}/test", headers=kadm, json={"test": False})
+    assert uralt not in [k["id"] for k in client.get(f"/api/kunst/{eid}/kandidaten?runde=1", headers=ka).json()]
 
 
 def test_karte_erst_nach_aufloesung(client, monkeypatch):

@@ -167,6 +167,10 @@ def kandidaten(event_id: int, runde: int, user: models.User = Depends(current_us
     a, z = K.fenster(e, r)
     q = (db.query(S).filter(S.user_id == user.id, S.deleted.isnot(True), S.started_at >= a, S.started_at < z)
          .order_by(S.started_at.desc()).limit(40).all())
+    k = K.einstellungen(e)
+    if k["test"] and k["test_sessions"]:       # feste Zusatz-Sessions des Testmodus zuerst (in ihrer Reihenfolge)
+        extra = {x.id: x for x in db.query(S).filter(S.id.in_(k["test_sessions"]), S.user_id == user.id, S.deleted.isnot(True))}
+        q = [extra[i] for i in k["test_sessions"] if i in extra] + [x for x in q if x.id not in extra]
     out = []
     for s in q:
         if not K.session_passt(s, user.id, r, e):

@@ -62,7 +62,10 @@ def einstellungen(e: models.TeamEvent) -> dict:
     return {"runden_tage": max(1, min(rt, 62)), "abstimmen_tage": max(1, min(at, 14)),
             # Testmodus (Jan 18.11.2026, nur Admins): jede eigene Session der letzten TEST_TAGE zaehlt, und die Phase jeder
             # Runde laesst sich von Hand setzen — so sind alle Stufen an einem Abend pruefbar, ohne auf Rundenenden zu warten.
-            "test": bool(k.get("test")), "phasen": {str(a): b for a, b in (k.get("phasen") or {}).items() if b in PHASEN}}
+            "test": bool(k.get("test")), "phasen": {str(a): b for a, b in (k.get("phasen") or {}).items() if b in PHASEN},
+            # Feste Zusatz-Sessions im Testmodus (Jan 22.11.2026, Werbevideo: der Track hinter dem Sessions-Icon ist vom
+            # 08.06.): zaehlen unabhaengig vom Zeitfenster und stehen in der Auswahl oben — nur fuer ihren Besitzer.
+            "test_sessions": [int(x) for x in (k.get("test_sessions") or []) if str(x).isdigit()]}
 
 
 PHASEN = ("kommt", "einreichen", "abstimmen", "fertig")
@@ -312,6 +315,10 @@ def session_passt(s: models.Session | None, user_id: int, r: dict, e: models.Tea
         return False
     if (s.sport_class or "") in NICHT_WASSER:
         return False
+    if e is not None:
+        k = einstellungen(e)
+        if k["test"] and s.id in k["test_sessions"]:
+            return True
     a, z = fenster(e, r) if e is not None else (r["start"], r["ende"])
     return a <= _aware(s.started_at) < z
 
