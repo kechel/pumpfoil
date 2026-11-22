@@ -170,30 +170,6 @@ export default function KunstBereich({ eventId }: { eventId: number }) {
   return (
     <section className="mb-6">
       <p className="mb-3 text-sm text-slate-300">{t("kunst.intro", { n: String(d.herzen_je_runde) })}</p>
-      {/* Testmodus (nur Admins, Jan 18.11.2026): alte Sessions zaehlen, Phase je Runde von Hand — alle Stufen an einem Abend. */}
-      {d.admin && (
-        <div className="mb-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-slate-200">
-          <label className="flex cursor-pointer items-start gap-2">
-            <input type="checkbox" className="mt-1" checked={d.test} onChange={(x) => api.kunstTest(eventId, x.target.checked).then(laden).catch(meldung)} />
-            <span><span className="font-semibold">{t("kunst.test.titel")}</span> — {t("kunst.test.hinweis")}</span>
-          </label>
-          {d.test && (
-            <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className="text-xs text-slate-400">{t("kunst.runde", { n: String(runde.nr) })}:</span>
-              {(["einreichen", "abstimmen", "fertig"] as const).map((ph) => (
-                <button key={ph} type="button" onClick={() => api.kunstPhase(eventId, runde.nr, ph).then(laden).catch(meldung)}
-                  className={`rounded-lg px-2 py-1 text-xs ${runde.phase === ph ? "bg-amber-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
-                  {t(`kunst.phase.${ph}`)}
-                </button>
-              ))}
-              {d.phasen[String(runde.nr)] && (
-                <button type="button" onClick={() => api.kunstPhase(eventId, runde.nr, null).then(laden).catch(meldung)}
-                  className="rounded-lg px-2 py-1 text-xs text-slate-300 hover:bg-slate-800">{t("kunst.test.uhr")}</button>
-              )}
-            </div>
-          )}
-        </div>
-      )}
       {d.runden.length > 1 && (
         <div className="mb-3 flex flex-wrap gap-1.5">
           {d.runden.map((r) => (
@@ -265,6 +241,31 @@ export default function KunstBereich({ eventId }: { eventId: number }) {
       )}
 
       </>}
+      {/* Testmodus (nur Admins, Jan 18.11.2026): alte Sessions zaehlen, Phase je Runde von Hand — alle Stufen an einem Abend.
+          Ganz unten (Jan 22.11.2026: stoerte oben in der Videoaufnahme). */}
+      {d.admin && (
+        <div className="mt-6 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-slate-200">
+          <label className="flex cursor-pointer items-start gap-2">
+            <input type="checkbox" className="mt-1" checked={d.test} onChange={(x) => api.kunstTest(eventId, x.target.checked).then(laden).catch(meldung)} />
+            <span><span className="font-semibold">{t("kunst.test.titel")}</span> — {t("kunst.test.hinweis")}</span>
+          </label>
+          {d.test && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-slate-400">{t("kunst.runde", { n: String(runde.nr) })}:</span>
+              {(["einreichen", "abstimmen", "fertig"] as const).map((ph) => (
+                <button key={ph} type="button" onClick={() => api.kunstPhase(eventId, runde.nr, ph).then(laden).catch(meldung)}
+                  className={`rounded-lg px-2 py-1 text-xs ${runde.phase === ph ? "bg-amber-500 font-semibold text-slate-950" : "bg-slate-800 text-slate-200 hover:bg-slate-700"}`}>
+                  {t(`kunst.phase.${ph}`)}
+                </button>
+              ))}
+              {d.phasen[String(runde.nr)] && (
+                <button type="button" onClick={() => api.kunstPhase(eventId, runde.nr, null).then(laden).catch(meldung)}
+                  className="rounded-lg px-2 py-1 text-xs text-slate-300 hover:bg-slate-800">{t("kunst.test.uhr")}</button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
       {voll && (
         <AbstimmGalerie ids={voll.ids} start={voll.start} runde={runde} d={d} neu={laden} meldung={meldung} onZu={() => setVoll(null)} />
       )}
