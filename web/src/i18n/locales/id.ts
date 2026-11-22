@@ -1223,6 +1223,8 @@ const id: Record<string, string> = {
   "adm.stats.imported": "Diimpor",
   "adm.stats.photos": "Foto",
   "adm.stats.likes": "Suka",
+  "adm.stats.comments": "Komentar sesi",
+  "adm.stats.chat": "Pesan obrolan",
   "adm.ov.users": "Pengguna",
   "adm.ov.blocked": "yang diblokir",
   "adm.ov.admins": "Admin",

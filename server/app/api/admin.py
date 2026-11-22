@@ -964,6 +964,12 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
     im = series(S.created_at, S, extra=importiert)
     ph = series(P.created_at, P)
     li = series(L.created_at, L)
+    # Kommentare zu Sessions = Chat-Raum `session:<id>` (app/kommentare.py); Chatnachrichten = ALLE Raeume (DM, global,
+    # Spot, Team, Session) — Jan, 22.11.2026. Ausgeblendete zaehlen mit: geschrieben wurde trotzdem.
+    CM = models.ChatMessage
+    kommentar = CM.scope.like("session:%")
+    ko = series(CM.created_at, CM, extra=kommentar)
+    ch = series(CM.created_at, CM)
     # Erst hier: `plat_serie` liest `live`, das weiter oben gesetzt wird.
     plat_tage, plat_gesamt = plat_serie()
     cli_tage, cli_gesamt = client_serie()
@@ -1004,12 +1010,13 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
     for tag in hit_tage.values():
         for a_, n_ in tag.items():
             hit_gesamt[a_] = hit_gesamt.get(a_, 0) + n_
-    dates = sorted(set(nu) | set(au) | set(se) | set(im) | set(ph) | set(li)
+    dates = sorted(set(nu) | set(au) | set(se) | set(im) | set(ph) | set(li) | set(ko) | set(ch)
                    | set(plat_tage) | set(cli_tage) | set(hit_tage) | set(mcp_aufrufe))
     buckets = [{
         "date": d, "new_users": nu.get(d, 0), "active_users": au.get(d, 0),
         "sessions": se.get(d, 0), "imported": im.get(d, 0),
         "photos": ph.get(d, 0), "likes": li.get(d, 0),
+        "comments": ko.get(d, 0), "chat": ch.get(d, 0),
         **{f"p_{p}": plat_tage.get(d, {}).get(p, 0) for p in PLATTFORMEN},
         **{f"c_{c}": cli_tage.get(d, {}).get(c, 0) for c in CLIENTS},
         **{f"h_{a}": hit_tage.get(d, {}).get(a, 0) for a in HITS},
@@ -1023,6 +1030,8 @@ def stats_series(period: str = "30d", _a: models.User = Depends(current_admin),
         "imported": total(S, col=S.created_at, extra=importiert),
         "photos": total(P, col=P.created_at),
         "likes": total(L, col=L.created_at),
+        "comments": total(CM, col=CM.created_at, extra=kommentar),
+        "chat": total(CM, col=CM.created_at),
         **{f"p_{p}": plat_gesamt.get(p, 0) for p in PLATTFORMEN},
         **{f"c_{c}": cli_gesamt.get(c, 0) for c in CLIENTS},
         **{f"h_{a}": hit_gesamt.get(a, 0) for a in HITS},

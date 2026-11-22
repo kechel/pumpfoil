@@ -1223,6 +1223,8 @@ const pt: Record<string, string> = {
   "adm.stats.imported": "Importadas",
   "adm.stats.photos": "Fotos",
   "adm.stats.likes": "Curtidas",
+  "adm.stats.comments": "Comentários em sessões",
+  "adm.stats.chat": "Mensagens de chat",
   "adm.ov.users": "Usuários",
   "adm.ov.blocked": "dos quais bloqueados",
   "adm.ov.admins": "Admins",

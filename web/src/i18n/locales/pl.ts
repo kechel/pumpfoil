@@ -1392,6 +1392,8 @@ const pl: Record<string, string> = {
   "adm.stats.imported": "Zaimportowane",
   "adm.stats.photos": "Zdjęcia",
   "adm.stats.likes": "Polubienia",
+  "adm.stats.comments": "Komentarze do sesji",
+  "adm.stats.chat": "Wiadomości na czacie",
   "adm.ov.users": "Użytkownicy",
   "adm.ov.blocked": "z tego zablokowanych",
   "adm.ov.admins": "Administratorzy",

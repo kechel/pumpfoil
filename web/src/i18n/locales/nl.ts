@@ -1248,6 +1248,8 @@ const nl: Record<string, string> = {
   "adm.stats.imported": "Geïmporteerd",
   "adm.stats.photos": "Foto's",
   "adm.stats.likes": "Likes",
+  "adm.stats.comments": "Reacties op sessies",
+  "adm.stats.chat": "Chatberichten",
   "adm.ov.users": "Gebruikers",
   "adm.ov.blocked": "waarvan geblokkeerd",
   "adm.ov.admins": "Admins",

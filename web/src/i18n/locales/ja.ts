@@ -1223,6 +1223,8 @@ const ja: Record<string, string> = {
   "adm.stats.imported": "インポート",
   "adm.stats.photos": "写真",
   "adm.stats.likes": "いいね",
+  "adm.stats.comments": "セッションへのコメント",
+  "adm.stats.chat": "チャットメッセージ",
   "adm.ov.users": "ユーザー",
   "adm.ov.blocked": "うちブロック済み",
   "adm.ov.admins": "管理者",

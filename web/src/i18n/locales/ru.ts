@@ -1223,6 +1223,8 @@ const ru: Record<string, string> = {
   "adm.stats.imported": "Импортировано",
   "adm.stats.photos": "Фото",
   "adm.stats.likes": "Лайки",
+  "adm.stats.comments": "Комментарии к сессиям",
+  "adm.stats.chat": "Сообщения в чате",
   "adm.ov.users": "Пользователи",
   "adm.ov.blocked": "из них заблокировано",
   "adm.ov.admins": "Админы",

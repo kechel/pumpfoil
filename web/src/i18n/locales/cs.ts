@@ -1248,6 +1248,8 @@ const cs: Record<string, string> = {
   "adm.stats.imported": "Naimportováno",
   "adm.stats.photos": "Fotky",
   "adm.stats.likes": "To se mi líbí",
+  "adm.stats.comments": "Komentáře k sessions",
+  "adm.stats.chat": "Zprávy v chatu",
   "adm.ov.users": "Uživatelé",
   "adm.ov.blocked": "z toho zablokovaní",
   "adm.ov.admins": "Admini",

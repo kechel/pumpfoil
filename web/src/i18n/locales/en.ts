@@ -1449,6 +1449,8 @@ const en: Record<string, string> = {
   "adm.stats.imported": "Imported",
   "adm.stats.photos": "Photos",
   "adm.stats.likes": "Likes",
+  "adm.stats.comments": "Session comments",
+  "adm.stats.chat": "Chat messages",
   "adm.ov.users": "Users",
   "adm.ov.blocked": "of which blocked",
   "adm.ov.admins": "Admins",

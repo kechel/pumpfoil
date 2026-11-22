@@ -1473,6 +1473,8 @@ const de: Record<string, string> = {
   "adm.stats.imported": "Importiert",
   "adm.stats.photos": "Fotos",
   "adm.stats.likes": "Likes",
+  "adm.stats.comments": "Kommentare zu Sessions",
+  "adm.stats.chat": "Chatnachrichten",
   "adm.ov.users": "Nutzer",
   "adm.ov.blocked": "davon gesperrt",
   "adm.ov.admins": "Admins",

@@ -1223,6 +1223,8 @@ const zh: Record<string, string> = {
   "adm.stats.imported": "已导入",
   "adm.stats.photos": "照片",
   "adm.stats.likes": "点赞",
+  "adm.stats.comments": "会话评论",
+  "adm.stats.chat": "聊天消息",
   "adm.ov.users": "用户",
   "adm.ov.blocked": "其中被封禁",
   "adm.ov.admins": "管理员",

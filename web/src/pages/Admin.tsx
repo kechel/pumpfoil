@@ -376,6 +376,9 @@ const STATS_METRICS: [keyof AdminStatsSeries["totals"], string, string][] = [
   ["imported", "adm.stats.imported", "#38bdf8"],
   ["photos", "adm.stats.photos", "#c084fc"],
   ["likes", "adm.stats.likes", "#fb7185"],
+  // Jan, 22.11.2026: Kommentare unter Sessions und alle Chatnachrichten (DM, global, Spot, Team, Session).
+  ["comments", "adm.stats.comments", "#facc15"],
+  ["chat", "adm.stats.chat", "#2dd4bf"],
 ];
 
 // Je Plattform: wie viele NUTZER haben etwas uebertragen.

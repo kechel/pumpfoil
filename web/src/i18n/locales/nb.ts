@@ -1291,6 +1291,8 @@ const nb: Record<string, string> = {
   "adm.stats.imported": "Importert",
   "adm.stats.photos": "Bilder",
   "adm.stats.likes": "Likes",
+  "adm.stats.comments": "Kommentarer på økter",
+  "adm.stats.chat": "Chatmeldinger",
   "adm.ov.users": "Brukere",
   "adm.ov.blocked": "hvorav blokkert",
   "adm.ov.admins": "Admins",
