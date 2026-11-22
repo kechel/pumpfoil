@@ -2,6 +2,49 @@
   "_hinweis": "Oeffentlich auf /changelog (Jan, 29.10.2026). NUR was geaendert wurde — nichts Offenes, nichts bewusst Belassenes, keine Gesamtzahl der Befunde, keine Angriffsdetails. Englisch, ein Satz je Zeile. Neuester Review zuerst.",
   "reviews": [
     {
+      "datum": "2026-11-22",
+      "titel": "Security review",
+      "text": "We went through everything that is new since the last review (teams, events, the art event, Garmin Connect, hiding the time of day, comments) and checked the earlier fixes again. This is what we changed.",
+      "punkte": [
+        {
+          "bereich": "Hidden time of day",
+          "text": "\"Hide time\" now also holds in the technical details of a session, on event pages while they are being edited and in the order of neighbouring sessions."
+        },
+        {
+          "bereich": "Hidden location",
+          "text": "\"Hide location\" now also holds in team join requests and in the spot list."
+        },
+        {
+          "bereich": "Reported sessions",
+          "text": "Reported sessions and those of blocked accounts stay hidden everywhere, including comments, likes and share links."
+        },
+        {
+          "bereich": "Name search",
+          "text": "Searching for a rider shows at most five of their sessions everywhere, also in grouped lists and when stepping to the next session."
+        },
+        {
+          "bereich": "Referees",
+          "text": "Referees can only correct runs that belong to their own event."
+        },
+        {
+          "bereich": "Art event",
+          "text": "Riders under 13 can look at the art event but not take part, and votes stay limited to three per round."
+        },
+        {
+          "bereich": "Team events",
+          "text": "Inviting a team to an event no longer shows its name or logo before it has accepted, unless the team is public."
+        },
+        {
+          "bereich": "Server files",
+          "text": "Recordings can no longer be stored under names the server uses for its own folders."
+        },
+        {
+          "bereich": "Smaller fixes",
+          "text": "Garmin notifications, calendar files and very large recordings are handled more strictly."
+        }
+      ]
+    },
+    {
       "datum": "2026-10-29",
       "titel": "Security review",
       "text": "We went through the server, the website and the app interfaces looking for weaknesses. This is what we changed.",

@@ -12,11 +12,11 @@ from pydantic import ValidationError
 from app import storage
 from app.schemas import SessionStartIn
 
-SYSTEM = ["cache", "feedback", "heatmap", "geo", "wind", "manoever", "_nicht-lesbar", "garmin-eingang",
+SYSTEM = ["Cache", "cache", "feedback", "heatmap", "geo", "wind", "manoever", "_nicht-lesbar", "garmin-eingang",
           "garmin-warteschlange", "analysis-snapshots", "gesperrte-medien", "models", "ml", "sicherung"]
 ECHT = ["0002ab85-8e64-4123-bd28-b0e4c9dc224e", "00555CC7-38BC-43C8-B010-7CA922DE479B", "1782389782-547089095",
         "hw-muzwca92-a4yjzq", "workout-1", "suunto-0502bfe722bf42d0ae47fcab30d2a41f", "test-52c21146d172",
-        "pWQGsQkTAayHwfsNRgLwhyooVFiYZyhF"]
+        "pWQGsQkTAayHwfsNRgLwhyooVFiYZyhF", "placement-uuid-uhr"]
 
 
 @pytest.mark.parametrize("name", SYSTEM)
@@ -36,10 +36,22 @@ def test_echte_kennungen_gehen(name):
 
 
 def test_alle_systemordner_der_ablage_gesperrt():
-    """Jeder vorhandene Nicht-Session-Ordner in data_dir faellt unter die Sperre (nur wo es die Ablage gibt)."""
-    d = storage.settings.data_dir
+    """Jeder Systemordner der ECHTEN Ablage (server/data, nur auf dem Server; die Test-Ablage enthaelt Session-Ordner der
+    anderen Tests mit Buchstaben-Namen) faellt unter die Sperre."""
+    from pathlib import Path
+    d = Path(__file__).resolve().parents[1] / "data"
     if not d.is_dir():
-        pytest.skip("keine Ablage")
+        pytest.skip("keine echte Ablage (CI)")
+    from app import models  # noqa: F401
+    echte = set()
+    try:
+        from app.db import SessionLocal
+        db = SessionLocal()
+        echte = {u for (u,) in db.query(models.Session.session_uuid).filter(
+            models.Session.session_uuid.op("~")("^[a-z_-]+$")).all()}
+        db.close()
+    except Exception:  # noqa: BLE001
+        pass
     for n in os.listdir(d):
-        if n.islower() and n.replace("_", "").replace("-", "").isalpha():
-            assert not storage.uuid_erlaubt(n), n
+        if (d / n).is_dir() and n not in echte and n.islower() and n.replace("_", "").replace("-", "").isalpha():
+            assert not storage.uuid_erlaubt(n), f"Systemordner {n} fehlt in storage.SYSTEM_ORDNER"

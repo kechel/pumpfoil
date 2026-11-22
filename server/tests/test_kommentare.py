@@ -92,7 +92,7 @@ def test_kontoloeschung_nimmt_fremde_kommentare_mit(client):
 
 def test_gemeldete_session_wie_beim_lesen(client):
     """R2-G6 (Security-Review 22.11.2026, S-041 vervollstaendigt): eine gemeldete Session ist fuer andere nicht lesbar —
-    jetzt auch nicht ueber Kommentare, /social, Like, neue Stimme und den Teilen-Link. Besitzer sieht alles, die eigene
+    jetzt auch nicht ueber Kommentare, /social, Like und den Teilen-Link (Meldungen bleiben moeglich). Besitzer sieht alles, die eigene
     Stimme zuruecknehmen geht weiter."""
     from app import models
     from app.db import SessionLocal
@@ -109,7 +109,6 @@ def test_gemeldete_session_wie_beim_lesen(client):
     assert _liste(client, kb, sid) == []
     assert client.get(f"/api/community/sessions/{sid}/social", headers=kb).status_code == 404
     assert client.post(f"/api/community/sessions/{sid}/like", headers=kb).status_code == 404
-    assert client.post(f"/api/community/sessions/{sid}/vote", params={"kind": "fake"}, headers=kb).status_code == 404
     assert client.get(f"/api/public/session/{tok}").status_code == 404
     # Besitzer: alles wie bisher
     assert _post(client, ka, sid, "meins").status_code == 200

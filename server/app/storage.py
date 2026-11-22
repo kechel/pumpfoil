@@ -26,16 +26,20 @@ settings = get_settings()
 # session_uuid fließt in den Dateipfad ein -> nur unbedenkliche Zeichen zulassen
 # (kein "/" oder ".." -> kein Path-Traversal aus data_dir heraus).
 _SAFE_UUID = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
-# Neben den Session-Ordnern liegen in data_dir Systemordner (cache, feedback, heatmap, geo, wind, manoever,
-# _nicht-lesbar, garmin-eingang …). Sie heissen alle nur aus Kleinbuchstaben, „_“ und „-“, keine Session-Kennung
-# tut das (UUID, Startsekunde, Praefix + Zufall/Ziffern; Stand 22.11.2026 geprueft). Ohne diese Sperre konnte eine
-# Uhr eine Session „cache“ anlegen, und die Kontoloeschung haette den Systemordner mit rmtree geloescht (R2-G1).
-_SYSTEM_NAME = re.compile(r"^[a-z_-]{1,24}$")
+# Neben den Session-Ordnern liegen in data_dir Systemordner. Ohne diese Sperre konnte eine Uhr eine Session „cache“
+# anlegen, und die Kontoloeschung haette den Systemordner mit rmtree geloescht (R2-G1, Security-Review 22.11.2026).
+# Feste Liste statt Muster, damit keine Kennung einer alten App-Fassung abgewiesen wird; dazu alles mit „_“/„.“ vorn.
+# NEUER SYSTEMORDNER IN data_dir -> HIER EINTRAGEN (tests/test_systemordner_uuid.py prueft die echte Ablage).
+SYSTEM_ORDNER = frozenset({
+    "analyse-notizen", "analysis-snapshots", "cache", "feedback", "garmin-eingang", "garmin-warteschlange", "geo",
+    "gesperrte-medien", "ground-truth", "heatmap", "manoever", "ml", "models", "paddel", "sicherung", "tiles", "wahrheit",
+    "welle_pumpen", "wind", "quarantaene", "export", "tmp", "backup", "media", "kunst", "schutzgebiete", "tage",
+})
 
 
 def uuid_erlaubt(session_uuid: str | None) -> bool:
     s = session_uuid or ""
-    return bool(_SAFE_UUID.match(s)) and not _SYSTEM_NAME.match(s)
+    return bool(_SAFE_UUID.match(s)) and s.lower() not in SYSTEM_ORDNER and not s.startswith(("_", "."))
 
 
 def session_dir(session_uuid: str) -> Path:

@@ -3595,14 +3595,10 @@ def toggle_vote(
 ) -> dict:
     if kind not in VOTE_KINDS:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "kind must be fake|inappropriate")
+    # Bewusst OHNE `_readable` (R2-G6 geprueft): weitere Meldungen an einer schon gemeldeten Session muessen moeglich
+    # bleiben (Moderation zaehlt sie), die eigene Ruecknahme ebenso; eine Stimme verraet nichts ueber die Session.
+    sess = db.get(models.Session, session_id)
     row = db.query(models.SessionVote).filter_by(user_id=user.id, session_id=session_id, kind=kind).first()
-    if row is None:
-        # Neue Stimme nur, wo man die Session lesen darf (R2-G6); die eigene zuruecknehmen geht immer — auch wenn die
-        # Session inzwischen gemeldet ist (sonst bliebe ein Fehlgriff fuer immer stehen, #8970).
-        from .sessions import _readable
-        sess = _readable(db, session_id, user)
-    else:
-        sess = db.get(models.Session, session_id)
     if sess is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
     added = row is None
