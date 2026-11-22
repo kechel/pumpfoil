@@ -434,6 +434,13 @@ def _einstufung(sessions: list[models.Session]) -> dict:
         "sport_source": getattr(staerkste, "sport_source", None) or "default",
         "data_quality": staerkste.data_quality or "ok",
     }
+    # Duplikat + Nicht-Duplikat zusammengefuehrt = die echte Fahrt, kombiniert (Jan 16.11. „das bessere/kombinierte
+    # zaehlt"; 22.11.: „das duplicate muss halt aufpassen beim mergen von duplicates mit nicht duplicates"). Duplikat
+    # bleibt nur, wenn ALLE Teile Duplikate waren — sonst fiele die Fahrt ganz aus der Statistik.
+    echte = [x for x in sessions if (x.data_quality or "ok") != "duplicate"]
+    if out["data_quality"] == "duplicate" and echte:
+        st = max(echte, key=lambda x: _QUELLE_RANG.get(getattr(x, "sport_source", None) or "default", 0))
+        out["data_quality"] = st.data_quality or "ok"
     if any(getattr(x, "pumpfoil_override", None) for x in sessions):
         out["pumpfoil_override"] = True
     return out
