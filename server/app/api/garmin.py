@@ -651,9 +651,19 @@ def _activity_files_verarbeiten(eintraege: list[dict]) -> None:
         db.close()
 
 
+PUSH_MAX_EINTRAEGE = 200   # je Push; Garmin schickt Stapel weit darunter (R2-G3)
+
+
 @router.post("/push/activity-files")
-async def push_activity_files(request: Request, hintergrund: BackgroundTasks) -> dict:
-    eintraege = await _json_liste(request, "activityFiles")
+async def push_activity_files(request: Request, hintergrund: BackgroundTasks, db: Session = Depends(get_db)) -> dict:
+    eintraege = (await _json_liste(request, "activityFiles"))[:PUSH_MAX_EINTRAEGE]
+    # Der Endpunkt ist (wie bei Garmin ueblich) nicht signiert: nur Eintraege bekannter Garmin-IDs mit einem Download von
+    # Garmin kommen in die Warteschlange — vorher legte jeder beliebige Eintrag eine Datei in data/ an (R2-G3).
+    ids = {str(e.get("userId") or "") for e in eintraege} - {""}
+    bekannt = {g for (g,) in db.query(models.GarminLink.garmin_user_id)
+               .filter(models.GarminLink.garmin_user_id.in_(ids)).all()} if ids else set()
+    eintraege = [e for e in eintraege if str(e.get("userId") or "") in bekannt
+                 and _sicherer_download(str(e.get("callbackURL") or ""))]
     if eintraege:
         try:
             warteschlange_merken(eintraege)

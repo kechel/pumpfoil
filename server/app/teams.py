@@ -1821,8 +1821,13 @@ def event_teams_out(db: Session, e: models.TeamEvent) -> list[dict]:
         out.append({"slug": host.slug, "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"], "status": "ausrichtend"})
     for x, t in (db.query(TT, Tm).join(Tm, Tm.id == TT.team_id).filter(TT.event_id == e.id, Tm.geloescht_am.is_(None))
                  .order_by(TT.id).all()):
-        a = auftritt(t, t.frei_am is None)
-        out.append({"slug": t.slug, "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"], "status": x.status})
+        if t.frei_am is None and x.status != "angenommen":
+            # Nie freigegebenes (internes) Team, das noch nicht zugesagt hat (R2-T7): nur die Adresse, die die Einladenden
+            # selbst eingegeben haben — Name und Logo erst nach der Zusage.
+            a = {"name": t.slug, "slug": t.slug, "logo_url": None, "farbe": None}
+        else:
+            a = auftritt(t, t.frei_am is None)
+        out.append({"slug": a["slug"] or t.slug, "name": a["name"], "logo_url": a["logo_url"], "farbe": a["farbe"], "status": x.status})
     return out
 
 

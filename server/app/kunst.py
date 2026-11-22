@@ -113,6 +113,9 @@ def _projiziert(gps: list) -> list[tuple[float, float, float]]:
     return [(t, (lon - lon0) * kx, (lat - lat0) * 110_540.0) for t, lat, lon in pts]
 
 
+VOR_MAX_PUNKTE = 12000   # vor Douglas-Peucker hoechstens so viele Punkte (R2-T5); 1 Hz = 3 h 20 min
+
+
 def _rdp(p: list[tuple[float, float]], eps: float) -> list[tuple[float, float]]:
     """Douglas-Peucker (iterativ)."""
     if len(p) < 3:
@@ -189,6 +192,13 @@ def linie(gps: list, von_ms: int, bis_ms: int, drehung: int, max_punkte: int = L
     striche = [st for st in striche if len(st) >= 2]
     if sum(len(st) for st in striche) < MIN_PUNKTE:
         raise ValueError("zu_wenig_punkte")
+    # Douglas-Peucker ist im schlechtesten Fall quadratisch (R2-T5): eine praeparierte Aufnahme mit sehr vielen Punkten
+    # band Minuten CPU je Aufruf. Darueber gleichmaessig ausduennen (Enden bleiben); echte Fahrten (1 Hz, Stunden) liegen
+    # darunter und aendern sich nicht.
+    n_ges = sum(len(st) for st in striche)
+    if n_ges > VOR_MAX_PUNKTE:
+        k = math.ceil(n_ges / VOR_MAX_PUNKTE)
+        striche = [st[::k] + ([st[-1]] if (len(st) - 1) % k else []) for st in striche]
     w = math.radians(drehung % 360)
     c, s_ = math.cos(w), math.sin(w)
     # Bildschirm-Koordinaten (Norden oben, y nach unten): sx = x, sy = -y. Die Matrix [[c, -s], [s, c]] dreht dort im

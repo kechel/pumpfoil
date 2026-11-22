@@ -1558,3 +1558,40 @@ def test_anfrage_profil_beachtet_ort_verbergen():
         assert spots == {ortverbergen.NEMO_NAME: 2, "Offener See": 1}, spots
     finally:
         db.close()
+
+
+def test_ics_text_ohne_steuerzeichen():
+    """R2-T6 (Security-Review 22.11.2026): ein einzelnes CR blieb in der Beschreibung stehen."""
+    from app.api.teams import _ics_text
+    t = _ics_text("a\rDTSTART:1\x00b\r\nc;d,e\\")
+    assert "\r" not in t and "\n" not in t and "\x00" not in t
+    assert t == "a\\nDTSTART:1b\\nc\;d\\,e\\\\"
+
+
+def test_event_einladung_verraet_keine_internen_teamdaten(client):
+    """R2-T7 (Security-Review 22.11.2026): die Einladung per Adresse fand freigegebene Teams auch unter ihrer noch nicht
+    freigegebenen neuen Adresse, und die Liste zeigte Name/Logo interner Teams, bevor sie zugesagt hatten."""
+    from app import models
+    from app.db import SessionLocal
+    db = SessionLocal(); db.query(models.RateEvent).delete(); db.commit(); db.close()
+    adm = _admin(client, "t7-adm@t.de")
+    (_ia, ka), (_ib, kb), (_ic, kc) = (_konto(client, "t7-a@t.de"), _konto(client, "t7-b@t.de"), _konto(client, "t7-c@t.de"))
+    ta = _team(client, ka, "T7 Gastgeber")
+    tb = _team(client, kb, "T7 Oeffentlich")
+    _freigeben(client, adm, kb, tb)
+    assert client.put(f"/api/teams/{tb}", headers=kb, json={"name": "T7 Geheimer Neuname"}).status_code == 200
+    neu = next(x["slug"] for x in client.get("/api/teams/mine", headers=kb).json() if x["name"] == "T7 Geheimer Neuname") \
+        if any(x["name"] == "T7 Geheimer Neuname" for x in client.get("/api/teams/mine", headers=kb).json()) else None
+    tc = _team(client, kc, "T7 Intern")
+    jetzt = datetime.now(timezone.utc)
+    eid = client.post(f"/api/teams/{ta}/events", headers=ka, json={
+        "titel": "T7", "start": (jetzt - timedelta(days=1)).isoformat(), "ende": (jetzt + timedelta(days=1)).isoformat(),
+        "tafeln": [{"kennzahl": "distance", "accel_only": False}]}).json()["id"]
+    url = f"/api/teams/{ta}/events/{eid}/teams"
+    if neu and neu != tb:
+        assert client.post(url, headers=ka, json={"team": neu}).status_code == 404
+    tbs = client.post(url, headers=ka, json={"team": tb}).json()["teams_beteiligt"]
+    assert all("Geheimer" not in (x["name"] or "") for x in tbs), tbs
+    tbs = client.post(url, headers=ka, json={"team": tc}).json()["teams_beteiligt"]
+    intern = next(x for x in tbs if x["slug"] == tc)
+    assert intern["name"] == tc and intern["logo_url"] is None, intern

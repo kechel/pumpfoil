@@ -998,8 +998,11 @@ def event_team_einladen(slug: str, event_id: int, body: TeamEinladenIn, user: mo
     _nicht_eingefroren(e)
     if T.ist_global(e):
         raise HTTPException(status.HTTP_409_CONFLICT, "global")
-    ziel = db.query(models.Team).filter(or_(models.Team.slug == body.team.strip().lower(),
-                                            models.Team.frei_slug == body.team.strip().lower()),
+    # Freigegebene Teams nur unter ihrer freigegebenen Adresse (R2-T7): sonst verriet 404/200 eine noch nicht freigegebene
+    # neue Adresse. Nie freigegebene Teams haben nur die eine.
+    _s = body.team.strip().lower()
+    ziel = db.query(models.Team).filter(or_(and_(models.Team.frei_am.isnot(None), models.Team.frei_slug == _s),
+                                            and_(models.Team.frei_am.is_(None), models.Team.slug == _s)),
                                         models.Team.geloescht_am.is_(None)).first()
     if ziel is None or ziel.id == t.id:
         raise _404()
@@ -1020,7 +1023,8 @@ def event_team_entfernen(slug: str, event_id: int, team_slug: str, user: models.
     e = _event(db, t, event_id)
     _nicht_eingefroren(e)
     TT, Tm = models.TeamEventTeam, models.Team
-    x = (db.query(TT).join(Tm, Tm.id == TT.team_id).filter(TT.event_id == e.id, Tm.slug == team_slug).first())
+    x = (db.query(TT).join(Tm, Tm.id == TT.team_id)
+         .filter(TT.event_id == e.id, or_(Tm.slug == team_slug, Tm.frei_slug == team_slug)).first())
     if x is None:
         raise _404()
     if T._aware(e.ende) <= T._jetzt():
@@ -1645,8 +1649,12 @@ ics_router = APIRouter(prefix="/api/public/events", tags=["teams"])
 
 
 def _ics_text(s: str) -> str:
+    # Einzelnes CR und andere Steuerzeichen raus (R2-T6): ein CR allein beendet in manchen Kalendern die Zeile, und der
+    # Rest der Beschreibung wuerde als eigene Eigenschaft gelesen.
+    s = s.replace("\r\n", "\n").replace("\r", "\n")
+    s = "".join(ch for ch in s if ch == "\n" or ch == "\t" or ord(ch) >= 32 and ord(ch) != 127)
     return (s.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,")
-            .replace("\r\n", "\n").replace("\n", "\\n"))
+            .replace("\n", "\\n"))
 
 
 def _ics_falten(zeile: str) -> list[str]:

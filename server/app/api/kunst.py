@@ -287,6 +287,10 @@ def herz(bild_id: int, user: models.User = Depends(require_social), db: Session 
         db.delete(h)
         an = False
     else:
+        # Parallele POSTs zaehlten alle dieselbe alte Zahl und kamen ueber die Grenze (R2-T8): je Nutzer/Event/Runde
+        # nacheinander (Sperre bis zum Ende der Transaktion).
+        from sqlalchemy import text as _text
+        db.execute(_text("SELECT pg_advisory_xact_lock(hashtext(:k))"), {"k": f"kunst-herz:{e.id}:{b.runde}:{user.id}"})
         n = db.query(func.count(H.id)).filter(H.event_id == e.id, H.runde == b.runde, H.user_id == user.id).scalar() or 0
         if n >= K.HERZEN_JE_RUNDE:
             raise HTTPException(status.HTTP_409_CONFLICT, "keine_herzen_mehr")

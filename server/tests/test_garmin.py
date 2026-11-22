@@ -1248,3 +1248,15 @@ def test_wartende_uhr_aufnahme_fit_upload_und_geloeschte(client, garmin, monkeyp
     assert client.get(f"/api/ingest/session/{uuid}/status", headers=kopf).json()["status"] == "none"
     _import(uid, start, tmp_path, praefix="fit-")                 # von Hand hochgeladene FIT
     assert client.get(f"/api/ingest/session/{uuid}/status", headers=kopf).json()["status"] == "complete"
+
+
+def test_push_unbekannte_ids_landen_nicht_in_der_warteschlange(client, monkeypatch):
+    """R2-G3 (Security-Review 22.11.2026): der unsignierte Push legte fuer JEDEN Eintrag eine Datei in data/ an."""
+    from app.api import garmin as G
+    geschrieben = []
+    monkeypatch.setattr(G, "warteschlange_merken", lambda e: geschrieben.extend(e))
+    r = client.post("/api/integrations/garmin/push/activity-files", json={"activityFiles": [
+        {"userId": f"unbekannt-{i}", "summaryId": f"x{i}", "callbackURL": f"https://{G.DOWNLOAD_HOST}/x?id={i}"}
+        for i in range(50)]})
+    assert r.status_code == 200
+    assert geschrieben == []

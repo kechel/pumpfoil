@@ -431,3 +431,45 @@ def test_unter_13_kann_nicht_einreichen_herzen_melden(client, monkeypatch):
     assert client.delete(f"/api/kunst/{eid}/bild?runde=1", headers=kk).status_code == 403
     assert client.post("/api/kunst/bild/1/herz", headers=kk).status_code == 403
     assert client.post("/api/kunst/bild/1/melden", headers=kk, json={"grund": "x"}).status_code == 403
+
+
+def test_riesige_spur_wird_vor_rdp_ausgeduennt():
+    """R2-T5 (Security-Review 22.11.2026): sehr viele Punkte -> vorher ausduennen, statt quadratisch zu rechnen."""
+    import time
+    from app import kunst as K
+    n = 200_000
+    # Zickzack (jeder zweite Punkt versetzt) -> Douglas-Peucker findet ueberall Abweichungen = schlechtester Fall
+    gps = [[i * 10, 47.0 + 0.002 * math.sin(i / 5000.0) + (i % 2) * 2e-5, 9.0 + 0.002 * math.cos(i / 5000.0)]
+           for i in range(n)]
+    t0 = time.monotonic()
+    z = K.linie(gps, 0, n * 10, 0)
+    assert time.monotonic() - t0 < 4 and z and sum(len(st) for st in z) <= K.LINIE_MAX_PUNKTE
+
+
+def test_herzen_parallel_nicht_ueber_die_grenze(client, monkeypatch):
+    """R2-T8 (Security-Review 22.11.2026): parallele Herz-POSTs kamen ueber HERZEN_JE_RUNDE."""
+    from concurrent.futures import ThreadPoolExecutor
+    from app import kunst as K, models
+    from app.db import SessionLocal
+    jetzt = datetime.now(timezone.utc)
+    eid = _event(jetzt - timedelta(days=1), jetzt + timedelta(days=6))
+    gps = {}
+    bilder = []
+    for i in range(K.HERZEN_JE_RUNDE + 3):
+        uid, kopf = _nutzer(f"P{i}")
+        sid, uuid = _session(uid, jetzt - timedelta(hours=3))
+        gps[uuid] = _kreis()
+        monkeypatch.setattr("app.api.kunst.storage.load_gps", lambda u: gps.get(u, []))
+        r = client.post(f"/api/kunst/{eid}/bild", headers=kopf, json={"runde": 1, "session_id": sid, "von_ms": 0,
+                                                                      "bis_ms": 200000, "drehung": 0})
+        assert r.status_code == 200, r.text
+        bilder.append(r.json()["id"])
+    _verschieben(eid, 6.5)
+    wid, kw = _nutzer("Waehler")
+    with ThreadPoolExecutor(len(bilder)) as ex:
+        list(ex.map(lambda b: client.post(f"/api/kunst/bild/{b}/herz", headers=kw), bilder))
+    db = SessionLocal()
+    try:
+        assert db.query(models.KunstHerz).filter_by(event_id=eid, user_id=wid).count() == K.HERZEN_JE_RUNDE
+    finally:
+        db.close()
