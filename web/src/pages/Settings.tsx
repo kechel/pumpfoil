@@ -25,6 +25,8 @@ import { PublicProfileCard } from "../components/PublicProfileCard";
 // nicht das Gewicht aller vier Seiten mitschleppen.
 const KontenTeil = lazy(() => import("./LinkedAccounts"));
 const FreundeTeil = lazy(() => import("./Friends"));
+// MCP-Zugaenge unter Konto, kein eigener Reiter (22.11.2026, vorher Reiter unter Uhr & Konten).
+const McpTeil = lazy(() => import("./LinkedAccounts").then((m) => ({ default: m.McpCard })));
 const TeamTeil = lazy(() => import("./Teams"));
 const AusruestungTeil = lazy(() => import("./Foils"));
 const SportartenTeil = lazy(() => import("./Foils").then((m) => ({ default: m.SportartenTeil })));
@@ -500,6 +502,8 @@ export default function Settings() {
         </form>
         {pwMsg && <p className={`mt-2 text-xs ${pwMsg.ok ? "text-emerald-700 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>{pwMsg.text}</p>}
       </Card>
+
+      <div className="mt-4"><Suspense fallback={null}><McpTeil /></Suspense></div>
 
       {/* Einstieg in den Einrichtungs-Assistenten — fuer ALLE und jederzeit (Vorgabe Jan,
           11.09.2026). Damit ist /onboarding ab jetzt verlinkt: bisher kam man nur ueber die

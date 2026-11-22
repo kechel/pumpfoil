@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { GarminBeidesHinweis } from "../components/GarminBeides";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { Reiterleiste, useReiter } from "../components/Reiter";
 import Account from "./Account";
@@ -30,17 +30,21 @@ const GRUND_KEYS: Record<string, string> = {
 // Generische „Verknüpfte Konten"-Seite: hostet Import-Integrationen (Polar; später
 // Coros/Suunto/… und FIT/TCX-Upload). Jede Integration ist eine eigenständige Karte,
 // die sich selbst ausblendet, wenn serverseitig nicht konfiguriert.
-/** Uhren und verknuepfte Konten in EINER Ansicht mit Reitern Uhr | Polar | COROS | Suunto | Xiaomi | MCP (Jan, 02.11.2026) —
+/** Uhren und verknuepfte Konten in EINER Ansicht mit Reitern Uhr | Polar | COROS | Suunto | Xiaomi (Jan, 02.11.2026) —
  * als Seite /konten (ein Knopf im Profil) und als Reiter „Uhr & Konten" auf Home (`eingebettet`: ohne Titelzeile, die
  * Reiter als zweite Zeile, eigener Adress-Parameter, weil Home `tab` schon selbst nutzt). */
-const KONTO_REITER = ["uhr", "garmin", "polar", "coros", "suunto", "xiaomi", "strava", "mcp"] as const;
+// MCP stand bis 22.11.2026 hier als Reiter; jetzt unter Einstellungen › Konto (Feedback eines Nutzers: unter „Uhr" kaum
+// zu finden, unter Konto vermutet; Jan: „macht sinn"). Alte Links mit `tab=mcp`/`ktab=mcp` leiten dorthin um.
+const KONTO_REITER = ["uhr", "garmin", "polar", "coros", "suunto", "xiaomi", "strava"] as const;
 export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: boolean } = {}) {
   const { t } = useI18n();
   const reiterParam = eingebettet ? "ktab" : "tab";
   const [reiter, setReiter] = useReiter("konten", [...KONTO_REITER], "uhr", { param: reiterParam });
   // Adresse ueber den Router saeubern (nicht history.replaceState): sonst kennt er die alte Adresse noch und setzt
   // `?polar=connected` beim naechsten Reiterwechsel wieder ein.
-  const [, setSp] = useSearchParams();
+  const [sp, setSp] = useSearchParams();
+  const navigate = useNavigate();
+  useEffect(() => { if (sp.get(reiterParam) === "mcp") navigate("/einstellungen?tab=konto", { replace: true }); }, [sp]);
   // Strava ist zurueckgestellt; der Reiter erscheint nur, wenn der Server es anbietet (wie die Karte selbst).
   const [strava, setStrava] = useState(false);
   useEffect(() => { api.stravaStatus().then((s) => setStrava(!!s.available)).catch(() => {}); }, []);
@@ -113,7 +117,6 @@ export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: 
         { id: "suunto", label: "Suunto" },
         { id: "xiaomi", label: "Xiaomi" },
         ...(strava ? [{ id: "strava", label: "Strava" }] : []),
-        { id: "mcp", label: "MCP" },
       ]} />
       {banner && (
         <div className={`mb-4 flex items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-sm ${bannerCls}`}>
@@ -126,14 +129,13 @@ export default function LinkedAccounts({ eingebettet = false }: { eingebettet?: 
         {/* Uhr = die komplette Uhr-Seite mit Anleitung, Datenfeldern, Alarm, Verbinden, Uhren (Jan, 02.11.2026). Auf /konten
             als zweite Reiterzeile; auf Home ist die Konten-Zeile schon die zweite, dann darunter als einfache Zeile. */}
         {reiter === "uhr" && <Account eingebettet stufe={eingebettet ? 1 : 2} />}
-        {reiter !== "uhr" && reiter !== "mcp" && <p className="text-sm text-slate-300">{t("linked.hint")}</p>}
+        {reiter !== "uhr" && <p className="text-sm text-slate-300">{t("linked.hint")}</p>}
         {reiter === "garmin" && <GarminCard />}
         {reiter === "polar" && <PolarCard />}
         {reiter === "coros" && <CorosCard />}
         {reiter === "suunto" && <SuuntoCard />}
         {reiter === "xiaomi" && <XiaomiHinweis />}
         {reiter === "strava" && <StravaCard />}
-        {reiter === "mcp" && <McpCard />}
       </div>
     </div>
   );
@@ -684,7 +686,7 @@ function StravaCard() {
  * ist der Normalfall — man kann nur zumachen, was man sieht (dieselbe Ueberlegung wie bei den
  * geteilten Aufnahmen, 25.09.2026).
  */
-function McpCard() {
+export function McpCard() {
   const { t } = useI18n();
   const [st, setSt] = useState<Awaited<ReturnType<typeof api.mcpStatus>> | null>(null);
   const [busy, setBusy] = useState<string | null>(null);

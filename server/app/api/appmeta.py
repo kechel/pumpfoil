@@ -1301,6 +1301,11 @@ IDEEN: list[str] = [
     "runs, each counted in its own statistics.",
     "See who is out on the water right now, for anyone who chooses to show it.",
     "Translate a comment into your language at the tap of a button.",
+    # Vorschlag eines Nutzers (Feedback 22.11.2026); Jan: „nur erstmal unter ideas". Ginge gegen die harte Grenze
+    # des MCP-Servers (Memory mcp-server-scope: keine fremden Daten, auch nicht anonymisiert/aggregiert) — vor jedem
+    # Bau erst Jans neue Entscheidung dazu, Mindestgruppen gegen Rueckschluss auf Einzelne.
+    "Ask your own AI questions across all riders through the MCP server, using anonymised totals only — for example "
+    "which wing size riders of your weight ride longest, or how busy a spot is on weekends.",
     "Measure how well pump detection really works, and build glide detection on top — right "
     "now a long glide only means that no pump was recognised.",
     "Make the Garmin data pages easier to set up. The current screen configuration confuses "
