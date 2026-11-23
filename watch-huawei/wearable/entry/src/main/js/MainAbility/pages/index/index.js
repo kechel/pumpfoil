@@ -80,10 +80,11 @@ export default {
       console.info("Pumpfoil Geraet " + d.deviceType + " " + d.windowWidth + "x" + d.windowHeight + " lite=" + that0.lite);
     } });
     // Scheitert der Start (z. B. ein Systemmodul fehlt), die Meldung auf die Uhr statt einer schwarzen Seite.
-    // Wear Engine erst nach 5 s (Jan, 23.11.2026: Start/Seitenwechsel zaeh — vielleicht der Abruf beim Handy): zuerst
-    // init ohne Wear Engine (Dateien laden), die Uhr zeigt sofort; dann init mit Wear Engine, das setzt nur WE.
+    // Wear Engine 1 s nach dem Aufbau (Jan, 23.11.2026: Start/Seitenwechsel zaeh): zuerst init ohne Wear Engine
+    // (Dateien laden), die Uhr zeigt sofort; dann init mit Wear Engine, das setzt nur WE. Die Einstellungsseite
+    // macht dasselbe — die Uebertragung laeuft auf jeder Seite, Luecke nur waehrend des Wechsels.
     try { R.init(null); } catch (e) { console.error("Pumpfoil init: " + e); this.startFehler = "init: " + e; }
-    this.weUhr = setTimeout(function () { R.init({ P2pClient: P2pClient, Message: Message, Builder: Builder }); }, 5000);
+    this.weUhr = setTimeout(function () { R.init({ P2pClient: P2pClient, Message: Message, Builder: Builder }); }, 1000);
     var that = this;
     this.takt = setInterval(function () { that.zeigen(); }, 1000);
     this.zeigen();

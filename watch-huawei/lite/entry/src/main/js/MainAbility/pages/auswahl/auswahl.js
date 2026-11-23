@@ -5,6 +5,7 @@
  */
 import router from "@system.router";
 import file from "@system.file";
+import { P2pClient, Message, Builder } from "../../wearengine/wearengine.js";
 
 var R = null;
 
@@ -23,6 +24,10 @@ export default {
     for (var i = 0; i < keys.length; i++) this.tx[keys[i]] = this.$t("strings." + keys[i]);
     this.sports = [];
     this.zeigen();
+    // Uebertragung zum Handy laeuft auch hier weiter (Jan, 23.11.2026: „unabhaengig von der gerade angezeigten
+    // seite"). Die Wear Engine gehoert der Seite (im app.js-Buendel ist kein Platz), also reicht jede Seite ihre
+    // eigene an den Recorder — 1 s nach dem Aufbau, damit Zeichnen und erste Gesten Vorrang haben.
+    if (R) this.weUhr = setTimeout(function () { R.init({ P2pClient: P2pClient, Message: Message, Builder: Builder }); }, 1000);
     // Sportarten (Server ?sp=1, Standard vorn) liest die Seite selbst aus der Konfiguration: im app.js-Buendel ist
     // kein Platz mehr (s. recorder.js start). Eine Wahl gibt es erst ab zwei.
     var that0 = this;
@@ -35,7 +40,7 @@ export default {
       this.dTakt = setInterval(function () { R.direkt.koppelnTakt(); that.zeigen(); }, 2000);
     }
   },
-  onDestroy() { clearInterval(this.dTakt); },
+  onDestroy() { clearInterval(this.dTakt); clearTimeout(this.weUhr); if (R) R.init(null); },
   anAus(v) { return v ? this.tx.on : this.tx.off; },
   /** „Auto (An)" zeigt, was das Profil gerade ergibt — wie Zepp. */
   stufe(v, profil) { return v === null ? this.tx.auto + " (" + this.anAus(profil) + ")" : this.anAus(v); },
