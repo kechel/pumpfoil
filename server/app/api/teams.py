@@ -330,7 +330,11 @@ def liste(_u: models.User = Depends(current_user), db: Session = Depends(get_db)
 def _event_kurz(db: Session, e: models.TeamEvent, t: models.Team, intern: bool, jetzt) -> dict:
     """Event ohne Bestenlisten, fuer Community-Seite und Event-Uebersicht."""
     tafeln_ = T.event_tafeln(e)
-    sportarten = list(dict.fromkeys(tf.sportart for tf in tafeln_)) or [e.summen_sportart or "pumpfoil"]
+    # GPS-Kunst laesst alle Sportarten zu (app/kunst.py) — kein Sportart-Badge; summen_sportart ist dort nur der
+    # Vorgabewert „pumpfoil" ohne Bedeutung (Jan, 23.11.2026).
+    from .. import kunst as K
+    sportarten = ([] if e.vorlage == K.VORLAGE else
+                  list(dict.fromkeys(tf.sportart for tf in tafeln_)) or [e.summen_sportart or "pumpfoil"])
     ids = T.event_spots(e)
     spots = ([{"id": i, "name": n} for i, n in db.query(models.Spot.id, models.Spot.name)
               .filter(models.Spot.id.in_(ids)).all()] if ids else [])

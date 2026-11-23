@@ -26,6 +26,7 @@ import { TeamHerkunft } from "../components/TeamHerkunft";
 import TeamBanner from "../components/TeamBanner";
 import { teamFarbStil } from "../lib/teamFarben";
 import { fehlerCode, kennzahl, sportartenText } from "../lib/teamKennzahlen";
+import { KUNST_VORLAGE } from "../lib/teamEvents";
 import { useI18n } from "../i18n";
 
 const ZEITRAEUME: [string, string][] = [
@@ -181,6 +182,7 @@ function VergangeneEvents({ events, kopf, t }: {
 
 /** Sportarten eines Events: die seiner Bestenlisten, ohne Bestenliste die der Gesamtsummen. */
 function eventSportarten(e: TeamEvent): string[] {
+  if (e.vorlage === KUNST_VORLAGE) return []; // GPS-Kunst: alle Sportarten erlaubt, kein Badge
   const aus = e.tafeln.length ? e.tafeln.map((tf) => tf.sportart) : [e.summen_sportart ?? "pumpfoil"];
   return Array.from(new Set(aus));
 }
