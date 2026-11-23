@@ -7,24 +7,24 @@
     justify-content: center;
     background-color: #000000;
 }
-.liste {
+.blaetter {
+    width: 100%;
+    height: 100%;
+}
+.blatt {
     width: 100%;
     height: 100%;
     flex-direction: column;
-}
-.eintrag {
-    width: 100%;
-    height: 96px;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
+    background-color: #000000;
 }
-.block {
-    width: 100%;
-    height: 90px;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+.marke {
+    width: 90%;
+    height: 40px;
+    font-size: 30px;
+    color: #22d3ee;
+    text-align: center;
 }
 .begriff {
     width: 86%;
@@ -35,9 +35,20 @@
 }
 .wert {
     width: 86%;
-    height: 44px;
-    font-size: 30px;
+    height: 80px;
+    font-size: 38px;
     color: #ffffff;
     text-align: center;
-    text-overflow: ellipsis;   /* eine Zeile statt zwei: der Wert sass mittig in 80 px, zu weit unter dem Begriff (Jan, 04.11.2026) */
+    text-overflow: ellipsis;
+}
+.nr {
+    width: 86%;
+    height: 34px;
+    font-size: 30px;
+    color: #475569;
+    text-align: center;
+}
+.krone {
+    width: 1px;
+    height: 1px;
 }

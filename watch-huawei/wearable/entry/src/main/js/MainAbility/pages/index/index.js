@@ -17,9 +17,6 @@ import { P2pClient, Message, Builder } from "../../wearengine/wearengine.js";
 var R = null;
 
 // Feldbeschriftungen (Schluessel wie seiten.js feld) aus den i18n-Dateien.
-var FELDTEXTE = ["kmh3s", "kmhAvg", "kmhMax", "bpmAvg", "bpmMax", "time", "dist", "clock", "runActive",
-  "runTime", "runDist", "lastRunTime", "lastRunDist", "lastRunAvg", "lastRunMax", "runs", "lastRunMaxHr",
-  "allRunsDist", "allRunsTime", "paused"];
 
 // 1,5 s (AppGallery-Pruefung 18.11.2026 auf GT 6/Fit 5: „does not respond after you touch the stop button for 2 seconds"
 // — wer „2 s" haelt, laesst oft knapp davor los, und auf echter Uhr kam das System-longpress nicht an). Die Beschriftung
@@ -48,7 +45,7 @@ function art(p, gesamt) {
 export default {
   data: {
     ansicht: "bereit", gl: 0, zeit: "0:00", strecke: "0.00 km", info: "", balken: 0, balkenZeigen: false,
-    halten: true, tStart: "", tPause: "", tWeg: "", tStopp: "", tFertig: "", fZeit: "", fStrecke: "", fLaeufe: ""
+    halten: true, kroneWerte: ["0", "1", "2", "3", "4", "5", "6", "7", "8"], kroneStand: 4, tStart: "", tPause: "", tWeg: "", tStopp: "", tFertig: "", fZeit: "", fStrecke: "", fLaeufe: ""
   },
   onInit() {
     console.info("Pumpfoil Seite onInit");
@@ -59,13 +56,17 @@ export default {
       return;
     }
     // Texte einmal holen (jedes $t kostet auf der Uhr), Displaygroesse fuer die Promille-Koordinaten.
-    var keys = ["start", "pause", "resume", "stop", "holding", "discard", "discarded", "paused", "errors",
-      "gpsWait", "openPhone", "allSent", "noAccel", "done", "lock", "lockHold"];
-    this.tx = {};
-    for (var j = 0; j < keys.length; j++) this.tx[keys[j]] = this.$t("strings." + keys[j]);
-    this.texte = {};
-    for (var i = 0; i < FELDTEXTE.length; i++) this.texte[FELDTEXTE[i]] = this.$t("strings.f_" + FELDTEXTE[i]);
-    this.texte.paused = this.tx.paused;
+    // Texte einmal je App-Lauf (am Recorder gemerkt): die Seite wird bei jedem Wechsel zu den Einstellungen neu
+    // gebaut, und jedes $t kostet (AppGallery 23.11.2026: Start ~3 s, Wechsel zaeh). Feldtexte erst beim Zeichnen.
+    if (!R.seitenTx) {
+      var keys = ["start", "pause", "resume", "stop", "holding", "discard", "discarded", "paused", "errors",
+        "gpsWait", "openPhone", "allSent", "noAccel", "done", "lock", "lockHold"];
+      R.seitenTx = {};
+      for (var j = 0; j < keys.length; j++) R.seitenTx[keys[j]] = this.$t("strings." + keys[j]);
+      R.seitenTexte = { paused: R.seitenTx.paused };
+    }
+    this.tx = R.seitenTx;
+    this.texte = R.seitenTexte;
     this.tStart = this.tx.start;
     this.tFertig = this.tx.done;
     this.dw = 466; this.dh = 466; this.lite = true;
@@ -86,7 +87,9 @@ export default {
   },
   onDestroy() {
     clearInterval(this.takt);
-    if (R) R.ende();
+    // Zu den Einstellungen: nur die Wear Engine der Seite loesen (init mit null), GPS und Bildschirm laufen weiter —
+    // R.ende schaltete sie ab und beim Zurueckkommen wieder an.
+    if (R) { if (this.zuAuswahl) R.init(null); else R.ende(); }
   },
   // Fehler beim Anzeigen sichtbar machen (Infozeile + Log), jede Sekunde neu — nie stumm.
   zeigen() {
@@ -124,7 +127,7 @@ export default {
       if (this.ansicht === "fertig") {
         var l = R.letzte;
         // Strecke gross, Schnitt + Laeufe klein darunter (zusammen war die Zeile zu breit, 08.10.2026)
-        this.fZeit = zeitText(l.ms); this.fStrecke = l.km; this.fLaeufe = l.kmh + " · " + l.laeufe + " " + this.texte.runs;
+        this.fZeit = zeitText(l.ms); this.fStrecke = l.km; this.fLaeufe = l.kmh + " · " + l.laeufe + " " + this.feldText("runs");
       }
       this.seite = 2; this.zustandVorher = "";
       return;
@@ -145,7 +148,7 @@ export default {
     if (this.ansicht !== "daten") return;
     var that = this;
     var ctx = { dw: this.dw, dh: this.dh, rund: this.rund !== false, s: c.s, el: c.el, k: c.k, jetzt: new Date(), pausiert: c.pausiert,
-      idx: this.seite - 2, anzahl: ring.length, t: function (k) { return that.texte[k] || k; } };
+      idx: this.seite - 2, anzahl: ring.length, t: function (k) { return that.feldText(k); } };
     var b = S.zeichne(ring[this.seite - 2], ctx);
     // Touch-Sperre: gelber Strich ganz unten; Text nur beim Antippen, auf schwarzem Band (lag sonst ueber Feld 3)
     var w = this.dw, h = this.dh, z = this.sperrHinweis;
@@ -153,6 +156,7 @@ export default {
       { k: "t", x: w / 2, y: h * 0.86, s: 30, c: "#fbbf24", a: "c", txt: z ? this.tx.lockHold : "", b: false });
     this.malen(b);
   },
+  feldText(k) { var x = this.texte; return x[k] || (x[k] = this.$t("strings.f_" + k)); },
   /** Zeichenbefehle ausfuehren — der Zeichner liegt im app.js-Buendel (common/maler.js), die Seite ist knapp. */
   malen(befehle) {
     var el = this.$refs.leinwand, d = this.gl, i, b;
@@ -250,14 +254,13 @@ export default {
     if (aktion === "stopp") this.zeigeFertig = true;   // Verwerfen: keine Zusammenfassung (wie Zepp/Wear)
     this.zeigen();
   },
-  // --- Krone (s. index.hml): Swiper-Index im Kreis 0..2; vorwaerts = hoch wischen, rueckwaerts = runter.
+  // --- Krone (s. index.hml): jeder Rastschritt des picker-view; vorwaerts = hoch wischen, rueckwaerts = runter.
   onShow() { try { this.$refs.krone.rotation({ focus: true }); } catch (e) { console.error("Pumpfoil Krone: " + e); } },
   onHide() { try { this.$refs.krone.rotation({ focus: false }); } catch (e) { /* ohne */ } },
   krone(e) {
-    var neu = e && e.index, alt = this.kroneIndex === undefined ? 1 : this.kroneIndex;
-    this.kroneIndex = neu;
-    if (neu === alt) return;
-    this.wischen({ direction: (neu - alt + 3) % 3 === 1 ? "up" : "down" });
+    var neu = e ? e.newSelected : 4, d = neu - this.kroneStand;
+    this.kroneStand = neu <= 1 || neu >= 7 ? 4 : neu;   // nie an den Rand des Pickers
+    if (d) this.wischen({ direction: d > 0 ? "up" : "down" });
   },
   wischen(e) {
     var d = e && e.direction;
@@ -266,7 +269,7 @@ export default {
       // Nach rechts wischen beendet die App (AppGallery verlangt das) — nur ausserhalb einer Aufnahme.
       // Steht die Zusammenfassung, schliesst es erst diese. Hoch = Einstellungen (wie Zepp-Seite 4/4).
       if (d === "right") { if (this.zeigeFertig) this.fertig(); else app.terminate(); }
-      else if (d === "up" && !this.zeigeFertig) router.replace({ uri: "pages/auswahl/auswahl" });
+      else if (d === "up" && !this.zeigeFertig) { this.zuAuswahl = true; router.replace({ uri: "pages/auswahl/auswahl" }); }
       return;
     }
     if (this.sperre()) return;

@@ -14,7 +14,8 @@ function holeRecorder() {
 }
 
 export default {
-  data: { sportDa: false, bSport: "", zSport: "", bAlarm: "", bQuelle: "", bLayouts: "", bSperre: "", bStart: "", zStart: "", direktDa: false, zDirekt: "", zAlarm: "", zQuelle: "", zFoil: "", zLayouts: "", zSperre: "" },
+  // eintraege: [{b: Begriff, z: Wert, n: "2/7", a: Aktion}] — eine Swiper-Seite je Eintrag, davor Seite 0 = zurueck.
+  data: { eintraege: [], seite: 1, kroneWerte: ["0", "1", "2", "3", "4", "5", "6", "7", "8"], kroneStand: 4 },
   onInit() {
     R = holeRecorder();
     var keys = ["alarm", "thresholds", "autoFoil", "manual", "layoutsShort", "lock", "autoStart", "connect", "connected", "disconnect", "pairHint", "pairNoNet", "on", "off", "auto", "sport"];
@@ -30,7 +31,6 @@ export default {
     } });
     // Watch 3/4: waehrend die Seite offen ist, nachfragen, ob der Code eingeloest wurde
     if (R && R.direkt) {
-      this.direktDa = true;
       var that = this;
       this.dTakt = setInterval(function () { R.direkt.koppelnTakt(); that.zeigen(); }, 2000);
     }
@@ -40,18 +40,22 @@ export default {
   /** „Auto (An)" zeigt, was das Profil gerade ergibt — wie Zepp. */
   stufe(v, profil) { return v === null ? this.tx.auto + " (" + this.anAus(profil) + ")" : this.anAus(v); },
   zeigen() {
-    if (!R) { this.zAlarm = "Kein Recorder (getApp)"; return; }
-    var a = R.auswahl, k = R.konfig, f = a.foil(k);
-    this.bAlarm = this.tx.alarm; this.bQuelle = this.tx.thresholds; this.bLayouts = this.tx.layoutsShort; this.bSperre = this.tx.lock; this.bStart = this.tx.autoStart;
-    this.zAlarm = this.anAus(a.alarm);
-    this.zQuelle = a.quelle === "foil" ? this.tx.autoFoil : this.tx.manual;
-    this.zFoil = f ? f.label : "–";
-    this.zLayouts = this.stufe(a.layouts, k.layoutsServer !== undefined ? k.layoutsServer : k.layoutsOn);
-    this.zSperre = this.stufe(a.sperre, k.waterLock === "on");
-    this.zStart = this.stufe(a.start, k.autoStart);
-    if (R.direkt) this.zDirekt = R.direkt.text(this.tx);
-    var l = this.sports || [], i = this.sportNr(l);
-    this.sportDa = l.length > 1; this.bSport = this.tx.sport; this.zSport = this.sportDa ? l[i].name : "";
+    if (!R) { this.eintraege = [{ b: "Kein Recorder (getApp)", z: "", n: "", a: "" }]; return; }
+    var a = R.auswahl, k = R.konfig, f = a.foil(k), tx = this.tx, l = this.sports || [];
+    var e = [];
+    if (l.length > 1) e.push({ b: tx.sport, z: l[this.sportNr(l)].name, a: "sport" });
+    e.push({ b: tx.alarm, z: this.anAus(a.alarm), a: "alarm" });
+    e.push({ b: tx.thresholds, z: a.quelle === "foil" ? tx.autoFoil : tx.manual, a: "quelle" });
+    e.push({ b: "Foil", z: f ? f.label : "–", a: "foil" });
+    e.push({ b: tx.layoutsShort, z: this.stufe(a.layouts, k.layoutsServer !== undefined ? k.layoutsServer : k.layoutsOn), a: "layouts" });
+    e.push({ b: tx.lock, z: this.stufe(a.sperre, k.waterLock === "on"), a: "sperre" });
+    e.push({ b: tx.autoStart, z: this.stufe(a.start, k.autoStart), a: "start" });
+    if (R.direkt) e.push({ b: "pumpfoil.org", z: R.direkt.text(tx), a: "direkt" });
+    for (var i = 0; i < e.length; i++) e[i].n = (i + 1) + "/" + e.length;
+    // Gleiche Anzahl: nur die Werte tauschen, damit der Swiper beim Tippen nicht neu aufgebaut wird.
+    var alt = this.eintraege;
+    if (alt.length !== e.length) { this.eintraege = e; return; }
+    for (var j = 0; j < e.length; j++) { alt[j].b = e[j].b; alt[j].z = e[j].z; alt[j].n = e[j].n; alt[j].a = e[j].a; }
   },
   /** Stelle der gewaehlten Sportart; nicht (mehr) in der Liste = der Standard vorn. */
   sportNr(l) { for (var i = 0; i < l.length; i++) if (l[i].id === R.auswahl.sport) return i; return 0; },
@@ -60,9 +64,28 @@ export default {
     var l = this.sports, n = (this.sportNr(l) + 1) % l.length;
     R.auswahl.sport = n ? l[n].id : null; this.zeigen();
   },
-  // Krone: Fokus auf die Liste (Lite: nur list/swiper/slider folgen der Krone, und nur mit Fokus).
-  onShow() { try { this.$refs.liste.rotation({ focus: true }); } catch (e) { console.error("Pumpfoil Krone: " + e); } },
-  onHide() { try { this.$refs.liste.rotation({ focus: false }); } catch (e) { /* ohne */ } },
+  // Krone: Fokus auf den unsichtbaren picker-view (s. auswahl.hml), jeder Rastschritt = eine Seite.
+  onShow() { try { this.$refs.krone.rotation({ focus: true }); } catch (e) { console.error("Pumpfoil Krone: " + e); } },
+  onHide() { try { this.$refs.krone.rotation({ focus: false }); } catch (e) { /* ohne */ } },
+  krone(e) {
+    var neu = e ? e.newSelected : 4, d = neu - this.kroneStand;
+    // Nah am Rand des Pickers zurueck in die Mitte, damit die Krone nie anschlaegt.
+    this.kroneStand = neu <= 1 || neu >= 7 ? 4 : neu;
+    if (d) this.geheZu(this.seite + (d > 0 ? 1 : -1));
+  },
+  geheZu(n) {
+    if (n > this.eintraege.length) n = this.eintraege.length;
+    if (n <= 0) { this.zurueck(); return; }
+    this.seite = n;
+  },
+  blatt(e) { if (e && e.index === 0) this.zurueck(); else if (e) this.seite = e.index; },
+  zurueck() {
+    if (this.weg) return;
+    this.weg = true;
+    router.replace({ uri: "pages/index/index" });
+  },
+  // Getippt wird immer die sichtbare Seite (ohne Parameter aus dem for — auf Lite ungeprueft).
+  tippen() { var x = this.eintraege[this.seite - 1]; if (x && x.a && this[x.a]) this[x.a](); },
   aendern(fn) { fn(R.auswahl); R.auswahlAnwenden(); this.zeigen(); },
   alarm() { this.aendern(function (a) { a.alarm = !a.alarm; }); },
   quelle() { this.aendern(function (a) { a.quelle = a.quelle === "foil" ? "manual" : "foil"; }); },
@@ -72,8 +95,7 @@ export default {
   start() { this.aendern(function (a) { a.start = R.dreistufig(a.start); }); },
   direkt() { if (R && R.direkt) { R.direkt.tippen(); this.zeigen(); } },
   wischen(e) {
-    var d = e && e.direction;
-    // In der Liste ist hoch/runter Scrollen — zurueck nur noch mit rechts wischen.
-    if (d === "right") router.replace({ uri: "pages/index/index" });
+    // Rechts wischen = zurueck (AppGallery-Pflicht); hoch/runter blaettert der Swiper selbst.
+    if (e && e.direction === "right") this.zurueck();
   }
 };

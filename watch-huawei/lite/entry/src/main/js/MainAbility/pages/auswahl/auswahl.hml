@@ -1,36 +1,21 @@
 <div class="seite" onswipe="wischen">
     <!-- Einstellungen auf der Uhr wie Zepp-Seite 4/4 (Jan, 08.10.2026). Eigene Seite = eigenes Buendel (die
-         Startseite liegt an der 48-KB-Grenze). Als scrollbare Liste: Lite kennt nur 30/38 px Schrift, auf
-         der schmalen eckigen Uhr passte „Begriff: Wert" nicht in eine Zeile. Je Eintrag oben der Begriff,
-         darunter der Wert (eine Zeile, zu lang endet mit …), zusammen in EINEM div (Watch 3/4: list-item hat nur ein Kind). Tippen schaltet weiter; rechts wischen = zurueck. -->
-    <!-- Krone (AppGallery-Pruefung 18.11.2026 auf GT 6/Fit 5, Regel 3.1): die Liste bekommt in onShow den Kronen-
-         Fokus (rotation), sonst scrollt sie nur per Finger. Lite kennt kein eigenes Kronen-Ereignis. -->
-    <list class="liste" ref="liste">
-        <!-- Sportart vor dem Start (wie Watch 5): nur, wenn das Profil mindestens zwei liefert -->
-        <list-item class="eintrag" if="{{ sportDa }}" onclick="sport">
-            <div class="block"><text class="begriff">{{ bSport }}</text><text class="wert">{{ zSport }}</text></div>
-        </list-item>
-        <list-item class="eintrag" onclick="alarm">
-            <div class="block"><text class="begriff">{{ bAlarm }}</text><text class="wert">{{ zAlarm }}</text></div>
-        </list-item>
-        <list-item class="eintrag" onclick="quelle">
-            <div class="block"><text class="begriff">{{ bQuelle }}</text><text class="wert">{{ zQuelle }}</text></div>
-        </list-item>
-        <list-item class="eintrag" onclick="foil">
-            <div class="block"><text class="begriff">Foil</text><text class="wert">{{ zFoil }}</text></div>
-        </list-item>
-        <list-item class="eintrag" onclick="layouts">
-            <div class="block"><text class="begriff">{{ bLayouts }}</text><text class="wert">{{ zLayouts }}</text></div>
-        </list-item>
-        <list-item class="eintrag" onclick="sperre">
-            <div class="block"><text class="begriff">{{ bSperre }}</text><text class="wert">{{ zSperre }}</text></div>
-        </list-item>
-        <list-item class="eintrag" onclick="start">
-            <div class="block"><text class="begriff">{{ bStart }}</text><text class="wert">{{ zStart }}</text></div>
-        </list-item>
-        <!-- Nur Watch 3/4 (R.direkt aus common/direkt.js): mit pumpfoil.org koppeln, Upload ohne Handy -->
-        <list-item class="eintrag" if="{{ direktDa }}" onclick="direkt">
-            <div class="block"><text class="begriff">pumpfoil.org</text><text class="wert">{{ zDirekt }}</text></div>
-        </list-item>
-    </list>
+         Startseite liegt an der 48-KB-Grenze).
+         AppGallery-Pruefung 23.11.2026 (GT 6/Fit 5, Regel 3.1): aus der Liste kam man nur mit Rechtswischen zurueck,
+         nicht mit der Krone oder Gegenwischen. Deshalb ein senkrechter Swiper statt der Liste: eine Einstellung je
+         Seite (passt auch auf die schmale eckige Uhr), davor Seite 0 = Startseite. Wer zurueck auf Seite 0 wischt oder
+         dreht, landet auf der Startseite — dieselbe Geste wie hinein, nur umgekehrt. Tippen schaltet weiter. -->
+    <swiper class="blaetter" ref="blaetter" vertical="true" loop="false" index="{{ seite }}" onchange="blatt">
+        <div class="blatt">
+            <text class="marke">PUMPFOIL</text>
+        </div>
+        <div class="blatt" for="{{ eintraege }}" onclick="tippen">
+            <text class="begriff">{{ $item.b }}</text>
+            <text class="wert">{{ $item.z }}</text>
+            <text class="nr">{{ $item.n }}</text>
+        </div>
+    </swiper>
+    <!-- Krone: ein unsichtbarer picker-view (Lite gibt die Krone nur list/swiper/picker mit Fokus). Er meldet jeden
+         Rastschritt einzeln — der Swiper selbst brauchte eine weite Drehung je Seite (Pruefer: „not sensitive"). -->
+    <picker-view class="krone" type="text" range="{{ kroneWerte }}" selected="{{ kroneStand }}" onchange="krone"></picker-view>
 </div>
