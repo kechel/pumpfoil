@@ -5872,6 +5872,14 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     kam an Sensorik NUR die GNSS-Stufe dazu. u244s erste drei Sessions (09.–14.08., 1.0.73/74) liefen noch nur mit GPS.
     DM 5677 umgestellt: zuerst „Satellite systems" → „GPS only", dann ggf. „ohne zweites Band" (L5 vs. viele Systeme), plus
     Frage, ob es schon im August einfror. Hilft es: Standard vom Server (seine Uhr / alle Instinct 3, Kappung wie FR55).
+    **23.11. GPS-only-Test: friert trotzdem ein.** #23124 (10:30–11:52, 1.0.105, Token `gnss_mode = gps`), Upload 11:52:57,
+    `app-closed` 11:53:17, danach wieder eingefroren. Die GNSS-Stufe ist damit sehr wahrscheinlich raus (nicht belegt, dass die
+    Uhr den Wert vor der Aufnahme geholt hat). Erste Sessions im August: er meint, ohne Einfrieren, sicher ist er nicht.
+    Gegenprobe Flotte (23.11.): `006-B4585-00` haben 9 Konten; mit Sessions nur u244 (84), u301 (38, alle 1.0.73), u357 (6, 1.0.85,
+    4 ueber 60 min, letzte 23.09.), u234 (3, August), u988 (3, 1.0.101, max 53 min). Andere Instinct-3/E-Kennungen (B4586/87/88):
+    11 Konten, u. a. u489 41 Sessions bis 135 min (1.0.85/86), u1011 bis 173 min (1.0.100). Keine einzige Meldung (Chat an uns,
+    Feedback) ueber Einfrieren/Neustart von diesen Konten — Schweigen ist kein Beleg (Neustart kommt Minuten nach der App).
+    Offen: verwerfen statt speichern, dann Aufnahmemodus „GPS only“ (gar kein Accel).
 
 
 - **🟡 14./15.09. — PeterH (u171) bekommt seit dem 08.09. keinen Puls mehr. Befund: mit hoher
