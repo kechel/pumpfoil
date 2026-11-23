@@ -5861,6 +5861,11 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     **Aufnahme verwerfen statt speichern** — friert sie auch dann ein, ist es nicht die Nachbearbeitung der gespeicherten
     Aktivitaet, sondern der Zustand waehrend der Aufnahme (GPS-Modus/Sensoren). Hinweis: er nimmt „nur um die Laeufe" auf,
     zu Hause also kaum Daten — trotzdem laengere Aufnahme = laenger eingefroren -> eher Garmins eigene Aktivitaet.
+    **23.11. Surfing-Test: friert trotzdem ein.** Aufnahme 20:39–22:07 mit 1.0.105 und `activity_type=surfing` (in den
+    Einstellungen bestaetigt), Absturz 22:19 Uhrzeit. `err_log.bak`: Instinct 3 - 45mm, Software-Teilenummer `006-B4585-01`,
+    Firmware 15.19, „RTL Trap", **RTL Error 0x08b** (Jans fenix 7X: 0x00f — anderer Fehler), PC 0x100019fb, alle Ruecksprung-
+    adressen 0x1000xxxx–0x1003xxxx (Firmware-Bereich, kein erkennbarer App-Rahmen). Der Aktivitaetstyp ist damit
+    widerlegt. Offen: verwerfen statt speichern, dann „GPS only". Danach ggf. Bugreport im CIQ-Forum (Entwurf, Jan postet).
 
 
 - **🟡 14./15.09. — PeterH (u171) bekommt seit dem 08.09. keinen Puls mehr. Befund: mit hoher
