@@ -35,7 +35,8 @@ Atlas beim nächsten Start.
   (`rm`, `rsync --delete` …) ohne Jans OK. `server/data` + `server/media` sind mit den Backups hardgelinkt →
   neu schreiben und tauschen, nie an Ort und Stelle. „Schreib ein Skript“ heißt nur schreiben.
 - **Nie öffentlich oder als Jan posten** (Banner, Social, GitHub, öffentliche Chats): nur Entwürfe. Antworten
-  an Nutzer nur über das eigene Konto (id 230), nach Vorlage.
+  an Nutzer nur über das eigene Konto (id 230), nach Vorlage — **ohne Anrede mit Namen** (Jan: „creepy"), direkt
+  mit dem Inhalt anfangen.
 - **Alte App-Versionen sind im Feld:** Server-Änderungen bleiben abwärtskompatibel zu allen Uhren-/App-
   Fassungen, die noch hochladen. Uhren-Apps nicht ausbauen, nur Fehler beheben.
 - **Qualität vor Tempo:** lange Testläufe vor jeder Einreichung, gegen die Vorfassung mit Zahlen vergleichen,
