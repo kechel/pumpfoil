@@ -1364,6 +1364,11 @@ IDEEN: list[str] = [
     "layout.",
     "An event mode on the watch that shows the stats of the event you are taking part in on their own data page, "
     "automatically while the event runs.",
+    # Vorschlag u1060 (1:1-Chat mit Jan, 23.11.2026); Jan: Zahlen gibt es schon unter Community › Foil-Stats, „a graph
+    # of the distribution surely is some more information, i'll add it to the future ideas list". Fuer „alle Fahrer"
+    # gelten die Grenzen der Foil-Statistik (nur Gesamtzahlen, mehr als drei Fahrer).
+    "A chart of how your speed is spread out, for a session, for one foil of yours, or for a foil across all riders, "
+    "to compare sessions and foils at a glance.",
     # Heart Rate Recovery (ThermikDreher, 14.10.) stand hier ein paar Stunden — am selben Tag als
     # Pulsabfall 60/120 s in der Lauftabelle gebaut, steht im Changelog. Nicht wieder eintragen.
     # Der „private Modus" (Feedback #146) stand hier bis 25.09. — gebaut als „Ort verbergen",
