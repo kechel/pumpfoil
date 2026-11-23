@@ -2344,7 +2344,6 @@ const fi: Record<string, string> = {
   "common.close": "Sulje",
   "dm.botEmpty": "Ei viestejä tässä huoneessa.",
   "dm.botNone": "Avustaja ei ole vielä kirjoittanut mitään.",
-  "dm.botNote": "Kaikki {name}:n keskustelut — vain ylläpito, vain luku. Luku kertoo botin viestit kaikista huoneen viesteistä.",
   "dm.botDeleteConfirm": "Poistetaanko tämä botin viesti?",
   "dm.tabBot": "Botti",
   "foils.defaultSport": "Uusien sessioiden oletuslaji",

@@ -2073,7 +2073,6 @@ const pl: Record<string, string> = {
   "dm.tabMine": "Moje",
   "dm.tabSpots": "Czaty spotów",
   "dm.tabBot": "Bot",
-  "dm.botNote": "Wszystkie czaty od {name} — tylko admin, tylko do odczytu. Liczba pokazuje wiadomości bota na tle wszystkich w pokoju.",
   "dm.botDeleteConfirm": "Usunąć tę wiadomość bota?",
   "dm.botNone": "Asystent nic jeszcze nie napisał.",
   "dm.botEmpty": "Brak wiadomości w tym pokoju.",

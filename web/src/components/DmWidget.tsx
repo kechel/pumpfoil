@@ -39,7 +39,6 @@ export function DmWidget() {
   // niemand versehentlich unter dem Namen des Assistenten schreibt.
   const [isAdmin, setIsAdmin] = useState(false);
   const [botRooms, setBotRooms] = useState<BotRoom[] | null>(null);
-  const [botName, setBotName] = useState<string>("");
   const [botOpen, setBotOpen] = useState<BotRoom | null>(null);
   const [botMsgs, setBotMsgs] = useState<BotMsg[] | null>(null);
   // Schnelle Korrektur einer Bot-Nachricht (Jan, 23.11.2026): id + Entwurf der gerade bearbeiteten Nachricht.
@@ -105,7 +104,7 @@ export function DmWidget() {
   useEffect(() => {
     if (tab !== "bot" || !isAdmin) return;
     api.chatBotRooms()
-      .then((d) => { setBotRooms(d.rooms); setBotName(d.bot.name || ""); })
+      .then((d) => { setBotRooms(d.rooms); })
       .catch(() => { setBotRooms([]); });
   }, [tab, isAdmin]);
   const botSpeichern = () => {
@@ -543,9 +542,6 @@ export function DmWidget() {
                     </div>
                   ) : (
                     <>
-                      <p className="border-b border-slate-800 px-3 py-2 text-xs text-slate-400">
-                        {t("dm.botNote", { name: botName || "—" })}
-                      </p>
                       {botRooms === null && <p className="p-6 text-center text-sm text-slate-400">…</p>}
                       {botRooms?.length === 0 && <p className="p-6 text-center text-sm text-slate-400">{t("dm.botNone")}</p>}
                       {botRooms?.map((r) => (

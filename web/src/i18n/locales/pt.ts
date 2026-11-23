@@ -2335,7 +2335,6 @@ const pt: Record<string, string> = {
   "cls.wasPumpfoil": "Foi pumpfoil sim →",
   "dm.botEmpty": "Nenhuma mensagem nesta sala.",
   "dm.botNone": "O assistente ainda não escreveu nada.",
-  "dm.botNote": "Todos os chats de {name} — só admin, somente leitura. O número mostra as mensagens do bot em relação ao total da sala.",
   "dm.botDeleteConfirm": "Excluir esta mensagem do bot?",
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Esporte padrão para novas sessões",

@@ -2393,7 +2393,6 @@ const nl: Record<string, string> = {
   "cls.wasPumpfoil": "Het was wel degelijk pumpfoil →",
   "dm.botEmpty": "Geen berichten in deze ruimte.",
   "dm.botNone": "De assistent heeft nog niets geschreven.",
-  "dm.botNote": "Alle chats van {name} — alleen admin, alleen lezen. Het getal toont de berichten van de bot op het totaal in de ruimte.",
   "dm.botDeleteConfirm": "Dit botbericht verwijderen?",
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Standaardsport voor nieuwe sessies",

@@ -2309,7 +2309,6 @@ const zh: Record<string, string> = {
   "cls.wasPumpfoil": "这确实是 pumpfoil →",
   "dm.botEmpty": "该聊天室没有消息。",
   "dm.botNone": "助手还没有写过任何内容。",
-  "dm.botNote": "{name} 的全部聊天——仅管理员可见，只读。数字表示机器人消息占聊天室全部消息的数量。",
   "dm.botDeleteConfirm": "删除这条机器人消息？",
   "dm.tabBot": "机器人",
   "foils.defaultSport": "新会话的默认运动",

@@ -2151,7 +2151,6 @@ const deAT: Record<string, string> = {
   "compare.syncSkipped": "{min} min übersprungen",
   "dm.botEmpty": "Keine Nachrichten in dem Raum.",
   "dm.botNone": "Der Assistent hat no nix geschrieben.",
-  "dm.botNote": "Alle Chats von {name} — nur für Admins, rein lesend. Die Zahl zeigt Nachrichten vom Bot von allen im Raum.",
   "dm.botDeleteConfirm": "Diese Nachricht des Bots löschen?",
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Standard-Sportart für neue Sessions",

@@ -2188,7 +2188,6 @@ const en: Record<string, string> = {
   "dm.tabMine": "Mine",
   "dm.tabSpots": "Spot chats",
   "dm.tabBot": "Bot",
-  "dm.botNote": "All chats by {name} — admin only. Bot messages can be corrected or deleted here, double tick = read by the user. The number shows the bot's messages out of all in the room.",
   "dm.botDeleteConfirm": "Delete this bot message?",
   "dm.botNone": "The assistant hasn't written anything yet.",
   "dm.botEmpty": "No messages in this room.",

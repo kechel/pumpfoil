@@ -2140,7 +2140,6 @@ const it: Record<string, string> = {
   "compare.syncSkipped": "{min} min saltati",
   "dm.botEmpty": "Nessun messaggio in questa stanza.",
   "dm.botNone": "L'assistente non ha ancora scritto nulla.",
-  "dm.botNote": "Tutte le chat di {name} — solo admin, sola lettura. Il numero indica i messaggi del bot sul totale della stanza.",
   "dm.botDeleteConfirm": "Eliminare questo messaggio del bot?",
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Sport predefinito per le nuove sessioni",
