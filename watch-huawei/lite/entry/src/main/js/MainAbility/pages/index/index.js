@@ -120,6 +120,8 @@ export default {
     this.sperreTakt(z.modus);
     // Balken nur ausserhalb der Aufnahme: waehrend der Fahrt gehen die Chunks laufend raus und
     // der Balken zappelte zwischen 1/2 und 2/2 — die Zahl in der Zeile reicht dort.
+    // Waehrend des Haltens zeigt derselbe Balken den Fortschritt (Jan, 23.11.2026: Halte-Animation fehlte).
+    if (this.haltAktion) { this.balkenZeigen = true; return this.seiten(); }
     this.balkenZeigen = z.modus === "bereit" && z.offen > 0 && z.plan.gesamt > 0;
     this.balken = z.plan.gesamt > 0 ? Math.floor(100 * z.plan.fertig / z.plan.gesamt) : 0;
     this.seiten();
@@ -214,15 +216,19 @@ export default {
     console.info("Pumpfoil halten " + aktion);
     clearTimeout(this.haltUhr);
     this.haltAktion = aktion;
+    var seit = Date.now();
+    this.balken = 0;
     this.zeigen();
-    this.haltUhr = setTimeout(function () { that.haltAktion = ""; that.ausfuehren(aktion); }, HALTEN_MS);
+    clearInterval(this.haltTakt);
+    this.haltTakt = setInterval(function () { that.balken = Math.min(100, (Date.now() - seit) * 100 / HALTEN_MS | 0); }, 100);
+    this.haltUhr = setTimeout(function () { clearInterval(that.haltTakt); that.haltAktion = ""; that.ausfuehren(aktion); }, HALTEN_MS);
   },
   pauseAktion() { return R.modus === "pause" ? "weiter" : "pause"; },
   pauseHalten() { if (!this.sperre()) this.halteStart(this.pauseAktion()); },
   stoppHalten() { if (!this.sperre()) this.halteStart("stopp"); },
   loslassen() {
     if (this.haltAktion) console.info("Pumpfoil losgelassen");
-    clearTimeout(this.haltUhr);
+    clearTimeout(this.haltUhr); clearInterval(this.haltTakt);
     this.haltAktion = "";
     this.zeigen();
   },

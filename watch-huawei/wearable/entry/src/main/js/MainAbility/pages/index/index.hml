@@ -34,6 +34,7 @@
         <div class="kpause" if="{{ halten }}" ontouchstart="pauseHalten" ontouchend="loslassen" onlongpress="pauseLang">
             <text class="knopftext">{{ tPause }}</text>
         </div>
+        <progress class="balken" type="horizontal" percent="{{ balken }}" if="{{ balkenZeigen }}"></progress>
         <div class="kpause" if="{{ !halten }}" onclick="pauseTipp">
             <text class="knopftext">{{ tPause }}</text>
         </div>
@@ -50,6 +51,7 @@
         <div class="kstopp" if="{{ halten }}" ontouchstart="stoppHalten" ontouchend="loslassen" onlongpress="stoppLang">
             <text class="knopftext">{{ tStopp }}</text>
         </div>
+        <progress class="balken" type="horizontal" percent="{{ balken }}" if="{{ balkenZeigen }}"></progress>
         <div class="kstopp" if="{{ !halten }}" onclick="stoppTipp">
             <text class="knopftext">{{ tStopp }}</text>
         </div>
