@@ -5866,6 +5866,11 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     Firmware 15.19, „RTL Trap", **RTL Error 0x08b** (Jans fenix 7X: 0x00f — anderer Fehler), PC 0x100019fb, alle Ruecksprung-
     adressen 0x1000xxxx–0x1003xxxx (Firmware-Bereich, kein erkennbarer App-Rahmen). Der Aktivitaetstyp ist damit
     widerlegt. Offen: verwerfen statt speichern, dann „GPS only". Danach ggf. Bugreport im CIQ-Forum (Entwurf, Jan postet).
+    **Hauptverdacht (Jan, 23.11.): Satellitenstufe „best"** (alle Systeme + L1/L5, seit 1.0.75 = 13.08.). Zeitverlauf: Sensorik
+    (Puls ueber FIT, Accel 25 Hz Listener + SensorLogger, GPS) lief seit dem ersten Release; bis zur ersten Meldung (12.09.)
+    kam an Sensorik NUR die GNSS-Stufe dazu. u244s erste drei Sessions (09.–14.08., 1.0.73/74) liefen noch nur mit GPS.
+    DM 5677 umgestellt: zuerst „Satellite systems" → „GPS only", dann ggf. „ohne zweites Band" (L5 vs. viele Systeme), plus
+    Frage, ob es schon im August einfror. Hilft es: Standard vom Server (seine Uhr / alle Instinct 3, Kappung wie FR55).
 
 
 - **🟡 14./15.09. — PeterH (u171) bekommt seit dem 08.09. keinen Puls mehr. Befund: mit hoher
