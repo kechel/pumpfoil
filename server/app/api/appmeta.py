@@ -622,7 +622,8 @@ _APP_META: dict[str, dict[str, str]] = {
         # store_url bleibt LEER, und das aendert sich nicht mehr: fuer die Pumpfoil-App im
         # Zepp-Store existiert keine Web-Adresse (Jan, 07.08.) — man kommt nur ueber die
         # Zepp-Handy-App dran, die auf /uhr verlinkt ist (ZeppAppBadges -> App Store / Play).
-        "latest": "1.0.16",  # FREIGEGEBEN 2026-11-20 (Zepp-Mail „The application Pumpfoil (1.0.16) you submitted has been approved and added to the ZEPP app store", Jans Meldung; eingereicht 13.11., sieben Tage). Changelog: 1028 (GPS-Luecke) um zepp 1.0.16 ergaenzt, Ereignis.
+        "latest": "1.0.17",  # FREIGEGEBEN 2026-11-23 (Zepp-Mail „The application Pumpfoil (1.0.17) you submitted has been approved and added to the ZEPP app store", Jans Meldung; eingereicht 20.11., drei Tage). Changelog: GPS-Neustart-Punkt zepp 1.0.17 + Ereignis.
+        # ALT: "latest": "1.0.16",  # FREIGEGEBEN 2026-11-20 (Zepp-Mail „The application Pumpfoil (1.0.16) you submitted has been approved and added to the ZEPP app store", Jans Meldung; eingereicht 13.11., sieben Tage). Changelog: 1028 (GPS-Luecke) um zepp 1.0.16 ergaenzt, Ereignis.
         # ALT: "latest": "1.0.15",  # FREIGEGEBEN 2026-11-11 (Zepp-Mail „The application Pumpfoil (1.0.15) you submitted has been approved and added to the ZEPP app store", Jans Meldung; eingereicht 10.11., ein Tag). Changelog: 2 neue Punkte zepp 1.0.15 + 990 (V-max) um zepp ergaenzt, Ereignis.
         # ALT: "latest": "1.0.14",  # FREIGEGEBEN 2026-10-22 (Zepp-Mail „The application Pumpfoil (1.0.14) you submitted has been approved", Jans Meldung; eingereicht 18.10., vier Tage). Changelog: 596/597/598/628 + zepp, Ereignis.
         # ALT: "latest": "1.0.13",  # FREIGEGEBEN 2026-10-10 (Zepp-Mail „The application Pumpfoil (1.0.13) you submitted has been approved", Jans Meldung; eingereicht 01.10., neun Tage).
@@ -987,13 +988,7 @@ IN_REVIEW: list[dict] = [
          "Glides is now its own map colouring next to Carves and shows each glide in the speed colours, so you can see how you slow down.",
      ]},
     # iPhone + Apple Watch 1.1.67 (Build 78) am 17.11. 06:02 eingereicht, am 17.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte im Changelog mit ios 1.1.67.
-    # Amazfit 1.0.17 (code 20) am 20.11.2026 eingereicht (Jans Meldung, Zepp-Konsole „Under Review (Can be Withdrawn)",
-    # 86 Geraete-Eintraege). Paket aus 1ec78e9a, mit neuer zeus-cli gebaut; Simulator-Session 22612 vollstaendig.
-    {"name": "Amazfit", "version": "1.0.17",
-     "eingereicht": "2026-11-20",
-     "items": [
-         "If the watch loses its GPS position, for example after a fall into the water, the app now restarts positioning on its own instead of waiting, so runs after a fall are recorded again.",
-     ]},
+    # Amazfit 1.0.17 am 20.11. eingereicht, am 23.11. FREIGEGEBEN (s. _APP_META["zepp"]); Punkt im Changelog mit zepp 1.0.17.
     # Amazfit 1.0.16 am 13.11. ~19:00 eingereicht, am 20.11. FREIGEGEBEN (s. _APP_META["zepp"]).
     # Huawei Watch 5 1.0.6 am 13.11.2026 ~16:40 eingereicht (Jans Meldung, AppGallery „Under pre-review"). GT/Fit/D (Lite)
     # liess sich in dieser App nicht auswaehlen („Unavailable") -> eigene App noetig, offen.
