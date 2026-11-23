@@ -5882,6 +5882,8 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     11 Konten, u. a. u489 41 Sessions bis 135 min (1.0.85/86), u1011 bis 173 min (1.0.100). Keine einzige Meldung (Chat an uns,
     Feedback) ueber Einfrieren/Neustart von diesen Konten — Schweigen ist kein Beleg (Neustart kommt Minuten nach der App).
     Offen: verwerfen statt speichern, dann Aufnahmemodus „GPS only“ (gar kein Accel).
+    23.11. (Jans OK): u357 (en), u489 (fr), u988 (pl) vom Assistenten-Konto gefragt, ob ihre Instinct 3 nach Sessions haengt
+    oder neu startet (DM 5698-5700). Antworten abwarten.
 
 
 - **🟡 14./15.09. — PeterH (u171) bekommt seit dem 08.09. keinen Puls mehr. Befund: mit hoher
