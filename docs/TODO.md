@@ -5873,8 +5873,10 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     DM 5677 umgestellt: zuerst „Satellite systems" → „GPS only", dann ggf. „ohne zweites Band" (L5 vs. viele Systeme), plus
     Frage, ob es schon im August einfror. Hilft es: Standard vom Server (seine Uhr / alle Instinct 3, Kappung wie FR55).
     **23.11. GPS-only-Test: friert trotzdem ein.** #23124 (10:30–11:52, 1.0.105, Token `gnss_mode = gps`), Upload 11:52:57,
-    `app-closed` 11:53:17, danach wieder eingefroren. Die GNSS-Stufe ist damit sehr wahrscheinlich raus (nicht belegt, dass die
-    Uhr den Wert vor der Aufnahme geholt hat). Erste Sessions im August: er meint, ohne Einfrieren, sicher ist er nicht.
+    `app-closed` 11:53:17, danach wieder eingefroren. Die GNSS-Stufe ist damit raus. Dass die Uhr wirklich nur GPS nutzte, zeigen
+    die Rohdaten indirekt: drinnen streut die Position um median 61 m (Spruenge bis 128 m, Schein-Tempo 1-1,4 m/s), „Speicher
+    sparen" haelt das fuer Bewegung und behaelt 399 Punkte. Die Heimtests 22.11. mit „best" (#23057, #23111): Streuung 0,5-1 m,
+    nur 18/34 Punkte, alle in den letzten 30 s. (Vorbehalt: falls er herumgelaufen ist, waere ein Teil echt.) Erste Sessions im August: er meint, ohne Einfrieren, sicher ist er nicht.
     Gegenprobe Flotte (23.11.): `006-B4585-00` haben 9 Konten; mit Sessions nur u244 (84), u301 (38, alle 1.0.73), u357 (6, 1.0.85,
     4 ueber 60 min, letzte 23.09.), u234 (3, August), u988 (3, 1.0.101, max 53 min). Andere Instinct-3/E-Kennungen (B4586/87/88):
     11 Konten, u. a. u489 41 Sessions bis 135 min (1.0.85/86), u1011 bis 173 min (1.0.100). Keine einzige Meldung (Chat an uns,
