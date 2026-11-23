@@ -1,10 +1,13 @@
-<div class="seite" onswipe="wischen" onlongpress="entsperren" onclick="seiteTipp">
+<!-- Kein onclick an der Seite (23.11.2026): im Simulator kam an den Halte-Knoepfen nie ein touchstart an, nur
+     longpress — vermutlich schluckt der Klick der Elternseite die Beruehrung (wie am Knopf selbst, s. unten). Der
+     Sperr-Hinweis per Tipp haengt deshalb an der Leinwand (Datenseiten); die Knoepfe pruefen die Sperre selbst. -->
+<div class="seite" onswipe="wischen" onlongpress="entsperren">
     <!-- Ablauf wie Zepp/Wear/Apple (Jan, 08.10.2026: „genauso von der benutzerfuehrung … wie bei
          anderen uhren"). Waehrend der Aufnahme eine Seitenfolge, hoch/runter gewischt:
            [Aktion] [STOPP] [Datenseiten …] [STOPP] [Aktion]   — Start auf der ersten Datenseite.
          Aktion = Pause/Fortsetzen (2 s halten) + Verwerfen (zweimal tippen); STOPP = 2 s halten,
          im Profil-Modus „press" ein Tipp. Rechts wischen: bereit -> App zu, Aufnahme -> STOPP-Seite. -->
-    <canvas ref="leinwand" class="leinwand" if="{{ ansicht === 'daten' }}"></canvas>
+    <canvas ref="leinwand" class="leinwand" if="{{ ansicht === 'daten' }}" onclick="seiteTipp"></canvas>
 
     <!-- Bereit: START tippen, wie auf allen Uhren -->
     <div class="bbereit" if="{{ ansicht === 'bereit' }}">
