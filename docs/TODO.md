@@ -2992,6 +2992,9 @@ von u159 und u394 — nicht angefasst.
   Lauf (Startart beschriftet, z. B. per Tap-Labeling) von mehreren Fahrern, und Vergleich Uhr 25 Hz
   gegen Handy am Brett 100 Hz auf denselben Starts. Detektor-Arbeit -> Jans OK; nicht jetzt.
 - **14.10. — fēnix 7X Pro, Firmware 27.18: Uhr startet MITTEN IM UPLOAD komplett neu (Firmware-Absturz).**
+  **KORREKTUR 23.11. (Jan): die Uhr ist nie abgestuerzt, weder in der App noch sonst.** Da war beim Kopieren per USB
+  etwas schiefgelaufen, ein anderes Problem; die Deutung unten (Firmware-Absturz, err_log) ist falsch. Getauscht
+  wird die Uhr (RMA 18.11., Ersatz verschickt 23.11.) wegen einer prellenden START-Taste.
   Drei Faelle am 14.10. (11:40, 12:28 mit 1.0.93-Testbuild per USB, 13:23 mit **1.0.92 aus dem Store**),
   jedes Mal nach 15–25 hochgeladenen Chunks. `GARMIN/Debug/err_log.bak`: „RTL Trap errnum 0x00f",
   Absturzadresse `0x10001fcf` und Stack in allen Faellen identisch -> Firmware, nicht unsere App
@@ -5864,7 +5867,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     zu Hause also kaum Daten — trotzdem laengere Aufnahme = laenger eingefroren -> eher Garmins eigene Aktivitaet.
     **23.11. Surfing-Test: friert trotzdem ein.** Aufnahme 20:39–22:07 mit 1.0.105 und `activity_type=surfing` (in den
     Einstellungen bestaetigt), Absturz 22:19 Uhrzeit. `err_log.bak`: Instinct 3 - 45mm, Software-Teilenummer `006-B4585-01`,
-    Firmware 15.19, „RTL Trap", **RTL Error 0x08b** (Jans fenix 7X: 0x00f — anderer Fehler), PC 0x100019fb, alle Ruecksprung-
+    Firmware 15.19, „RTL Trap", **RTL Error 0x08b**, PC 0x100019fb, alle Ruecksprung-
     adressen 0x1000xxxx–0x1003xxxx (Firmware-Bereich, kein erkennbarer App-Rahmen). Der Aktivitaetstyp ist damit
     widerlegt. Offen: verwerfen statt speichern, dann „GPS only". Danach ggf. Bugreport im CIQ-Forum (Entwurf, Jan postet).
     **Hauptverdacht (Jan, 23.11.): Satellitenstufe „best"** (alle Systeme + L1/L5, seit 1.0.75 = 13.08.). Zeitverlauf: Sensorik
