@@ -896,6 +896,13 @@ BEKANNTE_PROBLEME: list[dict] = []
 
 
 ABGELEHNT: list[dict] = [
+    {"name": "Huawei Watch GT / Fit / D", "version": "1.0.6",
+     # AppGallery, Pruefbericht 2026-11-23 (Regel 3.1, GT 6 + Fit 5): Start ~3 s, Wechsel Start <-> Einstellungen
+     # zaeh, Krone auf dem Start „not sensitive", aus den Einstellungen nur per Rechtswischen zurueck. Fix in 1.0.7
+     # (docs/TODO.md Einreichungs-Protokoll).
+     "abgelehnt": "2026-11-23",
+     "grund": "the review asked for a faster start, smoother page changes and better crown support; "
+              "fixed for the next version"},
     # Huawei Watch 5 1.0.3 (abgelehnt 02.11.: Krone falsch herum, Rechtswischen) am 04.11. FREIGEGEBEN -> raus.
     {"name": "Android phone + Wear OS", "version": "1.1.40 / 1.2.40",
      # Google, 09.10.2026 (Jans Meldung): „Wear app functionality not working as described …
@@ -996,11 +1003,7 @@ IN_REVIEW: list[dict] = [
     # 13.11.2026 ~17:10 eingereicht, am 18.11. ABGELEHNT (Krone, STOPP-Halten, Rechtswischen; Fix 17d86201/f50d5d29),
     # am 18.11.2026 12:28 (Pekinger Zeit) als 1.0.6 NEU eingereicht (Jans Meldung, „Under pre-review"). Upload ueber
     # Android 1.1.49 (am 19.11. eingereicht).
-    {"name": "Huawei Watch GT / Fit / D", "version": "1.0.6",
-     "eingereicht": "2026-11-18",
-     "items": [
-         "New: HUAWEI WATCH GT, Fit and D record pump foiling sessions and upload them through the Pumpfoil app for Android.",
-     ]},
+    # Pumpfoil GT 1.0.6 am 23.11. erneut ABGELEHNT -> ABGELEHNT; Nachfolger 1.0.7 in NAECHSTES.
     # Huawei Watch 5 1.0.6 am 18.11. FREIGEGEBEN (s. _APP_META["huawei-watch5"]); Wisch-Punkt neu im Changelog, GPS-Luecke an #1028.
     # 12.11.2026: GPS-Luecke am Lauf-Ende (LaufLuecke.mc, baf2244d/bddabe64), im Simulator auf fenix 7X Pro, FR55 und
     # Instinct 2 getestet. Version 1.0.103 fuer die Einreichung gebumpt.
@@ -1148,6 +1151,11 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    # 23.11.2026: Pumpfoil GT 1.0.7 (1000007) fertig fuer die Neueinreichung (Fixes zum Pruefbericht 23.11.).
+    {"name": "Huawei Watch GT / Fit / D", "version": "1.0.7",
+     "items": [
+         "New: HUAWEI WATCH GT, Fit and D record pump foiling sessions and upload them through the Pumpfoil app for Android.",
+     ]},
     # Garmin 1.0.103 am 12.11. eingereicht -> IN_REVIEW.
     # Garmin 1.0.99 am 03.11. eingereicht -> IN_REVIEW.
     # Huawei Watch 5 1.0.4 am 04.11. eingereicht -> IN_REVIEW.
