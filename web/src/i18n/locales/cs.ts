@@ -2393,6 +2393,7 @@ const cs: Record<string, string> = {
   "dm.botEmpty": "V této místnosti nejsou žádné zprávy.",
   "dm.botNone": "Asistent zatím nic nenapsal.",
   "dm.botNote": "Všechny chaty od {name} — jen admin, pouze ke čtení. Číslo ukazuje zprávy bota ze všech v místnosti.",
+  "dm.botDeleteConfirm": "Smazat tuto zprávu bota?",
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Výchozí sport pro nové vyjížďky",
   "foils.defaultSportHint": "Platí jen pro budoucí nahrávky — stávající vyjížďky zůstávají, jak jsou. Volba přímo v hodinkách přijde později.",

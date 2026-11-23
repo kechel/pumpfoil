@@ -137,6 +137,8 @@ export interface BotMsg {
   id: number; user_id: number; name: string; avatar_url: string | null;
   text: string; hidden: boolean; is_bot: boolean; created_at: string | null;
   photos?: ChatPhoto[];
+  /** Nur Bot-Nachrichten im 1:1-Chat: hat der Nutzer sie schon gelesen? */
+  read?: boolean;
 }
 
 export interface TransferSessionBrief { id: number; place: string | null; water: string | null; started_at: string | null; sport: string; foiling_time_s: number | null; }
@@ -1538,6 +1540,8 @@ export const api = {
   // Audit-Sicht auf den KI-Assistenten (nur Admin, rein lesend): welche Raeume, welcher Verlauf.
   chatBotRooms: () => req<{ bot: { id: number; name: string | null }; rooms: BotRoom[] }>(`/api/chat/bot/rooms`),
   chatBotMessages: (scope: string) => req<BotMsg[]>(`/api/chat/bot/messages?scope=${encodeURIComponent(scope)}`),
+  chatBotEdit: (id: number, text: string) => req<{ ok: boolean; id: number; text: string }>(`/api/chat/bot/messages/${id}`, { method: "PATCH", body: JSON.stringify({ text }) }),
+  chatBotDelete: (id: number) => req<{ ok: boolean; id: number }>(`/api/chat/bot/messages/${id}`, { method: "DELETE" }),
   transferInitiate: (sessionId: number, toUserId: number) => req<Transfer>(`/api/transfers`, { method: "POST", body: JSON.stringify({ session_id: sessionId, to_user_id: toUserId }) }),
   transfersIncoming: () => req<Transfer[]>(`/api/transfers/incoming`),
   transferForSession: (sessionId: number) => req<Transfer | Record<string, never>>(`/api/transfers/for-session/${sessionId}`),

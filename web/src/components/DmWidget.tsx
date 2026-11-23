@@ -4,7 +4,7 @@ import { passtZu } from "../lib/suche";
 import { api, BotMsg, BotRoom, ChatRoom, DmUser } from "../lib/api";
 import { istSelbstPop } from "../lib/selfPop";
 import { Avatar } from "./ui";
-import { BellIcon, CameraIcon, ChatBubbleIcon, CloseIcon, FlagIcon, LocationIcon, MaximizeIcon, MinimizeIcon } from "./Icons";
+import { BellIcon, CameraIcon, ChatBubbleIcon, CheckIcon, CloseIcon, DoubleCheckIcon, EditIcon, FlagIcon, LocationIcon, MaximizeIcon, MinimizeIcon, TrashIcon } from "./Icons";
 import { FotoStapel } from "./FotoStapel";
 import { Chat } from "./Chat";
 import { useT } from "../i18n";
@@ -42,6 +42,8 @@ export function DmWidget() {
   const [botName, setBotName] = useState<string>("");
   const [botOpen, setBotOpen] = useState<BotRoom | null>(null);
   const [botMsgs, setBotMsgs] = useState<BotMsg[] | null>(null);
+  // Schnelle Korrektur einer Bot-Nachricht (Jan, 23.11.2026): id + Entwurf der gerade bearbeiteten Nachricht.
+  const [botEdit, setBotEdit] = useState<{ id: number; text: string } | null>(null);
   const [allSpots, setAllSpots] = useState<SpotRow[]>([]);
   const [active, setActive] = useState<Active | null>(null);
   const [q, setQ] = useState("");
@@ -106,8 +108,21 @@ export function DmWidget() {
       .then((d) => { setBotRooms(d.rooms); setBotName(d.bot.name || ""); })
       .catch(() => { setBotRooms([]); });
   }, [tab, isAdmin]);
+  const botSpeichern = () => {
+    if (!botEdit || !botEdit.text.trim()) return;
+    const { id, text } = botEdit;
+    api.chatBotEdit(id, text)
+      .then((d) => { setBotMsgs((ms) => ms?.map((m) => m.id === id ? { ...m, text: d.text } : m) ?? ms); setBotEdit(null); })
+      .catch((e) => alert(String(e?.message || e)));
+  };
+  const botLoeschen = (m: BotMsg) => {
+    if (!confirm(t("dm.botDeleteConfirm"))) return;
+    api.chatBotDelete(m.id)
+      .then(() => setBotMsgs((ms) => ms?.filter((x) => x.id !== m.id) ?? ms))
+      .catch((e) => alert(String(e?.message || e)));
+  };
   const openBotRoom = (r: BotRoom) => {
-    setBotOpen(r); setBotMsgs(null);
+    setBotOpen(r); setBotMsgs(null); setBotEdit(null);
     api.chatBotMessages(r.scope).then(setBotMsgs).catch(() => setBotMsgs([]));
   };
   useEffect(() => {
@@ -477,6 +492,7 @@ export function DmWidget() {
                       <div className="flex items-center gap-2 border-b border-slate-800 px-3 py-2">
                         <button onClick={() => { setBotOpen(null); setBotMsgs(null); }}
                           className="shrink-0 text-slate-400 hover:text-slate-200" aria-label={t("dm.back")}>←</button>
+                        {botOpen.other && <Avatar name={botOpen.other.name} url={botOpen.other.avatar_url} userId={botOpen.other.id} size={28} immerLink />}
                         <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-100">
                           {botOpen.other?.name || botOpen.label}
                         </span>
@@ -495,8 +511,30 @@ export function DmWidget() {
                                 <span className="pf-name truncate font-medium">{m.name}</span>
                                 <span className="shrink-0">{m.created_at ? new Date(m.created_at).toLocaleString() : ""}</span>
                                 {m.hidden && <span className="shrink-0 rounded bg-slate-700/60 px-1">{t("adm.chat.hidden")}</span>}
+                                {m.read !== undefined && (m.read
+                                  ? <span role="img" aria-label={t("chat.read")} title={t("chat.read")} className="shrink-0 text-brand-600 dark:text-brand-300"><DoubleCheckIcon className="h-4 w-4" /></span>
+                                  : <span role="img" aria-label={t("chat.sent")} title={t("chat.sent")} className="shrink-0 text-slate-500"><CheckIcon className="h-4 w-4" /></span>)}
+                                {m.is_bot && botEdit?.id !== m.id && (
+                                  <span className="ml-auto flex shrink-0 items-center gap-1">
+                                    <button onClick={() => setBotEdit({ id: m.id, text: m.text })} title={t("chat.edit")} aria-label={t("chat.edit")}
+                                      className="rounded p-0.5 text-slate-400 hover:text-brand-600 dark:hover:text-brand-300"><EditIcon className="h-4 w-4" /></button>
+                                    <button onClick={() => botLoeschen(m)} title={t("chat.delete")} aria-label={t("chat.delete")}
+                                      className="rounded p-0.5 text-slate-400 hover:text-red-400"><TrashIcon className="h-4 w-4" /></button>
+                                  </span>
+                                )}
                               </div>
-                              {m.text && <div className="whitespace-pre-wrap break-words">{m.text}</div>}
+                              {botEdit?.id === m.id ? (
+                                <div className="space-y-1">
+                                  <textarea value={botEdit.text} onChange={(e) => setBotEdit({ id: m.id, text: e.target.value })}
+                                    rows={Math.min(14, Math.max(4, botEdit.text.split("\n").length + 1))} autoFocus
+                                    className="w-full rounded-lg border border-slate-700 bg-slate-900 p-2 text-sm text-slate-100" />
+                                  <div className="flex justify-end gap-2 text-xs">
+                                    <button onClick={() => setBotEdit(null)} className="rounded-lg px-2 py-1 text-slate-400 hover:text-slate-200">{t("common.cancel")}</button>
+                                    <button onClick={botSpeichern} disabled={!botEdit.text.trim()}
+                                      className="rounded-lg bg-brand-500 px-2 py-1 font-medium text-slate-950 hover:bg-brand-400 disabled:opacity-50">{t("common.save")}</button>
+                                  </div>
+                                </div>
+                              ) : m.text && <div className="whitespace-pre-wrap break-words">{m.text}</div>}
                               {m.photos && m.photos.length > 0 && <FotoStapel photos={m.photos} name={m.name} avatarUrl={m.avatar_url} />}
                             </div>
                           </div>

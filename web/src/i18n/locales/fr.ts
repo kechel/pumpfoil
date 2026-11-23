@@ -2143,6 +2143,7 @@ const fr: Record<string, string> = {
   "dm.botEmpty": "Aucun message dans ce salon.",
   "dm.botNone": "L'assistant n'a encore rien écrit.",
   "dm.botNote": "Toutes les discussions de {name} — admin seulement, lecture seule. Le nombre indique les messages du bot sur le total du salon.",
+  "dm.botDeleteConfirm": "Supprimer ce message du bot ?",
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Sport par défaut pour les nouvelles sessions",
   "foils.defaultSportHint": "S'applique uniquement aux futurs enregistrements — les sessions existantes restent telles quelles. Le choix sur la montre viendra plus tard.",

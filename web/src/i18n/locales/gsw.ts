@@ -2151,6 +2151,7 @@ const gsw: Record<string, string> = {
   "dm.botEmpty": "Kei Nachrichte i dem Ruum.",
   "dm.botNone": "De Assistänt hät no nüt gschribe.",
   "dm.botNote": "Alli Chats vo {name} — nur für Admins, rein läsend. D Zahl zeigt Nachrichte vom Bot vo allne im Ruum.",
+  "dm.botDeleteConfirm": "Die Nachricht vom Bot lösche?",
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Standard-Sportart für neui Sessions",
   "foils.defaultSportHint": "Gilt nur für künftigi Ufnahme — bestehendi Sessions bliebed, wie sie sind. Uf de Uhr uswählbar wird das spöter.",

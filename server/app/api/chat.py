@@ -1115,11 +1115,62 @@ def bot_messages(
         .order_by(models.ChatMessage.id.desc()).limit(lim).all()
     )
     fotos = _photos_for(db, [m.id for m, _n, _a in rows])
+    # Im 1:1-Chat: bis wohin der Nutzer gelesen hat — damit man vor einer Korrektur sieht, ob er die Nachricht schon kennt.
+    gelesen_bis = None
+    if parts is not None:
+        oid = parts[1] if bot.id == parts[0] else parts[0]
+        st = db.query(models.ChatRoomState).filter_by(user_id=oid, scope=scope).first()
+        gelesen_bis = st.last_read_id if st else 0
     return [{"id": m.id, "user_id": m.user_id, "name": name, "avatar_url": avatar,
              "text": m.text, "hidden": bool(m.hidden), "is_bot": m.user_id == bot.id,
              "created_at": m.created_at.isoformat() if m.created_at else None,
-             "photos": fotos.get(m.id, [])}
+             "photos": fotos.get(m.id, []),
+             **({"read": m.id <= gelesen_bis} if gelesen_bis is not None and m.user_id == bot.id else {})}
             for m, name, avatar in reversed(rows)]
+
+
+def _bot_nachricht(db: Session, message_id: int) -> models.ChatMessage:
+    """Eine Nachricht DES BOTS — nur die darf ein Admin hierueber aendern, keine fremde."""
+    m = db.get(models.ChatMessage, message_id)
+    if m is None or m.user_id != _bot_user(db).id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Keine Bot-Nachricht")
+    return m
+
+
+class BotEditIn(BaseModel):
+    text: str
+
+
+@router.patch("/bot/messages/{message_id}")
+def bot_edit(
+    message_id: int, body: BotEditIn,
+    _admin: models.User = Depends(current_admin), db: Session = Depends(get_db),
+) -> dict:
+    """Nur Admin: Text einer Bot-Nachricht korrigieren (Jan, 23.11.2026: schnelle Korrekturen aus dem Bot-Reiter).
+    Ohne die 1-h-Grenze eigener Nachrichten — ob der Nutzer sie schon gelesen hat, zeigt `read` in /bot/messages."""
+    m = _bot_nachricht(db, message_id)
+    text = (body.text or "").strip()[:2000]
+    if not text and not _hat_fotos(db, m.id):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Leerer Text")
+    m.text = text
+    db.commit()
+    return {"ok": True, "id": m.id, "text": m.text}
+
+
+@router.delete("/bot/messages/{message_id}")
+def bot_delete(
+    message_id: int,
+    _admin: models.User = Depends(current_admin), db: Session = Depends(get_db),
+) -> dict:
+    """Nur Admin: eine Bot-Nachricht loeschen (samt Bildern)."""
+    m = _bot_nachricht(db, message_id)
+    urls = _fotos_weg(db, m.id)
+    db.delete(m)
+    db.commit()
+    from ..media import delete_media
+    for u in urls:
+        delete_media(u)
+    return {"ok": True, "id": message_id}
 
 
 def _visible_author_fuer(user: models.User):

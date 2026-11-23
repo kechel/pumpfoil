@@ -2141,6 +2141,7 @@ const it: Record<string, string> = {
   "dm.botEmpty": "Nessun messaggio in questa stanza.",
   "dm.botNone": "L'assistente non ha ancora scritto nulla.",
   "dm.botNote": "Tutte le chat di {name} — solo admin, sola lettura. Il numero indica i messaggi del bot sul totale della stanza.",
+  "dm.botDeleteConfirm": "Eliminare questo messaggio del bot?",
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Sport predefinito per le nuove sessioni",
   "foils.defaultSportHint": "Vale solo per le registrazioni future — le sessioni esistenti restano come sono. La scelta sull'orologio arriverà più avanti.",

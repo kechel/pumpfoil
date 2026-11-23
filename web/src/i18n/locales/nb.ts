@@ -2534,6 +2534,7 @@ const nb: Record<string, string> = {
   "dm.botEmpty": "Ingen meldinger i dette rommet.",
   "dm.botNone": "Assistenten har ikke skrevet noe ennå.",
   "dm.botNote": "Alle chatter fra {name} — kun admin, skrivebeskyttet. Tallet viser botens meldinger av alle i rommet.",
+  "dm.botDeleteConfirm": "Slette denne meldingen fra boten?",
   "dm.tabBot": "Bot",
   "guide.settings.gnss": "Standard er det beste klokka di får til — alle systemer over to frekvensbånd. Det finner posisjonen din raskest og holder best på den, men det koster virkelig batteri. «Uten andre frekvensbånd» beholder alle systemene og dropper bare det dyre ekstrabåndet: mest spart for minst tapt.",
   "guide.settings.gnssTitle": "Satellittsystemer (kun Garmin):",

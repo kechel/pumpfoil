@@ -2336,6 +2336,7 @@ const id: Record<string, string> = {
   "dm.botEmpty": "Tidak ada pesan di ruang ini.",
   "dm.botNone": "Asisten belum menulis apa pun.",
   "dm.botNote": "Semua obrolan dari {name} — hanya admin, hanya baca. Angkanya menunjukkan pesan bot dari seluruh pesan di ruang.",
+  "dm.botDeleteConfirm": "Hapus pesan bot ini?",
   "dm.tabBot": "Bot",
   "foils.defaultSport": "Olahraga bawaan untuk sesi baru",
   "foils.defaultSportHint": "Hanya berlaku untuk rekaman berikutnya — sesi yang sudah ada tetap seperti apa adanya. Memilihnya di jam akan menyusul.",

@@ -2307,6 +2307,7 @@ const ja: Record<string, string> = {
   "dm.botEmpty": "このルームにメッセージはありません。",
   "dm.botNone": "アシスタントはまだ何も書いていません。",
   "dm.botNote": "{name} のすべてのチャット — 管理者のみ、読み取り専用。数字はルーム全体のうちボットのメッセージ数です。",
+  "dm.botDeleteConfirm": "このボットのメッセージを削除しますか？",
   "dm.tabBot": "ボット",
   "foils.defaultSport": "新しいセッションの既定競技",
   "foils.defaultSportHint": "今後の記録にのみ適用されます — 既存のセッションはそのままです。時計上での選択は後日対応します。",
