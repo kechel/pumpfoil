@@ -2914,6 +2914,13 @@ export default function SessionDetail() {
         {/* 3. Abspielen: Strecke über die Zeit aufzeichnen (gesamt oder gewählter Lauf). */}
         {playTimeline.length >= 2 && (
           <div className={`flex flex-wrap items-center gap-2 ${fullscreen ? "shrink-0 bg-slate-950 px-2 pt-1" : "mt-2"}`}>
+            {/* Media (24.11.2026, docs/MEDIA.md): Overlay-Video in eigener Ansicht; der gewaehlte Lauf wird mitgegeben. */}
+            {owned && !isPublic && !fullscreen && (
+              <Link to={`/sessions/${session.id}/media${selectedRun != null ? `?lauf=${selectedRun}` : ""}`}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1 text-sm font-semibold text-slate-200 hover:bg-slate-700">
+                <VideoIcon className="h-4 w-4" /> {t("media.button")}
+              </Link>
+            )}
             <button
               onClick={togglePlay}
               className="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-1 text-sm font-semibold text-slate-950 hover:bg-brand-400"

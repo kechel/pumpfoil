@@ -1189,6 +1189,10 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
 
 ## 💡 Backlog (Produktideen — bewusst später)
 
+- **Media: Video-Overlay + Musik aus dem Lauf** (Jan, 24.11.2026) — Knopf „Media" in den Session-Details, eigene
+  Ansicht `/sessions/<id>/media`, durchsichtiges Overlay-Video im Browser, spaeter Strudel-Musik aus Pumps/Tempo/
+  Sprints/Carves mit Link zu strudel.cc. Plan und Stand: [docs/MEDIA.md](MEDIA.md). Schritt 1 (MVP) gebaut 24.11., live im Web.
+
 - **Heart Rate Recovery (HRR)** (14.10.2026, Nutzerfrage ThermikDreher im 1:1-Chat). **Web gebaut
   14.10.:** Spalten Pulsabfall 60/120 s in der Lauftabelle (SessionDetail, aus track-times). Offen:
   Android/iOS-Lauftabelle, Erweiterungen je nach ThermikDrehers Antwort. Urspruenglich: wie schnell der Puls nach jedem Lauf wieder faellt, z. B. Abfall nach 30/60 s

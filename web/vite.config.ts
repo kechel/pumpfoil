@@ -47,7 +47,7 @@ export default defineConfig({
         // kommen bei Bedarf über runtimeCaching (static-img, unten).
         globPatterns: ["**/*.{js,css,html,svg,woff2}"],
         // Flaggen (02.11.2026, ~250 SVG, 2,8 MB) nicht vorab cachen — nur beim Teilen und im Profil gebraucht.
-        globIgnores: ["flags/**"],
+        globIgnores: ["flags/**", "assets/media-*.js"],   // media-*: Video-Muxer nur bei Bedarf (docs/MEDIA.md)
         // Das App-Bundle hat 2026-07-26 die Workbox-Standardgrenze von 2 MiB überschritten →
         // Build brach ab und der SW wäre ohne App-Shell ausgeliefert worden (kein Offline).
         // Grenze hochgezogen; TODO bleibt: das Bundle per Code-Splitting kleiner machen.
@@ -274,5 +274,12 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
+    rollupOptions: {
+      output: {
+        // Media-Ansicht (docs/MEDIA.md): der Video-Muxer bekommt einen festen Namen, damit ihn `globIgnores` aus dem
+        // Precache halten kann — ~0,8 MB, die nur braucht, wer ein Video erzeugt.
+        manualChunks: (id) => (id.includes("node_modules/mediabunny/") ? "media-mediabunny" : undefined),
+      },
+    },
   },
 });

@@ -89,6 +89,7 @@ const SessionDetail = seite(() => import("./pages/SessionDetail"));
 const PublicSession = seite(() => import("./pages/PublicSession"));
 const Compare = seite(() => import("./pages/Compare"));
 const Labeling = seite(() => import("./pages/Labeling"));
+const SessionMedia = seite(() => import("./pages/SessionMedia"));
 const Impressum = seite(() => import("./pages/Impressum"));
 const Warum = seite(() => import("./pages/Warum"));
 const Datenloeschung = seite(() => import("./pages/Datenloeschung"));
@@ -328,6 +329,7 @@ const router = createBrowserRouter([
           { path: "vergleich", element: <Compare /> },
           { path: "sessions/:id", element: <SessionDetail /> },
           { path: "sessions/:id/label", element: <Labeling /> },
+          { path: "sessions/:id/media", element: <SessionMedia /> },
           { path: "admin", element: <Admin /> },
         ],
       },
