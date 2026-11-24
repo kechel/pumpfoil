@@ -18,7 +18,8 @@ This changelog covers the Zepp OS watch app only.
   (5 Abstuerze, alle Phase 4). Jetzt gehen `uploadBatch` Chunks (Server-CONFIG, Standard 25, Server-Hoechstwert 30, 1 = alter Weg) ueber
   app-side `CHUNKS` an `/ingest/session/{uuid}/chunks` (seit 29.09. am Server). Gleiche Chunks, Indizes, Resume;
   26 min bei 100 Hz = 55 statt 1330 Anfragen. Test tests/sammelupload.test.mjs (Einzel- und Sammelweg liefern
-  byte-gleiche Chunks). Nicht im Simulator/auf der Uhr.
+  byte-gleiche Chunks). **Simulator 24.11. (Jan, `npm run dev`, T-Rex 3):** #23237, 27 GPS + 51 Accel lueckenlos in
+  5 Anfragen (25, 2, 25, 25, 1) in 5,1 s, analysiert. Echte Uhr offen.
 
 ## 1.0.17 — gebaut am 15.11.2026 (code 20), Einreichung bei Jan (1.0.16 noch im Review)
 

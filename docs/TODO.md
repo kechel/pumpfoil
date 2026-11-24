@@ -1566,7 +1566,8 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   **Leck je Anfrage.** App-Laeufe von #23152 (Server-Zeiten): 312+23+6, 296+23+6, 141+159+23+5 Anfragen, dann tot —
   ~330 je Lauf, unabhaengig vom Startblock; davor Luecken 20-35 s. **Umgesetzt:** Sammel-Upload (`uploadBatch` im
   CONFIG nur fuer Zepp, Server `ZEPP_UPLOAD_SAMMEL` Standard 25, Env-Schalter; app-side `CHUNKS`), Tests
-  watch-zepp/tests/sammelupload.test.mjs + server/tests/test_zepp_upload_batch.py. Offen: Simulator + echte Uhr, Release.
+  watch-zepp/tests/sammelupload.test.mjs + server/tests/test_zepp_upload_batch.py. Simulator ok (#23237: 78 Chunks in 5
+  Anfragen, 5,1 s). 1.0.18 (code 21) gebumpt, appmeta NAECHSTES. Offen: Build/Einreichung, dann echte Active 2 (u439).
   **Verdaechtige fuer das Leck (gelesen in @zeppos/zml 0.0.43, nicht bewiesen):**
   1. Seite -> App: `BasePage.request` meldet je Anfrage zwei Listener mit Zufallsschluessel an (`@zos/app` onMessage
      „response:result:<12 Ziffern>") und ruft `offMessage(key)` OHNE Callback — ob das die Listener wirklich loest, ist
