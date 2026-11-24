@@ -39,7 +39,7 @@ Sekunden, keine Einzelwerte. 10 min gecacht.
 | Schritt | Stand |
 |---|---|
 | 1. Spalte, Rechnen, API, Home › Stats › Tempo | ✅ 24.11.2026 live (Web) |
-| Bestand nachtragen (`tempo-hist-nachtragen.py --echt`, ~22.000 Analysen) | offen — Jan startet (die Abrufe füllen bis dahin selbst nach) |
+| Bestand nachtragen (`tempo-hist-nachtragen.py --echt`, 21.337 Analysen) | ✅ 24.11.2026 (105 s) |
 | 2. Session-Details: Streifen je Session / je Lauf | offen |
 | 3. Community › Foil-Stats › Foil: alle Fahrer + eigene Kurve | offen (API steht schon: `/api/tempo/foil/{id}`) |
 | Native Apps (Parität) | offen |
