@@ -1549,6 +1549,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 24.11.2026 — Amazfit Active 2 (u439, 1.0.17): Abstuerze im Upload, 100 Hz Accel
+
+- **Meldung (Chat):** 3 unerwartete Beendigungen (2 auf dem Wasser), „out of memory" auch beim Exportieren;
+  Aufnahmen kamen trotzdem an. Wunsch: Hinweis „Sperre loesen" + „Uhr ueber den Neopren"; Erklaerung der Werte.
+- **Server-Befund:** #23151 (3 min) und #23152 (26 min) vollstaendig, 0 Laeufe (10 Startversuche, Anfaenger).
+  `device_crashes` u439: 5x `lauf`, **alle Phase 4 = Upload**, 23.11. 17:54-19:12; Upload von #23152 dauerte
+  17:58-19:14. mem_peak 1742 von 3072 KB. **Accel 100 Hz gemessen** (`FREQ_MODE_HIGH`): 160 277 Proben = 1253
+  Accel-Chunks fuer 26 min. Andere Modelle liefern bei HIGH ~25 Hz (T-Rex 3, Active 3 Premium, T-Rex 3 Pro);
+  100 Hz auch Active 2 (u346 1.0.8: 61-113) und Balance (u409/u603). Dieselbe Uhr meldete am 22.09. schon OOM bei Block 108.
+- **Vorschlag (Uhren-Fehlerbehebung, Jans OK noetig):** auf der Uhr auf ~25 Hz ausduennen, wenn die gemessene Rate
+  > 40 Hz ist (jede 4. Probe bzw. Mittel) — Datei, Chunks und BLE-Verkehr / 4, Server unveraendert (rechnet mit
+  der gemeldeten Rate). Sofort ohne neue Fassung: Profil „lite" (`FREQ_MODE_NORMAL`, bei ihm am 14.10. 41 Hz).
+- **Hilfe-Texte:** Sperre/Neopren als Hinweis in Uhr-Anleitung (Einstellungen › Uhren › Anleitung) pruefen.
+
 ### 22.11.2026 — Alte Uhren-Versionen anschreiben (WARTET auf den 1.0.105-Test von u244)
 **22.11. abends: Test da, 1.0.105 behebt den Instinct-3-Neustart nicht** (s. Eintrag u244). Fuer das Anschreiben heisst das nur:
 „Instinct-Fix" nicht als Grund nennen; Entscheidung Jan.
