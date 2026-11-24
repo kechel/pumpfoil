@@ -10,6 +10,16 @@ This changelog covers the Zepp OS watch app only.
 > and possibly after the upload — it is listed under 1.0.7. **Keep this file current with every
 > bump**, then nobody has to dig through commits again.
 
+## Naechste Fassung (noch ohne Nummer, Version erst beim Release bumpen)
+
+- **Sammel-Upload: mehrere Chunks je Anfrage** (24.11.2026, Befund u439, Active 2, 1.0.17): Server-Zeitachse von #23152
+  — jeder App-Lauf starb nach ~325-340 Einzel-Anfragen, egal bei welchem Block er anfing; davor wurden die Anfragen
+  langsamer (Luecken 20-35 s = „server unreachable"). Das ist ein Leck je Anfrage, nicht die Groesse der Aufnahme
+  (5 Abstuerze, alle Phase 4). Jetzt gehen `uploadBatch` Chunks (Server-CONFIG, Standard 10, 1 = alter Weg) ueber
+  app-side `CHUNKS` an `/ingest/session/{uuid}/chunks` (seit 29.09. am Server). Gleiche Chunks, Indizes, Resume;
+  26 min bei 100 Hz = 133 statt 1330 Anfragen. Test tests/sammelupload.test.mjs (Einzel- und Sammelweg liefern
+  byte-gleiche Chunks). Nicht im Simulator/auf der Uhr.
+
 ## 1.0.17 — gebaut am 15.11.2026 (code 20), Einreichung bei Jan (1.0.16 noch im Review)
 
 - **GPS-Neustart nach Funkstille** (15.11.2026): Die App startete den GPS-Sensor genau einmal beim Oeffnen der Seite.

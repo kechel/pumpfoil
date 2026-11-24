@@ -228,6 +228,10 @@ ACCEL_WAKEUP_DEFAULT = "off"
 # "on"; die Schalter sind NOTBREMSEN, falls eine Uhr damit Aerger macht. Der alte `accelWakeup` gilt
 # fuer 1.2.40 nicht mehr (Wake-up OHNE Batching wuergte das GPS ab, u818/u574) und bleibt nur fuer
 # aeltere Apps stehen.
+# Zepp: Chunks je Upload-Anfrage ueber den Sammel-Endpunkt (/ingest/session/{uuid}/chunks, max 30). Befund 24.11.2026
+# (u439, Active 2): die App starb nach ~330 Einzel-Anfragen (Leck je BLE-Anfrage in Zepp/zml vermutet), 26 min Aufnahme
+# = 1330 Anfragen bei ~1/s. 1 = alter Weg (ein Chunk je Anfrage). Nur Zepp bekommt den Schluessel.
+ZEPP_UPLOAD_SAMMEL = max(1, min(30, int(os.environ.get("ZEPP_UPLOAD_SAMMEL", "10") or 10)))
 ACCEL_BATCH_DEFAULT = os.environ.get("WEAR_ACCEL_BATCH", "on")
 GPS_HS_DEFAULT = os.environ.get("WEAR_GPS_HS", "on")
 
@@ -693,6 +697,8 @@ def device_config(
     # `sp=1` fragen — ausgelieferte Apps (Garmin mit wenig Speicher!) bekommen kein Byte mehr.
     if sp:
         cfg["sports"] = sportarten_fuer_uhr(db, device.user_id, settings)
+    if device.platform == "zepp":   # Sammel-Upload (s. ZEPP_UPLOAD_SAMMEL); aeltere Zepp-Apps ignorieren den Schluessel
+        cfg["uploadBatch"] = ZEPP_UPLOAD_SAMMEL
     if minimal == 1:
         return {k: cfg[k] for k in MINIMAL_KEYS if k in cfg}
     return cfg

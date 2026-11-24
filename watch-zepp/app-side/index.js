@@ -94,6 +94,8 @@ async function handle(req) {
       runTimeS: b && b.runTimeS, runTimeMode: b && b.runTimeMode,
       alarmPatternTime: b && b.alarmPatternTime,
       recordMode: b && b.recordMode,
+      // Chunks je Upload-Anfrage (Sammel-Endpunkt, 24.11.2026) — Warnung oben gilt auch hier.
+      uploadBatch: b && b.uploadBatch,
       // Neu durchgelassen: Profil-Sprache (i18n), Update-Hinweis, Pausen-Screen und das
       // Layout-Paket (gemischte Seiten-Saetze + Definitionen + Voreinstellung des Schalters).
       language: b && b.language, latestVersion: b && b.latestVersion, pauseView: b && b.pauseView,
@@ -147,6 +149,20 @@ async function handle(req) {
   if (req.method === "CHUNK") {
     const r = await authPost(req.token, `/api/ingest/session/${req.session_uuid}/chunk`, { index: req.index, kind: req.kind, encoding: req.encoding, t0_ms: req.t0_ms || 0, count: req.count != null ? req.count : ((req.data && req.data.length) || 0), data: req.data });
     return { ok: true, index: req.index, http: r.status };
+  }
+  // Mehrere Chunks in EINER Anfrage (Uhr ab 24.11.2026, Server /chunks seit 29.09.2026). Befund u439: die Uhr starb nach
+  // ~330 Einzel-Anfragen ueber BLE. `ok` nur, wenn der Server ALLE quittiert — sonst sendet die Uhr den Block erneut
+  // (der Server ueberschreibt gleiche Indizes).
+  if (req.method === "CHUNKS") {
+    const chunks = (req.chunks || []).map((c) => ({ index: c.index, kind: c.kind, encoding: c.encoding, t0_ms: c.t0_ms || 0,
+      count: c.count != null ? c.count : ((c.data && c.data.length) || 0), data: c.data }));
+    const r = await authPost(req.token, `/api/ingest/session/${req.session_uuid}/chunks`, { chunks });
+    let b = r.body;
+    if (typeof b === "string") { try { b = JSON.parse(b); } catch (e) { b = null; } }
+    const st = r.status || 0;
+    const alle = !!(b && Array.isArray(b.received) && b.received.length === chunks.length);
+    if (st >= 200 && st < 300 && alle) return { ok: true, n: chunks.length, http: st };
+    return { error: "chunks http " + st + " received " + ((b && b.received && b.received.length) || 0) + "/" + chunks.length };
   }
   if (req.method === "COMPLETE") {
     // `pauses` nur mitschicken, wenn es welche gibt — ein leeres Feld wuerde auf dem Server

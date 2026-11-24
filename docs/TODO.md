@@ -1562,6 +1562,20 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   > 40 Hz ist (jede 4. Probe bzw. Mittel) — Datei, Chunks und BLE-Verkehr / 4, Server unveraendert (rechnet mit
   der gemeldeten Rate). Sofort ohne neue Fassung: Profil „lite" (`FREQ_MODE_NORMAL`, bei ihm am 14.10. 41 Hz).
 - **Hilfe-Texte:** Sperre/Neopren als Hinweis in Uhr-Anleitung (Einstellungen › Uhren › Anleitung) pruefen.
+- **24.11. Jan: KEIN Ausduennen** (Lite gibt es schon; bdf62426e zurueckgenommen in 63e74e673). Stattdessen:
+  **Leck je Anfrage.** App-Laeufe von #23152 (Server-Zeiten): 312+23+6, 296+23+6, 141+159+23+5 Anfragen, dann tot —
+  ~330 je Lauf, unabhaengig vom Startblock; davor Luecken 20-35 s. **Umgesetzt:** Sammel-Upload (`uploadBatch` im
+  CONFIG nur fuer Zepp, Server `ZEPP_UPLOAD_SAMMEL` Standard 10, Env-Schalter; app-side `CHUNKS`), Tests
+  watch-zepp/tests/sammelupload.test.mjs + server/tests/test_zepp_upload_batch.py. Offen: Simulator + echte Uhr, Release.
+  **Verdaechtige fuer das Leck (gelesen in @zeppos/zml 0.0.43, nicht bewiesen):**
+  1. Seite -> App: `BasePage.request` meldet je Anfrage zwei Listener mit Zufallsschluessel an (`@zos/app` onMessage
+     „response:result:<12 Ziffern>") und ruft `offMessage(key)` OHNE Callback — ob das die Listener wirklich loest, ist
+     undokumentiert. Probe: `this.state.messaging.request(...)` direkt (umgeht die Bruecke) hinter einem Schalter.
+  2. Je Anfrage `l.alloc(3518)` (Fragmentpuffer) + Kopien in buildPayload/buildBin — Buffer ausserhalb des JS-Heaps
+     loesen evtl. keine GC aus.
+  3. `sessionMgr` (Antwort-Fragmente) wird nur bei vollstaendiger Antwort/Fehler geloescht — verlorene Fragmente bleiben.
+  4. Spaete Antwort nach Timeout: `onResponse` liest `handlers.get(id).handler` ohne Pruefung -> TypeError im BLE-Callback.
+  5. zml schickt vor JEDER Anfrage einen Handshake (`fork`), daher ~1 s je Anfrage.
 
 ### 22.11.2026 — Alte Uhren-Versionen anschreiben (WARTET auf den 1.0.105-Test von u244)
 **22.11. abends: Test da, 1.0.105 behebt den Instinct-3-Neustart nicht** (s. Eintrag u244). Fuer das Anschreiben heisst das nur:

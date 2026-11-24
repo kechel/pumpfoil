@@ -44,6 +44,15 @@ const GPS_CHUNK = 10;
 // Keep both the live buffer and each BLE payload small. At 25 Hz, 128 samples represent about five
 // seconds and 768 raw bytes (roughly 1 KB after base64 encoding).
 const ACCEL_CHUNK_SAMPLES = 128;
+// SAMMEL-UPLOAD (24.11.2026, Befund u439 Active 2): je BLE-Anfrage mehrere Chunks ueber den Sammel-Endpunkt
+// (/ingest/session/{uuid}/chunks, Server max 30). Die App starb nach ~330 Einzel-Anfragen, egal wo der Upload stand
+// (Leck je Anfrage in Zepp/zml vermutet), und eine Anfrage dauert ~1 s (zml schickt vor JEDER Anfrage einen Handshake).
+// Der Server schickt `uploadBatch` im CONFIG (1 = alter Weg, ein Chunk je Anfrage); bis dahin gilt der Standard.
+const UPLOAD_BATCH_DEFAULT = 10, UPLOAD_BATCH_MAX = 30;
+const uploadBatch = () => {
+  const n = Number(store.getItem("uploadBatch", "")) || UPLOAD_BATCH_DEFAULT;
+  return Math.max(1, Math.min(UPLOAD_BATCH_MAX, Math.round(n)));
+};
 // Navigation, pairing, and upload: keep the screen on for five minutes instead of the ~38 seconds
 // observed on the T-Rex 3. Restore the system timeout when the user actually leaves the app.
 const IDLE_BRIGHT_MS = 5 * 60 * 1000;
@@ -1710,6 +1719,10 @@ Page(
           // gefaehrlichere, dort wird nichts umgeschaltet, waehrend er schreibt.
           if (r.recordMode === "full" || r.recordMode === "lite" || r.recordMode === "gps") {
             s.recordMode = r.recordMode;
+          }
+          // Gemerkt, damit auch ein Upload ohne frisches CONFIG (Warteschlange beim Start) den Server-Wert nimmt.
+          if (typeof r.uploadBatch === "number" && r.uploadBatch >= 1) {
+            try { store.setItem("uploadBatch", String(Math.round(r.uploadBatch))); } catch (e) {}
           }
         }
         if (r && !s._foilInit) {
@@ -3913,27 +3926,45 @@ Page(
         if (index % 25 === 24 || index === gpsChunkCount - 1) setzeMarke(sess.uuid, index + 1, vonAccel);
       };
 
+      // SAMMEL-UPLOAD: `k` Chunks [a, b) in EINER Anfrage. Gleiche Chunks, gleiche Indizes, gleiches Resume — nur
+      // weniger Anfragen. `baue(i)` liest genau einen Chunk (wirft bei Lesefehler -> `folge` bricht ab). Der
+      // Wasserstand wird geschrieben, sobald eine 25er-Grenze ueberschritten ist (wie bisher) oder am Ende.
+      const k = uploadBatch();
+      const gruppen = (von, anzahl, baue, marke) => folge(0, Math.ceil(Math.max(0, anzahl - von) / k), (g) => {
+        const a = von + g * k, b = Math.min(a + k, anzahl);
+        let chunks = [];
+        for (let i = a; i < b; i++) chunks.push(baue(i));
+        const p = req({ method: "CHUNKS", token: tok, session_uuid: sess.uuid, chunks });
+        chunks = null;   // die Base64-Texte nicht ueber die Antwort hinaus festhalten
+        return p.then((r) => {
+          for (let i = a + 1; i < b; i++) bump();   // `folge` zaehlt einen Schritt, gesendet wurden b - a
+          if (b === anzahl || Math.floor(b / 25) !== Math.floor(a / 25)) marke(b);
+          return r;
+        });
+      });
+
       // Aus der Datei: immer nur EIN Block im Speicher, genau wie beim Accelerometer.
       const sendGpsAusDatei = () => {
         let fd = -1;
         try { fd = openSync({ path: sess.gpsFile, flag: O_RDONLY }); }
         catch (e) { return Promise.reject(new Error("gps file unavailable")); }
-        const send = folge(vonGps, gpsChunkCount, (index) => {
+        const gpsChunk = (index) => {
           const von = index * GPS_CHUNK;
           const count = Math.min(GPS_CHUNK, gpsAnzahl - von);
           const byteLength = count * GPS_REC_BYTES;
           const buffer = new ArrayBuffer(byteLength);
-          let bytesRead = 0;
-          try {
-            bytesRead = readSync({ fd, buffer, options: { position: von * GPS_REC_BYTES,
-              length: byteLength } });
-          } catch (e) { return Promise.reject(e); }
-          if (bytesRead !== byteLength) return Promise.reject(new Error("short gps read"));
-          const data = bytesToGps(buffer, count);
-          return req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index,
-                       kind: "gps", encoding: "json", count, data })
-            .then((r) => { gpsMarke(index); return r; });
-        });
+          const bytesRead = readSync({ fd, buffer, options: { position: von * GPS_REC_BYTES, length: byteLength } });
+          if (bytesRead !== byteLength) throw new Error("short gps read");
+          return { index, kind: "gps", encoding: "json", count, data: bytesToGps(buffer, count) };
+        };
+        const send = k > 1
+          ? gruppen(vonGps, gpsChunkCount, gpsChunk, (b) => setzeMarke(sess.uuid, b, vonAccel))
+          : folge(vonGps, gpsChunkCount, (index) => {
+            let c;
+            try { c = gpsChunk(index); } catch (e) { return Promise.reject(e); }
+            return req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, ...c })
+              .then((r) => { gpsMarke(index); return r; });
+          });
         return send.then((value) => { try { closeSync({ fd }); } catch (e) {} return value; },
           (err) => { try { closeSync({ fd }); } catch (e) {} throw err; });
       };
@@ -3969,27 +4000,30 @@ Page(
         catch (e) { return Promise.reject(new Error("accelerometer file unavailable")); }
         // Dieselbe Kette wie oben, und hier waere sie noch teurer: je Ebene haengen ein
         // ArrayBuffer (768 Byte) UND die Base64-Zeichenkette (~1 KB) mit drin.
-        const send = folge(vonAccel, accelChunkCount, (index) => {
+        const t0s = sess.accelChunkT0 || [];
+        const accelChunk = (index) => {
           const count = Math.min(ACCEL_CHUNK_SAMPLES, sess.accelSamples - index * ACCEL_CHUNK_SAMPLES);
           const byteLength = count * 6;
           const buffer = new ArrayBuffer(byteLength);
-          let bytesRead = 0;
-          try {
-            bytesRead = readSync({ fd, buffer, options: { position: index * ACCEL_CHUNK_SAMPLES * 6,
-              length: byteLength } });
-          } catch (e) { return Promise.reject(e); }
-          if (bytesRead !== byteLength) return Promise.reject(new Error("short accelerometer read"));
-          const data = bytesToBase64(new Uint8Array(buffer), bytesRead);
-          const t0s = sess.accelChunkT0 || [];
+          const bytesRead = readSync({ fd, buffer, options: { position: index * ACCEL_CHUNK_SAMPLES * 6,
+            length: byteLength } });
+          if (bytesRead !== byteLength) throw new Error("short accelerometer read");
           const t0 = t0s[index] != null ? t0s[index] : Math.round(index * ACCEL_CHUNK_SAMPLES / accelHz * 1000);
-          return req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, index,
-                       kind: "accel", encoding: "int16-b64", t0_ms: t0, count, data })
-            .then((r) => {
-              if (index % 25 === 24 || index === accelChunkCount - 1)
-                setzeMarke(sess.uuid, gpsChunkCount, index + 1);
-              return r;
-            });
-        });
+          return { index, kind: "accel", encoding: "int16-b64", t0_ms: t0, count,
+                   data: bytesToBase64(new Uint8Array(buffer), bytesRead) };
+        };
+        const send = k > 1
+          ? gruppen(vonAccel, accelChunkCount, accelChunk, (b) => setzeMarke(sess.uuid, gpsChunkCount, b))
+          : folge(vonAccel, accelChunkCount, (index) => {
+            let c;
+            try { c = accelChunk(index); } catch (e) { return Promise.reject(e); }
+            return req({ method: "CHUNK", token: tok, session_uuid: sess.uuid, ...c })
+              .then((r) => {
+                if (index % 25 === 24 || index === accelChunkCount - 1)
+                  setzeMarke(sess.uuid, gpsChunkCount, index + 1);
+                return r;
+              });
+          });
         return send.then((value) => { try { closeSync({ fd }); } catch (e) {} return value; },
           (err) => { try { closeSync({ fd }); } catch (e) {} throw err; });
       };
