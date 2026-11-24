@@ -17,7 +17,7 @@ import {
   masse, sprintName, videoDauer, zeichne,
 } from "../lib/media/zeichnen";
 import { MAX_SEKUNDEN, alphaMoeglich, erzeugeVideo, webCodecsDa } from "../lib/media/export";
-import { FXS, MUSIK_DEFAULT, QUELLEN, SPUREN, STILE, type MusikCfg, type Quelle, strudelCode, strudelLink } from "../lib/media/musik";
+import { FXS, INSTRUMENTE, INSTR_SPUREN, MUSIK_DEFAULT, QUELLEN, SPUREN, STILE, instrument, type MusikCfg, type Quelle, strudelCode, strudelLink } from "../lib/media/musik";
 import { rendere, spiele, stoppe, vorladen, wavZuBuffer } from "../lib/media/strudel";
 
 const LS_KEY = "pumpfoil_media_cfg";
@@ -42,7 +42,7 @@ function ladeMusik(): MusikCfg {
     if (roh && typeof roh === "object") return {
       ...MUSIK_DEFAULT, ...roh,
       staerke: { ...MUSIK_DEFAULT.staerke, ...(roh.staerke ?? {}) }, spur: { ...MUSIK_DEFAULT.spur, ...(roh.spur ?? {}) },
-      fx: { ...MUSIK_DEFAULT.fx, ...(roh.fx ?? {}) },
+      fx: { ...MUSIK_DEFAULT.fx, ...(roh.fx ?? {}) }, instr: { ...MUSIK_DEFAULT.instr, ...(roh.instr ?? {}) },
     };
   } catch { /* egal */ }
   return MUSIK_DEFAULT;
@@ -104,6 +104,13 @@ export default function SessionMedia() {
   const [musikLaedt, setMusikLaedt] = useState(false);
   useEffect(() => { try { localStorage.setItem(LS_MUSIK, JSON.stringify(musik)); } catch { /* egal */ } }, [musik]);
   useEffect(() => { if (musik.an) vorladen(); }, [musik.an]);
+  // Echte Instrumente gibt es nur, wenn der Server sie hat (scripts/media-klaenge.py beim Build) — sonst nur Synths.
+  const [klangUrl, setKlangUrl] = useState<string | null>(null);
+  useEffect(() => {
+    const url = `${location.origin}/klaenge/strudel.json`;
+    fetch(url, { method: "HEAD" }).then((r) => setKlangUrl(r.ok && (r.headers.get("content-type") ?? "").includes("json") ? url : null))
+      .catch(() => setKlangUrl(null));
+  }, []);
   useEffect(() => () => { stoppe(); }, []);
 
   useEffect(() => {
@@ -142,8 +149,8 @@ export default function SessionMedia() {
   const zuLang = dauer > MAX_SEKUNDEN;
   // Ein Strudel-Code fuer Vorschau, Export und den Link nach strudel.cc.
   const code = useMemo(
-    () => (clip && musik.an ? strudelCode(clip, cfg, musik, { sessionId: id ?? "", lauf: lauf === "alle" ? "all runs" : `run ${lauf + 1}` }) : null),
-    [clip, cfg, musik, lauf, id],
+    () => (clip && musik.an ? strudelCode(clip, cfg, musik, { sessionId: id ?? "", lauf: lauf === "alle" ? "all runs" : `run ${lauf + 1}`, klangUrl }) : null),
+    [clip, cfg, musik, lauf, id, klangUrl],
   );
 
   const tx: Texte = useMemo(() => ({
@@ -504,6 +511,22 @@ export default function SessionMedia() {
                           onChange={(v) => setMusik({ ...musik, staerke: { ...musik.staerke, [q]: v } })} />
                       ))}
                     </div>
+                    {klangUrl && (
+                      <div className="space-y-2">
+                        <div className="text-sm font-semibold">{t("media.music.instruments")}</div>
+                        {INSTR_SPUREN.map((sp) => (
+                          <label key={sp} className="flex items-center gap-3 text-sm text-slate-300">
+                            <span className="w-44 shrink-0">{t(sp === "flaeche" ? "media.sp.flaeche" : sp === "lead" ? "media.sp.lead" : sp === "bass" ? "media.sp.bass" : "media.sp.drums")}</span>
+                            <select value={musik.instr[sp]} onChange={(e) => setMusik({ ...musik, instr: { ...musik.instr, [sp]: e.target.value } })}
+                              className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-slate-100">
+                              <option value="auto">{t("media.instr.auto", { name: t(`media.instr.${instrument({ ...musik, instr: { ...musik.instr, [sp]: "auto" } }, sp, true)}`) })}</option>
+                              {INSTRUMENTE[sp].map((n) => <option key={n} value={n}>{t(`media.instr.${n}`)}</option>)}
+                            </select>
+                          </label>
+                        ))}
+                        <p className="text-xs text-slate-400">{t("media.music.instrLicense")}</p>
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <div className="text-sm font-semibold">{t("media.music.tracks")}</div>
                       {SPUREN.map((sp) => (

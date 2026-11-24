@@ -28,12 +28,47 @@ export const SPUREN: Spur[] = ["bass", "drums", "grund", "lead", "flaeche"];
 export type Fx = "sprintTempo" | "riser" | "carveMelodie" | "carveWhoosh" | "topSpeed" | "meter" | "kampf" | "start" | "ende";
 export const FXS: Fx[] = ["sprintTempo", "riser", "carveMelodie", "carveWhoosh", "topSpeed", "meter", "kampf", "start", "ende"];
 
+/** Instrument je Spur (Jan 24.11.2026). „auto" = Vorgabe des Stils, „synth" = eingebauter Klang, pf_* = Toene aus dem
+ *  FluidR3-GM-Soundfont (MIT), erzeugt von scripts/media-klaenge.py nach /klaenge/. */
+export type InstrSpur = "bass" | "lead" | "flaeche" | "drums";
+export const INSTR_SPUREN: InstrSpur[] = ["bass", "lead", "flaeche", "drums"];
+export const INSTRUMENTE: Record<InstrSpur, string[]> = {
+  bass: ["synth", "pf_bass_finger", "pf_bass_upright", "pf_bass_synth", "pf_piano"],
+  lead: ["synth", "pf_piano", "pf_epiano", "pf_guitar_nylon", "pf_guitar_steel", "pf_guitar_electric", "pf_violin",
+    "pf_trumpet", "pf_flute", "pf_marimba", "pf_organ"],
+  flaeche: ["synth", "pf_strings", "pf_organ", "pf_choir", "pf_pad_warm"],
+  drums: ["synth", "akustik"],
+};
+const STIL_INSTR: Record<Stil, Record<InstrSpur, string>> = {
+  techno: { bass: "synth", lead: "synth", flaeche: "synth", drums: "synth" },
+  klavier: { bass: "pf_piano", lead: "pf_piano", flaeche: "pf_strings", drums: "synth" },
+  gitarre: { bass: "pf_bass_finger", lead: "pf_guitar_nylon", flaeche: "pf_strings", drums: "akustik" },
+  chiptune: { bass: "synth", lead: "synth", flaeche: "synth", drums: "synth" },
+  ambient: { bass: "synth", lead: "pf_epiano", flaeche: "pf_pad_warm", drums: "synth" },
+};
+// Eingebaute Klaenge je Stil, wenn „synth" gewaehlt ist (oder es keine Samples gibt).
+const SYNTH: Record<Stil, { bass: string; lead: string; flaeche: string }> = {
+  techno: { bass: "sawtooth", lead: "supersaw", flaeche: "supersaw" },
+  klavier: { bass: "triangle", lead: "triangle", flaeche: "sine" },
+  gitarre: { bass: "triangle", lead: "sawtooth", flaeche: "sine" },
+  chiptune: { bass: "triangle", lead: "square", flaeche: "pulse" },
+  ambient: { bass: "sawtooth", lead: "sine", flaeche: "supersaw" },
+};
+
+/** Tatsaechliches Instrument einer Spur („synth", ein pf-Klang oder „akustik"); ohne Samples immer „synth". */
+export function instrument(m: MusikCfg, sp: InstrSpur, klaengeDa: boolean): string {
+  const w = m.instr?.[sp] ?? "auto";
+  const v = w === "auto" ? STIL_INSTR[m.stil][sp] : w;
+  return klaengeDa ? v : "synth";
+}
+
 export interface MusikCfg {
   an: boolean;
   stil: Stil;
   staerke: Record<Quelle, number>;   // 0 = aus, 1 = voll
   spur: Record<Spur, number>;        // Lautstaerke je Spur 0..1
   fx: Record<Fx, boolean>;
+  instr: Record<InstrSpur, string>;
 }
 
 export const MUSIK_DEFAULT: MusikCfg = {
@@ -41,6 +76,7 @@ export const MUSIK_DEFAULT: MusikCfg = {
   stil: "techno",
   staerke: { pump: 1, tempo: 0.8, gleiten: 0.8, sprint: 1, carve: 0.7, puls: 0.5 },
   spur: { bass: 0.9, drums: 0.8, grund: 0.3, lead: 0.7, flaeche: 0.6 },
+  instr: { bass: "auto", lead: "auto", flaeche: "auto", drums: "auto" },
   fx: { sprintTempo: true, riser: true, carveMelodie: true, carveWhoosh: true, topSpeed: true, meter: false, kampf: true, start: true, ende: true },
 };
 
@@ -147,48 +183,48 @@ function spuren(stil: Stil): string {
     case "techno": return `
 // ── Tracks ───────────────────────────────────────────
 // Steady kick on every beat (quiet, see GRUND) — the real beat comes from your pumps below
-kick: s("sbd*4").mask(D.aktiv).decay(.45).gain(DRUMS * GRUND)
+kick: s(KICK).fast(4).mask(D.aktiv).decay(.45).gain(DRUMS * GRUND)
 
 // Acid bass: one hit per pump; speed opens the filter; drops out while gliding
-bass: n("<0 0 5 3>").struct(D.pump).scale(key(2)).s("sawtooth")
+bass: n("<0 0 5 3>").struct(D.pump).scale(key(2)).s(BASS_SOUND)
   .lpf(D.tempo.mul(TEMPO).range(250, 3800)).lpq(12).decay(.16).sustain(0)
   .gain(${ohneGleiten}.mul(BASS * PUMP))${pan}
 
 // Hi-hats get louder with speed and heart rate
-hats: s("white*16").mask(D.aktiv).hpf(8500).decay(.03).sustain(0)
+hats: s(HAT).fast(16).mask(D.aktiv).hpf(8500).decay(.03).sustain(0)
   .gain(D.tempo.mul(TEMPO).add(D.herz.mul(PULS)).mul(.3 * DRUMS))
 
 // Lead arpeggio only inside the flying sprint
-lead: n("0 2 4 7 9 7 4 2".fast(2)).mask(D.sprint).scale(key(4)).s("supersaw").lpf(3000).decay(.12).sustain(.15)
+lead: n("0 2 4 7 9 7 4 2".fast(2)).mask(D.sprint).scale(key(4)).s(LEAD_SOUND).lpf(3000).decay(.12).sustain(.15)
   .gain(SPRINT * LEAD * .5).room(.3)${pan}
 
 // Pad swells while gliding
-pad: n("<[0,2,4] [0,2,5] [-2,0,3] [-1,1,3]>").mask(D.aktiv).scale(key(3)).s("supersaw").attack(.4).release(1.5).lpf(1000)
+pad: n("<[0,2,4] [0,2,5] [-2,0,3] [-1,1,3]>").mask(D.aktiv).scale(key(3)).s(PAD_SOUND).attack(.4).release(1.5).lpf(1000)
   .gain(D.gleiten.mul(GLEITEN).add(.2).mul(FLAECHE * .45)).room(.6)
 
 // Crash at the end of a sprint and when a carve passes 360°
-crash: s("white").struct(D.akzent).hpf(2500).decay(1.4).sustain(0).gain(.45 * DRUMS).room(.4)
+crash: s(CRASH).struct(D.akzent).hpf(2500).decay(1.4).sustain(0).gain(.45 * DRUMS).room(.4)
 `;
     case "klavier": return `
 // ── Tracks ───────────────────────────────────────────
 // Left hand: a low note on every pump, quieter while gliding
-bass: n("<0 -2 -3 -1>").struct(D.pump).scale(key(2)).s("triangle").fm(1).decay(1).sustain(.1).release(.6)
+bass: n("<0 -2 -3 -1>").struct(D.pump).scale(key(2)).s(BASS_SOUND).fm(1).decay(1).sustain(.1).release(.6)
   .gain(${ohneGleiten}.mul(BASS * PUMP * .8))${pan}
 
 // Right hand: arpeggio, louder the faster you go
-arp: n("0 2 4 7 9 7 4 2").mask(D.aktiv).scale(key(4)).s("triangle").fm(2.5).decay(.45).sustain(0)
+arp: n("0 2 4 7 9 7 4 2").mask(D.aktiv).scale(key(4)).s(LEAD_SOUND).fm(2.5).decay(.45).sustain(0)
   .gain(D.tempo.mul(TEMPO).mul(LEAD * .5))${pan}
 
 // Flying sprint: the arpeggio doubles and jumps an octave up
-sprint: n("0 2 4 7 9 11 9 7 4 2 0 2 4 7 9 11").mask(D.sprint).scale(key(5)).s("triangle").fm(3).decay(.25).sustain(0)
+sprint: n("0 2 4 7 9 11 9 7 4 2 0 2 4 7 9 11").mask(D.sprint).scale(key(5)).s(LEAD_SOUND).fm(3).decay(.25).sustain(0)
   .gain(SPRINT * LEAD * .45).room(.4)${pan}
 
 // Glide: soft sustained chord
-pad: n("<[0,2,4,6] [-2,0,2,4] [-3,-1,1,3] [-1,1,3,5]>").mask(D.aktiv).scale(key(3)).s("sine").attack(.6).release(2)
+pad: n("<[0,2,4,6] [-2,0,2,4] [-3,-1,1,3] [-1,1,3,5]>").mask(D.aktiv).scale(key(3)).s(PAD_SOUND).attack(.6).release(2)
   .gain(D.gleiten.mul(GLEITEN).add(.1).mul(FLAECHE * .5)).room(.8)
 
 // Heartbeat: soft double kick, follows the heart rate
-herz: s("[sbd sbd] ~ ~ ~").mask(D.aktiv).decay(.25).gain(D.herz.mul(PULS).mul(DRUMS * .6))
+herz: s(KICK).struct("[x x] ~ ~ ~").mask(D.aktiv).decay(.25).gain(D.herz.mul(PULS).mul(DRUMS * .6))
 
 // Bell at the end of a sprint and after a 360° carve
 bell: n("[7,11]").struct(D.akzent).scale(key(5)).s("sine").fm(6).decay(2).sustain(0).gain(.5).room(.6)
@@ -196,49 +232,49 @@ bell: n("[7,11]").struct(D.akzent).scale(key(5)).s("sine").fm(6).decay(2).sustai
     case "gitarre": return `
 // ── Tracks ───────────────────────────────────────────
 // Strummed chord on every pump; speed brightens it
-gtr: n("<[0,2,4,7] [-3,0,2,4] [-2,0,3,5] [-1,1,3,5]>").struct(D.pump).scale(key(3)).s("sawtooth")
+gtr: n("<[0,2,4,7] [-3,0,2,4] [-2,0,3,5] [-1,1,3,5]>").struct(D.pump).scale(key(3)).s(LEAD_SOUND)
   .lpf(D.tempo.mul(TEMPO).range(700, 2600)).decay(.5).sustain(0).release(.3)
   .gain(${ohneGleiten}.mul(PUMP * LEAD * .55))${pan}
 
 // Bass: root note on the pumps
-bass: n("<0 -3 -2 -1>").struct(D.pump).scale(key(2)).s("triangle").decay(.4).sustain(0)
+bass: n("<0 -3 -2 -1>").struct(D.pump).scale(key(2)).s(BASS_SOUND).decay(.4).sustain(0)
   .gain(${ohneGleiten}.mul(BASS * PUMP))
 
 // Drums: kick and a noise snare, snare louder with speed
-kick: s("sbd ~ [~ sbd] ~").mask(D.aktiv).decay(.35).gain(DRUMS * GRUND)
-snare: s("~ pink ~ pink").mask(D.aktiv).bpf(1800).decay(.12).sustain(0)
+kick: s(KICK).struct("x ~ [~ x] ~").mask(D.aktiv).decay(.35).gain(DRUMS * GRUND)
+snare: s(SNARE).struct("~ x ~ x").mask(D.aktiv).bpf(1800).decay(.12).sustain(0)
   .gain(D.tempo.mul(TEMPO).add(.4).mul(DRUMS * .5))
 
 // Sprint: square-wave solo line
-solo: n("0 2 4 5 7 5 4 2").mask(D.sprint).scale(key(4)).s("square").lpf(2200).decay(.15).sustain(.2)
+solo: n("0 2 4 5 7 5 4 2").mask(D.sprint).scale(key(4)).s(LEAD_SOUND).lpf(2200).decay(.15).sustain(.2)
   .gain(SPRINT * LEAD * .35).room(.3)${pan}
 
 // Glide: open sustained chord
-pad: n("<[0,4,7] [-3,0,4] [-2,2,5] [-1,3,5]>").mask(D.gleiten).scale(key(3)).s("sine").attack(.5).release(1.8)
+pad: n("<[0,4,7] [-3,0,4] [-2,2,5] [-1,3,5]>").mask(D.gleiten).scale(key(3)).s(PAD_SOUND).attack(.5).release(1.8)
   .gain(GLEITEN * FLAECHE * .5).room(.7)
 `;
     case "chiptune": return `
 // ── Tracks ───────────────────────────────────────────
 // Triangle bass on every pump
-bass: n("<0 0 3 4>").struct(D.pump).scale(key(2)).s("triangle").decay(.15).sustain(0)
+bass: n("<0 0 3 4>").struct(D.pump).scale(key(2)).s(BASS_SOUND).decay(.15).sustain(0)
   .gain(${ohneGleiten}.mul(BASS * PUMP))
 
 // Square melody, louder the faster you go
-melody: n("<[0 2 4 2 0 4 7 4] [3 5 7 5 3 7 9 7]>").mask(D.aktiv).scale(key(4)).s("square").decay(.1).sustain(.3).lpf(4000)
+melody: n("<[0 2 4 2 0 4 7 4] [3 5 7 5 3 7 9 7]>").mask(D.aktiv).scale(key(4)).s(LEAD_SOUND).decay(.1).sustain(.3).lpf(4000)
   .gain(D.tempo.mul(TEMPO).mul(LEAD * .3))${pan}
 
 // Coin sound on every 10th pump
 coin: n("[9 14]").struct(D.muenze).scale(key(5)).s("square").decay(.08).sustain(0).gain(.35)
 
 // Noise drums
-drums: s("white ~ white white").mask(D.aktiv).hpf(3000).decay(.05).sustain(0).gain(DRUMS * GRUND * .6)
+drums: s(HAT).struct("x ~ x x").mask(D.aktiv).hpf(3000).decay(.05).sustain(0).gain(DRUMS * GRUND * .6)
 
 // Sprint: fast arpeggio
-sprint: n("0 4 7 11".fast(4)).mask(D.sprint).scale(key(5)).s("square").decay(.05).sustain(.2)
+sprint: n("0 4 7 11".fast(4)).mask(D.sprint).scale(key(5)).s(LEAD_SOUND).decay(.05).sustain(.2)
   .gain(SPRINT * LEAD * .3)${pan}
 
 // Glide: held pulse chord
-pad: n("<[0,2,4] [3,5,7]>").mask(D.gleiten).scale(key(3)).s("pulse").attack(.2).release(1)
+pad: n("<[0,2,4] [3,5,7]>").mask(D.gleiten).scale(key(3)).s(PAD_SOUND).attack(.2).release(1)
   .gain(GLEITEN * FLAECHE * .3)
 
 // Fanfare at the end of a sprint and after a 360° carve
@@ -247,22 +283,22 @@ fanfare: n("[0 4 7 11]").struct(D.akzent).scale(key(5)).s("square").decay(.4).su
     case "ambient": return `
 // ── Tracks ───────────────────────────────────────────
 // Soft pluck on every pump, long reverb
-pluck: n("<0 2 4 2>").struct(D.pump).scale(key(4)).s("sine").fm(1.5).decay(.8).sustain(0)
+pluck: n("<0 2 4 2>").struct(D.pump).scale(key(4)).s(LEAD_SOUND).fm(1.5).decay(.8).sustain(0)
   .lpf(D.tempo.mul(TEMPO).range(600, 3000)).gain(PUMP * LEAD * .45).room(.9)${pan}
 
 // Deep drone, a bit brighter with speed
-drone: n("<[0,4] [-2,2]>/2").mask(D.aktiv).scale(key(2)).s("sawtooth").lpf(D.tempo.mul(TEMPO).range(200, 700)).attack(1).release(3)
+drone: n("<[0,4] [-2,2]>/2").mask(D.aktiv).scale(key(2)).s(BASS_SOUND).lpf(D.tempo.mul(TEMPO).range(200, 700)).attack(1).release(3)
   .gain(BASS * .35)
 
 // Glide: wide pad swells up
-pad: n("<[0,2,4,6] [-1,1,3,5]>/2").mask(D.aktiv).scale(key(3)).s("supersaw").attack(1.2).release(3).lpf(1400)
+pad: n("<[0,2,4,6] [-1,1,3,5]>/2").mask(D.aktiv).scale(key(3)).s(PAD_SOUND).attack(1.2).release(3).lpf(1400)
   .gain(D.gleiten.mul(GLEITEN).add(.15).mul(FLAECHE * .4)).room(1)
 
 // Heartbeat pulse
-herz: s("sbd ~ ~ ~").mask(D.aktiv).decay(.3).gain(D.herz.mul(PULS).mul(DRUMS * .5))
+herz: s(KICK).struct("x ~ ~ ~").mask(D.aktiv).decay(.3).gain(D.herz.mul(PULS).mul(DRUMS * .5))
 
 // Sprint: shimmering high line
-shimmer: n("0 4 7 11 14 11 7 4").mask(D.sprint).scale(key(5)).s("sine").fm(4).decay(.3).sustain(0)
+shimmer: n("0 4 7 11 14 11 7 4").mask(D.sprint).scale(key(5)).s(LEAD_SOUND).fm(4).decay(.3).sustain(0)
   .gain(SPRINT * LEAD * .35).room(1)${pan}
 `;
   }
@@ -283,12 +319,12 @@ function effekte(stil: Stil, fx: Record<Fx, boolean>): string {
   const z: string[] = [`
 // ── Your pumps are the beat ──────────────────────────
 // Every detected pump hits the bass drum (louder with PUMP)
-pumpkick: s("sbd").struct(D.pump)${PUMPKICK[stil]}.gain(DRUMS * PUMP)
+pumpkick: s(KICK).struct(D.pump)${PUMPKICK[stil]}.gain(DRUMS * PUMP)
 `, `
 // ── Effects: moments of the run ──────────────────────`];
   if (fx.sprintTempo) z.push(`// Flying sprint: double-time drums
-sprintkick: s("sbd*8").mask(D.sprint).decay(.15).gain(DRUMS * SPRINT * .5)
-sprinthats: s("white*16").mask(D.sprint).hpf(9000).decay(.03).sustain(0).gain(DRUMS * SPRINT * .3)`);
+sprintkick: s(KICK).fast(8).mask(D.sprint).decay(.15).gain(DRUMS * SPRINT * .5)
+sprinthats: s(HAT).fast(16).mask(D.sprint).hpf(9000).decay(.03).sustain(0).gain(DRUMS * SPRINT * .3)`);
   if (fx.riser) z.push(`// Run-up: noise rises during the bar before the sprint window
 riser: s("white").struct(D.riser).clip(16).attack(1.6).release(.05).hpf(1200).gain(.35 * SPRINT).room(.4)`);
   if (fx.carveMelodie) z.push(`// Carve: a melody climbs one step per 45° of the turn
@@ -297,20 +333,37 @@ carvemelody: n(D.carveNoten).scale(key(4)).${FX_KLANG[stil]}.decay(.2).sustain(.
   if (fx.carveWhoosh) z.push(`// Carve: a whoosh sweeps across at the start of the turn
 whoosh: s("pink").struct(D.carveStart).clip(8).attack(.25).release(.6).bpf(1600).gain(.3 * CARVE)${pan}`);
   if (fx.topSpeed) z.push(`// Top speed of the run: impact + crash
-impact: s("sbd").struct(D.top).decay(1.2).gain(.45 * DRUMS)
-crashtop: s("white").struct(D.top).hpf(2500).decay(1.8).sustain(0).gain(.4 * DRUMS).room(.5)`);
+impact: s(KICK).struct(D.top).decay(1.2).gain(.45 * DRUMS)
+crashtop: s(CRASH).struct(D.top).hpf(2500).decay(1.8).sustain(0).gain(.4 * DRUMS).room(.5)`);
   if (fx.meter) z.push(`// Every 50 m: a little bell
 meterbell: n("[7,11]").struct(D.meter).scale(key(5)).${FX_KLANG[stil]}.decay(1).sustain(0).gain(.35).room(.5)`);
   if (fx.kampf) z.push(`// Fighting to stay up (pump rate well above usual): snare roll
-kampf: s("pink*16").mask(D.kampf).bpf(2200).decay(.05).sustain(0).gain(DRUMS * PUMP * .25)`);
+kampf: s(SNARE).fast(16).mask(D.kampf).bpf(2200).decay(.05).sustain(0).gain(DRUMS * PUMP * .25)`);
   if (fx.start) z.push(`// Two beats of drum roll before the run starts
-fill: s("pink*8").mask(D.fill).bpf(1800).decay(.06).sustain(0).gain(DRUMS * .35)`);
+fill: s(SNARE).fast(8).mask(D.fill).bpf(1800).decay(.06).sustain(0).gain(DRUMS * .35)`);
   if (fx.ende) z.push(`// End of the run: a falling dive
 dive: s("sine").struct(D.ende).note("c5").penv(-36).pdecay(1.2).decay(1.4).sustain(0).gain(.25).room(.6)`);
   return z.join("\n") + "\n";
 }
 
-export interface CodeInfo { sessionId: number | string; lauf: string }
+export interface CodeInfo {
+  sessionId: number | string; lauf: string;
+  klangUrl: string | null;   // absolute Adresse von /klaenge/strudel.json, null = keine Samples verfuegbar
+}
+
+function instrKopf(m: MusikCfg, info: CodeInfo): string {
+  const da = !!info.klangUrl;
+  const ins = (sp: InstrSpur) => instrument(m, sp, da);
+  const ton = (sp: "bass" | "lead" | "flaeche") => (ins(sp) === "synth" ? SYNTH[m.stil][sp] : ins(sp));
+  const akustik = ins("drums") === "akustik";
+  const braucht = da && INSTR_SPUREN.some((sp) => ins(sp) !== "synth");
+  return `
+// Instruments: built-in synths, or pf_* = notes rendered from the FluidR3 GM SoundFont (MIT, pumpfoil.org/klaenge)
+${braucht ? `samples('${info.klangUrl}', '${info.klangUrl!.replace(/strudel\.json$/, "")}')\n` : ""}const BASS_SOUND = '${ton("bass")}'
+const LEAD_SOUND = '${ton("lead")}'
+const PAD_SOUND = '${ton("flaeche")}'
+const KICK = '${akustik ? "pf_kick" : "sbd"}', SNARE = '${akustik ? "pf_snare" : "pink"}', HAT = '${akustik ? "pf_hat" : "white"}', CRASH = '${akustik ? "pf_crash" : "white"}'`;
+}
 
 /** Den kompletten Strudel-Code bauen. */
 export function strudelCode(clip: Clip, vcfg: MediaCfg, m: MusikCfg, info: CodeInfo): string {
@@ -343,6 +396,7 @@ const FLAECHE = ${zahl(v.flaeche)}       // pad
 const GRUND = ${zahl(v.grund)}         // steady beat under your pumps (0 = only your pumps)
 const MASTER = ${PEGEL[m.stil]}        // overall volume
 
+${instrKopf(m, info)}
 const D = daten()
 const key = (octave) => ROOT + octave + ':' + SCALE
 `;

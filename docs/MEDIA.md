@@ -95,6 +95,18 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
    - **Datenschutz:** Vorschau und Export laufen nur im Browser (Strudel kommt von pumpfoil.org, keine Anfrage an
      strudel.cc). Nur „In Strudel oeffnen" gibt den Code weiter (hinter `#`): abgeleitete Werte, keine GPS-Position,
      kein Name, seit 24.11. auch keine Session-Nummer. Hinweis steht in der Ansicht.
+   - **Echte Instrumente** (Jan 24.11.): Strudels Standard-Klaenge mischen Quellen mit unklarer Lizenz
+     (tidal-drum-machines, Dirt-Samples, mehrere Soundfonts in `gm_*`, z. B. SBAWE32/JCLive) — nicht uebernommen.
+     Stattdessen `scripts/media-klaenge.py`: rendert mit fluidsynth aus FluidR3_GM (MIT, Debian
+     `fluid-soundfont-gm`) 16 Instrumente (Toene im Kleinterz-Abstand) + 9 Schlagzeugteile als MP3 nach
+     `web/public/klaenge/` (+ `strudel.json`, `LICENSE.txt`), Spitze je Datei auf -5 dBFS. ~18 MB, NICHT im Repo
+     (Jan: „repo schlank halten", `.gitignore`), laeuft im `prebuild` und erzeugt nur Fehlendes; ohne fluidsynth
+     (CI) nur ein Hinweis. Server: `/klaenge/*` mit CORS + 30 Tage Cache, Strudel-Seite `connect-src` eigene
+     Herkunft. Je Spur waehlbar (Bass, Melodie, Flaeche, Schlagzeug synth/akustisch), Stil gibt die Vorgabe
+     (Klavier: Klavier + Streicher, Gitarre: Konzertgitarre + E-Bass + akustisch, Ambient: E-Piano + warme Flaeche).
+     Im Code: `samples('<origin>/klaenge/strudel.json', '<origin>/klaenge/')` — Basis ausdruecklich, Strudel setzt
+     sie sonst ohne Schraegstrich zusammen. Die Media-Ansicht bietet die Auswahl nur, wenn `strudel.json` da ist.
+   - Vorschau in Dauerschleife, Musik setzt am Anfang neu auf (Jan 24.11.).
    - Renderzeit auf der VM (headless, ohne GPU) fuer 50 s Ton: Techno ~30 s, andere 8-11 s.
 4. Weitere Stile, Code-Editor in der Ansicht.
 5. Native Apps: vorerst auf die Web-Ansicht verweisen.

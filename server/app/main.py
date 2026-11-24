@@ -130,6 +130,7 @@ def _csp_strudel(request: Request) -> str:
     return ("default-src 'none'; "
             f"script-src {herkunft} 'unsafe-eval' blob: data:; "
             f"worker-src {herkunft} blob: data:; "
+            f"connect-src {herkunft}; "   # Instrument-Toene aus /klaenge/
             "frame-ancestors 'self'; base-uri 'none'; form-action 'none'")
 
 
@@ -668,6 +669,11 @@ if settings.web_dist.exists():
             kopf = {"Cache-Control": "no-cache"} if nc else {}
             if candidate.name == "strudel-host.html":
                 kopf = {"Cache-Control": "no-cache", "Content-Security-Policy": _csp_strudel(request)}
+            elif full_path.startswith("klaenge/"):
+                # Instrument-Toene der Media-Musik (scripts/media-klaenge.py): der abgeschottete Strudel-iframe und ein
+                # geteilter Link auf strudel.cc laden sie von hier — oeffentlich, deshalb CORS fuer alle. 30 Tage cachen
+                # (die Erzeugung hat eine VERSION; aendert sie sich, aendern sich die Dateien).
+                kopf = {"Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=2592000"}
             return FileResponse(candidate, headers=kopf)
         kopf = {"Cache-Control": "no-cache"}
         if _privat(full_path):
