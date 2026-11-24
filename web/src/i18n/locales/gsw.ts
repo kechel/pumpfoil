@@ -3264,7 +3264,7 @@ const gsw: Record<string, string> = {
   "media.trackColor": "Farb vo de Spur",
   "media.layers": "Ebene uf de Spur",
   "media.white": "Wiiss",
-  "media.ghost": "Ganzi Spur blass vorab",
+  "media.ghost": "No nöd gfahreni Strecki blass zeige",
   "media.shadow": "Schatte (besser läsbar uf hellem Wasser)",
   "media.output": "Usgab",
   "media.out.schwarz": "MP4 uf Schwarz",

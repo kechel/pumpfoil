@@ -3601,7 +3601,7 @@ const de: Record<string, string> = {
   "media.trackColor": "Farbe der Spur",
   "media.layers": "Ebenen auf der Spur",
   "media.white": "Weiß",
-  "media.ghost": "Ganze Spur blass vorab",
+  "media.ghost": "Noch ungefahrene Strecke blass zeigen",
   "media.shadow": "Schatten (besser lesbar auf hellem Wasser)",
   "media.output": "Ausgabe",
   "media.out.schwarz": "MP4 auf Schwarz",
