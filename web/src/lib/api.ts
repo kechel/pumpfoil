@@ -1823,7 +1823,7 @@ export const api = {
   // Cache AUS (s. vite.config.ts) — sie gehen garantiert ans Netz. Gedacht fuer die
   // Nachpruefung einer schon angezeigten Liste: die Anzeige kommt sofort aus dem Cache, die
   // Wahrheit kommt hierueber nach. Der Server ignoriert den Zusatzparameter.
-  sessions: (params?: { limit?: number; offset?: number; month?: string; filter?: string; accelOnly?: boolean; foilId?: number; sport?: string; fresh?: boolean; board?: boolean }) => {
+  sessions: (params?: { limit?: number; offset?: number; month?: string; filter?: string; accelOnly?: boolean; foilId?: number; sport?: string; fresh?: boolean; board?: boolean; sort?: string }) => {
     const qs = new URLSearchParams();
     if (params?.limit != null) qs.set("limit", String(params.limit));
     if (params?.offset != null) qs.set("offset", String(params.offset));
@@ -1835,6 +1835,7 @@ export const api = {
     if (params?.sport && params.sport !== "all") qs.set("sport", params.sport);
     if (params?.fresh) qs.set("fresh", "1");
     if (params?.board) qs.set("board", "true");   // nur Handy am Brett (Sessions-Seite)
+    if (params?.sort && params.sort !== "neu") qs.set("sort", params.sort);   // Filter-Knopf, nur Meine
     const q = qs.toString();
     return req<SessionSummary[]>(`/api/sessions${q ? "?" + q : ""}`);
   },

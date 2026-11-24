@@ -17,7 +17,7 @@ import { usePumpFmt } from "../lib/pumpRate";
 import { Leaderboards, RecordGrid, PERIODS } from "./Home";
 import { Quellen } from "../components/Quellen";
 import { ListenAnsicht } from "../components/ListenAnsicht";
-import { SessionFilter } from "../components/SessionFilter";
+import { SESSION_SORTS, SessionFilter, type SessionSort } from "../components/SessionFilter";
 import { useKompakteListe, ZEILEN_RASTER } from "../lib/kompakteListe";
 import { fmtDate } from "../lib/time";
 import { SessionCard } from "../components/SessionCard";
@@ -352,6 +352,13 @@ export default function Sessions() {
     id ? n.set("foil", String(id)) : n.delete("foil");
     setSp(n);
   };
+  // Sortierung (Filter-Knopf, Nutzerwunsch 24.11.2026) — nur Meine, als ?sort=<k> im Link.
+  const sortWahl: SessionSort = (SESSION_SORTS as readonly string[]).includes(sp.get("sort") ?? "") ? sp.get("sort") as SessionSort : "neu";
+  const setSortWahl = (k: SessionSort) => {
+    const n = new URLSearchParams(sp);
+    k === "neu" ? n.delete("sort") : n.set("sort", k);
+    setSp(n);
+  };
   const setSport = (next: string) => {
     const n = new URLSearchParams(sp);
     next === "all" ? n.delete("sport") : n.set("sport", next);
@@ -445,7 +452,8 @@ export default function Sessions() {
               <UploadIcon className="h-4 w-4" /> {t("import.title")}
             </Link>
           )}
-          {!spot && <SessionFilter foil={foilFilter} onFoil={setFoilFilter} />}
+          {!spot && <SessionFilter foil={foilFilter} onFoil={setFoilFilter}
+            sort={isMine ? sortWahl : undefined} onSort={isMine ? setSortWahl : undefined} />}
           <AccelToggle value={accelOnly} onChange={(v) => { setBrett(false); setAccelOnly(v); }}
                        brett={brett} onBrett={() => { setBrett(true); setAccelOnly(false); }} />
           {/* Kacheln / eine Zeile je Session (Feedback #156) — gilt fuer Meine, Alle und den Spot. Ganz rechts (Jan, 02.11.2026). */}
@@ -490,7 +498,7 @@ export default function Sessions() {
                          onShowAll={() => setAccelAuto(false)} />} />
       ) : isTeam ? <CommunityList key={`team|${teamWahl}|${brett}|${foilFilter ?? ""}`} name="" spot="" accelOnly={accelOnly && !brett} sport={sport} board={brett}
                                   team={teamWahl} foil={foilFilter ?? undefined} onShowAll={() => setAccelAuto(false)} />
-      : isMine ? <MySessionsList key={`${reloadKey}|${sport}|${brett}|${foilFilter ?? ""}`} myName={myName} accelOnly={accelOnly && !brett} sport={sport}
+      : isMine ? <MySessionsList key={`${reloadKey}|${sport}|${brett}|${foilFilter ?? ""}|${sortWahl}`} sort={sortWahl} myName={myName} accelOnly={accelOnly && !brett} sport={sport}
                                    board={brett} filterPlatz={filterPlatz} foil={foilFilter ?? undefined} onShowAll={() => setAccelAuto(false)} />
               : <CommunityList key={`${brett}|${isFreunde}|${foilFilter ?? ""}`} name="" spot={spot} accelOnly={accelOnly && !brett} sport={sport} board={brett}
                                foil={foilFilter ?? undefined} onShowAll={() => setAccelAuto(false)} />}
@@ -583,8 +591,8 @@ function HeuteNeu({ mine, freunde = false, spot, accelOnly, sport, board = false
   );
 }
 
-function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, filterPlatz = null, foil }:
-    { myName: string | null; accelOnly: boolean; sport: string; onShowAll?: () => void; board?: boolean;
+function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, filterPlatz = null, foil, sort = "neu" }:
+    { myName: string | null; accelOnly: boolean; sport: string; onShowAll?: () => void; board?: boolean; sort?: SessionSort;
       filterPlatz?: HTMLElement | null;
       /** Filter-Knopf (18.11.2026): nur Sessions mit genau diesem Foil. */
       foil?: number }) {
@@ -619,7 +627,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, fi
   // `board` MUSS mit hinein (Jan, 08.10.2026: „phone on board funktioniert nur bei All, nicht bei
   // mine"): ohne ihn teilten sich „alle" und „Handy am Brett" einen Speicherplatz, und das
   // Nachpruefen mischte die gespeicherte volle Liste hinter die gefilterte.
-  const cacheKey = () => `${filterRef.current}|${monthRef.current}|${accelRef.current}|${sport}|${board}|${foil ?? ""}`;
+  const cacheKey = () => `${filterRef.current}|${monthRef.current}|${accelRef.current}|${sport}|${board}|${foil ?? ""}|${sort}`;
   const restoreRef = useRef(false);                 // nach Cache-Restore die markierte Karte einscrollen
   const itemsRef = useRef<SessionSummary[]>([]);    // stets aktuelle Items (für Cache beim Unmount)
 
@@ -651,7 +659,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, fi
       // (StaleWhileRevalidate) den Wechsel zwischen „meine / alle / am Spot" aus seinem Cache,
       // und man sieht denselben Stand wie vorher — Jans Befund 21.09.2026. Beim Nachladen
       // weiterer Seiten ist der Cache dagegen erwuenscht (alte Seiten aendern sich nicht).
-      const page = await api.sessions({ limit: PAGE, offset: off, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, board, sport, fresh: replace, foilId: foil });
+      const page = await api.sessions({ limit: PAGE, offset: off, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, board, sport, fresh: replace, foilId: foil, sort });
       if (lauf !== meinLaufRef.current) return;   // Filter hat gewechselt -> Antwort ist veraltet
       offsetRef.current = off + page.length;
       hasMoreRef.current = page.length === PAGE;
@@ -673,7 +681,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, fi
       // `fresh: true` geht am Service-Worker-Cache vorbei. Ohne das bekaeme die Nachpruefung
       // seit 15.09. dieselbe gecachte Antwort wie die Anzeige (StaleWhileRevalidate) und
       // koennte nie etwas Neues melden.
-      const fresh = await api.sessions({ limit: PAGE, offset: 0, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, board, sport, fresh: true, foilId: foil });
+      const fresh = await api.sessions({ limit: PAGE, offset: 0, month: monthVal || undefined, filter: filterRef.current, accelOnly: accelRef.current, board, sport, fresh: true, foilId: foil, sort });
       if (lauf !== meinLaufRef.current) return;   // waehrend des Abrufs den Filter gewechselt
       const known = new Set(itemsRef.current.map((s) => s.id));
       const added = fresh.filter((s) => !known.has(s.id));
@@ -686,7 +694,8 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, fi
         return f ? { ...p, ...f } : p;
       });
       const geaendert = aktualisiert.some((p, i) => p !== itemsRef.current[i]);
-      if (!added.length) {
+      // Anders sortiert: neue Sessions nicht einschieben (ihr Platz haengt vom Wert ab), nur Bekannte auffrischen.
+      if (!added.length || sort !== "neu") {
         if (!geaendert) return;
         itemsRef.current = aktualisiert;
         setItems(aktualisiert);
@@ -771,7 +780,7 @@ function MySessionsList({ myName, accelOnly, sport, onShowAll, board = false, fi
   useEffect(() => {
     if (!items.some(isInterim)) return;
     const iv = setInterval(() => {
-      api.sessions({ limit: PAGE, offset: 0, month: monthRef.current || undefined, filter: filterRef.current, accelOnly: accelRef.current, board, sport, foilId: foil })
+      api.sessions({ limit: PAGE, offset: 0, month: monthRef.current || undefined, filter: filterRef.current, accelOnly: accelRef.current, board, sport, foilId: foil, sort })
         .then((fresh) => setItems((prev) => prev.map((p) => fresh.find((f) => f.id === p.id) ?? p)))
         .catch(() => {});
     }, 4000);

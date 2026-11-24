@@ -9,10 +9,18 @@ import { useT } from "../i18n";
  * dann „etwas komfortabler, mit suchfunktion und brand-filter").
  * Erste Einstellung: genau ein Foil. Suche ueber Marke/Modell/Groesse, Marken-Auswahl, eigene Foils oben,
  * darunter alle Foils, mit denen in der Community gefahren wird (nach Anzahl Sessions).
+ * Sortierung (Nutzerwunsch 24.11.2026: „sort them by date, max run distance, longest run …") nur in Meine —
+ * die Community-Listen sind nach Tagen gruppiert, und nach Bestwerten sortiert waeren sie eine Rangliste.
  */
+export const SESSION_SORTS = ["neu", "alt", "lauf_m", "lauf_s", "foil_m", "foil_s", "tempo"] as const;
+export type SessionSort = (typeof SESSION_SORTS)[number];
 type FoilEintrag = { foil_id: number; brand: string; model: string; size: string; aspect_ratio: number | null; sessions: number };
 
-export function SessionFilter({ foil, onFoil }: { foil: number | null; onFoil: (id: number | null) => void }) {
+export function SessionFilter({ foil, onFoil, sort = "neu", onSort }: {
+  foil: number | null; onFoil: (id: number | null) => void;
+  /** Nur wenn gesetzt, zeigt das Popup die Sortierung (Meine). */
+  sort?: SessionSort; onSort?: (s: SessionSort) => void;
+}) {
   const t = useT();
   const [offen, setOffen] = useState(false);
   const [foils, setFoils] = useState<FoilEintrag[] | null>(null);
@@ -54,7 +62,9 @@ export function SessionFilter({ foil, onFoil }: { foil: number | null; onFoil: (
   const eigene = treffer.filter((f) => meine.includes(f.foil_id));
   const andere = treffer.filter((f) => !meine.includes(f.foil_id));
   const aktiv = foils?.find((f) => f.foil_id === foil);
-  const titel = foil ? `${t("sfilter.title")}: ${aktiv ? foilLabel(aktiv) : t("sfilter.foil")}` : t("sfilter.title");
+  const sortiert = !!onSort && sort !== "neu";
+  const titel = [foil ? `${t("sfilter.title")}: ${aktiv ? foilLabel(aktiv) : t("sfilter.foil")}` : t("sfilter.title"),
+    sortiert ? `${t("sfilter.sort")}: ${t(`sfilter.sort.${sort}`)}` : ""].filter(Boolean).join(" · ");
 
   const waehle = (id: number | null) => { onFoil(id); setOffen(false); };
   const zeile = (f: FoilEintrag, mitZahl: boolean) => (
@@ -72,16 +82,25 @@ export function SessionFilter({ foil, onFoil }: { foil: number | null; onFoil: (
     <div ref={box} className="relative">
       <button type="button" onClick={() => setOffen((o) => !o)} title={titel} aria-label={titel} aria-expanded={offen}
         className={`relative flex items-center justify-center rounded-xl border px-2 py-[7px] transition-colors ${
-          foil ? "border-brand-500 bg-brand-500/15 text-brand-700 dark:text-brand-300"
+          foil || sortiert ? "border-brand-500 bg-brand-500/15 text-brand-700 dark:text-brand-300"
                : "border-slate-700 bg-slate-900 text-slate-400 hover:text-slate-200"}`}>
         {/* Trichter */}
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M3 5h18l-7 8v5l-4 2v-7L3 5z" />
         </svg>
-        {foil && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-brand-500" aria-hidden="true" />}
+        {(foil || sortiert) && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-brand-500" aria-hidden="true" />}
       </button>
       {offen && (
         <div className="absolute right-0 z-30 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-700 bg-slate-900 p-3 shadow-xl">
+          {onSort && (
+            <label className="mb-3 flex items-center justify-between gap-2 border-b border-slate-800 pb-3 text-sm font-semibold text-slate-200">
+              {t("sfilter.sort")}
+              <select value={sort} onChange={(e) => onSort(e.target.value as SessionSort)} aria-label={t("sfilter.sort")}
+                className="min-w-0 rounded-lg border border-slate-700 bg-slate-800 px-1.5 py-1.5 text-sm font-normal text-slate-100">
+                {SESSION_SORTS.map((k) => <option key={k} value={k}>{t(`sfilter.sort.${k}`)}</option>)}
+              </select>
+            </label>
+          )}
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-semibold text-slate-200">{t("sfilter.title")} · {t("sfilter.foil")}</span>
             {foil && (

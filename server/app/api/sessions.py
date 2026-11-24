@@ -1205,6 +1205,16 @@ def _month_bounds(month: str):
     return start, end
 
 
+# Sortierung der eigenen Liste (Filter-Knopf, Nutzerwunsch 24.11.2026) — nur vorhandene Spalten, keine Rechnung.
+_LISTEN_SORT = {
+    "lauf_m": models.AnalysisResult.best_distance_m,
+    "lauf_s": models.AnalysisResult.best_duration_s,
+    "foil_m": models.AnalysisResult.foiling_distance_m,
+    "foil_s": models.AnalysisResult.foiling_time_s,
+    "tempo": models.AnalysisResult.max_speed_mps,
+}
+
+
 @router.get("", response_model=list[SessionOut])
 def list_sessions(
     request: Request,
@@ -1218,8 +1228,11 @@ def list_sessions(
     foil_id: int | None = None,
     sport: str = "all",
     board: bool = False,
+    sort: str = "neu",
 ) -> list[SessionOut]:
-    """Ohne limit: alle (für Gesamt-Stats/Nachbarnavigation). Mit limit/offset:
+    """`sort` (Filter-Knopf, Nutzerwunsch 24.11.2026): neu (Standard) | alt | lauf_m (laengster Lauf) | lauf_s
+    (laengste Laufzeit) | foil_m | foil_s | tempo; unbekannt = neu. Fehlende Werte ans Ende, gleiche nach Datum.
+    Ohne limit: alle (für Gesamt-Stats/Nachbarnavigation). Mit limit/offset:
     seitenweise (Infinite-Scroll). Optionaler Monatsfilter 'YYYY-MM'.
     filter='pump' (Default): nur Pumpfoilen; 'other': nur Aussortierte (kein Pumpfoil).
     accel_only=True: nur Sessions mit präzisem Accel-/Modell-Lauf (sonst auch GPS-only)."""
@@ -1245,7 +1258,8 @@ def list_sessions(
     # auf. Global is_pumpfoil bleibt für Community/Rekorde.
     sens = (user.foil_sensitivity or "normal")
     cond, join = _in_liste_cond(user)
-    if accel_only or join:
+    sort_spalte = _LISTEN_SORT.get(sort)
+    if accel_only or join or sort_spalte is not None:
         q = q.outerjoin(models.AnalysisResult, models.AnalysisResult.session_id == models.Session.id)
     q = q.filter(cond if filter != "other" else not_(cond))
     if accel_only:
@@ -1256,7 +1270,12 @@ def list_sessions(
             q = q.filter(models.Session.started_at >= start, models.Session.started_at < end)
         except (ValueError, IndexError):
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "month must be YYYY-MM")
-    q = q.order_by(models.Session.started_at.desc())
+    if sort == "alt":
+        q = q.order_by(models.Session.started_at.asc(), models.Session.id.asc())
+    elif sort_spalte is not None:
+        q = q.order_by(sort_spalte.desc().nulls_last(), models.Session.started_at.desc(), models.Session.id.desc())
+    else:
+        q = q.order_by(models.Session.started_at.desc())
     if offset:
         q = q.offset(offset)
     if limit is not None:
