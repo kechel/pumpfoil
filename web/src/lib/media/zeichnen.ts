@@ -88,6 +88,26 @@ export function sprintName(kz: string): string {
 
 const FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 
+// Tabellenziffern (Jan 24.11.2026: „die km/h anzeige flackert … weil sich die zahlenbreite aendert"): die Systemschrift
+// hat verschieden breite Ziffern. Jede Ziffer bekommt deshalb eine feste Zelle (Breite der „0"), andere Zeichen ihre
+// eigene Breite — Komma, Doppelpunkt und Einheit stehen still, solange die Stellenzahl gleich bleibt.
+function tabBreite(c: CanvasRenderingContext2D, text: string): number {
+  const z = c.measureText("0").width;
+  let w = 0;
+  for (const ch of text) w += ch >= "0" && ch <= "9" ? z : c.measureText(ch).width;
+  return w;
+}
+function tabText(c: CanvasRenderingContext2D, text: string, x: number, y: number): void {
+  const z = c.measureText("0").width;
+  const alt = c.textAlign;
+  c.textAlign = "left";
+  for (const ch of text) {
+    if (ch >= "0" && ch <= "9") { const w = c.measureText(ch).width; c.fillText(ch, x + (z - w) / 2, y); x += z; }
+    else { c.fillText(ch, x, y); x += c.measureText(ch).width; }
+  }
+  c.textAlign = alt;
+}
+
 function fmtMS(ms: number): string {
   const s = Math.max(0, Math.floor(ms / 1000));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
@@ -144,7 +164,7 @@ function textStil(ctx: CanvasRenderingContext2D, cfg: MediaCfg, u: number) {
 function statBlock(ctx: CanvasRenderingContext2D, cfg: MediaCfg, u: number, wert: string, einheit: string, label: string,
   akzent = 0): Block {
   const fw = 92 * u, fe = 38 * u, fl = 26 * u;
-  ctx.font = `800 ${fw}px ${FONT}`; const ww = ctx.measureText(wert).width;
+  ctx.font = `800 ${fw}px ${FONT}`; const ww = tabBreite(ctx, wert);
   ctx.font = `700 ${fe}px ${FONT}`; const we = einheit ? ctx.measureText(einheit).width + 10 * u : 0;
   ctx.font = `600 ${fl}px ${FONT}`; const wl = ctx.measureText(label.toUpperCase()).width;
   const w = Math.max(ww + we, wl), h = fw * 1.02 + fl * 1.3;
@@ -158,7 +178,7 @@ function statBlock(ctx: CanvasRenderingContext2D, cfg: MediaCfg, u: number, wert
       c.translate(x0, y + fw * 0.85);
       c.scale(sk, sk);
       c.fillStyle = "#ffffff"; c.textBaseline = "alphabetic"; c.textAlign = "left";
-      c.font = `800 ${fw}px ${FONT}`; c.fillText(wert, 0, 0);
+      c.font = `800 ${fw}px ${FONT}`; tabText(c, wert, 0, 0);
       c.restore();
       if (einheit) { c.font = `700 ${fe}px ${FONT}`; c.fillStyle = "#22d3ee"; c.fillText(einheit, x0 + ww + 10 * u, y + fw * 0.85); }
       c.font = `600 ${fl}px ${FONT}`; c.fillStyle = "rgba(255,255,255,0.85)";
@@ -297,7 +317,7 @@ function sprintBlocks(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg, 
     }
     anteil = Math.min(Math.max(anteil, 0), 1);
     ctx.font = `700 ${fb}px ${FONT}`; const wn = ctx.measureText(name).width;
-    ctx.font = `800 ${fs}px ${FONT}`; const wv = ctx.measureText(wert).width;
+    ctx.font = `800 ${fs}px ${FONT}`; const wv = tabBreite(ctx, wert);
     const breite = Math.max(320 * u, wn + wv + 40 * u), h = fs * 1.25 + 14 * u;
     out.push({
       w: breite, h: h + 10 * u, draw: (c, x, y) => {
@@ -308,7 +328,7 @@ function sprintBlocks(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg, 
         if (!fertig) { c.fillStyle = "rgba(34,211,238,0.85)"; rundRechteck(c, x, y + h - 8 * u, breite * anteil, 8 * u, 4 * u); c.fill(); }
         c.fillStyle = fertig ? "#0f172a" : "#ffffff"; c.textBaseline = "middle"; c.textAlign = "left";
         c.font = `700 ${fb}px ${FONT}`; c.fillText(name, x + 16 * u, y + h / 2);
-        c.font = `800 ${fs}px ${FONT}`; c.textAlign = "right"; c.fillText(wert, x + breite - 16 * u, y + h / 2);
+        c.font = `800 ${fs}px ${FONT}`; tabText(c, wert, x + breite - 16 * u - wv, y + h / 2);
         c.textAlign = "left"; c.textBaseline = "alphabetic";
       },
     });
@@ -325,7 +345,7 @@ function carveBlock(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg, z:
   const pfeil = jetzt ? (jetzt.dir === "L" ? "↺" : "↻") : "";
   const wert = jetzt ? `${pfeil} ${grad}°` : `${fertig}`;
   const label = jetzt ? `${jetzt.g.toFixed(1)} g` : tx.carves;
-  ctx.font = `800 ${fg}px ${FONT}`; const ww = ctx.measureText(wert).width;
+  ctx.font = `800 ${fg}px ${FONT}`; const ww = tabBreite(ctx, wert);
   const lbl = jetzt ? label : label.toUpperCase();   // „0.4 g" bleibt klein (g ist die Einheit)
   ctx.font = `600 ${fl}px ${FONT}`; const wl = ctx.measureText(lbl).width;
   const w = Math.max(ww, wl), h = fg + fl * 1.4;
@@ -334,7 +354,7 @@ function carveBlock(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg, z:
     w, h, draw: (c, x, y, al) => {
       textStil(c, cfg, u);
       c.font = `800 ${fg}px ${FONT}`; c.fillStyle = voll ? "#22d3ee" : "#ffffff";
-      c.fillText(wert, al === "l" ? x : al === "c" ? x + (w - ww) / 2 : x + w - ww, y + fg * 0.85);
+      tabText(c, wert, al === "l" ? x : al === "c" ? x + (w - ww) / 2 : x + w - ww, y + fg * 0.85);
       c.font = `600 ${fl}px ${FONT}`; c.fillStyle = "rgba(255,255,255,0.85)";
       c.fillText(lbl, al === "l" ? x : al === "c" ? x + (w - wl) / 2 : x + w - wl, y + fg + fl);
     },
