@@ -596,6 +596,11 @@ export type FoilBand = {
 
 // Carve-Erkennung (Accel-Zentripetal-g-Modell, nur Anzeige). g = Kurvenlage je Track-Punkt;
 // carves = erkannte Carves mit Grad-Bucket (s=90–180 als <180 / m=180–360 / l=>360).
+export interface MusikMixOut {
+  id: number; name: string; cfg: any; published: boolean; geladen: number; eigen: boolean; author: string | null;
+  updated_at: string | null;
+}
+
 export interface CarveData {
   g: number[];   // Zentripetal-g je Track-Punkt (0 = keine Kurvenlage) — grobe Fallback-Färbung
   carves: { i0: number; i1: number; peak_g: number; rot: number; dir: "L" | "R"; bucket: "s" | "m" | "l" }[];
@@ -1916,6 +1921,17 @@ export const api = {
   // in eine Zeit SCHAETZEN, und das geht bei GPS-Luecken schief (s. Endpunkt).
   sessionTrackTimes: (id: number) =>
     req<{ t_ms: number[] }>(`/api/sessions/${id}/track-times`),
+  // Musik-Mixe der Media-Ansicht (24.11.2026, server/app/api/mixe.py)
+  mixe: () => req<MusikMixOut[]>("/api/media/mixe"),
+  mixeCommunity: (sort: "geladen" | "new" = "geladen") => req<MusikMixOut[]>(`/api/media/mixe/community?sort=${sort}`),
+  mixSpeichern: (name: string, cfg: unknown, published = false) =>
+    req<MusikMixOut>("/api/media/mixe", { method: "POST", body: JSON.stringify({ name, cfg, published }) }),
+  mixAendern: (id: number, name: string, cfg: unknown) =>
+    req<MusikMixOut>(`/api/media/mixe/${id}`, { method: "PUT", body: JSON.stringify({ name, cfg }) }),
+  mixTeilen: (id: number, published: boolean) =>
+    req<MusikMixOut>(`/api/media/mixe/${id}/publish?published=${published}`, { method: "POST" }),
+  mixGeladen: (id: number) => req<{ ok: boolean }>(`/api/media/mixe/${id}/geladen`, { method: "POST" }),
+  mixLoeschen: (id: number) => req<void>(`/api/media/mixe/${id}`, { method: "DELETE" }),
   sessionCarves: (id: number) =>
     req<CarveData>(`/api/sessions/${id}/carves`),
   communitySessions: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean;

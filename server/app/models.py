@@ -421,6 +421,25 @@ class WatchLayout(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class MusikMix(Base):
+    """Eine gespeicherte Musik-Einstellung der Media-Ansicht (docs/MEDIA.md, Jan 24.11.2026): Stimmen, Vorlage,
+    Effekte — unter freiem Namen, optional in der Community geteilt. `cfg` ist geprueftes JSON (api/mixe.py,
+    `pruefe_cfg`): daraus wird bei jedem, der den Mix laedt, Strudel-Code — deshalb nur bekannte Felder und Werte.
+    Keine Laufdaten: ein Mix passt auf jeden Lauf."""
+
+    __tablename__ = "musik_mixe"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    name: Mapped[str] = mapped_column(String(60))
+    cfg: Mapped[str] = mapped_column(Text, default="{}")
+    published: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", index=True)
+    copied_from_id: Mapped[int | None] = mapped_column(ForeignKey("musik_mixe.id"))
+    geladen: Mapped[int] = mapped_column(Integer, default=0, server_default="0")   # wie oft andere ihn geladen haben
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 class ChatMessage(Base):
     """Chat/Diskussion — gemeinsame Engine. scope = "session:<id>" | "spot:<name>"."""
 

@@ -115,6 +115,13 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
      Im Code: `samples('<origin>/klaenge/strudel.json', '<origin>/klaenge/')` — Basis ausdruecklich, Strudel setzt
      sie sonst ohne Schraegstrich zusammen. Die Media-Ansicht bietet die Auswahl nur, wenn `strudel.json` da ist.
    - Vorschau in Dauerschleife, Musik setzt am Anfang neu auf (Jan 24.11.).
+   - **Mixe speichern/teilen/laden** (Jan 24.11.: „unter einer freien bezeichnung … shareable in der community … auf
+     knopfdruck laden"): Tabelle `musik_mixe` (Modell `MusikMix`), API `server/app/api/mixe.py` (`/api/media/mixe`:
+     eigene, `/community` sortiert nach „von anderen geladen", speichern, aendern, teilen, `geladen`-Zaehler,
+     loeschen; max. 50 je Nutzer, 24 Stimmen je Mix). Ein Mix = Vorlage + Stimmen + Effekte, KEINE Laufdaten.
+     `pruefe_cfg` laesst nur bekannte Felder/Werte durch und befreit Namen von Zeilenumbruechen — aus einem geteilten
+     Mix wird bei anderen Strudel-Code (Tests `tests/test_mixe.py`, auch gegen Code-Einschleusung). Der Generator
+     saeubert Namen zusaetzlich. UI: `web/src/components/MediaMixe.tsx` oben im Musik-Reiter.
    - **Stimmen statt fester Stile** (Jan 24.11.: „melody ohne flying sprints … mehr freiheiten welche daten was sind,
      auch mehrmals das gleiche"): je Stimme Instrument (Synths, pf-Samples, Schlagzeug elektronisch/akustisch),
      Muster (Ton je Ereignis, Akkord anschlagen, Melodie, Arpeggio, Akkord halten, Bass-Linie, Beat), „spielt wenn"

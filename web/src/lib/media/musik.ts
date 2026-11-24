@@ -298,7 +298,9 @@ function stimmeCode(v: Stimme, label: string, da: Verfuegbar, klaengeDa: boolean
   const farbe = farbeQ ? `.lpf(D.${farbeQ}.range(500, 6000))` : "";
   const pan = v.pan === "carve" && da.carves ? ".pan(D.pan)" : "";
   const off = tonQ ? `D.${tonQ}.mul(7).round()` : null;
-  const kopf = `// ${v.name}: ${instr.replace(/^(synth|kit):/, "")} · ${v.muster} · ${BESCHREIBUNG[v.wann]}`
+  // Name ohne Zeilenumbrueche/Steuerzeichen: er steht in einem Code-Kommentar, und geteilte Mixe kommen von anderen.
+  const name = v.name.replace(/[\x00-\x1f\x7f\u2028\u2029]/g, " ").slice(0, 24);
+  const kopf = `// ${name}: ${instr.replace(/^(synth|kit):/, "")} · ${v.muster} · ${BESCHREIBUNG[v.wann]}`
     + (tonQ ? ` · pitch from ${tonQ}` : "") + (lautQ ? ` · volume from ${lautQ}` : "")
     + (farbeQ ? ` · brightness from ${farbeQ}` : "") + (dichteQ && !event ? ` · density from ${dichteQ}` : "");
 

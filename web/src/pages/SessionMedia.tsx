@@ -19,6 +19,7 @@ import {
 import { MAX_SEKUNDEN, alphaMoeglich, erzeugeVideo, webCodecsDa } from "../lib/media/export";
 import { FXS, MUSIK_DEFAULT, strudelCode, strudelLink, verfuegbar, type MusikCfg } from "../lib/media/musik";
 import { MediaStimmen } from "../components/MediaStimmen";
+import { MediaMixe } from "../components/MediaMixe";
 import { entsperren, rendere, spiele, stoppe, vorladen, wavZuBuffer, zeigeFreigabe } from "../lib/media/strudel";
 
 const LS_KEY = "pumpfoil_media_cfg";
@@ -498,6 +499,7 @@ export default function SessionMedia() {
                 <p className="text-xs text-slate-400">{t("media.music.hint")}</p>
                 {musik.an && (
                   <>
+                    <MediaMixe musik={musik} setMusik={setMusik} />
                     <MediaStimmen musik={musik} setMusik={setMusik} klaengeDa={!!klangUrl} da={verfuegbar(clip, cfg)} />
                     {/* Effekte zu einzelnen Momenten des Laufs (Jan 24.11.2026) — nur die, fuer die der Lauf Daten hat. */}
                     <div className="space-y-2">

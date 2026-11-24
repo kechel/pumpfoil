@@ -13,6 +13,7 @@ from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse, PlainTe
 from fastapi.staticfiles import StaticFiles
 
 from .api import kunst as kunst_api
+from .api import mixe as mixe_api
 from .api import admin, appmeta, auth, boards, chat, community, coros, coros_mcp, devices, feedback, foils, friends, garmin, health as health_api, ingest, layouts, mcp, mcp_dateien, mcp_oauth, ml, oauth, polar, push, sessions, settings as settings_api, social, spotnotes, stabs, strava, suunto, transfers
 from . import landing
 from .api.deps import require_social
@@ -546,6 +547,7 @@ app.include_router(foils.router)
 app.include_router(stabs.router)
 app.include_router(boards.router)
 app.include_router(layouts.router)
+app.include_router(mixe_api.router)   # Musik-Mixe der Media-Ansicht (24.11.2026)
 app.include_router(tanz_api.router)   # Tanz-App, nur sport == "dance" (21.10.2026)
 app.include_router(bewertung_api.router)   # „Rate this analysis" (22.10.2026), nur Besitzer + Admin
 app.include_router(supporter_api.router)   # Supporter-Beitraege (23.10.2026), Admin
