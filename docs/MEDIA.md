@@ -115,6 +115,16 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
      Im Code: `samples('<origin>/klaenge/strudel.json', '<origin>/klaenge/')` — Basis ausdruecklich, Strudel setzt
      sie sonst ohne Schraegstrich zusammen. Die Media-Ansicht bietet die Auswahl nur, wenn `strudel.json` da ist.
    - Vorschau in Dauerschleife, Musik setzt am Anfang neu auf (Jan 24.11.).
+   - **Stimmen statt fester Stile** (Jan 24.11.: „melody ohne flying sprints … mehr freiheiten welche daten was sind,
+     auch mehrmals das gleiche"): je Stimme Instrument (Synths, pf-Samples, Schlagzeug elektronisch/akustisch),
+     Muster (Ton je Ereignis, Akkord anschlagen, Melodie, Arpeggio, Akkord halten, Bass-Linie, Beat), „spielt wenn"
+     (im Lauf, bei jedem Pump, Gleiten, Sprint, Carve, alle 50 m, immer), Tonhoehe aus (feste Akkordfolge, Tempo,
+     Pumpfrequenz, Puls, Carve-Grad, Beschleunigung, Verlauf des Laufs — verschiebt um bis zu eine Oktave),
+     Lautstaerke/Klangfarbe/Dichte (1/2/4 Noten je Schlag) aus Daten, links/rechts nach Carve, Oktave, Pegel,
+     Stumm/Solo/Duplizieren/Loeschen/+Stimme. Melodie = Motiv fest je Session+Stimme (kleine Schritte), Daten
+     verschieben es. Die fuenf Stile sind Vorlagen (`vorlage()` in musik.ts). localStorage-Schluessel
+     `pumpfoil_media_musik2` (neues Format). UI: `web/src/components/MediaStimmen.tsx`. Getestet: alle Vorlagen +
+     Stress mit 49 Stimmen (jedes Muster x jede Zeitquelle) werten aus und rendern.
    - Renderzeit auf der VM (headless, ohne GPU) fuer 50 s Ton: Techno ~30 s, andere 8-11 s.
 4. Weitere Stile, Code-Editor in der Ansicht.
 5. Native Apps: vorerst auf die Web-Ansicht verweisen.

@@ -17,7 +17,8 @@ import {
   masse, sprintName, videoDauer, zeichne,
 } from "../lib/media/zeichnen";
 import { MAX_SEKUNDEN, alphaMoeglich, erzeugeVideo, webCodecsDa } from "../lib/media/export";
-import { FXS, INSTRUMENTE, INSTR_SPUREN, MUSIK_DEFAULT, QUELLEN, SPUREN, STILE, instrument, type MusikCfg, type Quelle, strudelCode, strudelLink } from "../lib/media/musik";
+import { FXS, MUSIK_DEFAULT, strudelCode, strudelLink, verfuegbar, type MusikCfg } from "../lib/media/musik";
+import { MediaStimmen } from "../components/MediaStimmen";
 import { entsperren, rendere, spiele, stoppe, vorladen, wavZuBuffer, zeigeFreigabe } from "../lib/media/strudel";
 
 const LS_KEY = "pumpfoil_media_cfg";
@@ -35,29 +36,16 @@ function ladeCfg(): MediaCfg {
   return CFG_DEFAULT;
 }
 
-const LS_MUSIK = "pumpfoil_media_musik";
+// Neues Format seit den Stimmen (24.11.2026) -> eigener Schluessel, alte Einstellungen werden nicht falsch gelesen.
+const LS_MUSIK = "pumpfoil_media_musik2";
 function ladeMusik(): MusikCfg {
   try {
     const roh = JSON.parse(localStorage.getItem(LS_MUSIK) ?? "null");
-    if (roh && typeof roh === "object") return {
-      ...MUSIK_DEFAULT, ...roh,
-      staerke: { ...MUSIK_DEFAULT.staerke, ...(roh.staerke ?? {}) }, spur: { ...MUSIK_DEFAULT.spur, ...(roh.spur ?? {}) },
-      fx: { ...MUSIK_DEFAULT.fx, ...(roh.fx ?? {}) }, instr: { ...MUSIK_DEFAULT.instr, ...(roh.instr ?? {}) },
+    if (roh && typeof roh === "object" && Array.isArray(roh.stimmen)) return {
+      ...MUSIK_DEFAULT, ...roh, fx: { ...MUSIK_DEFAULT.fx, ...(roh.fx ?? {}) },
     };
   } catch { /* egal */ }
   return MUSIK_DEFAULT;
-}
-
-/** Regler 0..1 mit Beschriftung. */
-function Regler({ label, wert, onChange }: { label: string; wert: number; onChange: (v: number) => void }) {
-  return (
-    <label className="flex items-center gap-3 text-sm text-slate-300">
-      <span className="w-44 shrink-0">{label}</span>
-      <input type="range" min={0} max={1} step={0.05} value={wert} onChange={(e) => onChange(Number(e.target.value))}
-        className="min-w-0 flex-1 accent-brand-400" />
-      <span className="w-10 text-right tabular-nums text-slate-400">{Math.round(wert * 100)}</span>
-    </label>
-  );
 }
 
 const FORMATE: Format[] = ["9:16", "4:5", "1:1", "16:9"];
@@ -272,7 +260,7 @@ export default function SessionMedia() {
         setPhase("musik");
         const w = await rendere(code, dauer, ab.signal);
         ton = await wavZuBuffer(w);
-        setWav({ url: URL.createObjectURL(w), name: `pumpfoil-${id}-${teil}-${musik.stil}.wav`, mb: w.size / 1e6 });
+        setWav({ url: URL.createObjectURL(w), name: `pumpfoil-${id}-${teil}-${musik.vorlage}.wav`, mb: w.size / 1e6 });
       }
       setPhase("video");
       const r = await erzeugeVideo(clip, cfg, tx, setFortschritt, ab.signal, ton);
@@ -510,51 +498,14 @@ export default function SessionMedia() {
                 <p className="text-xs text-slate-400">{t("media.music.hint")}</p>
                 {musik.an && (
                   <>
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-slate-300">
-                      <span className="w-20">{t("media.music.style")}</span>
-                      {STILE.map((st) => <Knopf key={st} an={musik.stil === st} onClick={() => setMusik({ ...musik, stil: st })}>{t(`media.style.${st}`)}</Knopf>)}
-                    </div>
-                    <div className="space-y-2">
-                      <div className="text-sm font-semibold">{t("media.music.mapping")}</div>
-                      {QUELLEN.filter((q: Quelle) =>
-                        !(q === "puls" && !clip.hatPuls) && !(q === "carve" && !clip.carves.length)
-                        && !(q === "sprint" && !clip.sprints.length) && !(q === "gleiten" && !clip.glides.length)
-                        && !(q === "pump" && !clip.hatPumps),
-                      ).map((q) => (
-                        <Regler key={q} label={t(`media.q.${q}`)} wert={musik.staerke[q]}
-                          onChange={(v) => setMusik({ ...musik, staerke: { ...musik.staerke, [q]: v } })} />
-                      ))}
-                    </div>
-                    {klangUrl && (
-                      <div className="space-y-2">
-                        <div className="text-sm font-semibold">{t("media.music.instruments")}</div>
-                        {INSTR_SPUREN.map((sp) => (
-                          <label key={sp} className="flex items-center gap-3 text-sm text-slate-300">
-                            <span className="w-44 shrink-0">{t(sp === "flaeche" ? "media.sp.flaeche" : sp === "lead" ? "media.sp.lead" : sp === "bass" ? "media.sp.bass" : "media.sp.drums")}</span>
-                            <select value={musik.instr[sp]} onChange={(e) => setMusik({ ...musik, instr: { ...musik.instr, [sp]: e.target.value } })}
-                              className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-slate-100">
-                              <option value="auto">{t("media.instr.auto", { name: t(`media.instr.${instrument({ ...musik, instr: { ...musik.instr, [sp]: "auto" } }, sp, true)}`) })}</option>
-                              {INSTRUMENTE[sp].map((n) => <option key={n} value={n}>{t(`media.instr.${n}`)}</option>)}
-                            </select>
-                          </label>
-                        ))}
-                        <p className="text-xs text-slate-400">{t("media.music.instrLicense")}</p>
-                      </div>
-                    )}
-                    <div className="space-y-2">
-                      <div className="text-sm font-semibold">{t("media.music.tracks")}</div>
-                      {SPUREN.map((sp) => (
-                        <Regler key={sp} label={t(`media.sp.${sp}`)} wert={musik.spur[sp]}
-                          onChange={(v) => setMusik({ ...musik, spur: { ...musik.spur, [sp]: v } })} />
-                      ))}
-                    </div>
+                    <MediaStimmen musik={musik} setMusik={setMusik} klaengeDa={!!klangUrl} da={verfuegbar(clip, cfg)} />
                     {/* Effekte zu einzelnen Momenten des Laufs (Jan 24.11.2026) — nur die, fuer die der Lauf Daten hat. */}
                     <div className="space-y-2">
                       <div className="text-sm font-semibold">{t("media.music.fx")}</div>
                       <div className="grid gap-x-4 gap-y-1.5 sm:grid-cols-2">
                         {FXS.filter((f) =>
                           !((f === "sprintTempo" || f === "riser") && !clip.sprints.length)
-                          && !((f === "carveMelodie" || f === "carveWhoosh") && !clip.carves.length)
+                          && !(f === "carveWhoosh" && !clip.carves.length)
                           && !(f === "kampf" && !clip.hatPumps),
                         ).map((f) => (
                           <label key={f} className="flex items-center gap-2 text-sm text-slate-300">

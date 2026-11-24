@@ -420,6 +420,13 @@ export const TrashIcon = ({ className = base }: P) => (
   </svg>
 );
 
+// Duplizieren (Media-Stimmen, 24.11.2026): zwei versetzte Blaetter wie Material „content_copy".
+export const CopyIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+  </svg>
+);
+
 export const EyeIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>
     <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z" /><circle cx="12" cy="12" r="3" />
