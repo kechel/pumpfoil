@@ -29,6 +29,7 @@ export interface MediaCfg {
   farbe: "speed" | "hr" | "pump" | "cyan" | "weiss";
   ebenen: { glides: boolean; carves: boolean; sprints: boolean; pumps: boolean };   // Ebenen ueber der Spur, wie in der Karte
   geist: boolean;       // ganze Strecke blass vorab zeigen
+  dicke: number;        // Linienstaerke der Spur: 1 duenn, 1.6 mittel, 2.4 dick (Jan 24.11.2026)
   schatten: boolean;
   hintergrund: Hintergrund;
   sprints: string[];    // gezeigte Sprint-Kennzahlen (z. B. sprint_100m, sprint_60s)
@@ -36,7 +37,7 @@ export interface MediaCfg {
 }
 
 export const CFG_DEFAULT: MediaCfg = {
-  tempo: 1, vor: 1, nach: 3, format: "9:16", hoehe: 1080, fps: 30, farbe: "speed", geist: true, schatten: true,
+  tempo: 1, vor: 1, nach: 3, format: "9:16", hoehe: 1080, fps: 30, farbe: "speed", geist: true, dicke: 1, schatten: true,
   hintergrund: "alpha",   // Jan 24.11.: die meisten legen es im Schnittprogramm als WebM drueber
   ebenen: { glides: true, carves: true, sprints: true, pumps: false },
   sprints: ["sprint_100m", "sprint_60s"],
@@ -180,6 +181,7 @@ function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, W: number,
     : Math.min((kurz * (gr >= 1 ? 0.78 : 0.57)) / Math.max(bw, bh), (W - 2 * rand) / bw, (H * 0.6) / bh);
   const w = bw * s, h = bh * s;
   const e = cfg.ebenen;
+  const dk = cfg.dicke || 1;   // Linienstaerke: Spur, Baender, Boegen und Punkte wachsen gemeinsam
   return {
     w, h, draw: (c, x, y) => {
       const X = (vx: number) => x + (vx - minX) * s;
@@ -188,7 +190,7 @@ function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, W: number,
       c.lineCap = "round"; c.lineJoin = "round";
       c.shadowColor = cfg.schatten ? "rgba(0,0,0,0.55)" : "transparent"; c.shadowBlur = cfg.schatten ? 8 * u : 0;
       if (cfg.geist) {
-        c.strokeStyle = "rgba(255,255,255,0.28)"; c.lineWidth = 4 * u;
+        c.strokeStyle = "rgba(255,255,255,0.28)"; c.lineWidth = 4 * u * dk;
         c.beginPath();
         for (let k = 0; k < pts.length; k++) {
           if (k === 0 || pts[k].span !== pts[k - 1].span) c.moveTo(X(pts[k].x), Y(pts[k].y)); else c.lineTo(X(pts[k].x), Y(pts[k].y));
@@ -208,16 +210,16 @@ function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, W: number,
       };
       // Gleitphasen: cyanfarbenes Band unter der Spur, die Spur selbst behaelt ihre Farbe (Tempo sieht man weiter).
       if (e.glides) {
-        c.strokeStyle = "rgba(34,211,238,0.85)"; c.lineWidth = 20 * u;
+        c.strokeStyle = "rgba(34,211,238,0.85)"; c.lineWidth = 20 * u * dk;
         for (const [a, b] of clip.glides) if (z.ts >= a) band(a, b);
       }
       // Sprints: weisses Band unter der Spur (wie in der Session-Karte).
       const sprints = e.sprints ? clip.sprints.filter((sp) => cfg.sprints.includes(sp.kz)) : [];
-      c.strokeStyle = "rgba(255,255,255,0.9)"; c.lineWidth = 14 * u;
+      c.strokeStyle = "rgba(255,255,255,0.9)"; c.lineWidth = 14 * u * dk;
       for (const sp of sprints) if (z.ts >= sp.a) band(sp.a, sp.b);
       c.shadowColor = "transparent";
       // Die Spur in der gewaehlten Farbe — dieselben Skalen wie die Karte (trackColors.ts).
-      c.lineWidth = 7 * u;
+      c.lineWidth = 7 * u * dk;
       const farbe = (q: ClipPunktLite) => cfg.farbe === "weiss" ? "#ffffff" : cfg.farbe === "cyan" ? "#22d3ee"
         : cfg.farbe === "hr" ? hrColor(q.hr, [clip.hrLo, clip.hrHi])
         : cfg.farbe === "pump" ? (q.ph == null ? "#64748b" : rampColor((q.ph - clip.phLo) / Math.max(clip.phHi - clip.phLo, 1e-6)))
@@ -233,7 +235,7 @@ function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, W: number,
       }
       // Carves: die feinen Boegen in der Kurvenlage-Farbe UEBER der Spur, wachsen waehrend des Carves mit.
       if (e.carves) {
-        c.lineWidth = 8 * u;
+        c.lineWidth = 8 * u * dk;
         for (const cv of clip.carves) {
           if (z.ts < cv.a || cv.arc.length < 2) continue;
           const anteil = Math.min(1, (z.ts - cv.a) / Math.max(cv.b - cv.a, 1));
@@ -250,7 +252,7 @@ function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, W: number,
         c.fillStyle = "#f8fafc"; c.strokeStyle = "#0f172a"; c.lineWidth = 1.5 * u;
         for (const pp of clip.pumpPos) {
           if (pp.t > z.ts) break;
-          c.beginPath(); c.arc(X(pp.x), Y(pp.y), 4 * u, 0, Math.PI * 2); c.fill(); c.stroke();
+          c.beginPath(); c.arc(X(pp.x), Y(pp.y), 4 * u * dk, 0, Math.PI * 2); c.fill(); c.stroke();
         }
       }
       // Sprint-Anfang und -Ende: magentafarbene Punkte wie in der Karte.
@@ -259,13 +261,13 @@ function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, W: number,
           if (z.ts < tt) continue;
           let k = 0; while (k < pts.length - 1 && pts[k + 1].t <= tt) k++;
           c.fillStyle = "#c026d3"; c.strokeStyle = "#ffffff"; c.lineWidth = 3 * u;
-          c.beginPath(); c.arc(X(pts[k].x), Y(pts[k].y), 9 * u, 0, Math.PI * 2); c.fill(); c.stroke();
+          c.beginPath(); c.arc(X(pts[k].x), Y(pts[k].y), 9 * u * Math.sqrt(dk), 0, Math.PI * 2); c.fill(); c.stroke();
         }
       }
       // Aktuelle Position
       const p = pts[z.i], q = pts[Math.min(z.i + 1, pts.length - 1)];
       c.fillStyle = "#ffffff"; c.strokeStyle = "#0f172a"; c.lineWidth = 3 * u;
-      c.beginPath(); c.arc(X(p.x + (q.x - p.x) * z.f), Y(p.y + (q.y - p.y) * z.f), 11 * u, 0, Math.PI * 2); c.fill(); c.stroke();
+      c.beginPath(); c.arc(X(p.x + (q.x - p.x) * z.f), Y(p.y + (q.y - p.y) * z.f), 11 * u * Math.sqrt(dk), 0, Math.PI * 2); c.fill(); c.stroke();
     },
   };
 }

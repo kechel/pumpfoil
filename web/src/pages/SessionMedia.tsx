@@ -444,6 +444,12 @@ export default function SessionMedia() {
                     <Knopf an={cfg.farbe === "cyan"} onClick={() => setCfg({ ...cfg, farbe: "cyan" })}>{t("share.color.cyan")}</Knopf>
                     <Knopf an={cfg.farbe === "weiss"} onClick={() => setCfg({ ...cfg, farbe: "weiss" })}>{t("media.white")}</Knopf>
                   </div>
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-slate-300">
+                    <span>{t("media.trackWidth")}</span>
+                    {([[1, "media.width.thin"], [1.6, "media.width.medium"], [2.4, "media.width.thick"]] as const).map(([d, k]) => (
+                      <Knopf key={d} an={(cfg.dicke || 1) === d} onClick={() => setCfg({ ...cfg, dicke: d })}>{t(k)}</Knopf>
+                    ))}
+                  </div>
                   {/* Ebenen ueber der Spur, wie in der Karte — laufen mit der Zeit mit. */}
                   <div className="text-sm text-slate-300">{t("media.layers")}</div>
                   <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
