@@ -1565,7 +1565,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 - **24.11. Jan: KEIN Ausduennen** (Lite gibt es schon; bdf62426e zurueckgenommen in 63e74e673). Stattdessen:
   **Leck je Anfrage.** App-Laeufe von #23152 (Server-Zeiten): 312+23+6, 296+23+6, 141+159+23+5 Anfragen, dann tot —
   ~330 je Lauf, unabhaengig vom Startblock; davor Luecken 20-35 s. **Umgesetzt:** Sammel-Upload (`uploadBatch` im
-  CONFIG nur fuer Zepp, Server `ZEPP_UPLOAD_SAMMEL` Standard 10, Env-Schalter; app-side `CHUNKS`), Tests
+  CONFIG nur fuer Zepp, Server `ZEPP_UPLOAD_SAMMEL` Standard 25, Env-Schalter; app-side `CHUNKS`), Tests
   watch-zepp/tests/sammelupload.test.mjs + server/tests/test_zepp_upload_batch.py. Offen: Simulator + echte Uhr, Release.
   **Verdaechtige fuer das Leck (gelesen in @zeppos/zml 0.0.43, nicht bewiesen):**
   1. Seite -> App: `BasePage.request` meldet je Anfrage zwei Listener mit Zufallsschluessel an (`@zos/app` onMessage

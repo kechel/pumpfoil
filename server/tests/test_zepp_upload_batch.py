@@ -16,7 +16,7 @@ def test_upload_batch_nur_fuer_zepp(client):
     zepp = _paar(client, "zb-zepp")
     r = client.get("/api/devices/config?p=zepp&v=1.0.18", headers=zepp)
     assert r.status_code == 200, r.text
-    assert r.json()["uploadBatch"] == devices.ZEPP_UPLOAD_SAMMEL == 10
+    assert r.json()["uploadBatch"] == devices.ZEPP_UPLOAD_SAMMEL == 25
     garmin = _paar(client, "zb-garmin")
     r = client.get("/api/devices/config?p=garmin&v=1.0.105", headers=garmin)
     assert r.status_code == 200, r.text
