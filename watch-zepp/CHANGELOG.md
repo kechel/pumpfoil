@@ -10,14 +10,6 @@ This changelog covers the Zepp OS watch app only.
 > and possibly after the upload — it is listed under 1.0.7. **Keep this file current with every
 > bump**, then nobody has to dig through commits again.
 
-## Naechste Fassung (noch ohne Nummer, Version erst beim Release bumpen)
-
-- **Accel auf ~25 Hz ausduennen** (24.11.2026, Befund u439, Active 2): bei `FREQ_MODE_HIGH` liefern Active 2 und
-  Balance ~100 Hz (T-Rex 3 / Active 3 / T-Rex 3 Pro ~25 Hz). 26 min = 1253 Accel-Bloecke, 5 Abstuerze im Upload (Phase 4).
-  Jetzt: die ersten 500 ms messen die Rohrate (`_accelRoh`, Vorlauf wird danach nachgeholt), ueber 40 Hz wird je
-  round(hz/25) Proben gemittelt (`_accelMittel`, Tiefpass). Datei, Bloecke und BLE-Verkehr / 4; `_accelHz` zaehlt die
-  gespeicherten Proben, der Server rechnet unveraendert. Test tests/ausduennen.test.mjs. Nicht im Simulator/auf der Uhr.
-
 ## 1.0.17 — gebaut am 15.11.2026 (code 20), Einreichung bei Jan (1.0.16 noch im Review)
 
 - **GPS-Neustart nach Funkstille** (15.11.2026): Die App startete den GPS-Sensor genau einmal beim Oeffnen der Seite.
