@@ -55,8 +55,8 @@ export function MediaStimmen({ musik, setMusik, klaengeDa, da }: {
               <input value={v.name} maxLength={24} onChange={(e) => setze(v.id, { name: e.target.value })}
                 aria-label={t("media.v.name")}
                 className="min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-1 py-0.5 text-sm font-semibold text-slate-100 hover:border-slate-700 focus:border-slate-600" />
-              <button className={knopf(v.stumm)} title={t("media.v.mute")} onClick={() => setze(v.id, { stumm: !v.stumm })}>M</button>
-              <button className={knopf(v.solo)} title={t("media.v.solo")} onClick={() => setze(v.id, { solo: !v.solo })}>S</button>
+              <button className={knopf(v.stumm)} title={t("media.v.muteHint")} aria-pressed={v.stumm} onClick={() => setze(v.id, { stumm: !v.stumm })}>{t("media.v.mute")}</button>
+              <button className={knopf(v.solo)} title={t("media.v.soloHint")} aria-pressed={v.solo} onClick={() => setze(v.id, { solo: !v.solo })}>{t("media.v.solo")}</button>
               <button className={knopf(false)} title={t("media.v.duplicate")} onClick={() => {
                 const kopie = neueStimme({ ...v, id: undefined as unknown as string, name: `${v.name} 2`, solo: false });
                 const l = musik.stimmen.slice(); l.splice(i + 1, 0, { ...kopie, id: neueStimme().id });

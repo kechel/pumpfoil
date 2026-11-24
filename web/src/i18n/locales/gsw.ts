@@ -3417,6 +3417,8 @@ const gsw: Record<string, string> = {
   "media.mix.loads": "{n}× glade",
   "media.mix.deleteConfirm": "Mix „{name}“ lösche?",
   "media.mix.exports": "{n}× exportiert",
+  "media.v.muteHint": "Die Stimm stumm schalte",
+  "media.v.soloHint": "Nur die Stimm ghöre",
   "media.preview": "Vorschau",
   "media.l.speed": "Tempo",
   "media.l.pumprate": "Pumpfrequänz",

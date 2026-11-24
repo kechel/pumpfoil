@@ -3729,6 +3729,8 @@ const en: Record<string, string> = {
   "media.mix.loads": "loaded {n}×",
   "media.mix.deleteConfirm": "Delete mix “{name}”?",
   "media.mix.exports": "exported {n}×",
+  "media.v.muteHint": "Mute this voice",
+  "media.v.soloHint": "Hear only this voice",
   "media.preview": "Preview",
   "media.l.speed": "Speed",
   "media.l.pumprate": "Pump rate",
