@@ -978,6 +978,11 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    {"name": "Amazfit", "version": "1.0.18",
+     "eingereicht": "2026-11-24",
+     "items": [
+         "Uploads send many data blocks at once, which makes them much faster and stops the app from running out of memory on long sessions.",
+     ]},
     # iPhone + Apple Watch 1.1.68 (Build 79) am 19.11. 12:22 eingereicht, am 20.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte im Changelog mit ios 1.1.68.
     # 12.11.2026: Android 1.1.49 (64) / Wear 1.2.49 (1060) gebaut, wird eingereicht, sobald 1.1.48 freigegeben ist
     # (Memory android-1-1-49-mitnehmen). Inhalt wie iOS 1.1.66 (ohne Google-Login, den hat Android nativ) plus die
@@ -1237,11 +1242,7 @@ NAECHSTES: list[dict] = [
     # Suunto d605f4c9. Versionen gebumpt: Huawei 1.0.6 (1000006), Amazfit 1.0.16 (19); Suunto bleibt 1.01 (nie eingereicht).
     # Huawei Watch 5 1.0.6 am 13.11. eingereicht -> IN_REVIEW.
     # Amazfit 1.0.16 am 13.11. eingereicht -> IN_REVIEW.
-    # 24.11.2026: Zepp Sammel-Upload (45a1d7f1, 410f8a22), Befund u439 (App starb nach ~330 Einzel-Anfragen).
-    {"name": "Amazfit", "version": "1.0.18",
-     "items": [
-         "Uploads send many data blocks at once, which makes them much faster and stops the app from running out of memory on long sessions.",
-     ]},
+    # Amazfit 1.0.18 am 24.11. eingereicht -> IN_REVIEW.
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 
