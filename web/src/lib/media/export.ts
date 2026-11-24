@@ -28,8 +28,9 @@ export async function alphaMoeglich(w: number, h: number): Promise<boolean> {
   } catch { return false; }
 }
 
+/** `ton`: fertig gerenderte Musik (Teil B) — kommt als Tonspur dazu (WebM: Opus, MP4: AAC, ersatzweise Opus). */
 export async function erzeugeVideo(clip: Clip, cfg: MediaCfg, tx: Texte,
-  fortschritt: (anteil: number) => void, abbruch: AbortSignal): Promise<Ergebnis> {
+  fortschritt: (anteil: number) => void, abbruch: AbortSignal, ton?: AudioBuffer | null): Promise<Ergebnis> {
   const mb = await import("mediabunny");
   const { w, h } = masse(cfg);
   const canvas = document.createElement("canvas");
@@ -48,7 +49,14 @@ export async function erzeugeVideo(clip: Clip, cfg: MediaCfg, tx: Texte,
   });
   const quelle = new mb.CanvasSource(canvas, { codec, bitrate: mb.QUALITY_HIGH, alpha: durchsichtig ? "keep" : "discard" });
   output.addVideoTrack(quelle, { frameRate: cfg.fps });
+  let tonQuelle: InstanceType<typeof mb.AudioBufferSource> | null = null;
+  if (ton) {
+    const aac = endung === "mp4" && await mb.canEncodeAudio("aac", { numberOfChannels: ton.numberOfChannels, sampleRate: ton.sampleRate });
+    tonQuelle = new mb.AudioBufferSource({ codec: aac ? "aac" : "opus", quality: mb.QUALITY_HIGH });
+    output.addAudioTrack(tonQuelle);
+  }
   await output.start();
+  if (tonQuelle && ton) { await tonQuelle.add(ton); tonQuelle.close(); }
 
   const dauer = videoDauer(clip, cfg);
   const n = Math.max(1, Math.round(dauer * cfg.fps));

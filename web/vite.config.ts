@@ -47,7 +47,8 @@ export default defineConfig({
         // kommen bei Bedarf über runtimeCaching (static-img, unten).
         globPatterns: ["**/*.{js,css,html,svg,woff2}"],
         // Flaggen (02.11.2026, ~250 SVG, 2,8 MB) nicht vorab cachen — nur beim Teilen und im Profil gebraucht.
-        globIgnores: ["flags/**", "assets/media-*.js"],   // media-*: Video-Muxer nur bei Bedarf (docs/MEDIA.md)
+        // media-*: Video-Muxer nur bei Bedarf; strudel-host.*: eigene Seite mit eigener CSP, nie aus dem SW (docs/MEDIA.md)
+        globIgnores: ["flags/**", "assets/media-*.js", "strudel-host.*"],
         // Das App-Bundle hat 2026-07-26 die Workbox-Standardgrenze von 2 MiB überschritten →
         // Build brach ab und der SW wäre ohne App-Shell ausgeliefert worden (kein Offline).
         // Grenze hochgezogen; TODO bleibt: das Bundle per Code-Splitting kleiner machen.
@@ -78,6 +79,8 @@ export default defineConfig({
           // /landing-vorschau zeigt die Seiten der Zusatz-Domains (foilers.org & Co.)
           // unter pumpfoil.org an, solange der Proxy dort noch umleitet.
           /^\/api/, /^\/media/, /^\/demo/, /^\/promo/, /^\/landing-vorschau/, /-oauth(\?|$)/,
+          // Strudel-Wirt der Media-Ansicht: braucht SEINE Server-CSP (mit unsafe-eval), nie die App-Shell.
+          /^\/strudel-host/,
           /^\/sitemap\.xml$/, /^\/robots\.txt$/, /^\/\.well-known/,
           // Bilder und Clips per Direktlink (04.11.2026): /icon-512.png, /guide/… usw. liegen NICHT im Precache
           // (globPatterns ohne png/webp). Wer die PWA im Browser hatte und so einen Link oeffnete, bekam sonst die

@@ -17,6 +17,8 @@ import {
   masse, sprintName, videoDauer, zeichne,
 } from "../lib/media/zeichnen";
 import { MAX_SEKUNDEN, alphaMoeglich, erzeugeVideo, webCodecsDa } from "../lib/media/export";
+import { MUSIK_DEFAULT, QUELLEN, SPUREN, STILE, type MusikCfg, type Quelle, strudelCode, strudelLink } from "../lib/media/musik";
+import { rendere, spiele, stoppe, vorladen, wavZuBuffer } from "../lib/media/strudel";
 
 const LS_KEY = "pumpfoil_media_cfg";
 
@@ -31,6 +33,30 @@ function ladeCfg(): MediaCfg {
     }
   } catch { /* Privatmodus, kaputter Eintrag */ }
   return CFG_DEFAULT;
+}
+
+const LS_MUSIK = "pumpfoil_media_musik";
+function ladeMusik(): MusikCfg {
+  try {
+    const roh = JSON.parse(localStorage.getItem(LS_MUSIK) ?? "null");
+    if (roh && typeof roh === "object") return {
+      ...MUSIK_DEFAULT, ...roh,
+      staerke: { ...MUSIK_DEFAULT.staerke, ...(roh.staerke ?? {}) }, spur: { ...MUSIK_DEFAULT.spur, ...(roh.spur ?? {}) },
+    };
+  } catch { /* egal */ }
+  return MUSIK_DEFAULT;
+}
+
+/** Regler 0..1 mit Beschriftung. */
+function Regler({ label, wert, onChange }: { label: string; wert: number; onChange: (v: number) => void }) {
+  return (
+    <label className="flex items-center gap-3 text-sm text-slate-300">
+      <span className="w-44 shrink-0">{label}</span>
+      <input type="range" min={0} max={1} step={0.05} value={wert} onChange={(e) => onChange(Number(e.target.value))}
+        className="min-w-0 flex-1 accent-brand-400" />
+      <span className="w-10 text-right tabular-nums text-slate-400">{Math.round(wert * 100)}</span>
+    </label>
+  );
 }
 
 const FORMATE: Format[] = ["9:16", "4:5", "1:1", "16:9"];
@@ -70,6 +96,14 @@ export default function SessionMedia() {
   const [cfg, setCfg] = useState<MediaCfg>(ladeCfg);
   const [lauf, setLauf] = useState<number | "alle">("alle");
   const [alphaOk, setAlphaOk] = useState<boolean | null>(null);
+  // Rechte Spalte: Video- oder Musik-Einstellungen (Jan 24.11.2026); der Export darunter gilt fuer beides.
+  const [reiter, setReiter] = useState<"video" | "musik">("video");
+  const [musik, setMusik] = useState<MusikCfg>(ladeMusik);
+  const [musikFehler, setMusikFehler] = useState<string | null>(null);
+  const [musikLaedt, setMusikLaedt] = useState(false);
+  useEffect(() => { try { localStorage.setItem(LS_MUSIK, JSON.stringify(musik)); } catch { /* egal */ } }, [musik]);
+  useEffect(() => { if (musik.an) vorladen(); }, [musik.an]);
+  useEffect(() => () => { stoppe(); }, []);
 
   useEffect(() => {
     let weg = false;
@@ -105,6 +139,11 @@ export default function SessionMedia() {
   );
   const dauer = clip ? videoDauer(clip, cfg) : 0;
   const zuLang = dauer > MAX_SEKUNDEN;
+  // Ein Strudel-Code fuer Vorschau, Export und den Link nach strudel.cc.
+  const code = useMemo(
+    () => (clip && musik.an ? strudelCode(clip, cfg, musik, { sessionId: id ?? "", lauf: lauf === "alle" ? "all runs" : `run ${lauf + 1}` }) : null),
+    [clip, cfg, musik, lauf, id],
+  );
 
   const tx: Texte = useMemo(() => ({
     speed: t("media.l.speed"), pumps: t("stat.pumps"), pumprate: t("media.l.pumprate"), hr: t("media.l.hr"),
@@ -138,6 +177,34 @@ export default function SessionMedia() {
     zeichneVorschau();
   });   // nach jeder Aenderung der Einstellungen neu zeichnen
 
+  // Musik zur Vorschau: startet mit Abspielen, stoppt mit Pause/Ende. Aenderungen am Mischpult oder ein Sprung im
+  // Schieberegler setzen sie an der aktuellen Stelle neu auf (live mixen).
+  useEffect(() => { if (!spielt) stoppe(); }, [spielt]);
+  const musikNeuRef = useRef(0);
+  const musikNeu = () => {
+    window.clearTimeout(musikNeuRef.current);
+    musikNeuRef.current = window.setTimeout(() => {
+      if (code) spiele(code, tvRef.current).then(setMusikFehler).catch((e) => setMusikFehler(String(e?.message ?? e)));
+    }, 250);
+  };
+  const ersterCode = useRef(code);
+  useEffect(() => {
+    if (ersterCode.current === code) return;
+    ersterCode.current = code;
+    if (spielt) { if (code) musikNeu(); else stoppe(); }
+  }, [code]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const abspielen = async () => {
+    if (spielt) { setSpielt(false); return; }
+    if (tvRef.current >= dauer) tvRef.current = 0;
+    if (code) {
+      setMusikLaedt(true);
+      try { setMusikFehler(await spiele(code, tvRef.current)); }
+      catch (e: any) { setMusikFehler(String(e?.message ?? e)); }
+      finally { setMusikLaedt(false); }
+    }
+    setSpielt(true);
+  };
+
   useEffect(() => {
     if (!spielt) return;
     let raf = 0, zuletzt = performance.now();
@@ -156,6 +223,9 @@ export default function SessionMedia() {
   const [fortschritt, setFortschritt] = useState<number | null>(null);
   const [ergebnis, setErgebnis] = useState<{ url: string; name: string; mb: number } | null>(null);
   const [exportFehler, setExportFehler] = useState<string | null>(null);
+  const [phase, setPhase] = useState<"musik" | "video" | null>(null);
+  const [wav, setWav] = useState<{ url: string; name: string; mb: number } | null>(null);
+  useEffect(() => () => { if (wav) URL.revokeObjectURL(wav.url); }, [wav]);
   const abbruchRef = useRef<AbortController | null>(null);
   useEffect(() => () => { if (ergebnis) URL.revokeObjectURL(ergebnis.url); }, [ergebnis]);
 
@@ -164,17 +234,28 @@ export default function SessionMedia() {
     setSpielt(false);
     setExportFehler(null);
     if (ergebnis) { URL.revokeObjectURL(ergebnis.url); setErgebnis(null); }
+    if (wav) { URL.revokeObjectURL(wav.url); setWav(null); }
     const ab = new AbortController();
     abbruchRef.current = ab;
     setFortschritt(0);
+    const teil = lauf === "alle" ? "alle" : `lauf${lauf + 1}`;
     try {
-      const r = await erzeugeVideo(clip, cfg, tx, setFortschritt, ab.signal);
-      const teil = lauf === "alle" ? "alle" : `lauf${lauf + 1}`;
+      // Erst die Musik (offline, im iframe), dann das Bild mit der Tonspur.
+      let ton: AudioBuffer | null = null;
+      if (code) {
+        setPhase("musik");
+        const w = await rendere(code, dauer, ab.signal);
+        ton = await wavZuBuffer(w);
+        setWav({ url: URL.createObjectURL(w), name: `pumpfoil-${id}-${teil}-${musik.stil}.wav`, mb: w.size / 1e6 });
+      }
+      setPhase("video");
+      const r = await erzeugeVideo(clip, cfg, tx, setFortschritt, ab.signal, ton);
       setErgebnis({ url: URL.createObjectURL(r.blob), name: `pumpfoil-${id}-${teil}-${cfg.format.replace(":", "x")}.${r.endung}`, mb: r.blob.size / 1e6 });
     } catch (e: any) {
       if (e?.name !== "AbortError") setExportFehler(String(e?.message ?? e));
     } finally {
       setFortschritt(null);
+      setPhase(null);
       abbruchRef.current = null;
     }
   };
@@ -217,6 +298,14 @@ export default function SessionMedia() {
     !((k === "pumps" || k === "pumprate") && clip && !clip.hatPumps) && !(k === "hr" && clip && !clip.hatPuls)
     && !(k === "sprint" && !sprintKz.length) && !(k === "carve" && !(clip?.carves.length));
   const hochkant = h > w;
+  // Startzeit eines Laufs (Jan 24.11.2026: hilft, die zugehoerige Videoaufnahme zu finden) — Uhrzeit mit Sekunden in der
+  // Ortszeit des Spots; hat der Besitzer die Uhrzeit verborgen, nur der Abstand zum Session-Beginn.
+  const laufStart = (g: any): string => {
+    const ms = g.t_start_session_ms ?? g.t_start_ms;
+    if (ms == null) return "";
+    if (session.zeit_verborgen) { const sk = Math.round(ms / 1000); return `+${Math.floor(sk / 60)}:${String(sk % 60).padStart(2, "0")}`; }
+    return fmtTime(new Date(new Date(session.started_at).getTime() + ms).toISOString(), session.tz, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  };
 
   return (
     <div className="mx-auto max-w-6xl space-y-4">
@@ -250,19 +339,28 @@ export default function SessionMedia() {
                 }} />
             </div>
             <div className="mt-3 flex items-center gap-3">
-              <button onClick={() => { if (tvRef.current >= dauer) tvRef.current = 0; setSpielt((s) => !s); }}
-                className="rounded-lg bg-brand-500 px-3 py-1 text-sm font-semibold text-slate-950 hover:bg-brand-400">
-                {spielt ? t("sd.pause") : t("sd.play")}
+              <button onClick={abspielen} disabled={musikLaedt}
+                className="rounded-lg bg-brand-500 px-3 py-1 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-60">
+                {musikLaedt ? t("media.music.loading") : spielt ? t("sd.pause") : t("sd.play")}
               </button>
               <input ref={reglerRef} type="range" min={0} max={dauer} step={0.05} defaultValue={0}
-                onChange={(e) => { tvRef.current = Number(e.target.value); zeichneVorschau(); }}
+                onChange={(e) => { tvRef.current = Number(e.target.value); zeichneVorschau(); if (spielt && code) musikNeu(); }}
                 className="flex-1 accent-brand-400" aria-label={t("media.preview")} />
               <span ref={zeitRef} className="w-24 text-right text-xs tabular-nums text-slate-400" />
             </div>
           </Card>
 
-          {/* Einstellungen */}
+          {/* Einstellungen: Reiter Video | Musik, darunter der gemeinsame Export */}
           <div className="space-y-4">
+            <div className="flex gap-1 rounded-xl bg-slate-800 p-1" role="tablist">
+              {(["video", "musik"] as const).map((r) => (
+                <button key={r} role="tab" aria-selected={reiter === r} onClick={() => setReiter(r)}
+                  className={`flex-1 rounded-lg px-3 py-1.5 text-sm font-semibold ${reiter === r ? "bg-brand-500 text-slate-950" : "text-slate-300 hover:bg-slate-700"}`}>
+                  {t(r === "video" ? "media.tab.video" : "media.tab.music")}{r === "musik" && musik.an ? " ●" : ""}
+                </button>
+              ))}
+            </div>
+            {reiter === "video" && <>
             <Card className="space-y-3 p-4">
               <h3 className="font-semibold">{t("media.video")}</h3>
               <label className="block text-sm text-slate-300">{t("media.run")}
@@ -271,7 +369,7 @@ export default function SessionMedia() {
                   {segs.length > 1 && <option value="alle">{t("media.allRuns")}</option>}
                   {segs.map((g, i) => (
                     <option key={i} value={i}>
-                      {t("media.runN", { n: String(i + 1) })} · {Math.round(g.distance_m ?? 0)} m{g.pumps ? ` · ${g.pumps} ${t("stat.pumps")}` : ""}
+                      {t("media.runN", { n: String(i + 1) })} · {laufStart(g)} · {Math.round(g.distance_m ?? 0)} m{g.pumps ? ` · ${g.pumps} ${t("stat.pumps")}` : ""}
                     </option>
                   ))}
                   {!segs.length && <option value="alle">{t("media.wholeTrack")}</option>}
@@ -375,6 +473,60 @@ export default function SessionMedia() {
                 {t("media.shadow")}
               </label>
             </Card>
+            </>}
+
+            {reiter === "musik" && (
+              <Card className="space-y-4 p-4">
+                <label className="flex items-center gap-2">
+                  <input type="checkbox" checked={musik.an} onChange={(e) => setMusik({ ...musik, an: e.target.checked })} className="accent-brand-400" />
+                  <h3 className="font-semibold">{t("media.music.on")}</h3>
+                </label>
+                <p className="text-xs text-slate-400">{t("media.music.hint")}</p>
+                {musik.an && (
+                  <>
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-slate-300">
+                      <span className="w-20">{t("media.music.style")}</span>
+                      {STILE.map((st) => <Knopf key={st} an={musik.stil === st} onClick={() => setMusik({ ...musik, stil: st })}>{t(`media.style.${st}`)}</Knopf>)}
+                    </div>
+                    <div className="space-y-2">
+                      <div className="text-sm font-semibold">{t("media.music.mapping")}</div>
+                      {QUELLEN.filter((q: Quelle) =>
+                        !(q === "puls" && !clip.hatPuls) && !(q === "carve" && !clip.carves.length)
+                        && !(q === "sprint" && !clip.sprints.length) && !(q === "gleiten" && !clip.glides.length)
+                        && !(q === "pump" && !clip.hatPumps),
+                      ).map((q) => (
+                        <Regler key={q} label={t(`media.q.${q}`)} wert={musik.staerke[q]}
+                          onChange={(v) => setMusik({ ...musik, staerke: { ...musik.staerke, [q]: v } })} />
+                      ))}
+                    </div>
+                    <div className="space-y-2">
+                      <div className="text-sm font-semibold">{t("media.music.tracks")}</div>
+                      {SPUREN.map((sp) => (
+                        <Regler key={sp} label={t(`media.sp.${sp}`)} wert={musik.spur[sp]}
+                          onChange={(v) => setMusik({ ...musik, spur: { ...musik.spur, [sp]: v } })} />
+                      ))}
+                    </div>
+                    <p className="text-xs text-slate-400">{t("media.music.previewHint")}</p>
+                    {code && (
+                      <div className="flex flex-wrap items-center gap-3">
+                        <a href={strudelLink(code)} target="_blank" rel="noopener noreferrer"
+                          className="rounded-lg border border-brand-500 px-3 py-1.5 text-sm font-semibold text-brand-600 hover:bg-brand-500/10 dark:text-brand-300">
+                          {t("media.music.strudel")}
+                        </a>
+                        <span className="text-xs text-slate-400">{t("media.music.license")}</span>
+                      </div>
+                    )}
+                    {code && (
+                      <details className="text-sm">
+                        <summary className="cursor-pointer text-slate-300">{t("media.music.code")}</summary>
+                        <pre className="mt-2 max-h-96 overflow-auto rounded-lg bg-slate-950 p-3 text-xs text-slate-300">{code}</pre>
+                      </details>
+                    )}
+                    {musikFehler && <ErrorBox message={t("media.music.error", { e: musikFehler })} />}
+                  </>
+                )}
+              </Card>
+            )}
 
             <Card className="space-y-3 p-4">
               <h3 className="font-semibold">{t("media.output")}</h3>
@@ -401,7 +553,9 @@ export default function SessionMedia() {
                       <div className="h-2 min-w-40 flex-1 overflow-hidden rounded-full bg-slate-800">
                         <div className="h-full bg-brand-400" style={{ width: `${Math.round(fortschritt * 100)}%` }} />
                       </div>
-                      <span className="text-sm tabular-nums text-slate-300">{Math.round(fortschritt * 100)} %</span>
+                      <span className="text-sm tabular-nums text-slate-300">
+                        {phase === "musik" ? t("media.music.rendering") : `${Math.round(fortschritt * 100)} %`}
+                      </span>
                       <button onClick={() => abbruchRef.current?.abort()} className="rounded-lg bg-slate-800 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-700">
                         {t("media.cancel")}
                       </button>
@@ -411,6 +565,12 @@ export default function SessionMedia() {
                     <a href={ergebnis.url} download={ergebnis.name}
                       className="rounded-lg border border-brand-500 px-4 py-2 text-sm font-semibold text-brand-600 hover:bg-brand-500/10 dark:text-brand-300">
                       {t("media.download", { mb: ergebnis.mb.toFixed(1) })}
+                    </a>
+                  )}
+                  {wav && fortschritt == null && (
+                    <a href={wav.url} download={wav.name}
+                      className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-slate-800">
+                      {t("media.music.wav", { mb: wav.mb.toFixed(1) })}
                     </a>
                   )}
                 </div>

@@ -117,6 +117,22 @@ async def security_headers(request: Request, call_next):
 # Session-Detailseite haben bis zum 31.08. weiter direkt bei img.youtube.com geladen, und der
 # Host stand deshalb hier drin — auf der Startseite ging damit die IP jedes Besuchers an Google,
 # bevor irgendjemand auf ein Video getippt hatte. Beide Stellen sind umgestellt, der Host ist raus.
+# Strudel-Seite der Media-Ansicht (web/public/strudel-host.html, docs/MEDIA.md, 24.11.2026). Strudel ist ein
+# Live-Coding-Werkzeug: es wertet den Musik-Code zur Laufzeit als JavaScript aus — das braucht 'unsafe-eval', das die
+# App selbst NICHT bekommt. Deshalb laeuft Strudel allein auf dieser Seite, eingebettet als iframe mit
+# sandbox="allow-scripts" (ohne allow-same-origin): undurchsichtige Herkunft, kein Zugriff auf die App, ihre Cookies
+# oder den Login. Ausgewertet wird nur Code, den die Media-Ansicht aus Zahlen erzeugt. Im Sandbox-Dokument passt
+# 'self' auf nichts — die eigene Herkunft steht deshalb ausgeschrieben drin. blob:/data:: Strudels Audio-Worklets.
+def _csp_strudel(request: Request) -> str:
+    # Hinter dem Proxy kommt die Anfrage evtl. als http an, der Browser sieht https — beide Schemata zulassen.
+    host = request.headers.get("host") or request.url.netloc
+    herkunft = f"https://{host} http://{host}"
+    return ("default-src 'none'; "
+            f"script-src {herkunft} 'unsafe-eval' blob: data:; "
+            f"worker-src {herkunft} blob: data:; "
+            "frame-ancestors 'self'; base-uri 'none'; form-action 'none'")
+
+
 # style 'unsafe-inline' nötig (React-Inline-Styles + Leaflet) — harmlos vs. Skript.
 _CSP = (
     "default-src 'self'; "
@@ -127,7 +143,8 @@ _CSP = (
     # Anbieter (Nutzerwunsch 26.08.). Beides steht in der Datenschutzerklaerung (imp.map*).
     "img-src 'self' data: blob: https://*.tile.openstreetmap.org "
     "https://server.arcgisonline.com; "
-    "frame-src https://www.youtube-nocookie.com; "
+    # 'self': die Strudel-Seite der Media-Ansicht laeuft als abgeschotteter iframe (s. _CSP_STRUDEL, 24.11.2026).
+    "frame-src 'self' https://www.youtube-nocookie.com; "
     "connect-src 'self'; "
     "worker-src 'self' blob:; "
     "manifest-src 'self'; "
@@ -585,7 +602,10 @@ if settings.web_dist.exists():
         for ordner in (_ASSETS, _ARCHIV):
             f = ordner / name
             if f.is_file():
-                return FileResponse(f, headers=_UNVERAENDERLICH)
+                # .mjs = Strudel-Buendel der Media-Ansicht: der abgeschottete iframe (undurchsichtige Herkunft) laedt es
+                # als Modul, das geht nur mit CORS. Die Datei ist ohnehin oeffentlich.
+                kopf = {**_UNVERAENDERLICH, "Access-Control-Allow-Origin": "*"} if name.endswith(".mjs") else _UNVERAENDERLICH
+                return FileResponse(f, headers=kopf)
         # Alte Einstiegsdatei -> die aktuelle (Jan, 24.10.2026: „die neuen einfach unter den alten Hash-Namen").
         # Sie laedt nur aktuelle Teile nach, passt also zusammen. Nie cachen, sonst klebt das unter dem alten Namen.
         if name.startswith("index-") and name.endswith((".js", ".css")):
@@ -639,13 +659,16 @@ if settings.web_dist.exists():
     # Auch HEAD (05.11.2026): Garmins Developer-Portal pruefte die Branding-Bild-Adresse (/icon-192.png) per HEAD und
     # meldete „Invalid Branding Image", weil hier nur GET erlaubt war (405). Link-Vorschauen und Pruefdienste fragen oft so.
     @app.api_route("/{full_path:path}", methods=["GET", "HEAD"])
-    def spa(full_path: str):  # noqa: ANN202
+    def spa(full_path: str, request: Request):  # noqa: ANN202
         # resolve() + Pruefung, dass die Datei IN web/dist liegt: ohne sie las `/..%2F..%2Fserver%2F.env` jede
         # Datei des Servers (gefunden 24.10.2026, bestand seit Anfang an).
         candidate = (settings.web_dist / full_path).resolve()
         if full_path and candidate.is_relative_to(settings.web_dist) and candidate.is_file():
             nc = candidate.name in _NO_CACHE or candidate.name.startswith("workbox-")
-            return FileResponse(candidate, headers={"Cache-Control": "no-cache"} if nc else {})
+            kopf = {"Cache-Control": "no-cache"} if nc else {}
+            if candidate.name == "strudel-host.html":
+                kopf = {"Cache-Control": "no-cache", "Content-Security-Policy": _csp_strudel(request)}
+            return FileResponse(candidate, headers=kopf)
         kopf = {"Cache-Control": "no-cache"}
         if _privat(full_path):
             kopf["X-Robots-Tag"] = "noindex, follow"

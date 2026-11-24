@@ -13,6 +13,7 @@
     "postbuild": "node scripts/assets-archiv.mjs"
   },
   "dependencies": {
+    "@strudel/web": "1.3.0",
     "leaflet": "^1.9.4",
     "mediabunny": "1.65.2",
     "qrcode-generator": "2.0.4",

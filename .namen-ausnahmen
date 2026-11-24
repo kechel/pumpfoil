@@ -1,2 +1,4 @@
 # Woerter, die namen-pruefen.py NICHT sperren soll: SHA-256 des kleingeschriebenen Wortes + Grund (nie das Wort).
 91f3a8e81960fabbd4260d9a35b163538e825f1703a7ce42e6213e56257f566c  # deutsches Wort, steckt in einem Anzeigenamen
+c5c1764a8b1824b5edfbd61a37cdf9986496181ed11aafb84098fa602e3c20ac  # Musik-Fachwort (MIDI), Name eines npm-Pakets in package-lock.json (Strudel, 24.11.2026)
+b98ccbb62227b538a5b83550048b325289d4e0e254ef02eb4f804c02a9719e0a  # deutsches Verb, steht in Kommentaren der Media-Ansicht (24.11.2026)

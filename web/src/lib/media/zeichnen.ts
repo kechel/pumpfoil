@@ -95,7 +95,7 @@ function fmtStrecke(m: number): string {
   return m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)} m`;
 }
 
-interface Zustand {
+export interface Zustand {
   ts: number;            // Session-ms
   clipMs: number;        // vergangene Clip-Zeit (ms, Tempo 1)
   i: number; f: number;  // Punktindex + Anteil zum naechsten
@@ -103,7 +103,7 @@ interface Zustand {
   nPumps: number; seitPump: number;
 }
 
-function zustand(clip: Clip, cfg: MediaCfg, tv: number): Zustand {
+export function zustandBei(clip: Clip, cfg: MediaCfg, tv: number): Zustand {
   const lauf = clip.dauerMs;
   const clipMs = Math.min(Math.max((tv - cfg.vor) * 1000 * cfg.tempo, 0), lauf);
   const ts = clipZuSession(clip, clipMs);
@@ -353,7 +353,7 @@ export function zeichne(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg
   ctx.clearRect(0, 0, W, H);
   if (hintergrund === "schwarz") { ctx.fillStyle = "#000000"; ctx.fillRect(0, 0, W, H); }
   else if (hintergrund === "gruen") { ctx.fillStyle = "#00ff00"; ctx.fillRect(0, 0, W, H); }
-  const z = zustand(clip, cfg, tv);
+  const z = zustandBei(clip, cfg, tv);
   const basis = Math.min(W, H) / 1080;
   const rand = Math.min(W, H) * 0.06, abstand = 18 * basis;
 

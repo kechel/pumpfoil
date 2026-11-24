@@ -132,10 +132,24 @@ export function baueClip(session: any, trackZeiten: number[] | null, carves: Car
   const pumpPos: { t: number; x: number; y: number }[] = [];
   const glides: [number, number][] = [];
   for (const g of gewaehlt) {
-    for (const pi of (g.pump_idx ?? []) as number[]) {
-      pumps.push(zeit(pi));
-      const c = coords[pi];
-      if (c) pumpPos.push({ t: zeit(pi), x: (c[0] - lon0) * kx, y: (c[1] - lat0) * ky });
+    // `pump_idx` ist der GPS-Punkt (1 Hz) — also nur auf die Sekunde genau, und zwei Pumps in derselben Sekunde
+    // tragen denselben Index. Solche Gruppen gleichmaessig ueber ihre Sekunde verteilen (sonst fielen sie im Takt der
+    // Musik zu einem Schlag zusammen und der Zaehler spraenge um zwei). Lage: zwischen den Punkten interpoliert.
+    const idx = ((g.pump_idx ?? []) as number[]).slice().sort((a, b) => a - b);
+    for (let j = 0; j < idx.length;) {
+      let k = j; while (k < idx.length && idx[k] === idx[j]) k++;
+      const pi = idx[j], n = k - j;
+      const t0 = zeit(pi), t1 = zeit(Math.min(pi + 1, coords.length - 1));
+      const c0 = coords[pi], c1 = coords[Math.min(pi + 1, coords.length - 1)];
+      for (let m = 0; m < n; m++) {
+        const f = (m + 0.5) / n;
+        pumps.push(t0 + (t1 - t0) * f);
+        if (c0 && c1) pumpPos.push({
+          t: t0 + (t1 - t0) * f,
+          x: (c0[0] + (c1[0] - c0[0]) * f - lon0) * kx, y: (c0[1] + (c1[1] - c0[1]) * f - lat0) * ky,
+        });
+      }
+      j = k;
     }
     for (const gl of (g.glides ?? []) as number[][]) glides.push([zeit(gl[0]), zeit(gl[1])]);
   }
@@ -196,6 +210,17 @@ export function clipZuSession(clip: Clip, ms: number): number {
     rest -= l;
   }
   return clip.spans[clip.spans.length - 1][1];
+}
+
+/** Session-ms -> Clip-ms (Umkehrung von clipZuSession); Zeiten zwischen den Laeufen kleben am Ende des Laufs davor. */
+export function sessionZuClip(clip: Clip, ts: number): number {
+  let vorher = 0;
+  for (const [a, b] of clip.spans) {
+    if (ts <= a) return vorher;
+    if (ts <= b) return vorher + (ts - a);
+    vorher += b - a;
+  }
+  return vorher;
 }
 
 /** Erster Index mit `arr[i] > x` (arr aufsteigend). */

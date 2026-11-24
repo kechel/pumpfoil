@@ -60,8 +60,32 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
    durchsichtiges WebM in 4,2 s. **Alpha:** mediabunny legt den Alphakanal als eigenen VP9-Strom ab (`alpha_mode=1`,
    Alpha 0..255 geprueft) — ein VP9-Encoder genuegt, `isConfigSupported({alpha:"keep"})` sagt dort faelschlich nein.
    Der Muxer liegt als `assets/media-*.js` ausserhalb des Precache (+35 KiB statt +790 KiB).
-2. Freie Anordnung (Ziehen in der Vorschau), Vorlagen im Profil (`settings.media`), Sync-Versatz, PNG-Folge als ZIP.
-3. Musik: Techno + Klavier, Mischpult, Strudel-Link, Export mit Ton.
+2. Freie Anordnung (Ziehen in der Vorschau), Sync-Versatz, PNG-Folge als ZIP. Einstellungen bleiben im localStorage —
+   kein Profil (Jan 24.11.2026: „local storage ist doch prima").
+3. **Musik** — *gebaut 24.11.2026.* Reiter Video | Musik in der rechten Spalte, Export darunter gilt fuer beides
+   (Jan). Stile Techno, Klavier, Gitarre, 8-Bit, Ambient; Regler je Datenquelle (Pump, Tempo, Gleiten, Sprint, Carve,
+   Puls) und je Spur (Bass, Schlagzeug, Melodie, Flaeche); Live-Vorschau mit dem Video, Aenderungen sofort hoerbar;
+   Code ansehen + Link zu strudel.cc; Export: Ton im Video (WebM Opus / MP4 AAC) + WAV. Code:
+   `web/src/lib/media/{musik,strudel}.ts`.
+   - **CSP:** Strudel wertet den Musik-Code zur Laufzeit als JavaScript aus (`unsafe-eval`) — die App-CSP erlaubt das
+     NICHT und bleibt so. Strudel laeuft deshalb auf eigener Seite `web/public/strudel-host.html` (+ `.js`) mit
+     eigener CSP (`_csp_strudel` in `server/app/main.py`, inkl. `unsafe-eval`, nur fuer diese Seite) als iframe mit
+     `sandbox="allow-scripts"` (undurchsichtige Herkunft: kein Zugriff auf App, Cookies, Login), gesteuert per
+     postMessage. Dafuer App-CSP `frame-src 'self'`, die `.mjs`-Datei mit `Access-Control-Allow-Origin: *`, Wirt nicht
+     im Precache und in der SW-navigateFallbackDenylist. Erster Live-Versuch scheiterte genau daran (Jan 24.11.).
+   - Strudel `@strudel/web` 1.3.0 (fest) als fertiges Buendel per `?url` (eigene .mjs-Datei, nicht im Precache).
+     Live-Vorschau: ein dauerhafter Wirt. Export-Ton: je Export ein FRISCHER Wirt, `renderPatternAudio` offline —
+     Strudel schliesst dabei den Audiokontext und poolt Audio-Knoten ohne Kontext-Trennung (gemessen: zweites Rendern
+     in derselben Instanz -> „different audio context"). Den erzwungenen WAV-Download faengt der Wirt ab.
+   - Gesamttest 24.11. (headless Chromium, Session-Daten nur gelesen): 51-s-Lauf, Techno, 720p -> WebM VP9 mit Alpha
+     + Opus 48 kHz stereo in 40 s, WAV separat. Offen: Autoplay im Sandbox-iframe auf echten Geraeten (Safari!).
+   - Nur eingebaute Klaenge (Synths, Rauschen, `sbd`), keine Samples — strudel.cc klingt gleich, keine fremden Abrufe.
+   - Stille Spuren per `.mask()` statt Lautstaerke 0 (halbiert die Renderzeit); Gesamtpegel je Stil (`PEGEL`),
+     gemessen auf aehnliche Spitze 0,6-0,8.
+   - **Pump-Zeiten nur sekundengenau:** `pump_idx` ist der GPS-Punkt (1 Hz), zwei Pumps einer Sekunde haben denselben
+     Index. Sie werden gleichmaessig ueber ihre Sekunde verteilt (Musik + Zaehler). Exakte Zeiten gaebe es nur aus den
+     Rohdaten auf dem Server (offen).
+   - Renderzeit auf der VM (headless, ohne GPU) fuer 50 s Ton: Techno ~30 s, andere 8-11 s.
 4. Weitere Stile, Code-Editor in der Ansicht.
 5. Native Apps: vorerst auf die Web-Ansicht verweisen.
 
