@@ -3577,7 +3577,7 @@ const en: Record<string, string> = {
   "media.layers": "Layers on the track",
   "media.white": "White",
   "media.ghost": "Show the route still to come (faint)",
-  "media.shadow": "Shadow (easier to read on bright backgrounds like sky or water)",
+  "media.shadow": "Shadow (easier to read on bright backgrounds)",
   "media.output": "Output",
   "media.out.schwarz": "MP4 on black",
   "media.out.gruen": "MP4 on green",

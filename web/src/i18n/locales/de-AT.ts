@@ -3266,7 +3266,7 @@ const deAT: Record<string, string> = {
   "media.layers": "Ebenen auf der Spur",
   "media.white": "Weiß",
   "media.ghost": "Noch nicht gefahrene Strecke blass zeigen",
-  "media.shadow": "Schatten (besser lesbar auf hellem Hintergrund wie Himmel oder Wasser)",
+  "media.shadow": "Schatten (besser lesbar auf hellem Hintergrund)",
   "media.output": "Ausgabe",
   "media.out.schwarz": "MP4 auf Schwarz",
   "media.out.gruen": "MP4 auf Grün",
