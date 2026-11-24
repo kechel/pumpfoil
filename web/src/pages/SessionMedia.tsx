@@ -108,7 +108,7 @@ export default function SessionMedia() {
 
   const tx: Texte = useMemo(() => ({
     speed: t("media.l.speed"), pumps: t("stat.pumps"), pumprate: t("media.l.pumprate"), hr: t("media.l.hr"),
-    distance: t("media.l.distance"), time: t("media.l.time"), glide: t("sd.glides"), carves: t("media.l.carves"),
+    distance: t("media.l.distance"), time: t("media.l.time"), carves: t("media.l.carves"),
     kmh: "km/h", bpm: "bpm",
     pumpRate: (hz: number) => fmtPumpRate(hz, unit, t),
   }), [t, unit]);

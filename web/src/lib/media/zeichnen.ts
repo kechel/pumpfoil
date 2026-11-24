@@ -11,8 +11,9 @@ import { carveColor } from "../turns";
 export type Anker = "tl" | "tc" | "tr" | "ml" | "mc" | "mr" | "bl" | "bc" | "br";
 export const ANKER: Anker[] = ["tl", "tc", "tr", "ml", "mc", "mr", "bl", "bc", "br"];
 
-export type ElKey = "track" | "speed" | "pumps" | "pumprate" | "hr" | "distance" | "time" | "glide" | "sprint" | "carve" | "logo";
-export const EL_KEYS: ElKey[] = ["track", "speed", "pumps", "pumprate", "hr", "distance", "time", "glide", "sprint", "carve", "logo"];
+// Kein Datenfeld „Gleiten" (Jan 24.11.2026: weg) — Gleitphasen zeigt die Ebene auf der Spur.
+export type ElKey = "track" | "speed" | "pumps" | "pumprate" | "hr" | "distance" | "time" | "sprint" | "carve" | "logo";
+export const EL_KEYS: ElKey[] = ["track", "speed", "pumps", "pumprate", "hr", "distance", "time", "sprint", "carve", "logo"];
 
 export interface ElCfg { an: boolean; pos: Anker; gr: number }
 export type Format = "9:16" | "4:5" | "1:1" | "16:9";
@@ -47,7 +48,6 @@ export const CFG_DEFAULT: MediaCfg = {
     hr: { an: false, pos: "br", gr: 1 },
     distance: { an: true, pos: "br", gr: 1 },
     time: { an: true, pos: "br", gr: 1 },
-    glide: { an: true, pos: "mc", gr: 1 },
     sprint: { an: true, pos: "tl", gr: 1 },
     carve: { an: true, pos: "ml", gr: 1 },
     logo: { an: true, pos: "bc", gr: 0.7 },
@@ -73,7 +73,7 @@ export function videoDauer(clip: Clip, cfg: MediaCfg): number {
 
 export interface Texte {
   speed: string; pumps: string; pumprate: string; hr: string; distance: string; time: string;
-  glide: string; carves: string; kmh: string; bpm: string;
+  carves: string; kmh: string; bpm: string;
   pumpRate: (hz: number) => string;       // formatiert nach der Kadenz-Einheit des Nutzers
 }
 
@@ -366,7 +366,7 @@ export function zeichne(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg
     jeAnker.set(pos, l);
   };
   for (const k of [
-    "track", "sprint", "carve", "glide", "speed", "pumps", "pumprate", "hr", "distance", "time", "logo",
+    "track", "sprint", "carve", "speed", "pumps", "pumprate", "hr", "distance", "time", "logo",
   ] as ElKey[]) {
     const e = cfg.el[k];
     if (!e.an) continue;
@@ -396,22 +396,6 @@ export function zeichne(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg
         dazu(k, statBlock(ctx, cfg, u, w, e2, tx.distance)); break;
       }
       case "time": dazu(k, statBlock(ctx, cfg, u, fmtMS(z.clipMs), "", tx.time)); break;
-      case "glide": {
-        const g = clip.glides.find(([a, b]) => z.ts >= a && z.ts <= b);
-        if (g) {
-          const fg = 56 * u;
-          ctx.font = `800 ${fg}px ${FONT}`; const ww = ctx.measureText(tx.glide.toUpperCase()).width;
-          const ein = Math.min(1, (z.ts - g[0]) / 250, (g[1] - z.ts) / 250);
-          dazu(k, {
-            w: ww, h: fg * 1.1, draw: (c, x, y) => {
-              textStil(c, cfg, u); c.globalAlpha = Math.max(0, ein);
-              c.font = `800 ${fg}px ${FONT}`; c.fillStyle = "#22d3ee"; c.fillText(tx.glide.toUpperCase(), x, y + fg * 0.85);
-              c.globalAlpha = 1;
-            },
-          });
-        }
-        break;
-      }
       case "sprint": dazu(k, sprintBlocks(ctx, clip, cfg, z, u)); break;
       case "carve": dazu(k, carveBlock(ctx, clip, cfg, z, u, tx)); break;
       case "logo": {
