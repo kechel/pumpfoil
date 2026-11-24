@@ -336,6 +336,8 @@ def stufe(s, result, rechnen: bool = True) -> bool:
         if not nur_p:
             g["pg_hinschauen"] = n.get("hinschauen") or []
     result.segments_json = json.dumps(segs)
+    if hasattr(result, "tempo_hist_json"):
+        result.tempo_hist_json = None   # Gleiten geaendert -> Tempo-Verteilung neu (analysis/tempo_hist.py)
     ft = float(result.foiling_time_s or 0.0)
     result.pg_version = ver
     result.pg_pump_count = int(erg["pump_count"])

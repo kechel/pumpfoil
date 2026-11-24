@@ -35,6 +35,7 @@ import { geraeteText } from "../lib/deviceLabel";
 import { FreundePumpen } from "../components/FreundePumpen";
 import { FreundesAnfragen } from "../components/Freundschaft";
 import { PERIODS, SportRekordeZeilen } from "./Home";
+import { TempoBereich } from "../components/TempoBereich";
 
 // Voreingestelltes Zeitfenster der Kacheln. Einer der Werte aus PERIODS.
 const STANDARD_ZEITRAUM = "10d";
@@ -692,6 +693,8 @@ function StatsBereich() {
     // Jahresbilanz, Start-Erfolgsquote, Carves, Wenden & Halsen untereinander in EINEM Reiter (Jan, 02.11.2026).
     { id: "kennzahlen", label: t("tab.insights") },
     { id: "brett", label: t("home.boardAttitude") },
+    // Tempo-Verteilung (Jan 24.11.2026, docs/TEMPO-VERTEILUNG.md)
+    { id: "tempo", label: t("tempo.tab") },
   ];
   const [sub, setSub] = useReiter("homestats", reiter.map((r) => r.id), "verlauf", { param: "sub" });
   return (
@@ -709,6 +712,7 @@ function StatsBereich() {
           <ManoeverVerlaufSection />
         </>}
         {sub === "brett" && <BoardAttitudeSection />}
+        {sub === "tempo" && <TempoBereich />}
       </div>
       {/* Leer: bei der Lage des Bretts eine Erklaerung (die wenigsten haben Brett-Aufnahmen, Jan 02.11.2026), sonst ein Satz. */}
       <div className="mt-8 hidden peer-empty:block">

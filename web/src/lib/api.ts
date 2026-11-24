@@ -596,6 +596,16 @@ export type FoilBand = {
 
 // Carve-Erkennung (Accel-Zentripetal-g-Modell, nur Anzeige). g = Kurvenlage je Track-Punkt;
 // carves = erkannte Carves mit Grad-Bucket (s=90–180 als <180 / m=180–360 / l=>360).
+/** Tempo-Verteilung: `a` = Sekunden je Stufe, `g` = davon in erkannten Gleitphasen, `g_basis` = Sekunden der Laeufe,
+ *  fuer die Gleiten ueberhaupt bekannt ist (pg-1). */
+export interface TempoHist { breite_kmh: number; a: number[]; g: number[]; g_basis: number[] }
+export interface TempoEigen extends TempoHist {
+  sessions: number; unvollstaendig: number;
+  foils: { id: number; label: string; s: number }[]; spots: { id: number; label: string; s: number }[];
+}
+/** Community je Foil: Anteile in Promille (Mittel ueber die Fahrer), erst ab `min_fahrer`. */
+export interface TempoFoil extends Partial<TempoHist> { breite_kmh: number; fahrer: number; sessions: number; min_fahrer: number; genug: boolean }
+
 export interface MusikMixOut {
   id: number; name: string; cfg: any; published: boolean; geladen: number; exportiert: number; eigen: boolean; author: string | null;
   updated_at: string | null;
@@ -1847,6 +1857,13 @@ export const api = {
     })}`),
   // Dieselben Kennzahlen, aber einzeln je Foil (Startseite, Abschnitt unter den Rekorden).
   // Nur Foils, die im gewaehlten Zeitfenster vorkommen; `foil_id: null` = Sessions ohne Eintrag.
+  // Tempo-Verteilung (24.11.2026, docs/TEMPO-VERTEILUNG.md): Sekunden auf dem Foil je 0,5 km/h, Gleiten getrennt.
+  tempoEigen: (o: { period?: string; foilId?: number | null; spotId?: number | null; sport?: string } = {}) =>
+    req<TempoEigen>(`/api/tempo/eigen?${new URLSearchParams({
+      period: o.period ?? "all", ...(o.sport ? { sport: o.sport } : {}),
+      ...(o.foilId != null ? { foil_id: String(o.foilId) } : {}), ...(o.spotId != null ? { spot_id: String(o.spotId) } : {}),
+    })}`),
+  tempoFoil: (foilId: number) => req<TempoFoil>(`/api/tempo/foil/${foilId}`),
   statsByFoil: (accelOnly = true, period = "all", sport?: string) =>
     req<FoilStatsGroup[]>(`/api/sessions/stats-by-foil?accel_only=${accelOnly}&period=${encodeURIComponent(period)}`
       + (sport ? `&sport=${encodeURIComponent(sport)}` : "")),

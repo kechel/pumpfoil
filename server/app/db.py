@@ -633,6 +633,7 @@ def _migrate_add_columns() -> None:
             "carve_m": "INTEGER",
             "carve_l": "INTEGER",
             "low_end_json": "TEXT",   # Low End je Lauf (Cache, analysis/lowend.py)
+            "tempo_hist_json": "TEXT",   # Tempo-Verteilung (Cache, analysis/tempo_hist.py)
             # Fliegende Sprints (analysis/sprint.py, 09.11.2026): bestes Fenster der Session in m/s
             "sprint_100m_mps": "FLOAT",
             "sprint_200m_mps": "FLOAT",

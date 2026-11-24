@@ -1166,6 +1166,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
     # Carve-Cache verwerfen (Segmente/Trim geändert) -> /community/carve-stats rechnet lazy neu.
     result.carve_s = result.carve_m = result.carve_l = None
     result.low_end_json = None   # Low End ebenso (analysis/lowend.py, die Foil-Stats rechnen nach)
+    result.tempo_hist_json = None   # Tempo-Verteilung ebenso (analysis/tempo_hist.py)
     # Puls-Anstieg ebenso verwerfen — haengt an denselben Segmenten (api/sessions.py).
     result.hr_by_min_json = None
     result.hr_foil_json = None   # Ø Puls auf dem Foil (api/sessions.py _hr_foil)

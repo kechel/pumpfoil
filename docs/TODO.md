@@ -1193,6 +1193,10 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
   Ansicht `/sessions/<id>/media`, durchsichtiges Overlay-Video im Browser, spaeter Strudel-Musik aus Pumps/Tempo/
   Sprints/Carves mit Link zu strudel.cc. Plan und Stand: [docs/MEDIA.md](MEDIA.md). Schritt 1 (MVP) gebaut 24.11., live im Web.
 
+- **Tempo-Verteilung** (Jan, 24.11.2026, Anregung aus einer Nutzermeldung) — Sekunden auf dem Foil je km/h, Gleiten
+  getrennt, Vergleich mit anderem Foil / allen Fahrern. Schritt 1 (Home › Stats › Tempo) live 24.11.; Session-Details
+  und Foil-Seite offen. Plan und Stand: [docs/TEMPO-VERTEILUNG.md](TEMPO-VERTEILUNG.md).
+
 - **Heart Rate Recovery (HRR)** (14.10.2026, Nutzerfrage ThermikDreher im 1:1-Chat). **Web gebaut
   14.10.:** Spalten Pulsabfall 60/120 s in der Lauftabelle (SessionDetail, aus track-times). Offen:
   Android/iOS-Lauftabelle, Erweiterungen je nach ThermikDrehers Antwort. Urspruenglich: wie schnell der Puls nach jedem Lauf wieder faellt, z. B. Abfall nach 30/60 s
