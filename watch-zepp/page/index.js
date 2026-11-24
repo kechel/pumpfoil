@@ -44,6 +44,12 @@ const GPS_CHUNK = 10;
 // Keep both the live buffer and each BLE payload small. At 25 Hz, 128 samples represent about five
 // seconds and 768 raw bytes (roughly 1 KB after base64 encoding).
 const ACCEL_CHUNK_SAMPLES = 128;
+// Ausduennen (24.11.2026, Befund u439): Active 2 und Balance liefern bei FREQ_MODE_HIGH ~100 Hz statt ~25 Hz wie
+// T-Rex 3 / Active 3 — viermal so viele Bloecke, und der Upload starb an Speichermangel (5 Abstuerze in Phase 4,
+// 1253 Accel-Bloecke fuer 26 min). Die ersten ACCEL_MESS_MS wird die Rohrate gemessen; liegt sie ueber
+// ACCEL_AUSDUENNEN_AB_HZ, wird je `teiler` Proben gemittelt (Tiefpass, dann ~25 Hz). Der Server rechnet mit der
+// gemeldeten Rate (`_accelHz` zaehlt die gespeicherten Proben), dort aendert sich nichts.
+const ACCEL_MESS_MS = 500, ACCEL_AUSDUENNEN_AB_HZ = 40, ACCEL_ZIEL_HZ = 25;
 // Navigation, pairing, and upload: keep the screen on for five minutes instead of the ~38 seconds
 // observed on the T-Rex 3. Restore the system timeout when the user actually leaves the app.
 const IDLE_BRIGHT_MS = 5 * 60 * 1000;
@@ -1049,6 +1055,7 @@ Page(
       geo: null, geoSpeedPrev: null, geoCallback: null, geoLast: null, hrSensor: null, hrCallback: null, hrUpdatedMs: 0, _hrLogged: false, w: {},
       accelSensor: null, accelCallback: null, accelBuffer: [], accelSamples: 0, accelBytes: 0,
       accelFirstMs: 0, accelLastMs: 0, accelChunkT0: [], accelFile: "", _accelLogged: false,
+      accelTeiler: 0, accelVorlauf: null, accelSx: 0, accelSy: 0, accelSz: 0, accelSn: 0,
       // GPS-Datei. `gps` bleibt als RUECKFALL bestehen: laesst sich die Datei nicht oeffnen,
       // zeichnet die Uhr wie vor 1.0.10 in den Speicher auf, statt gar nichts aufzuzeichnen.
       gpsFile: "", gpsBuffer: [], gpsCount: 0, gpsLastMs: 0, gpsFehler: 0,
@@ -1245,6 +1252,7 @@ Page(
       }
       s.accelFile = accelPath(s.uuid); s.accelBuffer = []; s.accelSamples = 0; s.accelBytes = 0;
       s.accelFirstMs = 0; s.accelLastMs = 0; s.accelChunkT0 = []; s._accelLogged = false;
+      s.accelTeiler = 0; s.accelVorlauf = null; s.accelSx = 0; s.accelSy = 0; s.accelSz = 0; s.accelSn = 0;
       try {
         // Nur ANLEGEN und sofort wieder schliessen — s. _flushAccelBuffer.
         const fd = openSync({ path: s.accelFile, flag: O_RDWR | O_CREAT | O_TRUNC });
@@ -1279,15 +1287,7 @@ Page(
           try {
             const a = s.accelSensor.getCurrent();
             if (!a) return;
-            const now = Date.now();
-            if (!s.accelFirstMs) s.accelFirstMs = now;
-            if (s.accelSamples % ACCEL_CHUNK_SAMPLES === 0) {
-              s.accelChunkT0.push(this._aktivMs());
-            }
-            const scale = ACCEL_SCALE / STANDARD_GRAVITY_CM_S2;
-            s.accelBuffer.push(clampI16(a.x * scale), clampI16(a.y * scale), clampI16(a.z * scale));
-            s.accelSamples++; s.accelLastMs = now;
-            if (s.accelBuffer.length >= ACCEL_CHUNK_SAMPLES * 3) this._flushAccelBuffer();
+            this._accelRoh(a.x, a.y, a.z, Date.now(), this._aktivMs());
             if (!s._accelLogged) {
               s._accelLogged = true;
               console.log("[pumpfoil] accelerometer active");
@@ -1302,6 +1302,38 @@ Page(
         s.accelFile = "";
         this._stopAccel();
       }
+    },
+
+    /** Rohprobe vom Sensor: erst Rate messen (Vorlauf), dann ueber `_accelMittel` ausduennen (s. ACCEL_MESS_MS). */
+    _accelRoh(x, y, z, now, aktiv) {
+      const s = this.state;
+      if (s.accelTeiler) { this._accelMittel(x, y, z, now, aktiv); return; }
+      if (!s.accelVorlauf) s.accelVorlauf = [];
+      const v = s.accelVorlauf;
+      v.push(x, y, z, now, aktiv);
+      const n = v.length / 5, span = now - v[3];
+      if (span < ACCEL_MESS_MS || n < 5) return;
+      const hz = (n - 1) * 1000 / span;
+      s.accelTeiler = hz > ACCEL_AUSDUENNEN_AB_HZ ? Math.max(2, Math.round(hz / ACCEL_ZIEL_HZ)) : 1;
+      s.accelVorlauf = null;
+      console.log("[pumpfoil] accelerometer raw hz=" + Math.round(hz) + " teiler=" + s.accelTeiler);
+      for (let i = 0; i < v.length; i += 5) this._accelMittel(v[i], v[i + 1], v[i + 2], v[i + 3], v[i + 4]);
+    },
+
+    /** Mittelt je `accelTeiler` Rohproben zu einer gespeicherten; Zeit/Blockstart von der ERSTEN der Gruppe. */
+    _accelMittel(x, y, z, now, aktiv) {
+      const s = this.state;
+      if (!s.accelSn) { s.accelGrT = now; s.accelGrA = aktiv; }
+      s.accelSx += x; s.accelSy += y; s.accelSz += z;
+      if (++s.accelSn < s.accelTeiler) return;
+      const n = s.accelSn;
+      if (!s.accelFirstMs) s.accelFirstMs = s.accelGrT;
+      if (s.accelSamples % ACCEL_CHUNK_SAMPLES === 0) s.accelChunkT0.push(s.accelGrA);
+      const scale = ACCEL_SCALE / STANDARD_GRAVITY_CM_S2;
+      s.accelBuffer.push(clampI16(s.accelSx / n * scale), clampI16(s.accelSy / n * scale), clampI16(s.accelSz / n * scale));
+      s.accelSamples++; s.accelLastMs = s.accelGrT;
+      s.accelSx = 0; s.accelSy = 0; s.accelSz = 0; s.accelSn = 0;
+      if (s.accelBuffer.length >= ACCEL_CHUNK_SAMPLES * 3) this._flushAccelBuffer();
     },
 
     _stopAccel() {

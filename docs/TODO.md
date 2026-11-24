@@ -1562,6 +1562,10 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   > 40 Hz ist (jede 4. Probe bzw. Mittel) — Datei, Chunks und BLE-Verkehr / 4, Server unveraendert (rechnet mit
   der gemeldeten Rate). Sofort ohne neue Fassung: Profil „lite" (`FREQ_MODE_NORMAL`, bei ihm am 14.10. 41 Hz).
 - **Hilfe-Texte:** Sperre/Neopren als Hinweis in Uhr-Anleitung (Einstellungen › Uhren › Anleitung) pruefen.
+- **24.11. umgesetzt (Jans OK):** Ausduennen in `watch-zepp/page/index.js` (`_accelRoh`/`_accelMittel`), Test
+  tests/ausduennen.test.mjs, CHANGELOG „Naechste Fassung". Offen: Simulator + echte Active 2/Balance (Log
+  „accelerometer raw hz=… teiler=…", Server `accel_hz_measured` ~25), dann Release. u439 per DM: „Lite" bis dahin,
+  „Most sensitive" fuer seine Startversuche (DM 5786).
 
 ### 22.11.2026 — Alte Uhren-Versionen anschreiben (WARTET auf den 1.0.105-Test von u244)
 **22.11. abends: Test da, 1.0.105 behebt den Instinct-3-Neustart nicht** (s. Eintrag u244). Fuer das Anschreiben heisst das nur:
