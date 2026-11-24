@@ -5896,6 +5896,17 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     Offen: verwerfen statt speichern, dann Aufnahmemodus „GPS only“ (gar kein Accel).
     23.11. (Jans OK): u357 (en), u489 (fr), u988 (pl) vom Assistenten-Konto gefragt, ob ihre Instinct 3 nach Sessions haengt
     oder neu startet (DM 5698-5700). Antworten abwarten.
+    **24.11.: Neustart MITTEN im Upload, ohne vorheriges Einfrieren.** #23192 (12:39–13:42, 1.0.105), 123 Chunks
+    (51 GPS, 72 Accel). Server-Zeitachse: alle 51 GPS + 14 Accel in 45 s glatt (13:44:53–13:45:38), danach Pausen von
+    15/32/253/16/32/15/5/12/23 s, letzter Chunk vor dem Neustart accel 67 um 13:52:27 (= Paket 119), Rest (accel 68-71)
+    nach 897 s um 14:07:26. Die Session ist vollstaendig ausgewertet. Die „Server unreachable“-Meldungen waren KEIN Server:
+    kein Neustart zwischen 10:04 und 16:02, im Fenster keine einzige Ingest-Anfrage ohne 200, keine Fehlerzeile. Die Uhr
+    meldet „offline“ bei jedem negativen CIQ-Code (`Uploader.noteResult`, responseCode <= 0) — die Anfragen sind also
+    an der Bluetooth-Strecke Uhr–Handy gescheitert. Auffaellig: die Stockungen beginnen genau mit den groesseren Accel-Chunks
+    (750 Proben) und verdichten sich bis zum Neustart. Fruehere Uploads von ihm hatten keine Luecke ueber 1 s. Vermutung,
+    nicht belegt: der BLE-/Speicherzustand der Uhr ist nach der Aufnahme schon gestoert (dieselbe Ursache wie das
+    Einfrieren), die gescheiterten Anfragen sind Symptom, nicht Ursache. Den Fehlercode zeigt die Uhr nicht an — ihn im
+    Upload-Screen auszugeben, waere die naechste Messung (nur Fehlerbehebung, kein Ausbau).
 
 
 - **🟡 14./15.09. — PeterH (u171) bekommt seit dem 08.09. keinen Puls mehr. Befund: mit hoher
