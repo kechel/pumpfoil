@@ -55,7 +55,8 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
 
 1. **Media-MVP** — Knopf, Ansicht, Elemente inkl. Sprints/Carves, Anker, Formate, Export. *Gebaut 24.11.2026, live
    (Web).* Code: `web/src/pages/SessionMedia.tsx`, `web/src/lib/media/{clip,zeichnen,export}.ts`. Einstellungen bisher
-   nur im Browser (localStorage). Gemessen in Chromium (headless, VM): 50-s-Lauf 720p/30 fps als MP4 in 3,5 s, als
+   nur im Browser (localStorage `pumpfoil_media_cfg`, ganzes JSON, ohne Laufwahl). Standard-Ausgabe WebM durchsichtig
+   (Jan 24.11.: die meisten schneiden am Rechner), ohne VP9-Encoder automatisch MP4 auf Schwarz. Gemessen in Chromium (headless, VM): 50-s-Lauf 720p/30 fps als MP4 in 3,5 s, als
    durchsichtiges WebM in 4,2 s. **Alpha:** mediabunny legt den Alphakanal als eigenen VP9-Strom ab (`alpha_mode=1`,
    Alpha 0..255 geprueft) — ein VP9-Encoder genuegt, `isConfigSupported({alpha:"keep"})` sagt dort faelschlich nein.
    Der Muxer liegt als `assets/media-*.js` ausserhalb des Precache (+35 KiB statt +790 KiB).

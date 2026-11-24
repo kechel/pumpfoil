@@ -96,6 +96,8 @@ export default function SessionMedia() {
 
   const { w, h } = masse(cfg);
   useEffect(() => { alphaMoeglich(w, h).then(setAlphaOk); }, [w, h]);
+  // Kann der Browser kein durchsichtiges WebM: auf MP4 auf Schwarz ausweichen (geht ueberall).
+  useEffect(() => { if (alphaOk === false && cfg.hintergrund === "alpha") setCfg((c) => ({ ...c, hintergrund: "schwarz" })); }, [alphaOk, cfg.hintergrund]);
 
   const clip = useMemo(
     () => (session ? baueClip(session, zeiten, carves, lauf, ladeSessionView().win) : null),
@@ -375,7 +377,7 @@ export default function SessionMedia() {
 
             <Card className="space-y-3 p-4">
               <h3 className="font-semibold">{t("media.output")}</h3>
-              {(["schwarz", "gruen", "alpha"] as const).map((o) => (
+              {(["alpha", "schwarz", "gruen"] as const).map((o) => (
                 <label key={o} className={`flex gap-3 rounded-lg p-2 ${cfg.hintergrund === o ? "bg-slate-800" : ""}`}>
                   <input type="radio" name="ausgabe" checked={cfg.hintergrund === o} onChange={() => setCfg({ ...cfg, hintergrund: o })}
                     className="mt-1 accent-brand-400" disabled={o === "alpha" && alphaOk === false} />

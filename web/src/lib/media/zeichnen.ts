@@ -36,7 +36,7 @@ export interface MediaCfg {
 
 export const CFG_DEFAULT: MediaCfg = {
   tempo: 1, vor: 1, nach: 3, format: "9:16", hoehe: 1080, fps: 30, farbe: "speed", geist: true, schatten: true,
-  hintergrund: "schwarz",
+  hintergrund: "alpha",   // Jan 24.11.: die meisten legen es im Schnittprogramm als WebM drueber
   ebenen: { glides: true, carves: true, sprints: true, pumps: false },
   sprints: ["sprint_100m", "sprint_60s"],
   el: {
