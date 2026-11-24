@@ -27,7 +27,7 @@ Plan und Stand (Jan, 24.11.2026). Idee: wie „Teilen", aber als **Video statt B
 | Spur | Farbe wie die Karte: Tempo / Puls / Pumpfrequenz / weiss; Ebenen darueber, mit der Zeit animiert (Jan 24.11.): Gleitphasen (cyan Band), Carves (feine Boegen in Kurvenlage-Farbe), Sprints (weisses Band + Magenta-Punkte), Pumps (Punkte). Groesse S = 57 % der kurzen Seite, M = 78 %, L = bildfuellend mit Rand 6 % (~1 cm auf dem Handy, Jan 24.11.) |
 | Elemente | Strecke (baut sich auf), Tempo, Pumps, Pumpfrequenz, Puls, Strecke, Laufzeit, Gleiten, Sprints, Carves, pumpfoil.org |
 | Platz | je Element einer von neun Ankern (3×3) und eine Groesse; gleiche Anker stapeln sich |
-| Stil | Schatten/Umriss (Lesbarkeit auf hellem Wasser) |
+| Stil | Schatten (Lesbarkeit auf hellem Hintergrund: Himmel, Wasser) |
 | Hintergrund/Ausgabe | WebM VP9 mit Alpha (echt durchsichtig, nur wo der Browser es kodieren kann), MP4 auf Schwarz (Mischmodus „Screen"), MP4 auf Gruen (Chroma-Key) |
 
 Sprints: im Fenster laeuft die Uhr mit und ein Balken fuellt sich, danach bleibt das Ergebnis als Schild stehen.

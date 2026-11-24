@@ -179,6 +179,33 @@ export default function SessionMedia() {
 
   const setEl = (k: ElKey, p: Partial<MediaCfg["el"][ElKey]>) => setCfg((c) => ({ ...c, el: { ...c.el, [k]: { ...c.el[k], ...p } } }));
 
+  // Position (3×3) + Groesse S/M/L eines Elements.
+  const PlatzWahl = ({ k }: { k: ElKey }) => (
+    <div className="flex items-center gap-3">
+      <AnkerWahl wert={cfg.el[k].pos} onChange={(a) => setEl(k, { pos: a, an: true })} />
+      <div className="flex gap-1">
+        {GROESSEN.map((g, gi) => (
+          <button key={g} onClick={() => setEl(k, { gr: g })}
+            className={`h-7 w-7 rounded-md text-xs font-bold ${cfg.el[k].gr === g ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
+            {["S", "M", "L"][gi]}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+  // Welche Sprint-Kennzahlen — gilt fuer die Ebene auf der Spur UND das Datenfeld (eine Einstellung).
+  const SprintWahl = () => sprintKz.length > 0 ? (
+    <div className="flex flex-wrap items-center gap-2 text-sm text-slate-300">
+      <span>{t("media.el.sprint")}:</span>
+      {sprintKz.map((kz) => (
+        <Knopf key={kz} an={cfg.sprints.includes(kz)}
+          onClick={() => setCfg({ ...cfg, sprints: cfg.sprints.includes(kz) ? cfg.sprints.filter((x) => x !== kz) : [...cfg.sprints, kz] })}>
+          {sprintName(kz)}
+        </Knopf>
+      ))}
+    </div>
+  ) : null;
+
   if (fehler) return <ErrorBox message={fehler} />;
   if (!session) return <Spinner />;
 
@@ -281,62 +308,69 @@ export default function SessionMedia() {
               </div>
             </Card>
 
+            {/* Spur: was IM Track gezeigt wird (Jan 24.11.2026: Spur und Datenfelder getrennt, getrennt schaltbar). */}
+            <Card className="space-y-3 p-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="flex flex-1 items-center gap-2">
+                  <input type="checkbox" checked={cfg.el.track.an} onChange={(e) => setEl("track", { an: e.target.checked })} className="accent-brand-400" />
+                  <h3 className="font-semibold">{t("media.el.track")}</h3>
+                </label>
+                <PlatzWahl k="track" />
+              </div>
+              {cfg.el.track.an && (
+                <>
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-slate-300">
+                    <span>{t("media.trackColor")}</span>
+                    <Knopf an={cfg.farbe === "speed"} onClick={() => setCfg({ ...cfg, farbe: "speed" })}>{t("share.color.speed")}</Knopf>
+                    {clip.hatPuls && <Knopf an={cfg.farbe === "hr"} onClick={() => setCfg({ ...cfg, farbe: "hr" })}>{t("share.color.hr")}</Knopf>}
+                    {clip.hatPumps && <Knopf an={cfg.farbe === "pump"} onClick={() => setCfg({ ...cfg, farbe: "pump" })}>{t("media.el.pumprate")}</Knopf>}
+                    <Knopf an={cfg.farbe === "weiss"} onClick={() => setCfg({ ...cfg, farbe: "weiss" })}>{t("media.white")}</Knopf>
+                  </div>
+                  {/* Ebenen ueber der Spur, wie in der Karte — laufen mit der Zeit mit. */}
+                  <div className="text-sm text-slate-300">{t("media.layers")}</div>
+                  <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                    {([
+                      ["glides", t("media.el.glide"), clip.glides.length > 0],
+                      ["carves", t("media.el.carve"), clip.carves.length > 0],
+                      ["sprints", t("media.el.sprint"), sprintKz.length > 0],
+                      ["pumps", t("media.el.pumps"), clip.hatPumps],
+                    ] as const).filter(([, , da]) => da).map(([k, name]) => (
+                      <label key={k} className="flex items-center gap-2">
+                        <input type="checkbox" checked={cfg.ebenen[k]} className="accent-brand-400"
+                          onChange={(e) => setCfg({ ...cfg, ebenen: { ...cfg.ebenen, [k]: e.target.checked } })} />
+                        {name}
+                      </label>
+                    ))}
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" checked={cfg.geist} onChange={(e) => setCfg({ ...cfg, geist: e.target.checked })} className="accent-brand-400" />
+                      {t("media.ghost")}
+                    </label>
+                  </div>
+                  {cfg.ebenen.sprints && <SprintWahl />}
+                </>
+              )}
+            </Card>
+
+            {/* Datenfelder: Zahlen und Anzeigen neben der Spur. */}
             <Card className="space-y-2 p-4">
-              <h3 className="font-semibold">{t("media.elements")}</h3>
-              <p className="text-xs text-slate-400">{t("media.elementsHint")}</p>
+              <h3 className="font-semibold">{t("media.fields")}</h3>
+              <p className="text-xs text-slate-400">{t("media.fieldsHint")}</p>
               <ul className="divide-y divide-slate-800">
-                {EL_KEYS.filter(elSichtbar).map((k) => (
+                {EL_KEYS.filter((k) => k !== "track" && elSichtbar(k)).map((k) => (
                   <li key={k} className="flex flex-wrap items-center gap-3 py-2">
                     <label className="flex min-w-36 flex-1 items-center gap-2 text-sm">
                       <input type="checkbox" checked={cfg.el[k].an} onChange={(e) => setEl(k, { an: e.target.checked })} className="accent-brand-400" />
                       {t(`media.el.${k}`)}
                     </label>
-                    <AnkerWahl wert={cfg.el[k].pos} onChange={(a) => setEl(k, { pos: a, an: true })} />
-                    <div className="flex gap-1">
-                      {GROESSEN.map((g, gi) => (
-                        <button key={g} onClick={() => setEl(k, { gr: g })}
-                          className={`h-7 w-7 rounded-md text-xs font-bold ${cfg.el[k].gr === g ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
-                          {["S", "M", "L"][gi]}
-                        </button>
-                      ))}
-                    </div>
+                    <PlatzWahl k={k} />
                   </li>
                 ))}
               </ul>
-              {(cfg.el.sprint.an || cfg.ebenen.sprints) && sprintKz.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 pt-1 text-sm text-slate-300">
-                  <span>{t("media.el.sprint")}:</span>
-                  {sprintKz.map((kz) => (
-                    <Knopf key={kz} an={cfg.sprints.includes(kz)}
-                      onClick={() => setCfg({ ...cfg, sprints: cfg.sprints.includes(kz) ? cfg.sprints.filter((x) => x !== kz) : [...cfg.sprints, kz] })}>
-                      {sprintName(kz)}
-                    </Knopf>
-                  ))}
-                </div>
-              )}
-              <div className="flex flex-wrap items-center gap-2 pt-2 text-sm text-slate-300">
-                <span>{t("media.trackColor")}</span>
-                <Knopf an={cfg.farbe === "speed"} onClick={() => setCfg({ ...cfg, farbe: "speed" })}>{t("share.color.speed")}</Knopf>
-                {clip.hatPuls && <Knopf an={cfg.farbe === "hr"} onClick={() => setCfg({ ...cfg, farbe: "hr" })}>{t("share.color.hr")}</Knopf>}
-                {clip.hatPumps && <Knopf an={cfg.farbe === "pump"} onClick={() => setCfg({ ...cfg, farbe: "pump" })}>{t("media.el.pumprate")}</Knopf>}
-                <Knopf an={cfg.farbe === "weiss"} onClick={() => setCfg({ ...cfg, farbe: "weiss" })}>{t("media.white")}</Knopf>
-              </div>
-              {/* Ebenen ueber der Spur, wie in der Karte — laufen mit der Zeit mit (Jan 24.11.2026). */}
-              <div className="flex flex-wrap items-center gap-2 pt-1 text-sm text-slate-300">
-                <span>{t("media.layers")}</span>
-                {([
-                  ["glides", t("media.el.glide"), clip.glides.length > 0],
-                  ["carves", t("media.el.carve"), clip.carves.length > 0],
-                  ["sprints", t("media.el.sprint"), sprintKz.length > 0],
-                  ["pumps", t("media.el.pumps"), clip.hatPumps],
-                ] as const).filter(([, , da]) => da).map(([k, name]) => (
-                  <Knopf key={k} an={cfg.ebenen[k]} onClick={() => setCfg({ ...cfg, ebenen: { ...cfg.ebenen, [k]: !cfg.ebenen[k] } })}>{name}</Knopf>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-4 pt-1 text-sm text-slate-300">
-                <label className="flex items-center gap-2"><input type="checkbox" checked={cfg.geist} onChange={(e) => setCfg({ ...cfg, geist: e.target.checked })} className="accent-brand-400" />{t("media.ghost")}</label>
-                <label className="flex items-center gap-2"><input type="checkbox" checked={cfg.schatten} onChange={(e) => setCfg({ ...cfg, schatten: e.target.checked })} className="accent-brand-400" />{t("media.shadow")}</label>
-              </div>
+              {cfg.el.sprint.an && !(cfg.el.track.an && cfg.ebenen.sprints) && <SprintWahl />}
+              <label className="flex items-center gap-2 pt-1 text-sm text-slate-300">
+                <input type="checkbox" checked={cfg.schatten} onChange={(e) => setCfg({ ...cfg, schatten: e.target.checked })} className="accent-brand-400" />
+                {t("media.shadow")}
+              </label>
             </Card>
 
             <Card className="space-y-3 p-4">
