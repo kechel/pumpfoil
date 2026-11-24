@@ -10,7 +10,7 @@ This changelog covers the Zepp OS watch app only.
 > and possibly after the upload — it is listed under 1.0.7. **Keep this file current with every
 > bump**, then nobody has to dig through commits again.
 
-## Naechste Fassung (noch ohne Nummer, Version erst beim Release bumpen)
+## 1.0.18 — gebumpt am 24.11.2026 (code 21), Emulator-Test bei Jan
 
 - **Sammel-Upload: mehrere Chunks je Anfrage** (24.11.2026, Befund u439, Active 2, 1.0.17): Server-Zeitachse von #23152
   — jeder App-Lauf starb nach ~325-340 Einzel-Anfragen, egal bei welchem Block er anfing; davor wurden die Anfragen

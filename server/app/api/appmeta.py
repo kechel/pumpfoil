@@ -1237,6 +1237,11 @@ NAECHSTES: list[dict] = [
     # Suunto d605f4c9. Versionen gebumpt: Huawei 1.0.6 (1000006), Amazfit 1.0.16 (19); Suunto bleibt 1.01 (nie eingereicht).
     # Huawei Watch 5 1.0.6 am 13.11. eingereicht -> IN_REVIEW.
     # Amazfit 1.0.16 am 13.11. eingereicht -> IN_REVIEW.
+    # 24.11.2026: Zepp Sammel-Upload (45a1d7f1, 410f8a22), Befund u439 (App starb nach ~330 Einzel-Anfragen).
+    {"name": "Amazfit", "version": "1.0.18",
+     "items": [
+         "Uploads send many data blocks at once, which makes them much faster and stops the app from running out of memory on long sessions.",
+     ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 

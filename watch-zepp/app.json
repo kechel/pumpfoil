@@ -5,8 +5,8 @@
     "appName": "Pumpfoil",
     "appType": "app",
     "version": {
-      "code": 20,
-      "name": "1.0.17"
+      "code": 21,
+      "name": "1.0.18"
     },
     "icon": "icon.png",
     "vender": "pumpfoil.org",

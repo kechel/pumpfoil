@@ -273,7 +273,7 @@ import { DEV_FAKE_GPS, DEV_FAKE_LUECKE } from "./devflags.js";
 // app.json getroffen: die Uhr zeigte weiter "v1.0.3" und meldete das auch dem Server. Beim Bump auf
 // 1.0.13 passierte es noch einmal (01.10.2026, erst in Jans Testsession aufgefallen) — seitdem prueft
 // tests/version.test.mjs beide Stellen gegeneinander.
-const APP_VERSION = "1.0.17";
+const APP_VERSION = "1.0.18";
 
 // Wie lange der Stopp-Bildschirm nach einem Tastendruck stehen bleibt, bevor die vorherige
 // Seite zurueckkommt. Fuenf Sekunden reichen zum Lesen und Antippen, und ein Fehlgriff ist
