@@ -85,6 +85,16 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
    - **Pump-Zeiten nur sekundengenau:** `pump_idx` ist der GPS-Punkt (1 Hz), zwei Pumps einer Sekunde haben denselben
      Index. Sie werden gleichmaessig ueber ihre Sekunde verteilt (Musik + Zaehler). Exakte Zeiten gaebe es nur aus den
      Rohdaten auf dem Server (offen).
+   - **Pump = Bassdrum** (Jan 24.11.: der Beat kam auch in einem Lauf mit kaum erkannten Pumps): jeder Pump schlaegt
+     die Kick, das gleichmaessige Raster ist nur noch Regler „Grundbeat" (Standard 0,3). Pump-Zeitpunkt: pg-1 legt den
+     Pump auf den ersten GPS-Punkt AB seiner Zeit -> Verteilung ueber die Sekunde DAVOR (bis 24.11. abends danach,
+     also ~1 s zu spaet).
+   - **Effekte** (einzeln schaltbar): Sprint doppeltes Tempo, Anlauf-Rauschen vor dem Sprint, Carve-Melodie (je 45°
+     eine Stufe hoeher), Carve-Rauschen, Einschlag beim Hoechsttempo, Glocke alle 50 m, Trommelwirbel bei
+     Pumpfrequenz > 1,25 x Median („Kampf"), Wirbel vor dem Start, fallender Ton am Laufende.
+   - **Datenschutz:** Vorschau und Export laufen nur im Browser (Strudel kommt von pumpfoil.org, keine Anfrage an
+     strudel.cc). Nur „In Strudel oeffnen" gibt den Code weiter (hinter `#`): abgeleitete Werte, keine GPS-Position,
+     kein Name, seit 24.11. auch keine Session-Nummer. Hinweis steht in der Ansicht.
    - Renderzeit auf der VM (headless, ohne GPU) fuer 50 s Ton: Techno ~30 s, andere 8-11 s.
 4. Weitere Stile, Code-Editor in der Ansicht.
 5. Native Apps: vorerst auf die Web-Ansicht verweisen.

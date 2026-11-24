@@ -19,29 +19,37 @@ export const STILE: Stil[] = ["techno", "klavier", "gitarre", "chiptune", "ambie
 
 export type Quelle = "pump" | "tempo" | "gleiten" | "sprint" | "carve" | "puls";
 export const QUELLEN: Quelle[] = ["pump", "tempo", "gleiten", "sprint", "carve", "puls"];
-export type Spur = "bass" | "drums" | "lead" | "flaeche";
-export const SPUREN: Spur[] = ["bass", "drums", "lead", "flaeche"];
+export type Spur = "bass" | "drums" | "grund" | "lead" | "flaeche";
+// „grund" = das gleichmaessige Raster (Kick auf jedem Schlag). Jan 24.11.: der Beat kam auch in einem Lauf, in dem kaum
+// Pumps erkannt wurden — deshalb schlaegt jetzt jeder Pump die Bassdrum, und das Raster ist nur noch leise darunter.
+export const SPUREN: Spur[] = ["bass", "drums", "grund", "lead", "flaeche"];
+
+/** Effekte, die auf einzelne Momente des Laufs reagieren (Jan 24.11.: „mehr kreativitaet erlauben bitte"). */
+export type Fx = "sprintTempo" | "riser" | "carveMelodie" | "carveWhoosh" | "topSpeed" | "meter" | "kampf" | "start" | "ende";
+export const FXS: Fx[] = ["sprintTempo", "riser", "carveMelodie", "carveWhoosh", "topSpeed", "meter", "kampf", "start", "ende"];
 
 export interface MusikCfg {
   an: boolean;
   stil: Stil;
   staerke: Record<Quelle, number>;   // 0 = aus, 1 = voll
   spur: Record<Spur, number>;        // Lautstaerke je Spur 0..1
+  fx: Record<Fx, boolean>;
 }
 
 export const MUSIK_DEFAULT: MusikCfg = {
   an: false,
   stil: "techno",
   staerke: { pump: 1, tempo: 0.8, gleiten: 0.8, sprint: 1, carve: 0.7, puls: 0.5 },
-  spur: { bass: 0.9, drums: 0.8, lead: 0.7, flaeche: 0.6 },
+  spur: { bass: 0.9, drums: 0.8, grund: 0.3, lead: 0.7, flaeche: 0.6 },
+  fx: { sprintTempo: true, riser: true, carveMelodie: true, carveWhoosh: true, topSpeed: true, meter: false, kampf: true, start: true, ende: true },
 };
 
 const BPM: Record<Stil, number> = { techno: 128, klavier: 92, gitarre: 104, chiptune: 140, ambient: 72 };
 const SKALA: Record<Stil, string> = { techno: "minor", klavier: "major", gitarre: "major", chiptune: "major", ambient: "minor" };
 const NAME: Record<Stil, string> = { techno: "Techno", klavier: "Piano", gitarre: "Guitar", chiptune: "8-bit", ambient: "Ambient" };
 const TOENE = ["C", "D", "E", "F", "G", "A", "B"];
-// Gesamtpegel je Stil (postgain), gemessen 24.11.2026 an einem 50-s-Lauf: so liegen alle Stile aehnlich laut.
-const PEGEL: Record<Stil, number> = { techno: 0.55, klavier: 1.4, gitarre: 0.65, chiptune: 1.8, ambient: 1.6 };
+// Gesamtpegel je Stil (postgain), gemessen 24.11.2026 an einem 50-s-Lauf mit allen Effekten: alle Stile aehnlich laut, Spitze unter 1.
+const PEGEL: Record<Stil, number> = { techno: 0.5, klavier: 0.7, gitarre: 0.55, chiptune: 0.8, ambient: 0.7 };
 
 export function taktSekunden(stil: Stil): number { return 240 / BPM[stil]; }
 
@@ -49,6 +57,9 @@ export function taktSekunden(stil: Stil): number { return 240 / BPM[stil]; }
 export interface MusikDaten {
   takte: number;
   pump: boolean[][]; akzent: boolean[][]; muenze: boolean[][];
+  riser: boolean[][]; carveStart: boolean[][]; top: boolean[][]; meter: boolean[][]; ende: boolean[][];
+  carveNoten: (number | null)[][];   // je 1/16 waehrend eines Carves: Stufe der Tonleiter, steigt mit den Grad
+  fill: number[][]; kampf: number[][];
   tempo: number[][]; gleiten: number[][]; sprint: number[][]; carve: number[][]; herz: number[][];
   aktiv: number[];
 }
@@ -66,6 +77,8 @@ export function musikDaten(clip: Clip, vcfg: MediaCfg, stil: Stil): MusikDaten {
   };
 
   const pump = leer(16, false), akzent = leer(16, false), muenze = leer(16, false);
+  const riser = leer(16, false), carveStart = leer(16, false), top = leer(16, false), meter = leer(16, false), ende = leer(16, false);
+  const carveNoten = leer<number | null>(16, null);
   clip.pumps.forEach((tp, i) => {
     setze(pump, zuVideo(tp));
     if ((i + 1) % 10 === 0) setze(muenze, zuVideo(tp));   // jeder 10. Pump (8-bit: Muenz-Ton)
@@ -73,12 +86,36 @@ export function musikDaten(clip: Clip, vcfg: MediaCfg, stil: Stil): MusikDaten {
   const sprints = clip.sprints.filter((sp) => vcfg.sprints.includes(sp.kz));
   for (const sp of sprints) setze(akzent, zuVideo(sp.b));
   for (const c of clip.carves) if (c.rot >= 360) setze(akzent, zuVideo(c.a + ((c.b - c.a) * 360) / c.rot));
+  // Anlauf vor dem Sprint: ein Takt Rauschen, das bis zum Beginn des Fensters ansteigt.
+  for (const sp of sprints) setze(riser, zuVideo(sp.a) - takt);
+  for (const c of clip.carves) {
+    setze(carveStart, zuVideo(c.a));
+    // Melodie im Carve: jede Achtel ein Ton, je 45° eine Stufe hoeher.
+    const v0 = zuVideo(c.a), v1 = zuVideo(c.b);
+    for (let tv = v0; tv <= v1; tv += schritt * 2) {
+      const k = Math.round(tv / schritt);
+      if (k < 0 || k >= takte * 16) continue;
+      carveNoten[Math.floor(k / 16)][k % 16] = Math.round((c.rot * (tv - v0)) / Math.max(v1 - v0, 1e-3) / 45);
+    }
+  }
+  // Hoechstes Tempo im Lauf, alle 50 m eine Marke, Laufende.
+  let iTop = 0;
+  clip.pts.forEach((p, i) => { if (p.v > clip.pts[iTop].v) iTop = i; });
+  setze(top, zuVideo(clip.pts[iTop].t));
+  let naechste = 50;
+  for (const p of clip.pts) if (p.d >= naechste) { setze(meter, zuVideo(p.t)); naechste += 50; }
+  setze(ende, laufEnde);
 
   const tempo = leer(4, 0), gleiten = leer(4, 0), sprint = leer(4, 0), carve = leer(4, 0.5), herz = leer(4, 0);
+  const fill = leer(4, 0), kampf = leer(4, 0);
+  // „Kampf": die Pumpfrequenz liegt deutlich ueber dem Ueblichen dieses Clips (man kaempft ums Obenbleiben).
+  const phs = clip.pts.map((p) => p.ph).filter((x): x is number => x != null && x > 0).sort((a, b) => a - b);
+  const phMitte = phs.length ? phs[Math.floor(phs.length / 2)] : 0;
   const aktiv = Array(takte).fill(0);
   for (let t = 0; t < takte; t++) {
     for (let b = 0; b < 4; b++) {
       const tv = t * takt + (b + 0.5) * schlag;
+      if (tv >= vcfg.vor - 2 * schlag && tv < vcfg.vor) fill[t][b] = 1;   // zwei Schlaege Trommelwirbel vor dem Start
       if (tv < vcfg.vor || tv > laufEnde) continue;
       aktiv[t] = 1;
       const z = zustandBei(clip, vcfg, tv);
@@ -87,15 +124,18 @@ export function musikDaten(clip: Clip, vcfg: MediaCfg, stil: Stil): MusikDaten {
       sprint[t][b] = sprints.some((sp) => z.ts >= sp.a && z.ts <= sp.b) ? 1 : 0;
       const c = clip.carves.find((cv) => z.ts >= cv.a && z.ts <= cv.b);
       carve[t][b] = c ? (c.dir === "L" ? 0.1 : 0.9) : 0.5;
+      kampf[t][b] = phMitte > 0 && z.ph != null && z.ph > phMitte * 1.25 ? 1 : 0;
       herz[t][b] = z.hr != null && clip.hatPuls ? Math.min(1, Math.max(0, (z.hr - clip.hrLo) / Math.max(clip.hrHi - clip.hrLo, 1))) : 0;
     }
   }
-  return { takte, pump, akzent, muenze, tempo, gleiten, sprint, carve, herz, aktiv };
+  return { takte, pump, akzent, muenze, riser, carveStart, top, meter, ende, carveNoten, fill, kampf,
+    tempo, gleiten, sprint, carve, herz, aktiv };
 }
 
 const zahl = (x: number) => String(Number(x.toFixed(1)));
 /** Schritte eines Takts als Mini-Notation; ein leerer Takt ist eine einzige Pause. */
 const schritte = (zeile: boolean[]) => zeile.some(Boolean) ? `[${zeile.map((x) => (x ? "x" : "~")).join(" ")}]` : "~";
+const noten = (zeile: (number | null)[]) => zeile.some((x) => x != null) ? `[${zeile.map((x) => (x == null ? "~" : String(x))).join(" ")}]` : "~";
 const werte = (zeile: number[]) => zeile.every((v) => v === zeile[0]) ? zahl(zeile[0]) : `[${zeile.map(zahl).join(" ")}]`;
 const folge = (teile: string[]) => "`<\n      " + teile.join("\n      ") + "\n    >`";   // Backticks: Mini-Notation ueber mehrere Zeilen
 
@@ -106,8 +146,8 @@ function spuren(stil: Stil): string {
   switch (stil) {
     case "techno": return `
 // ── Tracks ───────────────────────────────────────────
-// Kick on every beat while the run is on
-kick: s("sbd*4").mask(D.aktiv).decay(.45).gain(DRUMS)
+// Steady kick on every beat (quiet, see GRUND) — the real beat comes from your pumps below
+kick: s("sbd*4").mask(D.aktiv).decay(.45).gain(DRUMS * GRUND)
 
 // Acid bass: one hit per pump; speed opens the filter; drops out while gliding
 bass: n("<0 0 5 3>").struct(D.pump).scale(key(2)).s("sawtooth")
@@ -165,7 +205,7 @@ bass: n("<0 -3 -2 -1>").struct(D.pump).scale(key(2)).s("triangle").decay(.4).sus
   .gain(${ohneGleiten}.mul(BASS * PUMP))
 
 // Drums: kick and a noise snare, snare louder with speed
-kick: s("sbd ~ [~ sbd] ~").mask(D.aktiv).decay(.35).gain(DRUMS)
+kick: s("sbd ~ [~ sbd] ~").mask(D.aktiv).decay(.35).gain(DRUMS * GRUND)
 snare: s("~ pink ~ pink").mask(D.aktiv).bpf(1800).decay(.12).sustain(0)
   .gain(D.tempo.mul(TEMPO).add(.4).mul(DRUMS * .5))
 
@@ -191,7 +231,7 @@ melody: n("<[0 2 4 2 0 4 7 4] [3 5 7 5 3 7 9 7]>").mask(D.aktiv).scale(key(4)).s
 coin: n("[9 14]").struct(D.muenze).scale(key(5)).s("square").decay(.08).sustain(0).gain(.35)
 
 // Noise drums
-drums: s("white ~ white white").mask(D.aktiv).hpf(3000).decay(.05).sustain(0).gain(DRUMS * .35)
+drums: s("white ~ white white").mask(D.aktiv).hpf(3000).decay(.05).sustain(0).gain(DRUMS * GRUND * .6)
 
 // Sprint: fast arpeggio
 sprint: n("0 4 7 11".fast(4)).mask(D.sprint).scale(key(5)).s("square").decay(.05).sustain(.2)
@@ -228,6 +268,48 @@ shimmer: n("0 4 7 11 14 11 7 4").mask(D.sprint).scale(key(5)).s("sine").fm(4).de
   }
 }
 
+// Klang der Effekt-Stimmen je Stil (Carve-Melodie, Meter-Glocke) — passend zur Lead-Stimme des Stils.
+const FX_KLANG: Record<Stil, string> = {
+  techno: 's("supersaw").lpf(2800)', klavier: 's("triangle").fm(2.5)', gitarre: 's("square").lpf(2400)',
+  chiptune: 's("square")', ambient: 's("sine").fm(4)',
+};
+// Pump-Kick je Stil: hart bei Techno/Gitarre/8-bit, weich bei Klavier/Ambient.
+const PUMPKICK: Record<Stil, string> = {
+  techno: '.decay(.4)', gitarre: '.decay(.35)', chiptune: '.decay(.25)', klavier: '.decay(.25).lpf(900)', ambient: '.decay(.3).lpf(700)',
+};
+
+function effekte(stil: Stil, fx: Record<Fx, boolean>): string {
+  const pan = ".pan(D.carve.sub(.5).mul(CARVE).add(.5))";
+  const z: string[] = [`
+// ── Your pumps are the beat ──────────────────────────
+// Every detected pump hits the bass drum (louder with PUMP)
+pumpkick: s("sbd").struct(D.pump)${PUMPKICK[stil]}.gain(DRUMS * PUMP)
+`, `
+// ── Effects: moments of the run ──────────────────────`];
+  if (fx.sprintTempo) z.push(`// Flying sprint: double-time drums
+sprintkick: s("sbd*8").mask(D.sprint).decay(.15).gain(DRUMS * SPRINT * .5)
+sprinthats: s("white*16").mask(D.sprint).hpf(9000).decay(.03).sustain(0).gain(DRUMS * SPRINT * .3)`);
+  if (fx.riser) z.push(`// Run-up: noise rises during the bar before the sprint window
+riser: s("white").struct(D.riser).clip(16).attack(1.6).release(.05).hpf(1200).gain(.35 * SPRINT).room(.4)`);
+  if (fx.carveMelodie) z.push(`// Carve: a melody climbs one step per 45° of the turn
+carvemelody: n(D.carveNoten).scale(key(4)).${FX_KLANG[stil]}.decay(.2).sustain(.1)
+  .gain(CARVE * LEAD * .55).room(.3)${pan}`);
+  if (fx.carveWhoosh) z.push(`// Carve: a whoosh sweeps across at the start of the turn
+whoosh: s("pink").struct(D.carveStart).clip(8).attack(.25).release(.6).bpf(1600).gain(.3 * CARVE)${pan}`);
+  if (fx.topSpeed) z.push(`// Top speed of the run: impact + crash
+impact: s("sbd").struct(D.top).decay(1.2).gain(.45 * DRUMS)
+crashtop: s("white").struct(D.top).hpf(2500).decay(1.8).sustain(0).gain(.4 * DRUMS).room(.5)`);
+  if (fx.meter) z.push(`// Every 50 m: a little bell
+meterbell: n("[7,11]").struct(D.meter).scale(key(5)).${FX_KLANG[stil]}.decay(1).sustain(0).gain(.35).room(.5)`);
+  if (fx.kampf) z.push(`// Fighting to stay up (pump rate well above usual): snare roll
+kampf: s("pink*16").mask(D.kampf).bpf(2200).decay(.05).sustain(0).gain(DRUMS * PUMP * .25)`);
+  if (fx.start) z.push(`// Two beats of drum roll before the run starts
+fill: s("pink*8").mask(D.fill).bpf(1800).decay(.06).sustain(0).gain(DRUMS * .35)`);
+  if (fx.ende) z.push(`// End of the run: a falling dive
+dive: s("sine").struct(D.ende).note("c5").penv(-36).pdecay(1.2).decay(1.4).sustain(0).gain(.25).room(.6)`);
+  return z.join("\n") + "\n";
+}
+
 export interface CodeInfo { sessionId: number | string; lauf: string }
 
 /** Den kompletten Strudel-Code bauen. */
@@ -236,13 +318,13 @@ export function strudelCode(clip: Clip, vcfg: MediaCfg, m: MusikCfg, info: CodeI
   const ton = TOENE[Math.abs(Number(info.sessionId) || 0) % TOENE.length];
   const s = m.staerke, v = m.spur;
   const kopf = `// Pumpfoil run as music — made on pumpfoil.org (Media view)
-// Session ${info.sessionId} · ${info.lauf} · style ${NAME[m.stil]} · video ${videoDauer(clip, vcfg).toFixed(1)} s
+// ${info.lauf} · style ${NAME[m.stil]} · video ${videoDauer(clip, vcfg).toFixed(1)} s
 // The rough settings are at the top, the data of the run is at the very bottom.
 // Change a value and press Ctrl+Enter to hear it.
 
 // ── Rough settings ───────────────────────────────────
 const BPM = ${BPM[m.stil]}          // tempo in beats per minute (fixed per style)
-const ROOT = '${ton}'          // key, picked from the session number
+const ROOT = '${ton}'          // key (picked per session)
 const SCALE = '${SKALA[m.stil]}'
 
 // How strongly the run steers the music (0 = off, 1 = full)
@@ -258,6 +340,7 @@ const BASS = ${zahl(v.bass)}
 const DRUMS = ${zahl(v.drums)}
 const LEAD = ${zahl(v.lead)}
 const FLAECHE = ${zahl(v.flaeche)}       // pad
+const GRUND = ${zahl(v.grund)}         // steady beat under your pumps (0 = only your pumps)
 const MASTER = ${PEGEL[m.stil]}        // overall volume
 
 const D = daten()
@@ -266,13 +349,22 @@ const key = (octave) => ROOT + octave + ':' + SCALE
   const daten = `
 // ── Data from the run (generated) ────────────────────
 // One cycle = one bar, bar 0 starts with the video. ${d.takte} bars.
-// pump/akzent/muenze: steps on a 1/16 grid · tempo/gleiten/sprint/carve/herz: one value per beat (0..1)
+// pump/akzent/muenze/riser/carveStart/top/meter/ende: events on a 1/16 grid · carveNoten: scale step per 1/16
+// tempo/gleiten/sprint/carve/herz/fill/kampf: one value per beat (0..1)
 // aktiv: 1 while the run is on (not in the lead-in / hold at the end)
 function daten() {
   return {
     pump: ${folge(d.pump.map(schritte))},
     akzent: ${folge(d.akzent.map(schritte))},
     muenze: ${folge(d.muenze.map(schritte))},
+    riser: ${folge(d.riser.map(schritte))},
+    carveStart: ${folge(d.carveStart.map(schritte))},
+    carveNoten: ${folge(d.carveNoten.map(noten))},
+    top: ${folge(d.top.map(schritte))},
+    meter: ${folge(d.meter.map(schritte))},
+    ende: ${folge(d.ende.map(schritte))},
+    fill: ${folge(d.fill.map(werte))},
+    kampf: ${folge(d.kampf.map(werte))},
     tempo: ${folge(d.tempo.map(werte))},
     gleiten: ${folge(d.gleiten.map(werte))},
     sprint: ${folge(d.sprint.map(werte))},
@@ -285,7 +377,7 @@ function daten() {
 all((x) => x.postgain(MASTER))
 setcps(BPM / 60 / 4)
 `;
-  return kopf + spuren(m.stil) + daten;
+  return kopf + spuren(m.stil) + effekte(m.stil, m.fx) + daten;
 }
 
 /** Link nach strudel.cc: der Code base64-kodiert hinter `#` (geht beim Laden nicht an deren Server). */

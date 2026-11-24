@@ -133,14 +133,17 @@ export function baueClip(session: any, trackZeiten: number[] | null, carves: Car
   const glides: [number, number][] = [];
   for (const g of gewaehlt) {
     // `pump_idx` ist der GPS-Punkt (1 Hz) — also nur auf die Sekunde genau, und zwei Pumps in derselben Sekunde
-    // tragen denselben Index. Solche Gruppen gleichmaessig ueber ihre Sekunde verteilen (sonst fielen sie im Takt der
-    // Musik zu einem Schlag zusammen und der Zaehler spraenge um zwei). Lage: zwischen den Punkten interpoliert.
+    // tragen denselben Index. pg-1 legt jeden Pump auf den ERSTEN Punkt ab seiner Zeit (searchsorted in
+    // analysis/pumpgleit), der Pump liegt also in der Sekunde VOR dem Punkt. Gruppen gleichmaessig ueber diese Sekunde
+    // verteilen (sonst fielen sie im Takt der Musik zu einem Schlag zusammen und der Zaehler spraenge um zwei).
+    // Bis 24.11. abends wurde ueber die Sekunde DANACH verteilt -> jeder Pump im Schnitt 1 s zu spaet.
     const idx = ((g.pump_idx ?? []) as number[]).slice().sort((a, b) => a - b);
     for (let j = 0; j < idx.length;) {
       let k = j; while (k < idx.length && idx[k] === idx[j]) k++;
       const pi = idx[j], n = k - j;
-      const t0 = zeit(pi), t1 = zeit(Math.min(pi + 1, coords.length - 1));
-      const c0 = coords[pi], c1 = coords[Math.min(pi + 1, coords.length - 1)];
+      const vor = Math.max(pi - 1, 0);
+      const t0 = zeit(vor), t1 = zeit(pi);
+      const c0 = coords[vor], c1 = coords[pi];
       for (let m = 0; m < n; m++) {
         const f = (m + 0.5) / n;
         pumps.push(t0 + (t1 - t0) * f);

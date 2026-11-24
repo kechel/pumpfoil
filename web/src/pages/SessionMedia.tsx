@@ -17,7 +17,7 @@ import {
   masse, sprintName, videoDauer, zeichne,
 } from "../lib/media/zeichnen";
 import { MAX_SEKUNDEN, alphaMoeglich, erzeugeVideo, webCodecsDa } from "../lib/media/export";
-import { MUSIK_DEFAULT, QUELLEN, SPUREN, STILE, type MusikCfg, type Quelle, strudelCode, strudelLink } from "../lib/media/musik";
+import { FXS, MUSIK_DEFAULT, QUELLEN, SPUREN, STILE, type MusikCfg, type Quelle, strudelCode, strudelLink } from "../lib/media/musik";
 import { rendere, spiele, stoppe, vorladen, wavZuBuffer } from "../lib/media/strudel";
 
 const LS_KEY = "pumpfoil_media_cfg";
@@ -42,6 +42,7 @@ function ladeMusik(): MusikCfg {
     if (roh && typeof roh === "object") return {
       ...MUSIK_DEFAULT, ...roh,
       staerke: { ...MUSIK_DEFAULT.staerke, ...(roh.staerke ?? {}) }, spur: { ...MUSIK_DEFAULT.spur, ...(roh.spur ?? {}) },
+      fx: { ...MUSIK_DEFAULT.fx, ...(roh.fx ?? {}) },
     };
   } catch { /* egal */ }
   return MUSIK_DEFAULT;
@@ -506,6 +507,23 @@ export default function SessionMedia() {
                           onChange={(v) => setMusik({ ...musik, spur: { ...musik.spur, [sp]: v } })} />
                       ))}
                     </div>
+                    {/* Effekte zu einzelnen Momenten des Laufs (Jan 24.11.2026) — nur die, fuer die der Lauf Daten hat. */}
+                    <div className="space-y-2">
+                      <div className="text-sm font-semibold">{t("media.music.fx")}</div>
+                      <div className="grid gap-x-4 gap-y-1.5 sm:grid-cols-2">
+                        {FXS.filter((f) =>
+                          !((f === "sprintTempo" || f === "riser") && !clip.sprints.length)
+                          && !((f === "carveMelodie" || f === "carveWhoosh") && !clip.carves.length)
+                          && !(f === "kampf" && !clip.hatPumps),
+                        ).map((f) => (
+                          <label key={f} className="flex items-center gap-2 text-sm text-slate-300">
+                            <input type="checkbox" checked={musik.fx[f]} className="accent-brand-400"
+                              onChange={(e) => setMusik({ ...musik, fx: { ...musik.fx, [f]: e.target.checked } })} />
+                            {t(`media.fx.${f}`)}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
                     <p className="text-xs text-slate-400">{t("media.music.previewHint")}</p>
                     {code && (
                       <div className="flex flex-wrap items-center gap-3">
@@ -513,7 +531,7 @@ export default function SessionMedia() {
                           className="rounded-lg border border-brand-500 px-3 py-1.5 text-sm font-semibold text-brand-600 hover:bg-brand-500/10 dark:text-brand-300">
                           {t("media.music.strudel")}
                         </a>
-                        <span className="text-xs text-slate-400">{t("media.music.license")}</span>
+                        <span className="text-xs text-slate-400">{t("media.music.license")} {t("media.music.privacy")}</span>
                       </div>
                     )}
                     {code && (
