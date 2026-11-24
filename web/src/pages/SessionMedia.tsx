@@ -326,6 +326,7 @@ export default function SessionMedia() {
                     <Knopf an={cfg.farbe === "speed"} onClick={() => setCfg({ ...cfg, farbe: "speed" })}>{t("share.color.speed")}</Knopf>
                     {clip.hatPuls && <Knopf an={cfg.farbe === "hr"} onClick={() => setCfg({ ...cfg, farbe: "hr" })}>{t("share.color.hr")}</Knopf>}
                     {clip.hatPumps && <Knopf an={cfg.farbe === "pump"} onClick={() => setCfg({ ...cfg, farbe: "pump" })}>{t("media.el.pumprate")}</Knopf>}
+                    <Knopf an={cfg.farbe === "cyan"} onClick={() => setCfg({ ...cfg, farbe: "cyan" })}>{t("share.color.cyan")}</Knopf>
                     <Knopf an={cfg.farbe === "weiss"} onClick={() => setCfg({ ...cfg, farbe: "weiss" })}>{t("media.white")}</Knopf>
                   </div>
                   {/* Ebenen ueber der Spur, wie in der Karte — laufen mit der Zeit mit. */}

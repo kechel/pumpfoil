@@ -25,7 +25,7 @@ export interface MediaCfg {
   format: Format;
   hoehe: 720 | 1080;    // kurze Seite
   fps: 30 | 60;
-  farbe: "speed" | "hr" | "pump" | "weiss";
+  farbe: "speed" | "hr" | "pump" | "cyan" | "weiss";
   ebenen: { glides: boolean; carves: boolean; sprints: boolean; pumps: boolean };   // Ebenen ueber der Spur, wie in der Karte
   geist: boolean;       // ganze Strecke blass vorab zeigen
   schatten: boolean;
@@ -218,7 +218,7 @@ function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, W: number,
       c.shadowColor = "transparent";
       // Die Spur in der gewaehlten Farbe — dieselben Skalen wie die Karte (trackColors.ts).
       c.lineWidth = 7 * u;
-      const farbe = (q: ClipPunktLite) => cfg.farbe === "weiss" ? "#ffffff"
+      const farbe = (q: ClipPunktLite) => cfg.farbe === "weiss" ? "#ffffff" : cfg.farbe === "cyan" ? "#22d3ee"
         : cfg.farbe === "hr" ? hrColor(q.hr, [clip.hrLo, clip.hrHi])
         : cfg.farbe === "pump" ? (q.ph == null ? "#64748b" : rampColor((q.ph - clip.phLo) / Math.max(clip.phHi - clip.phLo, 1e-6)))
         : speedColor(q.v, clip.vLo, Math.max(clip.vHi, clip.vLo + 1));
