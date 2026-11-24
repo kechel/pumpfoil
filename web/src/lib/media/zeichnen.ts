@@ -5,7 +5,8 @@
 // Schwarz oder Gruen.
 
 import { type Clip, clipZuSession, obereGrenze } from "./clip";
-import { hrColor, speedColor } from "../trackColors";
+import { hrColor, rampColor, speedColor } from "../trackColors";
+import { carveColor } from "../turns";
 
 export type Anker = "tl" | "tc" | "tr" | "ml" | "mc" | "mr" | "bl" | "bc" | "br";
 export const ANKER: Anker[] = ["tl", "tc", "tr", "ml", "mc", "mr", "bl", "bc", "br"];
@@ -24,7 +25,8 @@ export interface MediaCfg {
   format: Format;
   hoehe: 720 | 1080;    // kurze Seite
   fps: 30 | 60;
-  farbe: "speed" | "hr" | "weiss";
+  farbe: "speed" | "hr" | "pump" | "weiss";
+  ebenen: { glides: boolean; carves: boolean; sprints: boolean; pumps: boolean };   // Ebenen ueber der Spur, wie in der Karte
   geist: boolean;       // ganze Strecke blass vorab zeigen
   schatten: boolean;
   hintergrund: Hintergrund;
@@ -35,6 +37,7 @@ export interface MediaCfg {
 export const CFG_DEFAULT: MediaCfg = {
   tempo: 1, vor: 1, nach: 3, format: "9:16", hoehe: 1080, fps: 30, farbe: "speed", geist: true, schatten: true,
   hintergrund: "schwarz",
+  ebenen: { glides: true, carves: true, sprints: true, pumps: false },
   sprints: ["sprint_100m", "sprint_60s"],
   el: {
     track: { an: true, pos: "tr", gr: 1 },
@@ -164,60 +167,110 @@ function statBlock(ctx: CanvasRenderingContext2D, cfg: MediaCfg, u: number, wert
   };
 }
 
-function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, canvasMin: number): Block {
+function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, W: number, H: number): Block {
   const [minX, minY, maxX, maxY] = clip.bbox;
   const bw = Math.max(maxX - minX, 1), bh = Math.max(maxY - minY, 1);
-  const seite = Math.min(440 * u, canvasMin * 0.6);
-  const s = seite / Math.max(bw, bh);
+  // Groesse relativ zum Bild (Jan 24.11.: „die aktuelle L groesse ist eher die kleinste, das neue L sollte dann
+  // bildschirmfuellend sein mit nur 1cm rand rund rum"): S = 57 % der kurzen Seite (das alte L), M = 78 %,
+  // L = ganzes Bild bis auf den Rand (6 % der kurzen Seite, auf dem Handy ~1 cm — derselbe Rand wie fuer die Zahlen).
+  const kurz = Math.min(W, H), rand = kurz * 0.06;
+  const gr = cfg.el.track.gr;
+  const s = gr >= 1.4
+    ? Math.min((W - 2 * rand) / bw, (H - 2 * rand) / bh)
+    : Math.min((kurz * (gr >= 1 ? 0.78 : 0.57)) / Math.max(bw, bh), (W - 2 * rand) / bw, (H * 0.6) / bh);
   const w = bw * s, h = bh * s;
+  const e = cfg.ebenen;
   return {
     w, h, draw: (c, x, y) => {
-      const px = (p: { x: number }) => x + (p.x - minX) * s;
-      const py = (p: { y: number }) => y + (maxY - p.y) * s;
+      const X = (vx: number) => x + (vx - minX) * s;
+      const Y = (vy: number) => y + (maxY - vy) * s;
+      const pts = clip.pts;
       c.lineCap = "round"; c.lineJoin = "round";
       c.shadowColor = cfg.schatten ? "rgba(0,0,0,0.55)" : "transparent"; c.shadowBlur = cfg.schatten ? 8 * u : 0;
-      const pts = clip.pts;
       if (cfg.geist) {
         c.strokeStyle = "rgba(255,255,255,0.28)"; c.lineWidth = 4 * u;
         c.beginPath();
         for (let k = 0; k < pts.length; k++) {
-          if (k === 0 || pts[k].span !== pts[k - 1].span) c.moveTo(px(pts[k]), py(pts[k])); else c.lineTo(px(pts[k]), py(pts[k]));
+          if (k === 0 || pts[k].span !== pts[k - 1].span) c.moveTo(X(pts[k].x), Y(pts[k].y)); else c.lineTo(X(pts[k].x), Y(pts[k].y));
         }
         c.stroke();
       }
-      // Sprint-Abschnitte: weisses Band unter der Spur, sobald sie gefahren sind (wie in der Session-Karte).
-      c.strokeStyle = "rgba(255,255,255,0.9)"; c.lineWidth = 14 * u;
-      for (const sp of clip.sprints) {
-        if (z.ts < sp.a || !cfg.el.sprint.an || !cfg.sprints.includes(sp.kz)) continue;
+      // Punkte eines Zeitfensters bis „jetzt" als Linie (fuer die Baender unter der Spur).
+      const band = (a: number, b: number) => {
         c.beginPath(); let erst = true;
         for (let k = 0; k <= z.i; k++) {
           const p = pts[k];
-          if (p.t < sp.a || p.t > sp.b) continue;
-          if (erst) { c.moveTo(px(p), py(p)); erst = false; } else c.lineTo(px(p), py(p));
+          if (p.t < a || p.t > b) continue;
+          if (erst) { c.moveTo(X(p.x), Y(p.y)); erst = false; } else c.lineTo(X(p.x), Y(p.y));
         }
+        if (!erst && z.ts >= a && z.ts <= b) { const q = pts[Math.min(z.i + 1, pts.length - 1)], p = pts[z.i]; c.lineTo(X(p.x + (q.x - p.x) * z.f), Y(p.y + (q.y - p.y) * z.f)); }
         c.stroke();
+      };
+      // Gleitphasen: cyanfarbenes Band unter der Spur, die Spur selbst behaelt ihre Farbe (Tempo sieht man weiter).
+      if (e.glides) {
+        c.strokeStyle = "rgba(34,211,238,0.85)"; c.lineWidth = 20 * u;
+        for (const [a, b] of clip.glides) if (z.ts >= a) band(a, b);
       }
+      // Sprints: weisses Band unter der Spur (wie in der Session-Karte).
+      const sprints = e.sprints ? clip.sprints.filter((sp) => cfg.sprints.includes(sp.kz)) : [];
+      c.strokeStyle = "rgba(255,255,255,0.9)"; c.lineWidth = 14 * u;
+      for (const sp of sprints) if (z.ts >= sp.a) band(sp.a, sp.b);
       c.shadowColor = "transparent";
+      // Die Spur in der gewaehlten Farbe — dieselben Skalen wie die Karte (trackColors.ts).
       c.lineWidth = 7 * u;
+      const farbe = (q: ClipPunktLite) => cfg.farbe === "weiss" ? "#ffffff"
+        : cfg.farbe === "hr" ? hrColor(q.hr, [clip.hrLo, clip.hrHi])
+        : cfg.farbe === "pump" ? (q.ph == null ? "#64748b" : rampColor((q.ph - clip.phLo) / Math.max(clip.phHi - clip.phLo, 1e-6)))
+        : speedColor(q.v, clip.vLo, Math.max(clip.vHi, clip.vLo + 1));
       for (let k = 1; k <= z.i + 1 && k < pts.length; k++) {
         const a = pts[k - 1], b0 = pts[k];
         if (a.span !== b0.span) continue;
         const letzt = k === z.i + 1;
         if (letzt && z.f <= 0) break;
         const bx = letzt ? a.x + (b0.x - a.x) * z.f : b0.x, by = letzt ? a.y + (b0.y - a.y) * z.f : b0.y;
-        c.strokeStyle = cfg.farbe === "weiss" ? "#ffffff"
-          : cfg.farbe === "hr" ? hrColor(b0.hr, [clip.hrLo, clip.hrHi])
-          : speedColor(b0.v, clip.vLo, Math.max(clip.vHi, clip.vLo + 1));
-        c.beginPath(); c.moveTo(px(a), py(a)); c.lineTo(x + (bx - minX) * s, y + (maxY - by) * s); c.stroke();
+        c.strokeStyle = farbe(b0);
+        c.beginPath(); c.moveTo(X(a.x), Y(a.y)); c.lineTo(X(bx), Y(by)); c.stroke();
+      }
+      // Carves: die feinen Boegen in der Kurvenlage-Farbe UEBER der Spur, wachsen waehrend des Carves mit.
+      if (e.carves) {
+        c.lineWidth = 8 * u;
+        for (const cv of clip.carves) {
+          if (z.ts < cv.a || cv.arc.length < 2) continue;
+          const anteil = Math.min(1, (z.ts - cv.a) / Math.max(cv.b - cv.a, 1));
+          const bis = Math.max(1, Math.round(anteil * (cv.arc.length - 1)));
+          for (let k = 1; k <= bis; k++) {
+            const p0 = cv.arc[k - 1], p1 = cv.arc[k];
+            c.strokeStyle = carveColor(p1[2], clip.gMax);
+            c.beginPath(); c.moveTo(X(p0[0]), Y(p0[1])); c.lineTo(X(p1[0]), Y(p1[1])); c.stroke();
+          }
+        }
+      }
+      // Pumps: kleine weisse Punkte, sobald sie gemacht sind (wie die Pump-Marker der Karte).
+      if (e.pumps) {
+        c.fillStyle = "#f8fafc"; c.strokeStyle = "#0f172a"; c.lineWidth = 1.5 * u;
+        for (const pp of clip.pumpPos) {
+          if (pp.t > z.ts) break;
+          c.beginPath(); c.arc(X(pp.x), Y(pp.y), 4 * u, 0, Math.PI * 2); c.fill(); c.stroke();
+        }
+      }
+      // Sprint-Anfang und -Ende: magentafarbene Punkte wie in der Karte.
+      for (const sp of sprints) {
+        for (const tt of [sp.a, sp.b]) {
+          if (z.ts < tt) continue;
+          let k = 0; while (k < pts.length - 1 && pts[k + 1].t <= tt) k++;
+          c.fillStyle = "#c026d3"; c.strokeStyle = "#ffffff"; c.lineWidth = 3 * u;
+          c.beginPath(); c.arc(X(pts[k].x), Y(pts[k].y), 9 * u, 0, Math.PI * 2); c.fill(); c.stroke();
+        }
       }
       // Aktuelle Position
       const p = pts[z.i], q = pts[Math.min(z.i + 1, pts.length - 1)];
-      const cx = x + (p.x + (q.x - p.x) * z.f - minX) * s, cy = y + (maxY - (p.y + (q.y - p.y) * z.f)) * s;
       c.fillStyle = "#ffffff"; c.strokeStyle = "#0f172a"; c.lineWidth = 3 * u;
-      c.beginPath(); c.arc(cx, cy, 11 * u, 0, Math.PI * 2); c.fill(); c.stroke();
+      c.beginPath(); c.arc(X(p.x + (q.x - p.x) * z.f), Y(p.y + (q.y - p.y) * z.f), 11 * u, 0, Math.PI * 2); c.fill(); c.stroke();
     },
   };
 }
+
+type ClipPunktLite = { v: number; hr: number | null; ph: number | null };
 
 function sprintBlocks(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg, z: Zustand, u: number): Block[] {
   // Je Kennzahl nur das juengste Fenster, das schon begonnen hat.
@@ -319,7 +372,12 @@ export function zeichne(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg
     if (!e.an) continue;
     const u = basis * e.gr;
     switch (k) {
-      case "track": dazu(k, trackBlock(clip, cfg, z, u, Math.min(W, H))); break;
+      case "track":
+        if (e.gr >= 1.4) {   // bildfuellend: mittig, nicht im Stapel des Ankers, liegt hinter allen Zahlen
+          const b = trackBlock(clip, cfg, z, u, W, H);
+          b.draw(ctx, (W - b.w) / 2, (H - b.h) / 2, "c");
+        } else dazu(k, trackBlock(clip, cfg, z, u, W, H));
+        break;
       case "speed": dazu(k, statBlock(ctx, cfg, u, z.v.toFixed(1), tx.kmh, tx.speed)); break;
       case "pumps":
         if (clip.hatPumps) dazu(k, statBlock(ctx, cfg, u, String(z.nPumps), "", tx.pumps, Math.max(0, 1 - z.seitPump / 180)));

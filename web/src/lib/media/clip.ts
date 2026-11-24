@@ -19,18 +19,24 @@ export interface ClipPunkt {
 }
 
 export interface ClipSprint { kz: string; a: number; b: number; wert: number; meter: number | null; sekunden: number | null }
-export interface ClipCarve { a: number; b: number; rot: number; dir: "L" | "R"; g: number }
+export interface ClipCarve {
+  a: number; b: number; rot: number; dir: "L" | "R"; g: number;
+  arc: [number, number, number][];   // feiner 25-Hz-Bogen aus /carves, projiziert: [x, y, g] — wie in der Karte
+}
 
 export interface Clip {
   spans: [number, number][];      // Session-ms je Abschnitt, zeitlich geordnet
   dauerMs: number;                // Summe der Abschnitte
   pts: ClipPunkt[];
   pumps: number[];                // Session-ms, sortiert
+  pumpPos: { t: number; x: number; y: number }[];   // Lage der Pumps fuer die Punkte auf der Spur
   glides: [number, number][];
   sprints: ClipSprint[];
   carves: ClipCarve[];
   vLo: number; vHi: number;       // Tempo-Bereich fuer die Farbe (km/h)
   hrLo: number; hrHi: number;
+  phLo: number; phHi: number;     // Pumpfrequenz-Bereich (Hz) fuer die Farbe „Pumps"
+  gMax: number;                   // groesste Kurvenlage der Carves (Farbskala wie in der Karte)
   hatPuls: boolean; hatPumps: boolean;
   bbox: [number, number, number, number]; // minX, minY, maxX, maxY (Meter)
 }
@@ -123,12 +129,18 @@ export function baueClip(session: any, trackZeiten: number[] | null, carves: Car
   const drin = (t: number) => spans.some(([a, b]) => t >= a && t <= b);
 
   const pumps: number[] = [];
+  const pumpPos: { t: number; x: number; y: number }[] = [];
   const glides: [number, number][] = [];
   for (const g of gewaehlt) {
-    for (const pi of (g.pump_idx ?? []) as number[]) pumps.push(zeit(pi));
+    for (const pi of (g.pump_idx ?? []) as number[]) {
+      pumps.push(zeit(pi));
+      const c = coords[pi];
+      if (c) pumpPos.push({ t: zeit(pi), x: (c[0] - lon0) * kx, y: (c[1] - lat0) * ky });
+    }
     for (const gl of (g.glides ?? []) as number[][]) glides.push([zeit(gl[0]), zeit(gl[1])]);
   }
   pumps.sort((a, b) => a - b);
+  pumpPos.sort((a, b) => a.t - b.t);
 
   const sprints: ClipSprint[] = [];
   const sp = session.analysis.sprints;
@@ -145,21 +157,29 @@ export function baueClip(session: any, trackZeiten: number[] | null, carves: Car
   sprints.sort((a, b) => a.a - b.a);
 
   const cv: ClipCarve[] = [];
-  for (const c of carves?.carves ?? []) {
+  let gMax = 0;
+  (carves?.carves ?? []).forEach((c, ci) => {
     const a = zeit(c.i0), b = zeit(c.i1);
-    if (drin((a + b) / 2)) cv.push({ a, b, rot: c.rot, dir: c.dir, g: c.peak_g });
-  }
+    if (!drin((a + b) / 2)) return;
+    // arcs[ci] gehoert zu carves[ci] (so liest es auch die Karte in SessionDetail).
+    const arc = (carves?.arcs?.[ci] ?? []).map(([la, lo, g]) => [(lo - lon0) * kx, (la - lat0) * ky, g] as [number, number, number]);
+    for (const p of arc) gMax = Math.max(gMax, p[2]);
+    gMax = Math.max(gMax, c.peak_g);
+    cv.push({ a, b, rot: c.rot, dir: c.dir, g: c.peak_g, arc });
+  });
   cv.sort((a, b) => a.a - b.a);
 
-  let vLo = Infinity, vHi = -Infinity, hrLo = Infinity, hrHi = -Infinity;
+  let vLo = Infinity, vHi = -Infinity, hrLo = Infinity, hrHi = -Infinity, phLo = Infinity, phHi = -Infinity;
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const p of pts) {
     if (p.v > 0) { vLo = Math.min(vLo, p.v); vHi = Math.max(vHi, p.v); }
     if (p.hr != null) { hrLo = Math.min(hrLo, p.hr); hrHi = Math.max(hrHi, p.hr); }
+    if (p.ph != null && p.ph > 0) { phLo = Math.min(phLo, p.ph); phHi = Math.max(phHi, p.ph); }
     minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
   }
   return {
-    spans, dauerMs, pts, pumps, glides, sprints, carves: cv,
+    spans, dauerMs, pts, pumps, pumpPos, glides, sprints, carves: cv,
+    phLo: isFinite(phLo) ? phLo : 0.8, phHi: isFinite(phHi) ? phHi : 2, gMax: Math.max(gMax, 0.6),
     vLo: isFinite(vLo) ? Math.floor(vLo) : 0, vHi: isFinite(vHi) ? Math.ceil(vHi) : 30,
     hrLo: isFinite(hrLo) ? hrLo : 100, hrHi: isFinite(hrHi) ? hrHi : 170,
     hatPuls: isFinite(hrLo), hatPumps: pumps.length > 0,

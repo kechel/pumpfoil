@@ -3574,6 +3574,7 @@ const en: Record<string, string> = {
   "media.el.carve": "Carves",
   "media.el.logo": "pumpfoil.org",
   "media.trackColor": "Track colour",
+  "media.layers": "Layers on the track",
   "media.white": "White",
   "media.ghost": "Show whole track faintly",
   "media.shadow": "Shadow (easier to read on bright water)",

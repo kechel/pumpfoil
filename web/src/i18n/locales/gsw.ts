@@ -3262,6 +3262,7 @@ const gsw: Record<string, string> = {
   "media.el.carve": "Carves",
   "media.el.logo": "pumpfoil.org",
   "media.trackColor": "Farb vo de Spur",
+  "media.layers": "Ebene uf de Spur",
   "media.white": "Wiiss",
   "media.ghost": "Ganzi Spur blass vorab",
   "media.shadow": "Schatte (besser läsbar uf hellem Wasser)",

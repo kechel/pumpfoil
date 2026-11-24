@@ -27,7 +27,7 @@ function ladeCfg(): MediaCfg {
     if (roh && typeof roh === "object") {
       const el = { ...CFG_DEFAULT.el };
       for (const k of EL_KEYS) if (roh.el?.[k]) el[k] = { ...el[k], ...roh.el[k] };
-      return { ...CFG_DEFAULT, ...roh, el };
+      return { ...CFG_DEFAULT, ...roh, el, ebenen: { ...CFG_DEFAULT.ebenen, ...(roh.ebenen ?? {}) } };
     }
   } catch { /* Privatmodus, kaputter Eintrag */ }
   return CFG_DEFAULT;
@@ -303,7 +303,7 @@ export default function SessionMedia() {
                   </li>
                 ))}
               </ul>
-              {cfg.el.sprint.an && sprintKz.length > 0 && (
+              {(cfg.el.sprint.an || cfg.ebenen.sprints) && sprintKz.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2 pt-1 text-sm text-slate-300">
                   <span>{t("media.el.sprint")}:</span>
                   {sprintKz.map((kz) => (
@@ -318,7 +318,20 @@ export default function SessionMedia() {
                 <span>{t("media.trackColor")}</span>
                 <Knopf an={cfg.farbe === "speed"} onClick={() => setCfg({ ...cfg, farbe: "speed" })}>{t("share.color.speed")}</Knopf>
                 {clip.hatPuls && <Knopf an={cfg.farbe === "hr"} onClick={() => setCfg({ ...cfg, farbe: "hr" })}>{t("share.color.hr")}</Knopf>}
+                {clip.hatPumps && <Knopf an={cfg.farbe === "pump"} onClick={() => setCfg({ ...cfg, farbe: "pump" })}>{t("media.el.pumprate")}</Knopf>}
                 <Knopf an={cfg.farbe === "weiss"} onClick={() => setCfg({ ...cfg, farbe: "weiss" })}>{t("media.white")}</Knopf>
+              </div>
+              {/* Ebenen ueber der Spur, wie in der Karte — laufen mit der Zeit mit (Jan 24.11.2026). */}
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-sm text-slate-300">
+                <span>{t("media.layers")}</span>
+                {([
+                  ["glides", t("media.el.glide"), clip.glides.length > 0],
+                  ["carves", t("media.el.carve"), clip.carves.length > 0],
+                  ["sprints", t("media.el.sprint"), sprintKz.length > 0],
+                  ["pumps", t("media.el.pumps"), clip.hatPumps],
+                ] as const).filter(([, , da]) => da).map(([k, name]) => (
+                  <Knopf key={k} an={cfg.ebenen[k]} onClick={() => setCfg({ ...cfg, ebenen: { ...cfg.ebenen, [k]: !cfg.ebenen[k] } })}>{name}</Knopf>
+                ))}
               </div>
               <div className="flex flex-wrap gap-4 pt-1 text-sm text-slate-300">
                 <label className="flex items-center gap-2"><input type="checkbox" checked={cfg.geist} onChange={(e) => setCfg({ ...cfg, geist: e.target.checked })} className="accent-brand-400" />{t("media.ghost")}</label>

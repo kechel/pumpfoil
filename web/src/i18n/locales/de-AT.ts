@@ -3263,6 +3263,7 @@ const deAT: Record<string, string> = {
   "media.el.carve": "Carves",
   "media.el.logo": "pumpfoil.org",
   "media.trackColor": "Farbe der Spur",
+  "media.layers": "Ebenen auf der Spur",
   "media.white": "Weiß",
   "media.ghost": "Ganze Spur blass vorab",
   "media.shadow": "Schatten (besser lesbar auf hellem Wasser)",
