@@ -384,7 +384,10 @@ export function strudelCode(clip: Clip, vcfg: MediaCfg, m: MusikCfg, info: CodeI
   const label = (name: string, i: number) => {
     let l = name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || `voice${i + 1}`;
     if (/^[0-9]/.test(l)) l = `v${l}`;
-    while (labels.has(l)) l += "_";
+    // Gleiche Namen hochzaehlen (bass, bass2, bass3) — NIE ein „_" anhaengen: Strudel schaltet Labels, die mit „_"
+    // anfangen oder enden, stumm (@strudel/core repl.mjs). Vorher wurde aus dem zweiten „Bass" „bass_" (Jan, 25.11.2026).
+    const basis = l;
+    for (let n = 2; labels.has(l); n++) l = `${basis}${n}`;
     labels.add(l);
     return l;
   };
