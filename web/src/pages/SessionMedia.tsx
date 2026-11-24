@@ -254,6 +254,10 @@ export default function SessionMedia() {
     abbruchRef.current = ab;
     setFortschritt(0);
     const teil = lauf === "alle" ? "alle" : `lauf${lauf + 1}`;
+    // Zeitstempel des Exports vorn (Jan 24.11.2026: „202611241047-pumpfoil-21673-lauf2-9x16.webm") — sortiert sich im
+    // Download-Ordner von selbst, mehrere Exporte desselben Laufs ueberschreiben sich nicht.
+    const j = new Date(), zz = (n: number) => String(n).padStart(2, "0");
+    const stempel = `${j.getFullYear()}${zz(j.getMonth() + 1)}${zz(j.getDate())}${zz(j.getHours())}${zz(j.getMinutes())}`;
     try {
       // Erst die Musik (offline, im iframe), dann das Bild mit der Tonspur.
       let ton: AudioBuffer | null = null;
@@ -261,13 +265,13 @@ export default function SessionMedia() {
         setPhase("musik");
         const w = await rendere(code, dauer, ab.signal);
         ton = await wavZuBuffer(w);
-        setWav({ url: URL.createObjectURL(w), name: `pumpfoil-${id}-${teil}-${musik.vorlage}.wav`, mb: w.size / 1e6 });
+        setWav({ url: URL.createObjectURL(w), name: `${stempel}-pumpfoil-${id}-${teil}-${musik.vorlage}.wav`, mb: w.size / 1e6 });
       }
       setPhase("video");
       const r = await erzeugeVideo(clip, cfg, tx, setFortschritt, ab.signal, ton);
       // Export-Zaehler des geteilten Mixes, auf dem die Musik beruht (zaehlt der Server nur bei fremden Mixen).
       if (ton && musik.basisMix) api.mixExportiert(musik.basisMix).catch(() => {});
-      setErgebnis({ url: URL.createObjectURL(r.blob), name: `pumpfoil-${id}-${teil}-${cfg.format.replace(":", "x")}.${r.endung}`, mb: r.blob.size / 1e6 });
+      setErgebnis({ url: URL.createObjectURL(r.blob), name: `${stempel}-pumpfoil-${id}-${teil}-${cfg.format.replace(":", "x")}.${r.endung}`, mb: r.blob.size / 1e6 });
     } catch (e: any) {
       if (e?.name !== "AbortError") setExportFehler(String(e?.message ?? e));
     } finally {
