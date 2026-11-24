@@ -3679,6 +3679,8 @@ const de: Record<string, string> = {
   "media.instr.pf_bass_upright": "Kontrabass",
   "media.instr.pf_bass_synth": "Synth-Bass",
   "media.music.instrLicense": "Die Instrumente stammen aus dem freien FluidR3-GM-Soundfont (MIT-Lizenz) und werden von pumpfoil.org geladen.",
+  "media.music.unlock": "Musik einschalten",
+  "media.music.locked": "Der Browser gibt den Ton nicht frei.",
   "media.preview": "Vorschau",
   "media.l.speed": "Tempo",
   "media.l.pumprate": "Pumpfrequenz",

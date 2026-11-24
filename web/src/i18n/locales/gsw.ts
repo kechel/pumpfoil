@@ -3342,6 +3342,8 @@ const gsw: Record<string, string> = {
   "media.instr.pf_bass_upright": "Kontrabass",
   "media.instr.pf_bass_synth": "Synth-Bass",
   "media.music.instrLicense": "D Instrumänt chömed us em freie FluidR3-GM-Soundfont (MIT-Lizänz) und wärded vo pumpfoil.org glade.",
+  "media.music.unlock": "Musig iischalte",
+  "media.music.locked": "De Browser git de Ton nöd frei.",
   "media.preview": "Vorschau",
   "media.l.speed": "Tempo",
   "media.l.pumprate": "Pumpfrequänz",

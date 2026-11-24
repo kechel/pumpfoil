@@ -3654,6 +3654,8 @@ const en: Record<string, string> = {
   "media.instr.pf_bass_upright": "Double bass",
   "media.instr.pf_bass_synth": "Synth bass",
   "media.music.instrLicense": "The instruments come from the free FluidR3 GM SoundFont (MIT license) and are loaded from pumpfoil.org.",
+  "media.music.unlock": "Turn on music",
+  "media.music.locked": "The browser won't allow the sound.",
   "media.preview": "Preview",
   "media.l.speed": "Speed",
   "media.l.pumprate": "Pump rate",

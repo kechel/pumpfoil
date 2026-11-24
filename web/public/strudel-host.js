@@ -44,14 +44,40 @@
         repl = await sw.initStrudel({ miniAllStrings: false });
         melde({ typ: "bereit" });
       } else if (m.typ === "spiele") {
-        try { await sw.getAudioContext().resume(); } catch (x) { /* ohne Klick evtl. noch gesperrt */ }
+        // NICHT auf resume() warten: Safari gibt den Ton im abgeschotteten iframe nur nach einem Klick IN diesem
+        // iframe frei und laesst das Versprechen sonst ewig offen (24.11.2026, „Loading" ohne Ende). Den Zustand
+        // melden wir stattdessen zurueck; die Seite weicht bei „suspended" auf gerenderten Ton aus.
+        var ac = sw.getAudioContext();
+        try { ac.resume().catch(function () {}); } catch (x) { /* egal */ }
+        if (ac.state !== "running") await new Promise(function (r) { setTimeout(r, 250); });
+        if (ac.state !== "running") {
+          // Gesperrt: Strudel NICHT starten — seine Uhr haengt an currentTime, die dann stillsteht, und blockiert in
+          // WebKit die ganze Seite (gemessen 24.11.2026). Die Seite weicht auf gerenderten Ton aus.
+          melde({ typ: "antwort", id: m.id, fehler: null, zustand: ac.state });
+          return;
+        }
         var p = await auswerten(m.code);
         var cps = repl.scheduler.cps;
         repl.stop();
         // Strudels Uhr plant 0,1 s voraus — um so viel frueher einsetzen, damit Ton und Bild gleich laufen.
         var latenz = repl.scheduler.latency || 0.1;
         await repl.setPattern(p.early((m.ab + latenz) * cps), true);
-        melde({ typ: "antwort", id: m.id, fehler: null });
+        melde({ typ: "antwort", id: m.id, fehler: null, zustand: ac.state });
+      } else if (m.typ === "knopf") {
+        // Safari: Ton nur nach einem Klick IN diesem iframe. Die Seite zeigt den iframe dafuer kurz sichtbar an,
+        // hier steht dann ein Knopf; der Klick entsperrt den Audiokontext fuer die ganze Sitzung.
+        document.body.innerHTML = "";
+        document.body.style.cssText = "margin:0;background:transparent;font-family:system-ui,-apple-system,sans-serif";
+        var k = document.createElement("button");
+        k.textContent = m.text || "Musik einschalten";
+        k.style.cssText = "width:100%;height:100vh;border:0;border-radius:10px;background:#22d3ee;color:#0f172a;" +
+          "font-weight:700;font-size:15px;cursor:pointer";
+        k.addEventListener("click", function () {
+          var ac = sw && sw.getAudioContext();
+          var fertig = function () { melde({ typ: "freigegeben", zustand: ac ? ac.state : "?" }); };
+          if (ac) ac.resume().then(fertig, fertig); else fertig();
+        });
+        document.body.appendChild(k);
       } else if (m.typ === "stoppe") {
         if (repl) repl.stop();
       } else if (m.typ === "rendere") {

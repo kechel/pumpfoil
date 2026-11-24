@@ -18,7 +18,7 @@ import {
 } from "../lib/media/zeichnen";
 import { MAX_SEKUNDEN, alphaMoeglich, erzeugeVideo, webCodecsDa } from "../lib/media/export";
 import { FXS, INSTRUMENTE, INSTR_SPUREN, MUSIK_DEFAULT, QUELLEN, SPUREN, STILE, instrument, type MusikCfg, type Quelle, strudelCode, strudelLink } from "../lib/media/musik";
-import { rendere, spiele, stoppe, vorladen, wavZuBuffer } from "../lib/media/strudel";
+import { entsperren, rendere, spiele, stoppe, vorladen, wavZuBuffer, zeigeFreigabe } from "../lib/media/strudel";
 
 const LS_KEY = "pumpfoil_media_cfg";
 
@@ -166,6 +166,7 @@ export default function SessionMedia() {
   const zeitRef = useRef<HTMLSpanElement>(null);
   const tvRef = useRef(0);
   const [spielt, setSpielt] = useState(false);
+  const spielKnopfRef = useRef<HTMLButtonElement>(null);
 
   const zeichneVorschau = () => {
     const c = canvasRef.current;
@@ -192,7 +193,7 @@ export default function SessionMedia() {
   const musikNeu = () => {
     window.clearTimeout(musikNeuRef.current);
     musikNeuRef.current = window.setTimeout(() => {
-      if (code) spiele(code, tvRef.current).then(setMusikFehler).catch((e) => setMusikFehler(String(e?.message ?? e)));
+      if (code) spiele(code, () => tvRef.current, dauer).then(setMusikFehler).catch((e) => setMusikFehler(String(e?.message ?? e)));
     }, 250);
   };
   const ersterCode = useRef(code);
@@ -205,8 +206,21 @@ export default function SessionMedia() {
     if (spielt) { setSpielt(false); return; }
     if (tvRef.current >= dauer) tvRef.current = 0;
     if (code) {
+      entsperren();   // synchron im Klick — Safari gibt den Ton sonst nicht frei
       setMusikLaedt(true);
-      try { setMusikFehler(await spiele(code, tvRef.current)); }
+      try {
+        let r = await spiele(code, () => tvRef.current, dauer);
+        if (r === "FREIGABE" && spielKnopfRef.current) {
+          // Safari: Ton im Strudel-iframe erst nach einem Klick DORT — Knopf im iframe ueber den Abspielen-Knopf legen.
+          setMusikLaedt(false);
+          await zeigeFreigabe(spielKnopfRef.current, t("media.music.unlock"));
+          setMusikLaedt(true);
+          r = await spiele(code, () => tvRef.current, dauer);
+          // Immer noch gesperrt: gerenderten Ton nehmen (langsam, aber geht in jedem Browser).
+          if (r === "FREIGABE") r = await spiele(code, () => tvRef.current, dauer, true);
+        }
+        setMusikFehler(r === "FREIGABE" ? t("media.music.locked") : r);
+      }
       catch (e: any) { setMusikFehler(String(e?.message ?? e)); }
       finally { setMusikLaedt(false); }
     }
@@ -222,7 +236,7 @@ export default function SessionMedia() {
       // Dauerschleife (Jan 24.11.2026): am Ende wieder von vorn, die Musik setzt am Anfang neu auf.
       if (tvRef.current >= dauer) {
         tvRef.current = 0;
-        if (code) spiele(code, 0).then(setMusikFehler).catch(() => {});
+        if (code) spiele(code, () => 0, dauer).then(setMusikFehler).catch(() => {});
       }
       zeichneVorschau();
       raf = requestAnimationFrame(schritt);
@@ -351,7 +365,7 @@ export default function SessionMedia() {
                 }} />
             </div>
             <div className="mt-3 flex items-center gap-3">
-              <button onClick={abspielen} disabled={musikLaedt}
+              <button ref={spielKnopfRef} onClick={abspielen} disabled={musikLaedt}
                 className="rounded-lg bg-brand-500 px-3 py-1 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-60">
                 {musikLaedt ? t("media.music.loading") : spielt ? t("sd.pause") : t("sd.play")}
               </button>

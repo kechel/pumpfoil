@@ -131,6 +131,7 @@ def _csp_strudel(request: Request) -> str:
             f"script-src {herkunft} 'unsafe-eval' blob: data:; "
             f"worker-src {herkunft} blob: data:; "
             f"connect-src {herkunft}; "   # Instrument-Toene aus /klaenge/
+            "style-src 'unsafe-inline'; "  # Knopf „Musik einschalten" (Safari braucht den Klick IM iframe)
             "frame-ancestors 'self'; base-uri 'none'; form-action 'none'")
 
 

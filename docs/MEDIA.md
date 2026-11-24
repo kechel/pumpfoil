@@ -78,7 +78,15 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
      Strudel schliesst dabei den Audiokontext und poolt Audio-Knoten ohne Kontext-Trennung (gemessen: zweites Rendern
      in derselben Instanz -> „different audio context"). Den erzwungenen WAV-Download faengt der Wirt ab.
    - Gesamttest 24.11. (headless Chromium, Session-Daten nur gelesen): 51-s-Lauf, Techno, 720p -> WebM VP9 mit Alpha
-     + Opus 48 kHz stereo in 40 s, WAV separat. Offen: Autoplay im Sandbox-iframe auf echten Geraeten (Safari!).
+     + Opus 48 kHz stereo in 40 s, WAV separat.
+   - **Safari** (Jan 24.11., mit WebKit nachgestellt): Ton im abgeschotteten iframe erst nach einem Klick IN diesem
+     iframe; `resume()` bleibt sonst ewig offen („Loading" ohne Ende). Startet man Strudel trotzdem, haengt seine Uhr
+     an der stehenden `currentTime` und blockiert die Seite. Jetzt: Wirt meldet `zustand`, startet nur bei
+     „running"; sonst legt die Seite den Wirt kurz sichtbar ueber den Abspielen-Knopf, darin ein Knopf „Musik
+     einschalten" -> Klick entsperrt fuer die Sitzung, danach live. Bleibt es gesperrt: Rueckfall auf offline
+     gerenderten Ton, den die Seite selbst abspielt (ihr AudioContext wird synchron im Klick entsperrt) — geht,
+     dauert aber (Jans Safari: Musik kam „nach langem warten"). Headless-WebKit stuerzt beim AudioContext der Seite
+     ab (kein Audiogeraet) — den Knopf-Weg muss ein echtes Safari pruefen.
    - Nur eingebaute Klaenge (Synths, Rauschen, `sbd`), keine Samples — strudel.cc klingt gleich, keine fremden Abrufe.
    - Stille Spuren per `.mask()` statt Lautstaerke 0 (halbiert die Renderzeit); Gesamtpegel je Stil (`PEGEL`),
      gemessen auf aehnliche Spitze 0,6-0,8.
