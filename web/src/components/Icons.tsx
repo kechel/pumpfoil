@@ -420,6 +420,13 @@ export const TrashIcon = ({ className = base }: P) => (
   </svg>
 );
 
+// Media-Stimmen (24.11.2026): Solo = Kopfhoerer („nur diese Stimme anhoeren"); Stumm nutzt das vorhandene MuteIcon.
+export const HeadphonesIcon = ({ className = base }: P) => (
+  <svg className={className} viewBox="0 0 24 24" {...stroke}>
+    <path d="M4 15v-3a8 8 0 0 1 16 0v3" /><rect x="3" y="14" width="4" height="7" rx="1.5" /><rect x="17" y="14" width="4" height="7" rx="1.5" />
+  </svg>
+);
+
 // Duplizieren (Media-Stimmen, 24.11.2026): zwei versetzte Blaetter wie Material „content_copy".
 export const CopyIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>

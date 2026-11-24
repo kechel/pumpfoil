@@ -3,7 +3,7 @@
 // duerfen mehrere Stimmen steuern. Vorlagen (die frueheren Stile) laden eine fertige Liste.
 
 import { useT } from "../i18n";
-import { CopyIcon, TrashIcon } from "./Icons";
+import { CopyIcon, HeadphonesIcon, MuteIcon, TrashIcon } from "./Icons";
 import {
   DICHTE_Q, FARBE_Q, KITS, LAUT_Q, MUSTER, SAMPLES, STILE, SYNTHS, TON_Q, WANN,
   neueStimme, vorlage, type MusikCfg, type Stimme, type Verfuegbar,
@@ -29,6 +29,7 @@ export function MediaStimmen({ musik, setMusik, klaengeDa, da }: {
   const quelleDa = (q: string) => !((q === "puls" && !da.puls) || (q === "pumpfreq" && !da.pumps) || (q === "carve" && !da.carves));
   const wannDa = (w: string) => !((w === "pump" && !da.pumps) || (w === "sprint" && !da.sprints)
     || (w === "carve" && !da.carves) || (w === "gleiten" && !da.glides));
+  const soloAn = musik.stimmen.some((x) => x.solo);
   const knopf = (an: boolean) => `h-7 min-w-7 rounded-md px-1.5 text-xs font-bold ${an ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`;
 
   return (
@@ -50,13 +51,14 @@ export function MediaStimmen({ musik, setMusik, klaengeDa, da }: {
       {musik.stimmen.map((v, i) => {
         const kit = v.instrument.startsWith("kit:");
         return (
-          <div key={v.id} className={`space-y-2 rounded-xl border border-slate-800 p-3 ${v.stumm ? "opacity-50" : ""}`}>
+          // Ausgegraut: stumm, oder eine ANDERE Stimme steht auf Solo (Jan 24.11.2026) — man sieht, was gerade klingt.
+          <div key={v.id} className={`space-y-2 rounded-xl border border-slate-800 p-3 ${v.stumm || (soloAn && !v.solo) ? "opacity-50" : ""}`}>
             <div className="flex items-center gap-2">
               <input value={v.name} maxLength={24} onChange={(e) => setze(v.id, { name: e.target.value })}
                 aria-label={t("media.v.name")}
                 className="min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-1 py-0.5 text-sm font-semibold text-slate-100 hover:border-slate-700 focus:border-slate-600" />
-              <button className={knopf(v.stumm)} title={t("media.v.muteHint")} aria-pressed={v.stumm} onClick={() => setze(v.id, { stumm: !v.stumm })}>{t("media.v.mute")}</button>
-              <button className={knopf(v.solo)} title={t("media.v.soloHint")} aria-pressed={v.solo} onClick={() => setze(v.id, { solo: !v.solo })}>{t("media.v.solo")}</button>
+              <button className={knopf(v.stumm)} title={t("media.v.muteHint")} aria-pressed={v.stumm} aria-label={t("media.v.muteHint")} onClick={() => setze(v.id, { stumm: !v.stumm })}><MuteIcon className="mx-auto h-4 w-4" /></button>
+              <button className={knopf(v.solo)} title={t("media.v.soloHint")} aria-pressed={v.solo} aria-label={t("media.v.soloHint")} onClick={() => setze(v.id, { solo: !v.solo })}><HeadphonesIcon className="mx-auto h-4 w-4" /></button>
               <button className={knopf(false)} title={t("media.v.duplicate")} onClick={() => {
                 const kopie = neueStimme({ ...v, id: undefined as unknown as string, name: `${v.name} 2`, solo: false });
                 const l = musik.stimmen.slice(); l.splice(i + 1, 0, { ...kopie, id: neueStimme().id });
