@@ -94,6 +94,7 @@ def _out(m: models.MusikMix, author: str | None = None, eigen: bool = True) -> d
     except ValueError:
         cfg = {}
     return {"id": m.id, "name": m.name, "cfg": cfg, "published": bool(m.published), "geladen": m.geladen or 0,
+            "exportiert": m.exportiert or 0,
             "eigen": eigen, "author": author, "updated_at": m.updated_at.isoformat() if m.updated_at else None}
 
 
@@ -106,12 +107,14 @@ def meine(user: models.User = Depends(current_user), db: Session = Depends(get_d
 @router.get("/community")
 def community(sort: str = Query("geladen"), limit: int = Query(60, ge=1, le=200),
               user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> list[dict]:
-    """Geteilte Mixe aller (auch die eigenen). `sort=geladen`: am oeftesten von anderen geladen zuerst; `new`: neueste."""
+    """Geteilte Mixe aller (auch die eigenen). Standard: am oeftesten von anderen MIT EXPORT benutzt zuerst, dann
+    geladen (Jan 24.11.: „counter wie oft wirklich ein video … exportiert wurde als indikator was gut ankommt");
+    `new`: neueste."""
     q = (db.query(models.MusikMix, models.User.display_name)
          .join(models.User, models.User.id == models.MusikMix.user_id)
          .filter(models.MusikMix.published.is_(True)))
     q = q.order_by(models.MusikMix.updated_at.desc()) if sort == "new" else \
-        q.order_by(models.MusikMix.geladen.desc(), models.MusikMix.updated_at.desc())
+        q.order_by(models.MusikMix.exportiert.desc(), models.MusikMix.geladen.desc(), models.MusikMix.updated_at.desc())
     return [_out(m, author=name or "?", eigen=m.user_id == user.id) for m, name in q.limit(limit).all()]
 
 
@@ -174,6 +177,18 @@ def geladen(mix_id: int, user: models.User = Depends(current_user), db: Session 
         m.geladen = (m.geladen or 0) + 1
         db.commit()
     return {"ok": True, "geladen": m.geladen or 0}
+
+
+@router.post("/{mix_id}/exportiert")
+def exportiert(mix_id: int, user: models.User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    """Ein Video mit Musik wurde fertig exportiert, und die Musik beruhte auf diesem Mix. Zaehlt nur fremde Mixe."""
+    m = db.get(models.MusikMix, mix_id)
+    if m is None or (m.user_id != user.id and not m.published):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Mix nicht gefunden")
+    if m.user_id != user.id:
+        m.exportiert = (m.exportiert or 0) + 1
+        db.commit()
+    return {"ok": True, "exportiert": m.exportiert or 0}
 
 
 @router.delete("/{mix_id}", status_code=status.HTTP_204_NO_CONTENT)

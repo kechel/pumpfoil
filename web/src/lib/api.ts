@@ -597,7 +597,7 @@ export type FoilBand = {
 // Carve-Erkennung (Accel-Zentripetal-g-Modell, nur Anzeige). g = Kurvenlage je Track-Punkt;
 // carves = erkannte Carves mit Grad-Bucket (s=90–180 als <180 / m=180–360 / l=>360).
 export interface MusikMixOut {
-  id: number; name: string; cfg: any; published: boolean; geladen: number; eigen: boolean; author: string | null;
+  id: number; name: string; cfg: any; published: boolean; geladen: number; exportiert: number; eigen: boolean; author: string | null;
   updated_at: string | null;
 }
 
@@ -1931,6 +1931,7 @@ export const api = {
   mixTeilen: (id: number, published: boolean) =>
     req<MusikMixOut>(`/api/media/mixe/${id}/publish?published=${published}`, { method: "POST" }),
   mixGeladen: (id: number) => req<{ ok: boolean }>(`/api/media/mixe/${id}/geladen`, { method: "POST" }),
+  mixExportiert: (id: number) => req<{ ok: boolean }>(`/api/media/mixe/${id}/exportiert`, { method: "POST" }),
   mixLoeschen: (id: number) => req<void>(`/api/media/mixe/${id}`, { method: "DELETE" }),
   sessionCarves: (id: number) =>
     req<CarveData>(`/api/sessions/${id}/carves`),

@@ -265,6 +265,8 @@ export default function SessionMedia() {
       }
       setPhase("video");
       const r = await erzeugeVideo(clip, cfg, tx, setFortschritt, ab.signal, ton);
+      // Export-Zaehler des geteilten Mixes, auf dem die Musik beruht (zaehlt der Server nur bei fremden Mixen).
+      if (ton && musik.basisMix) api.mixExportiert(musik.basisMix).catch(() => {});
       setErgebnis({ url: URL.createObjectURL(r.blob), name: `pumpfoil-${id}-${teil}-${cfg.format.replace(":", "x")}.${r.endung}`, mb: r.blob.size / 1e6 });
     } catch (e: any) {
       if (e?.name !== "AbortError") setExportFehler(String(e?.message ?? e));

@@ -12,7 +12,7 @@ import { TrashIcon } from "./Icons";
 function ausMix(m: MusikMixOut, alt: MusikCfg): MusikCfg {
   const c = m.cfg ?? {};
   return {
-    ...alt, an: true,
+    ...alt, an: true, basisMix: m.id,
     vorlage: c.vorlage ?? alt.vorlage,
     stimmen: (c.stimmen ?? []).map((v: any) => ({ ...neueStimme(), ...v, id: neueStimme().id })),
     fx: { ...alt.fx, ...(c.fx ?? {}) },
@@ -65,6 +65,7 @@ export function MediaMixe({ musik, setMusik }: { musik: MusikCfg; setMusik: (m: 
         {m.name}
         {!eigeneListe && m.author && <span className="text-slate-400"> · {m.author}</span>}
         {eigeneListe && m.published && <span className="ml-1 rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-300">{t("media.mix.shared")}</span>}
+        {m.exportiert > 0 && <span className="text-xs text-slate-400"> · {t("media.mix.exports", { n: String(m.exportiert) })}</span>}
         {m.geladen > 0 && <span className="text-xs text-slate-400"> · {t("media.mix.loads", { n: String(m.geladen) })}</span>}
       </span>
       <button className="rounded-lg bg-brand-500 px-2.5 py-1 text-xs font-semibold text-slate-950 hover:bg-brand-400" onClick={() => laden(m)}>

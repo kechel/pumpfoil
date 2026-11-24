@@ -100,6 +100,8 @@ def _migrate_add_indexes() -> None:
         # Chat: Antwort auf eine Nachricht (Jan, 13.10.2026). Bewusst OHNE Fremdschluessel: Loeschen
         # (eigene Nachricht, DSGVO) darf nie an einer Antwort haengen bleiben; fehlt das Original,
         # zeigt die Antwort „nicht mehr verfuegbar".
+        # Musik-Mixe: wie oft ein Video mit einem geteilten Mix exportiert wurde (24.11.2026, api/mixe.py)
+        "ALTER TABLE musik_mixe ADD COLUMN IF NOT EXISTS exportiert INTEGER NOT NULL DEFAULT 0",
         # GPS-Kunst-Event: Runden/Abstimmung (18.11.2026, app/kunst.py)
         "ALTER TABLE team_events ADD COLUMN IF NOT EXISTS kunst_json TEXT",
         "ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS reply_to_id INTEGER",

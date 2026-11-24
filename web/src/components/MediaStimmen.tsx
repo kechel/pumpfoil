@@ -38,12 +38,12 @@ export function MediaStimmen({ musik, setMusik, klaengeDa, da }: {
         <select value={musik.vorlage} className={`${SEL} w-auto`}
           onChange={(e) => {
             const st = e.target.value as MusikCfg["vorlage"];
-            setMusik({ ...musik, vorlage: st, stimmen: vorlage(st) });
+            setMusik({ ...musik, vorlage: st, stimmen: vorlage(st), basisMix: null });
           }}>
           {STILE.map((st) => <option key={st} value={st}>{t(`media.style.${st}`)}</option>)}
         </select>
         <button className="rounded-lg bg-slate-800 px-2.5 py-1 text-xs text-slate-300 hover:bg-slate-700"
-          onClick={() => setMusik({ ...musik, stimmen: vorlage(musik.vorlage) })}>{t("media.music.reset")}</button>
+          onClick={() => setMusik({ ...musik, stimmen: vorlage(musik.vorlage), basisMix: null })}>{t("media.music.reset")}</button>
       </div>
       <p className="text-xs text-slate-400">{t("media.music.voicesHint")}</p>
 

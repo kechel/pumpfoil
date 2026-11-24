@@ -25,6 +25,9 @@ def test_speichern_teilen_laden(client):
     client.post(f"/api/media/mixe/{m['id']}/geladen", headers=b)
     client.post(f"/api/media/mixe/{m['id']}/geladen", headers=a)   # eigenes Laden zaehlt nicht
     assert client.get("/api/media/mixe", headers=a).json()[0]["geladen"] == 1
+    client.post(f"/api/media/mixe/{m['id']}/exportiert", headers=b)
+    client.post(f"/api/media/mixe/{m['id']}/exportiert", headers=a)   # eigener Export zaehlt nicht
+    assert client.get("/api/media/mixe/community", headers=b).json()[0]["exportiert"] == 1
     # Fremde koennen weder aendern noch loeschen
     assert client.put(f"/api/media/mixe/{m['id']}", json={"name": "x", "cfg": CFG}, headers=b).status_code == 404
     assert client.delete(f"/api/media/mixe/{m['id']}", headers=b).status_code == 404

@@ -122,6 +122,11 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
      `pruefe_cfg` laesst nur bekannte Felder/Werte durch und befreit Namen von Zeilenumbruechen — aus einem geteilten
      Mix wird bei anderen Strudel-Code (Tests `tests/test_mixe.py`, auch gegen Code-Einschleusung). Der Generator
      saeubert Namen zusaetzlich. UI: `web/src/components/MediaMixe.tsx` oben im Musik-Reiter.
+     **Export-Zaehler** (Jan 24.11.: „wie oft wirklich ein video … exportiert wurde als indikator"): Spalte
+     `exportiert`; die Seite merkt sich `basisMix` beim Laden (Vorlage wechseln setzt ihn zurueck) und meldet nach
+     einem fertigen Export MIT Musik `POST /{id}/exportiert`. Zaehlt nur fremde Mixe, reiner Zaehler ohne Protokoll
+     (kein Analytics). Community-Liste sortiert nach exportiert, dann geladen. Moderation wie bei den Uhr-Layouts:
+     kein Melden (Jan 24.11.).
    - **Stimmen statt fester Stile** (Jan 24.11.: „melody ohne flying sprints … mehr freiheiten welche daten was sind,
      auch mehrmals das gleiche"): je Stimme Instrument (Synths, pf-Samples, Schlagzeug elektronisch/akustisch),
      Muster (Ton je Ereignis, Akkord anschlagen, Melodie, Arpeggio, Akkord halten, Bass-Linie, Beat), „spielt wenn"

@@ -3753,6 +3753,7 @@ const de: Record<string, string> = {
   "media.mix.shared": "geteilt",
   "media.mix.loads": "{n}× geladen",
   "media.mix.deleteConfirm": "Mix „{name}“ löschen?",
+  "media.mix.exports": "{n}× exportiert",
   "media.preview": "Vorschau",
   "media.l.speed": "Tempo",
   "media.l.pumprate": "Pumpfrequenz",

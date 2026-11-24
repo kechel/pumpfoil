@@ -66,6 +66,7 @@ export interface MusikCfg {
   stimmen: Stimme[];
   fx: Record<Fx, boolean>;
   fxLaut: number;
+  basisMix?: number | null;     // aus welchem gespeicherten/geteilten Mix das stammt (fuer den Export-Zaehler)
 }
 
 let zaehlerId = 0;

@@ -436,6 +436,9 @@ class MusikMix(Base):
     published: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0", index=True)
     copied_from_id: Mapped[int | None] = mapped_column(ForeignKey("musik_mixe.id"))
     geladen: Mapped[int] = mapped_column(Integer, default=0, server_default="0")   # wie oft andere ihn geladen haben
+    # wie oft andere ein Video MIT diesem Mix exportiert haben — der ehrlichere Zuspruch als „geladen" (Jan 24.11.).
+    # Reiner Zaehler, kein Protokoll wer/wann (kein Analytics).
+    exportiert: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
