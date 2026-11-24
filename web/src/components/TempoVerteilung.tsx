@@ -126,13 +126,15 @@ export function TempoVerteilung({ haupt, vergleich, breiteKmh, sekunden = true }
           {/* Nutzbarer Bereich: 10.–90. Perzentil als Band oben, Median als Strich */}
           <rect x={x(d.p[0])} width={Math.max(x(d.p[2]) - x(d.p[0]), 1)} y={T - 16} height={4} rx={2} className="fill-slate-600" />
           <line x1={x(d.p[1])} x2={x(d.p[1])} y1={T - 19} y2={T - 9} className="stroke-slate-300" strokeWidth={2} />
+          {/* Hover: Stufe hinterlegen statt die anderen abzudunkeln — abgedunkeltes Cyan saehe aus wie der Gleit-Anteil. */}
+          {hk != null && <rect x={L + (hk - d.lo) * bw} width={bw} y={T} height={H - T - B} className="fill-slate-700" opacity={0.5} />}
           {d.anH.slice(d.lo, d.hi + 1).map((v, i) => {
             const k = d.lo + i;
             const x0 = L + i * bw + 1, w = Math.max(bw - 2, 1);
             const g = d.anG?.[k] ?? 0;
             const r = Math.min(3, w / 2);
             return (
-              <g key={k} opacity={hk != null && hk !== k ? 0.55 : 1}>
+              <g key={k}>
                 {v > 0 && <path d={`M${x0},${y(0)}V${y(v) + r}q0,-${r} ${r},-${r}h${w - 2 * r}q${r},0 ${r},${r}V${y(0)}Z`} fill={FARBE} />}
                 {g > 0 && <rect x={x0} width={w} y={y(g) + (v - g > 0.0005 ? 1 : 0)} height={Math.max(y(0) - y(g) - (v - g > 0.0005 ? 1 : 0), 0)} fill={FARBE_GLEIT} />}
               </g>

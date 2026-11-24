@@ -1858,10 +1858,11 @@ export const api = {
   // Dieselben Kennzahlen, aber einzeln je Foil (Startseite, Abschnitt unter den Rekorden).
   // Nur Foils, die im gewaehlten Zeitfenster vorkommen; `foil_id: null` = Sessions ohne Eintrag.
   // Tempo-Verteilung (24.11.2026, docs/TEMPO-VERTEILUNG.md): Sekunden auf dem Foil je 0,5 km/h, Gleiten getrennt.
-  tempoEigen: (o: { period?: string; foilId?: number | null; spotId?: number | null; sport?: string } = {}) =>
+  tempoEigen: (o: { period?: string; foilId?: number | null; spotId?: number | null; sport?: string; ohneSession?: number } = {}) =>
     req<TempoEigen>(`/api/tempo/eigen?${new URLSearchParams({
       period: o.period ?? "all", ...(o.sport ? { sport: o.sport } : {}),
       ...(o.foilId != null ? { foil_id: String(o.foilId) } : {}), ...(o.spotId != null ? { spot_id: String(o.spotId) } : {}),
+      ...(o.ohneSession != null ? { ohne_session: String(o.ohneSession) } : {}),
     })}`),
   tempoFoil: (foilId: number) => req<TempoFoil>(`/api/tempo/foil/${foilId}`),
   statsByFoil: (accelOnly = true, period = "all", sport?: string) =>

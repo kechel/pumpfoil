@@ -38,9 +38,13 @@ def _hists(db: Session, rows: list, i_ar: int, i_js: int) -> list[dict | None]:
 
 @router.get("/eigen")
 def eigen(user: models.User = Depends(current_user), db: Session = Depends(get_db),
-          sport: str = "pumpfoil", period: str = "all", foil_id: int | None = None, spot_id: int | None = None) -> dict:
+          sport: str = "pumpfoil", period: str = "all", foil_id: int | None = None, spot_id: int | None = None,
+          ohne_session: int | None = None) -> dict:
+    """`ohne_session`: diese Session auslassen (Session-Details: „meine uebrigen Sessions mit diesem Foil")."""
     q = _community(db.query(AR.id, AR.tempo_hist_json, S.foil_id, S.spot_id), user.id, accel_only=False, sport=sport)
     q = _ab(q.filter(S.user_id == user.id), _cutoff(period))
+    if ohne_session is not None:
+        q = q.filter(S.id != ohne_session)
     rows = q.all()
     hists = _hists(db, rows, 0, 1)
 

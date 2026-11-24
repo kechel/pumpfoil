@@ -1,3 +1,4 @@
+import { SessionTempo } from "../components/SessionTempo";
 import { SessionBewertungKachel } from "../components/SessionBewertung";
 import { glatteSpur } from "../lib/spurGlatt";
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
@@ -3197,6 +3198,15 @@ export default function SessionDetail() {
         canEdit={owned && !isPublic} onSaved={uebernehmen} laufKennz={laufKennz}
         drehungen={!ohneFoil && manoever?.je_lauf?.length === (a?.segments?.length ?? -1) && manoever.je_lauf.some((x) => x.wende + x.halse > 0) ? manoever.je_lauf : null}
         zugeklappt={profil?.gruppe === "wind" && !ohneFoil} />
+
+      {/* Tempo-Verteilung dieser Session bzw. des gewaehlten Laufs (Jan 24.11.2026, docs/TEMPO-VERTEILUNG.md). */}
+      {!ohneFoil && (
+        <SessionTempo sessionId={session.id} segments={a?.segments ?? []}
+          speeds1={session.analysis?.track_geojson?.properties?.speeds?.["1"] ?? session.analysis?.track_geojson?.properties?.speeds_mps ?? []}
+          selectedRun={selectedRun} foilId={session.foil_id ?? null}
+          foilLabel={session.foil ? [session.foil.brand, session.foil.model, session.foil.size].filter(Boolean).join(" ") : null}
+          eigene={owned && !isPublic} />
+      )}
 
       {/* Puls je Lauf — dieselbe Darstellung wie im Vergleich, hier nur fuer diese eine Session.
           Ohne Fahrer-Beschriftung (jede Zeile waere derselbe Name), nur mit der Lauf-Nummer.

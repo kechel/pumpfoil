@@ -23,7 +23,7 @@ Stats › neuer Reiter; Plan abgesegnet („so machen nach deiner empfehlung").
 | Cache | `analysis_results.tempo_hist_json`; `run_analysis` und `pumpgleit.stufe` setzen ihn zurück (wie `low_end_json`) |
 | Nachrechnen | in den Abrufen (höchstens 300 je Aufruf) und `scripts/tempo-hist-nachtragen.py --echt` (Bestand) |
 | API | `GET /api/tempo/eigen?period&foil_id&spot_id&sport`, `GET /api/tempo/foil/{id}` (`server/app/api/tempo.py`) |
-| Web | `web/src/components/TempoVerteilung.tsx` (Diagramm), `TempoBereich.tsx` (Home › Stats › Tempo) |
+| Web | `web/src/components/TempoVerteilung.tsx` (Diagramm), `TempoBereich.tsx` (Home › Stats › Tempo), `SessionTempo.tsx` (Session-Details; rechnet im Browser mit `web/src/lib/tempoHist.ts`, dieselbe Regel wie der Server — geprüft an 3 Sessions, Abweichung nur die Rundung auf 0,1 s) |
 
 **Index ist nicht Sekunde** (DATA-PIPELINE, Falle 2): GPS hat Löcher (gemessen: 39-s-Lauf mit 12 Punkten). Jeder Punkt
 eines Laufs zählt `duration_s / (i_end - i_start)` Sekunden. Geprüft an 300 Sessions: Summe = `foiling_time_s`.
@@ -40,7 +40,7 @@ Sekunden, keine Einzelwerte. 10 min gecacht.
 |---|---|
 | 1. Spalte, Rechnen, API, Home › Stats › Tempo | ✅ 24.11.2026 live (Web) |
 | Bestand nachtragen (`tempo-hist-nachtragen.py --echt`, 21.337 Analysen) | ✅ 24.11.2026 (105 s) |
-| 2. Session-Details: Streifen je Session / je Lauf | offen |
+| 2. Session-Details: aufklappbar unter der Lauftabelle; Session oder gewählter Lauf (Session als Linie); Besitzer: Vergleich mit übrigen Sessions desselben Foils (`ohne_session`) | ✅ 24.11.2026 live (Web) |
 | 3. Community › Foil-Stats › Foil: alle Fahrer + eigene Kurve | offen (API steht schon: `/api/tempo/foil/{id}`) |
 | Native Apps (Parität) | offen |
 | Übersetzungen außer de/en/de-AT/gsw | offen (fallen auf Englisch zurück) |
