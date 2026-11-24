@@ -212,13 +212,17 @@ export default function SessionMedia() {
     const schritt = (jetzt: number) => {
       tvRef.current += (jetzt - zuletzt) / 1000;
       zuletzt = jetzt;
-      if (tvRef.current >= dauer) { tvRef.current = dauer; zeichneVorschau(); setSpielt(false); return; }
+      // Dauerschleife (Jan 24.11.2026): am Ende wieder von vorn, die Musik setzt am Anfang neu auf.
+      if (tvRef.current >= dauer) {
+        tvRef.current = 0;
+        if (code) spiele(code, 0).then(setMusikFehler).catch(() => {});
+      }
       zeichneVorschau();
       raf = requestAnimationFrame(schritt);
     };
     raf = requestAnimationFrame(schritt);
     return () => cancelAnimationFrame(raf);
-  }, [spielt, clip, cfg, dauer]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [spielt, clip, cfg, dauer, code]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- Export ---
   const [fortschritt, setFortschritt] = useState<number | null>(null);
