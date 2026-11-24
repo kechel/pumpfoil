@@ -322,11 +322,13 @@ function sprintBlocks(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg, 
     out.push({
       w: breite, h: h + 10 * u, draw: (c, x, y) => {
         textStil(c, cfg, u);
-        c.fillStyle = fertig ? "rgba(34,211,238,0.92)" : "rgba(15,23,42,0.55)";
+        // Fertiges Schild: deckend (#0891b2) mit WEISSER Schrift — dunkle Schrift wird beim MP4 auf Schwarz
+        // (Mischmodus „Screen") durchsichtig, halbdeckende Flaechen ebenso (Nutzermeldung 24.11.2026).
+        c.fillStyle = fertig ? "#0891b2" : "rgba(15,23,42,0.55)";
         rundRechteck(c, x, y, breite, h, 12 * u); c.fill();
         c.shadowColor = "transparent";
         if (!fertig) { c.fillStyle = "rgba(34,211,238,0.85)"; rundRechteck(c, x, y + h - 8 * u, breite * anteil, 8 * u, 4 * u); c.fill(); }
-        c.fillStyle = fertig ? "#0f172a" : "#ffffff"; c.textBaseline = "middle"; c.textAlign = "left";
+        c.fillStyle = "#ffffff"; c.textBaseline = "middle"; c.textAlign = "left";
         c.font = `700 ${fb}px ${FONT}`; c.fillText(name, x + 16 * u, y + h / 2);
         c.font = `800 ${fs}px ${FONT}`; tabText(c, wert, x + breite - 16 * u - wv, y + h / 2);
         c.textAlign = "left"; c.textBaseline = "alphabetic";
