@@ -24,7 +24,7 @@ import TeamBanner from "../components/TeamBanner";
 import { HINWEIS_KLASSE, OPTOUT_LINK, useGlobalAus } from "../components/GlobalAusHinweis";
 import TeamTafelBild, { wappenVon } from "../components/TeamTafelBild";
 import { teamFarbStil } from "../lib/teamFarben";
-import { EVENT_SUMMEN, eventGemessen, kennzahl, wertungText } from "../lib/teamKennzahlen";
+import { EVENT_SUMMEN, eventGemessen, kennzahl, tafelTitel, wertungText } from "../lib/teamKennzahlen";
 import { KUNST_VORLAGE, eventZeit, eventZeitraum, eventZeitraumGenau } from "../lib/teamEvents";
 import { BeitrittDialog, Tafel } from "./Team";
 import { fehlerCode } from "../lib/teamKennzahlen";
@@ -181,12 +181,6 @@ function TeamWertung({ tf, n, t, eigeneSlugs, standText, onBild }: { tf: TeamTaf
       )}
     </Card>
   );
-}
-
-/** Name einer Event-Bestenliste; hat das Event Bestenlisten verschiedener Sportarten, steht die Sportart dabei. */
-function tafelTitel(tf: { kennzahl: string; sportart: string }, ev: { tafeln: { sportart: string }[] }, t: (k: string) => string): string {
-  const mehrere = new Set(ev.tafeln.map((x) => x.sportart)).size > 1;
-  return mehrere ? `${t(kennzahl(tf.kennzahl).labelKey)} · ${sportLabel(tf.sportart, t)}` : t(kennzahl(tf.kennzahl).labelKey);
 }
 
 /** Event-Uebersicht als Teilen-Bild (Jan, 07.11.2026): Gesamtsummen plus die ersten 3 je Kategorie; welche Kategorien

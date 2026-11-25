@@ -6,7 +6,7 @@ import { api, type MitfahrerZeile, type TeamEvent, type TeamEventKurz } from "..
 import { useT } from "../i18n";
 import { fmtDate, fmtTime } from "../lib/time";
 import { useCompare } from "../lib/compare";
-import { kennzahl } from "../lib/teamKennzahlen";
+import { tafelTitel } from "../lib/teamKennzahlen";
 import { sprintName } from "../lib/media/zeichnen";
 import { FAHRER_FARBEN, FELD_KEYS, MAX_MITFAHRER, ANZEIGE_MIT, type Anzeige, type FeldKey, type Modus } from "../lib/media/mehrfach";
 
@@ -20,6 +20,9 @@ export interface Mitfahrer {
 
 type Quelle = "gleichzeitig" | "tag" | "event" | "freunde" | "korb" | "eigene";
 const QUELLEN: Quelle[] = ["gleichzeitig", "tag", "event", "freunde", "korb", "eigene"];
+
+/** Letzte Auswahl im Popup: beim 3./4. Fahrer stehen Quelle, Event und Kategorie schon da (Jan 25.11.2026). */
+export interface WahlMerk { quelle: Quelle; event: string; kennzahl: string | null; sportart: string | null }
 
 interface Kandidat { sessionId: number; lauf: number | null; name: string; zeile?: MitfahrerZeile; info?: string; ueberlappt?: boolean | null }
 
@@ -37,15 +40,15 @@ function datumText(z: { started_at: string | null; tz: string | null; zeit_verbo
 }
 
 /** Auswahl-Popup: Quelle waehlen, dann einen Eintrag antippen. */
-function Wahl({ sessionId, schonDa, onWahl, onClose }: {
-  sessionId: number; schonDa: Set<number>; onWahl: (k: Kandidat) => void; onClose: () => void;
+function Wahl({ sessionId, schonDa, merk, onWahl, onClose }: {
+  sessionId: number; schonDa: Set<number>; merk: WahlMerk | null; onWahl: (k: Kandidat, m: WahlMerk) => void; onClose: () => void;
 }) {
   const t = useT();
-  const [quelle, setQuelle] = useState<Quelle>("gleichzeitig");
+  const [quelle, setQuelle] = useState<Quelle>(merk?.quelle ?? "gleichzeitig");
   const [liste, setListe] = useState<Kandidat[] | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [events, setEvents] = useState<TeamEventKurz[] | null>(null);
-  const [eventWahl, setEventWahl] = useState<string>("");
+  const [eventWahl, setEventWahl] = useState<string>(merk?.event ?? "");
   const [ev, setEv] = useState<TeamEvent | null>(null);
   const [tafel, setTafel] = useState(0);
   const korb = useCompare();
@@ -93,9 +96,17 @@ function Wahl({ sessionId, schonDa, onWahl, onClose }: {
     const [slug, id] = eventWahl.split("|");
     let weg = false;
     setEv(null); setTafel(0);
-    api.teamEvent(slug, id).then((e) => !weg && setEv(e)).catch((e) => !weg && setFehler(String(e?.message ?? e)));
+    api.teamEvent(slug, id).then((e) => {
+      if (weg) return;
+      setEv(e);
+      // Gleiches Event wie beim letzten Fahrer: dieselbe Kategorie vorwaehlen.
+      if (merk && merk.event === eventWahl) {
+        const i = e.tafeln.findIndex((tf) => tf.kennzahl === merk.kennzahl && tf.sportart === merk.sportart);
+        if (i >= 0) setTafel(i);
+      }
+    }).catch((e) => !weg && setFehler(String(e?.message ?? e)));
     return () => { weg = true; };
-  }, [quelle, eventWahl]);
+  }, [quelle, eventWahl]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   const eventListe: Kandidat[] = ev && ev.tafeln[tafel]
     ? ev.tafeln[tafel].zeilen.filter((z) => z.session_id).slice(0, 10).map((z) => ({
@@ -130,7 +141,7 @@ function Wahl({ sessionId, schonDa, onWahl, onClose }: {
             {ev && ev.tafeln.length > 1 && (
               <select value={tafel} onChange={(e) => setTafel(Number(e.target.value))}
                 className="block w-full rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-slate-100">
-                {ev.tafeln.map((tf, i) => <option key={i} value={i}>{t(kennzahl(tf.kennzahl).labelKey)}</option>)}
+                {ev.tafeln.map((tf, i) => <option key={i} value={i}>{tafelTitel(tf, ev, t)}</option>)}
               </select>
             )}
           </div>
@@ -145,7 +156,7 @@ function Wahl({ sessionId, schonDa, onWahl, onClose }: {
               const da = schonDa.has(k.sessionId) || k.sessionId === sessionId;
               return (
                 <li key={`${k.sessionId}:${k.lauf ?? "s"}`}>
-                  <button disabled={da} onClick={() => onWahl(k)}
+                  <button disabled={da} onClick={() => onWahl(k, { quelle, event: eventWahl, kennzahl: ev?.tafeln[tafel]?.kennzahl ?? null, sportart: ev?.tafeln[tafel]?.sportart ?? null })}
                     className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-slate-800 disabled:opacity-50">
                     {k.zeile?.avatar_url
                       ? <img src={k.zeile.avatar_url} alt="" className="h-8 w-8 shrink-0 rounded-full object-cover" />
@@ -180,8 +191,10 @@ export function MediaMitfahrer({ sessionId, hauptName, hauptAnzeige, setHauptAnz
 }) {
   const t = useT();
   const [offen, setOffen] = useState(false);
+  const [merk, setMerk] = useState<WahlMerk | null>(null);
 
-  const hinzu = (k: Kandidat) => {
+  const hinzu = (k: Kandidat, m: WahlMerk) => {
+    setMerk(m);
     const belegt = new Set(fahrer.map((f) => f.nr));
     const nr = [2, 3, 4].find((n) => !belegt.has(n));
     if (!nr) return;
@@ -274,7 +287,7 @@ export function MediaMitfahrer({ sessionId, hauptName, hauptAnzeige, setHauptAnz
           </ul>
         </>
       )}
-      {offen && <Wahl sessionId={sessionId} schonDa={new Set(fahrer.map((f) => f.sessionId))} onWahl={hinzu} onClose={() => setOffen(false)} />}
+      {offen && <Wahl sessionId={sessionId} schonDa={new Set(fahrer.map((f) => f.sessionId))} merk={merk} onWahl={hinzu} onClose={() => setOffen(false)} />}
     </div>
   );
 }

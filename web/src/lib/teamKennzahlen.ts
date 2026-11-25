@@ -2,6 +2,7 @@
 // Bestwert-Kennzahlen heissen und rechnen wie die Community-Rekorde (`REC_ITEMS` in pages/Home.tsx),
 // die Summen sind neu. Schluessel = server/app/teams.py KENNZAHLEN.
 import { fmtLaufDauer } from "./dauer";
+import { sportLabel } from "./sportClass";
 
 const km = (v: number) => (v < 1000 ? `${Math.round(v)} m` : `${(v / 1000).toFixed(v < 100000 ? 1 : 0)} km`);
 const ganz = (v: number) => Math.round(v).toLocaleString();
@@ -100,4 +101,11 @@ export function eventGemessen(e: EventKurz, t: (k: string) => string): string {
 export function eventSummenText(e: EventKurz, t: (k: string) => string): string {
   return EVENT_SUMMEN.filter((k) => (e.summen_auswahl ?? []).includes(k.key))
     .map((k) => `${k.fmt(e.summen?.[k.key] ?? 0)} ${t(k.labelKey)}`).join(" · ");
+}
+
+/** Name einer Event-Bestenliste; hat das Event Bestenlisten verschiedener Sportarten (auch Mischwertungen wie
+ *  „pumpfoil+foil_scoot"), steht die Sportart dabei. */
+export function tafelTitel(tf: { kennzahl: string; sportart: string }, ev: { tafeln: { sportart: string }[] }, t: (k: string) => string): string {
+  const mehrere = new Set(ev.tafeln.map((x) => x.sportart)).size > 1;
+  return mehrere ? `${t(kennzahl(tf.kennzahl).labelKey)} · ${sportLabel(tf.sportart, t)}` : t(kennzahl(tf.kennzahl).labelKey);
 }
