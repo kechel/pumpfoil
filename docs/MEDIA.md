@@ -139,6 +139,28 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
      Stress mit 49 Stimmen (jedes Muster x jede Zeitquelle) werten aus und rendern.
    - Renderzeit auf der VM (headless, ohne GPU) fuer 50 s Ton: Techno ~30 s, andere 8-11 s.
 4. Weitere Stile, Code-Editor in der Ansicht.
+6. **Mehrere Fahrer** (Jan 25.11.2026) — *gebaut 25.11.2026, live (Web).* Knopf „+ Fahrer" in der Video-Kachel, bis zu 3
+   weitere. Popup mit Quellen: gleichzeitig an meinem Spot, gleicher Spot + Tag, Event (Top 10 einer Bestenliste mit dem
+   gewerteten Lauf), Freunde (90 Tage, Spot zuerst), Vergleichsliste, eigene Sessions. Server nur fuer die Suche:
+   `GET /api/sessions/{id}/mitfahrer?quelle=gleichzeitig|tag|freunde|eigene` (`server/app/api/mitfahrer.py`), Event
+   und Vergleichsliste aus vorhandenen Endpunkten; gezeichnet wird mit den normalen Session-Abrufen.
+   - **Modi** (`web/src/lib/media/mehrfach.ts`): *Echtzeit* = gemeinsame Uhr (`started_at` + Session-ms), Laeufe der
+     anderen, die einen eigenen Lauf beruehren, verlaengern die Zeitleiste; *Gleicher Start* = alle Laeufe ab t=0 am
+     eigenen Startpunkt (Hauptfahrer braucht einen einzelnen Lauf), wahlweise auf dieselbe Anfangsrichtung gedreht;
+     *Sprint-Start* = beste Fenster einer Sprint-Kennzahl gleichzeitig, 5 s Vorlauf, 3 s Nachlauf, Rang im Ziel. Die
+     Zeitleiste ersetzt die `spans` des Hauptclips — Vorschau, Export und Musik laufen unveraendert darueber.
+   - **Lage:** Echtzeit in einer Projektion; liegen Fahrer > 5 km auseinander (anderer Spot, „Ort verbergen" = Point
+     Nemo), wird ihr Start auf den eigenen gelegt (Hinweis in der Ansicht).
+   - **Unterscheidbar:** feste Fahrerfarben (weiss, pink, gelb, violett — ausserhalb der Tempo-Skala bzw. deutlich
+     andere Helligkeit), Spur mit Rand in Fahrerfarbe + dunkler Fuge, innen Tempo (oder ganz Fahrerfarbe), Startring
+     und Kopf in Fahrerfarbe mit Nummer, Kasten je Fahrer (Element „Fahrer-Kaesten") mit Rahmen in Fahrerfarbe und
+     waehlbaren Feldern (Tempo, Strecke, Zeit, Pumps, Puls) je Fahrer. Eine Tempo-Skala fuer alle.
+   - **Datenschutz (Jan 25.11.):** KEINE Namen im Video, nur in der Legende unter der Vorschau. „Uhrzeit verbergen"
+     sperrt Echtzeit — auch unter Freunden, denn der Schalter verbirgt die Uhrzeit vor allen anderen; fremde
+     zeitverborgene Sessions fehlen bei „gleichzeitig" ganz und tragen kein `ueberlappt`. „Ort verbergen" faellt aus
+     dem Spot-Filter (`_spot_cond`). Tests: `server/tests/test_mitfahrer.py`.
+   - Nicht gespeichert (gilt nur fuer die offene Ansicht). Gleitphasen, Carves, Sprints, Pump-Punkte nur fuer den
+     Hauptfahrer; Musik ebenso.
 5. Native Apps: vorerst auf die Web-Ansicht verweisen.
 
 Offen: welche Schnitt-Apps WebM mit Alpha wirklich lesen (CapCut mobil? iMovie nein) — Standard-Ausgabe danach waehlen.

@@ -1954,6 +1954,9 @@ export const api = {
   mixLoeschen: (id: number) => req<void>(`/api/media/mixe/${id}`, { method: "DELETE" }),
   sessionCarves: (id: number) =>
     req<CarveData>(`/api/sessions/${id}/carves`),
+  /** Media-Overlay mit mehreren Fahrern (docs/MEDIA.md Schritt 6): wen man zu diesem Lauf dazuholen kann. */
+  sessionMitfahrer: (id: number, quelle: "gleichzeitig" | "tag" | "freunde" | "eigene") =>
+    req<{ quelle: string; echtzeit: boolean; zeilen: MitfahrerZeile[] }>(`/api/sessions/${id}/mitfahrer?quelle=${quelle}`),
   communitySessions: (limit = 20, offset = 0, opts: { name?: string; spot?: string; accelOnly?: boolean;
       // "all" = alle Sportarten (Liste "was ist neu"); sonst genau eine (Community-Ansichten).
       sport?: string; foilId?: number } = {}) => {
@@ -2476,6 +2479,11 @@ export interface EventVorschlag { status: "vorgeschlagen" | "angenommen" | "abge
 export interface AdminEventVorschlag extends TeamEventKurz {
   team: EventPromotedBy & { id: number; land?: string | null };
   vorschlag: EventVorschlag; von: { user_id: number; name: string | null } | null; kennzahlen: string[]; summen: string[];
+}
+export interface MitfahrerZeile {
+  session_id: number; user_id: number; name: string | null; avatar_url: string | null; started_at: string | null;
+  ended_at: string | null; tz: string | null; spot: string | null; runs: number; foiling_km: number;
+  zeit_verborgen?: boolean; ort_verborgen?: boolean; ueberlappt: boolean | null; eigene: boolean; gleicher_spot: boolean | null;
 }
 export interface TeamEventKurz {
   id: number; titel: string; beschreibung: string | null; start: string; ende: string; zeitzone: string | null;

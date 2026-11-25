@@ -6,6 +6,7 @@
 
 import type { Clip } from "./clip";
 import { type MediaCfg, type Texte, masse, videoDauer, zeichne } from "./zeichnen";
+import type { Mehrfach } from "./mehrfach";
 
 export const MAX_SEKUNDEN = 180;
 
@@ -30,7 +31,7 @@ export async function alphaMoeglich(w: number, h: number): Promise<boolean> {
 
 /** `ton`: fertig gerenderte Musik (Teil B) — kommt als Tonspur dazu (WebM: Opus, MP4: AAC, ersatzweise Opus). */
 export async function erzeugeVideo(clip: Clip, cfg: MediaCfg, tx: Texte,
-  fortschritt: (anteil: number) => void, abbruch: AbortSignal, ton?: AudioBuffer | null): Promise<Ergebnis> {
+  fortschritt: (anteil: number) => void, abbruch: AbortSignal, ton?: AudioBuffer | null, mehr: Mehrfach | null = null): Promise<Ergebnis> {
   const mb = await import("mediabunny");
   const { w, h } = masse(cfg);
   const canvas = document.createElement("canvas");
@@ -63,7 +64,7 @@ export async function erzeugeVideo(clip: Clip, cfg: MediaCfg, tx: Texte,
   try {
     for (let f = 0; f < n; f++) {
       if (abbruch.aborted) throw new DOMException("abgebrochen", "AbortError");
-      zeichne(ctx, clip, cfg, f / cfg.fps, tx);
+      zeichne(ctx, clip, cfg, f / cfg.fps, tx, cfg.hintergrund, mehr);
       await quelle.add(f / cfg.fps, 1 / cfg.fps);
       if (f % 5 === 0) fortschritt(f / n);
     }

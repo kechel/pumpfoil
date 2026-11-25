@@ -15,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from .api import kunst as kunst_api
 from .api import mixe as mixe_api
 from .api import tempo as tempo_api
+from .api import mitfahrer as mitfahrer_api
 from .api import admin, appmeta, auth, boards, chat, community, coros, coros_mcp, devices, feedback, foils, friends, garmin, health as health_api, ingest, layouts, mcp, mcp_dateien, mcp_oauth, ml, oauth, polar, push, sessions, settings as settings_api, social, spotnotes, stabs, strava, suunto, transfers
 from . import landing
 from .api.deps import require_social
@@ -512,6 +513,8 @@ app.include_router(auth.router)
 app.include_router(devices.router)
 app.include_router(ingest.router)
 app.include_router(sessions.router)
+# Media-Overlay: Mitfahrer suchen (docs/MEDIA.md Schritt 6)
+app.include_router(mitfahrer_api.router)
 # Öffentlicher Teilen-Link (read-only Session ohne Login) — bewusst KEIN Auth-Dependency.
 app.include_router(sessions.public_router)
 app.include_router(kunst_api.router)

@@ -39,6 +39,7 @@ export interface Clip {
   gMax: number;                   // groesste Kurvenlage der Carves (Farbskala wie in der Karte)
   hatPuls: boolean; hatPumps: boolean;
   bbox: [number, number, number, number]; // minX, minY, maxX, maxY (Meter)
+  lat0: number; lon0: number;     // Mittelpunkt der Projektion — fuer mehrere Fahrer auf einer Karte (mehrfach.ts)
 }
 
 const R = 6371000;
@@ -200,7 +201,7 @@ export function baueClip(session: any, trackZeiten: number[] | null, carves: Car
     vLo: isFinite(vLo) ? Math.floor(vLo) : 0, vHi: isFinite(vHi) ? Math.ceil(vHi) : 30,
     hrLo: isFinite(hrLo) ? hrLo : 100, hrHi: isFinite(hrHi) ? hrHi : 170,
     hatPuls: isFinite(hrLo), hatPumps: pumps.length > 0,
-    bbox: [minX, minY, maxX, maxY],
+    bbox: [minX, minY, maxX, maxY], lat0, lon0,
   };
 }
 

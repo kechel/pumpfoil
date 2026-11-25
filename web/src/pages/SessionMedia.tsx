@@ -21,6 +21,15 @@ import { FXS, MUSIK_DEFAULT, strudelCode, strudelLink, verfuegbar, type MusikCfg
 import { MediaStimmen } from "../components/MediaStimmen";
 import { MediaMixe } from "../components/MediaMixe";
 import { entsperren, rendere, spiele, stoppe, vorladen, wavZuBuffer, zeigeFreigabe } from "../lib/media/strudel";
+import { MediaMitfahrer, type Mitfahrer } from "../components/MediaMitfahrer";
+import { ANZEIGE_HAUPT, FAHRER_FARBEN, baueMehrfach, type Anzeige, type Modus } from "../lib/media/mehrfach";
+
+/** Index des Laufs mit der laengsten Strecke (Vorauswahl). */
+function besterLauf(segs: any[]): number {
+  let best = 0;
+  segs.forEach((g, i) => { if ((g.distance_m ?? 0) > (segs[best].distance_m ?? 0)) best = i; });
+  return best;
+}
 
 const LS_KEY = "pumpfoil_media_cfg";
 
@@ -112,11 +121,7 @@ export default function SessionMedia() {
       const segs: any[] = s?.analysis?.segments ?? [];
       const gewaehlt = Number(searchParams.get("lauf"));
       if (searchParams.get("lauf") != null && Number.isInteger(gewaehlt) && segs[gewaehlt]) setLauf(gewaehlt);
-      else if (segs.length) {
-        let best = 0;
-        segs.forEach((g, i) => { if ((g.distance_m ?? 0) > (segs[best].distance_m ?? 0)) best = i; });
-        setLauf(best);
-      }
+      else if (segs.length) setLauf(besterLauf(segs));
     }).catch((e) => !weg && setFehler(String(e)));
     api.sessionTrackTimes(sid).then((r) => !weg && setZeiten(r.t_ms ?? null)).catch(() => {});
     api.sessionCarves(sid).then((c) => !weg && setCarves(c)).catch(() => {});
@@ -130,10 +135,63 @@ export default function SessionMedia() {
   // Kann der Browser kein durchsichtiges WebM: auf MP4 auf Schwarz ausweichen (geht ueberall).
   useEffect(() => { if (alphaOk === false && cfg.hintergrund === "alpha") setCfg((c) => ({ ...c, hintergrund: "schwarz" })); }, [alphaOk, cfg.hintergrund]);
 
-  const clip = useMemo(
+  const basisClip = useMemo(
     () => (session ? baueClip(session, zeiten, carves, lauf, ladeSessionView().win) : null),
     [session, zeiten, carves, lauf],
   );
+
+  // --- Weitere Fahrer (docs/MEDIA.md Schritt 6): nur fuer diese Ansicht, nicht gespeichert ---
+  const [fahrer, setFahrer] = useState<Mitfahrer[]>([]);
+  const [mitDaten, setMitDaten] = useState<Record<number, { session: any; zeiten: number[] | null }>>({});
+  const [modus, setModus] = useState<Modus>("start");
+  const [sprintWahl, setSprintWahl] = useState<string | null>(null);
+  const [drehen, setDrehen] = useState(false);
+  const [hauptAnzeige, setHauptAnzeige] = useState<Anzeige>(ANZEIGE_HAUPT);
+  useEffect(() => {
+    let weg = false;
+    for (const f of fahrer) {
+      if (mitDaten[f.sessionId]) continue;
+      Promise.all([api.session(f.sessionId), api.sessionTrackTimes(f.sessionId).then((r) => r.t_ms ?? null).catch(() => null)])
+        .then(([s, z]) => {
+          if (weg) return;
+          setMitDaten((d) => ({ ...d, [f.sessionId]: { session: s, zeiten: z } }));
+          // Aus dem Vergleichskorb kommt nur die Nummer — Name aus der Session nachtragen (nur fuer die Legende).
+          if (f.name.startsWith("#") && (s as any)?.owner_name) setFahrer((l) => l.map((x) => (x.sessionId === f.sessionId ? { ...x, name: (s as any).owner_name } : x)));
+        })
+        .catch(() => { if (!weg) setFahrer((l) => l.filter((x) => x.sessionId !== f.sessionId)); });
+    }
+    return () => { weg = true; };
+  }, [fahrer]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // „Uhrzeit verbergen" sperrt den Echtzeit-Versatz (Jan 25.11.2026) — fuer alle, auch Freunde.
+  const echtzeitGesperrt = !!session?.zeit_verborgen || fahrer.some((f) => mitDaten[f.sessionId]?.session?.zeit_verborgen);
+  useEffect(() => { if (echtzeitGesperrt && modus === "echtzeit") setModus("start"); }, [echtzeitGesperrt, modus]);
+  // Gleicher Start braucht einen einzelnen Lauf des Hauptfahrers.
+  useEffect(() => {
+    const segs: any[] = session?.analysis?.segments ?? [];
+    if (fahrer.length && modus === "start" && lauf === "alle" && segs.length) setLauf(besterLauf(segs));
+  }, [fahrer.length, modus, lauf, session]);
+  const mitSprintKz = useMemo(() => Array.from(new Set((basisClip?.sprints ?? []).map((s) => s.kz))).sort(), [basisClip]);
+  const sprintAktiv = sprintWahl && mitSprintKz.includes(sprintWahl) ? sprintWahl : (mitSprintKz[0] ?? null);
+  const fahrerClips = useMemo(() => fahrer.flatMap((f) => {
+    const d = mitDaten[f.sessionId];
+    if (!d) return [];
+    const segs: any[] = d.session?.analysis?.segments ?? [];
+    const l: number | "alle" = modus === "start" && segs.length ? (f.lauf != null && segs[f.lauf] ? f.lauf : besterLauf(segs)) : "alle";
+    const c = baueClip(d.session, d.zeiten, null, l, ladeSessionView().win);
+    return c ? [{ f, clip: c, session: d.session }] : [];
+  }), [fahrer, mitDaten, modus]);
+  const mehrErg = useMemo(() => {
+    if (!basisClip || !session || !fahrerClips.length) return null;
+    return baueMehrfach(basisClip, session.started_at, hauptAnzeige, fahrerClips.map(({ f, clip: c, session: s }) => ({
+      clip: c, startedAt: s.started_at, anzeige: f.anzeige, farbe: FAHRER_FARBEN[f.nr - 1], nr: f.nr,
+    })), modus, { sprintKz: sprintAktiv, drehen });
+  }, [basisClip, session, fahrerClips, hauptAnzeige, modus, sprintAktiv, drehen]);
+  const clip = mehrErg?.clip ?? basisClip;
+  const mehr = mehrErg?.mehr ?? null;
+  const mitHinweis = !fahrerClips.length ? null
+    : !mehrErg && modus === "sprint" ? t("media.mit.noSprintMain")
+    : mehr && mehr.mit.length < fahrerClips.length ? t("media.mit.noSprintSome")
+    : mehr?.fern ? t("media.mit.far") : null;
   const dauer = clip ? videoDauer(clip, cfg) : 0;
   const zuLang = dauer > MAX_SEKUNDEN;
   // Ein Strudel-Code fuer Vorschau, Export und den Link nach strudel.cc.
@@ -165,7 +223,7 @@ export default function SessionMedia() {
     if (c.width !== vw || c.height !== vh) { c.width = vw; c.height = vh; }
     const ctx = c.getContext("2d");
     if (!ctx) return;
-    zeichne(ctx, clip, cfg, tvRef.current, tx, cfg.hintergrund === "alpha" ? "alpha" : cfg.hintergrund);
+    zeichne(ctx, clip, cfg, tvRef.current, tx, cfg.hintergrund === "alpha" ? "alpha" : cfg.hintergrund, mehr);
     if (reglerRef.current) reglerRef.current.value = String(tvRef.current);
     if (zeitRef.current) zeitRef.current.textContent = `${tvRef.current.toFixed(1)} / ${dauer.toFixed(1)} s`;
   };
@@ -232,7 +290,7 @@ export default function SessionMedia() {
     };
     raf = requestAnimationFrame(schritt);
     return () => cancelAnimationFrame(raf);
-  }, [spielt, clip, cfg, dauer, code]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [spielt, clip, cfg, dauer, code, mehr]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- Export ---
   const [fortschritt, setFortschritt] = useState<number | null>(null);
@@ -268,7 +326,7 @@ export default function SessionMedia() {
         setWav({ url: URL.createObjectURL(w), name: `${stempel}-pumpfoil-${id}-${teil}-${musik.vorlage}.wav`, mb: w.size / 1e6 });
       }
       setPhase("video");
-      const r = await erzeugeVideo(clip, cfg, tx, setFortschritt, ab.signal, ton);
+      const r = await erzeugeVideo(clip, cfg, tx, setFortschritt, ab.signal, ton, mehr);
       // Export-Zaehler des geteilten Mixes, auf dem die Musik beruht (zaehlt der Server nur bei fremden Mixen).
       if (ton && musik.basisMix) api.mixExportiert(musik.basisMix).catch(() => {});
       setErgebnis({ url: URL.createObjectURL(r.blob), name: `${stempel}-pumpfoil-${id}-${teil}-${cfg.format.replace(":", "x")}.${r.endung}`, mb: r.blob.size / 1e6 });
@@ -317,8 +375,9 @@ export default function SessionMedia() {
   const sprintKz = Array.from(new Set((clip?.sprints ?? []).map((s) => s.kz))).sort();
   const elSichtbar = (k: ElKey) =>
     !((k === "pumps" || k === "pumprate") && clip && !clip.hatPumps) && !(k === "hr" && clip && !clip.hatPuls)
-    && !(k === "sprint" && !sprintKz.length) && !(k === "carve" && !(clip?.carves.length));
+    && !(k === "sprint" && !sprintKz.length) && !(k === "carve" && !(clip?.carves.length)) && !(k === "fahrer" && !mehr?.mit.length);
   const hochkant = h > w;
+  const hauptName: string = session.owner_name ?? t("media.mit.me");
   // Startzeit eines Laufs (Jan 24.11.2026: hilft, die zugehoerige Videoaufnahme zu finden) — Uhrzeit mit Sekunden in der
   // Ortszeit des Spots; hat der Besitzer die Uhrzeit verborgen, nur der Abstand zum Session-Beginn.
   const laufStart = (g: any): string => {
@@ -369,6 +428,28 @@ export default function SessionMedia() {
                 className="flex-1 accent-brand-400" aria-label={t("media.preview")} />
               <span ref={zeitRef} className="w-24 text-right text-xs tabular-nums text-slate-400" />
             </div>
+            {/* Legende: Namen NUR hier, nie im Video (Jan 25.11.2026: „wer namen will, baut sie selber ein"). */}
+            {mehr && mehr.mit.length > 0 && (
+              <ul className="mt-3 space-y-1 text-sm">
+                {[{ nr: 1, name: hauptName, s: session, lauf: lauf === "alle" ? null : lauf },
+                  ...fahrerClips.filter(({ f }) => mehr.mit.some((m) => m.nr === f.nr)).map(({ f, session: s }) => ({
+                    nr: f.nr, name: f.name, s,
+                    lauf: modus === "start" ? (f.lauf ?? besterLauf(s?.analysis?.segments ?? [])) : null,
+                  }))].map((r) => (
+                  <li key={r.nr} className="flex items-center gap-2">
+                    <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-slate-900 text-[11px] font-extrabold text-slate-950"
+                      style={{ background: FAHRER_FARBEN[r.nr - 1] }}>{r.nr}</span>
+                    <span className="font-semibold text-slate-100">{r.name}</span>
+                    <span className="truncate text-xs text-slate-400">
+                      {fmtDate(r.s.started_at, r.s.tz, { day: "2-digit", month: "short", year: "numeric" })}
+                      {!r.s.zeit_verborgen && <> {fmtTime(r.s.started_at, r.s.tz)}</>}
+                      {r.s.place_name && <> · {r.s.place_name}</>}
+                      {r.lauf != null && <> · {t("media.runN", { n: String(r.lauf + 1) })}</>}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Card>
 
           {/* Einstellungen: Reiter Video | Musik, darunter der gemeinsame Export */}
@@ -427,6 +508,11 @@ export default function SessionMedia() {
                 <Knopf an={cfg.fps === 60} onClick={() => setCfg({ ...cfg, fps: 60 })}>60 fps</Knopf>
                 <span className="text-xs text-slate-400">{w}×{h}</span>
               </div>
+              <MediaMitfahrer sessionId={Number(id)} hauptName={hauptName} hauptAnzeige={hauptAnzeige} setHauptAnzeige={setHauptAnzeige}
+                fahrer={fahrer} setFahrer={setFahrer} sessions={Object.fromEntries(Object.entries(mitDaten).map(([k, v]) => [k, v.session]))}
+                modus={modus} setModus={setModus} echtzeitGesperrt={echtzeitGesperrt}
+                sprintKz={mitSprintKz} sprintWahl={sprintAktiv} setSprintWahl={setSprintWahl}
+                drehen={drehen} setDrehen={setDrehen} hinweis={mitHinweis} />
             </Card>
 
             {/* Spur: was IM Track gezeigt wird (Jan 24.11.2026: Spur und Datenfelder getrennt, getrennt schaltbar). */}
