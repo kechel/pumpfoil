@@ -4,7 +4,7 @@ import { fmtDate } from "../lib/time";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api, BoardAttitude, SessionSummary } from "../lib/api";
 import { Card } from "../components/ui";
-import { CompareIcon, CloseIcon, FoilIcon, WatchIcon } from "../components/Icons";
+import { CompareIcon, CloseIcon, FoilIcon, VideoIcon, WatchIcon } from "../components/Icons";
 import { geraeteText } from "../lib/deviceLabel";
 import { computeFoilPowerAtSpeed, DEFAULT_RIDER, riderWeightFor } from "../lib/foilPhysics";
 import { useCompare, removeCompare, clearCompare, mergeableIds, CompareRef, refKey, setCompare } from "../lib/compare";
@@ -277,6 +277,19 @@ export default function Compare() {
   ];
 
   const empty = refs.length === 0;
+  // Media mit dem Vergleich (Jan 25.11.2026): die erste eigene Session ist Hauptfahrer (Media gibt es nur fuer eigene),
+  // bis zu drei weitere Eintraege fahren mit. Vorschau-Modelle (Admin) bleiben draussen.
+  const mediaLink = (() => {
+    const echt = items.filter((it) => !it.ref.modell && it.session);
+    const haupt = echt.find((it) => it.session?.owned === true);
+    if (!haupt) return null;
+    const mit = echt.filter((it) => it !== haupt).slice(0, 3).map((it) => `${it.ref.sessionId}:${it.ref.runIdx ?? "s"}`);
+    if (!mit.length) return null;
+    const q = new URLSearchParams();
+    if (haupt.ref.runIdx != null) q.set("lauf", String(haupt.ref.runIdx));
+    q.set("mit", mit.join(","));
+    return `/sessions/${haupt.ref.sessionId}/media?${q.toString()}`;
+  })();
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -288,7 +301,13 @@ export default function Compare() {
         {!empty && (
           <>
             <span className="text-sm text-slate-400">{t("compare.subtitle", { n: refs.length })}</span>
-            <button onClick={clearCompare} className="ml-auto rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400">
+            {mediaLink && (
+              <Link to={mediaLink} title={t("media.title")}
+                className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-semibold text-slate-200 hover:bg-slate-700">
+                <VideoIcon className="h-4 w-4" /> {t("media.button")}
+              </Link>
+            )}
+            <button onClick={clearCompare} className={`${mediaLink ? "" : "ml-auto "} rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-slate-950 hover:bg-brand-400`}>
               {t("compare.clear")}
             </button>
           </>

@@ -155,6 +155,9 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
      Das Popup schlaegt Quelle, Event und Kategorie der letzten Wahl vor (geraeteweit, `pumpfoil_media_wahl`); bei
      „Event" geht das zeitgleiche Event der eigenen Session vor (Sportart, global zuerst), Kategorie: zuletzt gewaehlt
      \> eine mit der eigenen Session > eigene Sportart.
+   - **Aus dem Vergleich (Jan 25.11.):** Knopf „Media" in `/vergleich`, sobald eine eigene Session drin ist: sie wird
+     Hauptfahrer, bis zu drei weitere Eintraege fahren mit (`?mit=<id>:<lauf|s>,…`, Modus „gleicher Start"). `mit=`
+     wird nach dem Einlesen aus der URL entfernt, danach gilt der gemerkte Stand.
    - **Lage:** Echtzeit in einer Projektion; liegen Fahrer > 5 km auseinander (anderer Spot, „Ort verbergen" = Point
      Nemo), wird ihr Start auf den eigenen gelegt (Hinweis in der Ansicht).
    - **Unterscheidbar:** feste Fahrerfarben (weiss, pink, gelb, violett — ausserhalb der Tempo-Skala bzw. deutlich

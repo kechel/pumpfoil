@@ -22,7 +22,7 @@ import { MediaStimmen } from "../components/MediaStimmen";
 import { MediaMixe } from "../components/MediaMixe";
 import { entsperren, rendere, spiele, stoppe, vorladen, wavZuBuffer, zeigeFreigabe } from "../lib/media/strudel";
 import { MediaMitfahrer, type Mitfahrer } from "../components/MediaMitfahrer";
-import { ANZEIGE_HAUPT, FAHRER_FARBEN, baueMehrfach, type Anzeige, type Modus } from "../lib/media/mehrfach";
+import { ANZEIGE_HAUPT, FAHRER_FARBEN, MAX_MITFAHRER, baueMehrfach, type Anzeige, type Modus } from "../lib/media/mehrfach";
 
 /** Index des Laufs mit der laengsten Strecke (Vorauswahl). */
 function besterLauf(segs: any[]): number {
@@ -116,7 +116,24 @@ function AnkerWahl({ wert, onChange }: { wert: Anker; onChange: (a: Anker) => vo
 export default function SessionMedia() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
-  const [gemerkt] = useState(() => ladeStand(id));
+  const [gemerkt] = useState(() => {
+    const st = ladeStand(id);
+    // Aus der Vergleichsansicht (?mit=<id>:<lauf|s>,…): diese Fahrer statt der gemerkten, Modus „gleicher Start".
+    const mit = searchParams.get("mit");
+    if (!mit) return st;
+    const fahrer: Mitfahrer[] = mit.split(",").map((x) => x.split(":")).filter(([a]) => /^\d+$/.test(a) && a !== id)
+      .slice(0, MAX_MITFAHRER).map(([a, b], i) => ({
+        sessionId: Number(a), lauf: /^\d+$/.test(b ?? "") ? Number(b) : null, name: `#${a}`, nr: i + 2,
+        anzeige: st.hauptAnzeige ?? ANZEIGE_HAUPT,
+      }));
+    return { ...st, fahrer, modus: "start" as Modus };
+  });
+  // ?mit= nur einmal uebernehmen: danach gilt der gemerkte Stand (sonst setzte ein Reload die Auswahl zurueck).
+  useEffect(() => {
+    if (!searchParams.has("mit")) return;
+    const u = new URL(location.href); u.searchParams.delete("mit");
+    history.replaceState(history.state, "", u.pathname + u.search + u.hash);
+  }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   const t = useT();
   const unit = usePumpUnit();
   const [session, setSession] = useState<any>(null);
