@@ -1408,7 +1408,7 @@ def _extra_metriken(sport: str) -> tuple:
     """Spalten-Rekorde, die nur fuer eine Sportart-Gruppe bzw. Sportart gelten (session_total, Wellen)."""
     if sport == "all":
         return ()
-    return tuple(METRICS_JE_GRUPPE.get(sportprofil.profil(sport)["gruppe"], ())) + tuple(METRICS_JE_SPORT.get(sport, ()))
+    return tuple(METRICS_JE_GRUPPE.get(sportprofil.profil(sport)["gruppe"], ())) + tuple(METRICS_JE_SPORT.get(sportmix.gueltig(sport, sport), ()))
 
 
 def _sport_rekorde_dazu(db: Session, out: dict, sport: str, spot: str | None, viewer_id: int,
@@ -1751,7 +1751,9 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
               "run_time": ("run_time_s", REC_COL["duration"][0]),
               "ride_total": ("ride_total_m", REC_COL["session_total"][0])}
     # Sprints nur bei Pumpfoil/Foil Scoot (Jan, 17.11.2026) — wie die Rekord-Kacheln (METRICS_JE_SPORT).
-    if "sprint_100m" in METRICS_JE_SPORT.get(sport, ()):
+    # `gueltig`: ein unkodiertes „+" kommt als Leerzeichen an (Web schickte `sport=pumpfoil+foil_scoot` roh) — ohne
+    # Normalisierung fehlten im Mix die Sprint-Listen (Nutzermeldung 25.11.2026).
+    if "sprint_100m" in METRICS_JE_SPORT.get(sportmix.gueltig(sport, sport), ()):
         listen["sprint_100m"] = ("sprint_100m_mps", _sprint_plausibel("sprint_100m"))
         listen["sprint_60s"] = ("sprint_60s_mps", _sprint_plausibel("sprint_60s"))
     out: dict = {}

@@ -1892,7 +1892,7 @@ export const api = {
   /** Die Foil-Baender fuer das Dropdown — MIT Sessionzahl und Fahrerzahl je Band, damit die
    *  Oberflaeche duenne Gruppen ausblenden kann (ein Rekord aus zwei Fahrern ist keiner). */
   foilBands: (accelOnly = true, sport = "pumpfoil") =>
-    req<FoilBand[]>(`/api/community/foil-bands?accel_only=${accelOnly}&sport=${sport}`),
+    req<FoilBand[]>(`/api/community/foil-bands?accel_only=${accelOnly}&sport=${encodeURIComponent(sport)}`),
   // `spot`: nur die Sportarten dieses Spots (Sessions statt Laeufe, Filter-Knoepfe der Spot-Seite, 28.10.2026).
   // `mix` (08.11.2026): gemischte Ansichten („pumpfoil+foil_scoot") mit anbieten, wenn alle Teile vorkommen.
   communitySports: (spot?: string, mix = false) => req<{ sport: string; runs: number; sessions?: number; teile?: string[] }[]>(
@@ -1921,13 +1921,13 @@ export const api = {
   startSuccess: () => req<{ threshold_m: number; windows: Record<string, { total: number; success: number; failed: number; rate: number | null }> }>("/api/community/start-success"),
   carveStats: () => req<{ windows: Record<string, { s: number; m: number; l: number }> }>("/api/community/carve-stats"),
   communitySpots: (accelOnly = true, sport = "pumpfoil") =>
-    req<{ mine: string[]; all: string[] }>(`/api/community/spots?accel_only=${accelOnly}&sport=${sport}`),
+    req<{ mine: string[]; all: string[] }>(`/api/community/spots?accel_only=${accelOnly}&sport=${encodeURIComponent(sport)}`),
   // `fresh` geht am Service-Worker-Cache vorbei (s. vite.config.ts) — die Zahlen aendern sich
   // mit jeder Session, der gecachte Stand ist also immer ein bisschen alt.
   communityStats: (fresh?: boolean) =>
     req<CommunityStatsData>(`/api/community/stats${fresh ? "?fresh=1" : ""}`),
   spotRecords: (spot: string, period = "all", accelOnly = true, sport = "pumpfoil") =>
-    req<RecordSet>(`/api/community/spot-records?spot=${encodeURIComponent(spot)}&period=${period}&accel_only=${accelOnly}&sport=${sport}`),
+    req<RecordSet>(`/api/community/spot-records?spot=${encodeURIComponent(spot)}&period=${period}&accel_only=${accelOnly}&sport=${encodeURIComponent(sport)}`),
   spotCompare: (period = "all", accelOnly = false) =>
     req<{ spots: SpotAgg[] }>(`/api/community/spot-compare?period=${period}&accel_only=${accelOnly}`),
   // Startversuche als Index-Bereiche fuer die Karte (nur die MISSLUNGENEN — die geglueckten sind
@@ -2005,7 +2005,7 @@ export const api = {
   // `fresh` geht am Service-Worker-Cache vorbei (s. communityRecords).
   // `spot`: dieselben Listen nur an einem Spot (Spot-Seite, 02.11.2026).
   leaders: (period = "all", accelOnly = true, sport = "pumpfoil", foilBand = "all", fresh = false, spot?: string, region = "all") =>
-    req<Leaders>(`/api/community/leaders?period=${period}&accel_only=${accelOnly}&sport=${sport}&foil_band=${foilBand}${spot ? `&spot=${encodeURIComponent(spot)}` : ""}${fresh ? "&fresh=1" : ""}${region !== "all" ? `&region=${encodeURIComponent(region)}` : ""}`),
+    req<Leaders>(`/api/community/leaders?period=${period}&accel_only=${accelOnly}&sport=${encodeURIComponent(sport)}&foil_band=${foilBand}${spot ? `&spot=${encodeURIComponent(spot)}` : ""}${fresh ? "&fresh=1" : ""}${region !== "all" ? `&region=${encodeURIComponent(region)}` : ""}`),
   communityRegionen: (period: string, sport: string) =>
     req<{ regionen: { key: string; fahrer: number; teams: number }[]; ich: string | null }>(
       `/api/community/regionen?period=${period}&sport=${encodeURIComponent(sport)}`),
