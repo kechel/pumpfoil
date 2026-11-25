@@ -622,7 +622,8 @@ _APP_META: dict[str, dict[str, str]] = {
         # store_url bleibt LEER, und das aendert sich nicht mehr: fuer die Pumpfoil-App im
         # Zepp-Store existiert keine Web-Adresse (Jan, 07.08.) — man kommt nur ueber die
         # Zepp-Handy-App dran, die auf /uhr verlinkt ist (ZeppAppBadges -> App Store / Play).
-        "latest": "1.0.17",  # FREIGEGEBEN 2026-11-23 (Zepp-Mail „The application Pumpfoil (1.0.17) you submitted has been approved and added to the ZEPP app store", Jans Meldung; eingereicht 20.11., drei Tage). Changelog: GPS-Neustart-Punkt zepp 1.0.17 + Ereignis.
+        "latest": "1.0.18",  # FREIGEGEBEN 2026-11-25 (Zepp-Mail „The application Pumpfoil (1.0.18) you submitted has been approved and added to the ZEPP app store", Jans Meldung; eingereicht 24.11., ein Tag). Changelog: Sammel-Upload-Punkt zepp 1.0.18 + Ereignis.
+        # ALT: "latest": "1.0.17",  # FREIGEGEBEN 2026-11-23 (Zepp-Mail „The application Pumpfoil (1.0.17) you submitted has been approved and added to the ZEPP app store", Jans Meldung; eingereicht 20.11., drei Tage). Changelog: GPS-Neustart-Punkt zepp 1.0.17 + Ereignis.
         # ALT: "latest": "1.0.16",  # FREIGEGEBEN 2026-11-20 (Zepp-Mail „The application Pumpfoil (1.0.16) you submitted has been approved and added to the ZEPP app store", Jans Meldung; eingereicht 13.11., sieben Tage). Changelog: 1028 (GPS-Luecke) um zepp 1.0.16 ergaenzt, Ereignis.
         # ALT: "latest": "1.0.15",  # FREIGEGEBEN 2026-11-11 (Zepp-Mail „The application Pumpfoil (1.0.15) you submitted has been approved and added to the ZEPP app store", Jans Meldung; eingereicht 10.11., ein Tag). Changelog: 2 neue Punkte zepp 1.0.15 + 990 (V-max) um zepp ergaenzt, Ereignis.
         # ALT: "latest": "1.0.14",  # FREIGEGEBEN 2026-10-22 (Zepp-Mail „The application Pumpfoil (1.0.14) you submitted has been approved", Jans Meldung; eingereicht 18.10., vier Tage). Changelog: 596/597/598/628 + zepp, Ereignis.
@@ -978,11 +979,7 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
-    {"name": "Amazfit", "version": "1.0.18",
-     "eingereicht": "2026-11-24",
-     "items": [
-         "Uploads send many data blocks at once, which makes them much faster and stops the app from running out of memory on long sessions.",
-     ]},
+    # Amazfit 1.0.18 am 24.11. eingereicht, am 25.11. FREIGEGEBEN (s. _APP_META["zepp"]); Punkt im Changelog mit zepp 1.0.18.
     # iPhone + Apple Watch 1.1.68 (Build 79) am 19.11. 12:22 eingereicht, am 20.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte im Changelog mit ios 1.1.68.
     # 12.11.2026: Android 1.1.49 (64) / Wear 1.2.49 (1060) gebaut, wird eingereicht, sobald 1.1.48 freigegeben ist
     # (Memory android-1-1-49-mitnehmen). Inhalt wie iOS 1.1.66 (ohne Google-Login, den hat Android nativ) plus die
