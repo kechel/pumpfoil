@@ -545,7 +545,7 @@ export default function SessionMedia() {
                 <Knopf an={cfg.fps === 60} onClick={() => setCfg({ ...cfg, fps: 60 })}>60 fps</Knopf>
                 <span className="text-xs text-slate-400">{w}×{h}</span>
               </div>
-              <MediaMitfahrer sessionId={Number(id)} hauptName={hauptName} hauptAnzeige={hauptAnzeige} setHauptAnzeige={setHauptAnzeige}
+              <MediaMitfahrer sessionId={Number(id)} sessionStart={session?.started_at ?? null} sessionSport={session?.sport ?? null} hauptName={hauptName} hauptAnzeige={hauptAnzeige} setHauptAnzeige={setHauptAnzeige}
                 fahrer={fahrer} setFahrer={setFahrer} sessions={Object.fromEntries(Object.entries(mitDaten).map(([k, v]) => [k, v.session]))}
                 modus={modus} setModus={setModus} echtzeitGesperrt={echtzeitGesperrt}
                 sprintKz={mitSprintKz} sprintWahl={sprintAktiv} setSprintWahl={setSprintWahl}
