@@ -11,7 +11,7 @@ import de from "./locales/de";
 import en from "./locales/en";
 
 export type Lang = "de" | "gsw" | "de-AT" | "en" | "fr" | "it" | "es" | "fi" | "nl" | "cs"
-  | "pl" | "pt" | "pt-PT" | "ja" | "zh" | "ru" | "id" | "nb" | "hr";
+  | "pl" | "pt" | "pt-PT" | "ja" | "zh" | "ru" | "id" | "nb" | "hr" | "da" | "sv" | "hu";
 
 export type Dict = Record<string, string>;
 
@@ -36,6 +36,9 @@ export const LANGS: { code: Lang; flag: string; native: string }[] = [
   { code: "id", flag: "🇮🇩", native: "Bahasa Indonesia" },
   { code: "nb", flag: "🇳🇴", native: "Norsk" },
   { code: "hr", flag: "🇭🇷", native: "Hrvatski" },
+  { code: "da", flag: "🇩🇰", native: "Dansk" },
+  { code: "sv", flag: "🇸🇪", native: "Svenska" },
+  { code: "hu", flag: "🇭🇺", native: "Magyar" },
 ];
 
 const DICTS: Partial<Record<Lang, Dict>> = { de, en };
@@ -46,6 +49,7 @@ const NACHLADEN: Record<Exclude<Lang, "de" | "en">, () => Promise<{ default: Dic
   pt: () => import("./locales/pt"), "pt-PT": () => import("./locales/pt-PT"), ja: () => import("./locales/ja"),
   zh: () => import("./locales/zh"), ru: () => import("./locales/ru"), id: () => import("./locales/id"),
   nb: () => import("./locales/nb"), hr: () => import("./locales/hr"),
+  da: () => import("./locales/da"), sv: () => import("./locales/sv"), hu: () => import("./locales/hu"),
 };
 
 // Sprachen, deren Rueckfall NICHT Englisch ist: Mundarten fallen auf ihre Hochsprache.
@@ -127,6 +131,9 @@ export function detectInitialLang(): Lang {
   // und eine zweite norwegische Norm zu pflegen waere fuer den Nutzen zu viel.
   if (nav.startsWith("nb") || nav.startsWith("nn") || nav.startsWith("no")) return "nb";
   if (nav.startsWith("hr")) return "hr";
+  if (nav.startsWith("da")) return "da";
+  if (nav.startsWith("sv")) return "sv";
+  if (nav.startsWith("hu")) return "hu";
   if (nav.startsWith("en")) return "en";
   return "en";   // unbekannte Browsersprache -> Englisch (nicht Deutsch)
 }

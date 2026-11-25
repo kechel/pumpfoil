@@ -1,7 +1,7 @@
 """Die EINE Sportartenliste (data/sportarten.json, app/sportarten.py, GET /api/app/sports — 25.10.2026)."""
 from app import sportarten as SA
 
-SPRACHEN = {"en", "de", "de-AT", "gsw", "fr", "it", "es", "pt", "pt-PT", "nl", "nb", "fi", "cs", "pl", "ru", "ja", "zh", "id", "hr"}
+SPRACHEN = {"en", "de", "de-AT", "gsw", "fr", "it", "es", "pt", "pt-PT", "nl", "nb", "fi", "cs", "pl", "ru", "ja", "zh", "id", "hr", "da", "sv", "hu"}
 
 
 def test_liste_ist_gueltig():

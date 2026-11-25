@@ -15,6 +15,7 @@ const SR_LANG: Record<string, string> = {
   de: "de-DE", gsw: "de-CH", "de-AT": "de-AT",
   en: "en-US", fr: "fr-FR", it: "it-IT", es: "es-ES", fi: "fi-FI", nl: "nl-NL", cs: "cs-CZ", hr: "hr-HR",
   pl: "pl-PL", pt: "pt-BR", "pt-PT": "pt-PT", ja: "ja-JP", zh: "zh-CN", ru: "ru-RU", id: "id-ID", nb: "nb-NO",
+  da: "da-DK", sv: "sv-SE", hu: "hu-HU",
 };
 
 export function MicButton({ value, onChange, onSubmit, disabled, title }: {

@@ -24,6 +24,18 @@ LABELS: dict[str, dict[str, str]] = {
         "share.stat.pumprate": 'Ø Pumpy/min',
         "share.run": 'Jízda {n}',
     },
+    "da": {
+        "share.stat.foiling": 'Foiling',
+        "share.stat.runs": 'Ture',
+        "share.stat.pumps": 'Pumps',
+        "share.stat.avgspeed": 'Ø fart',
+        "share.stat.speed": 'Topfart',
+        "share.stat.time": 'Foiltid',
+        "share.stat.longest": 'Længste',
+        "share.stat.distance": 'Distance/pump',
+        "share.stat.pumprate": 'Ø pumps/min',
+        "share.run": 'Tur {n}',
+    },
     "de": {
         "share.stat.foiling": 'Foiling',
         "share.stat.runs": 'Läufe',
@@ -119,6 +131,18 @@ LABELS: dict[str, dict[str, str]] = {
         "share.stat.distance": 'Udaljenost/pump',
         "share.stat.pumprate": 'Ø pumpova/min',
         "share.run": 'Vožnja {n}',
+    },
+    "hu": {
+        "share.stat.foiling": 'Foilozás',
+        "share.stat.runs": 'Futamok',
+        "share.stat.pumps": 'Pumpok',
+        "share.stat.avgspeed": 'Ø sebesség',
+        "share.stat.speed": 'Csúcssebesség',
+        "share.stat.time": 'Foilidő',
+        "share.stat.longest": 'Leghosszabb',
+        "share.stat.distance": 'Táv/pump',
+        "share.stat.pumprate": 'Ø pump/perc',
+        "share.run": '{n}. futam',
     },
     "id": {
         "share.stat.foiling": 'Foiling',
@@ -228,6 +252,18 @@ LABELS: dict[str, dict[str, str]] = {
         "share.stat.pumprate": 'Ø Пампы/мин',
         "share.run": 'Заезд {n}',
     },
+    "sv": {
+        "share.stat.foiling": 'Foiling',
+        "share.stat.runs": 'Åk',
+        "share.stat.pumps": 'Pumpar',
+        "share.stat.avgspeed": 'Ø fart',
+        "share.stat.speed": 'Toppfart',
+        "share.stat.time": 'Foiltid',
+        "share.stat.longest": 'Längsta',
+        "share.stat.distance": 'Sträcka/pump',
+        "share.stat.pumprate": 'Ø pumpar/min',
+        "share.run": 'Åk {n}',
+    },
     "zh": {
         "share.stat.foiling": '上翼距离',
         "share.stat.runs": '航段',
@@ -244,6 +280,7 @@ LABELS: dict[str, dict[str, str]] = {
 
 FORMATE: dict[str, dict[str, str]] = {
     "cs": {"dez": ',', "tsd": ' ', "datum": '%d.%m.%Y'},
+    "da": {"dez": ',', "tsd": '.', "datum": '%d.%m.%Y'},
     "de": {"dez": ',', "tsd": '.', "datum": '%d.%m.%Y'},
     "de-AT": {"dez": ',', "tsd": '.', "datum": '%d.%m.%Y'},
     "en": {"dez": '.', "tsd": ',', "datum": '%d %b %Y'},
@@ -252,6 +289,7 @@ FORMATE: dict[str, dict[str, str]] = {
     "fr": {"dez": ',', "tsd": ' ', "datum": '%d/%m/%Y'},
     "gsw": {"dez": ',', "tsd": '.', "datum": '%d.%m.%Y'},
     "hr": {"dez": ',', "tsd": '.', "datum": '%d.%m.%Y.'},
+    "hu": {"dez": ',', "tsd": ' ', "datum": '%Y.%m.%d.'},
     "id": {"dez": ',', "tsd": '.', "datum": '%d/%m/%Y'},
     "it": {"dez": ',', "tsd": '.', "datum": '%d/%m/%Y'},
     "ja": {"dez": '.', "tsd": ',', "datum": '%Y年%m月%d日'},
@@ -261,6 +299,7 @@ FORMATE: dict[str, dict[str, str]] = {
     "pt": {"dez": ',', "tsd": '.', "datum": '%d/%m/%Y'},
     "pt-PT": {"dez": ',', "tsd": '.', "datum": '%d/%m/%Y'},
     "ru": {"dez": ',', "tsd": ' ', "datum": '%d.%m.%Y'},
+    "sv": {"dez": ',', "tsd": ' ', "datum": '%Y-%m-%d'},
     "zh": {"dez": '.', "tsd": ',', "datum": '%Y年%m月%d日'},
 }
 
