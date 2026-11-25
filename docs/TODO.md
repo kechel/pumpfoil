@@ -1550,6 +1550,15 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 25.11.2026 — Amazfit 1.0.18: Sammel-Upload haengt auf T-Rex 3 Pro (u1150), „Error: out of memory"
+
+- **Befund:** #23322 (6 min, Accel 18 Hz) — 20:53 kamen GPS 0-20 und Accel 0-24 in zwei Sammel-Anfragen, danach bei
+  jedem App-Start (21:24 … 23:35) nur `config` + `START`, KEINE Chunk-Anfrage, kein Absturzbericht. Die Uhr zeigt
+  „Error: out of memory" (abgefangener Fehler im Upload). Fortsetzpunkt Accel 25 -> jeder Versuch baut dieselbe 25er-Gruppe.
+  Schreibtisch-Sessions stehen in der Warteschlange dahinter. Erste echte Hardware mit dem Sammel-Upload.
+- **Test 25.11. 23:5x (Jans OK):** `ZEPP_UPLOAD_SAMMEL=5` in `server/.env` (vorher Standard 25). Kommt #23322 danach
+  durch -> Dauerwert 5-10 oder Byte-Obergrenze je Anfrage in der Uhr (1.0.19); sonst zurueck auf 25 und weiter suchen.
+
 ### 25.11.2026 — Amazfit T-Rex 3 Pro (u1150): langes SELECT startet die Sprachassistenz statt Stopp
 
 **Gebaut 25.11. fuer Amazfit 1.0.19** (Jans OK): Sperrschirm sagt „Display 2 s halten zum Entsperren" (`rec.holdScreen`). Eintrag raus, sobald 1.0.19 live ist.
