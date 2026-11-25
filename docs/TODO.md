@@ -1550,6 +1550,23 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 25.11.2026 — Amazfit T-Rex 3 Pro (u1150): langes SELECT startet die Sprachassistenz statt Stopp
+
+Nur gemerkt (Jan: „nicht direkt was aendern"), Loesung offen.
+- **Meldung (Formular 21:01 + Chat mit Jan):** die App sperrt den Touch und will 2 s SELECT zum Beenden. Auf der
+  T-Rex 3 Pro ist 2 s SELECT ab Werk die System-Sprachassistenz: die startet, die Aufnahme laeuft weiter, kein Stopp.
+  Rausgekommen nur per Sprachbefehl „open settings" -> 2-s-SELECT-Funktion auf „None". Danach ging Stopp per Halten.
+  Am See waere das ein Deadlock gewesen. Der Fahrer will das lange Halten ausdruecklich behalten (kurzer Druck
+  passiert unter dem Neopren, dann fehlt die Aufnahme); Jan sieht das genauso.
+- **Code-Stand (`watch-zepp/page/index.js`, onKey ~Z. 1404):** langes SELECT = Stopp; die Profil-Einstellung
+  „ein Druck reicht" (`stopMode=press`) beendet mit kurzem SELECT; **langes UP/DOWN gibt den Touch frei** — damit
+  geht der Touch-Stopp-Bildschirm schon heute ohne SELECT. Offenbar fängt das System das lange SELECT vor
+  `onKey` ab; ob sich das abfangen laesst, ist auf echter Hardware ungeprueft.
+- **Ideen:** (1) Hinweis auf der Uhr/in der Einrichtung „2 s OBEN/UNTEN = Touch frei" bzw. „auf manchen Modellen
+  belegt das System langes SELECT"; (2) Stopp alternativ auf langes UP oder DOWN legen (Tastenzahl je Modell
+  unterschiedlich, 1-5 Tasten); (3) pruefen, ob Zepp OS eine API hat, die System-Langdruck waehrend der App
+  unterdrueckt. Jede Aenderung ist Uhren-Fehlerbehebung -> Jans Entscheidung.
+
 ### 24.11.2026 — Amazfit Active 2 (u439, 1.0.17): Abstuerze im Upload, 100 Hz Accel
 
 - **Meldung (Chat):** 3 unerwartete Beendigungen (2 auf dem Wasser), „out of memory" auch beim Exportieren;
