@@ -29,6 +29,15 @@ from shapely.ops import unary_union
 SAME_SPOT_GAP_M = 1000.0          # Tracks näher als das = selber Spot
 _BUF = SAME_SPOT_GAP_M / 2.0      # je Track puffern -> Summe = Gap-Toleranz
 
+# WINDSPORT TRAEGT NUR SEINEN START BEI (Jan, 25.11.2026, Anlass: Nutzermeldung u524 vom Genfersee). Wing-/Kite-/Windsurf-
+# Strecken sind kilometerlang; mit dem 1-km-Puffer verschluckten sie jeden Pumpfoil-Spot in der Naehe und klebten
+# getrennte Stellen zusammen (Lac d'Annecy: EINE Wing-Session verband drei Pumpfoil-Stellen; Le Jolla/Séchex mit der
+# Base nautique de Sciez). Jetzt: eine Windsport-Session geht nur mit ihrem STARTPUNKT (Kreis WEIT_START_M) in die
+# Spot-Geometrie ein — sie gehoert zu dem Spot, an dem sie losfaehrt, und ihre Strecke vergroessert keinen Spot.
+# Trockenlauf 25.11.: von 1461 Wind-Sessions in gemischten Spots bleiben ~1420, 10 Spots zerfallen in ihre Teile.
+WEIT_SPORTARTEN = frozenset({"wingfoil", "kitefoil", "kitesurf", "windsurf", "parawing"})
+WEIT_START_M = 300.0
+
 
 def _project(points, lat0):
     """(lat,lon) -> lokale Meter-Ebene (Equirectangular um lat0)."""
@@ -42,6 +51,7 @@ class SessionGeom:
     points: list          # Foiling-(lat,lon)
     dist_m: float         # gefoilte Distanz (Sortierschlüssel: kürzeste zuerst)
     start: tuple          # (lat,lon) erster Foiling-Punkt (nah am Ufer, fürs Geocoden)
+    radius: float = _BUF  # Puffer um die Huelle (Windsport: nur Start, WEIT_START_M)
 
 
 @dataclass
@@ -63,8 +73,7 @@ def build_spots(sessions: list[SessionGeom]):
     lat0 = sorted(p[0] for p in all_pts)[len(all_pts) // 2]
 
     def poly_of(s):
-        xy = _project(s.points or [s.start], lat0)
-        return MultiPoint(xy).convex_hull.buffer(_BUF)
+        return _geom_poly(s, lat0)
 
     spots: list[Spot] = []
     assign: dict[int, int | None] = {}
@@ -90,8 +99,13 @@ def build_spots(sessions: list[SessionGeom]):
 # Polygone werden als lat/lon-WKT (Koordinaten "lon lat", absolut/frame-unabhängig)
 # gespeichert; für Überlappungs-Tests projizieren wir on-the-fly in eine Meter-Ebene.
 
-def _poly_m(points, lat0):
-    return MultiPoint(_project(points, lat0)).convex_hull.buffer(_BUF)
+def _poly_m(points, lat0, radius: float = _BUF):
+    return MultiPoint(_project(points, lat0)).convex_hull.buffer(radius)
+
+
+def _geom_poly(g, lat0):
+    """Spot-Flaeche einer Session (Meter-Ebene): Huelle ihrer Foiling-Punkte, gepuffert — bei Windsport nur der Start."""
+    return _poly_m(g.points or [g.start], lat0, getattr(g, "radius", _BUF))
 
 
 def _m_to_wkt(poly_m, lat0) -> str:
@@ -146,6 +160,8 @@ def _session_geom(db, s):
     if not pts:
         pts = [(g[1], g[2]) for g in gps]
     dist = (ar.foiling_distance_m or 0) if ar else 0
+    if s.sport_class in WEIT_SPORTARTEN:   # nur der Start zaehlt (s. WEIT_SPORTARTEN)
+        return SessionGeom(sid=s.id, points=[pts[0]], dist_m=dist, start=pts[0], radius=WEIT_START_M)
     return SessionGeom(sid=s.id, points=pts, dist_m=dist, start=pts[0])
 
 
@@ -957,7 +973,7 @@ def assign_one(db, s, erzwingen: bool = False):
         db.commit()
         return
     lat0 = g.start[0]
-    new_m = _poly_m(g.points or [g.start], lat0)
+    new_m = _geom_poly(g, lat0)
     cand = (db.query(models.Spot)
             .filter(models.Spot.merged_into.is_(None), models.Spot.lat.isnot(None),
                     models.Spot.lat.between(lat0 - 0.25, lat0 + 0.25),
@@ -1000,6 +1016,9 @@ def assign_one(db, s, erzwingen: bool = False):
             home = spot_nach_strecke(db, drin, g, lat0, ohne=s.id)
         if home is None:
             home = min(drin, key=_steg_abstand) if drin else None
+        if home is None and s.sport_class in WEIT_SPORTARTEN:
+            # Windsport (nur der Startkreis zaehlt): Start knapp neben zwei Spots -> der naechste (25.11.2026)
+            home = min(hits, key=lambda sp: _wkt_to_m(sp.poly_wkt, lat0).distance(start_m))
         if home is None:
             # Start liegt in keinem Spot -> echte Traverse: nur Gewässername, kein Spot (an Land: der Ort).
             n_, _, w = name_for(*g.start, land=land)
@@ -1089,7 +1108,7 @@ def trennen(db, alt_id: int, session_ids: list[int], name: str | None = None, no
     if not geoms:
         raise ValueError("keine Geometrie")
     lat0 = geoms[0].start[0]
-    poly = unary_union([_poly_m(g.points or [g.start], lat0) for g in geoms])
+    poly = unary_union([_geom_poly(g, lat0) for g in geoms])
     land = all(ist_land(s.sport_class) for s in sess)
     if name:
         nm, src = _unique_name(db, name.strip()), "manual"
@@ -1110,7 +1129,7 @@ def trennen(db, alt_id: int, session_ids: list[int], name: str | None = None, no
                         db.query(models.Session).filter(models.Session.spot_id == alt_id,
                                                         models.Session.deleted.isnot(True)).all()) if g is not None]
     if rest:
-        alt.poly_wkt = _m_to_wkt(unary_union([_poly_m(g.points or [g.start], alt.lat or lat0) for g in rest]),
+        alt.poly_wkt = _m_to_wkt(unary_union([_geom_poly(g, alt.lat or lat0) for g in rest]),
                                  alt.lat or lat0)
     a, b = sorted([alt_id, neu.id])
     db.add(models.SpotTrennung(spot_a=a, spot_b=b, notiz=notiz))
