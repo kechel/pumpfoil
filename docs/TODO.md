@@ -1563,6 +1563,9 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   ABER verwechselt: Gruppengroesse 5 UND frischer Uhr-Neustart (freier Speicher) kamen zusammen — welches geholfen
   hat, ist offen. Kein Absturzbericht. Naechster Schritt: Speicherbedarf einer 25er-Accel-Gruppe messen (Simulator:
   Peak beim Bauen + req), bis dahin `ZEPP_UPLOAD_SAMMEL=5` lassen.
+- **Entscheidung Jan 25.11.:** 25 fuehrt zu „out of memory" -> **Standard 5** fest im Code (Server `ZEPP_UPLOAD_SAMMEL`,
+  Uhr-Rueckfallwert ab 1.0.19), `.env`-Eintrag wieder raus. Dabei gefunden + behoben: Wettlauf im Wasserflaechen-Cache
+  (`_water_rings_cached`, ON CONFLICT DO NOTHING) — #23348/#23349 blieben deshalb auf `complete`, neu ausgewertet.
 
 ### 25.11.2026 — Amazfit T-Rex 3 Pro (u1150): langes SELECT startet die Sprachassistenz statt Stopp
 

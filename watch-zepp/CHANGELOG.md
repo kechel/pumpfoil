@@ -12,6 +12,11 @@ This changelog covers the Zepp OS watch app only.
 
 ## 1.0.19 — noch nicht gebumpt
 
+- **Sammel-Upload: Standard 5 statt 25 Chunks je Anfrage** (25.11.2026, u1150, T-Rex 3 Pro, 1.0.18): mit 25 brach der
+  Upload mit „Error: out of memory" ab (jeder Versuch an derselben Gruppe, einmal Uhr-Neustart); der Server schickt
+  seitdem `uploadBatch` 5, damit liefen alle drei wartenden Aufnahmen durch. Hier nur der Rueckfallwert, falls noch
+  kein CONFIG da ist.
+
 - **Sperrschirm nennt den Ort** (25.11.2026, Meldung u1150, T-Rex 3 Pro): „2 s Halten = ENTSPERREN" wurde als Taste
   gelesen; langes SELECT ist dort ab Werk die System-Sprachassistenz, die Aufnahme liess sich nicht beenden. Jetzt
   neuer Schluessel `rec.holdScreen` („Display 2 s halten zum Entsperren", 17 Sprachen), zweizeilig mit WRAP.

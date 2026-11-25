@@ -83,9 +83,9 @@ pruefe(nE === 2 + 88 && nS === 2 + 4 + 6, `Anfragen: einzeln ${nE}, gesammelt ${
 pruefe(sammel.anfragen.every((p) => p.method !== "CHUNKS" || p.chunks.length <= 10), "hoechstens 10 Chunks je Anfrage");
 pruefe(sammel.store.getItem("sent:u1") === "35/53", "Wasserstand am Ende 35/53 (" + sammel.store.getItem("sent:u1") + ")");
 
-// 2) Standard ohne Server-Wert = 25
+// 2) Standard ohne Server-Wert = 5 (seit 25.11.2026; 25 lief auf der T-Rex 3 Pro in „out of memory")
 const std = baue({}); await std.uhr.uploadSession(std.sess);
-pruefe(std.anfragen.filter((p) => p.method === "CHUNKS").every((p) => p.chunks.length <= 25) && std.anfragen.length === 7, "ohne Server-Wert: 25 je Anfrage (START + 2 GPS + 3 Accel + COMPLETE)");
+pruefe(std.anfragen.filter((p) => p.method === "CHUNKS").every((p) => p.chunks.length <= 5) && std.anfragen.length === 20, "ohne Server-Wert: 5 je Anfrage (START + 7 GPS + 11 Accel + COMPLETE)");
 
 // 3) Resume ab Wasserstand 35/27: nur Accel 27..52
 const res = baue({ batch: 10, marke: "35/27" }); await res.uhr.uploadSession(res.sess);

@@ -202,9 +202,18 @@ def _water_rings_cached(db: DbSession, gps_samples: list):
     if row is not None:
         row.rings_json = json.dumps(rings) if rings else ""
         row.created_at = datetime.now(timezone.utc)   # frisches Datum -> gilt ab jetzt als Aussage
+        db.commit()
     else:
-        db.add(models.WaterPolygon(grid_key=key, rings_json=json.dumps(rings) if rings else ""))
-    db.commit()
+        # ON CONFLICT DO NOTHING statt db.add (25.11.2026): drei Aufnahmen vom selben, noch nicht gecachten Ort
+        # kamen in 18 s an und wurden gleichzeitig ausgewertet; jede fragte Overpass (~20 s), die erste schrieb,
+        # die beiden anderen scheiterten am Unique-Index und blieben auf `complete` haengen. Wer verliert, nimmt
+        # seine eigenen, gerade geholten Ringe — der Inhalt ist derselbe Ort.
+        from sqlalchemy.dialects.postgresql import insert as pg_insert
+        t = models.WaterPolygon.__table__
+        db.execute(pg_insert(t).values(grid_key=key, rings_json=json.dumps(rings) if rings else "",
+                                       created_at=datetime.now(timezone.utc))
+                   .on_conflict_do_nothing(index_elements=["grid_key"]))
+        db.commit()
     return rings
 
 

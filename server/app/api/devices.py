@@ -230,8 +230,11 @@ ACCEL_WAKEUP_DEFAULT = "off"
 # aeltere Apps stehen.
 # Zepp: Chunks je Upload-Anfrage ueber den Sammel-Endpunkt (/ingest/session/{uuid}/chunks, max 30). Befund 24.11.2026
 # (u439, Active 2): die App starb nach ~330 Einzel-Anfragen (Leck je BLE-Anfrage in Zepp/zml vermutet), 26 min Aufnahme
-# = 1330 Anfragen bei ~1/s. 25 (~28 KB je Anfrage, Server-Grenze 30). 1 = alter Weg (ein Chunk je Anfrage). Nur Zepp bekommt den Schluessel.
-ZEPP_UPLOAD_SAMMEL = max(1, min(30, int(os.environ.get("ZEPP_UPLOAD_SAMMEL", "25") or 25)))
+# = 1330 Anfragen bei ~1/s. 1 = alter Weg (ein Chunk je Anfrage). Nur Zepp bekommt den Schluessel.
+# STANDARD 5, NICHT 25 (25.11.2026, u1150, T-Rex 3 Pro, 1.0.18): mit 25er-Gruppen (~25 KB Base64 je Anfrage) brach der
+# Upload auf der echten Uhr mit „Error: out of memory" ab, bei jedem App-Start an derselben Gruppe, einmal mit
+# Uhr-Neustart. Mit 5 liefen alle drei wartenden Aufnahmen in 18 s durch. Der Simulator hatte 25 klaglos geschafft.
+ZEPP_UPLOAD_SAMMEL = max(1, min(30, int(os.environ.get("ZEPP_UPLOAD_SAMMEL", "5") or 5)))
 ACCEL_BATCH_DEFAULT = os.environ.get("WEAR_ACCEL_BATCH", "on")
 GPS_HS_DEFAULT = os.environ.get("WEAR_GPS_HS", "on")
 

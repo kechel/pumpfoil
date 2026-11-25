@@ -48,7 +48,8 @@ const ACCEL_CHUNK_SAMPLES = 128;
 // (/ingest/session/{uuid}/chunks, Server max 30). Die App starb nach ~330 Einzel-Anfragen, egal wo der Upload stand
 // (Leck je Anfrage in Zepp/zml vermutet), und eine Anfrage dauert ~1 s (zml schickt vor JEDER Anfrage einen Handshake).
 // Der Server schickt `uploadBatch` im CONFIG (1 = alter Weg, ein Chunk je Anfrage); bis dahin gilt der Standard.
-const UPLOAD_BATCH_DEFAULT = 25, UPLOAD_BATCH_MAX = 30;
+// Standard 5 statt 25 (25.11.2026, u1150 T-Rex 3 Pro): 25er-Gruppen endeten auf echter Hardware in „out of memory".
+const UPLOAD_BATCH_DEFAULT = 5, UPLOAD_BATCH_MAX = 30;
 const uploadBatch = () => {
   const n = Number(store.getItem("uploadBatch", "")) || UPLOAD_BATCH_DEFAULT;
   return Math.max(1, Math.min(UPLOAD_BATCH_MAX, Math.round(n)));
