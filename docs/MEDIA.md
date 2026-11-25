@@ -152,7 +152,7 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
    - **Gemerkt (Jan 25.11.):** je Session auf dem Geraet (`localStorage` `pumpfoil_media_sitzung`, die letzten 30):
      Lauf, Reiter, weitere Fahrer samt Lauf/Feldern, Modus, Sprint-Kennzahl, Drehen — ueberlebt Reload und
      PWA-Update. `?lauf=` aus der Session geht vor. Darstellung und Musik gelten wie bisher fuer alle Sessions.
-     Das Popup schlaegt beim 3./4. Fahrer Quelle, Event und Kategorie des vorigen vor.
+     Das Popup schlaegt Quelle, Event und Kategorie der letzten Wahl vor (geraeteweit, `pumpfoil_media_wahl`).
    - **Lage:** Echtzeit in einer Projektion; liegen Fahrer > 5 km auseinander (anderer Spot, „Ort verbergen" = Point
      Nemo), wird ihr Start auf den eigenen gelegt (Hinweis in der Ansicht).
    - **Unterscheidbar:** feste Fahrerfarben (weiss, pink, gelb, violett — ausserhalb der Tempo-Skala bzw. deutlich

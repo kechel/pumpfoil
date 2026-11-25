@@ -24,6 +24,15 @@ const QUELLEN: Quelle[] = ["gleichzeitig", "tag", "event", "freunde", "korb", "e
 /** Letzte Auswahl im Popup: beim 3./4. Fahrer stehen Quelle, Event und Kategorie schon da (Jan 25.11.2026). */
 export interface WahlMerk { quelle: Quelle; event: string; kennzahl: string | null; sportart: string | null }
 
+// Geraeteweit gemerkt, nicht je Session: wer Videos zu einem Event macht, will dort bei der naechsten Session weitermachen.
+const LS_WAHL = "pumpfoil_media_wahl";
+function ladeMerk(): WahlMerk | null {
+  try {
+    const m = JSON.parse(localStorage.getItem(LS_WAHL) ?? "null");
+    return m && QUELLEN.includes(m.quelle) ? { quelle: m.quelle, event: String(m.event ?? ""), kennzahl: m.kennzahl ?? null, sportart: m.sportart ?? null } : null;
+  } catch { return null; }
+}
+
 interface Kandidat { sessionId: number; lauf: number | null; name: string; zeile?: MitfahrerZeile; info?: string; ueberlappt?: boolean | null }
 
 function Punkt({ nr }: { nr: number }) {
@@ -191,10 +200,11 @@ export function MediaMitfahrer({ sessionId, hauptName, hauptAnzeige, setHauptAnz
 }) {
   const t = useT();
   const [offen, setOffen] = useState(false);
-  const [merk, setMerk] = useState<WahlMerk | null>(null);
+  const [merk, setMerk] = useState<WahlMerk | null>(ladeMerk);
 
   const hinzu = (k: Kandidat, m: WahlMerk) => {
     setMerk(m);
+    try { localStorage.setItem(LS_WAHL, JSON.stringify(m)); } catch { /* Privatmodus */ }
     const belegt = new Set(fahrer.map((f) => f.nr));
     const nr = [2, 3, 4].find((n) => !belegt.has(n));
     if (!nr) return;
