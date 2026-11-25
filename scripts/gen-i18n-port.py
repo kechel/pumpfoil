@@ -96,7 +96,14 @@ SCHLUESSEL = [
     "wk.title", "wk.hint", "wk.none", "wk.w", "wk.m", "wk.nb", "wk.alle", "team.event.zaehltNicht",
     # 12.11.2026: Medien melden (Feed-Kachel), Hinweis gesperrte Medien (Session-Details)
     "media.report", "media.reportConfirm", "media.reported", "sd.blockedMedia", "common.cancel",
+    # iOS 25.11.2026: Fehlt-Vorlage (web 8b790476), Referee-Schalter (web 46c6b99f), Performance Top 20 / Punkte je Tag
+    # (web 6b37c730/67f4fee2). sfilter.sort.* und tempo.* NICHT hier: das Web hat sie nur in de/gsw/de-AT/en, iOS fuehrt
+    # sie mit allen 18 Sprachen in Loc.swift (neuTexte8) — hier eingetragen wuerde LocPort sie mit Englisch ueberdecken.
+    "feedback.fillTemplate", "notif.typeReferee", "perf.spTop20", "perf.best", "perf.punkteTag", "perf.punkteHint",
 ]
+# Doppelte raus (zwei Ports ergaenzen hier gleichzeitig): ein Schluessel zweimal im Swift-Set-/Dictionary-Literal ist ein
+# ABSTURZ beim ersten Zugriff (s. Memory ios-swift-typecheck-hang, 07.09.2026).
+SCHLUESSEL = list(dict.fromkeys(SCHLUESSEL))
 
 
 def lies(code):

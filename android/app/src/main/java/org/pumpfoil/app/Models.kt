@@ -459,6 +459,10 @@ data class Segment(
     @SerialName("avg_pump_hz") val avgPumpHz: Double? = null,
     @SerialName("longest_glide_s") val longestGlideS: Double? = null,
     @SerialName("accel_fehlt") val accelFehlt: Boolean = false,
+    // pg-1 je Lauf (Server, roh neben den Anzeigewerten): fuer die Tempo-Verteilung (TempoVerteilung.kt) — Gleiten zaehlt
+    // nur, wo `pg_pumps` gesetzt ist; `pg_glides` = [[Start-Index, End-Index, …], …] (Web lib/tempoHist.ts).
+    @SerialName("pg_pumps") val pgPumps: Double? = null,   // Double: nur „gesetzt oder nicht" zaehlt, so scheitert kein Dezimalwert
+    @SerialName("pg_glides") val pgGlides: kotlinx.serialization.json.JsonElement? = null,
     @SerialName("uhr_takt_min") val uhrTaktMin: Double? = null,   // Takt laut Uhr je Lauf (1/min, Suunto, 16.11.2026)
     // Ab hier: Felder, die der Server schon immer liefert, die Android aber nicht gelesen hat —
     // deshalb fehlten sieben der dreizehn Spalten der PWA-Lauf-Tabelle (Jans Meldung 18.08.).

@@ -16,7 +16,7 @@ struct LinkedAccountsView: View {
     /// Als Reiter in Home › Uhren / Einstellungen › Uhren (App-Port, 04.11.2026): ohne eigene Kopfleiste.
     var eingebettet: Bool = false
     /// Nur EIN Anbieter (Reiter in Uhr & Konten wie web LinkedAccounts.tsx, 04.11.2026): "polar" | "coros" | "suunto" |
-    /// "xiaomi" | "mcp". nil = alle untereinander wie bisher.
+    /// "xiaomi". nil = alle untereinander wie bisher. ("mcp" bis 22.11.2026, jetzt Einstellungen › Konto.)
     var nur: String? = nil
 
     // `id` ist der Anzeige-/Zustandsschlüssel, `apiPath` der Pfad beim Server — die beiden
@@ -49,16 +49,14 @@ struct LinkedAccountsView: View {
     // erschiene ein beim Import NEU entdeckter Modus erst nach einem Neustart der App.
     @State private var fertigZaehler = 0
 
-    /// Die Anbieter dieser Ansicht — bei `nur` hoechstens einer (Xiaomi und MCP sind keine `Provider`).
+    /// Die Anbieter dieser Ansicht — bei `nur` hoechstens einer (Xiaomi ist kein `Provider`).
     private var sichtbar: [Provider] { providers.filter { nur == nil || $0.id == nur } }
     private func zeigt(_ id: String) -> Bool { nur == nil || nur == id }
 
     var body: some View {
         List {
-            // Der Hinweis ueber den Konten-Karten (web `linked.hint`, gleicher Sinn) — nicht beim KI-Zugang.
-            if nur != "mcp" {
-                Section { Text(Loc.t("accounts.sub", lang)).font(.footnote).foregroundStyle(.secondary) }
-            }
+            // Der Hinweis ueber den Konten-Karten (web `linked.hint`, gleicher Sinn).
+            Section { Text(Loc.t("accounts.sub", lang)).font(.footnote).foregroundStyle(.secondary) }
             ForEach(sichtbar, id: \.id) { p in
                 if let st = status[p.id], !(p.id == "garmin" && !st.available && !st.linked) {
                     if !st.available && !st.linked {
@@ -120,8 +118,7 @@ struct LinkedAccountsView: View {
                 }
             }
             if zeigt("xiaomi") { XiaomiHinweis(lang: lang) }
-            // KI-Zugang (MCP) — wie die PWA ganz unten bei den verknuepften Konten bzw. als eigener Reiter.
-            if zeigt("mcp") { McpSection(lang: lang) }
+            // KI-Zugang (MCP) steht seit 22.11.2026 unter Einstellungen › Konto (SettingsView.kontoTeil, web 3139830a).
         }
         .brandToolbarWenn(!eingebettet, Loc.t("accounts.title", lang))
         .navigationBarTitleDisplayMode(.inline)
@@ -447,7 +444,8 @@ private struct ModusZuordnung: View {
 /// KI-Zugang (MCP) — Adresse zum Eintragen und wer gerade Zugriff hat (PWA LinkedAccounts.tsx
 /// McpCard). Die Liste ist der wichtigere Teil: man kann nur zumachen, was man sieht. Ein schon
 /// ausgegebenes Token laeuft nur ab — das sagt der Hinweis, statt „sofort gesperrt" zu behaupten.
-private struct McpSection: View {
+/// Seit 22.11.2026 unter Einstellungen › Konto (SettingsView), nicht mehr als Reiter unter Uhr & Konten.
+struct McpSection: View {
     let lang: String
     @State private var st: Api.McpStatus? = nil
     @State private var kopiert = false

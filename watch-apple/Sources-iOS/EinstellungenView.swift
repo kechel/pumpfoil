@@ -310,8 +310,8 @@ struct EinstellungenUebersicht: View {
 
 // MARK: - Uhren & Konten
 
-/// Uhren und verknuepfte Konten in EINER Ansicht mit zweiter Reiterzeile Uhr | Polar | COROS | Suunto | Xiaomi | MCP
-/// (wie /konten im Web, web LinkedAccounts.tsx; je Anbieter ein Reiter seit 04.11.2026) — fuer Home › Uhren und
+/// Uhren und verknuepfte Konten in EINER Ansicht mit zweiter Reiterzeile Uhr | Polar | COROS | Suunto | Xiaomi
+/// (MCP bis 22.11.2026 ebenfalls hier, jetzt unter Einstellungen › Konto, web 3139830a) (wie /konten im Web, web LinkedAccounts.tsx; je Anbieter ein Reiter seit 04.11.2026) — fuer Home › Uhren und
 /// Einstellungen › Uhren. „Uhr" hat darunter die dritte Zeile (`UhrReiterView`), die Anbieter je ihre Karte aus
 /// `LinkedAccountsView`. Strava fehlt (zurueckgestellt, die App hatte nie eine Karte dafuer).
 struct UhrenKontenView: View {
@@ -326,8 +326,7 @@ struct UhrenKontenView: View {
         return r + [ReiterDef(id: "polar", label: "Polar"),
          ReiterDef(id: "coros", label: "COROS"),
          ReiterDef(id: "suunto", label: "Suunto"),
-         ReiterDef(id: "xiaomi", label: "Xiaomi"),
-         ReiterDef(id: "mcp", label: "MCP")]
+         ReiterDef(id: "xiaomi", label: "Xiaomi")]
     }
 
     /// Unbekannter Wert (z. B. "konten" aus der alten Aufteilung) -> „Uhr".

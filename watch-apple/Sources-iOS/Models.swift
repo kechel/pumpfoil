@@ -987,6 +987,10 @@ struct Segment: Codable {
     // Gleitphasen [Start-Index, End-Index, Dauer s, Start-ms] (Server seit 03.10.2026) — die Karte
     // kann sie einblenden wie die PWA.
     var glides: [[Double]]? = nil
+    // pg-1 je Lauf (Server: `pg_*` neben den alten Werten, s. server app/pumpgleit_anzeige.py) — nur fuer die
+    // Tempo-Verteilung in den Session-Details (web lib/tempoHist.ts): Gleiten zaehlt nur aus pg-1, gleiches Format wie `glides`.
+    var pg_pumps: Double? = nil
+    var pg_glides: [[Double]]? = nil
     let avg_pump_hz: Double?
     let longest_glide_s: Double?
     // Ab hier: Felder, die der Server schon immer liefert, die iOS aber nicht gelesen hat —

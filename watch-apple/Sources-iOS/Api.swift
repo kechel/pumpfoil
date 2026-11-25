@@ -146,7 +146,7 @@ enum Api {
     // PWA (api.ts). Der Server liest es fuer eigene Sessions wie der Community-Feed (27.09.2026).
     static func sessions(month: String? = nil, filter: String = "pump", accelOnly: Bool = false,
                          sport: String = "all", board: Bool = false, limit: Int? = nil, offset: Int = 0,
-                         foilId: Int? = nil) async throws -> [SessionSummary] {
+                         foilId: Int? = nil, sort: String = "neu") async throws -> [SessionSummary] {
         var qs = "?filter=\(filter)"
         // Seitenweise (Home: die drei neuesten; Meine: 20 je Seite beim Scrollen). Ohne limit die ganze Liste (bei Jan 1,4 MB).
         if let limit { qs += "&limit=\(limit)" }
@@ -155,6 +155,8 @@ enum Api {
         if accelOnly { qs += "&accel_only=true" }
         if board { qs += "&board=true" }   // nur Handy am Brett (POB)
         if let foilId { qs += "&foil_id=\(foilId)" }   // Filter-Knopf (18.11.2026)
+        // Sortierung (Filter-Knopf, nur Meine, web 18a2299b1): neu | alt | lauf_m | lauf_s | foil_m | foil_s | tempo.
+        if !sort.isEmpty, sort != "neu" { qs += "&sort=" + queryWert(sort) }
         qs += sportQuery(sport)
         return try await request("/api/sessions\(qs)", method: "GET", body: nil, auth: true)
     }
@@ -166,7 +168,16 @@ enum Api {
     /// "&sport=<x>" fuer eine echte Sportart, leer fuer "all"/leer.
     private static func sportQuery(_ sport: String) -> String {
         guard !sport.isEmpty, sport != "all" else { return "" }
-        return "&sport=\(sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport)"
+        return "&sport=" + queryWert(sport)
+    }
+
+    /// Wert fuer einen Query-Parameter. `.urlQueryAllowed` laesst `&=+?#` roh stehen — ein rohes „+"
+    /// liest der Server als Leerzeichen, und aus „pumpfoil+foil_scoot" (Pumpfoil + Foil Scoot) wird
+    /// eine unbekannte Sportart (web dfea31118). Fuer JEDES `sport=` (und andere freie Werte) diesen nehmen.
+    static func queryWert(_ s: String) -> String {
+        var erlaubt = CharacterSet.urlQueryAllowed
+        erlaubt.remove(charactersIn: "&=+?#")
+        return s.addingPercentEncoding(withAllowedCharacters: erlaubt) ?? s
     }
 
     // Sportarten mit mindestens einem Lauf (all time, Community-Filter) — Auswahl des
@@ -197,7 +208,7 @@ enum Api {
                               freunde: Bool = false) async throws -> TodayCount {
         let mitternacht = Int(Calendar.current.startOfDay(for: Date()).timeIntervalSince1970 * 1000)
         var q = "since_ms=\(mitternacht)&accel_only=\(accelOnly)&mine=\(mine)"
-        q += "&sport=" + (sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport)
+        q += "&sport=" + queryWert(sport)
         if let spot, !spot.isEmpty { q += "&spot=" + (spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot) }
         if board { q += "&board=true" }
         if freunde { q += "&friends=1" }
@@ -565,7 +576,7 @@ enum Api {
                                   foilId: Int? = nil, sport: String? = nil) async throws -> [CommunityItem] {
         var qs = "?limit=\(limit)&offset=\(offset)" + (accelOnly ? "" : "&accel_only=false")
         if let foilId { qs += "&foil_id=\(foilId)" }
-        if let sport { qs += "&sport=\(sport)" }
+        if let sport { qs += "&sport=" + queryWert(sport) }
         return try await request("/api/community/sessions\(qs)", method: "GET", body: nil, auth: true)
     }
 
@@ -573,7 +584,7 @@ enum Api {
     static func spotSessions(_ spot: String, accelOnly: Bool = true, limit: Int = 50,
                              sport: String? = nil, offset: Int = 0) async throws -> [CommunityItem] {
         let s = spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot
-        let sp = sport.map { "&sport=\($0.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? $0)" } ?? ""
+        let sp = sport.map { "&sport=" + queryWert($0) } ?? ""
         return try await request("/api/community/spot-sessions?spot=\(s)&accel_only=\(accelOnly)&limit=\(limit)&offset=\(offset)\(sp)", method: "GET", body: nil, auth: true)
     }
 
@@ -587,7 +598,7 @@ enum Api {
         let b = board ? "&board=true" : ""
         // Sessions › Team (02.11.2026): „alle" oder Team-ID, der Server liefert die letzten 30 Tage der Mitglieder.
         let tm: String = (team.map { "&team=" + $0 } ?? "") + (foilId.map { "&foil_id=\($0)" } ?? "")   // + Filter-Knopf (18.11.2026)
-        return try await request("/api/community/sessions-grouped?limit=\(limit)&offset=\(offset)&accel_only=\(accelOnly)&sport=\(sport)\(sp)\(b)\(freunde ? "&friends=1" : "")\(tm)", method: "GET", body: nil, auth: true)
+        return try await request("/api/community/sessions-grouped?limit=\(limit)&offset=\(offset)&accel_only=\(accelOnly)&sport=\(queryWert(sport))\(sp)\(b)\(freunde ? "&friends=1" : "")\(tm)", method: "GET", body: nil, auth: true)
     }
 
     // `period` (today|10d|30d|365d|all) wirkt auf Rekorde UND Gesamtwerte — beides kommt aus
@@ -596,8 +607,8 @@ enum Api {
     // Trainingskurve. `sport` nil = der Server nimmt die haeufigste Sportart des Nutzers.
     static func hrProgress(sport: String? = nil, grid: Bool = false) async throws -> HrProgress {
         var teile: [String] = []
-        if let s = sport, !s.isEmpty,
-           let enc = s.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+        if let s = sport, !s.isEmpty {
+            let enc: String = queryWert(s)
             teile.append("sport=\(enc)")
         }
         if grid { teile.append("grid=1") }
@@ -608,8 +619,8 @@ enum Api {
     static func stats(accelOnly: Bool = true, period: String = "all",
                       sport: String? = nil) async throws -> OverallStats {
         var pfad = "/api/sessions/stats?accel_only=\(accelOnly)&period=\(period)"
-        if let s = sport, !s.isEmpty,
-           let enc = s.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+        if let s = sport, !s.isEmpty {
+            let enc: String = queryWert(s)
             pfad += "&sport=\(enc)"
         }
         return try await request(pfad, method: "GET", body: nil, auth: true)
@@ -647,8 +658,8 @@ enum Api {
     static func statsByFoil(accelOnly: Bool = true, period: String = "all",
                             sport: String? = nil) async throws -> [FoilStatsGroup] {
         var pfad = "/api/sessions/stats-by-foil?accel_only=\(accelOnly)&period=\(period)"
-        if let s = sport, !s.isEmpty,
-           let enc = s.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+        if let s = sport, !s.isEmpty {
+            let enc: String = queryWert(s)
             pfad += "&sport=\(enc)"
         }
         return try await request(pfad, method: "GET", body: nil, auth: true)
@@ -676,7 +687,7 @@ enum Api {
                                  region: String = "all") async throws -> [String: PeriodRecords] {
         var pfad = "/api/community/records?accel_only=\(accelOnly)&foil_band=\(foilBand)\(freunde ? "&friends=1" : "")"
         pfad += regionParam(region)
-        if let sport, !sport.isEmpty { pfad += "&sport=\(sport)" }
+        if let sport, !sport.isEmpty { pfad += "&sport=" + queryWert(sport) }
         if let spot, !spot.isEmpty {
             let s = spot.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? spot
             pfad += "&spot=\(s)"
@@ -715,7 +726,7 @@ enum Api {
     /// `spot`: Bestenlisten nur an diesem Spot (Spot-Seite, Server seit 02.11.2026).
     static func leaders(period: String = "all", accelOnly: Bool = true, foilBand: String = "all", freunde: Bool = false,
                         sport: String = "pumpfoil", spot: String? = nil, region: String = "all") async throws -> Leaders {
-        var pfad: String = "/api/community/leaders?period=\(period)&accel_only=\(accelOnly)&foil_band=\(foilBand)&sport=\(sport)"
+        var pfad: String = "/api/community/leaders?period=\(period)&accel_only=\(accelOnly)&foil_band=\(foilBand)&sport=\(queryWert(sport))"
         if freunde { pfad += "&friends=1" }
         pfad += regionParam(region)
         if let s = spot, !s.isEmpty {
@@ -739,7 +750,7 @@ enum Api {
     struct Regionen: Decodable { let regionen: [RegionWahl]; let ich: String? }
     /// Waehlbare Regionen der Rangliste (Server rechnet immer ueber Allzeit) und die eigene Nationalitaet.
     static func communityRegionen(sport: String) async throws -> Regionen {
-        let s: String = sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport
+        let s: String = queryWert(sport)
         return try await request("/api/community/regionen?period=all&sport=\(s)", method: "GET", body: nil, auth: true)
     }
 
@@ -1092,7 +1103,7 @@ enum Api {
     // accelOnly=false wie die PWA — sonst fehlen GPS-only-Spots (z. B. Frankreich).
     // `sport` (Default "all" = Serverdefault): die Zahl je Spot zaehlt dann nur diese Sportart.
     static func spotMap(accelOnly: Bool = false, sport: String = "all") async throws -> [SpotMapItem] {
-        let sp = sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport
+        let sp: String = queryWert(sport)
         return try await request("/api/community/spot-map?accel_only=\(accelOnly)&sport=\(sp)", method: "GET", body: nil, auth: true)
     }
 
@@ -1100,7 +1111,7 @@ enum Api {
     /// start = Startpunkte; `sport` all oder eine Sportart (seit 16.10. alle Sportarten mit Laeufen).
     static func heatmap(period: String, z: Int, w: Double, s: Double, e: Double, n: Double,
                         art: String = "foil", sport: String = "all") async throws -> HeatAntwort {
-        let sp = sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport
+        let sp: String = queryWert(sport)
         return try await request("/api/community/heatmap?period=\(period)&z=\(z)&w=\(w)&s=\(s)&e=\(e)&n=\(n)&art=\(art)&sport=\(sp)",
                                  method: "GET", body: nil, auth: true)
     }
@@ -1109,7 +1120,7 @@ enum Api {
     /// Verlaessliche Startplaetze eines Spots; mit `umkreisKm` > 0 auch die der Spots im Umkreis.
     static func spotStartpositionen(_ spotId: Int, minStarts: Int, minFahrer: Int, sport: String, umkreisKm: Int) async throws -> [Startposition] {
         struct A: Decodable { let positionen: [Startposition] }
-        let sp = sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport
+        let sp: String = queryWert(sport)
         let a: A = try await request("/api/community/spot/\(spotId)/startpositionen?min_starts=\(minStarts)&min_fahrer=\(minFahrer)&sport=\(sp)&umkreis_km=\(umkreisKm)",
                                      method: "GET", body: nil, auth: true)
         return a.positionen
@@ -1118,7 +1129,7 @@ enum Api {
     /// Wo man selbst an diesem Spot schon gestartet ist (nur eigene Sessions) — gruen in der Planung.
     static func spotMeineStarts(_ spotId: Int, sport: String) async throws -> [[Double]] {
         struct A: Decodable { let starts: [[Double]] }
-        let sp = sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport
+        let sp: String = queryWert(sport)
         let a: A = try await request("/api/community/spot/\(spotId)/meine_starts?sport=\(sp)", method: "GET", body: nil, auth: true)
         return a.starts
     }
@@ -1626,7 +1637,7 @@ enum Api {
 
     /// Home › Performance: eigene Tagesplatzierungen; sport "pumpfoil" oder "pumpfoil+foil_scoot" (18.11.2026).
     static func performance(sport: String) async throws -> PerfAntwort {
-        let s: String = sport.replacingOccurrences(of: "+", with: "%2B")
+        let s: String = queryWert(sport)
         return try await request("/api/community/performance?sport=" + s, method: "GET", body: nil, auth: true)
     }
 

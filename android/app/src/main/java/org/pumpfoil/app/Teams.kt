@@ -342,8 +342,10 @@ data class TeamEvent(
 ) {
     /** Team-Wertung und Wappen-Spalte: globale Events und Events mehrerer Teams (Web `ev.global || ev.mehrteam`). */
     val mitTeamWertung: Boolean get() = global || mehrteam
-    /** Sportarten: die der Bestenlisten, ohne Bestenliste die der Gesamtsummen (wie Web eventSportarten). */
-    val sportarten: List<String> get() = (if (tafeln.isNotEmpty()) tafeln.map { it.sportart } else listOf(summenSportart)).distinct()
+    /** Sportarten: die der Bestenlisten, ohne Bestenliste die der Gesamtsummen (wie Web eventSportarten).
+     *  GPS-Kunst laesst alle Sportarten zu — kein Badge (Web c5cf14d43; summenSportart ist dort nur der Vorgabewert). */
+    val sportarten: List<String> get() = if (vorlage == KUNST_VORLAGE) emptyList()
+        else (if (tafeln.isNotEmpty()) tafeln.map { it.sportart } else listOf(summenSportart)).distinct()
 }
 
 /** Oeffentliche Referee-Korrektur am Event (server referee.korrektur_out, intern=False). */

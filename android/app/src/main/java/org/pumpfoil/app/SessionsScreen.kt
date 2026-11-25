@@ -132,6 +132,10 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
     var sport by remember { mutableStateOf("all") }
     // Foil-Filter (Filter-Knopf, Web 18.11.2026) — gilt fuer alle vier Reiter und bleibt beim Wechsel stehen.
     var foilFilter by remember { mutableStateOf<Int?>(null) }
+    // Sortierung (Filter-Knopf, Web 18a2299b1) — nur Meine; die anderen Reiter fragen weiter ohne sort.
+    // Die Liste wird beim Nachladen ganz ersetzt (kein Einschieben neuer Sessions wie in der PWA), die
+    // Reihenfolge bleibt also auch bei anderer Sortierung die des Servers.
+    var sortWahl by rememberSaveable { mutableStateOf("neu") }
     var sports by remember { mutableStateOf<List<SportRuns>>(emptyList()) }
     // EIN EIGENER Scrollzustand JE LISTE — nicht einer fuer alle mit einem Ruecksprung.
     //
@@ -147,7 +151,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
     // Zustand, und ein frischer Zustand steht bei 0 — es gibt gar nichts, was zurueckspringen
     // muesste. Die Rueckkehr aus einer Session aendert keinen der vier Schluessel, dort bleibt die
     // Position also erhalten.
-    val listenStand = remember(scope, filter, month, sport, foilFilter) {
+    val listenStand = remember(scope, filter, month, sport, foilFilter, sortWahl) {
         androidx.compose.foundation.lazy.LazyListState()
     }
     var months by remember { mutableStateOf<List<MonthCount>>(emptyList()) }
@@ -187,7 +191,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
                 Scope.MINE -> {
                     val n = maxOf(seite, own.size)
                     val r = Api.sessions(month = month.ifBlank { null }, filter = filter, accelOnly = accelOnly, sport = sport, board = brett,
-                                         limit = n, foilId = foilFilter)
+                                         limit = n, foilId = foilFilter, sort = sortWahl)
                     if (meine != ladeGeneration) return
                     own = r; hatMehr = r.size >= n
                 }
@@ -216,7 +220,7 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
         try {
             if (scope == Scope.MINE) {
                 val r = Api.sessions(month = month.ifBlank { null }, filter = filter, accelOnly = accelOnly, sport = sport, board = brett,
-                                     limit = seite, offset = own.size, foilId = foilFilter)
+                                     limit = seite, offset = own.size, foilId = foilFilter, sort = sortWahl)
                 if (meine == ladeGeneration) {
                     val da = own.map { it.id }.toSet()
                     own = own + r.filter { it.id !in da }; hatMehr = r.size >= seite
@@ -236,8 +240,8 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
     // Filterwechsel: die ALTE Liste sofort weg, nicht erst, wenn die neue da ist (PWA 8f9cc725) —
     // sonst liest man Sessions eines anderen Spots unter der neuen Ueberschrift. Nicht bei `tick`
     // (Nachladen derselben Liste), dort bleibt sie stehen, bis die frische kommt.
-    LaunchedEffect(scope, teamWahl, accelOnly, filter, month, sport, brett, foilFilter) { groups = emptyList(); own = emptyList() }
-    LaunchedEffect(scope, teamWahl, tick, accelOnly, filter, month, sport, brett, foilFilter) { load() }
+    LaunchedEffect(scope, teamWahl, accelOnly, filter, month, sport, brett, foilFilter, sortWahl) { groups = emptyList(); own = emptyList() }
+    LaunchedEffect(scope, teamWahl, tick, accelOnly, filter, month, sport, brett, foilFilter, sortWahl) { load() }
     // Denselben Filter merken: „älter/neuer" im Detail navigiert damit innerhalb GENAU dieser
     // Liste statt immer durch die eigenen Sessions (Jan, 17.09.2026) — samt Sportart.
     LaunchedEffect(scope, accelOnly, filter, month, sport) {
@@ -350,7 +354,9 @@ fun SessionsScreen(onOpen: (Int, Long?) -> Unit, onCompare: () -> Unit = {}) {
                     })
                 }
                 // Kacheln / eine Zeile je Session (ListenAnsicht.kt) — gilt fuer Meine, Alle und den Spot.
-                SessionFilterKnopf(foilFilter, Modifier.align(Alignment.CenterVertically)) { foilFilter = it }
+                SessionFilterKnopf(foilFilter, Modifier.align(Alignment.CenterVertically),
+                    sort = if (scope == Scope.MINE) sortWahl else "neu",
+                    onSort = if (scope == Scope.MINE) ({ k: String -> sortWahl = k }) else null) { foilFilter = it }
                 ListenAnsichtUmschalter(Modifier.align(Alignment.CenterVertically))
             }
             }

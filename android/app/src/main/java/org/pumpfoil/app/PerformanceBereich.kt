@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -220,7 +221,7 @@ fun PerformanceBereich(onOpenSession: (Int) -> Unit) {
                 // Tipp auf die Punkte-Kachel waehlt die Saison als Zeitraum (ab Saisonbeginn); ist sie schon gewaehlt: Regeln
                 UebersichtTeil(je, alle, tage, d.saison, onOpenSession,
                     onSaison = d.saison?.takeIf { it.gestartet && zeitraum != "s${it.jahr}" }?.let { sz -> { zeitraum = "s${sz.jahr}" } })
-                VerlaufTeil(je, alle, tage, onOpenSession)
+                VerlaufTeil(je, alle, tage, onOpenSession, d.saison?.regel)
                 Text(I18n.t("perf.hinweis"), style = MaterialTheme.typography.bodySmall, color = grau, modifier = Modifier.padding(bottom = 12.dp))
             }
         }
@@ -242,13 +243,14 @@ private fun UebersichtTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeil
                            onOpenSession: (Int) -> Unit, onSaison: (() -> Unit)? = null) {
     val grau = MaterialTheme.colorScheme.onSurfaceVariant
     val oeffnen = rememberOeffnen(onOpenSession)
-    fun quote(n: Int) = if (alle.isEmpty()) "–" else "${Math.round(100.0 * n / alle.size)} %"
+    // geschuetztes Leerzeichen vor %, damit die Prozente nicht umbrechen (Web e7e902263)
+    fun quote(n: Int) = if (alle.isEmpty()) "–" else "${Math.round(100.0 * n / alle.size)}\u00a0%"
     // Kennzahlen + Saison als sechste Kachel (wie Web 20.11.2026): 2 Reihen zu 3
     var saisonOffen by remember { mutableStateOf(false) }
     data class Kachel(val icon: Int, val wert: String, val label: String, val saison: Boolean = false)
     val kacheln = listOf(
         Kachel(R.drawable.perf_calendar_check, "${tage.size}", I18n.t("perf.tage")),
-        Kachel(R.drawable.perf_beat, "${Math.round(schnitt(alle.map { it.perzentil }))} %", I18n.t("perf.besserAls")),
+        Kachel(R.drawable.perf_beat, "${Math.round(schnitt(alle.map { it.perzentil }))}\u00a0%", I18n.t("perf.besserAls")),
         Kachel(R.drawable.perf_trophy, "${alle.count { it.platz == 1 }}", I18n.t("perf.siege")),
         Kachel(R.drawable.perf_podium, quote(alle.count { it.platz <= 3 }), I18n.t("perf.podium")),
         Kachel(R.drawable.perf_medal, quote(alle.count { it.platz <= 10 }), I18n.t("perf.top10")),
@@ -288,7 +290,9 @@ private fun UebersichtTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeil
                         // bester Platz / genau ein Sieg = ein einzelner Lauf -> antippen fuehrt hin (bei Gleichstand der neueste)
                         val best = z.minWith(compareBy<PerfZeile> { it.platz }.thenByDescending { it.tag })
                         tabZelle(I18n.t("perf.spBester"), "${best.platz}") { oeffnen(k, best) }
-                        tabZelle(I18n.t("perf.spTop3"), "${Math.round(100.0 * z.count { it.platz <= 3 } / z.size)} %")
+                        tabZelle(I18n.t("perf.spTop3"), "${Math.round(100.0 * z.count { it.platz <= 3 } / z.size)}\u00a0%")
+                        // Anteil der Tage unter den ersten 20 (Web 6b37c730e)
+                        tabZelle(I18n.t("perf.spTop20"), "${Math.round(100.0 * z.count { it.platz <= 20 } / z.size)}\u00a0%")
                         val siege = z.filter { it.platz == 1 }
                         tabZelle(I18n.t("perf.siege"), "${siege.size}", if (siege.size == 1) ({ oeffnen(k, siege[0]) }) else null)
                     }
@@ -373,8 +377,22 @@ private fun tabZelle(label: String, wert: String, onClick: (() -> Unit)? = null)
     }
 }
 
+/** Punkte eines Tages nach der Saisonregel (server community._saison_tabelle, Web tagesPunkte): Platzpunkte je Kategorie ab
+ *  `minFeld` Fahrern plus Mitmach-Punkt. Fuer JEDEN Tag, auch vor dem ersten Saisonstart (nur zur Orientierung). */
+private fun tagesPunkte(je: Map<String, List<PerfZeile>>, tag: String, r: PerfRegel): Int? {
+    var p = 0
+    var da = false
+    for (k in KATS) {
+        val z = je[k]?.firstOrNull { it.tag == tag } ?: continue
+        da = true
+        if (k in r.kategorien && z.feld >= r.minFeld && z.platz >= 1 && z.platz <= r.platz.size) p += r.platz[z.platz - 1]
+    }
+    return if (da) p + r.mitmachen else null
+}
+
 @Composable
-private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>, tage: List<String>, onOpenSession: (Int) -> Unit) {
+private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>, tage: List<String>, onOpenSession: (Int) -> Unit,
+                        regel: PerfRegel? = null) {
     val grau = MaterialTheme.colorScheme.onSurfaceVariant
     var kat by rememberSaveable { mutableStateOf("sprint_100m") }
     val oeffnen = rememberOeffnen(onOpenSession)
@@ -441,14 +459,46 @@ private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>,
                 PerfIcon(R.drawable.perf_placing_grid, 20.dp); Spacer(Modifier.width(6.dp))
                 Text(I18n.t("perf.raster"), fontWeight = FontWeight.SemiBold)
             }
+            // Punkte je Tag + bester Tag (Web 67f4fee28, Vorschlag eines Fahrers 21.11.2026): Punkte-Zeile unter dem Raster,
+            // feste Spalte „best" rechts. Bester Tag bei Gleichstand: der fruehere (wer zuerst).
+            val punkte = if (regel == null) emptyMap() else tage.mapNotNull { d -> tagesPunkte(je, d, regel)?.let { d to it } }.toMap()
+            val best = punkte.entries.sortedWith(compareByDescending<Map.Entry<String, Int>> { it.value }.thenBy { it.key }).firstOrNull()?.key
+            val akzent = perfAkzent()
+            val zeileTrenner = MaterialTheme.colorScheme.outlineVariant
+            // Eine Spalte (Kopf, vier Zellen, Punkte) — fuer die Tage und fuer die feste „best"-Spalte
+            @Composable
+            fun Spalte(tag: String, kopf: @Composable () -> Unit, vorl: Boolean, punkteFarbe: Color) {
+                Column(Modifier.clip(RoundedCornerShape(4.dp)).background(if (vorl) VorlGelb.copy(alpha = 0.35f) else Color.Transparent),
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(Modifier.height(if (best != null) 30.dp else 18.dp), contentAlignment = Alignment.BottomCenter) { kopf() }
+                    KATS.forEach { k ->
+                        val z = je[k]?.firstOrNull { it.tag == tag }
+                        Box(Modifier.padding(2.dp).size(width = 30.dp, height = 28.dp).clip(RoundedCornerShape(4.dp))
+                            .background(if (z != null) zellFarbe(z.perzentil) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                            .then(if (z != null) Modifier.clickable { oeffnen(k, z) } else Modifier),
+                            contentAlignment = Alignment.Center) {
+                            if (z != null) Text("${z.platz}", fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                        }
+                    }
+                    if (punkte.isNotEmpty()) Box(Modifier.height(26.dp).padding(top = 4.dp), contentAlignment = Alignment.Center) {
+                        Text(punkte[tag]?.toString() ?: "", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = punkteFarbe)
+                    }
+                }
+            }
             Row {
                 Column {
-                    Spacer(Modifier.height(18.dp))
+                    Spacer(Modifier.height(if (best != null) 30.dp else 18.dp))
                     KATS.forEach { k ->
                         Row(Modifier.height(32.dp).widthIn(max = 120.dp), verticalAlignment = Alignment.CenterVertically) {
                             PerfIcon(KAT_ICON.getValue(k), 16.dp); Spacer(Modifier.width(4.dp))
                             Text(I18n.t("perf.kat.$k"), style = MaterialTheme.typography.labelSmall, maxLines = 2)
                         }
+                    }
+                    if (punkte.isNotEmpty()) Row(Modifier.height(26.dp).widthIn(max = 120.dp).padding(top = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        Text("Σ", color = akzent, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, modifier = Modifier.width(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text(I18n.t("perf.punkteTag"), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, maxLines = 1)
                     }
                 }
                 Spacer(Modifier.width(6.dp))
@@ -456,26 +506,37 @@ private fun VerlaufTeil(je: Map<String, List<PerfZeile>>, alle: List<PerfZeile>,
                 val rasterRoll = rememberScrollState()
                 // beim Oeffnen ganz rechts (neueste Tage, heute) — wie Web
                 LaunchedEffect(rasterRoll.maxValue) { rasterRoll.scrollTo(rasterRoll.maxValue) }
-                Row(Modifier.horizontalScroll(rasterRoll)) {
-                    tage.reversed().forEach { tag ->
-                        val vorl = alle.any { it.tag == tag && it.vorlaeufig }
-                        Column(Modifier.clip(RoundedCornerShape(4.dp)).background(if (vorl) VorlGelb.copy(alpha = 0.35f) else Color.Transparent),
-                            horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(tagKurz(tag), style = MaterialTheme.typography.labelSmall, color = grau, fontSize = 10.sp,
-                                modifier = Modifier.height(18.dp))
-                            KATS.forEach { k ->
-                                val z = je[k]?.firstOrNull { it.tag == tag }
-                                Box(Modifier.padding(2.dp).size(width = 30.dp, height = 28.dp).clip(RoundedCornerShape(4.dp))
-                                    .background(if (z != null) zellFarbe(z.perzentil) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                                    .then(if (z != null) Modifier.clickable { oeffnen(k, z) } else Modifier),
-                                    contentAlignment = Alignment.Center) {
-                                    if (z != null) Text("${z.platz}", fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
-                                }
-                            }
+                Box(Modifier.weight(1f, fill = false)) {
+                    Row(Modifier.horizontalScroll(rasterRoll)) {
+                        tage.reversed().forEach { tag ->
+                            Spalte(tag, {
+                                Text(tagKurz(tag), style = MaterialTheme.typography.labelSmall, color = grau, fontSize = 10.sp)
+                            }, alle.any { it.tag == tag && it.vorlaeufig }, MaterialTheme.colorScheme.onSurface)
                         }
+                    }
+                    // Trennlinie ueber der Punkte-Zeile
+                    if (punkte.isNotEmpty()) Box(Modifier.matchParentSize()) {
+                        Box(Modifier.align(Alignment.BottomStart).padding(bottom = 26.dp).fillMaxWidth().height(2.dp).background(zeileTrenner))
+                    }
+                }
+                // feste Spalte „best" (Web: sticky rechts mit Markenlinie links)
+                if (best != null) {
+                    Row(Modifier.height(androidx.compose.foundation.layout.IntrinsicSize.Min)) {
+                        Spacer(Modifier.width(2.dp))
+                        Box(Modifier.width(2.dp).fillMaxHeight().background(PerfCyan))
+                        Spacer(Modifier.width(4.dp))
+                        Spalte(best, {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(I18n.t("perf.best").uppercase(), fontSize = 9.sp, fontWeight = FontWeight.SemiBold, color = akzent,
+                                    lineHeight = 10.sp)
+                                Text(tagKurz(best), style = MaterialTheme.typography.labelSmall, color = grau, fontSize = 10.sp)
+                            }
+                        }, false, akzent)
                     }
                 }
             }
+            if (punkte.isNotEmpty()) Text(I18n.t("perf.punkteHint"), style = MaterialTheme.typography.bodySmall, color = grau,
+                modifier = Modifier.padding(top = 4.dp))
             Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(I18n.t("perf.legende"), style = MaterialTheme.typography.labelSmall, color = grau)
                 listOf(10, 50, 90).forEach { p ->

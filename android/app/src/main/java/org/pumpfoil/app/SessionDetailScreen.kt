@@ -1381,6 +1381,10 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                 zugeklappt = istWind && !ohneFoil,
                 onSaved = { fresh -> selectedRun = null; SessionCache.store(fresh); onReload() },
             ) { selectedRun = if (selectedRun == it) null else it }
+            // Tempo-Verteilung dieser Session bzw. des gewaehlten Laufs (Web bc91dd51d, docs/TEMPO-VERTEILUNG.md) — nicht bei
+            // Sportarten ohne Foil; im Geraet gerechnet aus Laeufen und 1-s-Tempo.
+            if (!ohneFoil && segList.isNotEmpty()) SessionTempo(s.id, segList, a.trackGeojson, selectedRun, s.foil?.id,
+                s.foil?.let { f -> listOf(f.brand, f.model, f.size).filter { it.isNotBlank() }.joinToString(" ") }, eigene = s.owned)
             // Puls je Lauf als Streifen (Web CompareHrStrips, Port 16.11.2026) — zeigt sich nur mit Puls.
             trackForRuns?.let { tr -> if (segList.isNotEmpty()) HrStreifenKarte(tr, segList, zugeklappt = true) }
             // Lage je Lauf — nur am Brett, eigene kleine Tabelle unter der grossen (wie PWA).

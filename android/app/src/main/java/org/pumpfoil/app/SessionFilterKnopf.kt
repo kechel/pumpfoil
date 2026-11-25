@@ -47,11 +47,16 @@ import kotlinx.serialization.json.jsonPrimitive
  * Filter-Knopf fuer die Sessionlisten (Web SessionFilter.tsx, 18.11.2026; Nutzerwunsch 17.11.: „all runs with brand
  * XXX wing YYY"). Erste Einstellung: genau ein Foil — Suche ueber Marke/Modell/Groesse, Marken-Auswahl, eigene Foils
  * oben, darunter alle Foils, mit denen in der Community gefahren wird (nach Anzahl Sessions).
+ * Sortierung (Web 18a2299b1, Nutzerwunsch 24.11.2026) nur in Meine — die anderen Listen sind nach Tagen gruppiert,
+ * und nach Bestwerten sortiert waeren sie eine Rangliste. Nur wenn `onSort` gesetzt ist, zeigt der Dialog sie.
  */
+val SESSION_SORTS = listOf("neu", "alt", "lauf_m", "lauf_s", "foil_m", "foil_s", "tempo")
+
 private val Cyan = Color(0xFF22D3EE)   // Markenfarbe (brand-design)
 
 @Composable
-fun SessionFilterKnopf(foil: Int?, modifier: Modifier = Modifier, onFoil: (Int?) -> Unit) {
+fun SessionFilterKnopf(foil: Int?, modifier: Modifier = Modifier, sort: String = "neu", onSort: ((String) -> Unit)? = null,
+                       onFoil: (Int?) -> Unit) {
     var offen by remember { mutableStateOf(false) }
     var foils by remember { mutableStateOf<List<FoilStat>?>(null) }
     var meine by remember { mutableStateOf<List<Int>>(emptyList()) }
@@ -62,29 +67,37 @@ fun SessionFilterKnopf(foil: Int?, modifier: Modifier = Modifier, onFoil: (Int?)
             (Api.settings()["my_foils"] as? kotlinx.serialization.json.JsonArray)?.mapNotNull { it.jsonPrimitive.intOrNull } ?: emptyList()
         } catch (_: Exception) { emptyList() }
     }
-    val rand = if (foil != null) Cyan else MaterialTheme.colorScheme.outlineVariant
+    val sortiert = onSort != null && sort != "neu"
+    val an = foil != null || sortiert
+    val rand = if (an) Cyan else MaterialTheme.colorScheme.outlineVariant
     val aktiv = foils?.firstOrNull { it.foilId == foil }
-    val titel = if (foil != null && aktiv != null)
-        "${I18n.t("sfilter.title")}: ${foilLabel(aktiv.brand, aktiv.model, aktiv.size, aktiv.aspectRatio)}" else I18n.t("sfilter.title")
+    val titel = listOf(
+        if (foil != null && aktiv != null)
+            "${I18n.t("sfilter.title")}: ${foilLabel(aktiv.brand, aktiv.model, aktiv.size, aktiv.aspectRatio)}" else I18n.t("sfilter.title"),
+        if (sortiert) "${I18n.t("sfilter.sort")}: ${I18n.t("sfilter.sort.$sort")}" else "",
+    ).filter { it.isNotEmpty() }.joinToString(" · ")
     Box(modifier) {
         Box(
             Modifier.clip(RoundedCornerShape(12.dp)).border(1.dp, rand, RoundedCornerShape(12.dp))
-                .then(if (foil != null) Modifier.background(Cyan.copy(alpha = 0.15f)) else Modifier)
+                .then(if (an) Modifier.background(Cyan.copy(alpha = 0.15f)) else Modifier)
                 .clickable { offen = true }.padding(horizontal = 8.dp, vertical = 6.dp),
         ) {
             Icon(Icons.Filled.FilterAlt, contentDescription = titel, modifier = Modifier.size(18.dp),
-                tint = if (foil != null) Cyan else MaterialTheme.colorScheme.onSurfaceVariant)
+                tint = if (an) Cyan else MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        if (foil != null) Box(Modifier.align(Alignment.TopEnd).size(8.dp).clip(CircleShape).background(Cyan))
+        if (an) Box(Modifier.align(Alignment.TopEnd).size(8.dp).clip(CircleShape).background(Cyan))
     }
-    if (offen) FilterDialog(foil, foils, meine, onClose = { offen = false }) { onFoil(it); offen = false }
+    if (offen) FilterDialog(foil, foils, meine, sort, onSort?.let { f -> { k: String -> f(k); offen = false } },
+        onClose = { offen = false }) { onFoil(it); offen = false }
 }
 
 @Composable
-private fun FilterDialog(foil: Int?, foils: List<FoilStat>?, meine: List<Int>, onClose: () -> Unit, onWahl: (Int?) -> Unit) {
+private fun FilterDialog(foil: Int?, foils: List<FoilStat>?, meine: List<Int>, sort: String, onSort: ((String) -> Unit)?,
+                         onClose: () -> Unit, onWahl: (Int?) -> Unit) {
     var suche by remember { mutableStateOf("") }
     var marke by remember { mutableStateOf("") }
     var markenOffen by remember { mutableStateOf(false) }
+    var sortOffen by remember { mutableStateOf(false) }
     val marken = remember(foils) { foils.orEmpty().map { it.brand.trim() }.filter { it.isNotEmpty() }.distinct().sortedBy { it.lowercase() } }
     val woerter = suche.lowercase().split(Regex("\\s+")).filter { it.isNotEmpty() }
     val treffer = foils.orEmpty().filter { f ->
@@ -98,6 +111,25 @@ private fun FilterDialog(foil: Int?, foils: List<FoilStat>?, meine: List<Int>, o
         title = { Text("${I18n.t("sfilter.title")} · ${I18n.t("sfilter.foil")}") },
         text = {
             Column {
+                // Sortierung oben, abgesetzt vom Foil-Filter (Web: Auswahlfeld mit Trennlinie darunter)
+                if (onSort != null) {
+                    Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(I18n.t("sfilter.sort"), fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                        Box {
+                            OutlinedButton(onClick = { sortOffen = true }) {
+                                Text(I18n.t("sfilter.sort.$sort"), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
+                            DropdownMenu(expanded = sortOffen, onDismissRequest = { sortOffen = false }) {
+                                SESSION_SORTS.forEach { k ->
+                                    DropdownMenuItem(text = { Text(I18n.t("sfilter.sort.$k"),
+                                        fontWeight = if (k == sort) FontWeight.SemiBold else FontWeight.Normal) },
+                                        onClick = { sortOffen = false; onSort(k) })
+                                }
+                            }
+                        }
+                    }
+                    androidx.compose.material3.HorizontalDivider(Modifier.padding(bottom = 8.dp))
+                }
                 OutlinedTextField(value = suche, onValueChange = { suche = it }, singleLine = true,
                     placeholder = { Text(I18n.t("sfilter.search")) }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.padding(top = 6.dp))

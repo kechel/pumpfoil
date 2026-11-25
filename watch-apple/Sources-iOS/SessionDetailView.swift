@@ -1766,6 +1766,9 @@ struct SessionDetailView: View {
             excludeErrorRow
             if let segs = a.segments, !segs.isEmpty {
                 runsTable(segs, s)
+                // Tempo-Verteilung dieser Session bzw. des gewaehlten Laufs (web bc91dd51, 24.11.2026) — wie im Web nur bei
+                // Sportarten mit On-Foil-Fahren. Im selben Block wie die Tabelle: der Builder hier hat schon zehn Kinder.
+                if !ohneFoil { sessionTempo(segs, s) }
             }
             // Unter der Laufliste, zugeklappt als eine blaue Zeile (Web, Jan 18.11.2026).
             poweredSection(s)
@@ -1776,6 +1779,14 @@ struct SessionDetailView: View {
         } else {
             Text(Loc.t("sd.analyzing", lang)).foregroundStyle(.secondary)
         }
+    }
+
+    private func sessionTempo(_ segs: [Segment], _ s: SessionDetail) -> some View {
+        let props: TrackGeo.Properties? = s.analysis?.track_geojson?.properties
+        let speeds1: [Double] = props?.speeds?["1"] ?? props?.speeds_mps ?? []
+        let foilLabel: String? = s.foil.map { f in [f.brand, f.model, f.size].filter { !$0.isEmpty }.joined(separator: " ") }
+        return SessionTempoKarte(sessionId: s.id, segments: segs, speeds1: speeds1, selectedRun: selectedRun,
+                                 foilId: s.foil?.id, foilLabel: foilLabel, eigene: s.owned == true, lang: lang)
     }
 
     private func runsTable(_ segs: [Segment], _ s: SessionDetail) -> some View {
@@ -4320,3 +4331,109 @@ struct PulsStreifenKarte: View {
 
 /// Puls-Rampe der Streifen: dieselbe wie die Kartenfaerbung (blau niedrig -> rot hoch).
 private func pulsRampe(_ t: Double) -> UIColor { uiRampColor(t) }
+
+
+/// Session-Details › Tempo-Verteilung (web SessionTempo.tsx, 24.11.2026, docs/TEMPO-VERTEILUNG.md Schritt 2): aufklappbar
+/// unter der Lauftabelle. Ganze Session, oder — ist ein Lauf gewaehlt — dieser Lauf mit der Session als Vergleichslinie.
+/// Der Besitzer kann stattdessen mit seinen uebrigen Sessions auf demselben Foil vergleichen (nur er: das verraet etwas
+/// ueber seine anderen Sessions). Gerechnet im Geraet aus den schon geladenen Daten (`tempoHist`, HomeView.swift).
+struct SessionTempoKarte: View {
+    let sessionId: Int
+    let segments: [Segment]
+    let speeds1: [Double]
+    let selectedRun: Int?
+    let foilId: Int?
+    let foilLabel: String?
+    let eigene: Bool
+    let lang: String
+    /// Auf/zu bleibt ueber Sessions hinweg gemerkt (web localStorage `pumpfoil_session_tempo_offen`).
+    @AppStorage("sessionTempoOffen") private var offen: Bool = false
+    @State private var vgl: String = "auto"          // auto | keiner | foil
+    @State private var foilReihe: TempoReihe? = nil
+    @State private var foilLeer: Bool = false
+
+    private var lauf: Int? {
+        guard let r = selectedRun, segments.indices.contains(r) else { return nil }
+        return r
+    }
+    private var laufText: String {
+        Loc.t("tempo.run", lang).replacingOccurrences(of: "{n}", with: String((lauf ?? 0) + 1))
+    }
+    private var anderenText: String {
+        Loc.t("tempo.sessionOthers", lang).replacingOccurrences(of: "{foil}", with: foilLabel ?? "")
+    }
+    private var titel: String {
+        lauf != nil ? Loc.t("tempo.title", lang) + " · " + laufText : Loc.t("tempo.title", lang)
+    }
+
+    var body: some View {
+        let ses: (a: [Double], g: [Double]?, g_basis: [Double]?) = tempoHist(segments, speeds1)
+        if ses.a.contains(where: { $0 > 0 }) {
+            VStack(alignment: .leading, spacing: 8) {
+                kopf
+                if offen { inhalt(ses) }
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+            .task(id: "\(offen)|\(vgl)") { await foilLaden() }
+        }
+    }
+
+    private var kopf: some View {
+        Button { offen.toggle() } label: {
+            HStack {
+                Text(titel).font(.subheadline.weight(.semibold))
+                Spacer()
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
+                    .rotationEffect(.degrees(offen ? 90 : 0))
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func haupt(_ ses: (a: [Double], g: [Double]?, g_basis: [Double]?)) -> TempoReihe {
+        if let l = lauf {
+            let e: (a: [Double], g: [Double]?, g_basis: [Double]?) = tempoHist([segments[l]], speeds1)
+            return TempoReihe(a: e.a, g: e.g, g_basis: e.g_basis, label: laufText)
+        }
+        return TempoReihe(a: ses.a, g: ses.g, g_basis: ses.g_basis, label: Loc.t("tempo.thisSession", lang))
+    }
+
+    private func vergleich(_ ses: (a: [Double], g: [Double]?, g_basis: [Double]?)) -> TempoReihe? {
+        if vgl == "foil" { return foilReihe }
+        if vgl == "auto" && lauf != nil { return TempoReihe(a: ses.a, label: Loc.t("tempo.thisSession", lang)) }
+        return nil
+    }
+
+    @ViewBuilder private func inhalt(_ ses: (a: [Double], g: [Double]?, g_basis: [Double]?)) -> some View {
+        if lauf != nil || (eigene && foilId != nil) { vglWahl }
+        TempoVerteilungView(haupt: haupt(ses), vergleich: vergleich(ses), breiteKmh: TEMPO_BREITE_KMH, lang: lang)
+        if vgl == "foil" && foilLeer {
+            Text(Loc.t("tempo.sessionOthersNone", lang)).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    private var vglWahl: some View {
+        HStack(spacing: 4) {
+            Text(Loc.t("tempo.compare", lang)).font(.subheadline).foregroundStyle(.secondary)
+            Picker(Loc.t("tempo.compare", lang), selection: $vgl) {
+                Text(lauf != nil ? Loc.t("tempo.wholeSession", lang) : "—").tag("auto")
+                if lauf != nil { Text("—").tag("keiner") }
+                if eigene && foilId != nil { Text(anderenText).tag("foil") }
+            }
+            .pickerStyle(.menu)
+        }
+    }
+
+    private func foilLaden() async {
+        guard offen, vgl == "foil", let f = foilId, foilReihe == nil, !foilLeer else { return }
+        do {
+            let r: TempoEigen = try await Api.tempoEigen(period: "all", foilId: f, ohneSession: sessionId)
+            if r.a.contains(where: { $0 > 0 }) { foilReihe = TempoReihe(a: r.a, label: anderenText) } else { foilLeer = true }
+        } catch {
+            if !(error is CancellationError) { foilLeer = true }
+        }
+    }
+}

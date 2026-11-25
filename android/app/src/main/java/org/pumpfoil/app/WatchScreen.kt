@@ -692,8 +692,9 @@ private fun sparUhrText(d: PairedDevice): String {
 
 /**
  * Uhren und verknuepfte Konten in EINER Ansicht (Web LinkedAccounts.tsx `eingebettet`, 02.11.2026): Home › Uhren und
- * Einstellungen › Uhren. Zweite Zeile direkt unter der Hauptzeile: Uhr | Polar | COROS | Suunto | Xiaomi | MCP — je Anbieter
- * ein Reiter wie im Web (Strava zeigt die App nicht, es ist zurueckgestellt).
+ * Einstellungen › Uhren. Zweite Zeile direkt unter der Hauptzeile: Uhr | Polar | COROS | Suunto | Xiaomi — je Anbieter
+ * ein Reiter wie im Web (Strava zeigt die App nicht, es ist zurueckgestellt). MCP stand bis 22.11.2026 hier als Reiter,
+ * jetzt unter Einstellungen › Konto (Web 3139830a2: unter „Uhr" kaum zu finden, unter Konto vermutet).
  */
 @Composable
 fun UhrenKontenBereich() {
@@ -707,9 +708,8 @@ fun UhrenKontenBereich() {
         ReiterDef("coros", "COROS"),
         ReiterDef("suunto", "Suunto"),
         ReiterDef("xiaomi", "Xiaomi"),
-        ReiterDef("mcp", "MCP"),
     )
-    var tab by rememberReiter("konten", listOf("uhr", "garmin", "polar", "coros", "suunto", "xiaomi", "mcp"), "uhr")
+    var tab by rememberReiter("konten", listOf("uhr", "garmin", "polar", "coros", "suunto", "xiaomi"), "uhr")
     Column {
         Reiterleiste(reiter, tab, { tab = it }, stufe = 2)
         Spacer(Modifier.height(10.dp))

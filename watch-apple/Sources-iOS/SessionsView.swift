@@ -56,6 +56,9 @@ struct SessionsView: View {
     @State private var sport = "all"
     /// Foil-Filter (Filter-Knopf, Web 18.11.2026) — Meine/Freunde/Team/Alle, bleibt beim Reiterwechsel stehen.
     @State private var foilFilter: Int?
+    /// Sortierung (Filter-Knopf, nur Meine, web 18a2299b1): neu | alt | lauf_m | lauf_s | foil_m | foil_s | tempo.
+    /// Ein Abruf ersetzt die Liste ganz — neue Sessions werden nie oben eingeschoben, die Reihenfolge stimmt also auch sortiert.
+    @State private var sortWahl = "neu"
     @State private var sports: [CommunitySport] = []
     // Sportarten des gewaehlten Spots fuer die Filter-Knoepfe (28.10.2026) und daraus die Sportart von
     // Rekorden und Heatmap (= der Filter, „Alle" zaehlt seit web 1eec9e07 alle Sportarten zusammen).
@@ -106,6 +109,7 @@ struct SessionsView: View {
                 .onChange(of: month) { _ in listeLeeren(); Task { await load() } }
                 .onChange(of: sport) { _ in listeLeeren(); Task { await loadMonths(); await load() } }
                 .onChange(of: foilFilter) { _ in listeLeeren(); Task { await load() } }
+                .onChange(of: sortWahl) { _ in listeLeeren(); Task { await load() } }
                 .onChange(of: sync.tick) { _ in Task { await load() } }
                 .task { await loadMonths() }
                 // Laeuft eine eigene Aufnahme noch (status recording/live), die Liste alle 4 s
@@ -343,7 +347,11 @@ struct SessionsView: View {
         if scope != .spot, SportFilterMenu.zeigen(sport: sport, sports: sports) {
             SportFilterMenu(sport: sport, sports: sports, lang: lang, maxBreite: 110) { neu in month = ""; sport = neu }
         }
-        if scope != .spot { SessionFilterKnopf(foil: $foilFilter, lang: lang) }
+        if scope == .mine {
+            SessionFilterKnopf(foil: $foilFilter, lang: lang, sort: $sortWahl)
+        } else if scope != .spot {
+            SessionFilterKnopf(foil: $foilFilter, lang: lang)
+        }
         ListenAnsichtUmschalter(lang: lang)
     }
 
@@ -456,7 +464,8 @@ struct SessionsView: View {
         do {
             if scope == .mine {
                 let r = try await Api.sessions(month: month.isEmpty ? nil : month, filter: filter, accelOnly: accelOnly && !brett,
-                                               sport: sport, board: brett, limit: seite, offset: own.count, foilId: foilFilter)
+                                               sport: sport, board: brett, limit: seite, offset: own.count, foilId: foilFilter,
+                                               sort: sortWahl)
                 guard meine == ladeGeneration else { return }
                 let da = Set(own.map { $0.id })
                 own += r.filter { !da.contains($0.id) }; hatMehr = r.count >= seite
@@ -655,7 +664,8 @@ struct SessionsView: View {
             case .mine:
                 let n = max(seite, own.count)
                 let r = try await Api.sessions(month: month.isEmpty ? nil : month, filter: filter,
-                                               accelOnly: accelOnly && !brett, sport: sport, board: brett, limit: n, foilId: foilFilter)
+                                               accelOnly: accelOnly && !brett, sport: sport, board: brett, limit: n, foilId: foilFilter,
+                                               sort: sortWahl)
                 guard meine == ladeGeneration else { return }
                 own = r; hatMehr = r.count >= n
             // sport: Default "all" — diese Liste ist das „was ist neu" und soll ALLE Sportarten
@@ -1791,24 +1801,39 @@ extension View {
 struct SessionFilterKnopf: View {
     @Binding var foil: Int?
     let lang: String
+    /// Nur wenn gesetzt, zeigt das Blatt oben die Sortierung (Meine, web 18a2299b1 — die Community-Listen sind
+    /// nach Tagen gruppiert, nach Bestwerten sortiert waeren sie eine Rangliste).
+    var sort: Binding<String>? = nil
     @State private var offen = false
+
+    /// Wie der Punkt am Web-Knopf: Foil gewaehlt ODER anders sortiert als „Neueste zuerst".
+    private var aktiv: Bool { foil != nil || (sort.map { $0.wrappedValue != "neu" } ?? false) }
+
+    private var titel: String {
+        guard let s = sort?.wrappedValue, s != "neu" else { return Loc.t("sfilter.title", lang) }
+        return Loc.t("sfilter.title", lang) + " · " + Loc.t("sfilter.sort", lang) + ": " + Loc.t("sfilter.sort." + s, lang)
+    }
 
     var body: some View {
         Button { offen = true } label: {
-            Image(systemName: foil == nil ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill")
+            Image(systemName: aktiv ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
                 .font(.body)
-                .foregroundStyle(foil == nil ? Color.secondary : Color.cyan)
+                .foregroundStyle(aktiv ? Color.cyan : Color.secondary)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(Loc.t("sfilter.title", lang))
+        .accessibilityLabel(titel)
         .sheet(isPresented: $offen) {
-            SessionFilterBlatt(foil: $foil, lang: lang) { offen = false }
+            SessionFilterBlatt(foil: $foil, sort: sort, lang: lang) { offen = false }
         }
     }
 }
 
+/// Sortierungen der eigenen Liste, Reihenfolge wie web SESSION_SORTS (SessionFilter.tsx).
+let sessionSorts: [String] = ["neu", "alt", "lauf_m", "lauf_s", "foil_m", "foil_s", "tempo"]
+
 private struct SessionFilterBlatt: View {
     @Binding var foil: Int?
+    let sort: Binding<String>?
     let lang: String
     let schliessen: () -> Void
     @State private var foils: [FoilStat]?
@@ -1832,6 +1857,7 @@ private struct SessionFilterBlatt: View {
     var body: some View {
         NavigationView {
             List {
+                if let sort { sortSektion(sort) }
                 if foils == nil {
                     Text("…").foregroundStyle(.secondary)
                 } else {
@@ -1893,6 +1919,19 @@ private struct SessionFilterBlatt: View {
     }
 
     private func waehle(_ id: Int?) { foil = id; schliessen() }
+
+    /// Sortierung ganz oben im Blatt (web: Auswahlfeld ueber dem Foil-Teil). Ein Wechsel schliesst das Blatt nicht —
+    /// der Foil kann danach noch gewaehlt werden, wie im Web-Popup.
+    private func sortSektion(_ sort: Binding<String>) -> some View {
+        Section {
+            Picker(Loc.t("sfilter.sort", lang), selection: sort) {
+                ForEach(sessionSorts, id: \.self) { k in
+                    Text(Loc.t("sfilter.sort." + k, lang)).tag(k)
+                }
+            }
+            .pickerStyle(.menu)
+        }
+    }
 
     @ViewBuilder private func zeile(_ text: String, _ zahl: Int?, aktiv: Bool, _ tap: @escaping () -> Void) -> some View {
         Button(action: tap) {

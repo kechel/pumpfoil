@@ -8,6 +8,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -648,7 +649,9 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
             // Zweite Reiterzeile wie Web PersonalHome `StatsBereich` (04.11.2026): Verlauf (eingebettet) · Kennzahlen
             // (Jahresbilanz, Start-Erfolgsquote, Carves, Wenden & Halsen untereinander) · Lage des Bretts.
             val statsReiter = listOf(ReiterDef("verlauf", I18n.t("nav.history")), ReiterDef("kennzahlen", I18n.t("tab.insights")),
-                ReiterDef("brett", I18n.t("home.boardAttitude")))
+                ReiterDef("brett", I18n.t("home.boardAttitude")),
+                // Tempo-Verteilung (Web 7cbc6abf6, 24.11.2026, docs/TEMPO-VERTEILUNG.md)
+                ReiterDef("tempo", I18n.t("tempo.tab")))
             var sub by rememberReiter("homestats", statsReiter.map { it.id }, "verlauf")
             Reiterleiste(statsReiter, sub, { sub = it }, stufe = 2, modifier = Modifier.padding(bottom = 10.dp))
             when (sub) {
@@ -681,6 +684,7 @@ fun HomeScreen(onOpen: (Int, Long?) -> Unit, onOpenSessions: () -> Unit = {}, on
                 }
                 // Lage des Bretts je Lauflaenge; ohne Brett-Aufnahmen eine Erklaerung (Web BrettErklaerung).
                 "brett" -> BrettLageStartseite(ohneDaten = { BrettErklaerung(onNerd = { runCatching { uriHome.openUri(teamWebUrl("/nerd-analysen-4")) } }) })
+                "tempo" -> TempoBereich()
             }
             }   // stats
             Spacer(Modifier.height(8.dp))
@@ -1231,6 +1235,10 @@ internal fun FeedbackDialog(onDismiss: () -> Unit, prefill: String = "", url: St
     val scope = rememberCoroutineScope()
     val ctx = androidx.compose.ui.platform.LocalContext.current
     var text by remember { mutableStateOf(prefill) }
+    // Vorlage aus „fehlt etwas?" (Web 8b7904760): unveraendert abgeschickt kam sie leer an — Senden erst,
+    // wenn etwas dazugeschrieben wurde.
+    val vorlage = prefill.trim()
+    val nurVorlage = vorlage.isNotEmpty() && text.trim() == vorlage
     var busy by remember { mutableStateOf(false) }
     var sent by remember { mutableStateOf(false) }
     var fehler by remember { mutableStateOf("") }
@@ -1279,6 +1287,11 @@ internal fun FeedbackDialog(onDismiss: () -> Unit, prefill: String = "", url: St
                                 contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)) { Text("×") }
                         }
                     }
+                    if (nurVorlage) {
+                        Text(I18n.t("feedback.fillTemplate"), style = MaterialTheme.typography.bodyMedium,
+                            color = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) Color(0xFFFCD34D) else Color(0xFFB45309),   // amber-300 / amber-700
+                            modifier = Modifier.padding(top = 6.dp))
+                    }
                     if (fehler.isNotEmpty()) {
                         Text(fehler, style = MaterialTheme.typography.bodySmall,
                              color = MaterialTheme.colorScheme.error)
@@ -1291,7 +1304,7 @@ internal fun FeedbackDialog(onDismiss: () -> Unit, prefill: String = "", url: St
                 TextButton(onClick = onDismiss) { Text("OK") }
             } else {
                 TextButton(
-                    enabled = !busy && text.isNotBlank(),
+                    enabled = !busy && text.isNotBlank() && !nurVorlage,
                     onClick = {
                         busy = true; fehler = ""
                         scope.launch {

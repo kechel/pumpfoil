@@ -125,11 +125,9 @@ fun LinkedAccountsScreen(onBack: () -> Unit, eingebettet: Boolean = false, nur: 
     }
 
     val inhalt: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit = {
-        // Hinweis ueber den Konten (Web: linked.hint, nicht beim MCP-Reiter).
-        if (nur != "mcp") {
-            Text(I18n.t("accounts.sub"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Box(Modifier.padding(top = 12.dp))
-        }
+        // Hinweis ueber den Konten (Web: linked.hint).
+        Text(I18n.t("accounts.sub"), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box(Modifier.padding(top = 12.dp))
         anbieter.forEach { p ->
             val st = status[p.id]
             // Garmin ohne Freigabe (nur Admins/Tester, server garmin.fuer_nutzer_sichtbar): gar nicht zeigen.
@@ -253,8 +251,7 @@ fun LinkedAccountsScreen(onBack: () -> Unit, eingebettet: Boolean = false, nur: 
             }
         }
         if (nur == null || nur == "xiaomi") XiaomiHinweis()
-        // KI-Zugang (MCP) — wie die PWA ganz unten bei den verknuepften Konten bzw. als eigener Reiter.
-        if (nur == null || nur == "mcp") McpKarte()
+        // KI-Zugang (MCP) steht seit 22.11.2026 unter Einstellungen › Konto (Web 3139830a2), nicht mehr hier.
     }
     if (eingebettet) Column { inhalt() }
     else Scaffold(

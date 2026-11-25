@@ -60,7 +60,7 @@ extension Api {
     // `sport` und `region` seit 05.11.2026: es wird immer dieselbe Sportart verglichen, Teams nach ihrer Herkunft.
     static func teamsVergleich(period: String, top: Int, sport: String = "pumpfoil", region: String = "all") async throws -> TeamVergleich {
         let p: String = period.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? period
-        let s: String = sport.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sport
+        let s: String = Api.queryWert(sport)
         return try await request("/api/teams/liste/vergleich?period=\(p)&top=\(top)&sport=\(s)" + regionParam(region),
                                  method: "GET", body: nil, auth: true)
     }

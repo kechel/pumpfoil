@@ -28,6 +28,13 @@ struct FeedbackView: View {
     // `.plainText` deckt .txt/.log/.ips mit ab, wenn das Geraet keinen eigenen Typ dafuer kennt.
     private let typen: [UTType] = [.image, .plainText, .json, .commaSeparatedText, .xml, .yaml, .log]
 
+    /// Unveraenderte Vorlage („fehlt etwas?"): kam im Web zweimal leer an (web 8b7904760) — Senden erst, wenn
+    /// etwas dazugeschrieben wurde.
+    private var nurVorlage: Bool {
+        let v: String = prefill.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !v.isEmpty && text.trimmingCharacters(in: .whitespacesAndNewlines) == v
+    }
+
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 12) {
@@ -51,6 +58,10 @@ struct FeedbackView: View {
                     Text("\(text.count)/\(maxZeichen)").font(.footnote).monospacedDigit()
                         .foregroundStyle(text.count >= maxZeichen ? Color.orange : Color.secondary)
                         .frame(maxWidth: .infinity, alignment: .trailing)
+                    if nurVorlage {
+                        Text(Loc.t("feedback.fillTemplate", lang)).font(.subheadline).foregroundStyle(Color.orange)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                     anhangBereich
                     Spacer()
                 }
@@ -71,7 +82,7 @@ struct FeedbackView: View {
                         Button("OK") { dismiss() }
                     } else {
                         Button(Loc.t("feedback.send", lang)) { senden() }
-                            .disabled(busy || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                            .disabled(busy || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || nurVorlage)
                     }
                 }
             }
@@ -104,7 +115,7 @@ struct FeedbackView: View {
 
     private func senden() {
         let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !t.isEmpty else { return }
+        guard !t.isEmpty, !nurVorlage else { return }
         busy = true
         fehler = ""
         Task {

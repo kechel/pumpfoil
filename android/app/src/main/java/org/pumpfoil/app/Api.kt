@@ -272,7 +272,7 @@ object Api {
     // in der PWA (Nutzerwunsch 27.09.2026, Filter nach Sportart).
     suspend fun sessions(month: String? = null, filter: String = "pump", accelOnly: Boolean = false,
                          sport: String? = null, board: Boolean = false, limit: Int? = null, offset: Int = 0,
-                         foilId: Int? = null): List<SessionSummary> = withContext(Dispatchers.IO) {
+                         foilId: Int? = null, sort: String? = null): List<SessionSummary> = withContext(Dispatchers.IO) {
         val qs = buildString {
             append("?filter=$filter")
             // Seitenweise (Home: die drei neuesten; Meine: 20 je Seite beim Scrollen). Ohne limit die ganze Liste.
@@ -283,6 +283,8 @@ object Api {
             if (board) append("&board=true")   // nur Handy am Brett (POB)
             if (foilId != null) append("&foil_id=$foilId")   // Filter-Knopf (18.11.2026)
             if (!sport.isNullOrBlank() && sport != "all") append("&sport=" + java.net.URLEncoder.encode(sport, "UTF-8"))
+            // Sortierung (Filter-Knopf, nur Meine; Web 18a2299b1): neu|alt|lauf_m|lauf_s|foil_m|foil_s|tempo, „neu" = Serverdefault
+            if (!sort.isNullOrBlank() && sort != "neu") append("&sort=" + java.net.URLEncoder.encode(sort, "UTF-8"))
         }
         json.decodeFromString(
             ListSerializer(SessionSummary.serializer()),
@@ -529,7 +531,7 @@ object Api {
                                   sport: String? = null,
                                   foilId: Int? = null): List<CommunityItem> = withContext(Dispatchers.IO) {
         val qs = "?limit=$limit&offset=$offset" + (if (!accelOnly) "&accel_only=false" else "") +
-            (if (sport != null) "&sport=$sport" else "") +
+            (if (sport != null) "&sport=" + java.net.URLEncoder.encode(sport, "UTF-8") else "") +
             (if (foilId != null) "&foil_id=$foilId" else "")
         json.decodeFromString(
             ListSerializer(CommunityItem.serializer()),
@@ -554,7 +556,7 @@ object Api {
                                          board: Boolean = false, freunde: Boolean = false,
                                          team: String? = null, foilId: Int? = null): List<CommunityGroup> = withContext(Dispatchers.IO) {
         val sp = if (!spot.isNullOrBlank()) "&spot=" + java.net.URLEncoder.encode(spot, "UTF-8") else ""
-        val qs = "?limit=$limit&offset=$offset&accel_only=$accelOnly$sp" + (if (sport != null) "&sport=$sport" else "") +
+        val qs = "?limit=$limit&offset=$offset&accel_only=$accelOnly$sp" + (if (sport != null) "&sport=" + java.net.URLEncoder.encode(sport, "UTF-8") else "") +
             (if (board) "&board=true" else "") + (if (freunde) "&friends=1" else "") +
             // Sessions › Team (Web 02.11.2026): „alle" oder Team-ID, letzte 30 Tage, nur fuer Mitglieder
             (if (team != null) "&team=" + java.net.URLEncoder.encode(team, "UTF-8") else "") +
@@ -1654,6 +1656,25 @@ object Api {
     }
 
     // Home › Performance: eigene Tagesplatzierungen (sport: "pumpfoil" oder "pumpfoil+foil_scoot", 18.11.2026).
+    /** Tempo-Verteilung der eigenen Sessions (Web api.tempoEigen, 24.11.2026): Sekunden auf dem Foil je 0,5 km/h, Gleiten
+     *  getrennt. `ohneSession`: diese Session auslassen (Session-Details: „meine uebrigen Sessions mit diesem Foil"). */
+    suspend fun tempoEigen(period: String = "all", foilId: Int? = null, spotId: Int? = null, sport: String? = null,
+                           ohneSession: Int? = null): TempoEigen = withContext(Dispatchers.IO) {
+        val qs = buildString {
+            append("?period=" + java.net.URLEncoder.encode(period, "UTF-8"))
+            if (!sport.isNullOrBlank()) append("&sport=" + java.net.URLEncoder.encode(sport, "UTF-8"))
+            if (foilId != null) append("&foil_id=$foilId")
+            if (spotId != null) append("&spot_id=$spotId")
+            if (ohneSession != null) append("&ohne_session=$ohneSession")
+        }
+        json.decodeFromString(TempoEigen.serializer(), http("GET", "/api/tempo/eigen$qs", null, auth = true))
+    }
+
+    /** Alle Fahrer auf einem Foil: Anteile in Promille (Mittel ueber die Fahrer), erst ab `min_fahrer` (`genug`). */
+    suspend fun tempoFoil(foilId: Int): TempoFoil = withContext(Dispatchers.IO) {
+        json.decodeFromString(TempoFoil.serializer(), http("GET", "/api/tempo/foil/$foilId", null, auth = true))
+    }
+
     suspend fun performance(sport: String): PerfAntwort = withContext(Dispatchers.IO) {
         json.decodeFromString(PerfAntwort.serializer(),
             http("GET", "/api/community/performance?sport=" + java.net.URLEncoder.encode(sport, "UTF-8"), null, auth = true))

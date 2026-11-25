@@ -252,7 +252,9 @@ struct HomeView: View {
     private var statsReiter: [ReiterDef] {
         [ReiterDef(id: "verlauf", label: Loc.t("nav.history", lang)),
          ReiterDef(id: "kennzahlen", label: Loc.t("tab.insights", lang)),
-         ReiterDef(id: "brett", label: Loc.t("home.boardAttitude", lang))]
+         ReiterDef(id: "brett", label: Loc.t("home.boardAttitude", lang)),
+         // Tempo-Verteilung (web 7cbc6abf, 24.11.2026)
+         ReiterDef(id: "tempo", label: Loc.t("tempo.tab", lang))]
     }
 
     @ViewBuilder private var homeStats: some View {
@@ -261,6 +263,7 @@ struct HomeView: View {
         switch statsTab {
         case "kennzahlen": statsKennzahlen
         case "brett": BrettLageStartseite(lang: lang, erklaerungWennLeer: true)
+        case "tempo": TempoBereich(lang: lang)
         default: VerlaufView(eingebettet: true)
         }
     }
@@ -1147,7 +1150,41 @@ struct PerformanceBereich: View {
     }
     private var alle: [PerfZeile] { perfKats.flatMap { je($0) } }
     private var tage: [String] { Array(Set(alle.map { $0.tag })).sorted(by: >) }
-    private func quote(_ n: Int) -> String { alle.isEmpty ? "–" : "\(Int((100.0 * Double(n) / Double(alle.count)).rounded())) %" }
+    // Geschuetztes Leerzeichen vor „%" (web e7e90226): die Prozente brechen sonst in den schmalen Kacheln um.
+    private func quote(_ n: Int) -> String { alle.isEmpty ? "–" : "\(Int((100.0 * Double(n) / Double(alle.count)).rounded()))\u{00A0}%" }
+    /// Anteil der Tage mit Platz <= `bis` in einer Kategorie (Spalten Top 3 / Top 20).
+    private func anteil(_ z: [PerfZeile], _ bis: Int) -> String {
+        guard !z.isEmpty else { return "–" }
+        let n: Int = z.filter { $0.platz <= bis }.count
+        return "\(Int((100.0 * Double(n) / Double(z.count)).rounded()))\u{00A0}%"
+    }
+
+    /// Punkte eines Tages nach der Saisonregel (server community._saison_tabelle, web tagesPunkte): Platzpunkte je
+    /// Kategorie ab `min_feld` Fahrern plus Mitmach-Punkt. Fuer JEDEN Tag, auch vor dem ersten Saisonstart (Jan 21.11.2026:
+    /// „einfach jetzt schon in der tabelle anzeigen, zaehlt halt nicht zur saison 27"). nil = an dem Tag keine Wertung.
+    private func tagesPunkte(_ tag: String, _ r: PerfRegel) -> Int? {
+        var p: Int = 0
+        var da: Bool = false
+        for k in perfKats {
+            guard let z = je(k).first(where: { $0.tag == tag }) else { continue }
+            da = true
+            if r.kategorien.contains(k) && z.feld >= r.min_feld && z.platz >= 1 && z.platz <= r.platz.count {
+                p += r.platz[z.platz - 1]
+            }
+        }
+        return da ? p + r.mitmachen : nil
+    }
+    /// Punkte je Tag (leer ohne Saisonregel vom Server).
+    private var punkteJeTag: [String: Int] {
+        guard let r = daten?.saison?.regel else { return [:] }
+        var m: [String: Int] = [:]
+        for t in tage { if let p = tagesPunkte(t, r) { m[t] = p } }
+        return m
+    }
+    /// Bester Tag (meiste Punkte), bei Gleichstand der fruehere — wer zuerst (Vorschlag eines Fahrers, web 67f4fee2).
+    private func besterTag(_ punkte: [String: Int]) -> String? {
+        punkte.min { a, b in a.value != b.value ? a.value > b.value : a.key < b.key }?.key
+    }
     private func sportName(_ s: String) -> String {
         s.split(separator: "+").map { Loc.t("cls.sport." + String($0), lang) }.joined(separator: " + ")
     }
@@ -1294,20 +1331,35 @@ struct PerformanceBereich: View {
             if z.isEmpty {
                 Text(Loc.t("perf.keineTage", lang)).font(.caption).foregroundStyle(.secondary)
             } else {
-                let schnittText: String = Loc.t("perf.schnittVon", lang)
-                    .replacingOccurrences(of: "{platz}", with: String(format: "%.1f", schnitt(z.map { Double($0.platz) })))
-                    .replacingOccurrences(of: "{feld}", with: String(Int(schnitt(z.map { Double($0.feld) }).rounded())))
-                let top3: Int = Int((100.0 * Double(z.filter { $0.platz <= 3 }.count) / Double(z.count)).rounded())
-                HStack {
-                    tabZelle(Loc.t("perf.tage", lang), String(z.count))
-                    Spacer(); tabZelle(Loc.t("perf.spSchnitt", lang), schnittText)
-                    // bester Platz / genau ein Sieg = ein einzelner Lauf -> antippen fuehrt hin (bei Gleichstand der neueste)
-                    let best: PerfZeile? = z.min { $0.platz != $1.platz ? $0.platz < $1.platz : $0.tag > $1.tag }
-                    let siege: [PerfZeile] = z.filter { $0.platz == 1 }
-                    Spacer(); tabZelle(Loc.t("perf.spBester", lang), String(best?.platz ?? 0), ziel: best.map { perfZiel(k, $0) })
-                    Spacer(); tabZelle(Loc.t("perf.spTop3", lang), "\(top3) %")
-                    Spacer(); tabZelle(Loc.t("perf.siege", lang), String(siege.count), ziel: siege.count == 1 ? perfZiel(k, siege[0]) : nil)
-                }
+                tabellenWerte(k, z)
+            }
+        }
+    }
+
+    private func schnittText(_ z: [PerfZeile]) -> String {
+        let platz: String = String(format: "%.1f", schnitt(z.map { Double($0.platz) }))
+        let feld: String = String(Int(schnitt(z.map { Double($0.feld) }).rounded()))
+        return Loc.t("perf.schnittVon", lang).replacingOccurrences(of: "{platz}", with: platz).replacingOccurrences(of: "{feld}", with: feld)
+    }
+
+    /// Eine Tabellenzeile: Tage, Ø Platz, bester, Top 3, Top 20 (web 6b37c730), Siege.
+    private func tabellenWerte(_ k: String, _ z: [PerfZeile]) -> some View {
+        // bester Platz / genau ein Sieg = ein einzelner Lauf -> antippen fuehrt hin (bei Gleichstand der neueste)
+        let best: PerfZeile? = z.min { $0.platz != $1.platz ? $0.platz < $1.platz : $0.tag > $1.tag }
+        let siege: [PerfZeile] = z.filter { $0.platz == 1 }
+        let bestZiel: SessionDetailView? = best.map { perfZiel(k, $0) }
+        let siegZiel: SessionDetailView? = siege.count == 1 ? perfZiel(k, siege[0]) : nil
+        // In zwei Gruppen: elf direkte Kinder waeren ueber der alten ViewBuilder-Grenze von zehn.
+        return HStack {
+            tabZelle(Loc.t("perf.tage", lang), String(z.count))
+            Group {
+                Spacer(); tabZelle(Loc.t("perf.spSchnitt", lang), schnittText(z))
+                Spacer(); tabZelle(Loc.t("perf.spBester", lang), String(best?.platz ?? 0), ziel: bestZiel)
+            }
+            Group {
+                Spacer(); tabZelle(Loc.t("perf.spTop3", lang), anteil(z, 3))
+                Spacer(); tabZelle(Loc.t("perf.spTop20", lang), anteil(z, 20))
+                Spacer(); tabZelle(Loc.t("perf.siege", lang), String(siege.count), ziel: siegZiel)
             }
         }
     }
@@ -1391,7 +1443,7 @@ struct PerformanceBereich: View {
         let besser: Int = Int((alle.reduce(0.0) { $0 + $1.perzentil } / Double(max(alle.count, 1))).rounded())
         let werte: [(String, String, String)] = [
             ("PerfCalendarCheck", String(tage.count), Loc.t("perf.tage", lang)),
-            ("PerfBeat", "\(besser) %", Loc.t("perf.besserAls", lang)),
+            ("PerfBeat", "\(besser)\u{00A0}%", Loc.t("perf.besserAls", lang)),
             ("PerfTrophy", String(alle.filter { $0.platz == 1 }.count), Loc.t("perf.siege", lang)),
             ("PerfPodium", quote(alle.filter { $0.platz <= 3 }.count), Loc.t("perf.podium", lang)),
             ("PerfMedal", quote(alle.filter { $0.platz <= 10 }.count), Loc.t("perf.top10", lang))]
@@ -1455,29 +1507,29 @@ struct PerformanceBereich: View {
     }
 
     private var raster: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        let punkte: [String: Int] = punkteJeTag
+        let best: String? = besterTag(punkte)
+        return VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) { perfIcon("PerfPlacingGrid", 20); Text(Loc.t("perf.raster", lang)).fontWeight(.semibold) }
             HStack(alignment: .top, spacing: 6) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(" ").font(.caption2)
-                    ForEach(perfKats, id: \.self) { k in
-                        HStack(spacing: 4) {
-                            perfIcon(perfKatIcon[k] ?? "", 16)
-                            Text(Loc.t("perf.kat." + k, lang)).font(.caption2).lineLimit(2)
-                        }.frame(width: 100, height: 28, alignment: .leading)
-                    }
-                }
+                rasterKoepfe(mitPunkten: !punkte.isEmpty)
                 ScrollViewReader { roll in
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 4) {
                             // Zeit von links nach rechts wie in den anderen Darstellungen (Hinweis eines Fahrers, 19.11.2026)
-                            ForEach(tage.reversed(), id: \.self) { t in rasterSpalte(t).id(t) }
+                            ForEach(tage.reversed(), id: \.self) { t in rasterSpalte(t, punkte: punkte).id(t) }
                         }
                     }
                     // beim Oeffnen ganz rechts (neueste Tage, heute) — wie Web
                     .onAppear { if let t = tage.first { roll.scrollTo(t, anchor: .trailing) } }
                     .onChange(of: tage.first) { _ in if let t = tage.first { roll.scrollTo(t, anchor: .trailing) } }
                 }
+                // Feste Spalte „best" rechts neben dem Rollbereich (web: sticky right) — der Tag mit den meisten Punkten.
+                if let best { besteSpalte(best, punkte: punkte) }
+            }
+            if !punkte.isEmpty {
+                Text(Loc.t("perf.punkteHint", lang)).font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             HStack(spacing: 6) {
                 Text(Loc.t("perf.legende", lang)).font(.caption2).foregroundStyle(.secondary)
@@ -1494,11 +1546,54 @@ struct PerformanceBereich: View {
 
     private func istVorl(_ t: String) -> Bool { alle.contains { $0.tag == t && $0.vorlaeufig == true } }
 
-    private func rasterSpalte(_ t: String) -> some View {
+    /// Linke Spalte: Kategorie-Namen und darunter die Punkte-Zeile (Σ).
+    private func rasterKoepfe(mitPunkten: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(" ").font(.caption2)
+            ForEach(perfKats, id: \.self) { k in
+                HStack(spacing: 4) {
+                    perfIcon(perfKatIcon[k] ?? "", 16)
+                    Text(Loc.t("perf.kat." + k, lang)).font(.caption2).lineLimit(2)
+                }.frame(width: 100, height: 28, alignment: .leading)
+            }
+            if mitPunkten {
+                HStack(spacing: 4) {
+                    Text("Σ").font(.caption).fontWeight(.bold).foregroundStyle(perfAkzent).frame(width: 16)
+                    Text(Loc.t("perf.punkteTag", lang)).font(.caption2).fontWeight(.semibold).lineLimit(1)
+                }.frame(width: 100, height: 22, alignment: .leading)
+            }
+        }
+    }
+
+    /// Punkte eines Tages unter seiner Spalte (leer ohne Wertung).
+    private func punkteZelle(_ p: Int?, hervor: Bool = false) -> some View {
+        Text(p.map { String($0) } ?? "").font(.caption).fontWeight(.bold).monospacedDigit()
+            .foregroundStyle(hervor ? perfAkzent : Color.primary)
+            .frame(width: 30, height: 22)
+    }
+
+    private func besteSpalte(_ t: String, punkte: [String: Int]) -> some View {
+        HStack(spacing: 4) {
+            Rectangle().fill(perfAkzent).frame(width: 2)
+            VStack(spacing: 4) {
+                // Kopf in EINER Zeile (gleiche Hoehe wie die Datumskoepfe, sonst stehen die Zellen versetzt)
+                HStack(spacing: 3) {
+                    Text(Loc.t("perf.best", lang)).font(.caption2).fontWeight(.semibold).foregroundStyle(perfAkzent)
+                    Text(tagKurz(t)).font(.caption2).foregroundStyle(.secondary)
+                }.lineLimit(1)
+                ForEach(perfKats, id: \.self) { k in rasterZelle(k, je(k).first { $0.tag == t }) }
+                punkteZelle(punkte[t], hervor: true)
+            }
+        }
+        .fixedSize()
+    }
+
+    private func rasterSpalte(_ t: String, punkte: [String: Int]) -> some View {
         let vorl: Bool = istVorl(t)
         return VStack(spacing: 4) {
             Text(tagKurz(t)).font(.caption2).foregroundStyle(.secondary)
             ForEach(perfKats, id: \.self) { k in rasterZelle(k, je(k).first { $0.tag == t }) }
+            if !punkte.isEmpty { punkteZelle(punkte[t]) }
         }
         .padding(2)
         .background(vorl ? perfVorlGelb.opacity(0.35) : Color.clear)
@@ -1601,6 +1696,547 @@ private struct PerfLinie: View {
                 guard let antippen, n > 0 else { return }
                 let i: Int = (0..<n).min { abs(px($0, w) - ort.x) < abs(px($1, w) - ort.x) } ?? 0
                 antippen(i)
+            }
+        }
+    }
+}
+
+// MARK: - Tempo-Verteilung (24.11.2026, docs/TEMPO-VERTEILUNG.md; Port von web TempoVerteilung.tsx, TempoBereich.tsx,
+// lib/tempoHist.ts)
+//
+// Anteil der Zeit auf dem Foil je km/h-Stufe — nur innerhalb der Laeufe. Balken = Hauptreihe, unten dunkler der Anteil in
+// ERKANNTEN Gleitphasen (pg-1, findet etwa die Haelfte), Stufenlinie = Vergleich, Band oben = 10./50./90. Perzentil.
+// Nur Anteile, keine Sekunden-Achse: so lassen sich Reihen mit ganz verschiedener Fahrzeit vergleichen.
+
+/// GET /api/tempo/eigen: Sekunden je 0,5 km/h (`a`), davon in Gleitphasen (`g`), Sekunden der Laeufe mit bekanntem
+/// Gleiten (`g_basis`); dazu die Foils und Spots mit Fahrzeit im Zeitraum fuer die Auswahl.
+struct TempoEigen: Decodable {
+    struct Eintrag: Decodable, Identifiable { let id: Int; let label: String; let s: Double }
+    let breite_kmh: Double
+    let a: [Double]
+    var g: [Double]? = nil
+    var g_basis: [Double]? = nil
+    var sessions: Int = 0
+    var unvollstaendig: Int = 0
+    var foils: [Eintrag] = []
+    var spots: [Eintrag] = []
+}
+
+/// GET /api/tempo/foil/{id}: alle Fahrer auf einem Foil, Promille der Fahrzeit (Mittel ueber die Fahrer) — erst ab
+/// `min_fahrer` Fahrern (`genug`), sonst ohne Reihen.
+struct TempoFoil: Decodable {
+    let breite_kmh: Double
+    let fahrer: Int
+    let sessions: Int
+    let min_fahrer: Int
+    let genug: Bool
+    var a: [Double]? = nil
+}
+
+extension Api {
+    static func tempoEigen(period: String = "all", foilId: Int? = nil, spotId: Int? = nil, sport: String? = nil,
+                           ohneSession: Int? = nil) async throws -> TempoEigen {
+        var q: String = "period=" + queryWert(period)
+        if let sport, !sport.isEmpty { q += "&sport=" + queryWert(sport) }
+        if let foilId { q += "&foil_id=\(foilId)" }
+        if let spotId { q += "&spot_id=\(spotId)" }
+        if let ohneSession { q += "&ohne_session=\(ohneSession)" }
+        return try await request("/api/tempo/eigen?" + q, method: "GET", body: nil, auth: true)
+    }
+
+    static func tempoFoil(_ foilId: Int) async throws -> TempoFoil {
+        try await request("/api/tempo/foil/\(foilId)", method: "GET", body: nil, auth: true)
+    }
+}
+
+/// Eine Reihe: Sekunden (oder Promille) je Stufe; `g`/`g_basis` nur bei der Hauptreihe.
+struct TempoReihe {
+    let a: [Double]
+    var g: [Double]? = nil
+    var g_basis: [Double]? = nil
+    let label: String
+}
+
+let TEMPO_BREITE_KMH: Double = 0.5
+let TEMPO_STUFEN: Int = 80
+
+/// Tempo-Verteilung einer Session im Geraet — DIESELBE Regel wie server analysis/tempo_hist.py (web lib/tempoHist.ts):
+/// nur Punkte innerhalb der Laeufe, halboffen [i_start, i_end); jeder Punkt zaehlt duration_s / (i_end - i_start)
+/// Sekunden (GPS hat Loecher, Index ist nicht Sekunde); Gleiten nur aus pg-1 (`pg_glides`, wo `pg_pumps` gesetzt ist).
+func tempoHist(_ segments: [Segment], _ speeds1: [Double]) -> (a: [Double], g: [Double]?, g_basis: [Double]?) {
+    var a: [Double] = Array(repeating: 0, count: TEMPO_STUFEN)
+    var g: [Double] = Array(repeating: 0, count: TEMPO_STUFEN)
+    var gb: [Double] = Array(repeating: 0, count: TEMPO_STUFEN)
+    var mitGleiten: Bool = false
+    let n: Int = speeds1.count
+    for sg in segments {
+        let i: Int = sg.i_start
+        guard sg.i_end > i, i >= 0, i < n else { continue }
+        let j: Int = min(sg.i_end, n - 1)
+        guard j > i else { continue }
+        let w: Double = (sg.duration_s ?? 0) / Double(j - i)
+        let pg: Bool = sg.pg_pumps != nil && sg.pg_glides != nil
+        var gleit = Set<Int>()
+        if pg {
+            mitGleiten = true
+            for gl in sg.pg_glides ?? [] where gl.count >= 2 {
+                let x: Int = Int(gl[0]), y: Int = Int(gl[1])
+                if y > x { for k in x..<y { gleit.insert(k) } }
+            }
+        }
+        for k in i..<j {
+            let v: Double = speeds1[k]
+            let b: Int = min(max(Int((v * 3.6 / TEMPO_BREITE_KMH).rounded(.down)), 0), TEMPO_STUFEN - 1)
+            a[b] += w
+            if pg { gb[b] += w }
+            if gleit.contains(k) { g[b] += w }
+        }
+    }
+    return (a, mitGleiten ? g : nil, mitGleiten ? gb : nil)
+}
+
+private let tempoFarbe = Color(red: 34 / 255, green: 211 / 255, blue: 238 / 255)        // Marke (cyan-400)
+private let tempoFarbeGleit = Color(red: 8 / 255, green: 145 / 255, blue: 178 / 255)    // cyan-600: Teil des Ganzen
+private let tempoFarbeVgl = Color(red: 245 / 255, green: 158 / 255, blue: 11 / 255)     // amber-500: zweite Reihe
+
+/// Aufbereitete Reihen (web `useMemo d`): gebuendelt, als Anteile, mit Bereich und Perzentilen.
+private struct TempoDaten {
+    let br: Double          // km/h je Stufe nach dem Buendeln
+    let ah: [Double]        // Hauptreihe in Sekunden
+    let anH: [Double]       // Hauptreihe als Anteile
+    let anV: [Double]       // Vergleich als Anteile (leer = keiner)
+    let anG: [Double]?      // Gleit-Anteil je Stufe, hochgerechnet
+    let lo: Int
+    let hi: Int
+    let yMax: Double
+    let sumH: Double
+    let p: [Double]         // 10./50./90. Perzentil in km/h
+}
+
+private func tempoBuendeln(_ xs: [Double]?, _ faktor: Int) -> [Double] {
+    guard let xs, !xs.isEmpty else { return [] }
+    var out: [Double] = []
+    var i: Int = 0
+    while i < xs.count {
+        out.append(xs[i..<min(i + faktor, xs.count)].reduce(0, +))
+        i += faktor
+    }
+    return out
+}
+
+private func tempoPerzentil(_ anteile: [Double], _ p: Double, _ breite: Double) -> Double {
+    var s: Double = 0
+    for k in anteile.indices {
+        if s + anteile[k] >= p {
+            let f: Double = anteile[k] > 0 ? (p - s) / anteile[k] : 0
+            return (Double(k) + f) * breite
+        }
+        s += anteile[k]
+    }
+    return Double(anteile.count) * breite
+}
+
+/// Ausreisser (GPS-Spruenge) abschneiden — 0,2 % an jedem Ende.
+private func tempoGrenze(_ an: [Double]) -> (Int, Int) {
+    var s: Double = 0
+    var lo: Int = 0
+    var hi: Int = max(an.count - 1, 0)
+    for k in an.indices { s += an[k]; if s > 0.002 { lo = k; break } }
+    s = 0
+    for k in an.indices.reversed() { s += an[k]; if s > 0.002 { hi = k; break } }
+    return (lo, hi)
+}
+
+private func tempoAufbereiten(_ haupt: TempoReihe, _ vergleich: TempoReihe?, _ breiteKmh: Double, _ sekunden: Bool) -> TempoDaten {
+    let sumH: Double = haupt.a.reduce(0, +)
+    // Feiner (0,5 km/h) erst ab 2 h Fahrzeit und ohne Vergleich, sonst wird die Kurve zackig.
+    let grob: Int = max(1, Int((1 / breiteKmh).rounded()))
+    let faktor: Int = (sekunden && sumH >= 7200 && vergleich == nil) ? 1 : grob
+    let br: Double = breiteKmh * Double(faktor)
+    let ah: [Double] = tempoBuendeln(haupt.a, faktor)
+    let gh: [Double] = tempoBuendeln(haupt.g, faktor)
+    let gb: [Double] = tempoBuendeln(haupt.g_basis, faktor)
+    let av: [Double] = vergleich.map { tempoBuendeln($0.a, faktor) } ?? []
+    let sumV: Double = av.reduce(0, +)
+    let anH: [Double] = ah.map { sumH > 0 ? $0 / sumH : 0 }
+    let anV: [Double] = av.map { sumV > 0 ? $0 / sumV : 0 }
+    // Leere Reihe: nichts zu zeichnen (die Ansicht zeigt dann „Keine Laeufe"), aber auch kein Index ausserhalb.
+    guard !anH.isEmpty, sumH > 0 else {
+        return TempoDaten(br: br, ah: ah, anH: anH, anV: anV, anG: nil, lo: 0, hi: 0, yMax: 0.001, sumH: 0, p: [0, 0, 0])
+    }
+    // Gleit-Anteil je Stufe: Verhaeltnis aus den Laeufen mit pg-1, auf die ganze Stufe hochgerechnet.
+    var anG: [Double]? = nil
+    if !gh.isEmpty && gb.contains(where: { $0 > 0 }) {
+        anG = anH.indices.map { k in
+            (k < gb.count && k < gh.count && gb[k] > 0) ? anH[k] * min(gh[k] / gb[k], 1) : 0
+        }
+    }
+    let g1: (Int, Int) = tempoGrenze(anH)
+    let g2: (Int, Int) = (!av.isEmpty && sumV > 0) ? tempoGrenze(anV) : g1
+    let lo: Int = max(0, min(g1.0, g2.0) - 1)
+    let hi: Int = max(lo, min(anH.count - 1, max(g1.1, g2.1) + 1))
+    var yMax: Double = 0.001
+    for k in lo...hi {
+        yMax = max(yMax, anH[k])
+        if k < anV.count { yMax = max(yMax, anV[k]) }
+    }
+    let p: [Double] = [0.1, 0.5, 0.9].map { tempoPerzentil(anH, $0, br) }
+    return TempoDaten(br: br, ah: ah, anH: anH, anV: anV, anG: anG, lo: lo, hi: hi, yMax: yMax, sumH: sumH, p: p)
+}
+
+private func tempoKmh(_ v: Double) -> String {
+    v == v.rounded() ? String(Int(v)) : String(format: "%.1f", v)
+}
+private func tempoPct(_ v: Double) -> String {
+    String(format: v < 0.1 ? "%.1f" : "%.0f", v * 100) + "\u{00A0}%"
+}
+private func tempoDauer(_ s: Double) -> String {
+    if s >= 3600 { return String(format: "%.1f h", s / 3600) }
+    if s >= 60 { return "\(Int((s / 60).rounded())) min" }
+    return "\(Int(s.rounded())) s"
+}
+
+// Raender des Diagramms (Punkte)
+private let tempoL: CGFloat = 30, tempoR: CGFloat = 6, tempoT: CGFloat = 22, tempoB: CGFloat = 30
+
+/// Zeichnet Gitter, Band, Balken, Gleit-Anteil, Vergleichslinie und Achsen (web SVG in TempoVerteilung).
+private func tempoZeichnen(_ ctx: inout GraphicsContext, _ size: CGSize, _ d: TempoDaten, _ hover: Int?) {
+    let w: CGFloat = size.width
+    let h: CGFloat = size.height
+    let n: Int = d.hi - d.lo + 1
+    let bw: CGFloat = (w - tempoL - tempoR) / CGFloat(n)
+    let schritte: [Double] = [1, 2, 5, 10, 20, 25, 50]
+    let schritt: Double = schritte.first(where: { d.yMax * 100 / $0 <= 5 }) ?? 50
+    let yTop: Double = (d.yMax * 100 / schritt).rounded(.up) * schritt / 100
+    let hoehe: CGFloat = h - tempoT - tempoB
+    func y(_ v: Double) -> CGFloat { h - tempoB - CGFloat(v / yTop) * hoehe }
+    func x(_ kmh: Double) -> CGFloat { tempoL + CGFloat(kmh / d.br - Double(d.lo)) * bw }
+    let grau: Color = Color.secondary
+    // y-Gitter in Prozent
+    var v: Double = 0
+    while v <= yTop + 1e-9 {
+        var p = Path()
+        p.move(to: CGPoint(x: tempoL, y: y(v)))
+        p.addLine(to: CGPoint(x: w - tempoR, y: y(v)))
+        ctx.stroke(p, with: .color(Color(.separator)), lineWidth: 0.5)
+        ctx.draw(Text(String(Int((v * 100).rounded()))).font(.system(size: 9)).foregroundColor(grau),
+                 at: CGPoint(x: tempoL - 4, y: y(v)), anchor: .trailing)
+        v += schritt / 100
+    }
+    ctx.draw(Text("%").font(.system(size: 9)).foregroundColor(grau), at: CGPoint(x: tempoL - 4, y: tempoT - 12), anchor: .trailing)
+    // Nutzbarer Bereich: 10.–90. Perzentil als Band oben, Median als Strich
+    let x10: CGFloat = x(d.p[0]), x50: CGFloat = x(d.p[1]), x90: CGFloat = x(d.p[2])
+    ctx.fill(Path(roundedRect: CGRect(x: x10, y: tempoT - 16, width: max(x90 - x10, 1), height: 4), cornerRadius: 2),
+             with: .color(grau.opacity(0.5)))
+    var med = Path()
+    med.move(to: CGPoint(x: x50, y: tempoT - 19))
+    med.addLine(to: CGPoint(x: x50, y: tempoT - 9))
+    ctx.stroke(med, with: .color(Color.primary.opacity(0.7)), lineWidth: 2)
+    // Angetippte Stufe hinterlegen (nicht die anderen abdunkeln — saehe aus wie der Gleit-Anteil)
+    if let hk = hover, hk >= d.lo, hk <= d.hi {
+        ctx.fill(Path(CGRect(x: tempoL + CGFloat(hk - d.lo) * bw, y: tempoT, width: bw, height: hoehe)), with: .color(grau.opacity(0.18)))
+    }
+    for k in d.lo...d.hi {
+        let x0: CGFloat = tempoL + CGFloat(k - d.lo) * bw + 1
+        let bb: CGFloat = max(bw - 2, 1)
+        let a: Double = d.anH[k]
+        if a > 0 {
+            ctx.fill(Path(roundedRect: CGRect(x: x0, y: y(a), width: bb, height: y(0) - y(a)), cornerRadius: min(2, bb / 2)),
+                     with: .color(tempoFarbe))
+        }
+        let g: Double = d.anG?[k] ?? 0
+        if g > 0 {
+            let luft: CGFloat = a - g > 0.0005 ? 1 : 0
+            ctx.fill(Path(CGRect(x: x0, y: y(g) + luft, width: bb, height: max(y(0) - y(g) - luft, 0))), with: .color(tempoFarbeGleit))
+        }
+    }
+    // Vergleich als Stufenlinie ueber den Balken
+    if !d.anV.isEmpty {
+        var pfad = Path()
+        for k in d.lo...d.hi {
+            let x0: CGFloat = tempoL + CGFloat(k - d.lo) * bw
+            let yy: CGFloat = y(k < d.anV.count ? d.anV[k] : 0)
+            if k == d.lo { pfad.move(to: CGPoint(x: x0, y: yy)) } else { pfad.addLine(to: CGPoint(x: x0, y: yy)) }
+            pfad.addLine(to: CGPoint(x: x0 + bw, y: yy))
+        }
+        ctx.stroke(pfad, with: .color(tempoFarbeVgl), style: StrokeStyle(lineWidth: 2, lineJoin: .round))
+    }
+    var basis = Path()
+    basis.move(to: CGPoint(x: tempoL, y: y(0)))
+    basis.addLine(to: CGPoint(x: w - tempoR, y: y(0)))
+    ctx.stroke(basis, with: .color(grau), lineWidth: 1)
+    // x-Achse in km/h
+    let spanne: Double = Double(n) * d.br
+    let xSchritt: Double = spanne > 24 ? 5 : (spanne > 10 ? 2 : 1)
+    var t: Double = (Double(d.lo) * d.br / xSchritt).rounded(.up) * xSchritt
+    while t <= Double(d.hi + 1) * d.br {
+        ctx.draw(Text(tempoKmh(t)).font(.system(size: 9)).foregroundColor(grau), at: CGPoint(x: x(t), y: h - tempoB + 9), anchor: .center)
+        t += xSchritt
+    }
+    ctx.draw(Text("km/h").font(.system(size: 9)).foregroundColor(grau), at: CGPoint(x: w - tempoR, y: h - 2), anchor: .bottomTrailing)
+}
+
+/// Eine Darstellung fuer alle Stellen (Home › Stats › Tempo, Session-Details).
+struct TempoVerteilungView: View {
+    let haupt: TempoReihe
+    var vergleich: TempoReihe? = nil
+    let breiteKmh: Double
+    var sekunden: Bool = true
+    let lang: String
+    @State private var hover: Int? = nil
+    @State private var tabelle: Bool = false
+
+    var body: some View {
+        let d: TempoDaten = tempoAufbereiten(haupt, vergleich, breiteKmh, sekunden)
+        if d.sumH <= 0 {
+            Text(Loc.t("tempo.empty", lang)).font(.subheadline).foregroundStyle(.secondary)
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                if d.anG != nil || !d.anV.isEmpty { legende(d) }
+                if let hk = hover, hk >= d.lo, hk <= d.hi { stufenInfo(d, hk) }
+                diagramm(d)
+                fussZeile(d)
+                if tabelle { tabelleView(d) }
+                if d.anG != nil {
+                    Text(Loc.t("tempo.glideHint", lang)).font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+    }
+
+    private func legendePunkt(_ farbe: Color, _ text: String, linie: Bool = false) -> some View {
+        HStack(spacing: 5) {
+            RoundedRectangle(cornerRadius: 2).fill(farbe).frame(width: linie ? 14 : 10, height: linie ? 2 : 10)
+            Text(text).font(.caption).lineLimit(1)
+        }
+    }
+
+    private func legende(_ d: TempoDaten) -> some View {
+        HStack(spacing: 12) {
+            legendePunkt(tempoFarbe, haupt.label)
+            if d.anG != nil { legendePunkt(tempoFarbeGleit, Loc.t("tempo.glideShare", lang)) }
+            if let v = vergleich, !d.anV.isEmpty { legendePunkt(tempoFarbeVgl, v.label, linie: true) }
+        }
+    }
+
+    private func stufenText(_ d: TempoDaten, _ k: Int) -> String {
+        tempoKmh(Double(k) * d.br) + "–" + tempoKmh(Double(k + 1) * d.br) + " km/h"
+    }
+
+    /// Statt des schwebenden Hinweises im Web: eine Zeile ueber dem Diagramm fuer die angetippte Stufe.
+    private func stufenInfo(_ d: TempoDaten, _ k: Int) -> some View {
+        var teile: [String] = [stufenText(d, k)]
+        let haupttext: String = haupt.label + ": " + tempoPct(d.anH[k]) + (sekunden ? " · " + tempoDauer(d.ah[k]) : "")
+        teile.append(haupttext)
+        if let g = d.anG { teile.append(Loc.t("tempo.glideShare", lang) + ": " + tempoPct(g[k])) }
+        if let v = vergleich, !d.anV.isEmpty { teile.append(v.label + ": " + tempoPct(k < d.anV.count ? d.anV[k] : 0)) }
+        return Text(teile.joined(separator: " · ")).font(.caption).monospacedDigit()
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func ariaText(_ d: TempoDaten) -> String {
+        Loc.t("tempo.aria", lang).replacingOccurrences(of: "{p10}", with: tempoKmh(d.p[0]))
+            .replacingOccurrences(of: "{p50}", with: tempoKmh(d.p[1])).replacingOccurrences(of: "{p90}", with: tempoKmh(d.p[2]))
+    }
+
+    private func diagramm(_ d: TempoDaten) -> some View {
+        GeometryReader { geo in
+            Canvas { ctx, size in tempoZeichnen(&ctx, size, d, hover) }
+                .contentShape(Rectangle())
+                .onTapGesture(coordinateSpace: .local) { pt in antippen(pt, geo.size.width, d) }
+        }
+        .frame(height: 210)
+        .accessibilityElement()
+        .accessibilityLabel(ariaText(d))
+    }
+
+    private func antippen(_ pt: CGPoint, _ breite: CGFloat, _ d: TempoDaten) {
+        let n: Int = d.hi - d.lo + 1
+        let bw: CGFloat = (breite - tempoL - tempoR) / CGFloat(n)
+        guard bw > 0, pt.x >= tempoL, pt.x <= breite - tempoR else { hover = nil; return }
+        let k: Int = d.lo + Int((pt.x - tempoL) / bw)
+        hover = (hover == k) ? nil : min(k, d.hi)
+    }
+
+    private func rangeText(_ d: TempoDaten) -> String {
+        let r: String = Loc.t("tempo.range", lang).replacingOccurrences(of: "{p10}", with: tempoKmh(d.p[0]))
+            .replacingOccurrences(of: "{p50}", with: tempoKmh(d.p[1])).replacingOccurrences(of: "{p90}", with: tempoKmh(d.p[2]))
+        return sekunden ? r + " · " + tempoDauer(d.sumH) : r
+    }
+
+    private func fussZeile(_ d: TempoDaten) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(rangeText(d)).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 6)
+            Button(Loc.t(tabelle ? "tempo.hideTable" : "tempo.showTable", lang)) { tabelle.toggle() }
+                .font(.caption).buttonStyle(.borderless)
+        }
+    }
+
+    private func tabellenZeile(_ cells: [String], kopf: Bool) -> some View {
+        HStack {
+            Text(cells[0]).frame(maxWidth: .infinity, alignment: .leading)
+            ForEach(1..<cells.count, id: \.self) { i in
+                Text(cells[i]).frame(maxWidth: .infinity, alignment: .trailing)
+            }
+        }
+        .font(.caption).fontWeight(kopf ? .semibold : .regular).monospacedDigit()
+        .foregroundStyle(kopf ? Color.secondary : Color.primary)
+    }
+
+    private func tabelleView(_ d: TempoDaten) -> some View {
+        let mitV: Bool = vergleich != nil && !d.anV.isEmpty
+        var kopf: [String] = ["km/h", haupt.label]
+        if d.anG != nil { kopf.append(Loc.t("tempo.glideShare", lang)) }
+        if mitV { kopf.append(vergleich?.label ?? "") }
+        return VStack(spacing: 3) {
+            tabellenZeile(kopf, kopf: true)
+            ForEach(d.lo...d.hi, id: \.self) { k in
+                Divider()
+                tabellenZeile(tabellenWerte(d, k, mitV), kopf: false)
+            }
+        }
+        .padding(8)
+        .background(Color(.tertiarySystemFill).opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func tabellenWerte(_ d: TempoDaten, _ k: Int, _ mitV: Bool) -> [String] {
+        var z: [String] = [tempoKmh(Double(k) * d.br) + "–" + tempoKmh(Double(k + 1) * d.br), tempoPct(d.anH[k])]
+        if let g = d.anG { z.append(tempoPct(g[k])) }
+        if mitV { z.append(tempoPct(k < d.anV.count ? d.anV[k] : 0)) }
+        return z
+    }
+}
+
+/// Home › Stats › Tempo (web TempoBereich.tsx): die eigene Tempo-Verteilung, gefiltert nach Zeitraum, Foil und Spot;
+/// Vergleich mit einem anderen eigenen Foil oder mit allen Fahrern auf dem gewaehlten Foil.
+struct TempoBereich: View {
+    let lang: String
+    @State private var period: String = "all"
+    @State private var foilId: Int? = nil
+    @State private var spotId: Int? = nil
+    @State private var vgl: String = ""                 // "" | "foil:<id>" | "community"
+    @State private var d: TempoEigen? = nil
+    @State private var vd: TempoReihe? = nil
+    @State private var vInfo: TempoFoil? = nil
+    @State private var fehler: Bool = false
+
+    private let periods: [(String, String)] = [("today", "period.today"), ("yesterday", "period.yesterday"), ("10d", "period.10d"),
+                                               ("30d", "period.30d"), ("365d", "period.365d"), ("all", "period.all")]
+
+    private var ladeSchluessel: String { "\(period)|\(foilId ?? -1)|\(spotId ?? -1)" }
+    private var vglSchluessel: String { "\(vgl)|\(period)|\(spotId ?? -1)|\(foilId ?? -1)|\(d?.foils.count ?? 0)" }
+    private var label: String {
+        if let f = foilId, let l = d?.foils.first(where: { $0.id == f })?.label { return l }
+        return Loc.t("tempo.mine", lang)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(Loc.t("tempo.title", lang)).font(.title3).fontWeight(.bold)
+            Text(Loc.t("tempo.intro", lang)).font(.subheadline).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            filterZeilen
+            if fehler { Text(Loc.t("tempo.error", lang)).font(.subheadline).foregroundStyle(.red) }
+            if let d {
+                TempoVerteilungView(haupt: TempoReihe(a: d.a, g: d.g, g_basis: d.g_basis, label: label), vergleich: vd,
+                                    breiteKmh: d.breite_kmh, lang: lang)
+            } else if !fehler {
+                ProgressView().frame(maxWidth: .infinity)
+            }
+            hinweise
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .task(id: ladeSchluessel) { await laden() }
+        .task(id: vglSchluessel) { await vergleichLaden() }
+        // Vergleich mit dem gerade gewaehlten Foil selbst ergibt nichts -> zuruecksetzen
+        .onChange(of: foilId) { f in
+            if vgl == "foil:\(f ?? -1)" || (vgl == "community" && f == nil) { vgl = "" }
+        }
+    }
+
+    @ViewBuilder private var hinweise: some View {
+        if vgl == "community", let vi = vInfo, !vi.genug {
+            Text(Loc.t("tempo.communityTooFew", lang).replacingOccurrences(of: "{n}", with: String(vi.min_fahrer))
+                .replacingOccurrences(of: "{m}", with: String(vi.fahrer)))
+                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        }
+        if let d, d.unvollstaendig > 0 {
+            Text(Loc.t("tempo.incomplete", lang).replacingOccurrences(of: "{n}", with: String(d.unvollstaendig)))
+                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var filterZeilen: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) { periodWahl; foilWahl; Spacer(minLength: 0) }
+            HStack(spacing: 8) { spotWahl; vglWahl; Spacer(minLength: 0) }
+        }
+    }
+
+    private var periodWahl: some View {
+        Picker(Loc.t("tempo.period", lang), selection: $period) {
+            ForEach(periods, id: \.0) { p in Text(Loc.t(p.1, lang)).tag(p.0) }
+        }
+        .pickerStyle(.menu)
+    }
+
+    private var foilWahl: some View {
+        Picker(Loc.t("tempo.foil", lang), selection: $foilId) {
+            Text(Loc.t("tempo.allFoils", lang)).tag(nil as Int?)
+            ForEach(d?.foils ?? []) { f in Text(f.label).tag(f.id as Int?) }
+        }
+        .pickerStyle(.menu)
+    }
+
+    private var spotWahl: some View {
+        Picker(Loc.t("tempo.spot", lang), selection: $spotId) {
+            Text(Loc.t("tempo.allSpots", lang)).tag(nil as Int?)
+            ForEach(d?.spots ?? []) { s in Text(s.label).tag(s.id as Int?) }
+        }
+        .pickerStyle(.menu)
+    }
+
+    private var vglFoils: [TempoEigen.Eintrag] { (d?.foils ?? []).filter { $0.id != foilId } }
+
+    private var vglWahl: some View {
+        HStack(spacing: 4) {
+            Text(Loc.t("tempo.compare", lang)).font(.subheadline).foregroundStyle(.secondary)
+            Picker(Loc.t("tempo.compare", lang), selection: $vgl) {
+                Text("—").tag("")
+                if foilId != nil { Text(Loc.t("tempo.compareCommunity", lang)).tag("community") }
+                ForEach(vglFoils) { f in Text(f.label).tag("foil:\(f.id)") }
+            }
+            .pickerStyle(.menu)
+        }
+    }
+
+    private func laden() async {
+        fehler = false
+        let p: String = period, f: Int? = foilId, s: Int? = spotId
+        do {
+            let r: TempoEigen = try await Api.tempoEigen(period: p, foilId: f, spotId: s)
+            if p == period && f == foilId && s == spotId { d = r }
+        } catch {
+            // Abgebrochener Abruf einer alten Auswahl (schneller Wechsel) ist kein Fehler der neuen.
+            if !(error is CancellationError) && p == period && f == foilId && s == spotId { fehler = true }
+        }
+    }
+
+    private func vergleichLaden() async {
+        vd = nil; vInfo = nil
+        if vgl.hasPrefix("foil:"), let id = Int(vgl.dropFirst(5)) {
+            let l: String = d?.foils.first(where: { $0.id == id })?.label ?? ""
+            if let r = try? await Api.tempoEigen(period: period, foilId: id, spotId: spotId) {
+                vd = TempoReihe(a: r.a, label: l)
+            }
+        } else if vgl == "community", let f = foilId {
+            if let r = try? await Api.tempoFoil(f) {
+                vInfo = r
+                if r.genug, let a = r.a {
+                    vd = TempoReihe(a: a, label: Loc.t("tempo.community", lang).replacingOccurrences(of: "{n}", with: String(r.fahrer)))
+                }
             }
         }
     }

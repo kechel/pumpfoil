@@ -83,6 +83,7 @@ class EinstellungenStand(private val ctx: android.content.Context, private val s
     var nChat by mutableStateOf(true)
     var nFriend by mutableStateOf(true)
     var nComment by mutableStateOf(true)   // Kommentare zu meinen Sessions (Web 6fc0a4f8)
+    var nReferee by mutableStateOf(true)   // neue Pruefbitten im Referee Board (Web 46c6b99f4)
     var theme by mutableStateOf(ThemeState.mode)
     var lang by mutableStateOf(I18n.lang)
     var pwCur by mutableStateOf("")
@@ -119,6 +120,7 @@ class EinstellungenStand(private val ctx: android.content.Context, private val s
                 nChat = np["chat"]?.jsonPrimitive?.booleanOrNull ?: true
                 nFriend = np["friend"]?.jsonPrimitive?.booleanOrNull ?: true
                 nComment = np["comment"]?.jsonPrimitive?.booleanOrNull ?: true
+                nReferee = np["referee"]?.jsonPrimitive?.booleanOrNull ?: true
             }
         } catch (_: Exception) {}
         try {
@@ -147,7 +149,7 @@ class EinstellungenStand(private val ctx: android.content.Context, private val s
                         // "chat" MUSS mit: notify_prefs wird als Ganzes ersetzt, ein Speichern
                         // von hier hat die im Web gesetzte Chat-Einstellung also still geloescht.
                         put("like", nLike); put("analyzed", nAnalyzed); put("record", nRecord)
-                        put("chat", nChat); put("friend", nFriend); put("comment", nComment)
+                        put("chat", nChat); put("friend", nFriend); put("comment", nComment); put("referee", nReferee)
                     })
                 })
                 saved = true
@@ -391,6 +393,7 @@ fun EinstellungenTeil(z: EinstellungenStand, teil: String, mitSpeichern: Boolean
                     ToggleRow(I18n.t("settings.nChat"), nChat) { nChat = it; saved = false }
                     ToggleRow(I18n.t("notif.typeFriend"), nFriend) { nFriend = it; saved = false }
                     ToggleRow(I18n.t("notif.typeComment"), nComment) { nComment = it; saved = false }
+                    ToggleRow(I18n.t("notif.typeReferee"), nReferee) { nReferee = it; saved = false }
                     Spacer(Modifier.height(20.dp))
                     if (mitSpeichern) SpeichernZeile(z)
                 }
@@ -436,6 +439,9 @@ fun EinstellungenTeil(z: EinstellungenStand, teil: String, mitSpeichern: Boolean
                         Text(text, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 6.dp),
                             color = if (ok) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error)
                     }
+                    Spacer(Modifier.height(16.dp))
+                    // KI-Zugaenge (MCP) unter Konto, kein eigener Reiter mehr unter Uhr & Konten (Web 3139830a2, 22.11.2026).
+                    McpKarte()
                     Spacer(Modifier.height(16.dp))
                 }
             }

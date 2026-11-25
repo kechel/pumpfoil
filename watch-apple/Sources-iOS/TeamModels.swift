@@ -292,7 +292,9 @@ struct TeamEvent: Codable, Identifiable {
     }
 
     /// Sportarten: die der Bestenlisten, ohne Bestenliste die der Summen (wie Team.tsx eventSportarten).
+    /// GPS-Kunst laesst alle Sportarten zu — kein Badge (web c5cf14d4; `summen_sportart` ist dort nur der Vorgabewert).
     var sportarten: [String] {
+        if vorlage == KUNST_VORLAGE { return [] }
         let aus: [String] = tafeln.isEmpty ? [summen_sportart ?? "pumpfoil"] : tafeln.map { $0.sportart }
         var gesehen = Set<String>()
         return aus.filter { gesehen.insert($0).inserted }
