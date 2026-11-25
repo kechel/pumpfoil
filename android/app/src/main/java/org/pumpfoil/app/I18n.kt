@@ -9,13 +9,13 @@ import androidx.compose.runtime.setValue
 // noch kein Login), gilt die GERÄTESPRACHE über `systemLang()` — und was wir nicht können,
 // wird ENGLISCH, nicht Deutsch. Der alte Kommentar hier behauptete das Gegenteil („NICHT der
 // Geräte-Locale, da wir nur genau diese 7 Locales pflegen") und stimmte doppelt nicht mehr:
-// es sind 19 Sprachen, und hart Deutsch war der Fehler, den ein Nutzer am 12.09.2026 meldete.
+// es sind 22 Sprachen, und hart Deutsch war der Fehler, den ein Nutzer am 12.09.2026 meldete.
 // Wording, wo möglich, identisch mit web/src/i18n/locales/*.
 object I18n {
     // <i18n-langs> ERZEUGT von scripts/i18n-langs.py — NICHT von Hand aendern
     // Quelle: web/src/i18n/index.tsx. Reihenfolge wie dort — die Sprachauswahl sieht damit auf
     // allen Plattformen gleich aus.
-    val LANGS = listOf("de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "hr")
+    val LANGS = listOf("de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "hr", "da", "sv", "hu")
 
     /** Eigenbezeichnung je Sprache. */
     val LANG_NAMES = mapOf(
@@ -38,6 +38,9 @@ object I18n {
         "id" to "Bahasa Indonesia",
         "nb" to "Norsk",
         "hr" to "Hrvatski",
+        "da" to "Dansk",
+        "sv" to "Svenska",
+        "hu" to "Magyar",
     )
 
     /** Anzeigename einer Sprache; unbekannt -> das Kuerzel, damit nie eine leere Zeile steht. */
@@ -68,6 +71,9 @@ object I18n {
         if (tag.startsWith("id")) return "id"
         if (tag.startsWith("nb") || tag.startsWith("nn") || tag.startsWith("no")) return "nb"
         if (tag.startsWith("hr")) return "hr"
+        if (tag.startsWith("da")) return "da"
+        if (tag.startsWith("sv")) return "sv"
+        if (tag.startsWith("hu")) return "hu"
         if (tag.startsWith("en")) return "en"
         return "en"
     }
@@ -113,6 +119,9 @@ object I18n {
         if (lang == "nb") NB[key]?.let { return it }   // nb-Overlay (Bokmaal); sonst Englisch
         if (lang == "pl") PL[key]?.let { return it }   // pl-Overlay (aus web pl.ts); sonst Englisch
         if (lang == "hr") HR[key]?.let { return it }   // hr-Overlay (aus web hr.ts + app-eigene); sonst Englisch
+        if (lang == "da") DA[key]?.let { return it }   // da-Overlay (aus web da.ts + app-eigene); sonst Englisch
+        if (lang == "sv") SV[key]?.let { return it }   // sv-Overlay (aus web sv.ts + app-eigene); sonst Englisch
+        if (lang == "hu") HU[key]?.let { return it }   // hu-Overlay (aus web hu.ts + app-eigene); sonst Englisch
         // Europaeisches Portugiesisch sitzt UEBER dem brasilianischen: erst die 194
         // abweichenden Schluessel, dann pt, dann Englisch. Ein eigenes Vollset waere
         // 873 Zeilen, von denen 679 Wort fuer Wort dieselben waeren.
@@ -122,7 +131,7 @@ object I18n {
         }
         // Sportart, die diese App noch nicht kennt: Name aus der Server-Liste (Sportarten.kt, 25.10.2026)
         val row = S[key] ?: return (if (key.startsWith("cls.sport.")) Sportarten.name(key.removePrefix("cls.sport."), lang) else null) ?: key
-        val overlayLangs = setOf("fi", "nl", "cs", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "pl", "hr")
+        val overlayLangs = setOf("fi", "nl", "cs", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "pl", "hr", "da", "sv", "hu")
         val fallback = if (lang in overlayLangs) (row["en"] ?: row["de"]) else row["de"]
         return row[lang] ?: fallback ?: row["en"] ?: key
     }

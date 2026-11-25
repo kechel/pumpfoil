@@ -10,7 +10,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 WEB = ROOT / "web/src/i18n/locales"
 AND = ROOT / "android/app/src/main/java/org/pumpfoil/app"
 IOS = ROOT / "watch-apple/Sources-iOS"
-LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "hr"]
+LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "hr", "da", "sv", "hu"]
 
 SCHLUESSEL = [
     "calc.mastImmersion", "calc.mastImmersionHint",
@@ -142,16 +142,20 @@ o = ["package org.pumpfoil.app", "",
      "// web/src/i18n/locales/*.ts — Wortlaut im Web aendern und neu erzeugen, nie hier. I18n.t fragt diese Tabelle",
      "// nach NEU und den Teams-Texten; Rueckfall gsw/de-AT -> de, pt-PT -> pt, dann Englisch.", "",
      "private val PORT_BRUECKE = mapOf(\"gsw\" to \"de\", \"de-AT\" to \"de\", \"pt-PT\" to \"pt\")", "",
+     "// Je Sprache eine eigene Funktion: als EIN mapOf liegen 22 Sprachen ueber der 64-KB-Grenze je Methode (25.11.2026).",
      "private val PORT_TEXTE: Map<String, Map<String, String>> by lazy {", "    mapOf("]
-for c in LANGS:
-    paare = [(k, wert(c, k)) for k in ak if wert(c, k) is not None]
-    o.append(f"        {json.dumps(c)} to mapOf(")
-    for k, v in paare:
-        o.append(f"            {json.dumps(k)} to {json.dumps(v, ensure_ascii=False).replace('$', chr(92) + '$')},")
-    o.append("        ),")
+PFUN = {c: "port" + c.upper().replace("-", "") for c in LANGS}
+o += [f"        {json.dumps(c)} to {PFUN[c]}()," for c in LANGS]
 o += ["    )", "}", "",
       "internal fun portText(key: String, lang: String): String? =",
       "    PORT_TEXTE[lang]?.get(key) ?: PORT_BRUECKE[lang]?.let { PORT_TEXTE[it]?.get(key) } ?: PORT_TEXTE[\"en\"]?.get(key)", ""]
+for c in LANGS:
+    paare = [(k, wert(c, k)) for k in ak if wert(c, k) is not None]
+    o.append(f"private fun {PFUN[c]}(): Map<String, String> = mapOf(")
+    for k, v in paare:
+        o.append(f"    {json.dumps(k)} to {json.dumps(v, ensure_ascii=False).replace('$', chr(92) + '$')},")
+    o.append(")")
+    o.append("")
 io.open(AND / "I18nPort.kt", "w", encoding="utf-8").write("\n".join(o))
 
 # --- iOS ---
