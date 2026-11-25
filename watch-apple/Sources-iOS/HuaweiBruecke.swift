@@ -518,6 +518,9 @@ enum HuaweiTexte {
         case "id": return id
         case "nb": return nb
         case "hr": return hr
+        case "da": return da
+        case "sv": return sv
+        case "hu": return hu
         default: return en
         }
     }
@@ -824,5 +827,53 @@ enum HuaweiTexte {
         "huawei.errNoWatch": "Nije pronađen nijedan upareni HUAWEI sat. Najprije ga upari u aplikaciji Huawei Health.",
         "huawei.errDenied": "Pristup je odbijen. Dodirni Poveži za ponovni pokušaj.",
         "huawei.errOther": "Nešto nije u redu: {f}",
+    ]
+    private static let da: [String: String] = [
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (beta)",
+        "huawei.body": "Pumpfoil-appen på dit HUAWEI-ur sender sine optagelser via denne iPhone. Hold Pumpfoil åben efter en session, indtil uret viser »All sent«.",
+        "huawei.connect": "Forbind HUAWEI-ur",
+        "huawei.disconnect": "Afbryd forbindelse",
+        "huawei.connected": "Forbundet: {uhren}",
+        "huawei.pending": "Venter på upload: {n}",
+        "huawei.receiving": "Fra uret: {a} af {b}",
+        "huawei.uploading": "Til serveren: {a} af {b}",
+        "huawei.watchSilent": "Uret er holdt op med at sende – åbn Pumpfoil på uret for at fortsætte.",
+        "huawei.retry": "Upload nu",
+        "huawei.errConfig": "Endnu ikke tilgængelig – HUAWEI-betaen er ved at blive sat op.",
+        "huawei.errNoWatch": "Intet parret HUAWEI-ur fundet. Par det først i Huawei Health.",
+        "huawei.errDenied": "Adgang blev afvist. Tryk på Forbind for at prøve igen.",
+        "huawei.errOther": "Noget gik galt: {f}",
+    ]
+    private static let sv: [String: String] = [
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (beta)",
+        "huawei.body": "Pumpfoil-appen på din HUAWEI-klocka skickar sina inspelningar via den här iPhonen. Håll Pumpfoil öppen efter ett pass tills klockan visar ”All sent”.",
+        "huawei.connect": "Anslut HUAWEI-klocka",
+        "huawei.disconnect": "Koppla från",
+        "huawei.connected": "Ansluten: {uhren}",
+        "huawei.pending": "Väntar på uppladdning: {n}",
+        "huawei.receiving": "Från klockan: {a} av {b}",
+        "huawei.uploading": "Till servern: {a} av {b}",
+        "huawei.watchSilent": "Klockan har slutat skicka – öppna Pumpfoil på klockan för att fortsätta.",
+        "huawei.retry": "Ladda upp nu",
+        "huawei.errConfig": "Inte tillgängligt än – HUAWEI-betan håller på att sättas upp.",
+        "huawei.errNoWatch": "Ingen parkopplad HUAWEI-klocka hittades. Parkoppla den först i Huawei Health.",
+        "huawei.errDenied": "Åtkomst nekades. Tryck på Anslut för att försöka igen.",
+        "huawei.errOther": "Något gick fel: {f}",
+    ]
+    private static let hu: [String: String] = [
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (béta)",
+        "huawei.body": "A HUAWEI órádon lévő Pumpfoil app ezen az iPhone-on keresztül küldi a felvételeit. Edzés után tartsd nyitva a Pumpfoilt, amíg az óra „All sent” üzenetet nem mutat.",
+        "huawei.connect": "HUAWEI óra csatlakoztatása",
+        "huawei.disconnect": "Leválasztás",
+        "huawei.connected": "Csatlakoztatva: {uhren}",
+        "huawei.pending": "Feltöltésre vár: {n}",
+        "huawei.receiving": "Az óráról: {a} / {b}",
+        "huawei.uploading": "A szerverre: {a} / {b}",
+        "huawei.watchSilent": "Az óra abbahagyta a küldést – a folytatáshoz nyisd meg a Pumpfoilt az órán.",
+        "huawei.retry": "Feltöltés most",
+        "huawei.errConfig": "Még nem érhető el – a HUAWEI béta beállítása folyamatban.",
+        "huawei.errNoWatch": "Nem található párosított HUAWEI óra. Előbb párosítsd a Huawei Healthben.",
+        "huawei.errDenied": "A hozzáférés elutasítva. Koppints a Csatlakozásra az újrapróbáláshoz.",
+        "huawei.errOther": "Hiba történt: {f}",
     ]
 }

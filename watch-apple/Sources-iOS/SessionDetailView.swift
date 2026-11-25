@@ -1975,6 +1975,9 @@ struct SessionDetailView: View {
         "id": "{dur} dtk rata-rata {kmh} km/j — model deteksi tidak melihat foiling di sini",
         "nb": "{dur} s med snitt {kmh} km/t — gjenkjenningsmodellen ser ingen foiling her",
         "hr": "{dur} s uz prosječno {kmh} km/h — model prepoznavanja ovdje ne vidi foilanje",
+        "da": "{dur} s med {kmh} km/h i gennemsnit — genkendelsesmodellen ser ingen foiling her",
+        "sv": "{dur} s i {kmh} km/h snitt — detekteringsmodellen ser ingen foiling här",
+        "hu": "{dur} s, átlagosan {kmh} km/h – a felismerő modell itt nem lát foilozást",
     ]
 
     // Autofahrt (quelle "fahrt", 04.10.2026) und zu schnell fuer die Sportart (quelle "tempo", 25.10.2026), Wortlaut aus
@@ -1999,6 +2002,9 @@ struct SessionDetailView: View {
         "id": "Perjalanan mobil — {min} mnt, hingga {kmh} km/j",
         "nb": "Biltur — {min} min, opptil {kmh} km/t",
         "hr": "Vožnja autom — {min} min, do {kmh} km/h",
+        "da": "Biltur — {min} min, op til {kmh} km/h",
+        "sv": "Bilfärd — {min} min, upp till {kmh} km/h",
+        "hu": "Autóút – {min} perc, legfeljebb {kmh} km/h",
     ]
 
     private static let tempoWarum: [String: String] = [
@@ -2021,6 +2027,9 @@ struct SessionDetailView: View {
         "id": "Terlalu cepat untuk olahraga ini — hingga {kmh} km/h, batas {grenze} km/h",
         "nb": "For raskt for denne sporten — opptil {kmh} km/t, grense {grenze} km/t",
         "hr": "Prebrzo za ovaj sport — do {kmh} km/h, granica {grenze} km/h",
+        "da": "For hurtigt til denne sport — op til {kmh} km/h, grænse {grenze} km/h",
+        "sv": "För snabbt för den här sporten — upp till {kmh} km/h, gräns {grenze} km/h",
+        "hu": "Túl gyors ehhez a sporthoz – legfeljebb {kmh} km/h, határ {grenze} km/h",
     ]
 
     // Begründung lokalisiert aus den MESSWERTEN gebaut — metrics.grund ist deutscher Admin-Klartext

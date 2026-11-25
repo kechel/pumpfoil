@@ -29,6 +29,9 @@ func teamLocale(_ lang: String) -> Locale {
     case "zh": return Locale(identifier: "zh_Hans")
     case "nb": return Locale(identifier: "nb_NO")
     case "hr": return Locale(identifier: "hr_HR")
+    case "da": return Locale(identifier: "da_DK")
+    case "sv": return Locale(identifier: "sv_SE")
+    case "hu": return Locale(identifier: "hu_HU")
     default: return Locale(identifier: lang)
     }
 }

@@ -447,6 +447,9 @@ enum SuuntoTexte {
         case "id": return id
         case "nb": return nb
         case "hr": return hr
+        case "da": return da
+        case "sv": return sv
+        case "hu": return hu
         case "pl": return pl
         case "pt-PT": return pt
         default: return en
@@ -672,6 +675,45 @@ enum SuuntoTexte {
         "suunto.errPerm": "Nedostaje dopuštenje za Bluetooth — dopusti ga u postavkama.",
         "suunto.errBt": "Bluetooth je isključen.",
         "suunto.notif": "Primanje podataka sa Suunto sata",
+    ]
+    private static let da: [String: String] = [
+        "suunto.title": "Suunto-ur (beta)",
+        "suunto.body": "Pumpfoil-appen på dit Suunto-ur sender rådata via denne telefon. Slå modtagelse til, og hav telefonen med, mens du kører (vandtæt pose) — uden for rækkevidde kommer kun GPS, puls og pumps frem via Suunto-skyen.",
+        "suunto.on": "Slå modtagelse til",
+        "suunto.off": "Slå modtagelse fra",
+        "suunto.waiting": "Venter på uret … Slå »Raw data to phone app« til i Pumpfoil-appens indstillinger i Suunto-appen.",
+        "suunto.connected": "Forbundet: {uhr}",
+        "suunto.receiving": "Optagelse — {s} min modtaget",
+        "suunto.lost": "{s} s tabt uden for rækkevidde",
+        "suunto.errPerm": "Bluetooth-tilladelse mangler — tillad den venligst i indstillingerne.",
+        "suunto.errBt": "Bluetooth er slået fra.",
+        "suunto.notif": "Modtager data fra dit Suunto-ur",
+    ]
+    private static let sv: [String: String] = [
+        "suunto.title": "Suunto-klocka (beta)",
+        "suunto.body": "Pumpfoil-appen på din Suunto-klocka skickar rådata via den här telefonen. Slå på mottagningen och bär telefonen när du åker (vattentätt fodral) — utom räckhåll kommer bara GPS, puls och pumpar fram via Suunto-molnet.",
+        "suunto.on": "Slå på mottagning",
+        "suunto.off": "Stäng av mottagning",
+        "suunto.waiting": "Väntar på klockan … Slå på ”Rådata till telefonapp” i Pumpfoil-appens inställningar i Suunto-appen.",
+        "suunto.connected": "Ansluten: {uhr}",
+        "suunto.receiving": "Inspelning — {s} min mottaget",
+        "suunto.lost": "{s} s förlorade utom räckhåll",
+        "suunto.errPerm": "Bluetooth-behörighet saknas — tillåt den i inställningarna.",
+        "suunto.errBt": "Bluetooth är avstängt.",
+        "suunto.notif": "Tar emot data från din Suunto-klocka",
+    ]
+    private static let hu: [String: String] = [
+        "suunto.title": "Suunto óra (béta)",
+        "suunto.body": "A Suunto órádon lévő Pumpfoil app ezen a telefonon keresztül küldi a nyers adatokat. Kapcsold be a fogadást, és vidd magaddal a telefont foilozás közben (vízálló tok) — hatótávon kívül csak a GPS, a pulzus és a pumpák érkeznek meg a Suunto felhőn keresztül.",
+        "suunto.on": "Fogadás bekapcsolása",
+        "suunto.off": "Fogadás kikapcsolása",
+        "suunto.waiting": "Várakozás az órára … A Suunto appban kapcsold be a „Nyers adatok a telefonos appba” opciót a Pumpfoil app beállításaiban.",
+        "suunto.connected": "Csatlakoztatva: {uhr}",
+        "suunto.receiving": "Felvétel — {s} perc beérkezett",
+        "suunto.lost": "{s} s elveszett hatótávon kívül",
+        "suunto.errPerm": "Hiányzik a Bluetooth-engedély — kérlek, engedélyezd a beállításokban.",
+        "suunto.errBt": "A Bluetooth ki van kapcsolva.",
+        "suunto.notif": "Adatok fogadása a Suunto órádról",
     ]
     private static let pl: [String: String] = [
         "suunto.title": "Zegarek Suunto (beta)",
