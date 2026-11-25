@@ -3300,7 +3300,7 @@ const gsw: Record<string, string> = {
   "media.el.fahrer": "Fahrer-Chäschtli",
   "media.mit.title": "Wiiteri Fahrer",
   "media.mit.add": "Fahrer dezue",
-  "media.mit.box": "Im Fahrer-Chäschtli:",
+  "media.mit.box": "I de Fahrer-Chäschtli:",
   "media.mit.remove": "Wegneh",
   "media.mit.me": "Du",
   "media.mit.bestRun": "Beschte Lauf",

@@ -8,7 +8,7 @@ import { fmtDate, fmtTime } from "../lib/time";
 import { useCompare } from "../lib/compare";
 import { tafelTitel } from "../lib/teamKennzahlen";
 import { sprintName } from "../lib/media/zeichnen";
-import { FAHRER_FARBEN, FELD_KEYS, MAX_MITFAHRER, ANZEIGE_MIT, type Anzeige, type FeldKey, type Modus } from "../lib/media/mehrfach";
+import { FAHRER_FARBEN, FELD_KEYS, MAX_MITFAHRER, type Anzeige, type FeldKey, type Modus } from "../lib/media/mehrfach";
 
 export interface Mitfahrer {
   sessionId: number;
@@ -220,7 +220,7 @@ export function MediaMitfahrer({ sessionId, sessionStart, sessionSport, hauptNam
     const nr = [2, 3, 4].find((n) => !belegt.has(n));
     if (!nr) return;
     if (!fahrer.length) setModus(k.ueberlappt && !echtzeitGesperrt && !k.zeile?.zeit_verborgen ? "echtzeit" : "start");
-    setFahrer([...fahrer, { sessionId: k.sessionId, lauf: k.lauf, name: k.name, nr, anzeige: ANZEIGE_MIT }]);
+    setFahrer([...fahrer, { sessionId: k.sessionId, lauf: k.lauf, name: k.name, nr, anzeige: hauptAnzeige }]);
     setOffen(false);
   };
   const aendern = (i: number, p: Partial<Mitfahrer>) => setFahrer(fahrer.map((f, j) => (j === i ? { ...f, ...p } : f)));
@@ -278,16 +278,15 @@ export function MediaMitfahrer({ sessionId, sessionStart, sessionSport, hauptNam
             </label>
           )}
           {hinweis && <p className="text-xs text-amber-700 dark:text-amber-300">{hinweis}</p>}
+          {/* Datenfelder einmal fuer alle Fahrer (Jan 25.11.2026: nicht je Fahrer wiederholen). */}
+          <FeldKnoepfe a={hauptAnzeige} set={(a) => { setHauptAnzeige(a); setFahrer(fahrer.map((f) => ({ ...f, anzeige: a }))); }} />
           <ul className="space-y-2">
-            <li className="space-y-1.5 rounded-lg bg-slate-800/50 p-2">
-              <div className="flex items-center gap-2 text-sm"><Punkt nr={1} /><span className="font-semibold">{hauptName}</span></div>
-              <FeldKnoepfe a={hauptAnzeige} set={setHauptAnzeige} />
-            </li>
+            <li className="flex items-center gap-2 rounded-lg bg-slate-800/50 p-2 text-sm"><Punkt nr={1} /><span className="font-semibold">{hauptName}</span></li>
             {fahrer.map((f, i) => {
               const s = sessions[f.sessionId];
               const segs: any[] = s?.analysis?.segments ?? [];
               return (
-                <li key={f.sessionId} className="space-y-1.5 rounded-lg bg-slate-800/50 p-2">
+                <li key={f.sessionId} className="rounded-lg bg-slate-800/50 p-2">
                   <div className="flex flex-wrap items-center gap-2 text-sm">
                     <Punkt nr={f.nr} />
                     <span className="min-w-0 flex-1 truncate font-semibold">{f.name}</span>
@@ -302,7 +301,6 @@ export function MediaMitfahrer({ sessionId, sessionStart, sessionSport, hauptNam
                     <button onClick={() => setFahrer(fahrer.filter((_, j) => j !== i))} aria-label={t("media.mit.remove")}
                       className="rounded-md px-2 py-0.5 text-xs text-slate-300 hover:bg-slate-700">{t("media.mit.remove")}</button>
                   </div>
-                  <FeldKnoepfe a={f.anzeige} set={(a) => aendern(i, { anzeige: a })} />
                 </li>
               );
             })}

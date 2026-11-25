@@ -3612,7 +3612,7 @@ const en: Record<string, string> = {
   "media.el.fahrer": "Rider boxes",
   "media.mit.title": "More riders",
   "media.mit.add": "Add rider",
-  "media.mit.box": "In the rider box:",
+  "media.mit.box": "In the rider boxes:",
   "media.mit.remove": "Remove",
   "media.mit.me": "You",
   "media.mit.bestRun": "Best run",
