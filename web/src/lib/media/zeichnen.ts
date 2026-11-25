@@ -53,7 +53,7 @@ export const CFG_DEFAULT: MediaCfg = {
     time: { an: true, pos: "br", gr: 1 },
     sprint: { an: true, pos: "tl", gr: 1 },
     carve: { an: true, pos: "ml", gr: 1 },
-    fahrer: { an: true, pos: "tc", gr: 1 },
+    fahrer: { an: true, pos: "tr", gr: 1 },
     logo: { an: true, pos: "bc", gr: 0.7 },
   },
 };
@@ -501,11 +501,15 @@ function fahrerWerte(sp: FahrerSpur, modus: Mehrfach["modus"], tsHaupt: number, 
   const z = zustandTs(cl, bis);
   const teile: string[] = [];
   const f = sp.anzeige.felder;
-  if (f.speed) teile.push(aktiv ? `${z.v.toFixed(1)} ${tx.kmh}` : `– ${tx.kmh}`);
+  // Nach dem Ziel bleibt der Schnitt stehen (Sprint: Schnitt im Sprintfenster), statt „–" (Jan 25.11.2026).
+  const dauer = (bis - ref) / 1000;
+  const schnitt = modus === "sprint" && sp.sprint ? sp.sprint.wert * 3.6
+    : dauer > 0 ? ((streckeBis(cl, bis) - streckeBis(cl, ref)) / dauer) * 3.6 : null;
+  if (f.speed) teile.push(aktiv ? `${z.v.toFixed(1)} ${tx.kmh}` : fertig && schnitt != null ? `Ø ${schnitt.toFixed(1)} ${tx.kmh}` : `– ${tx.kmh}`);
   if (f.distance) teile.push(fmtStrecke(Math.max(0, streckeBis(cl, bis) - streckeBis(cl, ref))));
   if (f.time) {
     if (modus === "sprint" && sp.sprint && fertig) {
-      teile.push(sp.sprint.meter != null ? `${(sp.sprint.meter / sp.sprint.wert).toFixed(1)} s` : `${(sp.sprint.wert * 3.6).toFixed(1)} ${tx.kmh}`);
+      teile.push(`${(sp.sprint.meter != null ? sp.sprint.meter / sp.sprint.wert : (sp.sprint.b - sp.sprint.a) / 1000).toFixed(1)} s`);
     } else teile.push(modus === "sprint" ? `${((bis - ref) / 1000).toFixed(1)} s` : fmtMS(bis - ref));
   }
   if (f.pumps && cl.hatPumps) teile.push(`${obereGrenze(cl.pumps, bis) - obereGrenze(cl.pumps, ref)} ${tx.pumps}`);

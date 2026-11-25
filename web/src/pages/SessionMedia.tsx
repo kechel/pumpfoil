@@ -607,7 +607,8 @@ export default function SessionMedia() {
               <h3 className="font-semibold">{t("media.fields")}</h3>
               <p className="text-xs text-slate-400">{t("media.fieldsHint")}</p>
               <ul className="divide-y divide-slate-800">
-                {EL_KEYS.filter((k) => k !== "track" && elSichtbar(k)).map((k) => (
+                {/* Mit weiteren Fahrern stehen deren Kaesten oben in der Liste (Jan 25.11.2026: ein/aus und Position hier). */}
+                {["fahrer" as ElKey, ...EL_KEYS.filter((k) => k !== "fahrer")].filter((k) => k !== "track" && elSichtbar(k)).map((k) => (
                   <li key={k} className="flex flex-wrap items-center gap-3 py-2">
                     <label className="flex min-w-36 flex-1 items-center gap-2 text-sm">
                       <input type="checkbox" checked={cfg.el[k].an} onChange={(e) => setEl(k, { an: e.target.checked })} className="accent-brand-400" />

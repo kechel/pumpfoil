@@ -3637,6 +3637,7 @@ const de: Record<string, string> = {
   "media.el.fahrer": "Fahrer-Kästen",
   "media.mit.title": "Weitere Fahrer",
   "media.mit.add": "Fahrer dazu",
+  "media.mit.box": "Im Fahrer-Kasten:",
   "media.mit.remove": "Entfernen",
   "media.mit.me": "Du",
   "media.mit.bestRun": "Bester Lauf",

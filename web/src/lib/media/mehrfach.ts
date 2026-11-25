@@ -30,8 +30,8 @@ export const SPRINT_NACH_MS = 3000;
 const FERN_M = 5000;
 
 export interface Anzeige { felder: Record<FeldKey, boolean>; spur: "daten" | "fahrer" }
-export const ANZEIGE_HAUPT: Anzeige = { felder: { speed: true, distance: false, time: false, pumps: false, hr: false }, spur: "daten" };
-export const ANZEIGE_MIT: Anzeige = { felder: { speed: true, distance: false, time: false, pumps: false, hr: false }, spur: "daten" };
+export const ANZEIGE_HAUPT: Anzeige = { felder: { speed: true, distance: false, time: true, pumps: false, hr: false }, spur: "daten" };
+export const ANZEIGE_MIT: Anzeige = { felder: { speed: true, distance: false, time: true, pumps: false, hr: false }, spur: "daten" };
 
 /** Geometrie eines Fahrers: erst um (ox, oy) drehen, dann verschieben — in Metern des Hauptclips. */
 export interface Lage { ox: number; oy: number; rot: number; dx: number; dy: number }

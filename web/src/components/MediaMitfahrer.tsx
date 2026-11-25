@@ -227,6 +227,7 @@ export function MediaMitfahrer({ sessionId, sessionStart, sessionSport, hauptNam
 
   const FeldKnoepfe = ({ a, set }: { a: Anzeige; set: (a: Anzeige) => void }) => (
     <div className="flex flex-wrap items-center gap-1">
+      <span className="mr-1 text-xs text-slate-400">{t("media.mit.box")}</span>
       {FELD_KEYS.map((k: FeldKey) => (
         <button key={k} onClick={() => set({ ...a, felder: { ...a.felder, [k]: !a.felder[k] } })}
           className={`rounded-md px-2 py-0.5 text-xs font-semibold ${a.felder[k] ? "bg-brand-500 text-slate-950" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}>
