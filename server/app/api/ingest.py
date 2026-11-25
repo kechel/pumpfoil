@@ -11,6 +11,7 @@ import json as _json_mod
 import logging
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from .. import models, storage
@@ -321,18 +322,12 @@ def _chunk_speichern(db: Session, s: "models.Session", session_uuid: str, body: 
     else:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, f"unknown kind {body.kind!r}")
 
-    chunk = (
-        db.query(models.IngestChunk)
-        .filter_by(session_id=s.id, kind=body.kind, index=body.index)
-        .first()
-    )
-    if chunk is None:
-        chunk = models.IngestChunk(
-            session_id=s.id, kind=body.kind, index=body.index, sample_count=n
-        )
-        db.add(chunk)
-    else:
-        chunk.sample_count = n
+    # Upsert statt „erst nachsehen, dann anlegen": schickt die Uhr denselben Chunk zweimal gleichzeitig (Wiederholung,
+    # waehrend die erste Anfrage noch laeuft), legten beide an und die zweite endete mit 500 an `uq_chunk`
+    # (25.11.2026, 4x bei einer Session, die trotzdem vollstaendig ankam). Die Datei selbst ist idempotent.
+    t = models.IngestChunk.__table__
+    stmt = pg_insert(t).values(session_id=s.id, kind=body.kind, index=body.index, sample_count=n)
+    db.execute(stmt.on_conflict_do_update(constraint="uq_chunk", set_={"sample_count": stmt.excluded.sample_count}))
 
 
 @router.post("/session/{session_uuid}/chunk", response_model=ChunkOut)
