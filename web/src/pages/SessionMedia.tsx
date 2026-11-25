@@ -58,6 +58,36 @@ function ladeMusik(): MusikCfg {
   return MUSIK_DEFAULT;
 }
 
+// Je Session gemerkt (Jan 25.11.2026): Lauf, weitere Fahrer, Modus … — ueberlebt Reload und PWA-Update.
+// Darstellung (cfg) und Musik gelten fuer alle Sessions und liegen in den Schluesseln oben.
+const LS_SITZUNG = "pumpfoil_media_sitzung";
+const SITZUNG_MAX = 30;
+interface SitzungsStand {
+  lauf: number | "alle"; reiter: "video" | "musik"; fahrer: Mitfahrer[]; modus: Modus;
+  sprintWahl: string | null; drehen: boolean; hauptAnzeige: Anzeige; t: number;
+}
+function alleStaende(): Record<string, SitzungsStand> {
+  try {
+    const roh = JSON.parse(localStorage.getItem(LS_SITZUNG) ?? "null");
+    return roh && typeof roh === "object" ? roh : {};
+  } catch { return {}; }
+}
+function ladeStand(sid: string | undefined): Partial<SitzungsStand> {
+  const st = sid ? alleStaende()[sid] : undefined;
+  if (!st || typeof st !== "object") return {};
+  return { ...st, fahrer: Array.isArray(st.fahrer) ? st.fahrer.filter((f) => f && Number.isFinite(f.sessionId) && f.nr >= 2 && f.nr <= 4) : [] };
+}
+function speichereStand(sid: string, st: Omit<SitzungsStand, "t">) {
+  try {
+    const alle = alleStaende();
+    alle[sid] = { ...st, t: Date.now() };
+    // Nur die zuletzt benutzten Sessions behalten.
+    const keys = Object.keys(alle).sort((a, b) => (alle[b].t ?? 0) - (alle[a].t ?? 0));
+    for (const k of keys.slice(SITZUNG_MAX)) delete alle[k];
+    localStorage.setItem(LS_SITZUNG, JSON.stringify(alle));
+  } catch { /* Privatmodus, voll */ }
+}
+
 const FORMATE: Format[] = ["9:16", "4:5", "1:1", "16:9"];
 const TEMPI = [1, 2, 4, 8];
 const GROESSEN = [0.7, 1, 1.4];
@@ -86,6 +116,7 @@ function AnkerWahl({ wert, onChange }: { wert: Anker; onChange: (a: Anker) => vo
 export default function SessionMedia() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
+  const [gemerkt] = useState(() => ladeStand(id));
   const t = useT();
   const unit = usePumpUnit();
   const [session, setSession] = useState<any>(null);
@@ -93,10 +124,10 @@ export default function SessionMedia() {
   const [carves, setCarves] = useState<CarveData | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
   const [cfg, setCfg] = useState<MediaCfg>(ladeCfg);
-  const [lauf, setLauf] = useState<number | "alle">("alle");
+  const [lauf, setLauf] = useState<number | "alle">(gemerkt.lauf ?? "alle");
   const [alphaOk, setAlphaOk] = useState<boolean | null>(null);
   // Rechte Spalte: Video- oder Musik-Einstellungen (Jan 24.11.2026); der Export darunter gilt fuer beides.
-  const [reiter, setReiter] = useState<"video" | "musik">("video");
+  const [reiter, setReiter] = useState<"video" | "musik">(gemerkt.reiter === "musik" ? "musik" : "video");
   const [musik, setMusik] = useState<MusikCfg>(ladeMusik);
   const [musikFehler, setMusikFehler] = useState<string | null>(null);
   const [musikLaedt, setMusikLaedt] = useState(false);
@@ -117,10 +148,11 @@ export default function SessionMedia() {
     api.session(sid).then((s) => {
       if (weg) return;
       setSession(s);
-      // Vorbelegt: der in der Session gewaehlte Lauf (?lauf=), sonst der mit der laengsten Strecke.
+      // Vorbelegt: der in der Session gewaehlte Lauf (?lauf=), sonst der gemerkte, sonst der mit der laengsten Strecke.
       const segs: any[] = s?.analysis?.segments ?? [];
       const gewaehlt = Number(searchParams.get("lauf"));
       if (searchParams.get("lauf") != null && Number.isInteger(gewaehlt) && segs[gewaehlt]) setLauf(gewaehlt);
+      else if (gemerkt.lauf === "alle" || (typeof gemerkt.lauf === "number" && segs[gemerkt.lauf])) setLauf(gemerkt.lauf);
       else if (segs.length) setLauf(besterLauf(segs));
     }).catch((e) => !weg && setFehler(String(e)));
     api.sessionTrackTimes(sid).then((r) => !weg && setZeiten(r.t_ms ?? null)).catch(() => {});
@@ -140,13 +172,18 @@ export default function SessionMedia() {
     [session, zeiten, carves, lauf],
   );
 
-  // --- Weitere Fahrer (docs/MEDIA.md Schritt 6): nur fuer diese Ansicht, nicht gespeichert ---
-  const [fahrer, setFahrer] = useState<Mitfahrer[]>([]);
+  // --- Weitere Fahrer (docs/MEDIA.md Schritt 6): je Session auf diesem Geraet gemerkt (LS_SITZUNG) ---
+  const [fahrer, setFahrer] = useState<Mitfahrer[]>(gemerkt.fahrer ?? []);
   const [mitDaten, setMitDaten] = useState<Record<number, { session: any; zeiten: number[] | null }>>({});
-  const [modus, setModus] = useState<Modus>("start");
-  const [sprintWahl, setSprintWahl] = useState<string | null>(null);
-  const [drehen, setDrehen] = useState(false);
-  const [hauptAnzeige, setHauptAnzeige] = useState<Anzeige>(ANZEIGE_HAUPT);
+  const [modus, setModus] = useState<Modus>(gemerkt.modus ?? "start");
+  const [sprintWahl, setSprintWahl] = useState<string | null>(gemerkt.sprintWahl ?? null);
+  const [drehen, setDrehen] = useState(gemerkt.drehen ?? false);
+  const [hauptAnzeige, setHauptAnzeige] = useState<Anzeige>(gemerkt.hauptAnzeige ?? ANZEIGE_HAUPT);
+  // Erst speichern, wenn die Session da ist — sonst ueberschriebe der Startwert „alle" den gemerkten Lauf.
+  useEffect(() => {
+    if (!id || !session || String(session.id) !== id) return;
+    speichereStand(id, { lauf, reiter, fahrer, modus, sprintWahl, drehen, hauptAnzeige });
+  }, [id, session, lauf, reiter, fahrer, modus, sprintWahl, drehen, hauptAnzeige]);
   useEffect(() => {
     let weg = false;
     for (const f of fahrer) {
