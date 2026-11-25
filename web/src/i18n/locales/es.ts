@@ -1080,6 +1080,7 @@ const es: Record<string, string> = {
   "feedback.intro": "¿Comentarios sobre pumpfoil.org? Escríbeme.",
   "feedback.placeholder": "Tu comentario…",
   "feedback.send": "Enviar",
+  "feedback.fillTemplate": "Completa lo que falta después de los dos puntos (marca, modelo, tamaño, enlace); si no, no sabemos qué añadir.",
   "feedback.sent": "¡Gracias! Comentario enviado.",
   "feedback.open": "Enviar comentario",
   "login.or": "o",

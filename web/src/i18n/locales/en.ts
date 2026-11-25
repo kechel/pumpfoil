@@ -1621,6 +1621,7 @@ const en: Record<string, string> = {
   "feedback.intro": "Feedback on pumpfoil.org? Drop me a line.",
   "feedback.placeholder": "Your feedback…",
   "feedback.send": "Send",
+  "feedback.fillTemplate": "Please fill in what's missing after the colon (brand, model, size, link) — otherwise we don't know what to add.",
   "feedback.sent": "Thanks! Feedback sent.",
   "feedback.open": "Give feedback",
   "adm.tab.feedback": "Feedback",

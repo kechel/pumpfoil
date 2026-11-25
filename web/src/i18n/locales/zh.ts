@@ -1373,6 +1373,7 @@ const zh: Record<string, string> = {
   "feedback.intro": "对 pumpfoil.org 有反馈？给我留言吧。",
   "feedback.placeholder": "你的反馈…",
   "feedback.send": "发送",
+  "feedback.fillTemplate": "请在冒号后填写缺少的信息（品牌、型号、尺寸、链接），否则我们不知道要添加什么。",
   "feedback.sent": "谢谢！反馈已发送。",
   "feedback.open": "提交反馈",
   "adm.tab.feedback": "反馈",

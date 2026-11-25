@@ -1480,6 +1480,7 @@ const nl: Record<string, string> = {
   "feedback.intro": "Feedback over pumpfoil.org? Stuur me een kort berichtje.",
   "feedback.placeholder": "Jouw feedback…",
   "feedback.send": "Versturen",
+  "feedback.fillTemplate": "Vul na de dubbele punt in wat er ontbreekt (merk, model, maat, link) — anders weten we niet wat we moeten toevoegen.",
   "feedback.sent": "Bedankt! Feedback verstuurd.",
   "feedback.open": "Feedback geven",
   "adm.tab.feedback": "Feedback",

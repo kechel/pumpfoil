@@ -1784,6 +1784,7 @@ const gsw: Record<string, string> = {
   "feedback.attachFailed": "Aahang het nöd chönne hochglade werde",
   "common.remove": "Entferne",
   "feedback.send": "Schicke",
+  "feedback.fillTemplate": "Bitte trag nach em Doppelpunkt ii, was fehlt (Marke, Modell, Grössi, Link) — susch wüssed mir nöd, was mir ergänze söled.",
   "feedback.sent": "Merci! Feedback gschickt.",
   "feedback.title": "Feedback",
   "field.0": "— leer —",

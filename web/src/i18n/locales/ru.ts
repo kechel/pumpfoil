@@ -1373,6 +1373,7 @@ const ru: Record<string, string> = {
   "feedback.intro": "Есть отзыв о pumpfoil.org? Напишите мне.",
   "feedback.placeholder": "Ваш отзыв…",
   "feedback.send": "Отправить",
+  "feedback.fillTemplate": "Допишите после двоеточия, чего не хватает (марка, модель, размер, ссылка), иначе мы не знаем, что добавить.",
   "feedback.sent": "Спасибо! Отзыв отправлен.",
   "feedback.open": "Оставить отзыв",
   "adm.tab.feedback": "Отзывы",

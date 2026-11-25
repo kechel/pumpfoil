@@ -1547,6 +1547,7 @@ const pl: Record<string, string> = {
   "feedback.intro": "Masz uwagi do pumpfoil.org? Napisz do mnie.",
   "feedback.placeholder": "Twoja opinia…",
   "feedback.send": "Wyślij",
+  "feedback.fillTemplate": "Uzupełnij po dwukropku, czego brakuje (marka, model, rozmiar, link) — inaczej nie wiemy, co dodać.",
   "feedback.sent": "Dzięki! Opinia wysłana.",
   "feedback.open": "Napisz opinię",
   "adm.tab.feedback": "Opinie",

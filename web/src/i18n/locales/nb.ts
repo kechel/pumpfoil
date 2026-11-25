@@ -1438,6 +1438,7 @@ const nb: Record<string, string> = {
   "feedback.intro": "Tilbakemelding om pumpfoil.org? Send meg noen ord.",
   "feedback.placeholder": "Din tilbakemelding…",
   "feedback.send": "Send",
+  "feedback.fillTemplate": "Fyll inn det som mangler etter kolon (merke, modell, størrelse, lenke) — ellers vet vi ikke hva vi skal legge til.",
   "feedback.sent": "Takk! Tilbakemeldingen er sendt.",
   "feedback.open": "Gi tilbakemelding",
   "adm.tab.feedback": "Tilbakemelding",

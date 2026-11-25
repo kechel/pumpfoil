@@ -1373,6 +1373,7 @@ const ja: Record<string, string> = {
   "feedback.intro": "pumpfoil.org へのフィードバックですか？ぜひ一言お寄せください。",
   "feedback.placeholder": "あなたのフィードバック…",
   "feedback.send": "送信",
+  "feedback.fillTemplate": "コロンの後に足りない情報（メーカー、モデル、サイズ、リンク）を書いてください。書かれていないと何を追加すればよいかわかりません。",
   "feedback.sent": "ありがとうございます！フィードバックを送信しました。",
   "feedback.open": "フィードバックを送る",
   "adm.tab.feedback": "フィードバック",

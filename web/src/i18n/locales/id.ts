@@ -1373,6 +1373,7 @@ const id: Record<string, string> = {
   "feedback.intro": "Masukan tentang pumpfoil.org? Kirimi aku pesan.",
   "feedback.placeholder": "Masukanmu…",
   "feedback.send": "Kirim",
+  "feedback.fillTemplate": "Isi yang kurang setelah titik dua (merek, model, ukuran, tautan) — kalau tidak, kami tidak tahu apa yang perlu ditambahkan.",
   "feedback.sent": "Terima kasih! Masukan terkirim.",
   "feedback.open": "Beri masukan",
   "adm.tab.feedback": "Masukan",

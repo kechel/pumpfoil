@@ -1648,6 +1648,7 @@ const deAT: Record<string, string> = {
   "feedback.attachFailed": "Anhang konnte nicht hochgeladen werden",
   "common.remove": "Entfernen",
   "feedback.send": "Senden",
+  "feedback.fillTemplate": "Bitte trag nach dem Doppelpunkt ein, was fehlt (Marke, Modell, Größe, Link) — sonst wissen wir nicht, was wir ergänzen sollen.",
   "feedback.sent": "Danke! Feedback is unterwegs.",
   "feedback.title": "Feedback",
   "field.0": "— leer —",

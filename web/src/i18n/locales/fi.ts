@@ -1446,6 +1446,7 @@ const fi: Record<string, string> = {
   "feedback.intro": "Palautetta pumpfoil.orgista? Kirjoita se lyhyesti.",
   "feedback.placeholder": "Palautteesi…",
   "feedback.send": "Lähetä",
+  "feedback.fillTemplate": "Täydennä kaksoispisteen jälkeen, mitä puuttuu (merkki, malli, koko, linkki) — muuten emme tiedä, mitä lisätä.",
   "feedback.sent": "Kiitos! Palaute lähetetty.",
   "feedback.open": "Anna palautetta",
   "adm.tab.feedback": "Palaute",

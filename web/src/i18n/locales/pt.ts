@@ -1373,6 +1373,7 @@ const pt: Record<string, string> = {
   "feedback.intro": "Comentários sobre o pumpfoil.org? Me manda uma mensagem.",
   "feedback.placeholder": "Seu feedback…",
   "feedback.send": "Enviar",
+  "feedback.fillTemplate": "Preencha depois dos dois-pontos o que falta (marca, modelo, tamanho, link) — senão não sabemos o que adicionar.",
   "feedback.sent": "Obrigado! Feedback enviado.",
   "feedback.open": "Dar feedback",
   "adm.tab.feedback": "Feedback",

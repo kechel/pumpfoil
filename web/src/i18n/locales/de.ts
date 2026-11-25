@@ -1721,6 +1721,7 @@ const de: Record<string, string> = {
   "feedback.intro": "Feedback zu pumpfoil.org? Schreib's mir kurz.",
   "feedback.placeholder": "Dein Feedback…",
   "feedback.send": "Senden",
+  "feedback.fillTemplate": "Bitte trag nach dem Doppelpunkt ein, was fehlt (Marke, Modell, Größe, Link) — sonst wissen wir nicht, was wir ergänzen sollen.",
   "feedback.sent": "Danke! Feedback gesendet.",
   "feedback.open": "Feedback geben",
   "adm.tab.feedback": "Feedback",

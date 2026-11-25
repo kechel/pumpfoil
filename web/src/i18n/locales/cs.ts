@@ -1480,6 +1480,7 @@ const cs: Record<string, string> = {
   "feedback.intro": "Máš zpětnou vazbu k pumpfoil.org? Napiš mi ji krátce.",
   "feedback.placeholder": "Tvoje zpětná vazba…",
   "feedback.send": "Odeslat",
+  "feedback.fillTemplate": "Doplňte za dvojtečku, co chybí (značka, model, velikost, odkaz) — jinak nevíme, co přidat.",
   "feedback.sent": "Díky! Zpětná vazba odeslána.",
   "feedback.open": "Poslat zpětnou vazbu",
   "adm.tab.feedback": "Zpětná vazba",

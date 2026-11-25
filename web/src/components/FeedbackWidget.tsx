@@ -22,6 +22,9 @@ export function FeedbackWidget() {
   const loc = useLocation();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
+  // Vorlage aus „fehlt etwas?" (MissingHint): unveraendert abgeschickt kam sie zweimal leer an (Nutzermeldung
+  // 25.11.2026) — Senden erst, wenn etwas dazugeschrieben wurde.
+  const [vorlage, setVorlage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   // Anhaenge: Screenshots oder Logs. Bewusst erst NACH dem Text hochgeladen — der Text ist die
@@ -34,7 +37,7 @@ export function FeedbackWidget() {
   useEffect(() => {
     function onOpen(e: Event) {
       const pre = (e as CustomEvent<string | undefined>).detail;
-      if (pre) setText((t0) => (t0.trim() ? t0 : pre.slice(0, MAX)));
+      if (pre) { setText((t0) => (t0.trim() ? t0 : pre.slice(0, MAX))); setVorlage(pre.trim()); }
       setOpen(true);
     }
     window.addEventListener("open-feedback", onOpen);
@@ -42,9 +45,10 @@ export function FeedbackWidget() {
   }, []);
 
   function send() { submitText(text); }
+  const nurVorlage = (raw: string) => !!vorlage && raw.trim() === vorlage;
   function submitText(raw: string) {
     const v = raw.trim();
-    if (!v) return;
+    if (!v || nurVorlage(v)) return;
     setBusy(true);
     setFehler("");
     api.submitFeedback(v.slice(0, MAX), loc.pathname + loc.search)
@@ -55,6 +59,7 @@ export function FeedbackWidget() {
         }
         setSent(true);
         setText("");
+        setVorlage(null);
         setDateien([]);
         setTimeout(() => { setOpen(false); setSent(false); }, 1400);
       })
@@ -126,6 +131,7 @@ export function FeedbackWidget() {
               )}
               {fehler && <p className="mt-1 text-[11px] text-rose-400">{fehler}</p>}
             </div>
+            {nurVorlage(text) && <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">{t("feedback.fillTemplate")}</p>}
             <div className="mt-2 flex items-center justify-between">
               <span className="text-[11px] tabular-nums text-slate-500">{text.length}/{MAX}</span>
               <div className="flex items-center gap-2">
@@ -135,7 +141,7 @@ export function FeedbackWidget() {
                 ) : (
                   <button
                     onClick={send}
-                    disabled={busy || !text.trim()}
+                    disabled={busy || !text.trim() || nurVorlage(text)}
                     className="rounded-xl bg-brand-500 px-4 py-2 text-sm font-semibold text-slate-950 hover:bg-brand-400 disabled:opacity-50"
                   >
                     {busy ? "…" : t("feedback.send")}
