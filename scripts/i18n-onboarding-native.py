@@ -8,7 +8,7 @@ import io, json, re, pathlib
 
 WEB = pathlib.Path("web/src/i18n/locales")
 BASIS = ["de", "gsw", "de-AT", "en", "fr", "it", "es"]          # Zeilen der Grundtabelle
-OVERLAY = ["fi", "nl", "cs", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "pl"]
+OVERLAY = ["fi", "nl", "cs", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "pl", "hr", "da", "sv", "hu"]
 
 # Texte, die der Assistent MITBENUTZT und die in den Apps anders (oder gar nicht) heissen.
 # Sie wandern unter einem "onb."-Alias in dieselbe Tabelle: so bleibt der Wortlaut an EINER
