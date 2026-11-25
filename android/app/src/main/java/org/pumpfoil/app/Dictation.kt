@@ -56,7 +56,16 @@ private fun localeTag(lang: String): String = when (lang) {
     "fi" -> "fi-FI"
     "nl" -> "nl-NL"
     "cs" -> "cs-CZ"
-    else -> "de-DE"
+    "hr" -> "hr-HR"
+    "pl" -> "pl-PL"
+    "pt" -> "pt-BR"
+    "pt-PT" -> "pt-PT"
+    "ja" -> "ja-JP"
+    "zh" -> "zh-CN"
+    "ru" -> "ru-RU"
+    "id" -> "id-ID"
+    "nb" -> "nb-NO"
+    else -> "en-US"
 }
 
 // Vollbild-Diktat (weiche Brand-Farben, Diktattext fett + brand-blau). Spiegelt web MicButton.

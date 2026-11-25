@@ -10,7 +10,7 @@ import io, json, re, pathlib, sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 WEB = ROOT / "web/src/i18n/locales"
 AND = ROOT / "android/app/src/main/java/org/pumpfoil/app"
-LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb"]
+LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "hr"]
 FUN = {c: "texte" + c.upper().replace("-", "") for c in LANGS}
 
 # Praefixe/Schluessel ausserhalb von `team.*`, die die App braucht (Stand 16.11.2026).

@@ -14,6 +14,7 @@ import { useCloseOnBack } from "../lib/useCloseOnBack";
 const SR_LANG: Record<string, string> = {
   de: "de-DE", gsw: "de-CH", "de-AT": "de-AT",
   en: "en-US", fr: "fr-FR", it: "it-IT", es: "es-ES", fi: "fi-FI", nl: "nl-NL", cs: "cs-CZ", hr: "hr-HR",
+  pl: "pl-PL", pt: "pt-BR", "pt-PT": "pt-PT", ja: "ja-JP", zh: "zh-CN", ru: "ru-RU", id: "id-ID", nb: "nb-NO",
 };
 
 export function MicButton({ value, onChange, onSubmit, disabled, title }: {
@@ -53,7 +54,7 @@ export function MicButton({ value, onChange, onSubmit, disabled, title }: {
 
   function startSession() {
     const rec = new SR();
-    rec.lang = SR_LANG[lang] || "de-DE";
+    rec.lang = SR_LANG[lang] || "en-US";
     rec.continuous = false;   // eine Äußerung pro Session (Android-robust)
     rec.interimResults = true;
     sessFinalRef.current = "";

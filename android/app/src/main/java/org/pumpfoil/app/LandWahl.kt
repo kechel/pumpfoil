@@ -84,7 +84,7 @@ fun LandKarteProfil(onSaved: () -> Unit = {}) {
 private val LAND_JE_SPRACHE = mapOf(
     "de" to "DE", "gsw" to "CH", "de-AT" to "AT", "en" to "GB", "fr" to "FR", "it" to "IT", "es" to "ES", "fi" to "FI",
     "nl" to "NL", "cs" to "CZ", "pl" to "PL", "pt" to "BR", "pt-PT" to "PT", "ja" to "JP", "zh" to "CN", "ru" to "RU",
-    "id" to "ID", "nb" to "NO",
+    "id" to "ID", "nb" to "NO", "hr" to "HR",
 )
 
 /** Land zur Sprache (Web landZurSprache): die Region des Systems, wenn sie zur gewaehlten Sprache passt (en-US -> US),
