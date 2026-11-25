@@ -172,6 +172,16 @@ export function baueClip(session: any, trackZeiten: number[] | null, carves: Car
       sprints.push({ kz, a: f[0], b: f[1], wert, ...kennzahl(kz) });
     }
   }
+  // Aeltere Sprint-Auswertungen (v6) haben keine Fenster je Lauf, nur das beste je Kennzahl — dann das nehmen
+  // (nie neu rechnen, Memory sprint-nie-rueckwirkend). Sonst fehlte z. B. ein Event-Sieger im Sprint-Start.
+  if (!lf.length && sp?.fenster) {
+    for (const kz of Object.keys(sp.fenster)) {
+      const f = sp.fenster[kz];
+      const wert = sp.best?.[kz] ?? 0;
+      if (!f || !(wert > 0) || !drin((f[0] + f[1]) / 2)) continue;
+      sprints.push({ kz, a: f[0], b: f[1], wert, ...kennzahl(kz) });
+    }
+  }
   sprints.sort((a, b) => a.a - b.a);
 
   const cv: ClipCarve[] = [];
