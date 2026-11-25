@@ -228,6 +228,7 @@ function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, W: number,
 
       // Weitere Fahrer UNTER dem Hauptfahrer: Geist im Fenster, dann Rand in Fahrerfarbe + dunkle Fuge + Spur.
       const fz = mehr ? mehr.mit.map((m) => ({ m, ts: z.ts + m.delta })) : [];
+      const mSprintPunkte: [number, number][] = [];
       for (const { m, ts } of fz) {
         const P = (k: number): [number, number] => { const p = m.clip.pts[k]; const [a, b] = lageAnwenden(m.lage, p.x, p.y); return [X(a), Y(b)]; };
         const mp = m.clip.pts;
@@ -262,6 +263,25 @@ function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, W: number,
           }
         };
         c.shadowColor = cfg.schatten ? "rgba(0,0,0,0.55)" : "transparent"; c.shadowBlur = cfg.schatten ? 8 * u : 0;
+        // Sprints auch beim Mitfahrer: weisses Band breiter als der Rand (sonst laege es unsichtbar darunter).
+        const mSprints = e.sprints ? m.clip.sprints.filter((sp) => cfg.sprints.includes(sp.kz) && sp.b >= m.tVon && sp.a <= m.tBis) : [];
+        if (mSprints.length) {
+          c.strokeStyle = "rgba(255,255,255,0.9)"; c.lineWidth = SPRINT_BAND_MEHR * u * dk;
+          for (const sp of mSprints) {
+            if (bis < sp.a) continue;
+            c.beginPath(); let erst = true;
+            for (let k = 0; k < mp.length && mp[k].t <= Math.min(bis, sp.b); k++) {
+              if (mp[k].t < sp.a || !drin(k)) continue;
+              const [px, py] = P(k);
+              if (erst) { c.moveTo(px, py); erst = false; } else c.lineTo(px, py);
+            }
+            c.stroke();
+          }
+        }
+        mSprintPunkte.push(...mSprints.flatMap((sp) => [sp.a, sp.b].filter((tt) => bis >= tt && tt >= m.tVon).map((tt) => {
+          let k = 0; while (k < mp.length - 1 && mp[k + 1].t <= tt) k++;
+          return P(k);
+        })));
         zug(15 * u * dk, m.farbe);
         c.shadowColor = "transparent";
         zug(10 * u * dk, "#0f172a");
@@ -296,7 +316,7 @@ function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, W: number,
       }
       // Sprints: weisses Band unter der Spur (wie in der Session-Karte).
       const sprints = e.sprints ? clip.sprints.filter((sp) => cfg.sprints.includes(sp.kz)) : [];
-      c.strokeStyle = "rgba(255,255,255,0.9)"; c.lineWidth = 14 * u * dk;
+      c.strokeStyle = "rgba(255,255,255,0.9)"; c.lineWidth = (mehr ? SPRINT_BAND_MEHR : 14) * u * dk;
       for (const sp of sprints) if (z.ts >= sp.a) band(sp.a, sp.b);
       c.shadowColor = "transparent";
       // Die Spur in der gewaehlten Farbe — dieselben Skalen wie die Karte (trackColors.ts). Mit weiteren Fahrern
@@ -348,6 +368,10 @@ function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, W: number,
           c.beginPath(); c.arc(X(pts[k].x), Y(pts[k].y), 9 * u * Math.sqrt(dk), 0, Math.PI * 2); c.fill(); c.stroke();
         }
       }
+      for (const [px, py] of mSprintPunkte) {
+        c.fillStyle = "#c026d3"; c.strokeStyle = "#ffffff"; c.lineWidth = 3 * u;
+        c.beginPath(); c.arc(px, py, 9 * u * Math.sqrt(dk), 0, Math.PI * 2); c.fill(); c.stroke();
+      }
       const p = pts[z.i], q = pts[Math.min(z.i + 1, pts.length - 1)];
       const hx = X(p.x + (q.x - p.x) * z.f), hy = Y(p.y + (q.y - p.y) * z.f);
       if (!mehr) {
@@ -386,6 +410,9 @@ function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, W: number,
     },
   };
 }
+
+/** Sprintband mit mehreren Fahrern: breiter als der 15er-Rand in Fahrerfarbe, damit es seitlich heraussteht. */
+const SPRINT_BAND_MEHR = 23;
 
 function istAktiv(clip: Clip, ts: number): boolean {
   return clip.spans.some(([a, b]) => ts >= a && ts <= b);
