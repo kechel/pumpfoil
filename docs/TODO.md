@@ -1559,8 +1559,9 @@ Nur gemerkt (Jan: „nicht direkt was aendern"), Loesung offen.
   Am See waere das ein Deadlock gewesen. Der Fahrer will das lange Halten ausdruecklich behalten (kurzer Druck
   passiert unter dem Neopren, dann fehlt die Aufnahme); Jan sieht das genauso.
 - **Code-Stand (`watch-zepp/page/index.js`, onKey ~Z. 1404):** langes SELECT = Stopp; die Profil-Einstellung
-  „ein Druck reicht" (`stopMode=press`) beendet mit kurzem SELECT; **langes UP/DOWN gibt den Touch frei** — damit
-  geht der Touch-Stopp-Bildschirm schon heute ohne SELECT. Offenbar fängt das System das lange SELECT vor
+  „ein Druck reicht" (`stopMode=press`) beendet mit kurzem SELECT; **2 s auf das Display halten gibt den Touch frei**
+  (Sperrschirm, ~Z. 2095, seit 10.09.; ebenso langes UP/DOWN) — danach Stopp-Knopf per Touch (2 s halten). Der Weg
+  existiert also schon, wurde aber nicht gefunden: der Sperrhinweis sagt nur „2 s halten = Touch frei". Offenbar fängt das System das lange SELECT vor
   `onKey` ab; ob sich das abfangen laesst, ist auf echter Hardware ungeprueft.
 - **Ideen:** (1) Hinweis auf der Uhr/in der Einrichtung „2 s OBEN/UNTEN = Touch frei" bzw. „auf manchen Modellen
   belegt das System langes SELECT"; (2) Stopp alternativ auf langes UP oder DOWN legen (Tastenzahl je Modell
