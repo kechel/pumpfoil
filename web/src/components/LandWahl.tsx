@@ -23,7 +23,7 @@ export function LandWahl({ land, onChange }: { land: string; onChange: (v: strin
 
 const LAND_JE_SPRACHE: Record<Lang, string> = {
   de: "DE", gsw: "CH", "de-AT": "AT", en: "GB", fr: "FR", it: "IT", es: "ES", fi: "FI", nl: "NL", cs: "CZ",
-  pl: "PL", pt: "BR", "pt-PT": "PT", ja: "JP", zh: "CN", ru: "RU", id: "ID", nb: "NO",
+  pl: "PL", pt: "BR", "pt-PT": "PT", ja: "JP", zh: "CN", ru: "RU", id: "ID", nb: "NO", hr: "HR",
 };
 
 /** Land zur Sprache: zuerst die Region aus den Browser-Sprachen, wenn sie zur gewaehlten Sprache passt (en-US -> US,

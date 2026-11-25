@@ -39,7 +39,7 @@ export const SPRACH_SEITEN = ["/why-pumpfoil", "/nerd-analysen", "/nerd-analysen
 export const warumPfad = (code: string) => seitenPfad(code, "/why-pumpfoil");
 
 /** Sprachen mit eigener Adresse, wie in index.html und sitemap.xml (ohne pt-PT, das dort ebenfalls fehlt). */
-export const SEO_SPRACHEN = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "ja", "zh", "ru", "id", "nb"];
+export const SEO_SPRACHEN = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "ja", "zh", "ru", "id", "nb", "hr"];
 
 /** Markdown-Reste (**fett**, `code`, [text](pfad)) fuer Titel/Beschreibung entfernen. */
 export const ohneMarkup = (s: string) => s.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/[*`]/g, "").trim();

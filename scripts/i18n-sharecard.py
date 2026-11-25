@@ -60,6 +60,7 @@ FORMATE: dict[str, dict[str, str]] = {
     "pl":    {"dez": ",", "tsd": " ", "datum": "%d.%m.%Y"},
     "ru":    {"dez": ",", "tsd": " ", "datum": "%d.%m.%Y"},
     "nb":    {"dez": ",", "tsd": " ", "datum": "%d.%m.%Y"},
+    "hr":    {"dez": ",", "tsd": ".", "datum": "%d.%m.%Y."},
     "id":    {"dez": ",", "tsd": ".", "datum": "%d/%m/%Y"},
     "ja":    {"dez": ".", "tsd": ",", "datum": "%Y年%m月%d日"},
     "zh":    {"dez": ".", "tsd": ",", "datum": "%Y年%m月%d日"},

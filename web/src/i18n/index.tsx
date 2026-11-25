@@ -11,7 +11,7 @@ import de from "./locales/de";
 import en from "./locales/en";
 
 export type Lang = "de" | "gsw" | "de-AT" | "en" | "fr" | "it" | "es" | "fi" | "nl" | "cs"
-  | "pl" | "pt" | "pt-PT" | "ja" | "zh" | "ru" | "id" | "nb";
+  | "pl" | "pt" | "pt-PT" | "ja" | "zh" | "ru" | "id" | "nb" | "hr";
 
 export type Dict = Record<string, string>;
 
@@ -35,6 +35,7 @@ export const LANGS: { code: Lang; flag: string; native: string }[] = [
   { code: "ru", flag: "🇷🇺", native: "Русский" },
   { code: "id", flag: "🇮🇩", native: "Bahasa Indonesia" },
   { code: "nb", flag: "🇳🇴", native: "Norsk" },
+  { code: "hr", flag: "🇭🇷", native: "Hrvatski" },
 ];
 
 const DICTS: Partial<Record<Lang, Dict>> = { de, en };
@@ -44,7 +45,7 @@ const NACHLADEN: Record<Exclude<Lang, "de" | "en">, () => Promise<{ default: Dic
   nl: () => import("./locales/nl"), cs: () => import("./locales/cs"), pl: () => import("./locales/pl"),
   pt: () => import("./locales/pt"), "pt-PT": () => import("./locales/pt-PT"), ja: () => import("./locales/ja"),
   zh: () => import("./locales/zh"), ru: () => import("./locales/ru"), id: () => import("./locales/id"),
-  nb: () => import("./locales/nb"),
+  nb: () => import("./locales/nb"), hr: () => import("./locales/hr"),
 };
 
 // Sprachen, deren Rueckfall NICHT Englisch ist: Mundarten fallen auf ihre Hochsprache.
@@ -125,6 +126,7 @@ export function detectInitialLang(): Lang {
   // Alle drei landen auf unserer Bokmaal-Uebersetzung — Nynorsk-Leser sind Bokmaal gewohnt,
   // und eine zweite norwegische Norm zu pflegen waere fuer den Nutzen zu viel.
   if (nav.startsWith("nb") || nav.startsWith("nn") || nav.startsWith("no")) return "nb";
+  if (nav.startsWith("hr")) return "hr";
   if (nav.startsWith("en")) return "en";
   return "en";   // unbekannte Browsersprache -> Englisch (nicht Deutsch)
 }
