@@ -121,7 +121,7 @@ enum LocOnb {
     ]
     private static let _b3: [String: [String: String]] = [
         "onb.x.sport.pumpfoil": ["de": "Pumpfoil", "gsw": "Pumpfoil", "de-AT": "Pumpfoil", "en": "Pumpfoil", "fr": "Pumpfoil", "it": "Pumpfoil", "es": "Pumpfoil"],
-        "onb.x.sport.surf_downwind": ["de": "Surf / Downwind", "gsw": "Surf / Downwind", "de-AT": "Surf / Downwind", "en": "Surf / downwind", "fr": "Surf / downwind", "it": "Surf / downwind", "es": "Surf / downwind"],
+        "onb.x.sport.surf_downwind": ["de": "Surf / Downwind (Foil)", "gsw": "Surf / Downwind (Foil)", "de-AT": "Surf / Downwind (Foil)", "en": "Surf / downwind (foil)", "fr": "Surf / downwind (foil)", "it": "Surf / downwind (foil)", "es": "Surf / downwind (foil)"],
         "onb.x.sport.wingfoil": ["de": "Wingfoil", "gsw": "Wingfoil", "de-AT": "Wingfoil", "en": "Wingfoil", "fr": "Wingfoil", "it": "Wingfoil", "es": "Wingfoil"],
         "onb.x.suuntoConnect": ["de": "Mit Suunto verbinden", "gsw": "Mit Suunto verbinde", "de-AT": "Mit Suunto verbinden", "en": "Connect Suunto", "fr": "Connecter Suunto", "it": "Collega Suunto", "es": "Conectar Suunto"],
         "onb.x.suuntoTitle": ["de": "Suunto-Import", "gsw": "Suunto-Import", "de-AT": "Suunto-Import", "en": "Suunto import", "fr": "Import Suunto", "it": "Import Suunto", "es": "Importación Suunto"],
@@ -141,6 +141,7 @@ enum LocOnb {
         d["id"] = _id
         d["nb"] = _nb
         d["pl"] = _pl
+        d["hr"] = _hr
         return d
     }()
     private static let _fi: [String: String] = {
@@ -246,7 +247,7 @@ enum LocOnb {
     ]
     private static let _fi3: [String: String] = [
         "onb.x.sport.pumpfoil": "Pumpfoil",
-        "onb.x.sport.surf_downwind": "Surffaus / downwind",
+        "onb.x.sport.surf_downwind": "Surffaus / downwind (foil)",
         "onb.x.sport.wingfoil": "Wingfoil",
         "onb.x.suuntoConnect": "Yhdistä Suuntoon",
         "onb.x.suuntoTitle": "Suunto-tuonti",
@@ -355,7 +356,7 @@ enum LocOnb {
     ]
     private static let _nl3: [String: String] = [
         "onb.x.sport.pumpfoil": "Pumpfoil",
-        "onb.x.sport.surf_downwind": "Surf / downwind",
+        "onb.x.sport.surf_downwind": "Surf / downwind (foil)",
         "onb.x.sport.wingfoil": "Wingfoil",
         "onb.x.suuntoConnect": "Met Suunto verbinden",
         "onb.x.suuntoTitle": "Suunto-import",
@@ -464,7 +465,7 @@ enum LocOnb {
     ]
     private static let _cs3: [String: String] = [
         "onb.x.sport.pumpfoil": "Pumpfoil",
-        "onb.x.sport.surf_downwind": "Surf / downwind",
+        "onb.x.sport.surf_downwind": "Surf / downwind (foil)",
         "onb.x.sport.wingfoil": "Wingfoil",
         "onb.x.suuntoConnect": "Propojit se Suunto",
         "onb.x.suuntoTitle": "Suunto import",
@@ -573,7 +574,7 @@ enum LocOnb {
     ]
     private static let _pt3: [String: String] = [
         "onb.x.sport.pumpfoil": "Pumpfoil",
-        "onb.x.sport.surf_downwind": "Surf / downwind",
+        "onb.x.sport.surf_downwind": "Surf / downwind (foil)",
         "onb.x.sport.wingfoil": "Wingfoil",
         "onb.x.suuntoConnect": "Conectar Suunto",
         "onb.x.suuntoTitle": "Importação Suunto",
@@ -682,7 +683,7 @@ enum LocOnb {
     ]
     private static let _pt_PT3: [String: String] = [
         "onb.x.sport.pumpfoil": "Pumpfoil",
-        "onb.x.sport.surf_downwind": "Surf / downwind",
+        "onb.x.sport.surf_downwind": "Surf / downwind (foil)",
         "onb.x.sport.wingfoil": "Wingfoil",
         "onb.x.suuntoConnect": "Ligar Suunto",
         "onb.x.suuntoTitle": "Importação Suunto",
@@ -791,7 +792,7 @@ enum LocOnb {
     ]
     private static let _ja3: [String: String] = [
         "onb.x.sport.pumpfoil": "パンプフォイル",
-        "onb.x.sport.surf_downwind": "サーフ／ダウンウィンド",
+        "onb.x.sport.surf_downwind": "サーフ／ダウンウィンド（フォイル）",
         "onb.x.sport.wingfoil": "ウイングフォイル",
         "onb.x.suuntoConnect": "Suunto を連携",
         "onb.x.suuntoTitle": "Suunto インポート",
@@ -900,7 +901,7 @@ enum LocOnb {
     ]
     private static let _zh3: [String: String] = [
         "onb.x.sport.pumpfoil": "Pumpfoil",
-        "onb.x.sport.surf_downwind": "冲浪 / 顺风",
+        "onb.x.sport.surf_downwind": "冲浪 / 顺风（水翼）",
         "onb.x.sport.wingfoil": "Wingfoil",
         "onb.x.suuntoConnect": "连接 Suunto",
         "onb.x.suuntoTitle": "Suunto 导入",
@@ -1009,7 +1010,7 @@ enum LocOnb {
     ]
     private static let _ru3: [String: String] = [
         "onb.x.sport.pumpfoil": "Пампфойл",
-        "onb.x.sport.surf_downwind": "Сёрф / даунвинд",
+        "onb.x.sport.surf_downwind": "Сёрф / даунвинд (фойл)",
         "onb.x.sport.wingfoil": "Вингфойл",
         "onb.x.suuntoConnect": "Подключить Suunto",
         "onb.x.suuntoTitle": "Импорт Suunto",
@@ -1118,7 +1119,7 @@ enum LocOnb {
     ]
     private static let _id3: [String: String] = [
         "onb.x.sport.pumpfoil": "Pumpfoil",
-        "onb.x.sport.surf_downwind": "Surf / downwind",
+        "onb.x.sport.surf_downwind": "Surf / downwind (foil)",
         "onb.x.sport.wingfoil": "Wingfoil",
         "onb.x.suuntoConnect": "Hubungkan Suunto",
         "onb.x.suuntoTitle": "Impor Suunto",
@@ -1227,7 +1228,7 @@ enum LocOnb {
     ]
     private static let _nb3: [String: String] = [
         "onb.x.sport.pumpfoil": "Pumpfoil",
-        "onb.x.sport.surf_downwind": "Surf / downwind",
+        "onb.x.sport.surf_downwind": "Surf / downwind (foil)",
         "onb.x.sport.wingfoil": "Wingfoil",
         "onb.x.suuntoConnect": "Koble til Suunto",
         "onb.x.suuntoTitle": "Suunto-import",
@@ -1336,10 +1337,119 @@ enum LocOnb {
     ]
     private static let _pl3: [String: String] = [
         "onb.x.sport.pumpfoil": "Pumpfoil",
-        "onb.x.sport.surf_downwind": "Surf / downwind",
+        "onb.x.sport.surf_downwind": "Surf / downwind (foil)",
         "onb.x.sport.wingfoil": "Wingfoil",
         "onb.x.suuntoConnect": "Połącz Suunto",
         "onb.x.suuntoTitle": "Import z Suunto",
         "onb.x.weight": "Waga",
+    ]
+    private static let _hr: [String: String] = {
+        var d: [String: String] = [:]
+        for p in [_hr0, _hr1, _hr2, _hr3] { d.merge(p) { a, _ in a } }
+        return d
+    }()
+    private static let _hr0: [String: String] = [
+        "onb.back": "Natrag",
+        "onb.done.feedback": "Uvijek nam je drago čuti te: greške, ideje, želje — sve je dobrodošlo, u chatu zajednice ili preko poštanskog sandučića desno. Samo zahvaljujući svim povratnim informacijama zajednice mogao sam pumpfoil.org dovesti ovako daleko ovako brzo.",
+        "onb.done.more": "Sve ove i još mnogo postavki uvijek su u tvom profilu. Više za svaki sat naći ćeš pod Profil / Sat: prikazi sata iz zajednice, alarmi na foilu i dodatni satovi. A pod Profil / Povezani računi možeš povezati još računa.",
+        "onb.done.noWatch": "Sat možeš povezati kad god želiš — u profilu pod Sat.",
+        "onb.done.title": "To je to.",
+        "onb.done.upload": "§Prijenos se odvija samo dok je aplikacija Pumpfoil otvorena na satu i povezana s mobitelom ili Wi-Fi mrežom.§ Ako je aplikacija zatvorena, snimka ostaje sigurno na satu i sama se prenese sljedeći put kad je otvoriš. Napredak vidiš u aplikaciji na satu, a ondje možeš i kasnije pokrenuti prijenos — na Garminu preko Izbornik → Prijenos / Sinkronizacija.",
+        "onb.done.withWatch": "Pokreni snimanje na satu i idi voziti. Čim se prenese, tvoje vožnje pojavit će se ovdje.",
+        "onb.finish": "Gotovo",
+        "onb.foil.chosen": "Odabrano",
+        "onb.foil.defaultHint": "Dodirni foil da postane zadani (★) — njega koriste nove snimke.",
+        "onb.foil.missing": "Tvog foila nema na popisu?",
+        "onb.foil.missingHow": "Javi nam preko poštanskog sandučića desno kako se tvoj foil točno zove — marka, model i veličina. Uskoro ćemo ga dodati u katalog.",
+        "onb.foil.none": "Ništa nije pronađeno.",
+        "onb.foil.search": "Traži marku ili model…",
+        "onb.foil.sub": "Neobavezno. Potrebno za statistiku foila, pragove alarma i izračun snage.",
+        "onb.foil.title": "Tvoj foil",
+        "onb.intro": "Nekoliko pitanja, sva neobavezna. Preskoči bilo koje i promijeni ga kasnije u profilu.",
+        "onb.later": "Nastavi kasnije",
+        "onb.level.beginner": "Tek počinjem",
+        "onb.level.inter": "Napredujem",
+        "onb.level.pro": "Vozim sigurno",
+        "onb.level.sub": "O tome ovisi koliko osjetljivo se prepoznaju tvoje vožnje.",
+        "onb.level.title": "Koliko dugo već pumpaš?",
+        "onb.link.leaves": "Povezivanje te nakratko odvede do proizvođača i natrag — tvoji odgovori ovdje ostaju.",
+        "onb.link.linked": "Povezano",
+        "onb.link.unavailable": "Trenutno nije dostupno.",
+        "onb.name.sub": "Javno se prikazuje uz svaku tvoju snimku u feedu zajednice. Možeš ga promijeniti kad god želiš.",
+        "onb.never": "Ne prikazuj više",
+        "onb.next": "Dalje",
+        "onb.resume": "Natrag na postavljanje",
+    ]
+    private static let _hr1: [String: String] = [
+        "onb.skip": "Preskoči",
+        "onb.sport.title": "Što najčešće snimaš?",
+        "onb.startCta": "Pokreni pomoćnika",
+        "onb.startSub": "Jezik, ime, razina, foil i sat u nekoliko koraka — ponovi kad god želiš.",
+        "onb.startTitle": "Pomoćnik za postavljanje",
+        "onb.step": "Korak {n} od {total}",
+        "onb.watch.a1": "Instaliraj „Pumpfoil“ iz App Storea na iPhone — aplikacija za sat dolazi s njom.",
+        "onb.watch.a2": "Na iPhoneu se prijavi ovim računom.",
+        "onb.watch.a3": "Aplikacija zatim sama poveže tvoj Apple Watch.",
+        "onb.watch.already": "Već povezano:",
+        "onb.watch.codeFallback": "Sat ti ipak prikazuje kod? Onda ga upiši ovdje.",
+        "onb.watch.fullGuide": "Cijeli vodič sa slikama",
+        "onb.watch.g1": "Instaliraj „Pumpfoil“ iz trgovine Connect IQ na sat.",
+        "onb.watch.g2": "Pokreni aplikaciju na satu — prikazat će kod.",
+        "onb.watch.g3": "Ovdje upiši taj kod.",
+        "onb.watch.justConnected": "Sat je povezan.",
+        "onb.watch.linked": "Ili poveži račun",
+        "onb.watch.noWatch": "Nemaš sat? Možeš snimati i mobitelom — za to instaliraj aplikaciju za mobitel.",
+        "onb.watch.sub": "Odaberi svoj sat — što dalje učiniti pojavit će se ispod.",
+        "onb.watch.title": "Poveži svoj sat",
+        "onb.watch.w1": "Instaliraj „Pumpfoil“ iz Trgovine Play na mobitel i ondje se prijavi ovim računom.",
+        "onb.watch.w2": "U aplikaciji na mobitelu dodirni „Instaliraj na sat“ — na sat ne dolazi sama od sebe.",
+        "onb.watch.w3": "Aplikacija zatim sama poveže tvoj sat.",
+        "onb.watch.z1": "Instaliraj aplikaciju Zepp na mobitel i ondje upari svoj Amazfit.",
+        "onb.watch.z2": "Instaliraj „Pumpfoil“ iz trgovine aplikacija Zepp na sat.",
+        "onb.watch.z3": "Pokreni aplikaciju na satu — prikazat će kod, upiši ga ovdje.",
+        "onb.weight.sub": "Zajedno s foilom koji voziš iz toga računamo snagu tvojih vožnji u vatima, a određuje i pragove alarma za tvoj foil. Bez toga pretpostavljamo 95 kg.",
+        "onb.welcome": "Dobro došao na pumpfoil.org",
+        "onb.x.add": "Dodaj",
+        "onb.x.chat": "Chat zajednice",
+    ]
+    private static let _hr2: [String: String] = [
+        "onb.x.claimAlready": "Ovaj sat je već povezan.",
+        "onb.x.claimBtn": "Poveži",
+        "onb.x.claimOk": "Sat povezan! ✓",
+        "onb.x.claimPh": "npr. VURWGG",
+        "onb.x.claimTitle": "Unesi kod sa sata",
+        "onb.x.corosConnect": "Poveži COROS",
+        "onb.x.corosTitle": "Uvoz iz COROS-a",
+        "onb.x.feedback": "Pošalji povratne informacije",
+        "onb.x.lang": "Jezik",
+        "onb.x.linked": "Povezani računi",
+        "onb.x.missingCta": "Zamoli nas da je dodamo",
+        "onb.x.name": "Prikazano ime",
+        "onb.x.nameLen": "2–40 znakova.",
+        "onb.x.namePh": "npr. Jan",
+        "onb.x.nameTaken": "Ime je već zauzeto.",
+        "onb.x.phonerec": "Snimanje mobitelom",
+        "onb.x.polarConnect": "Poveži Polar",
+        "onb.x.polarTitle": "Uvoz iz Polara",
+        "onb.x.pwaNote": "Napomena: radi samo u izvornim aplikacijama (Android/iOS), ne u pregledniku/PWA — preglednik zaustavlja senzore čim se zaslon ugasi.",
+        "onb.x.remove": "Ukloni",
+        "onb.x.save": "Spremi",
+        "onb.x.saveErr": "Greška pri spremanju.",
+        "onb.x.saved": "Spremljeno.",
+        "onb.x.sens.attempts": "Najosjetljivije – od ~8 km/h, min. 2 s",
+        "onb.x.sens.light": "Osjetljivije – od ~8.5 km/h, min. 3 s",
+        "onb.x.sens.normal": "Standardno – od ~10 km/h, min. 5 s",
+        "onb.x.sport.efoil": "eFoil (motor u dasci)",
+        "onb.x.sport.foildrive": "Foildrive (motor na jarbolu)",
+        "onb.x.sport.kitefoil": "Kitefoil",
+        "onb.x.sport.other": "Drugi sport",
+    ]
+    private static let _hr3: [String: String] = [
+        "onb.x.sport.pumpfoil": "Pumpfoil",
+        "onb.x.sport.surf_downwind": "Surf / downwind (foil)",
+        "onb.x.sport.wingfoil": "Wingfoil",
+        "onb.x.suuntoConnect": "Poveži Suunto",
+        "onb.x.suuntoTitle": "Uvoz iz Suunta",
+        "onb.x.weight": "Težina",
     ]
 }

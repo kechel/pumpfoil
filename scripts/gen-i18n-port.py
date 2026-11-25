@@ -10,7 +10,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 WEB = ROOT / "web/src/i18n/locales"
 AND = ROOT / "android/app/src/main/java/org/pumpfoil/app"
 IOS = ROOT / "watch-apple/Sources-iOS"
-LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb"]
+LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "hr"]
 
 SCHLUESSEL = [
     "calc.mastImmersion", "calc.mastImmersionHint",

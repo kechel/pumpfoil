@@ -446,6 +446,7 @@ enum SuuntoTexte {
         case "ru": return ru
         case "id": return id
         case "nb": return nb
+        case "hr": return hr
         case "pl": return pl
         case "pt-PT": return pt
         default: return en
@@ -658,6 +659,19 @@ enum SuuntoTexte {
         "suunto.errPerm": "Bluetooth-tillatelse mangler — tillat den i innstillingene.",
         "suunto.errBt": "Bluetooth er av.",
         "suunto.notif": "Mottar data fra Suunto-klokka di",
+    ]
+    private static let hr: [String: String] = [
+        "suunto.title": "Suunto sat (beta)",
+        "suunto.body": "Aplikacija Pumpfoil na tvom Suunto satu šalje sirove podatke preko ovog mobitela. Uključi primanje i nosi mobitel dok voziš (vodootporna futrola) — izvan dometa preko Suunto oblaka stižu samo GPS, puls i pumpovi.",
+        "suunto.on": "Uključi primanje",
+        "suunto.off": "Isključi primanje",
+        "suunto.waiting": "Čekanje na sat … U aplikaciji Suunto u postavkama aplikacije Pumpfoil uključi „Raw data to phone app“.",
+        "suunto.connected": "Povezano: {uhr}",
+        "suunto.receiving": "Snimanje — primljeno {s} min",
+        "suunto.lost": "{s} s izgubljeno izvan dometa",
+        "suunto.errPerm": "Nedostaje dopuštenje za Bluetooth — dopusti ga u postavkama.",
+        "suunto.errBt": "Bluetooth je isključen.",
+        "suunto.notif": "Primanje podataka sa Suunto sata",
     ]
     private static let pl: [String: String] = [
         "suunto.title": "Zegarek Suunto (beta)",

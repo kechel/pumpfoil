@@ -517,6 +517,7 @@ enum HuaweiTexte {
         case "ru": return ru
         case "id": return id
         case "nb": return nb
+        case "hr": return hr
         default: return en
         }
     }
@@ -807,5 +808,21 @@ enum HuaweiTexte {
         "huawei.errNoWatch": "Fant ingen sammenkoblet HUAWEI-klokke. Koble den sammen i Huawei Health først.",
         "huawei.errDenied": "Tilgang avslått. Trykk Koble til for å prøve igjen.",
         "huawei.errOther": "Noe gikk galt: {f}",
+    ]
+    private static let hr: [String: String] = [
+        "huawei.title": "HUAWEI WATCH GT / FIT / D (beta)",
+        "huawei.body": "Aplikacija Pumpfoil na tvom HUAWEI satu šalje svoje snimke preko ovog iPhonea. Nakon sesije drži Pumpfoil otvorenim dok sat ne prikaže „All sent“.",
+        "huawei.connect": "Poveži HUAWEI sat",
+        "huawei.disconnect": "Odspoji",
+        "huawei.connected": "Povezano: {uhren}",
+        "huawei.pending": "Čeka na prijenos: {n}",
+        "huawei.receiving": "Sa sata: {a} od {b}",
+        "huawei.uploading": "Na poslužitelj: {a} od {b}",
+        "huawei.watchSilent": "Sat je prestao slati – otvori Pumpfoil na satu za nastavak.",
+        "huawei.retry": "Prenesi sada",
+        "huawei.errConfig": "Još nije dostupno – HUAWEI beta se postavlja.",
+        "huawei.errNoWatch": "Nije pronađen nijedan upareni HUAWEI sat. Najprije ga upari u aplikaciji Huawei Health.",
+        "huawei.errDenied": "Pristup je odbijen. Dodirni Poveži za ponovni pokušaj.",
+        "huawei.errOther": "Nešto nije u redu: {f}",
     ]
 }

@@ -413,7 +413,7 @@ struct ChatRoomView: View {
         .confirmationDialog(Loc.t("chat.leaveConfirm", lang), isPresented: $confirmLeave, titleVisibility: .visible) {
             leaveDialogButtons
         }
-        .confirmationDialog(Loc.t("dm.blockConfirm", lang), isPresented: $confirmBlock, titleVisibility: .visible) {
+        .confirmationDialog(Loc.t("dm.blockConfirm", lang).replacingOccurrences(of: "{name}", with: title), isPresented: $confirmBlock, titleVisibility: .visible) {
             blockDialogButtons
         }
         .task { await enterRoom() }

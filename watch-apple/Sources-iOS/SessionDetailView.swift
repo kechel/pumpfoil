@@ -1974,6 +1974,7 @@ struct SessionDetailView: View {
         "ru": "{dur} с при средней {kmh} км/ч — модель распознавания не видит здесь фойлинга",
         "id": "{dur} dtk rata-rata {kmh} km/j — model deteksi tidak melihat foiling di sini",
         "nb": "{dur} s med snitt {kmh} km/t — gjenkjenningsmodellen ser ingen foiling her",
+        "hr": "{dur} s uz prosječno {kmh} km/h — model prepoznavanja ovdje ne vidi foilanje",
     ]
 
     // Autofahrt (quelle "fahrt", 04.10.2026) und zu schnell fuer die Sportart (quelle "tempo", 25.10.2026), Wortlaut aus
@@ -1997,6 +1998,7 @@ struct SessionDetailView: View {
         "ru": "Поездка на машине — {min} мин, до {kmh} км/ч",
         "id": "Perjalanan mobil — {min} mnt, hingga {kmh} km/j",
         "nb": "Biltur — {min} min, opptil {kmh} km/t",
+        "hr": "Vožnja autom — {min} min, do {kmh} km/h",
     ]
 
     private static let tempoWarum: [String: String] = [
@@ -2018,6 +2020,7 @@ struct SessionDetailView: View {
         "ru": "Слишком быстро для этого вида спорта — до {kmh} км/ч, предел {grenze} км/ч",
         "id": "Terlalu cepat untuk olahraga ini — hingga {kmh} km/h, batas {grenze} km/h",
         "nb": "For raskt for denne sporten — opptil {kmh} km/t, grense {grenze} km/t",
+        "hr": "Prebrzo za ovaj sport — do {kmh} km/h, granica {grenze} km/h",
     ]
 
     // Begründung lokalisiert aus den MESSWERTEN gebaut — metrics.grund ist deutscher Admin-Klartext

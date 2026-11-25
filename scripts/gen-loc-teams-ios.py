@@ -4,7 +4,7 @@ import io, json, re, pathlib, sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 WEB = ROOT / "web/src/i18n/locales"
 IOS = ROOT / "watch-apple/Sources-iOS"
-LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb"]
+LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "hr"]
 DATEIEN = ["TeamModels.swift", "TeamsApi.swift", "TeamFarben.swift", "TeamEventKachel.swift", "TeamKennzahlen.swift",
            "TeamView.swift", "TeamEventView.swift", "TeamsListen.swift",
            # Team-Verwaltung nativ, Teilen-Bild, Teams in den Einstellungen (App-Port, 04.11.2026)

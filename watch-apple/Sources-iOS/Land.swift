@@ -28,7 +28,7 @@ enum Laender {
     /// Hauptland je Sprache (web LAND_JE_SPRACHE).
     private static let jeSprache: [String: String] = [
         "de": "DE", "gsw": "CH", "de-AT": "AT", "en": "GB", "fr": "FR", "it": "IT", "es": "ES", "fi": "FI", "nl": "NL",
-        "cs": "CZ", "pl": "PL", "pt": "BR", "pt-PT": "PT", "ja": "JP", "zh": "CN", "ru": "RU", "id": "ID", "nb": "NO",
+        "cs": "CZ", "pl": "PL", "pt": "BR", "pt-PT": "PT", "ja": "JP", "zh": "CN", "ru": "RU", "id": "ID", "nb": "NO", "hr": "HR",
     ]
 
     /// Land zur Sprache (web landZurSprache): zuerst die Region des Geraets, wenn sie zur gewaehlten Sprache passt
