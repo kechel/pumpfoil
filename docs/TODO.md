@@ -1558,6 +1558,11 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
   Schreibtisch-Sessions stehen in der Warteschlange dahinter. Erste echte Hardware mit dem Sammel-Upload.
 - **Test 25.11. 23:5x (Jans OK):** `ZEPP_UPLOAD_SAMMEL=5` in `server/.env` (vorher Standard 25). Kommt #23322 danach
   durch -> Dauerwert 5-10 oder Byte-Obergrenze je Anfrage in der Uhr (1.0.19); sonst zurueck auf 25 und weiter suchen.
+- **Ergebnis 25.11. 23:41:** erst Uhr-Neustart (Druck auf „Jetzt hochladen" -> Reboot, kein Request), danach liefen
+  alle drei Aufnahmen in 18 s durch (#23322 jetzt 51 Accel + 21 GPS komplett, #23348, #23349; je 2 Chunk-Anfragen).
+  ABER verwechselt: Gruppengroesse 5 UND frischer Uhr-Neustart (freier Speicher) kamen zusammen — welches geholfen
+  hat, ist offen. Kein Absturzbericht. Naechster Schritt: Speicherbedarf einer 25er-Accel-Gruppe messen (Simulator:
+  Peak beim Bauen + req), bis dahin `ZEPP_UPLOAD_SAMMEL=5` lassen.
 
 ### 25.11.2026 — Amazfit T-Rex 3 Pro (u1150): langes SELECT startet die Sprachassistenz statt Stopp
 
