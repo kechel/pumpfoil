@@ -674,6 +674,9 @@ const S = {
   "rec.discarded":   ["Verworfen", "Verworfe", "Verworfen", "Discarded", "Supprimé", "Scartata", "Descartada", "Descartada", "Dibuang", "Удалено", "Weggegooid", "Hylätty", "Zahozeno", "破棄しました", "已丢弃"],
   "rec.stopHold":    ["Halten", "Halte", "Halten", "Hold", "Maintenir", "Tieni", "Mantén", "Segurar", "Tahan", "Держать", "Vasthouden", "Pidä", "Podržet", "長押し", "长按"],
   "rec.holdFree":    ["2 s halten = Touch frei", "2 s halte = Touch frei", "2 s halten = Touch frei", "Hold 2 s = touch free", "2 s = tactile libre", "2 s = touch libero", "2 s = táctil libre", "2 s = toque livre", "2 s = sentuh bebas", "2 с = касания вкл.", "2 s = touch vrij", "2 s = kosketus auki", "2 s = dotyk volný", "2秒長押しでタッチ解除", "长按2秒解锁触摸"],
+  // Sperrschirm-Ausweg MIT Ort (25.11.2026, u1150 auf T-Rex 3 Pro): "2 s Halten = ENTSPERREN" wurde als
+  // TASTE halten gelesen — und langes SELECT ist dort ab Werk die System-Sprachassistenz.
+  "rec.holdScreen":  ["Display 2 s halten zum Entsperren", "Display 2 s halte zum Entsperre", "Display 2 s halten zum Entsperren", "Hold the screen 2 s to unlock", "Maintenir l'écran 2 s pour déverrouiller", "Tieni premuto lo schermo 2 s per sbloccare", "Mantén la pantalla 2 s para desbloquear", "Segure a tela 2 s para desbloquear", "Tahan layar 2 dtk untuk membuka", "Удерживайте экран 2 с для разблокировки", "Houd het scherm 2 s vast om te ontgrendelen", "Pidä näyttöä 2 s avataksesi", "Podržte displej 2 s pro odemknutí", "画面を2秒長押しでロック解除", "长按屏幕2秒解锁"],
   "menu.touchLock":  ["Touch-Sperre", "Touch-Sperri", "Touch-Sperre", "Touch lock", "Verrou tactile", "Blocco touch", "Bloqueo táctil", "Bloqueio do toque", "Kunci sentuh", "Блокировка касаний", "Touchvergrendeling", "Kosketuslukko", "Zámek dotyku", "タッチロック", "触摸锁定"],
   "rec.noData":      ["Noch keine Daten", "No kei Date", "Noch keine Daten", "No data yet", "Pas encore de données", "Ancora nessun dato", "Aún no hay datos", "Ainda sem dados", "Belum ada data", "Пока нет данных", "Nog geen gegevens", "Ei vielä dataa", "Zatím žádná data", "まだデータがありません", "暂无数据"],
   "gps.searching":   ["GPS suchen…", "GPS sueche…", "GPS suchen…", "GPS searching…", "Recherche GPS…", "Ricerca GPS…", "Buscando GPS…", "Buscando GPS…", "Mencari GPS…", "Поиск GPS…", "GPS zoeken…", "GPS haku…", "hledání GPS…"],
@@ -786,6 +789,7 @@ const PL = {
   "menu.connected": "Połączono",
   "menu.linked": "Konto połączone",
   "menu.touchLock": "Blokada dotyku",
+  "rec.holdScreen": "Przytrzymaj ekran 2 s, aby odblokować",
   "pair.code": "Kod parowania",
   "pair.enterThere": "wpisz go tam",
   "pair.gen": "Wygeneruj kod",
@@ -841,6 +845,7 @@ const NB = {
   "rec.discarded": "Forkastet",
   "rec.holdFree": "Hold 2 s = berøring fri",
   "menu.touchLock": "Berøringslås",
+  "rec.holdScreen": "Hold skjermen i 2 s for å låse opp",
   "rec.noData": "Ingen data ennå",
   "gps.searching": "GPS søker…",
   "up.open": "i kø",
@@ -2010,17 +2015,15 @@ Page(
           align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
         });
         w.lockHint = w.touchShield.createWidget(hmUI.widget.TEXT, {
-          x: 0, y: Math.round(DH * 0.50), w: DW, h: Math.round(DH * 0.10),
+          // Zwei Zeilen Platz, eingerueckt wegen des runden Rands: der Text nennt seit 25.11.2026
+          // den ORT (Display), s. rec.holdScreen — laengste Fassung ~43 Zeichen.
+          x: Math.round(DW * 0.08), y: Math.round(DH * 0.50), w: Math.round(DW * 0.84), h: Math.round(DH * 0.16),
+          text_style: hmUI.text_style.WRAP,
           // Der Ausweg aus der SPERRE, nicht der aus der Aufnahme (Jan, 10.09.2026: "nicht
           // 'HOLD = STOP' sondern 'HOLD = UNLOCK'"). Hier stand vorher btn.stop — auf einem
           // Sperrschirm, dessen zweite Zeile das Entsperren erklaert, war das widerspruechlich.
-          // Eine Aussage statt zwei: die Dauer steht hier, die frueher zweite Zeile
-          // (rec.holdFree, "2 s halten = Touch frei") sagte fast dasselbe und ist raus
-          // (Jan, 10.09.2026). Zusammengesetzt aus vorhandenen Schluesseln, damit keine
-          // 17 neuen Uebersetzungen noetig sind — laengste Fassung ist Franzoesisch
-          // "2 s Maintenir = DÉVERROUILLER" mit 29 Zeichen und passt bei 26 px auf
-          // volle Breite in der Bildschirmmitte.
-          text: "2 s " + t("rec.stopHold") + " = " + t("btn.unlock"),
+          // Vorher "2 s " + rec.stopHold + " = " + btn.unlock — ohne Ort, als Taste missverstanden.
+          text: t("rec.holdScreen"),
           text_size: Math.round(DH * 0.055),
           color: 0x9aa4b2, align_h: hmUI.align.CENTER_H, align_v: hmUI.align.CENTER_V,
         });

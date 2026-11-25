@@ -10,6 +10,13 @@ This changelog covers the Zepp OS watch app only.
 > and possibly after the upload — it is listed under 1.0.7. **Keep this file current with every
 > bump**, then nobody has to dig through commits again.
 
+## 1.0.19 — noch nicht gebumpt
+
+- **Sperrschirm nennt den Ort** (25.11.2026, Meldung u1150, T-Rex 3 Pro): „2 s Halten = ENTSPERREN" wurde als Taste
+  gelesen; langes SELECT ist dort ab Werk die System-Sprachassistenz, die Aufnahme liess sich nicht beenden. Jetzt
+  neuer Schluessel `rec.holdScreen` („Display 2 s halten zum Entsperren", 17 Sprachen), zweizeilig mit WRAP.
+  Auf echter Uhr/im Simulator noch nicht angesehen.
+
 ## 1.0.18 — gebumpt am 24.11.2026 (code 21), Emulator-Test bei Jan
 
 - **Sammel-Upload: mehrere Chunks je Anfrage** (24.11.2026, Befund u439, Active 2, 1.0.17): Server-Zeitachse von #23152

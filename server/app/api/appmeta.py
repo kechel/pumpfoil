@@ -1240,6 +1240,11 @@ NAECHSTES: list[dict] = [
     # Huawei Watch 5 1.0.6 am 13.11. eingereicht -> IN_REVIEW.
     # Amazfit 1.0.16 am 13.11. eingereicht -> IN_REVIEW.
     # Amazfit 1.0.18 am 24.11. eingereicht -> IN_REVIEW.
+    # 25.11.2026 (u1150, T-Rex 3 Pro: langes SELECT = System-Sprachassistenz): Sperrschirm nennt den Ort.
+    {"name": "Amazfit", "version": "1.0.19",
+     "items": [
+         "The touch lock screen now says to hold the screen for 2 seconds to unlock, because some watches use a long button press for their own voice assistant.",
+     ]},
     # LEER heisst: alles Gebaute liegt in einem Store-Review (s. IN_REVIEW). Die Seite blendet
     # den Abschnitt dann aus. Was danach kommt, steht als unverbindliche Liste in IDEEN.
 

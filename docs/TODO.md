@@ -1552,7 +1552,7 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ### 25.11.2026 — Amazfit T-Rex 3 Pro (u1150): langes SELECT startet die Sprachassistenz statt Stopp
 
-Nur gemerkt (Jan: „nicht direkt was aendern"), Loesung offen.
+**Gebaut 25.11. fuer Amazfit 1.0.19** (Jans OK): Sperrschirm sagt „Display 2 s halten zum Entsperren" (`rec.holdScreen`). Eintrag raus, sobald 1.0.19 live ist.
 - **Meldung (Formular 21:01 + Chat mit Jan):** die App sperrt den Touch und will 2 s SELECT zum Beenden. Auf der
   T-Rex 3 Pro ist 2 s SELECT ab Werk die System-Sprachassistenz: die startet, die Aufnahme laeuft weiter, kein Stopp.
   Rausgekommen nur per Sprachbefehl „open settings" -> 2-s-SELECT-Funktion auf „None". Danach ging Stopp per Halten.
