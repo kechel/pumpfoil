@@ -1,3 +1,9 @@
+<stack class="wurzel">
+    <!-- Krone (AppGallery-Pruefungen 18.11./23.11./26.11.2026, GT 6 + Fit 5): Lite gibt die Krone nur list/swiper/
+         picker-view mit Fokus. 1-px-Swiper (1.0.6): „not sensitive"; 1-px-picker-view (1.0.7): „not adapted" — bei
+         1 px Hoehe hat der Picker vermutlich keine Zeilenhoehe, ueber die er Rastschritte zaehlt. Jetzt BILDSCHIRMGROSS
+         unter der Anzeige, Schrift schwarz auf schwarz; Beruehrungen nimmt die Anzeige darueber. -->
+    <picker-view class="krone" ref="krone" type="text" range="{{ kroneWerte }}" selected="{{ kroneStand }}" onchange="krone"></picker-view>
 <div class="seite" onswipe="wischen" onlongpress="entsperren" onclick="seiteTipp">
     <!-- Ablauf wie Zepp/Wear/Apple (Jan, 08.10.2026: „genauso von der benutzerfuehrung … wie bei
          anderen uhren"). Waehrend der Aufnahme eine Seitenfolge, hoch/runter gewischt:
@@ -58,9 +64,5 @@
         <text class="klein">{{ info }}</text>
     </div>
 
-    <!-- Krone (AppGallery-Pruefung 18.11.2026 auf GT 6/Fit 5, Regel 3.1: „not adapted to the rotating crown"). Lite
-         liefert die Krone nur an list/swiper/picker mit Fokus. Erst ein 1-px-Swiper — der brauchte eine weite Drehung je
-         Seite (Pruefung 23.11.: „crown is not sensitive"). Jetzt ein 1-px-picker-view: er meldet jeden Rastschritt,
-         index.js (krone) macht daraus hoch/runter wie Wischen. -->
-    <picker-view class="krone" ref="krone" type="text" range="{{ kroneWerte }}" selected="{{ kroneStand }}" onchange="krone"></picker-view>
 </div>
+</stack>

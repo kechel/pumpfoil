@@ -901,12 +901,12 @@ BEKANNTE_PROBLEME: list[dict] = []
 
 
 ABGELEHNT: list[dict] = [
-    {"name": "Huawei Watch GT / Fit / D", "version": "1.0.6",
-     # AppGallery, Pruefbericht 2026-11-23 (Regel 3.1, GT 6 + Fit 5): Start ~3 s, Wechsel Start <-> Einstellungen
-     # zaeh, Krone auf dem Start „not sensitive", aus den Einstellungen nur per Rechtswischen zurueck. Fix in 1.0.7
-     # (docs/TODO.md Einreichungs-Protokoll).
-     "abgelehnt": "2026-11-23",
-     "grund": "the review asked for a faster start, smoother page changes and better crown support; "
+    {"name": "Huawei Watch GT / Fit / D", "version": "1.0.7",
+     # AppGallery, Pruefbericht 2026-11-26 (Regel 3.1, GT 6 + Fit 5): Krone „not adapted" (1-px-picker-view, auf der
+     # Einstellungsseite fehlte zudem der ref), Wischen verzoegert (Gleiten zeichnete 7 Seiten je Wisch), kleines Icon in
+     # Berechtigungen/Widgets (icon_small 41 px), Testvideo der Handy-Kopplung verlangt. 1.0.6 war am 23.11. abgelehnt.
+     "abgelehnt": "2026-11-26",
+     "grund": "the review asked for better crown support, quicker swiping and a larger icon; "
               "fixed for the next version"},
     # Huawei Watch 5 1.0.3 (abgelehnt 02.11.: Krone falsch herum, Rechtswischen) am 04.11. FREIGEGEBEN -> raus.
     {"name": "Android phone + Wear OS", "version": "1.1.40 / 1.2.40",
@@ -997,11 +997,7 @@ IN_REVIEW: list[dict] = [
     # Android 1.1.49 (am 19.11. eingereicht).
     # Pumpfoil GT 1.0.6 am 23.11. erneut ABGELEHNT -> ABGELEHNT. 1.0.7 (Fixes zum Pruefbericht) am 23.11.2026
     # 11:11 (Upload, AppGallery-Zeit) eingereicht (Jans Meldung, „Under pre-review"). Upload ueber Android 1.1.49.
-    {"name": "Huawei Watch GT / Fit / D", "version": "1.0.7",
-     "eingereicht": "2026-11-23",
-     "items": [
-         "New: HUAWEI WATCH GT, Fit and D record pump foiling sessions and upload them through the Pumpfoil app for Android.",
-     ]},
+    # Pumpfoil GT 1.0.7 am 26.11. ABGELEHNT -> ABGELEHNT (Krone, Wischen, Icon, Testvideo); Fixes ungeprueft auf echter Uhr.
     # Huawei Watch 5 1.0.6 am 18.11. FREIGEGEBEN (s. _APP_META["huawei-watch5"]); Wisch-Punkt neu im Changelog, GPS-Luecke an #1028.
     # 12.11.2026: GPS-Luecke am Lauf-Ende (LaufLuecke.mc, baf2244d/bddabe64), im Simulator auf fenix 7X Pro, FR55 und
     # Instinct 2 getestet. Version 1.0.103 fuer die Einreichung gebumpt.
@@ -1149,6 +1145,11 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    # Pumpfoil GT 1.0.7 am 26.11. abgelehnt; der Punkt wartet auf die naechste Einreichung.
+    {"name": "Huawei Watch GT / Fit / D", "version": "1.0.8",
+     "items": [
+         "New: HUAWEI WATCH GT, Fit and D record pump foiling sessions and upload them through the Pumpfoil app for Android.",
+     ]},
     # Pumpfoil GT 1.0.7 am 23.11. eingereicht -> IN_REVIEW.
     # Garmin 1.0.103 am 12.11. eingereicht -> IN_REVIEW.
     # Garmin 1.0.99 am 03.11. eingereicht -> IN_REVIEW.
