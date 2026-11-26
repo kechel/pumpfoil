@@ -5,7 +5,7 @@
 // Schwarz oder Gruen.
 
 import { type Clip, clipZuSession, obereGrenze } from "./clip";
-import { FAHRER_FARBEN, type FahrerSpur, type Mehrfach, lageAnwenden } from "./mehrfach";
+import { FAHRER_FARBEN, SPRINT_NACH_MS, type FahrerSpur, type Mehrfach, lageAnwenden } from "./mehrfach";
 import { hrColor, rampColor, speedColor } from "../trackColors";
 import { carveColor } from "../turns";
 
@@ -778,7 +778,17 @@ export function zeichne(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg
         const s = fmtStrecke(z.d); const [w, e2] = s.split(" ");
         dazu(k, statBlock(ctx, cfg, u, w, e2, tx.distance)); break;
       }
-      case "time": dazu(k, statBlock(ctx, cfg, u, fmtMS(z.clipMs), "", tx.time)); break;
+      case "time": {
+        // Sprint-Start (Jan 26.11.2026): Stoppuhr ab dem Sprintbeginn — im Vorlauf 0.0, dann in Zehnteln bis der
+        // Langsamste im Ziel ist, danach steht sie.
+        const sp = mehr?.modus === "sprint" ? mehr.haupt.sprint : null;
+        if (sp) {
+          const ende = clip.spans[clip.spans.length - 1][1] - SPRINT_NACH_MS;
+          const ms = Math.max(0, Math.min(z.ts, ende) - sp.a);
+          dazu(k, statBlock(ctx, cfg, u, (ms / 1000).toFixed(1), "s", tx.time));
+        } else dazu(k, statBlock(ctx, cfg, u, fmtMS(z.clipMs), "", tx.time));
+        break;
+      }
       case "sprint": dazu(k, sprintBlocks(ctx, clip, cfg, z, u)); break;
       case "carve": dazu(k, carveBlock(ctx, clip, cfg, z, u, tx)); break;
       // Sobald die Endtafel einblendet, machen die Kaesten ihr Platz (sie zeigen dasselbe).
