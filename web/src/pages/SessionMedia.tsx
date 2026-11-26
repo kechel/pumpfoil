@@ -13,7 +13,7 @@ import { ladeSessionView } from "../lib/sessionViewPrefs";
 import { fmtPumpRate, usePumpUnit } from "../lib/pumpRate";
 import { baueClip } from "../lib/media/clip";
 import {
-  ANKER, CFG_DEFAULT, EL_KEYS, type Anker, type ElKey, type EventOverlay, type Format, type MediaCfg, type Texte,
+  ANKER, CFG_DEFAULT, CFG_EVENT, EL_KEYS, type Anker, type ElKey, type EventOverlay, type Format, type MediaCfg, type Texte,
   masse, sprintName, videoDauer, zeichne,
 } from "../lib/media/zeichnen";
 import { MAX_SEKUNDEN, alphaMoeglich, erzeugeVideo, webCodecsDa } from "../lib/media/export";
@@ -36,9 +36,13 @@ function besterLauf(segs: any[]): number {
 const LS_KEY = "pumpfoil_media_cfg";
 
 /** Gemerkte Einstellungen (nur dieses Geraet; ins Profil kommen sie mit Schritt 2, docs/MEDIA.md). */
-function ladeCfg(): MediaCfg {
+// Event-Videos haben eigene Einstellungen (Jan 26.11.2026: „nimm das als default-template bei events"): erster Aufruf
+// startet mit CFG_EVENT, Aenderungen bleiben in diesem Schluessel und beruehren die normalen Session-Einstellungen nicht.
+const LS_KEY_EVENT = "pumpfoil_media_cfg_event";
+function ladeCfg(key = LS_KEY, basis: MediaCfg = CFG_DEFAULT): MediaCfg {
+  const CFG_DEFAULT = basis;   // Zusammenfuehren mit der passenden Vorlage
   try {
-    const roh = JSON.parse(localStorage.getItem(LS_KEY) ?? "null");
+    const roh = JSON.parse(localStorage.getItem(key) ?? "null");
     if (roh && typeof roh === "object") {
       const el = { ...CFG_DEFAULT.el };
       for (const k of EL_KEYS) if (roh.el?.[k]) el[k] = { ...el[k], ...roh.el[k] };
@@ -167,7 +171,8 @@ export default function SessionMedia() {
   const [zeiten, setZeiten] = useState<number[] | null>(null);
   const [carves, setCarves] = useState<CarveData | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
-  const [cfg, setCfg] = useState<MediaCfg>(ladeCfg);
+  const cfgKey = evP ? LS_KEY_EVENT : LS_KEY;
+  const [cfg, setCfg] = useState<MediaCfg>(() => (evP ? ladeCfg(LS_KEY_EVENT, CFG_EVENT) : ladeCfg()));
   const [lauf, setLauf] = useState<number | "alle">(gemerkt.lauf ?? "alle");
   const [alphaOk, setAlphaOk] = useState<boolean | null>(null);
   // Rechte Spalte: Video- oder Musik-Einstellungen (Jan 24.11.2026); der Export darunter gilt fuer beides.
@@ -204,7 +209,7 @@ export default function SessionMedia() {
     return () => { weg = true; };
   }, [id]);
 
-  useEffect(() => { try { localStorage.setItem(LS_KEY, JSON.stringify(cfg)); } catch { /* egal */ } }, [cfg]);
+  useEffect(() => { try { localStorage.setItem(cfgKey, JSON.stringify(cfg)); } catch { /* egal */ } }, [cfg, cfgKey]);
 
   const { w, h } = masse(cfg);
   useEffect(() => { alphaMoeglich(w, h).then(setAlphaOk); }, [w, h]);

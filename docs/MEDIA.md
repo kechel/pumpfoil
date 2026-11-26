@@ -175,8 +175,10 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
    angezeigten Kategorie (samt Wertungsklasse) als Hauptfahrer und Platz 2/3 als weitere Fahrer:
    `/sessions/<p1>/media?lauf=<r>&mit=<sid>:<r>,…&modus=sprint|start&sprint=<kennzahl>&event=<slug>:<id>:<kategorie>[:<klasse>]`.
    Sprint-Kategorien starten im Modus Sprint-Start mit ihrer Kennzahl, andere im gleichen Start. Nur Kategorien aus
-   einem Lauf (`run_idx`), Session-Summen haben keine Spur. Darstellung und Musik bleiben die gemerkten des Geraets
-   (also z. B. Jans 9:16-Einstellung).
+   einem Lauf (`run_idx`), Session-Summen haben keine Spur. **Eigene Darstellung fuer Event-Videos** (Jan 26.11.: „als
+   default-template bei events"): Vorlage `CFG_EVENT` (9:16, Event-Kopf oben Mitte, Spur mittig mit Sprint-Ebene und
+   blasser Reststrecke, Fahrer-Kaesten unten rechts ueber pumpfoil.org, Laufzeit unten links, keine Einzelwerte),
+   gemerkt unter `pumpfoil_media_cfg_event` — die normalen Session-Einstellungen bleiben unberuehrt. Musik wie gemerkt.
    - **Namen IM Video** — bewusste Ausnahme von Schritt 6: die Bestenliste ist veroeffentlicht, und das Video machen
      Betreiber bzw. Event-Leitung. Kachel „Event-Video" mit drei Schaltern (geraeteweit, `pumpfoil_media_event`):
      Namen in den Fahrer-Kaesten, im Ziel Event-Platz (Medaillenfarbe) + Wert der Bestenliste statt der im Video

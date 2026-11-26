@@ -77,6 +77,28 @@ export const CFG_DEFAULT: MediaCfg = {
   },
 };
 
+/** Vorlage fuer Event-Videos (Jan 26.11.2026, nach seinem Flying-Sprint-Video): 9:16, Event-Kopf oben Mitte, Spur mittig,
+ *  Fahrer-Kaesten unten rechts ueber pumpfoil.org, Laufzeit unten links; keine Einzelwerte des Hauptfahrers. */
+export const CFG_EVENT: MediaCfg = {
+  ...CFG_DEFAULT,
+  dicke: 1.6, geist: true,
+  ebenen: { glides: false, carves: false, sprints: true, pumps: false },
+  el: {
+    track: { an: true, pos: "mc", gr: 1 },
+    speed: { an: false, pos: "bl", gr: 1.4 },
+    pumps: { an: false, pos: "bl", gr: 1 },
+    pumprate: { an: false, pos: "bl", gr: 1 },
+    hr: { an: false, pos: "br", gr: 1 },
+    distance: { an: false, pos: "br", gr: 1 },
+    time: { an: true, pos: "bl", gr: 1 },
+    sprint: { an: false, pos: "tl", gr: 1 },
+    carve: { an: false, pos: "ml", gr: 1 },
+    fahrer: { an: true, pos: "br", gr: 1 },
+    event: { an: true, pos: "tc", gr: 1 },
+    logo: { an: true, pos: "br", gr: 1 },
+  },
+};
+
 export function masse(cfg: Pick<MediaCfg, "format" | "hoehe">): { w: number; h: number } {
   const k = cfg.hoehe;
   // Kanten gerade halten (H.264 verlangt gerade Masse).
