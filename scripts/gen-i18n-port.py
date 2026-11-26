@@ -100,6 +100,9 @@ SCHLUESSEL = [
     # (web 6b37c730/67f4fee2). sfilter.sort.* und tempo.* NICHT hier: das Web hat sie nur in de/gsw/de-AT/en, iOS fuehrt
     # sie mit allen 18 Sprachen in Loc.swift (neuTexte8) — hier eingetragen wuerde LocPort sie mit Englisch ueberdecken.
     "feedback.fillTemplate", "notif.typeReferee", "perf.spTop20", "perf.best", "perf.punkteTag", "perf.punkteHint",
+    # 26.11.2026: Garmin-Schalter Bewegungsdaten in der Garmin-Aktivitaet (web 0ec632c7), Uhren-Tabelle Laengste (web 7ea40a5b)
+    "account.fitAccel", "account.fitAccelAuto", "account.fitAccelJetztAn", "account.fitAccelJetztAus", "account.fitAccelOn",
+    "account.fitAccelOff", "account.fitAccelHint", "account.fitAccelNirgends", "account.fitAccelUpdate", "watchQuality.colLongest",
 ]
 # Doppelte raus (zwei Ports ergaenzen hier gleichzeitig): ein Schluessel zweimal im Swift-Set-/Dictionary-Literal ist ein
 # ABSTURZ beim ersten Zugriff (s. Memory ios-swift-typecheck-hang, 07.09.2026).

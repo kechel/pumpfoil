@@ -77,6 +77,12 @@ struct PairedDevice: Codable, Identifiable {
     let gps_sparen: Bool?
     let gps_sparen_moeglich: Bool?
     let speicher_kb: Int?
+    // Bewegungsdaten in Garmins eigener Aktivitaetsdatei (auto|on|off, web 0ec632c7, Uhr ab 1.0.100), getrennt vom
+    // Aufzeichnungsmodus. fit_accel_jetzt = was gerade gilt (bei auto nach der Regel).
+    let fit_accel: String?
+    let fit_accel_moeglich: Bool?
+    let fit_accel_alt: Bool?
+    let fit_accel_jetzt: Bool?
     // Geraetebild der verknuepften Uhr (/media/uhrbilder/<id>.webp), nur Garmin, sonst nil.
     let bild_url: String?
 }
@@ -938,6 +944,7 @@ struct WatchQualityModel: Codable, Identifiable {
     let weg: String?
     let vollstaendig: Double?
     let mit_accel: Double?
+    let laengste_accel_s: Double?   // 21.11.2026: laengste vollstaendige Session mit Bewegungsdaten (web 7ea40a5b)
     var id: String { plattform + modell + (weg ?? "app") }
 }
 

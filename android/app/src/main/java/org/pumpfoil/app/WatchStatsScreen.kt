@@ -46,6 +46,10 @@ fun WatchStatsScreen(onBack: () -> Unit, onFoilStats: () -> Unit = {}) {
     var error by remember { mutableStateOf<String?>(null) }
     var sortKey by remember { mutableStateOf("sessions") }
     var sortAsc by remember { mutableStateOf(false) }
+    // Sortierung der Uhren-Auswertung (web 7ea40a5b, Jan 21.11.: „spalten … direkt sortierbar"): bei zwei Wegen zaehlt der
+    // bessere Wert, leere unten, Gleichstand nach Name.
+    var qSortKey by remember { mutableStateOf("sessions") }
+    var qSortAsc by remember { mutableStateOf(false) }
     // Welche Haelfte: 0 = Nutzung, 1 = Aufnahmequalitaet. Vorher untereinander, die Qualitaet erst
     // nach allen Modellen — Jan fand sie nicht (07.10.2026). Gleich wie iOS.
     // Seit 05.11.2026 als Reiter mit den Ueberschriften des Webs (WatchStats.tsx), gemerkt wie die anderen Reiter.
@@ -149,8 +153,44 @@ fun WatchStatsScreen(onBack: () -> Unit, onFoilStats: () -> Unit = {}) {
                     }
                 }
                 // Je Modell eine Karte mit beiden Wegen (App, Garmin Connect; 15.11.2026, wie WatchStats.tsx).
+                fun qSel(k: String) { if (qSortKey == k) qSortAsc = !qSortAsc else { qSortKey = k; qSortAsc = (k == "name") } }
+                item {
+                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(bottom = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        sortChip(I18n.t("nav.watch"), "name", qSortKey, qSortAsc, ::qSel)
+                        sortChip(I18n.t("watchStats.users"), "users", qSortKey, qSortAsc, ::qSel)
+                        sortChip(I18n.t("nav.sessions"), "sessions", qSortKey, qSortAsc, ::qSel)
+                        sortChip(I18n.t("watchQuality.colPump"), "pump", qSortKey, qSortAsc, ::qSel)
+                        sortChip(I18n.t("watchQuality.colGps"), "gps", qSortKey, qSortAsc, ::qSel)
+                        sortChip(I18n.t("watchQuality.colHr"), "puls", qSortKey, qSortAsc, ::qSel)
+                        sortChip(I18n.t("watchQuality.colComplete"), "komplett", qSortKey, qSortAsc, ::qSel)
+                        sortChip(I18n.t("watchQuality.colLongest"), "laengste", qSortKey, qSortAsc, ::qSel)
+                    }
+                }
+                fun best(w: List<Double?>): Double? = w.filterNotNull().maxOrNull()
+                fun qWert(rs: List<WatchQualityModel>): Double? = when (qSortKey) {
+                    "users" -> rs.maxOf { it.nutzer }.toDouble()
+                    "pump" -> best(rs.map { it.accelHz })
+                    "gps" -> best(rs.map { it.gueteGut })   // Garmin-Guete; Meter sind nicht vergleichbar -> unten
+                    "puls" -> best(rs.map { it.pulsWechsel })
+                    "komplett" -> best(rs.map { it.vollstaendig })
+                    "laengste" -> best(rs.map { it.laengsteAccelS })
+                    else -> rs.sumOf { it.sessions }.toDouble()
+                }
                 val gruppen = (q.modelle + q.modelleKonto).groupBy { it.modell }.toList()
-                    .sortedByDescending { (_, rs) -> rs.sumOf { it.sessions } }
+                    .sortedWith { (am, ars), (bm, brs) ->
+                        if (qSortKey == "name") {
+                            val c = am.lowercase().compareTo(bm.lowercase()); if (qSortAsc) c else -c
+                        } else {
+                            val av = qWert(ars); val bv = qWert(brs)
+                            when {
+                                av == null && bv == null -> am.compareTo(bm)
+                                av == null -> 1
+                                bv == null -> -1
+                                else -> (if (qSortAsc) av.compareTo(bv) else bv.compareTo(av)).takeIf { it != 0 } ?: am.compareTo(bm)
+                            }
+                        }
+                    }
                 val mitKonto = q.modelleKonto.isNotEmpty()
                 items(gruppen, key = { "q-" + it.first }) { (modell, rs) ->
                     qualiCard(modell, rs.sortedBy { if (it.weg == "gc") 1 else 0 }, mitKonto)
@@ -216,6 +256,8 @@ private fun qualiCard(modell: String, rs: List<WatchQualityModel>, wegZeigen: Bo
                         I18n.t("watchQuality.colHr"),
                     )
                     wMetric(m.vollstaendig?.let { "%.0f %%".format(it) } ?: "–", I18n.t("watchQuality.colComplete"))
+                    wMetric(m.laengsteAccelS?.let { val min = Math.round(it / 60).toInt(); "%d:%02d h".format(min / 60, min % 60) } ?: "–",
+                        I18n.t("watchQuality.colLongest"))
                 }
             }
         }

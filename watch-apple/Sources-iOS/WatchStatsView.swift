@@ -11,6 +11,9 @@ struct WatchStatsView: View {
     @State private var error: String?
     @State private var sortKey = "sessions"
     @State private var sortAsc = false
+    // Sortierung der Uhren-Auswertung (web 7ea40a5b, Jan 21.11.: „spalten … direkt sortierbar").
+    @State private var qSortKey = "sessions"
+    @State private var qSortAsc = false
     // Welche Haelfte: 0 = Nutzung (was wird womit gefahren), 1 = Aufnahmequalitaet. Vorher standen
     // beide untereinander, die Qualitaet erst nach ~70 Modellen — Jan fand sie nicht (07.10.2026).
     // Seit 05.11.2026 als Reiter mit den Ueberschriften des Webs (WatchStats.tsx), gemerkt wie die anderen Reiter.
@@ -64,6 +67,7 @@ struct WatchStatsView: View {
             Section(Loc.t("watchQuality.title", lang)) {
                 Text(qualiLead(q)).font(.subheadline).foregroundStyle(.secondary)
                 Text(Loc.t("watchQuality.new", lang)).font(.subheadline)
+                StatSortBar(options: qSortOptions, sortKey: $qSortKey, sortAsc: $qSortAsc)
             }
             // Je Modell eine Section mit beiden Wegen (App, Garmin Connect; 15.11.2026, wie WatchStats.tsx).
             ForEach(qualiGruppen(q), id: \.modell) { g in
@@ -88,8 +92,44 @@ struct WatchStatsView: View {
         let gruppen: [QualiGruppe] = nach.map { (k, v) in
             QualiGruppe(modell: k, zeilen: v.sorted { ($0.weg == "gc" ? 1 : 0) < ($1.weg == "gc" ? 1 : 0) })
         }
-        func summe(_ g: QualiGruppe) -> Int { g.zeilen.reduce(0) { $0 + $1.sessions } }
-        return gruppen.sorted { summe($0) > summe($1) }
+        if qSortKey == "name" {
+            let n: [QualiGruppe] = gruppen.sorted { $0.modell.lowercased() < $1.modell.lowercased() }
+            return qSortAsc ? n : n.reversed()
+        }
+        let asc: Bool = qSortAsc
+        return gruppen.sorted { a, b in
+            let av: Double? = qWert(a.zeilen)
+            let bv: Double? = qWert(b.zeilen)
+            guard let x = av else { return bv == nil ? a.modell < b.modell : false }   // leere immer unten
+            guard let y = bv else { return true }
+            if x == y { return a.modell < b.modell }                               // Gleichstand: Name
+            return asc ? x < y : x > y
+        }
+    }
+
+    /// Sortierwert je Modell: bei zwei Wegen (App, Garmin Connect) zaehlt der bessere Wert (wie WatchStats.tsx QUALI_SORT).
+    private func qWert(_ rs: [WatchQualityModel]) -> Double? {
+        func best(_ w: [Double?]) -> Double? { w.compactMap { $0 }.max() }
+        switch qSortKey {
+        case "users": return Double(rs.map { $0.nutzer }.max() ?? 0)
+        case "pump": return best(rs.map { $0.accel_hz })
+        case "gps": return best(rs.map { $0.guete_gut })   // Garmin-Guete; Meter sind nicht vergleichbar -> unten
+        case "puls": return best(rs.map { $0.puls_wechsel })
+        case "komplett": return best(rs.map { $0.vollstaendig })
+        case "laengste": return best(rs.map { $0.laengste_accel_s })
+        default: return Double(rs.reduce(0) { $0 + $1.sessions })
+        }
+    }
+
+    private var qSortOptions: [(key: String, label: String)] {
+        [("name", Loc.t("nav.watch", lang)),
+         ("users", Loc.t("watchStats.users", lang)),
+         ("sessions", Loc.t("nav.sessions", lang)),
+         ("pump", Loc.t("watchQuality.colPump", lang)),
+         ("gps", Loc.t("watchQuality.colGps", lang)),
+         ("puls", Loc.t("watchQuality.colHr", lang)),
+         ("komplett", Loc.t("watchQuality.colComplete", lang)),
+         ("laengste", Loc.t("watchQuality.colLongest", lang))]
     }
 
     private func qualiLead(_ q: WatchQuality) -> String {
@@ -124,6 +164,10 @@ struct WatchStatsView: View {
                                                            : String(format: "%.0f Hz · %.0f %%", $0, anteil) }
             ?? Loc.t("watchQuality.gpsOnly", lang)
         let voll: String = m.vollstaendig.map { String(format: "%.0f %%", $0) } ?? "–"
+        let laengste: String = m.laengste_accel_s.map { (s: Double) -> String in
+            let min: Int = Int((s / 60).rounded())
+            return String(format: "%d:%02d h", min / 60, min % 60)
+        } ?? "–"
         if wegZeigen {
             Text(m.weg == "gc" ? Loc.t("watchQuality.viaGc", lang) : Loc.t("watchQuality.viaApp", lang))
                 .font(.footnote).foregroundStyle(.secondary)
@@ -138,6 +182,10 @@ struct WatchStatsView: View {
             metric(gps, Loc.t("watchQuality.colGps", lang))
             Spacer(); metric(puls, Loc.t("watchQuality.colHr", lang))
             Spacer(); metric(voll, Loc.t("watchQuality.colComplete", lang))
+        }
+        HStack {
+            metric(laengste, Loc.t("watchQuality.colLongest", lang))
+            Spacer()
         }
         if m.nutzer <= 3 {
             Text(Loc.t("watchQuality.few", lang)).font(.footnote).foregroundStyle(.orange)

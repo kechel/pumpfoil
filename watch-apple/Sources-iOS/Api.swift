@@ -1755,6 +1755,14 @@ enum Api {
         let _: GnssModeResp = try await request("/api/devices/\(id)/gnss-mode", method: "PUT", body: ["gnss_mode": mode], auth: true)
     }
 
+    // Bewegungsdaten in Garmins Aktivitaetsdatei je Uhr (auto|on|off), Garmin ab 1.0.100 (web 0ec632c7).
+    // Gibt zurueck, was danach gilt, damit „Automatisch (gerade: an/aus)" stimmt.
+    struct FitAccelResp: Decodable { let fit_accel: String?; let fit_accel_jetzt: Bool? }
+    static func setDeviceFitAccel(_ id: Int, wahl: String) async throws -> Bool? {
+        let r: FitAccelResp = try await request("/api/devices/\(id)/fit-accel", method: "PUT", body: ["fit_accel": wahl], auth: true)
+        return r.fit_accel_jetzt
+    }
+
     // Speicher sparen je Uhr (Garmin ab 1.0.92), wie die PWA.
     struct GpsSparenResp: Decodable { let gps_sparen: Bool? }
     static func setDeviceGpsSparen(_ id: Int, an: Bool) async throws {

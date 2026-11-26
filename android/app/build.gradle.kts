@@ -57,8 +57,8 @@ android {
         //  4. roher Schluessel ohne Paket
         // Alles aus pumpfoil-release.cer (P-384) — oeffentlich, kein Geheimnis.
         buildConfigField("String", "HUAWEI_WATCH_FP", "\"org.pumpfoil.gt_BFonZBpw0jsN/xxNsthh5fn6VgSGuUviJZza7BlL8AtSNkFr7agh1psBZRSvecyl4jPLPcld1VV4e4rzfGSTt0guTdUwq7wdpaRzAcHM+AwNJIBwjJv8A3nOpDh8dcbwkQ==,DF21A3C09F7954579305F85C64F80CAD86F79853EE3A887C1DEC95D218DF3A37,org.pumpfoil.gt_MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEWidkGnDSOw3/HE2y2GHl+fpWBIa5S+IlnNrsGUvwC1I2QWvtqCHWmwFlFK95zKXiM8s9yV3VVXh7ivN8ZJO3SC5N1TCrvB2lpHMBwcz4DA0kgHCMm/wDec6kOHx1xvCR,BFonZBpw0jsN/xxNsthh5fn6VgSGuUviJZza7BlL8AtSNkFr7agh1psBZRSvecyl4jPLPcld1VV4e4rzfGSTt0guTdUwq7wdpaRzAcHM+AwNJIBwjJv8A3nOpDh8dcbwkQ==\"")
-        versionCode = 64
-        versionName = "1.1.49"
+        versionCode = 65
+        versionName = "1.1.50"
     }
     buildFeatures { compose = true; buildConfig = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }

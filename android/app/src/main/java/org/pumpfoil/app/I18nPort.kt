@@ -278,6 +278,16 @@ private fun portDE(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Dieses Foto/Video als Spam oder unangemessen melden? Nach mehreren Meldungen wird es ausgeblendet.",
     "media.reported" to "Gemeldet",
     "sd.blockedMedia" to "Gesperrte Medien: {n}",
+    "account.fitAccel" to "Bewegungsdaten in der Garmin-Aktivität",
+    "account.fitAccelAuto" to "Automatisch (gerade: {jetzt})",
+    "account.fitAccelJetztAn" to "an",
+    "account.fitAccelJetztAus" to "aus",
+    "account.fitAccelOn" to "An",
+    "account.fitAccelOff" to "Aus",
+    "account.fitAccelHint" to "Ob die Uhr die Bewegungsdaten auch in Garmins eigene Aktivitätsdatei schreibt (das, was bei Garmin Connect ankommt). Unabhängig vom Aufzeichnungsmodus oben, der regelt, was in unseren eigenen Upload geht. Ausschalten, wenn deine Uhr nach einer Session einfriert oder neu startet.",
+    "account.fitAccelNirgends" to "Mit „Nur GPS“ oben und hier aus werden nirgends Bewegungsdaten aufgezeichnet — Pumps fehlen dann.",
+    "account.fitAccelUpdate" to "Die App auf deiner Uhr ist für diese Einstellung zu alt — bitte die Pumpfoil-App auf der Uhr aktualisieren (Version 1.0.100 oder neuer).",
+    "watchQuality.colLongest" to "Längste mit Bewegungsdaten",
 )
 
 private fun portGSW(): Map<String, String> = mapOf(
@@ -521,6 +531,16 @@ private fun portGSW(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Das Foti/Video als Spam oder unpassend mälde? Nach mehrere Mäldige wirds usblendet.",
     "media.reported" to "Gmäldet",
     "sd.blockedMedia" to "Gsperrti Medie: {n}",
+    "account.fitAccel" to "Bewegigsdate i de Garmin-Aktivität",
+    "account.fitAccelAuto" to "Automatisch (grad: {jetzt})",
+    "account.fitAccelJetztAn" to "a",
+    "account.fitAccelJetztAus" to "us",
+    "account.fitAccelOn" to "A",
+    "account.fitAccelOff" to "Us",
+    "account.fitAccelHint" to "Öb d Uhr d Bewegigsdate au i Garmins eigeti Aktivitätsdatei schribt (das, wo bi Garmin Connect achunnt). Unabhängig vom Ufzeichnigsmodus obe, wo regelt, was i öise eigete Upload gaht. Usschalte, wenn dini Uhr nach ere Session iifrüürt oder neu startet.",
+    "account.fitAccelNirgends" to "Mit „Nur GPS“ obe und da us wärded niene Bewegigsdate ufzeichnet — denn fähled d Pumps.",
+    "account.fitAccelUpdate" to "D App uf dinere Uhr isch für die Iistellig z alt — bitte d Pumpfoil-App uf de Uhr aktualisiere (Version 1.0.100 oder neuer).",
+    "watchQuality.colLongest" to "Längschti mit Bewegigsdate",
 )
 
 private fun portDEAT(): Map<String, String> = mapOf(
@@ -764,6 +784,16 @@ private fun portDEAT(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Des Foto/Video als Spam oder unpassend melden? Nach a paar Meldungen wird's ausblendet.",
     "media.reported" to "Gmeldet",
     "sd.blockedMedia" to "Gsperrte Medien: {n}",
+    "account.fitAccel" to "Bewegungsdaten in der Garmin-Aktivität",
+    "account.fitAccelAuto" to "Automatisch (grad: {jetzt})",
+    "account.fitAccelJetztAn" to "an",
+    "account.fitAccelJetztAus" to "aus",
+    "account.fitAccelOn" to "An",
+    "account.fitAccelOff" to "Aus",
+    "account.fitAccelHint" to "Ob die Uhr die Bewegungsdaten auch in Garmins eigene Aktivitätsdatei schreibt (das, was bei Garmin Connect ankommt). Unabhängig vom Aufzeichnungsmodus oben, der regelt, was in unseren eigenen Upload geht. Ausschalten, wenn deine Uhr nach einer Session einfriert oder neu startet.",
+    "account.fitAccelNirgends" to "Mit „Nur GPS“ oben und hier aus werden nirgends Bewegungsdaten aufgezeichnet — dann fehlen die Pumps.",
+    "account.fitAccelUpdate" to "Die App auf deiner Uhr ist für diese Einstellung zu alt — bitte die Pumpfoil-App auf der Uhr aktualisieren (Version 1.0.100 oder neuer).",
+    "watchQuality.colLongest" to "Längste mit Bewegungsdaten",
 )
 
 private fun portEN(): Map<String, String> = mapOf(
@@ -1007,6 +1037,16 @@ private fun portEN(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Report this photo/video as spam or inappropriate? After several reports it is hidden.",
     "media.reported" to "Reported",
     "sd.blockedMedia" to "Blocked media: {n}",
+    "account.fitAccel" to "Motion data in the Garmin activity",
+    "account.fitAccelAuto" to "Automatic (currently: {jetzt})",
+    "account.fitAccelJetztAn" to "on",
+    "account.fitAccelJetztAus" to "off",
+    "account.fitAccelOn" to "On",
+    "account.fitAccelOff" to "Off",
+    "account.fitAccelHint" to "Whether the watch also writes the motion data into Garmin's own activity file (what reaches Garmin Connect). Independent of the recording mode above, which decides what goes into our own upload. Turn it off if your watch freezes or restarts after a session.",
+    "account.fitAccelNirgends" to "With “GPS only” above and this off, no motion data is recorded anywhere — pumps will be missing.",
+    "account.fitAccelUpdate" to "Your watch app is too old for this setting — please update the Pumpfoil app on the watch (version 1.0.100 or newer).",
+    "watchQuality.colLongest" to "Longest with motion data",
 )
 
 private fun portFR(): Map<String, String> = mapOf(
@@ -1250,6 +1290,16 @@ private fun portFR(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Signaler cette photo/vidéo comme spam ou inappropriée ? Après plusieurs signalements, elle est masquée.",
     "media.reported" to "Signalé",
     "sd.blockedMedia" to "Médias bloqués : {n}",
+    "account.fitAccel" to "Données de mouvement dans l'activité Garmin",
+    "account.fitAccelAuto" to "Automatique (actuellement : {jetzt})",
+    "account.fitAccelJetztAn" to "activé",
+    "account.fitAccelJetztAus" to "désactivé",
+    "account.fitAccelOn" to "Activé",
+    "account.fitAccelOff" to "Désactivé",
+    "account.fitAccelHint" to "Indique si la montre écrit aussi les données de mouvement dans le fichier d'activité de Garmin (ce qui arrive sur Garmin Connect). Indépendant du mode d'enregistrement ci-dessus, qui décide de ce qui va dans notre propre envoi. Désactive-le si ta montre se fige ou redémarre après une session.",
+    "account.fitAccelNirgends" to "Avec « GPS seul » ci-dessus et ceci désactivé, aucune donnée de mouvement n'est enregistrée — les pumps manqueront.",
+    "account.fitAccelUpdate" to "L'app de ta montre est trop ancienne pour ce réglage — mets à jour l'app Pumpfoil sur la montre (version 1.0.100 ou plus récente).",
+    "watchQuality.colLongest" to "La plus longue avec données de mouvement",
 )
 
 private fun portIT(): Map<String, String> = mapOf(
@@ -1493,6 +1543,16 @@ private fun portIT(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Segnalare questa foto/video come spam o inappropriata? Dopo diverse segnalazioni viene nascosta.",
     "media.reported" to "Segnalato",
     "sd.blockedMedia" to "Media bloccati: {n}",
+    "account.fitAccel" to "Dati di movimento nell'attività Garmin",
+    "account.fitAccelAuto" to "Automatico (ora: {jetzt})",
+    "account.fitAccelJetztAn" to "attivo",
+    "account.fitAccelJetztAus" to "disattivo",
+    "account.fitAccelOn" to "Attivo",
+    "account.fitAccelOff" to "Disattivo",
+    "account.fitAccelHint" to "Se l'orologio scrive i dati di movimento anche nel file attività di Garmin (quello che arriva su Garmin Connect). Indipendente dalla modalità di registrazione sopra, che decide cosa va nel nostro caricamento. Disattivalo se l'orologio si blocca o si riavvia dopo una sessione.",
+    "account.fitAccelNirgends" to "Con «Solo GPS» sopra e questo disattivo non vengono registrati dati di movimento da nessuna parte: mancheranno i pump.",
+    "account.fitAccelUpdate" to "L'app sull'orologio è troppo vecchia per questa impostazione: aggiorna l'app Pumpfoil sull'orologio (versione 1.0.100 o successiva).",
+    "watchQuality.colLongest" to "Più lunga con dati di movimento",
 )
 
 private fun portES(): Map<String, String> = mapOf(
@@ -1736,6 +1796,16 @@ private fun portES(): Map<String, String> = mapOf(
     "media.reportConfirm" to "¿Denunciar esta foto/vídeo como spam o inapropiado? Tras varias denuncias se oculta.",
     "media.reported" to "Denunciado",
     "sd.blockedMedia" to "Contenido bloqueado: {n}",
+    "account.fitAccel" to "Datos de movimiento en la actividad de Garmin",
+    "account.fitAccelAuto" to "Automático (ahora: {jetzt})",
+    "account.fitAccelJetztAn" to "activado",
+    "account.fitAccelJetztAus" to "desactivado",
+    "account.fitAccelOn" to "Activado",
+    "account.fitAccelOff" to "Desactivado",
+    "account.fitAccelHint" to "Si el reloj también escribe los datos de movimiento en el archivo de actividad propio de Garmin (lo que llega a Garmin Connect). Independiente del modo de grabación de arriba, que decide qué va a nuestra propia subida. Desactívalo si tu reloj se congela o se reinicia después de una sesión.",
+    "account.fitAccelNirgends" to "Con «Solo GPS» arriba y esto desactivado no se graban datos de movimiento en ningún sitio: faltarán los pumps.",
+    "account.fitAccelUpdate" to "La app de tu reloj es demasiado antigua para este ajuste: actualiza la app Pumpfoil en el reloj (versión 1.0.100 o posterior).",
+    "watchQuality.colLongest" to "Más larga con datos de movimiento",
 )
 
 private fun portFI(): Map<String, String> = mapOf(
@@ -1979,6 +2049,16 @@ private fun portFI(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Ilmoitetaanko tämä kuva/video roskapostiksi tai sopimattomaksi? Useiden ilmoitusten jälkeen se piilotetaan.",
     "media.reported" to "Ilmoitettu",
     "sd.blockedMedia" to "Estetyt mediat: {n}",
+    "account.fitAccel" to "Liikedata Garmin-aktiviteetissa",
+    "account.fitAccelAuto" to "Automaattinen (nyt: {jetzt})",
+    "account.fitAccelJetztAn" to "päällä",
+    "account.fitAccelJetztAus" to "pois",
+    "account.fitAccelOn" to "Päällä",
+    "account.fitAccelOff" to "Pois",
+    "account.fitAccelHint" to "Kirjoittaako kello liikedatan myös Garminin omaan aktiviteettitiedostoon (mikä päätyy Garmin Connectiin). Riippumaton yllä olevasta tallennustilasta, joka päättää mitä menee omaan latauksemme. Kytke pois, jos kello jäätyy tai käynnistyy uudelleen session jälkeen.",
+    "account.fitAccelNirgends" to "Kun yllä on ”Vain GPS” ja tämä pois, liikedataa ei tallenneta mihinkään — pumpit puuttuvat.",
+    "account.fitAccelUpdate" to "Kellon sovellus on liian vanha tähän asetukseen — päivitä kellon Pumpfoil-sovellus (versio 1.0.100 tai uudempi).",
+    "watchQuality.colLongest" to "Pisin liikedatalla",
 )
 
 private fun portNL(): Map<String, String> = mapOf(
@@ -2222,6 +2302,16 @@ private fun portNL(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Deze foto/video melden als spam of ongepast? Na meerdere meldingen wordt hij verborgen.",
     "media.reported" to "Gemeld",
     "sd.blockedMedia" to "Geblokkeerde media: {n}",
+    "account.fitAccel" to "Bewegingsdata in de Garmin-activiteit",
+    "account.fitAccelAuto" to "Automatisch (nu: {jetzt})",
+    "account.fitAccelJetztAn" to "aan",
+    "account.fitAccelJetztAus" to "uit",
+    "account.fitAccelOn" to "Aan",
+    "account.fitAccelOff" to "Uit",
+    "account.fitAccelHint" to "Of het horloge de bewegingsdata ook in Garmins eigen activiteitsbestand schrijft (wat bij Garmin Connect aankomt). Los van de opnamemodus hierboven, die bepaalt wat in onze eigen upload gaat. Zet het uit als je horloge na een sessie bevriest of herstart.",
+    "account.fitAccelNirgends" to "Met „Alleen GPS” hierboven en dit uit worden nergens bewegingsdata opgenomen — pumps ontbreken dan.",
+    "account.fitAccelUpdate" to "De app op je horloge is te oud voor deze instelling — werk de Pumpfoil-app op het horloge bij (versie 1.0.100 of nieuwer).",
+    "watchQuality.colLongest" to "Langste met bewegingsdata",
 )
 
 private fun portCS(): Map<String, String> = mapOf(
@@ -2465,6 +2555,16 @@ private fun portCS(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Nahlásit tuto fotku/video jako spam nebo nevhodné? Po několika nahlášeních se skryje.",
     "media.reported" to "Nahlášeno",
     "sd.blockedMedia" to "Zablokovaná média: {n}",
+    "account.fitAccel" to "Pohybová data v aktivitě Garmin",
+    "account.fitAccelAuto" to "Automaticky (teď: {jetzt})",
+    "account.fitAccelJetztAn" to "zap.",
+    "account.fitAccelJetztAus" to "vyp.",
+    "account.fitAccelOn" to "Zapnuto",
+    "account.fitAccelOff" to "Vypnuto",
+    "account.fitAccelHint" to "Zda hodinky zapisují pohybová data i do vlastního souboru aktivity Garmin (to, co dorazí do Garmin Connect). Nezávisle na režimu záznamu výše, který určuje, co jde do našeho vlastního nahrávání. Vypni, pokud hodinky po session zamrznou nebo se restartují.",
+    "account.fitAccelNirgends" to "S „Jen GPS“ výše a tímto vypnutým se pohybová data nezaznamenávají nikde — pumpy budou chybět.",
+    "account.fitAccelUpdate" to "Aplikace v hodinkách je pro toto nastavení příliš stará — aktualizuj aplikaci Pumpfoil v hodinkách (verze 1.0.100 nebo novější).",
+    "watchQuality.colLongest" to "Nejdelší s pohybovými daty",
 )
 
 private fun portPL(): Map<String, String> = mapOf(
@@ -2708,6 +2808,16 @@ private fun portPL(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Zgłosić to zdjęcie/wideo jako spam lub nieodpowiednie? Po kilku zgłoszeniach zostanie ukryte.",
     "media.reported" to "Zgłoszono",
     "sd.blockedMedia" to "Zablokowane media: {n}",
+    "account.fitAccel" to "Dane ruchu w aktywności Garmin",
+    "account.fitAccelAuto" to "Automatycznie (teraz: {jetzt})",
+    "account.fitAccelJetztAn" to "wł.",
+    "account.fitAccelJetztAus" to "wył.",
+    "account.fitAccelOn" to "Włączone",
+    "account.fitAccelOff" to "Wyłączone",
+    "account.fitAccelHint" to "Czy zegarek zapisuje dane ruchu także do własnego pliku aktywności Garmina (to, co trafia do Garmin Connect). Niezależnie od trybu nagrywania powyżej, który decyduje, co trafia do naszego przesyłania. Wyłącz, jeśli zegarek zawiesza się lub restartuje po sesji.",
+    "account.fitAccelNirgends" to "Przy „Tylko GPS” powyżej i tym wyłączonym dane ruchu nie są nigdzie zapisywane — zabraknie pumpów.",
+    "account.fitAccelUpdate" to "Aplikacja na zegarku jest za stara na to ustawienie — zaktualizuj aplikację Pumpfoil na zegarku (wersja 1.0.100 lub nowsza).",
+    "watchQuality.colLongest" to "Najdłuższa z danymi ruchu",
 )
 
 private fun portPT(): Map<String, String> = mapOf(
@@ -2951,6 +3061,16 @@ private fun portPT(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Denunciar esta foto/vídeo como spam ou impróprio? Após várias denúncias, ela é ocultada.",
     "media.reported" to "Denunciado",
     "sd.blockedMedia" to "Mídias bloqueadas: {n}",
+    "account.fitAccel" to "Dados de movimento na atividade Garmin",
+    "account.fitAccelAuto" to "Automático (agora: {jetzt})",
+    "account.fitAccelJetztAn" to "ligado",
+    "account.fitAccelJetztAus" to "desligado",
+    "account.fitAccelOn" to "Ligado",
+    "account.fitAccelOff" to "Desligado",
+    "account.fitAccelHint" to "Se o relógio também grava os dados de movimento no arquivo de atividade da Garmin (o que chega ao Garmin Connect). Independente do modo de gravação acima, que decide o que vai para o nosso próprio envio. Desligue se o relógio travar ou reiniciar depois de uma sessão.",
+    "account.fitAccelNirgends" to "Com “Só GPS” acima e isto desligado, nenhum dado de movimento é gravado — os pumps vão faltar.",
+    "account.fitAccelUpdate" to "O app do seu relógio é antigo demais para esta configuração — atualize o app Pumpfoil no relógio (versão 1.0.100 ou mais recente).",
+    "watchQuality.colLongest" to "Mais longa com dados de movimento",
 )
 
 private fun portPTPT(): Map<String, String> = mapOf(
@@ -3194,6 +3314,16 @@ private fun portPTPT(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Denunciar esta foto/vídeo como spam ou impróprio? Após várias denúncias, fica oculto.",
     "media.reported" to "Denunciado",
     "sd.blockedMedia" to "Multimédia bloqueado: {n}",
+    "account.fitAccel" to "Dados de movimento na atividade Garmin",
+    "account.fitAccelAuto" to "Automático (agora: {jetzt})",
+    "account.fitAccelJetztAn" to "ligado",
+    "account.fitAccelJetztAus" to "desligado",
+    "account.fitAccelOn" to "Ligado",
+    "account.fitAccelOff" to "Desligado",
+    "account.fitAccelHint" to "Se o relógio também grava os dados de movimento no ficheiro de atividade da Garmin (o que chega ao Garmin Connect). Independente do modo de gravação acima, que decide o que vai para o nosso próprio envio. Desliga se o relógio bloquear ou reiniciar depois de uma sessão.",
+    "account.fitAccelNirgends" to "Com «Só GPS» acima e isto desligado, nenhum dado de movimento é gravado — os pumps vão faltar.",
+    "account.fitAccelUpdate" to "A app do teu relógio é demasiado antiga para esta definição — atualiza a app Pumpfoil no relógio (versão 1.0.100 ou mais recente).",
+    "watchQuality.colLongest" to "Mais longa com dados de movimento",
 )
 
 private fun portJA(): Map<String, String> = mapOf(
@@ -3437,6 +3567,16 @@ private fun portJA(): Map<String, String> = mapOf(
     "media.reportConfirm" to "この写真/動画をスパムまたは不適切として報告しますか？複数の報告があると非表示になります。",
     "media.reported" to "報告済み",
     "sd.blockedMedia" to "ブロックされたメディア: {n}",
+    "account.fitAccel" to "Garminアクティビティのモーションデータ",
+    "account.fitAccelAuto" to "自動（現在：{jetzt}）",
+    "account.fitAccelJetztAn" to "オン",
+    "account.fitAccelJetztAus" to "オフ",
+    "account.fitAccelOn" to "オン",
+    "account.fitAccelOff" to "オフ",
+    "account.fitAccelHint" to "ウォッチがモーションデータをGarmin独自のアクティビティファイル（Garmin Connectに届くもの）にも書き込むかどうか。上の記録モード（当サービスへのアップロード内容を決める）とは別です。セッション後にウォッチがフリーズまたは再起動する場合はオフにしてください。",
+    "account.fitAccelNirgends" to "上で「GPSのみ」かつこれをオフにすると、モーションデータはどこにも記録されず、パンプが欠けます。",
+    "account.fitAccelUpdate" to "ウォッチのアプリがこの設定には古すぎます。ウォッチのPumpfoilアプリを更新してください（バージョン1.0.100以降）。",
+    "watchQuality.colLongest" to "モーションデータ付き最長",
 )
 
 private fun portZH(): Map<String, String> = mapOf(
@@ -3680,6 +3820,16 @@ private fun portZH(): Map<String, String> = mapOf(
     "media.reportConfirm" to "将此照片/视频举报为垃圾内容或不当内容？多次举报后将被隐藏。",
     "media.reported" to "已举报",
     "sd.blockedMedia" to "已屏蔽媒体：{n}",
+    "account.fitAccel" to "Garmin 活动中的运动数据",
+    "account.fitAccelAuto" to "自动（当前：{jetzt}）",
+    "account.fitAccelJetztAn" to "开",
+    "account.fitAccelJetztAus" to "关",
+    "account.fitAccelOn" to "开",
+    "account.fitAccelOff" to "关",
+    "account.fitAccelHint" to "手表是否也把运动数据写入 Garmin 自己的活动文件（即到达 Garmin Connect 的内容）。与上方决定我们自己上传内容的记录模式无关。如果手表在训练后卡死或重启，请关闭。",
+    "account.fitAccelNirgends" to "上方选“仅 GPS”且此项关闭时，任何地方都不会记录运动数据——将缺少 pump 计数。",
+    "account.fitAccelUpdate" to "你手表上的应用版本过旧，无法使用此设置——请更新手表上的 Pumpfoil 应用（1.0.100 或更高版本）。",
+    "watchQuality.colLongest" to "含运动数据的最长记录",
 )
 
 private fun portRU(): Map<String, String> = mapOf(
@@ -3923,6 +4073,16 @@ private fun portRU(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Пожаловаться на это фото/видео как на спам или неуместное? После нескольких жалоб оно скрывается.",
     "media.reported" to "Жалоба отправлена",
     "sd.blockedMedia" to "Заблокированные медиа: {n}",
+    "account.fitAccel" to "Данные движения в активности Garmin",
+    "account.fitAccelAuto" to "Автоматически (сейчас: {jetzt})",
+    "account.fitAccelJetztAn" to "вкл.",
+    "account.fitAccelJetztAus" to "выкл.",
+    "account.fitAccelOn" to "Вкл.",
+    "account.fitAccelOff" to "Выкл.",
+    "account.fitAccelHint" to "Записывают ли часы данные движения также в собственный файл активности Garmin (то, что попадает в Garmin Connect). Не зависит от режима записи выше, который определяет, что идёт в нашу загрузку. Выключите, если часы зависают или перезагружаются после сессии.",
+    "account.fitAccelNirgends" to "При «Только GPS» выше и выключенной опции данные движения нигде не записываются — пампов не будет.",
+    "account.fitAccelUpdate" to "Приложение на часах слишком старое для этой настройки — обновите приложение Pumpfoil на часах (версия 1.0.100 или новее).",
+    "watchQuality.colLongest" to "Самая длинная с данными движения",
 )
 
 private fun portID(): Map<String, String> = mapOf(
@@ -4166,6 +4326,16 @@ private fun portID(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Laporkan foto/video ini sebagai spam atau tidak pantas? Setelah beberapa laporan, akan disembunyikan.",
     "media.reported" to "Dilaporkan",
     "sd.blockedMedia" to "Media diblokir: {n}",
+    "account.fitAccel" to "Data gerak di aktivitas Garmin",
+    "account.fitAccelAuto" to "Otomatis (saat ini: {jetzt})",
+    "account.fitAccelJetztAn" to "aktif",
+    "account.fitAccelJetztAus" to "nonaktif",
+    "account.fitAccelOn" to "Aktif",
+    "account.fitAccelOff" to "Nonaktif",
+    "account.fitAccelHint" to "Apakah jam juga menulis data gerak ke file aktivitas milik Garmin (yang masuk ke Garmin Connect). Terlepas dari mode perekaman di atas, yang menentukan apa yang masuk ke unggahan kami. Matikan jika jam membeku atau memulai ulang setelah sesi.",
+    "account.fitAccelNirgends" to "Dengan “Hanya GPS” di atas dan ini nonaktif, data gerak tidak direkam di mana pun — pump akan hilang.",
+    "account.fitAccelUpdate" to "Aplikasi di jam terlalu lama untuk pengaturan ini — perbarui aplikasi Pumpfoil di jam (versi 1.0.100 atau lebih baru).",
+    "watchQuality.colLongest" to "Terpanjang dengan data gerak",
 )
 
 private fun portNB(): Map<String, String> = mapOf(
@@ -4409,6 +4579,16 @@ private fun portNB(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Rapportere dette bildet/videoen som spam eller upassende? Etter flere rapporter skjules det.",
     "media.reported" to "Rapportert",
     "sd.blockedMedia" to "Blokkerte medier: {n}",
+    "account.fitAccel" to "Bevegelsesdata i Garmin-aktiviteten",
+    "account.fitAccelAuto" to "Automatisk (nå: {jetzt})",
+    "account.fitAccelJetztAn" to "på",
+    "account.fitAccelJetztAus" to "av",
+    "account.fitAccelOn" to "På",
+    "account.fitAccelOff" to "Av",
+    "account.fitAccelHint" to "Om klokka også skriver bevegelsesdata i Garmins egen aktivitetsfil (det som kommer til Garmin Connect). Uavhengig av opptaksmodusen over, som bestemmer hva som går i vår egen opplasting. Slå av hvis klokka fryser eller starter på nytt etter en økt.",
+    "account.fitAccelNirgends" to "Med «Bare GPS» over og dette av blir det ikke tatt opp bevegelsesdata noe sted — pumps mangler da.",
+    "account.fitAccelUpdate" to "Appen på klokka er for gammel for denne innstillingen — oppdater Pumpfoil-appen på klokka (versjon 1.0.100 eller nyere).",
+    "watchQuality.colLongest" to "Lengste med bevegelsesdata",
 )
 
 private fun portHR(): Map<String, String> = mapOf(
@@ -4652,6 +4832,16 @@ private fun portHR(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Prijaviti ovu fotografiju/video kao spam ili neprikladno? Nakon više prijava bit će skriveno.",
     "media.reported" to "Prijavljeno",
     "sd.blockedMedia" to "Blokirani mediji: {n}",
+    "account.fitAccel" to "Podaci o kretanju u Garmin aktivnosti",
+    "account.fitAccelAuto" to "Automatski (trenutno: {jetzt})",
+    "account.fitAccelJetztAn" to "uključeno",
+    "account.fitAccelJetztAus" to "isključeno",
+    "account.fitAccelOn" to "Uključeno",
+    "account.fitAccelOff" to "Isključeno",
+    "account.fitAccelHint" to "Upisuje li sat podatke o kretanju i u Garminovu vlastitu datoteku aktivnosti (ono što stiže u Garmin Connect). Neovisno o gornjem načinu snimanja, koji određuje što ide u naš prijenos. Isključi ako se tvoj sat zamrzne ili ponovno pokrene nakon sesije.",
+    "account.fitAccelNirgends" to "Uz „Samo GPS“ gore i ovo isključeno, podaci o kretanju nigdje se ne snimaju — pumpovi će nedostajati.",
+    "account.fitAccelUpdate" to "Tvoja aplikacija na satu prestara je za ovu postavku — ažuriraj Pumpfoil aplikaciju na satu (verzija 1.0.100 ili novija).",
+    "watchQuality.colLongest" to "Najdulje s podacima o pokretu",
 )
 
 private fun portDA(): Map<String, String> = mapOf(
@@ -4895,6 +5085,16 @@ private fun portDA(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Indberet dette foto/denne video som spam eller upassende? Efter flere indberetninger bliver det skjult.",
     "media.reported" to "Indberettet",
     "sd.blockedMedia" to "Blokerede medier: {n}",
+    "account.fitAccel" to "Bevægelsesdata i Garmin-aktiviteten",
+    "account.fitAccelAuto" to "Automatisk (lige nu: {jetzt})",
+    "account.fitAccelJetztAn" to "til",
+    "account.fitAccelJetztAus" to "fra",
+    "account.fitAccelOn" to "Til",
+    "account.fitAccelOff" to "Fra",
+    "account.fitAccelHint" to "Om uret også skriver bevægelsesdataene ind i Garmins egen aktivitetsfil (det, der når Garmin Connect). Uafhængigt af optagetilstanden ovenfor, som bestemmer, hvad der kommer med i vores eget upload. Slå det fra, hvis dit ur fryser eller genstarter efter en session.",
+    "account.fitAccelNirgends" to "Med »Kun GPS« ovenfor og dette slået fra optages der ingen bevægelsesdata nogen steder — pumps vil mangle.",
+    "account.fitAccelUpdate" to "Din ur-app er for gammel til denne indstilling — opdatér Pumpfoil-appen på uret (version 1.0.100 eller nyere).",
+    "watchQuality.colLongest" to "Længste med bevægelsesdata",
 )
 
 private fun portSV(): Map<String, String> = mapOf(
@@ -5138,6 +5338,16 @@ private fun portSV(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Anmäla det här fotot/videon som spam eller olämpligt? Efter flera anmälningar döljs det.",
     "media.reported" to "Anmält",
     "sd.blockedMedia" to "Blockerad media: {n}",
+    "account.fitAccel" to "Rörelsedata i Garmin-aktiviteten",
+    "account.fitAccelAuto" to "Automatiskt (just nu: {jetzt})",
+    "account.fitAccelJetztAn" to "på",
+    "account.fitAccelJetztAus" to "av",
+    "account.fitAccelOn" to "På",
+    "account.fitAccelOff" to "Av",
+    "account.fitAccelHint" to "Om klockan även skriver rörelsedata till Garmins egen aktivitetsfil (det som når Garmin Connect). Oberoende av inspelningsläget ovan, som avgör vad som går in i vår egen uppladdning. Stäng av det om din klocka fryser eller startar om efter ett pass.",
+    "account.fitAccelNirgends" to "Med ”Bara GPS” ovan och detta avstängt spelas inga rörelsedata in någonstans — pumpar kommer att saknas.",
+    "account.fitAccelUpdate" to "Din klockapp är för gammal för den här inställningen — uppdatera Pumpfoil-appen på klockan (version 1.0.100 eller nyare).",
+    "watchQuality.colLongest" to "Längsta med rörelsedata",
 )
 
 private fun portHU(): Map<String, String> = mapOf(
@@ -5381,4 +5591,14 @@ private fun portHU(): Map<String, String> = mapOf(
     "media.reportConfirm" to "Bejelented ezt a fotót/videót spamként vagy nem helyénvalóként? Több bejelentés után elrejtjük.",
     "media.reported" to "Bejelentve",
     "sd.blockedMedia" to "Letiltott média: {n}",
+    "account.fitAccel" to "Mozgásadatok a Garmin tevékenységben",
+    "account.fitAccelAuto" to "Automatikus (jelenleg: {jetzt})",
+    "account.fitAccelJetztAn" to "be",
+    "account.fitAccelJetztAus" to "ki",
+    "account.fitAccelOn" to "Be",
+    "account.fitAccelOff" to "Ki",
+    "account.fitAccelHint" to "Írja-e az óra a mozgásadatokat a Garmin saját tevékenységfájljába is (ami a Garmin Connectbe kerül). Független a fenti felvételi módtól, amely azt dönti el, mi kerül a saját feltöltésünkbe. Kapcsold ki, ha az órád lefagy vagy újraindul egy edzés után.",
+    "account.fitAccelNirgends" to "Ha fent „Csak GPS” van, és ez ki van kapcsolva, sehol sem rögzülnek mozgásadatok — a pumpák hiányozni fognak.",
+    "account.fitAccelUpdate" to "Az óra appod túl régi ehhez a beállításhoz — kérlek, frissítsd a Pumpfoil appot az órán (1.0.100-as vagy újabb verzió).",
+    "watchQuality.colLongest" to "Leghosszabb mozgásadatokkal",
 )

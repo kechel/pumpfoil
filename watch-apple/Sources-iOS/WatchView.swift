@@ -19,6 +19,8 @@ struct WatchView: View {
     @State private var wakeups: [Int: String] = [:]
     // Speicher sparen je Uhr (id → an/aus), nur Garmin.
     @State private var sparen: [Int: Bool] = [:]
+    @State private var fitAccel: [Int: String] = [:]   // Bewegungsdaten in der Garmin-Aktivitaet je Uhr
+    @State private var fitJetzt: [Int: Bool] = [:]
     // Rueckmeldung je Uhr UND Einstellung (PWA Account.tsx, 26.09.2026): die Regler speichern
     // sofort beim Umstellen. Vorher kam nur ein kurzes „Gespeichert" unten am Abschnitt, auch wenn
     // der Aufruf scheiterte (`try?`). Jetzt steht es direkt unter dem Regler, 3 s lang; bei einem
@@ -159,6 +161,7 @@ struct WatchView: View {
             garminHint(d)
             gnssPicker(d)
             speicherSparen(d)
+            garminFitAccel(d)
             waterLockPicker(d)
             accelWakeupPicker(d)
             geraeteAktionen(d)
@@ -259,6 +262,41 @@ struct WatchView: View {
             Text(sparenUhrText(d)).font(.callout)
             Text(Loc.t("account.gpsSparenNotfall", lang)).font(.callout).foregroundStyle(.secondary)
             Text(Loc.t("account.gpsSparenAus", lang)).font(.callout).foregroundStyle(.secondary)
+        }
+    }
+
+    // Bewegungsdaten in Garmins eigener Aktivitaetsdatei (web 0ec632c7, 21.11.2026), getrennt vom Aufzeichnungsmodus —
+    // Jan: „getrennt einstellen koennen ... was aufzeichnen bei uns, was bei garmin connect".
+    @ViewBuilder private func garminFitAccel(_ d: PairedDevice) -> some View {
+        if d.fit_accel_moeglich == true {
+            let jetzt: Bool = fitJetzt[d.id] ?? (d.fit_accel_jetzt ?? false)
+            let jetztWort: String = Loc.t(jetzt ? "account.fitAccelJetztAn" : "account.fitAccelJetztAus", lang)
+            let autoText: String = Loc.t("account.fitAccelAuto", lang).replacingOccurrences(of: "{jetzt}", with: jetztWort)
+            Picker(Loc.t("account.fitAccel", lang), selection: fitAccelBinding(d)) {
+                Text(autoText).tag("auto")
+                Text(Loc.t("account.fitAccelOn", lang)).tag("on")
+                Text(Loc.t("account.fitAccelOff", lang)).tag("off")
+            }
+            rueck("\(d.id):fitAccel")
+            Text(Loc.t("account.fitAccelHint", lang)).font(.callout).foregroundStyle(.secondary)
+            if mode(d) == "gps" && !jetzt {
+                Text(Loc.t("account.fitAccelNirgends", lang)).font(.callout).fontWeight(.semibold).foregroundStyle(.orange)
+            }
+            if d.fit_accel_alt == true {
+                Text(Loc.t("account.fitAccelUpdate", lang)).font(.callout).fontWeight(.semibold).foregroundStyle(.orange)
+            }
+        }
+    }
+
+    private func fitAccelBinding(_ d: PairedDevice) -> Binding<String> {
+        Binding(get: { fitAccel[d.id] ?? (d.fit_accel ?? "auto") }, set: { setFitAccel(d.id, $0) })
+    }
+
+    private func setFitAccel(_ id: Int, _ wahl: String) {
+        fitAccel[id] = wahl
+        speichern("\(id):fitAccel") {
+            let j: Bool? = try await Api.setDeviceFitAccel(id, wahl: wahl)
+            if let j { await MainActor.run { fitJetzt[id] = j } }
         }
     }
 

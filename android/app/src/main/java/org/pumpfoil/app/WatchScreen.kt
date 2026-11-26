@@ -393,6 +393,50 @@ fun PairedDevicesCard(onSaved: () -> Unit = {}) {
                     Text(I18n.t("account.gpsSparenNotfall"), style = hinweis, color = grau, modifier = Modifier.padding(top = 4.dp))
                     Text(I18n.t("account.gpsSparenAus"), style = hinweis, color = grau, modifier = Modifier.padding(top = 4.dp))
                 }
+                // Bewegungsdaten in Garmins eigener Aktivitaetsdatei (web 0ec632c7, 21.11.2026): getrennt vom Aufzeichnungs-
+                // modus, Jan: „getrennt einstellen koennen ... was aufzeichnen bei uns, was bei garmin connect".
+                if (d.fitAccelMoeglich) {
+                    Spacer(Modifier.height(10.dp))
+                    Text(I18n.t("account.fitAccel"), style = MaterialTheme.typography.labelMedium)
+                    var fitOffen by remember(d.id) { mutableStateOf(false) }
+                    var fit by remember(d.id, ladeStand) { mutableStateOf(d.fitAccel ?: "auto") }
+                    var fitJetzt by remember(d.id, ladeStand) { mutableStateOf(d.fitAccelJetzt) }
+                    val fitStufen = listOf(
+                        "auto" to I18n.t("account.fitAccelAuto").replace("{jetzt}",
+                            I18n.t(if (fitJetzt == true) "account.fitAccelJetztAn" else "account.fitAccelJetztAus")),
+                        "on" to I18n.t("account.fitAccelOn"),
+                        "off" to I18n.t("account.fitAccelOff"),
+                    )
+                    Box {
+                        OutlinedButton(onClick = { fitOffen = true }, modifier = Modifier.fillMaxWidth()) {
+                            Text(fitStufen.firstOrNull { it.first == fit }?.second ?: fit)
+                        }
+                        DropdownMenu(expanded = fitOffen, onDismissRequest = { fitOffen = false }) {
+                            fitStufen.forEach { (id, lbl) ->
+                                DropdownMenuItem(text = { Text(lbl) }, onClick = {
+                                    fitOffen = false
+                                    if (id != fit) {
+                                        fit = id
+                                        speichern("${d.id}:fitAccel") { Api.setDeviceFitAccel(d.id, id)?.let { fitJetzt = it } }
+                                    }
+                                })
+                            }
+                        }
+                    }
+                    Rueck("${d.id}:fitAccel")
+                    Text(I18n.t("account.fitAccelHint"), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                    if (mode == "gps" && fitJetzt == false) {
+                        Text(I18n.t("account.fitAccelNirgends"), style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.padding(top = 4.dp))
+                    }
+                    if (d.fitAccelAlt) {
+                        Text(I18n.t("account.fitAccelUpdate"), style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.padding(top = 4.dp))
+                    }
+                }
                 // Je Uhr NUR, was sie auch umsetzt — wie die PWA (Jan, 25.09.2026: „je uhr einfach
                 // nur das anbieten was auch sinn ergibt"). Wassersperre: alle ausser Garmin, dort hat
                 // der Aufnahme-Bildschirm gar keine Tipp-Behandlung.

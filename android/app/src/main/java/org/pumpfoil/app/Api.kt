@@ -1737,6 +1737,13 @@ object Api {
         http("PUT", "/api/devices/$id/record-mode", buildJsonObject { put("record_mode", mode) }.toString(), auth = true)
     }
 
+    // Bewegungsdaten in Garmins Aktivitaetsdatei je Uhr (auto|on|off) — nur Garmin ab 1.0.100 (devices.py, web 0ec632c7).
+    // Gibt zurueck, was danach gilt (`fit_accel_jetzt`), damit „Automatisch (derzeit: an/aus)" stimmt.
+    suspend fun setDeviceFitAccel(id: Int, wahl: String): Boolean? = withContext(Dispatchers.IO) {
+        val r = http("PUT", "/api/devices/$id/fit-accel", buildJsonObject { put("fit_accel", wahl) }.toString(), auth = true)
+        runCatching { json.parseToJsonElement(r).jsonObject["fit_accel_jetzt"]?.jsonPrimitive?.booleanOrNull }.getOrNull()
+    }
+
     // Speicher sparen je Uhr (an/aus) — nur Garmin, wirkt ab Uhr 1.0.92 (devices.py set_device_gps_sparen).
     suspend fun setDeviceGpsSparen(id: Int, an: Boolean): Unit = withContext(Dispatchers.IO) {
         http("PUT", "/api/devices/$id/gps-sparen", buildJsonObject { put("gps_sparen", an) }.toString(), auth = true)

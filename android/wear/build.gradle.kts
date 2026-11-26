@@ -28,8 +28,8 @@ android {
         // Nummer laesst Play nicht erneut einreichen, also ein Bump ohne Phone-Aenderung; das
         // „x" laeuft damit vorruebergehend auseinander (Phone bleibt 1.1.27/41).
         // 1.2.49/1060 (12.11.2026): mit Phone 1.1.49 nachgezogen (GPS-Luecke am Lauf-Ende auch auf der Uhr).
-        versionCode = 1060
-        versionName = "1.2.49"
+        versionCode = 1061
+        versionName = "1.2.50"
     }
     buildFeatures { compose = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }

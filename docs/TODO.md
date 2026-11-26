@@ -32,6 +32,17 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
 
 ## 🚀 App-Release-Stand
 
+- **🟡 26.11. — Android 1.1.50 (65) / Wear 1.2.50 (1061) und iOS 1.1.69 (80) VORBEREITET, nicht eingereicht.**
+  Gebumpt, appmeta NAECHSTES mit 10 Punkten, Changelog: 11 Punkte + android 1.1.50/ios 1.1.69, zwei neue (21.11.).
+  Inhalt = Web-Stand seit dem Bau von 1.1.49/1.1.68 (19.11.): Performance-Umbau (Kategorien, Saison 2027, vorlaeufiger
+  Tag, Top 20, Punkte je Tag), Verlauf Ø Laufzeit, Home-Reiter neu sortiert, Tempo-Verteilung, Sortierung Meine Sessions,
+  Feedback-Vorlage, MCP unter Konto, Referee-Schalter, hr/da/sv/hu + Diktat (f9c4d30a und Vorgaenger), am 26.11. dazu
+  Garmin-Schalter „Bewegungsdaten in der Garmin-Aktivitaet" (web 0ec632c7) und Uhren-Tabelle Laengste + Sortierung
+  (web 7ea40a5b). Bewusst NICHT portiert: Media-Ansicht (Overlay/Musik/Event-Video, WebCodecs, nur Web), Admin, Bot-Reiter.
+  Geprueft: `:app:compileDebugKotlin` gruen, iOS `swiftc -parse` sauber. **Offen bei Jan:** Geraetetest beider Apps
+  (auch der Port vom 25.11. ist noch nicht auf einem Geraet gelaufen), Xcode-Build (keine neue Datei, kein xcodegen noetig),
+  signieren, hochladen.
+
 - **🔲 19.09. — Wirkt der Low-Mem-Fix (Garmin 1.0.87)? NOCH KEINE DATEN.** Nachgesehen, weil
   1.0.87 seit dem 17.09. live ist und verspricht: „Garmin watches with little memory, such as the
   Instinct 2 or the fēnix 5, no longer quit in the middle of a recording."

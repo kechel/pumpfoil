@@ -43,6 +43,12 @@ data class PairedDevice(
     @SerialName("gps_sparen") val gpsSparen: Boolean? = null,
     @SerialName("gps_sparen_moeglich") val gpsSparenMoeglich: Boolean = false,
     @SerialName("speicher_kb") val speicherKb: Int = 0,
+    // Bewegungsdaten in Garmins eigener Aktivitaetsdatei (auto|on|off, 21.11.2026, Uhr ab 1.0.100), getrennt vom
+    // Aufzeichnungsmodus oben (der regelt nur unseren Upload). `fitAccelJetzt` = was gerade gilt (bei auto nach der Regel).
+    @SerialName("fit_accel") val fitAccel: String? = null,
+    @SerialName("fit_accel_moeglich") val fitAccelMoeglich: Boolean = false,
+    @SerialName("fit_accel_alt") val fitAccelAlt: Boolean = false,
+    @SerialName("fit_accel_jetzt") val fitAccelJetzt: Boolean? = null,
     // Geraetebild der Uhr (/media/uhrbilder/<id>.webp, nur Garmin) — nur im eigenen Profil gezeigt.
     @SerialName("bild_url") val bildUrl: String? = null,
 )
@@ -1143,6 +1149,8 @@ data class WatchQualityModel(
     val weg: String = "app",
     val vollstaendig: Double? = null,
     @SerialName("mit_accel") val mitAccel: Double? = null,
+    // 21.11.2026: laengste vollstaendige Session mit Bewegungsdaten in Sekunden (web 7ea40a5b)
+    @SerialName("laengste_accel_s") val laengsteAccelS: Double? = null,
 )
 
 @Serializable
