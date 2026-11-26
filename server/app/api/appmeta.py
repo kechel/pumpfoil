@@ -983,6 +983,21 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    {"name": "iPhone + Apple Watch", "version": "1.1.69",
+     # Build 80, am 26.11.2026 13:58 eingereicht (Jans Meldung, ASC „Warten auf Pruefung", Uebermittlung f71e535d).
+     "eingereicht": "2026-11-26",
+     "items": [
+         "Performance tab: flying 100 m, flying minute, longest run and total time on foil per day, with a Top 20 column and points per day.",
+         "Performance tab: the 2027 season score starts on 1 January, and today is shown as preliminary while riders are still uploading.",
+         "History: new curve for the average run time, so you can see whether your runs get longer over time.",
+         "See how much of your foiling time you spend at each speed, in Home › Stats › Speed and for each session in the session details.",
+         "Sort your own sessions by date, longest run, distance or time on the foil, or top speed with the filter button in Sessions › Mine.",
+         "Garmin watches have a new setting to choose whether the motion data also goes into Garmin's own activity file.",
+         "The watch quality table shows the longest complete session with motion data per watch and can be sorted by every value.",
+         "The feedback form asks you to fill in the missing foil or stabilizer details before sending.",
+         "The MCP connection settings moved to Settings › Account, and referee review requests have their own notification switch.",
+         "Pumpfoil now also speaks Croatian, Danish, Swedish and Hungarian, and dictation works in every app language.",
+     ]},
     # Amazfit 1.0.18 am 24.11. eingereicht, am 25.11. FREIGEGEBEN (s. _APP_META["zepp"]); Punkt im Changelog mit zepp 1.0.18.
     # iPhone + Apple Watch 1.1.68 (Build 79) am 19.11. 12:22 eingereicht, am 20.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte im Changelog mit ios 1.1.68.
     # Android 1.1.49 / Wear 1.2.49 am 19.11. eingereicht, am 26.11. FREIGEGEBEN (Play-Mail, s. _APP_META["android"]); 5 Punkte tragen android 1.1.49 dazu.
@@ -1221,19 +1236,7 @@ NAECHSTES: list[dict] = [
          "The MCP connection settings moved to Settings › Account, and referee review requests have their own notification switch.",
          "Pumpfoil now also speaks Croatian, Danish, Swedish and Hungarian, and dictation works in every app language.",
      ]},
-    {"name": "iPhone + Apple Watch", "version": "1.1.69",
-     "items": [
-         "Performance tab: flying 100 m, flying minute, longest run and total time on foil per day, with a Top 20 column and points per day.",
-         "Performance tab: the 2027 season score starts on 1 January, and today is shown as preliminary while riders are still uploading.",
-         "History: new curve for the average run time, so you can see whether your runs get longer over time.",
-         "See how much of your foiling time you spend at each speed, in Home › Stats › Speed and for each session in the session details.",
-         "Sort your own sessions by date, longest run, distance or time on the foil, or top speed with the filter button in Sessions › Mine.",
-         "Garmin watches have a new setting to choose whether the motion data also goes into Garmin's own activity file.",
-         "The watch quality table shows the longest complete session with motion data per watch and can be sorted by every value.",
-         "The feedback form asks you to fill in the missing foil or stabilizer details before sending.",
-         "The MCP connection settings moved to Settings › Account, and referee review requests have their own notification switch.",
-         "Pumpfoil now also speaks Croatian, Danish, Swedish and Hungarian, and dictation works in every app language.",
-     ]},
+    # iPhone + Apple Watch 1.1.69 am 26.11. eingereicht -> IN_REVIEW.
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
      "items": [
