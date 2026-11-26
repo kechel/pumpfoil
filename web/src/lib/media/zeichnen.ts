@@ -27,7 +27,12 @@ export interface EventOverlay {
   zeitraum: string;              // Datum/Zeitraum des Events
   stand: string;                 // Titel der Endtafel: „Final results" bzw. „Provisional"
   /** je Fahrernummer (1 = Hauptfahrer): Anzeigename, Platz im Event und Wert, wie die Bestenliste ihn zeigt */
-  fahrer: Record<number, { name: string; rang: number | null; wert: string }>;
+  fahrer: Record<number, {
+    name: string; rang: number | null; wert: string;
+    /** Endtafel (Jan 26.11.2026): Nationalitaetsflagge und Team-Wappen wie im Teilen-Bild, vorab geladen */
+    flagge?: CanvasImageSource | null;
+    wappen?: { bild: HTMLImageElement | null; initialen: string; flaeche: string; schrift: string } | null;
+  }>;
   namen: boolean;                // Namen in den Fahrer-Kaesten
   rang: boolean;                 // im Ziel den Event-Platz statt des Platzes im Video
   ende: boolean;                 // Endtafel mit den Platzierungen am Schluss (ENDTAFEL_S zusaetzlich)
@@ -696,6 +701,8 @@ function endTafel(ctx: CanvasRenderingContext2D, ev: EventOverlay, W: number, H:
   ctx.fillText(ev.stand.toUpperCase(), x0 + ws + 22 * u, y + kopfH / 2);
   y += kopfH + zg;
   ctx.shadowColor = "transparent";
+  // Platz fuer Wappen/Flagge in allen Zeilen, sobald eine sie hat — dann stehen die Namen buendig.
+  const wappenPlatz = zeilen.some((z) => z.wappen), flaggenPlatz = zeilen.some((z) => z.flagge);
   for (const z of zeilen) {
     ctx.fillStyle = "rgba(2,6,23,0.88)"; rundRechteck(ctx, x0, y, breite, zh, 18 * u); ctx.fill();
     const r = 30 * u, cx = x0 + 14 * u + r, cy = y + zh / 2;
@@ -707,12 +714,38 @@ function endTafel(ctx: CanvasRenderingContext2D, ev: EventOverlay, W: number, H:
     const farbe = FAHRER_FARBEN[z.nr - 1] ?? "#ffffff";
     const px = cx + r + 22 * u;
     ctx.fillStyle = farbe; ctx.beginPath(); ctx.arc(px, cy, 9 * u, 0, Math.PI * 2); ctx.fill();
+    let nx = px + 24 * u;
+    // Team-Wappen (Logo oder Initialen auf Teamfarbe), dann Flagge 4:3 — wie im Teilen-Bild der Bestenliste.
+    if (z.wappen) {
+      const ws = 54 * u, wy = cy - ws / 2;
+      ctx.save(); rundRechteck(ctx, nx, wy, ws, ws, 8 * u); ctx.clip();
+      const im = z.wappen.bild;
+      if (im && im.width) {
+        const k = Math.min(ws / im.width, ws / im.height), bw = im.width * k, bh = im.height * k;
+        ctx.drawImage(im, nx + (ws - bw) / 2, wy + (ws - bh) / 2, bw, bh);
+      } else {
+        ctx.fillStyle = z.wappen.flaeche; ctx.fillRect(nx, wy, ws, ws);
+        ctx.fillStyle = z.wappen.schrift; ctx.font = `800 ${ws * 0.38}px ${FONT}`; ctx.textAlign = "center";
+        ctx.fillText(z.wappen.initialen, nx + ws / 2, cy + ws * 0.03);
+      }
+      ctx.restore();
+    }
+    if (wappenPlatz) nx += 54 * u + 16 * u;
+    if (z.flagge) {
+      const fh = 38 * u, fw = fh * 4 / 3;
+      ctx.drawImage(z.flagge, nx, cy - fh / 2, fw, fh);
+      ctx.strokeStyle = "rgba(255,255,255,0.35)"; ctx.lineWidth = 2 * u; ctx.strokeRect(nx, cy - fh / 2, fw, fh);
+    }
+    if (flaggenPlatz) nx += 38 * u * 4 / 3 + 16 * u;
     ctx.textAlign = "right"; ctx.font = `800 ${fw}px ${FONT}`; ctx.fillStyle = "#22d3ee";
     const wx = x0 + breite - 26 * u;
     ctx.fillText(z.wert, wx, cy + fw * 0.04);
     const wWert = ctx.measureText(z.wert).width;
     ctx.textAlign = "left"; ctx.font = `900 ${fn}px ${FONT}`; ctx.fillStyle = "#ffffff";
-    const nx = px + 24 * u, platz = wx - wWert - 24 * u - nx;
+    const platz = wx - wWert - 24 * u - nx;
+    // Lange Namen erst kleiner (bis 70 %), dann kuerzen.
+    let fnz = fn;
+    while (fnz > fn * 0.7 && ctx.measureText(z.name).width > platz) { fnz -= fn * 0.05; ctx.font = `900 ${fnz}px ${FONT}`; }
     let name = z.name;
     while (name.length > 1 && ctx.measureText(name).width > platz) name = name.slice(0, -2) + "…";
     ctx.fillText(name, nx, cy + fn * 0.04);

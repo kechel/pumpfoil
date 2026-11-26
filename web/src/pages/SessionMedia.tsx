@@ -25,6 +25,9 @@ import { MediaMitfahrer, type Mitfahrer } from "../components/MediaMitfahrer";
 import { ANZEIGE_HAUPT, FAHRER_FARBEN, MAX_MITFAHRER, baueMehrfach, type Anzeige, type Modus } from "../lib/media/mehrfach";
 import { kennzahl } from "../lib/teamKennzahlen";
 import { eventZeitraum } from "../lib/teamEvents";
+import { bildLaden } from "../lib/bestenlisteBild";
+import { flaggeUrl } from "../lib/laender";
+import { wappenVon } from "../components/TeamTafelBild";
 
 /** Index des Laufs mit der laengsten Strecke (Vorauswahl). */
 function besterLauf(segs: any[]): number {
@@ -289,13 +292,31 @@ export default function SessionMedia() {
     return () => { weg = true; };
   }, [evP]);
   const evTafel = evP && evDaten ? evDaten.tafeln[Math.min(evP.tafel, evDaten.tafeln.length - 1)] ?? null : null;
+  // Flaggen und Team-Wappen fuer die Endtafel vorab laden (als Blob: Canvas bleibt sauber fuer den Export).
+  const [evBilder, setEvBilder] = useState<Record<string, HTMLImageElement>>({});
+  useEffect(() => {
+    if (!evTafel) return;
+    let weg = false;
+    const urls = new Set<string>();
+    for (const z of evTafel.zeilen.slice(0, 10)) {
+      if (z.land) urls.add(flaggeUrl(z.land));
+      if (z.teams?.[0]?.logo_url) urls.add(z.teams[0].logo_url);
+    }
+    for (const u of urls) bildLaden(u).then((im) => { if (!weg) setEvBilder((b) => ({ ...b, [u]: im })); }).catch(() => {});
+    return () => { weg = true; };
+  }, [evTafel]);
   const evOverlay: EventOverlay | null = useMemo(() => {
     if (!evDaten || !evTafel || !session) return null;
     const k = kennzahl(evTafel.kennzahl);
     const zeile = (sid: number) => evTafel.zeilen.find((z) => z.session_id === sid) ?? null;
     const eintrag = (sid: number, ersatz: string) => {
       const z = zeile(sid);
-      return { name: z?.name ?? z?.initialen ?? ersatz, rang: z?.rang ?? null, wert: z ? k.fmt(z.value) : "" };
+      const w = wappenVon(z?.teams?.[0]);
+      return {
+        name: z?.name ?? z?.initialen ?? ersatz, rang: z?.rang ?? null, wert: z ? k.fmt(z.value) : "",
+        flagge: z?.land ? evBilder[flaggeUrl(z.land)] ?? null : null,
+        wappen: w ? { bild: w.logo ? evBilder[w.logo] ?? null : null, initialen: w.initialen, flaeche: w.flaeche, schrift: w.schrift } : null,
+      };
     };
     const fahrerMap: EventOverlay["fahrer"] = { 1: eintrag(session.id, session.owner_name ?? "") };
     for (const f of fahrer) if (!mehr || mehr.mit.some((m) => m.nr === f.nr)) fahrerMap[f.nr] = eintrag(f.sessionId, f.name);
@@ -305,7 +326,7 @@ export default function SessionMedia() {
       stand: t(evDaten.status === "beendet" ? "media.ev.final" : "media.ev.provisional"),
       fahrer: fahrerMap, ...evSchalter,
     };
-  }, [evDaten, evTafel, session, fahrer, mehr, evSchalter, t, lang]);
+  }, [evDaten, evTafel, session, fahrer, mehr, evSchalter, evBilder, t, lang]);
   const dauer = clip ? videoDauer(clip, cfg, evOverlay) : 0;
   const zuLang = dauer > MAX_SEKUNDEN;
   // Ein Strudel-Code fuer Vorschau, Export und den Link nach strudel.cc.

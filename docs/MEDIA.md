@@ -189,7 +189,10 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
      `brand/events/flying-sprint-2026-11/ergebnis.html`: Titel, Schild + „Endstand"/„Vorlaeufig" (nach `status`),
      Zeilen mit Platz, Punkt in Fahrerfarbe, Name, Wert. Waehrend sie einblendet, verschwinden die Fahrer-Kaesten.
    - Code: `EventOverlay` + `eventKopf`/`endTafel` in `zeichnen.ts`, Laden/Schalter in `SessionMedia.tsx`, Knopf in
-     `TeamEventSeite.tsx`. Keine Flaggen in der Endtafel (Bilder muessten vorab geladen werden).
+     `TeamEventSeite.tsx`. Endtafel mit Team-Wappen (Logo oder Initialen auf Teamfarbe, `wappenVon`) und Flagge wie im
+     Teilen-Bild, vorab als Blob geladen (`bildLaden`); Platz buendig, sobald eine Zeile sie hat; lange Namen erst kleiner.
+   - Laufzeit im Sprint-Start = Stoppuhr ab Sprintbeginn (0.0 im Vorlauf). Die Platzierung im Kasten am Sprint-Ende
+     bleibt als Aufloesung (Jan 26.11.: „gutes reveal").
 
 5. Native Apps: vorerst auf die Web-Ansicht verweisen.
 
