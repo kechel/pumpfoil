@@ -39,9 +39,8 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
   Feedback-Vorlage, MCP unter Konto, Referee-Schalter, hr/da/sv/hu + Diktat (f9c4d30a und Vorgaenger), am 26.11. dazu
   Garmin-Schalter „Bewegungsdaten in der Garmin-Aktivitaet" (web 0ec632c7) und Uhren-Tabelle Laengste + Sortierung
   (web 7ea40a5b). Bewusst NICHT portiert: Media-Ansicht (Overlay/Musik/Event-Video, WebCodecs, nur Web), Admin, Bot-Reiter.
-  Geprueft: `:app:compileDebugKotlin` gruen, iOS `swiftc -parse` sauber. **Offen bei Jan:** Geraetetest beider Apps
-  (auch der Port vom 25.11. ist noch nicht auf einem Geraet gelaufen), Xcode-Build (keine neue Datei, kein xcodegen noetig),
-  signieren, hochladen.
+  Geprueft: `:app:compileDebugKotlin` gruen, iOS `swiftc -parse` sauber. **Getestet (Jans Meldung 26.11.):** beide Apps im
+  Emulator/Simulator durchgeklickt, die neuen Punkte geprueft; danach gebaut, signiert, eingereicht.
 
 - **🔲 19.09. — Wirkt der Low-Mem-Fix (Garmin 1.0.87)? NOCH KEINE DATEN.** Nachgesehen, weil
   1.0.87 seit dem 17.09. live ist und verspricht: „Garmin watches with little memory, such as the
