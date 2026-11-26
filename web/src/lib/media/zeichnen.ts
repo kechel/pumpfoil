@@ -5,7 +5,7 @@
 // Schwarz oder Gruen.
 
 import { type Clip, clipZuSession, obereGrenze } from "./clip";
-import { type FahrerSpur, type Mehrfach, lageAnwenden } from "./mehrfach";
+import { FAHRER_FARBEN, type FahrerSpur, type Mehrfach, lageAnwenden } from "./mehrfach";
 import { hrColor, rampColor, speedColor } from "../trackColors";
 import { carveColor } from "../turns";
 
@@ -14,8 +14,26 @@ export const ANKER: Anker[] = ["tl", "tc", "tr", "ml", "mc", "mr", "bl", "bc", "
 
 // Kein Datenfeld „Gleiten" (Jan 24.11.2026: weg) — Gleitphasen zeigt die Ebene auf der Spur.
 // „fahrer" = Kaesten je Fahrer, nur wenn weitere Fahrer dabei sind (mehrfach.ts, 25.11.2026).
-export type ElKey = "track" | "speed" | "pumps" | "pumprate" | "hr" | "distance" | "time" | "sprint" | "carve" | "fahrer" | "logo";
-export const EL_KEYS: ElKey[] = ["track", "speed", "pumps", "pumprate", "hr", "distance", "time", "sprint", "carve", "fahrer", "logo"];
+// „event" = Kopf mit Event-Titel und Kategorie, nur im Event-Video (EventOverlay, 26.11.2026).
+export type ElKey = "track" | "speed" | "pumps" | "pumprate" | "hr" | "distance" | "time" | "sprint" | "carve" | "fahrer" | "event" | "logo";
+export const EL_KEYS: ElKey[] = ["track", "speed", "pumps", "pumprate", "hr", "distance", "time", "sprint", "carve", "fahrer", "event", "logo"];
+
+/** Event-Video (Jan 26.11.2026): die ersten Plaetze einer Event-Kategorie fahren gegeneinander. Anders als im normalen
+ *  Mehrfahrer-Video stehen hier Namen und Event-Platz IM Bild — die Bestenliste ist ohnehin veroeffentlicht, und das
+ *  Video macht der Betreiber bzw. die Event-Leitung. Alles einzeln schaltbar. */
+export interface EventOverlay {
+  titel: string;                 // Event-Titel
+  kategorie: string;             // z. B. „Flying 100 m"
+  zeitraum: string;              // Datum/Zeitraum des Events
+  stand: string;                 // Titel der Endtafel: „Final results" bzw. „Provisional"
+  /** je Fahrernummer (1 = Hauptfahrer): Anzeigename, Platz im Event und Wert, wie die Bestenliste ihn zeigt */
+  fahrer: Record<number, { name: string; rang: number | null; wert: string }>;
+  namen: boolean;                // Namen in den Fahrer-Kaesten
+  rang: boolean;                 // im Ziel den Event-Platz statt des Platzes im Video
+  ende: boolean;                 // Endtafel mit den Platzierungen am Schluss (ENDTAFEL_S zusaetzlich)
+}
+export const ENDTAFEL_S = 4;
+const MEDAILLE = ["#facc15", "#cbd5e1", "#d97706"];
 
 export interface ElCfg { an: boolean; pos: Anker; gr: number }
 export type Format = "9:16" | "4:5" | "1:1" | "16:9";
@@ -54,6 +72,7 @@ export const CFG_DEFAULT: MediaCfg = {
     sprint: { an: true, pos: "tl", gr: 1 },
     carve: { an: true, pos: "ml", gr: 1 },
     fahrer: { an: true, pos: "tr", gr: 1 },
+    event: { an: true, pos: "tc", gr: 1 },
     logo: { an: true, pos: "bc", gr: 0.7 },
   },
 };
@@ -71,8 +90,8 @@ export function masse(cfg: Pick<MediaCfg, "format" | "hoehe">): { w: number; h: 
 }
 
 /** Gesamtlaenge des Videos in Sekunden. */
-export function videoDauer(clip: Clip, cfg: MediaCfg): number {
-  return cfg.vor + clip.dauerMs / 1000 / cfg.tempo + cfg.nach;
+export function videoDauer(clip: Clip, cfg: MediaCfg, ev: EventOverlay | null = null): number {
+  return cfg.vor + clip.dauerMs / 1000 / cfg.tempo + cfg.nach + (ev?.ende ? ENDTAFEL_S : 0);
 }
 
 export interface Texte {
@@ -517,9 +536,16 @@ function fahrerWerte(sp: FahrerSpur, modus: Mehrfach["modus"], tsHaupt: number, 
   return { teile, fertig, wert: modus === "sprint" && sp.sprint ? sp.sprint.wert : null };
 }
 
+/** Name kuerzen, damit ein Kasten nicht ueber das Bild hinauslaeuft. */
+function kurz(name: string, max = 16): string {
+  const n = Array.from(name.trim());
+  return n.length > max ? n.slice(0, max - 1).join("") + "…" : n.join("");
+}
+
 /** Ein Kasten je Fahrer (Rahmen in Fahrerfarbe, Nummer wie am Kopf der Spur). Keine Namen im Video (Jan 25.11.2026):
- *  wer wer ist, steht nur in der Legende unter der Vorschau. */
-function fahrerBlocks(ctx: CanvasRenderingContext2D, cfg: MediaCfg, clip: Clip, mehr: Mehrfach, z: Zustand, u: number, tx: Texte): Block[] {
+ *  wer wer ist, steht nur in der Legende unter der Vorschau — ausser im Event-Video (`ev.namen`, Jan 26.11.2026). */
+function fahrerBlocks(ctx: CanvasRenderingContext2D, cfg: MediaCfg, clip: Clip, mehr: Mehrfach, z: Zustand, u: number, tx: Texte,
+  ev: EventOverlay | null = null): Block[] {
   const alle = [mehr.haupt, ...mehr.mit];
   const werte = alle.map((sp) => ({ sp, ...fahrerWerte(sp, mehr.modus, z.ts, clip.spans[0][0], tx) }));
   // Sprint: Rang unter denen, die schon im Ziel sind.
@@ -528,10 +554,19 @@ function fahrerBlocks(ctx: CanvasRenderingContext2D, cfg: MediaCfg, clip: Clip, 
   const out: Block[] = [];
   for (const w of werte) {
     if (!w.teile.length) continue;
-    const rang = imZiel.indexOf(w);
-    const text = (rang >= 0 ? `${rang + 1}.  ` : "") + w.teile.join("   ");
+    const evF = ev?.fahrer[w.sp.nr];
+    // Event-Video: im Ziel der Platz im Event (Aufloesung, Jan 26.11.2026), sonst der Platz unter denen im Ziel.
+    const evRang = ev?.rang && evF?.rang != null && w.fertig ? evF.rang : null;
+    const rang = evRang != null ? evRang - 1 : imZiel.indexOf(w);
+    const rangText = rang >= 0 ? `${rang + 1}.  ` : "";
+    const name = ev?.namen && evF?.name ? kurz(evF.name) : "";
+    // Mit Event-Platz im Ziel auch der Wert der Bestenliste — sonst stuende neben dem Platz eine leicht andere Zahl
+    // als in der Endtafel (die Bestenliste rechnet mit ihrem eigenen Stand).
+    const werte = evRang != null && evF?.wert ? [evF.wert] : w.teile;
+    const text = (name ? `${name}   ` : "") + werte.join("   ");
     ctx.font = `800 ${fs}px ${FONT}`;
-    const tw = tabBreite(ctx, text);
+    const rw = rangText ? tabBreite(ctx, rangText) : 0;
+    const tw = rw + tabBreite(ctx, text);
     const bw = pad * 3 + r * 2 + tw, bh = fs * 1.5;
     out.push({
       w: bw, h: bh, draw: (c, x, y) => {
@@ -545,14 +580,117 @@ function fahrerBlocks(ctx: CanvasRenderingContext2D, cfg: MediaCfg, clip: Clip, 
         c.fillStyle = "#0f172a"; c.font = `800 ${r * 1.3}px ${FONT}`; c.textAlign = "center"; c.textBaseline = "middle";
         c.fillText(String(w.sp.nr), cx, cy + r * 0.06);
         c.textAlign = "left";
-        c.fillStyle = "#ffffff"; c.font = `800 ${fs}px ${FONT}`;
-        tabText(c, text, cx + r + pad, cy + fs * 0.04);
+        c.font = `800 ${fs}px ${FONT}`;
+        // Event-Platz in Medaillenfarbe (1-3), sonst weiss wie der Rest.
+        if (rangText) { c.fillStyle = evRang != null && evRang <= 3 ? MEDAILLE[evRang - 1] : "#ffffff"; tabText(c, rangText, cx + r + pad, cy + fs * 0.04); }
+        c.fillStyle = "#ffffff";
+        tabText(c, text, cx + r + pad + rw, cy + fs * 0.04);
         c.textBaseline = "alphabetic";
         textStil(c, cfg, u);
       },
     });
   }
   return out;
+}
+
+/** Schraeg gestelltes Cyan-Schild wie in den Event-Grafiken (brand/events/…/ergebnis.html). Liefert die Breite. */
+function schild(c: CanvasRenderingContext2D, text: string, x: number, y: number, fs: number, nurMessen = false): number {
+  c.font = `900 ${fs}px ${FONT}`;
+  const padX = fs * 0.55, w = c.measureText(text).width + padX * 2, h = fs * 1.45, sk = h * 0.18;
+  if (nurMessen) return w + sk;
+  c.save();
+  c.shadowColor = "transparent";
+  c.fillStyle = "#22d3ee";
+  c.beginPath(); c.moveTo(x + sk, y); c.lineTo(x + w + sk, y); c.lineTo(x + w, y + h); c.lineTo(x, y + h); c.closePath(); c.fill();
+  c.fillStyle = "#020617"; c.textBaseline = "middle"; c.textAlign = "left";
+  c.fillText(text, x + sk / 2 + padX, y + h / 2 + fs * 0.04);
+  c.restore();
+  return w + sk;
+}
+
+/** Kopf des Event-Videos: Event-Titel (Versalien), darunter das Schild mit der Kategorie und der Zeitraum. */
+function eventKopf(ctx: CanvasRenderingContext2D, cfg: MediaCfg, ev: EventOverlay, u0: number, maxW: number): Block {
+  // Erst messen, dann so verkleinern, dass der Kopf in die Bildbreite passt (lange Event-Titel).
+  const breite = (u: number) => {
+    ctx.font = `900 ${40 * u}px ${FONT}`; const a = ctx.measureText(ev.titel.toUpperCase()).width;
+    ctx.font = `700 ${26 * u}px ${FONT}`; const d = ev.zeitraum ? ctx.measureText(ev.zeitraum).width + 18 * u : 0;
+    return Math.max(a, schild(ctx, ev.kategorie, 0, 0, 34 * u, true) + d);
+  };
+  const b0 = breite(u0);
+  const u = b0 > maxW ? (u0 * maxW) / b0 : u0;
+  const ft = 40 * u, fk = 34 * u, fd = 26 * u, gap = 12 * u;
+  const titel = ev.titel.toUpperCase();
+  ctx.font = `900 ${ft}px ${FONT}`; const wt = ctx.measureText(titel).width;
+  const wk = schild(ctx, ev.kategorie, 0, 0, fk, true);
+  ctx.font = `700 ${fd}px ${FONT}`; const wd = ev.zeitraum ? ctx.measureText(ev.zeitraum).width : 0;
+  const zeile2 = wk + (wd ? gap * 1.5 + wd : 0);
+  const w = Math.max(wt, zeile2), h = ft * 1.15 + gap + fk * 1.45;
+  return {
+    w, h, draw: (c, x, y, al) => {
+      const ein = (b: number) => (al === "l" ? x : al === "c" ? x + (w - b) / 2 : x + w - b);
+      textStil(c, cfg, u);
+      c.fillStyle = "#ffffff"; c.textAlign = "left"; c.textBaseline = "alphabetic";
+      c.font = `900 ${ft}px ${FONT}`; c.fillText(titel, ein(wt), y + ft * 0.9);
+      const y2 = y + ft * 1.15 + gap, x2 = ein(zeile2);
+      schild(c, ev.kategorie, x2, y2, fk);
+      if (wd) {
+        textStil(c, cfg, u);
+        c.font = `700 ${fd}px ${FONT}`; c.fillStyle = "rgba(255,255,255,0.9)"; c.textBaseline = "middle";
+        c.fillText(ev.zeitraum, x2 + wk + gap * 1.5, y2 + fk * 0.725);
+        c.textBaseline = "alphabetic";
+      }
+    },
+  };
+}
+
+/** Endtafel (Jan 26.11.2026, wie das Endstand-Overlay der Event-Grafiken): Kategorie + Stand, darunter je Fahrer eine
+ *  Zeile mit Platz (Medaillenfarbe), Name und Wert aus der Bestenliste. Blendet in den letzten ENDTAFEL_S Sekunden ein. */
+function endTafel(ctx: CanvasRenderingContext2D, ev: EventOverlay, W: number, H: number, anteil: number) {
+  const zeilen = Object.entries(ev.fahrer).map(([nr, f]) => ({ nr: Number(nr), ...f }))
+    .sort((a, b) => (a.rang ?? 99) - (b.rang ?? 99) || a.nr - b.nr);
+  if (!zeilen.length) return;
+  const u = Math.min(W, H) / 1080;
+  const breite = Math.min(W, H) * 0.9, x0 = (W - breite) / 2;
+  const fk = 40 * u, fs = 44 * u, fn = 46 * u, fw = 40 * u, zh = 82 * u, zg = 16 * u, kopfH = fk * 1.45;
+  const ft = 30 * u;
+  const hoehe = ft * 1.6 + kopfH + zg + zeilen.length * (zh + zg);
+  let y = (H - hoehe) / 2;
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, Math.min(1, anteil));
+  ctx.shadowColor = "rgba(2,6,23,0.8)"; ctx.shadowBlur = 18 * u; ctx.shadowOffsetY = 3 * u;
+  ctx.fillStyle = "#ffffff"; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  ctx.font = `800 ${ft}px ${FONT}`;
+  ctx.fillText(ev.titel.toUpperCase(), x0, y + ft);
+  y += ft * 1.6;
+  const ws = schild(ctx, ev.kategorie, x0, y, fk);
+  ctx.shadowColor = "rgba(2,6,23,0.8)";
+  ctx.font = `900 ${fs}px ${FONT}`; ctx.fillStyle = "#ffffff"; ctx.textBaseline = "middle";
+  ctx.fillText(ev.stand.toUpperCase(), x0 + ws + 22 * u, y + kopfH / 2);
+  y += kopfH + zg;
+  ctx.shadowColor = "transparent";
+  for (const z of zeilen) {
+    ctx.fillStyle = "rgba(2,6,23,0.88)"; rundRechteck(ctx, x0, y, breite, zh, 18 * u); ctx.fill();
+    const r = 30 * u, cx = x0 + 14 * u + r, cy = y + zh / 2;
+    ctx.fillStyle = z.rang != null && z.rang <= 3 ? MEDAILLE[z.rang - 1] : "#22d3ee";
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#020617"; ctx.font = `900 ${r * 1.25}px ${FONT}`; ctx.textAlign = "center";
+    ctx.fillText(z.rang != null ? String(z.rang) : "–", cx, cy + r * 0.06);
+    // Kleiner Punkt in Fahrerfarbe: verbindet die Zeile mit Spur und Kasten.
+    const farbe = FAHRER_FARBEN[z.nr - 1] ?? "#ffffff";
+    const px = cx + r + 22 * u;
+    ctx.fillStyle = farbe; ctx.beginPath(); ctx.arc(px, cy, 9 * u, 0, Math.PI * 2); ctx.fill();
+    ctx.textAlign = "right"; ctx.font = `800 ${fw}px ${FONT}`; ctx.fillStyle = "#22d3ee";
+    const wx = x0 + breite - 26 * u;
+    ctx.fillText(z.wert, wx, cy + fw * 0.04);
+    const wWert = ctx.measureText(z.wert).width;
+    ctx.textAlign = "left"; ctx.font = `900 ${fn}px ${FONT}`; ctx.fillStyle = "#ffffff";
+    const nx = px + 24 * u, platz = wx - wWert - 24 * u - nx;
+    let name = z.name;
+    while (name.length > 1 && ctx.measureText(name).width > platz) name = name.slice(0, -2) + "…";
+    ctx.fillText(name, nx, cy + fn * 0.04);
+    y += zh + zg;
+  }
+  ctx.restore();
 }
 
 function rundRechteck(c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -564,7 +702,7 @@ function rundRechteck(c: CanvasRenderingContext2D, x: number, y: number, w: numb
 
 /** Ein Bild zeichnen. `tv` = Video-Sekunde. Der Canvas muss schon die Zielgroesse haben. */
 export function zeichne(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg, tv: number, tx: Texte, hintergrund = cfg.hintergrund,
-  mehr: Mehrfach | null = null) {
+  mehr: Mehrfach | null = null, ev: EventOverlay | null = null) {
   const W = ctx.canvas.width, H = ctx.canvas.height;
   ctx.save();
   ctx.clearRect(0, 0, W, H);
@@ -583,7 +721,7 @@ export function zeichne(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg
     jeAnker.set(pos, l);
   };
   for (const k of [
-    "track", "fahrer", "sprint", "carve", "speed", "pumps", "pumprate", "hr", "distance", "time", "logo",
+    "track", "event", "fahrer", "sprint", "carve", "speed", "pumps", "pumprate", "hr", "distance", "time", "logo",
   ] as ElKey[]) {
     const e = cfg.el[k];
     if (!e.an) continue;
@@ -615,7 +753,9 @@ export function zeichne(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg
       case "time": dazu(k, statBlock(ctx, cfg, u, fmtMS(z.clipMs), "", tx.time)); break;
       case "sprint": dazu(k, sprintBlocks(ctx, clip, cfg, z, u)); break;
       case "carve": dazu(k, carveBlock(ctx, clip, cfg, z, u, tx)); break;
-      case "fahrer": if (mehr && mehr.mit.length) dazu(k, fahrerBlocks(ctx, cfg, clip, mehr, z, u, tx)); break;
+      // Sobald die Endtafel einblendet, machen die Kaesten ihr Platz (sie zeigen dasselbe).
+      case "fahrer": if (mehr && mehr.mit.length && !(ev?.ende && tv >= videoDauer(clip, cfg, ev) - ENDTAFEL_S + 0.3)) dazu(k, fahrerBlocks(ctx, cfg, clip, mehr, z, u, tx, ev)); break;
+      case "event": if (ev) dazu(k, eventKopf(ctx, cfg, ev, u, W - 2 * rand)); break;
       case "logo": {
         const fg = 34 * u;
         ctx.font = `800 ${fg}px ${FONT}`; const ww = ctx.measureText("pumpfoil.org").width;
@@ -640,6 +780,11 @@ export function zeichne(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg
       b.draw(ctx, x, y, spalte);
       y += b.h + abstand;
     }
+  }
+  // Endtafel ueber allem, in den letzten ENDTAFEL_S Sekunden (0,6 s Einblendung).
+  if (ev?.ende) {
+    const ab = videoDauer(clip, cfg, ev) - ENDTAFEL_S;
+    if (tv >= ab) endTafel(ctx, ev, W, H, (tv - ab) / 0.6);
   }
   ctx.restore();
 }

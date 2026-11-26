@@ -5,7 +5,7 @@
 // und wird direkt heruntergeladen (docs/MEDIA.md, „Alles im Browser").
 
 import type { Clip } from "./clip";
-import { type MediaCfg, type Texte, masse, videoDauer, zeichne } from "./zeichnen";
+import { type EventOverlay, type MediaCfg, type Texte, masse, videoDauer, zeichne } from "./zeichnen";
 import type { Mehrfach } from "./mehrfach";
 
 export const MAX_SEKUNDEN = 180;
@@ -31,7 +31,7 @@ export async function alphaMoeglich(w: number, h: number): Promise<boolean> {
 
 /** `ton`: fertig gerenderte Musik (Teil B) — kommt als Tonspur dazu (WebM: Opus, MP4: AAC, ersatzweise Opus). */
 export async function erzeugeVideo(clip: Clip, cfg: MediaCfg, tx: Texte,
-  fortschritt: (anteil: number) => void, abbruch: AbortSignal, ton?: AudioBuffer | null, mehr: Mehrfach | null = null): Promise<Ergebnis> {
+  fortschritt: (anteil: number) => void, abbruch: AbortSignal, ton?: AudioBuffer | null, mehr: Mehrfach | null = null, ev: EventOverlay | null = null): Promise<Ergebnis> {
   const mb = await import("mediabunny");
   const { w, h } = masse(cfg);
   const canvas = document.createElement("canvas");
@@ -59,12 +59,12 @@ export async function erzeugeVideo(clip: Clip, cfg: MediaCfg, tx: Texte,
   await output.start();
   if (tonQuelle && ton) { await tonQuelle.add(ton); tonQuelle.close(); }
 
-  const dauer = videoDauer(clip, cfg);
+  const dauer = videoDauer(clip, cfg, ev);
   const n = Math.max(1, Math.round(dauer * cfg.fps));
   try {
     for (let f = 0; f < n; f++) {
       if (abbruch.aborted) throw new DOMException("abgebrochen", "AbortError");
-      zeichne(ctx, clip, cfg, f / cfg.fps, tx, cfg.hintergrund, mehr);
+      zeichne(ctx, clip, cfg, f / cfg.fps, tx, cfg.hintergrund, mehr, ev);
       await quelle.add(f / cfg.fps, 1 / cfg.fps);
       if (f % 5 === 0) fortschritt(f / n);
     }

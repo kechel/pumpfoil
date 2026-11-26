@@ -7,7 +7,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, FoilBand, getToken, TeamAuftritt, TeamEvent, TeamRolle, TeamTafelMitZeilen } from "../lib/api";
-import { SettingsIcon, ShareIcon } from "../components/Icons";
+import { SettingsIcon, ShareIcon, VideoIcon } from "../components/Icons";
 import BestenlisteBildDialog from "../components/BestenlisteBildDialog";
 import { teamInitialen } from "../components/TeamWappen";
 import { TEAM_FARBEN } from "../lib/teamFarben";
@@ -336,6 +336,9 @@ export default function TeamEventSeite() {
 
   // Zahnrad fuer Leitung/Moderatoren (Jan, 01.11.2026): dasselbe Popup wie in der Verwaltung.
   const verwalter = !gast && (team?.meine_rolle === "leiter" || team?.meine_rolle === "moderator");
+  // Media-Knopf (Jan 26.11.2026): Overlay-Video der ersten 3 einer Kategorie mit Namen — nur Betreiber und Event-Leitung.
+  const [istAdmin, setIstAdmin] = useState(false);
+  useEffect(() => { if (!gast) api.getProfile().then((p) => setIstAdmin(!!p.is_admin)).catch(() => {}); }, [gast]);
   const popupAuf = () => {
     api.communitySports().then((x) => setSports(Array.from(new Set(["pumpfoil", ...x.map((y) => y.sport)])))).catch(() => {});
     api.foilBands(true, "pumpfoil").then(setBands).catch(() => {});
@@ -555,6 +558,25 @@ export default function TeamEventSeite() {
               {ev.tafeln.map((tf, i) => <option key={i} value={i}>{tafelTitel(tf, ev, t)}</option>)}
             </select>
           )}
+          {(() => {
+            // Media (Jan 26.11.2026): die ersten 3 der angezeigten Kategorie (samt Wertungsklasse) in die Media-Ansicht,
+            // Platz 1 als Hauptfahrer. Nur Kategorien aus EINEM Lauf (run_idx) — Session-Summen haben keine Spur.
+            const tfM = ev.tafeln[Math.min(wahl, ev.tafeln.length - 1)];
+            const top = (tfM?.zeilen ?? []).filter((z) => z.session_id && z.run_idx != null).slice(0, 3);
+            if (gast || !(verwalter || istAdmin) || !tfM || !top.length) return null;
+            const sprint = tfM.kennzahl.startsWith("sprint_");
+            const q = new URLSearchParams({ lauf: String(top[0].run_idx) });
+            if (top.length > 1) q.set("mit", top.slice(1).map((z) => `${z.session_id}:${z.run_idx}`).join(","));
+            q.set("modus", sprint ? "sprint" : "start");
+            if (sprint) q.set("sprint", tfM.kennzahl);
+            q.set("event", [slug, ev.id, Math.min(wahl, ev.tafeln.length - 1), ...(ev.klasse ? [ev.klasse] : [])].join(":"));
+            return (
+              <Link to={`/sessions/${top[0].session_id}/media?${q.toString()}`} title={t("media.ev.buttonTitle")}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 px-3 py-1 text-sm font-semibold text-slate-200 hover:bg-slate-800">
+                <VideoIcon className="h-4 w-4" /> {t("media.button")}
+              </Link>
+            );
+          })()}
           {/* Wertungsklasse (10.11.2026) in derselben Zeile, ohne Beschriftung (Jan, 11.11.2026: „die buttons sind ja eindeutig"). */}
           {!gast && ev.klassen && Object.keys(ev.klassen).length > 0 &&
             (["", ...["w", "m", "nb"].filter((k) => k in ev.klassen!)] as string[]).map((k) => (

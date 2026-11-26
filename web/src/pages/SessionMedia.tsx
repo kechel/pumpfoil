@@ -6,14 +6,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { ZurueckPfeil } from "../components/ZurueckPfeil";
 import { Card, Spinner, ErrorBox } from "../components/ui";
-import { api, type CarveData } from "../lib/api";
-import { useT } from "../i18n";
+import { api, type CarveData, type TeamEvent } from "../lib/api";
+import { useI18n, useT } from "../i18n";
 import { fmtDate, fmtTime } from "../lib/time";
 import { ladeSessionView } from "../lib/sessionViewPrefs";
 import { fmtPumpRate, usePumpUnit } from "../lib/pumpRate";
 import { baueClip } from "../lib/media/clip";
 import {
-  ANKER, CFG_DEFAULT, EL_KEYS, type Anker, type ElKey, type Format, type MediaCfg, type Texte,
+  ANKER, CFG_DEFAULT, EL_KEYS, type Anker, type ElKey, type EventOverlay, type Format, type MediaCfg, type Texte,
   masse, sprintName, videoDauer, zeichne,
 } from "../lib/media/zeichnen";
 import { MAX_SEKUNDEN, alphaMoeglich, erzeugeVideo, webCodecsDa } from "../lib/media/export";
@@ -23,6 +23,8 @@ import { MediaMixe } from "../components/MediaMixe";
 import { entsperren, rendere, spiele, stoppe, vorladen, wavZuBuffer, zeigeFreigabe } from "../lib/media/strudel";
 import { MediaMitfahrer, type Mitfahrer } from "../components/MediaMitfahrer";
 import { ANZEIGE_HAUPT, FAHRER_FARBEN, MAX_MITFAHRER, baueMehrfach, type Anzeige, type Modus } from "../lib/media/mehrfach";
+import { kennzahl } from "../lib/teamKennzahlen";
+import { eventZeitraum } from "../lib/teamEvents";
 
 /** Index des Laufs mit der laengsten Strecke (Vorauswahl). */
 function besterLauf(segs: any[]): number {
@@ -88,6 +90,26 @@ function speichereStand(sid: string, st: Omit<SitzungsStand, "t">) {
   } catch { /* Privatmodus, voll */ }
 }
 
+// Event-Video (Jan 26.11.2026): Schalter fuer Namen, Event-Platz und Endtafel, geraeteweit gemerkt.
+const LS_EVENT = "pumpfoil_media_event";
+interface EventSchalter { namen: boolean; rang: boolean; ende: boolean }
+const EVENT_DEFAULT: EventSchalter = { namen: true, rang: true, ende: true };
+function ladeEventSchalter(): EventSchalter {
+  try { return { ...EVENT_DEFAULT, ...(JSON.parse(localStorage.getItem(LS_EVENT) ?? "null") ?? {}) }; } catch { return EVENT_DEFAULT; }
+}
+/** Nur die Tage des Events („14.–15. Nov. 2026"), ohne Uhrzeiten — passt in eine Zeile des Videos. */
+function tageVonBis(start: string, ende: string, tz: string | null, lang: string): string {
+  try {
+    const f = new Intl.DateTimeFormat(lang, { day: "numeric", month: "short", year: "numeric", timeZone: tz || undefined });
+    return (f as Intl.DateTimeFormat & { formatRange: (a: Date, b: Date) => string }).formatRange(new Date(start), new Date(ende));
+  } catch { return eventZeitraum(start, ende, tz, lang, true); }
+}
+/** `?event=<team-slug>:<event-id>:<kategorie-index>[:<klasse>]` — gesetzt vom Media-Knopf der Event-Seite. */
+function eventParam(roh: string | null): { slug: string; id: number; tafel: number; klasse: string } | null {
+  const m = /^([^:]+):(\d+):(\d+)(?::(w|m|nb))?$/.exec(roh ?? "");
+  return m ? { slug: m[1], id: Number(m[2]), tafel: Number(m[3]), klasse: m[4] ?? "" } : null;
+}
+
 const FORMATE: Format[] = ["9:16", "4:5", "1:1", "16:9"];
 const TEMPI = [1, 2, 4, 8];
 const GROESSEN = [0.7, 1, 1.4];
@@ -126,15 +148,20 @@ export default function SessionMedia() {
         sessionId: Number(a), lauf: /^\d+$/.test(b ?? "") ? Number(b) : null, name: `#${a}`, nr: i + 2,
         anzeige: st.hauptAnzeige ?? ANZEIGE_HAUPT,
       }));
-    return { ...st, fahrer, modus: "start" as Modus };
+    // Vom Event (?modus=sprint&sprint=<kennzahl>): Sprint-Start mit der Kennzahl der Kategorie.
+    const m = searchParams.get("modus");
+    const modus: Modus = m === "sprint" || m === "echtzeit" ? m : "start";
+    return { ...st, fahrer, modus, sprintWahl: searchParams.get("sprint") ?? st.sprintWahl ?? null };
   });
+  const [evP] = useState(() => eventParam(searchParams.get("event")));
   // ?mit= nur einmal uebernehmen: danach gilt der gemerkte Stand (sonst setzte ein Reload die Auswahl zurueck).
   useEffect(() => {
     if (!searchParams.has("mit")) return;
-    const u = new URL(location.href); u.searchParams.delete("mit");
+    const u = new URL(location.href); u.searchParams.delete("mit"); u.searchParams.delete("modus"); u.searchParams.delete("sprint");
     history.replaceState(history.state, "", u.pathname + u.search + u.hash);
   }, []);   // eslint-disable-line react-hooks/exhaustive-deps
   const t = useT();
+  const { lang } = useI18n();
   const unit = usePumpUnit();
   const [session, setSession] = useState<any>(null);
   const [zeiten, setZeiten] = useState<number[] | null>(null);
@@ -246,7 +273,35 @@ export default function SessionMedia() {
     : !mehrErg && modus === "sprint" ? t("media.mit.noSprintMain")
     : mehr && mehr.mit.length < fahrerClips.length ? t("media.mit.noSprintSome")
     : mehr?.fern ? t("media.mit.far") : null;
-  const dauer = clip ? videoDauer(clip, cfg) : 0;
+  // --- Event-Video (Jan 26.11.2026): Namen, Event-Platz, Kopf und Endtafel aus der Bestenliste der Kategorie ---
+  const [evDaten, setEvDaten] = useState<TeamEvent | null>(null);
+  const [evSchalter, setEvSchalter] = useState<EventSchalter>(ladeEventSchalter);
+  useEffect(() => { try { localStorage.setItem(LS_EVENT, JSON.stringify(evSchalter)); } catch { /* egal */ } }, [evSchalter]);
+  useEffect(() => {
+    if (!evP) return;
+    let weg = false;
+    api.teamEvent(evP.slug, evP.id, undefined, evP.klasse || undefined).then((e) => !weg && setEvDaten(e)).catch(() => {});
+    return () => { weg = true; };
+  }, [evP]);
+  const evTafel = evP && evDaten ? evDaten.tafeln[Math.min(evP.tafel, evDaten.tafeln.length - 1)] ?? null : null;
+  const evOverlay: EventOverlay | null = useMemo(() => {
+    if (!evDaten || !evTafel || !session) return null;
+    const k = kennzahl(evTafel.kennzahl);
+    const zeile = (sid: number) => evTafel.zeilen.find((z) => z.session_id === sid) ?? null;
+    const eintrag = (sid: number, ersatz: string) => {
+      const z = zeile(sid);
+      return { name: z?.name ?? z?.initialen ?? ersatz, rang: z?.rang ?? null, wert: z ? k.fmt(z.value) : "" };
+    };
+    const fahrerMap: EventOverlay["fahrer"] = { 1: eintrag(session.id, session.owner_name ?? "") };
+    for (const f of fahrer) if (!mehr || mehr.mit.some((m) => m.nr === f.nr)) fahrerMap[f.nr] = eintrag(f.sessionId, f.name);
+    return {
+      titel: evDaten.titel, kategorie: t(k.labelKey),
+      zeitraum: tageVonBis(evDaten.start, evDaten.ende, evDaten.zeitzone, lang),
+      stand: t(evDaten.status === "beendet" ? "media.ev.final" : "media.ev.provisional"),
+      fahrer: fahrerMap, ...evSchalter,
+    };
+  }, [evDaten, evTafel, session, fahrer, mehr, evSchalter, t, lang]);
+  const dauer = clip ? videoDauer(clip, cfg, evOverlay) : 0;
   const zuLang = dauer > MAX_SEKUNDEN;
   // Ein Strudel-Code fuer Vorschau, Export und den Link nach strudel.cc.
   const code = useMemo(
@@ -277,7 +332,7 @@ export default function SessionMedia() {
     if (c.width !== vw || c.height !== vh) { c.width = vw; c.height = vh; }
     const ctx = c.getContext("2d");
     if (!ctx) return;
-    zeichne(ctx, clip, cfg, tvRef.current, tx, cfg.hintergrund === "alpha" ? "alpha" : cfg.hintergrund, mehr);
+    zeichne(ctx, clip, cfg, tvRef.current, tx, cfg.hintergrund === "alpha" ? "alpha" : cfg.hintergrund, mehr, evOverlay);
     if (reglerRef.current) reglerRef.current.value = String(tvRef.current);
     if (zeitRef.current) zeitRef.current.textContent = `${tvRef.current.toFixed(1)} / ${dauer.toFixed(1)} s`;
   };
@@ -344,7 +399,7 @@ export default function SessionMedia() {
     };
     raf = requestAnimationFrame(schritt);
     return () => cancelAnimationFrame(raf);
-  }, [spielt, clip, cfg, dauer, code, mehr]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [spielt, clip, cfg, dauer, code, mehr, evOverlay]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- Export ---
   const [fortschritt, setFortschritt] = useState<number | null>(null);
@@ -365,7 +420,7 @@ export default function SessionMedia() {
     const ab = new AbortController();
     abbruchRef.current = ab;
     setFortschritt(0);
-    const teil = lauf === "alle" ? "alle" : `lauf${lauf + 1}`;
+    const teil = (evP && evTafel ? `event${evP.id}-${evTafel.kennzahl.replace(/_/g, "")}-` : "") + (lauf === "alle" ? "alle" : `lauf${lauf + 1}`);
     // Zeitstempel des Exports vorn (Jan 24.11.2026: „202611241047-pumpfoil-21673-lauf2-9x16.webm") — sortiert sich im
     // Download-Ordner von selbst, mehrere Exporte desselben Laufs ueberschreiben sich nicht.
     const j = new Date(), zz = (n: number) => String(n).padStart(2, "0");
@@ -380,7 +435,7 @@ export default function SessionMedia() {
         setWav({ url: URL.createObjectURL(w), name: `${stempel}-pumpfoil-${id}-${teil}-${musik.vorlage}.wav`, mb: w.size / 1e6 });
       }
       setPhase("video");
-      const r = await erzeugeVideo(clip, cfg, tx, setFortschritt, ab.signal, ton, mehr);
+      const r = await erzeugeVideo(clip, cfg, tx, setFortschritt, ab.signal, ton, mehr, evOverlay);
       // Export-Zaehler des geteilten Mixes, auf dem die Musik beruht (zaehlt der Server nur bei fremden Mixen).
       if (ton && musik.basisMix) api.mixExportiert(musik.basisMix).catch(() => {});
       setErgebnis({ url: URL.createObjectURL(r.blob), name: `${stempel}-pumpfoil-${id}-${teil}-${cfg.format.replace(":", "x")}.${r.endung}`, mb: r.blob.size / 1e6 });
@@ -429,7 +484,7 @@ export default function SessionMedia() {
   const sprintKz = Array.from(new Set((clip?.sprints ?? []).map((s) => s.kz))).sort();
   const elSichtbar = (k: ElKey) =>
     !((k === "pumps" || k === "pumprate") && clip && !clip.hatPumps) && !(k === "hr" && clip && !clip.hatPuls)
-    && !(k === "sprint" && !sprintKz.length) && !(k === "carve" && !(clip?.carves.length)) && !(k === "fahrer" && !mehr?.mit.length);
+    && !(k === "sprint" && !sprintKz.length) && !(k === "carve" && !(clip?.carves.length)) && !(k === "fahrer" && !mehr?.mit.length) && !(k === "event" && !evOverlay);
   const hochkant = h > w;
   const hauptName: string = session.owner_name ?? t("media.mit.me");
   // Startzeit eines Laufs (Jan 24.11.2026: hilft, die zugehoerige Videoaufnahme zu finden) — Uhrzeit mit Sekunden in der
@@ -446,7 +501,7 @@ export default function SessionMedia() {
       {/* Kopf: Zurueck + Metadaten der Session */}
       <div>
         <h2 className="flex items-center gap-2 text-xl font-bold">
-          <ZurueckPfeil fallback={`/sessions/${id}`} />
+          <ZurueckPfeil fallback={evP ? `/teams/${evP.slug}/events/${evP.id}` : `/sessions/${id}`} />
           <span>{t("media.title")}</span>
         </h2>
         <p className="mt-1 text-sm text-slate-300">
@@ -568,6 +623,26 @@ export default function SessionMedia() {
                 sprintKz={mitSprintKz} sprintWahl={sprintAktiv} setSprintWahl={setSprintWahl}
                 drehen={drehen} setDrehen={setDrehen} hinweis={mitHinweis} />
             </Card>
+
+            {/* Event-Video (Jan 26.11.2026): nur, wenn die Ansicht vom Media-Knopf eines Events kommt. */}
+            {evP && (
+              <Card className="space-y-2 p-4">
+                <h3 className="font-semibold">{t("media.ev.title")}</h3>
+                <p className="text-sm text-slate-300">
+                  {evDaten ? <>{evDaten.titel}{evTafel && <span className="text-brand-600 dark:text-brand-300"> · {t(kennzahl(evTafel.kennzahl).labelKey)}</span>}</> : t("media.music.loading")}
+                </p>
+                <div className="flex flex-col gap-1.5 text-sm text-slate-300">
+                  {([["namen", "media.ev.names"], ["rang", "media.ev.rank"], ["ende", "media.ev.end"]] as const).map(([k, key]) => (
+                    <label key={k} className="flex items-center gap-2">
+                      <input type="checkbox" checked={evSchalter[k]} className="accent-brand-400"
+                        onChange={(e) => setEvSchalter({ ...evSchalter, [k]: e.target.checked })} />
+                      {t(key)}
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-400">{t("media.ev.hint")}</p>
+              </Card>
+            )}
 
             {/* Spur: was IM Track gezeigt wird (Jan 24.11.2026: Spur und Datenfelder getrennt, getrennt schaltbar). */}
             <Card className="space-y-3 p-4">

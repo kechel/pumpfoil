@@ -170,6 +170,25 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
      dem Spot-Filter (`_spot_cond`). Tests: `server/tests/test_mitfahrer.py`.
    - Nicht gespeichert (gilt nur fuer die offene Ansicht). Gleitphasen, Carves, Sprints, Pump-Punkte nur fuer den
      Hauptfahrer; Musik ebenso.
+7. **Event-Video** (Jan 26.11.2026) — *gebaut 26.11.2026, live (Web).* Knopf „Media" auf der Event-Seite neben der
+   Kategorie-Auswahl, nur fuer Admins und Team-Leitung/Moderatoren. Er oeffnet die normale Media-Ansicht mit Platz 1 der
+   angezeigten Kategorie (samt Wertungsklasse) als Hauptfahrer und Platz 2/3 als weitere Fahrer:
+   `/sessions/<p1>/media?lauf=<r>&mit=<sid>:<r>,…&modus=sprint|start&sprint=<kennzahl>&event=<slug>:<id>:<kategorie>[:<klasse>]`.
+   Sprint-Kategorien starten im Modus Sprint-Start mit ihrer Kennzahl, andere im gleichen Start. Nur Kategorien aus
+   einem Lauf (`run_idx`), Session-Summen haben keine Spur. Darstellung und Musik bleiben die gemerkten des Geraets
+   (also z. B. Jans 9:16-Einstellung).
+   - **Namen IM Video** — bewusste Ausnahme von Schritt 6: die Bestenliste ist veroeffentlicht, und das Video machen
+     Betreiber bzw. Event-Leitung. Kachel „Event-Video" mit drei Schaltern (geraeteweit, `pumpfoil_media_event`):
+     Namen in den Fahrer-Kaesten, im Ziel Event-Platz (Medaillenfarbe) + Wert der Bestenliste statt der im Video
+     gerechneten Zahl (die kann um eine Zehntel abweichen), Endtafel 4 s am Schluss (`ENDTAFEL_S`, verlaengert das
+     Video; Musik endet davor).
+   - Element „Event-Kopf" (`el.event`, Anker wie alle Datenfelder, Standard oben Mitte): Event-Titel, Cyan-Schild mit
+     der Kategorie, Tage des Events; schrumpft auf Bildbreite. Endtafel im Stil von
+     `brand/events/flying-sprint-2026-11/ergebnis.html`: Titel, Schild + „Endstand"/„Vorlaeufig" (nach `status`),
+     Zeilen mit Platz, Punkt in Fahrerfarbe, Name, Wert. Waehrend sie einblendet, verschwinden die Fahrer-Kaesten.
+   - Code: `EventOverlay` + `eventKopf`/`endTafel` in `zeichnen.ts`, Laden/Schalter in `SessionMedia.tsx`, Knopf in
+     `TeamEventSeite.tsx`. Keine Flaggen in der Endtafel (Bilder muessten vorab geladen werden).
+
 5. Native Apps: vorerst auf die Web-Ansicht verweisen.
 
 Offen: welche Schnitt-Apps WebM mit Alpha wirklich lesen (CapCut mobil? iMovie nein) — Standard-Ausgabe danach waehlen.
