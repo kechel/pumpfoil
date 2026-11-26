@@ -3,8 +3,8 @@
     "bundleName": "org.pumpfoil.gt",
     "vendor": "pumpfoil",
     "version": {
-      "code": 1000007,
-      "name": "1.0.7"
+      "code": 1000008,
+      "name": "1.0.8"
     }
   },
   "deviceConfig": {},

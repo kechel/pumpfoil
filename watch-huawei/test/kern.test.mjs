@@ -285,18 +285,21 @@ test("Gegenstelle: bleibt beim Treffer, wechselt nach 3 Fehlern", () => {
   assert.equal(new K.Gegenstelle(["a", "b"], 7).jetzt(), "a");
 });
 
-test("Versionsnummer ueberall gleich (common/konfig.js, Konfig.ets, lite/wearable config.json, arkts app.json5)", () => {
+test("Versionsnummern: Lite/Wearable/common gleich, ArkTS (Watch 5) in sich stimmig", () => {
+  // Seit 26.11.2026 (Jan: „nur die light, nicht die arkts"): die Watch-5-App (arkts/) zaehlt eigenstaendig — sie wird
+  // nicht mitgebumpt, wenn nur Pumpfoil GT neu eingereicht wird. Lite und Wearable teilen common/ und die Seiten
+  // (sync-common.sh), bleiben also gleich.
   const lies = (p) => readFileSync(new URL("../" + p, import.meta.url), "utf8");
   const js = lies("common/konfig.js").match(/APP_VERSION = "([^"]+)"/)[1];
   const ets = lies("arkts/entry/src/main/ets/common/Konfig.ets").match(/APP_VERSION: string = '([^']+)'/)[1];
   const app = lies("arkts/AppScope/app.json5");
-  assert.equal(ets, js);
-  assert.equal(app.match(/"versionName": "([^"]+)"/)[1], js);
+  assert.equal(app.match(/"versionName": "([^"]+)"/)[1], ets, "arkts app.json5 = Konfig.ets");
   const code = (v) => { const [a, b, c] = v.split(".").map(Number); return a * 1000000 + b * 1000 + c; };
-  assert.equal(Number(app.match(/"versionCode": (\d+)/)[1]), code(js), "versionCode passt zu versionName");
+  assert.equal(Number(app.match(/"versionCode": (\d+)/)[1]), code(ets), "arkts versionCode passt zu versionName");
   for (const p of ["lite", "wearable"]) {
     const v = JSON.parse(lies(p + "/entry/src/main/config.json")).app.version;
     assert.equal(v.name, js, p);
     assert.equal(v.code, code(js), p + " code");
+    assert.match(lies(p + "/entry/src/main/js/MainAbility/common/konfig.js"), new RegExp('APP_VERSION = "' + js.replace(/\./g, "\\.") + '"'), p + " konfig.js");
   }
 });
