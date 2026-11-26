@@ -194,7 +194,8 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
    - Laufzeit im Sprint-Start = Stoppuhr ab Sprintbeginn (0.0 im Vorlauf). Die Platzierung im Kasten am Sprint-Ende
      bleibt als Aufloesung (Jan 26.11.: „gutes reveal").
    - Fliegende Minute: Kaesten zeigen Strecke statt Zeit; fliegende 100/200/300 m bis zum Ziel die aktuelle Strecke
-     (Zeit ist bis dahin fuer alle gleich), im Ziel die Endzeit ohne Strecke (Jan 26.11.). Im Vorlauf vor dem Sprintbeginn nur die Namen. **Live-Reihenfolge** im Sprint-Start (Jan 26.11.): die Kaesten
+     (Zeit ist bis dahin fuer alle gleich), im Ziel die Endzeit ohne Strecke (Jan 26.11.). Im Vorlauf vor dem Sprintbeginn nur die Namen.
+     Mit Namen keine Nummern mehr, weder im Kasten noch am Kopf der Spur — die Farbe ordnet zu. **Live-Reihenfolge** im Sprint-Start (Jan 26.11.): die Kaesten
      ordnen sich laufend nach der Strecke seit Sprintbeginn (wer im Ziel ist, davor), gleitend (Mittel der Reihenfolge
      ueber ~0,4 s Video, reine Funktion der Zeit). Die Live-Strecke ist je Fahrer auf die GEWERTETE geeicht
      (`sprintStrecke`): die GPS-Spur mass im Fenster bis 12 m mehr als die Auswertung, sonst laege live einer vorn,

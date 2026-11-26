@@ -241,7 +241,8 @@ function statBlock(ctx: CanvasRenderingContext2D, cfg: MediaCfg, u: number, wert
   };
 }
 
-function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, W: number, H: number, mehr: Mehrfach | null = null): Block {
+function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, W: number, H: number, mehr: Mehrfach | null = null,
+  ohneNummer = false): Block {
   const [minX, minY, maxX, maxY] = mehr ? mehr.bbox : clip.bbox;
   const bw = Math.max(maxX - minX, 1), bh = Math.max(maxY - minY, 1);
   // Groesse relativ zum Bild (Jan 24.11.: „die aktuelle L groesse ist eher die kleinste, das neue L sollte dann
@@ -437,7 +438,8 @@ function trackBlock(clip: Clip, cfg: MediaCfg, z: Zustand, u: number, W: number,
         c.fillStyle = farbe; c.strokeStyle = "#0f172a"; c.lineWidth = 3 * u;
         c.beginPath(); c.arc(kx, ky, r, 0, Math.PI * 2); c.fill(); c.stroke();
         c.fillStyle = "#0f172a"; c.font = `800 ${r * 1.25}px ${FONT}`; c.textAlign = "center"; c.textBaseline = "middle";
-        c.fillText(String(nr), kx, ky + r * 0.06);
+        // Mit Namen in den Kaesten (Event-Video) reicht die Farbe (Jan 26.11.2026).
+        if (!ohneNummer) c.fillText(String(nr), kx, ky + r * 0.06);
         c.textAlign = "left"; c.textBaseline = "alphabetic"; c.globalAlpha = 1;
       };
       ring(X(pts[kVon].x), Y(pts[kVon].y), mehr.haupt.farbe);
@@ -842,9 +844,9 @@ export function zeichne(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg
     switch (k) {
       case "track":
         if (e.gr >= 1.4) {   // bildfuellend: mittig, nicht im Stapel des Ankers, liegt hinter allen Zahlen
-          const b = trackBlock(clip, cfg, z, u, W, H, mehr);
+          const b = trackBlock(clip, cfg, z, u, W, H, mehr, !!(ev?.namen && cfg.el.fahrer.an));
           b.draw(ctx, (W - b.w) / 2, (H - b.h) / 2, "c");
-        } else dazu(k, trackBlock(clip, cfg, z, u, W, H, mehr));
+        } else dazu(k, trackBlock(clip, cfg, z, u, W, H, mehr, !!(ev?.namen && cfg.el.fahrer.an)));
         break;
       case "speed": dazu(k, statBlock(ctx, cfg, u, z.v.toFixed(1), tx.kmh, tx.speed)); break;
       case "pumps":
