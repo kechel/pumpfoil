@@ -983,6 +983,13 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    {"name": "Huawei Watch GT / Fit / D", "version": "1.0.8",
+     # Pumpfoil GT (Lite) 1.0.8 (1000008), Paket hochgeladen 26.11.2026 14:26:45 (AppGallery-Zeit), am 26.11. ~15:35
+     # regulaer eingereicht (Jans Meldung, „Under pre-review"); Open Testing fuer u1150 vorher nicht gefunden, entfiel.
+     "eingereicht": "2026-11-26",
+     "items": [
+         "New: HUAWEI WATCH GT, Fit and D record pump foiling sessions and upload them through the Pumpfoil app for Android.",
+     ]},
     {"name": "Android phone + Wear OS", "version": "1.1.50 / 1.2.50",
      # Codes 65 / 1061, am 26.11.2026 14:00 gemeldet eingereicht (Play: Vorabpruefungen laufen, dann Pruefung).
      "eingereicht": "2026-11-26",
@@ -1175,11 +1182,7 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
-    # Pumpfoil GT 1.0.7 am 26.11. abgelehnt; der Punkt wartet auf die naechste Einreichung.
-    {"name": "Huawei Watch GT / Fit / D", "version": "1.0.8",
-     "items": [
-         "New: HUAWEI WATCH GT, Fit and D record pump foiling sessions and upload them through the Pumpfoil app for Android.",
-     ]},
+    # Pumpfoil GT 1.0.8 am 26.11. eingereicht -> IN_REVIEW.
     # Pumpfoil GT 1.0.7 am 23.11. eingereicht -> IN_REVIEW.
     # Garmin 1.0.103 am 12.11. eingereicht -> IN_REVIEW.
     # Garmin 1.0.99 am 03.11. eingereicht -> IN_REVIEW.
