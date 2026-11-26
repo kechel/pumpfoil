@@ -270,7 +270,10 @@ _APP_META: dict[str, dict[str, str]] = {
         # Ein Nutzer mit 1.1.14 bekam dadurch einen Update-Hinweis, den Play nicht einloesen konnte
         # ("update button just opens google play and does not offer nor start update"). Deshalb: erst
         # eintragen, wenn Freigabe DA und Roll-out bei 100 % — "eingereicht" genuegt nie.
-        "latest": "1.1.48",   # LIVE 2026-11-15 09:53, VOLLER Roll-out: Einreichung 62 enthielt „Vollstaendigen Roll-out starten"
+        "latest": "1.1.49",   # LIVE 2026-11-26: Play-Mail „Your update to Pumpfoil, created on Nov 19, 2026 at 10:00 AM GMT,
+        # is live in the store" (Jans Meldung), 7 Tage Pruefung. GPS-Kunst, Mein Team einzeilig, „angetreten fuer",
+        # Sprint-Lauf vom Podest, GPS-Luecke am Lauf-Ende, Gleiten-Karte, Bruecke fuer Pumpfoil GT.
+        # ALT: "latest": "1.1.48",   # LIVE 2026-11-15 09:53, VOLLER Roll-out: Einreichung 62 enthielt „Vollstaendigen Roll-out starten"
         # fuer beide Spuren, freigegeben mit dem Release (Jans Meldung 18.11.; die Zeile ist die eingereichte Aenderung, kein
         # offener Knopf). Play Console „Zuletzt veroeffentlicht am 15. November 2026", verwaltete
         # Veroeffentlichung aus, Uebersicht leer (Jans Meldung 18.11. — die Freigabe ging an uns vorbei). Teams/Events-Port,
@@ -488,7 +491,8 @@ _APP_META: dict[str, dict[str, str]] = {
         # 05.08. 15:06 GMT). Eingereicht war 1.2.20/1030 zusammen mit Phone 1.1.20/34.
         # Der gebaute Nachzug 1.2.21/1031 (Token-Heilung bei Config-401) ist NOCH NICHT
         # eingereicht — hier also nicht eintragen. Vorher: 1.2.18/1028, live seit 04.08.
-        "latest": "1.2.48",   # LIVE 2026-11-15, voller Roll-out mit android 1.1.48 (s. dort). Uhr: V-max wie der Server.
+        "latest": "1.2.49",   # LIVE 2026-11-26, dieselbe Play-Mail wie android (1.1.49). Uhr: GPS-Luecke am Lauf-Ende.
+        # ALT: "latest": "1.2.48",   # LIVE 2026-11-15, voller Roll-out mit android 1.1.48 (s. dort). Uhr: V-max wie der Server.
         # ALT: "latest": "1.2.46",   # LIVE 2026-11-05, dieselbe Play-Mail wie android (1.1.46). Uhr: Hinweis, wenn das
         # GPS-Signal verloren ist (aus 1.2.45, die vor der Freigabe ersetzt wurde).
         # ALT: "latest": "1.2.44",   # LIVE 2026-10-28, dieselbe Play-Mail wie android (1.1.44). Uhr: Sportart-Wahl,
@@ -981,21 +985,7 @@ ABGELEHNT: list[dict] = [
 IN_REVIEW: list[dict] = [
     # Amazfit 1.0.18 am 24.11. eingereicht, am 25.11. FREIGEGEBEN (s. _APP_META["zepp"]); Punkt im Changelog mit zepp 1.0.18.
     # iPhone + Apple Watch 1.1.68 (Build 79) am 19.11. 12:22 eingereicht, am 20.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte im Changelog mit ios 1.1.68.
-    # 12.11.2026: Android 1.1.49 (64) / Wear 1.2.49 (1060) gebaut, wird eingereicht, sobald 1.1.48 freigegeben ist
-    # (Memory android-1-1-49-mitnehmen). Inhalt wie iOS 1.1.66 (ohne Google-Login, den hat Android nativ) plus die
-    # Web-Neuerungen vom 12.11.; Port-Liste docs/TODO.md. Vor der Einreichung: Wear-Emulator Fall 3+4 (GPS-Luecke).
-    # Am 19.11.2026 eingereicht (Jans Meldung, Play-Konsole „Änderungen, die überprüft werden", Vorabpruefung laeuft);
-    # dazu GPS-Kunst (Enthuellung, Kartenbild, Lauf-Zaehler, 0fad1e38).
-    {"name": "Android phone + Wear OS", "version": "1.1.49 / 1.2.49",
-     "eingereicht": "2026-11-19",
-     "items": [
-         "GPS Art events: draw a picture on the water with your track, vote with hearts and watch the weekly reveal.",
-         "On global event pages, My team is now a single row; tap a greyed-out team to see why it does not count.",
-         "After an event, its page shows which team you competed for.",
-         "Tap a sprint value on the podium to open the run, with the stretch that counted highlighted on the map.",
-         "A short GPS dropout during a run, for example when your arm dips under water, no longer splits the run in two, and after a fall the run ends at the last GPS position.",
-         "Glides is now its own map colouring next to Carves and shows each glide in the speed colours, so you can see how you slow down.",
-     ]},
+    # Android 1.1.49 / Wear 1.2.49 am 19.11. eingereicht, am 26.11. FREIGEGEBEN (Play-Mail, s. _APP_META["android"]); 5 Punkte tragen android 1.1.49 dazu.
     # iPhone + Apple Watch 1.1.67 (Build 78) am 17.11. 06:02 eingereicht, am 17.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte im Changelog mit ios 1.1.67.
     # Amazfit 1.0.17 am 20.11. eingereicht, am 23.11. FREIGEGEBEN (s. _APP_META["zepp"]); Punkt im Changelog mit zepp 1.0.17.
     # Amazfit 1.0.16 am 13.11. ~19:00 eingereicht, am 20.11. FREIGEGEBEN (s. _APP_META["zepp"]).
