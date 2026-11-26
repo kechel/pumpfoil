@@ -187,7 +187,7 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
    - Element „Event-Kopf" (`el.event`, Anker wie alle Datenfelder, Standard oben Mitte): Event-Titel, Cyan-Schild mit
      der Kategorie, Tage des Events; schrumpft auf Bildbreite. Endtafel im Stil von
      `brand/events/flying-sprint-2026-11/ergebnis.html`: Titel, Schild + „Endstand"/„Vorlaeufig" (nach `status`),
-     Zeilen mit Platz, Punkt in Fahrerfarbe, Name, Wert. Waehrend sie einblendet, verschwinden die Fahrer-Kaesten.
+     Zeilen mit Platz, Name, Wert. Waehrend sie einblendet, verschwinden die Fahrer-Kaesten.
    - Code: `EventOverlay` + `eventKopf`/`endTafel` in `zeichnen.ts`, Laden/Schalter in `SessionMedia.tsx`, Knopf in
      `TeamEventSeite.tsx`. Endtafel mit Team-Wappen (Logo oder Initialen auf Teamfarbe, `wappenVon`) und Flagge wie im
      Teilen-Bild, vorab als Blob geladen (`bildLaden`); Platz buendig, sobald eine Zeile sie hat; lange Namen erst kleiner.

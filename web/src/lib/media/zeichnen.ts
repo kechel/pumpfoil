@@ -5,7 +5,7 @@
 // Schwarz oder Gruen.
 
 import { type Clip, clipZuSession, obereGrenze } from "./clip";
-import { FAHRER_FARBEN, SPRINT_NACH_MS, type FahrerSpur, type Mehrfach, lageAnwenden } from "./mehrfach";
+import { SPRINT_NACH_MS, type FahrerSpur, type Mehrfach, lageAnwenden } from "./mehrfach";
 import { hrColor, rampColor, speedColor } from "../trackColors";
 import { carveColor } from "../turns";
 
@@ -763,11 +763,7 @@ function endTafel(ctx: CanvasRenderingContext2D, ev: EventOverlay, W: number, H:
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "#020617"; ctx.font = `900 ${r * 1.25}px ${FONT}`; ctx.textAlign = "center";
     ctx.fillText(z.rang != null ? String(z.rang) : "–", cx, cy + r * 0.06);
-    // Kleiner Punkt in Fahrerfarbe: verbindet die Zeile mit Spur und Kasten.
-    const farbe = FAHRER_FARBEN[z.nr - 1] ?? "#ffffff";
-    const px = cx + r + 22 * u;
-    ctx.fillStyle = farbe; ctx.beginPath(); ctx.arc(px, cy, 9 * u, 0, Math.PI * 2); ctx.fill();
-    let nx = px + 24 * u;
+    let nx = cx + r + 22 * u;   // ohne Farbpunkt (Jan 26.11.2026: kann raus)
     // Team-Wappen (Logo oder Initialen auf Teamfarbe), dann Flagge 4:3 — wie im Teilen-Bild der Bestenliste.
     if (z.wappen) {
       const ws = 54 * u, wy = cy - ws / 2;
