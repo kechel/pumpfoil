@@ -535,6 +535,17 @@ function carveBlock(ctx: CanvasRenderingContext2D, clip: Clip, cfg: MediaCfg, z:
   };
 }
 
+/** Strecke seit Sprintbeginn bis `ts` (Fahrer-Session-ms), auf die GEWERTETE Strecke geeicht: die Spur (GPS-Punkte)
+ *  misst im Sprintfenster etwas anderes als die Sprint-Auswertung — ohne Eichung laege live einer vorn, der in der
+ *  Wertung hinten landet (Jan 26.11.2026, fliegende Minute: 392 m live, 380 m gewertet). */
+function sprintStrecke(sp: FahrerSpur, ts: number): number {
+  const s = sp.sprint!;
+  const roh = (t: number) => streckeBis(sp.clip, Math.max(s.a, Math.min(t, s.b))) - streckeBis(sp.clip, s.a);
+  const gesamt = roh(s.b);
+  const soll = s.meter ?? (s.sekunden != null ? s.wert * s.sekunden : gesamt);
+  return gesamt > 0 ? (roh(ts) * soll) / gesamt : 0;
+}
+
 /** Werte eines Fahrers fuer seinen Kasten. Bezug: Start = Laufbeginn, Sprint = Sprintbeginn, Echtzeit = Beginn der
  *  Zeitleiste. Nach dem Ende (Start: Laufende, Sprint: Sprintende) bleiben die Endwerte stehen. */
 function fahrerWerte(sp: FahrerSpur, modus: Mehrfach["modus"], tsHaupt: number, vonHaupt: number, tx: Texte) {
@@ -556,7 +567,7 @@ function fahrerWerte(sp: FahrerSpur, modus: Mehrfach["modus"], tsHaupt: number, 
   // EIN Feld Strecke, im Ziel die gewertete (Schnitt x Dauer).
   const minute = modus === "sprint" && sp.sprint?.sekunden != null;
   if (minute && (f.time || f.distance)) {
-    const m = fertig ? sp.sprint!.wert * sp.sprint!.sekunden! : Math.max(0, streckeBis(cl, bis) - streckeBis(cl, ref));
+    const m = fertig ? sp.sprint!.wert * sp.sprint!.sekunden! : sprintStrecke(sp, ts);
     teile.push(`${Math.round(m)} m`);
   }
   if (f.distance && !minute) teile.push(fmtStrecke(Math.max(0, streckeBis(cl, bis) - streckeBis(cl, ref))));
@@ -585,7 +596,7 @@ function fahrerBlocks(ctx: CanvasRenderingContext2D, cfg: MediaCfg, clip: Clip, 
   // Sprint: Rang unter denen, die schon im Ziel sind.
   const imZiel = werte.filter((w) => w.fertig && w.wert != null).sort((a, b) => b.wert! - a.wert!);
   const fs = 38 * u, pad = 14 * u, r = fs * 0.5;
-  const out: Block[] = [];
+  const out: (Block & { nr: number })[] = [];
   for (const w of werte) {
     if (!w.teile.length) continue;
     const evF = ev?.fahrer[w.sp.nr];
@@ -605,7 +616,7 @@ function fahrerBlocks(ctx: CanvasRenderingContext2D, cfg: MediaCfg, clip: Clip, 
     const kreis = !name;
     const bw = (kreis ? pad * 3 + r * 2 : pad * 2) + tw, bh = fs * 1.5;
     out.push({
-      w: bw, h: bh, draw: (c, x, y) => {
+      nr: w.sp.nr, w: bw, h: bh, draw: (c, x, y) => {
         c.shadowColor = "transparent";
         // Deckend dunkel + weisse Schrift: bleibt auch beim MP4 auf Schwarz (Mischmodus „Screen") lesbar.
         c.fillStyle = w.fertig ? "#0f172a" : "rgba(15,23,42,0.82)";
@@ -630,7 +641,42 @@ function fahrerBlocks(ctx: CanvasRenderingContext2D, cfg: MediaCfg, clip: Clip, 
       },
     });
   }
-  return out;
+  if (mehr.modus !== "sprint" || out.length < 2) return out;
+
+  // Sprint-Start (Jan 26.11.2026): die Kaesten ordnen sich laufend nach dem, der gerade vorn liegt — vorn = weiteste
+  // Strecke seit Sprintbeginn, wer im Ziel ist, steht davor (nach Event-Platz bzw. Wert). Damit sie gleiten statt
+  // zu springen, ist der Platz das Mittel der Reihenfolge ueber die letzten ~0,4 s Video (bleibt eine reine Funktion
+  // der Zeit — Vorschau und Export gleich).
+  const von = clip.spans[0][0];
+  const reihe = (ts: number): Map<number, number> => {
+    const k = alle.filter((sp) => sp.sprint).map((sp) => {
+      const fw = fahrerWerte(sp, mehr.modus, ts, von, tx);
+      const strecke = sprintStrecke(sp, ts + sp.delta);
+      const evR = ev?.rang && fw.fertig ? ev.fahrer[sp.nr]?.rang ?? null : null;
+      return { nr: sp.nr, fertig: fw.fertig, wert: fw.wert ?? 0, strecke, evR };
+    });
+    k.sort((x, y) => (x.fertig !== y.fertig ? (x.fertig ? -1 : 1)
+      : x.fertig ? (x.evR ?? 99) - (y.evR ?? 99) || y.wert - x.wert : y.strecke - x.strecke || x.nr - y.nr));
+    return new Map(k.map((e, i) => [e.nr, i]));
+  };
+  const PROBEN = 6, schritt = 70 * cfg.tempo;
+  const platz = new Map<number, number>();
+  for (let j = 0; j < PROBEN; j++) {
+    const m = reihe(Math.max(von, z.ts - j * schritt));
+    for (const b of out) platz.set(b.nr, (platz.get(b.nr) ?? 0) + (m.get(b.nr) ?? out.indexOf(b)) / PROBEN);
+  }
+  const gap = 18 * u, bh = out[0].h, bwMax = Math.max(...out.map((b) => b.w));
+  return [{
+    w: bwMax, h: out.length * bh + (out.length - 1) * gap,
+    draw: (c, x, y, al) => {
+      // Wer gerade nach oben rutscht, wird zuletzt gezeichnet (liegt beim Ueberholen obenauf).
+      const sortiert = out.slice().sort((p, q) => (platz.get(q.nr) ?? 0) - (platz.get(p.nr) ?? 0));
+      for (const b of sortiert) {
+        const bx = al === "l" ? x : al === "c" ? x + (bwMax - b.w) / 2 : x + bwMax - b.w;
+        b.draw(c, bx, y + (platz.get(b.nr) ?? 0) * (bh + gap), al);
+      }
+    },
+  }];
 }
 
 /** Schraeg gestelltes Cyan-Schild wie in den Event-Grafiken (brand/events/…/ergebnis.html). Liefert die Breite. */

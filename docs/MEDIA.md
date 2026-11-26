@@ -193,6 +193,11 @@ Carves: Richtung L/R, Grad zaehlen mit, danach Zaehler.
      Teilen-Bild, vorab als Blob geladen (`bildLaden`); Platz buendig, sobald eine Zeile sie hat; lange Namen erst kleiner.
    - Laufzeit im Sprint-Start = Stoppuhr ab Sprintbeginn (0.0 im Vorlauf). Die Platzierung im Kasten am Sprint-Ende
      bleibt als Aufloesung (Jan 26.11.: „gutes reveal").
+   - Fliegende Minute: Kaesten zeigen Strecke statt Zeit. **Live-Reihenfolge** im Sprint-Start (Jan 26.11.): die Kaesten
+     ordnen sich laufend nach der Strecke seit Sprintbeginn (wer im Ziel ist, davor), gleitend (Mittel der Reihenfolge
+     ueber ~0,4 s Video, reine Funktion der Zeit). Die Live-Strecke ist je Fahrer auf die GEWERTETE geeicht
+     (`sprintStrecke`): die GPS-Spur mass im Fenster bis 12 m mehr als die Auswertung, sonst laege live einer vorn,
+     der in der Wertung hinten landet.
 
 5. Native Apps: vorerst auf die Web-Ansicht verweisen.
 
