@@ -589,7 +589,9 @@ function fahrerBlocks(ctx: CanvasRenderingContext2D, cfg: MediaCfg, clip: Clip, 
     ctx.font = `800 ${fs}px ${FONT}`;
     const rw = rangText ? tabBreite(ctx, rangText) : 0;
     const tw = rw + tabBreite(ctx, text);
-    const bw = pad * 3 + r * 2 + tw, bh = fs * 1.5;
+    // Mit Namen keine Nummer im Kreis (Jan 26.11.2026: verwirrt neben dem Platz) — Rahmenfarbe und Name reichen.
+    const kreis = !name;
+    const bw = (kreis ? pad * 3 + r * 2 : pad * 2) + tw, bh = fs * 1.5;
     out.push({
       w: bw, h: bh, draw: (c, x, y) => {
         c.shadowColor = "transparent";
@@ -598,15 +600,19 @@ function fahrerBlocks(ctx: CanvasRenderingContext2D, cfg: MediaCfg, clip: Clip, 
         rundRechteck(c, x, y, bw, bh, 12 * u); c.fill();
         c.strokeStyle = w.sp.farbe; c.lineWidth = 4 * u; rundRechteck(c, x, y, bw, bh, 12 * u); c.stroke();
         const cx = x + pad + r, cy = y + bh / 2;
-        c.fillStyle = w.sp.farbe; c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
-        c.fillStyle = "#0f172a"; c.font = `800 ${r * 1.3}px ${FONT}`; c.textAlign = "center"; c.textBaseline = "middle";
-        c.fillText(String(w.sp.nr), cx, cy + r * 0.06);
+        c.textBaseline = "middle";
+        if (kreis) {
+          c.fillStyle = w.sp.farbe; c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+          c.fillStyle = "#0f172a"; c.font = `800 ${r * 1.3}px ${FONT}`; c.textAlign = "center";
+          c.fillText(String(w.sp.nr), cx, cy + r * 0.06);
+        }
         c.textAlign = "left";
+        const x0 = kreis ? cx + r + pad : x + pad;
         c.font = `800 ${fs}px ${FONT}`;
         // Event-Platz in Medaillenfarbe (1-3), sonst weiss wie der Rest.
-        if (rangText) { c.fillStyle = evRang != null && evRang <= 3 ? MEDAILLE[evRang - 1] : "#ffffff"; tabText(c, rangText, cx + r + pad, cy + fs * 0.04); }
+        if (rangText) { c.fillStyle = evRang != null && evRang <= 3 ? MEDAILLE[evRang - 1] : "#ffffff"; tabText(c, rangText, x0, cy + fs * 0.04); }
         c.fillStyle = "#ffffff";
-        tabText(c, text, cx + r + pad + rw, cy + fs * 0.04);
+        tabText(c, text, x0 + rw, cy + fs * 0.04);
         c.textBaseline = "alphabetic";
         textStil(c, cfg, u);
       },
