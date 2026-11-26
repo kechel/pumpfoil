@@ -70,7 +70,10 @@ export default {
     R.auswahl.sport = n ? l[n].id : null; this.zeigen();
   },
   // Krone: Fokus auf den unsichtbaren picker-view (s. auswahl.hml), jeder Rastschritt = eine Seite.
-  onShow() { try { this.$refs.krone.rotation({ focus: true }); } catch (e) { console.error("Pumpfoil Krone: " + e); } },
+  // ref fehlte bis 1.0.7 im hml — rotation() warf, die Krone war hier nie aktiv. Nochmals nach 0,5 s, falls der
+  // Picker beim ersten Aufruf noch nicht steht.
+  onShow() { this.kroneFokus(); var t = this; setTimeout(function () { t.kroneFokus(); }, 500); },
+  kroneFokus() { try { this.$refs.krone.rotation({ focus: true }); } catch (e) { console.error("Pumpfoil Krone: " + e); } },
   onHide() { try { this.$refs.krone.rotation({ focus: false }); } catch (e) { /* ohne */ } },
   krone(e) {
     var neu = e ? e.newSelected : 4, d = neu - this.kroneStand;

@@ -48,7 +48,15 @@
     color: #475569;
     text-align: center;
 }
+.wurzel {
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+}
+/* Kronen-Empfaenger: bildschirmgross unter der Anzeige, unsichtbar (schwarz auf schwarz), s. index.hml. */
 .krone {
-    width: 1px;
-    height: 1px;
+    width: 100%;
+    height: 100%;
+    color: #000000;
+    selected-color: #000000;
 }

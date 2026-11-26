@@ -1,3 +1,6 @@
+<stack class="wurzel">
+    <!-- Krone bildschirmgross unter der Anzeige, s. index.hml (Pruefung 26.11.2026: 1-px-picker-view „not adapted"). -->
+    <picker-view class="krone" ref="krone" type="text" range="{{ kroneWerte }}" selected="{{ kroneStand }}" onchange="krone"></picker-view>
 <div class="seite" onswipe="wischen">
     <!-- Einstellungen auf der Uhr wie Zepp-Seite 4/4 (Jan, 08.10.2026). Eigene Seite = eigenes Buendel (die
          Startseite liegt an der 48-KB-Grenze).
@@ -15,7 +18,5 @@
             <text class="nr">{{ $item.n }}</text>
         </div>
     </swiper>
-    <!-- Krone: ein unsichtbarer picker-view (Lite gibt die Krone nur list/swiper/picker mit Fokus). Er meldet jeden
-         Rastschritt einzeln — der Swiper selbst brauchte eine weite Drehung je Seite (Pruefer: „not sensitive"). -->
-    <picker-view class="krone" type="text" range="{{ kroneWerte }}" selected="{{ kroneStand }}" onchange="krone"></picker-view>
 </div>
+</stack>

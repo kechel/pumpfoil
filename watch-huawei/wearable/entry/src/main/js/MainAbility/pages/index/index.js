@@ -44,7 +44,7 @@ function art(p, gesamt) {
 
 export default {
   data: {
-    ansicht: "bereit", gl: 0, zeit: "0:00", strecke: "0.00 km", info: "", balken: 0, balkenZeigen: false,
+    ansicht: "bereit", zeit: "0:00", strecke: "0.00 km", info: "", balken: 0, balkenZeigen: false,
     halten: true, kroneWerte: ["0", "1", "2", "3", "4", "5", "6", "7", "8"], kroneStand: 4, tStart: "", tPause: "", tWeg: "", tStopp: "", tFertig: "", fZeit: "", fStrecke: "", fLaeufe: ""
   },
   onInit() {
@@ -165,15 +165,10 @@ export default {
   feldText(k) { var x = this.texte; return x[k] || (x[k] = this.$t("strings.f_" + k)); },
   /** Zeichenbefehle ausfuehren — der Zeichner liegt im app.js-Buendel (common/maler.js), die Seite ist knapp. */
   malen(befehle) {
-    var el = this.$refs.leinwand, d = this.gl, i, b;
-    // Gleiten (wie Watch 5): Lite bindet keine Klassen, also beim Zeichnen um d px versetzt
-    if (d) { for (i = 0; i < befehle.length; i++) { b = befehle[i]; b.y += d; b.y1 += d; b.y2 += d; b.cy += d; }
-      befehle.unshift({ k: "r", x: 0, y: 0, w: this.dw, h: this.dh, c: "#000" }); }
+    // Kein Gleiten mehr (AppGallery 26.11.2026, GT 6/Fit 5: Wischen verzoegert, eckig manchmal ohne Reaktion): es
+    // zeichnete je Wisch sieben volle Seiten im 40-ms-Takt, waehrenddessen nahm die Uhr keine Gesten an.
+    var el = this.$refs.leinwand;
     if (el) R.malen(el.getContext("2d"), befehle, this.lite);
-  },
-  gleiten() {
-    var t = this;
-    setTimeout(function () { t.gl = t.gl / 2 | 0; t.zeigen(); if (t.gl) t.gleiten(); }, 40);
   },
   // --- Bedienung -----------------------------------------------------------------------------
   /** Zusammenfassung schliessen (FERTIG tippen oder rechts wischen, wie Wear SavedScreen). */
@@ -265,7 +260,8 @@ export default {
     this.zeigen();
   },
   // --- Krone (s. index.hml): jeder Rastschritt des picker-view; vorwaerts = hoch wischen, rueckwaerts = runter.
-  onShow() { try { this.$refs.krone.rotation({ focus: true }); } catch (e) { console.error("Pumpfoil Krone: " + e); } },
+  onShow() { this.kroneFokus(); var t = this; setTimeout(function () { t.kroneFokus(); }, 500); },
+  kroneFokus() { try { this.$refs.krone.rotation({ focus: true }); } catch (e) { console.error("Pumpfoil Krone: " + e); } },
   onHide() { try { this.$refs.krone.rotation({ focus: false }); } catch (e) { /* ohne */ } },
   krone(e) {
     var neu = e ? e.newSelected : 4, d = neu - this.kroneStand;
@@ -288,8 +284,6 @@ export default {
     else if (d === "down") this.seite--;
     else if (d === "right") this.seite = 1;
     else return;
-    this.gl = d === "up" ? 90 : d === "down" ? -90 : 0;
     this.zeigen();
-    this.gleiten();
   }
 };
