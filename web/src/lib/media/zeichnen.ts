@@ -552,8 +552,15 @@ function fahrerWerte(sp: FahrerSpur, modus: Mehrfach["modus"], tsHaupt: number, 
   const schnitt = modus === "sprint" && sp.sprint ? sp.sprint.wert * 3.6
     : dauer > 0 ? ((streckeBis(cl, bis) - streckeBis(cl, ref)) / dauer) * 3.6 : null;
   if (f.speed) teile.push(aktiv ? `${z.v.toFixed(1)} ${tx.kmh}` : fertig && schnitt != null ? `Ø ${schnitt.toFixed(1)} ${tx.kmh}` : `– ${tx.kmh}`);
-  if (f.distance) teile.push(fmtStrecke(Math.max(0, streckeBis(cl, bis) - streckeBis(cl, ref))));
-  if (f.time) {
+  // Fliegende Minute (Jan 26.11.2026): die Zeit ist fuer alle gleich, es zaehlt die Strecke — Zeit und Strecke werden
+  // EIN Feld Strecke, im Ziel die gewertete (Schnitt x Dauer).
+  const minute = modus === "sprint" && sp.sprint?.sekunden != null;
+  if (minute && (f.time || f.distance)) {
+    const m = fertig ? sp.sprint!.wert * sp.sprint!.sekunden! : Math.max(0, streckeBis(cl, bis) - streckeBis(cl, ref));
+    teile.push(`${Math.round(m)} m`);
+  }
+  if (f.distance && !minute) teile.push(fmtStrecke(Math.max(0, streckeBis(cl, bis) - streckeBis(cl, ref))));
+  if (f.time && !minute) {
     if (modus === "sprint" && sp.sprint && fertig) {
       teile.push(`${(sp.sprint.meter != null ? sp.sprint.meter / sp.sprint.wert : (sp.sprint.b - sp.sprint.a) / 1000).toFixed(1)} s`);
     } else teile.push(modus === "sprint" ? `${((bis - ref) / 1000).toFixed(1)} s` : fmtMS(bis - ref));
