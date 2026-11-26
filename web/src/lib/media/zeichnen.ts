@@ -565,7 +565,8 @@ function fahrerWerte(sp: FahrerSpur, modus: Mehrfach["modus"], tsHaupt: number, 
   if (f.speed) teile.push(aktiv ? `${z.v.toFixed(1)} ${tx.kmh}` : fertig && schnitt != null ? `Ø ${schnitt.toFixed(1)} ${tx.kmh}` : `– ${tx.kmh}`);
   // Fliegende Minute (Jan 26.11.2026): die Zeit ist fuer alle gleich, es zaehlt die Strecke — Zeit und Strecke werden
   // EIN Feld Strecke, im Ziel die gewertete (Schnitt x Dauer).
-  const minute = modus === "sprint" && sp.sprint?.sekunden != null;
+  // Fliegende 100/200/300 m ebenso bis zum Ziel (die Laufzeit ist bis dahin fuer alle gleich), im Ziel dann die Zeit.
+  const minute = modus === "sprint" && (sp.sprint?.sekunden != null || (sp.sprint?.meter != null && !fertig));
   if (minute && (f.time || f.distance)) {
     const m = fertig ? sp.sprint!.wert * sp.sprint!.sekunden! : sprintStrecke(sp, ts);
     teile.push(`${Math.round(m)} m`);
