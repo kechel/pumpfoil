@@ -983,6 +983,21 @@ ABGELEHNT: list[dict] = [
 # Changelog-Tabelle (`changelog_items`) uebernommen, mit `versionen = {"garmin": "1.0.86"}` —
 # genau der Weg, den der Kommentar unter `items` beschreibt.
 IN_REVIEW: list[dict] = [
+    {"name": "Android phone + Wear OS", "version": "1.1.50 / 1.2.50",
+     # Codes 65 / 1061, am 26.11.2026 14:00 gemeldet eingereicht (Play: Vorabpruefungen laufen, dann Pruefung).
+     "eingereicht": "2026-11-26",
+     "items": [
+         "Performance tab: flying 100 m, flying minute, longest run and total time on foil per day, with a Top 20 column and points per day.",
+         "Performance tab: the 2027 season score starts on 1 January, and today is shown as preliminary while riders are still uploading.",
+         "History: new curve for the average run time, so you can see whether your runs get longer over time.",
+         "See how much of your foiling time you spend at each speed, in Home › Stats › Speed and for each session in the session details.",
+         "Sort your own sessions by date, longest run, distance or time on the foil, or top speed with the filter button in Sessions › Mine.",
+         "Garmin watches have a new setting to choose whether the motion data also goes into Garmin's own activity file.",
+         "The watch quality table shows the longest complete session with motion data per watch and can be sorted by every value.",
+         "The feedback form asks you to fill in the missing foil or stabilizer details before sending.",
+         "The MCP connection settings moved to Settings › Account, and referee review requests have their own notification switch.",
+         "Pumpfoil now also speaks Croatian, Danish, Swedish and Hungarian, and dictation works in every app language.",
+     ]},
     {"name": "iPhone + Apple Watch", "version": "1.1.69",
      # Build 80, am 26.11.2026 13:58 eingereicht (Jans Meldung, ASC „Warten auf Pruefung", Uebermittlung f71e535d).
      "eingereicht": "2026-11-26",
@@ -1223,19 +1238,7 @@ NAECHSTES: list[dict] = [
     # hr/da/sv/hu (f9c4d30a, 6e3c6910, 3882e616, 27c42b2f, 1a6761e9 …), dazu am 26.11. Garmin-Schalter „Bewegungsdaten in der
     # Garmin-Aktivitaet" und Uhren-Tabelle Laengste + Sortierung. Gebumpt: Android 1.1.50 (65) / Wear 1.2.50 (1061),
     # iOS 1.1.69 (80). Wear selbst ohne Aenderung (Gleichschritt).
-    {"name": "Android phone + Wear OS", "version": "1.1.50 / 1.2.50",
-     "items": [
-         "Performance tab: flying 100 m, flying minute, longest run and total time on foil per day, with a Top 20 column and points per day.",
-         "Performance tab: the 2027 season score starts on 1 January, and today is shown as preliminary while riders are still uploading.",
-         "History: new curve for the average run time, so you can see whether your runs get longer over time.",
-         "See how much of your foiling time you spend at each speed, in Home › Stats › Speed and for each session in the session details.",
-         "Sort your own sessions by date, longest run, distance or time on the foil, or top speed with the filter button in Sessions › Mine.",
-         "Garmin watches have a new setting to choose whether the motion data also goes into Garmin's own activity file.",
-         "The watch quality table shows the longest complete session with motion data per watch and can be sorted by every value.",
-         "The feedback form asks you to fill in the missing foil or stabilizer details before sending.",
-         "The MCP connection settings moved to Settings › Account, and referee review requests have their own notification switch.",
-         "Pumpfoil now also speaks Croatian, Danish, Swedish and Hungarian, and dictation works in every app language.",
-     ]},
+    # Android 1.1.50 / Wear 1.2.50 am 26.11. eingereicht -> IN_REVIEW.
     # iPhone + Apple Watch 1.1.69 am 26.11. eingereicht -> IN_REVIEW.
     {"name": "Huawei Watch 3 / 4", "version": "on hold",
      "spaeter": "not planned for now",
