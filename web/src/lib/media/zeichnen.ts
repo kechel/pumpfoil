@@ -553,6 +553,8 @@ function fahrerWerte(sp: FahrerSpur, modus: Mehrfach["modus"], tsHaupt: number, 
   const ref = modus === "start" ? cl.spans[0][0] : modus === "sprint" && sp.sprint ? sp.sprint.a : vonHaupt + sp.delta;
   const ende = modus === "start" ? cl.spans[cl.spans.length - 1][1] : modus === "sprint" && sp.sprint ? sp.sprint.b : Infinity;
   const fertig = ts > ende;
+  // Sprint-Start, Vorlauf vor dem Sprintbeginn (Jan 26.11.2026): noch keine Werte, im Kasten nur der Name.
+  if (modus === "sprint" && sp.sprint && ts < sp.sprint.a) return { teile: [] as string[], fertig: false, wert: sp.sprint.wert };
   const bis = Math.max(ref, Math.min(ts, ende));
   const aktiv = !fertig && istAktiv(cl, ts);
   const z = zustandTs(cl, bis);
@@ -599,8 +601,8 @@ function fahrerBlocks(ctx: CanvasRenderingContext2D, cfg: MediaCfg, clip: Clip, 
   const fs = 38 * u, pad = 14 * u, r = fs * 0.5;
   const out: (Block & { nr: number })[] = [];
   for (const w of werte) {
-    if (!w.teile.length) continue;
     const evF = ev?.fahrer[w.sp.nr];
+    if (!w.teile.length && !(ev?.namen && evF?.name)) continue;
     // Event-Video: im Ziel der Platz im Event (Aufloesung, Jan 26.11.2026), sonst der Platz unter denen im Ziel.
     const evRang = ev?.rang && evF?.rang != null && w.fertig ? evF.rang : null;
     const rang = evRang != null ? evRang - 1 : imZiel.indexOf(w);
@@ -609,7 +611,7 @@ function fahrerBlocks(ctx: CanvasRenderingContext2D, cfg: MediaCfg, clip: Clip, 
     // Mit Event-Platz im Ziel auch der Wert der Bestenliste — sonst stuende neben dem Platz eine leicht andere Zahl
     // als in der Endtafel (die Bestenliste rechnet mit ihrem eigenen Stand).
     const werte = evRang != null && evF?.wert ? [evF.wert] : w.teile;
-    const text = (name ? `${name}   ` : "") + werte.join("   ");
+    const text = [name, ...werte].filter(Boolean).join("   ");
     ctx.font = `800 ${fs}px ${FONT}`;
     const rw = rangText ? tabBreite(ctx, rangText) : 0;
     const tw = rw + tabBreite(ctx, text);
