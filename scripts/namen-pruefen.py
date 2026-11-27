@@ -77,6 +77,28 @@ def namen() -> set[str] | None:
     return out
 
 
+def besitzer_lader():
+    """-> Funktion ids -> {session_id: user_id} (nur lesend, gecacht). Ohne DB: leeres Ergebnis (nichts gemeldet)."""
+    url = db_url()
+    cache: dict[int, int] = {}
+
+    def laden(ids):
+        neu = [i for i in set(ids) if i not in cache]
+        if neu and url:
+            try:
+                import psycopg as pg
+                dsn = re.sub(r"^postgresql\+\w+://", "postgresql://", url)
+                with pg.connect(dsn, connect_timeout=3) as c:
+                    for sid, uid in c.execute("SELECT id, user_id FROM sessions WHERE id = ANY(%s)", (neu,)).fetchall():
+                        cache[sid] = uid
+            except Exception:
+                pass
+            for i in neu:
+                cache.setdefault(i, -1)            # unbekannt/keine Session -> nicht melden
+        return {i: cache[i] for i in ids if cache.get(i, -1) != -1}
+    return laden
+
+
 def ausnahmen_woerter() -> tuple[set[str], set[str]]:
     woerter: set[str] = set()
     for d in ("/usr/share/dict/american-english", "/usr/share/dict/words"):
@@ -98,10 +120,48 @@ class Pruefer:
     def __init__(self, liste: set[str]):
         woerter, hashes = ausnahmen_woerter()
         self.namen = {n for n in liste if n not in woerter and h(n) not in hashes}
+        self.woerter, self.hashes = woerter, hashes
+        self.besitzer = besitzer_lader()
 
     def funde(self, text: str) -> list[int]:
-        """-> Wort-Nummern (ab 1) der Treffer in der Zeile."""
-        return [i for i, w in enumerate(WORT.findall(text), 1) if w.lower() in self.namen]
+        """-> Wort-Nummern (ab 1) der Treffer in der Zeile. Auch gebeugt: Genitiv „<Name>s" (27.11.2026, so stand ein
+        Name noch im TODO, nachdem die Grundform ersetzt war)."""
+        out = []
+        for i, w in enumerate(WORT.findall(text), 1):
+            k = w.lower()
+            if k in self.namen or (len(k) > MIN and k.endswith("s") and k[:-1] in self.namen
+                                   and k not in self.woerter and h(k) not in self.hashes):
+                out.append(i)
+        return out
+
+
+# Personenbezug ueber Kennungen (Jan, 27.11.2026: „lieber nicht durch u-ids, die kann man ja einfach nachschlagen"):
+# Konto-IDs, DM-Kennungen und Session-Nummern fremder Fahrer gehoeren nach lokal/FAELLE.md, oeffentlich nur Rolle +
+# Fall-Kennung. Erlaubt: Jans Konto (2), Assistent (230), Store-/Testkonten — und Sessions dieser Konten.
+ERLAUBTE_KONTEN = {2, 6, 7, 38, 230, 881}
+KONTO = re.compile(r"(?<![\\\w+/=])u(\d{2,5})(?![\w+/=])|\buser_id\s*[=:]\s*(\d{2,5})\b|\b[Uu]ser (\d{2,5})\b|\bdm:(\d+)-(\d+)\b")
+# Nackte „#<Zahl>" erst ab 5 Stellen (Sessions liegen seit Monaten darueber; 4-stellig sind oft Changelog-, Geraete-
+# oder Feedback-Nummern). Ausdruecklich als Session benannt zaehlt auch 4-stellig.
+SESSION = re.compile(r"(?<![\w&])#(?!0)(\d{5,6})\b(?![0-9a-fA-F])|\b[Ss]ession(?:s)?/?\s*#?(\d{4,6})\b|/sessions/(\d{4,6})\b")
+TYPEN = {8, 16, 32, 64}        # u8/u16/u32/u64 im Suunto-Protokoll
+
+
+def kennungen(text: str, sessions_besitzer) -> list[str]:
+    """-> Beschreibungen der Treffer (ohne Namen). `sessions_besitzer(ids)` -> {id: user_id}."""
+    out = []
+    for m in KONTO.finditer(text):
+        ids = [int(g) for g in m.groups() if g]
+        if m.group(1) and int(m.group(1)) in TYPEN:
+            continue
+        if any(i not in ERLAUBTE_KONTEN for i in ids):
+            out.append("Konto-Kennung")
+    sids = [int(next(g for g in m.groups() if g)) for m in SESSION.finditer(text)]
+    if sids:
+        besitzer = sessions_besitzer(sids)
+        for sid in sids:
+            if sid in besitzer and besitzer[sid] not in ERLAUBTE_KONTEN:
+                out.append("Session-Nummer eines Fahrers")
+    return out
 
 
 def staged(p: Pruefer) -> list[str]:
@@ -119,6 +179,9 @@ def staged(p: Pruefer) -> list[str]:
         elif z.startswith("+") and not z.startswith("+++"):
             for nr in p.funde(z[1:]):
                 out.append(f"{datei}:{zeile}: Wort {nr} der Zeile")
+            if not datei.startswith("lokal/"):
+                for art in kennungen(z[1:], p.besitzer):
+                    out.append(f"{datei}:{zeile}: {art}")
             zeile += 1
     return out
 
@@ -130,6 +193,8 @@ def nachricht(p: Pruefer, pfad: str) -> list[str]:
             continue
         for nr in p.funde(z):
             out.append(f"Commit-Nachricht Zeile {i}: Wort {nr}")
+        for art in kennungen(z, p.besitzer):
+            out.append(f"Commit-Nachricht Zeile {i}: {art}")
     return out
 
 
@@ -172,6 +237,8 @@ def baum(p: Pruefer, pfade: list[str]) -> list[str]:
         for i, z in enumerate(roh.decode("utf-8", "replace").splitlines(), 1):
             for nr in p.funde(z):
                 out.append(f"{d}:{i}: Wort {nr} der Zeile")
+            for art in kennungen(z, p.besitzer):
+                out.append(f"{d}:{i}: {art}")
     return out
 
 
