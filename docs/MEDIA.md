@@ -22,7 +22,7 @@ Plan und Stand (Jan, 24.11.2026). Idee: wie „Teilen", aber als **Video statt B
 
 | Bereich | Inhalt |
 |---|---|
-| Ausschnitt | Lauf / alle Laeufe; Tempo 1×/2×/4×/8×; Vor- und Nachlauf |
+| Ausschnitt | Lauf / alle Laeufe; Tempo 1×/2×/4×/8×/16×/32×; frei waehlbarer Teil (von/bis, Knopf „auf 180 s kuerzen“, nicht mit weiteren Fahrern; 27.11.2026 nach Feedback); Vor- und Nachlauf |
 | Format | 9:16, 4:5, 1:1, 16:9; 720p/1080p; 30/60 fps |
 | Spur | Farbe wie die Karte: Tempo / Puls / Pumpfrequenz / weiss; Ebenen darueber, mit der Zeit animiert (Jan 24.11.): Gleitphasen (cyan Band), Carves (feine Boegen in Kurvenlage-Farbe), Sprints (weisses Band + Magenta-Punkte), Pumps (Punkte). Groesse S = 57 % der kurzen Seite, M = 78 %, L = bildfuellend mit Rand 6 % (~1 cm auf dem Handy, Jan 24.11.) |
 | Elemente | Strecke (baut sich auf), Tempo, Pumps, Pumpfrequenz, Puls, Strecke, Laufzeit, Gleiten, Sprints, Carves, pumpfoil.org |

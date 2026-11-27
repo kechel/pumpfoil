@@ -1563,15 +1563,6 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
-### 27.11.2026 — Media-Video: Ausschnitt waehlbar machen (Feedback eines Nutzers)
-
-- **Meldung (Feedback-Formular, 27.11. 18:22, `/sessions/<id>/media`):** „Höchstens 180 Sekunden — Tempo erhöhen oder
-  einen einzelnen Lauf wählen." erscheint, obwohl schon 8× eingestellt ist. Vorschlag: Abschnitt auswaehlen oder
-  schnelleres Tempo.
-- **Jan:** Ausschnitt auswaehlbar machen (Start/Ende frei, z. B. Doppelregler auf der Zeitachse oder ueber mehrere
-  Laeufe) — die 3-min-Grenze (docs/MEDIA.md „Cliplaenge gedeckelt") bleibt. Hoeheres Tempo (16×) hoechstens zusaetzlich.
-- Danach dem Melder kurz antworten (Konto 230, Vorlage, ohne Anrede mit Namen).
-
 ### 25.11.2026 — Amazfit 1.0.18: Sammel-Upload haengt auf T-Rex 3 Pro, „Error: out of memory" (Fall 2026-11-25-a)
 
 - **Befund:** Session A (6 min, Accel 18 Hz) — 20:53 kamen GPS 0-20 und Accel 0-24 in zwei Sammel-Anfragen, danach bei (Fall 2026-11-25-b)
