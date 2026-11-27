@@ -1232,10 +1232,10 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
   einzeln, mit Standard im Profil und Override je Session. Web + Server waren schon da; 2026-07-28 auf
   Android (`bbc766c`, `8065078`) und iOS (`83f3d89`) nachgezogen. Fuselage/Tail bleibt offen (kein
   Server-Feld) — als eigene Idee behandeln, falls jemand danach fragt.
-- **Garmin-Datenseiten-UX aufräumen** (Feedback Tom 2026-07-20): Screen-Konfiguration verwirrend
+- **Garmin-Datenseiten-UX aufräumen** (Feedback eines Nutzers 2026-07-20): Screen-Konfiguration verwirrend
   („weiß nicht wo ich bin"; Hinzufügen ersetzte den On-Foil-Screen durch 1/2/3), Feldbezeichnungen
-  unklar (was heißt welcher Wert) — FoilMotion sei übersichtlicher. On-Watch/Web-Konfig-UX überdenken.
-- **Session pausieren (Garmin)** (Feedback Tom 2026-07-20) — Aufnahme pausieren/fortsetzen können.
+  unklar (was heißt welcher Wert) — eine andere App sei übersichtlicher. On-Watch/Web-Konfig-UX überdenken.
+- **Session pausieren (Garmin)** (Feedback eines Nutzers 2026-07-20) — Aufnahme pausieren/fortsetzen können.
 - [x] **Chat: Daumen-hoch für Beiträge** — ERLEDIGT: Server war fertig, Web hatte es; 2026-07-28 auf
   Android (`ecbefb3`) und iOS (`dc47149`) nachgezogen (Daumen unter dem Avatar, Zähler, abschaltbar).
 - **Pumps/min über die Web-Detail hinaus** (Feedback Tom + Laurent) — Toggle Hz↔Pumps/min gibt's jetzt
@@ -1254,7 +1254,7 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
   feine Catmull-Rom-Bögen, Zähler nach Grad-Bucket. Rein GPS (kein Accel). NICHT in Rekorde/Stats.
   Memory `turn-carve-detection-rnd`. **Offen:** Community-Feedback zu Miss/Over-Detection abwarten
   (Jan postet Ankündigung); Params (`step_m/rate_deg/min_rot/max_radius_m`) ggf. nachtunen; App-Port.
-- **Turns/große Runden als EIGENES Feature** (Feedback Laurent, FoilMotion-inspiriert) — weite Turns
+- **Turns/große Runden als EIGENES Feature** (Feedback eines Nutzers) — weite Turns
   getrennt von Carves: eigene Statistik + Rekorde (L/R-Zähler, Netto-Rotation, Vorzugsrichtung, Loops)
   aus GPS-Kurs (evtl. Gyro via FIT). Carves sind bewusst nur die engen (<12 m). R&D/Detektor → Jans OK.
 - **„Wer foilt jetzt gerade?"** — laufende Sessions live (braucht Live-Upload während der Session +
@@ -1267,7 +1267,7 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
   geschätzt+markiert. Ansonsten **on-demand**: fehlendes Foil meldet ein Nutzer → 2-Min-Nachtrag.
 - ⏸ **Video direkt in der App aufnehmen** + self-hosten — zurückgestellt (YouTube-Link reicht;
   Transkodierung/Storage/Moderation = XL).
-- **Paddle-Up-Support** (Idee 2026-07-19, Anlass: FoilMotion-FIT von Markus, Illmensee): Paddle-Up =
+- **Paddle-Up-Support** (Idee 2026-07-19, Anlass: FIT-Datei eines Nutzers aus einer anderen App): Paddle-Up =
   Pumpfoilen, aber Startgeschwindigkeit wird liegend/kniend mit Paddel im Wasser aufgebaut (statt
   Absprung). Die **Startsequenz ist krasses, sehr charakteristisches Paddeln** → gut erkennbar; als
   eigenen Phasentyp erkennen: **Strokes bis zum Abheben zählen, Abhebe-Geschwindigkeit**, Zeit/Strokes
@@ -2373,8 +2373,8 @@ von u159 und u394 — nicht angefasst.
 
 - **🔲 07.11. Max-Speed: Live-Anzeige der Garmin-App gegen Server pruefen** (Hinweis eines Nutzers, FR970 + fēnix 7 Pro
   parallel). Server ist korrekt: max 1 s je Lauf = GPS-Rohwert der Uhr = Garmins eigene Geschwindigkeit in der FIT
-  (#20402, 5 Laeufe, 17,2–19,8 km/h). FoilMotion (fēnix) zeigt 2–4 km/h mehr (Lap-Max = einzelne 1-s-Spitze, Laps sind ganze
-  Sets). Offen: unsere Uhr zeigte direkt nach dem Sturz ~1,5 km/h MEHR als FoilMotion — vermutlich nimmt die Live-Anzeige
+  (#20402, 5 Laeufe, 17,2–19,8 km/h). Eine andere App (fēnix) zeigt 2–4 km/h mehr (Lap-Max = einzelne 1-s-Spitze, Laps sind ganze
+  Sets). Offen: unsere Uhr zeigte direkt nach dem Sturz ~1,5 km/h MEHR als die andere App — vermutlich nimmt die Live-Anzeige
   einen anderen Wert (Garmin-Max inkl. Sturz-Spitze?). Screenshots wird es nicht geben (Jan, 07.11.) — **nach dem Wochenende die Max-Berechnung der Uhr-App selbst nachrechnen** (auf den Daten von u1019, #20402) und mit dem Server vergleichen; Uhren-App nur Fehler beheben.
 
 - **🔲 07.11. Apps: Datenschutzseite und Team-Regeln nachziehen** (Jan: heute nur PWA). Im Web neu:
@@ -11011,9 +11011,9 @@ Offen daraus:
   Deutsch). `/api/devices/config` sendet bei ungesetzter Sprache jetzt `""` → Uhr weicht auf
   `System.getDeviceSettings().systemLanguage` aus (Mapping+EN-Fallback in `Strings.mc` existierte
   schon; kein Uhr-Rebuild). Bestehende Nutzer mit explizitem „de" unberührt.
-- **FIT-Import: record-Level-IMU (accel_xyz/gyro_xyz/mag_xyz) lesen** (Befund 2026-07-19, FoilMotion-FIT
-  von Markus). Aktuell liest `fitimport.parse_fit_bytes` Accel nur aus `accelerometer_data`-Messages
-  (SensorLogging). FoilMotion & Co. schreiben die IMU aber als **Developer-Felder pro `record`** →
+- **FIT-Import: record-Level-IMU (accel_xyz/gyro_xyz/mag_xyz) lesen** (Befund 2026-07-19, FIT-Datei
+  eines Nutzers aus einer anderen App). Aktuell liest `fitimport.parse_fit_bytes` Accel nur aus `accelerometer_data`-Messages
+  (SensorLogging). Andere Apps schreiben die IMU aber als **Developer-Felder pro `record`** →
   unser Import wertet solche FITs als **GPS-only** (kein Pump-Modell!), obwohl volle 25-Hz-Daten drin
   sind. TODO: `accel_xyz` (sint8, ×64 mg, 75 Werte = 25 Hz × 3 Achsen interleaved) extrahieren →
   in unser int16-Format (2048/g) wandeln (Faktor ≈ ×131,072) → als Accel-Chunks ablegen, dann läuft
