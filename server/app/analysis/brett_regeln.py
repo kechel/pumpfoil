@@ -19,7 +19,7 @@ bisherigen Gleit-Anzeige (analysis/__init__.py, GLIDE_SHOW_*; Jan, 10.10.2026: �
 wie die bestehende Regel", Obergrenze 15 statt 10 s): nur zusammenhaengende Stuecke ohne Pump von
 GLEIT_MIN_S bis GLEIT_MAX_S, NICHT der Anlauf vom Laufstart bis zum ersten Pump, das Laufende zaehlt,
 und kein Stueck, in dem Beschleunigungsdaten fehlen. Die erste Fassung zaehlte alles ausser pump,
-auch die halbe Sekunde zwischen zwei Zyklen — das ergab 14 % statt 7 % (an #9656 46 %).
+auch die halbe Sekunde zwischen zwei Zyklen — das ergab 14 % statt 7 % (an Session A 46 %). (Fall 2026-10-10-a)
 Aufsetzen = erster ECHTER GPS-Punkt (Vorgaenger <= 1,5 s) in [Laufende - 15 s, Laufende] unter
 max(8 km/h, 0,6 x Fahrt-Tempo), minus 0,7 s Doppler-Nachlauf; ohne solchen Punkt das erkannte Ende.
 Das Aufsetzen KUERZT einen Lauf nur, es verlaengert ihn nie (Jan, 10.10.2026: in der ersten Fassung

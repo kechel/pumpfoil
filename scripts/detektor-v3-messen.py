@@ -136,8 +136,8 @@ def paare(sessions, basis=None):
             kurz = min(b1 - b0, u1 - u0)
             if kurz <= 0 or ov / kurz < 0.5 or u["device_id"] == b["device_id"]:
                 continue
-            # Nur DERSELBE Fahrer: bei Gruppenfahrten liegen fremde Uhren am selben Ort (u5 am
-            # 23.09. mit dem Handy am Brett, Jans Uhr daneben). #10248 gehoert inzwischen u13.
+            # Nur DERSELBE Fahrer: bei Gruppenfahrten liegen fremde Uhren am selben Ort (Fahrer A am (Fall 2026-09-23-h)
+            # 23.09. mit dem Handy am Brett, Jans Uhr daneben). Session A gehoert inzwischen Fahrer B.
             if u["user_id"] != b["user_id"]:
                 continue
             (la, lo), (lb, lob) = b.get("place") or (None, None), u.get("place") or (None, None)

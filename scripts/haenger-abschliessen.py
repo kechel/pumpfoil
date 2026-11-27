@@ -3,7 +3,7 @@
 
 WOZU: eine Aufnahme, die der Nutzer nie stoppen konnte (Akku leer, App gestorben, Abschluss-
 Aufruf verloren), bleibt fuer immer `live`. Die Daten liegen bei uns, der Nutzer sieht nichts.
-Am 21.09.2026 waren das 28 Sessions, 20 davon MIT Daten — eine (#8651) sogar mit allen
+Am 21.09.2026 waren das 28 Sessions, 20 davon MIT Daten — eine (Session A) sogar mit allen (Fall 2026-09-21-l)
 143 von 143 Chunks. Jans Freigabe am 21.09.: „Ja bitte machen."
 
 Der regulaere Weg dafuer ist `_altlasten_abschliessen` in `app/api/ingest.py`: der schliesst

@@ -1,4 +1,4 @@
-"""Ø Puls auf dem Foil (Feedback u904, 01.11.2026): nur ueber die Laeufe, ausgewaehlt ueber die Session-Zeit."""
+"""Ø Puls auf dem Foil (Feedback Fahrer A, 01.11.2026): nur ueber die Laeufe, ausgewaehlt ueber die Session-Zeit. (Fall 2026-11-01-f) """
 import json
 
 

@@ -15,13 +15,13 @@ Erkennung rein aus GPS + Windrichtung:
    Sonst gilt sie als mit Absetzen/Sturz (zaehlt, aber nicht als durchgefahren).
    Gemessen wird mit dem GPS-Tempo der Uhr (Doppler). Bis 19.10.2026 nahm die Regel das Tempo aus
    der geglaetteten Spur — die schneidet in der Kurve die Ecke ab (Sehne statt Bogen) und lag in den
-   Halsen 2-4 km/h zu tief. Feedback #202/#203 (Nutzer 43): „11 successful jibes … only 4/13" bzw.
+   Halsen 2-4 km/h zu tief. Feedback #202/#203 (Fahrer A): „11 successful jibes … only 4/13" bzw. (Fall 2026-10-19-o)
    „12 … only 4/15"; mit Doppler >= 12 km/h 11/13 und 13/15. Ohne Doppler (manche Importe) bleibt
    die Spur, dann mit DURCH_SPUR_KMH, weil sie in Kurven zu niedrig misst.
    Vergleichsdaten: server/data/wahrheit/manoever.jsonl (gitignored), pruefen mit
    scripts/manoever-pruefen.py — vor jeder Aenderung an den Schwellen laufen lassen.
    SEIT 19.10.2026 abends entscheidet zuerst der LAUF: auf dem Foil = die Drehung liegt in einem
-   erkannten Lauf, und der endet nicht innerhalb von LAUF_ENDE_S danach. Alex (u43) hat in #13942
+   erkannten Lauf, und der endet nicht innerhalb von LAUF_ENDE_S danach. Ein Fahrer hat in Session A
    jede Halse markiert: drei langsame (Doppler 10-12 km/h) waren auf dem Foil — „I was riding
    pumpfoil, so it was possible to turn at very low speed" —, zwei schnelle endeten 7 bzw. 12 s
    spaeter mit dem Lauf. Tempo-Regel: 0 von 5 richtig, Lauf-Regel: 5 von 5. Ohne Laeufe gilt weiter
@@ -109,7 +109,7 @@ def _kurs_tempo(t_ms, lat, lon, max_kmh: float | None = None):
             continue
         dx, dy = xs[i + 2] - xs[i - 2], ys[i + 2] - ys[i - 2]
         v = math.hypot(dx, dy) / dt * 3.6
-        # GPS-Spruenge (20.10.2026): #14111 ergab eine beste VMG von 3150 km/h und 22,9 km Hoehe. Kein Foil
+        # GPS-Spruenge (20.10.2026): Session A ergab eine beste VMG von 3150 km/h und 22,9 km Hoehe. Kein Foil (Fall 2026-10-20-i)
         # faehrt ueber 80 km/h (Kite-Spitzen liegen um 50-60) -> solche Punkte gar nicht werten.
         if v > (min(MAX_TEMPO_KMH, max_kmh) if max_kmh else MAX_TEMPO_KMH):
             continue
@@ -184,11 +184,11 @@ EINFAHRT_KMH = 8.0
 def _anfahrt(t, i: int, dop) -> bool:
     """War das gar kein Manoever, sondern ein Start? Wer nicht mit Foil-Tempo hineinfaehrt (Doppler-Median
     −10…−4 s unter EINFAHRT_KMH), dreht im Wasser Board und Wing in die neue Richtung und faehrt los — das
-    ist weder Wende noch Halse. #19084 (Alex, 26.10.2026) bei 55:41: 4-7 km/h davor, Drehung ueber Sued,
+    ist weder Wende noch Halse. Session A (ein Nutzer, 26.10.2026) bei 55:41: 4-7 km/h davor, Drehung ueber Sued, (Fall 2026-10-26-k)
     zaehlte als durchgefahrene Wende, weil dort der Lauf beginnt. 8 statt der zuerst probierten 10 km/h:
-    gepumpte Halsen mit ~9 km/h auf dem Foil sind echt (tests/test_sessionwind.py, Alex' Markierungen).
+    gepumpte Halsen mit ~9 km/h auf dem Foil sind echt (tests/test_sessionwind.py, die Markierungen des Fahrers).
     Probelauf 183 Wind-Sessions: 126 von 5.221 fallen weg, davon 32 „auf dem Foil" (bei 10 km/h: 162/18;
-    Stichprobe dort 4/6 klar Stopps/Anfahrten). #13942/#10472 unveraendert. Ohne Doppler: keine Pruefung."""
+    Stichprobe dort 4/6 klar Stopps/Anfahrten). Session B/C unveraendert. Ohne Doppler: keine Pruefung."""
     if dop is None:
         return False
     fen = (t >= t[i] - 10) & (t <= t[i] - 4) & ~np.isnan(dop)
@@ -198,7 +198,7 @@ def _anfahrt(t, i: int, dop) -> bool:
 def _richtung_ueber_luecke(t, kurs, i: int, d: float, dop) -> float:
     """Drehrichtung, wenn mitten in der Kurve Kurswerte fehlen (Spur-Tempo kurz unter MIN_FAHRT_KMH).
     Dann kommt die aufsummierte Drehung nicht ueber DREHUNG_MIN_GRAD, und `d` (kuerzester Bogen zwischen
-    Kurs vorher und nachher) hat bei ~180° ein ZUFAELLIGES Vorzeichen — #19084 (Alex, 26.10.2026): zwei
+    Kurs vorher und nachher) hat bei ~180° ein ZUFAELLIGES Vorzeichen — Session A (ein Nutzer, 26.10.2026): zwei (Fall 2026-10-26-l)
     Halsen, die ueber Nord drehten, liefen so rechnerisch durch den Wind und zaehlten als Wende.
     Gekippt wird nur, wenn die Kurve VOR und NACH der groessten Luecke (±10 s) in dieselbe Richtung dreht
     (je >= 10°) und das Doppler-Tempo dabei nie unter 8 km/h faellt (auf dem Foil geblieben). Bei einem
@@ -234,10 +234,10 @@ def wind_funktion(wind: dict | None):
 # --- Hoehe laufen (19.10.2026, Stand-Buch: hoehe) --------------------------------------------------
 # Ebenfalls NUR ANZEIGE. VMG zum Wind = Tempo * cos(Winkel zwischen Kurs und der Richtung, AUS der der
 # Wind kommt): positiv = man gewinnt Hoehe. Gezaehlt wird nur auf dem Foil (>= DURCHGEFAHREN_KMH).
-# Tempo aus dem Doppler, Kurs weiter aus der Spur (26.10.2026, Alex #18998): das Spur-Tempo machte aus einem
+# Tempo aus dem Doppler, Kurs weiter aus der Spur (26.10.2026, Session A): das Spur-Tempo machte aus einem (Fall 2026-10-19-p)
 # GPS-Sprung im Stand (Doppler 3-5 km/h, Position 70 m gegen den Wind) eine „beste VMG" von 20,8 km/h — so hoch wie
 # das Hoechsttempo. Fenster 3 s wie „Max Speed (3s)". Ein so kurzes Fenster fing aber Halsen (Kurs dreht durch
-# den Wind, Tempo noch hoch, #18999) und Luecken (Doppler 33 / Spur 10 km/h, #13181) — gewertet wird es deshalb nur
+# den Wind, Tempo noch hoch, Session B) und Luecken (Doppler 33 / Spur 10 km/h, Session C) — gewertet wird es deshalb nur
 # lueckenlos, mit stabilem Kurs und wenn Doppler und Spur zusammenpassen. Probe ueber 1391 Wind-Sessions: VMG ueber
 # 90 % des Hoechsttempos 13 wie vorher, Median VMG/Hoechsttempo 0,48 -> 0,50.
 HOEHE_FENSTER_S = 3.0
@@ -249,7 +249,7 @@ def hoehe(t_ms, lat, lon, wind_von, max_kmh: float | None = None, doppler_mps=No
     vmg_max_kmh = bestes 3-s-Mittel der VMG zum Wind, vmg_mittel_kmh = mittlere VMG am Wind,
     am_wind_anteil = Anteil der Foil-Zeit mit Kurs gegen den Wind, hoehe_m = gesamt gewonnene Hoehe
     (Summe der positiven VMG), winkel_med = typischer Winkel zum Wind am Wind (kleiner = hoeher)."""
-    # `max_kmh` (20.10.2026): Obergrenze aus dem Hoechsttempo der Analyse. #14111 (Uhr lag 5,5 h fast
+    # `max_kmh` (20.10.2026): Obergrenze aus dem Hoechsttempo der Analyse. Session A (Uhr lag 5,5 h fast (Fall 2026-10-20-j)
     # still) hatte im GPS-Zittern Spur-Tempi bis 80 km/h und dadurch 77 km/h „beste VMG".
     t, kurs, tempo = _kurs_tempo(t_ms, lat, lon, max_kmh)
     n = len(t)

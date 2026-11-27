@@ -16,7 +16,7 @@ prüft sie bitte neu — sie wachsen.
 | | Umfang | Quelle |
 |---|---|---|
 | **On-Foil-Modell** (`foil_rf.pkl`) | 103 Sessions, 58.189 On-Foil-Sekunden (≈ 16 h) | **14 Nutzer** |
-| **Pump-Zählung** (Heuristik) | 456 Marken in 3 Sessions | **422 davon (93 %) Nutzer 2**, 34 Nutzer 5 |
+| **Pump-Zählung** (Heuristik) | 456 Marken in 3 Sessions | **422 davon (93 %) Jan**, 34 Fahrer A (Fall 2026-09-21-a) |
 | **Gleit-Erkennung** | — | **gibt es nicht** |
 
 Das On-Foil-Modell steht auf einer brauchbaren Basis: 14 verschiedene Fahrer, 16 Stunden, über die
@@ -24,8 +24,8 @@ Das On-Foil-Modell steht auf einer brauchbaren Basis: 14 verschiedene Fahrer, 16
 Session in `server/data/`).
 
 Die **Pump-Zählung steht auf einem Fahrer, einem Handgelenk, einer Stance.** `pump_truth` enthält
-456 Marken; 422 kommen aus zwei Sessions von Nutzer 2 (#295 und #354, Juni 2026), 34 aus einer
-Session von Nutzer 5. Die `labels`-Tabelle (31 Zeilen, Abschnitts-Labels) ändert daran nichts.
+456 Marken; 422 kommen aus zwei Sessions von Jan (#295 und #354, Juni 2026), 34 aus einer
+Session von Fahrer A. Die `labels`-Tabelle (31 Zeilen, Abschnitts-Labels) ändert daran nichts. (Fall 2026-09-21-b)
 
 **Daraus folgt der wichtigste Satz dieses Dokuments:** wir wissen nicht, wie gut die
 Pump-Erkennung arbeitet. Nicht „ungefähr" — **gar nicht**, für alle außer einem Fahrer. Jede
@@ -421,7 +421,7 @@ Pump-Kadenz über 92 Nutzer mit mindestens 5 Sessions:
 Die Varianz zwischen den Fahrern ist rund **viermal** so groß wie die eines einzelnen. „Persönliche
 Kadenz" ist damit eine echte, stabile Eigenschaft und keine Tagesform. Zum Vergleich: unser
 globales Suchband ist `PUMP_CAD_BAND = (0.8, 2.0)` Hz, der Mindestabstand zweier Peaks deckelt bei
-2,2 Hz — Nutzer 63 pumpt mit 1,87 Hz und fährt damit am oberen Rand der Eichung.
+2,2 Hz — Fahrer A pumpt mit 1,87 Hz und fährt damit am oberen Rand der Eichung. (Fall 2026-09-21-c)
 
 ### Als dünne Schicht, nicht als eigenes Modell
 
@@ -566,10 +566,10 @@ Sie zerfallen klar in drei Sorten:
 
 1. **Echte Paare aus zwei Geraeten** — Uhr + Handy am selben Ort, Laeufe um wenige Sekunden versetzt
    (#10194/#10195: 4/4, −2,4 s · #9534/#9535: 2/2, −1,5 s). Viele Paare haben zu wenige Laeufe fuer
-   den Laufvergleich (#9484/#9485, #9528/#9529, #9650 mit #9648+#9649, #9656/#9665).
+   den Laufvergleich (#9484/#9485, #9528/#9529, #9650 mit #9648+#9649, Session A/C). (Fall 2026-09-26-a)
 2. **Doppelt eingespielte Aufnahmen** (z. B. Uhr-Upload + FIT-Import derselben Fahrt): die Laeufe
-   passen auf **exakt 0,0 s** — das kommt bei zwei echten Geraeten nie vor (#1955/#2041,
-   #2131/#2674, #3240/#3252).
+   passen auf **exakt 0,0 s** — das kommt bei zwei echten Geraeten nie vor (Session A/C, (Fall 2026-09-26-b)
+   Session A/C, Session B/C). (Fall 2026-09-26-c)
 3. **Ohne Laeufe oder vom selben Geraet** — nicht entscheidbar bzw. Teilstuecke.
 
 **Vorgeschlagene Regel, zweistufig (noch nicht gebaut):**
@@ -588,10 +588,10 @@ Sie zerfallen klar in drei Sorten:
 
 | Nutzer | Paare | Geraete | am Brett? |
 |---|---|---|---|
-| u2 | 7 an 4 Tagen (19.07., 21.09., 23.09., 26.09.) | Pixel 7a + fēnix 7X Pro (einmal zusaetzlich Forerunner 55) | 5 markiert |
-| u5 | 3 (19.07., 2× 23.09.) | am 23.09. derselbe Pixel 7a + Forerunner 55 | #9656 markiert (Handy zwischen den Laeufen gedreht) |
-| u55 | 2 (02./03.08.) | Samsung-Handy + Wear OS, 25 und 70 min | nicht markiert, damals ohne Kreisel |
-| u546 | 1 (15.09.) | Fairphone + Forerunner 945 | nicht markiert; Orte 1,4 km auseinander — Handy vermutlich an Land |
+| Jan | 7 an 4 Tagen (19.07., 21.09., 23.09., 26.09.) | Pixel 7a + fēnix 7X Pro (einmal zusaetzlich Forerunner 55) | 5 markiert |
+| Fahrer A | 3 (19.07., 2× 23.09.) | am 23.09. derselbe Pixel 7a + Forerunner 55 | Session A markiert (Handy zwischen den Laeufen gedreht) (Fall 2026-07-19-b) |
+| Fahrer B | 2 (02./03.08.) | Samsung-Handy + Wear OS, 25 und 70 min | nicht markiert, damals ohne Kreisel |
+| Fahrer C | 1 (15.09.) | Fairphone + Forerunner 945 | nicht markiert; Orte 1,4 km auseinander — Handy vermutlich an Land |
 
 Brauchbare Paare **Handy am Brett + Uhr am Handgelenk** gibt es damit nur von **zwei** Fahrern,
 etwa sieben Aufnahmen. Die elf Handy-Aufnahmen anderer, bei denen der Brett-Hinweis anschlaegt
@@ -601,9 +601,9 @@ die Paar-Wahrheit nicht.
 
 ### 12d. Zweiter Fahrer, nutzeruebergreifend (27.09.2026)
 
-u2s Handy (Pixel 7a) fest an **u13s Brett**, u13 mit fēnix 7 am Handgelenk: #10248 (Handy,
-09:38–10:17) gegen #10250 (Uhr, 09:47–10:43). Anschliessend #10248 auf u13 umgehaengt, Ausruestung
-aus #10250 uebernommen.
+u2s Handy (Pixel 7a) fest an **u13s Brett**, Fahrer A mit fēnix 7 am Handgelenk: Session A (Handy, (Fall 2026-09-27-a)
+09:38–10:17) gegen Session B (Uhr, 09:47–10:43). Anschliessend Session A auf Fahrer A umgehaengt, Ausruestung
+aus Session B uebernommen.
 
 - **Die Paar-Erkennung aus 12b haette es gefunden** — deutlicher als u2s eigenes Paar: Ort 0,01 km,
   4/4 Laeufe mit Partner (−2,4 s), GPS Median 5,4 m, Tempo r = 0,90. Drei weitere Aufnahmen zur
@@ -621,12 +621,12 @@ schon herausgerechnet). Grund: **auf u13s Brett rollt es staerker, als es nickt*
 Nicken 15/13/14° gegen Rollen 22/19/22°, Verhaeltnis 0,70 gegen die Schwelle 1,15. Der Pumptakt war
 in allen vier Laeufen sicher (100 %).
 
-Die Annahme „ein Brett nickt mehr als es rollt" stammt aus Aufnahmen EINES Fahrers (u2) und traegt
+Die Annahme „ein Brett nickt mehr als es rollt" stammt aus Aufnahmen EINES Fahrers (Jan) und traegt
 beim zweiten nicht. **Vermutung, nicht belegt:** der bessere Fahrer pumpt effizienter — laengere
-Laeufe, weniger Nicken (u13: 13–15°, Hub 13–18 cm; u2: bis 26°, Hub 20–23 cm). Nachgerechnet an
+Laeufe, weniger Nicken (Fahrer A: 13–15°, Hub 13–18 cm; Jan: bis 26°, Hub 20–23 cm). Nachgerechnet an (Fall 2026-09-27-b)
 allen 26 Aufnahmen mit Kreisel: das Achsen-Verhaeltnis trennt Brett von Koerper nur schwach (am
 Koerper verteilt sich die Bewegung zufaellig), **der Anteil sicherer Pumptakte trennt klar** (Brett
-100 %, Koerper-Verdacht 8–24 %). **Noch am selben Tag geaendert — und zwar nicht an u13
+100 %, Koerper-Verdacht 8–24 %). **Noch am selben Tag geaendert — und zwar nicht an Fahrer A
 angepasst, sondern an der Physik:** Jans Hinweis „die bei denen es schraeg im raum haengt, [sind]
 sehr wahrscheinlich nicht am board befestigt" (und: am MAST waere es hochkant). Neues Merkmal: der
 **Winkel der mittleren Schwerkraft zur naechsten Geraeteachse in den Laeufen** — fest montierte Handys
@@ -636,9 +636,9 @@ Zwei weitere Ansaetze trennten NICHT und sind verworfen: „Mitdrehen mit dem GP
 Brett gegen 0,26–0,70 Koerper; der 1-Hz-Kurs ist zu grob) und „Reinheit des Pumptakts im Spektrum"
 (0,26–0,30 gegen 0,19–0,57). Code und Messtabelle: `BRETT_ACHSE_MAX_DEG` in `api/sessions.py`.
 
-**Nicken verkehrt herum bei #10248 (27.09.)** — Jan: nach dem Sturz am Ende von Lauf 4 trieb das
+**Nicken verkehrt herum bei Session A (27.09.)** — Jan: nach dem Sturz am Ende von Lauf 4 trieb das (Fall 2026-09-27-c)
 Brett mit der Nase ~45° OBEN, die Anzeige zeigte −35 bis −47°. Ursache: vorn/hinten entschied die
-Start-Heuristik „am Start Nase unten"; bei u13 sagt sie das Gegenteil. Jan: „es gibt keine regel wie
+Start-Heuristik „am Start Nase unten"; bei Fahrer A sagt sie das Gegenteil. Jan: „es gibt keine regel wie
 man startet … alle lagen sind prinzipiell moeglich", „NIE etwas von hand setzen" und „keinerlei
 annahmen oder fallbacks". Die Schwerkraft allein kann vorn/hinten nicht unterscheiden (eine
 180°-Drehung um die Senkrechte laesst sie unveraendert).
@@ -648,7 +648,7 @@ gegen dv/dt aus dem GPS, an den Lauf-Starts. Sah zuerst glaenzend aus (|r| 0,80�
 passend zu Jans Beobachtung). Jans Nachfrage zu Lauf 4 deckte auf: das AUFSUMMIERTE Kreisel-Nicken
 driftet im Fenster bis 90° in 13 s; der „Schwerkraft-Abzug" war damit bis 9 m/s² gross und
 bestimmte das Vorzeichen — die Werte massen die Drift, nicht die Physik. Ohne Drift (Hochpass)
-|r| 0,1–0,5, uneinheitlich, bei #10248 FALSCH herum. Grund: beim Dock-Start springt das Tempo in
+|r| 0,1–0,5, uneinheitlich, bei Session A FALSCH herum. Grund: beim Dock-Start springt das Tempo in (Fall 2026-09-27-d)
 ~1 s von 0 auf 10 km/h, das 1-Hz-GPS sieht davon einen Wert; danach aendert es sich zu wenig.
 Die On-Foil-Starts sassen richtig (Tempo springt genau dort). Stand jetzt: **vorn/hinten ist
 ausdruecklich unbestimmt** (`richtung_bestimmt=false`, Hinweis in der Lage-Ansicht), bis es ein
@@ -696,7 +696,7 @@ Erkennung aus 12b findet Paare, sobald es sie gibt; entstehen werden sie erst au
 ## 13. Pump-Zaehler gegen das Brett (29.09.2026)
 
 Mit richtig ausgerichteten Paaren (Versatz ueber die Uebergaenge, s. DETECTION-V3.md): Uhr/Brett
-Median **1,10** (u2, 19 Laeufe) und **1,08** (u13, 4 Laeufe) — der heutige Zaehler
+Median **1,10** (Jan, 19 Laeufe) und **1,08** (4 Laeufe) — der heutige Zaehler (Fall 2026-09-29-q)
 (`find_pumps_cadence`) ueberzaehlt leicht, die fruehere „~2× zu wenig" gilt fuer den alten.
 Ausreisser: kurze Laeufe (11-14 s) mit exakt doppelter Uhr-Zahl. Brett gegen Brett (zwei Handys
 in derselben Tasche): 99-100 % gemeinsame Pumps, 18 ms — das Brett-Handy taugt als Wahrheit.

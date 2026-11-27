@@ -12,19 +12,19 @@ This changelog covers the Zepp OS watch app only.
 
 ## 1.0.19 — noch nicht gebumpt
 
-- **Sammel-Upload: Standard 5 statt 25 Chunks je Anfrage** (25.11.2026, u1150, T-Rex 3 Pro, 1.0.18): mit 25 brach der
+- **Sammel-Upload: Standard 5 statt 25 Chunks je Anfrage** (25.11.2026, T-Rex 3 Pro, 1.0.18): mit 25 brach der (Fall 2026-11-25-h)
   Upload mit „Error: out of memory" ab (jeder Versuch an derselben Gruppe, einmal Uhr-Neustart); der Server schickt
   seitdem `uploadBatch` 5, damit liefen alle drei wartenden Aufnahmen durch. Hier nur der Rueckfallwert, falls noch
   kein CONFIG da ist.
 
-- **Sperrschirm nennt den Ort** (25.11.2026, Meldung u1150, T-Rex 3 Pro): „2 s Halten = ENTSPERREN" wurde als Taste
+- **Sperrschirm nennt den Ort** (25.11.2026, Meldung Fahrer A, T-Rex 3 Pro): „2 s Halten = ENTSPERREN" wurde als Taste (Fall 2026-11-25-i)
   gelesen; langes SELECT ist dort ab Werk die System-Sprachassistenz, die Aufnahme liess sich nicht beenden. Jetzt
   neuer Schluessel `rec.holdScreen` („Display 2 s halten zum Entsperren", 17 Sprachen), zweizeilig mit WRAP.
   Auf echter Uhr/im Simulator noch nicht angesehen.
 
 ## 1.0.18 — gebumpt am 24.11.2026 (code 21), Emulator-Test bei Jan
 
-- **Sammel-Upload: mehrere Chunks je Anfrage** (24.11.2026, Befund u439, Active 2, 1.0.17): Server-Zeitachse von #23152
+- **Sammel-Upload: mehrere Chunks je Anfrage** (24.11.2026, Befund Fahrer A, Active 2, 1.0.17): Server-Zeitachse von Session A (Fall 2026-11-24-c)
   — jeder App-Lauf starb nach ~325-340 Einzel-Anfragen, egal bei welchem Block er anfing; davor wurden die Anfragen
   langsamer (Luecken 20-35 s = „server unreachable"). Das ist ein Leck je Anfrage, nicht die Groesse der Aufnahme
   (5 Abstuerze, alle Phase 4). Jetzt gehen `uploadBatch` Chunks (Server-CONFIG, Standard 25, Server-Hoechstwert 30, 1 = alter Weg) ueber
@@ -104,7 +104,7 @@ und Zepp verliert oder kappt diesen Wert nach einer Weile still. Der Leerlauf-Pf
 seit dem T-Rex-3-Feldtest alle 20 Sekunden nach; der Aufnahme-Pfad hat dieselbe Behandlung nie
 bekommen, weil `heartbeat()` bei laufender Aufnahme in der ersten Zeile ausgestiegen ist. Dann
 geht der Bildschirm aus und Zepp raeumt die App rund zehn Sekunden spaeter weg. Gemeldet von
-u352 (GTR 4): „Nach circa 4,5 Minuten kommt dann das Ziffernblatt und anschliessend, wenn ich die
+Fahrer A (GTR 4): „Nach circa 4,5 Minuten kommt dann das Ziffernblatt und anschliessend, wenn ich die (Fall 2026-09-22-i)
 App wieder reinwill, ist sie beendet."
 **Was es NICHT loest:** die System-Tastensperre der Uhr. Die schaltet den Bildschirm selbst ab,
 und dagegen kommt eine Mini-App nicht an — das ist ein eigener Fall (s. `docs/TODO.md`).

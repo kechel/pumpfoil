@@ -1,4 +1,4 @@
-"""Plausibilitaets-Regeln fuer ausgelieferte Session-Zahlen (24.10.2026, Jan nach #18978: „mach doch mal ein paar
+"""Plausibilitaets-Regeln fuer ausgelieferte Session-Zahlen (24.10.2026, Jan nach Session A: „mach doch mal ein paar (Fall 2026-10-24-j)
 plausibilitaets-tests fuer solche werte").
 
 Anlass: „Ø Tempo Fahrt" 43,6 km/h bei 24,3 km/h Hoechsttempo — jede Zahl fuer sich sah harmlos aus, erst der
@@ -13,7 +13,7 @@ from __future__ import annotations
 
 TOL_MPS = 0.15          # Rundung der gespeicherten Tempi (2 Nachkommastellen) + Glaettung
 # Strecke kommt aus den GPS-Positionen, Tempo aus dem Doppler: an beiden Enden eines Laufs liegen ein paar Meter
-# Positions-Rauschen (Bestand 24.10.: 4-s-Lauf #18965 mit 24 m bei 3,44 m/s Hoechsttempo). Je Lauf diese Meter frei.
+# Positions-Rauschen (Bestand 24.10.: 4-s-Lauf Session A mit 24 m bei 3,44 m/s Hoechsttempo). Je Lauf diese Meter frei. (Fall 2026-10-24-k)
 RAND_M = 15.0
 MAX_KADENZ_HZ = 4.0     # schneller pumpt niemand; darueber zaehlt etwas doppelt
 

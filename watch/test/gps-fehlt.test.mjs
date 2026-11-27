@@ -1,8 +1,8 @@
-// Speicher sparen OHNE brauchbares GPS (Roman, #19003, 25.10.2026): die Uhr hatte vor dem Start kurz einen
+// Speicher sparen OHNE brauchbares GPS (ein Nutzer, Session A, 25.10.2026): die Uhr hatte vor dem Start kurz einen (Fall 2026-10-25-q)
 // Fix, danach kam kein GPS mehr; Speicher sparen entscheidet am GPS-Tempo, hielt ihn fuer stehend und warf
 // ~2 Minuten samt Accel weg — ein Lauf war komplett verloren. Jetzt: GPS schlecht -> alles speichern.
 // Monkey C laeuft nicht in Node — der Test stellt _gpsPunkt/onAccel/gpsPoor (SessionRecorder.mc) nach,
-// spielt Romans Ablauf durch und prueft, dass die tragenden Zeilen so im Quelltext stehen.
+// spielt den Ablauf des Nutzers durch und prueft, dass die tragenden Zeilen so im Quelltext stehen.
 //   node --test watch/test/
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -80,7 +80,7 @@ function spiele(r, sekunden, gpsBei) {
 const gespeichert = (r, von, bis) =>
   r.accelChunks.filter((c) => c.t0 >= von * 1000 && c.t0 < bis * 1000).reduce((a, c) => a + c.n, 0);
 
-test('Romans Ablauf: Lauf ohne GPS am Anfang bleibt erhalten (Accel + spaetere Punkte)', () => {
+test('Ablauf des Nutzers: Lauf ohne GPS am Anfang bleibt erhalten (Accel + spaetere Punkte)', () => {
   const r = recorder();
   // 0-119 s: kein GPS (Events ohne Position), er faehrt; ab 120 s gutes GPS, steht; 160-210 s faehrt er.
   spiele(r, 300, (s) => (s < 120 ? null : { q: 4, spd: s >= 160 && s < 210 ? 4.0 : 0.3 }));

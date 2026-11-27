@@ -163,10 +163,10 @@ Zeitpunkt ist das Signal-Maximum der Periode (Parabel, Filterverzoegerung abgezo
 auf echten Garmin-Laeufen geprueft (`watch-suunto/test/`).
 
 **Gegen die Brett-Wahrheit anderer Fahrer** (`scripts/suunto-pumpen-paare.py`, rein lesend, 17.10.2026):
-10 Paare Brett-Handy + Uhr mit Ausrichtung <= 400 ms (u2, u244, u683 mit Apple Watch Series 10 u. a.),
+10 Paare Brett-Handy + Uhr mit Ausrichtung <= 400 ms (Jan, Fahrer B mit Apple Watch Series 10 u. a.), (Fall 2026-10-17-a)
 36 Laeufe: Brett 2346, Server-Zaehler auf der Uhr 2353, **Suunto-Zaehler auf der Uhr 2365 (+0,8 %)**;
 Zeitpunkte je Brett-Pump zum naechsten Suunto-Pump median 0,067 s, p90 0,215 s, 92 % unter 0,25 s
-(inkl. Ausrichtungsfehler). **Foil Scoot** (u267, Brett #16729 + Uhr #16719, 8 Laeufe, 49 min): Brett
+(inkl. Ausrichtungsfehler). **Foil Scoot** (Brett Session A + Uhr Session B, 8 Laeufe, 49 min): Brett
 4389, Server-auf-Uhr 4368, Suunto 4457 (+1,5 %) — dort nur die Anzahl, die Feinausrichtung scheitert
 (Brett und Arm bewegen sich beim Scooter anders). Einschraenkung: auch die „Brett-Wahrheit" zaehlt mit
 demselben Kadenz-Verfahren; der Vergleich zeigt, dass die Uhr den Server trifft, nicht mehr
@@ -305,7 +305,7 @@ legt die App in zwei Modi. Das ist die Bedienung, die Suunto-Nutzer kennen (Plat
 
 ## Konto-Import: Uhrname und Takt laut Uhr (16.11.2026)
 
-Anlass: Feedback eines Suunto-Fahrers (u1124), der eine eigene SuuntoPlus-App mit Pump-Takt nutzt.
+Anlass: Feedback eines Suunto-Fahrers, der eine eigene SuuntoPlus-App mit Pump-Takt nutzt. (Fall 2026-11-16-a)
 - **Uhrname:** `file_id.product_name` („Suunto Race 2") -> `sessions.device_model`, als Uhr-Abzeichen angezeigt
   (`import_geraet` gilt jetzt fuer `garmin-` und `suunto-`). Bestand: `scripts/suunto-geraet-nachtragen.py` (8435 gesetzt).
 - **Takt (Uhr):** Suunto-Dateien mit `cadence` je Record -> `data/<uuid>/uhr_takt.json` ([ms ab Start, 1/min]).

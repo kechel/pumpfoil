@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Erkennung v3: Haltung der Uhr je Abschnitt, relativ zur Session. REIN LESEND.
 
-Jans Idee (30.09.2026, an #9580): „bei den meisten Pumpern ist die Richtung der Uhr immer etwa gleich
+Jans Idee (30.09.2026, an Session A): „bei den meisten Pumpern ist die Richtung der Uhr immer etwa gleich (Fall 2026-09-30-x)
 verteilt waehrend eines Laufs, und genau das koennte bei erkanntem Pumpen an Land (also Laufen) ganz
 anders sein." Gemessen je Abschnitt, jeweils gegen die TYPISCHE Lauf-Haltung derselben Session
 (Median ueber die sicheren Laeufe, p_r3 >= 0,9, >= 10 s — ohne den gepruefften Abschnitt selbst):
@@ -176,7 +176,7 @@ def main():
             continue
         f = np.array([x for u, x in grp[k]])
         print(f"  {k:12s} " + "  ".join(f"{n} {auc(echt[:, i], f[:, i]):.2f}" for i, n in enumerate(MERKMALE)))
-    # Jan (u2) allein
+    # Jan allein
     e2 = np.array([f for u, f in grp.get("echt", []) if u == 2])
     for k in ("land", "aussortiert", "gehen"):
         f = np.array([x for u, x in grp.get(k, []) if u == 2])

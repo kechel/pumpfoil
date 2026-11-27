@@ -875,7 +875,7 @@ function OrtVerbergenCard({ onSaved }: { onSaved?: () => void }) {
   );
 }
 
-// „Uhrzeit anzeigen" (17.11.2026, Wunsch u146, server/app/zeitverbergen.py): aus = andere sehen von den eigenen
+// „Uhrzeit anzeigen" (17.11.2026, Wunsch Fahrer A, server/app/zeitverbergen.py): aus = andere sehen von den eigenen (Fall 2026-11-17-m)
 // Sessions nur den Tag. Haken = Einwilligung, Standard an; in der DB das Opt-out `hide_time`.
 function UhrzeitCard({ onSaved }: { onSaved?: () => void }) {
   const t = useT();

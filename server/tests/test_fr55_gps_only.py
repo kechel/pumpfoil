@@ -4,7 +4,7 @@ Jan, 22.09.2026: „lass uns die fr55 bei neu registrierung automatisch immer en
 gps-only stellen … also beim neu verknuepfen dieser uhr mit einem konto".
 
 Der Anlass steht in `_gps_only_wenn_speicherarm`: die bisherige Kappung `full -> lite` halbiert
-nur die Rate, und auch 10 Hz haelt die Uhr nicht durch (an Nutzer 533 gemessen: 1,6-2,5 Hz). Die
+nur die Rate, und auch 10 Hz haelt die Uhr nicht durch (an Fahrer A gemessen: 1,6-2,5 Hz). Die (Fall 2026-09-22-h)
 Aufnahme faellt damit ohnehin unter das 15-Hz-Tor und wird als `gps_only` ausgewertet — die
 Accel-Daten kosten also nur Puffer und Abstuerze und tragen nichts bei.
 """

@@ -23,7 +23,7 @@ def test_ohne_extra_bleibt_alles_wie_standard():
 
 
 def test_aussortiertes_der_empfindlichen_erkennung_gilt_auch():
-    """#19553: empfindlich = ein langes Fremdkraft-Stueck, Standard = kurze Stuecke darin -> auch aussortiert."""
+    """Session A: empfindlich = ein langes Fremdkraft-Stueck, Standard = kurze Stuecke darin -> auch aussortiert. (Fall 2026-11-11-h) """
     std = {"segments": [_seg(14, 24, 192, 6.6), _seg(42, 48, 294, 6.8), _seg(400, 30, 100)], "foiling_time_s": 102,
            "foiling_distance_m": 586, "max_speed_mps": 6.8, "metrics": {}}
     emp = {"segments": [_seg(400, 31, 105)], "metrics": {"fremdkraft_laeufe": [

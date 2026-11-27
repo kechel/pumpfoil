@@ -7,7 +7,7 @@ Verfahren wie docs/GROUND-TRUTH.md §12a/§12d:
   3. fein je Lauf per Kreuzkorrelation der Pumpbewegung (Betrag der Beschleunigung, Pump-Band
      0,8-2,5 Hz) in ±1 s um den mittleren Versatz — ENG, weil der Pumptakt (~0,7 s) mehrdeutig
      ist (§12d: Nebenmaximum 3,5 Pumps daneben) —, dann Median ueber die Laeufe.
-WAECHTER 24.10.2026 (`ausrichten`, Fassung „huelle-1"): beim Scoot-Paar #16729/#16719 lag der Versatz 15 s daneben
+WAECHTER 24.10.2026 (`ausrichten`, Fassung „huelle-1"): beim Scoot-Paar Session A/B lag der Versatz 15 s daneben (Fall 2026-10-24-f)
 (belegt durch GPS-Tempo r 0,93, Laufstarts und Gleit-Kennzahlen), bei #12687/#12722 60-80 s (uneindeutig). Darum
 zusaetzlich TAKTFREI: Einhuellende der Bewegung (1,5-s-RMS des Betrags ohne 2-s-Mittel) von Brett UND Uhr, in den
 Brett-Laeufen ±8 s, Kreuzkorrelation ±90 s um die Wanduhr (`huelle_ms`, `huelle_r`, `huelle_r_neben` = bester Wert
@@ -24,7 +24,7 @@ Analyse) und jede zeitlich ueberlappende Session DESSELBEN Fahrers, die nicht se
 Beschleunigungsdaten hat. Vorher stand hier eine Liste von Hand, und neue Parallelfahrten fehlten,
 bis jemand daran dachte (Jan, 03.10.: „ist die zu den Trainingsdaten ergaenzt?" — war sie nicht).
 Gegen die Handliste geprueft: findet alle 18 Paare, dazu nur #9484/#9485 (s. AUSGESCHLOSSEN).
-Die Wanduhr-Ueberlappung ist bewusst nur ein Grob-Filter (#13055/#13051 ueberlappen laut
+Die Wanduhr-Ueberlappung ist bewusst nur ein Grob-Filter (Session B/C ueberlappen laut
 Start/Ende nur 2 % und richten sich trotzdem sauber aus); ueber die Qualitaet entscheidet die
 Ausrichtung — die Auswertungen nehmen nur Paare mit Streuung <= 400 ms.
 
@@ -50,50 +50,53 @@ sys.path.insert(0, str(WURZEL / "server"))
 ML = WURZEL / "server" / "data" / "ml"
 HZ = 25.0
 
+# Fall-Daten (Session-/Konto-IDs, Vermerke) liegen NUR lokal: lokal/paare_ausrichten.json (gitignoriert, 27.11.2026:
+# keine Personenbezuege im oeffentlichen Repo). Aufbau wie paare_ausrichten.beispiel.json daneben.
+def _fall_daten(name: str = "paare_ausrichten") -> dict:
+    import json as _j, pathlib as _p, sys as _s
+    wurzel = next(d for d in _p.Path(__file__).resolve().parents if (d / ".git").exists())
+    datei = wurzel / "lokal" / f"{name}.json"
+    if not datei.is_file():
+        _s.exit(f"{datei} fehlt — lokale Fall-Daten, nicht im Repo (Aufbau: {_p.Path(__file__).with_name('paare_ausrichten.beispiel.json')})")
+    def wandeln(v):
+        if isinstance(v, dict) and "__paare__" in v:
+            return {tuple(k) if isinstance(k, list) else k: wandeln(w) for k, w in v["__paare__"]}
+        if isinstance(v, dict):
+            return {int(k) if k.lstrip("-").isdigit() else k: wandeln(w) for k, w in v.items()}
+        if isinstance(v, list):
+            return [tuple(x) if isinstance(x, list) else wandeln(x) for x in v]
+        return v
+    return {k: wandeln(v) for k, v in _j.loads(datei.read_text()).items()}
+_FALL = _fall_daten()
+
 # Brett-Sessions, die NIE ein Paar sind, mit Grund. Alles andere findet `paare_finden`.
-AUSGESCHLOSSEN = {
-    9484: "Dropstart-Experiment, keine normale Fahrt (Uhr #9485)",
-    9656: "u5, Handy zwischen den Laeufen absichtlich gedreht (Montage nicht fest)",
-}
+AUSGESCHLOSSEN = _FALL["AUSGESCHLOSSEN"]
 # Vermerke zu einzelnen Sessions (frueher an der Handliste, gelesen wird davon nichts):
-#   #14073 u574 09.10.: Brett-Handy war als „phone" markiert, lag laut Lage flach und fest am Brett
-#     -> auf „board" korrigiert. Die Wear-OS-Uhr #14072 lieferte nur 7,7 Hz Beschleunigung.
-#   #13908 u244 07.10.: bewusst gefahrene Gleitphasen mitten in und am Ende von Laeufen (Fahrer-Meldung).
-#   #10968 u2 02.10.: zwei echte kurze Startversuche 16:44:12 / 16:44:31 Ortszeit, nur von der Uhr gefunden.
-#   #15004 u683 12.10.2026: iPhone am Brett + Apple Watch Series 10 (#15003), erstes Paar mit Apple Watch.
+#   Session A Fahrer A 09.10.: Brett-Handy war als „phone" markiert, lag laut Lage flach und fest am Brett (Fall 2026-10-09-c)
+#     -> auf „board" korrigiert. Die Wear-OS-Uhr Session B lieferte nur 7,7 Hz Beschleunigung.
+#   Session C Fahrer B 07.10.: bewusst gefahrene Gleitphasen mitten in und am Ende von Laeufen (Fahrer-Meldung).
+#   #10968 Jan 02.10.: zwei echte kurze Startversuche 16:44:12 / 16:44:31 Ortszeit, nur von der Uhr gefunden.
+#   Session D Fahrer C 12.10.2026: iPhone am Brett + Apple Watch Series 10 (Session E), erstes Paar mit Apple Watch.
 #     Handy QUER und um ~17° geneigt montiert -> die alte Brett-Frage (Achse <= 15°) fragte nicht; der
 #     Fahrer bestaetigte im Chat „phone on the board", auf Jans OK als board markiert. Ausrichtung
 #     Streuung 0 ms, r 0,51-0,82 je Lauf. Beleg, dass die Neigungs-Pruefung zu eng ist (TODO Brett-Frage).
-#   #14062 u808 (Brett ohne Uhr): Montage nicht bestaetigt (Nachfrage per DM 10.10. offen); in den Laeufen
-#     wie ein festes Brett (75 % Nicken, kein Klappern). Meldet u808 etwas Loses -> in AUSGESCHLOSSEN.
+#   Session F Fahrer D (Brett ohne Uhr): Montage nicht bestaetigt (Nachfrage per DM 10.10. offen); in den Laeufen
+#     wie ein festes Brett (75 % Nicken, kein Klappern). Meldet Fahrer D etwas Loses -> in AUSGESCHLOSSEN.
 
 # Handy BESTAETIGT am Koerper (Hosentasche o. ae.), NICHT am Brett — Gegenbeispiele fuer die
 # automatische Brett-Erkennung (docs/TODO.md, „Am Brett automatisch erkennen"). `placement` kennt nur
 # board/phone, und „phone" ist zugleich der Standard: eine unangeschaute Session sieht aus wie eine
 # bewusste Taschen-Aufnahme. Darum zaehlen als Taschen-Wahrheit NUR die hier eingetragenen, jeweils
 # mit Beleg. {Handy-Session: Vermerk}
-TASCHE = {
-    16736: "u5 14.10.2026, Handy in der Hosentasche (Jans Meldung), 6 Laeufe, Kreisel, 51 Hz; dazu "
-           "Uhr #16735 (FR55, 1.0.92, record_mode lite -> 0 Accel-Chunks, nur GPS)",
-}
+TASCHE = _FALL["TASCHE"]
 
 # Handy AM BRETT bei einer ANDEREN Sportart als Pumpfoil — nicht in die Pumpfoil-Trainingswahrheit (bei
 # Antrieb wuerde der Motor als Pumpen gelernt; Foil Scoot hat KEINEN Motor, aber die Uhr-Hand liegt am Lenker
 # und das Handgelenk-Signal ist anders, s. scripts/pumpgleit/scoot_paar.py). `paare_finden`
 # ueberspringt sie (und jede Brett-Session mit sport_class != pumpfoil) — seit 15.10.2026 noetig,
-# weil die Brett-Automatik #16729 auf „board" gestellt hat.
+# weil die Brett-Automatik Session A auf „board" gestellt hat. (Fall 2026-10-15-b)
 # {Handy-Session: Vermerk}
-ANDERE_SPORTART = {
-    16729: "u267 14.10.2026, foil_scoot (DM an Jan: „Scooter daten sollten gleich da sein“, Montage NICHT genannt, Rueckfrage offen); Handy als „phone“ markiert, Brett-Verdacht schlaegt an, "
-           "laut Lage in den Laeufen flach (Schwerkraft ~z, 6 von 8 Laeufen), Kreisel + Magnetfeld, "
-           "53,5 Hz, 1 h 47 min, 8 Laeufe (bis 21 min lang); dazu Garmin #16719 (1.0.93, 24,9 Hz, 8 Laeufe). "
-           "Lauf ab 3774 s: Accel 14 s eingefroren (std 0). Fehlstart-Session #16709 (7 s) ignorieren.",
-    19235: "u267 27.10.2026, foil_scoot, Handy am Brett (auto), Samsung 15:20-17:25; dazu Garmin FR965 1.0.97 je Stab eine "
-           "Session (Chat an Jan 17:54: „alle runs entsprechend mit dem jeweiligen stab beschriftet … sehr variabel gepumpt, "
-           "Carven, Langstrecke mit Doublepump, grosse Hube, glide and go, Sprunguebungen“): #19244 Sirus XL + Supra Trail S, "
-           "#19250 Sirus XL + Supra Trail L, #19262 Sirus XL + Ultra Trail S, #19275 (= #19264/19265/19267) Supra Trail 3XL "
-           "stabless; #19263 (9 s) ignorieren. Bloecke alle vollstaendig, 24,9 Hz. Wahrheit fuer Scoot-Pump/Gleit + Stab-Vergleich.",
-}
+ANDERE_SPORTART = _FALL["ANDERE_SPORTART"]
 
 def paare_finden(db, mit_ohne_accel: bool = False) -> tuple[list[tuple[int, int]], list[int]]:
     """(Paare (Brett, Uhr), Brett-Sessions ohne Uhr) aus der Datenbank. Liest nur."""
@@ -110,7 +113,7 @@ def paare_finden(db, mit_ohne_accel: bool = False) -> tuple[list[tuple[int, int]
                .order_by(S.id).all())
     for b in bretter:
         # Seit der Brett-Automatik (15.10.2026) steht `placement = "board"` auch bei anderen
-        # Sportarten (#16729 foil_scoot) — die gehoeren nicht in die Pump-Wahrheit.
+        # Sportarten (Session A foil_scoot) — die gehoeren nicht in die Pump-Wahrheit. (Fall 2026-10-15-c)
         if b.id in ANDERE_SPORTART or (b.sport_class or "pumpfoil") != "pumpfoil":
             continue
         if b.id in AUSGESCHLOSSEN or b.result is None or not storage.chunk_laengen(b.session_uuid, "gyro"):

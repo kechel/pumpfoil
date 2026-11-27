@@ -23,7 +23,7 @@ DB-Zugriff nur über `gemeinsam.db_lesend()` (commit/flush werfen eine Ausnahme)
   gespeicherte Brett-Pumps in allen Läufen. Uhr-Gipfel liegen im Median **−49 ms** daneben (IQR −79..−14), Toleranz ±250 ms.
 - Gleiten = Brett-Gleitphasen nach Anzeige-Regel (1,5–15 s, ohne Anlauf, bis Aufsetzen). 60 von 104 enden am Aufsetzen.
 - Training/Bewertung nur Paare mit Uhr ≥ 15 Hz und Ausrichtung gut/mittel: 14 Uhr-Sessions, 5 Fahrer
-  (u2, u13, u244, u574 nur Wear 1.2.42, u683). Die Wear-Paare < 15 Hz bzw. mit unplausibler Rate sind nur gelistet.
+  (Jan, Fahrer C nur Wear 1.2.42). Die Wear-Paare < 15 Hz bzw. mit unplausibler Rate sind nur gelistet. (Fall 2026-10-23-f)
 - Kein Brett-Paar hat einen Uhr-Kreisel → Kreisel als Merkmal vorbereitet (NaN), aber nicht lernbar (im Bestand 163 Sessions mit Kreisel).
 
 ## Modell
@@ -55,8 +55,8 @@ Puffer 0 statt 5 s: Gleit-F1 0,42 statt 0,47.
 
 ## Laufenden (Puffer)
 
-Uhr-Laufende minus Brett-Aufsetzen (Median): u2 +0,7 s (9 von 21 Läufen VOR dem Aufsetzen, P10 −4,7 s), u13 0,0,
-u244 +0,4, u574 +3,3, u683 +7,0. Laufstart Uhr 1–2 s vor dem Brett (u244 +0,9). Brett-Gleiten hinter dem Uhr-Ende:
+Uhr-Laufende minus Brett-Aufsetzen (Median): Jan +0,7 s (9 von 21 Läufen VOR dem Aufsetzen, P10 −4,7 s), Fahrer A 0,0, (Fall 2026-10-23-g)
+Fahrer B +0,4, Fahrer C +3,3, Fahrer D +7,0. Laufstart Uhr 1–2 s vor dem Brett (Fahrer B +0,9). Brett-Gleiten hinter dem Uhr-Ende:
 43 s / 11 Intervalle; Puffer 2 s holt 27 s / 8, 3 s 34 s / 10, **5 s alles**. Vorschlag: nur für die Pump-/Gleit-Stufe
 jeden Lauf um 5 s verlängern (am nächsten Laufstart gekappt), Ende am ersten „aus“; Laufgrenzen/Rekorde unverändert.
 
@@ -64,15 +64,15 @@ jeden Lauf um 5 s verlängern (am nächsten Laufstart gekappt), Ende am ersten �
 
 Pumpfoil: Pumps −9,1 %, Gleit-Sekunden 21 742 → 83 724 (Gleitanteil 6,7 % der Foil-Zeit, Brett-Paare ~7 %),
 Läufe mit Gleiten 27 % → 65 %, längste Gleitphase je Lauf Median 1,3 → 2,0 s, `best_glide_s` Median 1,6 → 4,2 s.
-Rekord „längste Gleitphase“: heute #16824 14,85 s; neu mehrere Sessions auf der 15-s-Obergrenze (#14927, #8398,
-#1982, #14331, #1245) — die Obergrenze würde zum Rekord.
+Rekord „längste Gleitphase“: heute Session A 14,85 s; neu mehrere Sessions auf der 15-s-Obergrenze (Session B, C, (Fall 2026-10-23-h)
+Session A, B, C) — die Obergrenze würde zum Rekord. (Fall 2026-10-23-i)
 
 ## Risiken
 
 - 5 Fahrer, 64 Brett-Gleitphasen: die Gleit-Zahlen tragen ±10 Punkte Unsicherheit. Auf den Paaren sagt das Modell
   1,6× so viel Gleitzeit wie das Brett (heute 0,3×).
 - Wichtigste Merkmale sind „bis Laufende“/„seit Start“: ein Vorwissen, wo Gleiten liegt (am Ende), keine Messung.
-- u2 (größter Fahrer): Pump-F1 0,82 → 0,80 (Treffer 0,86 → 0,77), die übrigen vier besser.
+- Jan (größter Fahrer): Pump-F1 0,82 → 0,80 (Treffer 0,86 → 0,77), die übrigen vier besser.
 - Andere Sportarten (efoil, foildrive) verlieren ~32 % Pumps — dort gibt es keine Wahrheit.
 - Carve: 42 Ereignisse (60 s) in den Trainingspaaren, je Fahrer 3–19; Fenster-AUC herausgehalten 0,79–0,97,
   aber zu wenig für eine eigene Klasse (Ziel ≥ 150 Ereignisse von ≥ 8 Fahrern).
@@ -91,15 +91,15 @@ Sessions eines Trainingsfahrers wurden mit dem Modell OHNE diesen Fahrer gerechn
 
 | Quelle | heute | neu (hgb_7) |
 |---|---|---|
-| Tap-Pumps #295 (u2, 54 Konsens-Taps, 4 Takes), ±250 ms Treffer/verpasst/extra | 42 / 12 / 12 (54 gezählt) | 34 / 20 / 9 (43) |
-| Tap-Pumps #354 (u2, 47 Taps, 5 Takes) | 34 / 13 / 12 (46) | 28 / 19 / 8 (36) |
+| Tap-Pumps #295 (Jan, 54 Konsens-Taps, 4 Takes), ±250 ms Treffer/verpasst/extra | 42 / 12 / 12 (54 gezählt) | 34 / 20 / 9 (43) |
+| Tap-Pumps #354 (Jan, 47 Taps, 5 Takes) | 34 / 13 / 12 (46) | 28 / 19 / 8 (36) |
 | Label „glide“ #254 (3 s) | keine Gleitphase, 4 Pumps | 3 s gleiten, 0 Pumps |
-| Label „pump“ #479 (39,5 s) | 58 Pumps, keine Gleitphase | 58 Pumps, 86 % pumpen / 3 % gleiten |
-| Label-App `run_pumps` u2 (30 Läufe, 1431) | 1767, rel. Fehler 40 % | 1307, rel. Fehler 13 % |
-| `run_pumps` u460 (10 lange Läufe, 8674) | 8698, 3,5 % | 8397, 7,2 % |
-| `run_pumps` u717 (34 kurze Läufe, 894) | 993, 72 % | 525, 59 % |
+| Label „pump“ Session A (39,5 s) | 58 Pumps, keine Gleitphase | 58 Pumps, 86 % pumpen / 3 % gleiten (Fall 2026-10-23-j) |
+| Label-App `run_pumps` Jan (30 Läufe, 1431) | 1767, rel. Fehler 40 % | 1307, rel. Fehler 13 % |
+| `run_pumps` Fahrer A (10 lange Läufe, 8674) | 8698, 3,5 % | 8397, 7,2 % |
+| `run_pumps` Fahrer B (34 kurze Läufe, 894) | 993, 72 % | 525, 59 % |
 
-Taps: #763 hat keine Accel-Daten, #295 ist (vom Besitzer) gelöscht, die Rohdaten sind noch da. Die Taps liegen auf
+Taps: Session A hat keine Accel-Daten, #295 ist (vom Besitzer) gelöscht, die Rohdaten sind noch da. Die Taps liegen auf (Fall 2026-10-23-k)
 der Zuschnitt-Basis (`t_start_ms`), nicht in Session-ms. Labels: 11 der 13 Sessions sind FR55 mit 2,5 Hz oder ohne
 Daten. `run_pumps`: der Lauf liegt am ENDE des Label-App-Laps; `start_time + run_duration` (so rechnet
 `server/scripts/pump_calibrate.py`) trifft meist das Treiben davor (Lap 2 von 23296854256: Lap ab 0 s, Lauf ab 1296 s).
@@ -107,20 +107,20 @@ Hier über das längste `foil_status`-Stück im Lap gesucht (Länge auf 5 s glei
 1,04 / 0,83 aus dem Juli stammen aus dem alten Fenster. `run_pumps` ist der Zähler einer anderen App, also nur ein
 Vergleichswert.
 
-Befund: bei den Taps (u2, Juni) zählt heute fast genau, und neu verliert 15–20 % der Pumps. Bei `run_pumps` u2 ist
-neu klar besser, bei u460 und u717 nicht eindeutig. Die Trefferquote des neuen Modells hängt am Fahrer.
+Befund: bei den Taps (Jan, Juni) zählt heute fast genau, und neu verliert 15–20 % der Pumps. Bei `run_pumps` Jan ist
+neu klar besser, bei Fahrer A und Fahrer B nicht eindeutig. Die Trefferquote des neuen Modells hängt am Fahrer. (Fall 2026-10-23-l)
 
 **Laufende bis zum Ende einer anschließenden Gleitphase verlängern** (höchstens 5 s, Gleitphase beginnt im Lauf,
 GPS-Tempo ≥ max(1,4 m/s, 0,5 × Laufmedian), kein Sprung > 2 m/s): Brett-Paare 3 von 58 Läufen um 0,4–0,6 s, keiner
-über das Aufsetzen hinaus, Fehler je Fahrer praktisch unverändert (u2 MAE 3,42 → 3,38 s). Bestand: 2882 von 33 461
+über das Aufsetzen hinaus, Fehler je Fahrer praktisch unverändert (Jan MAE 3,42 → 3,38 s). Bestand: 2882 von 33 461
 Läufen (8,6 %), Median +0,6 s, Foil-Zeit +0,5 h von 412 h, Strecke +5,7 km, kein Rekordhalter wechselt (Dauer #2
-+0,9 s). Die Uhr-Enden liegen meist schon HINTER dem Aufsetzen (u683 +7 s, u574 +3,3 s); die Verlängerung bringt
-fast nichts. Laufstart: Uhr 1–2 s vor dem Brett (u244 +0,9 s), Verlängern wäre falsch, Kürzen nicht untersucht.
++0,9 s). Die Uhr-Enden liegen meist schon HINTER dem Aufsetzen (Fahrer A +7 s, Fahrer B +3,3 s); die Verlängerung bringt (Fall 2026-10-23-m)
+fast nichts. Laufstart: Uhr 1–2 s vor dem Brett (Fahrer C +0,9 s), Verlängern wäre falsch, Kürzen nicht untersucht.
 
 **Gleitphasen ≥ 12 s** (Hinweis statt Obergrenze): 209 in 121 Sessions (Pumpfoil 63, 51 Fahrer; efoil 30,
 wingfoil 9, foildrive 8, wakethief 7). Bei 166 von 207 nimmt das GPS-Tempo kaum ab (Steigung > −0,05 m/s je s), nur
 16 gleiten erkennbar aus (< −0,15). Das spricht in der Regel für Welle, Fremdkraft oder verpasste Pumps, nicht für
-echtes Gleiten. Beispiele: #12509, #8398, #1982, #1245 (Pumpfoil), #828, #1231 (efoil), #3235 (wakethief).
+echtes Gleiten. Beispiele: Session A, B, C, D (Pumpfoil), Session E, F (efoil), Session G (wakethief). (Fall 2026-10-23-n)
 
 **Nicht genutzte Labelquellen:** `foil_status.json` in 134 FIT-Importen (Label-App, je Sekunde auf dem Foil →
 Laufende), dazu 40 `original.fit` mit Laps; `analyse/fits` (Mast-Uhr P3/P4, 42 s, 10 Hz); `analyse/ground-truth-
@@ -146,15 +146,15 @@ mit dem Tap-Versatz der Session). FIT `run_pumps` nicht mehr als Kriterium.
 | Takt-Filter, schwache Pumps im Gleiten weg (0,4), 5 s + HMM | 0,895 | 0,912 / 0,961 | 0,879 | 9 % | 0,11 Hz | 0,919 | 0,50 / 0,50 (0,48) | 0,43 / 0,52 | 1,44 s | 53, +1, 50 · 40, +7, 39 |
 | **Takt-Filter ∪ Takt-Verfolger, schwach 0,4, 5 s + HMM** | **0,897** | **0,931 / 0,980** | 0,867 | 11 % | 0,13 Hz | **0,946** | **0,54 / 0,51 (0,50)** | 0,47 / 0,51 | 1,47 s | **55, −1, 51 · 47, 0, 44** |
 
-Je Fahrer (Treffer ±250, empfohlen gegen heute): u2 0,93/0,86, u13 0,92/0,90, u244 0,97/0,93, u574 0,83/0,78,
-u683 1,00/0,95 — kein Fahrer verliert Pumps; Präzision überall höher. „Genauer hinschauen" (≥ 4 s ohne Tempoabfall)
+Je Fahrer (Treffer ±250, empfohlen gegen heute): Jan 0,93/0,86, Fahrer A 0,92/0,90, Fahrer B 0,97/0,93, Fahrer C 0,83/0,78, (Fall 2026-10-23-o)
+Fahrer D 1,00/0,95 — kein Fahrer verliert Pumps; Präzision überall höher. „Genauer hinschauen" (≥ 4 s ohne Tempoabfall)
 ändert die Paare kaum (Gleit-P 0,50 → 0,51). Ohne Position-im-Lauf-Merkmale gleich gut wie mit → ohne genommen.
 Das kleine Netz auf Rohsignalen (MLP 16, kein torch auf der VM) ist schlechter als hgb_7.
 
 Bestand (empfohlene Variante, 3990 Sessions, Pumpfoil 31 464 Läufe): Pumps +0,9 % (je Lauf P10/P50/P90 −10 / +2 /
 +31 %), Gleitphasen 12 958 → 30 890, Gleit-s 21 745 → 76 625 (6,1 % der Foil-Zeit), längste je Lauf Median 1,3 → 1,6 s
-(P90 1,7 → 3,8), `best_glide_s` Median 1,6 → 3,2 s. Rekord „längste Gleitphase“: heute #16824 14,85 s, neu #10176
-(u31) 14,14 s — keine Gleichstände an der 15-s-Grenze mehr. „Genauer hinschauen“: 855 Stellen in 450 Pumpfoil-Sessions.
+(P90 1,7 → 3,8), `best_glide_s` Median 1,6 → 3,2 s. Rekord „längste Gleitphase“: heute Session A 14,85 s, neu Session B (Fall 2026-10-23-p)
+(Fahrer A) 14,14 s — keine Gleichstände an der 15-s-Grenze mehr. „Genauer hinschauen“: 855 Stellen in 450 Pumpfoil-Sessions.
 
 Gesamtmodell: `server/data/ml/pumpgleit/beste.pkl` (`clf`, `sp`, `theta`, `prior`, `takt`, `pll`, `schwach`,
 `puffer_s`). Ein-/Ausgabe: `beste.ableiten(mod, U, laeufe)` mit `U = gemeinsam.uhr_daten(db, id)` und den
@@ -173,7 +173,7 @@ bei efoil/foildrive (`NUR_PUMPS`) nur die Pumps; Gleitphasen, `longest_glide_s`,
 pg-1, Gleiten aus eigener Regel `server/app/analysis/pumpgleit_scoot.py`: Pause zwischen erkannten Pumps ≥ 2,5 s
 (Ränder um 0,3 s gekürzt) plus letzter Pump bis Stufen-Ende, 1,5–15 s, kein „genauer hinschauen". Gespeichert mit
 `pg_version = "pg-scoot-1"` (`pumpgleit.version(s)`), sonst dieselben `pg_*`-Felder. Messung am Brett-Paar
-#16729/#16719: die Accel-Ausrichtung (−23,2 s, r je Lauf 0,07–0,15) lag **15 s daneben**; die GPS-Tempo-Korrelation
+Session A/C: die Accel-Ausrichtung (−23,2 s, r je Lauf 0,07–0,15) lag **15 s daneben**; die GPS-Tempo-Korrelation (Fall 2026-10-24-a)
 beider Geräte (r 0,93) gibt −8 s, dort zeigen die Gleit-Kennzahlen einen scharfen Gipfel (Pump-F1 bleibt bei jedem
 Versatz ~0,75 — Takt 0,69 s, ±250 ms trifft zufällig, beweist also keine Ausrichtung). Mit −8 s: pg-1-Modell
 Gleitphasen F1 0,57 (93 s erkannt / 62 s Brett), pg-scoot-1 F1 0,69 (P 0,67 R 0,71, 62/62 s); Schwelle 2,0–3,0 s

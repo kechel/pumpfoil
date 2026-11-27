@@ -79,7 +79,7 @@ fehlende Bloecke, voller Speicher, Energiesparen der Uhr. Gezaehlt werden nur Lu
 in Bewegung war — im Stillstand duennt die Uhr aus. Je Nutzer gemittelt (Mittel, nicht Median, s. unten).
 
 ATTRAPPEN UND PLATZHALTER
-Emulatoren (`sdk_gwear_x86_64`, Konto 38) und Simulatoren fliegen raus — dieselbe Liste wie
+Emulatoren (`sdk_gwear_x86_64`, Testkonto) und Simulatoren fliegen raus — dieselbe Liste wie
 in `community._ist_attrappe`. Sie standen am 15.10. mit 25 Hz und 0,2 m in den Wear-Zahlen.
 Genauigkeits-Platzhalter (>= 60 exakt gleiche Meter in Folge, z. B. fest 125,0 m beim OnePlus
 OPWWE251) zaehlen nicht als Messung, wie seit 15.10. in der Analyse (`hacc_platzhalter_weg`).

@@ -1,4 +1,4 @@
-"""„Uhrzeit verbergen" (17.11.2026, Wunsch u146): andere sehen nur den Tag, der Besitzer seine echte Zeit.
+"""„Uhrzeit verbergen" (17.11.2026, Wunsch Fahrer A): andere sehen nur den Tag, der Besitzer seine echte Zeit. (Fall 2026-11-17-l)
 
 Wie beim Ort: EINE Session mit unverwechselbarer Startzeit (07:23:41 UTC), dann jeden Endpunkt abfragen, der fremde
 Sessions zeigt, und im rohen Antworttext nach der echten Uhrzeit suchen.

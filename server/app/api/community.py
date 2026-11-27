@@ -1004,7 +1004,7 @@ def _time_record(db: Session, metric: str, cut: datetime | None, spot: str | Non
     Wert = Sekunden seit lokaler Mitternacht des Starts. Gerechnet wird auf den LAUF-Zeiten
     (erster Lauf-Start bzw. letztes Lauf-Ende), NICHT auf started_at/ended_at der Aufnahme:
     die Rohzeiten enthalten Anfahrt/Heimweg und ignorieren Trim, ausgeschlossene Fenster und
-    die Fremdkraft-Abtrennung — #1328 stand als "Nachteule" da, weil die Aufnahme bis in die
+    die Fremdkraft-Abtrennung — Session A stand als "Nachteule" da, weil die Aufnahme bis in die (Fall 2026-08-03-b)
     Nacht lief, obwohl der letzte echte Lauf Stunden frueher endete (Befund Jan, 03.08.).
     Sessions ohne Laeufe halten keinen Zeit-Rekord. Die Sekundenwerte kommen aus _time_rows().
 
@@ -1459,7 +1459,7 @@ def start_success(user: models.User = Depends(current_user), db: Session = Depen
     # NUR Pumpfoil-Sessions. Startversuche gibt es sonst nicht: die Erkennung sucht das
     # Anschieben und Aufsteigen aus eigener Kraft, und beim Wingfoilen oder am Seil ist ein Start
     # etwas voellig anderes — ein langer Lauf sieht fuer sie wie ein langer Startversuch aus.
-    # Anlass: Feedback von u43 zu Session 5272 (08.09.2026), die sport_class="wingfoil" traegt und
+    # Anlass: Feedback von Fahrer A zu Session A (08.09.2026), die sport_class="wingfoil" traegt und (Fall 2026-09-08-e)
     # deren Laeufe in seine persoenliche Quote gezaehlt haben. Dieselbe Bedingung wie bei den
     # Rekorden und Bestenlisten oben (Zeile 135): NULL gilt als Pumpfoil, und Datenmuell
     # (data_quality != ok) zaehlt ohnehin nirgends.
@@ -3443,7 +3443,7 @@ def _feed_ordnung(db: Session):
 
 
 def _attach_social(db: Session, user: models.User, briefs: list[dict]) -> list[dict]:
-    """Reichert Briefs in einem Rutsch mit Likes/Foto-Infos an (kein N+1)."""
+    """Briefs in einem Rutsch mit Likes/Foto-Infos anreichern (kein N+1)."""
     # „Uhrzeit verbergen": hier, weil JEDE Brief-Liste (Feed, Spot, Freunde, Team, Top-Listen) hier durchlaeuft.
     zeitverbergen.liste_anwenden(db, briefs, getattr(user, "id", None))
     ids = [b["session_id"] for b in briefs]
@@ -3614,7 +3614,7 @@ def toggle_vote(
         sess.flagged = True
     # RUECKNAHME hebt das Ausblenden wieder auf — aber nur, wenn es allein an Meldungen hing:
     # keine andere "unangemessen"-Meldung mehr da und kein Admin hat die Session verborgen.
-    # Bis 01.10.2026 blieb sie hier IMMER verborgen (#8970: eine Meldung, vermutlich ein
+    # Bis 01.10.2026 blieb sie hier IMMER verborgen (Session A: eine Meldung, vermutlich ein (Fall 2026-10-01-c)
     # Fehlgriff, zurueckgenommen und durch „fake" ersetzt — die Session war zwei Tage still aus
     # Feed, Rekorden und Spot-Listen verschwunden, ohne dass irgendwo stand, warum).
     if kind == "inappropriate" and not added and sess.flagged:

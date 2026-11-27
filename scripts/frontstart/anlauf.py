@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Front-Start-Erkennung aus der Beschleunigung (Prototyp, 25.10.2026) — REIN LESEND.
 
-Anlass: u439 (Amazfit Active 2, Front-Start vom Steg), #12734: ~20 Startversuche, angezeigt 0. Die GPS-Spur (1 Hz)
+Anlass: Fahrer A (Amazfit Active 2, Front-Start vom Steg), Session A: ~20 Startversuche, angezeigt 0. Die GPS-Spur (1 Hz) (Fall 2026-10-25-f)
 sieht von einem Front-Start nur 1-3 Punkte ueber 8 km/h; die Beschleunigung zeigt ihn klar:
   Ruhe (Stehen am Steg, Huellkurve fast flach) -> 1,5-6 s Anlauf (Schritte mit Spitzen 4-10 g) -> wieder ruhig.
 Einzelne Spitzen ohne Anlauf (Klopfen, Spritzer) sind kein Start.
 
 `anlaeufe(mag, hz)` -> Liste (t_start_s, t_ende_s, spitzen, max_g). Reine Funktion, numpy.
 
-    cd server && DATABASE_URL=... .venv/bin/python ../scripts/frontstart/anlauf.py 12734 3419
+    cd server && DATABASE_URL=... .venv/bin/python ../scripts/frontstart/anlauf.py <session-id> [<session-id> …]
 """
 import sys
 

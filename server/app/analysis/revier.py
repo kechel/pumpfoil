@@ -1,12 +1,12 @@
 """Liegt ein Lauf dort, wo andere schon gepumpt haben? — Gegenbeweis zur Fremdkraft-Regel ohne Accel.
 
-Jan, 11.11.2026 (Session #934, ein Fahrer mit sehr effizientem Foil am Kanal): zwei lange Laeufe mit 12,7 und 14,3 km/h
+Jan, 11.11.2026 (Session A, ein Fahrer mit sehr effizientem Foil am Kanal): zwei lange Laeufe mit 12,7 und 14,3 km/h (Fall 2026-11-11-f)
 wurden als „Fremdkraft" aussortiert, weil der Puls kaum stieg — die Grundlinie lag nach dem Rueckweg zu Fuss schon hoch.
 „na wir haben zumindest eine heatmap zum vergleichen um auto auszuschliessen oder?"
 
 Die Heatmap (app/heatmap.py) enthaelt nur GEZAEHLTE Laeufe. Liegt ein Lauf ueberwiegend auf Zellen, in denen andere
 Sessions Pumpfoil-Laeufe haben, faehrt dort kein Auto auf einer Strasse. Gemessen am 11.11.2026 (z19, ~50 m): die
-bestaetigten Autofahrten aus data/ground-truth/runs.json liegen zu 0-1 % auf solchen Zellen, die beiden Stuecke aus #934
+bestaetigten Autofahrten aus data/ground-truth/runs.json liegen zu 0-1 % auf solchen Zellen, die beiden Stuecke aus Session A
 zu 92 und 100 %. Umgekehrt beweist FEHLENDE Abdeckung nichts (ein echter Pumpfoil-Lauf an einem Spot, wo sonst niemand
 faehrt, liegt bei 0 %) — der Gegenbeweis wirkt deshalb nur in eine Richtung.
 

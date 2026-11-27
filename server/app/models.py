@@ -839,7 +839,7 @@ class AnalysisResult(Base):
     # NULL = noch nicht gerechnet; "{}" = geprueft, aber nichts zu holen (kein Puls / keine Laeufe)
     # -> wird nicht bei jedem Aufruf neu versucht. run_analysis setzt auf NULL zurueck.
     hr_by_min_json: Mapped[str | None] = mapped_column(Text)
-    # Ø Puls nur ueber die Laeufe (Feedback u904, 01.11.2026): Cache {"v": 1, "avg": int|None}, api/sessions.py
+    # Ø Puls nur ueber die Laeufe (Feedback Fahrer A, 01.11.2026): Cache {"v": 1, "avg": int|None}, api/sessions.py (Fall 2026-11-01-e)
     # _hr_foil; run_analysis setzt ihn zurueck.
     hr_foil_json: Mapped[str | None] = mapped_column(Text)
 
@@ -2053,7 +2053,7 @@ class TanzOrt(Base):
 class SpotTrennung(Base):
     """Zwei Spots, die NIE automatisch zusammengelegt werden duerfen (Jan, 23.10.2026).
 
-    Anlass Roman u244: zwei Anlegestellen 350 m auseinander, durch eine Landzunge getrennt. Die Track-Puffer
+    Anlass Fahrer A: zwei Anlegestellen 350 m auseinander, durch eine Landzunge getrennt. Die Track-Puffer (Fall 2026-10-23-w)
     (je 500 m, spots.SAME_SPOT_GAP_M) ueberlappen, also landeten Sessions vom zweiten Steg im ersten Spot.
     Von Hand getrennt (scripts/spot-trennen.py); `spots._auto_mergeable` und `dubletten_zusammenfuehren`
     fragen diese Tabelle, und `assign_one` ordnet eine Session dann dem Spot mit dem naeheren Steg zu.

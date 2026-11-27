@@ -751,7 +751,7 @@ def test_hoehere_accel_rate_gewinnt(client, garmin, monkeypatch, tmp_path):
         return g
     monkeypatch.setattr(sess, "import_parsed_session", _import)
     url = "https://apis.garmin.com/wellness-api/rest/activityFile?id=11"
-    # 08.11.2026 (#20815/#20823): Garmin mit 100 Hz, aber nach 10 von 30 min gestoppt -> unsere bleibt (Deckung).
+    # 08.11.2026 (Session A/B): Garmin mit 100 Hz, aber nach 10 von 30 min gestoppt -> unsere bleibt (Deckung). (Fall 2026-11-08-f)
     for minute, hz, eigene_min, garmin_gewinnt in ((0, 100, 10, True), (20, 10, 10, False), (40, 100, 30, False)):
         start = datetime(2026, 11, 5, 8, minute, tzinfo=timezone.utc)
         sid, suuid = _eigene_session(uid, start, minuten=eigene_min)
@@ -1140,7 +1140,7 @@ def test_weniger_laeufe_in_der_garmin_datei_eigene_bleibt(client, garmin, monkey
 
 
 def test_schon_verknuepft_wird_nicht_nochmal_umgehaengt(client, garmin, monkeypatch, tmp_path):
-    # 14.11.2026 (u1106): Push-Import und Abschluss unserer App liefen gleichzeitig — erst haengte der Abschluss die
+    # 14.11.2026: Push-Import und Abschluss unserer App liefen gleichzeitig — erst haengte der Abschluss die (Fall 2026-11-14-a)
     # Garmin-Session in unsere, dann der Push unsere in die Garmin-Session; beide zeigten aufeinander.
     from app import models, storage
     from app.db import SessionLocal

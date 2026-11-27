@@ -111,7 +111,7 @@ def save_accel_chunk(session_uuid: str, index: int, b64: str, t0_ms: int | None 
     # Startzeit des Chunks mitschreiben, wenn die Uhr sie liefert. Wear und Apple Watch schicken
     # t0_ms seit immer mit, der Server hat es bis 2026-08-01 weggeworfen — und die Analyse musste
     # die Zeitachse aus samples/Dauer RATEN. Das geht schief, sobald die echte Sensorrate von der
-    # angekuendigten abweicht: bei #1328 (getaggt 25, aus den Daten 23,57 Hz) waeren das 6 Minuten
+    # angekuendigten abweicht: bei Session A (getaggt 25, aus den Daten 23,57 Hz) waeren das 6 Minuten (Fall 2026-08-01-x)
     # Versatz bei Minute 100 — und es ist nicht entscheidbar, welche der beiden Raten stimmt.
     # Mit den echten Chunk-Startzeiten ist die Zuordnung exakt statt geschaetzt.
     # Sidecar statt Dateiname, damit alte Sessions unveraendert lesbar bleiben.
@@ -215,7 +215,7 @@ def quarantaene_ablegen(roh: bytes, *, quelle: str, user_id: int | None,
                         grund: str, filename: str | None = None) -> str | None:
     """Eine nicht lesbare Import-Datei aufheben, statt sie zu verlieren.
 
-    Warum (06.09.2026): Peters erstes COROS-Training kam vollstaendig bei uns an und war dann weg
+    Warum (06.09.2026): das erste COROS-Training kam vollstaendig bei uns an und war dann weg
     — `parse_fit_bytes` warf, und der Aufrufer hatte nur eine Log-Zeile uebrig. Die Datei selbst
     hat niemand behalten: `save_original_upload` laeuft erst NACH dem erfolgreichen Parsen. Damit
     haengt jede Rettung daran, dass der Nutzer nochmal synchronisiert und der Anbieter erreichbar
@@ -427,7 +427,7 @@ def load_gps(session_uuid: str, roh: bool = False) -> list:
 
 # Auffuellen nur aus einer GERADEN, plausiblen Bewegung ueber ±2 Punkte (4 s). Ein Schritt von
 # Punkt zu Punkt reicht nicht: beim Einrasten des Empfaengers springen die Positionen hin und her
-# (#486: 21 / 7,5 / 13 / 15 m/s im Stand) — das Tempo 0 der Uhr ist dort richtig.
+# (Session A: 21 / 7,5 / 13 / 15 m/s im Stand) — das Tempo 0 der Uhr ist dort richtig. (Fall 2026-10-16-c)
 # Beide Grenzen entscheiden nur „Luecke oder Stillstand", NICHT „Lauf oder nicht": das tun danach
 # wie immer Profil-Empfindlichkeit (Einstieg ab 2,2 m/s) und Grenzen je Sportart. Oben deshalb
 # keine Pumpfoil-Grenze (Wing/Kite fahren bis 70 km/h), sondern dieselbe Glitch-Grenze wie
@@ -472,7 +472,7 @@ def tempo_auffuellen(samples: list) -> list:
     0 oder negativ (Wear ab 1.2.42: -1 = „kein Tempo"; aeltere Fassungen schrieben dafuer 0),
     und auch das nur bei gerader, plausibler Bewegung (s. `_tempo_aus_spur`). Sonst wird
     negativ zu 0 — genau das, was die Erkennung von aelteren Fassungen kennt.
-    Befund 16.10.2026 (#16840, Xiaomi Watch 2 Pro, Wear 1.2.41): in 37 % der Fahrsekunden Tempo 0
+    Befund 16.10.2026 (Session A, Xiaomi Watch 2 Pro, Wear 1.2.41): in 37 % der Fahrsekunden Tempo 0 (Fall 2026-10-16-d)
     bei sauberer Spur. Die Erkennung teilte zwei Laeufe mittendrin, Startpunkte lagen im Wasser,
     die Tempo-Faerbung zeigte Nullen. Mit Auffuellen: 7 statt 8 Laeufe, wie die Startzaehlung."""
     out = samples

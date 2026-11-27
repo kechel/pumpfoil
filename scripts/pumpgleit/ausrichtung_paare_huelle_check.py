@@ -5,10 +5,12 @@ R = pathlib.Path("/home/jan/garmin-connect-iq/scripts")
 sys.path.insert(0, str(R / "pumpgleit")); sys.path.insert(0, str(R / "v3"))
 import gemeinsam as G
 logging.disable(logging.WARNING)
-exec(open(pathlib.Path(__file__).with_name("ausrichtung_paare_lauf_check.py")).read().split("def starts")[0].split("db = G.db_lesend()")[1])
+sys.path.insert(0, str(R)); from lokal_faelle import laden as _laden
+_F = _laden("ausrichtung_paare", "scripts/pumpgleit/ausrichtung_paare.beispiel.json")   # IDs nur lokal
+GPSV = _F["GPSV"]
 db = G.db_lesend()
 paare = {(p["brett"], p["uhr"]): p for p in G.paare_beste()}
-paare[(16729, 16719)] = {"versatz_ms": -23189, "qualitaet": "schwach"}
+paare[(_F["SCOOT_BRETT"], _F["SCOOT_UHREN"][0])] = _F["SCOOT_SCHWACH"]
 def glatt(x, n):
     k = np.ones(n) / n
     return np.convolve(x, k, mode="same")

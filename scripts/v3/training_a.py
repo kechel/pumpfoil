@@ -44,6 +44,8 @@ import numpy as np  # noqa: E402
 
 WURZEL = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(WURZEL / "server"))
+sys.path.insert(0, str(WURZEL / "scripts")); from lokal_faelle import laden as _laden
+BRUST = _laden("v3_faelle", "scripts/v3/v3_faelle.beispiel.json")["BRUST_FAHRER"]   # Konto-ID nur lokal
 from app.analysis.v3 import merkmale as M  # noqa: E402
 
 ML = WURZEL / "server" / "data" / "ml"
@@ -112,7 +114,7 @@ def laden(namen, ohne=(), rand_s=0, brett=None, lauf_nur_wasser=False, ds_extra=
             geschaetzt = np.isin(q, [Q.index("lauf"), Q.index("land"), Q.index("ruhe")])
             y[nah & geschaetzt] = -1
         if lauf_nur_wasser:
-            # 30.09.: „lauf nahe Wasser" labelte auch die Stuecke AM UFER als Foilen (#9580: Lauf 19
+            # 30.09.: „lauf nahe Wasser" labelte auch die Stuecke AM UFER als Foilen (Session A: Lauf 19 (Fall 2026-09-30-z)
             # zum Parkplatz) — so lernt das Modell genau die Faelle falsch. Lauf-Sekunden ohne
             # JRC-Wasser (occ == 0) werden unsicher; schmales Wasser deckt die Sichtpruefung ab.
             y[(q == Q.index("lauf")) & (d["occ"] == 0)] = -1
@@ -164,8 +166,8 @@ def bericht(name, y, p, q, heute=None, g=None):
             ok = (p[mm] == v).mean()
             h = f" (heute {(heute[mm] == v).mean():.3f})" if heute is not None else ""
             print(f"  {qn:11s} y={v}: {mm.sum():8d} s, richtig {ok:.3f}{h}")
-    if g is not None and (g == 350).any():
-        m = (g == 350) & (y == 1)
+    if g is not None and (g == BRUST).any():
+        m = (g == BRUST) & (y == 1)
         print(f"  Brust-Fahrer y=1: {m.sum()} s, richtig {(p[m] == 1).mean():.3f}"
               + (f" (heute {(heute[m] == 1).mean():.3f})" if heute is not None else ""))
 

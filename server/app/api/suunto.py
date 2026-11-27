@@ -549,7 +549,7 @@ def _callback_ausfuehren(code: str | None = None, state: str | None = None, erro
     db.commit()
     # Gleich einmal abgleichen (22.10.2026, Jan: „warum wurde die nicht direkt importiert als er verbunden
     # hat?"). Suuntos Benachrichtigungen kommen nur fuer Workouts NACH dem Verbinden — ein Workout von kurz
-    # vorher (Maese u763: gefahren 08:49, verbunden 09:19) wartete sonst bis zum naechtlichen Abgleich.
+    # vorher (Fahrer A: gefahren 08:49, verbunden 09:19) wartete sonst bis zum naechtlichen Abgleich. (Fall 2026-10-22-d)
     # Im Hintergrund, die Weiterleitung wartet nicht; die Seite zeigt den Stand ueber /sync-progress.
     try:
         from .. import syncprogress
@@ -652,7 +652,7 @@ def _grund_code(grund: str | None) -> str:
     """Interner Grund -> stabiler Code fuer die Oberflaeche.
 
     Die internen Gruende sind fuers Log gedacht und teils mit Zahlen gespickt
-    („Dauer 40 s"). Der Nutzer braucht statt dessen eine uebersetzbare Aussage — Frederic
+    („Dauer 40 s"). Der Nutzer braucht statt dessen eine uebersetzbare Aussage — ein Nutzer
     am 04.09.: „0 importiert / 1 ignoriert" und „damit kann ich nichts anfangen". Deshalb
     hier die Abbildung auf wenige Faelle, die man wirklich erklaeren kann.
     """
@@ -759,7 +759,7 @@ def _hole_workout(db: Session, user: models.User, token: str, key: str,
             # geschickt (docs/SUUNTO.md „Zusammenfuehren") — keine zweite Session ohne Beschleunigung.
             return False, "doppelt"
         # `import_parsed_session` gibt bei einem Doppel-Treffer die VORHANDENE Session zurueck
-        # (nicht None) — das zaehlte bisher als Import. Bei Frederics Konto meldete der Sync
+        # (nicht None) — das zaehlte bisher als Import. Bei einem Nutzerkonto meldete der Sync
         # deshalb „2 importiert", obwohl genau eine Session ankam: das Workout lief einmal
         # durch die Liste und einmal aus der Warteschlange. Darum hier an der ID pruefen, ob
         # wirklich etwas Neues entstanden ist, statt die Dedup-Logik zu verdoppeln.

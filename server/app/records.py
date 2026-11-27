@@ -30,7 +30,7 @@ _WIN_LABEL = {"10d": "10 Tage", "30d": "30 Tage", "365d": "1 Jahr", "all": "insg
 # nach einer Neuauswertung alter Sessions (27.09.2026: 86 Aufnahmen mit veraltetem Zuschnitt) oder
 # nach einem tagelang haengenden Upload der Halter eine „Rekord!"-Meldung zu einer Fahrt von vor
 # Wochen. Das EREIGNIS wird trotzdem festgehalten (Abzeichen), nur ohne Push. 3 Tage decken einen
-# ueber Nacht haengenden Upload ab (#10158: Rest kam am Folgetag).
+# ueber Nacht haengenden Upload ab (Session A: Rest kam am Folgetag). (Fall 2026-09-27-l)
 PUSH_FRISCH_TAGE = 3
 
 

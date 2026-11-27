@@ -37,7 +37,7 @@ object LocalStore {
     // Aufnahme, geloescht beim sauberen Ende. Liegt sie beim naechsten App-Start noch da, ist die
     // App waehrend einer Aufnahme gestorben — und das erfahren wir sonst NIE.
     //
-    // Anlass (u171, 17.09.2026): seine Session #8705 lief laut Zeitstempel 30,5 Minuten, GPS UND
+    // Anlass (17.09.2026): seine Session A lief laut Zeitstempel 30,5 Minuten, GPS UND (Fall 2026-09-17-b)
     // Accel enden aber beide auf Sekunde 1619 von 1831. Die App war 3 Minuten 32 vorher weg, er
     // ist ahnungslos weitergefahren, und bei uns kam davon nichts an. Seine Worte: „Nach dem Run
     // schaue ich auf die Uhr und stelle fest, dass die Pumpfoil- und Workout-App neu gestartet

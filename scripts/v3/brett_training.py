@@ -26,7 +26,9 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 ML = WURZEL / "server" / "data" / "ml"
 
 # Aus Schritt 2 als brauchbar bewertet; #10874/#10873 ist dieselbe Fahrt wie #10875/#10873.
-GUTE = [(9535, 9534), (9650, 9649), (10195, 10194), (10248, 10250), (10328, 10326), (10875, 10873)]
+sys.path.insert(0, str(WURZEL / "scripts")); from lokal_faelle import laden as _laden
+_F = _laden("v3_faelle", "scripts/v3/v3_faelle.beispiel.json")   # Session-/Konto-IDs nur lokal
+GUTE = _F["GUTE"]
 AUS, GLEITEN, PUMPEN = 0, 1, 2
 
 

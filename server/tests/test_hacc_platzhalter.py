@@ -1,4 +1,4 @@
-"""Genauigkeits-Platzhalter mitten in der Aufnahme (15.10.2026, #16671).
+"""Genauigkeits-Platzhalter mitten in der Aufnahme (15.10.2026, Session A). (Fall 2026-10-15-i)
 
 Wear OS wechselt die GPS-Quelle: erst echte Werte, dann der LocationManager mit fest 125,0 m. Der
 Platzhalter-Abschnitt darf das 15-m-Gate nicht ausloesen; kurz stehengebliebene echte Werte

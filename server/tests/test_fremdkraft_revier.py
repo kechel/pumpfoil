@@ -47,7 +47,7 @@ def test_mit_modell_entscheidet_im_pumpfoil_tempo_das_modell(monkeypatch):
     segs, t, hr, ger, lat, lon = _lauf(15.0)
     behalten, fremd = detect_v2._fremdkraft_laeufe(segs, t, hr, ger, lat=lat, lon=lon, session_id=1, mit_modell=True)
     assert fremd == [] and behalten[0]["fremdkraft_entschieden"] == "modell"
-    segs, t, hr, ger, lat, lon = _lauf(24.0)        # schneller: wieder der Puls (#17722, abgeschnittene 3,9 Hz)
+    segs, t, hr, ger, lat, lon = _lauf(24.0)        # schneller: wieder der Puls (Session A, abgeschnittene 3,9 Hz) (Fall 2026-11-11-i)
     behalten, fremd = detect_v2._fremdkraft_laeufe(segs, t, hr, ger, lat=lat, lon=lon, session_id=1, mit_modell=True)
     assert behalten == [] and len(fremd) == 1
 

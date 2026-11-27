@@ -813,7 +813,7 @@ def _get_board_attitude(db: Session, user_id: int, arg: dict) -> dict:
             # Wie das Handy in DIESEM Lauf auf dem Brett lag — aus den Daten bestimmt, nicht
             # angegeben. Dreht sich das von Lauf zu Lauf stark, sass es locker.
             "montage_drehung_deg": k.get("rot_deg"),
-            # Dieselben Zahlen wie die Tabelle „Lage je Lauf" der Webseite (Roman, 08.10.2026: die
+            # Dieselben Zahlen wie die Tabelle „Lage je Lauf" der Webseite (ein Nutzer, 08.10.2026: die
             # Tabelle sagte ±2,4° Rollen, dieses Werkzeug 20-34°). Die Amplituden oben sind ABSOLUT
             # (inkl. Kurven, Start/Ende und einem Versatz der Lage); diese hier sind mittelwertfrei.
             "technik": _technik_mcp(k.get("technik")),

@@ -5,7 +5,7 @@ import { useT } from "../i18n";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
 import { minMax as minMaxWerte } from "../lib/minmax";
 
-// „Anfang/Ende kürzen" für EINEN Lauf (Wunsch u836, Jan 23.10.2026: „erstmal nur kuerzen, eigenes popup und
+// „Anfang/Ende kürzen" für EINEN Lauf (Wunsch Fahrer A, Jan 23.10.2026: „erstmal nur kuerzen, eigenes popup und (Fall 2026-10-23-y)
 // nur web erstmal"). Seltener Fall, deshalb im „⋯"-Menü der Lauf-Tabelle versteckt.
 // Kein neues Datenmodell: der abgeschnittene Rand wird ein aussortierter Bereich (`excluded_ranges`,
 // POST …/runs/exclude mit start_ms/end_ms, Session-ms) — er steht danach im bekannten Hinweis-Kasten und

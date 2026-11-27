@@ -20,7 +20,9 @@ import numpy as np
 WURZEL = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(WURZEL / "server"))
 ML = WURZEL / "server" / "data" / "ml"
-FEST = [10339, 9525, 3506, 9455, 7160, 10478, 3045]
+sys.path.insert(0, str(WURZEL / "scripts")); from lokal_faelle import laden as _laden
+_F = _laden("v3_faelle", "scripts/v3/v3_faelle.beispiel.json")   # Session-/Konto-IDs nur lokal
+FEST = _F["FEST"]
 
 
 def bereiche(m, t):

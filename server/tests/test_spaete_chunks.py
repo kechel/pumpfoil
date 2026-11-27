@@ -1,6 +1,6 @@
 """Spaete Chunks an einer schon abgeschlossenen Session loesen eine neue (finale) Analyse aus.
 
-Anlass 29.09.2026, #10266 (Apple Watch, 2 h 48 min): der Haenger-Lauf schloss die Aufnahme mit den
+Anlass 29.09.2026, Session A (Apple Watch, 2 h 48 min): der Haenger-Lauf schloss die Aufnahme mit den (Fall 2026-09-29-ab)
 ersten Chunks ab, Stunden spaeter kamen 1009 weitere (fast die ganze Beschleunigung) — gespeichert,
 aber nie ausgewertet, weil `_nachrechnen_faellig` nur `recording`/`live` kannte und die Uhr die
 letzten 74 Chunks nie schickte (also kein `/complete`)."""

@@ -12,7 +12,7 @@ die die Standard-Erkennung GAR NICHT findet (keine zeitliche Ueberlappung mit ei
 Startversuche von Anfaengern und leichten Fahrern. Solche Laeufe tragen `nur_empfindlich: true`. Ein Lauf, den beide
 finden, ist damit unabhaengig von der Einstellung gleich lang; Events, Rekorde und Profil lesen dieselbe Auswertung.
 
-AUSSORTIERTES GILT AUCH (Jan, 11.11.2026, Anlass #19553): die empfindliche Erkennung sieht eine Motor-/Wingfahrt oft als
+AUSSORTIERTES GILT AUCH (Jan, 11.11.2026, Anlass Session A): die empfindliche Erkennung sieht eine Motor-/Wingfahrt oft als (Fall 2026-11-11-e)
 EIN langes Stueck und sortiert es als Fremdkraft aus; die Standard-Erkennung zerlegt dasselbe in kurze Stuecke, die
 durch die Fremdkraft-Pruefung rutschen. Liegt ein Standard-Lauf zu mindestens UEBERLAPP_FREMD in so einem Abschnitt, wird
 er ebenfalls aussortiert — mit Grund in metrics.fremdkraft_laeufe und wie jeder andere mit einem Tipp zurueckholbar.

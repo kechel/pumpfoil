@@ -1,6 +1,6 @@
 """Erkennung v3: Haltung der Uhr RELATIV zur Session (NICHT live, nur Messungen).
 
-Jans Idee (30.09.2026, an #9580): in echten Laeufen sitzt die Uhr fast immer gleich — gegen die
+Jans Idee (30.09.2026, an Session A): in echten Laeufen sitzt die Uhr fast immer gleich — gegen die (Fall 2026-09-30-ad)
 typische Lauf-Haltung derselben Session im Median 4,5° (2593 sichere Laeufe), Gehen/Tragen an Land
 72°, Laeufe an Land 75°; Bewegungs-Profil 0,10 gegen 0,70, Staerke 1,00 gegen 0,12
 (scripts/v3/haltung.py). Absolute Werte helfen dabei nicht — jeder traegt die Uhr anders —, erst

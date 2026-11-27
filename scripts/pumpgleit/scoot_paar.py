@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """pg-1 bei Foil Scoot (Jan, 24.10.2026) — REIN LESEND, nichts in die DB, pg-1 nur im Speicher erzwungen.
 
-1. Ausrichtung Brett-Handy #16729 (u267, foil_scoot) gegen die Uhr-Kandidaten #16719 und #16708 mit
+1. Ausrichtung Brett-Handy Session A (foil_scoot) gegen die Uhr-Kandidaten Session B und C mit (Fall 2026-10-24-e)
    scripts/v3/paare_ausrichten.laden()/ausrichten() direkt (paare_finden schliesst Nicht-Pumpfoil-Bretter
    bewusst aus und bleibt unveraendert). Ergebnis nach server/data/ml/pumpgleit/scoot_paar.json.
 2. Brett-Wahrheit (Brett-Regeln, gemeinsam.brett_wahrheit) auf die Uhr gelegt, Bewertung wie modell.py:
@@ -26,7 +26,10 @@ import gemeinsam as G
 import merkmale as M
 import modell as MO
 
-BRETT, UHREN = 16729, (16719, 16708)
+sys.path.insert(0, str(HIER.parent))
+from lokal_faelle import laden as _laden
+_F = _laden("ausrichtung_paare", "scripts/pumpgleit/ausrichtung_paare.beispiel.json")   # IDs nur lokal
+BRETT, UHREN = _F["SCOOT_BRETT"], tuple(_F["SCOOT_UHREN"])
 
 
 def main():

@@ -14,7 +14,7 @@
   spot_info    Spot-Beschreibung (spot_notes, nicht versteckt)
   brett        Session mit Handy am Brett (Vergleichsdaten fuer die Erkennung), je Session
   bewertung    „Rate this analysis"
-  git          (mit --git) Nutzer, die in Commit-Nachrichten vorkommen („u244" oder eindeutiger Anzeigename),
+  git          (mit --git) Nutzer, die in Commit-Nachrichten vorkommen („Fahrer A" oder eindeutiger Anzeigename), (Fall 2026-10-23-q)
                je Nutzer und Tag — Meldungen und Tests, die wir umgesetzt haben
 Alles andere (Mails, GitHub, Tests, Hinweise im oeffentlichen Chat) per --add.
 --alt-feedback: JSON {id: {user_id, at, url, text}} aus pg_restore der Backups (geloeschte Formular-Feedbacks).
@@ -50,7 +50,7 @@ def _git(db, models, merke, intern):
         h, d = kopf.split(" ")
         tag = d[:10]
         # Nur Commits, die von einem Beitrag sprechen — sonst zaehlten Nutzer, deren Daten wir nur
-        # untersucht haben (z. B. „u477 SM-L330 6 Sessions" im Wear-Befund), als Feedback-Geber.
+        # untersucht haben (z. B. „Fahrer A SM-L330 6 Sessions" im Wear-Befund), als Feedback-Geber. (Fall 2026-10-23-r)
         if not BEITRAG_WORT.search(text):
             continue
         treffer = {int(m.group(1)) for m in re.finditer(r"\bu(\d{1,4})\b", text)}

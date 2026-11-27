@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Bilder fuer Nerd-Analysen Teil 6 (Pump-/Gleit-Erkennung pg-1) -> web/public/nerd6/. REIN LESEND.
 
-Datenschutz: Signal- und Kartenbilder NUR aus Jans eigenen Sessions (u2: Uhr #10194 + Brett-Handy #10195).
+Datenschutz: Signal- und Kartenbilder NUR aus Jans eigenen Sessions (Jan: Uhr #10194 + Brett-Handy #10195).
 Andere Fahrer nur anonym und zusammengefasst (Fahrer A-E, ohne Orte, ohne Karten). Englische Achsen.
 Karten ohne Hintergrundkacheln (nur die Spur in Metern) — keine Orte im Bild.
 

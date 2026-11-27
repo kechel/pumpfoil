@@ -47,7 +47,7 @@ FENSTER_TEMPO_ANTEIL = 2 / 3
 # dem lokalen Median (SPRUNG_N echte Punkte) liegt. Gemessen am Bestand (16.11., 5036 Sessions): ±30 % zum Median traf das
 # normale Schwanken im Pumptakt (-80 Werte bei 100 m), Faktor 1,6 von Punkt zu Punkt ebenso (-103); diese Fassung aendert
 # kaum etwas (100 m: +7/-4, im Flying-Sprint-Fenster 2 Werte um <= 0,5 km/h). Faelle, in denen die HAELFTE der Punkte
-# springt (#1460, Altbestand), faengt sie nicht — der Median wandert mit; dafuer das Referee Board.
+# springt (Session A, Altbestand), faengt sie nicht — der Median wandert mit; dafuer das Referee Board. (Fall 2026-11-16-g)
 SPRUNG_HOCH = 1.5
 SPRUNG_TIEF = 0.5
 SPRUNG_N = 9

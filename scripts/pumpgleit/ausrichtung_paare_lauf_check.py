@@ -4,13 +4,12 @@ import numpy as np
 R = pathlib.Path("/home/jan/garmin-connect-iq/scripts")
 sys.path.insert(0, str(R / "pumpgleit")); sys.path.insert(0, str(R / "v3"))
 import gemeinsam as G
+sys.path.insert(0, str(R)); from lokal_faelle import laden as _laden
+_F = _laden("ausrichtung_paare", "scripts/pumpgleit/ausrichtung_paare.beispiel.json")   # IDs nur lokal
 logging.disable(logging.WARNING)
 from app import models
 db = G.db_lesend()
-GPSV = {(9528,9529):234750,(9535,9534):132750,(9650,9648):323750,(9650,9649):1214000,(10195,10194):213000,(10248,10250):538250,
- (10328,10326):652500,(10875,10873):697000,(10968,10969):179750,(10993,10979):267250,(12610,12608):-3089500,(12687,12722):218000,
- (12738,12737):350500,(13055,13051):459000,(13908,13909):319750,(14073,14072):867500,(15004,15003):299000,(15099,15097):379000,
- (16667,16666):406500,(17639,17638):368250,(16729,16719):-8000}
+GPSV = _F["GPSV"]
 def starts(sid):
     s = db.get(models.Session, sid)
     segs = json.loads(s.result.segments_json or "[]")
@@ -21,7 +20,7 @@ def guete(bs, us, v):
     d = np.array(d); m = d < 20000
     return (float(np.median(d[m])) if m.any() else None), int(m.sum())
 paare = {(p["brett"], p["uhr"]): p for p in G.paare_beste()}
-paare[(16729,16719)] = {"versatz_ms": -23189, "qualitaet": "schwach"}
+paare[(_F["SCOOT_BRETT"], _F["SCOOT_UHREN"][0])] = _F["SCOOT_SCHWACH"]
 for k, vg in GPSV.items():
     p = paare.get(k); va = p.get("versatz_ms")
     bs, us = starts(k[0]), starts(k[1])

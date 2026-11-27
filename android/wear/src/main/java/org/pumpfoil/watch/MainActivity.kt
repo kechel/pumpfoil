@@ -118,7 +118,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
         // Die App bleibt auf dem Schirm, solange sie laeuft — ohne Ausnahme und ohne Frist.
         //
         // Bis 19.09.2026 stand hier ein `moveTaskToBack(true)`, sobald gerade nicht aufgezeichnet
-        // wurde. Gemeldet von u447 (Galaxy Watch Ultra): „the app always goes into the background,
+        // wurde. Gemeldet von Fahrer A (Galaxy Watch Ultra): „the app always goes into the background, (Fall 2026-09-19-a)
         // so I only see the watch face instead of the app."
         //
         // Jan dazu, und das ist die Regel: „die uhr muss waehrend der gesamten zeit in der die app
@@ -263,7 +263,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
     @Composable
     private fun RecordScreen(onWantPair: () -> Unit = {}) {
         val sRoh by Recorder.state.collectAsState()
-        // GPS WEG waehrend der Aufnahme (Garmin-Fall Roman, 25.10.2026): sekuendlich aus dem Alter der
+        // GPS WEG waehrend der Aufnahme (Garmin-Fall eines Nutzers, 25.10.2026): sekuendlich aus dem Alter der
         // letzten Position abgeleitet — der Zustand selbst aendert sich nur, wenn Positionen KOMMEN. Ist
         // GPS weg, gilt es fuer die ganze Ansicht als schlecht: Tempo „--" statt 0, Balken „GPS suchen".
         var jetzt by remember { mutableStateOf(SystemClock.elapsedRealtime()) }
@@ -1246,7 +1246,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
             var autoArmed by remember { mutableStateOf(false) }
             // Bereit = brauchbarer, frischer Fix in den letzten 10 s. Blieb bis 25.10.2026 stehen, wenn
             // keine Positionen mehr kamen (wie Garmins `_hasGpsFix`, dort derselbe Fehler: die Uhr meldete
-            // „bereit", Roman fuhr los, GPS war weg). 10 s halten kurze Aussetzer aus, ohne zu flackern.
+            // „bereit", der Nutzer fuhr los, GPS war weg). 10 s halten kurze Aussetzer aus, ohne zu flackern.
             var gpsBereit by remember { mutableStateOf(false) }
             var gpsBereitMs by remember { mutableStateOf(0L) }
             LaunchedEffect(Unit) {
@@ -1652,7 +1652,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                                 color = Color(0xFFEF4444), textAlign = TextAlign.Center)
                         }
                         // Dasselbe fuer den Puls: kein einziger Wert in der ganzen Aufnahme.
-                        // Feldbefund 15.08. (u171, Xiaomi Watch 2 Pro): 11 Sessions ohne Puls,
+                        // Feldbefund 15.08. (Xiaomi Watch 2 Pro): 11 Sessions ohne Puls, (Fall 2026-08-15-a)
                         // Berechtigung erteilt — der Sensor schwieg, und die Uhr sagte nichts.
                         // Der Berechtigungs-Hinweis oben deckt diesen Fall NICHT ab; amber statt
                         // rot, weil eine Session ohne Puls auswertbar bleibt (anders als ohne GPS).

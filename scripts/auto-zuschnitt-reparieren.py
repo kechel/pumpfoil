@@ -11,7 +11,7 @@ machen"): `maybe_auto_trim` setzte den Zuschnitt auf [erster Lauf - 15 s, letzte
 Fand die Pumpfoil-Erkennung nur EINEN kurzen Lauf, schnitt das den Rest der Aufnahme weg — samt
 echter Fahrt. Gemessen waren es 81 Sessions von 48 Nutzern mit unter 2 Minuten Fenster aus einer
 Aufnahme ueber 10 Minuten, bei 59 davon lagen zusammen 188 Minuten Fahrt (>2 m/s) DRAUSSEN.
-Sichtbar wurde es als absurde Gesamtstrecke: #624 stand mit 70 m fuer 100 Minuten Aufnahme da.
+Sichtbar wurde es als absurde Gesamtstrecke: Session A stand mit 70 m fuer 100 Minuten Aufnahme da. (Fall 2026-09-21-k)
 
 DIE URSACHE IST BEHOBEN (c051be25, 21.09.): `AUTO_TRIM_MIN_FENSTER_MS` (2 min) und
 `AUTO_TRIM_MIN_ANTEIL` (10 %) verhindern solche Zuschnitte seitdem. Dieses Skript ist der

@@ -34,7 +34,7 @@ ENDE_MIN_KMH = 5.0
 ENDE_HALTE_S = 5.0
 FEST_START, FEST_ENDE = 10.0, 8.0   # km/h; ohne klare Luecke wie das bisherige GPS (Start 10 km/h).
 # Erst 12/8 — im Vergleich ueber 1378 Sessions fielen damit zwei langsame Leichtwind-Sessions
-# (hoechstens 11-12 km/h, #15117/#9515) auf 0 Laeufe.
+# (hoechstens 11-12 km/h, Session A/B) auf 0 Laeufe. (Fall 2026-10-19-e)
 VERSION = "wind-1"
 
 

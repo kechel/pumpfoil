@@ -1,0 +1,29 @@
+{
+ "GPSV": {
+  "__paare__": [
+   [
+    [
+     1001,
+     1002
+    ],
+    234750
+   ],
+   [
+    [
+     1003,
+     1004
+    ],
+    -8000
+   ]
+  ]
+ },
+ "SCOOT_BRETT": 1003,
+ "SCOOT_UHREN": [
+  1004,
+  1005
+ ],
+ "SCOOT_SCHWACH": {
+  "versatz_ms": -23189,
+  "qualitaet": "schwach"
+ }
+}

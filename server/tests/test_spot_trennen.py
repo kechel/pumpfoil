@@ -1,4 +1,4 @@
-"""Von Hand getrennte Spots (Jan, 23.10.2026, Roman u244): zwei Stege 350 m auseinander. Die Track-Puffer
+"""Von Hand getrennte Spots (Jan, 23.10.2026, Fahrer A): zwei Stege 350 m auseinander. Die Track-Puffer (Fall 2026-10-23-x)
 ueberlappen; nach dem Trennen muss eine neue Session vom zweiten Steg dort landen, und weder die laufende
 Zuordnung noch `repair` duerfen die beiden wieder zusammenlegen."""
 from __future__ import annotations

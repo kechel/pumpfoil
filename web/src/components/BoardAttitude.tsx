@@ -350,7 +350,7 @@ export default function BoardAttitude({ sessionId, run, vonMs, bisMs, progress, 
   const hubUnsicher = d?.kennzahlen?.hub_pp_cm != null && d.kennzahlen.hub_sicher === false;
   const hubFenster = d?.hub_fenster_s ?? 3;
   // WORAUF sich die Warnung bezieht, gehoert in den Text (Jan, 23.09.2026). Vorher stand dort
-  // „hier", und „hier" war je nach Auswahl etwas anderes: bei #9656 meldete die Gesamtansicht
+  // „hier", und „hier" war je nach Auswahl etwas anderes: bei Session A meldete die Gesamtansicht (Fall 2026-09-23-o)
   // zu Recht einen unbrauchbaren Hub (Takt 0,33 Hz ueber 33 Minuten, das ist das Schaukeln
   // zwischen den Laeufen), waehrend BEIDE Laeufe mit 1,59 und 1,80 Hz sauber waren und ihre
   // 16/15 cm ohne Klammern dastanden. Die Warnung stand trotzdem direkt ueber dieser Tabelle,

@@ -217,9 +217,9 @@ _VALID_LABELS = {"pump", "glide", "not_foiling"}
 #   7 = `sport_profil.karte` = "ganz" fuer SUP/Wake thief (20.10.2026). Ohne Bump fehlte der Kartenschalter:
 #       die Session selbst aendert sich dabei nicht, also antwortete der Server weiter mit 304.
 #   8 = dasselbe fuer Downwind (20.10.2026).
-#   9 = `sport_zahlen.tempo_kmh` nur noch aus der Strecke IN Bewegung (24.10.2026, #18978: 43,6 statt 9,3 km/h).
+#   9 = `sport_zahlen.tempo_kmh` nur noch aus der Strecke IN Bewegung (24.10.2026, Session A: 43,6 statt 9,3 km/h). (Fall 2026-09-02-i)
 #       Gerechnet beim Ausliefern, die Session aendert sich nicht — ohne Bump bekamen Clients 304 mit dem alten Wert.
-#  10 = `analysis.start_attempts` aus der neuen Zaehlung startversuche-1 (25.10.2026, Front-Start #12734).
+#  10 = `analysis.start_attempts` aus der neuen Zaehlung startversuche-1 (25.10.2026, Front-Start Session B).
 #  11 = `events` (Events, fuer die die Session zaehlt) + `analysis.sprints.laeufe/laeufe_fenster` (16.11.2026). Beides
 #       aendert sich ohne Aenderung der Session (Event-Wertung, Nachrechnen) -> steht zusaetzlich als Pruefsumme im ETag.
 #  12 = `uhr_takt_min` je Lauf + in metrics (Takt laut Suunto-Uhr, 16.11.2026); Bestand per Skript nachgetragen.
@@ -287,7 +287,7 @@ HR_FOIL_V = 1
 
 
 def _hr_foil(uuid: str, segs_json: str | None) -> int | None:
-    """Ø Puls nur ueber die Zeit auf dem Foil (Feedback u904, 01.11.2026: „average heart rate should be on foil heart
+    """Ø Puls nur ueber die Zeit auf dem Foil (Feedback Fahrer A, 01.11.2026: „average heart rate should be on foil heart (Fall 2026-11-01-c)
     rate"). `metrics.avg_hr` laeuft ueber die ganze Aufnahme, also mit Pausen am Ufer und Zuruecklaufen.
 
     Dieselbe Quelle wie `avg_hr`: Puls je GPS-Punkt (load_gps Index 4), eingefrorene Strecken heraus wie in der
@@ -309,7 +309,7 @@ def _hr_foil(uuid: str, segs_json: str | None) -> int | None:
     hr[hr <= 0] = np.nan
     hr = puls_ohne_eingefrorene(t, hr)
     # Ueber die SESSION-Zeit der Laeufe auswaehlen, nicht ueber i_start/i_end: die Indizes zaehlen auf der
-    # aufbereiteten (zugeschnittenen) Liste der Erkennung, nicht auf der rohen GPS-Liste (#19682: 7 Punkte versetzt).
+    # aufbereiteten (zugeschnittenen) Liste der Erkennung, nicht auf der rohen GPS-Liste (Session A: 7 Punkte versetzt). (Fall 2026-11-01-d)
     drin = np.zeros(t.size, dtype=bool)
     for sg in segs:
         a, b = sg.get("t_start_session_ms"), sg.get("t_end_session_ms")
@@ -451,7 +451,7 @@ def _sport_zahlen(session, result, segments, foil_s):
         track = json.loads(result.track_geojson) if isinstance(result.track_geojson, str) else result.track_geojson
     except ValueError:
         return None
-    # Zeit je Spurpunkt: die Spur ist NICHT immer 1 Hz (Garmin „Speicher sparen", Dropouts; #18983: 1061 Punkte in
+    # Zeit je Spurpunkt: die Spur ist NICHT immer 1 Hz (Garmin „Speicher sparen", Dropouts; Session A: 1061 Punkte in (Fall 2026-10-24-h)
     # 82 min) — ohne Zeiten zaehlte die Fahrzeit Punkte statt Sekunden (24.10.2026).
     zeiten = None
     try:
@@ -2544,7 +2544,7 @@ def _spot_nachziehen(db: Session, s: models.Session) -> None:
     `is_pumpfoil` noch hat sie Laeufe — `assign_one` vergibt dann nur den NAMEN und setzt
     `spot_id = None`. Danach hat niemand mehr zugeordnet, auch keine Reanalyse. Ergebnis: die
     Session haengt ohne Spot in der Karte und erscheint dort als zweiter Marker mit demselben
-    Namen (belegt an Session #2669, „Pasohlávky", 12 Laeufe).
+    Namen (belegt an Session A, „Pasohlávky", 12 Laeufe). (Fall 2026-08-24-c)
 
     Deshalb nach JEDER Analyse: fehlt der Spot und qualifiziert die Session inzwischen, zuordnen.
     Idempotent und billig — mit Spot passiert nichts. Seit 25.10.2026 auch fuer Sessions, die einer anderen Sportart
@@ -2843,7 +2843,7 @@ def get_session(
     # SICHERHEITSNETZ (15.09.2026): eine Session, die `/complete` bekommen hat, deren FINALE
     # Analyse aber gestorben ist, kam bisher NIE mehr weiter — es gab keinen Weg zurueck.
     # Sie stand fuer immer als „wird verarbeitet" in der Liste, ohne Benachrichtigung und ohne
-    # Auto-Zuschnitt. Genau so passiert an #8517 und #8504 (beide 15.09.), als zwei Analysen
+    # Auto-Zuschnitt. Genau so passiert an #8517 und Session A (beide 15.09.), als zwei Analysen (Fall 2026-09-15-e)
     # gleichzeitig die Ergebniszeile anlegen wollten. Die Ursache ist behoben (s. run_analysis),
     # aber ein Weg zurueck muss es geben — sonst kostet der naechste unbekannte Fehler wieder
     # eine Aufnahme. Der Lauf setzt `analyzed` und hoert damit von selbst auf.
@@ -3858,7 +3858,7 @@ def set_meta(
     db.commit()
     # „Am Brett" entscheidet den Erkennungsweg (am Brett kein Handgelenk-Modell, keine Pumps) —
     # wer es NACH der Auswertung umstellt, braucht eine neue Auswertung. Ohne das blieb der alte
-    # Stand stehen, bis irgendeine Reanalyse kam (Befund 03.10.2026: #10968, #10993, #12610, #12611
+    # Stand stehen, bis irgendeine Reanalyse kam (Befund 03.10.2026: #10968, Session A, #12610, #12611 (Fall 2026-10-03-e)
     # zeigten Pumps aus dem Handgelenk-Modell, obwohl sie als „am Brett" markiert waren).
     if s.placement != placement_vorher and s.status == "analyzed":
         run_analysis(db, s)
@@ -4125,7 +4125,7 @@ def get_attempts(
        ausdruecklich als „nicht ich"/„nicht Pumpfoil" markiert (Autofahrt, geschlepptes Board).
     2. **Koordinaten statt Indizes.** Vorher schickte der Endpunkt Index-Bereiche in den
        getrimmten Track. Das war doppelt zerbrechlich: ausserhalb des Zuschnitts gibt es diese
-       Indizes gar nicht, und bei aussortierten Bereichen ruecken sie auf (belegt an #3157: die
+       Indizes gar nicht, und bei aussortierten Bereichen ruecken sie auf (belegt an Session A: die (Fall 2026-09-02-j)
        Linien lagen verschoben). Mit fertigen Punkten ist die Karte von der Index-Rechnung
        unabhaengig.
 
@@ -4627,7 +4627,7 @@ def _accel_auswertung_gecacht(db, s, name: str, version: str, rechnen, nur_cache
 
 MANOEVER_LEER = {"items": [], "zahlen": None, "hoehe": None, "fahrten": [], "je_lauf": []}
 # Hochzaehlen, wenn sich die Erkennung in app/manoever.py aendert -> alle Cache-Eintraege ungueltig.
-MANOEVER_VERSION = "m11-vmg-doppler"   # m11: VMG-Tempo aus dem Doppler, bestes 3-s-Fenster (Alex #18998); m10: Drehungen auf dem Foil je Lauf + max_je_lauf (Alex); m9: Einfahrt unter 10 km/h = Start, kein Manoever (#19084); m8: Drehrichtung ueber Kurs-Luecken (#19084, 26.10.2026); m4: Kennzahlen je Fahrt (`fahrten`, 20.10.2026); m5: + dauer_s/strecke_m (Rekorde); m6: GPS-Spruenge > 80 km/h raus; m7: Hoehe gedeckelt aufs Hoechsttempo der Analyse
+MANOEVER_VERSION = "m11-vmg-doppler"   # m11: VMG-Tempo aus dem Doppler, bestes 3-s-Fenster (Session A); m10: Drehungen auf dem Foil je Lauf + max_je_lauf (ein Nutzer); m9: Einfahrt unter 10 km/h = Start, kein Manoever (Session B); m8: Drehrichtung ueber Kurs-Luecken (Session B, 26.10.2026); m4: Kennzahlen je Fahrt (`fahrten`, 20.10.2026); m5: + dauer_s/strecke_m (Rekorde); m6: GPS-Spruenge > 80 km/h raus; m7: Hoehe gedeckelt aufs Hoechsttempo der Analyse (Fall 2026-10-26-j)
 
 
 def _manoever_schluessel(s, res) -> str:
@@ -4697,7 +4697,7 @@ def _manoever_berechnen(db, s, res) -> dict:
     # Hoehe laufen (Stand-Buch: hoehe): VMG zum Wind aus derselben Spur und Windrichtung.
     # Obergrenze fuers Spur-Tempo: Hoechsttempo der Analyse (gefiltert) + 20 % + 3 km/h Spielraum.
     cap = (float(res.max_speed_mps) * 3.6 * 1.2 + 3.0) if res is not None and res.max_speed_mps else None
-    # Drehungen am Stueck je Lauf (Alex, 26.10.2026: „turns / Run will be more interesting" als pro Fahrt):
+    # Drehungen am Stueck je Lauf (ein Nutzer, 26.10.2026: „turns / Run will be more interesting" als pro Fahrt):
     # auf dem Foil heisst ohnehin „im Lauf, und der geht danach weiter" -> Manoever auf dem Foil je Lauf.
     # Reihenfolge wie segments_json, damit die Lauf-Tabelle per Index zuordnet.
     je_lauf = [{"wende": sum(1 for m in items if m["durch"] and m["typ"] == "wende" and a_ <= m["t_ms"] <= b_),
@@ -5045,7 +5045,7 @@ def set_classification(
     # stammt aus „erster Lauf minus 15 s" der Pumpfoil-Erkennung und schneidet bei einer anderen
     # Sportart echte Fahrzeit ab (s. analysis.maybe_auto_trim, Jan 10.09.2026). Ohne diesen Schritt
     # wirkte die Regel nur auf KUENFTIGE Sessions — umklassifiziert wird aber nachtraeglich, der
-    # Zuschnitt steht dann längst (Fall #5272: 792 s abgeschnitten, 9 Minuten Fahrt).
+    # Zuschnitt steht dann längst (Fall Session A: 792 s abgeschnitten, 9 Minuten Fahrt). (Fall 2026-09-10-i)
     #
     # NUR der automatische (`trim_auto`). Einen vom Nutzer gesetzten Zuschnitt anzufassen waere
     # eine Anmassung — er hat ihn ausdruecklich gewaehlt. `trim_auto = None` heisst „wieder offen
@@ -5066,8 +5066,8 @@ def set_classification(
     #     (`_mensch_sagt_pumpfoil`), aus `detection='none'` wird `gps_only`.
     #
     # Ohne die Neuanalyse blieb das GESPEICHERTE Ergebnis stehen, und die Aussage des Menschen
-    # aenderte nichts. Belegt am 10.09.2026 an zwei Nutzer-Meldungen: #5255 (u417) stand auf
-    # owner+pumpfoil und trotzdem auf 0 Laeufe — eine Neuanalyse findet 22. Und u198 haette seine
+    # aenderte nichts. Belegt am 10.09.2026 an zwei Nutzer-Meldungen: Session A stand auf (Fall 2026-09-10-j)
+    # owner+pumpfoil und trotzdem auf 0 Laeufe — eine Neuanalyse findet 22. Und Fahrer B haette seine
     # beiden Sessions umstellen koennen, ohne dass sich etwas bewegt (dort: 15 Laeufe).
     #
     # Nur bei echter Aenderung: derselbe Wert nochmal gewaehlt kostet keine Analyse.
@@ -5302,14 +5302,14 @@ def _lage_antwort(
     starts = [float(g.get("t_start_session_ms", float(g["t_start_ms"]) + off))
               for g in segmente if g.get("t_start_ms") is not None]
 
-    # MONTAGE-DREHUNG FUER DIESEN AUSSCHNITT (23.09.2026, Befund an #9656).
+    # MONTAGE-DREHUNG FUER DIESEN AUSSCHNITT (23.09.2026, Befund an Session A). (Fall 2026-09-23-i)
     #
     # Die Drehung ist eine Eigenschaft davon, WIE DAS HANDY IN DIESEM MOMENT auf dem Brett
     # liegt. Bleibt sie ueber die Aufnahme gleich, ist ein Wert fuer alles richtig; aendert sie
     # sich, ist ein einzelner Wert fuer mindestens einen Lauf zwangslaeufig falsch. Also muss
     # der gezeigte Ausschnitt entscheiden, nicht die Aufnahme.
     #
-    # Vorher tat das die Ansicht nicht, und an #9656 fiel es auf: Jan hatte das Handy zwischen
+    # Vorher tat das die Ansicht nicht, und an Session A fiel es auf: Jan hatte das Handy zwischen
     # den beiden Laeufen ABSICHTLICH gedreht (314,9° gegen 195,5°, 61° Achsenabstand).
     # `aufnahme_eigenschaften` bestimmt EINE Achse ueber alle Laeufe zusammen — die beiden
     # loeschen sich gegenseitig aus, die Klarheit faellt unter die Schwelle, und die Funktion
@@ -5332,12 +5332,12 @@ def _lage_antwort(
             # des Regressions-Laufs: erst hatte ich die Ansicht IMMER auf die Lauf-Drehung
             # gestellt, und dabei aenderten sich 10 von 15 Aufnahmen mit Kreisel. Nicht nur
             # kosmetisch — #9650 sprang um 178° (die Richtungsfrage entscheidet sich je Lauf
-            # anders), und bei #9567 Lauf 14 fiel die eigene Drehung auf 0° zurueck, obwohl die
+            # anders), und bei Session A Lauf 14 fiel die eigene Drehung auf 0° zurueck, obwohl die (Fall 2026-09-23-j)
             # Aufnahme 82,3° kennt. Das waere an vielen Stellen schlechter gewesen als vorher.
             #
             # Wenn die Aufnahme als Ganzes eine klare Achse hat, war die Montage konstant, und
             # die Aufnahme-Drehung ist fuer jeden Ausschnitt richtig. Nur wenn sie KEINE findet,
-            # lag entweder ein Montagewechsel vor (#9656: 314,9° gegen 195,5°, die beiden
+            # lag entweder ein Montagewechsel vor (Session B: 314,9° gegen 195,5°, die beiden
             # loeschen sich im Mittel aus) oder das Signal ist schwach — und dann ist jede
             # gemessene Drehung besser als gar keine. Denn "keine" heisst nicht "unbekannt",
             # sondern rechnet mit 0°, also mit der Behauptung "laengs, Nase vorn".
@@ -5477,8 +5477,8 @@ def board_lage(
 #
 #     bestaetigt am Brett   #9650 2,52/1,00 · #9535 1,88/1,00 · #9528 1,28/1,00   -> Treffer
 #                           #9484 3,18/0,00                                       -> kein Treffer
-#                           #9656 0,95/1,00  (Handy zwischen den Laeufen GEDREHT) -> kein Treffer
-#     vermutlich am Koerper #9734 0,98/0,11 · #9641 0,93/0,21 · #9567 1,01/0,24   -> kein Treffer
+#                           Session A 0,95/1,00  (Handy zwischen den Laeufen GEDREHT) -> kein Treffer (Fall 2026-09-24-d)
+#     vermutlich am Koerper Session B 0,98/0,11 · Session C 0,93/0,21 · Session D 1,01/0,24   -> kein Treffer
 #
 # Der Abstand ist gross: das kleinste Verhaeltnis eines Treffers ist 1,28, das groesste der
 # Koerper-Gruppe 1,01. Die Schwelle liegt dazwischen.
@@ -5504,11 +5504,11 @@ def board_lage(
 # gefragt: vier Laeufe, alle mit sicherem Hub, aber 26/18 · 24/27 · 12/20 · 19/8 — zwei Laeufe mit
 # mehr Rollen zogen den Quotienten der Mediane auf 1,13. Je Lauf gerechnet 1,20. Nachgerechnet an
 # allen 25 Aufnahmen mit Kreisel: die drei Treffer oben bleiben (2,44 · 1,85 · 1,28), die drei
-# „Koerper"-Aufnahmen bleiben draussen (0,93 · 0,96 · 0,85), #9484 und #9656 unveraendert nicht;
-# unter den unbestaetigten Handy-Aufnahmen anderer kommt KEINE dazu (#10086 zeigt gerundet 1,15,
+# „Koerper"-Aufnahmen bleiben draussen (0,93 · 0,96 · 0,85), #9484 und Session A unveraendert nicht;
+# unter den unbestaetigten Handy-Aufnahmen anderer kommt KEINE dazu (Session E zeigt gerundet 1,15,
 # liegt aber knapp darunter).
 #
-# NEU GEEICHT AM 27.09.2026 — Nicken/Rollen fliegt raus, die LAGE IM RAUM kommt rein. Anlass: #10248,
+# NEU GEEICHT AM 27.09.2026 — Nicken/Rollen fliegt raus, die LAGE IM RAUM kommt rein. Anlass: Session F,
 # Handy die ganze Zeit fest an einem ZWEITEN Fahrer-Brett, und nicht gefragt — dort rollt das Brett
 # staerker als es nickt (0,70), die Annahme „Brett nickt mehr" stammte aus EINEM Fahrer. Jans Hinweis:
 # „die bei denen es irgendwie schraeg im raum haengt [sind] mit sehr hoher wahrscheinlichkeit wirklich
@@ -5520,14 +5520,14 @@ def board_lage(
 # Wasser zaehlt nicht. Gemessen an allen Handy-Aufnahmen mit Kreisel:
 #
 # (Werte mit genau dieser Funktion, Laufraender gekuerzt wie in `lage.laufbereiche`)
-#     bestaetigt am Brett   #9528 7,7° · #9535 6,0° · #9650 6,4° · #10195 6,6° · #10248 2,5°
-#     vermutlich Koerper    #9567 22,8° · #9641 19,9° · #9734 33,8° · #9807 34,6° · #10255 27,6°
-#     bisher gefragt, frei  #9678 29,2 · #9697 40,0 · #9749 38,0 · #9767 48,0 · #10034 35,8 ·
-#                           #10038 30,7 · #10097 35,9 · #10147 24,4 · #10254 40,3   (alle SCHRAEG)
+#     bestaetigt am Brett   #9528 7,7° · #9535 6,0° · #9650 6,4° · #10195 6,6° · Session F 2,5°
+#     vermutlich Koerper    Session D 22,8° · Session C 19,9° · Session B 33,8° · Session G 34,6° · Session H 27,6°
+#     bisher gefragt, frei  Session I 29,2 · Session J 40,0 · Session K 38,0 · Session L 48,0 · Session M 35,8 ·
+#                           Session N 30,7 · Session O 35,9 · Session P 24,4 · Session Q 40,3   (alle SCHRAEG)
 #
 # Kein fest montiertes Handy ueber 8°, keine andere Aufnahme mit Takt unter 19° (einzige
-# darunter: #10053 mit 5,4° und 50 % Takt — wird jetzt gefragt, ob es stimmt, zeigt die Antwort). Die bisher Gefragten hatten sauberen Takt, hingen aber schraeg — Armband oder enge
-# Tasche; genau die hat die alte Regel faelschlich gefragt. #9656 (bestaetigt, Handy zwischen den
+# darunter: Session R mit 5,4° und 50 % Takt — wird jetzt gefragt, ob es stimmt, zeigt die Antwort). Die bisher Gefragten hatten sauberen Takt, hingen aber schraeg — Armband oder enge
+# Tasche; genau die hat die alte Regel faelschlich gefragt. Session A (bestaetigt, Handy zwischen den
 # Laeufen gedreht) liegt bei 25° und faellt heraus — dort sass es nicht durchgehend fest.
 # Getestet in tests/test_brett_hinweis.py. Mit Jans Auftrag („versuch es mal richtig zu machen").
 BRETT_ACHSE_MAX_DEG = 15.0    # Winkel der Schwerkraft zur naechsten Geraeteachse, in den Laeufen
@@ -5578,9 +5578,9 @@ def lage_achse_deg(acc: "np.ndarray", t_acc_ms: "np.ndarray", bereiche: list) ->
 #   2. starr: die mittlere Lage weicht von Lauf zu Lauf im Median hoechstens 1,5° ab (>= 3 Laeufe);
 #   dazu wie beim Hinweis sicherer Hub in mindestens der Haelfte der Laeufe.
 # Gemessen an allen 122 Handy-Aufnahmen mit Laeufen: vom Besitzer markierte Bretter 1,1-7,7° und
-# 0,4-1,1° (12 von 14); Philipps Hosentasche #16736 (unter dem Anzug, schwierigster Fall) 20,6° und
+# 0,4-1,1° (12 von 14); Philipps Hosentasche Session A (unter dem Anzug, schwierigster Fall) 20,6° und (Fall 2026-10-15-d)
 # 2,9°. Die Richtung gegen den GPS-Kurs trennte NICHT (Brett 4-18°, Tasche 8,3°) und ist deshalb
-# nicht dabei. Bekannte Grenzen: quer UND geneigt montiert (u683, 15-17°) wird nicht erkannt und
+# nicht dabei. Bekannte Grenzen: quer UND geneigt montiert (15-17°) wird nicht erkannt und
 # bleibt beim Hinweis; ein Handy fest am Schienbein saehe aus wie am Brett — Pumps stimmen dann,
 # Nicken/Rollen messen das Bein (Jan: „das ist ok"). Eine Entscheidung des Besitzers
 # (`placement_quelle = "nutzer"`) gewinnt immer.

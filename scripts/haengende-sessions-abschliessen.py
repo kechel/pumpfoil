@@ -13,7 +13,7 @@ WARUM ES DAS GIBT (15.09.2026, Jans Ansage „mach einen regelmaessigen Aufraeum
 Kopie also loeschen. Fertig ist die Session damit noch nicht: die finale Analyse laeuft
 HINTERHER. Stirbt sie, bleibt die Aufnahme fuer immer in diesem Zwischenzustand stehen: in der
 Liste als „wird verarbeitet", ohne Benachrichtigung, ohne Auto-Zuschnitt, und aus der Community
-ausgeblendet. Genau so passiert an #8517 und #8504 (beide 15.09.), als zwei Analysen gleichzeitig
+ausgeblendet. Genau so passiert an #8517 und Session A (beide 15.09.), als zwei Analysen gleichzeitig (Fall 2026-09-15-c)
 die Ergebniszeile anlegen wollten.
 
 Die URSACHE ist behoben (run_analysis reserviert die Zeile jetzt atomar), und es gibt zwei

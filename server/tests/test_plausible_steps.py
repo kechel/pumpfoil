@@ -1,4 +1,4 @@
-"""plausible_steps: Glitch-Filter nach Tempo statt fester 25 m je Schritt (Feedback #19096, u244).
+"""plausible_steps: Glitch-Filter nach Tempo statt fester 25 m je Schritt (Feedback zu Session A). (Fall 2026-10-27-h)
 
 Smart Recording (Punkte alle 2-8 s) verlor mit der alten 25-m-Regel jeden schnellen Schritt."""
 import math

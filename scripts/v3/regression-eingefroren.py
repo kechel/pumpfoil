@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regressionstest: kurz eingefrorenes GPS reparieren (`gps.eingefroren_reparieren`, 13.11.2026). REIN LESEND.
 
-Ground Truth #21487 (Handy-GPS 5 s eingefroren: Doppler 0, danach Aufholsprung -> Lauf geteilt, Min-Tempo 0). Die
+Ground Truth Session A (Handy-GPS 5 s eingefroren: Doppler 0, danach Aufholsprung -> Lauf geteilt, Min-Tempo 0). Die (Fall 2026-11-13-n)
 Reparatur verteilt die Positionen zwischen letztem guten Fix und Aufholfix gleichmaessig und setzt das Tempo auf die
 Luftlinie (Indizes bleiben). Dieser Test zeigt, was sich im Bestand aendert.
 

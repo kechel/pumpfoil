@@ -1,4 +1,4 @@
-"""Startversuche „Ruhe -> schnell -> Ruhe oder GPS-Abriss" (app/analysis/startversuche.py, 25.10.2026, u439 Front-Start)."""
+"""Startversuche „Ruhe -> schnell -> Ruhe oder GPS-Abriss" (app/analysis/startversuche.py, 25.10.2026, Fahrer A Front-Start). (Fall 2026-10-25-m) """
 import numpy as np
 
 from app.analysis import startversuche as SV
@@ -38,7 +38,7 @@ def test_anlauf_nach_ruhe_wird_gefunden_einzelstoss_nicht():
 
 
 def test_front_start_kurz_mit_anlauf_zaehlt():
-    """#12734-Muster: 0 -> 11 km/h fuer EINEN Punkt -> wieder langsam. Ohne Anlauf waere es ein GPS-Sprung."""
+    """Session A-Muster: 0 -> 11 km/h fuer EINEN Punkt -> wieder langsam. Ohne Anlauf waere es ein GPS-Sprung. (Fall 2026-10-25-n) """
     gps = _gps([0.5] * 20 + [3, 11, 4, 1] + [0.5] * 20)
     assert SV.startversuche(gps, []) == []
     vs = SV.startversuche(gps, [(18.0, 21.0)])
@@ -46,7 +46,7 @@ def test_front_start_kurz_mit_anlauf_zaehlt():
 
 
 def test_ohne_anlauf_nichts_neues_gehen_nie():
-    """Ohne Anlauf zaehlt nur die alte Zaehlung — auch zwei schnelle Punkte nicht (verrauschte Spuren, #18822)."""
+    """Ohne Anlauf zaehlt nur die alte Zaehlung — auch zwei schnelle Punkte nicht (verrauschte Spuren, Session A). (Fall 2026-10-25-o) """
     assert SV.startversuche(_gps([0.5] * 20 + [9, 12, 3] + [0.5] * 20), []) == []
     # Gehen/Zurueckschwimmen 5-7 km/h ohne Anlauf: nie ein Versuch
     assert SV.startversuche(_gps([0.5] * 10 + [6, 7, 6, 7, 6, 7] * 5 + [0.5] * 10), []) == []

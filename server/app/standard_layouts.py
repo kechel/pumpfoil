@@ -6,8 +6,8 @@ Community-Layouts. Ausgewertet am 09.10.2026 (105 Layouts, 828 Nutzer, davon 705
 
     on_foil   While riding (10 Kopien), BPM + Speed (8), All in (3)
     off_foil  After a run (33 Kopien, 7 Nutzer), All in betwene (2)
-              + am 26.10.2026 After a run (totals) von Jan (u2) als zweite Seite: Strecke/Zeit aller
-                Laeufe — der 10K-Versuch u897 (#17390) zeigte, dass die Foil-Summe sonst niemand sieht
+              + am 26.10.2026 After a run (totals) von Jan als zweite Seite: Strecke/Zeit aller
+                Laeufe — der 10K-Versuch Fahrer A (Session A) zeigte, dass die Foil-Summe sonst niemand sieht (Fall 2026-10-09-e)
     pause     Between runs (6)
               + am 26.10.2026 Paused (totals): Kopie von After a run (totals) mit Pausiert-Hinweis (Jan)
 

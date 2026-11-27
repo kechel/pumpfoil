@@ -33,7 +33,7 @@ NEU_NAMEN = ["band_pump", "band_schritt", "band_vib", "f_dom", "woelbung",
              # der BETRAG wirft die Richtung weg — Balancieren der Hand beim Gleiten und Pumpen
              # landen in derselben Zahl. Deshalb lageunabhaengig gegen die Schwerkraft zerlegt.
              "vert_rms", "hor_rms", "vert_anteil", "dreh_grad_s", "neigung_grad",
-             # Vortrieb ohne Armbewegung (#10266: Tempo steigt bei ruhigem Arm -> Beine pumpen).
+             # Vortrieb ohne Armbewegung (Session A: Tempo steigt bei ruhigem Arm -> Beine pumpen). (Fall 2026-09-29-x)
              "tempo_trend"]
 NAMEN = list(BASIS_NAMEN) + NEU_NAMEN
 KONTEXT_R = 5           # ±5 s wie das bisherige Modell (windowize)

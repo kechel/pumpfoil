@@ -150,7 +150,7 @@ async function handle(req) {
     const r = await authPost(req.token, `/api/ingest/session/${req.session_uuid}/chunk`, { index: req.index, kind: req.kind, encoding: req.encoding, t0_ms: req.t0_ms || 0, count: req.count != null ? req.count : ((req.data && req.data.length) || 0), data: req.data });
     return { ok: true, index: req.index, http: r.status };
   }
-  // Mehrere Chunks in EINER Anfrage (Uhr ab 24.11.2026, Server /chunks seit 29.09.2026). Befund u439: die Uhr starb nach
+  // Mehrere Chunks in EINER Anfrage (Uhr ab 24.11.2026, Server /chunks seit 29.09.2026). Befund Fahrer A: die Uhr starb nach (Fall 2026-11-24-d)
   // ~330 Einzel-Anfragen ueber BLE. `ok` nur, wenn der Server ALLE quittiert — sonst sendet die Uhr den Block erneut
   // (der Server ueberschreibt gleiche Indizes).
   if (req.method === "CHUNKS") {

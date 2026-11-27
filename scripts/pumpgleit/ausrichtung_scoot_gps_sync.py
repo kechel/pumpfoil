@@ -3,18 +3,21 @@ import numpy as np
 R = pathlib.Path("/home/jan/garmin-connect-iq/scripts")
 sys.path.insert(0, str(R / "pumpgleit")); sys.path.insert(0, str(R / "v3"))
 import gemeinsam as G
+sys.path.insert(0, str(R)); from lokal_faelle import laden as _laden
+_F = _laden("ausrichtung_paare", "scripts/pumpgleit/ausrichtung_paare.beispiel.json")   # IDs nur lokal
+BRETT, UHR = _F["SCOOT_BRETT"], _F["SCOOT_UHREN"][0]
 logging.disable(logging.WARNING)
 from app import models
 db = G.db_lesend()
 out = {}
-for sid in (16729, 16719):
+for sid in (BRETT, UHR):
     s = db.get(models.Session, sid)
     U = G.uhr_daten(db, sid)
     g = U["gps"]
     t0 = s.started_at.timestamp() * 1000
     out[sid] = (t0 + g[:, 0], g[:, 3], s.trim_start_ms or 0)
     print(sid, s.started_at, s.device_model, "gps n", len(g), "trim", s.trim_start_ms, "dt median", np.median(np.diff(g[:, 0])))
-(ab, vb, trb), (au, vu, tru) = out[16729], out[16719]
+(ab, vb, trb), (au, vu, tru) = out[BRETT], out[UHR]
 grid = np.arange(max(ab[0], au[0]), min(ab[-1], au[-1]), 250.0)
 best = []
 for off in np.arange(-60000, 60001, 250):

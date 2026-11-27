@@ -846,7 +846,7 @@ def garmin_besser(eigene: models.Session, parsed: dict) -> bool:
     return besser
 
 
-# Garmins Aufnahme muss die eigene auch zeitlich abdecken (08.11.2026, #20815/#20823: die Garmin-Aktivitaet war nach 28 min
+# Garmins Aufnahme muss die eigene auch zeitlich abdecken (08.11.2026, Session A/B: die Garmin-Aktivitaet war nach 28 min (Fall 2026-11-08-e)
 # gestoppt, unsere App lief 92 min weiter — die hoehere Accel-Rate gewann, 64 min GPS und alle spaeteren Laeufe waren weg).
 DECKUNG_MIN = 0.9
 

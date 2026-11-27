@@ -363,14 +363,14 @@ darum, dass der Code **laeuft**, nicht dass er im Feld wirkt.
 
 Bis 1.0.11 stieg `heartbeat()` bei laufender Aufnahme in der ersten Zeile aus, die Bildschirmzeit
 wurde also nie nachgefrischt — nach ~4,5 Minuten kam das Zifferblatt und zehn Sekunden spaeter war
-die App weg (u352, GTR 4).
+die App weg (GTR 4). (Fall 2026-09-23-k)
 
 1. Aufnahme starten, **mindestens 10 Minuten** laufen lassen, Bildschirm nicht anfassen.
 2. Im Uhr-Log (QEMU-Fenster, `LOG > pumpfoil > …`) mitlesen.
 
 **Erwartet:** alle ~20 Sekunden eine Auffrischung, **keine** Ausnahme aus `setPageBrightTime`, die
 App laeuft nach 10 Minuten noch. **Wenn die App weg ist:** Phase 3 muesste beim naechsten Start
-gemeldet werden — und dann haben wir den Fehler von u352 im Emulator reproduziert, was gut ist.
+gemeldet werden — und dann haben wir den Fehler von Fahrer A im Emulator reproduziert, was gut ist. (Fall 2026-09-23-l)
 
 ### 6.2 Aufnahme ueberlebt Bildschirm-Aus
 
@@ -643,7 +643,7 @@ einer aussieht.
 ## 11. Wiederaufsetzpunkt (Stand 23.09.2026, 12:10)
 
 **In welchem Zustand der Aufbau steht:**
-- Simulator auf **Amazfit Active 2 (Round)**, gekoppelt als Geraet **#1125** an `jan@kechel.de`
+- Simulator auf **Amazfit Active 2 (Round)**, gekoppelt als Geraet **Session A** an `jan@kechel.de` (Fall 2026-09-23-m)
   (bewusst nicht `emu-test` — Jan, 23.09.: „meine sessions sind oeffentlich, die loesche ich
   spaeter wieder, ich wechsel doch nicht staendig mein login").
 - **⚠️ Zuletzt lief `npm run dev-echt`, also `DEV_FAKE_GPS = false`.** Fuer alle Bloecke ausser 8

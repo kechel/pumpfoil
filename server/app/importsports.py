@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 # „aus Kontoverknuepfungen sollten wir generell keine Sessions importieren ohne GPS, das brauche ja nur ich fuer
 # meine Tanz-Idee, und vielleicht sollten wir auch nichts importieren was aelter als 1.1.2026 ist, einfach generell".
 # Anlass: am 21.10. durften Suunto-Workouts ohne GPS kurz Sessions werden (d08cf5b2) — der naechste Abgleich legte
-# einem Nutzer 907 Yoga-/Dehn-/Meditations-Sessions bis zurueck 2019 an. Der manuelle FIT-Upload ist NICHT betroffen.
+# einem Fahrer A Yoga-/Dehn-/Meditations-Sessions bis zurueck 2019 an. Der manuelle FIT-Upload ist NICHT betroffen. (Fall 2026-10-22-e)
 IMPORT_AB = datetime(2026, 1, 1, tzinfo=timezone.utc)
 
 

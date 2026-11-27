@@ -1,7 +1,7 @@
 """Sammel-Upload `POST /api/ingest/session/{uuid}/chunks` (seit 29.09.2026).
 
 Dieselben Chunks wie einzeln, nur in einer Anfrage — fuer Apple Watch und Wear OS, die per HTTPS
-laden und das Garmin-BLE-Limit nicht haben (#10266: 1848 Anfragen fuer 2,2 MB, drei Tage)."""
+laden und das Garmin-BLE-Limit nicht haben (Session A: 1848 Anfragen fuer 2,2 MB, drei Tage). (Fall 2026-09-29-aa) """
 import uuid as _uuid
 
 from test_api import _accel_chunk_b64, _gps_chunk

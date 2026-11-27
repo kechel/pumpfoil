@@ -153,7 +153,7 @@ export class Recorder {
 
   modus: string = 'bereit';   // bereit | laeuft | pause
   // Pause-Erinnerung (Jan, 22.10.2026): alle 10 min drei lange Stoesse; die Seite springt auf die Aktionsseite,
-  // sobald `pauseMahnung` hochzaehlt. IMMER, nicht abschaltbar. Anlass #17726: Pause 85 min unbemerkt.
+  // sobald `pauseMahnung` hochzaehlt. IMMER, nicht abschaltbar. Anlass Session A: Pause 85 min unbemerkt. (Fall 2026-10-22-h)
   pauseMahnung: number = 0;
   private pauseSeit: number = 0;
   private pauseMahnungen: number = 0;

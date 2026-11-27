@@ -1220,7 +1220,7 @@ export const api = {
   sessionManoever: (id: number) => req<{
     items: { i: number; t_ms: number; typ: "wende" | "halse"; durch: boolean; drehung: number }[];
     zahlen: null | { wende: { durch: number; ab: number }; halse: { durch: number; ab: number }; max_je_lauf?: number };
-    // Wenden/Halsen AUF DEM FOIL je Lauf, Reihenfolge wie analysis.segments (26.10.2026, Wunsch Alex).
+    // Wenden/Halsen AUF DEM FOIL je Lauf, Reihenfolge wie analysis.segments (26.10.2026, Wunsch eines Nutzers).
     je_lauf?: { wende: number; halse: number }[];
     hoehe?: null | { vmg_max_kmh: number; vmg_mittel_kmh: number | null; am_wind_anteil: number | null; hoehe_m: number; winkel_med: number | null };
     // Je Fahrt (20.10.2026), zugeordnet ueber t_start_ms wie in sport_zahlen.fahrten.

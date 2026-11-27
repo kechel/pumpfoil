@@ -53,7 +53,7 @@ struct FeedbackView: View {
                         }
                         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(.separator)))
                         // Server nimmt hoechstens 2000 Zeichen (api/feedback.py MAX_LEN). Ohne Grenze und
-                        // Zaehler schlug laengeres Feedback stumm fehl (u146, 28.10.2026).
+                        // Zaehler schlug laengeres Feedback stumm fehl (28.10.2026). (Fall 2026-10-28-b)
                         .onChange(of: text) { neu in if neu.count > maxZeichen { text = String(neu.prefix(maxZeichen)) } }
                     Text("\(text.count)/\(maxZeichen)").font(.footnote).monospacedDigit()
                         .foregroundStyle(text.count >= maxZeichen ? Color.orange : Color.secondary)

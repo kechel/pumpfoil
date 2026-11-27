@@ -97,7 +97,7 @@ class RecorderService : Service(), SensorEventListener {
      * genommen wird, ist das ein FAIL von uns und der User zeichnet genau das Falsche auf."
      * Das Handy-GPS darf nur der Handy-Recorder selbst nutzen, ganz ohne Uhr.
      *
-     * Belegter Fall: Session 3851 (Wear, OPWWE251) hatte 3455 Fixes, davon 2723 exakt gleich zum
+     * Belegter Fall: Session A (Wear, OPWWE251) hatte 3455 Fixes, davon 2723 exakt gleich zum (Fall 2026-09-08-a)
      * Vorgaenger und eine Kette von 501 s mit BYTEWEISE derselben Koordinate — bei gemeldeten 3 m
      * Genauigkeit. Ueber zwei Nutzer und acht Sessions desselben Modells: 0/45/0/0/68/44/79/0 %.
      */
@@ -209,7 +209,7 @@ class RecorderService : Service(), SensorEventListener {
      * OHNE Batching: dann muss der Treiber „hold a 'timeout wake lock' for 200 milliseconds each
      * time an event is being reported" (source.android.com/docs/core/interaction/sensors/suspend-mode)
      * — bei 118-220 Ereignissen je Sekunde auf dem Main-Looper, auf dem auch das GPS ankommt. Beide
-     * Sessions, die so liefen, verloren das GPS (u818 #13822, u574 #13051).
+     * Sessions, die so liefen, verloren das GPS (Fahrer A Session A, Fahrer B Session B). (Fall 2026-10-07-c)
      *
      * Jetzt der vorgesehene Weg: Wake-up-Variante mit `maxReportLatencyUs` — die Hardware sammelt im
      * eigenen FIFO und weckt den Prozessor nur zum Leeren, „no event shall be dropped or lost".
@@ -258,7 +258,7 @@ class RecorderService : Service(), SensorEventListener {
                 // 20.10.2026: Ohne Wake-up-Variante liefert der normale Sensor nur, solange die CPU wach ist.
                 // Mit dem LocationManager-GPS (bis 1.2.39) weckte jede Position die CPU einmal je Sekunde;
                 // das Health-Services-GPS (ab 1.2.40) buendelt, die CPU schlaeft — auf Samsung kam der Accel
-                // danach nur noch zu 7-39 % der Session (u785/u477/u418/u708, 1.2.37 bei denselben 100 %).
+                // danach nur noch zu 7-39 % der Session (Fahrer A/Fahrer B/Fahrer C/Fahrer D, 1.2.37 bei denselben 100 %). (Fall 2026-10-20-a)
                 cpuWachHalten()
             }
         }
@@ -326,7 +326,7 @@ class RecorderService : Service(), SensorEventListener {
     /**
      * Puls AKTIV anfordern statt nur mitzulesen.
      *
-     * Feldbefund 15.08. (u171, Xiaomi Watch 2 Pro): 11 Sessions, **0** Puls-Werte, Berechtigung
+     * Feldbefund 15.08. (Xiaomi Watch 2 Pro): 11 Sessions, **0** Puls-Werte, Berechtigung (Fall 2026-08-15-b)
      * erteilt — und zwei Galaxy-Watch-Nutzer mit 4/8 bzw. 3/6. `SensorManager` mit
      * `TYPE_HEART_RATE` liest auf Wear OS 3+ nur mit, was das System ohnehin gerade misst; es
      * schaltet die PPG-Messung NICHT ein. Wo die Dauermessung der Uhr an ist (Pixel/Samsung-
@@ -399,7 +399,7 @@ class RecorderService : Service(), SensorEventListener {
                         // UNSER EIGENES Ende (Waechter-Neustart, Pause, Stopp) — kein Ausfall. Bis
                         // 1.2.41 lief es hier durch: der Waechter beendete die Uebung, startete eine
                         // neue, und dieses ENDED setzte danach `hsClient = null` und warf das GPS auf
-                        // den LocationManager. Ergebnis an #16671 (u574, 14.10.2026): ab Minute 24
+                        // den LocationManager. Ergebnis an Session A (14.10.2026): ab Minute 24 (Fall 2026-10-14-a)
                         // nie wieder Puls, GPS nur noch mit dem 125-m-Platzhalter.
                         if (SystemClock.elapsedRealtime() - eigenesEndeMs < EIGENES_ENDE_FENSTER_MS) {
                             android.util.Log.i("Pumpfoil", "Uebung beendet (eigenes Ende, Grund $grund)")
@@ -487,9 +487,9 @@ class RecorderService : Service(), SensorEventListener {
      * kein einziges Mal — genau in dem Fall, den der Kommentar an `startExerciseAsync` als
      * haeufigsten nennt: eine andere App haelt die Uebung, Health Services erlaubt nur eine.
      *
-     * Gemeldet von u171 (Xiaomi Watch 2 Pro), der neben unserer App eine Workout-App mitlaufen
-     * laesst. Seine Zahlen: Session #8705 am 17.09. um 16:38 null Pulswerte, danach stuerzten
-     * beide Apps ab, und Session #8706 um 17:11 hatte 2036 — ein frischer Prozess bekam die
+     * Gemeldet von Fahrer A (Xiaomi Watch 2 Pro), der neben unserer App eine Workout-App mitlaufen (Fall 2026-09-04-a)
+     * laesst. Seine Zahlen: Session A am 17.09. um 16:38 null Pulswerte, danach stuerzten
+     * beide Apps ab, und Session B um 17:11 hatte 2036 — ein frischer Prozess bekam die
      * Uebung, unser Waechter haette sie vorher nie nachgefordert. Seine Formulierung: „Kann die
      * App ja nicht immer zum Absturz bringen, damit das läuft."
      * Wir hatten das zuvor als Wear-OS-5-Plattformfehler eingeordnet, weil sich im Unterschied
@@ -518,7 +518,7 @@ class RecorderService : Service(), SensorEventListener {
                 val grenze = if (gpsUeberHs) HS_STILL_MS else PULS_STILL_MS
                 // Liefert die Uebung noch Positionen, LEBT sie — fehlender Puls heisst dann nur
                 // „kein Hautkontakt" (Uhr im Wasser). Ein Neustart wuerde ausgerechnet die
-                // funktionierende Ortung abreissen (#16671: Puls weg ab Min 17,8, GPS aus der
+                // funktionierende Ortung abreissen (Session A: Puls weg ab Min 17,8, GPS aus der (Fall 2026-10-15-a)
                 // Uebung lief weiter, nach 300 s riss der Waechter alles ab).
                 val uebungLebt = gpsUeberHs && letzterOrtMs > 0L &&
                     SystemClock.elapsedRealtime() - letzterOrtMs < HS_STILL_MS
@@ -543,7 +543,7 @@ class RecorderService : Service(), SensorEventListener {
 
     /**
      * GPS-Waechter (Wear 1.2.40). Bis dahin gab es keinen: blieb die Ortung stehen, zeichnete die
-     * Uhr ohne GPS weiter, bis zum Ende (u818 #13822: GPS nach 7,75 von 47 min, Accel bis zum Schluss).
+     * Uhr ohne GPS weiter, bis zum Ende (Fahrer A Session A: GPS nach 7,75 von 47 min, Accel bis zum Schluss). (Fall 2026-10-07-d)
      *  - Health Services: liefert bei dunklem Display gebuendelt (laut Doku bis ~150 s). Erst nach
      *    [HS_STILL_MS] ohne eine einzige Position gilt sie als ausgefallen -> LocationManager.
      *  - LocationManager: liefert jede Sekunde. Nach [LM_STILL_MS] Stille die Ortung neu anfordern

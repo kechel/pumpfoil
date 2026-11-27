@@ -59,7 +59,7 @@ struct RecordView: View {
             VStack(spacing: 16) {
                 if rec.recording { recordingBody }
                 else if rec.status == "saved" || rec.status == "saving" { savedBody }
-                // Scrollbar (12.10.2026, Meldung Roman auf Android): mit vielen Foils oder auf kleinen
+                // Scrollbar (12.10.2026, Meldung eines Nutzers auf Android): mit vielen Foils oder auf kleinen
                 // iPhones (SE, mini) laeuft der Inhalt sonst unter die Leiste und START ist weg.
                 else { ScrollView { idleBody } }
             }
@@ -394,7 +394,7 @@ private struct LiveTrackMap: UIViewRepresentable {
 
 // MARK: - Live-Uhrseiten + Laeufe (26.10.2026)
 // Die eigenen Uhr-Datenseiten LIVE auf dem Handy-Recorder, ueber der Karte (Jan: „vielleicht auch einfach
-// die watch-faces verwenden zur anzeige live"). Anlass: 10K-Versuch u897 (#17390) — die App zeigte nur die Gesamtstrecke,
+// die watch-faces verwenden zur anzeige live"). Anlass: 10K-Versuch Fahrer A (Session A) — die App zeigte nur die Gesamtstrecke, (Fall 2026-10-26-r)
 // sie hielt sie fuer die Foil-Strecke und hoerte zu frueh auf. Spiegel von Android LiveSeiten.kt.
 // `pages` waehrend eines Laufs, `off_foil_pages` sonst (das Handy kennt keine manuelle Pause); mit
 // „auch die anderen Seiten durchblaettern" haengen die Seiten des anderen Zustands hinten an.

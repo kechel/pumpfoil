@@ -1,7 +1,7 @@
 """Read-only-Vergleich verschiedener Pump-Gate-Strategien für find_pumps_cadence.
 
 Motivation: das feste RMS-Gate (PUMP_CAD_GATE) verwirft bei leichten/sanften Fahrern
-ganze rhythmische Abschnitte -> aufgeblähte "Gleitphasen" (Befund Session 521).
+ganze rhythmische Abschnitte -> aufgeblähte "Gleitphasen" (Befund Session A). (Fall 2026-08-20-b)
 
 Strategien:
   - fixed <g>          : absolutes RMS-Gate (Ist-Stand = 0.02, Quick-Win = 0.012)

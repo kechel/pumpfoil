@@ -147,6 +147,6 @@ POST /api/ingest/session/{session_uuid}/chunks
 Dieselben Chunks wie einzeln, nur in einer Anfrage: gleiche Indizes, gleiche Vollstaendigkeits-
 pruefung, Resume ueber `received_chunks` unveraendert. Jeder Chunk wird **einzeln** quittiert —
 die Uhr darf nur verwerfen, was in `received` steht; ein abgelehnter Chunk steht mit Grund in
-`failed` und haelt die anderen nicht auf. Mehr als 30 -> 413, leer -> 400. Anlass: #10266 (Apple
+`failed` und haelt die anderen nicht auf. Mehr als 30 -> 413, leer -> 400. Anlass: Session A (Apple (Fall 2026-09-29-u)
 Watch, 2 h 48 min) brauchte 1848 Einzel-Anfragen fuer 2,2 MB, der Upload zog sich ueber drei Tage.
 Apple Watch und Wear OS schicken ab iOS 1.1.41 / Wear 1.2.37 je 20 Chunks pro Anfrage.

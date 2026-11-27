@@ -634,7 +634,7 @@ export default function SessionDetail() {
   // ein Schalter, der sich mit Tempo/Puls kombinierte (Jan: „entweder schaue ich mir puls an oder carves oder glides").
   const showGlides = colorMode === "glides";
   const [alleGlides, setAlleGlides] = useState(false);   // Gleitphasen-Liste: alle statt der GLIDES_KURZ laengsten
-  // Startversuche gibt es NUR beim Pumpfoilen. Anlass: Feedback von u43 zu Session 5272
+  // Startversuche gibt es NUR beim Pumpfoilen. Anlass: Feedback von Fahrer A zu Session A (Fall 2026-09-08-f)
   // (08.09.2026, "Hi, this is wingfoiling, but still, my first long run is recognized as long
   // start attempt"). Beim Wingfoilen, Efoilen oder am Seil ist ein Start etwas voellig anderes —
   // die Erkennung sucht das Anschieben und Aufsteigen aus eigener Kraft, und ein langer Lauf
@@ -1201,8 +1201,8 @@ export default function SessionDetail() {
   const [laufKennz, setLaufKennz] = useState<NonNullable<Lage["laeufe"]>>([]);
   // NUR am Brett — dieselbe Bedingung wie fuer die Lage-ANSICHT (`zeigeLage`), naemlich das
   // gesetzte Flag. Bis 24.09.2026 stand hier `has_gyro || placement === "board"`, die
-  // Tabelle erschien also bei JEDER Aufnahme mit Kreisel. Jans Befund an #9749: „aber
-  // https://pumpfoil.org/sessions/9749 ist doch schon umgestellt oder nicht? ich sehe
+  // Tabelle erschien also bei JEDER Aufnahme mit Kreisel. Jans Befund an Session A: „aber (Fall 2026-09-24-e)
+  // https://pumpfoil.org/sessions/<Session A> ist doch schon umgestellt oder nicht? ich sehe
   // ‚attitude per run‘ als tabelle" — war sie nicht, die Bedingung war zu weit.
   //
   // Warum das nicht nur unsauber, sondern falsch war: ohne feste Montage misst das Handy
@@ -1629,11 +1629,11 @@ export default function SessionDetail() {
     // Wind-Sportarten (Profil karte="ganz", Schalter „Ganze Fahrt"): auch die Stuecke AUSSERHALB der
     // Laeufe zeichnen, gefaerbt wie die Laeufe (Jan, 19.10.2026: „ganze fahrt soll entsprechend anders
     // einfaerben"). Langsame Stuecke — Stuerze, Wasserstarts, Paddeln — erscheinen so blau statt als
-    // Luecke; vorher grau unter den Laeufen, auf dem Satellitenbild kaum zu sehen (#17478: 46 % der
+    // Luecke; vorher grau unter den Laeufen, auf dem Satellitenbild kaum zu sehen (Session A: 46 % der (Fall 2026-10-19-s)
     // Punkte ausserhalb der Laeufe, aber nur 13,8 km). Ist ein Lauf ausgewaehlt, bleiben sie gedimmt.
     // NACH den Laeufen gezeichnet, also obendrauf: die langsamen Stuecke liegen fast alle an Lauf-Anfang
     // und -Ende, unter den Laeufen und den Start-/Ziel-Marken waren sie nicht zu sehen.
-    // Leistung (24.10.2026, #18978: iPhone 7,4 h, ~24 000 Punkte ausserhalb der Laeufe -> je Punktpaar eine SVG-Linie,
+    // Leistung (24.10.2026, Session B: iPhone 7,4 h, ~24 000 Punkte ausserhalb der Laeufe -> je Punktpaar eine SVG-Linie,
     // Zoomen haengte): Canvas statt SVG, und aufeinanderfolgende Stuecke gleicher Farbe als EINE Linie.
     if (zeigeGanz && segs.length > 0) {
       const imLauf = new Uint8Array(coords.length);
@@ -1763,7 +1763,7 @@ export default function SessionDetail() {
         if (v.points.length < 2) return;
         // Der Server liefert fertige Punkte (lat/lon) — bewusst keine Indizes: Versuche VOR dem
         // Zuschnitt haben im getrimmten Track gar keinen Index, und aussortierte Bereiche
-        // verschieben ihn (das lag an #3157 daneben).
+        // verschieben ihn (das lag an Session A daneben). (Fall 2026-10-25-r)
         // Seit 25.10.2026 nach GPS-Tempo eingefaerbt wie ein Lauf (Jan: „ich wuerde gerne auch startversuch-gps-speed
         // sehen"), gestrichelt bleibt das Erkennungszeichen. Ohne Tempo (alter Server) wie bisher bernsteinfarben.
         // Start (gruen) & Ende (rot) wie bei den Laeufen, eine Spur kleiner (Jan, 25.10.2026).
@@ -2304,7 +2304,7 @@ export default function SessionDetail() {
 
           NUR wenn wirklich keine Läufe herauskamen (seit 18.09.2026). Der Hinweis behauptet
           wörtlich „no distance, no speed and no runs" — bei einer Session MIT Läufen ist das
-          schlicht falsch, und genau so gemeldet (u244: „the session itself seems to have been
+          schlicht falsch, und genau so gemeldet (Fahrer A: „the session itself seems to have been (Fall 2026-09-03-g)
           recorded and saved normally. I can see the GPS track and all the data").
           Warum der Befund trotzdem stimmt und der Satz nicht: `gps_frozen_share` rechnet über
           die GANZE Aufnahme, Pausen eingeschlossen. Bei dem Melder liegen 2527 der 2909
@@ -2440,7 +2440,7 @@ export default function SessionDetail() {
           </>
         )}
 
-        {/* Ø Puls auf dem Foil als Hauptzahl (Feedback u904, 01.11.2026); Tippen schaltet auf den Gesamtwert mit Pausen
+        {/* Ø Puls auf dem Foil als Hauptzahl (Feedback Fahrer A, 01.11.2026); Tippen schaltet auf den Gesamtwert mit Pausen (Fall 2026-11-01-g)
             am Ufer um (Jan, 03.11.2026: wie die Pumpfrequenz, aber ohne Merken — Standard immer On-Foil). Ohne Laeufe
             gibt es keinen Foil-Wert, dann nur der Gesamtwert. */}
         {m?.avg_hr_foil != null && m.avg_hr != null
@@ -2498,7 +2498,7 @@ export default function SessionDetail() {
                   <b>{t("sd.jibes")}</b> {ohneFoil ? manoever.zahlen.halse.durch + manoever.zahlen.halse.ab
                     : <>{manoever.zahlen.halse.durch} / {manoever.zahlen.halse.durch + manoever.zahlen.halse.ab} {t("sd.onFoil")}</>}
                 </span>
-                {/* Drehungen am Stueck (Alex, 26.10.2026: „turns / Run will be more interesting"). */}
+                {/* Drehungen am Stueck (ein Nutzer, 26.10.2026: „turns / Run will be more interesting"). */}
                 {!ohneFoil && (manoever.zahlen.max_je_lauf ?? 0) > 1 && (
                   <span>{t("sd.maxTurnsRun", { n: String(manoever.zahlen.max_je_lauf) })}</span>
                 )}
@@ -3570,7 +3570,7 @@ function TrimPanel({ session, onSaved, onClose }: { session: SessionSummary; onS
   // Differenz war 0 und `Math.max(1, 0)` machte daraus EINE SEKUNDE: der Regler stand auf 0..1,
   // und ein Klick auf „Anwenden" schnitt die Aufnahme auf eine Sekunde zusammen.
   //
-  // Genau so passiert (Session 5002, gemeldet am 08.09.2026): ein Nutzer schrieb „no run
+  // Genau so passiert (Session A, gemeldet am 08.09.2026): ein Nutzer schrieb „no run (Fall 2026-09-08-g)
   // detected", und in seiner Aufnahme steckte ein Lauf von 20,1 s / 130,7 m — unsichtbar hinter
   // `trim 0..1000`. Sie ist die EINZIGE von 208 manuellen Zuschnitten mit einem Fenster unter
   // 33 Sekunden, also kein Nutzerfehler, sondern dieser Rueckfall.

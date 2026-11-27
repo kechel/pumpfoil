@@ -1,4 +1,4 @@
-"""Beste VMG aus dem Doppler (26.10.2026, Alex #18998): ein GPS-Sprung im Stand darf keine VMG ergeben."""
+"""Beste VMG aus dem Doppler (26.10.2026, Session A): ein GPS-Sprung im Stand darf keine VMG ergeben. (Fall 2026-10-26-m) """
 import math
 
 from app.manoever import hoehe

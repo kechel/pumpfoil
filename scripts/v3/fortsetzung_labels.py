@@ -2,7 +2,7 @@
 """Erkennung v3: „Lauf geht langsam weiter" als Label. REIN LESEND, schreibt nur server/data/ml/v3/.
 
 Anlass ein Fahrer (29.09.2026, Handy an der Brust): „die Laeufe sind zu kurz, es fehlt fast
-die Haelfte" — belegt an #10339: nach dem Lauf-Ende pumpt er 12-20 s bei 5-10 km/h weiter, unsere
+die Haelfte" — belegt an Session A: nach dem Lauf-Ende pumpt er 12-20 s bei 5-10 km/h weiter, unsere (Fall 2026-09-29-v)
 Schwelle schneidet am ersten Tal ab. Jan: „ich denke schon alle seine laeufe".
 
 Regel je erkanntem Lauf, VORWAERTS und RUECKWAERTS erweitert:
@@ -30,7 +30,9 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 ML = WURZEL / "server" / "data" / "ml"
 
 FORT_MIN_KMH, STOPP_KMH, STOPP_S, PUMP_MIN = 4.0, 3.0, 2, 0.3
-MENSCH = {350: "Fahrer-Meldung 29.09.2026: Laeufe zu kurz, es fehlt fast die Haelfte (Handy Brust)"}
+sys.path.insert(0, str(WURZEL / "scripts")); from lokal_faelle import laden as _laden
+_F = _laden("v3_faelle", "scripts/v3/v3_faelle.beispiel.json")   # Session-/Konto-IDs nur lokal
+MENSCH = {_F["BRUST_FAHRER"]: _F["BRUST_FAHRER_NOTIZ"]}
 
 
 def fortsetzungen(t_s, v_kmh, pump, laeufe_s):
@@ -83,7 +85,7 @@ def main():
         if "--pruefen" in sys.argv:
             import brett_wahrheit as W
             paare = {(p["brett"], p["uhr"]): p for p in json.loads((ML / "v3" / "paare.json").read_text())}
-            gute = [(9535, 9534), (9650, 9649), (10195, 10194), (10248, 10250), (10328, 10326), (10875, 10873)]
+            gute = _F["GUTE"]
             ja = nein = 0
             for b_id, u_id in gute:
                 B = W.brett(S, b_id); vers = paare[(b_id, u_id)]["versatz_ms"]

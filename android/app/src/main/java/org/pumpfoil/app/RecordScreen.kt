@@ -219,7 +219,7 @@ fun RecordScreen(onBack: () -> Unit) {
                 st.recording -> {}   // Statistik + Karte stehen unten in einem eigenen Scrollbereich
                 st.status == "saved" || st.status == "saving" -> SavedBody(st, onBack)
                 else -> Column(
-                    // SCROLLBAR (12.10.2026, Meldung Roman, Samsung): seit die Foil-Knoepfe zweizeilig
+                    // SCROLLBAR (12.10.2026, Meldung eines Nutzers, Samsung): seit die Foil-Knoepfe zweizeilig
                     // sind (06.10.), passte der Inhalt auf kleineren Bildschirmen nicht mehr — START lag
                     // unter der Navigationsleiste und war nicht erreichbar, man konnte nicht aufnehmen.
                     Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()),
@@ -431,7 +431,7 @@ private fun AkkuHinweis(onOeffnen: () -> Unit) {
 
 @Composable
 private fun RecordingBody(st: Recorder.State) {
-    // GPS WEG (Garmin-Fall Roman, 25.10.2026, hier nachgezogen): der Zustand aendert sich nur, wenn
+    // GPS WEG (Garmin-Fall eines Nutzers, 25.10.2026, hier nachgezogen): der Zustand aendert sich nur, wenn
     // Positionen KOMMEN — Tempo und Zeit blieben sonst ohne GPS einfach stehen. Sekuendlich ableiten.
     var jetzt by remember { mutableStateOf(android.os.SystemClock.elapsedRealtime()) }
     LaunchedEffect(Unit) { while (true) { kotlinx.coroutines.delay(1000); jetzt = android.os.SystemClock.elapsedRealtime() } }
@@ -457,7 +457,7 @@ private fun RecordingBody(st: Recorder.State) {
     val mmss = { s: Long -> "%d:%02d".format(s / 60, s % 60) }
     val km = { m: Double -> if (m >= 1000) "%.2f km".format(m / 1000) else "%d m".format(m.toInt()) }
     // Foil-Strecke (Summe aller Laeufe) statt Gesamtstrecke (Jan, 26.10.2026): „Gesamtstrecke will ich
-    // garnicht haben … darunter wuerde ich intuitiv auch on foil verstehen" — genau das passierte u897
+    // garnicht haben … darunter wuerde ich intuitiv auch on foil verstehen" — genau das passierte Fahrer A (Fall 2026-10-26-b)
     // beim 10K, sie hoerte bei angezeigten 10,2 km auf, auf dem Foil waren es 8,9.
     StatRow(I18n.t("rec.time"), mmss(sek), I18n.t("rec.foilDist"), km(st.allRunsDistanceM))
     StatRow(I18n.t("rec.speed"), if (gpsWeg) "--" else "%.1f".format(st.speedKmh), I18n.t("rec.speedMax"), "%.1f".format(st.maxSpeedKmh))

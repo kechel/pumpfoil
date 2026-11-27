@@ -37,6 +37,8 @@ import numpy as np
 
 WURZEL = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(WURZEL / "server"))
+sys.path.insert(0, str(WURZEL / "scripts")); from lokal_faelle import laden as _laden
+BRUST = _laden("v3_faelle", "scripts/v3/v3_faelle.beispiel.json")["BRUST_FAHRER"]   # Konto-ID nur lokal
 ML = WURZEL / "server" / "data" / "ml"
 MODELL = os.environ.get("V3_MODELL", "") or "r1"
 PCACHE = ML / "v3" / f"p_{MODELL}"
@@ -123,7 +125,7 @@ def dehn(L, t, v, pg, theta, vmin=4 / 3.6, stopp_v=3 / 3.6, stopp_s=2):
 def teil(L, t, pg, theta, luecke_s=3, min_s=3):
     """Jeden Lauf in die Stuecke zerlegen, in denen p >= theta ist (Loecher <= luecke_s geschlossen).
     Anlass: tief verschmilzt Gehen und Fahren zu EINEM Abschnitt, dessen mittleres p dann unter der
-    Veto-Schwelle liegt — das Veto warf den echten Lauf darin mit weg (#8490, #1341)."""
+    Veto-Schwelle liegt — das Veto warf den echten Lauf darin mit weg (Session A, B). (Fall 2026-09-29-w) """
     out = []
     for a, b in L:
         idx = np.flatnonzero((t >= a) & (t <= b))
@@ -444,7 +446,7 @@ def main():
                 for a0, b0, _ in fort[str(sid)]["bereiche_ms"]:
                     w = (t >= a0) & (t <= b0)
                     fo[0] += int((w & m).sum()); fo[1] += int(w.sum())
-            if r.get("user_id") == 350:
+            if r.get("user_id") == BRUST:
                 g_s += r["foiling_time_s"]
             if sid in P:
                 t, _, p = P[sid]
@@ -470,7 +472,7 @@ def main():
         tp, fp, fn = br[:3]
         z = (f"{name:28s} Laeufe {sum(len(x['runs']) for x in res):6d} · {gesamt_s / 3600:6.1f} h"
              + (f" · Brett Praez. {tp / max(tp + fp, 1):.3f} Treffer {tp / max(tp + fn, 1):.3f} Gleit {gl[0]}/{gl[1]}" if brett else "")
-             + f" · Brust-Fahrer-Fortsetzung {fo[0]}/{fo[1]} s, u350 gesamt {g_s / 60:.0f} min"
+             + f" · Brust-Fahrer-Fortsetzung {fo[0]}/{fo[1]} s, Brust-Fahrer gesamt {g_s / 60:.0f} min"
              + f" · klare v2-Laeufe verloren {klar[0]}/{klar[1]}"
              + f" · <8 s {sum(1 for x in res for y in x['runs'] if y['dur_s'] < 8)}")
         print(z, flush=True); zeilen.append(z)

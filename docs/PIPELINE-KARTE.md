@@ -77,10 +77,10 @@ neue Stücke müssen die Empfindlichkeit erfüllen, Zepp ohne Randschnitt, `frem
 
 ## Trainingsdaten (Stand 23.10.)
 
-- r4 sah effektiv **5 Brett-Paare von 2 Fahrern** (u2, u13; `brett_training.GUTE`), das Brett-Pickle von damals
+- r4 sah effektiv **5 Brett-Paare von 2 Fahrern** (Jan, Fahrer A; `brett_training.GUTE`), das Brett-Pickle von damals (Fall 2026-09-29-r)
   fehlt. Datensatz `data/ml/v3/ds/` vom 29.09. (2491 Sessions).
 - `paare_ausrichten.py --liste` heute: 22 Paare + 7 Brett-Sessions ohne Uhr, 8 Fahrer; **Uhr-Wahrheit von 5 Fahrern**
-  (u2 14, u574 6, u683 2, u13 1, u244 1). Ausrichtung > 400 ms bei allen u574-Paaren und einigen von u2/u13.
+  (Jan 14, Fahrer A 6, Fahrer B 2, Fahrer C 1, Fahrer D 1). Ausrichtung > 400 ms bei allen Fahrer A-Paaren und einigen von Jan/Fahrer C. (Fall 2026-10-23-e)
 - Neubau: Paare neu ausrichten, Phase 0 + Datensatz für Sessions ab 29.09., p_r3 + Haltung, Brett-Labels aus
   `paare.json` statt `GUTE`, Training unter neuem Namen, Werkbank + Regression mit Modelltausch; live nur mit Jans OK
   (Sicherung, `VERSION` hochzählen, Reanalyse).

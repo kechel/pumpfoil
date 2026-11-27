@@ -7,7 +7,7 @@ moeglich umsetzen, wir koennen dann ja wieder feedback einholen aus der communit
 Befund (Stand-Buch wakethief, Plots unter server/data/analyse-notizen/2026-10-20-sup-wake/):
 
 * Pumpen ist im Accel (Betrag, Band 0,3–3 Hz) ein kraeftiger Rhythmus. Auf der Welle wird es fast flach,
-  bei gehaltenem Tempo (#12741: ~410 s bei 20–22 km/h, nur vereinzelte Pumpstoesse).
+  bei gehaltenem Tempo (Session A: ~410 s bei 20–22 km/h, nur vereinzelte Pumpstoesse). (Fall 2026-10-20-l)
 * Ein Stueck ohne Pumpen, das LAENGER als ein Gleiten auf flachem Wasser dauert und trotzdem im Lauf
   bleibt, braucht einen Antrieb von aussen — die Welle. Deshalb: ruhig = Huellkurve < 0,35 x des
   kraeftigen Pumpens desselben Laufs (p90), und das mindestens 5 s am Stueck.
@@ -34,7 +34,7 @@ VERSION = "w5"
 BAND_HZ = (0.3, 3.0)
 RUHIG_FAKTOR = 0.5      # mittlere Leistung (6 s) unter diesem Anteil des Pump-Niveaus (p90 im Lauf) = Welle
 LEISTUNG_S = 6.0        # w4: Mittel von f² statt Spitzen-Huellkurve (s. Kopf)
-BRUECKE_S = 10.0        # kuerzere Pumpstuecke ZWISCHEN zwei Wellenstuecken zaehlen zur Welle (w2: 8, w5: 10 nach #12816)
+BRUECKE_S = 10.0        # kuerzere Pumpstuecke ZWISCHEN zwei Wellenstuecken zaehlen zur Welle (w2: 8, w5: 10 nach Session A) (Fall 2026-10-20-m)
 TEMPO_GEHALTEN = 0.9    # w5: Wellenstueck nur, wenn das Tempo darin >= 90 % des Lauf-Medians bleibt — sonst ist es
                         # das Ausrollen am Laufende (Pumpen hoert auf, Tempo faellt), keine Welle
 PUMP_PERZENTIL = 90
@@ -72,11 +72,11 @@ def auswerten(t_s: np.ndarray, accel: np.ndarray, hz: float, gps: list, laeufe: 
     mag = np.linalg.norm(accel.astype(float), axis=1)
     b, a = butter(2, [BAND_HZ[0] / (hz / 2), BAND_HZ[1] / (hz / 2)], "band")
     f = filtfilt(b, a, mag - np.median(mag))
-    # w4 (20.10.2026, Jan zu #12816: „war wirklich nur da auf welle oder vielleicht etwas mehr von diesem
+    # w4 (20.10.2026, Jan zu Session A: „war wirklich nur da auf welle oder vielleicht etwas mehr von diesem (Fall 2026-10-20-n)
     # stueck?"): Die Spitzen-Huellkurve blieb hoch, sobald zwischendurch einzelne kraeftige Ausgleichs-Pumps
-    # kamen — #12816 zeigte nur 8 s Welle, obwohl 2160-2218 s der Rhythmus unregelmaessig wird, die
+    # kamen — Session A zeigte nur 8 s Welle, obwohl 2160-2218 s der Rhythmus unregelmaessig wird, die
     # Ausschlaege/min auf 50-80 fallen und das Tempo am hoechsten ist. Die MITTLERE Leistung (f² ueber 6 s)
-    # faellt dort auf 0,3-0,65 und erfasst das; bei durchgehendem Pumpen (#13843) bleibt sie >= 0,45 und nie
+    # faellt dort auf 0,3-0,65 und erfasst das; bei durchgehendem Pumpen (Session B) bleibt sie >= 0,45 und nie
     # 5 s darunter.
     env = uniform_filter1d(f ** 2, max(int(hz * LEISTUNG_S), 1))
 

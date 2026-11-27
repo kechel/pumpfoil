@@ -261,7 +261,7 @@ def _nachrechnen_faellig(db: Session, s: "models.Session") -> bool:
     # `analyzed` MIT: eine Aufnahme, die der Haenger-Lauf abgeschlossen hat, bekommt ihre
     # restlichen Chunks oft erst Stunden oder Tage spaeter. Bis 29.09.2026 wurden die nur
     # gespeichert — die Analyse blieb auf dem alten Stand, bis irgendwann `/complete` kam. Belegt
-    # an #10266 (Apple Watch, 2 h 48 min): 1009 Chunks am 29.09. nachgeliefert, darunter fast die
+    # an Session A (Apple Watch, 2 h 48 min): 1009 Chunks am 29.09. nachgeliefert, darunter fast die (Fall 2026-09-29-y)
     # ganze Beschleunigung, die Analyse aber von 04:03 und „nur GPS"; die letzten 74 Chunks kamen
     # nie (App beim Update von der Uhr geflogen), also auch kein `/complete`. Der Aufrufer rechnet
     # eine `analyzed`-Session FINAL (samt Zuschnitt), damit der Status bleibt, wie er ist.
@@ -371,7 +371,7 @@ def upload_chunks(
 
     WARUM: die Chunkgroesse stammt aus dem Garmin-BLE-Limit (`makeWebRequest`, s.
     docs/data-format.md) — Apple Watch und Wear OS laden aber per HTTPS und haben das Limit nicht.
-    Mit einem Chunk je Anfrage brauchte #10266 (Apple Watch, 2 h 48 min) 1848 Anfragen fuer
+    Mit einem Chunk je Anfrage brauchte Session A (Apple Watch, 2 h 48 min) 1848 Anfragen fuer (Fall 2026-09-29-z)
     2,2 MB, der Upload zog sich ueber drei Tage. Die Chunks bleiben dieselben (gleiche Indizes,
     gleiche Vollstaendigkeitspruefung, Resume unveraendert) — nur die Anfragen werden weniger.
 
@@ -417,7 +417,7 @@ def haenger_faellig(s: "models.Session", jetzt=None, letzter_chunk=None) -> bool
     hinterher. Stirbt sie, bleibt die Aufnahme fuer immer in diesem Zwischenzustand: in der
     Liste als „wird verarbeitet", ohne Benachrichtigung, ohne Auto-Zuschnitt, aus der Community
     ausgeblendet (`community.py` filtert nur `recording`/`live` — `complete` faellt durch alle
-    Raster). Passiert am 15.09.2026 an #8517 und #8504, als zwei Analysen gleichzeitig die
+    Raster). Passiert am 15.09.2026 an #8517 und Session A, als zwei Analysen gleichzeitig die (Fall 2026-09-15-d)
     Ergebniszeile anlegen wollten.
 
     SEIT 22.09.2026 AUCH `live`/`recording` — die frueher hier stehende Regel „bewusst nur
@@ -585,7 +585,7 @@ ENDE_TOLERANZ_S = 3600
 def _ende_auf_daten_kappen(s: models.Session) -> bool:
     """`ended_at` weit HINTER den Daten -> aufs Datenende setzen. -> geaendert?
 
-    Anlass (09.10.2026, #14325, iPhone-Handy-Recorder 1.1.41): Akku leer nach 13,7 h Aufnahme, die
+    Anlass (09.10.2026, Session A, iPhone-Handy-Recorder 1.1.41): Akku leer nach 13,7 h Aufnahme, die (Fall 2026-10-09-d)
     App schloss die Session sechs Tage spaeter beim naechsten Start ab und schickte „jetzt" als Ende.
     Die Session stand damit ueberall mit gut 150 Stunden Dauer. Dieselbe Regel gilt beim
     Zusammenfuehren schon lange (`merge._end`); hier wirkt sie fuer jede Plattform und jede alte

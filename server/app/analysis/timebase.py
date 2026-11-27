@@ -6,7 +6,7 @@ Indizes existieren nur innerhalb dieses Moduls, sie werden nie nach außen als A
 Warum das ein eigenes Modul ist: in v1 wird die Accel-Zeitachse aus einer Rate GESCHÄTZT und
 der Zuschnitt an einer anderen Stelle angewandt als der Ausschluss — Segmente tragen dann auf
 den Trim re-basierte Zeiten, `excluded_ranges` dagegen Session-Zeiten. Dieselbe Falle hat
-zweimal zugeschlagen (Aussortieren in #1232, Accel-Fenster in #1328). Hier gibt es genau eine
+zweimal zugeschlagen (Aussortieren in Session A, Accel-Fenster in Session B). Hier gibt es genau eine (Fall 2026-08-01-w)
 Achse, genau eine Stelle für Trim/Ausschluss und Session-Koordinaten bis zum Schluss.
 
 Rangfolge für die Accel-Achse (Entwurf, Abschnitt 1):
@@ -34,7 +34,7 @@ import numpy as np
 # ACHTUNG bei (c) — hier stand bis 2026-08-10 ein Band von (0.5, 2.0) um die GETAGGTE Rate, und
 # das hat eine korrekte Achse verworfen: Wear/Apple fordern 25 Hz an und bekommen 50 Hz, also
 # 50.19/25 = 2.0076 — 0.4 % über der Schranke. Ergebnis war der Rückfall auf eine einzige
-# Durchschnittsrate, deren Zeitversatz auf +171 s wuchs (Session #1814: mitten im Lauf hörten die
+# Durchschnittsrate, deren Zeitversatz auf +171 s wuchs (Session A: mitten im Lauf hörten die (Fall 2026-08-10-af)
 # erkannten Pumps auf, weil 124 s daneben gelesen wurde; 10 Sessions betroffen). Die getaggte Rate
 # ist laut Docstring oben NIE Wahrheit — sie darf die gemessene Achse also nicht kippen. Was hier
 # wirklich abzufangen ist, ist Unsinn, und dafür gibt es die spezifischeren Prüfungen: Default-
@@ -46,7 +46,7 @@ import numpy as np
 # (50/25 bzw. 126/50). Die UNTERE bleibt bei 0.5, und das ist Absicht: eine Chunk-Rate weit UNTER
 # der getaggten heißt lange Pausen zwischen den Chunks, und dort verteilt `_accel_chunk_axis` die
 # Samples eines Chunks über die ganze Lücke bis zum nächsten (Rate = counts/Abstand). Nachgeprüft an
-# #1579 (5.87 Hz): die exakte Achse liegt dort 203 s neben den Läufen, ist also NICHT besser als die
+# Session B (5.87 Hz): die exakte Achse liegt dort 203 s neben den Läufen, ist also NICHT besser als die
 # Durchschnittsrate. Solange die Chunk-Dauer nicht getrennt geschätzt wird, bleiben diese Fälle
 # draußen. -> siehe docs/DATA-PIPELINE.md §9.3
 T0_RATE_ABS_HZ = (1.0, 400.0)  # absolute Plausibilität der aus t0_ms folgenden Chunk-Rate

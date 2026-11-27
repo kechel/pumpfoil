@@ -29,7 +29,7 @@ def test_feld_21_bleibt_auf_klassischen_seiten(client):
 
 
 def test_felder_22_23_alle_laeufe(client):
-    """Strecke/Zeit ueber alle Laeufe (Wunsch Roman, 28.09.2026) — klassisch und im Layout-Katalog."""
+    """Strecke/Zeit ueber alle Laeufe (Wunsch eines Nutzers, 28.09.2026) — klassisch und im Layout-Katalog."""
     from app.api import layouts
     r = client.post("/api/auth/register", json={"email": "feld2223@t.de", "password": "supersecret"})
     auth = {"Authorization": f"Bearer {r.json()['access_token']}"}

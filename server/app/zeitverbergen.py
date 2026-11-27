@@ -1,6 +1,6 @@
 """„Uhrzeit verbergen": andere sehen von einer Session nur den TAG, nicht die Uhrzeit.
 
-Wunsch eines Nutzers (u146, 11.11.2026), Konzept vom Assistentenkonto, Jan 16./17.11.2026: „beides bauen", Standard =
+Wunsch eines Nutzers (11.11.2026), Konzept vom Assistentenkonto, Jan 16./17.11.2026: „beides bauen", Standard = (Fall 2026-11-11-g)
 Uhrzeit sichtbar (in der Oberflaeche als Einwilligung „Uhrzeit anzeigen", gespeichert als Opt-out `hide_time`).
 
 Das Risiko sind Gewohnheiten („immer dienstags um 18 Uhr dort"); die verschwinden schon mit dem Tag. Woche oder Monat
@@ -146,7 +146,7 @@ def liste_anwenden(db, eintraege, betrachter_id, uid_key: str = "user_id", **kw)
 
 def sortier_start(spalte_start, spalte_user, ids):
     """SQL-Ausdruck fuer die Reihenfolge: bei verbergenden Nutzern der Tag (Mittag), sonst die echte Startzeit — sonst
-    verraete die Reihenfolge innerhalb eines Tages die Uhrzeit (Zusage im Konzept an u146)."""
+    verraete die Reihenfolge innerhalb eines Tages die Uhrzeit (Zusage im Konzept an Fahrer A). (Fall 2026-11-17-k) """
     from sqlalchemy import case, func, literal_column
     if not ids:
         return spalte_start

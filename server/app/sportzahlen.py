@@ -6,14 +6,14 @@ die Erkennung bleibt unangetastet, keine Neuberechnung noetig, gilt sofort fuer 
 - **Fahrten** (Wind): aufeinanderfolgende Laeufe gehoeren zu EINER Fahrt, solange die Pause
   dazwischen hoechstens FAHRT_PAUSE_S dauert. Jan, 19.10.2026: „mach die pause auf 5min, in 5min
   geht man nicht an Land und wieder raus, dann hat es nur etwas laenger gedauert." Kurze Stuerze,
-  Wenden und Wasserstarts zerlegen eine Wing-Ausfahrt sonst in Dutzende Laeufe (#17478: 57).
+  Wenden und Wasserstarts zerlegen eine Wing-Ausfahrt sonst in Dutzende Laeufe (Session A: 57). (Fall 2026-10-19-q)
   845 Wing-Sessions: bei 5 min im Median 1 Fahrt je Session.
 - **Fahrzeit in Bewegung**: Sekunden mit Tempo >= BEWEGT_KMH. Mit `zeiten_ms` (Zeit je Spurpunkt) die echte Zeit je
-  Schritt, hoechstens LUECKE_S — die Spur ist NICHT immer 1 Hz (Garmin „Speicher sparen", Dropouts; #18983: 1061
+  Schritt, hoechstens LUECKE_S — die Spur ist NICHT immer 1 Hz (Garmin „Speicher sparen", Dropouts; Session B: 1061
   Punkte in 82 min, Punkte als Sekunden gezaehlt gab 42,7 km/h Schnitt bei 22,4 km/h Hoechsttempo). Ohne Zeiten
   (aeltere Aufrufer) ein Punkt = eine Sekunde.
 - **Tempo ueber die ganze Fahrt**: Strecke IN Bewegung / Fahrzeit in Bewegung. Bis 24.10.2026 stand hier die
-  Gesamtstrecke im Zaehler — bei #18978 (iPhone 7,4 h, meist liegend) summierte das GPS-Zittern im Stand 20,6 km
+  Gesamtstrecke im Zaehler — bei Session C (iPhone 7,4 h, meist liegend) summierte das GPS-Zittern im Stand 20,6 km
   gegen 1698 s Bewegung: 43,6 km/h Schnitt bei 24,3 km/h Maximum (Meldung eines Nutzers). Jetzt 4,4 km -> 9,3 km/h.
 - **On-Foil-Anteil**: Foiling-Zeit / Fahrzeit in Bewegung.
 
@@ -82,7 +82,7 @@ def berechnen(gruppe: str, segments: list[dict] | None, track: dict | None,
                 return False
             return zeiten_ms is None or 0 < zeiten_ms[i + 1] - zeiten_ms[i] <= LUECKE_S * 1000.0
         bewegt_m = sum(_schritt(coords[i], coords[i + 1]) for i in range(min(len(coords), len(speeds)) - 1) if zaehlt(i))
-        if bewegt_m and fahrzeit >= 60:     # unter einer Minute ist der Schnitt GPS-Rauschen (#18878: 2 s)
+        if bewegt_m and fahrzeit >= 60:     # unter einer Minute ist der Schnitt GPS-Rauschen (Session A: 2 s) (Fall 2026-10-24-l)
             out["tempo_kmh"] = round(bewegt_m / fahrzeit * 3.6, 1)
         if foil_s is not None:
             out["foil_anteil"] = round(min(1.0, foil_s / fahrzeit), 3)

@@ -1,7 +1,7 @@
-"""Plausibilitaet der ausgelieferten Session-Zahlen (24.10.2026, Jan nach #18978/#18983: „mach doch mal ein paar
+"""Plausibilitaet der ausgelieferten Session-Zahlen (24.10.2026, Jan nach Session A/C: „mach doch mal ein paar (Fall 2026-10-24-m)
 plausibilitaets-tests fuer solche werte"). Regeln in app/plausibel.py; hier (1) die Regeln selbst, (2) Sessions mit
-den Fallen aus dem Bestand ueber die echte API: stundenlanges GPS-Zittern im Stand (#18978) und eine Spur, die nicht
-1 Hz ist (#18983, Garmin „Speicher sparen")."""
+den Fallen aus dem Bestand ueber die echte API: stundenlanges GPS-Zittern im Stand (Session A) und eine Spur, die nicht
+1 Hz ist (Session B, Garmin „Speicher sparen")."""
 import json
 import math
 import uuid as _uuid
@@ -42,7 +42,7 @@ def test_jede_regel_schlaegt_an(aendern, teil):
 
 
 def _wind_gps():
-    """300 s Fahrt mit 6 m/s, 2 h Stand mit 8 m GPS-Zittern je Sekunde (#18978), dann wieder 300 s Fahrt — die
+    """300 s Fahrt mit 6 m/s, 2 h Stand mit 8 m GPS-Zittern je Sekunde (Session A), dann wieder 300 s Fahrt — die (Fall 2026-10-24-n)
     beginnt mit einer Beschleunigung ueber 6 s (ein Sprung von 0,3 auf 6 m/s loest die Despike-Kaskade aus, s. unten)."""
     out, t, lat = [], 0, 47.86
     for _ in range(300):
@@ -93,7 +93,7 @@ def test_wind_session_plausibel_ueber_die_api(client, wind_session):
 
 
 def test_spur_mit_luecken_zaehlt_echte_sekunden():
-    """#18983 (Garmin „Speicher sparen"): ein Punkt alle 5 s. Ohne Zeiten waeren 120 Punkte 120 s -> 5-facher
+    """Session A (Garmin „Speicher sparen"): ein Punkt alle 5 s. Ohne Zeiten waeren 120 Punkte 120 s -> 5-facher (Fall 2026-10-24-o)
     Schnitt; mit Zeiten 600 s. Schritte ueber LUECKE_S (Pause, Dropout) zaehlen gar nicht."""
     from app.sportzahlen import berechnen
     c, v, t = [], [], []

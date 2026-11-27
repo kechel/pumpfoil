@@ -4,7 +4,7 @@ using Toybox.Lang;
 // Erinnerung in der Pause (Jan, 22.10.2026): alle 10 min deutlich vibrieren und auf den Bildschirm zum
 // Fortsetzen/Beenden springen — IMMER, nicht abschaltbar („wenn man das nicht will kann man ja speichern
 // und spaeter neu starten"). Anlass: eine Apple-Watch-Pause (vermutlich Wasser/Aermel auf dem Knopf) blieb
-// 85 min unbemerkt stehen, alle Laeufe danach fehlten (#17726). Nur VOLL-Build: Lite kann nicht pausieren.
+// 85 min unbemerkt stehen, alle Laeufe danach fehlten (Session A). Nur VOLL-Build: Lite kann nicht pausieren. (Fall 2026-10-22-j)
 // Eigenes Modul statt Membern in SessionRecorder (253-Member-Grenze der 128-KB-Builds).
 (:full)
 module PauseMahner {

@@ -335,7 +335,7 @@ _APP_META: dict[str, dict[str, str]] = {
         # DREI TAGE Pruefung — wie bei 1.1.29 und 1.1.28, das ist inzwischen der Normalfall.
         # Zufall am Rande: die Apple-Freigabe fuer iOS 1.1.36 kam am selben Morgen um 04:28:55.
         # ⚠️ ANDERS ALS SONST NOCH NICHT IM FELD BELEGT: `app_version 1.2.30` melden bisher genau
-        # zwei Geraete, und beide sind KEINE Nutzer — der Play-Pruefer (user 6 „Google Tester",
+        # zwei Geraete, und beide sind KEINE Nutzer — der Play-Pruefer (Store-Testkonto „Google Tester",
         # Pixel Watch 3, zuletzt 21.09. 04:05, also 23 Minuten VOR der Mail) und Jans eigener
         # Wear-Emulator vom 18.09. Der Roll-out beginnt also gerade erst. Die Zeile stuetzt sich
         # hier allein auf die Play-Mail; die ist fuer Play die massgebliche Quelle (die
@@ -375,7 +375,7 @@ _APP_META: dict[str, dict[str, str]] = {
         # Die Garmin-App vergleicht das selbst mit Config.VERSION (SessionRecorder.mc:638).
         "latest": "1.0.105",   # LIVE 2026-11-21: am Tag der Einreichung freigegeben (Jans Meldung, Store-Seite „Latest Release
         # November 21, 2026, 1.0.105"). Inhalt: GPS + Beschleunigungs-Listener in onStop selbst abschalten (Anlass: Uhr-Neustart
-        # nach der Session, u244 Instinct 3). .iq aus 000fd37c, Test 1.0.105-ta im Simulator (#22956-#22958). Changelog-Punkt + Ereignis.
+        # nach der Session, Fahrer A Instinct 3). .iq aus 000fd37c, Test 1.0.105-ta im Simulator (#22956-#22958). Changelog-Punkt + Ereignis. (Fall 2026-11-21-c)
         # ALT: "latest": "1.0.104",   # LIVE 2026-11-17: am Tag der Einreichung freigegeben (Jans Meldung, aus dem IQ Store auf die
         # echte Uhr geholt). Inhalt: Menuepunkt „Aufnahmen loeschen" (eigene Rueckfrage, START 2 s halten; nicht im Lite-Build),
         # kein Auto-Start unter Menues. .iq aus af8a563b. Dazu Server: wartende Uhr-Aufnahme gilt als erledigt, wenn sie ueber
@@ -524,14 +524,14 @@ _APP_META: dict[str, dict[str, str]] = {
         # der Roll-out noch nicht im Feld sichtbar ist, stehen bei "android".
         # ALT: "latest": "1.2.29",   # LIVE 2026-09-16, dieselbe Play-Mail wie android (Release erstellt
         # 13.09. 06:55 GMT). Im Feld belegt: zwei Tokens mit `app_version 1.2.29`, zuletzt am
-        # 16.09. um 05:56. Inhalt u. a. der Puls-Alarm und — fuer Vladimir (u187) gemeldet — das
+        # 16.09. um 05:56. Inhalt u. a. der Puls-Alarm und — von einem Nutzer gemeldet — das (Fall 2026-08-09-a)
         # deutsche „laeuft" in der Sessionliste, das nun endlich uebersetzt drausssen ist.
         # Vorher 1.2.28, LIVE 2026-09-13, dieselbe Play-Mail wie android (Release erstellt
         # 10.09. 08:09 GMT). Im Feld belegt: drei Tokens mit `app_version 1.2.28`, zuletzt am
         # 13.09. 07:13. 1.2.27 war der ABGELEHNTE Stand und existiert im Feld nur einmal — das
         # war der Play-Pruefer am 10.09.
         # Vorher 1.2.25, LIVE 2026-09-07, dieselbe Play-Mail wie android. Zusaetzlich
-        # im Feld belegt, nicht nur geglaubt: user 396 wechselte am 05.09. von 1.2.24 auf
+        # im Feld belegt, nicht nur geglaubt: Fahrer B wechselte am 05.09. von 1.2.24 auf
         # `app_version 1.2.25` — Pixel Watch 2, fremdes Geraet, nicht Jans Emulator. Also war
         # der Wear-Track schon VOR der Mail draussen (er hat eine eigene Pruefung, s. TODO).
         # ACHTUNG bei solchen Belegen: fuer PHONE geht das nicht, weil iOS und Android-Handy
@@ -932,7 +932,7 @@ ABGELEHNT: list[dict] = [
      # „Changes to your app weren't published") — ob die Handy-Spur mit blockiert wurde, sagt allein
      # die Play-Konsole. In unseren Daten ist 1.1.27 auf keinem Android-Handy je aufgetaucht
      # (`sessions.device_model`, hoechster Android-Stand 1.1.25, gesehen am 07.09.).
-     # Geprueft wurde auf einer Pixel Watch 3 (`device_tokens` von user 6 „Google Tester",
+     # Geprueft wurde auf einer Pixel Watch 3 (`device_tokens` von Store-Testkonto „Google Tester",
      # 10.09. 06:44-07:01, Session #7136) — die runde Fassung passt genau zur Ursache.
      "abgelehnt": "2026-09-10",
      "grund": "text could be cut off at the screen edge with a large system font"},
@@ -988,7 +988,7 @@ ABGELEHNT: list[dict] = [
 IN_REVIEW: list[dict] = [
     {"name": "Huawei Watch GT / Fit / D", "version": "1.0.8",
      # Pumpfoil GT (Lite) 1.0.8 (1000008), Paket hochgeladen 26.11.2026 14:26:45 (AppGallery-Zeit), am 26.11. ~15:35
-     # regulaer eingereicht (Jans Meldung, „Under pre-review"); Open Testing fuer u1150 vorher nicht gefunden, entfiel.
+     # regulaer eingereicht (Jans Meldung, „Under pre-review"); Open Testing fuer Fahrer A vorher nicht gefunden, entfiel. (Fall 2026-11-26-b)
      "eingereicht": "2026-11-26",
      "items": [
          "New: HUAWEI WATCH GT, Fit and D record pump foiling sessions and upload them through the Pumpfoil app for Android.",
@@ -1184,7 +1184,7 @@ NAECHSTES: list[dict] = [
     # 22.10.2026: Rueckfrage an der Bewertung („Back to rider", Web live). Android/iOS NICHT gebumpt,
     # 1.1.44 lag im Review, 1.1.54 war gerade freigegeben (Memory versionen-erst-bei-release).
     # Android 1.1.45 / Wear 1.2.45 am 28.10. eingereicht -> IN_REVIEW.
-    # 26.10.2026 abends: Chip „Gültig" (ae2fab54) + gelbes Sportart-Label in eigenen Listen (Wunsch u244), nach dem Build von 1.1.57.
+    # 26.10.2026 abends: Chip „Gültig" (ae2fab54) + gelbes Sportart-Label in eigenen Listen (Wunsch Fahrer A), nach dem Build von 1.1.57. (Fall 2026-11-26-c)
     # iPhone NICHT gebumpt (1.1.57 liegt im Review). Code nur swiftc -parse.
     # iPhone + Apple Watch 1.1.58 am 28.10. eingereicht -> IN_REVIEW, am 29.10. FREIGEGEBEN.
     # iPhone + Apple Watch 1.1.57 am 26.10. eingereicht -> IN_REVIEW, am 26.10. FREIGEGEBEN.
@@ -1195,7 +1195,7 @@ NAECHSTES: list[dict] = [
     # Garmin 1.0.96 am 22.10. eingereicht und FREIGEGEBEN (s. _APP_META["garmin"]); Punkt im Changelog mit garmin 1.0.96.
     # Garmin 1.0.92 am 09.10. eingereicht -> IN_REVIEW.
     # 1.1.40 / 1.2.40 (Messweg nach Doku) am 07.10. eingereicht -> IN_REVIEW.
-    # 07.10.2026 (Roman, Handy am Brett, #13908): Android/iOS zeigten „nur ~47 Hz, braucht 15 Hz",
+    # 07.10.2026 (ein Nutzer, Handy am Brett, Session A): Android/iOS zeigten „nur ~47 Hz, braucht 15 Hz",
     # obwohl der Accel ausgewertet war — die PWA blendet den Hinweis am Brett seit 03.10. aus, die
     # Apps hatten das nie bekommen. Code fertig, wartet auf die naechste Runde (nicht gebumpt).
     # Android 1.1.41 / Wear 1.2.41 am 09.10. eingereicht -> IN_REVIEW.
@@ -1260,7 +1260,7 @@ NAECHSTES: list[dict] = [
     # Huawei Watch 5 1.0.6 am 13.11. eingereicht -> IN_REVIEW.
     # Amazfit 1.0.16 am 13.11. eingereicht -> IN_REVIEW.
     # Amazfit 1.0.18 am 24.11. eingereicht -> IN_REVIEW.
-    # 25.11.2026 (u1150, T-Rex 3 Pro: langes SELECT = System-Sprachassistenz): Sperrschirm nennt den Ort.
+    # 25.11.2026 (T-Rex 3 Pro: langes SELECT = System-Sprachassistenz): Sperrschirm nennt den Ort. (Fall 2026-11-10-b)
     {"name": "Amazfit", "version": "1.0.19",
      "items": [
          "The touch lock screen now says to hold the screen for 2 seconds to unlock, because some watches use a long button press for their own voice assistant.",
@@ -1274,9 +1274,9 @@ NAECHSTES: list[dict] = [
     # 1.1.34 ging in den internen Test (Jan, 27.09.); 1.1.35 bringt dazu die Portierung vom 28.09.
     # (bf972167). iOS 1.1.39 Build 43 liegt in TestFlight, Build 44 hat die Portierung.
     # Wear 1.2.34 wird nur mitgebumpt (harte Regel: Phone und Wear immer zusammen), ohne eigenen Punkt.
-    # Datenfelder 22/23 (Summe aller Laeufe), Wunsch Roman 28.09.2026 — auf allen vier Uhren gebaut.
+    # Datenfelder 22/23 (Summe aller Laeufe), Wunsch eines Nutzers 28.09.2026 — auf allen vier Uhren gebaut.
     # Sammel-Upload (29.09.2026, Server 489bc1fe): Apple Watch und Wear OS schicken ihre Chunks zu
-    # 20 je Anfrage statt einzeln (#10266: 1848 Anfragen, drei Tage). Phone + Wear zusammen gebumpt.
+    # 20 je Anfrage statt einzeln (Session A: 1848 Anfragen, drei Tage). Phone + Wear zusammen gebumpt. (Fall 2026-09-25-d)
     # 30.09.2026: Texte zur neuen Erkennung (v3) — aussortierte Laeufe mit eigenem Grund, Profil-Hinweis
     # zur Empfindlichkeit; Server und Web sind schon live, die Apps ziehen den Wortlaut nach.
     # 30.09.2026: Pause auf Apple Watch und Wear OS mit 2 s halten wie Stopp (Nutzermeldung).
@@ -1301,7 +1301,7 @@ NAECHSTES: list[dict] = [
 # Dieselbe Kuerze wie im Changelog: ein Satz, nur WAS, kein Fachjargon (s. Memory
 # `changelog-ein-satz`). Englisch wie die ganze Seite.
 IDEEN: list[str] = [
-    # Vorschlag u963 (1:1-Chat mit Jan, 01.11.2026); Plan in docs/TEAMS.md „Ideen: Team gegen Team und Abzeichen".
+    # Vorschlag Fahrer A (1:1-Chat mit Jan, 01.11.2026); Plan in docs/TEAMS.md „Ideen: Team gegen Team und Abzeichen". (Fall 2026-11-01-b)
     "Team against team: challenge another team to an event, where the best three or five results of each team count, "
     "so every member can join in and a big team does not win by size alone.",
     "Badges for your profile, such as being the first to pump at a spot, how many spots you have ridden, and how often "
@@ -1311,12 +1311,12 @@ IDEEN: list[str] = [
     "already drawn on the map.",
     "Paddle-up starts: count the strokes it takes you to get up, and how fast you are when "
     "the board lifts.",
-    # Frage eines Nutzers zu #16667, 14.10.2026; Jan: „adding it to the ideas list". Ob es mit
+    # Frage eines Nutzers zu Session A, 14.10.2026; Jan: „adding it to the ideas list". Ob es mit (Fall 2026-10-14-e)
     # 25 Hz geht oder erst mit 100 Hz, ist offen (docs/TODO.md Inbox 14.10.).
     "Tell which way you started each run: running or dock start, drop start, dead start, maybe "
     "even from the knees.",
     "Pick the foil per run, not just per session — most of us swap gear during a session.",
-    # Wunsch eines Nutzers (Feedback #208 mit fertigem Prompt, Session #18864, nur GPS), 23.10.2026. Kuerzen ist
+    # Wunsch eines Nutzers (Feedback #208 mit fertigem Prompt, Session A, nur GPS), 23.10.2026. Kuerzen ist (Fall 2026-10-23-v)
     # gebaut (Web, „Trim start/end", steht im Changelog). Offen: VERLAENGERN braucht feste Laufgrenzen in der
     # Auswertung (Analyse-Pipeline, Jans OK); dazu „zurueck auf erkannt" im Dialog nach dem Speichern und, nur
     # fuer Sessions mit Accel, Pump-Marker/Pumptakt im Editor. Android/iOS bewusst nicht (seltener Fall).
@@ -1381,7 +1381,7 @@ IDEEN: list[str] = [
     "See your start attempts on the watch data screens, next to your runs.",
     "A heart-rate alarm that tells you when your pulse has dropped back below a value you choose, so you know you are "
     "ready for the next run.",
-    # Vorschlag u244 (1:1-Chat mit Jan, 13.11.2026); Jan: „Disable run detection for Wingfoil makes sense".
+    # Vorschlag Fahrer A (1:1-Chat mit Jan, 13.11.2026); Jan: „Disable run detection for Wingfoil makes sense". (Fall 2026-11-13-v)
     # Der zweite Wunsch (Zuschneiden) gibt es schon unten auf der Session-Seite, Jan hat darauf verwiesen.
     "Choose per sport whether a session is split into runs, for example to keep a wing foil session as one "
     "continuous ride.",
@@ -1392,7 +1392,7 @@ IDEEN: list[str] = [
     "layout.",
     "An event mode on the watch that shows the stats of the event you are taking part in on their own data page, "
     "automatically while the event runs.",
-    # Vorschlag u1060 (1:1-Chat mit Jan, 23.11.2026); Jan: Zahlen gibt es schon unter Community › Foil-Stats, „a graph
+    # Vorschlag Fahrer A (1:1-Chat mit Jan, 23.11.2026); Jan: Zahlen gibt es schon unter Community › Foil-Stats, „a graph (Fall 2026-11-23-c)
     # of the distribution surely is some more information, i'll add it to the future ideas list". Fuer „alle Fahrer"
     # gelten die Grenzen der Foil-Statistik (nur Gesamtzahlen, mehr als drei Fahrer).
     "A chart of how your speed is spread out, for a session, for one foil of yours, or for a foil across all riders, "

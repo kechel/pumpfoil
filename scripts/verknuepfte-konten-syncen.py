@@ -11,7 +11,7 @@ nichts doppelt an). Laeuft ueber `foil-account-sync.timer` einmal taeglich.
 WARUM ES DAS GIBT (Jan, 06.09.2026)
 Bis hierher gab es KEINEN automatischen Sync. `sync()` haengt in `LinkedAccounts.tsx`
 ausschliesslich am Knopf — wer sein Konto verknuepft und danach nie wieder auf die Seite geht,
-bekommt seine Trainings nie. Aufgefallen ist es, als bei Peter ein Training an einem inzwischen
+bekommt seine Trainings nie. Aufgefallen ist es, als bei einem Nutzer ein Training an einem inzwischen
 behobenen Parser-Fehler gescheitert war: es haette ewig gefehlt, ohne dass jemand etwas merkt.
 
 KOSTET DAS KONTINGENT?

@@ -17,7 +17,7 @@ from .deps import current_user
 
 router = APIRouter(prefix="/api/feedback", tags=["feedback"])
 
-# 2000 statt 500 seit 28.10.2026 (u146: 500 reichte fuer einen Fehlerbericht nicht; Spalte ist TEXT).
+# 2000 statt 500 seit 28.10.2026 (Fahrer A: 500 reichte fuer einen Fehlerbericht nicht; Spalte ist TEXT). (Fall 2026-10-28-a)
 MAX_LEN = 2000
 
 

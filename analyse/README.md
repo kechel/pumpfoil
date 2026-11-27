@@ -8,8 +8,8 @@ herauszuholen ist — Pump-Kadenz, Foil-Lage, Vortriebs-Surge etc.
 Siehe Memory `board-imu-experiment`. **Nur lokal/explorativ — nichts davon geht auf die Website.**
 
 ## Setup
-- **fenix** (Jans Konto, user 2): am **Handgelenk**, 25 Hz Accel, gutes GPS.
-- **FR55** (Konto des Testnutzers, user 5): am **Foil-Mast, unter Wasser**, **über Kopf**
+- **fenix** (Jans Konto): am **Handgelenk**, 25 Hz Accel, gutes GPS.
+- **FR55** (Konto des Testnutzers, Fahrer A): am **Foil-Mast, unter Wasser**, **über Kopf** (Fall 2026-07-28-a)
   montiert, **Start-Knopf (rechts) in Fahrtrichtung**. 10 Hz Accel (Modus „Sparsam").
   **Kein brauchbares GPS** (Satellitensignal kommt unter Wasser nicht durch).
 
@@ -52,5 +52,5 @@ Pumpfoilen sind (Auto, Wing/Kite, Land/Winter), mit Begründung. Rohdaten liegen
 `server/data/sessions/<uuid>/` (bleiben bei Soft-Delete erhalten; DSGVO-Purge löscht endgültig —
 gewollt, dann ist der Eintrag hinfällig).
 Zweck: Negativ-Klasse für künftige Modelle (Wing↔Pump-Abgrenzung, Detektor-Härtung).
-Wichtigster Fall: #665 — Wing-Pumpen ist am Handgelenk vom Pumpfoil-Pumpen mit einfachen
+Wichtigster Fall: Session A — Wing-Pumpen ist am Handgelenk vom Pumpfoil-Pumpen mit einfachen (Fall 2026-07-19-a)
 Features NICHT unterscheidbar (RF-Fehltreffer); Details in der JSON.

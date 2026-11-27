@@ -12,7 +12,7 @@ VIER_SICHER = [_lauf(14, 12), _lauf(15, 22), _lauf(13, 19), _lauf(14, 22)]
 
 
 def test_zweiter_fahrer_rollt_mehr_und_wird_trotzdem_gefragt():
-    """#10248: fest am Brett, aber dort rollt es staerker als es nickt (0,70). Frueher nicht
+    """Session A: fest am Brett, aber dort rollt es staerker als es nickt (0,70). Frueher nicht (Fall 2026-09-27-m)
     gefragt; die Lage (2,6° zur Achse) und der sichere Takt reichen."""
     u = brett_urteil(VIER_SICHER, 2.6)
     assert u["verdacht"] is True and u["nick_roll"] < 1

@@ -4,7 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** GPS-Zeitstempel = Messzeit, nicht Zustellzeit (SM-L715F, #8529: 709 Punkte in 6 s). */
+/** GPS-Zeitstempel = Messzeit, nicht Zustellzeit (SM-L715F, Session A: 709 Punkte in 6 s). (Fall 2026-10-01-b) */
 class GpsZeitTest {
     /** Laesst eine Folge von (Zustellzeit, Alter) durch `stempel` laufen wie `addGps`. */
     private fun lauf(fixes: List<Pair<Int, Long>>): List<Int> {

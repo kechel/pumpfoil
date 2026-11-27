@@ -4,7 +4,7 @@ Sessions mit Accel-Daten. Produktion bleibt unangetastet (der neue Detektor lebt
 hier im Experiment). Vergleicht je Lauf & Session: Pumps, Pump-Frequenz (Hz),
 Gleitphasen (Ø/längste), Meter/Pump, Läufe-ohne-Pump.
 
-Befund (Sessions 360/361): die produktive Schwelle ist GLOBAL
+Befund (Sessions A/B): die produktive Schwelle ist GLOBAL (Fall 2026-06-30-a)
 `thr = max(0.6·std(ganze Session), 0.08 g)` -> starke Läufe ziehen die Schwelle hoch,
 glatte Pump-Läufe (eines Fahrers) fallen komplett drunter -> ganze Läufe ohne Marker.
 NEU: Schwelle relativ zur LAUF-eigenen Std (+ niedrigerer Boden + Pump-Band-Gate).

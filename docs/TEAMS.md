@@ -392,7 +392,7 @@ in `web/src/pages/Home.tsx`, Test `test_team_vergleich_beste_n`.
 
 ## Ideen: Team gegen Team und Abzeichen (Plan, 01.11.2026)
 
-Zwei Vorschlaege eines Nutzers (u963, 1:1-Chat mit Jan, 01.11.2026). Beide stehen als Satz unter „Ideas for future
+Zwei Vorschlaege eines Nutzers (1:1-Chat mit Jan, 01.11.2026). Beide stehen als Satz unter „Ideas for future (Fall 2026-11-01-a)
 development" auf /changelog (`appmeta.IDEEN`). **Nichts davon ist gebaut; vor dem Bau Jans Entscheidungen einholen.**
 
 ### Team gegen Team
@@ -665,7 +665,7 @@ paralleler Aufnahme einmal zaehlen (15.11.), Session-Kennzeichen „zaehlt fuer 
 Referee Board (16.11.). Alle brauchen dieselbe Antwort: **welche Laeufe zaehlen fuer dieses Event?**
 
 **Befund (rein lesend, 16.11.):** Flying Sprint (Event 11): 125 Sessions im Fenster, 5 davon mit 32 Laeufen NACH dem
-Schluss; bei einer (u785) stammen die gewerteten Sprints 100 m + 1 min aus einem Lauf nach dem Schluss. Event 4: 157
+Schluss; bei einer stammen die gewerteten Sprints 100 m + 1 min aus einem Lauf nach dem Schluss. Event 4: 157 (Fall 2026-11-16-b)
 Sessions, 1 mit 1 Lauf danach, 1 VOR dem Start begonnen mit 7 Laeufen im Fenster (zaehlen heute gar nicht). Doppelte Laeufe
 (selber Fahrer, Start +-10 s) im Fenster: Event 11 2 Laeufe bei 1 Fahrer, Event 4 keine; im ganzen Bestand 77 ueberlappende
 Session-Paare bei 24 Fahrern (viele davon gewollte Brett-Paare).

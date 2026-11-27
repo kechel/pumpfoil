@@ -75,7 +75,7 @@ class SessionRecorder {
     // Startzeit je Accel-Chunk (Index -> ms seit Session-Start, gleiche Basis wie GPS-t_ms).
     // Grundlage der EXAKTEN Accel-Zeitachse am Server (timebase.py, "exact_chunks") — bisher
     // musste er die Rate schaetzen, bei abweichender Realrate driftete die Achse um Minuten
-    // (#1328: 6 min bei 5,7 % Abweichung). EIN Woerterbuch im state_-Dict, KEIN Extra-Key je
+    // (Session A: 6 min bei 5,7 % Abweichung). EIN Woerterbuch im state_-Dict, KEIN Extra-Key je (Fall 2026-08-01-y)
     // Chunk (Object-Store auf 96-KB-Uhren ist knapp). Deckel s. _flushAccel.
     hidden var _accelT0 = {};
     hidden var _accelBufT0 = null;   // ms-Zeit des ERSTEN Samples im aktuellen Puffer
@@ -297,7 +297,7 @@ class SessionRecorder {
     //   2) DECKEL: ueber MAX_PLAUSIBLE (32 km/h) ist es kein Pumpfoil mehr (Glitch/Boot) -> gar
     //      nicht als Hoechstwert zaehlen.
     // Warum das noetig ist: an 119 echten Sessions gemessen (26.08.) lag der Uhr-Maxwert im Mittel
-    // 9,4 km/h ueber dem ausgewerteten, im schlimmsten Fall 164 km/h (Session 2830 zeigte 103 km/h
+    // 9,4 km/h ueber dem ausgewerteten, im schlimmsten Fall 164 km/h (Session A zeigte 103 km/h (Fall 2026-08-26-f)
     // bei ausgewerteten 15). Mit den zwei Regeln: Mittel +3,1 km/h, schlimmster Fall +17,4.
     // Kosten: 15 Zahlen und ein Median ohne Sortieren — laeuft auch auf den 96-KB-Uhren.
     const BURST_WIN = 15;                  // 1 Tick = 1 s -> 15-s-Fenster wie beim Server
@@ -401,7 +401,7 @@ class SessionRecorder {
     // Die Meldung liegt bis zur Bestaetigung des Servers in "crash_pend" (25.10.2026): bis dahin wurde
     // die Marke schon beim Start geloescht und die Phase nur im RAM gehalten. Kam beim Neustart am See
     // kein /config durch und wurde die App danach beendet, war der Absturz verloren — eine FR965 stand
-    // so trotz belegtem Absturz (#18889) auf 0. Ein neuerer Absturz ueberschreibt die Phase.
+    // so trotz belegtem Absturz (Session A) auf 0. Ein neuerer Absturz ueberschreibt die Phase. (Fall 2026-08-16-g)
     hidden function _runCanaryRead() {
         var rc = Storage.getValue("run_canary");
         var pend = Storage.getValue("crash_pend");
@@ -658,7 +658,7 @@ class SessionRecorder {
     // MITTELKLASSE (128 KB, voller Build ohne Layout-Renderer, z. B. Instinct 3 Solar): die
     // KLASSISCHEN Seiten-Saetze und „alle Seiten" uebernehmen. Bis 25.09.2026 kamen beide hier nie
     // an — die Uhr zeigte zwischen den Laeufen nur EINE Seite und blaetterte immer durch alle
-    // Zustaende, egal was eingestellt war (Romans Meldung, u244). RecordView._setFor nimmt
+    // Zustaende, egal was eingestellt war (die Meldung des Nutzers). RecordView._setFor nimmt (Fall 2026-09-25-h)
     // `offFoilPages`/`pausePages` schon, sobald sie gefuellt sind; `[0,a,b,c]` zeichnet es klassisch.
     // Eigene Layouts (`[1,…]`) filtert schon der Server heraus, hier zur Sicherheit noch einmal.
     // Eigene Annotation `(:klassik)` statt einer Kombination: wie Monkey C zwei Annotationen an
@@ -1914,7 +1914,7 @@ class SessionRecorder {
     // insgesamt: im Emulator kippte 1.0.86 bei 85,6 von 91,8 kB (6,2 kB frei), 1.0.80 bei 77,5
     // (14,3 kB FREI). Beide nach rund 12 kB Zuwachs, also nach zwei bis drei geschriebenen
     // Bloecken — vier bis sechs Minuten Aufnahme. Genau dort liegen die Sessions der Betroffenen
-    // (u479, u460, u496: 0,1 bis 8 Minuten, zusammen 0,25 Foil-km). Mit 14,3 kB frei scheitert
+    // (Fahrer C: 0,1 bis 8 Minuten, zusammen 0,25 Foil-km). Mit 14,3 kB frei scheitert (Fall 2026-09-17-i)
     // keine 5-KB-Anforderung an Platzmangel — sie scheitert an FRAGMENTIERUNG. Dagegen hilft
     // nur, kleiner anzufordern.
     //
@@ -1980,7 +1980,7 @@ class SessionRecorder {
             // Re-Arm-Cooldown gegen Phantom-Laeufe beim Zurueckschwimmen — aber NUR, wenn
             // wirklich gestoppt wurde. Ohne Stopp ist das die Fortsetzung desselben Laufs
             // (Touchdown zwischen zwei Pumps); die blinde 25-s-Sperre hat dabei den halben Lauf
-            // verschluckt (belegt an Cornelias Fotos vom 30.08.: Uhr 66 m/20 s, Server 144 m/41 s
+            // verschluckt (belegt an den Fotos einer Nutzerin vom 30.08.: Uhr 66 m/20 s, Server 144 m/41 s
             // — die Sperre begann genau beim Einbruch und endete 27 s spaeter).
             var gesperrt = (tMs - _runEndedMs < RUN_REARM_COOLDOWN_MS) && (_minSpeedSeitEnde < NOSTOP_MPS);
             if (gesperrt) {
@@ -2231,7 +2231,7 @@ class SessionRecorder {
         try {
             _gnssOk = true;          // Events kommen an -> Wachhund entwarnen
             // Ein Event OHNE Position heisst „kein GPS" — die Qualitaet blieb sonst auf dem letzten
-            // guten Wert stehen, und die Uhr zeigte REC mit 0 km/h statt „GPS suchen" (Roman, 25.10.2026).
+            // guten Wert stehen, und die Uhr zeigte REC mit 0 km/h statt „GPS suchen" (ein Nutzer, 25.10.2026).
             if (info == null || info.position == null) { _gpsQuality = 0; return; }
             _gZ[12] = System.getTimer();
             // Erst ab brauchbarer Genauigkeit gilt GPS als "da" (Cold-Start abwarten).
@@ -2354,7 +2354,7 @@ class SessionRecorder {
         }
         // Abgeschaltet ODER GPS schlecht: jeden Punkt speichern. Speicher sparen entscheidet am GPS-Tempo —
         // ohne brauchbares GPS gilt man als stehend, und ein Lauf vor dem ersten guten Fix war komplett weg,
-        // samt Accel (Roman, #19003, 25.10.2026). Lieber zu viel speichern; den Vorlauf zuerst.
+        // samt Accel (ein Nutzer, Session A, 25.10.2026). Lieber zu viel speichern; den Vorlauf zuerst. (Fall 2026-10-25-p)
         if (!z[6] || gpsPoor()) {
             var vg = z[0];
             for (var i0 = 0; i0 < vg.size(); i0++) { _gpsBufAdd(vg[i0]); }
@@ -2427,7 +2427,7 @@ class SessionRecorder {
     }
 
     // GPS „da" = einmal brauchbar gewesen UND jetzt nicht schlecht — laenger als 3 s schlecht zeigt die
-    // Aufnahme wieder „GPS suchen" und der Start-Screen nicht mehr „GPS bereit" (Roman, 25.10.2026: der
+    // Aufnahme wieder „GPS suchen" und der Start-Screen nicht mehr „GPS bereit" (ein Nutzer, 25.10.2026: der
     // Fix blieb fuer immer gesetzt, die Uhr zeigte REC mit Nullen, der Lauf ging verloren). Die 3 s
     // halten kurze Aussetzer aus, ohne dass die Ansicht flackert.
     (:lite) function hasGpsFix() { return _hasGpsFix; }
@@ -2470,7 +2470,7 @@ class SessionRecorder {
             // Speicher-Sparen: ausserhalb eines Abschnitts nur in den Vorlauf-Ring (s. _gpsPunkt). Dafuer
             // kurz in einen eigenen ByteArray schreiben — _appendI16 schreibt immer in _accelBuf.
             var n = 0;
-            // Ohne brauchbares GPS NICHT in den Ring, sondern speichern (s. _gpsPunkt, Roman 25.10.2026).
+            // Ohne brauchbares GPS NICHT in den Ring, sondern speichern (s. _gpsPunkt, Meldung 25.10.2026).
             if (z[6] && z[2] == 0 && z[5] == 0 && !gpsPoor()) {
                 // GPS wieder gut, aber kein Abschnitt: den beim schlechten GPS angefangenen Chunk
                 // abschliessen — sonst dehnte der Server ihn ueber die folgende Luecke.

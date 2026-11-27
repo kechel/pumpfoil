@@ -1,4 +1,4 @@
-"""Drehrichtung ueber eine Kurs-Luecke mitten in der Halse (app/manoever.py, #19084, 26.10.2026)."""
+"""Drehrichtung ueber eine Kurs-Luecke mitten in der Halse (app/manoever.py, Session A, 26.10.2026). (Fall 2026-10-26-n) """
 import math
 
 import numpy as np

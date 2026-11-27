@@ -11,16 +11,16 @@ def _g(d, kmh=10.0):
 
 
 def test_zwei_kurze_laeufe_reichen():
-    assert pumpfoil_per_light([_g(4), _g(5)], "gps_only")[0] is True       # wie #10245
+    assert pumpfoil_per_light([_g(4), _g(5)], "gps_only")[0] is True       # wie Session A (Fall 2026-10-12-c)
 
 
 def test_ein_einzelner_kurzer_startversuch_reicht():
     assert pumpfoil_per_light([_g(3)], "gps_only")[0] is True               # wie #103 (Jan)
-    assert pumpfoil_per_light([_g(6)], "model")[0] is True                  # wie #782
+    assert pumpfoil_per_light([_g(6)], "model")[0] is True                  # wie Session A (Fall 2026-10-12-d)
 
 
 def test_paddeln_ohne_accel_nicht():
-    assert pumpfoil_per_light([_g(1498, 9.7)], "gps_only")[0] is False      # #1447
+    assert pumpfoil_per_light([_g(1498, 9.7)], "gps_only")[0] is False      # Session A (Fall 2026-10-12-e)
     assert pumpfoil_per_light([_g(668, 8.6), _g(12)], "gps_only")[0] is False
 
 

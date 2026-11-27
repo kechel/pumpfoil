@@ -21,7 +21,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     @Published var maxSpeedKmh = 0.0
     @Published var distanceM = 0.0
     @Published var gpsFix = false
-    // GPS waehrend der Aufnahme weg (Garmin-Fall Roman, 25.10.2026, hier nachgezogen): Tempo und Zeit
+    // GPS waehrend der Aufnahme weg (Garmin-Fall eines Nutzers, 25.10.2026, hier nachgezogen): Tempo und Zeit
     // aenderten sich nur, wenn Positionen KAMEN — ohne GPS blieb beides stehen, ohne Hinweis. `gpsUhr`
     // prueft jede Sekunde; ebenso „GPS bereit" im Ruhebild (nur mit frischem Fix, 10 s).
     @Published var gpsWeg = false
@@ -38,7 +38,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     @Published var lastRunAvgSpeedKmh = 0.0
     @Published var lastRunMaxSpeedKmh = 0.0
     // Live geschaetzte Laeufe (fertige, aelteste zuerst) und die Summe aller Laeufe inkl. des laufenden —
-    // wie die Uhr-Felder 22/23 (10K-Versuch u897 (#17390), 26.10.2026: die App zeigte nur die Gesamtstrecke, sie hielt
+    // wie die Uhr-Felder 22/23 (10K-Versuch Fahrer A (Session A), 26.10.2026: die App zeigte nur die Gesamtstrecke, sie hielt (Fall 2026-10-26-p)
     // sie fuer die Foil-Strecke und hoerte zu frueh auf).
     @Published var laeufe: [LiveLauf] = []
     @Published var allRunsDistanceM = 0.0
@@ -154,7 +154,7 @@ final class PhoneRecorder: NSObject, ObservableObject, CLLocationManagerDelegate
     private var lastRunDurMs = 0.0, lastRunDistM = 0.0, lastRunMaxMps = 0.0
     private var laeufeListe: [LiveLauf] = []
     /// Kilometerstand der letzten Sekunden: der Laufbeginn wird um RUN_ENTER_DWELL zurueckdatiert —
-    /// die Zeit war es schon immer, die Strecke nicht (in der Session #17390 0,4 km auf 27 Laeufe).
+    /// die Zeit war es schon immer, die Strecke nicht (in der Session A 0,4 km auf 27 Laeufe). (Fall 2026-10-26-q)
     private var distVerlauf: [(t: Double, d: Double)] = []
 
     override init() {

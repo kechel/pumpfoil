@@ -19,7 +19,7 @@ Modell: das GESAMT-Modell (so wuerde es live laufen; es hat die Sessions im Trai
 die ehrlichen Zahlen mit herausgehaltenen Fahrern stehen in der Werkbank).
 Ausgabe: data/ml/regression/<name>.json.gz (je Session beide Rechnungen) + bericht.txt.
 
-Aufruf (aus server/): DATABASE_URL=... DETECTOR_V2=1 nice -n 10 .venv/bin/python ../scripts/v3/regression.py [--jobs 16] [--nur 9580,10339]
+Aufruf (aus server/): DATABASE_URL=... DETECTOR_V2=1 nice -n 10 .venv/bin/python ../scripts/v3/regression.py [--jobs 16] [--nur <id>,<id>]
 """
 import os
 os.environ.setdefault("OMP_NUM_THREADS", "1")

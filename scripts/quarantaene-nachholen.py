@@ -8,7 +8,7 @@ WOZU
 Scheitert `parse_fit_bytes` an einer Datei, legt der Import sie seit dem 06.09.2026 unter
 `server/data/_nicht-lesbar/` ab (`storage.quarantaene_ablegen`) statt sie wegzuwerfen. Vorher
 war sie verloren: die Originaldatei wird erst NACH erfolgreichem Parsen gesichert, und ein
-Anbieter ist nicht immer erreichbar — als Peters COROS-Training scheiterte, antwortete COROS
+Anbieter ist nicht immer erreichbar — als das COROS-Training eines Nutzers scheiterte, antwortete COROS
 stundenlang mit 504, die Datei war also nirgends mehr zu holen.
 
 Dieses Skript nimmt jede abgelegte Datei, laesst den HEUTIGEN Parser darauf los und sagt,

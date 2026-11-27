@@ -4,11 +4,11 @@
 Teil A — je Sekunde (Datensatz wie training_a.laden, alter ds + data/ml/v3/r7/ds):
   jede Zeile bekommt von JEDEM Modell das Teilmodell, das ihren Fahrer nie gesehen hat (r4: die Falten
   vom 30.09., Fahrer, die r4 nie sah, das Gesamtmodell; Kandidat: seine Falten). Bewertet je Label-Quelle,
-  die Brett-Wahrheit ALLER Paare (alle Qualitaeten, brett_r7.pkl) je Fahrer und Qualitaet, u350 (langsames Weiterpumpen).
+  die Brett-Wahrheit ALLER Paare (alle Qualitaeten, brett_r7.pkl) je Fahrer und Qualitaet, Fahrer A (langsames Weiterpumpen). (Fall 2026-09-30-y)
 Teil B — Laeufe auf dem Live-Weg (r7_gemeinsam: v2 ∪ tief, teil/veto/kurz, Empfindlichkeit, Ausschluss),
   p aus den Teilmodellen ohne den Fahrer (Referenz r3 ebenso):
   Brett-Paare (je Fahrer): Sekunden auf dem Foil gegen das Brett, Brett-Laeufe gefunden, Uhr-Laeufe bestaetigt;
-  Fortsetzungen von u350 (Sekunden abgedeckt, Foil-Zeit u350); Laeufe an Land (Sichtpruefung) noch da;
+  Fortsetzungen von Fahrer A (Sekunden abgedeckt, Foil-Zeit Fahrer A); Laeufe an Land (Sichtpruefung) noch da;
   Negativbeispiele #12568/#12574/#12575 (Laeufe, soll 0).
 
 Aufruf (aus server/): DATABASE_URL=... DETECTOR_V2=1 nice -n 15 .venv/bin/python ../scripts/v3/messen_r7.py \
@@ -30,6 +30,8 @@ import numpy as np
 
 WURZEL = pathlib.Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(WURZEL / "server"))
+sys.path.insert(0, str(WURZEL / "scripts")); from lokal_faelle import laden as _laden
+BRUST = _laden("v3_faelle", "scripts/v3/v3_faelle.beispiel.json")["BRUST_FAHRER"]   # Konto-ID nur lokal
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 ML = WURZEL / "server" / "data" / "ml"
 R7 = ML / "v3" / "r7"
@@ -92,8 +94,8 @@ def teil_a(modelle: list[str], erg: dict):
             if m.any():
                 pp, tt, *_ = pr(y[m] == 1, p[m])
                 e[f"brett_{qual}"] = (int(m.sum()), round(pp, 3), round(tt, 3))
-        m = (g == 350) & (y == 1)
-        e["u350_y1"] = (int(m.sum()), round(float(p[m].mean()), 4))
+        m = (g == BRUST) & (y == 1)
+        e["brust_y1"] = (int(m.sum()), round(float(p[m].mean()), 4))
         pp, tt, *_ = pr(y == 1, p)
         e["gesamt"] = (int(y.size), round(pp, 4), round(tt, 4))
         erg["a"][name] = e
@@ -179,11 +181,11 @@ def teil_b(modelle, erg, jobs):
         b = db.get(models.Session, d["paar"][0])
         brett_laeufe[d["paar"][1]] = [(x["t_start_session_ms"], x["t_end_session_ms"])
                                       for x in json.loads(b.result.segments_json or "[]")]
-    u350 = [r[0] for r in db.execute(__import__("sqlalchemy").text(
-        "select s.id from sessions s join analysis_results a on a.session_id=s.id where s.user_id=350 "
-        "and not coalesce(s.deleted,false) and s.merged_into is null and a.detection='model'"))]
+    brust_ids = [r[0] for r in db.execute(__import__("sqlalchemy").text(
+        "select s.id from sessions s join analysis_results a on a.session_id=s.id where s.user_id=:u "
+        "and not coalesce(s.deleted,false) and s.merged_into is null and a.detection='model'"), {"u": BRUST})]
     db.rollback(); db.close()
-    ids = sorted(set(ids) | set(u350))
+    ids = sorted(set(ids) | set(brust_ids))
     engine.dispose()
     print(f"Teil B: {len(ids)} Sessions", flush=True)
     with Pool(min(jobs, 8), initializer=_init_b, initargs=(modelle,), maxtasksperchild=20) as pool:
@@ -235,8 +237,8 @@ def teil_b(modelle, erg, jobs):
             for a, b in ls:
                 land[1] += 1
                 land[0] += ueberlapp(a, b, r[n]["laeufe"])
-        e["u350_fortsetzung_s"] = f"{fo[0]}/{fo[1]}"
-        e["u350_foilzeit_min"] = round(sum(sum(b - a for a, b in R[s][n]["laeufe"]) for s in u350
+        e["brust_fortsetzung_s"] = f"{fo[0]}/{fo[1]}"
+        e["brust_foilzeit_min"] = round(sum(sum(b - a for a, b in R[s][n]["laeufe"]) for s in brust_ids
                                            if s in R and "fehler" not in R[s]) / 60000, 1)
         e["land_laeufe_noch_da"] = f"{land[0]}/{land[1]}"
         e["negativ_laeufe"] = {s: len(R[s][n]["laeufe"]) for s in neg if s in R and "fehler" not in R[s]}
@@ -244,7 +246,7 @@ def teil_b(modelle, erg, jobs):
     print("\n## Teil B — Live-Weg, Fahrer herausgehalten")
     for n in modelle:
         e = erg["b"][n]
-        print(f"\n[{n}] u350 Fortsetzung {e['u350_fortsetzung_s']} s · u350 gesamt {e['u350_foilzeit_min']} min · "
+        print(f"\n[{n}] Brust-Fahrer Fortsetzung {e['brust_fortsetzung_s']} s · Brust-Fahrer gesamt {e['brust_foilzeit_min']} min · "
               f"Land-Laeufe noch da {e['land_laeufe_noch_da']} · Negativ {e['negativ_laeufe']}")
         for key, v in sorted(e["brett_je_fahrer"].items()):
             print(f"   Brett {key:10s} Praez {v['praez']:.3f} Treffer {v['treffer']:.3f} · Brett-Laeufe gefunden "

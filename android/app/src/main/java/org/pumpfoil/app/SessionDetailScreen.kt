@@ -695,7 +695,7 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
         // Handy am Brett? — nur wenn die Erkennung anschlaegt (s. LageAnsicht.kt).
         BrettFrage(s, onReload)
         // Am Brett KEIN Hinweis (Jan, 03.10.2026: „einfach ganz weg bei Phone on Board") — dort ist
-        // die GPS-Erkennung gewollt; „nur ~47 Hz, braucht 15 Hz" stand so bei Roman am 07.10.
+        // die GPS-Erkennung gewollt; „nur ~47 Hz, braucht 15 Hz" stand so bei einem Nutzer am 07.10.
         if (mdet?.detection == "gps_only" && mdet.modelSkipped != "board" && !zeigeEingefroren && s.status != "live") {
             val hzEff = mdet.accelHzEffective
             val warnText = if (hzEff != null && hzEff > 0)
@@ -1188,14 +1188,14 @@ private fun DetailContent(s: SessionDetail, neighbors: Neighbors? = null, onOpen
                     }
                 }
                 // Lauf-Auswahl DIREKT unter der Karte — wie in der PWA (SessionDetail.tsx,
-                // „1. Lauf-Auswahl direkt unter der Karte"). Gemeldet von u171 am 17.09.2026:
+                // „1. Lauf-Auswahl direkt unter der Karte"). Gemeldet von Fahrer A am 17.09.2026: (Fall 2026-09-17-a)
                 // „In der Android-App fehlen in der Session-Ansicht die Nummern für die einzelnen
                 // Runs unter der Karte, was die Run-Auswahl immer in Gescrolle ausarten lässt,
                 // weil sie nur über die Liste anwählbar sind." Der Umweg ueber die Karte selbst
                 // half ihm nicht: „Dazu ist mein Display echt zu klein und ungenau. Besonders da
                 // ich momentan immer an einer Wand entlang fahre und sich viel überlappt."
                 //
-                // FlowRow, nicht Row: bei 15 Laeufen (kommt vor, s. u270) liefe eine Zeile aus dem
+                // FlowRow, nicht Row: bei 15 Laeufen (kommt vor, s. Fahrer B) liefe eine Zeile aus dem
                 // Bild. Die Tabelle weiter unten bleibt, sie zeigt ja zusaetzlich die Werte.
                 // Events, fuer die die Session zaehlt (Web 62429a12/67651cf0): je Kategorie mit Wert ein Kennzeichen (an/aus hebt das
                 // Stueck des gewaehlten Laufs hervor), ohne Kategorie „Zaehlt fuer <Event> · n Laeufe"; Pfeil oeffnet das Event.

@@ -264,7 +264,7 @@ def fit_uhr(pfad):
 
 
 def teil_c(MODS, db):
-    """Label-App-FITs: analyse/train_foil_status (Jan, u2) + Original-FITs der importierten Sessions mit
+    """Label-App-FITs: analyse/train_foil_status (Jan) + Original-FITs der importierten Sessions mit
     foil_status.json (server/data/fit-*/original.fit). Doppelte Aufnahmen ueber die Lap-Startzeiten weg."""
     from app import models
     erg, gesehen = [], set()

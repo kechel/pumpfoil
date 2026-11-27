@@ -31,7 +31,7 @@ einer Uhr baut, geht diese Liste fuer ALLE VIER durch und traegt das Ergebnis in
    `:wear:compileDebugKotlin`, Apple `swiftc -parse` + Member-Abgleich von Hand. Und Jans
    Emulator-Lauf DURCH JEDEN ZUSTAND, nicht nur durch den Normalfall.
 7. **Changelog `NAECHSTES`** je Plattform mit eigener Version.
-8. **GPS-Zustand nach FRISCHE, nie klebrig** (25.10.2026, Roman #19003: Garmin meldete „GPS bereit" nach
+8. **GPS-Zustand nach FRISCHE, nie klebrig** (25.10.2026, Session A: Garmin meldete „GPS bereit" nach (Fall 2026-10-25-b)
    einem kurzen Fix fuer immer, zeigte in der Aufnahme REC mit 0 km/h, Speicher sparen warf ohne GPS alles
    weg -> Lauf verloren). Jeder Status, der nur in einem Positions-Callback gesetzt wird, bleibt stehen,
    wenn keine Positionen mehr kommen — deshalb sekuendlich gegen das Alter der letzten Position pruefen.

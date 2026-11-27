@@ -68,8 +68,8 @@ SENSITIVITY_PRESETS: dict[str, dict[str, float]] = {
 # GPS-Dropout, ist es in Wahrheit EIN Lauf (Modell-Aussetzer) -> mergen, egal wie lang.
 # 1.5 m/s (~5,4 km/h): darunter = echter Stopp (abgesunken/gestanden/gestürzt), darüber nur
 # ein Soft-Moment/Touchdown zwischen Pumps (auf dem Foil hält man <5 km/h nicht). Trennt in
-# #361 sauber die Soft-Moments (dip 1,9-2,7) von echten Stopps (dip ~0) -> 22 Läufe (Fahrer-
-# Wahrheit); übrige Sessions regressionsgeprüft unverändert. War 2,8 = zu hoch (zerhackte Cruises).
+# Session A sauber die Soft-Moments (dip 1,9-2,7) von echten Stopps (dip ~0) -> 22 Läufe (Fahrer-
+# Wahrheit) (Fall 2026-07-04-a); übrige Sessions regressionsgeprüft unverändert. War 2,8 = zu hoch (zerhackte Cruises).
 NOSTOP_SPEED = 1.5
 IMPULSE_BACK_S = 3        # Aufsprung-Impuls bis 3 s VOR dem erkannten Start suchen
 IMPULSE_FWD_S = 2         # ... bis 2 s danach
@@ -78,8 +78,8 @@ GLITCH_SPEED_MPS = 90.0 / 3.6   # darüber = sicher GPS-Glitch -> gegen Median e
 # --- Mehrsekündige Doppler-Bursts abfangen (2026-07-04) ---------------------------------
 # Befund: GPS-only-Sessions (Polar-Import) enthalten kurze (~3 s) Doppler-Bursts, die WEIT
 # über der echten Fahrt liegen, aber UNTER GLITCH_SPEED (90) bleiben. Beispiele:
-#   • Session #428: sonst p99=18,6 km/h, aber Sek. 3390-3392 = 56/48/49 km/h.
-#   • Session #410: sonst ≤23 km/h, aber ein 3-s-Blip auf 30-33 km/h.
+#   • Session A: sonst p99=18,6 km/h, aber Sek. 3390-3392 = 56/48/49 km/h. (Fall 2026-07-04-b)
+#   • Session B: sonst ≤23 km/h, aber ein 3-s-Blip auf 30-33 km/h.
 #   • Session #71  (Jan):   221-s-Test, 95 % Stillstand, 2-s-Start-Blip auf 29-30 km/h.
 # Ein 3-s-Burst füllt das 3-s- UND 5-s-Median-Fenster -> der geglättete Max bleibt hoch und
 # reißt das 30-km/h-Pumpfoil-Gate (unten) -> Session fälschlich als „kein Pumpfoil" aussortiert
@@ -89,7 +89,7 @@ GLITCH_SPEED_MPS = 90.0 / 3.6   # darüber = sicher GPS-Glitch -> gegen Median e
 #   1) mehr als BURST_MARGIN über dem 15-s-Median  (relativ: isolierter Ausreißer)
 #   2) UND absolut über BURST_ABS_MIN (~28 km/h)    (schützt normale Foil-Läufe: ein 20-km/h-
 #      Lauf in einer idle-lastigen Session hätte sonst allein über Median+Marge ausgelöst).
-# Regressions-Check: nur #428 & #410 kippen korrekt auf pumpfoil=true; #71 (echter
+# Regressions-Check: nur Session A & Session B kippen korrekt auf pumpfoil=true; #71 (echter
 # 2-s-Start-Glitch, keine echte Session) kippt korrekt auf false; sonst keine Klassifikations-
 # Änderung, alle betroffenen Topspeeds nur nach unten (Glitch-Bereinigung).
 # Kausaler Despike (Beschleunigung): ein Wert, der den Median der letzten Sekunden um mehr
@@ -130,7 +130,7 @@ def _repair_spikes(lat: np.ndarray, lon: np.ndarray, t_ms: np.ndarray | None = N
     """Einzelpunkt-GPS-Glitches glätten: springt ein Punkt weit von beiden Nachbarn weg,
     während die Nachbarn selbst nah beieinander liegen (raus-und-zurück), wird er durch
     die Mitte der Nachbarn ersetzt. So verschwinden Karten-Spikes + Falsch-Distanzen.
-    Mit `t_ms` skalieren die Schwellen mit dem Punktabstand (Smart Recording, 2-8 s; #19096) —
+    Mit `t_ms` skalieren die Schwellen mit dem Punktabstand (Smart Recording, 2-8 s; Session A) — (Fall 2026-10-27-c)
     bei 1 s sind sie genau die alten 25 m."""
     lat = lat.copy(); lon = lon.copy()
     n = lat.size
@@ -155,7 +155,7 @@ def plausible_steps(lat: np.ndarray, lon: np.ndarray, t_ms: np.ndarray, gps_hz: 
 
     Bis 26.10.2026 galt jeder Schritt ueber 25 m als Glitch und zaehlte 0 — gedacht fuer Punkte im
     Sekundentakt. Smart Recording (Garmin-FIT, Punkte alle 2-8 s) verlor so jeden schnellen Schritt:
-    #19096 (Wing, u244) 8,3 von 28,1 km, obwohl Spur-Tempo und Doppler dort auf 1 % uebereinstimmen.
+    Session A (Wing) 8,3 von 28,1 km, obwohl Spur-Tempo und Doppler dort auf 1 % uebereinstimmen. (Fall 2026-10-26-h)
     Jetzt: unplausibel ist ein Punkt, der vom letzten GUTEN Punkt schneller als 25 m/s entfernt ist;
     er zaehlt nicht, und der naechste gute Punkt misst wieder vom letzten guten — die Strecke ueber
     den Glitch ist die Gerade dazwischen. Die Glitch-Punkte bekommen das Tempo dieser Geraden.
@@ -163,7 +163,7 @@ def plausible_steps(lat: np.ndarray, lon: np.ndarray, t_ms: np.ndarray, gps_hz: 
     ansetzen, der Sprung zaehlt 0 (wie frueher).
     Nur bis GAP_SPLIT_S: eine laengere Luecke ist ein Aussetzer (Uhr unter Wasser, Pause, Auto) — die
     Gerade dorthin waere keine gefahrene Strecke. Dort gilt die alte Regel (bis 25 m zaehlt, sonst 0),
-    sonst wuchs z. B. #491 (Pumpfoil, 1 Hz) im Probelauf von 3,4 auf 7,1 km."""
+    sonst wuchs z. B. Session B (Pumpfoil, 1 Hz) im Probelauf von 3,4 auf 7,1 km."""
     import math
     n = lat.size
     step = np.zeros(n)
@@ -283,7 +283,7 @@ BUENDEL_SCHRITT_MS = 1000 # hoechstens 1 Punkt je Sekunde zurueckverteilen
 
 
 def buendel_verteilen(samples: list) -> tuple[list, int]:
-    """GPS-Buendel mit Zustellzeit statt Messzeit entzerren (18.11.2026, Jans OK; Befund #21529 „140 m in 0:00").
+    """GPS-Buendel mit Zustellzeit statt Messzeit entzerren (18.11.2026, Jans OK; Befund Session A „140 m in 0:00"). (Fall 2026-11-18-c)
 
     Manche Wear-Uhren (v. a. OnePlus OWWE251/OPWWE251 ueber Health Services) liefern nach einer GPS-Stille alle
     zurueckgehaltenen Positionen auf einmal und stempeln sie mit der Zustellzeit: 19 Punkte in 25 ms, ein Lauf mit
@@ -321,7 +321,7 @@ def eingefroren_reparieren(samples: list) -> tuple[list, int]:
     """NOCH NICHT EINGEHAENGT (13.11.2026): Regression `scripts/v3/regression-eingefroren.py` — 145 Sessions betroffen,
     nur in detect_v2 eingehaengt aendern sich 7; v3 vermisst geaenderte Laeufe aber aus der UNreparierten Zeitachse
     (Min-Tempo 0,0). Richtig waere die Zeitachse selbst — die speist auch die v3-Merkmale -> eigene Pruefung, nach dem
-    Event. Kurz eingefrorenes GPS reparieren (13.11.2026, Ground Truth #21487): mindestens 2 Fixe mit Doppler EXAKT 0 bei
+    Event. Kurz eingefrorenes GPS reparieren (13.11.2026, Ground Truth Session A): mindestens 2 Fixe mit Doppler EXAKT 0 bei (Fall 2026-11-13-q)
     kaum Bewegung (< 2,5 m/s aus der Position), kurz davor Fahrt (Doppler >= 2 m/s), direkt danach ein Aufholsprung
     (Positions-Tempo >= 5 m/s und >= 1,5 x Doppler; bis zu 3 Fixe mit stehender Position duerfen davor liegen). Dazwischen liegen Fixe, die das Handy nicht gemessen, sondern
     wiederholt hat — sie sahen aus wie ein Stopp, trennten den Lauf und drueckten das Mindesttempo auf 0.
@@ -356,7 +356,7 @@ def eingefroren_reparieren(samples: list) -> tuple[list, int]:
         while j + 1 < n and v(j + 1) == 0.0 and vpos(j + 1) < 2.5:
             j += 1
         # Aufholfix: bis zu 3 Fixe nach dem 0-Block darf die POSITION noch stehen (dort hat `load_gps` das fehlende
-        # Tempo oft schon aus den Nachbarn aufgefuellt — #21487: 2033/2034 s Doppler 3,6/5,2 bei stehender Position)
+        # Tempo oft schon aus den Nachbarn aufgefuellt — Session A: 2033/2034 s Doppler 3,6/5,2 bei stehender Position) (Fall 2026-11-13-r)
         k = j + 1
         while k < n and k - j <= 3 and vpos(k) < 2.5:
             k += 1
@@ -417,7 +417,7 @@ def hacc_platzhalter_weg(hacc: np.ndarray) -> np.ndarray:
     auf NaN (= keine Angabe) setzen — das ist ein Platzhalter, keine Messung.
 
     Die Regel „konstant ueber die GANZE Aufnahme" reicht nicht mehr, seit Wear OS 1.2.40 die
-    Quelle mitten in der Aufnahme wechseln kann. Belegt an #16671 (u574, OnePlus OPWWE251,
+    Quelle mitten in der Aufnahme wechseln kann. Belegt an Session A (OnePlus OPWWE251, (Fall 2026-10-14-d)
     14.10.2026): 15 min GPS aus Health Services mit echten 1-20 m, dann Rueckfall auf den
     LocationManager, der auf dieser Uhr fest 125,0 m meldet. Weil die Spalte als Ganzes schwankte,
     galt das 15-m-Gate fuer alle 2868 Platzhalter-Punkte -> 1 statt 11 Laeufe, obwohl die Uhr in
@@ -426,7 +426,7 @@ def hacc_platzhalter_weg(hacc: np.ndarray) -> np.ndarray:
     Warum 60 und nicht 20 wie live auf der Uhr: am Server stehen auch Handys mit kurz
     stehengebliebenen echten Werten (22,07 m x 24, 34,18 m x 30 — eine eingefrorene Ortung, die
     weiter ausgesiebt werden soll). Im ganzen Bestand (15.10.2026) haben nur zwei Sessions Folgen
-    >= 60 ueber der Schwelle, beide mit 125,0 (#16671, #5286). Werte unter MAX_HACC aendern nichts.
+    >= 60 ueber der Schwelle, beide mit 125,0 (Session A, B). Werte unter MAX_HACC aendern nichts.
     """
     out = np.array(hacc, dtype=float, copy=True)
     n = out.size
@@ -449,7 +449,7 @@ def clean_speed_series(speed: np.ndarray, gps_hz: int, despike_roh: bool = False
     **Warum eine gemeinsame Funktion:** v2 hatte die Kette nachgebaut und dabei zwei der vier
     Regeln vergessen (isolierter Despike + Endpunkt-Clamp), obwohl der Docstring dort
     „dieselben Regeln wie v1" behauptete. Da seit 01.08. ALLES ueber v2 laeuft, wirkte nur die
-    schwaechere Kette. Gefunden am 03.09. an einer Polar-Session (#3340, Meldung des Nutzers
+    schwaechere Kette. Gefunden am 03.09. an einer Polar-Session (Session A, Meldung des Nutzers (Fall 2026-08-01-u)
     „mein Import ist fehlgeschlagen"): das TCX enthielt Sekunden wie 0,0 / 42,9 / 15,8 km/h,
     v2 kam damit auf 31,5 km/h Max, die Session lag damit ueber dem 30-km/h-Tor der
     gps_only-Klassifikation und wurde als „kein Pumpfoil" aussortiert. Mit der vollen Kette
@@ -588,7 +588,7 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     # Genauigkeits-Gate — aber nur, wenn die Angabe ueberhaupt eine Messung ist.
     #
     # Meldet ein Geraet ueber die GANZE Aufnahme denselben Wert, ist das kein Messwert, sondern
-    # ein Platzhalter. Nachgewiesen am 19.09.2026 an Session #9023 (Wear OS 1.2.29): 6926-mal
+    # ein Platzhalter. Nachgewiesen am 19.09.2026 an Session A (Wear OS 1.2.29): 6926-mal (Fall 2026-09-19-j)
     # exakt 125,0 m, zwei Stunden lang, ohne jede Streuung — waehrend andere Wear-Uhren 3 bis
     # 25 m mit normaler Schwankung liefern. Das Gate verwarf damit 100 % der Punkte, es blieben
     # 0 Laeufe, und weil `max_speed_mps` aus den erkannten Laeufen gebildet wird, stand ueberall
@@ -629,7 +629,7 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     mask = mask & (speed_s >= exit_speed)
     # GPS-Genauigkeit: bisher wurde quality_ok NUR in der Heuristik geprüft (_heuristic_mask), im
     # Modell-Pfad also nie — dabei ist eine unbrauchbare Position dort genauso wertlos. Befund
-    # (Nutzer-Meldung, Session 1020): nach einem Sturz sprang die Position bei 20-24 m Ungenauigkeit,
+    # (Nutzer-Meldung, Session A): nach einem Sturz sprang die Position bei 20-24 m Ungenauigkeit, (Fall 2026-07-31-b)
     # ergab einen 9-Sekunden-"Lauf" mit 28,2 km/h und hielt damit den Community-Rekord. Über alle
     # 7246 Läufe betrifft die Grenze 6 Läufe in 5 Sessions, ALLE im Modell-Pfad.
     mask = mask & quality_ok
@@ -652,11 +652,11 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     segments = _extend_starts_back(segments, speed_s, t_ms, step, speeds, enter_speed)
     # Ruhiges Gleiten/Pumpen NACH dem Aufstehen nachholen: Ende vorwärts ziehen, solange
     # der Speed im Foil-Band bleibt (das Modell verliert bei langsamen/leichten Fahrern das
-    # gleichmäßige On-Foil-Cruisen — #488: 11 s erkannt, real ~40 s bei konstant ~11,5 km/h).
+    # gleichmäßige On-Foil-Cruisen — Session A: 11 s erkannt, real ~40 s bei konstant ~11,5 km/h). (Fall 2026-07-28-b)
     segments = _extend_ends_forward(segments, speed_s, t_ms, step, speeds, exit_speed)
     # ZWEITER Merge-Durchgang: der erste lief VOR dem Verlängern der Ränder, da war die Lücke
     # zwischen zwei Läufen noch groß. Nach dem Verlängern stehen sie oft nur noch Sekunden
-    # auseinander und sind in Wahrheit ein Lauf (#1311: 191 s + 81 s mit 4 s Aufsetzen dazwischen,
+    # auseinander und sind in Wahrheit ein Lauf (Session A: 191 s + 81 s mit 4 s Aufsetzen dazwischen, (Fall 2026-07-31-c)
     # vom Fahrer und von Garmin Connect als EIN Lauf gesehen). Mergen ist idempotent, ein zweiter
     # Durchgang kann nichts kaputtmachen, was der erste schon entschieden hat.
     segments = _merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz, pos_speed_s=pos_speed_s)
@@ -703,13 +703,13 @@ def analyze_gps(samples: list, gps_hz: int = 1, mask_override=None, impulse_time
     foiling_distance = float(step[_schritte].sum())
     foiling_time = float(sum(seg["t_end_ms"] - seg["t_start_ms"] for seg in segments) / 1000.0)
     # Hoechstgeschwindigkeit der Session ohne Samples mit unbrauchbarer GPS-Genauigkeit — sonst
-    # setzt ein Positionssprung den Wert (Nutzer-Meldung #1020: 33,8 km/h nach einem Sturz, waehrend
+    # setzt ein Positionssprung den Wert (Nutzer-Meldung, Session A aus Fall 2026-07-31-b: 33,8 km/h nach einem Sturz, waehrend
     # der beste echte Lauf 22 km/h hatte). Gleiche Grenze wie fuer die Laufe-Maske; fehlt hAcc,
     # gilt der Punkt wie bisher als brauchbar.
     # Hoechstgeschwindigkeit NUR aus den erkannten LAEUFEN: der 3-s-Wert je Lauf, der ohnehin
     # schon berechnet und in der Lauf-Liste angezeigt wird. Vorher war es das schnellste
     # Einzel-Sample im ganzen Trim-Fenster — damit standen Autofahrt-Reste in der Bestenliste
-    # (gemessen 07.08.: #1619 mit 73 km/h und #913 mit 61,6, waehrend der schnellste ECHTE Lauf
+    # (gemessen 07.08.: Session A mit 73 km/h und Session B mit 61,6, waehrend der schnellste ECHTE Lauf (Fall 2026-08-07-b)
     # im gesamten Bestand bei 28,9 km/h liegt). Die Kennzahl bedeutet jetzt „schnellste drei
     # Sekunden auf dem Foil": robust gegen Einzel-Spitzen und immun gegen alles ausserhalb der
     # Laeufe. Die Segmente sind hier bereits durch _gate_implausible_runs gelaufen — ein
@@ -806,11 +806,11 @@ def _classify_end(i_end: int, speed_s: np.ndarray, step: np.ndarray, gps_hz: int
 
 # Physik-Gate-Grenze: kein echter Pumpfoil-Lauf erreicht 40 km/h (DB-Maximum: 28,6).
 # 07.08.: von 40 auf 32 gesenkt. Gemessen ueber 6941 sichtbare Laeufe liegt GENAU EINER
-# darueber — die Autofahrt in #1619 (39,1 km/h), die in einen erkannten Lauf hineinragte.
+# darueber — die Autofahrt in Session A (39,1 km/h), die in einen erkannten Lauf hineinragte. (Fall 2026-08-07-c)
 # Der schnellste ECHTE Lauf im Bestand hat 28,9 km/h, es bleiben also ~3 km/h Luft.
 RUN_MAX_PLAUSIBLE_KMH = 32.0
 
-# Grenzen JE SPORTART (04.10.2026, Befund u758): Band und Lauf-Grenze oben sind Pumpfoil-Werte. Ein
+# Grenzen JE SPORTART (04.10.2026, Befund Fahrer A): Band und Lauf-Grenze oben sind Pumpfoil-Werte. Ein (Fall 2026-10-04-g)
 # Wing- oder Kite-Lauf faehrt typisch 25-40 km/h und wurde ueberall dort zerschnitten, wo er
 # schneller als 25 war. Gemessen ueber den Bestand (scripts/autofahrt-regression.py, schnellste
 # 5-s-Werte ausserhalb erkannter Autofahrten): Wing bis 52, Kite bis 60 km/h. Fuer alle anderen
@@ -933,7 +933,7 @@ DRIFT_LAND_MARGIN_M = 8   # Toleranz über den Start hinaus, bevor getrimmt wird
 # an denen die Regel etwas abschneiden würde): Fälle mit Speed-Streuung < 0,5 km/h haben Geradheit
 # 1,00 und dauern im Median 4 s (= Drift), alle übrigen Gruppen haben Geradheit 0,20-0,51 bei 20-106 s
 # Dauer (= echtes Fahren, gekrümmte Spur, schwankendes Tempo). hAcc taugt NICHT als Kriterium:
-# 506 der 747 Fälle haben gar keinen Wert. Befund: Nutzer-Meldung zu Session 1311, letzter Lauf
+# 506 der 747 Fälle haben gar keinen Wert. Befund: Nutzer-Meldung zu Session A, letzter Lauf (Fall 2026-07-31-d)
 # 16 s zu früh beendet bei 12-17 km/h und hAcc 4 m.
 DRIFT_MIN_STRAIGHTNESS = 0.97   # Luftlinie/Weg des Schwanzstücks (1,0 = perfekt gerade)
 DRIFT_MAX_SPEED_STD_MPS = 0.25  # ~0,9 km/h: darüber schwankt das Tempo -> keine Extrapolation
@@ -985,7 +985,7 @@ def _repair_deadreckoning(segments, lat, lon, t_ms, step, speeds, gps_hz) -> lis
     return out
 
 
-# Sturz-Kehrtwende am Lauf-Ende. Befund Tom, #1303 Lauf 9 (03.08.): nach dem Sturz dreht die
+# Sturz-Kehrtwende am Lauf-Ende. Befund eines Nutzers, Session A Lauf 9 (03.08.): nach dem Sturz dreht die (Fall 2026-08-03-a)
 # Spur in ~2 s um ~170 Grad und laeuft mit 8-11 km/h zurueck Richtung Start (Brett-Paddeln) —
 # das liegt UEBER der Exit-Schwelle (2,5 m/s), also verlaengerte _extend_ends_forward den Lauf
 # sechs Sekunden in den Rueckweg hinein und malte einen Haken ("der haerteste Carve aller
@@ -993,8 +993,8 @@ def _repair_deadreckoning(segments, lat, lon, t_ms, step, speeds, gps_hz) -> lis
 #   - die 4-s-Fenster-Richtung dreht um > 135 Grad (FALL_FLIP_DEG), UND
 #   - der Doppler-Schnitt danach faellt auf <= 0,65x davor (FALL_SPEED_COLLAPSE)
 #   - innerhalb der letzten 8 s des Laufs (FALL_TAIL_MAX_S)
-# trifft 59 Laeufe in 51 Sessions (1,2 %) — inkl. Toms Fall (exakt die 6 s) — und KEINEN der
-# echten engen Turns (Gegenprobe #983/1: 180-Grad-Carve bei konstant 17 km/h, bleibt dran,
+# trifft 59 Laeufe in 51 Sessions (1,2 %) — inkl. dieses Falls (exakt die 6 s) — und KEINEN der
+# echten engen Turns (Gegenprobe Session B/1: 180-Grad-Carve bei konstant 17 km/h, bleibt dran,
 # weil das Tempo dort NICHT kollabiert). Eine reine Kurs-Regel ohne die Kollaps-Bedingung
 # haette 268 Laeufe getroffen, darunter echte Carves.
 FALL_FLIP_DEG = 135.0
@@ -1140,15 +1140,15 @@ def _extend_ends_forward(segments, speed_s, t_ms, step, speeds, exit_speed: floa
 
 # Ein Einbruch der UHR-Geschwindigkeit ist kein Stopp, wenn die POSITION widerspricht: bewegt sich
 # der Fahrer laut GPS-Spur weiter mit Foil-Tempo, war der Einbruch Messrauschen (Doppler-Glitch).
-# Befund #1232: drei Samples 3,3/16,8/4,9 km/h in drei Sekunden, Position durchgehend 6-14 km/h ->
-# aus einem 17-Minuten-Stück wurden 129 s + 907 s. Zweiter Fall (#1311, Nutzer-Meldung): 3 s
+# Befund Session A: drei Samples 3,3/16,8/4,9 km/h in drei Sekunden, Position durchgehend 6-14 km/h -> (Fall 2026-07-31-e)
+# aus einem 17-Minuten-Stück wurden 129 s + 907 s. Zweiter Fall (Session B, Nutzer-Meldung): 3 s
 # Touchdown, Position nie unter 6 km/h -> unser erster Lauf endete 85 s zu früh, Garmin Connect
 # zeigt durchgehend Tempo. Deshalb zwei Wege, beide eng:
 NOSTOP_POS_SPEED = EXIT_SPEED   # Position bleibt im Foil-Band (>=9 km/h) -> sicher kein Stopp
 NOSTOP_TOUCHDOWN_S = 5          # ... oder: kurzer Einbruch, Position bleibt über NOSTOP_SPEED.
 # 5 s, weil die POSITION die eigentliche Arbeit macht: nach einem echten Sturz steht man, statt
 # sich weiter mit >5,4 km/h zu bewegen, und ein Wasserstart dauert deutlich länger als 5 s. Ein
-# Aufsetzen mit sofortigem Weiterpumpen dauert 1-4 s (#1311: 4 s, Position 6,7-9,5 km/h).
+# Aufsetzen mit sofortigem Weiterpumpen dauert 1-4 s (Session B: 4 s, Position 6,7-9,5 km/h).
 
 
 def _merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz, pos_speed_s=None) -> list[dict]:
@@ -1179,7 +1179,7 @@ def _merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz, pos_speed_s=No
         # oder bei spärlichem GPS-Log, ergibt viele Samples mit weiter hohem Speed (kein
         # Dropout) -> derselbe Lauf. Sonst zerschneidet langes Cruisen einen Lauf künstlich.
         # KEINE Dauer-Kappe: blieb der Speed die GANZE Lücke über >= NOSTOP_SPEED und lag
-        # kein Sample-Dropout vor, ist es derselbe Lauf — egal wie lang (#361:
+        # kein Sample-Dropout vor, ist es derselbe Lauf — egal wie lang (Session A: (Fall 2026-07-04-c)
         # 17-36 s ruhiges Gleiten, das das Modell verliert, wurde sonst künstlich zerhackt).
         seg_t = t_ms[prev["i_end"] : seg["i_start"] + 1]
         max_sample_dt_s = float(np.max(np.diff(seg_t))) / 1000.0 if seg_t.size >= 2 else 0.0

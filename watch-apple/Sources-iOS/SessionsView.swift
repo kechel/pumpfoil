@@ -911,7 +911,7 @@ struct SessionRow: View {
                 .background(Color.orange.opacity(0.2)).foregroundStyle(sportMarkeFarbe)
                 .clipShape(RoundedRectangle(cornerRadius: 4))
         } else if let dq = session.data_quality, dq != "ok" {
-            // Sportart steht als gelber Chip oben (Wunsch u244, 26.10.2026) — grau nur Datenqualitaet.
+            // Sportart steht als gelber Chip oben (Wunsch Fahrer A, 26.10.2026) — grau nur Datenqualitaet. (Fall 2026-10-26-s)
             Text(Loc.t(classLabelKey(sportClass: session.sport_class, dataQuality: session.data_quality), lang))
                 .font(.caption2)
                 .padding(.horizontal, 6).padding(.vertical, 2)

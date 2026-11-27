@@ -215,7 +215,7 @@ erscheint in keiner Auswertung, bis der Besitzer zuordnet). Die Begründung samt
 
 **Grundlage der Grenzwerte:** die 32 menschlich beurteilten Sessions gegen eine Kontrollgruppe
 unbeurteilter Sessions **derselben Nutzer** (wer seine Wing-Session markiert hat, dessen Rest ist
-glaubwürdig Pumpfoil). Zwei Gruppen mussten heraus, beide eigene Befunde: **user 135** (die
+glaubwürdig Pumpfoil). Zwei Gruppen mussten heraus, beide eigene Befunde: **Fahrer A** (die (Fall 2026-08-01-k)
 Kontrolle war mit genau dem verseucht, wonach gesucht wird) und **41 iOS-Simulator-Sessions** im
 Raum Cupertino. Ergebnis: **17 von 28** belegten Nicht-Pumpfoil-Sessions erkannt bei **1 Fehlalarm
 unter 526** (0,19 %); die 4 bestätigten Pumpfoil-Sessions bleiben unberührt. Die schärfere Variante
@@ -223,7 +223,7 @@ unter 526** (0,19 %); die 4 bestätigten Pumpfoil-Sessions bleiben unberührt. D
 markierte echte Rekordfahrt ärgert mehr, als eine übersehene Wing-Session schadet.
 
 Trockenlauf über den Bestand: **39 von 827** unbeurteilten Sessions (4,7 %) würden markiert,
-davon 30 bei user 135. Alle Zahlen und ihre Herkunft stehen im Modul-Kopf von `sportauto.py`.
+davon 30 bei Fahrer A. Alle Zahlen und ihre Herkunft stehen im Modul-Kopf von `sportauto.py`. (Fall 2026-08-01-l)
 
 **Offen:** der Hinweistext in PWA und Apps (Schlüssel `auto.motor` / `auto.unklar`) und die
 rückwirkende Anwendung auf die 39 Sessions — beides wartet auf Jans Freigabe.

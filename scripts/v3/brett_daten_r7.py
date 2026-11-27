@@ -11,9 +11,9 @@ Wie `brett_training.daten()` (Wahrheit pumpen/gleiten/aus aus dem Nicken des Bre
         schwach  sonst (Ausrichtung nicht belegt — Versatz kann um Sekunden falsch sein)
     und ein Gewicht je Qualitaet (gut 5 = bisheriges Brett-Gewicht, mittel 3, schwach 1).
   - `live_nutzbar`: die Uhr-Session laeuft live ueber das Modell (detection == model, Accel >= 8 Hz).
-    Uhren unter 8 Hz (Wear OS u574 bis 1.2.37: 6,7-8,4 Hz) rechnet die Live-Erkennung als gps_only —
+    Uhren unter 8 Hz (Wear OS Fahrer A bis 1.2.37: 6,7-8,4 Hz) rechnet die Live-Erkennung als gps_only — (Fall 2026-10-23-u)
     sie koennen das Handgelenk-Modell weder trainieren noch nutzen.
-  - Uhren ohne Accel (gps_only, z. B. u460 FR55 lite) stehen in der Paar-Liste, kommen hier nicht vor.
+  - Uhren ohne Accel (gps_only, z. B. Fahrer B FR55 lite) stehen in der Paar-Liste, kommen hier nicht vor.
 Je Uhr-Session nur EIN Paar (das mit der besten Ausrichtung): #10873 lag mit zwei Handys am Brett,
 #12608 ebenso.
 

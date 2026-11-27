@@ -42,7 +42,7 @@ _LOW_ACCEL_MODEL_HINTS = ("Forerunner® 55", "Forerunner® 45", "Forerunner® 35
 # Gezielt per PART-NUMMER (nicht Namens-Substring, der würde Plus/5S/5X mitfangen): die
 # Basis-fēnix 5 / quatix 5 (128-KB-Klasse wie FR55) — B2697 + B2796. Absturz belegt: Nutzer-Meldung
 # (fēnix 5, IQ!-Logo bei 25 Hz, 2026-07-19). Die fēnix 5 PLUS (B3089/B3110) ist leistungsfähiger
-# und läuft mit 25 Hz sauber (Session #385) -> bewusst NICHT gekappt. 5S/5X: bis Beleg offen.
+# und läuft mit 25 Hz sauber (Session A) -> bewusst NICHT gekappt. 5S/5X: bis Beleg offen. (Fall 2026-07-19-e)
 _LOW_ACCEL_PARTS = frozenset({"006-B2697-00", "006-B2796-00"})
 
 
@@ -77,7 +77,7 @@ def _gps_only_wenn_speicherarm(db: Session, device: models.DeviceToken) -> bool:
 
     WARUM NICHT NUR 'lite' (Jan, 22.09.2026): die Kappung `full -> lite` in
     `_effective_record_mode` halbiert die Rate, aber die Uhr haelt auch 10 Hz nicht durch. An
-    Nutzer 533 (Forerunner 55) nachgemessen: getaggt 10 Hz, GEMESSEN 1,6-2,5 Hz. Damit faellt
+    Fahrer A (Forerunner 55) nachgemessen: getaggt 10 Hz, GEMESSEN 1,6-2,5 Hz. Damit faellt (Fall 2026-09-22-g)
     jede Aufnahme unter das 15-Hz-Tor und wird ohnehin als `gps_only` ausgewertet — die Uhr
     sammelt also Daten, die niemand benutzt, und bezahlt sie mit vollem Puffer (viermal
     gemeldet) und einem Absturz mitten in der Aufnahme. GPS-only kostet nichts und rettet die
@@ -226,12 +226,12 @@ ACCEL_WAKEUP_DEFAULT = "off"
 # Messweg nach Doku ab Wear 1.2.40 (07.10.2026): Wake-up-Beschleunigung MIT Hardware-Batching und GPS
 # aus der Health-Services-Uebung. Beides ist der von Android/Google vorgesehene Weg, also Standard
 # "on"; die Schalter sind NOTBREMSEN, falls eine Uhr damit Aerger macht. Der alte `accelWakeup` gilt
-# fuer 1.2.40 nicht mehr (Wake-up OHNE Batching wuergte das GPS ab, u818/u574) und bleibt nur fuer
+# fuer 1.2.40 nicht mehr (Wake-up OHNE Batching wuergte das GPS ab, Fahrer A/Fahrer B) und bleibt nur fuer (Fall 2026-10-07-g)
 # aeltere Apps stehen.
 # Zepp: Chunks je Upload-Anfrage ueber den Sammel-Endpunkt (/ingest/session/{uuid}/chunks, max 30). Befund 24.11.2026
-# (u439, Active 2): die App starb nach ~330 Einzel-Anfragen (Leck je BLE-Anfrage in Zepp/zml vermutet), 26 min Aufnahme
+# (Active 2): die App starb nach ~330 Einzel-Anfragen (Leck je BLE-Anfrage in Zepp/zml vermutet), 26 min Aufnahme
 # = 1330 Anfragen bei ~1/s. 1 = alter Weg (ein Chunk je Anfrage). Nur Zepp bekommt den Schluessel.
-# STANDARD 5, NICHT 25 (25.11.2026, u1150, T-Rex 3 Pro, 1.0.18): mit 25er-Gruppen (~25 KB Base64 je Anfrage) brach der
+# STANDARD 5, NICHT 25 (25.11.2026, T-Rex 3 Pro, 1.0.18): mit 25er-Gruppen (~25 KB Base64 je Anfrage) brach der
 # Upload auf der echten Uhr mit „Error: out of memory" ab, bei jedem App-Start an derselben Gruppe, einmal mit
 # Uhr-Neustart. Mit 5 liefen alle drei wartenden Aufnahmen in 18 s durch. Der Simulator hatte 25 klaglos geschafft.
 ZEPP_UPLOAD_SAMMEL = max(1, min(30, int(os.environ.get("ZEPP_UPLOAD_SAMMEL", "5") or 5)))
@@ -542,7 +542,7 @@ def device_config(
     # GARMIN OHNE LAYOUT-PAKET (128-KB-Klasse, z. B. Instinct 3 Solar): die Seiten-SAETZE und
     # „alle Seiten" kamen bis 25.09.2026 gar nicht an, weil sie nur im Layout-Paket standen. Die
     # Uhr zeigte dann zwischen den Laeufen nur die erste Seite und blaetterte immer durch alle
-    # Zustaende — Romans Meldung (u244): „still same old datascreens", auch nach 1.0.89. Jetzt
+    # Zustaende — die Meldung des Nutzers: „still same old datascreens", auch nach 1.0.89. Jetzt (Fall 2026-09-25-e)
     # bekommen diese Uhren die KLASSISCHEN Seiten (`[0,a,b,c]`) der Saetze und den Schalter; eigene
     # Layouts bleiben draussen, die kann ihr Build nicht zeichnen. Lesen tut das erst die
     # Uhr-Version mit `(:klassik)` (SessionRecorder.mc); aeltere ignorieren die Schluessel.

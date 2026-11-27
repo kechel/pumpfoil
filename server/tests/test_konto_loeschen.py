@@ -1,7 +1,7 @@
 """DSGVO-Loeschung: ein Konto muss RESTLOS verschwinden — auch mit Chat-Verlauf.
 
 Anlass (19.09.2026): `DELETE /api/auth/me` raeumte acht Tabellen ab, waehrend 44 Fremdschluessel
-auf `users` zeigen. Ein Nutzer (u588) hat am 18.09. um 10:07 sein Konto geloescht; der Aufruf
+auf `users` zeigen. Ein Nutzer hat am 18.09. um 10:07 sein Konto geloescht; der Aufruf (Fall 2026-09-19-m)
 endete mit `ForeignKeyViolation` und HTTP 500 wegen `chat_room_state`. Weil die Rohdaten aber
 schon VOR dem Commit von der Platte geloescht wurden, verlor er 142 GPS-Spuren — und blieb
 trotzdem in der Datenbank stehen.

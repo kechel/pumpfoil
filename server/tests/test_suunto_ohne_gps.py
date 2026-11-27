@@ -55,7 +55,7 @@ def test_fit_ohne_gps_liefert_start_und_dauer():
 
 def test_suunto_workout_ohne_gps_wird_keine_session(client, monkeypatch):
     """Seit 22.10.2026 wieder: aus Kontoverknuepfungen keine Session ohne GPS (Jan; d08cf5b2 legte
-    am 21.10. einem Nutzer 907 Indoor-Sessions an)."""
+    am 21.10. einem Fahrer A Indoor-Sessions an). (Fall 2026-10-22-f) """
     from app import models
     from app.api import suunto
     from app.db import SessionLocal

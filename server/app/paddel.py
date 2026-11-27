@@ -13,7 +13,7 @@ server/data/analyse-notizen/2026-10-20-sup-wake/):
   kurz auf >= 10 km/h springt ohne Lauf (ein Abheben von 1–2 s ist so denkbar, aber UNBELEGT — kein
   Versuch mit Video/Handy am Brett zum Abgleich); sonst „nein".
 
-Die Schwellen stehen auf EINEM Fahrer mit Foil-Laeufen (#10051) und zwei Sessions ohne (u744) — duenn.
+Die Schwellen stehen auf EINEM Fahrer mit Foil-Laeufen (Session A) und zwei Sessions ohne — duenn. (Fall 2026-10-20-k)
 """
 from __future__ import annotations
 

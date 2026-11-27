@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regressionstest: v3-Laufrand mit rohem p statt nur geglaettetem (A5, 16.11.2026). REIN LESEND.
 
-Anlass (15.11.2026, Flying Sprint, Session 21890 Lauf 3): `_glaetten` (5 s zentriert) zieht die niedrigen p nach dem
+Anlass (15.11.2026, Flying Sprint, Session A Lauf 3): `_glaetten` (5 s zentriert) zieht die niedrigen p nach dem (Fall 2026-11-16-f)
 Absetzen vor — 4413 s roh p 0,43 >= theta 0,4, geglaettet 0,36 -> Schnitt; der Lauf hatte 59,997 s, das 60-s-Fenster
 brauchte 60,000 s. Variante (NUR hier nachgebaut, app/analysis unveraendert): nach `_teil` jeden Lauf an Anfang und Ende
 um bis zu GLAETTEN_S//2 Punkte verlaengern, solange das ROHE p >= theta bleibt, nie ueber den Kandidaten hinaus —
@@ -26,6 +26,8 @@ from multiprocessing import Pool
 import numpy as np
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "server"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1])); from lokal_faelle import laden as _laden
+_F = _laden("v3_faelle", "scripts/v3/v3_faelle.beispiel.json")   # Session-IDs nur lokal
 
 
 def _rand_verlaengern(N, L, kand, t, p, theta):
@@ -172,9 +174,9 @@ def bericht(pfad: str):
     neu60 = sum(1 for z in geaendert if len(z["neu"]) == len(z["heute"])
                 for h, n in zip(z["heute"], z["neu"]) if h["s"] < 60 <= n["s"])
     print(f"Laeufe, die neu >= 60 s erreichen (Minutenfenster moeglich): {neu60}")
-    z = next((x for x in ok if x["id"] == 21890), None)
+    z = next((x for x in ok if x["id"] == _F["GT_RANDGLAETTUNG"]), None)
     if z:
-        print("Session 21890 heute:", [l["s"] for l in z["heute"]], "neu:", [l["s"] for l in z["neu"]])
+        print("Ground Truth (Randglaettung) heute:", [l["s"] for l in z["heute"]], "neu:", [l["s"] for l in z["neu"]])
     for sid in (12568, 12574, 12575):
         z = next((x for x in ok if x["id"] == sid), None)
         if z:

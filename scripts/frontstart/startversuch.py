@@ -10,7 +10,7 @@ Jan: „alle starts sind irgendwie ruhe-schnell-ruhe oder ruhe-schnell-gps-abris
      Median der A-Versuche; braucht mind. STEG_MIN A-Versuche in der Session).
 Versuche, aus denen ein erkannter Lauf wurde (Lauf-Start in -3..+8 s), zaehlen als gelungen.
 
-    cd server && DATABASE_URL=... .venv/bin/python ../scripts/frontstart/startversuch.py 12734 3419
+    cd server && DATABASE_URL=... .venv/bin/python ../scripts/frontstart/startversuch.py <session-id> [<session-id> …]
     cd server && DATABASE_URL=... .venv/bin/python ../scripts/frontstart/startversuch.py --uid 2 --n 40
 """
 import argparse

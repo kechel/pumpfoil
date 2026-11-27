@@ -1,4 +1,4 @@
-"""Kurz eingefrorenes GPS reparieren (13.11.2026, Ground Truth #21487) — Funktion noch nicht eingehaengt."""
+"""Kurz eingefrorenes GPS reparieren (13.11.2026, Ground Truth Session A) — Funktion noch nicht eingehaengt. (Fall 2026-11-13-w) """
 from app.analysis.gps import eingefroren_reparieren
 
 

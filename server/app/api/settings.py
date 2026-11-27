@@ -37,7 +37,7 @@ DEFAULTS = {
     # (Aufnahme beenden, Verwerfen): "hold" = halten wie bisher (Default), "press" = ein Druck
     # genuegt. Gilt fuer ALLE eigenen Uhren, nicht je Geraet — Jans Vorgabe: eine Gewohnheit hat
     # man als Mensch, nicht als Uhr.
-    # Anlass (01.09., Nutzer u404): auf seiner Garmin ist der lange Druck auf START mit „Mann
+    # Anlass (01.09., Nutzer Fahrer A): auf seiner Garmin ist der lange Druck auf START mit „Mann (Fall 2026-09-01-d)
     # ueber Bord" belegt, unser Menue war damit nicht erreichbar. Und es gibt Leute, die den
     # kurzen Druck schlicht gewohnt sind. Default bleibt bewusst "hold" (Jan: „ich mag das nicht").
     "stop_mode": "hold",
@@ -75,7 +75,7 @@ DEFAULTS = {
     # „zu langsam" merkt man selbst, „zu hoch im Puls" nicht.
     "hr_high": 0, "alarm_pattern_hr": "short1",
     # Vierte und fuenfte Schwelle: LAUFSTRECKE und LAUFZEIT waehrend eines Laufs (Wunsch von
-    # u447 am 19.09.2026, Erweiterung von Jan). Anders als Speed und Puls sind das keine
+    # Fahrer A am 19.09.2026, Erweiterung von Jan). Anders als Speed und Puls sind das keine (Fall 2026-09-19-k)
     # Grenzwerte, die man ueber- oder unterschreitet, sondern MARKEN, die man erreicht — deshalb
     # je ein eigener Modus:
     #   "once"  = NUR BEI dieser Marke, einmal je Lauf (der Ansporn, 100 m zu knacken)
@@ -224,7 +224,7 @@ DEFAULTS = {
     # fuer genau diesen Menschen wertlos. Moeglich ist das, weil nicht die Daten geaendert
     # werden, sondern nur ihre Ausgabe (s. app/ortverbergen.py).
     "hide_location": False,
-    # „UHRZEIT VERBERGEN" (17.11.2026, Wunsch u146, app/zeitverbergen.py): andere sehen von den eigenen Sessions nur den
+    # „UHRZEIT VERBERGEN" (17.11.2026, Wunsch Fahrer A, app/zeitverbergen.py): andere sehen von den eigenen Sessions nur den (Fall 2026-11-17-j)
     # TAG, nicht die Uhrzeit. Rueckwirkend wie „Ort verbergen", nur in der Ausgabe; der Besitzer sieht immer die echte Zeit.
     # In der Oberflaeche als Einwilligung „Uhrzeit anzeigen" (Haken = sichtbar, Standard).
     "hide_time": False,

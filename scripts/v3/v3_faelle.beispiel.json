@@ -1,0 +1,21 @@
+{
+ "BRUST_FAHRER": 1001,
+ "BRUST_FAHRER_NOTIZ": "Beispiel-Vermerk",
+ "GUTE": [
+  [
+   2001,
+   2002
+  ],
+  [
+   2003,
+   2004
+  ]
+ ],
+ "FEST": [
+  3001,
+  3002,
+  3003
+ ],
+ "GT_EINGEFROREN": 4001,
+ "GT_RANDGLAETTUNG": 4002
+}

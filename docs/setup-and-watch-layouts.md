@@ -626,7 +626,7 @@ Off-Foil-Screen.
 
 **Semantik-Verschiebung, die Nutzer betrifft (bewusst NICHT automatisch migriert):** ein heute unter
 „Pause zwischen den Läufen" konfigurierter Screen erscheint künftig nur noch beim manuellen Pausieren.
-Betrifft aktuell Jan und Tom (je 1–2 Screens) — sie sortieren das in einer halben Minute selbst um.
+Betrifft aktuell Jan und einen Nutzer (je 1–2 Screens) — sie sortieren das in einer halben Minute selbst um.
 Automatisches Umschreiben fremder Einstellungen wäre der falsche Preis für die Bequemlichkeit
 ([[never-touch-db-unasked]]).
 

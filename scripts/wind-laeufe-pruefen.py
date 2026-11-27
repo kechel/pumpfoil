@@ -3,7 +3,7 @@
 
 Anlass (Jan, 19.10.2026): „was halt noch fehlt beim wingfoilen ist, dass der run dann nicht mehr
 staendig unterbrochen wird". Heute laufen Wing/Kite/Parawing durch die Pumpfoil-Erkennung (Foil-
-Modell auf Pumpfoil-Handgelenk trainiert), Beispiel #17478: 57 Laeufe. Stufe 3 im Stand-Buch:
+Modell auf Pumpfoil-Handgelenk trainiert), Beispiel Session A: 57 Laeufe. Stufe 3 im Stand-Buch: (Fall 2026-10-19-c)
 on-foil per Tempo-Schwelle + Haltezeit, das Foil-Modell fuer Wind NICHT verwenden.
 
 Dieses Skript schreibt nichts. Es spielt je Parametersatz eine einfache Zustandsmaschine
@@ -35,7 +35,7 @@ MIN_RUN_S = 5
 GAP_SPLIT_S = 15          # wie heute: laengere GPS-Luecke = Sturz/Schwimmen -> Lauf endet
 MAX_FOIL_KMH = 60.0       # Wind: deutlich schneller als Pumpfoil
 
-# Voller Raster (--voll) oder die sechs Kandidaten aus dem Probelauf an #17478.
+# Voller Raster (--voll) oder die sechs Kandidaten aus dem Probelauf an Session A. (Fall 2026-10-19-d)
 GITTER_VOLL = [(e, x, ed) for e in (10, 12, 14) for x in (8, 10, 12) if x <= e for ed in (3, 5, 8, 12)]
 GITTER = [(10, 9, 3), (10, 8, 8), (10, 8, 12), (12, 10, 5), (12, 8, 8), (14, 10, 8)]
 

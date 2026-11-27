@@ -27,7 +27,7 @@ glaubwürdig Pumpfoil.
 Über 5658 gespeicherte Pumpfoil-Läufe: Median-Laufdauer **27 s**, p90 74 s, p99 220 s. Läufe über
 10 min gibt es 10 (0,18 %), Läufe ab 20 km/h 24 (0,42 %), beides zugleich **einen einzigen**.
 
-Zwei Gruppen mussten aus der Kontrolle heraus, beide sind eigene Befunde: **user 135** (172 von 186
+Zwei Gruppen mussten aus der Kontrolle heraus, beide sind eigene Befunde: **Fahrer A** (172 von 186 (Fall 2026-08-01-v)
 Sessions stehen auf Pumpfoil, Profil sagt Wingfoil — die Kontrollgruppe war mit genau dem verseucht,
 wonach gesucht wird) und **41 iOS-Simulator-Sessions** im Raum Cupertino (synthetische Spur,
 konstant 12,8 km/h).

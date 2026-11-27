@@ -50,7 +50,7 @@ FOIL_LABELS = (PUMPEN, GLEITEN)
 # NEU in v2, jeweils gemessen (Messungen im Bericht, alle read-only über den Bestand):
 #
 # 1) Gerade-Fahrt als Fremdkraft-Kriterium. Die im Entwurf genannte „Wucht" (Accel-RMS) trennt
-#    auf dem beschrifteten Material NICHT: der Zug in #1328 liegt bei 0,29 g / 0,13 g, ein
+#    auf dem beschrifteten Material NICHT: der Zug in Session A liegt bei 0,29 g / 0,13 g, ein (Fall 2026-08-01-n)
 #    echter Lauf derselben Session bei 0,05 g — Gipfeligkeit ebenso überlappend (Zug 13,3 gegen
 #    echter Lauf 6,0). Was trennt, ist die Spurgeometrie: ein Fahrzeug hält minutenlang Kurs,
 #    ein Foil-Fahrer nicht. Gemessen als längste zusammenhängende Strecke mit einer mittleren
@@ -58,8 +58,8 @@ FOIL_LABELS = (PUMPEN, GLEITEN)
 #       Transport (6 beschriftete Abschnitte): 40 / 75 / 100 / 115 / 125 / 175 s
 #       echte Läufe (8 beschriftete Abschnitte):  5 / 5 / 10 / 10 / 10 / 10 / 15 / 15 s
 #    ACHTUNG — DIESE TRENNUNG HÄLT NICHT (nachgemessen 01.08. an weiteren Fällen mit bekanntem
-#    Urteil): der von Jan als echt bestätigte Lauf #658 fährt 132 / 106 / 98 s geradeaus, die
-#    bestätigte Autofahrt #1255 nur 35 / 33 / 32 s. Auf einem Ruderbecken ist die lange Gerade
+#    Urteil): der von Jan als echt bestätigte Lauf Session B fährt 132 / 106 / 98 s geradeaus, die
+#    bestätigte Autofahrt Session C nur 35 / 33 / 32 s. Auf einem Ruderbecken ist die lange Gerade
 #    der Normalfall. Die Zahlen oben stammten aus einer Handvoll ausgewählter Abschnitte.
 #    Die Geometrie entscheidet deshalb NICHTS mehr — sie wird nur je Lauf als `gerade_anteil`
 #    mitgeschrieben. Fremdkraft entscheidet `_fremdkraft_laeufe` je LAUF über die Puls-Antwort
@@ -128,8 +128,8 @@ def label_windows(wins: list[dict], enter_speed: float, exit_speed: float, puls=
         w["label"] = PUMPEN if rhythmisch else GLEITEN
         w["why"] = why
     # _mark_powered_straights wird NICHT mehr aufgerufen: die Geraden-Regel ist widerlegt
-    # (s. dort — der echte Lauf #658 faehrt laenger geradeaus als die bestaetigte Autofahrt
-    # #1255, und sie zusaetzlich zu fordern verschlechtert das Ergebnis messbar). Fremdkraft
+    # (s. dort — der echte Lauf Session A faehrt laenger geradeaus als die bestaetigte Autofahrt (Fall 2026-08-01-o)
+    # Session B, und sie zusaetzlich zu fordern verschlechtert das Ergebnis messbar). Fremdkraft
     # entscheidet jetzt `_fremdkraft_laeufe` je LAUF. Was hier bleibt, ist die Physik-Schranke
     # aus v1: ueber MAX_FOIL_SPEED traegt kein Foil mehr, das ist Antrieb.
     return wins
@@ -142,10 +142,10 @@ def _mark_powered_straights(wins: list[dict], puls=None) -> None:
     Warum der Vorbehalt: die Geraden-Länge allein trennt NICHT. Gemessen an vier Fällen mit
     bekanntem Urteil (01.08.):
 
-        #658  echter Lauf (Jans Urteil)   Geraden 132 / 106 / 98 s
-        #1328 Zug (belegt)                Geraden 269 / 197 / 133 s
-        #1255 Autofahrt (belegt)          Geraden  35 /  33 /  32 s
-        #622  echter Rekordlauf           Geraden  72 /  46 /  35 s
+        Session A  echter Lauf (Jans Urteil)   Geraden 132 / 106 / 98 s (Fall 2026-08-01-p)
+        Session B Zug (belegt)                Geraden 269 / 197 / 133 s
+        Session C Autofahrt (belegt)          Geraden  35 /  33 /  32 s
+        Session D  echter Rekordlauf           Geraden  72 /  46 /  35 s
 
     Der echte Lauf fährt länger geradeaus als die bestätigte Autofahrt — auf einem Ruderbecken
     (Vaires-sur-Marne) ist eine 2-km-Gerade eben der Normalfall. Die ursprüngliche Messung, die
@@ -157,10 +157,10 @@ def _mark_powered_straights(wins: list[dict], puls=None) -> None:
     beide gemessen: innerhalb eines laufenden Laufs vergleicht die Antwort erhöht mit erhöht
     (Vorlauf-Fenster liegt selbst im Lauf), und der ABSOLUTE Pegel taugt auch nicht — in den
     bestätigten Autofahrten liegt der Puls in den Geraden bis zu +43 über der Ruhe-Grundlinie,
-    weil er nach dem Foilen noch erhöht ist (#1255: −12/+2/+26/+43/+37 gegen Grundlinie 60).
+    weil er nach dem Foilen noch erhöht ist (Session C: −12/+2/+26/+43/+37 gegen Grundlinie 60).
 
-    Das Veto unten ist deshalb nur eine TEIL-Lösung: es holt den klaren Fall zurück (#658
-    powered_share 0,197 -> 0,091), ohne die Autofahrten nennenswert zu entlasten (#1255 0,477 ->
+    Das Veto unten ist deshalb nur eine TEIL-Lösung: es holt den klaren Fall zurück (Session A
+    powered_share 0,197 -> 0,091), ohne die Autofahrten nennenswert zu entlasten (Session C 0,477 ->
     0,426). Die saubere Lösung ist, die Fremdkraft-Entscheidung NACH der Segmentierung je LAUF zu
     treffen — dort ist die Vorlauf-Grundlinie echte Ruhe und die Messung belastbar. Das ist der
     nächste Umbau an v2; solange er aussteht, bleibt die Geometrie beschreibend (powered_share)
@@ -308,7 +308,7 @@ def _fremdkraft_laeufe(segments: list, t_ms: np.ndarray, hr: np.ndarray,
 
     Gemessen (01.08., 218 belegte Fremdkraft-Läufe gegen 1879 Pumpfoil-Läufe; Labels aus den 28
     menschlich eingeordneten Nicht-Pumpfoil-Sessions, den 11 Einzel-Urteilen in
-    `data/ground-truth/runs.json` und einer Kontrollgruppe ohne user 135 und ohne die
+    `data/ground-truth/runs.json` und einer Kontrollgruppe ohne Fahrer A und ohne die (Fall 2026-08-01-q)
     Simulator-Sessions). Nur bei LANGEN Läufen (>= 240 s) fällt überhaupt eine Entscheidung; dort:
 
         Merkmal            Fremdkraft (73)   Pumpfoil (7)
@@ -354,7 +354,7 @@ def _fremdkraft_laeufe(segments: list, t_ms: np.ndarray, hr: np.ndarray,
             behalten.append(q)
             continue
         # Mit Accel hat das Modell den Lauf gesehen: im Pumpfoil-Tempo entscheidet es (11.11.2026). Schneller pruefen wir
-        # weiter ueber den Puls — Regressionstest: eine Session mit abgeschnittenen 3,9-Hz-Daten (#17722) haette sonst einen
+        # weiter ueber den Puls — Regressionstest: eine Session mit abgeschnittenen 3,9-Hz-Daten (Session A) haette sonst einen (Fall 2026-11-11-d)
         # 24-km/h-Lauf zurueckbekommen, neben sieben Laeufen mit 32-33 km/h.
         if mit_modell and (q.get("avg_speed_mps") or 99) * 3.6 <= REVIER_MAX_KMH:
             q["fremdkraft_entschieden"] = "modell"
@@ -424,7 +424,7 @@ def model_mask_on_timebase(tb: TimeBase):
 
 
 # --- Keim-Rettung (19.08.2026) ----------------------------------------------------------
-# Befund an #2430 (Nutzermeldung): ein Lauf, den BEIDE Quellen zeigen — 28 s / 94 m bei 11,6 km/h
+# Befund an Session A (Nutzermeldung): ein Lauf, den BEIDE Quellen zeigen — 28 s / 94 m bei 11,6 km/h (Fall 2026-08-19-i)
 # im GPS, dazu 7 Fenster am Stueck mit sauberem 2-Hz-Pumprhythmus (RMS 0,26-0,79 g) — fehlte in
 # der Auswertung. Ursache liegt nicht an den Geschwindigkeits-Schwellen (die reine GPS-
 # Segmentierung findet ihn auf ALLEN drei Empfindlichkeitsstufen, auch auf „Standard"), sondern
@@ -438,7 +438,7 @@ def model_mask_on_timebase(tb: TimeBase):
 # dort, wo das Modell gezuckt hat, aber zu kurz fuer einen Keim — und nur, wenn die Fenster
 # ringsherum den Lauf unabhaengig belegen. Damit gilt weiter „Physik als Schranke, Modell als
 # Ausloeser" (docs/detector-v2.md, Abschnitt 3): ohne Modell-Sekunde passiert nichts, ohne
-# Fenster-Beleg auch nicht. In #2430 bleibt deshalb eine zweite Foil-Strecke (20 s, 2085-2105 s)
+# Fenster-Beleg auch nicht. In Session A bleibt deshalb eine zweite Foil-Strecke (20 s, 2085-2105 s)
 # draussen — dort hat das Modell null Mal gefeuert.
 #
 # Gemessen ueber ALLE 1609 Sessions mit Accel (11 391 Laeufe, 153,8 h) vor dem Einbau:
@@ -451,7 +451,7 @@ def model_mask_on_timebase(tb: TimeBase):
 # schon genug hatte) verlaengert bestehende, richtige Laeufe um im Median 1 %, im Extremfall 34 %.
 BELEG_MIN_MS = 30_000     # Mindest-Spanne der Fenster-Strecke, die einen Ein-Sekunden-Keim traegt.
 # 30 s ist gemessen, nicht geraten: bei 20 s kommen 155 statt 8 Laeufe dazu, ueberwiegend
-# 5-9-Sekunden-Fragmente; bei 45 s faellt der belegte Fall #2430 selbst heraus (seine Strecke
+# 5-9-Sekunden-Fragmente; bei 45 s faellt der belegte Fall Session A selbst heraus (seine Strecke
 # spannt 40 s). Wichtig zum Lesen der Zahl: ein Fenster ist 10 s breit (Hop 5 s), die Spanne einer
 # Strecke liegt also rund 10 s ueber der Aktivitaet darin — 30 s Spanne heisst ~20 s Pumpen.
 
@@ -520,13 +520,13 @@ def detect_v2(
     # bewegt, ist kein Messwert. Meldet ein Geraet durchgehend denselben Genauigkeitswert, ist er
     # ein Platzhalter — dann darf das Gate unten (`hacc > MAX_HACC`) nicht darauf hereinfallen.
     #
-    # Belegt am 19.09.2026 an Session #9023 (Wear OS 1.2.29): 6926-mal exakt 125,0 m, zwei
+    # Belegt am 19.09.2026 an Session A (Wear OS 1.2.29): 6926-mal exakt 125,0 m, zwei (Fall 2026-09-19-i)
     # Stunden ohne jede Streuung, waehrend andere Wear-Uhren 3-25 m mit normaler Schwankung
     # liefern. Jedes Fenster wurde damit als RUHE eingestuft — 0 Laeufe, 0 km/h, „kein Pumpfoil",
     # obwohl in der Spur 20 echte Laeufe bis 18,1 km/h stecken. Ein konstanter Wert UNTER der
     # Schwelle aendert nichts (Garmin meldet fest 4 und passiert ohnehin); im ganzen Bestand
     # sind genau 3 Sessions von 2 Nutzern betroffen, alle mit 125.
-    # Dazu Platzhalter-ABSCHNITTE (Quellenwechsel mitten in der Aufnahme, #16671), s. v1.
+    # Dazu Platzhalter-ABSCHNITTE (Quellenwechsel mitten in der Aufnahme, Session B), s. v1.
     hacc = v1.hacc_platzhalter_weg(hacc)
     if np.isfinite(hacc).any() and float(np.ptp(hacc[np.isfinite(hacc)])) == 0.0:
         hacc = np.full_like(hacc, np.nan)
@@ -534,7 +534,7 @@ def detect_v2(
 
     lat, lon = v1._fill_invalid_coords(lat, lon)
     lat, lon = v1._repair_spikes(lat, lon, t_ms)
-    # Glitches nach Tempo statt nach 25 m je Schritt (26.10.2026, #19096 Smart Recording) — s. v1.plausible_steps.
+    # Glitches nach Tempo statt nach 25 m je Schritt (26.10.2026, Session A Smart Recording) — s. v1.plausible_steps. (Fall 2026-10-26-g)
     step, speed_from_pos = v1.plausible_steps(lat, lon, t_ms, gps_hz)
 
     dt = np.diff(t_ms, prepend=t_ms[0]) / 1000.0
@@ -563,7 +563,7 @@ def detect_v2(
     # Veto PRO SAMPLE, nicht pro Fenster: über der Bandgrenze trägt kein Foil (v1: MAX_FOIL_SPEED).
     # Aus dem Fenster-Label übernommen war das viel zu grob — ein einzelner Wert über der Grenze
     # schlug ein ganzes 10-s-Fenster (plus Überlappung) heraus und zerlegte damit schnelle Sessions:
-    # #1196 (Wing, bis 36 km/h) fiel so von 11 auf 89 Läufe, der längste von 1226 s auf 133 s.
+    # Session A (Wing, bis 36 km/h) fiel so von 11 auf 89 Läufe, der längste von 1226 s auf 133 s. (Fall 2026-08-01-r)
     # v1 prüft dieselbe Grenze sample-weise; genau das tut v2 jetzt auch.
     veto = speed_s > max_foil_speed
     # Wo es Accel gibt, ist das trainierte On-Foil-Modell die QUELLE der Maske — die Fenster sind
@@ -588,7 +588,7 @@ def detect_v2(
     else:
         # OHNE Accel (gps_only) nimmt v2 dieselbe Heuristik wie v1 statt der Fenster-Labels.
         # Grund, gemessen über den Bestand: die Fenster-Maske zerlegt genau diese Sessions
-        # systematisch — #1196 ging von 11 auf 89 Läufe, der längste Lauf von 1226 s auf 133 s.
+        # systematisch — Session A ging von 11 auf 89 Läufe, der längste Lauf von 1226 s auf 133 s. (Fall 2026-08-01-s)
         # Für die Fenster-Maske gibt es kein einziges Label als Beleg, für v1s Automaten (Speed-Band
         # + Glätte + Dwell) die gesamte bisherige Praxis. v2 ändert damit bei gps_only NICHT mehr,
         # WIE on-foil erkannt wird, sondern nur, was danach als Fremdkraft abgetrennt wird — und
@@ -609,7 +609,7 @@ def detect_v2(
     # Ursprünglich standen hier künstlich auf 0 gesetzte Werte an den Veto-Stellen, damit kein Lauf
     # über eine Autofahrt hinwegwächst. Das ist überflüssig, seit die Fremdkraft je LAUF entschieden
     # wird — und es war schädlich: die Nullen verhinderten das Zusammenführen an jeder Stelle über
-    # der Bandgrenze und zerlegten schnelle Sessions noch weiter (#1196: 89 -> 207 Läufe).
+    # der Bandgrenze und zerlegten schnelle Sessions noch weiter (Session A: 89 -> 207 Läufe). (Fall 2026-08-01-t)
     segments = v1._merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz, pos_speed_s=pos_speed_s)
     segments = v1._extend_starts_back(segments, speed_s, t_ms, step, speeds, enter_speed)
     segments = v1._extend_ends_forward(segments, speed_s, t_ms, step, speeds, exit_speed, max_foil_speed)
@@ -675,7 +675,7 @@ def detect_v2(
     # Hoechstgeschwindigkeit NUR aus den erkannten LAEUFEN: der 3-s-Wert je Lauf, der ohnehin
     # schon berechnet und in der Lauf-Liste angezeigt wird. Vorher war es das schnellste
     # Einzel-Sample im ganzen Trim-Fenster — damit standen Autofahrt-Reste in der Bestenliste
-    # (gemessen 07.08.: #1619 mit 73 km/h und #913 mit 61,6, waehrend der schnellste ECHTE Lauf
+    # (gemessen 07.08.: Session A mit 73 km/h und Session B mit 61,6, waehrend der schnellste ECHTE Lauf (Fall 2026-08-07-a)
     # im gesamten Bestand bei 28,9 km/h liegt). Die Kennzahl bedeutet jetzt „schnellste drei
     # Sekunden auf dem Foil": robust gegen Einzel-Spitzen und immun gegen alles ausserhalb der
     # Laeufe. Die Segmente sind hier bereits durch _gate_implausible_runs gelaufen — ein

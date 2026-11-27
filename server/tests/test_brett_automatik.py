@@ -15,21 +15,21 @@ def _m(achse, streu, n=4, hub=1.0):
 
 
 def test_fest_am_brett_wird_gesetzt():
-    assert brett_auto_urteil(_m(3.5, 0.9)) is True          # wie #12738 (u574)
+    assert brett_auto_urteil(_m(3.5, 0.9)) is True          # wie Session A (Fall 2026-10-15-e)
 
 
 def test_hosentasche_unter_dem_anzug_nicht():
-    """#16736, Philipps Handy unter dem Anzug — der schwierigste bekannte Fall."""
+    """Session A, Philipps Handy unter dem Anzug — der schwierigste bekannte Fall. (Fall 2026-10-15-f) """
     assert brett_auto_urteil(_m(20.6, 2.9)) is False
 
 
 def test_flach_aber_nicht_starr_nicht():
-    """Flach, aber die Lage wechselt von Lauf zu Lauf (u808 #16761): nur fragen, nicht setzen."""
+    """Flach, aber die Lage wechselt von Lauf zu Lauf (Fahrer A Session A): nur fragen, nicht setzen. (Fall 2026-10-15-g) """
     assert brett_auto_urteil(_m(4.8, 2.3)) is False
 
 
 def test_schraeg_aber_starr_nicht():
-    """Quer und geneigt montiert (u683 #15004, 16,8°): bleibt beim Hinweis."""
+    """Quer und geneigt montiert (Fahrer A Session A, 16,8°): bleibt beim Hinweis. (Fall 2026-10-15-h) """
     assert brett_auto_urteil(_m(16.8, 0.5)) is False
 
 

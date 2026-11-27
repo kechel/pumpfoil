@@ -82,7 +82,7 @@ object Recorder {
         val gpsFixes: Int = 0,            // Anzahl empfangener Positionen (0 = kein Signal)
         // elapsedRealtime der letzten Position bzw. der letzten GUTEN — daraus leitet die Anzeige „GPS weg"
         // ab (gpsWeg). Ohne sie blieb der GPS-Zustand stehen, wenn keine Positionen mehr kamen, und die Uhr
-        // zeigte 0 km/h statt „GPS suchen" (Garmin-Fall Roman, 25.10.2026, hier nachgezogen).
+        // zeigte 0 km/h statt „GPS suchen" (Garmin-Fall eines Nutzers, 25.10.2026, hier nachgezogen).
         val gpsLetzteMs: Long = 0L,
         val gpsGutMs: Long = 0L,
         val speed3sKmh: Double = 0.0,     // 3-s-Mittel
@@ -93,7 +93,7 @@ object Recorder {
         val avgHr: Int = 0,
         val maxHr: Int = 0,
         // Wie viele Puls-Werte ueberhaupt angekommen sind. 0 nach einer ganzen Aufnahme heisst:
-        // der Sensor hat nie geliefert (Feldbefund u171, Xiaomi Watch 2 Pro: 11 Sessions, 0 Puls,
+        // der Sensor hat nie geliefert (Feldbefund Fahrer A, Xiaomi Watch 2 Pro: 11 Sessions, 0 Puls, (Fall 2026-08-16-a)
         // Berechtigung erteilt). Ohne diesen Zaehler scheitert der Puls STILL — s. RecorderService.
         val hrSamples: Int = 0,
         // Sekunden seit dem letzten ECHTEN Puls-Messwert; -1 = es kam noch keiner.
@@ -651,7 +651,7 @@ object Recorder {
     //
     // ENDZEITPUNKT AUS DEN DATEN, nicht `nowIso()` — bis 17.09.2026 stand hier die Uhrzeit der
     // RETTUNG. Eine so wiederhergestellte Session behauptete damit Zeit, fuer die sie keine
-    // Daten hat: bei u171 (#8705) lief sie angeblich 30,5 Minuten, GPS UND Accel enden aber
+    // Daten hat: bei Fahrer A (Session A) lief sie angeblich 30,5 Minuten, GPS UND Accel enden aber (Fall 2026-09-17-c)
     // beide auf Sekunde 1619 von 1831 — die App war 3 Minuten 32 vorher gestorben, und er ist
     // ahnungslos weitergefahren. Die Auswertung stoert das nicht (sie trimmt auf die Daten),
     // die angezeigte Dauer und jede Abdeckungs-Rechnung aber schon.
@@ -727,7 +727,7 @@ object Recorder {
         // Warum es noetig ist: beim PAIRING kommt das Label nicht immer von der Uhr. Von 122
         // Wear-Aufnahmen der letzten 45 Tage liefen 77 unter der blossen Gattung „Wear OS", von
         // 15 verschiedenen Nutzern — wir wussten also bei der Mehrheit unserer Wear-Flotte nicht,
-        // welche Uhr das ueberhaupt ist. Aufgefallen bei der Puls-Untersuchung zu u171: sein
+        // welche Uhr das ueberhaupt ist. Aufgefallen bei der Puls-Untersuchung zu Fahrer A: sein (Fall 2026-09-17-d)
         // aelteres Token trug noch „Xiaomi Watch 2 Pro", sein aktuelles nur noch „Wear OS".
         //
         // MANUFACTURER nur als Rueckfall: `Build.MODEL` ist der Name, den auch das Pairing nimmt,
@@ -812,7 +812,7 @@ object Recorder {
 
     // Messweg-Diagnose fuer den Server (Wear 1.2.40): woher kam das GPS, wie oft musste es neu
     // angefordert werden, lief die Beschleunigung gebuendelt. Ohne das waere ein GPS-Abbruch wie
-    // bei u818/u574 (07.10.2026) wieder nur aus den Daten zu erraten.
+    // bei Fahrer A/Fahrer B (07.10.2026) wieder nur aus den Daten zu erraten. (Fall 2026-10-07-b)
     @Volatile var messwegGps = "lm"          // "hs" = Health Services, "lm" = LocationManager (Uhr-GNSS)
     @Volatile var messwegGpsNeu = 0          // GPS neu angefordert (Waechter)
     @Volatile var messwegGpsWechsel = ""     // Grund, falls von Health Services zurueckgefallen
@@ -843,7 +843,7 @@ object Recorder {
     // in einem gemeldeten Fall stand so 1658 Sekunden lang derselbe Puls in der Aufnahme. Der
     // Server urteilt anhand der Puls-Antwort darueber, ob ein Lauf aus eigener Kraft war; ein
     // stehender Wert ergibt Antwort 0 und liess drei echte Laeufe als „Fremdkraft" aussortieren
-    // (Meldung 03.09., Session #3391). Lieber KEIN Wert als ein erfundener.
+    // (Meldung 03.09., Session A). Lieber KEIN Wert als ein erfundener. (Fall 2026-08-26-a)
     private const val PULS_ALT_MS = 10_000
 
     private const val FIX_ALT_MS = 5_000L
@@ -1015,8 +1015,8 @@ object Recorder {
 /**
  * Zeitstempel eines GPS-Punkts: wann er GEMESSEN wurde, nicht wann er ankam.
  *
- * Belegt an 9 Sessions zweier Galaxy Watch 4 Classic (SM-L715F, u239/u258, Wear 1.2.18-1.2.28;
- * #8529: 709 Punkte in 6 s): die Uhr haelt Fixes zurueck und liefert Minuten davon auf einmal. Mit
+ * Belegt an 9 Sessions zweier Galaxy Watch 4 Classic (SM-L715F, Fahrer A/Fahrer B, Wear 1.2.18-1.2.28; (Fall 2026-10-01-a)
+ * Session A: 709 Punkte in 6 s): die Uhr haelt Fixes zurueck und liefert Minuten davon auf einmal. Mit
  * der Zustellzeit stauchte das die Zeitachse, die Laeufe hatten 0 s. Jan, 01.10.2026: „klingt nach
  * einem BUG, bitte beheben".
  *

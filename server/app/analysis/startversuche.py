@@ -1,6 +1,6 @@
 """Startversuche „Ruhe -> schnell -> Ruhe oder GPS-Abriss" aus GPS und Beschleunigung (startversuche-1, 25.10.2026).
 
-Anlass: u439 (Amazfit Active 2, Front-Start von der Kante: Board anschieben, aufknien, aufstehen), #12734 — ~22
+Anlass: Fahrer A (Amazfit Active 2, Front-Start von der Kante: Board anschieben, aufknien, aufstehen), Session A — ~22 (Fall 2026-10-25-h)
 Startversuche, angezeigt 0. Die alte Zaehlung (`attempt_distances`, attempts-Preset: Median ueber 3 Punkte, >= 2 s ueber
 8 km/h) sieht von einem Start, der nach 1-3 s im Wasser endet, nichts mehr. Jan: „alle starts sind irgendwie
 ruhe-schnell-ruhe oder ruhe-schnell-gps-abriss". Prototyp und Messung: scripts/frontstart/.
@@ -8,7 +8,7 @@ ruhe-schnell-ruhe oder ruhe-schnell-gps-abriss". Prototyp und Messung: scripts/f
 GRUNDLAGE BLEIBT DIE ALTE ZAEHLUNG, die neue kommt nur DAZU (`zaehlen`): Laeufe + alte Versuche + neue Versuche, die
 nicht schon an einem davon liegen. Neu zaehlt nur, was ein ANLAUF in der Beschleunigung belegt. Erster Entwurf liess
 auch „>= 2 GPS-Punkte ueber 8 km/h ohne Anlauf" zu — der Trockenlauf (25.10., 400 Sessions) zeigte, dass das in
-verrauschten Spuren Zittern zaehlt (#18822 86 -> 142, #18879 17 -> 51, fast alles ohne Anlauf). Ohne Accel bleibt es
+verrauschten Spuren Zittern zaehlt (Session B 86 -> 142, Session C 17 -> 51, fast alles ohne Anlauf). Ohne Accel bleibt es
 ganz bei der alten Zaehlung (`fuer_session` -> None).
 
 Drei Wege zu einem neuen Versuch, alle mit Anlauf und „aus der Ruhe" (davor RUHE_S lang langsam):
@@ -192,7 +192,7 @@ def fuer_session(session, gps_roh: list, accel_roh: np.ndarray, gps_versuche: li
     """Fuer run_analysis: Versuche auf `gps_versuche` (Zeitbasis: Session-ms minus `versatz_ms`), dazu die Laeufe
     [(start_s, distanz_m)] auf derselben Basis. -> Liste fuer `start_attempts_json`, oder None ohne brauchbare
     Beschleunigung: dann bleibt es bei der alten Zaehlung. Ohne Anlauf als Bestaetigung zaehlt Weg A in verrauschten
-    Spuren Spruenge mit (Trockenlauf 25.10.: #17538, Import ohne Accel, 14 -> 51 Versuche aus GPS-Zittern bis 20 km/h)."""
+    Spuren Spruenge mit (Trockenlauf 25.10.: Session A, Import ohne Accel, 14 -> 51 Versuche aus GPS-Zittern bis 20 km/h). (Fall 2026-10-25-i) """
     anl = anlaeufe_session(session, gps_roh, accel_roh)
     if anl is None:
         return None
@@ -204,9 +204,9 @@ def fuer_session(session, gps_roh: list, accel_roh: np.ndarray, gps_versuche: li
 # PUMPFOIL OHNE LAUF (Schritt 2, Jan 25.10.2026: „solche sessions nicht mehr aussortieren"): findet die Analyse keinen
 # Lauf, aber mindestens so viele durch einen Anlauf belegte Versuche aus Weg A oder B, gilt die Session als Pumpfoil —
 # mit 0 Laeufen und ihren Startversuchen (passt zu Jans Regel vom 12.10.: auch Sessions mit nur Startversuchen).
-# Weg C zaehlt hier NICHT: Anlauf + nur 6-8 km/h kommt auch bei Gehen/Schwimmen mit Armbewegung vor (#16961, Galaxy
+# Weg C zaehlt hier NICHT: Anlauf + nur 6-8 km/h kommt auch bei Gehen/Schwimmen mit Armbewegung vor (Session A, Galaxy (Fall 2026-10-25-j)
 # Watch, GPS fast immer < 5 km/h, 9 von 12 Versuchen aus C). Trockenlauf 25.10. (scripts/frontstart/einordnung.py):
-# 34 von 337 aussortierten Pumpfoil-Sessions mit Accel, 17 Fahrer, darunter #12734/#3419 (Front-Start, u439).
+# 34 von 337 aussortierten Pumpfoil-Sessions mit Accel, 17 Fahrer, darunter Session B/C (Front-Start).
 PUMPFOIL_MIN_VERSUCHE = 5
 
 

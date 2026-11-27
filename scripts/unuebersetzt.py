@@ -5,7 +5,7 @@
     python3 scripts/unuebersetzt.py --nur android
     python3 scripts/unuebersetzt.py --alles      # auch Log-/Debug-Zeilen zeigen
 
-WARUM ES DAS GIBT: am 14.09.2026 meldete ein Nutzer (u187, Profilsprache Englisch) „there are
+WARUM ES DAS GIBT: am 14.09.2026 meldete ein Nutzer (Profilsprache Englisch) „there are (Fall 2026-09-14-b)
 some German words in the English interface in a phone app". Er hatte recht — die
 Zusammenfassungszeile unter jeder Session sagte in JEDER Sprache „3 Laeufe", weil dort
 `if (n == 1) "Lauf" else "Laeufe"` im Code stand statt eines Schluessels. Die PWA macht es an

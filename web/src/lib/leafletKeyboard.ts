@@ -11,7 +11,7 @@ import L from "leaflet";
 //
 // Betroffen sind Leaflets Vorgaben `zoomIn [187,107,61,171]` und `zoomOut [189,109,54,173]` plus
 // die Pfeiltasten. Auf deutscher Tastatur sind das die Tasten `-`, `+` und `6`, mit Shift also
-// `_`, `*` und `&` — genau Peters Liste. Die 54 (Ziffer 6) führt Leaflet für AZERTY-Layouts.
+// `_`, `*` und `&` — genau die Liste des Nutzers. Die 54 (Ziffer 6) führt Leaflet für AZERTY-Layouts.
 //
 // Deshalb hier eine Zusatzbedingung statt `keyboard: false`: die Karte bleibt per Tastatur
 // bedienbar (Barrierefreiheit), sie hört nur weg, wenn gerade jemand schreibt. Einmal global

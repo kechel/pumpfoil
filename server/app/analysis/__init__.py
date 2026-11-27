@@ -97,12 +97,12 @@ def _mensch_sagt_pumpfoil(session) -> bool:
     """Hat ein MENSCH diese Session ausdruecklich als Pumpfoil eingestuft?
 
     Dann darf die GPS-only-Erkennung laufen, egal was die Datei als Sportart nennt. Der Grund ist
-    ein gemeldeter Fall (Nutzer 198, 07.09.2026): er zeichnet Pumpfoilen auf seiner Suunto im
+    ein gemeldeter Fall (Fahrer A, 07.09.2026): er zeichnet Pumpfoilen auf seiner Suunto im (Fall 2026-09-07-b)
     LAUF-Modus auf. Bis zum 05.09. las der Import die Sportart nicht aus der Datei, jede
     Suunto-Aufnahme galt als `pumpfoil` — und damit lief die GPS-only-Erkennung. Seit dem
     (richtigen!) Fix `4f3426ce` steht korrekt `running` in der Session, `running` ist hier
     absichtlich ausgeschlossen, und seine Laeufe wurden hart auf 0 gesetzt. In unseren eigenen
-    gespeicherten Zahlen standen sie weiter drin: Session #4631 hatte `longest_segment_s=894` und
+    gespeicherten Zahlen standen sie weiter drin: Session A hatte `longest_segment_s=894` und
     `farthest_segment_m=3610` — ein Lauf von 14:54 ueber 3,6 km, erkannt und verworfen. Er hatte
     die Sessions selbst auf Pumpfoil gestellt; das half nicht, weil die Schranke nur die
     DATEI-Sportart ansah.
@@ -158,7 +158,7 @@ def _water_lookup_point(gps_samples: list) -> tuple[float, float] | None:
     """Ort fuer die Wasser-Abfrage. Median NUR der bewegten Samples statt aller.
 
     Warum: der Median ALLER Punkte wandert dorthin, wo die Uhr am laengsten lag — nach der Session
-    also nach Hause oder auf den Parkplatz. Befund #1328: Polygon bei 47.531,9.743 abgefragt, der
+    also nach Hause oder auf den Parkplatz. Befund Session A: Polygon bei 47.531,9.743 abgefragt, der (Fall 2026-08-11-d)
     Spot lag bei 47.510,9.752 -> 0 % Wasseranteil fuer ALLE sechs Laeufe, auch die echten. Die
     Korrektur `_clip_ends_to_water` lief damit ins Leere, ohne Schaden anzurichten, aber auch ohne
     Wirkung. Ein Geschwindigkeitsband trifft den Ort, an dem wirklich gefoilt/gepaddelt wurde, und
@@ -331,8 +331,8 @@ AUTO_TRIM_MARGIN_MS = 15000  # 15 s Puffer vor erstem Start / nach letztem Ende
 # nur EINEN kurzen Lauf, schneidet er alles andere weg — auch echte Fahrt. Im Bestand gemessen:
 # 81 Sessions von 48 Nutzern behielten unter 2 Minuten aus einer Aufnahme ueber 10 Minuten, und
 # ALLE 81 hatten genau einen erkannten Lauf. Bei 59 davon liegen mindestens 20 s echte Fahrt
-# (>2 m/s) ausserhalb des Fensters, zusammen 188 Minuten bei 38 Nutzern; Extremfall #3878 mit
-# 22 Minuten draussen gegen 89 Sekunden drin. Sichtbar wird es als absurde Gesamtstrecke — #624
+# (>2 m/s) ausserhalb des Fensters, zusammen 188 Minuten bei 38 Nutzern; Extremfall Session A mit (Fall 2026-09-21-m)
+# 22 Minuten draussen gegen 89 Sekunden drin. Sichtbar wird es als absurde Gesamtstrecke — Session B
 # stand mit 70 m fuer eine 100-Minuten-Aufnahme da.
 #
 # Die Abwaegung ist einseitig: ein FEHLENDER Zuschnitt kostet etwas Autofahrt im Bild, ein
@@ -355,10 +355,10 @@ def maybe_auto_trim(db: DbSession, session: "models.Session") -> bool:
     #
     # Der Zuschnitt setzt auf „erster Lauf minus 15 s" — und „Lauf" heisst hier: was die
     # PUMPFOIL-Erkennung findet. Bei einer anderen Sportart findet sie zu wenig, und dann schneidet
-    # sie echte Fahrzeit weg. Belegt an #5272 (u43, sport_class=wingfoil, Feedback 08.09.): seine
+    # sie echte Fahrzeit weg. Belegt an Session A (sport_class=wingfoil, Feedback 08.09.): seine (Fall 2026-09-10-h)
     # ersten 9 Minuten / 2,3 km wurden nicht als Lauf erkannt, der Zuschnitt begann bei 792 s, und
     # die Fahrt tauchte danach nur noch als „langer Startversuch" auf der Karte auf — genau das hat
-    # er gemeldet. Im Bestand traf es 94 Sessions, im Extremfall (#2986) drei Stunden.
+    # er gemeldet. Im Bestand traf es 94 Sessions, im Extremfall (Session B) drei Stunden.
     #
     # NULL = Pumpfoil (Vorgabe), s. lib/sportClass.ts und community.py. Die zweite Haelfte von Jans
     # Regel — ohne erkannte Laeufe gar nicht trimmen — steht schon unten (`if not segs`).
@@ -415,7 +415,7 @@ def abschliessend_auswerten(db: DbSession, session: "models.Session") -> None:
     verwerfen, dann auf der ganzen Aufnahme rechnen, dann neu zuschneiden. Ein vom Nutzer gesetzter
     bleibt, wie er ist.
 
-    WARUM (27.09.2026, #10158): der Upload einer Apple Watch stockte nach 131 von 2041
+    WARUM (27.09.2026, Session A): der Upload einer Apple Watch stockte nach 131 von 2041 (Fall 2026-09-27-i)
     Chunks. Nachts schloss der Aufraeum-Timer die Session mit diesen ersten 22 Minuten ab, der
     Zuschnitt landete auf 3,9–21,9 min. Am Morgen kam der Rest, die Uhr schloss sauber ab — aber
     `maybe_auto_trim` sah „schon zugeschnitten" und rechnete nicht neu. Zwei Stunden Fahrt lagen
@@ -582,7 +582,7 @@ def gps_only_max_mps(sport_class: str | None) -> float:
     """Tempogrenze fuer „ist Foilen" OHNE Bewegungsdaten (geglaetteter Max der Session). Pumpfoil 30 km/h (darueber =
     angetrieben). Sportarten mit eigenen Grenzen (sportarten.json: Wing, Kite, Parawing …) nehmen ihre Lauf-Spitze, nie
     weniger als 30 km/h — vorher galt 30 km/h fuer alle, und Wing-/Kitefoil-Sessions ohne Accel fielen aus Spot-Listen
-    und Bestenlisten (Jan 19.11.2026: „die sind ja schneller als 30km/h", Wingfoil-Session 22414)."""
+    und Bestenlisten (Jan 19.11.2026: „die sind ja schneller als 30km/h", Wingfoil-Session A). (Fall 2026-11-19-b) """
     from .gps import PUMPFOIL_GPS_MAX_MPS, SPORT_GRENZEN
     g = SPORT_GRENZEN.get(sport_class or "pumpfoil")
     return max(PUMPFOIL_GPS_MAX_MPS, g[1] / 3.6) if g else PUMPFOIL_GPS_MAX_MPS
@@ -643,7 +643,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
     # (_foiling_mask_for_accel), die Pump-Fenster je Lauf (unten), die ML-Features
     # (foil_model.extract_features) und die Impuls-Erkennung (detect_jumps). Diese Annahme war
     # FALSCH, sobald die echte Rate von einer Durchschnittsrate abweicht — und sie tut das, sobald
-    # die Uhr ihre Rate wechselt. Belegt an #1814 (Wear, docs/DATA-PIPELINE.md §9.1/§9.2): echte
+    # die Uhr ihre Rate wechselt. Belegt an Session A (Wear, docs/DATA-PIPELINE.md §9.1/§9.2): echte (Fall 2026-08-10-ae)
     # 50,19 Hz gegen eine Durchschnittsrate von 49,041 Hz ergaben mitten in der Session **124 s**
     # Versatz -> der Detektor las Stillstand zwischen zwei Läufen, dadurch „die Pumps hören mitten
     # im Lauf auf" und eine 45-s-Gleitphase, die es nie gab.
@@ -685,7 +685,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
             grid_ms = np.arange(n_grid) / accel_hz * 1000.0
             pick = np.clip(np.searchsorted(src_ms, grid_ms), 0, src_ms.size - 1)
             accel = _tb.accel[pick]
-            # WO GIBT ES WIRKLICH MESSWERTE? (30.09.2026, #10266: 22,8 s „Gleitphase" in
+            # WO GIBT ES WIRKLICH MESSWERTE? (30.09.2026, Session A: 22,8 s „Gleitphase" in (Fall 2026-09-30-aa)
             # einem Lauf ganz OHNE Beschleunigung.) Das Raster reicht immer ueber das ganze
             # Zeitfenster; wo Accel fehlt (Upload unvollstaendig, Luecke zwischen Bloecken),
             # wiederholt `pick` den naechsten Messwert. Der Bandpass macht daraus Nachschwinger,
@@ -702,7 +702,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
     # Entscheidung 02.09.). Grund: `maybe_auto_trim` setzt den Zuschnitt automatisch auf
     # „erster Lauf − 15 s", und genau davor liegen die Fehlversuche, bis der erste Start sass.
     # Wer 20-mal anschiebt und beim 21. steht, hat 1/21 und nicht 1/1. Gemessen ueber die 40
-    # neuesten zugeschnittenen Sessions: +7 % Versuche, im Extremfall #3124 1/1 -> 1/44.
+    # neuesten zugeschnittenen Sessions: +7 % Versuche, im Extremfall Session A 1/1 -> 1/44. (Fall 2026-09-02-h)
     #
     # ABER NUR beim AUTO-Zuschnitt (Jan, 04.09.). Hat der NUTZER zugeschnitten, bleibt es beim
     # gewaehlten Fenster: dort liegen ausserhalb Autofahrten, vergessene Stopps und Wege zum
@@ -796,7 +796,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
     # finalen Analyse (kein Netz im Live-Pfad); Fehler/kein Treffer -> None (keine Korrektur).
     # Land-Sportarten (Snowkite, Kite-ATB, Kitebuggy; sportarten.LAND, 25.10.2026): kein Wasser zu suchen.
     from ..sportarten import LAND as _LAND
-    # Suchpunkt mit PUFFER um die erkannten Autofahrten (17.11.2026, Befund #20507): die Fahrten selbst sind oben schon
+    # Suchpunkt mit PUFFER um die erkannten Autofahrten (17.11.2026, Befund Session A): die Fahrten selbst sind oben schon (Fall 2026-11-17-i)
     # raus (analyse_ausschluss), aber die Erkennung findet nur den schnellen Teil — der Stadtverkehr davor/danach liegt im
     # Tempo-Band des Suchpunkts (1-8 m/s) und zog ihn auf die Strasse (gemessen: 11 von 166 Sessions mit Autofahrt, bis
     # 28 km). Nur fuer den Suchpunkt; gps_samples ist hier ggf. auf den Zuschnitt re-based (_off wie oben).
@@ -827,7 +827,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
         # Fremdkraft nur beurteilen, wo PUMPFOIL behauptet wird. Eine vom Menschen als Wingfoil/
         # Efoil/Wake klassifizierte Session hat die Frage schon beantwortet — ihre Laeufe sind
         # gueltige Laeufe IHRER Sportart und gehoeren in die eigenen Statistiken. Befund bei der
-        # v2-Einfuehrung: #1175 (owner-klassifiziert wingfoil) verlor sonst alle 4 Laeufe.
+        # v2-Einfuehrung: Session A (owner-klassifiziert wingfoil) verlor sonst alle 4 Laeufe. (Fall 2026-08-01-m)
         _judge = (session.sport_class or "pumpfoil") == "pumpfoil"
         # `detection` allein reicht NICHT: v2 holt sich die Modellmaske selbst
         # (`model_mask_on_timebase`) und haette am Brett weiter mit dem Handgelenk-Modell
@@ -958,7 +958,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
         except Exception:  # noqa: BLE001 - die Zusatzpruefung darf die Analyse nie brechen
             logging.getLogger(__name__).exception("light-Pruefung fuer Session %s", session.id)
     # Immer noch kein Pumpfoil und kein Lauf? Dann zaehlen die durch einen ANLAUF belegten Startversuche (Jan,
-    # 25.10.2026, Front-Start #12734: ~20 Starts, alle nach 1-3 s im Wasser, vom Modell nie als Foilen erkannt).
+    # 25.10.2026, Front-Start Session A: ~20 Starts, alle nach 1-3 s im Wasser, vom Modell nie als Foilen erkannt). (Fall 2026-10-25-g)
     # Mindestzahl und Gruende in startversuche.py (PUMPFOIL_MIN_VERSUCHE). Nur mit Beschleunigung.
     if (not is_pumpfoil and n_runs == 0 and detection == "model"
             and (session.sport_class or "pumpfoil") == "pumpfoil"
@@ -1067,14 +1067,14 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
             if pts.size >= 1:
                 ps = np.sort(pts)
                 # Zwischen zwei Pumps nur dann eine Gleitphase, wenn dazwischen durchgehend echte
-                # Messwerte liegen — eine Accel-Luecke ist kein Gleiten (30.09.2026, #10266).
+                # Messwerte liegen — eine Accel-Luecke ist kein Gleiten (30.09.2026, Session A). (Fall 2026-09-30-ab)
                 pi = np.round(ps / 1000.0 * fs).astype(int)
                 luecke = np.concatenate([[0], np.cumsum(~echt)])
                 gaps = [float(ps[k + 1] - ps[k]) / 1000.0 for k in range(ps.size - 1)
                         if luecke[min(pi[k + 1], echt.size)] - luecke[min(pi[k], echt.size)] == 0]
                 # Gleitphasen NUR über den accel-abgedeckten Bereich: bricht die Accel-Spur vor dem
                 # GPS-Lauf ab (verkürzte/abgebrochene Aufzeichnung), darf der accel-lose Schwanz
-                # NICHT als riesige Gleitphase zählen (Befund Session 521). Seit 30.09.2026 gegen
+                # NICHT als riesige Gleitphase zählen (Befund Session A). Seit 30.09.2026 gegen (Fall 2026-09-30-ac)
                 # die ECHTEN Messwerte, nicht gegen das aufgefuellte Raster.
                 drin = np.flatnonzero(abgedeckt)
                 acc_start_ms = (a_lo + int(drin[0])) / fs * 1000.0
@@ -1155,7 +1155,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
     # weiter ihre Versuche — in die Start-Erfolgsquote, obwohl sie gar nicht als Pumpfoil gilt.
     # Seit 25.10.2026 (startversuche-1, Jan: „fuer alle so aktivieren bei pumpfoil"): „Ruhe -> schnell -> Ruhe oder
     # GPS-Abriss" aus GPS + Anlauf in der Beschleunigung, statt des attempts-Presets, das kurze Starts mit Sturz
-    # verpasste (#12734 Front-Start: 22 statt 0). Laeufe zaehlen immer als Versuch. Scheitert die neue Rechnung, gilt
+    # verpasste (Session A Front-Start: 22 statt 0). Laeufe zaehlen immer als Versuch. Scheitert die neue Rechnung, gilt (Fall 2026-10-12-b)
     # die alte — eine Anzeige darf die Analyse nie kosten.
     if session.is_pumpfoil:
         try:
@@ -1284,7 +1284,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
     # #8323 08:22:02 / 08:23:19 (+77 s). Im Bestand betraf es 12 Aufnahmen von 9 echten Nutzern,
     # aelteste vom 07.09. Der Fingerabdruck ist `total_chunks` bei Status „live": diese Spalte
     # setzt AUSSCHLIESSLICH `/complete`.
-    # 14.09.2026 — der Waechter von gestern greift NICHT, und Peters Session #8448 hat es
+    # 14.09.2026 — der Waechter von gestern greift NICHT, und die Session A hat es (Fall 2026-09-13-e)
     # bewiesen (`/complete` 18:34:00, ueberschreibende Analyse 18:36:19, +139 s). Grund:
     # `SessionLocal` laeuft mit `expire_on_commit=False`, und zwischen `db.get()` am Anfang von
     # `_analyze_in_background` und dieser Zeile steht in `run_analysis` KEIN commit/refresh.

@@ -1,4 +1,4 @@
-"""Fehlendes Uhr-Tempo aus den Positionen auffuellen (Befund #16840, 16.10.2026)."""
+"""Fehlendes Uhr-Tempo aus den Positionen auffuellen (Befund Session A, 16.10.2026). (Fall 2026-10-16-e) """
 from app.storage import tempo_auffuellen
 
 # ~3,7 m/s nach Norden: 1e-5 Grad Breite = 1,113 m
@@ -26,7 +26,7 @@ def test_minus_eins_heisst_kein_tempo():
 
 
 def test_springende_positionen_bleiben_null():
-    """#486: beim Einrasten springt die Position hin und her — die 0 der Uhr ist dort richtig."""
+    """Session A: beim Einrasten springt die Position hin und her — die 0 der Uhr ist dort richtig. (Fall 2026-10-16-f) """
     hin_her = [[i * 1000, 61.4760 + (0.0001 if i % 2 else 0), 23.8885, 0] for i in range(6)]
     assert [r[3] for r in tempo_auffuellen(hin_her)] == [0] * 6
 

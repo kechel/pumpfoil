@@ -1,6 +1,6 @@
 """Garmin OHNE Layout-Paket (128-KB-Klasse): Seiten-Saetze und „alle Seiten" kommen trotzdem an.
 
-Anlass (25.09.2026, Roman, u244, Instinct 3 Solar): zwischen den Laeufen zeigte die Uhr nur die
+Anlass (25.09.2026, ein Nutzer, Instinct 3 Solar): zwischen den Laeufen zeigte die Uhr nur die (Fall 2026-09-25-f)
 erste Seite und blaetterte immer durch alle Zustaende — auch nach 1.0.89. Ursache: `offFoilPages`
 und `browseAll` standen nur im Layout-Paket, und das bekommt eine Uhr unter 512 KB nicht.
 Jetzt bekommt sie die KLASSISCHEN Seiten der Saetze (eigene Layouts kann ihr Build nicht zeichnen).

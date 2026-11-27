@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regressionstest: v3-Kandidaten OHNE das alte On-Foil-Modell (foil_rf.pkl). REIN LESEND.
 
-Anlass (03.10.2026, #12632): die „grosszuegigen" v3-Kandidaten (`TIEF_KW`) lockern nur die
+Anlass (03.10.2026, Session A): die „grosszuegigen" v3-Kandidaten (`TIEF_KW`) lockern nur die (Fall 2026-10-03-d)
 Tempo-Grenzen — `detect_v2` nimmt mit Accel weiter das alte Modell als Maske. Wo es 0 % sagt, sieht
 das neue Modell die Stelle nie. Frage an diesen Test: was aendert sich ueber den ganzen Bestand,
 wenn die TIEF-Kandidaten mit `use_model=False` (reine GPS-Heuristik) gebildet werden?

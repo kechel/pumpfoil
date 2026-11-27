@@ -15,7 +15,7 @@ Sessions, Nerd-Analysen Teil 5):
 7. Ganz NEUE Stuecke (kein v2-Lauf beruehrt sie) muessen die Grenzen der Profil-Empfindlichkeit
    erfuellen — Mindestdauer und Mindest-Schnitt, gemessen am Stueck NACH dem Modell (`nach_empfindlichkeit`).
 
-Kandidaten seit v3-r4-mild-2 (03.10.2026, Befund #12632): `tief` OHNE das alte On-Foil-Modell
+Kandidaten seit v3-r4-mild-2 (03.10.2026, Befund Session A): `tief` OHNE das alte On-Foil-Modell (Fall 2026-09-30-ae)
 (`use_model=False`, reine GPS-Heuristik). Vorher lief auch `tief` durch `foil_rf.pkl` — wo das alte
 Modell nein sagte, sah das neue die Stelle nie (ein Lauf brauchte damit das Ja BEIDER Modelle).
 Regression ueber 2802 Sessions: scripts/v3/regression-kandidaten.py, docs/DETECTION-V3.md.
@@ -131,11 +131,11 @@ BRUECKE_MPS = 2.5            # Luftlinie ueber die Luecke: ab hier „durchgefah
 def _bruecken(L, t, pg, theta, gps):
     """Zwei aufeinanderfolgende Kandidaten-Laeufe verbinden, wenn (1) die Luecke <= LUECKE_S + 1 s ist, (2) p
     (geglaettet) in der Luecke nirgends unter theta faellt und (3) die Luftlinie von 1 s vor bis 2 s nach der Luecke
-    >= BRUECKE_MPS ist (13.11.2026, #21487: Handy-GPS fror 5 s ein, Doppler 0 — v2 und tief trennten, das Modell sagte
+    >= BRUECKE_MPS ist (13.11.2026, Session A: Handy-GPS fror 5 s ein, Doppler 0 — v2 und tief trennten, das Modell sagte (Fall 2026-11-13-u)
     p 0,97; `_teil` schliesst Loecher nur innerhalb eines Kandidaten). (3) haelt echte kurze Stopps getrennt: in der
     Regression ueber 4881 Sessions verband (1)+(2) allein 31 Stellen, davon 5 mit < 1,5 m/s — mit (3) bleiben 6.
     Das Fenster reicht ueber die Luecke hinaus, weil beim eingefrorenen GPS die Fixe direkt an der Luecke selbst
-    eingefroren sind (#21487: 0,04 m/s direkt daneben, 3,95 m/s im Fenster)."""
+    eingefroren sind (Session A: 0,04 m/s direkt daneben, 3,95 m/s im Fenster)."""
     if len(L) < 2 or not gps:
         return L
     tg = np.array([float(q[0]) for q in gps])
@@ -165,7 +165,7 @@ def _bruecken(L, t, pg, theta, gps):
 def _rand_verlaengern(L, kand, t, p, theta):
     """Jeden fertigen Lauf an Anfang und Ende um bis zu GLAETTEN_S//2 Punkte verlaengern, solange das ROHE p >= theta
     bleibt, nie ueber seinen Kandidaten hinaus (16.11.2026, Jans OK). Anlass: `_glaetten` (zentriert) zieht die niedrigen
-    p nach dem Absetzen vor — Session 21890 Lauf 3 endete bei 59,997 s, roh p 0,43 >= theta, geglaettet 0,36. Laeuft NACH
+    p nach dem Absetzen vor — Session A Lauf 3 endete bei 59,997 s, roh p 0,43 >= theta, geglaettet 0,36. Laeuft NACH (Fall 2026-11-16-h)
     tau-/Kurz-Filter, damit der Rand keinen Lauf aus dem Filter wirft. Regression 5074 Sessions
     (scripts/v3/regression-randglaettung.py): Laeufe +4, Foil-Zeit +0,07 %, 801 Sessions, meist +1 s je Lauf."""
     k = GLAETTEN_S // 2
@@ -235,7 +235,7 @@ def _segmente(L, v2_segmente, session, off):
     lat, lon = v1._fill_invalid_coords(lat, lon)
     lat, lon = v1._repair_spikes(lat, lon, t)
     hz = session.gps_hz or 1
-    step, v_pos = v1.plausible_steps(lat, lon, t, hz)     # wie v2 (26.10.2026, #19096)
+    step, v_pos = v1.plausible_steps(lat, lon, t, hz)     # wie v2 (26.10.2026, Session A) (Fall 2026-10-26-i)
     roh = np.array([float(x[3]) if len(x) > 3 and x[3] is not None else np.nan for x in g])
     speed = _clean_speed(np.where(np.isnan(roh), v_pos, roh), hz)
     win = max(int(round(v1.SMOOTH_WINDOW_S * hz)), 1)
@@ -327,7 +327,7 @@ def nach_empfindlichkeit(segs: list, v2_segmente: list, sens: str, geschuetzt=()
 # Uhren, bei denen v3 die Raender eines v2-Laufs NICHT abschneidet (Jans OK 16.10.2026). Amazfit
 # liefert im Median nur 0,24 GPS-Punkte je Sekunde, mit Luecken von 7-12 s auch mitten im Lauf; das
 # Modell rechnet je GPS-Punkt und ist nach jeder Luecke unsicher -> es kappte echte Laufenden (Zepp:
-# 40 % der Laeufe um mehr als ein Viertel gekuerzt, Garmin 6-7 %). Sichtpruefung an #14983: wo das
+# 40 % der Laeufe um mehr als ein Viertel gekuerzt, Garmin 6-7 %). Sichtpruefung an Session A: wo das (Fall 2026-10-16-a)
 # den Lauf aendert, wird er richtiger. Das Veto (ganzer Lauf weg) und neue Stuecke bleiben.
 OHNE_RANDSCHNITT = {"zepp"}
 
@@ -346,7 +346,7 @@ def plattform(session) -> str | None:
 def ganze_v2_laeufe(segs: list, v2_segmente: list) -> list:
     """Rein: behaelt v3 mindestens die Haelfte eines v2-Laufs, reichen sein erstes Stueck bis zum
     v2-Anfang und sein letztes bis zum v2-Ende. NUR die Raender: eine Luecke, die v3 MITTEN im Lauf
-    herausnimmt, bleibt (Befund #12509: zehn Minuten bei 20 km/h, das Modell in der Mitte klar
+    herausnimmt, bleibt (Befund Session A: zehn Minuten bei 20 km/h, das Modell in der Mitte klar (Fall 2026-10-16-b)
     dagegen — die erste Fassung fuellte sie wieder auf). Weniger als die Haelfte bleibt wie v3 es
     sieht; neue Stuecke ohne v2-Lauf bleiben. Verlaengerte Stuecke verlieren ihre v2-Werte und
     werden vom Aufrufer neu vermessen."""

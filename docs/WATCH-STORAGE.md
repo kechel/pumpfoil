@@ -94,7 +94,7 @@ nächsten Fassung (Jan, 13.10.2026: „ja gerne auch 2h Reserve"):
 | großer Puffer (≥ ~1 MB) | 300 KB (480 auf ≤128-KB-RAM-Uhren) | 2 h |
 
 Kein Fehler, wenn Accel auf einer kleinen Uhr nach Minuten endet und GPS weiterläuft: ohne Handy in
-Reichweite (keine Uploads während der Fahrt) ist das genau diese Reserve (#15052, 12.10.2026: FR55,
+Reichweite (keine Uploads während der Fahrt) ist das genau diese Reserve (Session A, 12.10.2026: FR55, (Fall 2026-10-12-a)
 nach 7,4 min, GPS die vollen 48 min). Test: `node --test watch/test/`.
 
 ## Wann NICHTS angezeigt wird
@@ -156,7 +156,7 @@ ohne Verknuepfung bisher nicht schickte, war unsere Entscheidung vom 05.11., kei
 - `on`/`off`: schlaegt die Regel, auch mit Verknuepfung.
 - `auto` nach einem An/Aus: der Auto-Wert geht AUSDRUECKLICH raus, weil die Uhr einen Schalter dauerhaft behaelt —
   ohne Verknuepfung `not (Modus gps oder speicherarm)`, genau wie die Uhr selbst entschiede.
-Anlass: eine Instinct 3 (u244) startet nach jeder Session neu, waehrend unsere eigenen Bloecke vollstaendig ankommen
+Anlass: eine Instinct 3 startet nach jeder Session neu, waehrend unsere eigenen Bloecke vollstaendig ankommen (Fall 2026-11-21-b)
 (bis ~600 KB im Puffer, nie voll) — Verdacht auf die FIT mit Roh-Beschleunigung (docs/TODO.md).
 
 ## Von Hand hochgeladene FIT-Dateien derselben Aufnahme (09.11.2026)

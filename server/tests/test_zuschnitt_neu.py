@@ -1,6 +1,6 @@
 """Ein AUTOMATISCHER Zuschnitt wird bei jeder abschliessenden Auswertung neu bestimmt.
 
-Anlass #10158 (27.09.2026): Zuschnitt aus einem Teil-Upload (22 von 182 min), der Rest kam spaeter,
+Anlass Session A (27.09.2026): Zuschnitt aus einem Teil-Upload (22 von 182 min), der Rest kam spaeter, (Fall 2026-09-27-n)
 und der alte Zuschnitt blieb stehen — zwei Stunden Fahrt lagen ausserhalb.
 """
 import math

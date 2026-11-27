@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Sessions aus einem Spot in einen eigenen, NEUEN Spot verschieben und das Paar dauerhaft trennen
-(models.SpotTrennung — nie wieder automatisch zusammengelegt). Jans Auftrag 23.10.2026 (Roman u244:
+(models.SpotTrennung — nie wieder automatisch zusammengelegt). Jans Auftrag 23.10.2026 (Fahrer A: (Fall 2026-10-23-t)
 zwei Stege 350 m auseinander, durch eine Landzunge getrennt). Ohne --echt nur anzeigen.
 
-    cd server && .venv/bin/python ../scripts/spot-trennen.py --spot 973 --sessions 18868,18869,18870
-    cd server && .venv/bin/python ../scripts/spot-trennen.py --spot 973 --sessions 18868,18869,18870 --echt [--name "…"]
+    cd server && .venv/bin/python ../scripts/spot-trennen.py --spot <spot-id> --sessions <id>,<id>,<id>
+    cd server && .venv/bin/python ../scripts/spot-trennen.py --spot <spot-id> --sessions <id>,<id>,<id> --echt [--name "…"]
 """
 import argparse
 import os

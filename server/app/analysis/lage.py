@@ -91,10 +91,10 @@ START_FENSTER_S = 1.0      # so lange nach dem Lauf-Start wird gemittelt
 # fallbacks"). Die Schwerkraft kann es nicht: eine 180°-Drehung um die Senkrechte laesst sie
 # unveraendert. Verworfen, mit Zahlen in docs/GROUND-TRUTH.md 12d:
 #   * die Start-Heuristik „am Start Nase unten" — Annahme ueber den Fahrstil, beim zweiten Fahrer
-#     falsch (#10248: Brett trieb nach dem Sturz Nase 45° OBEN, Anzeige −46°);
+#     falsch (Session A: Brett trieb nach dem Sturz Nase 45° OBEN, Anzeige −46°); (Fall 2026-09-27-j)
 #   * die Anfahrt (Laengs-Kraft minus Kreisel-Nicken gegen GPS-dv/dt) — ihre klaren Werte kamen von
 #     der DRIFT des aufsummierten Kreisel-Nickens (bis 90° in 13 s), ohne Drift |r| 0,1–0,5 und bei
-#     #10248 falsch herum. Beim Dock-Start springt das Tempo in ~1 s, das 1-Hz-GPS sieht es nicht.
+#     Session A falsch herum. Beim Dock-Start springt das Tempo in ~1 s, das 1-Hz-GPS sieht es nicht.
 # Messverfahren seit 27.09.2026: KOMPASS gegen GPS-Kurs (s. `richtung_messen`) — die Vorwaertsachse
 # zeigt in die Fahrtrichtung, vorn/hinten liegen 180° auseinander. Braucht das Magnetometer im
 # Recorder; ohne Magnetometer (aeltere App, Handy ohne Kompass) bleibt die Richtung unbestimmt.
@@ -1173,7 +1173,7 @@ def montage_je_lauf(acc_raw: np.ndarray, t_acc_ms: np.ndarray,
     # „Eindeutig anders" heisst: eine andere ACHSE (> MONTAGE_GLEICH_GRAD, mod 180). Dieselbe Achse
     # mit umgekehrter Richtung ist KEIN Verrutschen — ein Handy dreht sich nicht um genau 180°, ohne
     # dass sich die Achse mitbewegt —, sondern eine einzelne, verrauschte Anfahrt (so Lauf 4 von
-    # #10248: seine eine Anfahrt sagte das Gegenteil, Jan sah das Brett danach Nase oben treiben —
+    # Session A: seine eine Anfahrt sagte das Gegenteil, Jan sah das Brett danach Nase oben treiben — (Fall 2026-09-27-k)
     # die Anfahrt ist inzwischen verworfen, die Regel gilt fuer jedes kuenftige Messverfahren).
     # Solche Laeufe werden `rot_strittig` markiert und schalten nicht um.
     def _abstand(x: float, y: float) -> float:

@@ -148,7 +148,7 @@ object Api {
     /**
      * Mehrere Chunks in EINER Anfrage (Server seit 29.09.2026). Die Chunkgroesse stammt aus dem
      * Garmin-BLE-Limit, das Wear OS nicht hat — mit einem Chunk je Anfrage brauchte eine lange
-     * Session tausende Anfragen (#10266, Apple Watch: 1848 fuer 2,2 MB, drei Tage).
+     * Session tausende Anfragen (Session A, Apple Watch: 1848 fuer 2,2 MB, drei Tage). (Fall 2026-09-29-a)
      * Liefert die Indizes, die der Server GESPEICHERT hat — nur die zaehlen als quittiert.
      */
     suspend fun uploadChunks(uuid: String, chunks: List<JSONObject>): Set<Int> = withContext(Dispatchers.IO) {

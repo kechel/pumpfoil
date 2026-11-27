@@ -29,7 +29,7 @@ import numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "server"))
 
 NEU_TOUCHDOWN_S = 7      # war 5
-NEU_DIP_MAX_S = 2        # laengster zusammenhaengender Einbruch unter NOSTOP_SPEED (Marcs Fall hat 2 s)
+NEU_DIP_MAX_S = 2        # laengster zusammenhaengender Einbruch unter NOSTOP_SPEED (der Fall hat 2 s)
 
 
 def laengster_dip(werte, schwelle) -> int:

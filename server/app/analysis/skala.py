@@ -37,7 +37,7 @@ log = logging.getLogger(__name__)
 EINHEITEN = (2048.0, 1000.0, 512.0)     # bekannte Einheiten je g (int16-2048, milli-g, Huawei)
 TOLERANZ = 0.25                          # |log(Schaetzung/Einheit)| darunter gilt als „passt" (~ ±28 %)
 MIN_WERTE = 500
-SICHER_WERTE = 500       # drei einige Schaetzer stechen die Quelle (mit zweien irrten kraeftige Fahrer, #10256)
+SICHER_WERTE = 500       # drei einige Schaetzer stechen die Quelle (mit zweien irrten kraeftige Fahrer, Session A) (Fall 2026-11-13-s)
 TABELLE = pathlib.Path(__file__).resolve().parents[1] / "data" / "einheiten.json"   # im Repo: gleich auf allen Knoten
 IMPORT_WEGE = ("garmin", "fit", "suunto", "polar", "coros", "imp", "strava", "merge", "split", "zepp", "hw")
 
@@ -76,7 +76,7 @@ def naechste(v: float | None) -> float | None:
 
 def p10_betrag(accel: np.ndarray) -> float | None:
     """10. Perzentil des Betrags: Bewegung macht den Betrag fast nur GROESSER, das untere Ende bleibt nahe 1 g.
-    Trennt kraeftige Fahrer (#10256: Median 1,8 g, aber p10 0,85 g in milli-g) von echten 2048er-Daten (#516: p10 1700)."""
+    Trennt kraeftige Fahrer (Session A: Median 1,8 g, aber p10 0,85 g in milli-g) von echten 2048er-Daten (#516: p10 1700). (Fall 2026-11-13-t) """
     if accel is None or len(accel) < MIN_WERTE:
         return None
     a = np.asarray(accel[:: max(1, len(accel) // 20000)], dtype=np.float64)

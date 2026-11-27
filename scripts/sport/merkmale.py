@@ -9,7 +9,7 @@ Je Session aus den gespeicherten Laeufen (Start-/Endpunkt, Tempo, Dauer) und den
   richtung_paare (Anteil der Laufrichtungen, die zu zwei GEGENlaeufigen Haeufungen gehoeren — Kreuzen am Wind),
   puls_med, tempo_max_roh (km/h, 5-Punkt-Median aus Positionen), flaeche_km (Ausdehnung der Laufstarts),
   kueste_km (Abstand zur Meereskueste; Wellen brauchen das Meer — Binnenseen zaehlen nicht).
-Aufruf (aus server/): .venv/bin/python ../scripts/sport/merkmale.py --nutzer 798 [--json]
+Aufruf (aus server/): .venv/bin/python ../scripts/sport/merkmale.py --nutzer <id> [--json]
 """
 import argparse, json, math, pathlib, sys
 import numpy as np

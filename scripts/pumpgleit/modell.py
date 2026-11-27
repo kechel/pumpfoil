@@ -6,7 +6,7 @@ Kandidaten (Kapazitaet bewusst klein, Jan: nur ~5 Fahrer, kein Auswendiglernen):
   regel       2-3 Schwellen (v_rms2_rel, rhythmus, tempo) per Gitter auf den Trainingsfahrern
   logreg      multinomiale logistische Regression, standardisiert, C klein
   hgb_L       HistGradientBoosting mit L Blaettern je Baum, min_samples_leaf 400, l2 1, 150 Runden
-Gewichte: jede Klasse und jeder Fahrer gleich schwer (gleiten selten, u683 lang).
+Gewichte: jede Klasse und jeder Fahrer gleich schwer (gleiten selten, Fahrer A lang). (Fall 2026-10-23-s)
 Training nur mit Paaren, deren Uhr >= 15 Hz liefert und deren Ausrichtung nicht 'schwach' ist.
 
 Bewertung je herausgehaltenem Fahrer, gegen heute (Stufe 11 auf denselben Laeufen):

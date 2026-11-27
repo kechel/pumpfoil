@@ -46,7 +46,7 @@ def test_quelle_aus():
 
 
 def test_kraeftiger_fahrer_bleibt_bei_der_quelle(monkeypatch):
-    # #10256: milli-g, aber Median 1,8 g und Schwerkraft-Vektor ~2 g -> Median und Vektor sagen 2048, p10 sagt 1000.
+    # Session A: milli-g, aber Median 1,8 g und Schwerkraft-Vektor ~2 g -> Median und Vektor sagen 2048, p10 sagt 1000. (Fall 2026-11-13-x)
     monkeypatch.setenv("ACCEL_NORM", "1")
     _ohne_db(monkeypatch, {"app|garmin|*": {"einheit": 1000.0}})
     rng = np.random.default_rng(2)

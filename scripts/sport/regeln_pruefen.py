@@ -10,7 +10,7 @@ sehr wenigen Fahrern stammen (06.10.: Wing 671 von 740 aus einem Konto, Welle 2 
 derselbe Lauf ohne den groessten Fahrer, damit keine Regel nur einen Menschen lernt.
 
 Stand 06.10.2026 — Regel v6 (Kuestenabstand + Spot): Pump je Fahrer 97,2 %, Wind 85,5 %, Welle 92,4 %
-(u741 90, u798 88, u692 100). v5 ohne Spot: Pump 96,8 %. Vorher, Regel v3 nach Korrektur von 55 falsch einsortierten Wind-Sessions:
+(Fahrer A 90, Fahrer B 88, Fahrer C 100). v5 ohne Spot: Pump 96,8 %. Vorher, Regel v3 nach Korrektur von 55 falsch einsortierten Wind-Sessions: (Fall 2026-10-06-b)
 Pump je Fahrer 97,8 %, Wind 85,5 % (19 Fahrer), Welle 45,6 % (nur 2 Fahrer; trennt sich mit diesen
 Merkmalen nicht von langsamem Pumpen).
 Gemessen und VERWORFEN (06.10.): Tempoverlauf im Lauf — Wellenritte fallen nicht ab (abfall -0,02 gegen
@@ -20,7 +20,7 @@ aber jede Variante, die u741s Wellen von 75 auf 85 % hebt, macht 50+ Pump-Sessio
 (E-Foil 1,55 Hz, Pumpfoil 1,57 Hz, Wing 1,37 Hz). Alle Kite-/Wellen-Labels sind GPS-only-Importe.
 Nach dem dritten Wellen-Fahrer (06.10.) gemessen, NICHT uebernommen — Variante v4 fuer Welle:
   tempo_med >= 13, dauer_med <= 45, anteil_foil <= 0.2, flaeche_km >= 0.05, zw_weg_m >= 30, zw_kmh >= 2.5
-  -> Welle je Fahrer 35 -> 64 % (u741 76, u798 54, u692 61), Pump 97,8 -> 96,6 %: 55 Pump-Sessions von
+  -> Welle je Fahrer 35 -> 64 % (Fahrer A 76, Fahrer B 54, Fahrer C 61), Pump 97,8 -> 96,6 %: 55 Pump-Sessions von
   32 Fahrern werden „Welle", fast alle auf BINNENSEEN (Annet, Senden, Thalwil, Pasohlavky). Welle braucht
   das Meer — das fehlende Merkmal ist die Lage (Abstand zur Kueste), nicht die Bewegung.
 Aufruf (aus server/): .venv/bin/python ../scripts/sport/regeln_pruefen.py data/ml/sport/merkmale-alle.jsonl

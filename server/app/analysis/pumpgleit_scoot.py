@@ -9,7 +9,7 @@ Gleiten reisst der Pump-Takt ab. Regel:
     GLEIT_MIN_S..GLEIT_MAX_S (laengere Pausen sind eher verpasste Pumps).
 Die Pump-Zeiten kommen unveraendert aus pg-1 (Zaehlfehler am Scoot-Paar 2,7 %).
 
-Gemessen am Brett-Paar #16729/#16719 (u267, 17 Brett-Gleitphasen, 62 s), Versatz -8 s aus der GPS-Tempo-
+Gemessen am Brett-Paar Session A/B (17 Brett-Gleitphasen, 62 s), Versatz -8 s aus der GPS-Tempo- (Fall 2026-10-24-g)
 Korrelation (r 0,93; die Accel-Ausrichtung lag 15 s daneben): Gleitphasen P 0,67 / R 0,71 / F1 0,69, Gleit-Sekunden
 62 erkannt / 62 echt; pg-1-Modell dort F1 0,57 (93 s). Schwelle 2,0-3,0 s alle F1 0,65-0,69. EIN Paar, ein Fahrer,
 Schwelle darauf gewaehlt — Feedback des Foil-Scoot-Fahrers abwarten, mehr Brett-Paare sammeln.

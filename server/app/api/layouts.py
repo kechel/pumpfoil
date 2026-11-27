@@ -78,7 +78,7 @@ MAX_LAYOUTS = 40           # pro Nutzer
 MAX_TEXT_LEN = 12          # Freitext: die Uhr hat wenig Platz UND wenig Object Store
 # 21 = Max-Puls des letzten Laufs (Wunsch eines Nutzers 15.08. „Letzter Lauf Max HR", Jan 17.08.
 # auf alle Uhren erweitert). Der Session-Max-Puls ist ID 9 und gab es schon.
-# 22/23 = Strecke/Zeit ueber ALLE Laeufe der Aufnahme (Wunsch Roman 28.09.2026).
+# 22/23 = Strecke/Zeit ueber ALLE Laeufe der Aufnahme (Wunsch eines Nutzers 28.09.2026).
 VALID_FIELD_IDS = set(range(0, 24))
 ELEMENT_TYPES = (1, 2, 3, 4, 5, 6, 7, 8, 9)
 # Felder mit belastbarer Skala -> nur diese duerfen als Ring/Balken (typ 8/9) auftreten.

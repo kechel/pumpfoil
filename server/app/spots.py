@@ -29,7 +29,7 @@ from shapely.ops import unary_union
 SAME_SPOT_GAP_M = 1000.0          # Tracks näher als das = selber Spot
 _BUF = SAME_SPOT_GAP_M / 2.0      # je Track puffern -> Summe = Gap-Toleranz
 
-# WINDSPORT TRAEGT NUR SEINEN START BEI (Jan, 25.11.2026, Anlass: Nutzermeldung u524 vom Genfersee). Wing-/Kite-/Windsurf-
+# WINDSPORT TRAEGT NUR SEINEN START BEI (Jan, 25.11.2026, Anlass: Nutzermeldung Fahrer A vom Genfersee). Wing-/Kite-/Windsurf- (Fall 2026-11-25-g)
 # Strecken sind kilometerlang; mit dem 1-km-Puffer verschluckten sie jeden Pumpfoil-Spot in der Naehe und klebten
 # getrennte Stellen zusammen (Lac d'Annecy: EINE Wing-Session verband drei Pumpfoil-Stellen; Le Jolla/Séchex mit der
 # Base nautique de Sciez). Jetzt: eine Windsport-Session geht nur mit ihrem STARTPUNKT (Kreis WEIT_START_M) in die

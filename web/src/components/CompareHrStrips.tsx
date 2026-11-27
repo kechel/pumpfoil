@@ -176,7 +176,7 @@ export function CompareHrStrips({ items, markiert, onKlick, vergleich, sortierun
   // Das ist wichtig und war zuerst falsch: die Karten (SessionDetail und CompareMap) spannen ihre
   // Rampe ueber alle Punkte der ganzen Session bzw. aller verglichenen Sessions. Wer nur ueber die
   // Laeufe skaliert, zeigt DIESELBE Pulszahl in einer anderen Farbe als die Karte direkt darueber.
-  // An echten Daten gemessen (Session #2350): 114 bpm liegen auf der Karte bei 49 % der Rampe,
+  // An echten Daten gemessen (Session A): 114 bpm liegen auf der Karte bei 49 % der Rampe, (Fall 2026-08-19-j)
   // ueber die Laeufe skaliert bei 84 % — gruen-gelb gegen orange-rot, fuer denselben Wert.
   // Gleiche Formel wie dort: Minimum/Maximum ueber alle nicht-leeren Werte, Rueckfall 100…170.
   const bereich = useMemo<[number, number]>(

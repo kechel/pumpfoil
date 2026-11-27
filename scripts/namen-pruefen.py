@@ -210,7 +210,7 @@ def main() -> int:
         print("GESPERRT: Nutzername (aus der DB) gefunden — das Repo ist oeffentlich.", file=sys.stderr)
         for f in funde[:40]:
             print(f"  {f}", file=sys.stderr)
-        print("Umschreiben (Rolle statt Name: „ein Fahrer“, „u123“ nur in lokalen Dateien). Ist es KEIN Name,\n"
+        print("Umschreiben (Rolle statt Name: „ein Fahrer“, Konto-IDs nur in lokalen Dateien). Ist es KEIN Name,\n"
               "sondern ein normales Wort: Hash per --hash <wort> in .namen-ausnahmen eintragen, mit Grund.",
               file=sys.stderr)
         return 1

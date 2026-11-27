@@ -29,7 +29,7 @@ GARMIN_APP_SKALA = round(ACCEL_SCALE * ACCEL_SCALE / 1000)   # 4194
 
 # --- Reparatur kaputter Feld-Deklarationen (Xiaomi / Mi Fitness ueber Suunto) -------------
 # Belegt am 04.09.2026 an einer echten Datei aus der Kette Redmi Watch -> Mi Fitness ->
-# Suunto -> unser Import (Nutzer u417). Diese Schreiber deklarieren JEDES Mehr-Byte-Feld als
+# Suunto -> unser Import (Nutzer Fahrer A). Diese Schreiber deklarieren JEDES Mehr-Byte-Feld als (Fall 2026-09-04-i)
 # `byte` mit Groesse N, statt als den richtigen Zahlentyp:
 #
 #   timestamp      profil-typ=date_time  basis-typ-in-datei=byte  groesse=4
@@ -137,7 +137,7 @@ def _reparatur_prozessor():
 
 
 # --- Toleranz gegen kaputte Feld-BREITEN (COROS PACE 3) ---------------------------------
-# Belegt am 06.09.2026 an einem echten Training von Nutzer u277 (erster COROS-Import
+# Belegt am 06.09.2026 an einem echten Training von Nutzer Fahrer A (erster COROS-Import (Fall 2026-09-06-c)
 # ueberhaupt): der Sync brach mit
 #
 #   Unreadable FIT file: Invalid field size 1 for type 'uint32' (expected a multiple of 4)
@@ -363,7 +363,7 @@ def _ernten(fit, profil: dict | None = None) -> tuple[list, list, list, str, obj
             # bis 05.09.2026 uebersehen — und genau dort steht sie bei SUUNTO: deren Dateien
             # haben ueberhaupt keine `sport`-Nachricht, nur `session.sport`. Folge: JEDE
             # Suunto-Session kam mit der Voreinstellung „pumpfoil" herein, auch wenn in der
-            # Datei „sailing" stand (belegt an Session 3501). Die `sport`-Nachricht bleibt
+            # Datei „sailing" stand (belegt an Session A). Die `sport`-Nachricht bleibt (Fall 2026-09-05-c)
             # vorrangig, weil sie die speziellere Angabe ist.
             if msg.name == "session" and sport != "pumpfoil":
                 continue

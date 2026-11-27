@@ -8,7 +8,7 @@ Auslöser: eine Kette von Befunden, die alle dieselbe Wurzel haben — an mehrer
 
 | Befund | Wurzel |
 |---|---|
-| Accel-Zeitachse 6 min verschoben (#1328) | Rate geschätzt, obwohl `t0_ms` je Chunk mitgeliefert wird |
+| Accel-Zeitachse 6 min verschoben (Session A) | Rate geschätzt, obwohl `t0_ms` je Chunk mitgeliefert wird (Fall 2026-08-01-g) |
 | Pump-Zahlen/Gleitphasen falsch in 42 Sessions | dieselbe geschätzte Rate, Abweichung bis Faktor 4 |
 | Wasser-Kriterium tot | Overpass sperrt uns aus, Fehlschlag als „kein Wasser" gecacht |
 | Drift-Kappung traf echte Läufe | Annahme „Ende ist nie landwärtiger als Start" |
@@ -32,7 +32,7 @@ Alles spricht **Millisekunden seit Session-Start**. `started_at` ist der Nullpun
 **Offsets an genau einer Stelle.** `trim_*` und `excluded_ranges` wirken auf die Zeitachse; alles
 danach rechnet in Session-Millisekunden. Indizes bleiben intern und werden **nie** als Anker
 persistiert. (In v1 tragen Segmente `i_start/i_end` plus auf den Trim re-basierte Zeiten — dieselbe
-Falle hat mich zweimal erwischt: beim Aussortieren von #1232 und beim Accel-Fenster von #1328.)
+Falle hat mich zweimal erwischt: beim Aussortieren von Session A und beim Accel-Fenster von Session B.) (Fall 2026-08-01-h)
 
 ## 2. Fenster-Merkmale statt einer globalen Maske
 
@@ -64,7 +64,7 @@ Entscheidung nachvollziehbar (je Lauf steht da, welche Fenster ihn tragen).
 
 Aus **belegten** Pump-Läufen (menschlich klassifizierte Session, plausible Kadenz, Hin-und-Zurück-
 Geometrie) — nicht aus allem, was in der DB steht. Sonst lernt das Profil von unklassifizierten
-Wing-Sessions (user 135: 172 von 186 Sessions unbestätigt) und Autofahrten (user 95: Ruhepuls 133
+Wing-Sessions (Fahrer A: 172 von 186 Sessions unbestätigt) und Autofahrten (Fahrer B: Ruhepuls 133 (Fall 2026-08-01-i)
 über „Pump"-Puls 120 — Referenz verseucht).
 
 Inhalt je Nutzer: Ruhe- und Antwort-Puls, Accel-Rauschboden und typische Pump-Amplitude/-Frequenz,
@@ -93,8 +93,8 @@ mit `normal`" — war falsch und stand wortgleich auch im Hilfetext der App; bei
   die Datei verweist auf Nutzer-Sessions), aber unter `server/data/` und damit im täglichen Backup.
   Ohne diese Urteile ist ein Regressionsvergleich nur ein Zahlen-Diff — mit ihnen ist er eine Note.
 - **Erst an den beschrifteten Fällen** prüfen, dann über den Bestand:
-  Autofahrten #1255/2, #1255/0, #1254/2, #1281/17 · echter Lauf #890/0 (Jans Gegenbeispiel) ·
-  Transport #1328 · Wakethief #1232 · Rekord-Läufe #622/7, #1031/2.
+  Autofahrten Session A/2, Session A/0, Session B/2, Session C/17 · echter Lauf Session D/0 (Jans Gegenbeispiel) · (Fall 2026-08-01-j)
+  Transport Session E · Wakethief Session F · Rekord-Läufe Session G/7, Session H/2.
 - Vor dem Anwenden: Snapshot wie am 31.07. (`server/data/analysis-snapshots/`).
 
 ## 7. Reihenfolge
@@ -110,7 +110,7 @@ mit `normal`" — war falsch und stand wortgleich auch im Hilfetext der App; bei
 
 ## 8. Keim-Rettung — warum es sie gibt und woher jede Zahl kommt (19.08.2026)
 
-**Befund.** Nutzermeldung zu #2430: ein Lauf, den beide Quellen zeigen, fehlte in der Auswertung —
+**Befund.** Nutzermeldung zu Session A: ein Lauf, den beide Quellen zeigen, fehlte in der Auswertung — (Fall 2026-08-19-d)
 28 s / 94 m bei 11,6 km/h im GPS, dazu sieben Fenster am Stück mit sauberem 2-Hz-Pumprhythmus
 (RMS 0,26–0,79 g), unmittelbar hinter einem anerkannten Lauf.
 
@@ -142,7 +142,7 @@ erkannten Läufe sind kürzer als 20 s, die entstehen weiter auf dem normalen We
 steuert allein, wie viel unabhängigen Accel-Beleg wir sehen wollen, bevor aus einem einzelnen
 Modell-Zucken ein Lauf wird. Gemessen über alle 1609 Sessions mit Accel:
 
-| Beleg-Spanne | Sessions verändert | Läufe dazu | verloren | Foil-Zeit | belegter Fall #2430 |
+| Beleg-Spanne | Sessions verändert | Läufe dazu | verloren | Foil-Zeit | belegter Fall Session A (Fall 2026-08-19-e) |
 |---|---|---|---|---|---|
 | ≥ 20 s | 99 (6,2 %) | 155 (Median 9 s) | 0 | +0,29 % | gerettet |
 | **≥ 30 s** | **7 (0,4 %)** | **8 (Median 20 s)** | **0** | **+0,03 %** | **gerettet** |
@@ -162,11 +162,11 @@ also bewegt sich weder eine persönliche Bestleistung noch ein Rekord, und die g
   Verlängert bestehende, richtige Läufe um im Median 1 %, im Extremfall 34 %, und verschiebt
   19 % der Sessions statt 0,4 %. Deshalb Bedingung 3: nur retten, nie vergrößern.
 
-**Bekannte Grenze, bewusst offen gelassen.** Von den acht geretteten Läufen stammen zwei (#1619,
-#913) aus Strecken, in denen die Position deutlich schneller springt als das Doppler-Signal sagt
+**Bekannte Grenze, bewusst offen gelassen.** Von den acht geretteten Läufen stammen zwei (Session A, (Fall 2026-08-19-f)
+Session A) aus Strecken, in denen die Position deutlich schneller springt als das Doppler-Signal sagt (Fall 2026-08-19-g)
 (27 bzw. 40 km/h gegen 14 bzw. 24) — GPS-Streuung, ihre Distanzen sind Zitter. Dieses Rauschen
 steckt in beiden Sessions schon in den *bestehenden* Läufen; die Regel erzeugt also keine neue
-Fehlerart. Ein Zusatzriegel „Strecke muss zu ≥60 % aus Pump-Fenstern bestehen" würde genau #1619
+Fehlerart. Ein Zusatzriegel „Strecke muss zu ≥60 % aus Pump-Fenstern bestehen" würde genau Session A (Fall 2026-08-19-h)
 entfernen (40 %) und die übrigen sieben stehen lassen — bewusst **nicht** eingebaut: das ist ein
 GPS-Qualitätsthema und gehört als eigener Befund behandelt, statt im Detektor Knöpfe anzuhäufen,
 die je einen Einzelfall erschlagen.

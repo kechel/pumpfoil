@@ -6,7 +6,7 @@ Chatraum geoeffnet, ein Geraet verknuepft oder eine Rueckmeldung geschrieben hat
 deshalb in einem `ForeignKeyViolation` und HTTP 500 — der Nutzer blieb in der Datenbank.
 
 Schlimmer: `_purge_session` loescht die Rohdaten-Verzeichnisse MITTEN in der Transaktion. Beim
-Rollback kamen die Zeilen zurueck, die Dateien nicht. Genau so geschehen bei u588 am 18.09.
+Rollback kamen die Zeilen zurueck, die Dateien nicht. Genau so geschehen bei Fahrer A am 18.09. (Fall 2026-09-19-l)
 10:07: 142 Sessions verloren ihre GPS-Spuren, die Datenbankzeilen blieben stehen, das Konto
 existiert weiter — und der Mensch dachte, er sei geloescht.
 

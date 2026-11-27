@@ -12,7 +12,7 @@ existiert, weil dieselben drei Verwechslungen wiederholt zu Fehlbefunden geführ
 > **Harte Regel:** kein Befund über Zeitachsen ohne Gegenprobe. Am Ende stehen fertige
 > Prüf-Rezepte (§10). Wer eine Zahl nicht gegengeprüft hat, schreibt sie nicht als Tatsache.
 
-Stand: 2026-08-10, **1224 analysierte Sessions**; Detailmessungen an Session #1814 (Wear OS, 2,5 h,
+Stand: 2026-08-10, **1224 analysierte Sessions**; Detailmessungen an Session A (Wear OS, 2,5 h, (Fall 2026-08-10-a)
 449.129 Accel-Samples, 8.181 GPS-Samples).
 
 > **Die Zahlen hier sind Momentaufnahmen** — der Bestand wächst, und Fixes verändern sie. Statt sie
@@ -86,17 +86,17 @@ Nullpunkt jeder Session ist der **Aufzeichnungsstart auf der Uhr**. Alles heißt
 `*_ms` = **Millisekunden seit Session-Start**. Es gibt vier Zeitbegriffe, und sie werden
 regelmäßig verwechselt:
 
-| Begriff | Wo | Beispiel #1814 |
+| Begriff | Wo | Beispiel Session A (Fall 2026-08-10-b) |
 |---|---|---|
 | **Session-ms** | Rohdaten (`gps/*.json`, `t0_ms`), `timebase.py`, `t_*_session_ms` | Lauf 9 = 5.111.308…5.188.309 |
 | **Trim-re-basierte ms** | `segments_json.t_start_ms`, `accel_windows_json.t_center_ms` | Lauf 9 = 4.510.005…4.587.006 |
 | **Sample-Index** | nur innerhalb von `gps.py` (`i_start`/`i_end`) | Lauf 9 = 3901…3978 |
 | **Wanduhr-ms** | `segments[].t_start_clock_ms` (nur API, `clockmap.py`) | = Session-ms, solange nicht pausiert wurde |
 
-Umrechnung: `Session-ms = re-basierte ms + sessions.trim_start_ms` (bei #1814: + 601.303 ms).
+Umrechnung: `Session-ms = re-basierte ms + sessions.trim_start_ms` (bei Session A: + 601.303 ms). (Fall 2026-08-10-c)
 
 Alle Zahlen für denselben Lauf sind verschieden. **Wer sie gleichsetzt, misst am falschen
-Ort** — genau das ist bei der Untersuchung von #1814 passiert (dreimal, bis die Gegenprobe kam).
+Ort** — genau das ist bei der Untersuchung von Session A passiert (dreimal, bis die Gegenprobe kam). (Fall 2026-08-10-d)
 
 ⏰ **Und Session-ms ist NICHT die Uhrzeit.** Der Garmin-Recorder zieht Pausen von seiner
 Zeitachse ab (`SessionRecorder._elapsedMs`), damit GPS und Accel lückenlos bleiben — die Achse
@@ -156,8 +156,8 @@ Paritäts-Tabellen ist also unbelegt, nicht bestätigt.
 Zwei Konsequenzen, die man kennen muss:
 
 - **Der gemeinsame Zähler (nur wear/apple) datiert Accel-Chunks über die GPS-Nachbarn.** Weil die
-  Nummern verschränkt sind (bei #1814 Accel 915 + GPS 851 = Nummern 0…1765 lückenlos), tragen die
-  GPS-Chunks echte Zeitstempel für die Accel-Chunks daneben. Bei #1814 weicht das von `t0_ms` im
+  Nummern verschränkt sind (bei Session A Accel 915 + GPS 851 = Nummern 0…1765 lückenlos), tragen die (Fall 2026-08-10-e)
+  GPS-Chunks echte Zeitstempel für die Accel-Chunks daneben. Bei Session A weicht das von `t0_ms` im
   Mittel nur 4,5 s ab — am **Anfang** aber bis 72 s, weil die ersten Accel-Chunks vor dem ersten
   GPS-Chunk liegen und die Interpolation dort auf den ersten GPS-Zeitstempel klemmt. Als
   unabhängige Gegenprobe für die Session*mitte* brauchbar, als Zeitanker nicht.
@@ -284,18 +284,18 @@ Puls ist das die erste Vermutung, kein Defekt der Uhr oder der App. Folgen:
 | `gps/<index>.json` | JSON-Liste von Samples (s. u.) |
 | `uhr_takt.json` | nur Suunto-Importe mit Takt: `[[t_ms, takt_pro_min], …]`, Session-ms; reine Anzeige (docs/SUUNTO.md, 16.11.2026) |
 
-**GPS-Sample = `[t_ms, lat, lon, speed_mps, hr_bpm, h_acc_m]`** — 6 Felder, bei #1814 in allen
+**GPS-Sample = `[t_ms, lat, lon, speed_mps, hr_bpm, h_acc_m]`** — 6 Felder, bei Session A in allen (Fall 2026-08-10-f)
 8.181 Samples vollständig (kein `null`). Beispiel:
 `[5111308, 52.4887182, 13.4816761, 3.13, 0, 9.94]`
 
 - `t_ms` = **Session-ms**, nicht Uhrzeit, nicht Unix-Zeit.
 - `speed_mps` = **von der Uhr gemeldet** (Doppler). Wird bevorzugt benutzt (§6).
-- `hr_bpm` = **0, wenn kein Puls aufgezeichnet wurde** (bei #1814 durchgehend 0). Das ist kein
+- `hr_bpm` = **0, wenn kein Puls aufgezeichnet wurde** (bei Session A durchgehend 0). Das ist kein (Fall 2026-08-10-g)
   Fehler in den Daten, aber `detect_v2`s Fremdkraft-Erkennung über die Pulsantwort kann dann nichts
   entscheiden.
-- `h_acc_m` = horizontale Genauigkeit (bei #1814 3,8…122 m).
+- `h_acc_m` = horizontale Genauigkeit (bei Session A 3,8…122 m). (Fall 2026-08-10-h)
 
-**GPS hat Löcher.** #1814: 8.181 Samples auf 9.086 s Spanne → **905 Sekunden ohne Fix**. Ein
+**GPS hat Löcher.** Session A: 8.181 Samples auf 9.086 s Spanne → **905 Sekunden ohne Fix**. Ein (Fall 2026-08-10-i)
 Sample-Abstand ist also *typisch* ~1 s, aber nicht garantiert. Deshalb ist jede Rechnung
 „Index × 1 s" falsch.
 
@@ -338,13 +338,13 @@ Die Bandverwerfungen sind von 10 auf 3 gefallen: 7 Sessions haben durch den Fix 
 Achse bekommen. Die 3 verbliebenen sind die mit sehr *niedriger* Chunk-Rate — die bleiben absichtlich
 draußen (§9.3).
 
-**Was `measured_rate` unterstellt** (und bei #1814 falsch ist):
+**Was `measured_rate` unterstellt** (und bei Session A falsch ist): (Fall 2026-08-10-j)
 
 - die Accel-Spur beginnt bei Session-ms 0,
 - sie ist **lückenlos**,
 - sie hat **eine konstante Rate**,
 - `gps_end_ms` (Zeitstempel des letzten GPS-Samples) sei die Dauer der Spur — der GPS-Vorlauf bis
-  zum ersten Fix (bei #1814 **72,4 s**) wird also mitgerechnet.
+  zum ersten Fix (bei Session A **72,4 s**) wird also mitgerechnet. (Fall 2026-08-10-k)
 
 ---
 
@@ -379,7 +379,7 @@ Reihenfolge (`gps.py:228`…):
 
 **Der Keim entscheidet, nicht die Schwelle** (2026-08-19). Mit Accel kommt die Maske aus dem
 On-Foil-Modell; die Geschwindigkeits-Schwellen wirken erst danach beim Verlängern. Das Modell
-liefert dabei **Zündfunken, keine Läufe** — in #2430 wurde ein 80-s-Lauf aus sechs verstreuten
+liefert dabei **Zündfunken, keine Läufe** — in Session A wurde ein 80-s-Lauf aus sechs verstreuten (Fall 2026-08-19-a)
 Modell-Sekunden. Wer also einem fehlenden Lauf nachgeht: **erst die Modell-Sekunden zählen**, nicht
 an `enter_speed`/`min_segment_s` drehen. Ein Lauf, dessen Zündung kürzer war als `min_segment_s`,
 fiel bis 19.08. ersatzlos weg, weil `_segments_from_mask` **vor** dem Verlängern filtert; seither
@@ -387,7 +387,7 @@ rettet ihn `_rette_keime`, wenn 30 s Foil-Fenster mit Pumprhythmus ihn unabhäng
 (Herleitung, Messungen und die verworfenen Alternativen: `docs/detector-v2.md`, Abschnitt 8).
 
 `longest_glide_s` ist die **längste Lücke zwischen zwei erkannten Pumps** innerhalb des Laufs —
-keine gemessene Gleitphase. Bei #1814/Lauf 9: 42 Pumps, 43 Glides, längste Lücke 45,04 s.
+keine gemessene Gleitphase. Bei Session A/Lauf 9: 42 Pumps, 43 Glides, längste Lücke 45,04 s. (Fall 2026-08-10-l)
 Ein hoher Wert heißt deshalb primär: *hier wurden Pumps nicht erkannt*.
 
 ---
@@ -435,7 +435,7 @@ abgebrochenen Aufzeichnung unterschieden.
 
 ## 7. Accel-Fenster
 
-`windows.py` → `analysis_results.accel_windows_json`. Bei #1814: 4.196 Fenster, **2-s-Raster**
+`windows.py` → `analysis_results.accel_windows_json`. Bei Session A: 4.196 Fenster, **2-s-Raster** (Fall 2026-08-10-m)
 (Median-Abstand exakt 2,00 s), `t_center_ms` auf der **trim-re-basierten** Achse
 (2,0 s … 8.385,0 s bei einer Trim-Dauer von 8.388 s).
 
@@ -498,7 +498,7 @@ Session-Koordinaten braucht, muss das nachbauen oder `t_*_session_ms` verwenden.
 
 In `timebase.py` stand bis 2026-08-10 `T0_RATE_BAND = (0.5, 2.0)`: die aus `t0_ms` gewonnene
 Chunk-Rate wurde gegen die **getaggte** Rate geprüft — obwohl das Modul im eigenen Docstring
-festhält, die getaggte Rate sei „NIE Wahrheit". Bei #1814: 50,19 / 25 = **2,0076** → 0,4 % über der
+festhält, die getaggte Rate sei „NIE Wahrheit". Bei Session A: 50,19 / 25 = **2,0076** → 0,4 % über der (Fall 2026-08-10-n)
 Schranke → die exakte Achse (alle 915 `t0`-Sidecars vorhanden, streng wachsend, Median-Abstand
 10,01 s) wurde verworfen.
 
@@ -525,17 +525,17 @@ GPS ist dabei einwandfrei: 77 Samples, gemeldete 3,1–4,8 m/s, 285,7 m in 77 s.
 
 **Behoben am 2026-08-10** (`T0_RATE_BAND` 2.0 → 4.0, plus absolute Plausibilität
 `T0_RATE_ABS_HZ`). A/B über alle 222 Sessions mit `t0`-Sidecars: 200 unverändert exakt, 15 bleiben
-verworfen, **7 kippen zur exakten Achse** (#1338, #1342, #1389, #1436, #1757, #1813, #1814) — keine
-Session verliert ihre exakte Achse. Gegenprobe nach Rezept (d) an #1814: das Korrelationsmaximum
+verworfen, **7 kippen zur exakten Achse** (Session A, B, C, D, E, F, G) — keine (Fall 2026-08-10-o)
+Session verliert ihre exakte Achse. Gegenprobe nach Rezept (d) an Session G: das Korrelationsmaximum
 wandert von **−47 s (r 0,34)** auf **+4 s (r 0,83)**, und bei Versatz 0 steigt r von 0,29 auf 0,79 —
-die Achse liegt also jetzt auf den Läufen. Ebenso #1757 +5 s (r 0,80), #1436 +5 s (r 0,77),
-#1342 +5 s (r 0,88); drei der sieben haben keine erkannten Läufe und sind so nicht prüfbar.
+die Achse liegt also jetzt auf den Läufen. Ebenso Session E +5 s (r 0,80), Session D +5 s (r 0,77),
+Session A +5 s (r 0,88); drei der sieben haben keine erkannten Läufe und sind so nicht prüfbar. (Fall 2026-08-10-p)
 
-**Aber das Symptom bleibt** — die persistierten Zahlen ändern sich dadurch **nicht** (#1814 hat
+**Aber das Symptom bleibt** — die persistierten Zahlen ändern sich dadurch **nicht** (Session A hat (Fall 2026-08-10-q)
 weiter 45,04 s und 1391 Pumps), weil die Pump-Erkennung eine zweite, eigene Achse baut: siehe §9.2.
 Die Obergrenze wurde auf 4.0 begrenzt statt weit aufgerissen, weil nur Verhältnisse 2,01…2,54 belegt
 sind; die **drei** Sessions mit sehr niedriger Chunk-Rate bleiben absichtlich draußen (§9.3, geprüft
-an #1425 mit 0,43× und #1579 mit 0,24×).
+an Session B mit 0,43× und Session C mit 0,24×).
 
 ### 9.2 Zwei unabhängige Achsen — `run_analysis` benutzte `timebase.py` nicht  🟢 behoben 2026-08-10
 
@@ -543,7 +543,7 @@ Das ist die eigentliche Ursache und die wichtigste Erkenntnis dieser Untersuchun
 `analysis/__init__.py:216` rechnet sich in `run_analysis` **seine eigene Rate**:
 
 ```python
-real_hz = accel.shape[0] / (gps_samples[-1][0] / 1000.0)      # bei #1814: 49.041 Hz
+real_hz = accel.shape[0] / (gps_samples[-1][0] / 1000.0)      # bei Session A: 49.041 Hz (Fall 2026-08-10-r)
 if _accel_spans_session(...): accel_hz = round(real_hz, 3)
 ```
 
@@ -554,7 +554,7 @@ Rangfolge aus `timebase.py` und damit ohne die exakten `t0_ms`.
 
 Folge: `metrics_json.time_base` kann `exact_chunks` sagen, während Segmente, Pumps und Gleitphasen
 auf der Durchschnittsachse berechnet wurden. **Die Herkunftsangabe deckt die persistierten Zahlen
-also nicht.** Für #1814 heißt das: der belegte Versatz von 124 s (§9.1) besteht in den angezeigten
+also nicht.** Für Session A heißt das: der belegte Versatz von 124 s (§9.1) besteht in den angezeigten (Fall 2026-08-10-s)
 Werten weiter.
 
 **Der Fix macht die Annahme wahr, statt sie zu flicken.** Dieselbe Umrechnung `index = t · hz` steckt
@@ -580,7 +580,7 @@ er wirkt weiter nur auf die GPS-Punkte, damit der Accel das Trim-Fenster lücken
 
 **In keiner der 100 Sessions ändert sich die Anzahl der Läufe oder die Pumpfoil-Einstufung.**
 
-**Wirkung auf #1814** (der Fall, der die Untersuchung ausgelöst hat):
+**Wirkung auf Session A** (der Fall, der die Untersuchung ausgelöst hat): (Fall 2026-08-10-t)
 
 | | vorher | nachher |
 |---|---|---|
@@ -591,8 +591,8 @@ er wirkt weiter nur auf die GPS-Punkte, damit der Accel das Trim-Fenster lücken
 | Session: Pumps | 1391 | 1648 |
 
 Über alle 16 Läufe liegt die längste Gleitphase jetzt bei 1,1–1,9 s — physikalisch plausibel, und
-1,56 Hz Kadenz ist eine realistische Pumpfrequenz (0,545 Hz war keine). Ebenso #1757 (47,06 →
-50,21 Hz, +243 Pumps) und #1436 (49,33 → 50,18 Hz, +114 Pumps).
+1,56 Hz Kadenz ist eine realistische Pumpfrequenz (0,545 Hz war keine). Ebenso Session A (47,06 → (Fall 2026-08-10-u)
+50,21 Hz, +243 Pumps) und Session B (49,33 → 50,18 Hz, +114 Pumps).
 
 ⚠️ **Bestand:** der Fix wirkt erst nach einer Reanalyse. Bis dahin zeigen alte Sessions weiter die
 alten Zahlen. Reanalyse-Hinweise siehe CLAUDE.md (`DATABASE_URL` muss im Env sein).
@@ -612,7 +612,7 @@ Aussetzern, Handys 57/220, Apple 8/454, Zepp 15/154). Ob dort alt oder neu richt
 
 `_accel_chunk_axis` bestimmt die Rate eines Chunks aus dem Abstand zum **nächsten** Chunk
 (`counts[k] / span`). Folgt auf einen Chunk eine Pause, werden seine Samples über die ganze Pause
-verteilt statt an ihren Anfang gelegt. Bei #1579 (Chunk-Rate 5,87 Hz gegen getaggte 25 Hz) liegt die
+verteilt statt an ihren Anfang gelegt. Bei Session A (Chunk-Rate 5,87 Hz gegen getaggte 25 Hz) liegt die (Fall 2026-08-10-v)
 „exakte" Achse dadurch **203 s** neben den Läufen — also nicht besser als die Durchschnittsrate.
 Deshalb bleibt die untere Bandgrenze bei 0,5 (§9.1). Saubere Lösung wäre, die Chunk-Dauer aus
 `counts / nominaler Rate` zu schätzen und die Lücke als Lücke stehen zu lassen.
@@ -626,7 +626,7 @@ und die Teile überschreiben sich. Anschließend wird alles als **ein** Chunk ü
 `storage.save_accel_raw` geschrieben — **ohne `t0`-Sidecar**. Folge: eine zusammengeführte Session
 kann nie mehr `exact_chunks` erreichen, und die §9.2-Reparatur greift bei ihr nicht.
 
-Belegt an #1596 (aus #1593 + #1595 zusammengeführt): ein einziger Chunk, keine Sidecars, gemessene
+Belegt an Session A (aus Session B + C zusammengeführt): ein einziger Chunk, keine Sidecars, gemessene (Fall 2026-08-10-w)
 Rate 25,019 Hz — und eine Gleitphase von **14,35 s**, die nach der Reanalyse unverändert bleibt,
 während die drei nicht zusammengeführten Sessions derselben Uhr auf 1,59–1,91 s fallen.
 
@@ -637,7 +637,7 @@ Session genauso exakt wie die einer direkt aufgezeichneten.
 
 Der Bestand ist mit `scripts/repariere-merges.py` nachgezogen: **30 von 33** nicht gelöschten
 Zusammenführungen repariert, 3 übersprungen (den Teilen fehlen die Accel-Rohdaten). Fast alle kippen
-von `measured_rate` auf `exact_chunks`, die Laufzahl bleibt überall gleich. Bei #1596 kamen dabei
+von `measured_rate` auf `exact_chunks`, die Laufzahl bleibt überall gleich. Bei Session A kamen dabei (Fall 2026-08-10-x)
 584.544 Accel-Samples zusammen — vorher landeten davon nur rund 200.000 im Ergebnis, der Rest war
 durch die falschen Offsets überschrieben. Die Gleitphase fiel von 14,35 s auf 1,85 s.
 
@@ -653,7 +653,7 @@ Wingfoilen und Pumpfoilen in einer Aufnahme). Das Original wird archiviert (`del
 letzten GPS-Punkt), Kreisel und Magnetfeld (Achse aus `lage.zeitachse`), Puls-Kanal — jeweils als Chunks mit
 `t0`. Der zweite Teil beginnt bei Session-ms 0; seine `started_at` ist die WANDUHR der Schnittstelle
 (Pausen davor zählen mit), Pausen/Zuschnitt/`excluded_ranges`/`fremdkraft_keep` werden je Teil beschnitten
-und verschoben. Gegenprobe an #18978 (7 h, Apple Watch) und #18994 (Handy am Brett): die Summen der Teile
+und verschoben. Gegenprobe an Session A (7 h, Apple Watch) und Session B (Handy am Brett): die Summen der Teile (Fall 2026-10-25-a)
 sind je Spur gleich dem Original. Die Teile werden im Hintergrund ausgewertet (Status `complete` bis dahin).
 
 **Offener Befund:** `merge.py` übernimmt nur GPS und Accel — **Kreisel, Magnetfeld und Puls-Kanal fehlen
@@ -669,7 +669,7 @@ gedriftetes Lauf-Ende auf das letzte Sample im Wasser zurück) und das **Teilen-
 
 **Große Seen kommen dort nie an.** Die Abfrage sucht `way(around:R)["natural"="water"]` — OSM führt
 große Seen aber als **Relation** (Multipolygon), weil ein einzelner Umriss mit Inseln und
-Flussmündungen nicht abbildbar ist. Belegt an einem Lauf-Punkt von #1328 (Bregenz): `is_in` liefert
+Flussmündungen nicht abbildbar ist. Belegt an einem Lauf-Punkt von Session A (Bregenz): `is_in` liefert (Fall 2026-08-11-a)
 genau eine Fläche, die den Punkt enthält — **Relation 1156846 „Bodensee"**, `natural=water`,
 `water=lake`. Die Way-Abfrage kann sie nicht finden und liefert stattdessen den nächsten kleinen
 Way: zurück kam ein Ring von **65 × 280 m** (ein Hafenbecken), in dem **0 von 82** Lauf-Samples
@@ -687,7 +687,7 @@ Seen, an denen wirklich Sessions entstehen.
 **Was dagegen behoben ist** (2026-08-10/11):
 - Der **Nachschlagepunkt** kam aus dem Median ALLER GPS-Punkte und wanderte dorthin, wo die Uhr nach
   der Session lag (Heimweg, Parkplatz). Jetzt Median nur der Samples im Band 1–8 m/s
-  (`_water_lookup_point`). Bei #1328: alter Punkt 2290 m vom Spot, neuer 458 m; bei 13 weiteren
+  (`_water_lookup_point`). Bei Session A: alter Punkt 2290 m vom Spot, neuer 458 m; bei 13 weiteren (Fall 2026-08-11-b)
   Sessions wandert er nur 0–50 m, bleibt also in derselben Rasterzelle.
 - **Cache-Narben**: bis zum 01.08. wurde ein *fehlgeschlagener* Abruf als „kein Wasser" gecacht
   (384 Zeilen). Die werden jetzt einmal neu nachgeschlagen und überschrieben, echte „kein
@@ -710,7 +710,7 @@ der vier Regeln aus: den isolierten Despike und den Endpunkt-Clamp. Der Docstrin
 „dieselben GEMESSENEN Glitch-Regeln wie v1". Weil seit 01.08. **alles** über v2 läuft, wirkte
 überall nur die schwächere Kette.
 
-**Messung am Fall** (#3340, Polar-TCX mit Sekunden wie 0,0 / 42,9 / 15,8 km/h):
+**Messung am Fall** (Session A, Polar-TCX mit Sekunden wie 0,0 / 42,9 / 15,8 km/h): (Fall 2026-09-03-a)
 
 | Kette | Max |
 |---|---|
@@ -737,7 +737,7 @@ implementieren. Wenn ein Docstring „dieselben Regeln wie X" sagt, muss es ein 
 
 Naheliegende Vermutung: `timebase.py:144` `hz_measured = n / (gps_end_ms/1000)` benutze den
 Zeitstempel des letzten GPS-Samples als Dauer und rechne damit den Vorlauf bis zum ersten Fix
-(bei #1814 72,4 s) mit; richtig wäre `gps_end − gps_start`. **Falsch.** Nachgemessen an 150
+(bei Session A 72,4 s) mit; richtig wäre `gps_end − gps_start`. **Falsch.** Nachgemessen an 150 (Fall 2026-08-10-y)
 Sessions mit `t0`-Sidecars: die Accel-Spur beginnt praktisch bei Null — Median des ersten `t0`
 0,05 s (wear), 0,10 s (apple), 1,00 s (garmin) —, während das erste GPS-Sample bis zu 72 s später
 kommt. Da die Achse Sample 0 auf t = 0 setzt, ist `gps_end` der **richtige** Nenner; ein Abzug von
@@ -763,7 +763,7 @@ import os,json; env=dict(l.split('=',1) for l in open('.env') if '=' in l and no
 os.environ['DATABASE_URL']=env['DATABASE_URL'].strip().strip('\"')
 from sqlalchemy import create_engine,text
 with create_engine(os.environ['DATABASE_URL']).connect() as c:
-    m=json.loads(c.execute(text('select metrics_json from analysis_results where session_id=1814')).scalar())
+    m=json.loads(c.execute(text('select metrics_json from analysis_results where session_id=<Session A>')).scalar()) (Fall 2026-08-10-z)
     print({k:m.get(k) for k in ('time_base','accel_hz','accel_hz_tagged','accel_hz_measured','accel_hz_deviation','time_base_notes')})"
 ```
 
@@ -790,7 +790,7 @@ print('Samples',sum(c),'GPS-Spanne s',(max(g)-min(g))/1000,'-> Rate',sum(c)/((ma
 
 **(d) Fällt die Accel-Aktivität mit den Läufen zusammen?** Kreuzkorrelation von „im Lauf" (GPS)
 gegen `rms` (Accel-Fenster) über ±300 s. Ein Maximum bei **0 s** heißt: Achse stimmt. Jede andere
-Lage ist ein Zeitversatz — bei #1814 lag das Maximum je Viertel bei −57/−118/−140/+25 s.
+Lage ist ein Zeitversatz — bei Session A lag das Maximum je Viertel bei −57/−118/−140/+25 s. (Fall 2026-08-10-aa)
 
 **(e) Nie die Uhr-Rate glauben.** `sessions.accel_hz` ist die *Anforderung* der App. Die echte Rate
 steht in `metrics_json.accel_hz_measured` bzw. folgt aus (c).
@@ -801,7 +801,7 @@ steht in `metrics_json.accel_hz_measured` bzw. folgt aus (c).
 
 Diese Punkte sind bewusst als offen markiert, statt geraten zu werden:
 
-- **Der Ratenabfall bei #1814** (43 Chunks à ~250 statt ~502 Samples, ~380 s lang) ist als
+- **Der Ratenabfall bei Session A** (43 Chunks à ~250 statt ~502 Samples, ~380 s lang) ist als (Fall 2026-08-10-ab)
   *Beobachtung* belegt, die **Ursache nicht**. Android darf die Lieferrate zur Laufzeit senken
   (Power-Save, Batching) — das passt, ist aber nicht nachgewiesen.
 - **Wear und `record_mode = "gps"`**: Garmin und Apple haben einen eigenen Zweig dafür, bei Wear

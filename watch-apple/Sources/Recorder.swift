@@ -34,7 +34,7 @@ final class Recorder: NSObject, ObservableObject {
     // weder auf der Uhr noch auf dem Server zu retten. Jetzt laeuft der Empfaenger schon im
     // Ruhebild (`gpsVorwaermen`) und die Ansicht sagt, ob er bereit ist.
     @Published var gpsBereit: Bool = false
-    // GPS waehrend der Aufnahme weg (Garmin-Fall Roman, 25.10.2026, hier nachgezogen): `gpsPoor` und das
+    // GPS waehrend der Aufnahme weg (Garmin-Fall eines Nutzers, 25.10.2026, hier nachgezogen): `gpsPoor` und das
     // Tempo aenderten sich nur, wenn Positionen KOMMEN — ohne GPS blieb die Anzeige auf dem letzten Wert,
     // und `gpsBereit` blieb fuer immer gesetzt. `gpsUhr` prueft jede Sekunde das Alter der letzten Position.
     @Published var gpsWeg: Bool = false
@@ -247,7 +247,7 @@ final class Recorder: NSObject, ObservableObject {
     @Published var isPaused = false
     /// Zaehlt hoch, wenn eine Pause wieder 10 min alt ist (Jan, 22.10.2026: Erinnerung IMMER, nicht
     /// abschaltbar). ContentView reagiert darauf mit Vibration + Sprung auf die Aktionsseite. Anlass
-    /// #17726: eine Pause (vermutlich Wasser/Aermel) blieb 85 min unbemerkt, die Laeufe danach fehlten.
+    /// Session A: eine Pause (vermutlich Wasser/Aermel) blieb 85 min unbemerkt, die Laeufe danach fehlten. (Fall 2026-10-22-g)
     @Published var pauseMahnung = 0
     private var pauseMahnungenBisher = 0
     private var pausedMs = 0
@@ -349,7 +349,7 @@ final class Recorder: NSObject, ObservableObject {
         uuid = UUID().uuidString
         startedAt = Date()
         // Pausen der vorigen Aufnahme vergessen (06.11.2026). Bis 1.1.61 blieben Pausenzeit und Pausenliste stehen:
-        // jede weitere Aufnahme bis zum App-Neustart lag um die Summe der alten Pausen zu frueh (#19856: 4553 s,
+        // jede weitere Aufnahme bis zum App-Neustart lag um die Summe der alten Pausen zu frueh (Session A: 4553 s, (Fall 2026-11-06-e)
         // alles vor dem Start, „0 m") und schickte die alten Pausen als eigene mit. Wear OS setzt das seit jeher zurueck.
         isPaused = false; pausedMs = 0; pauseBeiMs = 0; pauseListe = []; pauseMahnungenBisher = 0
         chunkIndex = 0

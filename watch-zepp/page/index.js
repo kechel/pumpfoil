@@ -44,11 +44,11 @@ const GPS_CHUNK = 10;
 // Keep both the live buffer and each BLE payload small. At 25 Hz, 128 samples represent about five
 // seconds and 768 raw bytes (roughly 1 KB after base64 encoding).
 const ACCEL_CHUNK_SAMPLES = 128;
-// SAMMEL-UPLOAD (24.11.2026, Befund u439 Active 2): je BLE-Anfrage mehrere Chunks ueber den Sammel-Endpunkt
+// SAMMEL-UPLOAD (24.11.2026, Befund Fahrer A Active 2): je BLE-Anfrage mehrere Chunks ueber den Sammel-Endpunkt (Fall 2026-11-24-e)
 // (/ingest/session/{uuid}/chunks, Server max 30). Die App starb nach ~330 Einzel-Anfragen, egal wo der Upload stand
 // (Leck je Anfrage in Zepp/zml vermutet), und eine Anfrage dauert ~1 s (zml schickt vor JEDER Anfrage einen Handshake).
 // Der Server schickt `uploadBatch` im CONFIG (1 = alter Weg, ein Chunk je Anfrage); bis dahin gilt der Standard.
-// Standard 5 statt 25 (25.11.2026, u1150 T-Rex 3 Pro): 25er-Gruppen endeten auf echter Hardware in „out of memory".
+// Standard 5 statt 25 (25.11.2026, Fahrer B T-Rex 3 Pro): 25er-Gruppen endeten auf echter Hardware in „out of memory".
 const UPLOAD_BATCH_DEFAULT = 5, UPLOAD_BATCH_MAX = 30;
 const uploadBatch = () => {
   const n = Number(store.getItem("uploadBatch", "")) || UPLOAD_BATCH_DEFAULT;
@@ -84,7 +84,7 @@ const UNLOCK_MS = 10000;
 // Nachziehen den Fahrer nach jedem Zustandswechsel auf dem Stopp-Bildschirm abliefern wuerde.
 const ERSTE_DATENSEITE = 2;
 // Erinnerung in der Pause (Jan, 22.10.2026): alle 10 min drei lange Stoesse + Sprung auf die Aktionsseite
-// (Fortsetzen, „Pausiert"). IMMER, nicht abschaltbar. Anlass #17726: Pause 85 min unbemerkt (Apple Watch).
+// (Fortsetzen, „Pausiert"). IMMER, nicht abschaltbar. Anlass Session A: Pause 85 min unbemerkt (Apple Watch). (Fall 2026-10-22-i)
 const PAUSE_MAHNUNG_MS = 600000;
 
 // Obergrenze fuer den gesicherten Profil-Stand (s. `_configSichern`). Ein volles Profil mit
@@ -675,7 +675,7 @@ const S = {
   "rec.discarded":   ["Verworfen", "Verworfe", "Verworfen", "Discarded", "Supprimé", "Scartata", "Descartada", "Descartada", "Dibuang", "Удалено", "Weggegooid", "Hylätty", "Zahozeno", "破棄しました", "已丢弃"],
   "rec.stopHold":    ["Halten", "Halte", "Halten", "Hold", "Maintenir", "Tieni", "Mantén", "Segurar", "Tahan", "Держать", "Vasthouden", "Pidä", "Podržet", "長押し", "长按"],
   "rec.holdFree":    ["2 s halten = Touch frei", "2 s halte = Touch frei", "2 s halten = Touch frei", "Hold 2 s = touch free", "2 s = tactile libre", "2 s = touch libero", "2 s = táctil libre", "2 s = toque livre", "2 s = sentuh bebas", "2 с = касания вкл.", "2 s = touch vrij", "2 s = kosketus auki", "2 s = dotyk volný", "2秒長押しでタッチ解除", "长按2秒解锁触摸"],
-  // Sperrschirm-Ausweg MIT Ort (25.11.2026, u1150 auf T-Rex 3 Pro): "2 s Halten = ENTSPERREN" wurde als
+  // Sperrschirm-Ausweg MIT Ort (25.11.2026, Fahrer A auf T-Rex 3 Pro): "2 s Halten = ENTSPERREN" wurde als (Fall 2026-11-25-j)
   // TASTE halten gelesen — und langes SELECT ist dort ab Werk die System-Sprachassistenz.
   "rec.holdScreen":  ["Display 2 s halten zum Entsperren", "Display 2 s halte zum Entsperre", "Display 2 s halten zum Entsperren", "Hold the screen 2 s to unlock", "Maintenir l'écran 2 s pour déverrouiller", "Tieni premuto lo schermo 2 s per sbloccare", "Mantén la pantalla 2 s para desbloquear", "Segure a tela 2 s para desbloquear", "Tahan layar 2 dtk untuk membuka", "Удерживайте экран 2 с для разблокировки", "Houd het scherm 2 s vast om te ontgrendelen", "Pidä näyttöä 2 s avataksesi", "Podržte displej 2 s pro odemknutí", "画面を2秒長押しでロック解除", "长按屏幕2秒解锁"],
   "menu.touchLock":  ["Touch-Sperre", "Touch-Sperri", "Touch-Sperre", "Touch lock", "Verrou tactile", "Blocco touch", "Bloqueo táctil", "Bloqueio do toque", "Kunci sentuh", "Блокировка касаний", "Touchvergrendeling", "Kosketuslukko", "Zámek dotyku", "タッチロック", "触摸锁定"],
@@ -1456,7 +1456,7 @@ Page(
               }
               // JEDE andere Taste konsumieren statt sie ans System zu geben.
               //
-              // Das war die Ursache der leeren Amazfit-Aufnahmen (Sam Barnes, Active 2 Round,
+              // Das war die Ursache der leeren Amazfit-Aufnahmen (ein Nutzer, Active 2 Round,
               // 13.09.2026): „if a button is pressed it exits the app straight away. Accidental
               // presses are quite easy." Hier stand `return false` — und ein `false` heisst bei
               // Zepp nicht „nichts tun", sondern „das System soll es behandeln", und das System
@@ -1465,7 +1465,7 @@ Page(
               // fiel JEDER Druck in diesen Zweig.
               //
               // Im Bestand passte das Muster: 17 von 21 Amazfit-Aufnahmen hatten nur eine
-              // Handvoll Datenpakete, Sam allein sechs Fehlversuche. Waehrend der Aufnahme gibt
+              // Handvoll Datenpakete, ein Nutzer allein sechs Fehlversuche. Waehrend der Aufnahme gibt
               // es deshalb keinen Weg mehr, auf dem eine Taste die App verlassen kann —
               // beendet wird ueber langes SELECT (bzw. kurzes, wenn im Profil so eingestellt).
               if (!click || (key !== KEY_UP && key !== KEY_DOWN)) {
@@ -1514,7 +1514,7 @@ Page(
                     : (e === GESTURE_RIGHT || e === GESTURE_DOWN) ? -1 : 0;
           // Unbekannte Geste waehrend der Aufnahme: konsumieren, nicht weiterreichen. Dasselbe
           // Loch wie beim Tasten-Callback — `false` heisst „System behandelt es", und das
-          // beendet die App samt laufender Aufnahme (Sam Barnes, 13.09.2026: „it will close if
+          // beendet die App samt laufender Aufnahme (ein Nutzer, 13.09.2026: „it will close if
           // I swipe back").
           if (dir === 0) return !!s.recording;
           if (s.recording) {
@@ -1849,7 +1849,7 @@ Page(
     heartbeat() {
       const s = this.state;
       if (s.recording) {
-        // BILDSCHIRMZEIT AUCH WAEHREND DER AUFNAHME AUFFRISCHEN (u352, GTR 4, 21.09.2026:
+        // BILDSCHIRMZEIT AUCH WAEHREND DER AUFNAHME AUFFRISCHEN (GTR 4, 21.09.2026: (Fall 2026-09-21-n)
         // „Nach circa 4,5 Minuten kommt dann das Ziffernblatt und anschliessend, wenn ich die
         // App wieder reinwill, ist sie beendet.").
         //
@@ -1942,7 +1942,7 @@ Page(
     /** Auf den Stopp-Bildschirm springen (Seite 0 des Aufnahme-Rings).
      *
      *  So verhalten sich die eingebauten Zepp-Aktivitaeten: ein Tastendruck waehrend der Aufnahme
-     *  zeigt die Stopp-Auswahl, statt stumm nichts zu tun. Vorgeschlagen von Sam Barnes am
+     *  zeigt die Stopp-Auswahl, statt stumm nichts zu tun. Vorgeschlagen von einem Nutzer am
      *  13.09.2026 („On other activities when you press a button it gives a menu with stop, pause,
      *  resume. Which helps avoid accidently ending the recording."), Entscheidung Jan am selben
      *  Tag: wenn es Zepp-ueblich ist, genau so.
@@ -2171,7 +2171,7 @@ Page(
      * Warum der Start-Knopf gerade nicht geht — fuer vier Sekunden in die Statuszeile.
      *
      * Er war bisher ausgegraut MIT LEEREM HANDLER: tippen tat nichts, und nichts erklaerte es.
-     * Genau so liest sich das als kaputte App. Anlass ist u352 am 21.09.2026, der nach einem
+     * Genau so liest sich das als kaputte App. Anlass ist Fahrer A am 21.09.2026, der nach einem (Fall 2026-09-21-o)
      * Neustart der App meldete „beim zweiten Start kommt auch kein Start bzw. Stop mehr" —
      * der Knopf war da, nur grau und stumm. Welcher der beiden Gruende es war, liesse sich am
      * Bildschirm jetzt ablesen.
@@ -3239,7 +3239,7 @@ Page(
       // Hinweis weiterhin — dort ist er die Bedienung und keine Wiederholung.
       // DIE LAUFZEIT STEHT HIER, und zwar zuerst. Ohne sie sieht eine Datenseite waehrend der
       // Aufnahme genauso aus wie der Startbildschirm: gleicher Titel, Felder, "GPS ●" — und der
-      // STOPP-Knopf ist hier bewusst ausgeblendet. u352 hat daraus am 21.09.2026 geschlossen,
+      // STOPP-Knopf ist hier bewusst ausgeblendet. Fahrer A hat daraus am 21.09.2026 geschlossen, (Fall 2026-09-13-g)
       // die App sei kaputt ("beim zweiten Start kommt auch kein Start bzw. Stop mehr"), waehrend
       // sie in Wahrheit aufzeichnete; sein Foto zeigt genau diese Seite ("1/2").
       //

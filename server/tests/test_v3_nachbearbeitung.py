@@ -74,7 +74,7 @@ def _gps_strecke(abschnitte):
 
 
 def test_bruecke_eingefrorenes_gps_durchgefahren_verbindet():
-    """#21487: GPS steht 4 s (Doppler 0, kaum Bewegung), danach Aufholsprung — Luftlinie ~4 m/s, p hoch -> ein Lauf."""
+    """Session A: GPS steht 4 s (Doppler 0, kaum Bewegung), danach Aufholsprung — Luftlinie ~4 m/s, p hoch -> ein Lauf. (Fall 2026-11-13-y) """
     import numpy as np
     from app.analysis.v3 import nachbearbeitung as N
     gps = _gps_strecke([(0, 30, 4.0, 4.0), (30, 34, 0.1, 0.0), (34, 36, 14.0, 8.0), (36, 60, 4.0, 4.0)])

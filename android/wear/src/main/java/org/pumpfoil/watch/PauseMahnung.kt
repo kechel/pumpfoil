@@ -14,7 +14,7 @@ import android.os.VibratorManager
 /**
  * Erinnerung in der Pause (Jan, 22.10.2026): alle 10 min deutlich vibrieren und auf die Aktionsseite
  * (Fortsetzen, oben „Pausiert") springen — IMMER, nicht abschaltbar („wenn man das nicht will kann man ja
- * speichern und spaeter neu starten"). Anlass #17726: eine Pause blieb 85 min unbemerkt, alle Laeufe danach fehlten.
+ * speichern und spaeter neu starten"). Anlass Session A: eine Pause blieb 85 min unbemerkt, alle Laeufe danach fehlten. (Fall 2026-10-22-a)
  *
  * Warum ein System-Wecker und keine Schleife in der Oberflaeche: in der Pause gibt der Dienst seinen
  * PARTIAL_WAKE_LOCK frei (RecorderService.cpuSchlafenLassen), die CPU darf schlafen und eine

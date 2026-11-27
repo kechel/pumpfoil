@@ -96,7 +96,7 @@ Kennzahlen-API hätte uns nichts genützt.
 **🟢 Seit 04.09.2026 ist v3 aktiv** (`SUUNTO_API_V3=1`, Jans Freigabe nach dem Vergleich unten).
 Rueckweg: die Zeile aus `server/.env` entfernen und neu starten; die v2-Pfade bleiben im Code.
 
-**Vorher an zwei echten Konten gemessen** (u417, Xiaomi ueber Mi Fitness; und Jans eigenes):
+**Vorher an zwei echten Konten gemessen** (Xiaomi ueber Mi Fitness; und Jans eigenes): (Fall 2026-09-04-g)
 
 | | v2 | v3 |
 |---|---|---|
@@ -105,9 +105,9 @@ Rueckweg: die Zeile aus `server/.env` entfernen und neu starten; die v2-Pfade bl
 | FIT-Datei | 2436 Bytes | 2436 Bytes, **sha256 identisch** |
 | durch `parse_fit_bytes` | 88 Punkte, Puls 69–137 | identisch |
 
-Der sha256 (`06524c3c…`) ist zugleich der `content_hash` der daraus entstandenen Session 3453 —
+Der sha256 (`06524c3c…`) ist zugleich der `content_hash` der daraus entstandenen Session A — (Fall 2026-09-04-h)
 es ist also nachweislich dieselbe Datei. `_liste_lesen` kam mit der v3-Antwort ohne Anpassung
-klar. Erster Lauf ueber v3 im Betrieb: u417 `0 importiert / 1 doppelt`, Jan
+klar. Erster Lauf ueber v3 im Betrieb: Fahrer A `0 importiert / 1 doppelt`, Jan
 `0 importiert / 3 zu kurz / 1 doppelt`. Zum Vergleichen gibt es
 `GET /api/integrations/suunto/vergleich` (eingeloggt, rein lesend): der Endpunkt holt dieselbe
 Liste über **beide** Versionen und sagt, wie viele Workouts jede liefert und ob die Schlüssel

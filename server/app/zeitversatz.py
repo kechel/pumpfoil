@@ -81,7 +81,7 @@ def bestimmen(fenster: list[list[int]], vorige: list[list[int]], erster_ms: int 
     eigene = [f for f in fenster if tuple(f) not in vor]
     versatz = sum(d for _, d in geerbt)
     # Passt die Summe nicht, fehlen geerbte Fenster in der Liste: eigene Pausen einer schon verschobenen Aufnahme lagen
-    # unter 0, wurden beim Speichern verworfen und trotzdem weitervererbt (ab #19857, bis 76 s mehr). Dann traegt
+    # unter 0, wurden beim Speichern verworfen und trotzdem weitervererbt (ab Session A, bis 76 s mehr). Dann traegt (Fall 2026-11-06-c)
     # der erste Messwert den Versatz — vor dem Start gibt es bei der Apple Watch keine Werte, Accel kommt ms danach.
     if abs(erster_ms + versatz) > TOLERANZ_MS:
         versatz = -erster_ms

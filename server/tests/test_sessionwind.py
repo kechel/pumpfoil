@@ -176,7 +176,7 @@ def test_windfenster_ohne_sessions(client):
 
 def test_manoever_durch_aus_dem_lauf():
     """Seit 19.10. abends: auf dem Foil = in einem Lauf, der nicht binnen 15 s danach endet
-    (Alex' Markierungen in #13942: 5/5). Das Tempo spielt dann keine Rolle."""
+    (die Markierungen des Fahrers in Session A: 5/5). Das Tempo spielt dann keine Rolle. (Fall 2026-10-19-r) """
     import math
     from app.manoever import erkennen
     t, lat, lon = [], [], []

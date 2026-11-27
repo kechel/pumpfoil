@@ -1,6 +1,6 @@
 """„Unangemessen"-Meldung zurueckgenommen -> Session wieder sichtbar (Jan, 01.10.2026: „behebe den bug").
 
-Fall #8970: eine Meldung (vermutlich ein Fehlgriff) wurde zurueckgenommen und durch „fake" ersetzt;
+Fall Session A: eine Meldung (vermutlich ein Fehlgriff) wurde zurueckgenommen und durch „fake" ersetzt; (Fall 2026-10-01-d)
 die Session blieb trotzdem verborgen, ohne dass irgendwo stand, warum. Jetzt hebt die Ruecknahme
 das Verbergen auf — aber nur, wenn es allein an Meldungen hing.
 """

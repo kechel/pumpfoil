@@ -1,4 +1,4 @@
-"""Autofahrten in einer Aufnahme finden — rein, ohne DB (Befund 04.10.2026, u758).
+"""Autofahrten in einer Aufnahme finden — rein, ohne DB (Befund 04.10.2026). (Fall 2026-10-04-c)
 
 Der Auto-Zuschnitt schneidet nur vor dem ersten und nach dem letzten Lauf. Faehrt jemand MITTEN in
 der Aufnahme zum naechsten Spot oder wird zum Steg zurueckgeshuttelt, bleibt die Fahrt drin: die
@@ -9,14 +9,14 @@ Regel (an vier echten Faellen gegen das Tempoprofil geprueft, dann ueber den gan
 gemessen — scripts/autofahrt-regression.py):
   1. Tempo aus den POSITIONEN ueber ein Fenster von ~10 s (nicht das Tempofeld der Uhr: das springt bei
      manchen Uhren kurz auf 60-100 km/h, waehrend die Spur auf 100 m stehen bleibt — gemessen an
-     #10934/#3874), danach Median ueber 5 Punkte gegen einzelne Positionsspruenge.
+     Session A/C), danach Median ueber 5 Punkte gegen einzelne Positionsspruenge.
   2. Schnelle Stuecke: Tempo > SCHNELL_KMH. Liegen zwei weniger als LUECKE_S auseinander, gehoeren
      sie zu EINER Fahrt (Ampel, Abbiegen). Zusammen mindestens MIN_SCHNELL_S Sekunden schnell.
   3. Spitze >= `spitze_kmh` — je Sportart verschieden (s. SPITZE_JE_SPORT): Kite-Laeufe erreichen im
      Bestand bis 60 km/h, Wing bis 55, Pumpfoil bleibt darunter.
   4. Nach beiden Seiten erweitert bis zum naechsten Halt: Tempo unter HALT_KMH (Schritttempo
      eingeschlossen) fuer mindestens HALT_S. So geht Anfahren und Einparken mit, ein echter letzter
-     Lauf VOR dem Fussweg zum Auto aber nicht (#12886, Minute 82,8).
+     Lauf VOR dem Fussweg zum Auto aber nicht (Session B, Minute 82,8).
   5. Eine Fahrt geht irgendwohin: die Spur entfernt sich mindestens MIN_WEG_KM vom Fahrtbeginn.
 """
 from __future__ import annotations
@@ -33,12 +33,12 @@ MITTEL_N = 5
 MIN_SCHNELL_S = 30.0
 # Positionssprung: ein Punkt, den man vom letzten guten nur mit mehr als SPRUNG_KMH erreicht, ist
 # ein Messfehler und faellt vor allem anderen weg (gemessen: einzelne Ausreisser ergaben „482",
-# „1061 km/h" — und haetten bei #9215 elf echte Laeufe mitgenommen).
+# „1061 km/h" — und haetten bei Session A elf echte Laeufe mitgenommen). (Fall 2026-10-04-d)
 SPRUNG_KMH = 250.0
 MIN_WEG_KM = 1.0
 FENSTER_S = 10.0
 # Spitze, ab der eine schnelle Strecke als Fahrt gilt, je Sportart. Gemessen 04.10.2026 ueber 9945
-# Sessions: echte Kite-Laeufe bis 60 km/h (alle u741), Wing bis 55, Pumpfoil/Wakethief/E-Foil
+# Sessions: echte Kite-Laeufe bis 60 km/h (alle Fahrer A), Wing bis 55, Pumpfoil/Wakethief/E-Foil (Fall 2026-10-04-e)
 # deutlich darunter. NICHT fuer „other" (Rad/Laufen): ein Rad bergab ist legitim schnell.
 # Seit 25.10.2026 aus der EINEN Liste (data/sportarten.json, Feld `autofahrt_kmh`; null = ohne Erkennung).
 from ..sportarten import AUTOFAHRT_KMH as SPITZE_JE_SPORT, AUTOFAHRT_STANDARD_KMH as SPITZE_STANDARD  # noqa: E402
@@ -149,7 +149,7 @@ def fahrten(gps: list, spitze_kmh: float = SPITZE_STANDARD) -> list[tuple[int, i
         return n - 1
 
     # Je Punkt hoechstens 5 s: nach einer GPS-Luecke zaehlt sonst die ganze Luecke als „schnell"
-    # (SUP auf der Tarn, #9215: ein Punkt nach 199 s Pause).
+    # (SUP auf der Tarn, Session A: ein Punkt nach 199 s Pause). (Fall 2026-10-04-f)
     dt_pkt = np.minimum(np.diff(t, append=t[-1]) / 1000.0, 5.0)
     out: list[tuple[int, int, float]] = []
     for a, b in gruppen:

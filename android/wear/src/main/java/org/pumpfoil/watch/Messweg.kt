@@ -3,7 +3,7 @@ package org.pumpfoil.watch
 /**
  * Reine Hilfen fuer den Messweg nach Doku (Wear 1.2.40, 07.10.2026) — ohne Android, damit sie in
  * JUnit laufen. Hintergrund: GPS brach auf mehreren Uhren nach Minuten ab, waehrend der
- * Beschleunigungssensor weiterlief (u818 #13822, u574 #13051). Der dokumentierte Weg ist
+ * Beschleunigungssensor weiterlief (Fahrer A Session A, Fahrer B Session B). Der dokumentierte Weg ist (Fall 2026-10-07-a)
  *  - GPS ueber Health Services (`ExerciseClient`, `isGpsEnabled`): misst bei dunklem Display im
  *    selben Takt weiter und liefert gebuendelt, ohne den Prozessor zu wecken;
  *  - Beschleunigung als Wake-up-Sensor MIT Hardware-Batching (`maxReportLatencyUs`), Zeit aus

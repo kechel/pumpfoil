@@ -3,7 +3,7 @@
 Daten: 5 Paare, davon ein „kein Foiling" (P2). **P3 (20:26)** ist das einzige Paar, bei
 dem die Mast-Uhr den **vollen Foiling-Lauf** mitschnitt (42 s Überlapp); P5 nur 13 s
 partiell. Bei P1/P4 hörte der Mast-Accel **vor** dem Foiling auf → Object-Store-
-Abbruch (s. u.). Tiefenanalyse daher auf **P3** (fenix #309 / FR55 #314).
+Abbruch (s. u.). Tiefenanalyse daher auf **P3** (fenix #309 / FR55 Session A). (Fall 2026-06-27-a)
 
 ## 1. Zeit-Sync gelöst (ohne GPS)
 UUID-Präfix = Unix-Startzeit der Uhr; beide Uhren clock-synchron → Accel-Streams absolut

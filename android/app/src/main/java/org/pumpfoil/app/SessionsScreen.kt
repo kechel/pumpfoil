@@ -586,7 +586,7 @@ fun SessionRow(s: SessionSummary, modifier: Modifier = Modifier, avatarUserId: I
                     }
                     if (inCompare) Text("⇄ ${I18n.t("compare.title")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     val foilLabel = s.foil?.let { foilLabel(it.brand, it.model, it.size, it.aspectRatio) }?.takeIf { it.isNotBlank() }
-                    // Sportart als gelber Chip wie in „Alle" (Wunsch u244, 26.10.2026); das Badge in
+                    // Sportart als gelber Chip wie in „Alle" (Wunsch Fahrer A, 26.10.2026); das Badge in (Fall 2026-10-26-e)
                     // der Fußzeile zeigt dafür nur noch die Datenqualität.
                     SessionChips(sportClass = s.sportClass, spot = s.placeName, foil = foilLabel,
                         setup = s.setup, deviceLabel = s.deviceLabel, placement = s.placement,

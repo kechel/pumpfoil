@@ -7,7 +7,7 @@
 Befund vom 05.09.2026: `fitimport.parse_fit_bytes` las die Sportart nur aus einer eigenen
 `sport`-Nachricht. SUUNTO schreibt sie aber ausschliesslich in die `session`-Nachricht — deren
 Dateien haben gar keine `sport`-Nachricht. Folge: jede Suunto-Session kam als „pumpfoil"
-herein. Belegt an Session 3501, in deren Datei „sailing" steht.
+herein. Belegt an Session A, in deren Datei „sailing" steht. (Fall 2026-09-05-b)
 
 Nachgezaehlt ueber alle 901 Import-Sessions: 260 haben ihre Originaldatei noch (`original.bin`),
 242 davon nennen eine ANDERE Sportart als die, unter der sie bei uns stehen. 130 zaehlten als

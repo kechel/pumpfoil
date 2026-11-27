@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regressionstest: v3 verbindet benachbarte Kandidaten-Laeufe ueber kurze Luecken. REIN LESEND.
 
-Anlass (13.11.2026, #21487, Meldung eines Nutzers: „Lauf 7 und 8 gehoeren zusammen als ein lauf"): das Handy-GPS fror
+Anlass (13.11.2026, Session A, Meldung eines Nutzers: „Lauf 7 und 8 gehoeren zusammen als ein lauf"): das Handy-GPS fror (Fall 2026-11-13-o)
 5 s ein (Doppler exakt 0, danach Aufholsprung), v2 UND der tief-Kandidat trennten dort, das v3-Modell sagte durchgehend
 p 0,94–1,0 — konnte aber nicht verbinden, weil `_teil` Loecher nur INNERHALB eines Kandidaten schliesst.
 
@@ -31,6 +31,8 @@ from multiprocessing import Pool
 import numpy as np
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2] / "server"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1])); from lokal_faelle import laden as _laden
+_F = _laden("v3_faelle", "scripts/v3/v3_faelle.beispiel.json")   # Session-IDs nur lokal
 
 
 def _verbinden(L, t, pg, theta, luecke_s):
@@ -135,7 +137,7 @@ def eine(sid: int) -> dict:
         belege = []
         for a, b in verb:
             # 1 s vor bis 2 s nach der Luecke: beim eingefrorenen GPS liegen die Fixe direkt an der Luecke selbst
-            # im eingefrorenen Bereich (#21487: 0,04 m/s statt ~4 m/s)
+            # im eingefrorenen Bereich (Session A: 0,04 m/s statt ~4 m/s) (Fall 2026-11-13-p)
             vor = [q for q in gps if q[0] <= a - 1000]
             nach = [q for q in gps if q[0] >= b + 2000]
             drin = [q for q in gps if a < q[0] < b]
@@ -192,15 +194,15 @@ def bericht(pfad: str):
         print(f"  Luecke: Median {np.median(gl):.1f} s, max {gl.max():.1f} s")
         print(f"  Luftlinie ueber die Luecke: Median {np.median(ll):.2f} m/s; < 1,5 m/s (sieht nach echtem Stopp aus): "
               f"{(ll < 1.5).sum()} · 1,5–2,5: {((ll >= 1.5) & (ll < 2.5)).sum()} · >= 2,5 (durchgefahren): {(ll >= 2.5).sum()}")
-        print(f"  davon mit Doppler 0 in >= 50 % der Luecke (eingefrorenes GPS wie #21487): {len(d0)}")
+        print(f"  davon mit Doppler 0 in >= 50 % der Luecke (eingefrorenes GPS wie die Ground Truth): {len(d0)}")
         print("  Verdaechtige (Luftlinie < 1,5 m/s):")
         for z, b in sorted(v, key=lambda zb: zb[1]["luftlinie_mps"] if zb[1]["luftlinie_mps"] is not None else 9)[:15]:
             if (b["luftlinie_mps"] or 9) < 1.5:
                 print(f"    #{z['id']} u{z['user']} bei {b['a'] / 1000:.0f} s: Luecke {b['luecke_s']} s, Luftlinie {b['luftlinie_mps']} m/s, "
                       f"Doppler-min {b['doppler_min']}, p_min {b['p_min']}")
-    z = next((x for x in ok if x["id"] == 21487), None)
+    z = next((x for x in ok if x["id"] == _F["GT_EINGEFROREN"]), None)
     if z:
-        print(f"Ground Truth #21487: heute {len(z['heute'])} -> neu {len(z['neu'])} Laeufe; Verbindungen {z.get('verbindungen')}")
+        print(f"Ground Truth (eingefroren): heute {len(z['heute'])} -> neu {len(z['neu'])} Laeufe; Verbindungen {z.get('verbindungen')}")
     for sid in (12568, 12574, 12575):
         z = next((x for x in ok if x["id"] == sid), None)
         if z:

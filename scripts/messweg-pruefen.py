@@ -4,7 +4,7 @@
 Je Session: Uhr, App, Dauer, GPS-Quelle (`hs` = Health Services / `lm` = LocationManager) samt
 Wechselgrund, Waechter-Eingriffe, GPS-Abdeckung (letzter Punkt / Dauer), groesste GPS-Luecke,
 Accel-Modus und gemessene Rate. Anlass 07.10.2026: GPS brach auf Wear-Uhren nach Minuten ab
-(u818 #13822, u574 #13051); die Testaufnahmen sollen zeigen, ob der neue Weg auf echten Uhren hält.
+(Fahrer A Session A, Fahrer B Session B); die Testaufnahmen sollen zeigen, ob der neue Weg auf echten Uhren hält. (Fall 2026-10-07-f)
 
 Aufruf (aus server/): DATABASE_URL=... .venv/bin/python ../scripts/messweg-pruefen.py [--tage 14] [--ab-version 1.2.40]
 """

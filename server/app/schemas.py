@@ -242,7 +242,7 @@ class SessionCompleteIn(BaseModel):
     hr_source: str | None = None
     # Messweg (Wear ab 1.2.40, 07.10.2026): {"gps": "hs"|"lm", "gps_neu": n, "gps_wechsel": grund,
     # "accel": "batch"|"normal"} — woher das GPS kam, wie oft es neu angefordert werden musste und
-    # wie die Beschleunigung lief. Ohne das ist ein GPS-Abbruch wie bei u818 nur zu erraten.
+    # wie die Beschleunigung lief. Ohne das ist ein GPS-Abbruch wie bei Fahrer A nur zu erraten. (Fall 2026-10-07-h)
     messweg: dict | None = None
     # Tanz-Abschnitte der Tanz-App (watch-dance/Tanz.mc, 21.10.2026), nur bei sport == "dance":
     # [[start_ms, ende_ms, vorschlag, gewaehlt, quelle, tempo, dreh], …] — s. app/tanz.py.

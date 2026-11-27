@@ -47,7 +47,7 @@ Nur Sessions mit brauchbarer Beschleunigung (>= 15 Hz, nicht `gps_only`): **2653
 bei einem bis vier Fahrern je Sportart lernt ein Modell den Fahrer, nicht die Sportart.
 
 **Wahrheit auf Lauf-/Pump-Ebene:**
-- Handy am Brett + Uhr gleichzeitig: **9 Paare, ~4,2 h, 3 Fahrer** (u2, u5, u13); dazu 7
+- Handy am Brett + Uhr gleichzeitig: **9 Paare, ~4,2 h, 3 Fahrer** (Jan); dazu 7 (Fall 2026-09-29-b)
   Brett-Aufnahmen ohne Uhr. Kreisel in 76 Sessions, Kompass in 11.
 - ~200 weitere Ueberschneidungen sind **Gruppenfahrten** (verschiedene Fahrer, eigene Uhren).
 - Von Nutzern aussortierte Zeitbereiche `excluded_ranges`: 83 Sessions, 23 Fahrer (Negativ-Labels).
@@ -77,7 +77,7 @@ laeuft lokal und rein lesend.
 **Wasser fuers Training:** Overpass war von der VM nicht erreichbar (TODO-Inbox) → JRC Global Surface
 Water (30 m, Wasserhaeufigkeit 1984–2021). JRC uebersieht schmale Gewaesser (Kanaele, Fluesse,
 Lagunen, ein Becken): „an Land" allein ist KEIN Label. 73 Sessions mit Laeufen auf JRC-Land per
-Kartenbild gesichtet: 49 Land, 22 schmales Wasser, 2 unklar (Jan: #7160, #9455).
+Kartenbild gesichtet: 49 Land, 22 schmales Wasser, 2 unklar (Jan: Session A, B). (Fall 2026-09-29-c)
 
 **Stufe A als eigene Maske: verworfen.** Sie fand 7668 zusaetzliche kurze Laeufe (Median 6 s); die
 unabhaengige foil_status-Wahrheit bestaetigt davon 37 %, von den mit v2 gemeinsamen 98 %.
@@ -91,14 +91,14 @@ besser aus), ganze Aufnahme, eigene Empfindlichkeit, 2648 Sessions:
 |---|---|---|
 | Laeufe ≤ 60 s an einer Autofahrt | 25 | 0 |
 | Laeufe an Land (Sichtpruefung) noch da | 81/81 | 35/81 |
-| Feste Pruefliste (u. a. #10478 Parkplatzrunde) | 4/7 | 7/7 |
+| Feste Pruefliste (u. a. Session A Parkplatzrunde) | 4/7 | 7/7 (Fall 2026-09-29-d) |
 | Laeufe auf schmalem Wasser behalten | 61/62 | 61/62 |
 | foil_status Praezision / Trefferquote | 0,902 / 0,925 | 0,903 / 0,925 |
 | Laeufe gesamt | 18339 | 18235 (−104) |
 
 Von den 104 verworfenen: 51 klar an Land, 53 nahe Wasser. Stichprobe 8 der naechst-am-Wasser:
-7 richtig (Uferstrassen), **1 falsch (#3045, Lauf mitten auf dem Zuideinderplas)**. Grenze: eine
-Autofahrt NEBEN einem Kanal (#1232, B235) behaelt auch das Veto.
+7 richtig (Uferstrassen), **1 falsch (Session A, Lauf mitten auf dem Zuideinderplas)**. Grenze: eine (Fall 2026-09-29-e)
+Autofahrt NEBEN einem Kanal (Session B, B235) behaelt auch das Veto.
 
 **Stufe B (Sportart, Fahrer herausgehalten, je Session):** Pumpfoil 62/62 · Wingfoil 20/24
 (heute 0/21) · Wakethief 1/35 · Foildrive 3/11 · Efoil/Foil Scoot je 1 Fahrer = nicht pruefbar.
@@ -107,7 +107,7 @@ Autofahrt NEBEN einem Kanal (#1232, B235) behaelt auch das Veto.
 ob v3 die Einstellung ersetzen kann, steht noch aus — als Maske taugt v3 dafuer nicht (s. oben).
 
 **Offen vor jedem Live-Schritt:** Jans Blick auf die Liste der 104 (server/data/ml/verworfen-v3veto.json)
-und die Bilder; #3045-Fall verstehen; die 2 unklaren Sessions; Stufe B nur als Vorschlag.
+und die Bilder; Session A-Fall verstehen; die 2 unklaren Sessions; Stufe B nur als Vorschlag. (Fall 2026-09-29-f)
 
 ## Anforderung fuers Live-Schalten: Lauf-Status mit Herkunft (Jan, 29.09.2026)
 
@@ -122,7 +122,7 @@ reanalysen." Umsetzung (Entwurf, nicht gebaut):
   diese Urteile neu gerechnet.
 - In der Lauf-Tabelle sichtbar (z. B. „automatisch aussortiert — trotzdem zaehlen?").
 
-## Kurze Laeufe am Ufer (Jan, 29.09.: #7160 Lauf 2, #9455 Lauf 1)
+## Kurze Laeufe am Ufer (Jan, 29.09.: Session A Lauf 2, Session B Lauf 1) (Fall 2026-09-29-g)
 
 Innerhalb des Laufs unterscheiden sie sich klar (Pump-Energie 0,06-0,12 gegen 0,55, Rhythmus 0,1
 gegen 0,4, dominante Frequenz 0,6-0,7 gegen 1,6 Hz, Stoss-Woelbung 9-15 gegen 3). Das Modell sieht
@@ -131,7 +131,7 @@ Lauf-Klassifikator nur aus dem Lauf trennt aber NICHT sauber: ~60 der 1237 „ec
 (nur „auf Wasser", nicht geprueft) sehen genauso ruhig aus. Naechster Schritt: diese ansehen — sind
 es selbst Gehen/Tragen, ist die Regel richtig und das Label falsch.
 
-## Beine pumpen, Arm ruht (#10266, ein Fahrer, 29.09.2026)
+## Beine pumpen, Arm ruht (Session A, ein Fahrer, 29.09.2026) (Fall 2026-09-29-h)
 
 „Lange Startversuche" statt Laeufe: das alte Modell zaehlt ARMbewegung. Beispiel Versuch 6:21-6:43
 (88 m): 8 s Arm-Pumpen 0,3-0,5, Modell bis 0,46 (Schwelle 0,5), danach 15 s Arm fast still
@@ -158,13 +158,13 @@ Die Erklaerung „Abweichungen an Anfahrt/Sturz" unten war FALSCH — das war de
 
 | Paar | Fahrer | Laeufe | fein je Lauf (ms) | Urteil |
 |---|---|---|---|---|
-| #10195/#10194 | u2 | 4 | 1680 · 1680 · 1680 · 1720 | sehr gut |
-| #9535/#9534 | u2 | 2 | 2360 · 2280 | gut |
-| #10248/#10250 | u13 | 4 | −320 · 2160 · 2120 · 2080 | gut (1 Ausreisser) |
-| #10328/#10326 | u2 | 5 | 1560 · 2440 · 2400 · 2440 · 640 | brauchbar (3 von 5) |
-| #10874/#10873 + #10875/#10873 | u2 | 2 | Gegenprobe: 22 ms auseinander | gut |
-| #9650/#9649 | u2 | 1 | 1480 (r 0,57) | brauchbar |
-| #9528/#9529, #9650/#9648 | u2 | je 1 | r 0,23 / 0,21 | zu schwach, raus |
+| #10195/#10194 | Jan | 4 | 1680 · 1680 · 1680 · 1720 | sehr gut |
+| #9535/#9534 | Jan | 2 | 2360 · 2280 | gut |
+| Session A/C | Fahrer A | 4 | −320 · 2160 · 2120 · 2080 | gut (1 Ausreisser) (Fall 2026-09-29-i) |
+| #10328/#10326 | Jan | 5 | 1560 · 2440 · 2400 · 2440 · 640 | brauchbar (3 von 5) |
+| #10874/#10873 + #10875/#10873 | Jan | 2 | Gegenprobe: 22 ms auseinander | gut |
+| #9650/#9649 | Jan | 1 | 1480 (r 0,57) | brauchbar |
+| #9528/#9529, #9650/#9648 | Jan | je 1 | r 0,23 / 0,21 | zu schwach, raus |
 
 ## Schritt 1: taugt das Handy am Brett als Wahrheit? (29.09.2026, scripts/v3/brett_wahrheit.py — ZAHLEN UEBERHOLT, s. Korrektur oben)
 
@@ -182,13 +182,13 @@ Jan: „die 3 accel axen separat + gravitation sind doch super wichtig, insbeson
 erkennen, da wackelt man viel mit der hand hin und her, aber eben nicht mehr vertikal". Der Betrag
 der Beschleunigung (altes Modell UND Stufe A) wirft die Richtung weg — systematischer Fehler. Neu,
 lageunabhaengig gegen die Schwerkraft: `vert_rms`, `hor_rms`, `vert_anteil`, `dreh_grad_s`,
-`neigung_grad`, dazu `tempo_trend` (±5 s). An #10266: ruhige Phase des langen Versuchs vert_anteil
+`neigung_grad`, dazu `tempo_trend` (±5 s). An Session A: ruhige Phase des langen Versuchs vert_anteil (Fall 2026-09-29-j)
 0,46 / Trend +0,11 / Neigung 30° gegen den gepumpten Lauf 0,81 / −0,07 / 78°. Trainiert wird erst
 mit der Brett-Wahrheit (Schritt 3); alte Modelle nehmen weiter nur ihre eigenen Spalten.
 
 ## Schritt 3: Uhr gegen Brett-Wahrheit (29.09.2026, scripts/v3/brett_training.py)
 
-6 Paare (u2: 5, u13: 1), 9525 s, davon **947 s pumpen und nur 33 s gleiten** — beide Fahrer pumpen
+6 Paare (Jan: 5, Fahrer A: 1), 9525 s, davon **947 s pumpen und nur 33 s gleiten** — beide Fahrer pumpen (Fall 2026-09-29-k)
 auf dem Foil fast durchgehend. Die Frage „ruhiger Arm beim Gleiten" laesst sich mit diesen Daten
 NICHT messen.
 
@@ -198,13 +198,13 @@ NICHT messen.
 | Stufe A (Fahrer nie gesehen) | 0,837 | 0,957 | 97 % |
 | Modell auf Brett-Wahrheit (je Fahrt heraus) | 0,926 | 0,921 | 94 % |
 
-Folgerung: das bisherige Modell ist fuer u2/u13 gegen das Brett schon gut; ein Brett-Modell aus
+Folgerung: das bisherige Modell ist fuer Jan/Fahrer A gegen das Brett schon gut; ein Brett-Modell aus (Fall 2026-09-29-l)
 ~16 min Pump-Wahrheit ist nicht besser. Fuer die Gleit-/Beine-pumpen-Frage braucht es Brett-Paare
 von Fahrern, die wirklich gleiten (wie dieser Fahrer). Bis dahin: altes Modell bleiben lassen.
 
-**Pump-Zaehler gegen das Brett (Nebenbefund, wichtig):** u2 19 Laeufe, Uhr/Brett Median 1,10
-(0,67-2,00); u13 4 Laeufe, 1,08 (1,03-1,16). Der Zaehler ueberzaehlt ~8-10 % — die alte Aussage
-„unter-erkennt ~2×" betrifft den Zaehler VOR find_pumps_cadence. Ausreisser: kurze u2-Laeufe
+**Pump-Zaehler gegen das Brett (Nebenbefund, wichtig):** Jan 19 Laeufe, Uhr/Brett Median 1,10
+(0,67-2,00); Fahrer A 4 Laeufe, 1,08 (1,03-1,16). Der Zaehler ueberzaehlt ~8-10 % — die alte Aussage (Fall 2026-09-29-m)
+„unter-erkennt ~2×" betrifft den Zaehler VOR find_pumps_cadence. Ausreisser: kurze Jan-Laeufe
 (11-14 s) mit genau doppelt so vielen Uhr-Pumps (6->12, 8->16) — Verdacht Doppelzaehlung
 (Ab- und Aufbewegung) in kurzen Laeufen.
 
@@ -217,7 +217,7 @@ fuer uns die beste loesung, models, zusaetzliche dinge vorher / hinterher / puff
 Garmin-FIT ohne Pumpfoil (Ostrach, Gehen + Auto, 7257 s, `fit_neg`), Guillaumes langsames
 Weiterpumpen (790 s nahe Wasser, `fortsetzung`), die Brett-Wahrheit der 6 Paare (`brett`).
 Guillaumes Fortsetzungen sehen im Arm aus wie seine Laeufe (Pump-Staerke 0,64 gegen 0,67, 1,62 Hz,
-97 % vertikal), nur bei 6,4 statt 11,5 km/h — auch #9525, das ist Pumpen, kein Paddeln.
+97 % vertikal), nur bei 6,4 statt 11,5 km/h — auch Session A, das ist Pumpen, kein Paddeln. (Fall 2026-09-29-n)
 
 **Modelle (Stufe A, je Sekunde, Fahrer herausgehalten):**
 
@@ -254,14 +254,14 @@ Profil-Empfindlichkeit). Gemessen mit detektor-v3-messen.py + direkt gegen Brett
 - `tief+empf`: tief-Laeufe, Veto dann Schnitt, Schwellen je Empfindlichkeit (normal 0,5/0,4, light
   0,4/0,3, attempts 0,3/0,25) — die Einstellung stellt dann die MODELL-Schwellen statt der Tempo-
   Grenzen. Schwaeche: tief verschmilzt Gehen und Fahren zu einem Abschnitt, das Veto wirft den
-  echten Lauf mit weg (#8490 312 s -> 0, #1341 239 s -> 5 s; p dort 0,98-0,99).
+  echten Lauf mit weg (Session A 312 s -> 0, Session B 239 s -> 5 s; p dort 0,98-0,99). (Fall 2026-09-29-o)
 - `beide+empfteilkurz`: Vereinigung v2 ∪ tief, in Stuecke mit hohem p zerlegen, Veto je Stueck,
   kurze Stuecke nur bei p >= 0,8. Verliert kaum klare Laeufe, aber kurze Laeufe fast alle (141
   statt 1059) — die Trefferquote gegen foil_status bleibt gleich, die Frage ist, ob Nutzer mit
   „attempts" die kurzen sehen wollen.
 - Reihenfolge zaehlt: erst schneiden, dann Veto liess aus langen Nicht-Foil-Abschnitten kurze
   Stuecke mit hohem p stehen (2554 neue Laeufe < 8 s). Naht aendert nichts (v2 verbindet schon).
-- Offen: #9580 (u186, am Steg) bekommt viele gruene Stuecke im GPS-Gewimmel am Ufer — Jans Blick.
+- Offen: Session A (am Steg) bekommt viele gruene Stuecke im GPS-Gewimmel am Ufer — Jans Blick. (Fall 2026-09-29-p)
   Pumps je Lauf muessen fuer neue Grenzen neu gezaehlt werden (die Werkbank zaehlt keine).
   Gleiten: weiter nur 31 Brett-Sekunden, nicht messbar.
 - Bilder: `server/data/ml/bilder/vergleich/` (blau gemeinsam, rot faellt weg, gruen kommt dazu).
@@ -272,9 +272,9 @@ Profil-Empfindlichkeit). Gemessen mit detektor-v3-messen.py + direkt gegen Brett
   nicht mehr, bessere Labels schon (Brett-Paare, Gleiten, Fahrer mit langsamem Weiterpumpen).
 - r3gross (600 Baeume, 127 Blaetter): Land 0,732 statt 0,728, sonst gleich, Brust-Fahrer schlechter.
   Die Groesse ist nicht der Engpass -> r3 bleibt (kleiner, schneller).
-- Die 21 Rest-„Land"-Laeufe sind teils GPS-Fehler: #541 GPS-Gezappel am Steg zieht aufs Land, der
-  Arm pumpt (p 0,99); #2684 Gerade neben der Wosha mit duennen GPS-Punkten. L kann nicht 0 werden.
-- #9455 (Pruefliste): 1 -> 28 km/h in 12 s und zurueck, Arm bewegt (p 0,9) — kein Pumpfoil, das
+- Die 21 Rest-„Land"-Laeufe sind teils GPS-Fehler: Session A GPS-Gezappel am Steg zieht aufs Land, der (Fall 2026-09-30-a)
+  Arm pumpt (p 0,99); Session B Gerade neben der Wosha mit duennen GPS-Punkten. L kann nicht 0 werden.
+- Session A (Pruefliste): 1 -> 28 km/h in 12 s und zurueck, Arm bewegt (p 0,9) — kein Pumpfoil, das (Fall 2026-09-30-b)
   Modell irrt. Eine Tempo-Regel dafuer waere Ueberanpassung an einen Fall (Wing/Efoil sind so
   schnell); bleibt als bekannter Fehler.
 - Pumps: werden in `run_analysis` je Lauf gezaehlt, NACH der Erkennung — laeuft die Nachbearbeitung
@@ -283,12 +283,12 @@ Profil-Empfindlichkeit). Gemessen mit detektor-v3-messen.py + direkt gegen Brett
 **Empfehlung (Stand 30.09., Jans Entscheidung offen):** Modell r3, Ausgang v2 ∪ tief, `teil`
 (Stuecke mit p >= θ) + Veto je Stueck + kurze Stuecke nur bei klarem p, alle Schwellen je
 Profil-Empfindlichkeit. Offen fuer Jan: wie streng bei kurzen Laeufen (141 bis 1290 unter 8 s,
-foil_status-Trefferquote gleich) und #9580 (Steg-Gewimmel). Live erst nach Jans OK, mit
+foil_status-Trefferquote gleich) und Session A (Steg-Gewimmel). Live erst nach Jans OK, mit (Fall 2026-09-30-c)
 Lauf-Status manuell/auto und Sicherung des Bestands.
 
 ## Haltung der Uhr relativ zur Session (Jans Idee, 30.09.2026)
 
-Jan an #9580: „ich vermute bei den meisten Pumpern ist die Richtung der Uhr immer etwa gleich
+Jan an Session A: „ich vermute bei den meisten Pumpern ist die Richtung der Uhr immer etwa gleich (Fall 2026-09-30-d)
 verteilt waehrend eines Laufs, und genau das koennte bei erkanntem Pumpen an Land (also Laufen) ganz
 anders sein." `scripts/v3/haltung.py`, je Abschnitt gegen die UEBRIGEN sicheren Laeufe derselben
 Session (p_r3 >= 0,9, >= 10 s):
@@ -302,17 +302,17 @@ Session (p_r3 >= 0,9, >= 10 s):
 
 AUC Winkel 0,95 / 0,89 / 0,97, Profil 0,93 / 0,96 / 0,95. Die Brett-Paare bestaetigen es
 unabhaengig von der Karte (Brett pumpt nicht, Uhr 2,5-8 km/h): Fahren 3-7°, Gehen 39-91°, Staerke
-0,13-0,27. #9580 selbst: der neue Lauf 2143-2180 s, Lauf 19 und 21 halten die Uhr anders (Streuung
+0,13-0,27. Session A selbst: der neue Lauf 2143-2180 s, Lauf 19 und 21 halten die Uhr anders (Streuung (Fall 2026-09-30-e)
 29-44° statt 10-19°, 0,3 g statt 1,1-1,4 g) — im Satelliten-Bild nicht entscheidbar (Jan: „entweder
 … an der Strasse stehengeblieben und umgekehrt, oder er ist vom Steg an Land gesurft").
 
 **Als Merkmal (r4, `analysis/v3/haltung.py`, zweistufig mit r3 als Referenz):** kleiner Gewinn —
 Land je Sekunde 0,728 -> 0,763, in der Werkbank (beide+empfteilkurz) Land 21 -> 19, Nutzer-
-aussortiert 26 -> 24, Brust-Fahrer 25 -> 26 min, foil_status unveraendert 0,943/0,940. #9580 aendert
+aussortiert 26 -> 24, Brust-Fahrer 25 -> 26 min, foil_status unveraendert 0,943/0,940. Session A aendert (Fall 2026-09-30-f)
 es nicht: die Referenz je Sekunde enthaelt die verdaechtigen Laeufe selbst.
 **Als harte Lauf-Pruefung** ((Winkel > 30° oder Profil > 0,4) und Staerke < 0,5, gegen die anderen
 sicheren Laeufe): Land 19 -> 12, ABER foil_status-Trefferquote 0,940 -> 0,919 bei gleicher Praezision
-— sie wirft echtes Foilen weg (vermutlich Stellungswechsel: u98 allein 41 Laeufe). Verworfen.
+— sie wirft echtes Foilen weg (vermutlich Stellungswechsel: Fahrer A allein 41 Laeufe). Verworfen.
 -> r4 ist die beste Fassung; die Haltung bleibt Merkmal, nicht Regel.
 
 ## Konstanz der Uhr-Haltung gegen sich selbst (Jan, 30.09.2026)
@@ -335,21 +335,21 @@ Befund anders als vermutet: im kurzen Fenster sind Gehen und Auto NICHT unruhig,
 laufend darum (Handgelenk beim Pumpen) — Gehen/Auto haben beides nicht; das erkennt das Modell
 ohnehin (Gehen 2 von 188, Auto 0 von 82 falsch). Bei den SCHWEREN Faellen (Modell p >= 0,5, doch
 Land/aussortiert) stimmt Jans Vermutung: Konstanz 0,55 / 0,54 gegen 0,88. Fensterlaenge an genau
-diesen Faellen: 10 s trennt 0,78 · 20 s 0,86 · **30 s 0,88** · 60 s 0,78. An #9580: neuer Lauf 0,31,
+diesen Faellen: 10 s trennt 0,78 · 20 s 0,86 · **30 s 0,88** · 60 s 0,78. An Session A: neuer Lauf 0,31, (Fall 2026-09-30-g)
 Lauf 19 0,07, echter Lauf 14 0,76. -> als Merkmale konstanz20/konstanz30/wechsel30 in r5.
 
 **r5 (Haltung + Konstanz als Merkmale, 30.09.):** je Sekunde wie r4 (Land 0,762). Werkbank
-beide+empfteilkurz: foil_status 0,944/0,940, Land 18/82 (r4 19), Brust-Fahrer 25 min, #9580 unveraendert
+beide+empfteilkurz: foil_status 0,944/0,940, Land 18/82 (r4 19), Brust-Fahrer 25 min, Session A unveraendert (Fall 2026-09-30-h)
 (p 0,88-0,96) — die Labels lehren das Modell, dass Laeufe am Ufer Foilen sind („lauf nahe Wasser").
 **Konstanz als harte Lauf-Pruefung verworfen:** Schwelle 0,2 -> Brett-Trefferquote 0,935 -> 0,908,
 foil_status 0,940 -> 0,923 (0,3: 0,898; 0,4: 0,811) — wirft echte Fahrten weg. Grund an der
-Brett-Wahrheit: Jan (u2) pumpt mit konstanz30 nur 0,35-0,49 (kurze Laeufe, das 30-s-Fenster reicht
-ueber den Lauf hinaus), u13 mit 0,85 — so viel wie Gehen. Fahrer unterscheiden sich zu stark fuer
+Brett-Wahrheit: Jan pumpt mit konstanz30 nur 0,35-0,49 (kurze Laeufe, das 30-s-Fenster reicht
+ueber den Lauf hinaus), Fahrer A mit 0,85 — so viel wie Gehen. Fahrer unterscheiden sich zu stark fuer
 eine globale Schwelle; die Konstanz bleibt Merkmal.
 
 **r6 (r5 + Lauf-Sekunden ohne JRC-Wasser unsicher, 109334 von 795265 s):** Land 18 -> 16, foil_status
 0,944/0,941 unveraendert, aber Brust-Fahrer schlechter (Fortsetzung 289 -> 231 s: sein Hafen ist
-teils JRC-Land), #9580 unveraendert (p 0,87-0,90). Kein Gewinn.
+teils JRC-Land), Session A unveraendert (p 0,87-0,90). Kein Gewinn. (Fall 2026-09-30-i)
 
 ## Plateau (30.09.2026, morgens)
 
@@ -357,10 +357,10 @@ r3 -> r4 -> r5 -> r6 bringen je Sekunde und in der Werkbank nur noch Zehntel: fo
 0,940-0,941, Land 21 -> 16 von 82, Brett 0,920/0,935. Modellgroesse (r3gross) und Datenmenge
 (Lernkurve flach ab ~64 Fahrern) sind nicht der Engpass. Die Rest-Fehler sind wenige und haben
 drei Ursachen, die kein weiteres Merkmal aus den vorhandenen Labels loest:
-1. GPS-Fehler am Ufer (#541, #2684, #9580: Position laeuft der Geschwindigkeit hinterher, der Arm
-   pumpt) — dort IST unklar, was stimmt; Jan konnte #9580 im Satellitenbild auch nicht entscheiden.
+1. GPS-Fehler am Ufer (Session A, B, C: Position laeuft der Geschwindigkeit hinterher, der Arm (Fall 2026-09-30-j)
+   pumpt) — dort IST unklar, was stimmt; Jan konnte Session C im Satellitenbild auch nicht entscheiden.
 2. Labels: „Lauf nahe Wasser" lehrt Ufer-Stuecke als Foilen; ohne sie (r6) leidet der Brust-Fahrer.
-3. Fahrer unterscheiden sich stark (Konstanz u2 0,35-0,49 gegen u13 0,85) — globale Regeln
+3. Fahrer unterscheiden sich stark (Konstanz Jan 0,35-0,49 gegen Fahrer A 0,85) — globale Regeln (Fall 2026-09-30-k)
    treffen echte Fahrten (Haltungs- und Konstanz-Pruefung beide verworfen, Brett-Beleg).
 Was wirklich weiterhilft, sind NEUE Wahrheiten: Brett-Paare mit Land-Phasen (Jan: „zum Auto gegangen"),
 Gleit-Phasen (bisher 31 s), weitere Fahrer mit Brett-Handy, Guillaumes Stil mit Brett-Handy.
@@ -399,18 +399,18 @@ Code-Aenderungen — Kandidaten fuer eine Reanalyse, kein Fehler des Nachbaus.
 | Pumps | 1340913 | 1366462 | 1375289 |
 | verlieren Pumpfoil-Status | – | 30 | 17 |
 
-- **Tempo-Rekorde:** alle vier, die herausfallen, sind Land-Laeufe der Sichtpruefung (u259 #3810 8,9
-  -> 5,9 m/s, u516 #8970 8,4 -> 4,3, u127 #10478 Parkplatzrunde 8,3 -> 4,9, u524 #8473 7,7 -> 0).
+- **Tempo-Rekorde:** alle vier, die herausfallen, sind Land-Laeufe der Sichtpruefung (Fahrer A Session A 8,9 (Fall 2026-09-30-l)
+  -> 5,9 m/s, Fahrer B Session B 8,4 -> 4,3, Fahrer C Session C Parkplatzrunde 8,3 -> 4,9, Fahrer D Session D 7,7 -> 0).
   Strecken- und Dauer-Rekorde: nur Sekunden/Meter an den Raendern.
 - **Pumpfoil-Status verloren (streng, 30):** 11 Land laut Sichtpruefung; die uebrigen fast alle
   winzig (5-30 s kurze Laeufe) — dort entscheidet die Strenge. Mild: 17.
-- Groesste Verluste gesichtet: #9619 (Laeufe auf der N15 bei Sligo = Autofahrt, zu Recht weg),
-  #440 (alle 12 Laeufe bleiben, nur Raender). Groesste Gewinne: #9580 (Steg, s. oben), Guillaumes
-  #9525 248 -> 577 s.
+- Groesste Verluste gesichtet: Session A (Laeufe auf der N15 bei Sligo = Autofahrt, zu Recht weg), (Fall 2026-09-30-m)
+  Session A (alle 12 Laeufe bleiben, nur Raender). Groesste Gewinne: Session B (Steg, s. oben), Guillaumes (Fall 2026-09-30-n)
+  Session A 248 -> 577 s. (Fall 2026-09-30-o)
 - **Fehler im ersten Lauf, behoben:** neue Laeufe nahmen das ROHE GPS-Tempo -> 54-km/h-„Rekorde".
   Jetzt Felder wie v2 (`_seg_fields` auf bereinigtem, geglaettetem Tempo) plus
   `_gate_implausible_runs`.
-- Nebenbefund: u239 hat 3 Sessions mit Laeufen von 0 s Dauer (TODO-Inbox).
+- Nebenbefund: Fahrer A hat 3 Sessions mit Laeufen von 0 s Dauer (TODO-Inbox). (Fall 2026-09-30-p)
 
 ## LIVE seit 30.09.2026, ~08:00 (Jans OK: „ja perfekt, bitte live schalten")
 
@@ -425,7 +425,7 @@ Code-Aenderungen — Kandidaten fuer eine Reanalyse, kein Fehler des Nachbaus.
 - Reanalyse: 2590 Accel-Sessions (153 mit leerem GPS-Ordner vom Skript zu Recht uebersprungen), 0 Fehler,
   2584 exakt wie der Regressionstest, 6 um Sekunden daneben. Laeufe 18765 -> 19336, Foil-Zeit 235,9 ->
   242,9 h, Strecke 3507 -> 3558 km, Pumps 1340913 -> 1375236. Gegen die Sicherung: 16 Sessions nicht mehr
-  Pumpfoil (Land laut Sichtpruefung, winzige Reste, die 3 u239-Sessions mit gestauchter Zeitachse),
+  Pumpfoil (Land laut Sichtpruefung, winzige Reste, die 3 Fahrer A-Sessions mit gestauchter Zeitachse), (Fall 2026-09-30-q)
   8 zum ersten Mal Pumpfoil.
 - Panne unterwegs: 6 Reanalyse-Prozesse ohne Thread-Grenze -> Last 96 auf der geteilten VM. Neu gestartet
   mit `OMP_NUM_THREADS=1`; der Dienst hat seitdem `OMP_NUM_THREADS=2` in server/.env.
@@ -433,14 +433,14 @@ Code-Aenderungen — Kandidaten fuer eine Reanalyse, kein Fehler des Nachbaus.
 
 ## Fuer spaetere Verbesserungen (Jan, 30.09.2026)
 
-- **#9455 als Pruefstein** (Jan: „merken fuer zukuenftige Verbesserungen"): 1 -> 28 km/h in 12 s und
+- **Session A als Pruefstein** (Jan: „merken fuer zukuenftige Verbesserungen"): 1 -> 28 km/h in 12 s und (Fall 2026-09-30-r)
   zurueck, Arm bewegt, p 0,9 — kein Pumpfoil. Kandidat: Beschleunigung/Tempo-Verlauf je Lauf gegen die
   Physik eines Foils (kein Foiler beschleunigt aus dem Stand in Sekunden auf 28 km/h), gegen Wing/Efoil
   abgrenzen.
 - **Gleitphasen automatisch** (Jan: „bei mir wurden in Gleitphasen weniger Pump-Marker gesetzt, was genau
   das ist, woraus wir derzeit Gleitphasen berechnen"). Heute: `longest_glide_s` = laengste Luecke zwischen
   zwei erkannten Pumps. Naechster Schritt: Luecken ab ~1,8 Pump-Perioden im Lauf als Gleitphase markieren
-  (wie die Carves einzeichnen), gegen die 12 Brett-Gleitpausen (v. a. u13) und Jans Laeufe pruefen;
+  (wie die Carves einzeichnen), gegen die 12 Brett-Gleitpausen (v. a. Fahrer A) und Jans Laeufe pruefen; (Fall 2026-09-30-s)
   die Haltungs-/Konstanz-Merkmale (ruhige Vertikale, seitliches Balancieren) als Bestaetigung.
 - **Stufe B (Sportart je Session/Lauf)** ist trainiert (Wingfoil 20/24 statt 0/21), aber nicht live —
   heute ordnet `sportauto.einordnen` regelbasiert nach der finalen Analyse zu. Vor einem Einsatz ein
@@ -448,7 +448,7 @@ Code-Aenderungen — Kandidaten fuer eine Reanalyse, kein Fehler des Nachbaus.
 
 ## v3-r4-mild-2: Kandidaten ohne altes Modell, Empfindlichkeit als harte Grenze (03.10.2026)
 
-Befund #12632 (ein Fahrer, Apple Watch): Laeufe als Startversuche gezaehlt. Die „grosszuegigen"
+Befund Session A (ein Fahrer, Apple Watch): Laeufe als Startversuche gezaehlt. Die „grosszuegigen" (Fall 2026-10-03-a)
 `tief`-Kandidaten lockerten nur die Tempo-Grenzen; `detect_v2` nahm mit Accel weiter `foil_rf.pkl`
 als Maske. Ein Lauf brauchte damit das Ja BEIDER Modelle — genau das, wovor detector-v2.md warnt
 („zwei Detektoren zu schneiden verliert jeden Lauf, ueber den sie uneins sind"). Beispiel 17:49 /
@@ -475,12 +475,12 @@ Regression gegen r4. Name **r7**, weil `stufe_a_r5/r6` vom 30.09. schon belegt s
 (+ `_falten`), Referenz r3 wie live. Vorschau: `?v3=r7a` (api/v3_vorschau.py).
 
 **Paare** (`paare_ausrichten.py --mit-ohne-accel --aus data/ml/v3/paare-2026-10-23.json`, jetzt mit Labels je
-Uhr: Geraet, App, gemessene Rate, time_base, detection): 25 Paare, 7 Fahrer; 3 davon mit Uhr OHNE Accel (u460,
+Uhr: Geraet, App, gemessene Rate, time_base, detection): 25 Paare, 7 Fahrer; 3 davon mit Uhr OHNE Accel (Fahrer A, (Fall 2026-10-23-a)
 nur gelistet). Qualitaet (`brett_daten_r7.py`): **gut** (Streuung <= 400 ms, >= 2 Laeufe, r >= 0,35) 10 Uhr-Sessions
-(u2 6, u244, u683 2, u574 1), **mittel** 4, **schwach** 6 (alle Wear-OS-Paare von u574 bis 1.2.37: 6,7-8,4 Hz
+(Jan 6, Fahrer C 2, Fahrer D 1), **mittel** 4, **schwach** 6 (alle Wear-OS-Paare von Fahrer D bis 1.2.37: 6,7-8,4 Hz
 oder unplausible 36/220 Hz `measured_rate`, r 0,12-0,22 — Ausrichtung nicht belegt). Zwei dieser Uhren laufen live
 als gps_only (< 8 Hz) und koennen das Handgelenk-Modell weder lernen noch nutzen; ab Wear 1.2.42 (exact_chunks,
-26,7 Hz) richtet sich u574 sauber aus (360 ms).
+26,7 Hz) richtet sich Fahrer D sauber aus (360 ms).
 
 **Datensatz:** Phase 0 neu (`detektor-v3-phase0.py --aus data/ml/v3/r7`), 1396 neue Sessions seit 29.09. nach
 `r7/ds` — „lauf"-Labels an FRISCH gerechneten v2-Laeufen (`datensatz.py --lauf-v2`; die gespeicherten sind seit
@@ -496,26 +496,26 @@ als gps_only (< 8 Hz) und koennen das Handgelenk-Modell weder lernen noch nutzen
 | Brett je Sekunde Praez. / Treffer (alle Paare) | 0,848 / 0,926 | 0,855 / 0,922 | 0,854 / 0,924 |
 | Brett „gut" | 0,860 / 0,931 | 0,871 / 0,924 | 0,866 / 0,928 |
 | Brett-Laeufe gefunden · Uhr-Laeufe bestaetigt | 94/129 · 91/104 | 94/129 · 91/101 | 94/129 · 91/101 |
-| u350 Fortsetzung (s von 771) | 289 | 230 | 243 |
+| Fahrer A Fortsetzung (s von 771) | 289 | 230 | 243 (Fall 2026-10-23-b) |
 | Laeufe an Land (Sicht) noch da | 21/82 | 22/82 | 21/82 |
 | Negativbeispiele (Laeufe) | 0 | 0 | 0 |
 
-Je Fahrer (Brett, Praez./Treffer): u2 0,839/0,914 -> 0,829/0,914 (r7a) · u13 0,960/0,993 -> 0,960/0,995 ·
-u244 0,922/0,899 -> 0,903/0,895 · u574 0,822/0,886 -> 0,839/0,880 · u683 0,816/0,944 -> 0,834/0,940.
+Je Fahrer (Brett, Praez./Treffer): Jan 0,839/0,914 -> 0,829/0,914 (r7a) · Fahrer A 0,960/0,993 -> 0,960/0,995 · (Fall 2026-09-30-t)
+Fahrer B 0,922/0,899 -> 0,903/0,895 · Fahrer C 0,822/0,886 -> 0,839/0,880 · Fahrer D 0,816/0,944 -> 0,834/0,940.
 Je Sekunde ueber den ganzen Datensatz praktisch gleich (fremd 0,958/0,994 alle drei). **Befund: Plateau wie am
 30.09.** — die neuen Paare verschieben die Zahlen im Bereich von Hundertsteln; der Gewinn an Praezision kostet
-etwas Trefferquote und das langsame Weiterpumpen von u350.
+etwas Trefferquote und das langsame Weiterpumpen von Fahrer E.
 
 **Regression ueber den Bestand** (`regression_r7.py`, 3937 Sessions mit `metrics.v3` + 3 Negativbeispiele, 0 Fehler;
 Nachbau r4 trifft Laufzahl 3913/3937, Pumps exakt 3809 bzw. +-2 % 3911 — Pumps/Gleiten auf den neuen Grenzen NEU
 gezaehlt): r7a Laeufe 32 851 -> 32 459 (-1,2 %), Foil-Zeit 382,7 -> 381,2 h (-0,4 %), Pumps -0,2 %. 997 Laeufe fallen
 weg (79 % unter 8 s), 612 kommen dazu (72 % unter 8 s). Foil-Zeit je Session: 1338 unveraendert, 2339 innerhalb 2 s,
 376 um mehr als 5 %. is_pumpfoil: 8 verlieren, 19 gewinnen. Community-Rekorde: nur „meiste Laeufe" wechselt
-(#14868 u514 81 -> #18833 u146 77), alle anderen Halter bleiben. sportauto-240-s: #13890 (Wear-Emulator-Session
-u38, 2 Laeufe -> 0) und #12509 (s. unten). Brett-Parallelfahrten: Uhr-Laeufe bestaetigt 103/114 -> 105/108.
+(Session A Fahrer A 81 -> Session B Fahrer B 77), alle anderen Halter bleiben. sportauto-240-s: #13890 (Wear-Emulator-Session (Fall 2026-10-23-c)
+Testkonto, 2 Laeufe -> 0) und Session C (s. unten). Brett-Parallelfahrten: Uhr-Laeufe bestaetigt 103/114 -> 105/108.
 
-Offen fuer Jan: #12509 (u752) wird bei r7 zu einem 587-s-Lauf bei 0 Pumps (vorher 4 Laeufe, 378 s) — genau der Fall,
-in dem r4 die Mitte verwarf; #14868 (Pixel Watch 5, „attempts") verliert 16 von 81 Laeufen und damit den
+Offen fuer Jan: Session A wird bei r7 zu einem 587-s-Lauf bei 0 Pumps (vorher 4 Laeufe, 378 s) — genau der Fall, (Fall 2026-10-23-d)
+in dem r4 die Mitte verwarf; Session B (Pixel Watch 5, „attempts") verliert 16 von 81 Laeufen und damit den
 Laeufe-Rekord. Empfehlung, wenn ueberhaupt: r7a als Vorschau ansehen; live nur nach Sichtpruefung der Beispiele.
 
 ## r8b: Accel in echtem g (13.11.2026) — gebaut und gemessen, NICHT live (Jan: „nicht live schalten")
@@ -532,7 +532,7 @@ Faire Messung (Fahrer herausgehalten, Live-Weg, `messen_r7.py --kandidat "r4@nor
 |---|---|---|---|---|
 | Brett alle Praez./Treffer | 0,848/0,926 | 0,854/0,924 | 0,855/0,922 | 0,863/0,916 |
 | Uhr-Laeufe bestaetigt | 91/104 | 91/104 | 91/101 | 91/99 |
-| u350 Fortsetzung (s/771) | 289 | 289 | 230 | 255 |
+| Fahrer A Fortsetzung (s/771) | 289 | 289 | 230 | 255 (Fall 2026-11-13-a) |
 | Land-Laeufe noch da (/82) | 21 | 21 | 22 | 19 |
 | Label-Wahrheit F1 (132 FIT) | 0,898 | 0,898 | – | 0,899 |
 | 300 Garmin-App-Sessions, Laeufe | 3473 | 3343 | – | 3357 |

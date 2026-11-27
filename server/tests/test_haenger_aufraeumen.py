@@ -3,7 +3,7 @@
 `complete` heisst: die Uhr hat `/complete` geschickt und darf ihre Kopie loeschen. Fertig ist
 die Session damit nicht — die finale Analyse laeuft hinterher. Stirbt sie, bleibt die Aufnahme
 in diesem Zwischenzustand haengen: „wird verarbeitet" in der Liste, keine Benachrichtigung, kein
-Auto-Zuschnitt, aus der Community ausgeblendet. Passiert am 15.09.2026 an #8517 und #8504.
+Auto-Zuschnitt, aus der Community ausgeblendet. Passiert am 15.09.2026 an #8517 und Session A. (Fall 2026-09-15-f)
 
 Geprueft wird `ingest.haenger_faellig` — die Entscheidung selbst, nicht eine Kopie davon im
 Aufraeum-Skript. (Genau der Fehler, der am 14.09. einen Test gruen liess, waehrend Nutzer-Uploads

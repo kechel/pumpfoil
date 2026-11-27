@@ -9,7 +9,7 @@ Chunks noch hochladen. Kam `/complete` in dieser Zeit an, setzte es korrekt „c
 noch laufende Zwischenanalyse schrieb danach wieder „live". Betroffen: 12 Aufnahmen von 9 echten
 Nutzern. Der Fix war ein Waechter `neuer_status(session.status, final)`.
 
-**14.09.2026, derselbe Fehler nochmal:** Peters Session #8448 (`/complete` 18:34:00,
+**14.09.2026, derselbe Fehler nochmal:** die Session A (`/complete` 18:34:00, (Fall 2026-09-13-f)
 ueberschreibende Analyse 18:36:19, +139 s) hing trotz des Waechters. `SessionLocal` laeuft mit
 `expire_on_commit=False`, und zwischen `db.get()` in `_analyze_in_background` und dem Waechter
 steht in `run_analysis` kein commit/refresh — `session.status` war also das Speicherabbild von
@@ -96,7 +96,7 @@ def test_complete_waehrend_der_zwischenanalyse_bleibt_stehen(client):
     finally:
         db_uhr.close()
     assert _status(sid) == "complete"
-    # Das Speicherabbild der Analyse ist jetzt VERALTET — genau der Zustand von #8448.
+    # Das Speicherabbild der Analyse ist jetzt VERALTET — genau der Zustand von Session A. (Fall 2026-09-14-c)
     assert s.status in ("recording", "live"), "Vorbedingung: das Objekt kennt den Abschluss nicht"
 
     # 3. Die Zwischenanalyse committet — und darf den Abschluss nicht zurueckdrehen.

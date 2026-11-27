@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Auswertung einer Session festhalten (oder freigeben) — von Hand gesetzter Sonderfall (Jan, 11.11.2026).
 
-    cd server && .venv/bin/python ../scripts/auswertung-festhalten.py 20528 --notiz "Laeufe nach Pruefung zurueckgeholt"
-    cd server && .venv/bin/python ../scripts/auswertung-festhalten.py 20528 --notiz "…" --echt
-    cd server && .venv/bin/python ../scripts/auswertung-festhalten.py 20528 --aus --echt
+    cd server && .venv/bin/python ../scripts/auswertung-festhalten.py <session-id> --notiz "Laeufe nach Pruefung zurueckgeholt"
+    cd server && .venv/bin/python ../scripts/auswertung-festhalten.py <session-id> --notiz "…" --echt
+    cd server && .venv/bin/python ../scripts/auswertung-festhalten.py <session-id> --aus --echt
     cd server && .venv/bin/python ../scripts/auswertung-festhalten.py --liste
 
 Eine festgehaltene Session rechnet `run_analysis` nicht mehr neu (Empfindlichkeit, Hintergrund-Neuauswertung,

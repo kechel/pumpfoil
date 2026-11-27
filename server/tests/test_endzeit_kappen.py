@@ -1,6 +1,6 @@
 """Endzeit weit hinter den Daten wird beim Abschluss aufs Datenende gesetzt (09.10.2026).
 
-Anlass #14325: iPhone-Handy-Recorder, Akku leer nach 13,7 h, Abschluss sechs Tage spaeter mit
+Anlass Session A: iPhone-Handy-Recorder, Akku leer nach 13,7 h, Abschluss sechs Tage spaeter mit (Fall 2026-10-09-f)
 „jetzt" als Ende -> ueberall gut 150 h Dauer. Eine echte (gemeldete) Pause bleibt unangetastet."""
 from __future__ import annotations
 

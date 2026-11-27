@@ -329,7 +329,7 @@ export default function PersonalHome() {
   // von selbst kurz, weil nur Foils aus dem Fenster auftauchen. Umschalten geht weiter.
   const [period, setPeriod] = useState(STANDARD_ZEITRAUM);
   // Sportart der EIGENEN Rekorde. "" = noch nicht gewaehlt -> der Server nimmt die haeufigste
-  // und schickt sie zurueck; ab dann steht sie hier. Anlass: PeterHs Skate-Session zaehlte in
+  // und schickt sie zurueck; ab dann steht sie hier. Anlass: die Skate-Session eines Nutzers zaehlte in
   // seinen Gesamtzahlen mit, obwohl sie als andere Sportart markiert war (16.08.).
   const [sport, setSport] = useState("");
   const [sports, setSports] = useState<{ sport: string; sessions: number }[]>([]);

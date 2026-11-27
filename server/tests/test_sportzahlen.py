@@ -56,7 +56,7 @@ def test_fahrten_efoil_aber_nicht_towed():
 
 
 def test_tempo_ohne_gps_zittern_im_stand():
-    """#18978 (24.10.2026): stundenlang liegendes Handy summiert GPS-Zittern zu Kilometern; Schnitt nur aus Bewegung."""
+    """Session A (24.10.2026): stundenlang liegendes Handy summiert GPS-Zittern zu Kilometern; Schnitt nur aus Bewegung. (Fall 2026-10-24-p) """
     from app.sportzahlen import berechnen
     t = _spur(101, 5.0)                                         # 100 s mit 5 m/s
     c, v = t["geometry"]["coordinates"], t["properties"]["speeds_mps"]
