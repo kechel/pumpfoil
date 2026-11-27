@@ -147,6 +147,7 @@ ZAHLEN JE MARKE  (gefunden / davon schon da / davon neu / bei uns ohne Fund)
    AlpineFoil                6 /   0 /   6 /   3
    Armstrong                 6 /   3 /   3 /   0
    AXIS                      9 /   6 /   3 /   1
+   Beta Foils                1 /   1 /   0 /   0
    Cabrinha                  3 /   3 /   0 /  19
    Cloud IX Foils            1 /   1 /   0 /   0
    Code Foils                1 /   1 /   0 /   4

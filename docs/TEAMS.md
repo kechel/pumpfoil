@@ -397,7 +397,7 @@ development" auf /changelog (`appmeta.IDEEN`). **Nichts davon ist gebaut; vor de
 
 ### Team gegen Team
 
-Vorschlag: wie bei WOO Sports darf ein Team beliebig gross sein, in den Vergleich gehen aber nur die besten 3 oder 5
+Vorschlag: Ein Team darf beliebig gross sein, in den Vergleich gehen aber nur die besten 3 oder 5
 Ergebnisse je Team. Jeder kann mitmachen und versuchen, unter die besten N zu kommen; ein grosses Team gewinnt nicht
 allein durch seine Groesse. Jan: „wir machen auch ein team illmensee, und dann pumpen wir gegeneinander, meiste pumps
 des gesamten teams gegen ein anderes team".

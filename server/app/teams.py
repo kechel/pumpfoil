@@ -727,7 +727,7 @@ VERGLEICH_TOP = (3, 5, 10)
 def vergleich(db: Session, period: str, top: int, sportart: str = "pumpfoil") -> list[dict]:
     """Team-Bestenlisten (Jan, 03.11.2026: „leaderboards, aber eben nicht mit einzelpersonen sondern mit teams"):
     je Kennzahl die Summe der besten `top` Fahrer eines Teams — so gewinnt ein grosses Team nicht allein durch seine
-    Groesse (Vorschlag u963, WOO Sports). Je Kennzahl zaehlen die jeweils besten N, nicht ueber alle dieselben.
+    Groesse (Vorschlag u963). Je Kennzahl zaehlen die jeweils besten N, nicht ueber alle dieselben.
     Nur freigegebene Teams mit oeffentlichen Bestenlisten (wer nur Mitgliedern zeigt, zeigt auch hier nichts) und fuer
     alle gleich gemessen: die eigenen Filter der Teams gelten nicht, Laeufe ohne Bewegungsdaten zaehlen mit.
     Mitglied in zwei Teams zaehlt fuer beide; Sessions vor dem Beitritt zaehlen wie in den Team-Tafeln."""

@@ -177,8 +177,8 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
   - **Zweiter, UNABHAENGIGER Punkt — die 4,91 Hz.** Angefordert 25, gemessen 4,91; unter der
     Schwelle `MODEL_MIN_ACCEL_HZ = 8.0` -> `detection = gps_only`, also keine Pumps, keine
     Kadenz. In der ganzen Wear-Flotte gibt es nur vier Sessions unter 15 Hz, seine ist mit 4,91
-    die niedrigste (sonst 41-56 Hz). Er hatte **Waterspeed parallel laufen** — derselbe
-    Mechanismus wie bei PeterH (u171), wo eine fremde App die Health-Services-Uebung hielt und
+    die niedrigste (sonst 41-56 Hz). Er hatte **eine zweite Tracking-App parallel laufen** — derselbe
+    Mechanismus wie bei u171, wo eine fremde App die Health-Services-Uebung hielt und
     der Puls nie ankam. **Unbelegt**, aber die naheliegendste Erklaerung; belegbar erst durch
     eine Aufnahme ohne die zweite App.
   - **✅ 19.09. UMGESETZT (Jans OK: „dann mach es bitte alles richtig").** Regel an ZWEI Stellen,
@@ -199,8 +199,8 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
     Die 56 Garmin-Sessions mit konstant 4 m sind unberuehrt, sie passierten das Gate ohnehin.
     Einziger weiterer Nutzer von `hacc_m` ist das Gate selbst; die Uhren-Qualitaetsseite liest
     die Genauigkeit aus den ROHDATEN (`scripts/uhren-qualitaet.py`), nicht aus den Fenstern.
-  - **Foilbert ist geantwortet** (1:1, `dm:230-574`): was los war, seine echten Zahlen, und die
-    Bitte um eine Aufnahme ohne Waterspeed wegen der 4,91 Hz.
+  - **Dem Nutzer ist geantwortet** (1:1, `dm:230-574`): was los war, seine echten Zahlen, und die
+    Bitte um eine Aufnahme ohne die zweite App wegen der 4,91 Hz.
   - **Nachgesehen, ob noch etwas neu zu rechnen ist (Jans Frage) — NEIN, nichts.** Drei Suchen
     ueber den ganzen Bestand:
     1. **Dieselbe Falle bei anderen Spalten:** die Tempospalte ist in 2 Sessions konstant (u38,
@@ -1234,7 +1234,7 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
   Server-Feld) — als eigene Idee behandeln, falls jemand danach fragt.
 - **Garmin-Datenseiten-UX aufräumen** (Feedback eines Nutzers 2026-07-20): Screen-Konfiguration verwirrend
   („weiß nicht wo ich bin"; Hinzufügen ersetzte den On-Foil-Screen durch 1/2/3), Feldbezeichnungen
-  unklar (was heißt welcher Wert) — eine andere App sei übersichtlicher. On-Watch/Web-Konfig-UX überdenken.
+  unklar (was heißt welcher Wert). On-Watch/Web-Konfig-UX überdenken.
 - **Session pausieren (Garmin)** (Feedback eines Nutzers 2026-07-20) — Aufnahme pausieren/fortsetzen können.
 - [x] **Chat: Daumen-hoch für Beiträge** — ERLEDIGT: Server war fertig, Web hatte es; 2026-07-28 auf
   Android (`ecbefb3`) und iOS (`dc47149`) nachgezogen (Daumen unter dem Avatar, Zähler, abschaltbar).
