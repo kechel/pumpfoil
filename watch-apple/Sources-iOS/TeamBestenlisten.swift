@@ -89,7 +89,7 @@ func teamVergleichWert(_ v: Double, _ art: String) -> String {
 
 /// Abschnitt fuer die Community-Liste. Je Team eine eigene Listenzeile mit GENAU einem Link (s. CommunityView); die
 /// Knopfzeilen mit `.borderless`, sonst loest ein Tipp alle Knoepfe einer Zeile aus.
-// Seit 05.11.2026 (Oleks Entwurf, web Home.tsx) unter der Bestenliste der Mitglieder: Zeitraum, Sportart und Region
+// Seit 05.11.2026 (Entwurf eines Nutzers, web Home.tsx) unter der Bestenliste der Mitglieder: Zeitraum, Sportart und Region
 // kommen von oben, Kennzahl und „Beste N" als Menues, gemerkt wie im Web (foil_team_art / foil_team_top).
 struct TeamBestenlistenSection: View {
     let lang: String

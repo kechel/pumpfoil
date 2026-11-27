@@ -100,7 +100,7 @@ export function SpotProgression() {
     // Vorher lief hier die komplette Aufnahme durch, und weil zwischen den Laeufen getrieben und
     // gepaddelt wird (bei einer gemessenen Session 83 % aller Punkte), verband eine Gerade
     // Stellen, die nach dem Herunterrechnen 14 Sekunden auseinanderlagen — das sah aus wie ein
-    // GPS-Glitch (Philipps Meldung 31.08.). Gemessen an 25 Sessions faellt die groesste
+    // GPS-Glitch (Meldung eines Nutzers 31.08.). Gemessen an 25 Sessions faellt die groesste
     // gezeichnete Strecke damit von 52 m auf 6 m im Median. Die Laeufe ANEINANDERZUHAENGEN waere
     // uebrigens SCHLECHTER als vorher (60 m): die Gerade von Lauf-Ende zu Lauf-Start quert den See.
     //

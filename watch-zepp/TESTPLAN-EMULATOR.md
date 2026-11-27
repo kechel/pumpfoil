@@ -58,7 +58,7 @@ einer Modellliste:
 
 | Uhr | im Feld | warum genau die |
 |---|---|---|
-| **Active 2 (Round)** | 3 Uhren, **10 Sessions** — meistgenutzt | **Césars Modell.** Seine Uhr startete waehrend eines Uploads **dreimal** neu — der Fall, fuer den der Waechter gebaut wurde. |
+| **Active 2 (Round)** | 3 Uhren, **10 Sessions** — meistgenutzt | **Modell eines Nutzers.** Seine Uhr startete waehrend eines Uploads **dreimal** neu — der Fall, fuer den der Waechter gebaut wurde. |
 | **GTR 4** | 1 Uhr, 2 Sessions, schon auf 1.0.11 | **Modell eines Testers.** „Nach circa 4,5 Minuten kommt dann das Ziffernblatt" — genau das Symptom, das 1.0.12 beheben soll. |
 | **Balance 2** | 2 Uhren | Neuestes System → hier **muss** der Speicherwert ankommen. Ist ausserdem das Standardmodell des Simulators. |
 | **T-Rex 3** | 9 Uhren (drei Schreibweisen, s. u.) | Die **Gegenprobe**: diese Uhr lief 94,8 Minuten am Stueck durch. Wenn hier etwas bricht, liegt es nicht am Modell. |
@@ -242,7 +242,7 @@ Der **teuerste** Fall: eine kaputte Aufnahme ist weg, ein kaputter Upload nicht.
 
 ### 3.4 Phase 4 — Upload (`PHASE_UPLOAD`)
 
-Césars Fall: die Uhr startete **waehrend eines Uploads** dreimal neu.
+Der Fall eines Nutzers: die Uhr startete **waehrend eines Uploads** dreimal neu.
 
 1. Eine lange Aufnahme erzeugen (siehe 3.3, gern 10+ Minuten — viele Bloecke).
 2. Aufnahme beenden, Upload beginnt.
@@ -290,7 +290,7 @@ die Fassung.
 
 ## 5. Upload-Unterbrechung und Wasserstand
 
-Hier haengt der Fall aus GitHub #4 dran: Césars Upload starb reproduzierbar bei Block 108 von
+Hier haengt der Fall aus GitHub #4 dran: der Upload eines Nutzers starb reproduzierbar bei Block 108 von
 2341, und **jeder** Versuch fing wieder bei 0 an. Seit 1.0.11 merkt sich die Uhr den Stand
 getrennt nach Art (`sent:<uuid>` = `gps/accel`).
 
@@ -421,7 +421,7 @@ darf niemals die App kosten, die sie misst.
 2. Speicherwert ablesen.
 
 **Erwartet:** die Spitze liegt beim **Upload**, nicht bei der Aufnahme, und mit Abstand zum
-Systemspeicher. Liegt sie nah am Limit, haben wir Césars dreifachen Neustart erklaert — dann ist
+Systemspeicher. Liegt sie nah am Limit, haben wir den dreifachen Neustart dieser Uhr erklaert — dann ist
 das der naechste Arbeitsauftrag und **nicht** die Einreichung.
 
 ---
@@ -525,7 +525,7 @@ wurde derselbe Upload **zweimal** abgeschossen und setzte beide Male exakt dort 
     gps:   0..48   08:54:37-08:54:48  |  49..79   08:56:07-08:56:13
     accel: 0..43   08:56:13-08:56:28  |  44..99   08:59:18-08:59:35
 
-Kein Block ging doppelt raus. Césars Befund aus GitHub #4 („the transfer seemed to restart from
+Kein Block ging doppelt raus. Der Befund eines Nutzers aus GitHub #4 („the transfer seemed to restart from
 zero") ist damit **belegt behoben**, nicht nur behauptet. Nachweisbar ist das serverseitig an
 `ingest_chunks.received_at`: ein erneut gesendeter Block traegt eine neue Ankunftszeit. Wer das
 nachstellt, misst also nicht den Bildschirm, sondern die Zeitstempel.

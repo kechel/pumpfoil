@@ -290,7 +290,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
 
                         item { Reiterleiste(reiter, tab, { tab = it }, Modifier.padding(bottom = 4.dp)) }
 
-                        // Rangliste nach Oleks Entwurf (Web Home.tsx, 05.11.2026): oben EINE Zeile fuer alles (Zeitraum, Sportart),
+                        // Rangliste nach dem Entwurf eines Nutzers (Web Home.tsx, 05.11.2026): oben EINE Zeile fuer alles (Zeitraum, Sportart),
                         // darunter die Bestenliste der Mitglieder mit ihren eigenen Auswahlfeldern (Kennzahl, accel/alle/Freunde,
                         // Foil), dann die der Teams (Kennzahl, Beste N), zuletzt die Rekord-Kacheln. Auf dem Handy untereinander
                         // wie das Web schmal. Im Reiter Medien nur der Zeitraum (Best bewertet / Meist kommentiert).
@@ -370,7 +370,7 @@ fun CommunityScreen(onOpen: (Int) -> Unit, onFoilStats: () -> Unit = {}, onWatch
                                         band?.takeIf { it.art != "alle" }?.let { bandLabel(it) }))
                             }
                         }
-                        // Team-Bestenlisten: seit 05.11.2026 hier statt im Reiter Teams & Events (Oleks Entwurf).
+                        // Team-Bestenlisten: seit 05.11.2026 hier statt im Reiter Teams & Events (Entwurf eines Nutzers).
                         if (tab == "bestenliste") item {
                             TeamBestenlisten(period, sportart, "${I18n.t("home.leaderboards")} – ${I18n.t("team.community")}", onOpenTeam,
                                 Modifier.padding(horizontal = 12.dp, vertical = 8.dp), region = region)

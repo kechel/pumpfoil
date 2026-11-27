@@ -329,7 +329,7 @@ struct SpotsView: View {
     /// iOS 17. Auf iOS 16 bleibt diese eine Karte deshalb die Strassenkarte; der Umschalter
     /// wirkt dort auf den vier anderen Karten trotzdem. Ein Umbau auf `MKMapView` waere die
     /// Alternative — dafuer muesste die Buendelung neu geschrieben werden, die gerade erst
-    /// Jaceks Absturzmeldung geschlossen hat, und das ist es nicht wert.
+    /// die Absturzmeldung eines Nutzers geschlossen hat, und das ist es nicht wert.
     @ViewBuilder private var spotKarte: some View {
         if #available(iOS 17.0, *), ebene == MapTiles.satellit {
             Map(coordinateRegion: $region, annotationItems: heatAnsicht ? [] : buendel) { b in
@@ -344,7 +344,7 @@ struct SpotsView: View {
     }
 
     /// Ein Pin: einzelner Spot -> direkt zu seinen Sessions. Buendel -> hineinzoomen, damit der
-    /// Nutzer selbst waehlt (Jaceks Meldung vom 20.08.: bei Europa-Zoom ueberdeckten sich die
+    /// Nutzer selbst waehlt (Meldung eines Nutzers vom 20.08.: bei Europa-Zoom ueberdeckten sich die
     /// Pins, und der Klick landete in einem beliebigen Nachbarspot).
     ///
     /// **Hier steht bewusst KEIN `NavigationLink`** (Jans Meldung 31.08.: „im Emulator kann ich

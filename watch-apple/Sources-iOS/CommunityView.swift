@@ -166,7 +166,7 @@ struct CommunityView: View {
     }
 
     // Rekorde und Bestenliste in EINER Ansicht (Jan, 02.11.2026: die Kacheln passen gut ueber die Bestenlisten).
-    // Rangliste nach Oleks Entwurf (web Home.tsx, 05.11.2026): oben EINE Zeile fuer alles (Zeitraum, Region, Sportart),
+    // Rangliste nach dem Entwurf eines Nutzers (web Home.tsx, 05.11.2026): oben EINE Zeile fuer alles (Zeitraum, Region, Sportart),
     // darunter die Bestenliste der Mitglieder mit ihren eigenen Menues (Kennzahl, accel/alle/Freunde, Foil), dann die
     // der Teams (Kennzahl, Beste N), zuletzt die Rekord-Kacheln.
     @ViewBuilder private var bestenlisteTab: some View {
@@ -190,7 +190,7 @@ struct CommunityView: View {
 
     // Teams & Events: oben die Team-Bestenlisten (Jan, 03.11.2026), darunter laufende & kommende Events, dann die
     // aktivsten Teams.
-    // Die Team-Bestenlisten stehen seit 05.11.2026 im Reiter Rekorde & Bestenliste (Oleks Entwurf).
+    // Die Team-Bestenlisten stehen seit 05.11.2026 im Reiter Rekorde & Bestenliste (Entwurf eines Nutzers).
     @ViewBuilder private var teamsTab: some View {
         TeamEventsAbschnitt(lang: lang, pfad: $navPath)
         // Aktivste Teams + „Alle Teams" / „Team gruenden" (wie web Home.tsx, 04.11.2026).

@@ -2455,7 +2455,7 @@ def spot_tracks(spot: str, user: models.User = Depends(current_user),
         # `runs`: dieselbe Spur, aber JE LAUF eine eigene Linie — und der stride nur ueber die
         # Lauf-Punkte gerechnet.
         #
-        # Warum das noetig ist (Philipps Meldung 31.08., Feedback #116): `track` ist die KOMPLETTE
+        # Warum das noetig ist (Meldung eines Nutzers 31.08., Feedback #116): `track` ist die KOMPLETTE
         # Aufnahme, heruntergerechnet auf SPOT_TRACK_MAX_PTS. Bei seiner Session waren das 2087
         # Punkte -> jeder 14. — und weil zwischen den Laeufen getrieben/gepaddelt wird (bei ihm
         # 83 % aller Punkte), verbinden lange Geraden Stellen, die 14 Sekunden auseinanderliegen.
@@ -5578,7 +5578,7 @@ def lage_achse_deg(acc: "np.ndarray", t_acc_ms: "np.ndarray", bereiche: list) ->
 #   2. starr: die mittlere Lage weicht von Lauf zu Lauf im Median hoechstens 1,5° ab (>= 3 Laeufe);
 #   dazu wie beim Hinweis sicherer Hub in mindestens der Haelfte der Laeufe.
 # Gemessen an allen 122 Handy-Aufnahmen mit Laeufen: vom Besitzer markierte Bretter 1,1-7,7° und
-# 0,4-1,1° (12 von 14); Philipps Hosentasche Session A (unter dem Anzug, schwierigster Fall) 20,6° und (Fall 2026-10-15-d)
+# 0,4-1,1° (12 von 14); Hosentasche eines Mitfahrers, Session A (unter dem Anzug, schwierigster Fall) 20,6° und (Fall 2026-10-15-d)
 # 2,9°. Die Richtung gegen den GPS-Kurs trennte NICHT (Brett 4-18°, Tasche 8,3°) und ist deshalb
 # nicht dabei. Bekannte Grenzen: quer UND geneigt montiert (15-17°) wird nicht erkannt und
 # bleibt beim Hinweis; ein Handy fest am Schienbein saehe aus wie am Brett — Pumps stimmen dann,

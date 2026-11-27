@@ -568,8 +568,8 @@ Changelog** (Satellitenansicht und Feedback-Anhaenge), beide sind jetzt nachgetr
 `MKMapView` — wegen der Buendel-Pins mit `NavigationLink`, die es nur als `MapAnnotation` gibt.
 Dort geht die Ebene erst ab **iOS 17** (`mapStyle`); auf iOS 16 bleibt genau diese eine Karte die
 Strassenkarte, die vier anderen schalten normal mit. Ein Umbau auf `MKMapView` waere die
-Alternative — dafuer muesste die Buendelung neu geschrieben werden, die gerade erst Jaceks
-Absturzmeldung geschlossen hat. Nicht wert.
+Alternative — dafuer muesste die Buendelung neu geschrieben werden, die gerade erst die
+Absturzmeldung eines Nutzers geschlossen hat. Nicht wert.
 
 **Die Liste ist durch — kein Punkt mehr offen.**
 

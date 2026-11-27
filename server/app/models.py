@@ -266,7 +266,7 @@ class DeviceToken(Base):
     # API_LEVEL 4.0). `mem_peak_kb` ist der GROESSTE je gemeldete Spitzenwert dieser Uhr,
     # `mem_total_kb` der Systemspeicher — eine Modell-Konstante, deshalb zuletzt gewinnt.
     #
-    # WOZU (22.09.2026): Césars Uhr startete waehrend eines Uploads dreimal neu. Ob die App
+    # WOZU (22.09.2026): Die Uhr eines Nutzers startete waehrend eines Uploads dreimal neu. Ob die App
     # dabei am Speicherlimit stand oder aus einem ganz anderen Grund starb, konnten wir nicht
     # sagen — wir hatten keine einzige Zahl dazu. Zusammen mit `crash_phase` beantwortet das
     # Paar genau diese Frage: wie nah war sie dran, und in welcher Phase.

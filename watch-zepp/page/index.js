@@ -133,7 +133,7 @@ function canaryClear() {
 // --- SPEICHERMESSUNG -----------------------------------------------------------------------
 // -> { peak, total } in KB, oder null, wenn die Uhr es nicht hergibt.
 //
-// Césars Uhr startete waehrend eines Uploads dreimal neu (Mail, 22.09.2026). Ob die App dabei am
+// Die Uhr eines Nutzers startete waehrend eines Uploads dreimal neu (Mail, 22.09.2026). Ob die App dabei am
 // Speicherlimit stand, konnten wir nicht sagen — wir hatten keine einzige Zahl. `getPerformance`
 // liefert sie: `memory.app[].peak` ist der Hoechststand seit App-Start, `memory.system.total` der
 // Speicher der Uhr. Zusammen mit der Absturz-Phase beantwortet das die Frage „wie nah war sie

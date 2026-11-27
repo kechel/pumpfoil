@@ -559,11 +559,11 @@ function RegionAuswahl({ keys, wert, onWahl, name, titel }: { keys: string[]; we
   );
 }
 
-/** Auswahlfeld der Ranglisten-Seite (Oleks Entwurf, 05.11.2026): etwas groesser als die Filter sonst und gleich breit in
+/** Auswahlfeld der Ranglisten-Seite (Entwurf eines Nutzers, 05.11.2026): etwas groesser als die Filter sonst und gleich breit in
  *  einer Reihe wie im Entwurf; wird es zu eng (Handy), bricht die Reihe um statt die Felder unlesbar zu quetschen. */
 const AUSWAHL = "min-w-[8rem] flex-1 basis-0 truncate rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-sm font-medium text-slate-100";
 
-// `auswahl` (Community-Rangliste nach Oleks Entwurf, 05.11.2026): Kennzahl als Auswahlfeld statt Reitern, daneben die
+// `auswahl` (Community-Rangliste nach dem Entwurf eines Nutzers, 05.11.2026): Kennzahl als Auswahlfeld statt Reitern, daneben die
 // Filter, die nur fuer die Mitglieder gelten (`filter`); der Zeitraum steht dann oben fuer die ganze Seite, darum nicht
 // mehr in der Ueberschrift. Ohne `auswahl` wie bisher (Spot-Seite).
 export function Leaderboards({ period, accelOnly, sport = "pumpfoil", band, kopf, spot, titel, auswahl, filter, region = "all" }: { period: string; accelOnly: boolean; sport?: string; band?: FoilBand; kopf?: React.ReactNode; spot?: string;
@@ -893,7 +893,7 @@ function CommunitySection() {
       {sortiereNachSport(sportListe, (x) => x.sport, t).map((x) => <option key={x.sport} value={x.sport}>{sportLabel(x.sport, t)}</option>)}
     </select>
   );
-  // Filter, die nur fuer die Mitglieder-Bestenliste und die Kacheln gelten (Oleks Entwurf, 05.11.2026): dieselben wie
+  // Filter, die nur fuer die Mitglieder-Bestenliste und die Kacheln gelten (Entwurf eines Nutzers, 05.11.2026): dieselben wie
   // bisher, nur als Auswahlfelder. accel/alle/Freunde war vorher eine Knopfgruppe (AccelToggle).
   const gross = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
   const mitgliederFilter = (
@@ -938,7 +938,7 @@ function CommunitySection() {
       {/* Reiter (Plan docs/UX-IA.md, 02.11.2026). Die letzte Wahl merkt sich der Browser. Spots und Routen stehen jetzt
           unter der Hauptnavigation „Spots", die Uhr-Layouts unter Medien. */}
       <Reiterleiste reiter={reiter} aktiv={tab} onWahl={setTab} />
-      {/* Rangliste nach Oleks Entwurf (05.11.2026, Jan: „das uebernehmen wir genau so vom layout her"): oben EINE Zeile
+      {/* Rangliste nach dem Entwurf eines Nutzers (05.11.2026, Jan: „das uebernehmen wir genau so vom layout her"): oben EINE Zeile
           fuer alles (Zeitraum, Sportart), darunter links die Mitglieder, rechts die Teams, jede Liste mit den Filtern, die
           nur fuer sie gelten, als Auswahlfelder; darunter die Rekord-Kacheln ueber die ganze Breite. Die Team-Listen
           zaehlen alle Laeufe (teams.vergleich) — accel/alle/Freunde und Foil gelten darum nur links und fuer die
@@ -1000,7 +1000,7 @@ function TeamsSection() {
   useEffect(() => { api.teamsEventsMeine().then(setMeine).catch(() => setMeine([])); }, []);
   return (
     <div className="mt-6">
-      {/* Die Team-Bestenlisten standen hier bis 05.11.2026; seit Oleks Entwurf stehen sie neben denen der Mitglieder im
+      {/* Die Team-Bestenlisten standen hier bis 05.11.2026; seit dem Entwurf eines Nutzers stehen sie neben denen der Mitglieder im
           Reiter „Rekorde & Bestenliste". */}
       <div className="mb-1.5 flex flex-wrap items-center gap-x-4 gap-y-1">
         <FlagIcon className="h-5 w-5 text-brand-400" />
@@ -1070,7 +1070,7 @@ const VERGLEICH_ARTEN: [TeamVergleichKennzahl, string][] = [
   ["sessions", "team.stat.sessions"], ["runs", "team.stat.laeufe"],
 ];
 
-// Seit 05.11.2026 (Oleks Entwurf) als rechte Spalte neben der Mitglieder-Bestenliste: der Zeitraum kommt von oben
+// Seit 05.11.2026 (Entwurf eines Nutzers) als rechte Spalte neben der Mitglieder-Bestenliste: der Zeitraum kommt von oben
 // (`period`, eine Zeile fuer die ganze Seite), Kennzahl und „Beste N" als Auswahlfelder, Zeilen wie bei den Mitgliedern.
 function TeamBestenlisten({ period, sport, region, titel }: { period: string; sport: string; region: string; titel: string }) {
   const t = useT();

@@ -235,7 +235,7 @@ export function CompareMap({ items, win, weight }: { items: CompareMapItem[]; wi
   // ZWISCHEN zwei Laeufen wird der Fahrer GEPARKT (blass, hohl) statt weiterzugleiten. Das ist
   // der Kern von Jans Befund vom 31.08. („laeuft nicht nach Uhrzeit, sondern nach irgendwas
   // anderem"): Stuetzpunkte fuer die Umrechnung Index↔Uhrzeit gibt es nur an den Laufgrenzen, in
-  // der Pause dazwischen wird interpoliert. Bei Philipps Session (2087 Trackpunkte auf 2514
+  // der Pause dazwischen wird interpoliert. Bei der Session eines Mitfahrers (2087 Trackpunkte auf 2514
   // GPS-Samples, also kraeftige Aussetzer) glitt sein Punkt dadurch gemaechlich ueber den See,
   // waehrend er in Wirklichkeit am Steg stand — das sieht aus wie eine eigene, falsche Zeitachse.
   // Geparkt ist die ehrliche Darstellung: an den Laufgrenzen wissen wir es genau, dazwischen

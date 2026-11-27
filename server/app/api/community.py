@@ -2274,7 +2274,7 @@ def _spot_anzahl(db: Session, accel_only: bool = False, sport: str = "all") -> i
 
 
 # Sportarten, in denen wirklich GEPUMPT wird — sie zaehlen in die Community-Zahlen des Banners
-# („… Sessions und zusammen … Pumps"). Jan, 29.09.2026, als ThermikDrehers Sessions auf Foil Scoot
+# („… Sessions und zusammen … Pumps"). Jan, 29.09.2026, als die Sessions eines Nutzers auf Foil Scoot
 # umgestellt wurden und die Pumps-Zahl dadurch um 36.533 FIEL: „foilscoot auf jeden fall, die
 # sollten mit reinzaehlen, genauso wakethief". Rekorde und Bestenlisten bleiben je Sportart getrennt.
 # Dazu am selben Tag: „paddle-up sollte mit rein auf jeden fall, surf downwind und surf wave gerne

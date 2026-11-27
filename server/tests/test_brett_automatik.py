@@ -19,7 +19,7 @@ def test_fest_am_brett_wird_gesetzt():
 
 
 def test_hosentasche_unter_dem_anzug_nicht():
-    """Session A, Philipps Handy unter dem Anzug — der schwierigste bekannte Fall. (Fall 2026-10-15-f) """
+    """Session A, Handy eines Mitfahrers unter dem Anzug — der schwierigste bekannte Fall. (Fall 2026-10-15-f) """
     assert brett_auto_urteil(_m(20.6, 2.9)) is False
 
 

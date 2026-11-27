@@ -101,8 +101,8 @@ def test_absturzmeldung_wird_gezaehlt_und_entprellt(client):
 def test_speichermessung_behaelt_den_hoechststand(client):
     """Der Spitzenwert waechst nur — wir wollen wissen, wie nah die App je am Limit stand.
 
-    Gebaut am 22.09.2026 fuer Amazfit (`getPerformance`, Zepp OS API_LEVEL 4.0). Anlass: Césars
-    Uhr startete waehrend eines Uploads dreimal neu, und wir hatten keine einzige Zahl dazu — ob
+    Gebaut am 22.09.2026 fuer Amazfit (`getPerformance`, Zepp OS API_LEVEL 4.0). Anlass: die
+    Uhr eines Nutzers startete waehrend eines Uploads dreimal neu, und wir hatten keine einzige Zahl dazu — ob
     sie am Speicherlimit stand oder aus einem anderen Grund starb, war nicht zu sagen.
     """
     from app import models

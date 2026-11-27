@@ -18,7 +18,7 @@ denselben Ausgangs-Laeufen aus:
 
 Jede Variante wird im Baseline-Format geschrieben (data/ml/werkbank/<modell>/<variante>.json.gz),
 damit detektor-v3-messen.py sie vermessen kann. Direkt hier gemessen: je Sekunde gegen die
-Brett-Wahrheit (6 Paare) und gegen Guillaumes Fortsetzungs-Label.
+Brett-Wahrheit (6 Paare) und gegen das Fortsetzungs-Label des Brust-Fahrers.
 
 Aufruf (aus server/): DATABASE_URL=... V3_MODELL=r2 nice -n 15 .venv/bin/python ../scripts/v3/werkbank.py [--jobs 12]
 """

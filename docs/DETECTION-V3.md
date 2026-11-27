@@ -214,9 +214,8 @@ Jan: „mache das model-training, und dann vergleiche / verifiziere mit allem wa
 fuer uns die beste loesung, models, zusaetzliche dinge vorher / hinterher / puffer / rahmen".
 
 **Daten:** Datensatz neu mit 33 Merkmalen (2491 Sessions, 258 Fahrer). Neu als Quellen: Jans
-Garmin-FIT ohne Pumpfoil (Ostrach, Gehen + Auto, 7257 s, `fit_neg`), Guillaumes langsames
-Weiterpumpen (790 s nahe Wasser, `fortsetzung`), die Brett-Wahrheit der 6 Paare (`brett`).
-Guillaumes Fortsetzungen sehen im Arm aus wie seine Laeufe (Pump-Staerke 0,64 gegen 0,67, 1,62 Hz,
+Garmin-FIT ohne Pumpfoil (Ostrach, Gehen + Auto, 7257 s, `fit_neg`), das langsame Weiterpumpen des Brust-Fahrers (790 s nahe Wasser, `fortsetzung`), die Brett-Wahrheit der 6 Paare (`brett`).
+Die Fortsetzungen des Brust-Fahrers sehen im Arm aus wie seine Laeufe (Pump-Staerke 0,64 gegen 0,67, 1,62 Hz,
 97 % vertikal), nur bei 6,4 statt 11,5 km/h — auch Session A, das ist Pumpen, kein Paddeln. (Fall 2026-09-29-n)
 
 **Modelle (Stufe A, je Sekunde, Fahrer herausgehalten):**
@@ -225,11 +224,11 @@ Guillaumes Fortsetzungen sehen im Arm aus wie seine Laeufe (Pump-Staerke 0,64 ge
 |---|---|---|---|---|
 | Laeufe an Land (Sicht) als „nein" | 0,606 | 0,648 | 0,480 | **0,728** |
 | foil_status auf / neben dem Foil | 0,961 / – | 0,957 / 0,984 | 0,957 / 0,982 | **0,961 / 0,994** |
-| Guillaumes Fortsetzung | – | 0,26 | 0,40 | 0,27 |
+| Fortsetzung des Brust-Fahrers | – | 0,26 | 0,40 | 0,27 |
 
 r3 = r2 + die heutigen Lauf-GRENZEN (±3 s) als unsicher fuer die geschaetzten Quellen (sonst lernt
 das Modell die v2-Tempo-Schwellen nach) + unabhaengige Wahrheiten staerker gewichtet (fremd ×3,
-brett/fortsetzung/sicht ×5, fit_neg ×2). Guillaumes Stil kann ein Modell, das ihn NIE gesehen hat,
+brett/fortsetzung/sicht ×5, fit_neg ×2). Den Stil des Brust-Fahrers kann ein Modell, das ihn NIE gesehen hat,
 nicht lernen — das ist die ehrliche Zahl fuer „der naechste Fahrer wie er".
 
 **Werkbank (`scripts/v3/werkbank.py`):** p je Session einmal (Teilmodell ohne den Fahrer), dann
@@ -363,7 +362,7 @@ drei Ursachen, die kein weiteres Merkmal aus den vorhandenen Labels loest:
 3. Fahrer unterscheiden sich stark (Konstanz Jan 0,35-0,49 gegen Fahrer A 0,85) — globale Regeln (Fall 2026-09-30-k)
    treffen echte Fahrten (Haltungs- und Konstanz-Pruefung beide verworfen, Brett-Beleg).
 Was wirklich weiterhilft, sind NEUE Wahrheiten: Brett-Paare mit Land-Phasen (Jan: „zum Auto gegangen"),
-Gleit-Phasen (bisher 31 s), weitere Fahrer mit Brett-Handy, Guillaumes Stil mit Brett-Handy.
+Gleit-Phasen (bisher 31 s), weitere Fahrer mit Brett-Handy, der Stil des Brust-Fahrers mit Brett-Handy.
 
 **Stand der Empfehlung:** Modell **r4** (r5 gleichwertig, r4 einfacher: keine Konstanz-Rechnung),
 Ausgang v2 ∪ tief, teil + Veto je Stueck + kurze Stuecke (Strenge offen, Jans Entscheidung),
@@ -405,7 +404,7 @@ Code-Aenderungen — Kandidaten fuer eine Reanalyse, kein Fehler des Nachbaus.
 - **Pumpfoil-Status verloren (streng, 30):** 11 Land laut Sichtpruefung; die uebrigen fast alle
   winzig (5-30 s kurze Laeufe) — dort entscheidet die Strenge. Mild: 17.
 - Groesste Verluste gesichtet: Session A (Laeufe auf der N15 bei Sligo = Autofahrt, zu Recht weg), (Fall 2026-09-30-m)
-  Session A (alle 12 Laeufe bleiben, nur Raender). Groesste Gewinne: Session B (Steg, s. oben), Guillaumes (Fall 2026-09-30-n)
+  Session A (alle 12 Laeufe bleiben, nur Raender). Groesste Gewinne: Session B (Steg, s. oben), beim Brust-Fahrer (Fall 2026-09-30-n)
   Session A 248 -> 577 s. (Fall 2026-09-30-o)
 - **Fehler im ersten Lauf, behoben:** neue Laeufe nahmen das ROHE GPS-Tempo -> 54-km/h-„Rekorde".
   Jetzt Felder wie v2 (`_seg_fields` auf bereinigtem, geglaettetem Tempo) plus

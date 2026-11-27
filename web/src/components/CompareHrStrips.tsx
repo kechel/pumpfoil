@@ -6,7 +6,7 @@ import type { SessionSummary } from "../lib/api";
 import { minMax } from "../lib/minmax";
 
 // Puls-Streifen je Lauf auf der Vergleichsseite (Jans Entwurf 19.08., ausgeloest durch
-// ThermikDrehers Frage, wie der Puls beim Pumpen steigt).
+// Frage eines Nutzers, wie der Puls beim Pumpen steigt).
 //
 // Eine Zeile = EIN Lauf. Waagerecht die Zeit AB LAUFBEGINN, alle Zeilen auf derselben Achse von 0
 // bis zum laengsten gezeigten Lauf — dadurch sieht man auf einen Blick, wer wie lange durchhaelt

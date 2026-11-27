@@ -33,7 +33,7 @@ SCHLUESSEL = [
     "tab.rankings", "tab.media", "land.teamsTitle", "team.vergleich.titel", "team.vergleich.hinweis",
     "team.vergleich.top", "team.vergleich.ausFahrern", "team.vergleich.ausFahrern1", "team.vergleich.leer", "team.bild.titel", "team.aktivste",
     "team.alle",
-    # 05.11.2026: Rangliste nach Oleks Entwurf (Ueberschriften „Bestenlisten – Mitglieder/Teams"), Uhren-Statistik-Reiter
+    # 05.11.2026: Rangliste nach dem Entwurf eines Nutzers (Ueberschriften „Bestenlisten – Mitglieder/Teams"), Uhren-Statistik-Reiter
     "home.leaderboards", "watchStats.sectionFoiling",
     # 05.11.2026: Region-Filter der Rangliste (Nationalitaet)
     "region.global", "region.basis", "region.ohneLand",

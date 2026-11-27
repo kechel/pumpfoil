@@ -109,7 +109,7 @@ private fun vergleichWert(art: String, v: Double): String = when (art) {
 @Composable
 fun TeamBestenlisten(period: String, sport: String, titel: String, onOpenTeam: (String) -> Unit, modifier: Modifier = Modifier,
                      region: String = "all") {
-    // Seit 05.11.2026 (Oleks Entwurf, Web Home.tsx) unter der Bestenliste der Mitglieder: Zeitraum und Sportart kommen von
+    // Seit 05.11.2026 (Entwurf eines Nutzers, Web Home.tsx) unter der Bestenliste der Mitglieder: Zeitraum und Sportart kommen von
     // oben, Kennzahl und „Beste N" als Auswahlfelder, gemerkt wie im Web (foil_team_art / foil_team_top).
     val ctx = androidx.compose.ui.platform.LocalContext.current
     val prefs = remember { ctx.getSharedPreferences("pumpfoil", android.content.Context.MODE_PRIVATE) }

@@ -589,7 +589,7 @@ export const TrophyIcon = ({ className = base }: P) => (
   </svg>
 );
 // Saison-Pokal (Gesamtwertung): breiter Becher mit Stern, Griffe, Sockel — anders als TrophyIcon (Siege),
-// damit Saison und Tagessiege nicht verwechselt werden. Idee aus Oleks Saison-Entwurf (Pokal + Stern).
+// damit Saison und Tagessiege nicht verwechselt werden. Idee aus dem Saison-Entwurf eines Nutzers (Pokal + Stern).
 export const SeasonCupIcon = ({ className = base }: P) => (
   <svg className={className} viewBox="0 0 24 24" {...stroke}>
     <path d="M6 3.5h12v4.5a6 6 0 0 1-12 0V3.5Z" /><path d="M6 5.5H3.5v1a3.5 3.5 0 0 0 3.2 3.5" /><path d="M18 5.5h2.5v1a3.5 3.5 0 0 1-3.2 3.5" />

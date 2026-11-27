@@ -1,6 +1,6 @@
 """Community-Zahlen im Banner zaehlen alle Sportarten mit echtem Pumpen (Jan, 29.09.2026).
 
-Anlass: ThermikDrehers Sessions wurden auf Foil Scoot umgestellt, und die Pumps-Zahl im Banner
+Anlass: die Sessions eines Nutzers wurden auf Foil Scoot umgestellt, und die Pumps-Zahl im Banner
 FIEL um 36.533 — sie zaehlte nur Pumpfoil. Foil Scoot und Wakethief sind echtes Pumpen und zaehlen
 mit; Wingfoil (angetrieben) nicht.
 """
