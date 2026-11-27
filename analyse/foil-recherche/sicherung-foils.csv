@@ -514,7 +514,6 @@ id,brand,model,size,span_cm,area_cm2,thickness_mm,is_baseline,thickness_estimate
 556,Roam Foils,Front Foil,1060,106.0,1726.0,27.9,False,True,False,
 557,Roam Foils,Front Foil,1414,141.4,2080.0,25.2,False,True,False,
 558,Roam Foils,Front Foil,1700,170.0,2800.0,28.2,False,True,False,
-559,Beta Foils,Freefoil,2100,210.0,2100.0,14.0,False,True,False,
 560,AXIS,Fireball,1500,150.0,1313.0,20.4,False,True,False,
 561,AXIS,Fireball,1750,175.0,1525.0,20.3,False,True,False,
 562,Armstrong,APF,1350,120.2,1350.0,19.2,False,True,False,

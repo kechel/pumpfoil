@@ -153,7 +153,6 @@ AlpineFoil | DW | 750, 840, 980, 1370 | https://www.alpinefoil.com/en/kitefoil-w
 AlpineFoil | REGATA | 850, 1100 | https://www.alpinefoil.com/en/kitefoil-windfoil-store/windfoil/front-wings/
 AlpineFoil | ULW | 900, 1200 | https://www.alpinefoil.com/en/kitefoil-windfoil-store/windfoil/front-wings/
 AlpineFoil | CRUISE | 1450 | https://www.alpinefoil.com/en/kitefoil-windfoil-store/windfoil/front-wings/
-Beta Foils | Freefoil | - | https://betafoils.com/products/freefoil-2026
 Cloud IX Foils | FS | 550, 700, 732, 850, 900, 1000, 1111, 1150, 1780 | https://cloudixfoils.com/
 Delta | Performance HA | 590, 700, 850, 1050 | https://deltahydrofoil.com/collections/wings
 Delta | Progression HA | 1280, 1450, 1740 | https://deltahydrofoil.com/collections/wings

@@ -258,9 +258,6 @@ id,brand,model,size,span_cm,area_cm2,specs_estimated,user_id,aliases
 403,Sabfoil,Seadevil,305,,,False,,
 404,Sabfoil,Seadevil,365,,,False,,
 405,ketos,105,30,,,False,139,
-406,Beta Foils,Freefoil Tail,Short,,,False,,
-407,Beta Foils,Freefoil Tail,Medium,,,False,,
-408,Beta Foils,Freefoil Tail,Long,,,False,,
 409,Indiana,Foil MB Stabilizer,Barracuda XS Tail S,,,False,,Monobloc
 410,Indiana,Foil MB Stabilizer,Condor M Tail XS,,,False,,Monobloc
 411,Indiana,Foil MB Stabilizer,Condor S Tail XXS,,,False,,Monobloc

@@ -1512,7 +1512,7 @@ class SessionRecorder {
         // wir trotzdem unsere Rohdaten-Chunks (GPS/Accel) auf — Priorität: nichts verlieren.
         // Aktivitätstyp wählbar:
         //  - "pumpfoil": generic + Freiwasser-SubSport + Name "Pumpfoil" -> Garmin Connect zeigt
-        //    "Pumpfoil" als Aktivitätstyp (wie FoilMotion), behält aber die Wasser-Kategorie.
+        //    "Pumpfoil" als Aktivitätstyp (wie andere Pumpfoil-Apps), behält aber die Wasser-Kategorie.
         //  - "openwater": Freiwasserschwimmen.
         //  - sonst: Surfen.
         // WICHTIG: Sport-/SubSport-Konstanten per `has` PRÜFEN, bevor wir sie referenzieren —
