@@ -38,6 +38,8 @@ internal fun portText(key: String, lang: String): String? =
     PORT_TEXTE[lang]?.get(key) ?: PORT_BRUECKE[lang]?.let { PORT_TEXTE[it]?.get(key) } ?: PORT_TEXTE["en"]?.get(key)
 
 private fun portDE(): Map<String, String> = mapOf(
+    "sd.melden" to "Melden",
+    "vote.meldenConfirm" to "Diese Session als schädlich, anstößig oder manipuliert melden? Sie bleibt ausgeblendet, bis ein Moderator sie geprüft hat.",
     "calc.mastImmersion" to "Eintauchtiefe des Masts",
     "calc.mastImmersionHint" to "Wie tief der Mast beim Fahren im Wasser steckt – nicht die Mastlänge.",
     "tab.overview" to "Übersicht",
@@ -291,6 +293,8 @@ private fun portDE(): Map<String, String> = mapOf(
 )
 
 private fun portGSW(): Map<String, String> = mapOf(
+    "sd.melden" to "Mälde",
+    "vote.meldenConfirm" to "Die Session als schädlich, aastössig oder manipuliert mälde? Si blibt usblendet, bis en Moderator si aagluegt het.",
     "calc.mastImmersion" to "Iitauchtüfi vom Mascht",
     "calc.mastImmersionHint" to "Wie tüf de Mascht bim Fahre im Wasser steckt – nöd d Maschtlängi.",
     "tab.overview" to "Übersicht",
@@ -544,6 +548,8 @@ private fun portGSW(): Map<String, String> = mapOf(
 )
 
 private fun portDEAT(): Map<String, String> = mapOf(
+    "sd.melden" to "Melden",
+    "vote.meldenConfirm" to "Diese Session als schädlich, anstößig oder manipuliert melden? Sie bleibt ausgeblendet, bis ein Moderator sie angeschaut hat.",
     "calc.mastImmersion" to "Eintauchtiefe des Masts",
     "calc.mastImmersionHint" to "Wie tief der Mast beim Fahren im Wasser steckt – nicht die Mastlänge.",
     "tab.overview" to "Übersicht",
@@ -797,6 +803,8 @@ private fun portDEAT(): Map<String, String> = mapOf(
 )
 
 private fun portEN(): Map<String, String> = mapOf(
+    "sd.melden" to "Report",
+    "vote.meldenConfirm" to "Report this session as harmful, offensive or manipulated? It stays hidden until a moderator has checked it.",
     "calc.mastImmersion" to "Mast immersion depth",
     "calc.mastImmersionHint" to "How deep the mast is in the water while riding – not the mast length.",
     "tab.overview" to "Overview",
@@ -1050,6 +1058,8 @@ private fun portEN(): Map<String, String> = mapOf(
 )
 
 private fun portFR(): Map<String, String> = mapOf(
+    "sd.melden" to "Signaler",
+    "vote.meldenConfirm" to "Signaler cette session comme nuisible, choquante ou manipulée ? Elle reste masquée jusqu’à ce qu’un modérateur l’ait vérifiée.",
     "calc.mastImmersion" to "Profondeur immergée du mât",
     "calc.mastImmersionHint" to "La partie du mât sous l'eau pendant la navigation, pas la longueur du mât.",
     "tab.overview" to "Aperçu",
@@ -1303,6 +1313,8 @@ private fun portFR(): Map<String, String> = mapOf(
 )
 
 private fun portIT(): Map<String, String> = mapOf(
+    "sd.melden" to "Segnala",
+    "vote.meldenConfirm" to "Segnalare questa sessione come dannosa, offensiva o manipolata? Resta nascosta finché un moderatore non l’ha controllata.",
     "calc.mastImmersion" to "Profondità d'immersione dell'albero",
     "calc.mastImmersionHint" to "Quanto l'albero è in acqua mentre navighi, non la lunghezza dell'albero.",
     "tab.overview" to "Panoramica",
@@ -1556,6 +1568,8 @@ private fun portIT(): Map<String, String> = mapOf(
 )
 
 private fun portES(): Map<String, String> = mapOf(
+    "sd.melden" to "Denunciar",
+    "vote.meldenConfirm" to "¿Denunciar esta sesión como dañina, ofensiva o manipulada? Permanece oculta hasta que un moderador la revise.",
     "calc.mastImmersion" to "Profundidad sumergida del mástil",
     "calc.mastImmersionHint" to "Cuánto del mástil está bajo el agua al navegar, no la longitud del mástil.",
     "tab.overview" to "Resumen",
@@ -1809,6 +1823,8 @@ private fun portES(): Map<String, String> = mapOf(
 )
 
 private fun portFI(): Map<String, String> = mapOf(
+    "sd.melden" to "Ilmoita",
+    "vote.meldenConfirm" to "Ilmoitetaanko tämä sessio haitalliseksi, loukkaavaksi tai manipuloiduksi? Se pysyy piilotettuna, kunnes moderaattori on tarkistanut sen.",
     "calc.mastImmersion" to "Mastin upotussyvyys",
     "calc.mastImmersionHint" to "Kuinka syvällä masto on vedessä ajaessa – ei maston pituus.",
     "tab.overview" to "Yleiskatsaus",
@@ -2062,6 +2078,8 @@ private fun portFI(): Map<String, String> = mapOf(
 )
 
 private fun portNL(): Map<String, String> = mapOf(
+    "sd.melden" to "Melden",
+    "vote.meldenConfirm" to "Deze sessie melden als schadelijk, aanstootgevend of gemanipuleerd? Ze blijft verborgen tot een moderator haar heeft bekeken.",
     "calc.mastImmersion" to "Onderdompeldiepte van de mast",
     "calc.mastImmersionHint" to "Hoe diep de mast tijdens het varen in het water zit – niet de mastlengte.",
     "tab.overview" to "Overzicht",
@@ -2315,6 +2333,8 @@ private fun portNL(): Map<String, String> = mapOf(
 )
 
 private fun portCS(): Map<String, String> = mapOf(
+    "sd.melden" to "Nahlásit",
+    "vote.meldenConfirm" to "Nahlásit tuto vyjížďku jako škodlivou, urážlivou nebo zmanipulovanou? Zůstane skrytá, dokud ji moderátor nezkontroluje.",
     "calc.mastImmersion" to "Ponor stěžně",
     "calc.mastImmersionHint" to "Jak hluboko je stěžeň při jízdě ve vodě – ne délka stěžně.",
     "tab.overview" to "Přehled",
@@ -2568,6 +2588,8 @@ private fun portCS(): Map<String, String> = mapOf(
 )
 
 private fun portPL(): Map<String, String> = mapOf(
+    "sd.melden" to "Zgłoś",
+    "vote.meldenConfirm" to "Zgłosić tę sesję jako szkodliwą, obraźliwą lub zmanipulowaną? Pozostanie ukryta, dopóki moderator jej nie sprawdzi.",
     "calc.mastImmersion" to "Głębokość zanurzenia masztu",
     "calc.mastImmersionHint" to "Jak głęboko maszt jest w wodzie podczas jazdy – nie długość masztu.",
     "tab.overview" to "Przegląd",
@@ -2821,6 +2843,8 @@ private fun portPL(): Map<String, String> = mapOf(
 )
 
 private fun portPT(): Map<String, String> = mapOf(
+    "sd.melden" to "Denunciar",
+    "vote.meldenConfirm" to "Denunciar esta sessão como prejudicial, ofensiva ou manipulada? Ela fica oculta até um moderador verificá-la.",
     "calc.mastImmersion" to "Profundidade submersa do mastro",
     "calc.mastImmersionHint" to "Quanto do mastro fica dentro da água ao navegar, não o comprimento do mastro.",
     "tab.overview" to "Visão geral",
@@ -3074,6 +3098,8 @@ private fun portPT(): Map<String, String> = mapOf(
 )
 
 private fun portPTPT(): Map<String, String> = mapOf(
+    "sd.melden" to "Denunciar",
+    "vote.meldenConfirm" to "Denunciar esta sessão como prejudicial, ofensiva ou manipulada? Fica oculta até um moderador a verificar.",
     "calc.mastImmersion" to "Profundidade submersa do mastro",
     "calc.mastImmersionHint" to "Quanto do mastro fica dentro de água ao navegar, não o comprimento do mastro.",
     "tab.overview" to "Visão geral",
@@ -3327,6 +3353,8 @@ private fun portPTPT(): Map<String, String> = mapOf(
 )
 
 private fun portJA(): Map<String, String> = mapOf(
+    "sd.melden" to "報告",
+    "vote.meldenConfirm" to "このセッションを有害・不快・改ざんされたものとして報告しますか？モデレーターが確認するまで非表示になります。",
     "calc.mastImmersion" to "マストの水中深さ",
     "calc.mastImmersionHint" to "走行中にマストが水中にある深さ（マストの長さではありません）。",
     "tab.overview" to "概要",
@@ -3580,6 +3608,8 @@ private fun portJA(): Map<String, String> = mapOf(
 )
 
 private fun portZH(): Map<String, String> = mapOf(
+    "sd.melden" to "举报",
+    "vote.meldenConfirm" to "将这条记录举报为有害、冒犯或被篡改的内容？在管理员审核之前将保持隐藏。",
     "calc.mastImmersion" to "翼柱入水深度",
     "calc.mastImmersionHint" to "滑行时翼柱在水下的深度，而不是翼柱长度。",
     "tab.overview" to "概览",
@@ -3833,6 +3863,8 @@ private fun portZH(): Map<String, String> = mapOf(
 )
 
 private fun portRU(): Map<String, String> = mapOf(
+    "sd.melden" to "Пожаловаться",
+    "vote.meldenConfirm" to "Пожаловаться на эту сессию как на вредную, оскорбительную или подделанную? Она будет скрыта, пока модератор её не проверит.",
     "calc.mastImmersion" to "Глубина погружения мачты",
     "calc.mastImmersionHint" to "Насколько глубоко мачта в воде во время катания – не длина мачты.",
     "tab.overview" to "Обзор",
@@ -4086,6 +4118,8 @@ private fun portRU(): Map<String, String> = mapOf(
 )
 
 private fun portID(): Map<String, String> = mapOf(
+    "sd.melden" to "Laporkan",
+    "vote.meldenConfirm" to "Laporkan sesi ini sebagai berbahaya, menyinggung, atau dimanipulasi? Sesi tetap disembunyikan sampai moderator memeriksanya.",
     "calc.mastImmersion" to "Kedalaman celup tiang",
     "calc.mastImmersionHint" to "Seberapa dalam tiang berada di air saat meluncur – bukan panjang tiang.",
     "tab.overview" to "Ringkasan",
@@ -4339,6 +4373,8 @@ private fun portID(): Map<String, String> = mapOf(
 )
 
 private fun portNB(): Map<String, String> = mapOf(
+    "sd.melden" to "Rapporter",
+    "vote.meldenConfirm" to "Rapportere denne økten som skadelig, støtende eller manipulert? Den forblir skjult til en moderator har sjekket den.",
     "calc.mastImmersion" to "Mastens dykkdybde",
     "calc.mastImmersionHint" to "Hvor dypt masten er i vannet når du kjører – ikke mastlengden.",
     "tab.overview" to "Oversikt",
@@ -4592,6 +4628,8 @@ private fun portNB(): Map<String, String> = mapOf(
 )
 
 private fun portHR(): Map<String, String> = mapOf(
+    "sd.melden" to "Prijavi",
+    "vote.meldenConfirm" to "Prijaviti ovu sesiju kao štetnu, uvredljivu ili izmanipuliranu? Ostaje skrivena dok je moderator ne provjeri.",
     "calc.mastImmersion" to "Dubina uronjenosti jarbola",
     "calc.mastImmersionHint" to "Koliko je duboko jarbol u vodi tijekom vožnje – ne duljina jarbola.",
     "tab.overview" to "Pregled",
@@ -4845,6 +4883,8 @@ private fun portHR(): Map<String, String> = mapOf(
 )
 
 private fun portDA(): Map<String, String> = mapOf(
+    "sd.melden" to "Rapportér",
+    "vote.meldenConfirm" to "Rapportér denne session som skadelig, stødende eller manipuleret? Den forbliver skjult, indtil en moderator har tjekket den.",
     "calc.mastImmersion" to "Mastens dybde i vandet",
     "calc.mastImmersionHint" to "Hvor dybt masten er i vandet under kørslen – ikke mastens længde.",
     "tab.overview" to "Oversigt",
@@ -5098,6 +5138,8 @@ private fun portDA(): Map<String, String> = mapOf(
 )
 
 private fun portSV(): Map<String, String> = mapOf(
+    "sd.melden" to "Anmäl",
+    "vote.meldenConfirm" to "Anmäl den här sessionen som skadlig, stötande eller manipulerad? Den förblir dold tills en moderator har kontrollerat den.",
     "calc.mastImmersion" to "Mastens nedsänkningsdjup",
     "calc.mastImmersionHint" to "Hur djupt masten är i vattnet under åkning – inte mastens längd.",
     "tab.overview" to "Översikt",
@@ -5351,6 +5393,8 @@ private fun portSV(): Map<String, String> = mapOf(
 )
 
 private fun portHU(): Map<String, String> = mapOf(
+    "sd.melden" to "Jelentés",
+    "vote.meldenConfirm" to "Bejelented ezt az edzést ártalmasként, sértőként vagy manipuláltként? Rejtve marad, amíg egy moderátor át nem nézi.",
     "calc.mastImmersion" to "Árboc merülési mélysége",
     "calc.mastImmersionHint" to "Milyen mélyen van az árboc a vízben menet közben – nem az árboc hossza.",
     "tab.overview" to "Áttekintés",

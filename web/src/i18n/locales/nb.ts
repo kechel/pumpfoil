@@ -988,6 +988,8 @@ const nb: Record<string, string> = {
   "sd.reported": "rapportert",
   "vote.reportConfirm": "Rapportere denne økta som upassende?",
   "sd.inappropriate": "upassende",
+  "sd.melden": "Rapporter",
+  "vote.meldenConfirm": "Rapportere denne økten som skadelig, støtende eller manipulert? Den forblir skjult til en moderator har sjekket den.",
   "sd.trim": "Trim",
   "sd.trimActive": "· aktiv",
   "sd.trimHint": "Analyser bare det valgte tidsrommet (f.eks. kutt bort et glemt opptak / turen hjem). Relativt til hele opptaket ({total} min:s).",

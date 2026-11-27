@@ -1087,6 +1087,8 @@ const sv: Record<string, string> = {
   "sd.reported": "anmäld",
   "vote.reportConfirm": "Anmäla det här passet som olämpligt?",
   "sd.inappropriate": "olämpligt",
+  "sd.melden": "Anmäl",
+  "vote.meldenConfirm": "Anmäl den här sessionen som skadlig, stötande eller manipulerad? Den förblir dold tills en moderator har kontrollerat den.",
   "sd.trim": "Beskär",
   "sd.trimActive": "· aktiv",
   "sd.trimHint": "Analysera bara det valda tidsintervallet (t.ex. klipp bort en bortglömd inspelning / bilfärden hem). Relativt hela inspelningen ({total} min:s).",

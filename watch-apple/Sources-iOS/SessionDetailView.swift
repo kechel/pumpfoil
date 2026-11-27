@@ -2331,16 +2331,14 @@ private struct SessionReportRow: View {
     private var red: Color {
         scheme == .dark ? Color(red: 0.988, green: 0.647, blue: 0.647) : Color(red: 0.725, green: 0.110, blue: 0.110)
     }
-    private var fakeOn: Bool { votes?.my_fake == true }
     private var inappOn: Bool { votes?.my_inappropriate == true }
-    private var fakeCount: Int { votes?.fake_count ?? 0 }
     private var inappCount: Int { votes?.inappropriate_count ?? 0 }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             firstRow
+            // Zwei Stufen (Jan, 27.11.2026): „nicht Pumpfoil" + „Melden"; „wirkt unecht" entfiel (wie Web).
             HStack(spacing: 8) {
-                fakeButton
                 inappButton
                 Spacer(minLength: 0)
             }
@@ -2351,7 +2349,7 @@ private struct SessionReportRow: View {
             Button(Loc.t("sd.report", lang)) { sendNotPumpfoil() }
             Button(Loc.t("common.cancel", lang), role: .cancel) {}
         } message: { Text(Loc.t("cls.confirmFlag", lang)) }
-        .confirmationDialog(Loc.t("vote.reportConfirm", lang), isPresented: $askInappropriate, titleVisibility: .visible) {
+        .confirmationDialog(Loc.t("vote.meldenConfirm", lang), isPresented: $askInappropriate, titleVisibility: .visible) {
             Button(Loc.t("sd.report", lang), role: .destructive) { toggleVote("inappropriate") }
             Button(Loc.t("common.cancel", lang), role: .cancel) {}
         }
@@ -2370,20 +2368,12 @@ private struct SessionReportRow: View {
         }
     }
 
-    @ViewBuilder private var fakeButton: some View {
-        Button { toggleVote("fake") } label: {
-            pill(Loc.t("sd.fake", lang), icon: "flag", iconColor: amber,
-                 active: fakeOn, tint: amber, count: fakeCount)
-        }
-        .buttonStyle(.plain)
-    }
-
     @ViewBuilder private var inappButton: some View {
         Button {
             // Vor dem Melden fragen — beim Zurückziehen der eigenen Meldung nicht.
             if inappOn { toggleVote("inappropriate") } else { askInappropriate = true }
         } label: {
-            pill(inappOn ? Loc.t("sd.reported", lang) : Loc.t("sd.inappropriate", lang),
+            pill(inappOn ? Loc.t("sd.reported", lang) : Loc.t("sd.melden", lang),
                  icon: "exclamationmark.octagon", iconColor: red,
                  active: inappOn, tint: red, count: inappCount)
         }

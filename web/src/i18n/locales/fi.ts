@@ -978,6 +978,8 @@ const fi: Record<string, string> = {
   "sd.reported": "ilmoitettu",
   "vote.reportConfirm": "Ilmoitetaanko tämä sessio sopimattomaksi?",
   "sd.inappropriate": "sopimaton",
+  "sd.melden": "Ilmoita",
+  "vote.meldenConfirm": "Ilmoitetaanko tämä sessio haitalliseksi, loukkaavaksi tai manipuloiduksi? Se pysyy piilotettuna, kunnes moderaattori on tarkistanut sen.",
   "sd.trim": "Rajaa",
   "sd.trimActive": "· päällä",
   "sd.trimHint": "Analysoi vain valittu aikaväli (esim. leikkaa pois unohtunut tallennus / automatka kotiin). Suhteutettu koko tallennukseen ({total} min:s).",

@@ -1106,6 +1106,8 @@ const en: Record<string, string> = {
   "sd.reported": "reported",
   "vote.reportConfirm": "Report this session as inappropriate?",
   "sd.inappropriate": "inappropriate",
+  "sd.melden": "Report",
+  "vote.meldenConfirm": "Report this session as harmful, offensive or manipulated? It stays hidden until a moderator has checked it.",
   "sd.trim": "Trim",
   "sd.trimActive": "· active",
   "sd.trimHint": "Analyze only the selected time range (e.g. cut off a forgotten recording / drive home). Relative to the whole recording ({total} min:s).",

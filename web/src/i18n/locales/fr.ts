@@ -851,6 +851,8 @@ const fr: Record<string, string> = {
   "sd.reported": "signalé",
   "vote.reportConfirm": "Signaler cette session comme inappropriée ?",
   "sd.inappropriate": "inapproprié",
+  "sd.melden": "Signaler",
+  "vote.meldenConfirm": "Signaler cette session comme nuisible, choquante ou manipulée ? Elle reste masquée jusqu’à ce qu’un modérateur l’ait vérifiée.",
   "sd.trim": "Rogner",
   "sd.trimActive": "· actif",
   "sd.trimHint": "N'analyser que la plage de temps choisie (p. ex. couper un enregistrement oublié / le retour en voiture). Par rapport à tout l'enregistrement ({total} min:s).",

@@ -78,3 +78,17 @@ def test_fake_beruehrt_die_sichtbarkeit_nicht(client):
     sid = _session(owner)
     _melden(client, melder, sid, "fake"); _melden(client, melder, sid, "fake")
     assert not _flagged(sid)
+
+
+def test_unecht_zaehler_nur_fuer_admins(client):
+    """Seit 27.11.2026 gibt es „wirkt unecht" nicht mehr als Knopf; aeltere Apps schicken es weiter. Die Stimme wird
+    gespeichert (Admin-Liste), aber die Zahl sieht niemand ausser Admins — kein oeffentlicher Pranger."""
+    a_auth, a_uid = _konto(client, "unecht-besitzer@example.com")
+    m_auth, _ = _konto(client, "unecht-melder@example.com")
+    adm_auth, _ = _konto(client, "unecht-admin@example.com", admin=True)
+    sid = _session(a_uid)
+    j = client.post(f"/api/community/sessions/{sid}/vote?kind=fake", headers=m_auth).json()
+    assert j["my_fake"] is True and j["fake_count"] == 0          # der Melder sieht keine Zahl
+    assert client.get(f"/api/community/sessions/{sid}/social", headers=a_auth).json()["fake_count"] == 0
+    assert client.get(f"/api/community/sessions/{sid}/social", headers=adm_auth).json()["fake_count"] == 1
+    assert not _flagged(sid)                                      # Sichtbarkeit unveraendert

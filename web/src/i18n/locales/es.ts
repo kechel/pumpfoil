@@ -851,6 +851,8 @@ const es: Record<string, string> = {
   "sd.reported": "denunciado",
   "vote.reportConfirm": "¿Denunciar esta sesión como inapropiada?",
   "sd.inappropriate": "inapropiado",
+  "sd.melden": "Denunciar",
+  "vote.meldenConfirm": "¿Denunciar esta sesión como dañina, ofensiva o manipulada? Permanece oculta hasta que un moderador la revise.",
   "sd.trim": "Recortar",
   "sd.trimActive": "· activo",
   "sd.trimHint": "Analiza solo el rango de tiempo elegido (p. ej. cortar una grabación olvidada / la vuelta a casa). Respecto a toda la grabación ({total} min:s).",

@@ -1129,6 +1129,8 @@ const de: Record<string, string> = {
   "sd.reported": "gemeldet",
   "vote.reportConfirm": "Diese Session als unangemessen melden?",
   "sd.inappropriate": "unangemessen",
+  "sd.melden": "Melden",
+  "vote.meldenConfirm": "Diese Session als schädlich, anstößig oder manipuliert melden? Sie bleibt ausgeblendet, bis ein Moderator sie geprüft hat.",
   "sd.trim": "Trimmen",
   "sd.trimActive": "· aktiv",
   "sd.trimHint": "Nur den gewählten Zeitbereich auswerten (z. B. vergessene Aufnahme / Auto-Heimfahrt abschneiden). Bezogen auf die gesamte Aufnahme ({total} min:s).",

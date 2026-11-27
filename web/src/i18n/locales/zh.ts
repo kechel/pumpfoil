@@ -972,6 +972,8 @@ const zh: Record<string, string> = {
   "sd.reported": "已举报",
   "vote.reportConfirm": "举报这条记录为不当内容？",
   "sd.inappropriate": "不当内容",
+  "sd.melden": "举报",
+  "vote.meldenConfirm": "将这条记录举报为有害、冒犯或被篡改的内容？在管理员审核之前将保持隐藏。",
   "sd.trim": "裁剪",
   "sd.trimActive": "· 已启用",
   "sd.trimHint": "只分析所选的时间范围（例如剪掉忘记停止的记录 / 开车回家）。相对于整条记录（{total} 分:秒）。",

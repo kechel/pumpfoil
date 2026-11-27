@@ -972,6 +972,8 @@ const ja: Record<string, string> = {
   "sd.reported": "報告済み",
   "vote.reportConfirm": "このセッションを不適切として報告しますか？",
   "sd.inappropriate": "不適切",
+  "sd.melden": "報告",
+  "vote.meldenConfirm": "このセッションを有害・不快・改ざんされたものとして報告しますか？モデレーターが確認するまで非表示になります。",
   "sd.trim": "トリミング",
   "sd.trimActive": "· 有効",
   "sd.trimHint": "選択した時間範囲のみを解析します（例：切り忘れた記録／帰宅時のドライブをカット）。記録全体（{total} 分:秒）に対する相対値です。",

@@ -1087,6 +1087,8 @@ const hu: Record<string, string> = {
   "sd.reported": "jelentve",
   "vote.reportConfirm": "Jelented ezt az edzést nem megfelelőként?",
   "sd.inappropriate": "nem megfelelő",
+  "sd.melden": "Jelentés",
+  "vote.meldenConfirm": "Bejelented ezt az edzést ártalmasként, sértőként vagy manipuláltként? Rejtve marad, amíg egy moderátor át nem nézi.",
   "sd.trim": "Vágás",
   "sd.trimActive": "· aktív",
   "sd.trimHint": "Csak a kiválasztott időtartományt elemezze (pl. levágni egy elfelejtett felvételt / hazautat). A teljes felvételhez viszonyítva ({total} perc:mp).",

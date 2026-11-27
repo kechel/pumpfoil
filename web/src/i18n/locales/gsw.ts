@@ -791,6 +791,8 @@ const gsw: Record<string, string> = {
   "sd.removeVideoConfirm": "Verlinkts Video würkli entferne?",
   "sd.fake": "wirkt unecht",
   "sd.inappropriate": "unaagmässe",
+  "sd.melden": "Mälde",
+  "vote.meldenConfirm": "Die Session als schädlich, aastössig oder manipuliert mälde? Si blibt usblendet, bis en Moderator si aagluegt het.",
   "sd.trim": "Trimme",
   "sd.start": "Start:",
   "sd.end": "Ändi:",

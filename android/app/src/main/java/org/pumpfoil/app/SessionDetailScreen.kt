@@ -3069,7 +3069,7 @@ private fun ReportRow(sessionId: Int) {
     if (askInappropriate) {
         AlertDialog(
             onDismissRequest = { askInappropriate = false },
-            text = { Text(I18n.t("vote.reportConfirm")) },
+            text = { Text(I18n.t("vote.meldenConfirm")) },
             confirmButton = {
                 TextButton(onClick = {
                     askInappropriate = false
@@ -3098,20 +3098,8 @@ private fun ReportRow(sessionId: Int) {
                 Text(I18n.t("cls.notPumpfoil"))
             }
         }
-        // „wirkt unecht" und „unangemessen" sind umschaltbar (nochmal tippen = Stimme zurückziehen),
-        // deshalb zeigt der aktive Zustand die eigene Stimme farbig an.
-        FilledTonalButton(
-            onClick = { scope.launch { try { votes = Api.voteSession(sessionId, "fake") } catch (_: Exception) {} } },
-            colors = ButtonDefaults.filledTonalButtonColors(
-                containerColor = if (v?.my_fake == true) AmberReport.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = if (v?.my_fake == true) amber else MaterialTheme.colorScheme.onSurfaceVariant,
-            ),
-        ) {
-            Icon(Icons.Filled.Flag, contentDescription = null, modifier = Modifier.size(18.dp), tint = amber)
-            Spacer(Modifier.width(6.dp))
-            Text(I18n.t("sd.fake"))
-            if ((v?.fake_count ?: 0) > 0) { Spacer(Modifier.width(6.dp)); Text("${v?.fake_count}") }
-        }
+        // Zwei Stufen (Jan, 27.11.2026): „nicht Pumpfoil" + „Melden" (umschaltbar: nochmal tippen = zurueckziehen);
+        // „wirkt unecht" entfiel (wie Web).
         FilledTonalButton(
             onClick = {
                 // Vor dem Melden fragen — beim Zurückziehen der eigenen Meldung nicht.
@@ -3126,7 +3114,7 @@ private fun ReportRow(sessionId: Int) {
         ) {
             Icon(Icons.Filled.Report, contentDescription = null, modifier = Modifier.size(18.dp), tint = red)
             Spacer(Modifier.width(6.dp))
-            Text(if (v?.my_inappropriate == true) I18n.t("sd.reported") else I18n.t("sd.inappropriate"))
+            Text(if (v?.my_inappropriate == true) I18n.t("sd.reported") else I18n.t("sd.melden"))
             if ((v?.inappropriate_count ?: 0) > 0) { Spacer(Modifier.width(6.dp)); Text("${v?.inappropriate_count}") }
         }
     }

@@ -1086,6 +1086,8 @@ const pl: Record<string, string> = {
   "sd.reported": "zgłoszone",
   "vote.reportConfirm": "Zgłosić tę sesję jako nieodpowiednią?",
   "sd.inappropriate": "nieodpowiednie",
+  "sd.melden": "Zgłoś",
+  "vote.meldenConfirm": "Zgłosić tę sesję jako szkodliwą, obraźliwą lub zmanipulowaną? Pozostanie ukryta, dopóki moderator jej nie sprawdzi.",
   "sd.trim": "Przytnij",
   "sd.trimActive": "· aktywne",
   "sd.trimHint": "Analizuj tylko wybrany zakres czasu (np. odetnij zapomniane nagranie / drogę powrotną). Względem całego nagrania ({total} min:s).",

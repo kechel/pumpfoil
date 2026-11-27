@@ -972,6 +972,8 @@ const id: Record<string, string> = {
   "sd.reported": "dilaporkan",
   "vote.reportConfirm": "Laporkan sesi ini sebagai tidak pantas?",
   "sd.inappropriate": "tidak pantas",
+  "sd.melden": "Laporkan",
+  "vote.meldenConfirm": "Laporkan sesi ini sebagai berbahaya, menyinggung, atau dimanipulasi? Sesi tetap disembunyikan sampai moderator memeriksanya.",
   "sd.trim": "Pangkas",
   "sd.trimActive": "· aktif",
   "sd.trimHint": "Analisis hanya rentang waktu terpilih (mis. potong rekaman yang lupa dimatikan / perjalanan pulang). Relatif terhadap seluruh rekaman ({total} menit:detik).",

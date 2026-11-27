@@ -3540,6 +3540,11 @@ def _vote_counts(db: Session, sid: int, user: models.User) -> dict:
         out[f"{kind}_count"] = int(
             db.query(func.count()).select_from(models.SessionVote).filter_by(session_id=sid, kind=kind).scalar() or 0)
         out[f"my_{kind}"] = db.query(models.SessionVote).filter_by(session_id=sid, kind=kind, user_id=user.id).first() is not None
+    # „wirkt unecht" ist seit 27.11.2026 kein eigener Knopf mehr (Jan: „not pumpfoil" und „melden" reichen). Aeltere Apps
+    # schicken es weiter; die Stimme landet still im Admin (Liste „fake"), die Zahl zeigt NIEMAND mehr oeffentlich an —
+    # ein ungeprueftes „unecht 2" an einer fremden Session wirkte wie ein Pranger.
+    if not getattr(user, "is_admin", False):
+        out["fake_count"] = 0
     return out
 
 

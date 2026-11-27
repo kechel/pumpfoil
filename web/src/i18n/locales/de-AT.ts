@@ -752,6 +752,8 @@ const deAT: Record<string, string> = {
   "sd.removeVideoConfirm": "Verlinktes Video wirklich entfernen?",
   "sd.fake": "wirkt unecht",
   "sd.inappropriate": "unangemessen",
+  "sd.melden": "Melden",
+  "vote.meldenConfirm": "Diese Session als schädlich, anstößig oder manipuliert melden? Sie bleibt ausgeblendet, bis ein Moderator sie angeschaut hat.",
   "sd.trim": "Trimmen",
   "sd.start": "Start:",
   "sd.end": "Ende:",

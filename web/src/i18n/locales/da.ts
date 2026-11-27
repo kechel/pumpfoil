@@ -1087,6 +1087,8 @@ const da: Record<string, string> = {
   "sd.reported": "anmeldt",
   "vote.reportConfirm": "Anmelde denne session som upassende?",
   "sd.inappropriate": "upassende",
+  "sd.melden": "Rapportér",
+  "vote.meldenConfirm": "Rapportér denne session som skadelig, stødende eller manipuleret? Den forbliver skjult, indtil en moderator har tjekket den.",
   "sd.trim": "Beskær",
   "sd.trimActive": "· aktiv",
   "sd.trimHint": "Analysér kun det valgte tidsrum (f.eks. skær en glemt optagelse / køreturen hjem fra). I forhold til hele optagelsen ({total} min:s).",

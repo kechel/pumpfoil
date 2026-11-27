@@ -996,6 +996,8 @@ const cs: Record<string, string> = {
   "sd.reported": "nahlášeno",
   "vote.reportConfirm": "Nahlásit tuto vyjížďku jako nevhodnou?",
   "sd.inappropriate": "nevhodné",
+  "sd.melden": "Nahlásit",
+  "vote.meldenConfirm": "Nahlásit tuto vyjížďku jako škodlivou, urážlivou nebo zmanipulovanou? Zůstane skrytá, dokud ji moderátor nezkontroluje.",
   "sd.trim": "Oříznout",
   "sd.trimActive": "· aktivní",
   "sd.trimHint": "Vyhodnotit jen zvolený časový úsek (např. oříznout zapomenuté nahrávání / cestu autem domů). Vztaženo k celé nahrávce ({total} min:s).",

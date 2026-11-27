@@ -996,6 +996,8 @@ const nl: Record<string, string> = {
   "sd.reported": "gemeld",
   "vote.reportConfirm": "Deze sessie als ongepast melden?",
   "sd.inappropriate": "ongepast",
+  "sd.melden": "Melden",
+  "vote.meldenConfirm": "Deze sessie melden als schadelijk, aanstootgevend of gemanipuleerd? Ze blijft verborgen tot een moderator haar heeft bekeken.",
   "sd.trim": "Trimmen",
   "sd.trimActive": "· actief",
   "sd.trimHint": "Alleen het gekozen tijdsbereik analyseren (bijv. een vergeten opname / autorit naar huis wegknippen). Ten opzichte van de hele opname ({total} min:s).",

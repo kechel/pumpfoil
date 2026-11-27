@@ -13,6 +13,8 @@ IOS = ROOT / "watch-apple/Sources-iOS"
 LANGS = ["de", "gsw", "de-AT", "en", "fr", "it", "es", "fi", "nl", "cs", "pl", "pt", "pt-PT", "ja", "zh", "ru", "id", "nb", "hr", "da", "sv", "hu"]
 
 SCHLUESSEL = [
+    # 27.11.2026: Melden statt „unangemessen"/„wirkt unecht" (zwei Stufen, Jan)
+    "sd.melden", "vote.meldenConfirm",
     "calc.mastImmersion", "calc.mastImmersionHint",
     # Phase 3: Home-Reiter
     "tab.overview", "tab.team", "tab.stats", "tab.insights",

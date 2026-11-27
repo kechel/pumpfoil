@@ -15,7 +15,7 @@ import { fmtDate, fmtTime } from "../lib/time";
 import { laufUhrzeitMs, pauseVersatzMs, wanduhrMs } from "../lib/clock";
 import { Card, Stat, Spinner, ErrorBox, Avatar, InfoDialog, InfoKnopf, SELECT_SCHRUMPFT } from "../components/ui";
 import { Chat } from "../components/Chat";
-import { HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, FakeIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, ScissorsIcon, LinkIcon, CheckIcon, InstagramIcon, TikTokIcon, DownloadIcon } from "../components/Icons";
+import { HeartIcon, CameraIcon, VideoIcon, PlayIcon, FlagIcon, LocationIcon, EditIcon, StarIcon, CloseIcon, KeyboardIcon, WifiOffIcon, EyeIcon, EyeOffIcon, CompareIcon, ChatBubbleIcon, ShareIcon, WatchIcon, ScissorsIcon, LinkIcon, CheckIcon, InstagramIcon, TikTokIcon, DownloadIcon } from "../components/Icons";
 import { Lightbox } from "../components/Lightbox";
 import { ShareDialog } from "../components/ShareDialog";
 import { useCloseOnBack } from "../lib/useCloseOnBack";
@@ -4573,7 +4573,10 @@ function ReportButtons({ sessionId }: { sessionId: number }) {
   const t = useT();
   const [s, setS] = useState<SocialData | null>(null);
   useEffect(() => { api.sessionSocial(sessionId).then(setS).catch(() => {}); }, [sessionId]);
-  const vote = (kind: "fake" | "inappropriate") =>
+  // Zwei Stufen (Jan, 27.11.2026): „nicht Pumpfoil" bittet um Zuordnung, „Melden" blendet Schaedliches oder
+  // Manipuliertes aus, bis ein Moderator prueft. „wirkt unecht" entfiel — es bewirkte nichts und zeigte einen
+  // ungeprueften Zaehler oeffentlich an; aeltere Apps schicken es weiter, es landet still im Admin.
+  const vote = (kind: "inappropriate") =>
     api.toggleVote(sessionId, kind).then(setS).catch(() => {});
   if (!s) return null;
   return (
@@ -4581,16 +4584,10 @@ function ReportButtons({ sessionId }: { sessionId: number }) {
       <div className="flex flex-wrap items-center gap-2">
         <NotPumpfoilButton sessionId={sessionId} />
         <button
-          onClick={() => vote("fake")}
-          className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm ${s.my_fake ? "bg-amber-500/20 text-amber-800 dark:text-amber-300" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
-        >
-          <FakeIcon className="h-4 w-4 text-amber-500 dark:text-amber-400" /> {t("sd.fake")} {s.fake_count > 0 && <span className="tabular-nums">{s.fake_count}</span>}
-        </button>
-        <button
-          onClick={() => { if (!s.my_inappropriate && !confirm(t("vote.reportConfirm"))) return; vote("inappropriate"); }}
+          onClick={() => { if (!s.my_inappropriate && !confirm(t("vote.meldenConfirm"))) return; vote("inappropriate"); }}
           className={`flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm ${s.my_inappropriate ? "bg-red-500/20 text-red-800 dark:text-red-300" : "bg-slate-800 text-slate-300 hover:bg-slate-700"}`}
         >
-          <FlagIcon className="h-4 w-4 text-red-600 dark:text-red-400" /> {s.my_inappropriate ? t("sd.reported") : t("sd.inappropriate")} {s.inappropriate_count > 0 && <span className="tabular-nums">{s.inappropriate_count}</span>}
+          <FlagIcon className="h-4 w-4 text-red-600 dark:text-red-400" /> {s.my_inappropriate ? t("sd.reported") : t("sd.melden")} {s.inappropriate_count > 0 && <span className="tabular-nums">{s.inappropriate_count}</span>}
         </button>
       </div>
     </div>

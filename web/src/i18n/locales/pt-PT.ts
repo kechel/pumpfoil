@@ -979,6 +979,8 @@ const ptPT: Record<string, string> = {
   "sd.reported": "denunciada",
   "vote.reportConfirm": "Denunciar esta sessão como inadequada?",
   "sd.inappropriate": "inadequada",
+  "sd.melden": "Denunciar",
+  "vote.meldenConfirm": "Denunciar esta sessão como prejudicial, ofensiva ou manipulada? Fica oculta até um moderador a verificar.",
   "sd.trim": "Recortar",
   "sd.trimActive": "· ativo",
   "sd.trimHint": "Analisar só o intervalo de tempo selecionado (ex.: cortar uma gravação esquecida / a volta para casa). Relativo à gravação inteira ({total} min:s).",

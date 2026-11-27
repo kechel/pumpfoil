@@ -1087,6 +1087,8 @@ const hr: Record<string, string> = {
   "sd.reported": "prijavljeno",
   "vote.reportConfirm": "Prijaviti ovu sesiju kao neprikladnu?",
   "sd.inappropriate": "neprikladno",
+  "sd.melden": "Prijavi",
+  "vote.meldenConfirm": "Prijaviti ovu sesiju kao štetnu, uvredljivu ili izmanipuliranu? Ostaje skrivena dok je moderator ne provjeri.",
   "sd.trim": "Obreži",
   "sd.trimActive": "· aktivno",
   "sd.trimHint": "Analiziraj samo odabrani vremenski raspon (npr. odreži zaboravljenu snimku / vožnju kući). Relativno prema cijeloj snimci ({total} min:s).",
