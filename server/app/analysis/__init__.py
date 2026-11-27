@@ -415,7 +415,7 @@ def abschliessend_auswerten(db: DbSession, session: "models.Session") -> None:
     verwerfen, dann auf der ganzen Aufnahme rechnen, dann neu zuschneiden. Ein vom Nutzer gesetzter
     bleibt, wie er ist.
 
-    WARUM (27.09.2026, #10158, Bartosz): der Upload einer Apple Watch stockte nach 131 von 2041
+    WARUM (27.09.2026, #10158): der Upload einer Apple Watch stockte nach 131 von 2041
     Chunks. Nachts schloss der Aufraeum-Timer die Session mit diesen ersten 22 Minuten ab, der
     Zuschnitt landete auf 3,9–21,9 min. Am Morgen kam der Rest, die Uhr schloss sauber ab — aber
     `maybe_auto_trim` sah „schon zugeschnitten" und rechnete nicht neu. Zwei Stunden Fahrt lagen
@@ -685,7 +685,7 @@ def run_analysis(db: DbSession, session: "models.Session", final: bool = True,
             grid_ms = np.arange(n_grid) / accel_hz * 1000.0
             pick = np.clip(np.searchsorted(src_ms, grid_ms), 0, src_ms.size - 1)
             accel = _tb.accel[pick]
-            # WO GIBT ES WIRKLICH MESSWERTE? (30.09.2026, #10266 Bartosz: 22,8 s „Gleitphase" in
+            # WO GIBT ES WIRKLICH MESSWERTE? (30.09.2026, #10266: 22,8 s „Gleitphase" in
             # einem Lauf ganz OHNE Beschleunigung.) Das Raster reicht immer ueber das ganze
             # Zeitfenster; wo Accel fehlt (Upload unvollstaendig, Luecke zwischen Bloecken),
             # wiederholt `pick` den naechsten Messwert. Der Bandpass macht daraus Nachschwinger,

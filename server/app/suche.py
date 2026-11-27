@@ -1,7 +1,7 @@
 """Suchvergleich ohne Akzente, Bindestriche, Leerzeichen und Markenzeichen — fuer ALLE Server-Suchen.
 
-Anlass (Jan, 01.10.2026: „teste mal alle Suchfunktionen durch"): von 14 Faellen fanden 4. „frederic"
-fand Frédéric nicht, „cheran" nicht Alby-sur-Chéran, „fone" nicht F-One, „xover" nicht X-Over,
+Anlass (Jan, 01.10.2026: „teste mal alle Suchfunktionen durch"): von 14 Faellen fanden 4. „helene"
+fand Hélène nicht, „cheran" nicht Alby-sur-Chéran, „fone" nicht F-One, „xover" nicht X-Over,
 „mach2" nicht Mach-2. Der Browser (Strg-F) ignoriert Akzente; unsere Suchen taten es nicht.
 
 Regel, ueberall gleich: der Suchtext zerfaellt in WORTE, jedes Wort muss irgendwo vorkommen (wie

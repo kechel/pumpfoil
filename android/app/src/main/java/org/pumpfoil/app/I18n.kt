@@ -827,7 +827,7 @@ private fun sTabelle(): Map<String, Map<String, String>> = mapOf(
     "datafields.editorInBrowser" to row("Eigene Screens gestaltest du am Rechner auf pumpfoil.org — hier kannst du sie einfügen, ansehen und ordnen.", "Eigeni Screens gstaltisch am Rächner uf pumpfoil.org — hie chasch si inefüege, aaluege und ordne.", "Eigene Screens gestaltest du am Rechner auf pumpfoil.org — hier kannst du sie einfügen, ansehen und ordnen.", "You design your own screens on pumpfoil.org in a browser — here you can insert, view and reorder them.", "Tu conçois tes propres écrans sur pumpfoil.org dans un navigateur — ici tu peux les insérer, les voir et les réordonner.", "Progetti i tuoi schermi su pumpfoil.org nel browser — qui puoi inserirli, vederli e riordinarli.", "Diseñas tus propias pantallas en pumpfoil.org en el navegador — aquí puedes insertarlas, verlas y reordenarlas."),
     // Die zwei Uhr-Schalter, die der App fehlten (PARITY-AUDIT 17.08.). Wortlaut aus der PWA
     // (web/src/i18n/locales/*.ts, Keys account.colorByValue / account.autoStart).
-    // Spalte "Hoechstpuls" in der Lauf-Tabelle (Wunsch ThermikDreher, 15.08.).
+    // Spalte "Hoechstpuls" in der Lauf-Tabelle (Wunsch eines Nutzers, 15.08.).
     "sd.colMaxHr" to row("Max. Puls", "Max. Puls", "Max. Puls", "Max HR", "FC max", "FC max", "FC máx"),
     // Uhr-Einstellungen je Uhr + Hilfetexte (Paritaet Punkte 2+3, 17.08.). Wortlaut 1:1 aus
     // den PWA-Locales generiert, nicht von Hand uebersetzt; wo eine Sprache den Key nicht

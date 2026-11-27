@@ -62,7 +62,7 @@ function esc(s: string): string {
 }
 
 /**
- * Wortgrenzen mit Unicode: `\b` ist ASCII-basiert und würde bei Namen wie „Émile" oder „Jörg"
+ * Wortgrenzen mit Unicode: `\b` ist ASCII-basiert und würde bei Namen wie „Émile" oder „Ögmund"
  * an der falschen Stelle greifen. Lookarounds auf Buchstaben/Ziffern lösen das; falls eine
  * alte Engine sie nicht kennt, fällt es auf `\b` zurück.
  */

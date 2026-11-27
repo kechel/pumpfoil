@@ -14,7 +14,7 @@ die Erkennung bleibt unangetastet, keine Neuberechnung noetig, gilt sofort fuer 
   (aeltere Aufrufer) ein Punkt = eine Sekunde.
 - **Tempo ueber die ganze Fahrt**: Strecke IN Bewegung / Fahrzeit in Bewegung. Bis 24.10.2026 stand hier die
   Gesamtstrecke im Zaehler — bei #18978 (iPhone 7,4 h, meist liegend) summierte das GPS-Zittern im Stand 20,6 km
-  gegen 1698 s Bewegung: 43,6 km/h Schnitt bei 24,3 km/h Maximum (PumpingCarbon). Jetzt 4,4 km -> 9,3 km/h.
+  gegen 1698 s Bewegung: 43,6 km/h Schnitt bei 24,3 km/h Maximum (Meldung eines Nutzers). Jetzt 4,4 km -> 9,3 km/h.
 - **On-Foil-Anteil**: Foiling-Zeit / Fahrzeit in Bewegung.
 
 Nur fuer Wind, Motor und Welle (sportprofil.GRUPPE) — beim Pumpen sind Laeufe die richtige Einheit.

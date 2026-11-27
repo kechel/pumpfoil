@@ -875,7 +875,7 @@ internal fun BestenlistenBlock(lb: Leaders, sportart: String, lbMetric: String, 
                         if (unit.isNotEmpty()) Text(unit, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                // Alle 10 wie im Web: die eigene Zeile darunter (Olek, 01.11.2026) gibt der Server nur,
+                // Alle 10 wie im Web: die eigene Zeile darunter (Wunsch eines Nutzers, 01.11.2026) gibt der Server nur,
                 // wenn man nicht unter den ersten 10 steht — bei take(5) fehlten sonst die Plaetze 6 bis 10.
                 list.take(10).forEachIndexed { i, e -> zeile(e, i + 1, false) }
                 lb.me[lbMetric]?.let { ich ->

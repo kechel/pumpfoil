@@ -1327,7 +1327,7 @@ def search_users(q: str = Query(..., min_length=1), user: models.User = Depends(
     """Nutzersuche für den DM-Start — NUR nach öffentlichem Anzeigenamen. E-Mail o. Ä.
     werden bewusst NICHT zurückgegeben (bleiben geheim)."""
     from sqlalchemy import func
-    # Ohne Akzente/Bindestriche, Wort fuer Wort (app/suche.py): „frederic" findet Frédéric.
+    # Ohne Akzente/Bindestriche, Wort fuer Wort (app/suche.py): „helene" findet „Hélène".
     bed = _such(q, [models.User.display_name])
     rows = (db.query(models.User)
             .filter(models.User.display_name.isnot(None),

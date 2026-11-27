@@ -775,7 +775,7 @@ def test_hoehere_accel_rate_gewinnt(client, garmin, monkeypatch, tmp_path):
 
 
 def test_zweite_uhr_mit_garmin_profil_wird_eigene_session(client, garmin, monkeypatch, tmp_path):
-    # Olek, 05.11.2026: zwei Uhren gleichzeitig — Uhr A mit unserer App, Uhr B mit Garmins Profil „Foil".
+    # Meldung eines Nutzers, 05.11.2026: zwei Uhren gleichzeitig — Uhr A mit unserer App, Uhr B mit Garmins Profil „Foil".
     # Die Aktivitaet von Uhr B darf NICHT an die Session von Uhr A, sie wird eine eigene Session.
     from app import storage
     uid, _ = _konto(client)

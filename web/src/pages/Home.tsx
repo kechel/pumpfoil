@@ -359,7 +359,7 @@ function LeaderList({ rows, field, unit, fmt, me, sprint }: { rows: LeaderRow[];
   return (
     <div className="space-y-1.5">
       {rows.map((r, i) => zeile(r, i + 1))}
-      {/* Die eigene Stelle unter Platz 10 (Olek, 01.11.2026) — der Server liefert sie nur, wenn man nicht schon oben steht. */}
+      {/* Die eigene Stelle unter Platz 10 (Wunsch eines Nutzers, 01.11.2026) — der Server liefert sie nur, wenn man nicht schon oben steht. */}
       {me && me.rank != null && (
         <>
           <div className="text-center text-xs leading-none text-slate-400" aria-hidden>⋮</div>

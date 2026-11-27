@@ -3,7 +3,7 @@
 
 Stufe A liefert je Sekunde eine Wahrscheinlichkeit „auf dem Foil". WIE man sie auf die Laeufe
 anwendet, ist die eigentliche Frage: ganze Laeufe verwerfen (Veto), Raender abschneiden, Laeufe
-verlaengern, wenn der Fahrer langsam weiterpumpt (Guillaume), Luecken schliessen (Gleiten, kurzer
+verlaengern, wenn der Fahrer langsam weiterpumpt, Luecken schliessen (Gleiten, kurzer
 Tempo-Einbruch). Die Werkbank rechnet die Wahrscheinlichkeit je Session EINMAL (Teilmodell, das den
 Fahrer nie gesehen hat; zwischengespeichert je Modellfassung) und probiert dann alle Varianten auf
 denselben Ausgangs-Laeufen aus:
@@ -470,7 +470,7 @@ def main():
         tp, fp, fn = br[:3]
         z = (f"{name:28s} Laeufe {sum(len(x['runs']) for x in res):6d} · {gesamt_s / 3600:6.1f} h"
              + (f" · Brett Praez. {tp / max(tp + fp, 1):.3f} Treffer {tp / max(tp + fn, 1):.3f} Gleit {gl[0]}/{gl[1]}" if brett else "")
-             + f" · Guillaume-Fortsetzung {fo[0]}/{fo[1]} s, u350 gesamt {g_s / 60:.0f} min"
+             + f" · Brust-Fahrer-Fortsetzung {fo[0]}/{fo[1]} s, u350 gesamt {g_s / 60:.0f} min"
              + f" · klare v2-Laeufe verloren {klar[0]}/{klar[1]}"
              + f" · <8 s {sum(1 for x in res for y in x['runs'] if y['dur_s'] < 8)}")
         print(z, flush=True); zeilen.append(z)

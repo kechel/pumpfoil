@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 
 def test_bestimmen_summe_der_geerbten():
     vorige = [[1112501, 630246], [2392200, 392525], [3385680, 3530638]]
-    # Mysia #19856: genau die drei Fenster der vorigen Aufnahme, erster Messwert -4553346 ms.
+    # #19856: genau die drei Fenster der vorigen Aufnahme, erster Messwert -4553346 ms.
     from app.zeitversatz import bestimmen
     v, geerbt, eigene = bestimmen(list(vorige), vorige, -4553346)
     assert v == 4553409 and geerbt == vorige and eigene == []

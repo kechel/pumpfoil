@@ -1074,7 +1074,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                 // Inhalt bis 168 dp reicht und die Seiten-Punkte bei 176 dp sitzen. Deshalb kam
                 // er raus — und das gemeldete Problem blieb ungeloest. Ein `CurvedLayout` liegt
                 // gar nicht im rechteckigen Inhaltsfluss, die Kollision kann also nicht
-                // entstehen. Die Idee stammt von JoLe (u396, PR #5); uebernommen haben wir sie,
+                // entstehen. Die Idee stammt von einem Beitragenden (PR #5); uebernommen haben wir sie,
                 // nicht seinen Code.
                 //
                 // Kein Emoji als Beschriftung (Projektregel) — ein gezeichneter Tropfen.
@@ -1658,7 +1658,7 @@ class MainActivity : ComponentActivity(), AmbientLifecycleObserver.AmbientLifecy
                         // rot, weil eine Session ohne Puls auswertbar bleibt (anders als ohne GPS).
                         // 15.09.2026: NICHT mehr pauschal „Uhr fester tragen". Dieser Satz
                         // schob dem Nutzer die Schuld zu, auch wenn die Uhr die Messung nie
-                        // gestartet hat — PeterH (u171) las ihn eine Woche lang nach jeder
+                        // gestartet hat — ein Nutzer las ihn eine Woche lang nach jeder
                         // Session, waehrend die Ursache eine Plattform-Regression auf seiner
                         // Xiaomi war (Wear OS 5). `pulsMessung` sagt, ob Health Services
                         // ueberhaupt eine Uebung gehalten hat: nur DANN ist das Armband eine

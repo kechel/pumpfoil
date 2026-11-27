@@ -131,7 +131,7 @@ Lauf-Klassifikator nur aus dem Lauf trennt aber NICHT sauber: ~60 der 1237 „ec
 (nur „auf Wasser", nicht geprueft) sehen genauso ruhig aus. Naechster Schritt: diese ansehen — sind
 es selbst Gehen/Tragen, ist die Regel richtig und das Label falsch.
 
-## Beine pumpen, Arm ruht (#10266, Bartosz, 29.09.2026)
+## Beine pumpen, Arm ruht (#10266, ein Fahrer, 29.09.2026)
 
 „Lange Startversuche" statt Laeufe: das alte Modell zaehlt ARMbewegung. Beispiel Versuch 6:21-6:43
 (88 m): 8 s Arm-Pumpen 0,3-0,5, Modell bis 0,46 (Schwelle 0,5), danach 15 s Arm fast still
@@ -200,7 +200,7 @@ NICHT messen.
 
 Folgerung: das bisherige Modell ist fuer u2/u13 gegen das Brett schon gut; ein Brett-Modell aus
 ~16 min Pump-Wahrheit ist nicht besser. Fuer die Gleit-/Beine-pumpen-Frage braucht es Brett-Paare
-von Fahrern, die wirklich gleiten (Bartosz-Stil). Bis dahin: altes Modell bleiben lassen.
+von Fahrern, die wirklich gleiten (wie dieser Fahrer). Bis dahin: altes Modell bleiben lassen.
 
 **Pump-Zaehler gegen das Brett (Nebenbefund, wichtig):** u2 19 Laeufe, Uhr/Brett Median 1,10
 (0,67-2,00); u13 4 Laeufe, 1,08 (1,03-1,16). Der Zaehler ueberzaehlt ~8-10 % — die alte Aussage
@@ -236,7 +236,7 @@ nicht lernen — das ist die ehrliche Zahl fuer „der naechste Fahrer wie er".
 Nachbearbeitung auf den Ausgangs-Laeufen v2 oder `tief` (fast ohne Tempo-Grenzen):
 veto (ganzer Lauf weg bei mittlerem p < τ), schnitt (Raender mit p < θ ab), teil (Lauf in die Stuecke
 mit p >= θ zerlegen), dehn, naht, kurz (Stuecke < 8 s brauchen p >= 0,8), empf (Schwellen je
-Profil-Empfindlichkeit). Gemessen mit detektor-v3-messen.py + direkt gegen Brett und Guillaume.
+Profil-Empfindlichkeit). Gemessen mit detektor-v3-messen.py + direkt gegen Brett und den Fahrer mit Handy an der Brust.
 
 | r3 | v2 heute | tief+empf | beide+empfteilkurz |
 |---|---|---|---|
@@ -247,7 +247,7 @@ Profil-Empfindlichkeit). Gemessen mit detektor-v3-messen.py + direkt gegen Brett
 | schmales Wasser behalten | 61/62 | 61/62 | 60/62 |
 | Pruefliste | – | 11/12 | 11/12 |
 | Brett Praez. / Treffer | 0,872 / 0,948 | 0,915 / 0,938 | 0,918 / 0,935 |
-| Guillaume gesamt (heute 22 min) | 22 | **26** | 25 |
+| Brust-Fahrer gesamt (heute 22 min) | 22 | **26** | 25 |
 | klare v2-Laeufe (p >= 0,8) verloren | 0 | 165 | **63** |
 | Laeufe < 8 s | 1059 | 1078 | **141** |
 
@@ -269,8 +269,8 @@ Profil-Empfindlichkeit). Gemessen mit detektor-v3-messen.py + direkt gegen Brett
 **Nachtrag 30.09. (Lernkurve, Modellgroesse, Restfaelle):**
 - Lernkurve (r3-Einstellungen, 150 Baeume): 4 Fahrer 0,982/0,984 · 16 Fahrer 0,989/0,949 ·
   64 Fahrer 0,993/0,992 · alle 258 gleich. Ab ~64 Fahrern flach — MEHR Sessions derselben Art helfen
-  nicht mehr, bessere Labels schon (Brett-Paare, Gleiten, Fahrer wie Guillaume).
-- r3gross (600 Baeume, 127 Blaetter): Land 0,732 statt 0,728, sonst gleich, Guillaume schlechter.
+  nicht mehr, bessere Labels schon (Brett-Paare, Gleiten, Fahrer mit langsamem Weiterpumpen).
+- r3gross (600 Baeume, 127 Blaetter): Land 0,732 statt 0,728, sonst gleich, Brust-Fahrer schlechter.
   Die Groesse ist nicht der Engpass -> r3 bleibt (kleiner, schneller).
 - Die 21 Rest-„Land"-Laeufe sind teils GPS-Fehler: #541 GPS-Gezappel am Steg zieht aufs Land, der
   Arm pumpt (p 0,99); #2684 Gerade neben der Wosha mit duennen GPS-Punkten. L kann nicht 0 werden.
@@ -308,7 +308,7 @@ unabhaengig von der Karte (Brett pumpt nicht, Uhr 2,5-8 km/h): Fahren 3-7°, Geh
 
 **Als Merkmal (r4, `analysis/v3/haltung.py`, zweistufig mit r3 als Referenz):** kleiner Gewinn —
 Land je Sekunde 0,728 -> 0,763, in der Werkbank (beide+empfteilkurz) Land 21 -> 19, Nutzer-
-aussortiert 26 -> 24, Guillaume 25 -> 26 min, foil_status unveraendert 0,943/0,940. #9580 aendert
+aussortiert 26 -> 24, Brust-Fahrer 25 -> 26 min, foil_status unveraendert 0,943/0,940. #9580 aendert
 es nicht: die Referenz je Sekunde enthaelt die verdaechtigen Laeufe selbst.
 **Als harte Lauf-Pruefung** ((Winkel > 30° oder Profil > 0,4) und Staerke < 0,5, gegen die anderen
 sicheren Laeufe): Land 19 -> 12, ABER foil_status-Trefferquote 0,940 -> 0,919 bei gleicher Praezision
@@ -339,7 +339,7 @@ diesen Faellen: 10 s trennt 0,78 · 20 s 0,86 · **30 s 0,88** · 60 s 0,78. An 
 Lauf 19 0,07, echter Lauf 14 0,76. -> als Merkmale konstanz20/konstanz30/wechsel30 in r5.
 
 **r5 (Haltung + Konstanz als Merkmale, 30.09.):** je Sekunde wie r4 (Land 0,762). Werkbank
-beide+empfteilkurz: foil_status 0,944/0,940, Land 18/82 (r4 19), Guillaume 25 min, #9580 unveraendert
+beide+empfteilkurz: foil_status 0,944/0,940, Land 18/82 (r4 19), Brust-Fahrer 25 min, #9580 unveraendert
 (p 0,88-0,96) — die Labels lehren das Modell, dass Laeufe am Ufer Foilen sind („lauf nahe Wasser").
 **Konstanz als harte Lauf-Pruefung verworfen:** Schwelle 0,2 -> Brett-Trefferquote 0,935 -> 0,908,
 foil_status 0,940 -> 0,923 (0,3: 0,898; 0,4: 0,811) — wirft echte Fahrten weg. Grund an der
@@ -348,7 +348,7 @@ ueber den Lauf hinaus), u13 mit 0,85 — so viel wie Gehen. Fahrer unterscheiden
 eine globale Schwelle; die Konstanz bleibt Merkmal.
 
 **r6 (r5 + Lauf-Sekunden ohne JRC-Wasser unsicher, 109334 von 795265 s):** Land 18 -> 16, foil_status
-0,944/0,941 unveraendert, aber Guillaume schlechter (Fortsetzung 289 -> 231 s: sein Hafen ist
+0,944/0,941 unveraendert, aber Brust-Fahrer schlechter (Fortsetzung 289 -> 231 s: sein Hafen ist
 teils JRC-Land), #9580 unveraendert (p 0,87-0,90). Kein Gewinn.
 
 ## Plateau (30.09.2026, morgens)
@@ -359,7 +359,7 @@ r3 -> r4 -> r5 -> r6 bringen je Sekunde und in der Werkbank nur noch Zehntel: fo
 drei Ursachen, die kein weiteres Merkmal aus den vorhandenen Labels loest:
 1. GPS-Fehler am Ufer (#541, #2684, #9580: Position laeuft der Geschwindigkeit hinterher, der Arm
    pumpt) — dort IST unklar, was stimmt; Jan konnte #9580 im Satellitenbild auch nicht entscheiden.
-2. Labels: „Lauf nahe Wasser" lehrt Ufer-Stuecke als Foilen; ohne sie (r6) leidet Guillaume.
+2. Labels: „Lauf nahe Wasser" lehrt Ufer-Stuecke als Foilen; ohne sie (r6) leidet der Brust-Fahrer.
 3. Fahrer unterscheiden sich stark (Konstanz u2 0,35-0,49 gegen u13 0,85) — globale Regeln
    treffen echte Fahrten (Haltungs- und Konstanz-Pruefung beide verworfen, Brett-Beleg).
 Was wirklich weiterhilft, sind NEUE Wahrheiten: Brett-Paare mit Land-Phasen (Jan: „zum Auto gegangen"),
@@ -376,7 +376,7 @@ Schwellen je Profil-Empfindlichkeit:
 | an Autofahrt | 25 | 1 |
 | in Nutzer-Aussortiertem | 73 | 24 |
 | Brett Praez. / Treffer | 0,872 / 0,948 | 0,922 / 0,930 |
-| Guillaume gesamt | 22 min | 26 min |
+| Brust-Fahrer gesamt | 22 min | 26 min |
 | Laeufe < 8 s | 1059 | 164 (streng) bzw. 1305 (roh, mild) |
 
 ## Regressionstest ueber den Bestand (30.09.2026, `scripts/v3/regression.py`, nichts live)
@@ -448,7 +448,7 @@ Code-Aenderungen — Kandidaten fuer eine Reanalyse, kein Fehler des Nachbaus.
 
 ## v3-r4-mild-2: Kandidaten ohne altes Modell, Empfindlichkeit als harte Grenze (03.10.2026)
 
-Befund #12632 (Bartosz, Apple Watch): Laeufe als Startversuche gezaehlt. Die „grosszuegigen"
+Befund #12632 (ein Fahrer, Apple Watch): Laeufe als Startversuche gezaehlt. Die „grosszuegigen"
 `tief`-Kandidaten lockerten nur die Tempo-Grenzen; `detect_v2` nahm mit Accel weiter `foil_rf.pkl`
 als Maske. Ein Lauf brauchte damit das Ja BEIDER Modelle — genau das, wovor detector-v2.md warnt
 („zwei Detektoren zu schneiden verliert jeden Lauf, ueber den sie uneins sind"). Beispiel 17:49 /

@@ -153,7 +153,7 @@ def test_api_nur_eigene(client, ohne_analyse):
 
 
 def test_mehrere_trennstellen(client, ohne_analyse):
-    # Feedback PumpingCarbon 05.11.2026: Pumpfoil -> Wingfoil -> Pumpfoil -> Wingfoil -> Pumpfoil in EINEM Schritt.
+    # Feedback eines Nutzers 05.11.2026: Pumpfoil -> Wingfoil -> Pumpfoil -> Wingfoil -> Pumpfoil in EINEM Schritt.
     from app.db import SessionLocal
     from app import models, storage
     uid, _ = _nutzer(client, "split-n")

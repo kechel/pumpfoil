@@ -1581,7 +1581,7 @@ def compute_overall_stats(db: Session, user_id: int, accel_only: bool = True, se
     der Startseite und in der Community dasselbe heißt. Default `all` = das bisherige Verhalten.
 
     `sport`: Sportart wie in der Community (`_community`), `None` = ALLE Sportarten.
-    Anlass (PeterH, 16.08.): seine Skate-Session war als „andere Sportart" markiert, fiel damit aus
+    Anlass (ein Nutzer, 16.08.): seine Skate-Session war als „andere Sportart" markiert, fiel damit aus
     Community und Bestenlisten — zählte aber weiter in seinen eigenen Gesamtzahlen und „verfälscht
     meine Laufbahn auf dem Foil". Wir widersprachen uns dabei selbst: die Sessionliste filtert schon
     seit jeher nach Sportart (`list_sessions(filter="pump")`), nur die Statistik zählte alles.
@@ -5020,7 +5020,7 @@ def set_classification(
     if sport is not None:
         s.sport_class = sport
         # Equipment je Sportart (19.10.2026): unberuehrte Felder auf den Standard der neuen
-        # Sportart — Oerni stellte Wing-Sessions um und musste jedes Mal das Foil nachtragen.
+        # Sportart — ein Nutzer stellte Wing-Sessions um und musste jedes Mal das Foil nachtragen.
         from ..equipment_sport import umstellen
         umstellen(s, s.user, _alt_sport, sport)
         # Nachtraeglich auf eine Wind-Sportart umgestellt -> Wind am Spot holen und cachen.

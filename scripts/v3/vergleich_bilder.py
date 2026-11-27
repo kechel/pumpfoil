@@ -2,7 +2,7 @@
 """Erkennung v3: Vergleichsbilder heute (v2) gegen eine Werkbank-Variante. REIN LESEND.
 
 Waehlt die Sessions mit den groessten Aenderungen (am meisten dazu, am meisten weg) und dazu feste
-(Guillaume, Pruefliste), zerlegt die Laeufe je Sekunde in gemeinsam / nur heute / nur neu und legt
+(Brust-Fahrer, Pruefliste), zerlegt die Laeufe je Sekunde in gemeinsam / nur heute / nur neu und legt
 je Session server/data/ml/bilder/vergleich/s<id>.npz ab. Zeichnen danach im ml-venv:
   BILD_DIR=vergleich ~/ml-venv/bin/python scripts/v3/bild_session.py <id> <titel>
 

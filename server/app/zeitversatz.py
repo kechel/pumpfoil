@@ -2,7 +2,7 @@
 
 Die Apple-Watch-App (seit der Pause vom 24.09.2026, bis 1.1.61) setzte beim Start einer neuen Aufnahme Pausenzeit und
 Pausenliste der vorigen NICHT zurueck (`Recorder.start()`). Jeder Zeitstempel der neuen Aufnahme lag damit um die
-Summe der geerbten Pausen zu frueh — bei Mysia (u989) am 03.11. um 4553 s, die ganze Aufnahme vor dem Start, Auswertung
+Summe der geerbten Pausen zu frueh — bei einer Nutzerin am 03.11. um 4553 s, die ganze Aufnahme vor dem Start, Auswertung
 „0 m, nur GPS". Und die Uhr schickte die geerbten Pausenfenster als eigene mit. So lange, bis die App neu startet.
 
 Die Daten selbst sind vollstaendig und untereinander richtig — nur gegen den Start verschoben. Geerbt ist ein Fenster,
@@ -81,7 +81,7 @@ def bestimmen(fenster: list[list[int]], vorige: list[list[int]], erster_ms: int 
     eigene = [f for f in fenster if tuple(f) not in vor]
     versatz = sum(d for _, d in geerbt)
     # Passt die Summe nicht, fehlen geerbte Fenster in der Liste: eigene Pausen einer schon verschobenen Aufnahme lagen
-    # unter 0, wurden beim Speichern verworfen und trotzdem weitervererbt (Mysia ab #19857, bis 76 s mehr). Dann traegt
+    # unter 0, wurden beim Speichern verworfen und trotzdem weitervererbt (ab #19857, bis 76 s mehr). Dann traegt
     # der erste Messwert den Versatz — vor dem Start gibt es bei der Apple Watch keine Werte, Accel kommt ms danach.
     if abs(erster_ms + versatz) > TOLERANZ_MS:
         versatz = -erster_ms

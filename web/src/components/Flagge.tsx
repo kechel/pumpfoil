@@ -1,7 +1,7 @@
 import { flaggeUrl, landName } from "../lib/laender";
 import { useI18n } from "../i18n";
 
-/** Kleine Flagge nach dem Profilbild in Bestenlisten (Olek, 02.11.2026) — nur wer seine Nationalitaet im Profil
+/** Kleine Flagge nach dem Profilbild in Bestenlisten (Wunsch eines Nutzers, 02.11.2026) — nur wer seine Nationalitaet im Profil
  *  eingestellt hat (Gaeste bekommen das Land vom Server gar nicht). Ohne Land bleibt der Platz leer, damit die
  *  Namen buendig stehen (Jan, 03.11.2026); dasselbe macht das geteilte Bild (lib/bestenlisteBild.ts). */
 export function Flagge({ land }: { land?: string | null }) {

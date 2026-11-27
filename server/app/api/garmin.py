@@ -750,7 +750,7 @@ def aus_unserer_app(eintrag: dict) -> bool:
 def koennte_unsere_sein(eintrag: dict) -> bool:
     """Darf diese Garmin-Aktivitaet einer eigenen Aufnahme zugeordnet werden? Nur wenn sie aus unserer App stammt
     (Profilname „Pumpfoil"/„Dance") — eine Uhr zeichnet nie zwei Aktivitaeten gleichzeitig auf, eine Garmin-Profil-
-    Aufnahme zur selben Zeit kommt also von einer ANDEREN Uhr (Olek, 05.11.2026: zwei Uhren gleichzeitig, eine mit
+    Aufnahme zur selben Zeit kommt also von einer ANDEREN Uhr (ein Nutzer, 05.11.2026: zwei Uhren gleichzeitig, eine mit
     unserer App, eine mit Garmins Profil „Foil"). Ohne Namen (unbekannt) wie bisher: zuordnen erlaubt."""
     name = str(eintrag.get("activityName") or "").strip()
     return not name or name.lower() in UNSERE_NAMEN

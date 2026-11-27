@@ -10,6 +10,8 @@ DB (nur lesend), haelt sie nur im Speicher und gibt sie NIE aus: gemeldet werden
   * pre-commit (`--staged`): hinzugefuegte Zeilen und Dateinamen des Commits.
   * commit-msg (`--nachricht <datei>`): die Commit-Nachricht.
   * `--verlauf N`: zaehlt Funde in den letzten N Commits (Nachricht + Diff), nur Zahlen je Commit.
+  * `--baum [pfad …]`: der ganze aktuelle Stand (alle getrackten Textdateien), Fundstellen + Zahl je Datei
+    (27.11.2026: Altbestand vor der Sperre bereinigen; die Historie bleibt, Jan: „nicht rueckwirkend").
 
 Woerter: Anzeigename und E-Mail-Vorderteil jedes Nutzers, in Woerter zerlegt, ab 4 Zeichen. Ausgenommen
 sind englische Woerterbuch-Woerter, Woerter aus den UI-Texten (de/en) und Eintraege in `.namen-ausnahmen`
@@ -154,12 +156,32 @@ def verlauf(p: Pruefer, n: int) -> None:
         print(f"  {k}  {anz:>4}x  z. B. {c}")
 
 
+def baum(p: Pruefer, pfade: list[str]) -> list[str]:
+    dateien = subprocess.run(["git", "ls-files", "-z", "--", *pfade], capture_output=True, text=True,
+                             cwd=ROOT).stdout.split("\0")
+    out = []
+    for d in filter(None, dateien):
+        f = ROOT / d
+        if not f.is_file() or f.stat().st_size > 5_000_000:
+            continue
+        roh = f.read_bytes()
+        if b"\0" in roh[:8192]:
+            continue                                   # Binaerdatei
+        if p.funde(d):
+            out.append(f"{d}: im Dateinamen")
+        for i, z in enumerate(roh.decode("utf-8", "replace").splitlines(), 1):
+            for nr in p.funde(z):
+                out.append(f"{d}:{i}: Wort {nr} der Zeile")
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--staged", action="store_true")
     ap.add_argument("--nachricht")
     ap.add_argument("--verlauf", type=int)
     ap.add_argument("--hash")
+    ap.add_argument("--baum", nargs="*")
     a = ap.parse_args()
     if a.hash:
         print(f"{h(a.hash)}  # Grund: ...")
@@ -172,6 +194,17 @@ def main() -> int:
     if a.verlauf:
         verlauf(p, a.verlauf)
         return 0
+    if a.baum is not None:
+        funde = baum(p, a.baum)
+        je: dict[str, int] = {}
+        for f in funde:
+            je[f.split(":", 1)[0]] = je.get(f.split(":", 1)[0], 0) + 1
+        for f in funde:
+            print(f)
+        print(f"{len(funde)} Funde in {len(je)} Dateien", file=sys.stderr)
+        for d, n in sorted(je.items(), key=lambda kv: -kv[1])[:40]:
+            print(f"  {n:>5}  {d}", file=sys.stderr)
+        return 1 if funde else 0
     funde = (staged(p) if a.staged else []) + (nachricht(p, a.nachricht) if a.nachricht else [])
     if funde:
         print("GESPERRT: Nutzername (aus der DB) gefunden — das Repo ist oeffentlich.", file=sys.stderr)

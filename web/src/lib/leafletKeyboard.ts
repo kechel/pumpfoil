@@ -2,7 +2,7 @@ import L from "leaflet";
 
 // Leaflets Tastatur-Navigation darf NIE Tippen in Eingabefeldern schlucken.
 //
-// Befund 17.08. (PeterH, dann Jan): mit Fokus im Chat-Eingabefeld zoomte die Taste `-` weiterhin
+// Befund 17.08. (ein Nutzer, dann Jan): mit Fokus im Chat-Eingabefeld zoomte die Taste `-` weiterhin
 // die Karte. Leaflets `_onKeyDown` prüft NUR Alt/Ctrl/Meta und verlässt sich sonst darauf, dass
 // der Handler bloß bei Fokus auf dem Kartencontainer registriert ist (`_addHooks` bei focus,
 // `_removeHooks` bei blur). Diese Buchhaltung reicht in einer SPA nicht: der Listener hängt am

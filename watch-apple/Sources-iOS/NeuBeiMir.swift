@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Home › Uebersicht: „Neue Kommentare & Likes" (PWA PersonalHome NeuBeiMir, Olek/Jan 03.11.2026) — die letzten
+/// Home › Uebersicht: „Neue Kommentare & Likes" (PWA PersonalHome NeuBeiMir, Nutzer/Jan 03.11.2026) — die letzten
 /// Kommentare und Likes anderer an den eigenen Sessions, hoechstens 5 aus 14 Tagen (Server). Leer -> gar nicht da.
 /// Das Profilbild fuehrt aufs Profil, der Rest der Zeile zur Session.
 struct NeuBeiMirAbschnitt: View {

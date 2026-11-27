@@ -169,7 +169,7 @@ Fahrer-IDs; .gitignore-Ausnahme wie v3). Nur pumpfoil/efoil/foildrive/foil_scoot
 bei efoil/foildrive (`NUR_PUMPS`) nur die Pumps; Gleitphasen, `longest_glide_s`, `pg_best_glide_s` und
 „genauer hinschauen" bleiben dort leer bzw. beim alten Stand.
 
-**Foil Scoot: pg-scoot-1 (24.10.2026 abends, Jan: „100 % getrennt von pg-1", Anlass ThermikDreher u267).** Pumps aus
+**Foil Scoot: pg-scoot-1 (24.10.2026 abends, Jan: „100 % getrennt von pg-1", Anlass ein Foil-Scoot-Fahrer).** Pumps aus
 pg-1, Gleiten aus eigener Regel `server/app/analysis/pumpgleit_scoot.py`: Pause zwischen erkannten Pumps ≥ 2,5 s
 (Ränder um 0,3 s gekürzt) plus letzter Pump bis Stufen-Ende, 1,5–15 s, kein „genauer hinschauen". Gespeichert mit
 `pg_version = "pg-scoot-1"` (`pumpgleit.version(s)`), sonst dieselben `pg_*`-Felder. Messung am Brett-Paar

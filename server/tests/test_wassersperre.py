@@ -64,7 +64,7 @@ def test_nutzer_voreinstellung_greift_ohne_geraete_wert(client):
 def test_absturzmeldung_wird_gezaehlt_und_entprellt(client):
     """Die Uhr meldet einen nicht sauber beendeten Lauf — der Server zaehlt das EREIGNIS.
 
-    Gebaut fuer Amazfit am 22.09.2026, nachdem César (Amazfit Active 2) per Mail berichtete, seine
+    Gebaut fuer Amazfit am 22.09.2026, nachdem ein Nutzer (Amazfit Active 2) per Mail berichtete, seine
     Uhr habe sich waehrend eines Uploads dreimal neu gestartet, waehrend bei uns `crash_count = 0`
     stand: die Zepp-App hatte bis dahin gar keinen Waechter. Der Weg ist derselbe wie bei Garmin,
     deshalb wird er hier auch einmal als Weg geprueft und nicht nur als Funktion.

@@ -1249,7 +1249,7 @@ export function CommunityList({ name, spot, accelOnly, sport, onShowAll, board =
   const restoreRef = useRef(false);
   const itemsRef = useRef<CommunityGroup[]>([]);
   // WETTLAUF-SPERRE (Jan, 24.09.2026: „wenn ich einen spot auswaehle sind da manchmal noch ganz
-  // andere sessions mit drin, Nateone ist ganz woanders gefahren").
+  // andere sessions mit drin, [ein anderer Fahrer] ist ganz woanders gefahren").
   //
   // Jeder Filterwechsel zaehlt hier hoch. Eine Antwort, die zu einer aelteren Generation gehoert,
   // wird verworfen, statt in die Liste zu laufen. Ohne das passierte zweierlei: `loadingRef`
@@ -1554,7 +1554,7 @@ export function SpotBereich({ spot, sport, accelOnly, sessions, param = "tab", s
 
 type SpotRecSatz = Awaited<ReturnType<typeof api.communityRecords>>;
 
-/** Rekorde am Spot fuer EINE Sportart. Je Sportart getrennt (29.09.2026, Anlass ThermikDreher: ein
+/** Rekorde am Spot fuer EINE Sportart. Je Sportart getrennt (29.09.2026, Anlass eine Nutzerfrage: ein
  * Foil-Scoot-Tempo gegen ein Pumpfoil-Tempo waere kein Rekord). Welche Sportart, bestimmen die
  * Filter-Knoepfe der Spot-Seite darueber (Jan, 28.10.2026). */
 function SpotRecords({ spot, accelOnly, sport, leerText }: { spot: string; accelOnly: boolean; sport: string; leerText?: string }) {

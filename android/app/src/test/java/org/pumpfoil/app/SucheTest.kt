@@ -8,7 +8,7 @@ import org.junit.Test
 /** Dieselben Faelle wie server/tests/test_suche.py und der Web-Test (01.10.2026). */
 class SucheTest {
     @Test fun suchform_wie_server() {
-        assertEquals("frederic", suchform("Frédéric"))
+        assertEquals("fredelin", suchform("Frédélin"))
         assertEquals("fone", suchform("F-One"))
         assertEquals("vivoactive6", suchform("vívoactive® 6"))
         assertEquals("lodz", suchform("Łódź"))

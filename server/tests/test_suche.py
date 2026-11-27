@@ -8,9 +8,9 @@ from sqlalchemy import literal, select
 from app.db import SessionLocal
 from app.suche import suchform, suchform_sql, worte
 
-BEISPIELE = ["Frédéric Brg", "Jérôme michenaud", "Joël", "Łódź", "Straße", "F-One", "X-Over V3",
+BEISPIELE = ["Frédélin Qwx", "Zéphôr musterfrau", "Quoëlix", "Łódź", "Straße", "F-One", "X-Over V3",
              "Mach-2", "Alby-sur-Chéran", "Amelsbüren", "vívoactive® 6", "fēnix® 7X Pro",
-             "Ludvík", "Kraków", "Søren", "Œuvre", "Ærø", "Tomás", "Argelès-sur-Mer"]
+             "Zdeník", "Kraków", "Ølgard", "Œuvre", "Ærø", "Quintás", "Argelès-sur-Mer"]
 
 
 def test_sql_und_python_ergeben_dieselbe_suchform():
@@ -24,7 +24,7 @@ def test_sql_und_python_ergeben_dieselbe_suchform():
 
 
 def test_typische_eingaben():
-    assert suchform("Frédéric") == "frederic"
+    assert suchform("Frédélin") == "fredelin"
     assert suchform("F-One") == suchform("fone") == suchform("F One".replace(" ", ""))
     assert suchform("vívoactive®") == "vivoactive"
     assert worte("  f-one   phantom ") == ["fone", "phantom"]

@@ -206,8 +206,8 @@ Schalter nicht mehr mitnehmen (`8429b139`), und `npm run dev` raeumt ihn beim Be
 
 ## 1.0.10 — 2026-09-13
 
-**1.0.9 wurde nie ausgeliefert.** Sie lag beim Zepp-Store im Review, als Cesar (GitHub #4,
-mesarpe) meldete, dass der Upload bei ihm weiterhin mit „Out of Memory" abbricht — bei Block
+**1.0.9 wurde nie ausgeliefert.** Sie lag beim Zepp-Store im Review, als ein Nutzer (GitHub #4)
+meldete, dass der Upload bei ihm weiterhin mit „Out of Memory" abbricht — bei Block
 **108 von 2341**. Jan hat 1.0.9 deshalb zurueckgezogen; ihr gesamter Inhalt geht mit 1.0.10 raus
 (siehe den Abschnitt darunter), plus die drei Punkte hier.
 

@@ -173,7 +173,7 @@ def _sport_setzen(ns: models.Session, user, neu: str | None) -> None:
 def split_session(db: DbSession, s: models.Session, t_ms,
                   sports: list[str | None] | None = None) -> list[models.Session]:
     """`s` an Session-ms `t_ms` teilen — eine Stelle (zwei Teile) oder eine Liste von Stellen (n+1 Teile, Feedback
-    PumpingCarbon 05.11.2026: „Pumpfoil -> Wingfoil -> Pumpfoil -> Wingfoil -> Pumpfoil … nur 1x trennen").
+    Feedback eines Nutzers 05.11.2026: „Pumpfoil -> Wingfoil -> Pumpfoil -> Wingfoil -> Pumpfoil … nur 1x trennen").
     -> Teile in zeitlicher Reihenfolge. `sports` = Sportart je Teil (None = wie das Original)."""
     # Zeile sperren: ein zweiter Klick waehrend der (langen) Reanalyse wartet und scheitert dann
     # an `deleted` statt eine zweite Kopie zu bauen (s. merge._schon_zusammengefuehrt).

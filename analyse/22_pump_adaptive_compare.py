@@ -6,7 +6,7 @@ Gleitphasen (Ø/längste), Meter/Pump, Läufe-ohne-Pump.
 
 Befund (Sessions 360/361): die produktive Schwelle ist GLOBAL
 `thr = max(0.6·std(ganze Session), 0.08 g)` -> starke Läufe ziehen die Schwelle hoch,
-glatte Pump-Läufe (Markus) fallen komplett drunter -> ganze Läufe ohne Marker.
+glatte Pump-Läufe (eines Fahrers) fallen komplett drunter -> ganze Läufe ohne Marker.
 NEU: Schwelle relativ zur LAUF-eigenen Std (+ niedrigerer Boden + Pump-Band-Gate).
 
 Lauf:  DATABASE_URL muss im Env sein (es gibt keine Rueckfallebene):

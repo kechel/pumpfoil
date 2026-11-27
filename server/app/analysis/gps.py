@@ -68,7 +68,7 @@ SENSITIVITY_PRESETS: dict[str, dict[str, float]] = {
 # GPS-Dropout, ist es in Wahrheit EIN Lauf (Modell-Aussetzer) -> mergen, egal wie lang.
 # 1.5 m/s (~5,4 km/h): darunter = echter Stopp (abgesunken/gestanden/gestürzt), darüber nur
 # ein Soft-Moment/Touchdown zwischen Pumps (auf dem Foil hält man <5 km/h nicht). Trennt in
-# #361 sauber die Soft-Moments (dip 1,9-2,7) von echten Stopps (dip ~0) -> 22 Läufe (Markus'
+# #361 sauber die Soft-Moments (dip 1,9-2,7) von echten Stopps (dip ~0) -> 22 Läufe (Fahrer-
 # Wahrheit); übrige Sessions regressionsgeprüft unverändert. War 2,8 = zu hoch (zerhackte Cruises).
 NOSTOP_SPEED = 1.5
 IMPULSE_BACK_S = 3        # Aufsprung-Impuls bis 3 s VOR dem erkannten Start suchen
@@ -1179,7 +1179,7 @@ def _merge_no_stop(segments, speed_s, t_ms, step, speeds, gps_hz, pos_speed_s=No
         # oder bei spärlichem GPS-Log, ergibt viele Samples mit weiter hohem Speed (kein
         # Dropout) -> derselbe Lauf. Sonst zerschneidet langes Cruisen einen Lauf künstlich.
         # KEINE Dauer-Kappe: blieb der Speed die GANZE Lücke über >= NOSTOP_SPEED und lag
-        # kein Sample-Dropout vor, ist es derselbe Lauf — egal wie lang (Markus #361:
+        # kein Sample-Dropout vor, ist es derselbe Lauf — egal wie lang (#361:
         # 17-36 s ruhiges Gleiten, das das Modell verliert, wurde sonst künstlich zerhackt).
         seg_t = t_ms[prev["i_end"] : seg["i_start"] + 1]
         max_sample_dt_s = float(np.max(np.diff(seg_t))) / 1000.0 if seg_t.size >= 2 else 0.0

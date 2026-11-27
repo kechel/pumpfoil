@@ -1,6 +1,6 @@
 """Equipment je Sportart: Vorauswahl + Standard (19.10.2026, Stand-Buch: equipment_je_sport).
 
-Anlass Oerni (Wing + Pumpfoil): stellt er eine Session nachtraeglich auf Wingfoil um, bleibt das
+Anlass ein Nutzer (Wing + Pumpfoil): stellt er eine Session nachtraeglich auf Wingfoil um, bleibt das
 Pumpfoil-Foil eingetragen und er muss es von Hand aendern. Jetzt kann jede Sportart ihren eigenen
 Standard haben — `settings_json.equipment_je_sport = {sportart: {foil_id, board_id, stab_id,
 mast_len_cm}}`. Nur eingetragene Felder zaehlen; was fehlt, faellt auf den allgemeinen Standard

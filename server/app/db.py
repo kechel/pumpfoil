@@ -153,7 +153,7 @@ def _migrate_add_indexes() -> None:
         # Puls-Diagnose der Aufnahme (15.09.2026). Ein Puls-Ausfall war bisher nur am Ergebnis
         # sichtbar — „keine Werte da" —, und ob der Recorder ueberhaupt gemessen hat, stand
         # ausschliesslich in einer Logzeile AUF DER UHR, die wir nie zu sehen bekommen. Das hat
-        # bei PeterH (u171) eine Woche gekostet. `hr_source`: active = aktive Messung angefordert
+        # bei einem Nutzer eine Woche gekostet. `hr_source`: active = aktive Messung angefordert
         # und geliefert · passive = nur mitgelesen, was das System ohnehin misst · none = nichts.
         # Wassersperre je Uhr (15.09.2026): "auto" | "on" | "off", NULL = Nutzer-Default.
         # Je GERAET und nicht je Nutzer, weil es eine Eigenschaft der Uhr ist — eine Uhr mit

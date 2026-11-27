@@ -923,7 +923,7 @@ function MeineSpots({ liste, homespotId, onWahl }: { liste: MeinSpot[]; homespot
   );
 }
 
-/** „Neu bei deinen Sessions" (Olek/Jan, 03.11.2026): die letzten Kommentare und Likes anderer an den eigenen
+/** „Neu bei deinen Sessions" (Nutzer/Jan, 03.11.2026): die letzten Kommentare und Likes anderer an den eigenen
  * Sessions, hoechstens 5 aus 14 Tagen (Server). Likes je Session zusammengefasst. Leer -> gar nicht da. */
 function NeuBeiMir() {
   const t = useT();

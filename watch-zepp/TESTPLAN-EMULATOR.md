@@ -59,7 +59,7 @@ einer Modellliste:
 | Uhr | im Feld | warum genau die |
 |---|---|---|
 | **Active 2 (Round)** | 3 Uhren, **10 Sessions** — meistgenutzt | **Césars Modell.** Seine Uhr startete waehrend eines Uploads **dreimal** neu — der Fall, fuer den der Waechter gebaut wurde. |
-| **GTR 4** | 1 Uhr, 2 Sessions, schon auf 1.0.11 | **Klettermax' Modell.** „Nach circa 4,5 Minuten kommt dann das Ziffernblatt" — genau das Symptom, das 1.0.12 beheben soll. |
+| **GTR 4** | 1 Uhr, 2 Sessions, schon auf 1.0.11 | **Modell eines Testers.** „Nach circa 4,5 Minuten kommt dann das Ziffernblatt" — genau das Symptom, das 1.0.12 beheben soll. |
 | **Balance 2** | 2 Uhren | Neuestes System → hier **muss** der Speicherwert ankommen. Ist ausserdem das Standardmodell des Simulators. |
 | **T-Rex 3** | 9 Uhren (drei Schreibweisen, s. u.) | Die **Gegenprobe**: diese Uhr lief 94,8 Minuten am Stueck durch. Wenn hier etwas bricht, liegt es nicht am Modell. |
 

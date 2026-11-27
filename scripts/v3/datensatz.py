@@ -11,7 +11,7 @@ Woher die Labels kommen (Vertrauen absteigend) — Regeln und Begruendung in doc
   lauf     heutiger Lauf, nahe JRC-Wasser, <= 40 km/h -> 1
   land     klar an Land (kein JRC-Wasser in ±60 m), in Bewegung, KEIN heutiger Lauf -> 0
   ruhe     Stillstand < 1 m/s -> 0 (verduennt), auf Wasser < 2 m/s ausserhalb eines Laufs -> 0
-  fortsetzung  langsames Weiterpumpen vor/nach einem Lauf (fortsetzung_labels.py; Guillaume u350,
+  fortsetzung  langsames Weiterpumpen vor/nach einem Lauf (fortsetzung_labels.py; ein Fahrer,
            „Laeufe zu kurz") -> 1, nur nahe Wasser. Eigene Quelle, damit sie sich getrennt messen
            und im Training an- und abschalten laesst.
 Alles andere ist unsicher: auf Wasser in Fahrt ohne Lauf (vielleicht ein verpasster Lauf).

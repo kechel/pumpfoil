@@ -717,7 +717,7 @@ export default function SessionDetail() {
   const [playStarted, setPlayStarted] = useState(false); // Controls (Tempo/Timeline/…) erst nach dem 1. Play
   // Live-Werte beim Abspielen (für coole Videos): aktuelles Tempo (km/h) + Strecke (m) des Laufs.
   // Live-Werte beim Abspielen. `hr` = Puls am aktuellen Punkt, null wenn die Session keinen hat
-  // (Wunsch ThermikDreher 18.08.: sehen, wie der Puls beim Pumpen steigt — die Seite ist voll,
+  // (Wunsch eines Nutzers 18.08.: sehen, wie der Puls beim Pumpen steigt — die Seite ist voll,
   // deshalb ein drittes Badge statt eines eigenen Diagramms, Jans Entscheidung 19.08.).
   const [readout, setReadout] = useState<{ v: number; d: number; hr: number | null } | null>(null);
   const [showReadout, setShowReadout] = useState(true);   // Overlay rechts oben ein/aus
@@ -1311,7 +1311,7 @@ export default function SessionDetail() {
   }, [playTimeline, indexZuSessionMs]);
 
   /**
-   * Schieberegler unter der Wiedergabe (Feedback PumpingCarbon, 05.11.2026: „ein Schieberegler … dass man genau durch
+   * Schieberegler unter der Wiedergabe (Feedback eines Nutzers, 05.11.2026: „ein Schieberegler … dass man genau durch
    * die Maus steuern kann, wo man sich zu welchem Zeitpunkt befunden hat"). `anteil` 0…1 auf der ABSPIEL-Zeitachse,
    * also genau wie der Balken vorher. Laeuft die Wiedergabe, laeuft sie ab der neuen Stelle weiter; pausiert bleibt sie
    * stehen. Gedrosselt wie das Ueberfahren der Lage-Kurven (der Karten-Effekt baut die Spur neu auf).
@@ -3700,7 +3700,7 @@ function SplitPanel({ session, onDone }: { session: SessionSummary; onDone: (ids
   const totalSec = Math.round((session.duration_ms ?? 0) / 1000);
   const MIN = 60;                       // jeder Teil mindestens 1 min (server/app/split.py MIN_TEIL_MS)
   const moeglich = totalSec > 2 * MIN;
-  // MEHRERE Trennstellen (Feedback PumpingCarbon 05.11.2026: „Pumpfoil -> Wingfoil -> Pumpfoil -> Wingfoil -> Pumpfoil …
+  // MEHRERE Trennstellen (Feedback eines Nutzers 05.11.2026: „Pumpfoil -> Wingfoil -> Pumpfoil -> Wingfoil -> Pumpfoil …
   // kann nur 1x trennen"). Sortiert gehalten; jeder Teil mindestens MIN.
   const [cuts, setCuts] = useState<number[]>([Math.round(totalSec / 2)]);
   const startMs = new Date(session.started_at).getTime();
@@ -3953,7 +3953,7 @@ function RunsTable({
   // absolutes Menü an der letzten Zeile abgeschnitten wuerde.
   const [menu, setMenu] = useState<{ i: number; x: number; y: number } | null>(null);
   const [kuerzen, setKuerzen] = useState<number | null>(null);  // Lauf im Kürzen-Dialog
-  // Sortieren per Klick auf die Spaltenueberschrift (Wunsch PumpingCarbon, 10.10.2026). Erster Klick
+  // Sortieren per Klick auf die Spaltenueberschrift (Wunsch eines Nutzers, 10.10.2026). Erster Klick
   // aufsteigend, zweiter absteigend; „#" stellt die Laufreihenfolge wieder her. Die Zeilen behalten
   // ihre Laufnummer — Auswahl, Vergleich und Aussortieren haengen am Lauf, nicht an der Position.
   const [sortKey, setSortKey] = useState<string | null>(null);
@@ -3977,7 +3977,7 @@ function RunsTable({
   const bestDist = maxVon(segments.map((s) => s.distance_m ?? 0));
   const hasPump = segments.some((s) => s.avg_pump_hz != null && (s.pumps ?? 0) > 0);
   const hasUhrTakt = !hasPump && segments.some((s) => s.uhr_takt_min != null);   // Takt laut Uhr (Suunto, 16.11.2026)
-  // Hoechstpuls im Lauf (Wunsch ThermikDreher, 15.08.: „max Heartrate pro Lauf").
+  // Hoechstpuls im Lauf (Wunsch eines Nutzers, 15.08.: „max Heartrate pro Lauf").
   const maxHr = (s: any): number | null => {
     if (!hr.length || s?.i_start == null || s?.i_end == null) return null;
     let m = 0;
@@ -4000,7 +4000,7 @@ function RunsTable({
     }
     return out;
   };
-  // Pulsabfall nach dem Lauf (Heart Rate Recovery; Wunsch ThermikDreher, Jan 14.10.2026): Hoechstpuls
+  // Pulsabfall nach dem Lauf (Heart Rate Recovery; Wunsch eines Nutzers, Jan 14.10.2026): Hoechstpuls
   // des Laufs minus Puls 60 bzw. 120 s nach Laufende. Kein neues Messen, die Uhr zeichnet in den
   // Pausen ohnehin weiter auf. „–", wenn dort kein Messwert liegt (±5 s: Auto-Pause, Uhr nicht am
   // Arm, Aufnahme zu Ende) oder der naechste Lauf vorher beginnt — dann steigt der Puls schon wieder.

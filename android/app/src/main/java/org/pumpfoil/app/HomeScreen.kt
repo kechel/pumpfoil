@@ -734,7 +734,7 @@ private fun kachelListe(st: OverallStats): List<RecTile> {
 }
 
 /**
- * „Neu bei deinen Sessions" (Web PersonalHome NeuBeiMir, Olek/Jan 03.11.2026): die letzten Kommentare und Likes anderer an
+ * „Neu bei deinen Sessions" (Web PersonalHome NeuBeiMir, Nutzer/Jan 03.11.2026): die letzten Kommentare und Likes anderer an
  * den eigenen Sessions, hoechstens 5 aus 14 Tagen (Server), Likes je Session zusammengefasst. Leer -> gar nicht da.
  * Profilbild -> Profil, der Rest der Zeile -> Session bzw. bei Kommentaren gleich der Kommentar-Faden (Web #kommentare).
  */

@@ -15,7 +15,7 @@ Aufruf (aus server/): nice -n 15 .venv/bin/python ../scripts/v3/training_a.py --
   --iter/--blaetter/--lr/--min-blatt  Modellgroesse
   --rand S     die heutigen Lauf-Grenzen sind KEINE Wahrheit: ±S s um jeden Lauf-Anfang/-Ende werden
                fuer die geschaetzten Quellen (lauf, land, ruhe) unsicher. Sonst lernt das Modell die
-               Tempo-Schwellen von v2 nach (Guillaume: langsames Weiterpumpen nur zu 26 % erkannt).
+               Tempo-Schwellen von v2 nach (Fahrer mit Handy an der Brust: langsames Weiterpumpen nur zu 26 % erkannt).
   --gewichte   unabhaengige Wahrheiten staerker: fremd x3, brett/fortsetzung/sicht x5, fit_neg x2
   --brett PKL  Brett-Wahrheit (brett_training.daten(), gepickelt) als eigene Quelle je Uhr-Sekunde
 
@@ -166,7 +166,7 @@ def bericht(name, y, p, q, heute=None, g=None):
             print(f"  {qn:11s} y={v}: {mm.sum():8d} s, richtig {ok:.3f}{h}")
     if g is not None and (g == 350).any():
         m = (g == 350) & (y == 1)
-        print(f"  u350 (Guillaume) y=1: {m.sum()} s, richtig {(p[m] == 1).mean():.3f}"
+        print(f"  Brust-Fahrer y=1: {m.sum()} s, richtig {(p[m] == 1).mean():.3f}"
               + (f" (heute {(heute[m] == 1).mean():.3f})" if heute is not None else ""))
 
 

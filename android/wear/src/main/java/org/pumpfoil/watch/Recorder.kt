@@ -520,7 +520,7 @@ object Recorder {
             flushAll()
             // Puls-Diagnose mitschreiben (15.09.2026). Ohne sie ist ein Puls-Ausfall von
             // aussen nicht von „Nutzer traegt die Uhr zu locker" zu unterscheiden — genau daran
-            // haben wir bei PeterH (u171) eine Woche verloren, waehrend die Ursache eine
+            // haben wir bei einem Nutzer eine Woche verloren, waehrend die Ursache eine
             // Plattform-Regression auf seiner Uhr war. Jetzt steht in jeder Aufnahme, ob
             // ueberhaupt gemessen wurde und wie viele Werte ankamen.
             LocalStore.loescheLaufMarke(ctx)   // sauberes Ende -> keine Absturz-Meldung
@@ -832,7 +832,7 @@ object Recorder {
     // sich daraus ergibt) — die Rohdaten gehen unveraendert zum Server, der rechnet selbst.
     // Entschieden wird auf dem DOPPLER-Wert, nicht auf dem Abstand: er ist unabhaengig vom
     // Positions-Zittern. Nur wenn das Geraet keine Geschwindigkeit liefert (negativ = unbekannt),
-    // faellt es auf eine Mindest-Verschiebung zurueck. Idee aus @elmanu13s Zepp-PR, dort ueber ein
+    // faellt es auf eine Mindest-Verschiebung zurueck. Idee aus dem Zepp-PR eines Beitragenden, dort ueber ein
     // 5-s-Netto-Fenster geloest, weil Zepp weder Genauigkeit noch Doppler liefert.
     // Ab wann ein Fix „alt" ist, und wie viele alte hintereinander wir brauchen, bevor wir es
     // dem Nutzer sagen. 5 s ist grosszuegig (ein frischer Fix ist 0-2 s alt), 20 Fixes bei 1 Hz

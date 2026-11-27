@@ -138,7 +138,7 @@ def main():
     print(f"{'Variante':<10} {'Pumps':>7} {'Läufe=0':>8} {'Median ppm':>11}")
     for k in ("old", "local", "v2", "v2asym"):
         print(f"{k:<10} {tot(k):>7} {zero(k):>8} {med('ppm_'+k) if 'ppm_'+k in rows[0] else med(k):>11}")
-    # Markus separat
+    # der Fahrer mit sanftem Pumpen separat
     mk = [r for r in rows if r["session"] in (360, 361)]
     print("\nMarkus 360/361:")
     for k in ("old", "local", "v2", "v2asym"):

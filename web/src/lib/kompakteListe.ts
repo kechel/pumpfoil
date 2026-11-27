@@ -32,7 +32,7 @@ export function useKompakteListe(): boolean {
   return useSyncExternalStore(abonnieren, () => aktuell, () => false);
 }
 
-// SPALTEN der Zeilen-Ansicht ab `sm` (Feedback #158, gizmomogwai: „the columns of the one-line view
+// SPALTEN der Zeilen-Ansicht ab `sm` (Feedback #158 eines Nutzers: „the columns of the one-line view
 // are not properly aligned"). EIN Raster fuer Einzel- UND Gruppenzeilen, damit alles untereinander
 // steht: Bild | Datum | Uhrzeit | Name | Spot | Kennzahlen | Herz + Pfeil. Feste Breiten, Ueberlanges
 // wird mit „…" gekuerzt. Als ganzer Klassen-String hier, damit Tailwind ihn beim Bauen findet.

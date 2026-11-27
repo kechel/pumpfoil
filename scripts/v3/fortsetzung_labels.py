@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Erkennung v3: „Lauf geht langsam weiter" als Label. REIN LESEND, schreibt nur server/data/ml/v3/.
 
-Anlass Guillaume (u350, 29.09.2026, Handy an der Brust): „die Laeufe sind zu kurz, es fehlt fast
+Anlass ein Fahrer (29.09.2026, Handy an der Brust): „die Laeufe sind zu kurz, es fehlt fast
 die Haelfte" — belegt an #10339: nach dem Lauf-Ende pumpt er 12-20 s bei 5-10 km/h weiter, unsere
 Schwelle schneidet am ersten Tal ab. Jan: „ich denke schon alle seine laeufe".
 
@@ -30,7 +30,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 ML = WURZEL / "server" / "data" / "ml"
 
 FORT_MIN_KMH, STOPP_KMH, STOPP_S, PUMP_MIN = 4.0, 3.0, 2, 0.3
-MENSCH = {350: "Guillaume 29.09.2026: Laeufe zu kurz, es fehlt fast die Haelfte (Handy Brust)"}
+MENSCH = {350: "Fahrer-Meldung 29.09.2026: Laeufe zu kurz, es fehlt fast die Haelfte (Handy Brust)"}
 
 
 def fortsetzungen(t_s, v_kmh, pump, laeufe_s):

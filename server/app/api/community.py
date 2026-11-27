@@ -537,7 +537,7 @@ AKTIVITAET_ANZAHL = 5
 
 @router.get("/my-activity")
 def my_activity(user: models.User = Depends(require_social), db: Session = Depends(get_db)) -> list[dict]:
-    """„Neu bei deinen Sessions" (Home-Uebersicht, Olek/Jan 03.11.2026): die letzten Kommentare und Likes ANDERER an
+    """„Neu bei deinen Sessions" (Home-Uebersicht, Nutzer/Jan 03.11.2026): die letzten Kommentare und Likes ANDERER an
     den eigenen Sessions, neueste zuerst, hoechstens 5 aus den letzten 14 Tagen. Likes je Session zusammengefasst
     (der neueste Liker + Anzahl), Kommentare einzeln. Nicht dabei: eigene Aktionen, gesperrte/versteckte Konten,
     Sperren in beide Richtungen, ausgeblendete Kommentare, geloeschte Sessions, Kommentare bei abgeschalteten
@@ -1759,7 +1759,7 @@ def leaders(period: str = "all", accel_only: bool = True, sport: str = "pumpfoil
     out: dict = {}
     for name, (key, col) in listen.items():
         out[name] = top(key, col)
-    # Die eigene Zeile unter Platz 10 (Olek, 01.11.2026): wer nicht unter den ersten 10 steht, sieht trotzdem
+    # Die eigene Zeile unter Platz 10 (Wunsch eines Nutzers, 01.11.2026): wer nicht unter den ersten 10 steht, sieht trotzdem
     # Rang und Wert. Rang = 1 + Zahl derer mit MEHR, damit Gleichstand ehrlich gezaehlt wird (heute 1 Session haben
     # oft Dutzende; die Stelle in der Sortierung waere dann Zufall, etwa 39). Steht man gleichauf mit der Liste,
     # zeigt die Zeile 11 statt eines kleinen Platzes, der unter Platz 10 wie ein Fehler aussaehe. Getrennter
@@ -2341,7 +2341,7 @@ def _pumpt_gerade(db: Session) -> int:
         return 0
 
 
-# Low End je Foil (01.11.2026, Feedback foiling_fabs): unteres 10-%-Quantil der Lauf-Low-Ends (analysis/lowend.py),
+# Low End je Foil (01.11.2026, Feedback eines Nutzers): unteres 10-%-Quantil der Lauf-Low-Ends (analysis/lowend.py),
 # auf 75 kg umgerechnet (noetiges Tempo ~ Wurzel aus dem Gewicht bei gleicher Flaeche). NUR Sessions mit eingetragenem
 # Fahrergewicht (Jan: „nur da wo ein gewicht eingetragen ist, die anderen ignorieren wir"). Erst ab LOW_END_MIN_FAHRER
 # Fahrern und LOW_END_MIN_LAEUFE Laeufen, sonst bleibt die Spalte leer (mit Hinweis), damit ein Einzelner nicht das
@@ -2856,7 +2856,7 @@ def _foiler_titel(db: Session, user: models.User, u: models.User) -> dict:
     # 1787 community-sichtbaren Sessions haben den Cache, es fehlt nichts).
     #
     # ZWEI BASEN, zwei Zeilen (Jan, 08.09.2026). Vorgeschichte in einem Satz: erst rechnete
-    # die Seite ueber ALLE Aufnahmen, dann sah Jan, dass Markus in den Community-Rekorden
+    # die Seite ueber ALLE Aufnahmen, dann sah Jan, dass ein Fahrer in den Community-Rekorden
     # viermal steht und auf seiner Profilseite einmal — die Bestenliste zeigt per Vorbelegung
     # nur die praezisen Accel-Aufnahmen. Statt eine Basis zu waehlen und die andere Haelfte
     # der Wahrheit zu verschweigen, liefert die Seite jetzt BEIDE: genau die zwei Zustaende,
@@ -2888,7 +2888,7 @@ def _foiler_titel(db: Session, user: models.User, u: models.User) -> dict:
                               "session_id": e.get("session_id")})
     raus["titel"] = titel
 
-    # Die Spot-Zeilen bleiben EINE Basis, sonst waeren es zwei Zeilen je Spot (bei Markus
+    # Die Spot-Zeilen bleiben EINE Basis, sonst waeren es zwei Zeilen je Spot (bei diesem Fahrer
     # acht statt vier). Genommen wird die, die der Fahrer selbst auf der Community-Seite
     # vorgesetzt bekaeme — dieselbe Regel wie in der PWA (`useAccelDefault` ->
     # `loadHasAccel`): mit eigenen Accel-Aufnahmen der Filter, ohne sie ohne ihn.

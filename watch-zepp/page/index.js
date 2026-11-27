@@ -100,7 +100,7 @@ const PHASE_IDLE = 2;     // Startbildschirm steht, nichts laeuft
 const PHASE_RECORD = 3;   // Aufnahme
 const PHASE_UPLOAD = 4;   // Upload
 //
-// WARUM ES DEN WAECHTER GIBT (22.09.2026): César (Amazfit Active 2) meldete per Mail, seine Uhr
+// WARUM ES DEN WAECHTER GIBT (22.09.2026): ein Nutzer (Amazfit Active 2) meldete per Mail, seine Uhr
 // habe sich waehrend eines Uploads DREIMAL neu gestartet. In unseren Daten stand
 // `crash_count = 0` — nicht, weil der Merker verlorenging, sondern weil die Zepp-App ueberhaupt
 // keinen hatte. Garmin meldet Abstuerze seit Wochen, Amazfit nie. Wir waren also genau bei dem
@@ -410,7 +410,7 @@ function layZoneVon(v, grenzen) {
 function layZone(fid, v) { return layZoneVon(v, layZonen(fid)); }
 // --- Geometrie der Rand-Grafik ----------------------------------------------------------------
 // Gezeichnet wird auf einem CANVAS mit drawPoly, NICHT mit dem ARC-Widget. Grund ist ein
-// Geraetebefund aus @elmanu13s Zepp-PR (#3): "ARC always renders rounded stroke caps on the
+// Geraetebefund aus dem Zepp-PR eines Beitragenden (#3): "ARC always renders rounded stroke caps on the
 // T-Rex 3" — ein Segment bekaeme also runde Enden statt gerader Schnitte. Der Canvas hat noch
 // zwei Vorteile: EIN Widget statt vieler (kein Loeschen/Neuanlegen pro Sekunde, also auch kein
 // Z-Order-Problem mit dem Text darueber) und dieselbe Zeichenweise fuer rund und eckig.
@@ -3889,7 +3889,7 @@ Page(
       });
       // Bloecke NACHEINANDER senden, ohne die Promises aneinanderzuhaengen.
       //
-      // WARUM NICHT REKURSIV (Fehlerbild vom 13.09.2026, GitHub #4, César/mesarpe): die alte
+      // WARUM NICHT REKURSIV (Fehlerbild vom 13.09.2026, GitHub #4, ein Nutzer): die alte
       // Fassung gab die Promise des NAECHSTEN Blocks zurueck —
       //     return req({...}).then(() => sendGpsChunk(index + 1));
       // Damit blieb Ebene 0 offen, bis die letzte Ebene fertig war, und weil die `.then`-Funktion

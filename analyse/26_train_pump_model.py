@@ -2,7 +2,7 @@
 
 Idee statt fester Schwelle: ALLE plausiblen Aufwärts-Peaks im Vertikalsignal als Kandidaten
 sammeln, je Kandidat Features rechnen (Amplitude, Prominenz, Rhythmik, Abstände …) und lernen,
-welche echte Pumps sind. So lassen sich subtile (Markus-)Pumps annehmen UND Fehlalarme verwerfen.
+welche echte Pumps sind. So lassen sich subtile Pumps annehmen UND Fehlalarme verwerfen.
 
 Wahrheit = PumpTruth-Konsens (compare_takes), per period-begrenztem Offset auf die Accel-
 Zeitbasis ausgerichtet. Eval = Leave-one-run-out (GroupKFold über die Läufe), Vergleich gegen

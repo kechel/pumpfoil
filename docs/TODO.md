@@ -21,11 +21,11 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
 | **V-max wie der Server** (3-s-Median der gesaeuberten Werte, nur in Laeufen; alle Uhren + Handy-Recorder, 10.11.) | alle Nutzer der neuen Fassungen: Garmin 1.0.102 (live 10.11.), iOS/Apple Watch 1.1.64 (live 11.11.), Amazfit 1.0.15 (live 11.11.), Huawei Watch 5 1.0.5 (live 12.11.), Android/Wear 1.1.48/1.2.48 (interner Test) | keine | **10.11.:** Simulator: Apple Watch #21081/#21086 (Uhr neu 15,2 = Server), fēnix #21087 (alt 19,1 -> neu 16,1, Server 16,3). Uploads ok, aber ohne Lauf (V-max nicht pruefbar): Instinct-Sim #21088/#21089 (duenn wegen Garmin-Verknuepfung), Huawei #21099 (1.0.5, 0 Laeufe trotz 15-19 km/h — Server-Erkennung, ungeklaert), Pixel #21100, iPhone #21101, Wear-Emulator #21102/#21103 (8 km/h). Vorher (633 Apple-Sessions seit 01.08.): Uhr im Median +4,1 km/h ueber dem Server. | echte Fahrten mit den neuen Fassungen | `scripts/uhr-vmax-messen.py --seit 2026-11-10` zeigt je Plattform Median ~0 und < 5 % ueber +3 km/h (nachgerechnet; die Display-Werte selbst sehen wir nicht) |
 | **FR55 mit 25 Hz + Garmin Connect** (geht die Beschleunigung in eigene Bloecke und in die FIT? haelt die 158-KB-Uhr eine lange Aufnahme durch?) | Jan (geliehene FR55, seit 07.11. auf Jans Konto, Token 1850, App 1.0.101) | **record_mode = gps** (Server-Standard fuer frisch gekoppelte speicherarme Uhren, `_gps_only_wenn_speicherarm`) — fuer den Test auf „voll" stellen | **08.11.: Doppel-Session FR55 RECHTS (vordere Hand) #20857 (als Dopplung markiert) + fēnix LINKS wie immer #20849/#20858, 15:20–16:18, je 6 Laeufe — Vergleich vordere/hintere Hand moeglich.** **07.11.:** erste Testaufnahme lief noch mit 1.0.92 und dem alten Token des Vorbesitzers -> eigene Bloecke bei ihm (#20390: 75 GPS-Punkte/138 s, keine Accel wegen gps-Modus), Garmin-FIT bei Jan (#20391: 6 Saetze, 5 GPS-Punkte/27 s, keine Accel, 1.0.92 schreibt keine). Nach Update auf 1.0.101 Kopplung sofort ok. **07.11. 14:17 (Modus voll, 8 min):** eigene #20408 ging korrekt in den FR55-Garmin-Import #20412 auf (nicht in eine andere Uhr). Garmin-FIT: 464 Accel-Nachrichten (~25 Hz ueber die ganzen 7,7 min) + 58 GPS-Saetze. Eigene Bloecke: nur 34 GPS-Punkte, KEINE Accel — Vermutung: 100-KB-Reserve (Budget 158 KB -> nutzbar 142) schaltet sofort auf GPS-only + Sparen; ungeprueft. Beide temporaer aussortiert (Skript im Scratchpad, Jan: nicht in Rankings). **Die FR55 ist an einen Kumpel ohne Konto verliehen; seine Sessions spaeter dessen Konto zuordnen (Jan, 07.11.).** **07.11. 14:25-16:09 (u1036, #20460):** eigene Bloecke kamen (GPS, Accel nur ~1 Hz ueber die Wanduhr -> gps_only), aber **keine Garmin-FIT**: Garmin Connect zeigt die Aktivitaet nicht, kein Push. Vermutung: FIT auf der Uhr nicht gespeichert (Speicher/Reserve?) — auf der Uhr unter Protokoll pruefen. Zwei-Uhren-Zuordnung behoben (1cb33324). **18:3x: FIT der 102-min-Fahrt kam doch (Garmin-Sync spaet): #20519 mit 24,6 Hz ueber die ganze Fahrt, kein Absturz — FR55 mit 25 Hz belegt.** An u1036 gehaengt, eigene #20460 darin aufgegangen. Modell findet damit 0 Laeufe (GPS-only hatte 19) — Anfaenger-Fall fuer die Erkennung, Entscheidung Jan offen. | GPS-only-Standard fuer FR55 mit Garmin-Verknuepfung entscheiden; eigene Bloecke ~1 Hz (Reserve) klaeren | Accel in eigenen Bloecken (~25 Hz gemessen) und in der FIT, kein Absturz. Danach entscheiden, ob der GPS-only-Standard fuer FR55 & Co. (Begruendung 22.09. war die 10-Hz-Falle) wegfaellt. |
 | **Garmin 1.0.100 duenner Weg** (96-KB-Uhr mit Garmin Connect: eigene Bloecke aus, GPS alle 10 min, SensorLogger an) | erster Instinct-2/2S/2X-Nutzer mit Garmin-Verknuepfung (Stand 05.11.: keiner) | keine | **05.11.:** nur Simulator (1 h ohne Absturz, 61/92 KB, nichts im Flash, duenne Session #20201 mit Meta + 2 GPS-Punkten). **Test B 05.11. bestanden** auf Jans fēnix 7X Pro (nur sein Konto per `UHR_WEGE_NUTZER`, danach wieder entfernt): duenne #20219 (Meta + 1 GPS-Punkt, 10,5 min) ging um 19:22:19 in Garmin-Session #20220 auf (579 GPS, 63.000 Accel, Sportart + Foil von der Uhr). Auf einer echten 96-KB-Uhr nie gelaufen | Instinct mit Verknuepfung + erste Session | keine Absturzmeldung (crash/canary), Garmin-FIT mit Accel kommt an, duenne Session geht in der Garmin-Session auf; sonst `UHR_LOWMEM_GC_NUR_FIT=0` |
-| **Amazfit 1.0.13** (GPS/Hintergrund, Pausenseiten, 2-s-Halten) | Klettermax68 u352 (GTR 4); u870 (Active, seit 11.10., noch keine Session) | keine (nur Wassersperre an) | **27.10.:** seit 20.10. nur zwei Sessions, keine auf 1.0.14 (live seit 22.10.): #17730 u818 (1.0.13, 44 min) GPS in Laeufen 0,97 Pkt/s, 0 Luecken > 15 s in Laeufen, 23 ausserhalb; Accel 24,8 Hz exact_chunks. #17668 u812 (1.0.12) ohne Lauf. u352/u870 nichts Neues. **20.10.:** u352 seit 14.10. nichts Neues; u870 weiter ohne Session. Neu u818 (Active 3 Premium, 1.0.13) #16827 (44 min): Accel 25 Hz lueckenlos, GPS 0,60 Pkt/s mit 23 Luecken > 15 s — gleiches Bild wie u352. 1.0.14 (im Review) bisher nur Jans Tests. 12.10.: Autofahrt #14896 sauber (0,98 Pkt/s). ABER Wasser-Session #14983 (97 min, 6 Laeufe): GPS gesamt 0,35 Pkt/s (1.0.12: 0,15-0,19), in Laeufen 0,64 (1.0.12: 0,39-0,52), 79 Luecken > 15 s, laengste 378 s; Accel lueckenlos 9,79 Hz. Luecken fast nur bei < 3 km/h. VERMUTUNG (unbelegt): Fix-Status „nicht A" bei Handgelenk im Wasser -> Punkt verworfen. Ausserdem 1 Absturz in Phase 2 (Startbildschirm, keine Aufnahme) am 11.10. **15.10.:** zwei neue kurze Sessions vom 14.10.: #16724 (7 min, GPS 0,46 Pkt/s) sauber abgeschlossen; #16734 steht auf `live` (43 Chunks, letzter Kontakt 14.10. 19:03, kein /complete) — Rest liegt vermutlich noch auf der Uhr. **15.10.: #16734 nachgeliefert und abgeschlossen** (74/74 Chunks lueckenlos, Accel 9,9 Hz `exact_chunks`, Puls in 227/229 Punkten) — GPS im einzigen Lauf ok (10 Punkte in 14 s, laengste Luecke 3,3 s); alle 4 Luecken > 15 s (bis 182 s) liegen AUSSERHALB des Laufs bei Tempo ~0 (Stehen/Schwimmen) -> kein Befund. | Ursache der GPS-Luecken klaeren (Status-Log je Sekunde?); Pausen-Test | GPS in Laeufen ~1 Pkt/s, keine Luecken > 15 s |
+| **Amazfit 1.0.13** (GPS/Hintergrund, Pausenseiten, 2-s-Halten) | ein Tester (GTR 4); u870 (Active, seit 11.10., noch keine Session) | keine (nur Wassersperre an) | **27.10.:** seit 20.10. nur zwei Sessions, keine auf 1.0.14 (live seit 22.10.): #17730 u818 (1.0.13, 44 min) GPS in Laeufen 0,97 Pkt/s, 0 Luecken > 15 s in Laeufen, 23 ausserhalb; Accel 24,8 Hz exact_chunks. #17668 u812 (1.0.12) ohne Lauf. u352/u870 nichts Neues. **20.10.:** u352 seit 14.10. nichts Neues; u870 weiter ohne Session. Neu u818 (Active 3 Premium, 1.0.13) #16827 (44 min): Accel 25 Hz lueckenlos, GPS 0,60 Pkt/s mit 23 Luecken > 15 s — gleiches Bild wie u352. 1.0.14 (im Review) bisher nur Jans Tests. 12.10.: Autofahrt #14896 sauber (0,98 Pkt/s). ABER Wasser-Session #14983 (97 min, 6 Laeufe): GPS gesamt 0,35 Pkt/s (1.0.12: 0,15-0,19), in Laeufen 0,64 (1.0.12: 0,39-0,52), 79 Luecken > 15 s, laengste 378 s; Accel lueckenlos 9,79 Hz. Luecken fast nur bei < 3 km/h. VERMUTUNG (unbelegt): Fix-Status „nicht A" bei Handgelenk im Wasser -> Punkt verworfen. Ausserdem 1 Absturz in Phase 2 (Startbildschirm, keine Aufnahme) am 11.10. **15.10.:** zwei neue kurze Sessions vom 14.10.: #16724 (7 min, GPS 0,46 Pkt/s) sauber abgeschlossen; #16734 steht auf `live` (43 Chunks, letzter Kontakt 14.10. 19:03, kein /complete) — Rest liegt vermutlich noch auf der Uhr. **15.10.: #16734 nachgeliefert und abgeschlossen** (74/74 Chunks lueckenlos, Accel 9,9 Hz `exact_chunks`, Puls in 227/229 Punkten) — GPS im einzigen Lauf ok (10 Punkte in 14 s, laengste Luecke 3,3 s); alle 4 Luecken > 15 s (bis 182 s) liegen AUSSERHALB des Laufs bei Tempo ~0 (Stehen/Schwimmen) -> kein Befund. | Ursache der GPS-Luecken klaeren (Status-Log je Sekunde?); Pausen-Test | GPS in Laeufen ~1 Pkt/s, keine Luecken > 15 s |
 | **Garmin 1.0.92** (FR55: Sensor 25 Hz + Ausduennen statt 2,5 Hz) | u38 (auf 1.0.92, noch keine Session — Konto mit Emulatoren/R8-Test, vermutlich Testkonto), u5 + u533 noch auf 1.0.90/1.0.91; Philipps FR55 derzeit an Jans Konto | — | **27.10.:** nicht pruefbar — beide FR55-Fahrer (u5, u533, jetzt 1.0.95) nehmen im Modus `gps` auf (eigene Wahl, kein Accel), Philipps FR55 seit 12.10. ohne neue Session. **13.10. geprueft, funktioniert wie gebaut:** #15052 (Philipps FR55 an Jans Konto, 12.10., 48 min, 1.0.92, Speicher sparen an = FR55-Standard): ohne Upload waehrend der Fahrt griff nach 7,4 min die 100-KB-Reserve (158 KB Puffer, ~26 KB GPS + 18 KB Accel offen) und schaltete Accel ab; GPS+Puls liefen die ganzen 48 min durch (1393 Punkte, ~80 KB), Stillstand (24 min) nicht gespeichert, alle 16 Fahrabschnitte vollstaendig. Die „6,3 Hz" waren nur der Schnitt ueber die Spar-Luecken. Volle 25 Hz ueber eine ganze Session gehen auf der FR55 nur mit Handy in Reichweite (Accel ~216 KB fuer 24 min Fahrt). Andere Uhren mit 1.0.92 durchgehend 25 Hz | eine FR55-Session MIT Handy in Reichweite | `accel_hz_measured` ~25 Hz in den Fahrabschnitten ueber die ganze Session |
 | **Garmin 1.0.92 auf Instinct 2S** (Low-Mem) | Bert u481 | — | **27.10.:** Bert u481 weiter 1.0.91, keine Session seit 11.10. **Neu: Abstuerze IN DER AUFNAHME (Phase 3) auf 1.0.95:** u217 (Instinct 2, mem 89/92 KB) 22.10. — #17678 mit 0 Chunks; u920 (Instinct E, 77/123 KB) 22.10. — #18772 und #18816 mit 0 Chunks. u520 (Instinct E, 1.0.95) dagegen zwei saubere Sessions (187/187, 155/155). **u214 (Instinct 2X, 92 KB, jetzt 1.0.97): 25 Abstuerze, alle Phase 2 (Startbildschirm), letzter 24.10. auf 1.0.97, nie eine Aufnahme mit unserer App** (nutzt nur Konto-Importe) — seit wann, unklar (Zaehler kumuliert seit 08/2026, Server-Log nur ab 22.10.). Auf 1.0.96/1.0.97 sonst flottenweit keine leere oder unvollstaendige Aufnahme ausser Splits; noch keine Low-Mem-Uhr mit 1.0.96/1.0.97-Session. **20.10.:** Bert weiter 1.0.91, keine Session seit 11.10. Andere Instinct 2 auf 1.0.92 (u460 4 Sessions, u875 3): keine Absturz-Meldungen, GPS in Laeufen ~1 Pkt/s, Luecken fast nur ausserhalb (Speicher sparen/Stehen); u875 je 5-7 Luecken bis 84 s auch IN Laeufen. Neu auf 1.0.94: u905 + u636 je eine Aufnahme mit 0 empfangenen Chunks (`recording`, erwartet 2 bzw. 13, #17412, #17467 22 min) — Rest vermutlich noch auf der Uhr. 11.10. 10:36 UTC: Uhr weiter auf 1.0.91, zwei neue Sessions #14886/#14889 auch 1.0.91 (GPS-only); 2 Abstuerze gemeldet (Phase 3, zuletzt 02.10., seitdem keine) | Update auf 1.0.92 + Session | keine neuen Absturz-Meldungen, Chunks lueckenlos |
 | **HUAWEI Watch 5 1.0.2** (ArkTS, Direkt-Upload nach Code-Kopplung, ohne Wear Engine) | Jan im DevEco-Emulator (Watch 5, HarmonyOS 6.0.1); echte Uhr: nur Huawei-Pruefer auf WATCH Ultimate 2 mit Testkonto 881 (23.10. 1.0.2: 10 Sessions, #18851 405 s, Accel 58,6/s, 30 GPS-Punkte = drinnen; 06.11. 1.0.4: #20246 129 s, Accel 24,3/s, ungeklaert) — Kopplung + Upload auf echter Hardware damit belegt; echter Nutzer: noch niemand | Emulator: GPS-Replay, virtueller Puls 112 | 13.10. Emulator bestanden: #15074 ungekoppelt 18:41, Home + Display aus + force-stop, nach Koppeln 67/67 lueckenlos, GPS 1,02 Pkt/s; #15075 gekoppelt mit Pause 5:21, Fahrzeit 2:31 = Uhr, 11/11. Accel im Emulator nur ~6,7 Hz statt 50 -> `measured_rate` | **1.0.4 FREIGEGEBEN 09.11.**, 1.0.3 am 04.11. (davor 1.0.2 abgelehnt 22.10./28.10., 1.0.3 abgelehnt 02.11.); jetzt erste Session auf echter Watch 5 | `accel_hz_measured` ~50 Hz und `time_base` exact_chunks auf echter Uhr; Chunks lueckenlos |
-| **Wear OS 1.2.41** (GPS bei Bildschirm aus nach Google-Doku) | Foilbert u574 (OPWWE251, 1.2.37) | **Weckruf per Bewegung AUS** (`accel_wakeup: off`, Behelf gegen den GPS-Abriss), Empfindlichkeit „light" | **27.10.:** 1.2.43 bei 8 Nutzern. GPS ueberall ~1 Pkt/s, in Laeufen 0 Luecken > 15 s. Samsung mit `accel=normal` + HS-GPS weiter Accel 5-9 Hz und Puls 22-31 % (u477, u708, u785, u878, u904) — erwartet, der WakeLock kommt erst mit 1.2.44 (Review). Ausnahmen gut: u343 SM-L715U 24,7 Hz/Puls 75 %, Pixel (batch) 25 Hz. **Befund 1.2.43: #19015 (u841, SM-R910, 146 min) lief auf `lm`, Puls 0 %, `puls_neu` 8** — ohne HS-Positionen startet der Puls-Waechter die Uebung weiter neu und Puls kommt nie. #17722 (u795, 1.2.42) 120/355 Chunks — Rest vermutlich auf der Uhr. **20.10. geprueft (24 Sessions 1.2.40+, 13 Nutzer): GPS jetzt ueberall ~1,0 Pkt/s ohne Luecken (Ziel erreicht), ABER auf Samsung ohne Wake-up-Accel (`messweg.accel=normal`) + HS-GPS kommt der Accel nur noch stossweise: 7-39 % der Session (u785 SM-L315F 6 Sessions, u477 SM-L330, u418/u708 SM-L705F, u270), in 1.2.37 bei denselben Fahrern 100 % / 25 Hz. Chunks selbst voll (250 Samples), dazwischen Luecken bis 507 s -> CPU schlaeft. Puls faellt mit (u477 95->21 %, u708 96->24 %). Mit `accel=batch` (Pixel Watch 2, Xiaomi) oder GPS ueber LocationManager 98-100 %. Ausnahme u343 SM-L715U (hs+normal, 99 %). VERMUTUNG: LocationManager hat die CPU jede Sekunde geweckt, HS-GPS buendelt -> normaler Accel-Listener ohne WakeLock steht. Der Wear-Recorder haelt KEINEN WakeLock. 1.2.43 (im Review) aendert daran nichts. Moegliche Abhilfe: PARTIAL_WAKE_LOCK waehrend der Aufnahme, wenn keine Wake-up-Variante da ist -> Jans Entscheidung, Aufnahmepfad, langer Test.** **GEBAUT 20.10. (Jans OK, fuer 1.2.44):** PARTIAL_WAKE_LOCK nur im Zweig „normale Variante", frei bei Pause/Stopp/onDestroy, Obergrenze 12 h; `messweg.wach=true` als Beleg. Emulator (kein Wake-up-Accel): Lock bei Start da, bei Pause weg, bei Fortsetzen wieder da, bei Stopp weg; #17635 mit `wach: true` am Server. Offen: lange Session auf echter Samsung (Accel-Abdeckung ~100 %? Akku?). **22.10. Emulator-Langtest bestanden:** (1) R8-Release-Build (debug-signiert), alle Rechte, Health-Services-Weg aktiv: Start, 4 min, Pause, Fortsetzen, Stopp ohne FATAL; Wakelock bei Start da, Pause weg, Fortsetzen da, Stopp weg. (2) Debug-Build gegen den Server (Testkonto u38) #18759: 38,9 min, davon 3,4 min Pause bei 17,7 min; 427/427 Bloecke ohne Luecke/Doppel, Accel 25,0 Hz `exact_chunks`, GPS 0,99 Pkt/s (eine Luecke 15 s direkt nach dem Fortsetzen). R8-Build konnte nicht hochladen (HTTPS auf pumpfoil.org von der VM nicht erreichbar). Bleibt offen: echte Samsung — **Jan hat keine echte Wear-Uhr (22.10.), Prüfung erst nach der Freigabe an den Community-Sessions** (Accel-Abdeckung je Session, `messweg.wach`, Puls, Akku-Rückmeldungen; u785/u477/u418/u708 zuerst ansehen). 1.1.41/1.2.41 seit 13.10. LIVE. **15.10. geprueft, ERSTE 1.2.41-Session #16671 (u574, 14.10., 89 min, Weckruf aus) NICHT gut:** GPS dichter als mit 1.2.37 (0,78 statt ~0,52 Pkt/s, Messweg `lm`), ABER Health-Services-Uebung nach ~15 min „beendet ENDED" -> Rueckfall auf LocationManager, **Puls ab Minute 20 weg** (14 % statt 50-98 %), Accel nur 4,6 Hz (`measured_rate`) -> nur GPS-Erkennung, **1 Lauf** (Handy #16670 desselben Fahrers zur selben Zeit: 7). **Ursache der Lauf-Luecke gefunden + behoben (080821c3, Jans OK):** die Laeufe hatte die Uhr sauber (~1 Pkt/s), der LocationManager meldet auf der OnePlus aber fest 125,0 m und der Server hielt das nur fuer Platzhalter, wenn es ueber die GANZE Aufnahme konstant war -> jetzt abschnittsweise (>= 60 gleiche Werte). #16671 neu analysiert: 10 Laeufe. **Puls nach „ENDED" behoben (deb99c81):** den Abriss machte unser eigener Puls-Waechter (5 min ohne Puls bei laufendem HS-GPS -> Uebung neu, eigenes ENDED als System-Ende gelesen). Ab 1.2.43: kein Neustart solange HS Positionen liefert, eigenes ENDED ignoriert, `puls_neu`/`puls_ende` im Messweg. Emulator: Pause/Fortsetzen ok (#16759); Waechter-Pfad nur auf echter Uhr pruefbar. Zweite Session #16740 (u827, Pixel Watch 3, NEU): 60 von 1089 Chunks, seit 14.10. 19:48 kein Kontakt, Status live — Upload abgebrochen, Rest liegt vermutlich auf der Uhr. 15.10. 07:29: unveraendert 60/1089, Status live. | Ursache „ENDED" klaeren (wer beendet die Uebung? Akku/System/Nutzer); #16740 Rest-Upload abwarten; dann Session mit Weckruf AN | GPS ohne Abriss bei Bildschirm aus, auch mit Weckruf an |
+| **Wear OS 1.2.41** (GPS bei Bildschirm aus nach Google-Doku) | ein Tester (OPWWE251, 1.2.37) | **Weckruf per Bewegung AUS** (`accel_wakeup: off`, Behelf gegen den GPS-Abriss), Empfindlichkeit „light" | **27.10.:** 1.2.43 bei 8 Nutzern. GPS ueberall ~1 Pkt/s, in Laeufen 0 Luecken > 15 s. Samsung mit `accel=normal` + HS-GPS weiter Accel 5-9 Hz und Puls 22-31 % (u477, u708, u785, u878, u904) — erwartet, der WakeLock kommt erst mit 1.2.44 (Review). Ausnahmen gut: u343 SM-L715U 24,7 Hz/Puls 75 %, Pixel (batch) 25 Hz. **Befund 1.2.43: #19015 (u841, SM-R910, 146 min) lief auf `lm`, Puls 0 %, `puls_neu` 8** — ohne HS-Positionen startet der Puls-Waechter die Uebung weiter neu und Puls kommt nie. #17722 (u795, 1.2.42) 120/355 Chunks — Rest vermutlich auf der Uhr. **20.10. geprueft (24 Sessions 1.2.40+, 13 Nutzer): GPS jetzt ueberall ~1,0 Pkt/s ohne Luecken (Ziel erreicht), ABER auf Samsung ohne Wake-up-Accel (`messweg.accel=normal`) + HS-GPS kommt der Accel nur noch stossweise: 7-39 % der Session (u785 SM-L315F 6 Sessions, u477 SM-L330, u418/u708 SM-L705F, u270), in 1.2.37 bei denselben Fahrern 100 % / 25 Hz. Chunks selbst voll (250 Samples), dazwischen Luecken bis 507 s -> CPU schlaeft. Puls faellt mit (u477 95->21 %, u708 96->24 %). Mit `accel=batch` (Pixel Watch 2, Xiaomi) oder GPS ueber LocationManager 98-100 %. Ausnahme u343 SM-L715U (hs+normal, 99 %). VERMUTUNG: LocationManager hat die CPU jede Sekunde geweckt, HS-GPS buendelt -> normaler Accel-Listener ohne WakeLock steht. Der Wear-Recorder haelt KEINEN WakeLock. 1.2.43 (im Review) aendert daran nichts. Moegliche Abhilfe: PARTIAL_WAKE_LOCK waehrend der Aufnahme, wenn keine Wake-up-Variante da ist -> Jans Entscheidung, Aufnahmepfad, langer Test.** **GEBAUT 20.10. (Jans OK, fuer 1.2.44):** PARTIAL_WAKE_LOCK nur im Zweig „normale Variante", frei bei Pause/Stopp/onDestroy, Obergrenze 12 h; `messweg.wach=true` als Beleg. Emulator (kein Wake-up-Accel): Lock bei Start da, bei Pause weg, bei Fortsetzen wieder da, bei Stopp weg; #17635 mit `wach: true` am Server. Offen: lange Session auf echter Samsung (Accel-Abdeckung ~100 %? Akku?). **22.10. Emulator-Langtest bestanden:** (1) R8-Release-Build (debug-signiert), alle Rechte, Health-Services-Weg aktiv: Start, 4 min, Pause, Fortsetzen, Stopp ohne FATAL; Wakelock bei Start da, Pause weg, Fortsetzen da, Stopp weg. (2) Debug-Build gegen den Server (Testkonto u38) #18759: 38,9 min, davon 3,4 min Pause bei 17,7 min; 427/427 Bloecke ohne Luecke/Doppel, Accel 25,0 Hz `exact_chunks`, GPS 0,99 Pkt/s (eine Luecke 15 s direkt nach dem Fortsetzen). R8-Build konnte nicht hochladen (HTTPS auf pumpfoil.org von der VM nicht erreichbar). Bleibt offen: echte Samsung — **Jan hat keine echte Wear-Uhr (22.10.), Prüfung erst nach der Freigabe an den Community-Sessions** (Accel-Abdeckung je Session, `messweg.wach`, Puls, Akku-Rückmeldungen; u785/u477/u418/u708 zuerst ansehen). 1.1.41/1.2.41 seit 13.10. LIVE. **15.10. geprueft, ERSTE 1.2.41-Session #16671 (u574, 14.10., 89 min, Weckruf aus) NICHT gut:** GPS dichter als mit 1.2.37 (0,78 statt ~0,52 Pkt/s, Messweg `lm`), ABER Health-Services-Uebung nach ~15 min „beendet ENDED" -> Rueckfall auf LocationManager, **Puls ab Minute 20 weg** (14 % statt 50-98 %), Accel nur 4,6 Hz (`measured_rate`) -> nur GPS-Erkennung, **1 Lauf** (Handy #16670 desselben Fahrers zur selben Zeit: 7). **Ursache der Lauf-Luecke gefunden + behoben (080821c3, Jans OK):** die Laeufe hatte die Uhr sauber (~1 Pkt/s), der LocationManager meldet auf der OnePlus aber fest 125,0 m und der Server hielt das nur fuer Platzhalter, wenn es ueber die GANZE Aufnahme konstant war -> jetzt abschnittsweise (>= 60 gleiche Werte). #16671 neu analysiert: 10 Laeufe. **Puls nach „ENDED" behoben (deb99c81):** den Abriss machte unser eigener Puls-Waechter (5 min ohne Puls bei laufendem HS-GPS -> Uebung neu, eigenes ENDED als System-Ende gelesen). Ab 1.2.43: kein Neustart solange HS Positionen liefert, eigenes ENDED ignoriert, `puls_neu`/`puls_ende` im Messweg. Emulator: Pause/Fortsetzen ok (#16759); Waechter-Pfad nur auf echter Uhr pruefbar. Zweite Session #16740 (u827, Pixel Watch 3, NEU): 60 von 1089 Chunks, seit 14.10. 19:48 kein Kontakt, Status live — Upload abgebrochen, Rest liegt vermutlich auf der Uhr. 15.10. 07:29: unveraendert 60/1089, Status live. | Ursache „ENDED" klaeren (wer beendet die Uebung? Akku/System/Nutzer); #16740 Rest-Upload abwarten; dann Session mit Weckruf AN | GPS ohne Abriss bei Bildschirm aus, auch mit Weckruf an |
 | **Brett-Regeln** (live seit 10.10.) | alle Brett-Fahrer; Feedback im Community-Chat | u808: **20.10. #17615 vom Fahrer selbst als Brett markiert (`nutzer`) — Montage damit geklaert**; frueher unbestaetigt (#14062); neue Session #14873 (11.10., 10 Laeufe) als „phone" markiert — pruefen, ob wieder am Brett; **15.10.: dritte Session #16761 (15.10., 10 Laeufe) wieder „phone“, Brett-Verdacht schlaegt an** (Achse 4,8°, Hub 100 %) — wie #14873 (8,7°) und #15071 (5,7°) | **27.10.:** u808 zwei neue Sessions: #19055 (25.10.) selbst als Brett markiert, #19114 (27.10.) als `phone` (Brett-Verdacht pruefen). 20 Brett-Sessions neu gerechnet, Pumps -14 %, Gleiten ~8 % | Rueckmeldungen; u808 zur Montage | Feedback eingearbeitet, u808 geklaert |
 | **Instinct 2: Uploads haengen seit 1.0.94?** (Befund 21.10.) | u905 (1.0.94), u636 (1.0.94), u217 (1.0.95, neu) | — | **27.10.:** Reste NICHT nachgekommen: #17412 (u905) 0/2 und #17467 (u636) 0/13 weiter `recording`, beide Uhren seit 17./18.10. nicht mehr gesehen; u217 #17660 1/11. Keine Antworten auf die DMs. **21.10.:** alle drei Instinct-2-Nutzer mit 1.0.94/1.0.95 haben unvollstaendige Aufnahmen: #17412 0/2, #17467 0/13, #17660 1/11, #17677 0/2 (1.0.91/1.0.92 auf Low-Mem-Uhren: 178 Sessions ohne Ausfall). Log u217: Uhr fragt 18:33-23:08 immer wieder `/status` ab (200), schickt aber nur EINEN Chunk, keine Fehlerantworten -> scheitert auf der Uhr vor dem Senden. u217 mem 89/92 KB. VERMUTUNG (unbelegt): Speicher im Upload-Pfad des Lite-Builds seit 1.0.93 zu knapp. 21.10. alle drei per DM (Konto 230) gebeten, App 2-3 min offen zu lassen + gefragt, ob Home den haengenden Upload zeigt | Antworten + ob die Reste nachkommen | Reste angekommen oder Ursache belegt |
 | **Huawei 1.0.2 (Beta)** | noch niemand | — | im Simulator geprueft, nie auf Hardware | Wear-Engine-Freigabe + Signierung (Jan) | erste echte Session von einer Huawei-Uhr |
@@ -124,7 +124,7 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
   - **Es war gar nicht unser Testkonto.** Googles Pre-Launch-Report faehrt die App vor jeder
     Freigabe automatisch ab, tippt gefundene Zeichenketten in jedes Textfeld und schickt sie los —
     dabei landete **unser eigenes Testlogin** als oeffentliche Nachricht im Spot-Chat, bei einem
-    Konto sogar als Anzeigename. Der Absender war `vikkibatista.94593@gmail.com`.
+    Konto sogar als Anzeigename. Der Absender war ein Wegwerf-Konto bei Gmail.
   - **Und es ist jedes Mal ein anderes Konto:** 34 solcher Wegwerf-Konten seit dem 24.07.
     (5,8 % aller Konten), zusammen **0 Sessions** und 4 Chat-Nachrichten. „Das Testkonto
     ausblenden" kann deshalb prinzipiell nicht wirken.
@@ -147,7 +147,7 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
     gegengeprueft, dass es die Adresse wirklich gepostet hat.
 
 - **🔲 19.09. — BEFUND, wartet auf Jans OK: eine konstante Genauigkeitsangabe loescht eine
-  ganze Session.** Gemeldet von Foilbert (u574) im Community-Chat: erste Session, wird als „kein
+  ganze Session.** Gemeldet von einem Nutzer im Community-Chat: erste Session, wird als „kein
   Pumpfoil" eingestuft, kein Tempo, nur Farben auf der Karte, und „only 5hz although I set it to
   25hz". Alle drei Beobachtungen stimmen — und haengen zusammen.
   - **Session #9023, Wear OS 1.2.29, 146 min, 6926 GPS-Punkte.** Seine Uhr meldet als horizontale
@@ -704,7 +704,7 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
     `CommunityView` herauszulösen — drei verschränkte private Methoden. Kurz vor einer
     Einreichung nicht angefasst. Gilt genauso für Android.
 
-- **🔲 01.09. — Feedback #119 (u406 „Bine", deutsch, iOS-App): Fitbit/Google Charge 6 einbinden?**
+- **🔲 01.09. — Feedback #119 (eine Nutzerin, deutsch, iOS-App): Fitbit/Google Charge 6 einbinden?**
   Wortlaut: „Wäre es möglich, dass ihr den Fitbittracker (Google Charge 6) auch mit einbinden
   könntet, bzw. eine Schnittstelle zum Auslesen der Daten." Sie hat noch **kein Geraet und keine
   Session** — sucht gerade einen kompatiblen Tracker.
@@ -801,8 +801,8 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
   hineinschreibt — Samsung Health, Strava, Komoot, Polar Flow, Suunto, COROS, die Fitbit-App —
   wird in EINEM Zug zur Quelle, ohne je einen Herstellerantrag zu stellen. Genau daran scheitert
   Garmin, und genau das wuerde die Google-Verknuepfung auch nicht loesen.
-  **Naechster Schritt, wenn Jan das will: iOS zuerst** — dort sitzen beide Fragesteller (Bine und
-  VintZ), und es gibt keine Play-artige Freigabehuerde. Vorher die eine offene Frage klaeren:
+  **Naechster Schritt, wenn Jan das will: iOS zuerst** — dort sitzen beide Fragesteller
+  (zwei Nutzer), und es gibt keine Play-artige Freigabehuerde. Vorher die eine offene Frage klaeren:
   darf eine Fremd-App `HKWorkoutRoute` LESEN?
 
 - **🔲 01.09. — Feedback #105 (u225 „Abe", englisch, 28.08.): ueberlappende Bildschirme nach einer
@@ -872,7 +872,7 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
   appId 1118995, kostenlos, Buildcode 10. Die Vorversion 1.0.6 stand in derselben Liste mit
   „Approved" vom 24.08.
   Inhalt: Wert-Grafiken in eigenen Layouts (auf Zepp ueber CANVAS + drawPoly statt ARC —
-  Geraetebefund aus @elmanu13s PR: ARC zeichnet auf der T-Rex 3 runde Enden), Puls-Zonen aus dem
+  Geraetebefund aus dem PR eines Beitragenden: ARC zeichnet auf der T-Rex 3 runde Enden), Puls-Zonen aus dem
   Profil (`hrZones`/`speedScale` mussten dafuer erst in die App-Side-Whitelist, sie fielen vorher
   still raus), gesaeuberter Max-Speed + Lauf-Zusammenfuehrung, Touch-Sperre per 2-s-Druck auf dem
   Schirm loesbar, Distanz-Einheit ins Label (war als einzige Plattform im Wert), und die
@@ -1036,7 +1036,7 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
   verschluckte die `SecurityException` bei fehlender `ACCESS_FINE_LOCATION` -> Aufnahme lief
   stumm ohne Strecke weiter. Der Erst-Dialog fragt Standort mit ab, verwarf aber das Ergebnis,
   ein einmaliges Ablehnen war damit endgueltig und unsichtbar. Gleiche Fehlerklasse wie der
-  Puls-Fix (PeterH), nur folgenschwerer. **Nebenbefund:** `minSdk 30` = Wear OS 3, seine alte
+  Puls-Fix (ein Nutzer), nur folgenschwerer. **Nebenbefund:** `minSdk 30` = Wear OS 3, seine alte
   Galaxy Watch 4 haette laufen muessen — der Neukauf war unnoetig; unsere Angabe
   („Wear OS 3+") war korrekt, die Anleitung sagte aber nicht, dass die Uhren-App **auf der
   Uhr** installiert wird (Phone+Wear teilen die applicationId).
@@ -1081,7 +1081,7 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
   **Zepp 1.0.4 weiter in Pruefung.** Nach Freigaben appmeta bumpen: wear 1.2.19/1.2.20 ·
   ios/apple 1.1.20/1.1.21 · zepp 1.0.4. Historie:
 - **EINGEREICHT 01.08. (Jan): Garmin 1.0.71 (CIQ-Store) + Zepp 1.0.4 (Zepp-Konsole).**
-  `appmeta` bleibt bis zur FREIGABE auf garmin 1.0.69 / zepp 1.0.3 (Tom-Petr-Lehre: nie die
+  `appmeta` bleibt bis zur FREIGABE auf garmin 1.0.69 / zepp 1.0.3 (Lehre aus einem frueheren Fall: nie die
   eingereichte Version hinterlegen). Nach Freigabe: `appmeta.garmin` -> 1.0.71,
   `appmeta.zepp` -> 1.0.4 (Store-URL fuer Zepp weiterhin unbekannt/leer). Die Website liefert
   Garmin 1.0.71 als Direkt-Download schon seit dem Build. **ALLE Plattformen eingereicht
@@ -1207,7 +1207,7 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
   getrennt, Vergleich mit anderem Foil / allen Fahrern. Schritt 1 (Home › Stats › Tempo) live 24.11.; Session-Details
   und Foil-Seite offen. Plan und Stand: [docs/TEMPO-VERTEILUNG.md](TEMPO-VERTEILUNG.md).
 
-- **Heart Rate Recovery (HRR)** (14.10.2026, Nutzerfrage ThermikDreher im 1:1-Chat). **Web gebaut
+- **Heart Rate Recovery (HRR)** (14.10.2026, Nutzerfrage im 1:1-Chat). **Web gebaut
   14.10.:** Spalten Pulsabfall 60/120 s in der Lauftabelle (SessionDetail, aus track-times). Offen:
   Android/iOS-Lauftabelle, Erweiterungen je nach ThermikDrehers Antwort. Urspruenglich: wie schnell der Puls nach jedem Lauf wieder faellt, z. B. Abfall nach 30/60 s
   ab Laufende. Daten sind da: Puls je GPS-Punkt (`load_gps` Index 4, NICHT `hr_samples`), Laufenden
@@ -1216,7 +1216,7 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
   sparen — dort fehlt der Puls in den Auto-Pausen (Speicher sparen beim Duempeln). Moegliche
   Variante: in solchen Pausen nur EINEN Pulswert pro Minute speichern; Auswertung auch nur
   minuetlich, z. B. Differenz zum Maximalpuls des Laufs, wuerde schon reichen.
-  **Wartet:** Jan fragt ThermikDreher, welche Zahlen er erwarten wuerde.
+  **Wartet:** Jan fragt den Nutzer, welche Zahlen er erwarten wuerde.
 
 - **Instinct-Nebendisplay nutzen** (26.09.2026, Jan: „fuer dieses release nicht, mit in ideas"):
   das runde Mini-Display oben rechts (`WatchUi.getSubscreen()`, ab API 3.2.7) fuer einen Wert, der
@@ -1291,7 +1291,7 @@ Sonder-Einstellungen der Tester stehen dabei, damit sie keinen Versionsvergleich
     muss manipulationssicher sein.
 
 ## 🔬 R&D
-- **Phone-Placement-Modell (Vergleich, unkritisch):** Erste echte Phone-Session (#646, Jeroen,
+- **Phone-Placement-Modell (Vergleich, unkritisch):** Erste echte Phone-Session (#646, ein Nutzer,
   Samsung A55) läuft mit dem Wrist-Modell einwandfrei (detection=model, 508 Pumps @ 1,5 Hz,
   plausibel; Accel effektiv 125 Hz statt getaggter 50 — Ratenerkennung fängt das). Eigenes
   Modell je `placement=phone` erst **zum Vergleich trainieren, wenn 10+ Handy-Sessions von
@@ -1445,7 +1445,7 @@ kann mit der Store-Version normal aufnehmen (siehe den Meldungs-Befund oben in d
 | 2026-11-10 11:47 | iOS + Apple Watch (App Store) | 1.1.64 (74) | 🟢 **EINGEREICHT UND FREIGEGEBEN** (Freigabe 11.11. morgens, Apple-Mail „eligible for distribution, 1.1.64 for iOS“; appmeta ios+apple latest 1.1.64, Changelog 983-990 + Ereignis 991. Einreichung: Jans Meldung; App Store Connect „Warten auf Prüfung“, Übermittlung 39a85ee1-84c4-4cad-b03f-2e8a6107a2a6). 1.1.63 nie eingereicht. Inhalt: Event-Port (Sprints, gemischte Bestenlisten, primäres Team, Siegertreppchen, Übersichts-Teilenbild, Kalender-Abo, Event-Abzeichen), einheitliche Event-Kachel, V-max wie der Server (Apple Watch + iPhone-Recorder). Simulator-Tests #21081/#21083/#21086. |
 | 2026-11-07 01:26 | iOS + Apple Watch (App Store) | 1.1.62 (72) | 🟢 **EINGEREICHT UND FREIGEGEBEN** (Freigabe 07.11. abends, Apple-Mail „eligible for distribution, 1.1.62 for iOS“; appmeta ios+apple latest 1.1.62, Changelog 954-961. Einreichung: Jans Meldung; App Store Connect „iOS-Übermittlung · Warten auf Prüfung“, Übermittlungskennung `d86afb2f-97ec-4304-8dcc-45349194ba14`; Versionseintrag diesmal richtig 1.1.62). Aus `651002c6`. Inhalt: Apple-Watch-Pausen-Fix, Watch-Sprache vor der Config, globale Events (Karte, Team-Wertung, Top 10 + eigene Zeile, Opt-out), Team-Events auf Home/Community, Foil-Wunsch mit Vorlage, dreistellige Plätze, Filter ohne Labels, Watch-Start scrollbar, „1 rider“. Getestet von Jan im Simulator: alle Punkte, Opt-out in beide Richtungen mit Sim-Sessions (danach gelöscht), Pausen-Test #20348 (Pause 45 s) → #20349 ohne geerbte Pause, 66 GPS/65 s. |
 | 2026-11-06 08:33 | iOS + Apple Watch (App Store) | 1.1.61 (71) | 🟢 **FREIGEGEBEN** (Jans Meldung 07.11., Apple-Mail „eligible for distribution“; iTunes-Lookup us: `currentVersionReleaseDate` 2026-11-06T20:59:08Z, de noch 1.1.60 im Cache; Changelog 945-951 + Ereignis 952). **Store-Version heißt „1.0.61“** — Jans Tippfehler im ASC-Versionseintrag, der Build ist 1.1.61 (71), `appmeta` steht deshalb auf 1.1.61; nächste wieder 1.1.62. Vorher 🟡 **EINGEREICHT** (Jans Meldung; App Store Connect „iOS-Übermittlung · Warten auf Prüfung“, Übermittlungskennung `5f29b31b-bf11-4b4e-a0ba-21bcbcd84224`). Inhalt: Garmin Connect in der App (Karte, Reiter, Quellenzeile), Garmin-Hinweise mit zwei Schritten, Weiterleitung zusammengefuehrter Sessions, Sportarten-Reiter, Foil-Rechner-Eintauchtiefe, Home holt nur 3 Sessions, Session-Listen seitenweise. Getestet von Jan im Simulator (alle Punkte inkl. Garmin trennen/verbinden). Weiterleitung nur mit Nicht-Admin-Konto pruefbar, nicht getestet. |
-| 2026-11-06 ~06:52 | Garmin (Connect IQ Store) | 1.0.101 | 🟢 **EINGEREICHT UND FREIGEGEBEN** (Jans Meldung „ok ist eingereicht", Freigabe am selben Morgen: Store-Seite „Latest Release November 6, 2026, 1.0.101", per curl geprueft; watch/bin aus a25d6218, 133 Builds; am selben Morgen aus dem Store auf Jans fēnix 7X Pro nach Werksreset installiert, meldet v=1.0.101). **Feldtest 06.11. mit Store-1.0.101 bestanden:** Garmin zuerst ohne GPS -> an eigene #20248 gehaengt; Garmin zuerst mit 100 Hz -> #20247, eigene 25 Hz aufgegangen; Uhr entkoppelt (PWA, 401 -> not linked), nur Garmin #20250, nach Neukopplung eigene #20251 aufgegangen, Foil/Version nachgetragen. Der fēnix liefert ueber Garmin Connect 100 Hz. Inhalt: Aufnahme startet bei vollem Speicher immer, nicht nur mit Garmin-Verknuepfung (Fall Olek: FR245 ohne Handy, Sync nur per Garmin Express, bekommt `gc` nie). .iq aus 9bd83fd1, 222 Varianten. Getestet: Testbuild 1.0.101-ta im Emulator auf FR245 (#20242, 82 s, 6/6 Bloecke, 25,3 Hz) und fēnix 7X Pro (#20243). Voller Speicher nicht getestet. |
+| 2026-11-06 ~06:52 | Garmin (Connect IQ Store) | 1.0.101 | 🟢 **EINGEREICHT UND FREIGEGEBEN** (Jans Meldung „ok ist eingereicht", Freigabe am selben Morgen: Store-Seite „Latest Release November 6, 2026, 1.0.101", per curl geprueft; watch/bin aus a25d6218, 133 Builds; am selben Morgen aus dem Store auf Jans fēnix 7X Pro nach Werksreset installiert, meldet v=1.0.101). **Feldtest 06.11. mit Store-1.0.101 bestanden:** Garmin zuerst ohne GPS -> an eigene #20248 gehaengt; Garmin zuerst mit 100 Hz -> #20247, eigene 25 Hz aufgegangen; Uhr entkoppelt (PWA, 401 -> not linked), nur Garmin #20250, nach Neukopplung eigene #20251 aufgegangen, Foil/Version nachgetragen. Der fēnix liefert ueber Garmin Connect 100 Hz. Inhalt: Aufnahme startet bei vollem Speicher immer, nicht nur mit Garmin-Verknuepfung (Fall eines Nutzers: FR245 ohne Handy, Sync nur per Garmin Express, bekommt `gc` nie). .iq aus 9bd83fd1, 222 Varianten. Getestet: Testbuild 1.0.101-ta im Emulator auf FR245 (#20242, 82 s, 6/6 Bloecke, 25,3 Hz) und fēnix 7X Pro (#20243). Voller Speicher nicht getestet. |
 | 2026-11-05 ~19:00 | Garmin (Connect IQ Store) | 1.0.100 | 🟢 **EINGEREICHT UND FREIGEGEBEN** (Jans Meldung „1.0.100 aus iq store auf meiner uhr, testsession hochgeladen"; Einreichungszeit nicht gemeldet, .iq ab 18:53 bei Jan; Store-Seite zeigt 1.0.100, per curl geprueft; Testsession #20208 mit v=1.0.100, Garmin-Import #20207 kam zuerst und wurde verknuepft). Inhalt: Datenwege mit Garmin-Verknuepfung (`Wege.mc`, Regel `devices._datenwege`), Aufnahme trotz vollem Puffer mit Verknuepfung, duenne Sessions mit Meta, Accel in der FIT auch auf 96-KB-Uhren, Pausen-Fix (Pausen-Ansicht statt „GPS wird gesucht"). .iq aus 290f4478, 222 Varianten. Getestet: fēnix 7X Pro (normal, Garmin zuerst/entkoppelt, Pause+Fortsetzen mit Garmin-Abgleich), Instinct 2 im Simulator (1 h ohne Absturz, 61/92 KB, nichts im Flash, duenne Session). Test B (duenner Weg) am 05.11. auf der fēnix bestanden (#20219 -> #20220). Offen: Instinct auf echter Hardware. |
 | 2026-11-05 13:00 | iOS + Apple Watch (App Store) | 1.1.60 (70) | 🟢 **FREIGEGEBEN** (Jans Meldung 06.11., Apple-Mail „eligible for distribution“; iTunes-Lookup de: 1.1.60, `currentVersionReleaseDate` 2026-11-05T21:36:15Z; Changelog 930-939 + Ereignis 941). Vorher 🟡 **EINGEREICHT** (Jans Meldung; App Store Connect „iOS-Übermittlung · Warten auf Prüfung“, Übermittlungskennung `315275cf-5e6f-4a23-bd3c-9c4fe92b4d41`). Inhalt: Rangliste nach Oleks Entwurf mit Region (Flaggen-Menü), Team-Sportart, gemerkte Filter, Teilen nur als Bild, bündige Zeilen, Profil mit Flagge + Teams, Uhren-Statistik-Reiter, Handy-Recorder-Schalter in der Übersicht, Uhren-Bereich mit Reitern, Positionsmeldung, Huawei-Karte umbenannt. Getestet: auf der VM nur `swiftc -parse`; Jans Xcode-Build. Kein Aufnahme-Pfad geändert außer der Positionsmeldung. 10 Punkte in IN_REVIEW. |
 | 2026-11-05 ~11:40 | Android Phone + Wear OS (Play) | 1.1.47 (62) / 1.2.47 (1058) | ⚪ **ERSETZT durch 1.1.48 am 10.11.** (vor der Freigabe). War 🟡 **EINGEREICHT** (Jans Meldung; Play Console: „Schnelle Vorabprüfungen … noch maximal 14 Minuten“, Produktion 62 (1.1.47), Produktion (Wear OS) 1058 (1.2.47), verwaltete Veröffentlichung; dazu offen „App-Inhalte › Händlerstatus: Complete app-level trader status declaration“). Inhalt: alles seit 1.1.46 — Teams/Events voll nativ, Reiter wie die PWA, Kommentare/Likes, Nationalität, Rangliste nach Oleks Entwurf (Region, Team-Sportart, gemerkte Filter, Teilen nur als Bild, bündige Zeilen), Profil mit Flagge + Teams, Uhren-Statistik-Reiter, Schriftgröße, Handy-Recorder-Schalter in der Übersicht, GPS-/Energiespar-Warnung, Positionsmeldung beim ersten Fix. Getestet: VM-Emulator (Debug) gegen den lokalen Server — Rangliste, Region Polen, Profil, Uhren-Statistik, Ausrichtung; nicht im Emulator: Sortierung der Regionen, Schalter-Umzug, Schriftgröße 150 %. Wear unverändert seit 1.2.46 bis auf Übersetzungen. 43 Punkte in IN_REVIEW. |
@@ -2396,16 +2396,16 @@ von u159 und u394 — nicht angefasst.
 
 - **💡 06.11. Gemerkt (Jan: „erstmal nur merken"): 100-Hz/25-Hz-Paare aus Garmin Connect als Datengrundlage.** Jede
   zusammengefuehrte Fahrt ist dieselbe Fahrt am selben Handgelenk zweimal: Garmins FIT (~100 Hz) und unsere Aufnahme
-  (25 Hz). Erste Paare 06.11.: Alex #20305/#20303 (fenix 6 Pro, 96,9/24,2 Hz, Pumps pg-1 1140/1159), Oerni #20315/#20313
+  (25 Hz). Erste Paare 06.11.: Fahrer A #20305/#20303 (fenix 6 Pro, 96,9/24,2 Hz, Pumps pg-1 1140/1159), Fahrer B #20315/#20313
   (fenix 7 Pro, 100/25 Hz, Wingfoil). Jan: „1.000 sessions spaeter die gleiterkennung und anderes viel besser ausrichten
   … und dann vielleicht sogar die 25hz erkennung damit auch verbessern". Voraussetzung: die ausgeblendete eigene
   Aufnahme (merged_into) behaelt ihre Rohdaten — nie wegraeumen ausser DSGVO. NICHT geplant: Gyro zusaetzlich in die
   FIT schreiben (Jan: „schreiben auf die uhr war immer schwierig und problematisch, ob die das alle koennen ist ein
   bisschen riskant", „also auch vom datenvolumen her"). Zur Groesse: Accel mit 100 Hz macht Garmins FIT schon gross
-  (Oerni 06.11.: 9,9 MB fuer ~1,9 h, Alex 5,5 MB fuer ~1 h); Gyro kaeme noch einmal etwa so viel dazu — Speicher auf der
+  (Fahrer B 06.11.: 9,9 MB fuer ~1,9 h, Fahrer A 5,5 MB fuer ~1 h); Gyro kaeme noch einmal etwa so viel dazu — Speicher auf der
   Uhr und Uebertragung zu Garmin Connect.
 
-- **🟡 06.11. Uhren-Sprache: Profil > Systemsprache > Englisch (Jan).** Anlass: Olek meldete, ein Fahrer sah auf der
+- **🟡 06.11. Uhren-Sprache: Profil > Systemsprache > Englisch (Jan).** Anlass: ein Nutzer meldete, ein Fahrer sah auf der
   Apple Watch bei der Ersteinrichtung Deutsch. Regel (Jan: „profil ueberschreibt dann alles", „wenn es eine
   systemsprache gibt dann natuerlich immer die benutzen", „fallback nach systemsprache englisch"). Stand je Uhr:
   Garmin ✅ (Low-Mem-Builds immer Englisch, absichtlich) · Wear OS ✅ (fehlender Text jetzt Englisch statt Deutsch,
@@ -2414,7 +2414,7 @@ von u159 und u394 — nicht angefasst.
   Ressourcen (en/de/de-AT/pl), die Profil-Sprache aus der Config wird ignoriert — braeuchte eigene Texttabellen wie
   Zepp. Im Feld betroffen war nur die Apple Watch.
 
-- **🟡 06.11. Apple Watch: geerbte Pausen (Meldung Mysia u989 in Session-Kommentaren).** `Recorder.start()` setzte
+- **🟡 06.11. Apple Watch: geerbte Pausen (Meldung einer Nutzerin in Session-Kommentaren).** `Recorder.start()` setzte
   Pausenzeit und Pausenliste der vorigen Aufnahme nicht zurueck (seit der Pause vom 24.09.): jede weitere Aufnahme bis
   zum App-Neustart lag um die Summe der alten Pausen zu frueh und schickte die alten Pausen als eigene mit. 33 Aufnahmen
   von 8 Nutzern. **Erledigt:** App-Fix (6352227c, kommt mit iOS **1.1.62** — 1.1.61 liegt ohne ihn in der Pruefung),
@@ -2692,7 +2692,7 @@ von u159 und u394 — nicht angefasst.
 - **31.10. — Teams (Jan, nach Telefonat mit einem Nutzer).** Plan + Jans fuenf Entscheidungen in [`docs/TEAMS.md`](TEAMS.md); Stufe 1 (Web) als Naechstes.
 - **30.10. — Garmin: Feld „Pairing-Code“ in den App-Einstellungen (niedrige Prio, Jan: „viel arbeit mit kaum nutzen“).**
   Der Weg „Code auf der Website erzeugen“ ist im Web aus (`FORWARD_PAIRING_SICHTBAR = false`), das Feld in
-  Garmin Express/Connect steht aber noch da -> Nutzer suchen den Code (Olek u963, Feedback 222; war laengst ueber den
+  Garmin Express/Connect steht aber noch da -> Nutzer suchen den Code (Feedback 222; war laengst ueber den
   Uhr-Code gekoppelt). Ein veralteter Wert im Feld laesst eine ungekoppelte Uhr bei jedem Upload `/api/devices/pair`
   versuchen (26.–29.10.: 7× 422, 1× 400). Falls angefasst, in zwei Schritten: (1) App leert `pairingCode` nach
   erfolgreicher Kopplung und bei 400/422; (2) erst danach das Feld aus `settings.xml` nehmen. **Den Eintrag in
@@ -2714,7 +2714,7 @@ von u159 und u394 — nicht angefasst.
   66/66; auf Emulator/Uhr noch ungesehen — vor der naechsten Einreichung im DevEco-Emulator die Pause-Seiten ansehen.
 - **28.10. — Huawei Watch 5: App-geschlossen-Meldung beim Wegwischen (für irgendwann, Jan: „da muss erstmal eine erste version durch das review kommen“).** Die Meldung kommt nur aus `onDestroy`, beim Wegwischen also nicht. Vorschlag: im `onBackground` schicken, wenn keine Aufnahme läuft. (Diagnosezeile `Pumpfoil krone` am 04.11. entfernt, Krone vom Pruefer abgenommen.) Erst nach der ersten Freigabe (1.0.3 im Review).
 - **28.10. — Android: Spot-Seite friert beim Runterscrollen ein, auch in der LIVE-Fassung 1.1.44** (Jan auf seinem Handy bestaetigt, Illmensee). Ursache: osmdroid-Endlosschleife bei `zoomToBoundingBox` auf einer 0×0-Karte (Heatmap-Karte in der LazyColumn). Fix `a5ba1c61` (`MapView.einpassen`), kommt mit 1.1.45 -> **1.1.45 zuegig einreichen.** Jan informiert die Community im Chat. iOS nicht betroffen (MapKit, kein osmdroid).
-- **27.10. — ThermikDreher (u267, FR965 1.0.97): Scoot-Brett-Paar + Fehlermeldung.** Brett #19235 (Samsung, auto board) parallel zu
+- **27.10. — ein Foil-Scoot-Fahrer (FR965 1.0.97): Scoot-Brett-Paar + Fehlermeldung.** Brett #19235 (Samsung, auto board) parallel zu
   vier Uhr-Sessions je Stab (#19244 Supra Trail S, #19250 Supra Trail L, #19262 Ultra Trail S, #19275 Supra Trail 3XL stabless),
   alle Bloecke vollstaendig, 24,9 Hz -> in `ANDERE_SPORTART` (paare_ausrichten.py), Wahrheit fuer pg-scoot + Stab-Vergleich.
   Meldung (Chat an Jan 17:28): (1) „ab dem fuenften Run“ zeigte die Nach-dem-Lauf-Seite die vergangenen Laeufe nicht mehr —
@@ -2815,7 +2815,7 @@ von u159 und u394 — nicht angefasst.
   **pg-2 = pg-1 ohne #12722** (`data/ml/pumpgleit2/`, Fahrer herausgehalten, beide auf denselben 13 Sessions bewertet,
   `PG_TEST_OHNE`/`PG_AUS`/`PG_PAARE`): Pump-F1 0,897 / 0,897, Gleit-F1 0,50 / 0,51, Gleit-s P 0,47 / 0,48,
   laengste MAE 1,49 / 1,58 s — kein messbarer Unterschied. pg-1 bleibt live, kein Neu-Lernen.
-- **📥 24.10. — pg-scoot-1: Feedback ThermikDreher (u267) abwarten, mehr Scoot-Brett-Paare.** Gleiten = Pump-Pause
+- **📥 24.10. — pg-scoot-1: Feedback des Foil-Scoot-Fahrers abwarten, mehr Scoot-Brett-Paare.** Gleiten = Pump-Pause
   ≥ 2,5 s, auf EINEM Paar gewaehlt (F1 0,69). Naechster Physik-Baustein, falls zu viel gemeldet wird: GPS-Tempo muss im
   Gleiten fallen. docs/PUMP-GLEIT.md „Foil Scoot: pg-scoot-1".
 - **📥 24.10. — pg-1 bei Handy in der Tasche (`placement = phone`) messen.** Laeuft live (227 Pumpfoil-Sessions, ~35
@@ -2838,11 +2838,11 @@ von u159 und u394 — nicht angefasst.
   Nicht aus den Aenderungen vom 22.10. Beim naechsten Pausieren mit der ECHTEN Watch pruefen, ob waehrend der Pause etwas ankommt.
 
 - **22.10. — BESCHLOSSEN (Jan), noch nicht gebaut: In der Pause alle 10 min deutlich vibrieren + „Pausiert – fortsetzen?“.**
-  Anlass Bartosz u354 (#17726, Apple Watch 1.1.52): Pause um 17:09 trotz 2-s-Halten (vermutlich Wasser/Aermel), erst
+  Anlass ein Fahrer (#17726, Apple Watch 1.1.52): Pause um 17:09 trotz 2-s-Halten (vermutlich Wasser/Aermel), erst
   85 min spaeter aus der Pause gestoppt, alle Laeufe danach verloren; die Uhr gab beim Pausieren nur EINEN Klick.
   Jan: „die vibration in der pause alle 10min aber sollte reichen, halte ich fuer eine gute idee". Fuer ALLE Uhren
   (Garmin, Apple Watch, Wear OS, Amazfit, Huawei, Suunto) — Paritaets-Checkliste (docs/PARITY-AUDIT.md), Aufnahmepfad
-  -> lange Tests. Nebenbei: Wassersperre „Immer an“ als Tipp fuer Apple-Watch-Nutzer (Bartosz am 22.10. so beraten).
+  -> lange Tests. Nebenbei: Wassersperre „Immer an“ als Tipp fuer Apple-Watch-Nutzer (einen Fahrer am 22.10. so beraten).
   Entschieden 22.10.: Erinnerung kommt IMMER, nicht abschaltbar (Jan: „wenn man das nicht will kann man ja speichern
   und spaeter neu starten“); dabei direkt auf den Bildschirm zum Fortsetzen/Beenden wechseln. Erst planen, dann bauen.
   **GEBAUT 22.10.** (Suunto weggelassen, Garmin Lite ohne Pause — Jan): Garmin `d504cacb` (Testbuilds 5 Varianten,
@@ -2851,7 +2851,7 @@ von u159 und u394 — nicht angefasst.
   `cdbe2cfc` (Node-Test), Huawei `5ed3fe82` (build-all ok; Lite-Snapshot-Literalgrenze umschifft). Huawei ArkTS:
   STOPP-Seite zeigt jetzt „Pausiert“. Kommt mit den naechsten Uhren-Versionen; Changelog-Punkt erst dann.
 
-- **22.10. — ✅ ERLEDIGT (gleicher Tag): Mäse (u763) hat Suunto um 09:19 selbst verbunden** (DM ungelesen), keine Mail noetig. War: **WIEDERVORLAGE (Jan): Kommt Mäse (u763) mit Suunto rein?** Er versuchte am 21.10. 17:34–17:57 ~40-mal zu
+- **22.10. — ✅ ERLEDIGT (gleicher Tag): der Nutzer hat Suunto um 09:19 selbst verbunden** (DM ungelesen), keine Mail noetig. War: **WIEDERVORLAGE (Jan): Kommt ein Nutzer mit Suunto rein?** Er versuchte am 21.10. 17:34–17:57 ~40-mal zu
   verbinden (invalid_client-Stoerung, behoben 22.10.). DM von Konto 230 am 22.10. (id 3047). Pruefen: liest er sie /
   hat er einen `suunto_links`-Eintrag? Wenn nicht -> Jan schreibt ihn EINMALIG per E-Mail an.
 - **22.10. — Kontoverknuepfungen: keine Sessions ohne GPS, nichts vor 1.1.2026** (Jan; `importsports.konto_import_grund`,
@@ -2906,7 +2906,7 @@ von u159 und u394 — nicht angefasst.
 - **20.10. (Jan) — GEPARKT (Jan: „ist vermutlich noch zu unsicher bisher") — Fremdkraft INNERHALB von Pumpfoil-Laeufen erkennen (Welle, Lowkite, Boot) — Befund, nichts gebaut.**
   Wieder aufnehmen erst mit belegten Faellen (Fahrer bestaetigt Welle/Kite/Boot an einer Stelle) oder Video.
   Jan: „ob man aus pumpfoil-sessions nicht vielleicht automatisch stellen erkennen kann in denen eine 'external
-  force' wirkt … dann anzeigen und getrennte stats". Anlass: Skalda u157 (05.08., #1571) und Oerni u97 (04.10.,
+  force' wirkt … dann anzeigen und getrennte stats". Anlass: zwei Nutzer (05.08., #1571 und 04.10.,
   #12797). Lesender Scan (Notizen/Plot: server/data/analyse-notizen/2026-10-20-fremdkraft/): Regel wie
   welle_pumpen (Leistung f² 6 s) auf 227 zufaellige Pumpfoil-Sessions (Handgelenk, ab 15.08.) + 36 Wake thief.
   Kandidat = ≥15 s ruhig (< 0,5 x p90 des Laufs), Tempo ≥ 90 % des Lauf-Medians, Ende ≥ 0,9 x Anfang:
@@ -2969,13 +2969,13 @@ von u159 und u394 — nicht angefasst.
   (4) **Profil-Zeile „Meine Foils & Sportarten“** (Jan 21.10., wie im Web 4be79af8): Titel `profile.foilsSports`, darunter
   Sportarten (Standard vorn, hervorgehoben, dann `my_sports`) und eigene Foils (Standard vorn). **Android + iOS GEBAUT** (21.10.):
   Android kompiliert, nicht im Emulator angesehen; iOS nur `swiftc -parse`, Uebersetzungen in den `…OverlaySpotsSuche`-Tabellen (die grossen stehen an der 50er-Grenze).
-  (5) **Foil-/Stab-Suche findet Zweitnamen** (22.10., Hendrik fand „SDW-360“ = Sabfoil Downwind Kraken 360 nicht): `aliases`
+  (5) **Foil-/Stab-Suche findet Zweitnamen** (22.10., ein Nutzer fand „SDW-360“ = Sabfoil Downwind Kraken 360 nicht): `aliases`
   in Foil/StabBrief (Android + iOS), Suche in Setup, Foils, Foil-Rechner. Web schon live (9977f429). Android kompiliert, iOS nur parse.
   (6) **„Auswertung bewerten“** (22.10., wie Web 89a19c10): Kachel unter den Zahlen nur auf eigenen Sessions, Dialog mit
   Sternen, Laeufen, echter Laufzahl, Pumps, Tempo, Problemen + Kommentar (Android `Bewertung.kt`, iOS `BewertungView.swift`
   -> **xcodegen generate**). Texte de/gsw/de-AT/en, sonst Englisch. Dazu Gleit-Fix Android (Spur grau ohne Gleitphasen).
 
-- **19.10. — Auswertung je Sportart, Stufen 1–5 (Anlass Oerni u97 Wing #17478: 62,8 km, davon 49,3 km on-foil, 57 Laeufe; ThermikDreher u267 Foil Scoot).**
+- **19.10. — Auswertung je Sportart, Stufen 1–5 (Anlass Wing #17478 eines Nutzers: 62,8 km, davon 49,3 km on-foil, 57 Laeufe; Foil Scoot eines anderen).**
   Buch: `server/app/data/sportarten_stand.json` (Stand je Sportart + Merkmal, Plan `stufen`, `verlauf`), oeffentlich auf
   /changelog „Analysis by sport“ (`GET /api/app/sport-status`, ohne interne Notizen). **Naechster Schritt: Stufe 1 im Web fuer
   Wing/Kite** (ganze Spur grau + Laeufe farbig, Gesamtstrecke + Dauer oben, Pump-Zahlen weg), danach Kartenschalter
@@ -3123,7 +3123,7 @@ von u159 und u394 — nicht angefasst.
   (Jan). Portierung 14.10. angestossen: Wear OS, Apple Watch, Huawei ArkTS (Watch 5).
   **MERKEN fuer Huawei GT/Fit/D (lite) und Watch 3/4 (wearable), falls die je kommen:** denselben
   Satz einbauen — auf lite (48-KB-Heap, s. Memory huawei-lite-jerryscript-heap) vermutlich nur (c).
-- **13.10. — Chat: Antworten mit Bezug auf die Nachricht** (Feedback #180, Philipp u5, 12:28): „In einem laengeren
+- **13.10. — Chat: Antworten mit Bezug auf die Nachricht** (Feedback #180, ein Nutzer, 12:28): „In einem laengeren
   Chatverlauf waere bei Antworten ein Bezug zur Nachricht/Frage praktisch“ — er antwortete, nachdem schon ~10
   neuere Nachrichten da waren. Gibt es bisher nicht (keine reply_to-Spalte in chat_messages). Zitat-Antwort wie
   in Messengern: Antwort-Knopf an der Nachricht, kurzer Auszug ueber der Antwort, Tippen springt hin. Web + Apps.
@@ -3351,7 +3351,7 @@ von u159 und u394 — nicht angefasst.
 
 - **🔲 01.10. — Online-Punkt + Lesebestaetigung in die nativen Apps.** Web + Server live (Online-Punkt am Profilbild, `GET /api/chat/online`, Profil-Schalter `show_online` per PATCH /api/auth/me, Standard an). Android/iOS: Punkt an den Profilbildern (IDs sammeln, minuetlich EIN Abruf, nur im Vordergrund) und der Schalter im Profil — wichtig, weil App-only-Nutzer den Punkt sonst nicht abschalten koennen. Ohne Update zaehlen App-Nutzer trotzdem als online (jeder Request markiert), sehen aber keine Punkte.
 
-- **⏸ 30.09. — Feedback #157 (gizmomogwai u683): Wetter JE SESSION, rueckwirkend. ZURUECKGESTELLT 01.10. (Jan: „lassen wir erstmal, klingt mir sehr aufwaendig“).** Machbar ueber Open-Meteo (historical-forecast + ERA5-Archiv, dieselbe Quelle wie das Spot-Wetter); Plan stand im Chat vom 01.10.: „would it be possible to
+- **⏸ 30.09. — Feedback #157 (ein Nutzer): Wetter JE SESSION, rueckwirkend. ZURUECKGESTELLT 01.10. (Jan: „lassen wir erstmal, klingt mir sehr aufwaendig“).** Machbar ueber Open-Meteo (historical-forecast + ERA5-Archiv, dieselbe Quelle wie das Spot-Wetter); Plan stand im Chat vom 01.10.: „would it be possible to
   collect (historical) weather information for the location in the sessions? … mainly wind, temperature
   and general sunny/cloudy". Heute gibt es nur das AKTUELLE Spot-Wetter (`SpotWeather.tsx`). Idee: beim
   Abschluss der Analyse Wind/Boeen/Richtung, Temperatur und Bewoelkung fuer Ort + Zeitfenster der Session
@@ -3377,7 +3377,7 @@ von u159 und u394 — nicht angefasst.
   der naechste Schritt (1.2.32 ignoriert den Schluessel, harmlos). **Danach:** naechstes Paar Uhr +
   Brett gegen #10979/#10993 halten — Rate je Chunk, `time_base`, Pumps je gemeinsamem Lauf.
 
-- **✅ 30.09. — Kompakte Session-Liste (Feedback #156, gizmomogwai u683) — LIVE 30.09. (9160c6a2), Umschalter Kacheln/Zeilen auf Startseite, Sessions, Spot, Gruppen; Nutzer per DM (u230) informiert.** „on a laptop i can only
+- **✅ 30.09. — Kompakte Session-Liste (Feedback #156 eines Nutzers) — LIVE 30.09. (9160c6a2), Umschalter Kacheln/Zeilen auf Startseite, Sessions, Spot, Gruppen; Nutzer per DM (u230) informiert.** „on a laptop i can only
   fit 3-4 sessions on one screen … an option for a oneline view would be great!" Idee: Umschalter
   Kacheln/Zeilen auf /sessions (Merker per localStorage), eine Zeile je Session mit Datum, Spot,
   Laeufe, Foil-Zeit, bester Lauf. Nebenbei geklaert (seine Frage im 1:1): der Import dedupliziert
@@ -3446,7 +3446,7 @@ von u159 und u394 — nicht angefasst.
   danach und nur mit Jans OK (Puls aus zweiter Quelle aendert Kennzahlen). Nutzer am 29.09. aus
   u230 gefragt (`dm:217-230`), ob er testet.
 
-- **🔲 27.09. — Foilbert (u574) nach Freigabe von Wear 1.2.33 Bescheid geben** und um eine kurze
+- **🔲 27.09. — den Tester nach Freigabe von Wear 1.2.33 Bescheid geben** und um eine kurze
   Testaufzeichnung bitten (DM von u230, `dm:230-574`; zugesagt am 27.09.). Befund: seine Wear-Uhr
   (OPWWE251, Android 14) liefert zu Beginn jeder Aufnahme volle 25–27 Hz und drosselt nach
   20–30 s auf 2–7 Hz, mit Spitzen bis 52 Hz — Stromsparen bei dunklem Display (Muster, nicht
@@ -3651,7 +3651,7 @@ von u159 und u394 — nicht angefasst.
   1.1.33 / 47 nur mitgezaehlt, inhaltlich leer), in `NAECHSTES`.** Offen: Jans Build + Upload,
   danach an einer betroffenen Uhr gegenmessen (Schritt 3 unten), GPS getrennt (Schritt 4).
   Urspruenglicher Befund:
-  Anlass: Foilbert (u574) im Community-Chat, „only 8hz", Verdacht auf seine Glukose-App Juggluco.
+  Anlass: ein Nutzer im Community-Chat, „only 8hz", Verdacht auf seine Glukose-App Juggluco.
   **Der Verdacht traegt nicht** — und das ist der Punkt: es faellt nicht nur der Accel, sondern
   GPS GENAUSO. #9023 (2 h 39): Accel 4,5 Hz statt 25, GPS 0,72 Hz statt 1. #9670 (64 min):
   7,7 Hz, GPS 0,50 Hz. Und zwar PHASENWEISE, nicht gleichmaessig: die GPS-Rate je Zehntel der
@@ -3816,9 +3816,9 @@ von u159 und u394 — nicht angefasst.
   Session-Übertragung ist im Web live, die Läufe stehen als `segments_json`, `excluded_ranges`
   kann Bereiche schon ausnehmen; es fehlt das Trennen in ZWEI Sessions.
 
-  **🟢 DIESER Fall braucht kein Teilen — nachgemessen am 23.09.:** Philipp hatte doch schon
-  hochgeladen (user 5, FR55). Der Abgleich Lauf für Lauf ergibt, dass **#9650 komplett Jan** und
-  **#9656 komplett Philipp** gehört. Damit reicht die vorhandene Übertragung.
+  **🟢 DIESER Fall braucht kein Teilen — nachgemessen am 23.09.:** der Mitfahrer hatte doch schon
+  hochgeladen (FR55). Der Abgleich Lauf für Lauf ergibt, dass **#9650 komplett Jan** und
+  **#9656 komplett dem Mitfahrer** gehört. Damit reicht die vorhandene Übertragung.
 
   **🟢 #9656 IST DIE KONTROLLE, KEIN WIDERSPRUCH — nicht wieder falsch lesen (25.09.).** Die
   Montage-Drehung springt dort zwischen den beiden Laeufen von **314,9° auf 195,5°**, waehrend sie
@@ -3867,16 +3867,16 @@ von u159 und u394 — nicht angefasst.
   reicht es nicht einmal fuer zwei Fenster.
 
   **Und die Methode dafür steht jetzt, gemessen statt vermutet.** Über die Uhrzeit allein geht es
-  NICHT: bei #9656 Lauf 1 starten Handy (11:02:50), Philipp (11:02:51) und Jan (11:02:53)
+  NICHT: bei #9656 Lauf 1 starten Handy (11:02:50), Mitfahrer (11:02:51) und Jan (11:02:53)
   innerhalb von drei Sekunden. Entscheidend ist der **Median-Abstand der GPS-Spuren** im
   Lauf-Fenster, Punkt gegen zeitlich nächsten Punkt:
 
-  | Lauf | Jan-Uhr | Philipp-Uhr | Fahrer |
+  | Lauf | Jan-Uhr | Mitfahrer-Uhr | Fahrer |
   |---|---|---|---|
   | #9650 L1 10:24:08 | **6,3 m** | (keine Session) | Jan |
   | #9650 L2 10:30:17 | **4,3 m** | 25,4 m | Jan |
-  | #9656 L1 11:02:50 | 14,7 m | **1,8 m** | Philipp |
-  | #9656 L2 11:08:10 | 37,2 m | **3,5 m** | Philipp |
+  | #9656 L1 11:02:50 | 14,7 m | **1,8 m** | Mitfahrer |
+  | #9656 L2 11:08:10 | 37,2 m | **3,5 m** | Mitfahrer |
 
   Der echte Fahrer liegt bei 2–6 m (Handgelenk gegen Brett), der andere bei 15–37 m — eine
   Größenordnung Abstand, und das über vier Läufe ohne Ausnahme. **Das ist der Test, auf dem ein
@@ -3928,8 +3928,8 @@ Jans Frage: „ist das amazfit problem nicht bei allen amazfit uhren aufgetreten
 und die Antwort dreht die Lage um.
 
 **Das Absturz-Problem ist NICHT auf allen Uhren.** Lange Aufnahmen gelingen sehr wohl:
-El Manu (T-Rex 3) hat 94,8 / 64,8 / 61,6 / 32,7 Minuten aufgezeichnet, Matteo (Balance 2) 33,2,
-César (Active 2 NFC) 49,1 — alle auf ALTEN Fassungen (1.0.6/1.0.8). Und Klettermax' GTR 4, die
+ein Beitragender (T-Rex 3) hat 94,8 / 64,8 / 61,6 / 32,7 Minuten aufgezeichnet, ein Fahrer (Balance 2) 33,2,
+ein anderer (Active 2 NFC) 49,1 — alle auf ALTEN Fassungen (1.0.6/1.0.8). Und die GTR 4 eines Testers, die
 uns als Problemfall galt, hat **heute auf 1.0.11 43,1 und 32,6 Minuten** durchgehalten.
 Der Accel lief dabei zu 98-100 % durch, die App war also die ganze Zeit am Leben.
 
@@ -3955,7 +3955,7 @@ Ausnahme. Im Plattform-Vergleich (Punkte je Sekunde Aufnahmedauer, Aufnahmen ueb
 
 **Es ist KEINE niedrige Rate, es sind AUSSETZER.** Der Median-Abstand zwischen zwei Punkten ist
 ueberall 1,0 s — wenn GPS liefert, liefert es sauber im Sekundentakt. Dann bricht es fuer
-Minuten ab: laengste Luecken 235,6 s (#9602), 222,0 s (#2449). Bei Klettermax liegen 10 % der
+Minuten ab: laengste Luecken 235,6 s (#9602), 222,0 s (#2449). Bei der GTR 4 liegen 10 % der
 Abstaende ueber 19 Sekunden.
 
 **🟡 URSACHE EINGEGRENZT (22.09., nach Jans Einwand).** Jans erste Vermutung war, die App lande
@@ -3984,7 +3984,7 @@ schweigt bei abgedunkeltem Bildschirm, oder unser eigenes Schreiben blockiert ih
 Zepp-Ortung faellt schlicht haeufig aus. **Vor jeder Aenderung messen, nicht raten.**
 
 **WAS DAS BEDEUTET:** unsere ganze Auswertung rechnet mit ~1 Hz GPS. Bei 0,23 ist die Spur
-vier- bis achtmal zu duenn — Strecke, Tempo und Lauf-Erkennung stehen auf Sand. César fuhr
+vier- bis achtmal zu duenn — Strecke, Tempo und Lauf-Erkennung stehen auf Sand. Ein Fahrer fuhr
 49 Minuten und bekam 0 Laeufe angezeigt; 82 % seiner Zeit hatte die Uhr keine Position. Das
 erklaert womoeglich mehr von dem „bei mir wird nichts erkannt" als alles, worauf wir bisher
 geschaut haben.
@@ -4016,7 +4016,7 @@ jeder fuer sich ausreichend, alle mit Quelle:
    Widget je appId. Unsere Datenseiten und Layouts gibt es dort nicht.
 4. **Sie erreicht unsere Nutzer nicht.** API_LEVEL 3.6, `minVersion` muss auf 3.6 stehen (wir:
    3.0), und die Geraeteliste umfasst T-Rex 3, Cheetah Pro/Round/Square, T-Rex Ultra, Falcon.
-   Die betroffenen Uhren — GTR 4 (Klettermax, u352), Active 2 NFC Round (César), Balance,
+   Die betroffenen Uhren — GTR 4 (ein Tester), Active 2 NFC Round (ein Nutzer), Balance,
    Balance 2, Active 2 Square — sind alle nicht dabei.
 5. **Es waere eine zweite App, kein Code-Pfad.** „Workout Extension is an independent application
    with an independent appId", eigene `app.json`-Struktur (`data-widget`), eigene Einreichung,
@@ -4043,7 +4043,7 @@ findest du ein paar interessante stichpunkte". Vier Befunde, alle mit Quelle.
   IM System-Sportmodus — das waere die Loesung fuer die System-Tastensperre und das Bildschirm-Aus
   gewesen. Sie verlangt aber **Zepp OS 3.5** und laeuft nur auf **T-Rex 3, Cheetah Pro, Cheetah
   (Round), Cheetah Square, T-Rex Ultra und Falcon**. Von unseren Amazfit-Nutzern faellt damit die
-  Mehrheit heraus: GTR 4 (Klettermax, u352), Active 2 NFC Round (César), Balance, Balance 2,
+  Mehrheit heraus: GTR 4 (ein Tester), Active 2 NFC Round (ein Nutzer), Balance, Balance 2,
   Active 2 Square. Ein kompletter Umbau fuer eine Minderheit — **nicht weiterverfolgen**, bis sich
   die Geraeteliste deutlich verbreitert. Quelle: docs.zepp.com/docs/guides/workout-extension/intro/
 - **✅ BESTAETIGT, dass unser Weg alternativlos ist.** Ein „App Service" (Hintergrunddienst ohne
@@ -4073,7 +4073,7 @@ findest du ein paar interessante stichpunkte". Vier Befunde, alle mit Quelle.
   Geht mit **1.0.12** raus.
 
 
-### 22.09.2026 — César (u439): der Upload-Fix ist im Feld belegt, zwei neue Befunde dazu
+### 22.09.2026 — ein Amazfit-Nutzer: der Upload-Fix ist im Feld belegt, zwei neue Befunde dazu
 
 **Erster Feldbeleg fuer den fortsetzbaren Upload.** Seine Aufnahme #3419 vom 04.09. (49 min,
 Amazfit Active 2 NFC Round) hing bei 584 von 2349 Chunks fest — genau das, was er im GitHub-Ticket
@@ -4082,7 +4082,7 @@ zwischen 21:10 und 21:43 die restlichen **1765 Chunks in 33 Minuten** an, und zw
 einzigen doppelten**: die Uhr hat wirklich bei 584 weitergemacht. Die Session steht auf
 `analyzed`, 2292 Accel- plus 57 GPS-Chunks, 293.249 Samples.
 
-- [ ] **🔴 DIE UHR STARTET WAEHREND DES UPLOADS WEITER NEU — dreimal in 33 Minuten.** César
+- [ ] **🔴 DIE UHR STARTET WAEHREND DES UPLOADS WEITER NEU — dreimal in 33 Minuten.** Der Nutzer
   meldet es ausdruecklich („The watch rebooted three times"), und es steht in unseren Daten:
   drei Luecken im Chunk-Eingang von 1,8 / 4,9 / 1,1 Minuten, sonst laeuft er gleichmaessig.
   Der Speicherfehler ist damit **nicht behoben, nur ueberlebbar** — 1.0.11 rettet die Daten,
@@ -4097,7 +4097,7 @@ einzigen doppelten**: die Uhr hat wirklich bei 584 weitergemacht. Die Session st
 - [ ] **📊 ERSTE ZAHL ZUM STROMVERBRAUCH DES UPLOADS: 15 % Akku** fuer 33 Minuten BLE-Uebertragung
   (2349 Chunks). Dazu hatten wir bisher gar nichts. Eine einzelne Messung auf einer einzelnen Uhr,
   aber besser als die bisherige Leerstelle.
-- [ ] **💡 PRODUKTWUNSCH: etwas fuer ANFAENGER, nicht nur fuer Koenner.** César woertlich: „I just
+- [ ] **💡 PRODUKTWUNSCH: etwas fuer ANFAENGER, nicht nur fuer Koenner.** Der Nutzer woertlich: „I just
   need to learn to pump foil now! Hoping your app brings features for those learning and not only
   the experts!" Seine Aufnahme passt dazu: 1304 m in 49 Minuten, **null erkannte Laeufe** — fuer
   ihn zeigt die App derzeit nichts als eine leere Bilanz. Genau die Nutzer, die am meisten
@@ -4128,14 +4128,14 @@ einzigen doppelten**: die Uhr hat wirklich bei 584 weitergemacht. Die Session st
   Kein Handlungsdruck, nur Aufraeumen.
 
 
-### 22.09.2026 — Polar in der falschen Uhr-Sportart: Pierre (Nico)
+### 22.09.2026 — Polar in der falschen Uhr-Sportart: ein Polar-Nutzer
 
 **Nicht mehr hier gefuehrt (Jan, 22.09.):** Fragen von Nutzern im SPOT-CHAT sind keine offene
 Arbeit — die kann nur jemand beantworten, der dort faehrt („was geht uns das an? … sowas bitte
 ignorieren"). Auch der Apple-Relay-Punkt ist erledigt und wird nicht weitergefuehrt: der Server
 verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Konten nie.
 
-- [x] **ERLEDIGT, nichts zu tun — Pierre (Nico), u624: seine Polar schreibt `running`, beide
+- [x] **ERLEDIGT, nichts zu tun — ein Nutzer: seine Polar schreibt `running`, beide
   Aufnahmen korrekt aussortiert.** Jan wollte das KONTROLLIERT haben, nicht repariert: „die
   SOLLEN ja nicht als pumpfoil gezaehlt werden … das ist offensichtlich laufen / joggen."
   Gegengeprueft: `is_pumpfoil=false`, `sport_class=other`, 0 Laeufe, `detection=none`,
@@ -4146,7 +4146,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   **Mein Fehlgriff, hier notiert:** ich hatte einen fertigen franzoesischen Entwurf, der ihm
   erklaert haette, wie er die Aufnahmen als Pumpfoil zaehlen laesst. Bei zwei Jogging-Runden
   waere das die falsche Anleitung gewesen. Aus „wurde das erkannt?" hatte ich einen Fehler
-  gelesen, wo eine Kontrolle gemeint war — Entwurf geloescht. Jans Frage: „wurden die sessions via polar von Pierre (Nico) als pumpfoil
+  gelesen, wo eine Kontrolle gemeint war — Entwurf geloescht. Jans Frage: „wurden die sessions via polar von [dem Nutzer] als pumpfoil
   erkannt oder automatisch aussortiert?" Antwort: **aussortiert**. #9579 (22.09., 54 min,
   4537 m) und #9578 (19.09.) stehen auf `sport_class = other`, `detection = none`, 0 Laeufe.
   **Kein Fehler, sondern die Regel:** `running` ist von der GPS-only-Erkennung ausgeschlossen —
@@ -4393,9 +4393,9 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   Speicher, Bloecke, Luecken, GPS-Dichte). Der Plan sagt auch, was der Emulator NICHT entscheiden
   kann: Bildschirm-Wachbleiben, GPS-Dichte und die System-Tastensperre bleiben Feldtest.
 
-  **🔲 OFFEN IST NUR NOCH DIE EINREICHUNG.** 1.0.12 (code 15) liegt gebaut da; Klettermax und
-  u352 fahren auf 1.0.11 und haben den Fix deshalb NICHT. Jan, 22.09.: „habe gerade mit
-  Klettermax am See seine Amazfit besprochen, er hat auch aufgezeichnet, aber irgendwann was die
+  **🔲 OFFEN IST NUR NOCH DIE EINREICHUNG.** 1.0.12 (code 15) liegt gebaut da; der Tester
+  faehrt auf 1.0.11 und hat den Fix deshalb NICHT. Jan, 22.09.: „habe gerade mit
+  [einem Tester] am See seine Amazfit besprochen, er hat auch aufgezeichnet, aber irgendwann was die
   uhr wohl wieder auf ziffernblatt" — genau dieses Symptom. Einreichen kann nur Jan (Build auf
   seinem Mac).
   Danach im Feld gegenpruefen: haelt eine Aufnahme laenger als 4,5 Minuten durch?
@@ -5987,7 +5987,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     Upload-Screen auszugeben, waere die naechste Messung (nur Fehlerbehebung, kein Ausbau).
 
 
-- **🟡 14./15.09. — PeterH (u171) bekommt seit dem 08.09. keinen Puls mehr. Befund: mit hoher
+- **🟡 14./15.09. — ein Nutzer bekommt seit dem 08.09. keinen Puls mehr. Befund: mit hoher
   Wahrscheinlichkeit NICHT unser Fehler, sondern Wear OS 5 auf seiner Xiaomi Watch 2 Pro.**
   - **Gemessen, je Version** (Anteil GPS-Punkte mit Pulswert, aus den Rohdaten):
     1.2.20 0 % · 1.2.23 100 % (13 340 Punkte) · 1.2.24 100 % · **1.2.25 0 %** (21 859) · 1.2.28 0 %.
@@ -6022,7 +6022,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   die Wahrheit — „die Uhr hat die Messung nicht gestartet". Beide Texte in allen 17 Sprachen.
   Auf den anderen Recordern gibt es diesen Hinweis nicht (gegengeprueft). ALT: `rec.hrNone`
   (`MainActivity.kt:1265`) erscheint bei `hrSamples == 0 && hrPermGranted` — also auch dann, wenn
-  die Plattform den Puls gar nicht liefert. PeterH liest das seit einer Woche nach jeder Session,
+  die Plattform den Puls gar nicht liefert. Der Nutzer liest das seit einer Woche nach jeder Session,
   obwohl weder er noch sein Armband etwas dafuer koennen. Zugesagt am 14.09., geht erst nach der
   laufenden Pruefung von 1.2.29.
 
@@ -6075,14 +6075,14 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   offen steht. **Diese Zeilen sind Dokumentation, keine Aufgabenliste**, und gehoeren in keine
   Statusmeldung. Ich hatte sie am 19.09. dreimal als offen gemeldet; das war falsch.
   Details unten stehen weiter, weil der INHALT der Vorgaenge dokumentiert gehoert.
-  - **#2 (elmanu13, franzoesisches Label) — ERLEDIGT, selbst uebernommen.** `"Mes"` war als
+  - **#2 (ein Beitragender, franzoesisches Label) — ERLEDIGT, selbst uebernommen.** `"Mes"` war als
     Tab-Beschriftung unvollstaendig; jetzt `"Les miennes"`, wie er vorschlug (vgl. es „Mías",
     pt „Minhas"). **Jan: PR schliessen mit Dank und dem Hinweis, dass es direkt uebernommen ist.**
-  - **#4 (mesarpe/César, Out of Memory) — ERLEDIGT in 1.0.10.** Ursache war nicht die Dateigroesse,
+  - **#4 (ein Nutzer, Out of Memory) — ERLEDIGT in 1.0.10.** Ursache war nicht die Dateigroesse,
     sondern dass der Upload NIE fortsetzte und die Spur komplett im Speicher lag. **Jan: schliessen,
     sobald der Zepp-Store 1.0.10 freigibt** — nicht vorher, sonst steht dort „behoben" und er hat
     es noch nicht.
-  - **#3 (elmanu13, Zepp 1.0.6, Entwurf vom 22.08.) — nicht mehr zusammenfuehrbar.** Baut
+  - **#3 (ein Beitragender, Zepp 1.0.6, Entwurf vom 22.08.) — nicht mehr zusammenfuehrbar.** Baut
     `page/index.js` mit 1254 Zeilen auf einem Stand um, von dem wir weit weg sind. **Jan:
     schliessen mit Dank und Begruendung.** Vorher diese drei Ideen hierher gerettet:
     - **Groessere Bloecke: GPS 10 → 20 Punkte, Accel 128 → 256 Samples.** Halbiert die Blockzahl.
@@ -6276,7 +6276,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     ([[no-retroactive-push]]). Der Auto-Zuschnitt ist aus demselben Grund der Vorsicht
     ausgelassen — er haette ihre Zahlen nachtraeglich veraendert.
   - **🔴 NACHBESSERUNG 14.09. — der Waechter griff nicht, gemeldet von einem Nutzer.**
-    PeterH (u171): „Momentan haengt auch der Upload der aktuellen Session, obwohl alle Segmente
+    Ein Nutzer: „Momentan haengt auch der Upload der aktuellen Session, obwohl alle Segmente
     uebertragen wurden." Session **#8448**, Fingerabdruck exakt wie gestern: 1164/1164 Chunks,
     `/complete` 18:34:00 mit 200 OK, ueberschreibende Analyse 18:36:19 (+139 s). Der Fix von
     08:33 war zu dem Zeitpunkt seit Stunden live (Serverstart 10:43).
@@ -6299,7 +6299,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
       Zwischenanalyse. **Gegenprobe gemacht:** gegen den Stand vom 13.09. faellt er, mit dem Fix
       ist er gruen. Volle Suite 134 gruen.
     - **Reparatur:** sechs haengende Aufnahmen (u106, u457, u505, u385, u296, u225) final
-      nachgezogen; #8448 hatte sich um 22:00:55 selbst geloest, weil PeterH eine neue Aufnahme
+      nachgezogen; #8448 hatte sich um 22:00:55 selbst geloest, weil der Nutzer eine neue Aufnahme
       startete und `_altlasten_abschliessen` griff. Danach 0 Faelle mit dem Fingerabdruck.
       **Abweichung zu gestern, bewusst:** der Auto-Zuschnitt lief diesmal MIT (er gehoert zum
       normalen `/complete`-Weg), also haben fuenf der sechs jetzt Trim-Grenzen, die sie vorher
@@ -6363,16 +6363,16 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     - **Warum man es NICHT auf Zuruf vergeben darf** — an Spot 50 nachgezaehlt:
       | Fahrer | Aufnahmen | Foiling | dabei seit |
       |---|---|---|---|
-      | Manu (u119) | **32** | 44,7 km | 24.07. |
-      | Joan (u457) | 11 | 1,8 km | 11.09. |
-      | Clement (u31) | 8 | 17,2 km | **12.07.** |
-      | Thomas A (u91) | 5 | 3,3 km | 05.09. |
-      | Tomás (u106) | 3 | 0,6 km | 08.09. |
-      Nach der Foursquare-Logik waere es **Manu**, nicht der, der zuerst gefragt hat. Und fuenf
+      | Fahrer A | **32** | 44,7 km | 24.07. |
+      | Fahrer B | 11 | 1,8 km | 11.09. |
+      | Fahrer C | 8 | 17,2 km | **12.07.** |
+      | Fahrer D | 5 | 3,3 km | 05.09. |
+      | Fahrer E | 3 | 0,6 km | 08.09. |
+      Nach der Foursquare-Logik waere es **Fahrer A**, nicht der, der zuerst gefragt hat. Und fuenf
       Leute lesen dort mit. Dieselbe „wer darf das"-Falle wie beim Spot-Namen, nur sichtbarer.
     - **Falls gebaut:** muss aus den Daten fallen, und die eigentliche Frage ist woraus — Anzahl
-      Aufnahmen (Manu), gefoilte Kilometer (Manu) oder Dauer der Zugehoerigkeit (Clement). Passt
-      inhaltlich zum Skalda-Brainstorm ueber Community-Stats und Abzeichen.
+      Aufnahmen (Fahrer A), gefoilte Kilometer (Fahrer A) oder Dauer der Zugehoerigkeit (Fahrer C). Passt
+      inhaltlich zum Brainstorm eines Nutzers ueber Community-Stats und Abzeichen.
     - **Jan hat ihm am 12.09. selbst im Spot-Chat geantwortet** — hier ist nichts offen.
 
 - **🟢 13.09. ERLEDIGT (James, u17, `dm:17-230` #1498) — Ø-Geschwindigkeit auf der Teilen-Card.**
@@ -6595,7 +6595,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   eigene Sperre (Apple Watch); im Profil je Uhr abschaltbar.**
   - **Wear OS:** der Knopf sitzt jetzt in einem `CurvedLayout` (`anchor = 270f`) — gar nicht im
     rechteckigen Inhaltsfluss, die 7-dp-Kollision mit der ersten Ziffernzeile kann also nicht
-    entstehen. **Die Idee stammt von JoLe (u396, PR #5); uebernommen haben wir sie, nicht seinen
+    entstehen. **Die Idee stammt von einem Beitragenden (PR #5); uebernommen haben wir sie, nicht seinen
     Code** (Jan: „wir machen das ordentlich selber"). Statt seines Emojis ein gezeichneter
     Tropfen (Projektregel), und OHNE seine Laufzeit-Abfrage auf `WATCH_TOUCH` — die Berechtigung
     steht in keiner Dokumentation, und ein Entwickler mit demselben Anwendungsfall bekommt
@@ -6636,7 +6636,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   **`MainActivity.wassersperre()` ist absichtlich stehen geblieben** — der Wet-Mode-Broadcast
   (`com.google.android.wearable.action.ENABLE_WET_MODE` + `relaunch_component_name`) ist der
   funktionierende Weg. Was fehlt, ist ein Platz: **eigene Pager-Seite oder Langdruck auf die
-  Flaeche**, nichts Anklickbares mehr oben. Beim Wiederaufnehmen JoLe Bescheid geben, es war sein
+  Flaeche**, nichts Anklickbares mehr oben. Beim Wiederaufnehmen dem Beitragenden Bescheid geben, es war sein
   Wunsch.
 
 - **🟢 10.09. — Emulator-Gegenprobe zu 1.2.28: Stopp-Knopf trägt; die Band-Kollision war am
@@ -7079,8 +7079,8 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     Parameter haette drei Signaturen geaendert. Der Community-Feed und die eigene Sessionliste
     bekamen je einen `foil_id`-Filter.
   - **Gegengeprueft:** `foil:17` (Sabfoil LEVIATHAN 1550) liefert echte Rekorde von vier Fahrern;
-    die Sessionliste dazu zeigt Cony_e, Beat und Tuomo (also fremde Fahrer, obwohl Jan das Foil
-    nicht faehrt), und bei `foil_id=11` stehen Philipp und Jan gemischt.
+    die Sessionliste dazu zeigt drei andere Fahrer (also fremde Fahrer, obwohl Jan das Foil
+    nicht faehrt), und bei `foil_id=11` stehen ein anderer Fahrer und Jan gemischt.
   - Sechs Texte in 17 Sprachen, `docs/PAGES.md` ergaenzt.
   - **Offen (Paritaet):** Android und iOS haben die Foil-Statistik ebenfalls, dort ist der Name
     noch nicht anklickbar. Waere ein eigener Bildschirm je Plattform — lohnt sich, wenn die Seite
@@ -7173,7 +7173,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
      Jetzt ein Tropfen-Knopf oben links auf der Aufnahme-Seite; er schickt
      `com.google.android.wearable.action.ENABLE_WET_MODE` mit `relaunch_component_name`, damit
      nach dem Entsperren wieder UNSERE Aufnahme vorn steht. Von Google nicht dokumentiert, aber
-     der uebliche Weg — JoLe hat den Code aus seiner eigenen App verlinkt.
+     der uebliche Weg — der Beitragende hat den Code aus seiner eigenen App verlinkt.
   **Geht mit Wear 1.2.26 raus**, sobald Play die 1.2.25 freigegeben hat. Auf einer echten Uhr
   ist davon nichts geprueft (Emulator kann Health Services nicht, s. `imEmulator()`).
 
@@ -7251,7 +7251,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   - Offen aus der Mail: fuer Webhooks/Zwei-Wege-Sync/Mehrnutzer-Zugangsdaten kommt COROS
     „in den kommenden Wochen" aktiv auf Plattformen zu — das waere der Weg zum Push statt Abruf.
 
-- **📥 03.09. (Frédéric, Feedback android-app) — Xiaomi/Redmi als Uhr-Plattform pruefen.**
+- **📥 03.09. (Feedback eines Nutzers, android-app) — Xiaomi/Redmi als Uhr-Plattform pruefen.**
   Wortlaut (fr): ob es ein Update fuer andere Uhrenmarken gibt, er habe eine **Redmi Watch**.
   Das ist eine Luecke in der Roadmap-Betrachtung: Redmi/Xiaomi-Uhren laufen auf **HyperOS/Vela**
   (NuttX-Basis), NICHT auf Wear OS — der Zepp-Zweig (Amazfit) deckt sie also nicht ab. Zu klaeren:
@@ -8434,13 +8434,13 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     manuelle Speed-Farbskala — bleiben bewusst beim Betrachter.
 
 - **🟢 Theoretische Leistung: Teilen-Link rechnete mit anderem Gewicht (27.08., Meldung
-  PeterH + von Jan reproduziert).** „Am PC 208 W, hinter dem Teilen-Link im Handy-Chrome 291 W,
+  eines Nutzers + von Jan reproduziert).** „Am PC 208 W, hinter dem Teilen-Link im Handy-Chrome 291 W,
   alle anderen Werte identisch." Jans eigene Session: **227 W eingeloggt, 243 W hinter dem Link.**
   - **Ursache gefunden:** `FoilPowerStat` (`components/FoilPower.tsx`) holte das Fahrergewicht
     IMMER selbst per `api.getSettings()`. Auf dem oeffentlichen Link gibt es keinen Login -> 401 ->
     `catch` faellt auf `DEFAULT_RIDER` (**95 kg** Fahrer + 10 kg Ausruestung). Es sind also
     dieselben Daten, nur eine andere Annahme. Verhaeltnis passt exakt: bei ~88 kg
-    Fahrergewicht 1,07 (Jan), bei ~66 kg 1,40 (PeterH) — nachgerechnet mit der echten
+    Fahrergewicht 1,07 (Jan), bei ~66 kg 1,40 (der Nutzer) — nachgerechnet mit der echten
     `computeFoilPowerAtSpeed`.
   - **Nebenbefund:** auf derselben Seite waren ZWEI Gewichte im Umlauf — die Kachel holte das
     Profil, die Lauf-Tabelle (`powerFor` in `SessionDetail`) nahm im Public-Modus bewusst den
@@ -8490,7 +8490,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     hat dort also eine veraltete Antwort. Online faellt das nicht auf (NetworkFirst), offline
     schon. Waere ein `cache.delete` beim Speichern.
 
-- **🟢 Speicher-Restzeit + Vorwarnung auf der Garmin-Uhr (27.08., Wunsch von Philipp).**
+- **🟢 Speicher-Restzeit + Vorwarnung auf der Garmin-Uhr (27.08., Wunsch eines Nutzers).**
   „Wieviel Speicherplatz noch verfuegbar ist, fuer wie lange der voraussichtlich durchhaelt
   (entsprechend GPS-only oder gewaehlter Accel-Frequenz), ggf. vorab eine Warnung."
   - **Abfragen geht NICHT:** Connect IQ hat kein `freeStorage`, `System.getSystemStats()` ist RAM.
@@ -8730,7 +8730,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
      Alle vier summieren `distM += haversine(vorher, jetzt)` bei JEDEM Fix, ohne das
      Qualitaets-Gate, das direkt darueber fuer Anzeige/Max/Lauf-Erkennung schon existiert
      (`poor = accuracyM > 20` -> `sp = 0`). Die Lauf-Erkennung ist also geschuetzt, die Distanz
-     nicht. El Manu hat dasselbe auf Zepp ueber ein 5-s-Netto-Verschiebungsfenster geloest — bei
+     nicht. Ein Beitragender hat dasselbe auf Zepp ueber ein 5-s-Netto-Verschiebungsfenster geloest — bei
      uns geht es einfacher, weil wir Genauigkeit UND Doppler-Geschwindigkeit haben (Zepp hat
      beides nicht).
      Gemessen an 400 echten Sessions (read-only, `scratchpad/wander.py`): die naive
@@ -8743,7 +8743,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
      Geschwindigkeit ueber einem Standschwellwert liegt (ca. 0,5 m/s).
   2. **Wear OS verschluckt BACK waehrend der Aufnahme NICHT.** Der Handy-Recorder tut es
      (`RecordScreen.kt:108`, `BackHandler(enabled = st.recording)`), Garmin auch
-     (`RecordDelegate.onBack`), El Manu hat es auf Zepp nachgezogen — auf Wear fehlt es. Ein
+     (`RecordDelegate.onBack`), ein Beitragender hat es auf Zepp nachgezogen — auf Wear fehlt es. Ein
      Wisch nach rechts (auf nassem Schirm schnell passiert) verlaesst mitten in der Session die
      Aufnahme-Ansicht. Die Aufnahme selbst laeuft im Foreground-Service weiter, aber der Nutzer
      steht vor dem Watchface. Zwei Zeilen.
@@ -8805,7 +8805,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
      Balken statt „12 von 30". Beim Draining einer gequeueten Session ist die Zahl exakt bekannt
      (die Zaehler `na_`/`ng_` stehen im Store) — also klein nachzurichten, betrifft aber den
      Upload-Pfad und damit ein Uhr-Release. **Frage an Jan: mit der naechsten Runde mitnehmen?**
-  2. **Wear OS hat keine Always-on-/Ambient-Ansicht.** El Manu haelt auf Zepp den Schirm im Lauf
+  2. **Wear OS hat keine Always-on-/Ambient-Ansicht.** Ein Beitragender haelt auf Zepp den Schirm im Lauf
      wach (60-s-Fenster, alle 10 s erneuert). Garmin braucht das nicht (MIP/Systemverhalten),
      Apple laeuft in der `HKWorkoutSession` und bleibt vorn — aber auf Wear gibt es weder
      `AmbientLifecycleObserver` noch `OngoingActivity` (nur der Foreground-Service mit
@@ -8851,7 +8851,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   Ein winziger Fuellstand (0,3 Grad) haette damit den ganzen Ring gefuellt -> jetzt erst ab 1 Grad
   zeichnen, Vollrunden bewusst als Vollkreis, Winkel auf [0,360) normalisiert.
   (b) **Zepp laeuft nicht mehr ueber das ARC-Widget, sondern ueber CANVAS + drawPoly.** Grund ist
-  ein Geraetebefund aus @elmanu13s PR #3: "ARC always renders rounded stroke caps on the T-Rex 3" —
+  ein Geraetebefund aus dem PR #3 eines Beitragenden: "ARC always renders rounded stroke caps on the T-Rex 3" —
   ein Randsegment haette runde Enden bekommen. Nebeneffekte, die wir mitnehmen: EIN Widget statt
   vieler (kein Loeschen/Neuanlegen pro Sekunde, damit auch kein Z-Order-Problem mit dem Text) und
   dieselbe Zeichenweise fuer rund und eckig.
@@ -9009,7 +9009,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   **Uebernehmen fuer ALLE Uhren (die eigentliche Ausbeute):**
   - **GPS-Ruhe-Gate**: Netto-Bewegung ueber ein Fenster statt Punkt-zu-Punkt, und wiederholte
     identische Koordinaten NICHT als Null-Speed in den 3-s-Median. Genau die Fehlerklasse, die
-    ThermikDreher gemeldet hat („erster Lauf 7 km/h Ø") und die auf Garmin belegt ist (Nutzervideo,
+    ein Nutzer gemeldet hat („erster Lauf 7 km/h Ø") und die auf Garmin belegt ist (Nutzervideo,
     100 km/h im Stehen am Steg).
   - **Start erst mit GPS-Fix** (Knopf grau bis Fix, Vibration + Ton bei Fix) — haette Idahobies
     Fall entschaerft.
@@ -9020,7 +9020,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     dazu existieren (keine Waisen nach einem Neustart in den ersten Sekunden).
   - **Puls-Zonen des Nutzers** (`Workout.getUserHrZoneSettings`, 5 Zonen) fuer einen Ring —
     sauber abgesichert (Capability-Pruefung, Plausibilitaet, Fallback auf feste Grenzen). Garmin
-    kann Zonen ueber `UserProfile` auch; ThermikDreher hat genau danach gefragt.
+    kann Zonen ueber `UserProfile` auch; ein Nutzer hat genau danach gefragt.
   **PR #2** (ein Zeile, `fr.ts`: „Mes" → „Les miennes"): plausibel, aber es ist ein TAB-Label in
   der Kurzform — vorher im Web ansehen, ob die Leiste auf dem Telefon nicht bricht.
 
@@ -9031,15 +9031,15 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
      geaendert" und der Client zeigte seinen alten Stand, waehrend die frisch gerechnete Liste die
      neuen Zahlen hatte. `run_analysis` stempelt jetzt `updated_at` (eine Zeile am Ende, aendert
      nichts an der Analyse; deckt ALLE Pfade ab — Upload, Reanalyse, Merge, Massenlauf).
-  2. **Aussortierte Sessions verfaelschten die Verlaufskurven** (PeterH, 16.08.: „wird aber in
+  2. **Aussortierte Sessions verfaelschten die Verlaufskurven** (ein Nutzer, 16.08.: „wird aber in
      meiner Historie gezaehlt"). `/api/sessions/history` filtert jetzt `is_pumpfoil.isnot(False)`,
      wie schon `my_spots`/`spot_tracks`. Geprueft: zwei Nutzer mit 58 bzw. 51 aussortierten
      Sessions haben davon 0 in der Kurve.
-  3. **Spot-Auswahlfeld: eigene Spots zuerst** (Philipp, 22.08.) — zwei Gruppen („Meine Spots" /
+  3. **Spot-Auswahlfeld: eigene Spots zuerst** (Wunsch eines Nutzers, 22.08.) — zwei Gruppen („Meine Spots" /
      „Weitere Spots"); ohne eigene Spots bleibt es die einfache Liste. Und **„Aussortiert" schaltet
      auf „alle"**, weil aussortierte Sessions meist keine Accel-Laeufe haben und die Liste sonst
      leer aussieht (sein zweiter Punkt).
-  4. **Streckung (AR) in den Foil-Badges** (ThermikDreher) — ueberall, wo wir belastbare Masse
+  4. **Streckung (AR) in den Foil-Badges** (Wunsch eines Nutzers) — ueberall, wo wir belastbare Masse
      haben: Web (`lib/foilLabel.ts`: Session-Detail, eigene + fremde Listen, Profil-Unterzeile),
      Android (`foilLabel()` in Models.kt, eigene + Community-Zeilen), iOS (`foilLabel()` in
      Models.swift, beide Chip-Texte). Fehlt Flaeche oder Spannweite, bleibt die AR weg. Der Server
@@ -9615,7 +9615,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
 
 
 - **🟢 Alle Foil-Meldungen aus dem Feedback abgearbeitet (19.08.). Katalog 533 → 536.**
-  Sieben Meldungen mit Katalog-Bezug (die achte, #44 Tom Petr, ist eine Sportart-Frage, kein Foil).
+  Sieben Meldungen mit Katalog-Bezug (die achte, #44, ist eine Sportart-Frage, kein Foil).
   **Pflichtpruefung 1 (brand UND model absuchen) hat FUENF von sieben als bereits vorhanden
   entlarvt** — es wurde also fast nichts angelegt, sondern nachgesehen:
 
@@ -9625,9 +9625,9 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   | #79 Nathan: North Sonar P2050 | war da (`North \| Sonar P \| P2050`, 140 cm/2050 cm²) |
   | #76 (#229): Axis Fireball 1750 | war da (175 cm/1525 cm²/20,3 mm) |
   | #78 Roman: Gong Rise XL | war da (90 cm/1844 cm²/35 mm) |
-  | #67 AntoineD: Marke AFS | war da — 31 Zeilen, am 05.08. auf genau diese Meldung hin angelegt |
+  | #67: Marke AFS | war da — 31 Zeilen, am 05.08. auf genau diese Meldung hin angelegt |
   | #39 Eric F: Sabfoil Blackbird 1400/1350/1077 | alle drei da |
-  | #77 Lukas: Armstrong APF + UHA | beide Reihen **vollstaendig** |
+  | #77: Armstrong APF + UHA | beide Reihen **vollstaendig** |
 
   **Was neu ist: AXIS PNG V2 1200 / 1300 / 1400.** Quelle: die offizielle Axis-Seite fuehrt die
   Tabelle nur als BILD, ein Haendler (foilit.de) gibt sie in Textform wieder. **Gegen sich selbst
@@ -9646,7 +9646,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   exakt unsere Zeile. Armstrong APF (3 Groessen) und UHA (7 Groessen) gegen die Herstellerangaben
   abgeglichen, alle Spannweiten decken sich.
 
-  **Alle sieben Melder informiert** (kurz, in ihrer Sprache — AntoineD auf Franzoesisch), aus dem
+  **Alle sieben Melder informiert** (kurz, in ihrer Sprache — einer auf Franzoesisch), aus dem
   Assistenten-Konto, je EINE Nachricht, mit Doppel-Antwort-Sperre gegengeprueft.
   Roman ist gefragt, ob die Werte zu seinem ALTEN Rise XL passen; falls nicht, kommt die aeltere
   Generation als eigene Zeile dazu.
@@ -9657,7 +9657,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   jemand meldet. Waere als eigener, geplanter Durchgang aufzusetzen.
 
 - **🟢 BEHOBEN (19.08.): Datenfeld 21 wurde beim Speichern still zu Feld 20.** Gemeldet von
-  ThermikDreher im Chat (18.08. 21:56): „immer wenn ich speichere wechselt der Wert zu Anzahl Runs".
+  Ein Nutzer im Chat (18.08. 21:56): „immer wenn ich speichere wechselt der Wert zu Anzahl Runs".
   Ursache in `layouts.py._clean_element`: ein `_clamp(…, 0, 20)` VOR der Gueltigkeitspruefung. Beim
   Einbau von Feld 21 wurde `VALID_FIELD_IDS` erweitert, diese Klemme aber uebersehen — jede 21 wurde
   zu 20, und 20 ist „Laeufe (Anzahl)". Belegt: von 30 Layouts in der DB enthielt **kein einziges**
@@ -9667,7 +9667,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   20 sieht aus wie eine verstuemmelte 21. Betroffene (Layouts, die seit dem 17.08. gespeichert
   wurden) muessen das Feld einmal neu setzen.
 
-- **💡 Drei Wuensche von ThermikDreher (#267), 18.08. abends.** Er hat auch das Datenfeld gefunden,
+- **💡 Drei Wuensche eines Nutzers, 18.08. abends.** Er hat auch das Datenfeld gefunden,
   seine Meldungen sind bisher alle belastbar gewesen.
   1. **Vergleich von Pumpfrequenz und Speed**, um Pumptechniken zu vergleichen — „weil das ja
      foilabhaengig ist".
@@ -9831,7 +9831,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   - **Amazfit uebernimmt den Aufzeichnungsmodus gar nicht** (`watch-zepp/app-side/index.js` reicht
     nur language/latestVersion/pauseView/layoutsOn/layouts/pages durch) — der Regler stand dort
     wirkungslos in der Oberflaeche. Steht jetzt ehrlich dran. **OFFEN: entweder Zepp liest ihn
-    kuenftig mit (El Manu arbeitet daran), oder der Regler wird dort ausgeblendet.**
+    kuenftig mit (ein Beitragender arbeitet daran), oder der Regler wird dort ausgeblendet.**
   - Androids `autoStart` in `RecordScreen.kt` ist `phone_autostart`, also der HANDY-Recorder — nicht
     die Uhr-Einstellung. Wer nur nach dem Namen sucht, haelt sie faelschlich fuer vorhanden.
   **VERSIONEN SIND GEBUMPT (18.08.), Jan baut/signiert/laedt hoch:**
@@ -10027,8 +10027,8 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
     im Konto, nicht bei der Aufnahme. Ohne Messung nicht raten: **`gnss_mode` ist bei allen 115
     Garmin-Uhren NULL**, also hat noch niemand umgestellt — es gibt keine Vergleichsgruppe.
     **(c) Franz selbst bleibt unbeantwortet — abgeschlossen, nicht wieder aufgreifen** (Jan,
-    17.08.): in der Nutzer-Tabelle gibt es keinen „Franz" (die zwei entfernten Treffer `Fanch`
-    und `Fräse` sind andere Leute, und bei einer persoenlichen Nachricht wird nicht geraten, wer
+    17.08.): in der Nutzer-Tabelle gibt es keinen „Franz" (die zwei entfernten Treffer
+    sind andere Leute, und bei einer persoenlichen Nachricht wird nicht geraten, wer
     gemeint sein koennte), CIQ-Store-Rezensenten sind nicht mit unseren Konten verknuepft, und im
     Store kann Jan nicht auf Rezensionen antworten. Ein Antworttext lag vor, ist damit hinfaellig.
     **Was bleibt, ist NICHT sein Fall, sondern die Auffindbarkeit:** die Einstellung existiert und
@@ -10093,7 +10093,7 @@ verschickt ausser dem Passwort-Reset gar keine Mail, und den brauchen Relay-Kont
   schon die Groesse (`150AR`, `135R`), die Groessensuche findet sie bereits.
   Weitere Aliase einfach in die JSON eintragen und den Server neu starten — kein Code noetig.
 - **✅ GELOEST (Jan, 30.08.) — stiller Datenverlust bei vollem Uhr-Speicher.** Die Uhr warnt
-  jetzt VORHER (Restzeit-Schaetzung + Warnschwellen, s. docs/WATCH-STORAGE.md). **Philipp hat es
+  jetzt VORHER (Restzeit-Schaetzung + Warnschwellen, s. docs/WATCH-STORAGE.md). **Der Nutzer hat es
   getestet und am See live mit Jan bestaetigt.** Der urspruengliche Befund bleibt als Beleg stehen:
   original:
   Meldung Nathan: „session on August 11th, all the data were uploaded but only one of the runs is
@@ -11060,7 +11060,7 @@ Offen daraus:
   Verwandt: fr55-accel-truncation Ebene 2. Für später gemerkt (2026-07-16).
 - ~~Läufe zusammenführen (Nutzer-Feedback #14/18/20)~~ — laut Jan durch die mehrfachen Detektor-Verbesserungen
   (Re-Arm-Cooldown, End-Verlängerung, NOSTOP) vermutlich obsolet.
-- **Öffentliche Session-Teilen-Links** (Community-Wunsch Dominik/Pixelfoil, 2026-07-15): unguessbarer
+- **Öffentliche Session-Teilen-Links** (Community-Wunsch eines Nutzers, 2026-07-15): unguessbarer
   Token-Link → vollständige Session-Detailseite ohne Login/Registrierung. Spec (Jan, festgelegt):
   - **Nur für EIGENE Sessions** erzeugbar; `share_token` je Session (nullable), vom Besitzer erzeugbar +
     **widerrufbar**. Öffentliche read-only Route `/s/<token>` (Web) + Server-Endpoint ohne Auth, der NUR
@@ -11225,9 +11225,9 @@ Offen daraus:
   Tatus FR55 5 von 6 (Ø 1276 m), Nathans Instinct 2 4 von 8 (10.-12.08.). Es ist also kein
   „die Uhren koennen das noch nie", sondern eine Verschlechterung.
   **Symptom:** Session wird am Server registriert, dann kommt nichts mehr — 0 bis 1 Chunk, keine
-  Abschlussmeldung, und der Nutzer startet kurz darauf erneut (Philipp 15.08.: fuenf Starts in
+  Abschlussmeldung, und der Nutzer startet kurz darauf erneut (ein Nutzer 15.08.: fuenf Starts in
   einer Stunde, alle leer). Das passt zu einem Absturz UNMITTELBAR nach dem Start und deckt sich
-  mit dem, was Philipp am Spot erzaehlt hat („IQ!").
+  mit dem, was der Nutzer am Spot erzaehlt hat („IQ!").
   **Was NICHT die Ursache ist:** der Aufnahmemodus. Die beiden auffaelligsten Geraete stehen auf
   „nur GPS", die beiden anderen auf „full" — es trifft alle vier. Die Umstellung auf GPS-only war
   die Reaktion der Nutzer auf das Problem, nicht sein Ausloeser.
@@ -11308,7 +11308,7 @@ Offen daraus:
   mehr Akku", keine Prozentzahlen. Wer es genau wissen will, muss zwei gleiche Sessions fahren.
 
 - **🟢 Zusammenfuehren erzeugte Waisen-Dubletten bei Doppelklick — BEHOBEN 13.08. (`e7c02f4`), 16.08. am Bestand nachgeprueft.**
-  Meldung Jeroen 13.08. („i am missing a lot of runs"). Kein Datenverlust, aber ein echter Fehler.
+  Meldung eines Nutzers 13.08. („i am missing a lot of runs"). Kein Datenverlust, aber ein echter Fehler.
   Belegt, rein lesend:
   | Session | uuid | Laeufe | Distanz | Stand |
   |---|---|---|---|---|
@@ -11337,7 +11337,7 @@ Offen daraus:
   kann selbst zwei loeschen (Antwort 16.08. unter meinem Konto); fremde Sessions ungefragt
   aufzuraeumen waere seine Entscheidung, nicht unsere.
 
-- **🟢 Karte schluckte Tasten auf der ganzen Seite — BEHOBEN 17.08.** Meldung PeterH (Firefox, PC):
+- **🟢 Karte schluckte Tasten auf der ganzen Seite — BEHOBEN 17.08.** Meldung eines Nutzers (Firefox, PC):
   nach einem Klick auf einen Spot in der Kartenansicht liessen sich im Chat **`-` `_` `+` `*` `6` `&`
   und die Pfeiltasten** nicht mehr tippen; Einfuegen ging weiter, ein Reload half, und die Ziffern
   des Num-Blocks funktionierten auch. Zusaetzlich reagierte die **`6` nicht mehr fuer die
@@ -11357,7 +11357,7 @@ Offen daraus:
   Nebenbei behoben: die Karten waren auch ein Speicherleck — jede Navigation liess eine komplette
   Leaflet-Instanz samt Tile-Layer zurueck.
 
-- **🟢 Puls/Trainings-Wuensche (ThermikDreher, 15.08.) — zwei umgesetzt, einer bewusst NICHT.**
+- **🟢 Puls/Trainings-Wuensche (ein Nutzer, 15.08.) — zwei umgesetzt, einer bewusst NICHT.**
   Er wollte vier Dinge: Max-Puls je Lauf, Puls-Verlauf mit eigenen Zonen, Vergleich mit Fahrern
   auf aehnlichem Setup, und (aus den Uhr-Datenfeldern) den Max-Puls des letzten Laufs.
   - **Max-Puls je Lauf: LIVE 17.08.** Reine Anzeige — der Track traegt den Puls je Punkt schon,
@@ -11434,7 +11434,7 @@ Offen daraus:
   Connect die Build-Nummer ab.
 
 - **✅ URSACHE GEFUNDEN + gefixt (Code) 30.08. — iOS-Absturz ist ein Watchdog-Kill, kein Crash.**
-  Jacek hat sein Crash-Log geschickt (`Pumpfoil-2026-08-20-111547.ips`). Inhalt eindeutig:
+  Der Melder hat sein Crash-Log geschickt (`Pumpfoil-2026-08-20-111547.ips`). Inhalt eindeutig:
   `EXC_CRASH (SIGKILL)`, FRONTBOARD-Grund **`0x8BADF00D` — „scene-update watchdog transgression:
   exhausted real (wall clock) time allowance of 10.00 seconds"**. Hauptthread stand in
   `LazyLayoutViewCache.updatePrefetchPhases` -> `LazySubviewPlacements.updateValue()`, also in
@@ -11547,7 +11547,7 @@ Offen daraus:
   beim Release-Bau, und er bricht ab, nicht warnt.
 
 - **✅ 30.08. — Lauf-Erkennung auf den Uhren an den Server angeglichen (alle sechs Recorder).**
-  Anlass: Cornelia (Cony_e) hat nach JEDER Fahrt ihre Uhr fotografiert, sieben Bilder plus zwei
+  Anlass: eine Nutzerin hat nach JEDER Fahrt ihre Uhr fotografiert, sieben Bilder plus zwei
   App-Ansichten — die Messreihe, die uns bisher fehlte. Eine Simulation der Uhr-Logik auf ihren
   echten GPS-Daten (S3079/S3081, 30.08., fēnix 7X, App 1.0.78) trifft ihre Fotos auf **1–2 Meter**
   genau, damit ist die Diagnose belegt und nicht geraten. Drei Ursachen:
@@ -11903,7 +11903,7 @@ Offen daraus:
   und `delete_all_feedback` raeumen jetzt Anhaenge UND Dateien mit weg (geprueft: 2 Dateien rein,
   0 nach dem Loeschen, keine Waisen auf der Platte).
 
-- **✅ GEBAUT 30.08. — Satellitenansicht auf allen fünf Karten.** Nutzerwunsch (VintZ, ios-app,
+- **✅ GEBAUT 30.08. — Satellitenansicht auf allen fünf Karten.** Nutzerwunsch (ios-app,
   26.08.): „How hard is it to have satellite view option on the tracking map."
   **Antwort auf die naheliegende Frage: OpenStreetMap kann das NICHT** — das ist ein Datenprojekt,
   Luftbilder gibt es dort schlicht nicht. Es braucht einen zweiten Anbieter.
@@ -12409,7 +12409,7 @@ Offen daraus:
   - Geprueft: `tsc --noEmit`, `:app:compileDebugKotlin`, `swiftc -parse` — alle gruen. Web live,
     Android laeuft in 1.1.25 mit, iOS in 1.1.28.
 
-- **✅ 31.08. ERLEDIGT — Feedback #116 (Philipp): „GPS-Glitch" in der VERLAUFS-Karte, nicht in der
+- **✅ 31.08. ERLEDIGT — Feedback #116 (ein Nutzer): „GPS-Glitch" in der VERLAUFS-Karte, nicht in der
   Session-Karte. UNTERSUCHT — Ursache ist das Herunterrechnen, nicht die Erkennung.**
   Belegt an seiner Session **3157** (Illmensee, 31.08. vormittags).
   - **Seine Vermutung trifft nicht zu:** beide Karten nutzen **dieselbe** Server-Spur
@@ -12459,7 +12459,7 @@ Offen daraus:
     Web live; Android/iOS laufen in **1.1.25** bzw. **1.1.28** mit. `:app:compileDebugKotlin`
     gruen, `swiftc -parse` gruen, `tsc --noEmit` gruen.
 
-- **✅ 31.08. — iOS-Startabsturz IM FELD BESTAETIGT, vom urspruenglichen Melder.** u149 (Jacek)
+- **✅ 31.08. — iOS-Startabsturz IM FELD BESTAETIGT, vom urspruenglichen Melder.** Der Melder
   am 31.08. um 15:27: **„New version works ok"**. Er hatte den Absturz am 30.08. gemeldet, die
   Crash-Logs herausgesucht und den entscheidenden Satz geliefert („it crashed directly after
   logging in" — der Anmeldebildschirm hat gar keine Karte, also lag es an dem, was dahinter
@@ -12795,7 +12795,7 @@ Offen daraus:
     ueberbruecken — was sachlich richtig waere, aber die Lauf-Zahl an dieser Stelle aendert.
 
 - **✅ 31.08. — „Laeuft nicht nach Uhrzeit synchronisiert" (Jan) — NACHGEMESSEN: die Uhr stimmt,
-  die Darstellung log.** Jans Beispiel: Sessions **3159 (Jan, 10:26:18)** und **3157 (Philipp,
+  die Darstellung log.** Jans Beispiel: Sessions **3159 (Jan, 10:26:18)** und **3157 (Mitfahrer,
   10:29:22)**, beide Illmensee, beide als GANZE Session im Vergleich.
   - **Was ich gemessen habe, bevor ich etwas geaendert habe:** Nullpunkt je Session
     (`started_at + Session-ms` gegen `ended_at`, 7 von 8 exakt) · die rekonstruierte Achse gegen
@@ -13078,10 +13078,10 @@ Offen daraus:
   Positivbeispiele „Startversuch" verwenden.
 
 - **✅ Erkennung v3-r4-mild-2 LIVE (03.10.2026):** Kandidaten ohne altes On-Foil-Modell, von v3
-  gebildete Stuecke muessen die Grenzen der Profil-Empfindlichkeit erfuellen (Befund #12632 Bartosz).
+  gebildete Stuecke muessen die Grenzen der Profil-Empfindlichkeit erfuellen (Befund #12632).
   Regression +2,0 % Laeufe / +0,4 % Foil-Zeit, 709 Sessions reanalysiert (708 exakt wie im Test,
   #12588 hatte sich dazwischen geaendert). Sicherung `server/data/sicherung/vor-v3-mild2-20261003-0556.dump`.
-  Details docs/DETECTION-V3.md. Offen: Antwort an Bartosz (Entwurf bei Jan).
+  Details docs/DETECTION-V3.md. Offen: Antwort an den Fahrer (Entwurf bei Jan).
 - **🏷️ v4-Trainingsdaten: Gleiten mit Arm-Balance (Jan, 03.10.2026).** Befund aus
   `scripts/v3/gleiten_versatz.py`: echtes Gleiten (laut Brett, Pump-Gipfel im Nicken) liegt vor allem
   am Laufende, Median 3,4 s, bis 6 s. Die Uhr zaehlt darin teils weiter „Pumps" (Arm haelt das
@@ -13108,7 +13108,7 @@ Offen daraus:
   sondern vom alten On-Foil-Modell (Arm hoert auf zu pumpen -> Lauf zu Ende). Die End-Gleitphase faellt
   dadurch aus dem Lauf heraus. Gehoert ebenfalls in v4 (Grenzen aus der Brett-Wahrheit).
   Neu erzeugen: `scripts/v3/gleiten_versatz.py` + paare.json (Versatz je Paar). Braucht dringend Paare
-  von Fahrern, die wirklich gleiten (Bartosz/Guillaume mit Handy am Brett).
+  von Fahrern, die wirklich gleiten (zwei Fahrer mit Handy am Brett).
 
 - **📱 Native nachziehen (03.10.2026, Web live):** Gleitphasen in der Session-Karte (Schalter neben
   Pumps, `seg.glides` = [Start-Index, End-Index, Dauer s, Start Session-ms]) + Liste unter der Karte
@@ -13122,13 +13122,13 @@ Offen daraus:
 
 - **💡 Foil UND Sportart je Lauf statt je Session — EIN Umbau (Jan, 04.10.2026).** Foil je Lauf: die
   meisten wechseln das Material waehrend einer Session (steht seit 24.09. in `appmeta.IDEEN`). Sportart je
-  Lauf, Vorschlag Oerni u97 im 1:1-Chat mit Jan: innerhalb EINER Session
+  Lauf, Vorschlag eines Nutzers im 1:1-Chat mit Jan: innerhalb EINER Session
   einzelne Laeufe als Pumpfoil bzw. Wakethief markieren — er faehrt in derselben Session beides. Die
   Wakethief-Laeufe zaehlen dann in den Wakethief-Statistiken (auch je Spot), die Pumpfoil-Laeufe in den
   Pumpfoil-Zahlen. Jan: „benoetigt den gleichen Umbau wie Foil je Lauf" (heute sind Sportart und Foil
   je Session). Steht auch unter „Ideas for future development" auf /changelog (`appmeta.IDEEN`).
 
-- **✅ ERLEDIGT 04.10.2026 (`gps.grenzen_fuer`, Band + Lauf-Spitze je Sportart: Wing/Parawing 50/62, Kite 60/70 km/h). War:** Erkennung: 40-km/h-Physik-Grenze gilt auch fuer Wing/Kite (Befund 04.10.2026, u758 Jhonny).
+- **✅ ERLEDIGT 04.10.2026 (`gps.grenzen_fuer`, Band + Lauf-Spitze je Sportart: Wing/Parawing 50/62, Kite 60/70 km/h). War:** Erkennung: 40-km/h-Physik-Grenze gilt auch fuer Wing/Kite (Befund 04.10.2026, Meldung eines Nutzers).
   `_gate_implausible_runs` verwirft Laeufe > 40 km/h unabhaengig von der Sportart. Bei Wing-/Kite-Sessions
   sind solche Laeufe plausibel (u758: #12948, #12940, #12927, #12926 — als Wingfoil umsortiert, trotzdem
   „verdaechtig", per „geprueft" aus der Liste genommen). Vorschlag: Grenze je `sport_class` (Pumpfoil 40,

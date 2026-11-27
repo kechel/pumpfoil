@@ -487,7 +487,7 @@ struct CommunityView: View {
             mitgliederMenues
             bandMenue
             if let lb = leaders {
-                // Alle 10 wie im Web: die eigene Zeile darunter (Olek, 01.11.2026) gibt der Server nur, wenn man nicht
+                // Alle 10 wie im Web: die eigene Zeile darunter (Wunsch eines Nutzers, 01.11.2026) gibt der Server nur, wenn man nicht
                 // unter den ersten 10 steht — bei prefix(5) fehlten sonst die Plaetze 6 bis 10.
                 let list = Array(lbList(lb).prefix(10))
                 if list.isEmpty {

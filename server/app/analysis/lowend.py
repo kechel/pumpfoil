@@ -1,4 +1,4 @@
-"""Low End je Lauf (Feedback foiling_fabs, 01.11.2026; Jans OK am selben Tag): das langsamste Tempo, aus dem der
+"""Low End je Lauf (Feedback eines Nutzers, 01.11.2026; Jans OK am selben Tag): das langsamste Tempo, aus dem der
 Fahrer wieder herauskam — Grundlage der Spalte „Low End" in den Foil-Stats.
 
 Je Lauf: langsamstes 10-s-Mittel der 1-s-Geschwindigkeit, ohne die ersten 5 s (dort wirkt noch der Absprung), und nur

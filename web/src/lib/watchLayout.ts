@@ -277,7 +277,7 @@ export const PREVIEW_SIZES: { id: string; label: string; noteKey?: string; w: nu
   { id: "w384", label: "Wear OS 384×384", w: 384, h: 384, shape: "round" },
   // Amazfit/Zepp OS: die beiden Formfaktoren, die watch-zepp/app.json selbst deklariert
   // (`platforms`: st "r" / dw 480 und st "s" / dw 390) — also keine geratenen Werte.
-  // 480×480 rund ist u. a. die T-Rex 3 (1,5" AMOLED, 320 ppi); angefragt von @elmanu13 am
+  // 480×480 rund ist u. a. die T-Rex 3 (1,5" AMOLED, 320 ppi); angefragt von einem Beitragenden am
   // 17.08., der auf einer T-Rex 3 entwickelt. Der Zepp-Recorder rendert Layouts bereits
   // (page/index.js: layoutsPref/wantLayouts, Palette identisch zu server/app/api/layouts.py),
   // und das Speicher-Gating betrifft nur Garmin (devices.py: `not is_garmin` -> immer faehig).

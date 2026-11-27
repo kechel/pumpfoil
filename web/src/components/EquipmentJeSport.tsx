@@ -7,7 +7,7 @@ import { useT } from "../i18n";
 
 // Ausruestung je Sportart (19.10.2026, server/app/equipment_sport.py): je Sportart ein eigener
 // Standard fuer Foil, Board, Stab und Mast. „—" = kein eigener Wert, es gilt der allgemeine
-// Standard (Stern). Anlass Oerni: beim Umstellen einer Session auf Wingfoil blieb das
+// Standard (Stern). Anlass ein Nutzer: beim Umstellen einer Session auf Wingfoil blieb das
 // Pumpfoil-Foil stehen.
 type Eintrag = { foil_id?: number; board_id?: number; stab_id?: number; mast_len_cm?: number };
 type Feld = keyof Eintrag;

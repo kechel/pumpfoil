@@ -2260,7 +2260,7 @@ private fun RunsTable(
         }
     } }
     if (segments.isEmpty()) { zurueckgestellt(); return }
-    // Hoechstpuls im Lauf, aus dem Puls je Trackpunkt (Wunsch ThermikDreher, 15.08.).
+    // Hoechstpuls im Lauf, aus dem Puls je Trackpunkt (Wunsch eines Nutzers, 15.08.).
     // Identische Logik wie die PWA: ueber iStart..iEnd laufen, Nullen und 0-Werte ignorieren.
     val maxHrImLauf: (Segment) -> Int? = { seg ->
         if (hr.isEmpty()) null else {
@@ -2283,7 +2283,7 @@ private fun RunsTable(
             out
         }
     }
-    // Pulsabfall nach dem Lauf (Heart Rate Recovery; Wunsch ThermikDreher, Jan 14.10.2026, wie die
+    // Pulsabfall nach dem Lauf (Heart Rate Recovery; Wunsch eines Nutzers, Jan 14.10.2026, wie die
     // PWA `hrDrop`): Hoechstpuls des Laufs minus Puls 60 bzw. 120 s nach Laufende. null („–"), wenn
     // dort kein Messwert liegt (±5 s: Auto-Pause, Uhr nicht am Arm, Aufnahme zu Ende) oder der
     // naechste Lauf vorher beginnt — dann steigt der Puls schon wieder.

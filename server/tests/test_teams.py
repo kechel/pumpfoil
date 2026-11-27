@@ -77,7 +77,7 @@ def test_slug_aus_namen():
     assert T.slug_fehler("a_b") == "slug_zeichen"
     assert T.slug_fehler("-abc") == "slug_zeichen"
     assert T.slug_fehler("illmeseepumper") is None
-    assert T.initialen("Jan Kechel") == "JK" and T.initialen("olek") == "OL" and T.initialen("") == "?"
+    assert T.initialen("Jan Kechel") == "JK" and T.initialen("ozelot") == "OZ" and T.initialen("") == "?"
 
 
 def test_unbestaetigtes_team_fuer_fremde_unsichtbar(client):
@@ -662,7 +662,7 @@ def test_event_verlaengert_zaehlt_wieder_aktuelle_mitglieder(client):
 
 def test_event_nur_gesamtsummen(client):
     """Ein Event darf ganz ohne Bestenliste sein, wenn Gesamtsummen gewaehlt sind; dann eigene Sportart/Bewegungsdaten."""
-    (ia, ka), (ib, kb) = _konto(client, "te-a-nur@t.de", "Nur Nora"), _konto(client, "te-b-nur@t.de", "Nur Nils")
+    (ia, ka), (ib, kb) = _konto(client, "te-a-nur@t.de", "Nur Nora"), _konto(client, "te-b-nur@t.de", "Nur Nepomuk")
     slug, _l = _team_mit(client, ka, kb, "Nur-Summen-Team")
     from app import models
     from app.db import SessionLocal
@@ -683,7 +683,7 @@ def test_event_nur_gesamtsummen(client):
                        json={**body, "summen": ["pumps"], "summen_sportart": "quatsch"}).status_code == 422
     ev = client.post(f"/api/teams/{slug}/events", headers=ka, json={**body, "summen": ["pumps", "aktive"]}).json()
     assert ev["tafeln"] == [] and ev["summen"] == {"pumps": 320, "aktive": 2} and ev["summen_sportart"] == "pumpfoil"
-    # Nur mit Bewegungsdaten: Nils' GPS-only-Session faellt raus
+    # Nur mit Bewegungsdaten: Nepomuks GPS-only-Session faellt raus
     r = client.put(f"/api/teams/{slug}/events/{ev['id']}", headers=ka,
                    json={**body, "summen": ["pumps"], "summen_accel_only": True}).json()
     assert r["summen_accel_only"] is True and r["summen"] == {"pumps": 120}

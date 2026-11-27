@@ -76,7 +76,7 @@ MAX_TEXT_STEP = 4
 MAX_ELEMENTS = 24          # Uhr-Speicher + Object Store: bewusst knapp
 MAX_LAYOUTS = 40           # pro Nutzer
 MAX_TEXT_LEN = 12          # Freitext: die Uhr hat wenig Platz UND wenig Object Store
-# 21 = Max-Puls des letzten Laufs (Wunsch ThermikDreher 15.08. „Letzter Lauf Max HR", Jan 17.08.
+# 21 = Max-Puls des letzten Laufs (Wunsch eines Nutzers 15.08. „Letzter Lauf Max HR", Jan 17.08.
 # auf alle Uhren erweitert). Der Session-Max-Puls ist ID 9 und gab es schon.
 # 22/23 = Strecke/Zeit ueber ALLE Laeufe der Aufnahme (Wunsch Roman 28.09.2026).
 VALID_FIELD_IDS = set(range(0, 24))
@@ -147,7 +147,7 @@ def _clean_element(e) -> list | None:
         # Feld 21 („Letzter Lauf: Max Puls") dazukam, wurde VALID_FIELD_IDS erweitert, die 20 in
         # der Klemme aber nicht — jedes Speichern machte aus der 21 eine 20, und das ist „Läufe
         # (Anzahl)". Der Nutzer stellte also Max Puls ein und bekam die Lauf-Anzahl zurück, ohne
-        # jede Fehlermeldung (gemeldet von ThermikDreher, 18.08.).
+        # jede Fehlermeldung (gemeldet von einem Nutzer, 18.08.).
         # Klemmen ist hier grundsätzlich falsch: eine unbekannte ID auf eine GÜLTIGE zu ziehen
         # heisst, dem Nutzer ein anderes Feld unterzuschieben. Unbekannt -> Element verwerfen,
         # wie bei jedem anderen ungültigen Wert in dieser Funktion auch.
@@ -420,7 +420,7 @@ def community(
     #
     # Vorher war der Autor herausgerechnet („sonst rankt sich jeder selbst hoch"). Das war zwar
     # gegen Selbstbeweihraeucherung gedacht, hat aber die Beschriftung zur Luege gemacht: Jan
-    # kopierte am 02.09. „All in" von Skalda und aktivierte es — genutzt wurde es damit von zwei
+    # kopierte am 02.09. „All in" eines anderen Nutzers und aktivierte es — genutzt wurde es damit von zwei
     # Foilern, angezeigt stand weiter „von 1 Foilern genutzt". Und weil der Autor NIE mitzaehlte,
     # konnte dort ueberhaupt nie eine 2 stehen, solange nur einer es uebernimmt.
     #

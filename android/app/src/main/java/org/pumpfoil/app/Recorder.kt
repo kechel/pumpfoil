@@ -564,7 +564,7 @@ object Recorder {
     // sich daraus ergibt) — die Rohdaten gehen unveraendert zum Server, der rechnet selbst.
     // Entschieden wird auf dem DOPPLER-Wert, nicht auf dem Abstand: er ist unabhaengig vom
     // Positions-Zittern. Nur wenn das Geraet keine Geschwindigkeit liefert (negativ = unbekannt),
-    // faellt es auf eine Mindest-Verschiebung zurueck. Idee aus @elmanu13s Zepp-PR, dort ueber ein
+    // faellt es auf eine Mindest-Verschiebung zurueck. Idee aus dem Zepp-PR eines Beitragenden, dort ueber ein
     // 5-s-Netto-Fenster geloest, weil Zepp weder Genauigkeit noch Doppler liefert.
     // Ab hier gilt eine Pause zwischen zwei Fixes als GPS-Luecke (1 Hz angefordert; kurze Aussetzer unter Wasser sind normal).
     private const val GPS_LUECKE_MS = 10_000L

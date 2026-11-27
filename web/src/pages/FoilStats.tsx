@@ -53,7 +53,7 @@ export default function FoilStats() {
         </Link>
       </div>
       <p className="mb-2 text-sm text-slate-300">{t("foilStats.hint")} {t("foilStats.clickHint")}</p>
-      {/* Low End (01.11.2026, Feedback foiling_fabs): was die Spalte misst, steht hier — nicht nur im Tooltip. */}
+      {/* Low End (01.11.2026, Feedback eines Nutzers): was die Spalte misst, steht hier — nicht nur im Tooltip. */}
       <p className="mb-4 text-sm text-slate-400">{t("foilStats.lowEndHint")}</p>
       <p className="-mt-2 mb-4 text-sm text-slate-400">{t("foilStats.scootHint")}</p>
       {minLauf > 0 && <p className="-mt-2 mb-4 text-sm font-medium text-brand-700 dark:text-brand-300">{t("foilStats.minRunHint", { min: minLauf })}</p>}

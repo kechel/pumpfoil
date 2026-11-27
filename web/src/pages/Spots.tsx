@@ -160,7 +160,7 @@ function SpotKarte({ reiter }: { reiter: React.ReactNode }) {
   // `keydown`-Listener am DOCUMENT haengen: er wird bei Fokus auf dem Kartencontainer registriert
   // und erst beim Blur wieder entfernt — beim Unmount feuert kein Blur mehr. Der tote Listener
   // schluckt dann seine Zoom-/Pan-Tasten auf der GANZEN Seite, auch in Eingabefeldern.
-  // Gemeldet 17.08. (PeterH, Firefox): nach einem Klick auf einen Spot in der Karte liessen sich
+  // Gemeldet 17.08. (ein Nutzer, Firefox): nach einem Klick auf einen Spot in der Karte liessen sich
   // im Chat -, _, +, *, 6, & und die Pfeiltasten nicht mehr tippen, Einfuegen ging weiter, ein
   // Reload half. Das sind exakt Leaflets Vorgaben `zoomIn [187,107,61,171]`,
   // `zoomOut [189,109,54,173]` und die Pfeile — auf deutscher Tastatur ergeben die drei Tasten

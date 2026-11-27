@@ -105,7 +105,7 @@ def test_bester_einzellauf_getrennt_von_summe(client):
 
 
 def test_eigene_zeile_unter_platz_zehn(client):
-    # Olek, 01.11.2026: wer nicht unter den ersten 10 steht, bekommt darunter Rang und Wert.
+    # Wunsch eines Nutzers, 01.11.2026: wer nicht unter den ersten 10 steht, bekommt darunter Rang und Wert.
     basis = 1.0e13 + time.time() * 1000
     db = SessionLocal()
     try:                                                       # zehn, die sicher vorne stehen (direkt, ohne

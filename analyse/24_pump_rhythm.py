@@ -2,7 +2,7 @@
 """Experiment v3: sanftes Pumpen über Pump-Band-RHYTHMIK erkennen (zusätzlich zur Amplitude).
 
 v2 (produktiv) = vertikal gegen g + lauf-lokale Schwelle max(k·std, 0.04 g). Problem: sehr
-sanftes, aber rhythmisches Pumpen (Markus) liegt unter dem 0.04-g-Boden -> ganze Abschnitte
+sanftes, aber rhythmisches Pumpen (ein Fahrer) liegt unter dem 0.04-g-Boden -> ganze Abschnitte
 ohne Marker -> unrealistisch lange „Glides" mitten im Lauf (z. B. 361 run26: 30 s).
 
 v3 = v2, aber der absolute Boden wird dort abgesenkt, wo eine klare Pump-Band-Periodik

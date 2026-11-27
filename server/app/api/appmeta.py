@@ -1311,23 +1311,23 @@ IDEEN: list[str] = [
     "already drawn on the map.",
     "Paddle-up starts: count the strokes it takes you to get up, and how fast you are when "
     "the board lifts.",
-    # Frage gizmomogwai (u683) zu #16667, 14.10.2026; Jan: „adding it to the ideas list". Ob es mit
+    # Frage eines Nutzers zu #16667, 14.10.2026; Jan: „adding it to the ideas list". Ob es mit
     # 25 Hz geht oder erst mit 100 Hz, ist offen (docs/TODO.md Inbox 14.10.).
     "Tell which way you started each run: running or dock start, drop start, dead start, maybe "
     "even from the knees.",
     "Pick the foil per run, not just per session — most of us swap gear during a session.",
-    # Wunsch Lukáš (u836, Feedback #208 mit fertigem Prompt, Session #18864, nur GPS), 23.10.2026. Kuerzen ist
+    # Wunsch eines Nutzers (Feedback #208 mit fertigem Prompt, Session #18864, nur GPS), 23.10.2026. Kuerzen ist
     # gebaut (Web, „Trim start/end", steht im Changelog). Offen: VERLAENGERN braucht feste Laufgrenzen in der
     # Auswertung (Analyse-Pipeline, Jans OK); dazu „zurueck auf erkannt" im Dialog nach dem Speichern und, nur
     # fuer Sessions mit Accel, Pump-Marker/Pumptakt im Editor. Android/iOS bewusst nicht (seltener Fall).
     "Extend a run at its start or end, too, not only shorten it — for runs the detection cut off too early.",
     "Reset a trimmed run back to its detected start and end with one tap in the trim window.",
     "Show pump markers and pump cadence in the run trim window, for sessions recorded with motion data.",
-    # Wunsch PumpingCarbon (Feedback 09.10.2026): „wie weit man geschwommen ist … da man diese ja so
+    # Wunsch eines Nutzers (Feedback 09.10.2026): „wie weit man geschwommen ist … da man diese ja so
     # weit wie es geht reduzieren moechte". Ohne Zusage (Jan, 12.10.). Offen: Schwimmen vom Treiben
     # unterscheiden; unter Wasser gibt es oft kein GPS (s. Amazfit-Feldtest 12.10.).
     "How far you swam between runs — a number worth getting as low as possible.",
-    # Vorschlag von Oerni im 1:1-Chat mit Jan (04.10.2026): wer in EINER Session pumpt und Boote
+    # Vorschlag eines Nutzers im 1:1-Chat mit Jan (04.10.2026): wer in EINER Session pumpt und Boote
     # (Wakethief) faehrt, will die Laeufe einzeln zuordnen; die zaehlen dann auch in der
     # Spot-Statistik. Jan: „benoetigt den gleichen Umbau wie Foil je Lauf".
     "Pick the sport per run as well, so one session can hold both pumpfoil and wake-thief "
@@ -1397,7 +1397,7 @@ IDEEN: list[str] = [
     # gelten die Grenzen der Foil-Statistik (nur Gesamtzahlen, mehr als drei Fahrer).
     "A chart of how your speed is spread out, for a session, for one foil of yours, or for a foil across all riders, "
     "to compare sessions and foils at a glance.",
-    # Heart Rate Recovery (ThermikDreher, 14.10.) stand hier ein paar Stunden — am selben Tag als
+    # Heart Rate Recovery (Wunsch eines Nutzers, 14.10.) stand hier ein paar Stunden — am selben Tag als
     # Pulsabfall 60/120 s in der Lauftabelle gebaut, steht im Changelog. Nicht wieder eintragen.
     # Der „private Modus" (Feedback #146) stand hier bis 25.09. — gebaut als „Ort verbergen",
     # steht seitdem im Changelog. Nicht wieder eintragen.
