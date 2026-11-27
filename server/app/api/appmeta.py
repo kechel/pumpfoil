@@ -53,7 +53,9 @@ def news_banner(db: Session = Depends(get_db)) -> dict:
 _APP_META: dict[str, dict[str, str]] = {
     # --- Handy-Apps ---
     "ios": {
-        "latest": "1.1.68",   # FREIGEGEBEN 2026-11-20 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.68 for iOS
+        "latest": "1.1.69",   # FREIGEGEBEN 2026-11-26 (Jans Meldung 27.11.), Apple-Mail eligible for distribution, 1.1.69 for iOS
+        # (Submission f71e535d-4766-4cce-93cf-b36732428357, Build 80); Store-Lookup de/us 1.1.69 (released 2026-11-26T22:04:38Z).
+        # ALT: "latest": "1.1.68",   # FREIGEGEBEN 2026-11-20 (Jans Meldung), Apple-Mail eligible for distribution, 1.1.68 for iOS
         # (Submission b5e04778-cd93-48f1-bf17-15f96d39fb83, Build 79); Store-Lookup de/us/nl/no 1.1.68 (released 2026-11-20T00:13:52Z).
         # ALT: "latest": "1.1.67",   # FREIGEGEBEN 2026-11-17 (Jans Meldung 18.11.), Apple-Mail eligible for distribution, 1.1.67 for iOS
         # (Submission 640546f6-64a8-4eae-bf30-5a937970dfeb, Build 78); Store-Lookup de/us/nl/no 1.1.67 (2026-11-17T22:29:12Z).
@@ -545,7 +547,8 @@ _APP_META: dict[str, dict[str, str]] = {
     },
     "apple": {
         # Die Watch-App steckt IM iOS-Bundle und traegt dieselbe MARKETING_VERSION (project.yml).
-        "latest": "1.1.68",   # FREIGEGEBEN 2026-11-20 — dieselbe Einreichung wie "ios" (ein Bundle).
+        "latest": "1.1.69",   # FREIGEGEBEN 2026-11-26 — dieselbe Einreichung wie "ios" (ein Bundle).
+        # ALT: "latest": "1.1.68",   # FREIGEGEBEN 2026-11-20 — dieselbe Einreichung wie "ios" (ein Bundle).
         # ALT: "latest": "1.1.67",   # FREIGEGEBEN 2026-11-17 — dieselbe Einreichung wie "ios" (ein Bundle; Watch unveraendert).
         # ALT: "latest": "1.1.66",   # FREIGEGEBEN 2026-11-12 — dieselbe Einreichung wie "ios" (ein Bundle; GPS-Luecke am Lauf-Ende).
         # ALT: "latest": "1.1.65",   # FREIGEGEBEN 2026-11-11 — dieselbe Einreichung wie "ios" (ein Bundle).
@@ -1005,21 +1008,7 @@ IN_REVIEW: list[dict] = [
          "The MCP connection settings moved to Settings › Account, and referee review requests have their own notification switch.",
          "Pumpfoil now also speaks Croatian, Danish, Swedish and Hungarian, and dictation works in every app language.",
      ]},
-    {"name": "iPhone + Apple Watch", "version": "1.1.69",
-     # Build 80, am 26.11.2026 13:58 eingereicht (Jans Meldung, ASC „Warten auf Pruefung", Uebermittlung f71e535d).
-     "eingereicht": "2026-11-26",
-     "items": [
-         "Performance tab: flying 100 m, flying minute, longest run and total time on foil per day, with a Top 20 column and points per day.",
-         "Performance tab: the 2027 season score starts on 1 January, and today is shown as preliminary while riders are still uploading.",
-         "History: new curve for the average run time, so you can see whether your runs get longer over time.",
-         "See how much of your foiling time you spend at each speed, in Home › Stats › Speed and for each session in the session details.",
-         "Sort your own sessions by date, longest run, distance or time on the foil, or top speed with the filter button in Sessions › Mine.",
-         "Garmin watches have a new setting to choose whether the motion data also goes into Garmin's own activity file.",
-         "The watch quality table shows the longest complete session with motion data per watch and can be sorted by every value.",
-         "The feedback form asks you to fill in the missing foil or stabilizer details before sending.",
-         "The MCP connection settings moved to Settings › Account, and referee review requests have their own notification switch.",
-         "Pumpfoil now also speaks Croatian, Danish, Swedish and Hungarian, and dictation works in every app language.",
-     ]},
+    # iPhone + Apple Watch 1.1.69 (Build 80) am 26.11. 13:58 eingereicht, am 26.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte im Changelog mit ios 1.1.69.
     # Amazfit 1.0.18 am 24.11. eingereicht, am 25.11. FREIGEGEBEN (s. _APP_META["zepp"]); Punkt im Changelog mit zepp 1.0.18.
     # iPhone + Apple Watch 1.1.68 (Build 79) am 19.11. 12:22 eingereicht, am 20.11. FREIGEGEBEN (s. _APP_META["ios"]); Punkte im Changelog mit ios 1.1.68.
     # Android 1.1.49 / Wear 1.2.49 am 19.11. eingereicht, am 26.11. FREIGEGEBEN (Play-Mail, s. _APP_META["android"]); 5 Punkte tragen android 1.1.49 dazu.
