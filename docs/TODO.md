@@ -1563,6 +1563,16 @@ kleinere Nummer im Store und muesste mit einer weiteren Version geheilt werden.
 
 ## 📥 Inbox
 
+### 27.11.2026 — SUP ohne Foil zeigt Pumps (Feedback eines Nutzers)
+
+- **Meldung (Feedback-Formular, 27.11. 18:15):** „Beim SUP (ohne Foil) werden Pumps angezeigt. Beim SUP
+  paddeln pumpt man nicht."
+- **Befund (nur gelesen):** Session ist `sup_paddle`, 0 Laeufe, `metrics.pumps` leer; Paddelschlaege sind gerechnet
+  (Cache `data/paddel/`, seit 4cd568233 / 20.10.: „strokes“ je Session + Sprint-Versuche). Wo die Seite trotzdem
+  Pumps zeigt (Kopfzahlen? Kacheln? Takt-Anzeige?), ist noch offen.
+- **Vorhaben:** bei SUP/Paddeln ohne Foil keine Pump-Angaben, stattdessen Paddelschlaege; danach dem Melder kurz
+  antworten (Konto 230, ohne Anrede mit Namen).
+
 ### 25.11.2026 — Amazfit 1.0.18: Sammel-Upload haengt auf T-Rex 3 Pro, „Error: out of memory" (Fall 2026-11-25-a)
 
 - **Befund:** Session A (6 min, Accel 18 Hz) — 20:53 kamen GPS 0-20 und Accel 0-24 in zwei Sammel-Anfragen, danach bei (Fall 2026-11-25-b)
