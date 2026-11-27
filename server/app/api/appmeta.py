@@ -1171,6 +1171,15 @@ IN_REVIEW: list[dict] = [
 # „Coming next" = gebaut und inhaltlich fertig, aber noch NICHT hochgeladen. Sobald Jan
 # einreicht, wandert der Eintrag unveraendert nach IN_REVIEW (Regel 1 oben).
 NAECHSTES: list[dict] = [
+    # 27.11.2026: Melden in zwei Stufen (Web live, bc4ee97fe); in den Apps gebaut, kommt mit dem naechsten Release.
+    {"name": "iPhone + Apple Watch", "version": "1.1.70",
+     "items": [
+         "Reporting a session is simpler: next to “Doesn’t look like pumpfoil” there is now one “Report” button for harmful, offensive or manipulated sessions, and “looks fake” is gone.",
+     ]},
+    {"name": "Android phone + Wear OS", "version": "1.1.51 / 1.2.51",
+     "items": [
+         "Reporting a session is simpler: next to “Doesn’t look like pumpfoil” there is now one “Report” button for harmful, offensive or manipulated sessions, and “looks fake” is gone.",
+     ]},
     # Pumpfoil GT 1.0.8 am 26.11. eingereicht -> IN_REVIEW.
     # Pumpfoil GT 1.0.7 am 23.11. eingereicht -> IN_REVIEW.
     # Garmin 1.0.103 am 12.11. eingereicht -> IN_REVIEW.
