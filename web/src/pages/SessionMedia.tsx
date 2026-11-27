@@ -11,7 +11,7 @@ import { useI18n, useT } from "../i18n";
 import { fmtDate, fmtTime } from "../lib/time";
 import { ladeSessionView } from "../lib/sessionViewPrefs";
 import { fmtPumpRate, usePumpUnit } from "../lib/pumpRate";
-import { baueClip } from "../lib/media/clip";
+import { baueClip, zuschneiden } from "../lib/media/clip";
 import {
   ANKER, CFG_DEFAULT, CFG_EVENT, EL_KEYS, type Anker, type ElKey, type EventOverlay, type Format, type MediaCfg, type Texte,
   masse, sprintName, videoDauer, zeichne,
@@ -118,7 +118,7 @@ function eventParam(roh: string | null): { slug: string; id: number; tafel: numb
 }
 
 const FORMATE: Format[] = ["9:16", "4:5", "1:1", "16:9"];
-const TEMPI = [1, 2, 4, 8];
+const TEMPI = [1, 2, 4, 8, 16, 32];     // 16×/32× seit 27.11.2026 (Feedback: ganze Sessions passten nicht in 180 s)
 const GROESSEN = [0.7, 1, 1.4];
 
 function Knopf({ an, onClick, children, title }: { an: boolean; onClick: () => void; children: React.ReactNode; title?: string }) {
@@ -219,10 +219,14 @@ export default function SessionMedia() {
   // Kann der Browser kein durchsichtiges WebM: auf MP4 auf Schwarz ausweichen (geht ueberall).
   useEffect(() => { if (alphaOk === false && cfg.hintergrund === "alpha") setCfg((c) => ({ ...c, hintergrund: "schwarz" })); }, [alphaOk, cfg.hintergrund]);
 
-  const basisClip = useMemo(
+  const ganzClip = useMemo(
     () => (session ? baueClip(session, zeiten, carves, lauf, ladeSessionView().win) : null),
     [session, zeiten, carves, lauf],
   );
+  // Ausschnitt (27.11.2026, Feedback „Höchstens 180 Sekunden" trotz 8×): Clip-ms im ganzen Clip, null = alles.
+  // Neu gewaehlter Lauf oder andere Session -> wieder alles.
+  const [ausschnitt, setAusschnitt] = useState<[number, number] | null>(null);
+  useEffect(() => { setAusschnitt(null); }, [session?.id, lauf]);
 
   // --- Weitere Fahrer (docs/MEDIA.md Schritt 6): je Session auf diesem Geraet gemerkt (LS_SITZUNG) ---
   const [fahrer, setFahrer] = useState<Mitfahrer[]>(gemerkt.fahrer ?? []);
@@ -231,6 +235,11 @@ export default function SessionMedia() {
   const [sprintWahl, setSprintWahl] = useState<string | null>(gemerkt.sprintWahl ?? null);
   const [drehen, setDrehen] = useState(gemerkt.drehen ?? false);
   const [hauptAnzeige, setHauptAnzeige] = useState<Anzeige>(gemerkt.hauptAnzeige ?? ANZEIGE_HAUPT);
+  // Mit weiteren Fahrern bleibt der ganze Lauf (ihr Abgleich haengt an Start/Sprint des Hauptfahrers).
+  const basisClip = useMemo(
+    () => (ganzClip && ausschnitt && !fahrer.length ? zuschneiden(ganzClip, ausschnitt[0], ausschnitt[1]) : ganzClip),
+    [ganzClip, ausschnitt, fahrer.length],
+  );
   // Erst speichern, wenn die Session da ist — sonst ueberschriebe der Startwert „alle" den gemerkten Lauf.
   useEffect(() => {
     if (!id || !session || String(session.id) !== id) return;
@@ -629,7 +638,37 @@ export default function SessionMedia() {
                   {t("media.length", { s: dauer.toFixed(1) })}
                 </span>
               </div>
-              {zuLang && <p className="text-sm text-red-700 dark:text-red-300">{t("media.tooLong", { max: String(MAX_SEKUNDEN) })}</p>}
+              {ganzClip && !fahrer.length && ganzClip.dauerMs > 2000 && (() => {
+                const gesamt = ganzClip.dauerMs, [a, b] = ausschnitt ?? [0, gesamt];
+                const setze = (x: number, y: number) => setAusschnitt(x <= 0 && y >= gesamt ? null : [x, y]);
+                const mmss = (ms: number) => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+                const regler = "w-full accent-brand-500";
+                return (
+                  <div className="space-y-1 text-sm text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <span className="w-20">{t("media.cut")}</span>
+                      <span className="tabular-nums">{mmss(a)} – {mmss(b)}</span>
+                      <span className="text-slate-400">({mmss(b - a)} / {mmss(gesamt)})</span>
+                      {ausschnitt && <button className="ml-auto underline" onClick={() => setAusschnitt(null)}>{t("media.cutAll")}</button>}
+                    </div>
+                    <label className="flex items-center gap-2"><span className="w-20 text-slate-400">{t("media.cutFrom")}</span>
+                      <input type="range" min={0} max={gesamt} step={1000} value={a} className={regler}
+                        onChange={(e) => { const x = Math.min(Number(e.target.value), b - 2000); setze(Math.max(0, x), b); }} /></label>
+                    <label className="flex items-center gap-2"><span className="w-20 text-slate-400">{t("media.cutTo")}</span>
+                      <input type="range" min={0} max={gesamt} step={1000} value={b} className={regler}
+                        onChange={(e) => { const y = Math.max(Number(e.target.value), a + 2000); setze(a, Math.min(gesamt, y)); }} /></label>
+                  </div>
+                );
+              })()}
+              {zuLang && <p className="text-sm text-red-700 dark:text-red-300">{t("media.tooLong", { max: String(MAX_SEKUNDEN) })}
+                {ganzClip && !fahrer.length && (() => {
+                  // Laenge, die bei diesem Tempo noch passt (Vor-/Nachlauf und Endtafel abgezogen)
+                  const rest = (MAX_SEKUNDEN - (dauer - (clip?.dauerMs ?? 0) / 1000 / cfg.tempo)) * cfg.tempo * 1000;
+                  const a = ausschnitt?.[0] ?? 0;
+                  return rest >= 2000 ? <> <button className="font-semibold underline" onClick={() =>
+                    setAusschnitt([a, Math.min(ganzClip.dauerMs, a + Math.floor(rest / 1000) * 1000)])}>{t("media.cutFit", { max: String(MAX_SEKUNDEN) })}</button></> : null;
+                })()}
+              </p>}
               <div className="flex flex-wrap items-center gap-2 text-sm text-slate-300">
                 <span className="w-20">{t("media.format")}</span>
                 {FORMATE.map((f) => <Knopf key={f} an={cfg.format === f} onClick={() => setCfg({ ...cfg, format: f })}>{f}</Knopf>)}

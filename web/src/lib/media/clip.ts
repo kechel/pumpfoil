@@ -243,3 +243,45 @@ export function obereGrenze(arr: number[], x: number): number {
   while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m] <= x) lo = m + 1; else hi = m; }
   return lo;
 }
+
+/**
+ * Ausschnitt waehlen (Feedback 27.11.2026: „Höchstens 180 Sekunden" trotz 8× — Jan: Ausschnitt waehlbar machen).
+ * `von`/`bis` in Clip-ms (Pausen zwischen den Laeufen zaehlen nicht). Liefert einen neuen Clip, der nur diesen Teil
+ * enthaelt: Abschnitte gekuerzt, Pumps/Gleiten/Sprints/Carves gefiltert, Strecke ab dem Ausschnitt neu gezaehlt,
+ * Kartenausschnitt auf den Teil. Farbbereiche (Tempo, Puls, Pumpfrequenz) bleiben die des ganzen Clips, damit sich die
+ * Farben beim Verschieben nicht aendern. Je ein Punkt vor und nach jeder Grenze bleibt drin, damit an den Raendern
+ * zwischen echten Punkten interpoliert wird.
+ */
+export function zuschneiden(clip: Clip, von: number, bis: number): Clip {
+  von = Math.max(0, von); bis = Math.min(clip.dauerMs, bis);
+  if (bis - von < 1000 || (von <= 0 && bis >= clip.dauerMs)) return clip;
+  const a = clipZuSession(clip, von), b = clipZuSession(clip, bis);
+  const spans = clip.spans.map(([s, e]) => [Math.max(s, a), Math.min(e, b)] as [number, number]).filter(([s, e]) => e > s);
+  if (!spans.length) return clip;
+  const drin = (t: number) => spans.some(([s, e]) => t >= s && t <= e);
+  const P = clip.pts;
+  const innen = P.map((p) => drin(p.t));
+  const keep = P.map((p, i) => innen[i]
+    || (i + 1 < P.length && innen[i + 1] && P[i + 1].span === p.span)
+    || (i > 0 && innen[i - 1] && P[i - 1].span === p.span));
+  // Strecke am Beginn des Ausschnitts (zwischen den beiden Punkten um `a` interpoliert)
+  let d0 = 0;
+  for (let i = 0; i + 1 < P.length; i++) {
+    const p = P[i], q = P[i + 1];
+    if (p.t <= a && q.t >= a && p.span === q.span) { d0 = q.t > p.t ? p.d + (q.d - p.d) * (a - p.t) / (q.t - p.t) : p.d; break; }
+    if (p.t >= a) { d0 = p.d; break; }
+  }
+  const pts = P.filter((_, i) => keep[i]).map((p) => ({ ...p, d: Math.max(0, p.d - d0) }));
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const p of pts) { minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y); }
+  const pumps = clip.pumps.filter(drin);
+  return {
+    ...clip, spans, dauerMs: spans.reduce((s, [x, y]) => s + (y - x), 0), pts,
+    pumps, pumpPos: clip.pumpPos.filter((p) => drin(p.t)),
+    glides: clip.glides.map(([s, e]) => [Math.max(s, a), Math.min(e, b)] as [number, number]).filter(([s, e]) => e > s && drin((s + e) / 2)),
+    sprints: clip.sprints.filter((s) => drin((s.a + s.b) / 2)),
+    carves: clip.carves.filter((c) => drin((c.a + c.b) / 2)),
+    hatPumps: pumps.length > 0,
+    bbox: pts.length ? [minX, minY, maxX, maxY] : clip.bbox,
+  };
+}
