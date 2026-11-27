@@ -21,3 +21,4 @@ cb9b5a0f4a8b09ba490e3acc902f38acf85205797cd59654645e5c1ef8c1ada0  # Mundartwort 
 d51cc04b7a9b7c9a34e6dd935e500ba02c5d2e3f7989788dc74f97b506dd9016  # Zufallsfolge in Base64-Daten einer Test-Fixture (27.11.2026)
 6a51aff23b0ea560934ff737b316a29f5c7cd1a013be5e83a6f6e585ce31d6e1  # Zufallsfolge in eingebetteten Base64-Bildern (27.11.2026)
 2476a82dbd2dd83a14e3dd459fe109c2a55114751e1d283d46ab1a435e4f2f0b  # Teil eines Metriknamens (F1-Wert) in Tuning-Skripten (27.11.2026)
+cc72862e14c1b748760eb5605ed1f6dbe6353243aa5e3ce84afd59da6f0c4ee1  # Zufallsfolge in eingebetteten Base64-Bildern (brand/social, brand/teams) (27.11.2026)
