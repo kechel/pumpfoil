@@ -139,7 +139,7 @@ class Pruefer:
 # Konto-IDs, DM-Kennungen und Session-Nummern fremder Fahrer gehoeren nach lokal/FAELLE.md, oeffentlich nur Rolle +
 # Fall-Kennung. Erlaubt: Jans Konto (2), Assistent (230), Store-/Testkonten — und Sessions dieser Konten.
 ERLAUBTE_KONTEN = {2, 6, 7, 38, 230, 881}
-KONTO = re.compile(r"(?<![\\\w+/=])u(\d{2,5})(?![\w+/=])|\buser_id\s*[=:]\s*(\d{2,5})\b|\b[Uu]ser (\d{2,5})\b|\bdm:(\d+)-(\d+)\b")
+KONTO = re.compile(r"(?<![\\\w+/=])u(\d{2,5})(?![\w+/=])|\buser_id\s*[=:]\s*(\d{2,5})\b|\b[Uu]ser (\d{2,5})\b|\bdm:230-(\d+)\b|\bdm:(\d+)-230\b")   # DM-Kennung des Assistenten = echtes Gespraech (Testdaten nutzen erfundene)
 # Nackte „#<Zahl>" erst ab 5 Stellen (Sessions liegen seit Monaten darueber; 4-stellig sind oft Changelog-, Geraete-
 # oder Feedback-Nummern). Ausdruecklich als Session benannt zaehlt auch 4-stellig.
 SESSION = re.compile(r"(?<![\w&])#(?!0)(\d{5,6})\b(?![0-9a-fA-F])|\b[Ss]ession(?:s)?/?\s*#?(\d{4,6})\b|/sessions/(\d{4,6})\b")
