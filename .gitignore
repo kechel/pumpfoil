@@ -130,3 +130,6 @@ watch-zepp/page/devflags.js
 /tmp/
 analyse/sicherung-import-sportarten.csv
 web/public/klaenge/
+
+# Personenbezuege zu Faellen (u-IDs, Session-Nummern) — nur auf der VM, nie committen (27.11.2026)
+/lokal/

@@ -54,6 +54,9 @@ ENV_GEHEIM = re.compile(r"SECRET|PASS|PRIVATE|TOKEN|DATABASE_URL|SUBSCRIPTION_KE
 # Ordner PRIVAT/ (Jan, 08.11.2026): Notizen, die nie oeffentlich werden duerfen, auch nicht, wenn ein privater
 # Zweig spaeter hierher gemergt wird. Erlaubt nur in Klonen, deren origin NICHT auf GitHub zeigt.
 PRIVAT = re.compile(r"(^|/)PRIVAT/", re.I)
+# Ordner lokal/ (Jan, 27.11.2026): Personenbezuege zu Faellen (u-IDs, Session-Nummern, Namen) bleiben nur auf der VM;
+# oeffentlich steht nur die Fall-Kennung. In KEINEM Klon committen (auch nicht im privaten), .gitignore schliesst ihn aus.
+LOKAL = re.compile(r"(^|/)lokal/", re.I)
 
 
 def oeffentlicher_klon() -> bool:
@@ -114,6 +117,8 @@ def pruefen(pfad: str, inhalt: bytes, env: list[bytes]) -> list[str]:
         gruende.append("liegt in einem Sicherungs-/tmp-Ordner")
     if PRIVAT.search("/" + pfad) and oeffentlicher_klon():
         gruende.append("liegt in PRIVAT/ — gehoert nie ins oeffentliche Repo")
+    if LOKAL.search("/" + pfad):
+        gruende.append("liegt in lokal/ — Personenbezuege, nie committen")
     if klein.endswith(ENDUNGEN) or (Path(klein).name.startswith(".env") and not klein.endswith(".example")):
         gruende.append(f"Dateityp {Path(pfad).suffix or Path(pfad).name} (Archiv/Abzug/Rohdaten/Schluessel)")
     if klein.endswith(DATEN) and sieht_nach_tabelle_aus(pfad, inhalt):
